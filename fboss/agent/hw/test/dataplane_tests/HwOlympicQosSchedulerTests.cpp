@@ -34,16 +34,12 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
         getHwSwitch(),
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackMode());
-    if (isSupported(HwAsic::Feature::L3_QOS)) {
-      auto streamType =
-          *(getPlatform()
-                ->getAsic()
-                ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
-                .begin());
-      utility::addOlympicQueueConfig(
-          &cfg, streamType, getPlatform()->getAsic());
-      utility::addOlympicQosMaps(cfg, getPlatform()->getAsic());
-    }
+    auto streamType = *(getPlatform()
+                            ->getAsic()
+                            ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
+                            .begin());
+    utility::addOlympicQueueConfig(&cfg, streamType, getPlatform()->getAsic());
+    utility::addOlympicQosMaps(cfg, getPlatform()->getAsic());
     return cfg;
   }
   MacAddress dstMac() const {
@@ -158,12 +154,7 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
   }
 
   void verifyWRRAndSP(const std::vector<int>& queueIds, int trafficQueueId) {
-    if (!isSupported(HwAsic::Feature::L3_QOS)) {
-      return;
-    }
-
     utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
-
     auto setup = [=]() { _setup(ecmpHelper6, queueIds); };
 
     auto verify = [=]() {
@@ -302,10 +293,6 @@ bool HwOlympicQosSchedulerTest::verifySPHelper(int trafficQueueId) {
 }
 
 void HwOlympicQosSchedulerTest::verifyWRR() {
-  if (!isSupported(HwAsic::Feature::L3_QOS)) {
-    return;
-  }
-
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
   auto setup = [=]() {
@@ -326,10 +313,6 @@ void HwOlympicQosSchedulerTest::verifyWRR() {
 }
 
 void HwOlympicQosSchedulerTest::verifySP(bool frontPanelTraffic) {
-  if (!isSupported(HwAsic::Feature::L3_QOS)) {
-    return;
-  }
-
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
   auto setup = [=]() {
@@ -368,10 +351,6 @@ void HwOlympicQosSchedulerTest::verifyWRRAndNC() {
 }
 
 void HwOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
-  if (!isSupported(HwAsic::Feature::L3_QOS)) {
-    return;
-  }
-
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
   auto setup = [=]() {
@@ -401,10 +380,6 @@ void HwOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
 }
 
 void HwOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
-  if (!isSupported(HwAsic::Feature::L3_QOS)) {
-    return;
-  }
-
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
   auto setup = [=]() {
