@@ -55,8 +55,8 @@ class LookupClassUpdater : public StateObserver {
 
   template <typename NeighborEntryT>
   bool shouldProcessNeighborEntry(
-      const std::shared_ptr<NeighborEntryT>& newEntry,
-      bool added) const;
+      const std::shared_ptr<NeighborEntryT>& oldEntry,
+      const std::shared_ptr<NeighborEntryT>& newEntry) const;
   template <typename AddedNeighborEntryT>
   void processAdded(
       const std::shared_ptr<SwitchState>& switchState,

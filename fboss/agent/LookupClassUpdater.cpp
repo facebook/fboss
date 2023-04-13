@@ -227,14 +227,31 @@ void LookupClassUpdater::updateNeighborClassID(
 
 template <typename NeighborEntryT>
 bool LookupClassUpdater::shouldProcessNeighborEntry(
-    const std::shared_ptr<NeighborEntryT>& entry,
-    bool added) const {
+    const std::shared_ptr<NeighborEntryT>& oldEntry,
+    const std::shared_ptr<NeighborEntryT>& newEntry) const {
   /*
    * At this point in time, queue-per-host fix is needed (and thus
    * supported) for physical link only.
    */
-  if (!(entry && entry->getPort().isPhysicalPort())) {
+  if (!(newEntry && newEntry->getPort().isPhysicalPort())) {
     return false;
+  }
+  bool added;
+  if (oldEntry) {
+    // from processChanged()
+    if constexpr (std::is_same_v<NeighborEntryT, MacEntry>) {
+      // new mac entry created by mac move should also be processed
+      // as a newly created mac entry
+      added =
+          oldEntry->getPort().phyPortID() != newEntry->getPort().phyPortID();
+    } else {
+      // pending to reachable state change should be processed as a newly
+      // added neighbor entry
+      added = !oldEntry->isReachable() && newEntry->isReachable();
+    }
+  } else {
+    // from processAdded()
+    added = true;
   }
   /*
    * If newEntry already has classID populated
@@ -256,12 +273,12 @@ bool LookupClassUpdater::shouldProcessNeighborEntry(
    *    We still need to process this new mac entry to keep track of refCnt,
    *    although this entry woud be removed later.
    */
-  if (entry->getClassID().has_value() &&
+  if (newEntry->getClassID().has_value() &&
       (!inited_ /* case 1 */ || !added /*case 2*/)) {
     return false;
   }
 
-  if (isNoHostRoute(entry)) {
+  if (isNoHostRoute(newEntry)) {
     return false;
   }
 
@@ -274,7 +291,8 @@ void LookupClassUpdater::processAdded(
     VlanID vlan,
     const std::shared_ptr<AddedNeighborEntryT>& addedEntry) {
   CHECK(addedEntry);
-  if (!shouldProcessNeighborEntry(addedEntry, true)) {
+  if (!shouldProcessNeighborEntry(
+          std::shared_ptr<AddedNeighborEntryT>(nullptr), addedEntry)) {
     XLOG(DBG2) << "Skip processing added neighbor entry " << addedEntry;
     return;
   }
@@ -315,17 +333,7 @@ void LookupClassUpdater::processChanged(
     const std::shared_ptr<ChangedNeighborEntryT>& newEntry) {
   CHECK(oldEntry);
   CHECK(newEntry);
-  bool added;
-  if constexpr (std::is_same_v<ChangedNeighborEntryT, MacEntry>) {
-    // new mac entry created by mac move should also be processed
-    // as a newly created mac entry
-    added = oldEntry->getPort().phyPortID() != newEntry->getPort().phyPortID();
-  } else {
-    // pending to reachable state change should be processed as a newly
-    // added neighbor entry
-    added = !oldEntry->isReachable() && newEntry->isReachable();
-  }
-  if (!(shouldProcessNeighborEntry(newEntry, added) &&
+  if (!(shouldProcessNeighborEntry(oldEntry, newEntry) &&
         oldEntry->getPort().isPhysicalPort())) {
     // TODO - ideally we shouldn't care about whether
     // the old port was a non physical port (LAG) or not
