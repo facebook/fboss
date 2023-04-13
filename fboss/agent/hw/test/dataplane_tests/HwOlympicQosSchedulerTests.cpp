@@ -453,6 +453,25 @@ TEST_F(HwOlympicQosSchedulerTest, VerifySP) {
  * tests front panel traffic.
  */
 TEST_F(HwOlympicQosSchedulerTest, VerifySPPreemptionCPUTraffic) {
+  auto spQueueIds = utility::kOlympicSPQueueIds(getAsic());
+  auto getQueueIndex = [&](int queueId) {
+    for (auto i = 0; i < spQueueIds.size(); ++i) {
+      if (spQueueIds[i] == queueId) {
+        return i;
+      }
+    }
+    throw FbossError("Could not find queueId: ", queueId);
+  };
+  // Assert that ICP comes before NC in the queueIds array.
+  // We will send traffic to all queues in order. So for
+  // preemption we want lower pri (ICP) queue to go before
+  // higher pri queue (NC).
+  ASSERT_LT(
+      getQueueIndex(
+          getOlympicQueueId(getAsic(), utility::OlympicQueueType::ICP)),
+      getQueueIndex(
+          getOlympicQueueId(getAsic(), utility::OlympicQueueType::NC)));
+
   verifySP(false /*frontPanelTraffic*/);
 }
 
