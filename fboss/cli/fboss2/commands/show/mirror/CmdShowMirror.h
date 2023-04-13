@@ -38,13 +38,13 @@ class CmdShowMirror : public CmdHandler<CmdShowMirror, CmdShowMirrorTraits> {
   RetType queryClient(
       const HostInfo& hostInfo,
       const ObjectArgType& queriedMirrors) {
-    std::string mirrorMap;
+    std::string mirrorMaps;
     std::map<int32_t, PortInfoThrift> portInfoEntries;
     auto client =
         utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-    client->sync_getCurrentStateJSON(mirrorMap, "mirrorMap");
+    client->sync_getCurrentStateJSON(mirrorMaps, "mirrorMaps");
     client->sync_getAllPortInfo(portInfoEntries);
-    return createModel(mirrorMap, portInfoEntries, queriedMirrors);
+    return createModel(mirrorMaps, portInfoEntries, queriedMirrors);
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
@@ -84,8 +84,8 @@ class CmdShowMirror : public CmdHandler<CmdShowMirror, CmdShowMirrorTraits> {
       const std::string& egressPort,
       const std::map<int32_t, PortInfoThrift>& portInfoEntries) {
     std::int32_t egressPortID = folly::to<int>(egressPort);
-    if (auto egressPortInfoEntry = portInfoEntries.find(egressPortID);
-        egressPortInfoEntry != portInfoEntries.end()) {
+    auto egressPortInfoEntry = portInfoEntries.find(egressPortID);
+    if (egressPortInfoEntry != portInfoEntries.end()) {
       const auto& egressPortInfo = egressPortInfoEntry->second;
       return egressPortInfo.get_name();
     }
@@ -102,19 +102,19 @@ class CmdShowMirror : public CmdHandler<CmdShowMirror, CmdShowMirrorTraits> {
       const folly::dynamic& tunnel,
       cli::ShowMirrorModelEntry& mirrorDetails) {
     mirrorDetails.srcMAC() = tunnel["srcMac"].asString();
-    mirrorDetails.srcIP() = tunnel["srcIp"].asString();
+    mirrorDetails.srcIP() = getIPAddressStr(folly::toJson(tunnel["srcIp"]));
     mirrorDetails.dstMAC() = tunnel["dstMac"].asString();
-    mirrorDetails.dstIP() = tunnel["dstIp"].asString();
+    mirrorDetails.dstIP() = getIPAddressStr(folly::toJson(tunnel["dstIp"]));
     bool isSFlow = true;
-    if (auto srcUDPPort = tunnel.find("udpSrcPort");
-        srcUDPPort != tunnel.items().end()) {
+    auto srcUDPPort = tunnel.find("udpSrcPort");
+    if (srcUDPPort != tunnel.items().end()) {
       mirrorDetails.srcUDPPort() = srcUDPPort->second.asString();
     } else {
       mirrorDetails.srcUDPPort() = "-";
       isSFlow = false;
     }
-    if (auto dstUDPPort = tunnel.find("udpDstPort");
-        dstUDPPort != tunnel.items().end()) {
+    auto dstUDPPort = tunnel.find("udpDstPort");
+    if (dstUDPPort != tunnel.items().end()) {
       mirrorDetails.dstUDPPort() = dstUDPPort->second.asString();
     } else {
       mirrorDetails.dstUDPPort() = "-";
@@ -128,27 +128,27 @@ class CmdShowMirror : public CmdHandler<CmdShowMirror, CmdShowMirrorTraits> {
       cli::ShowMirrorModelEntry& mirrorDetails) {
     mirrorDetails.mirrorTunnelType() = "-";
     mirrorDetails.srcMAC() = "-";
-    if (auto srcIP = mirrorMapEntry.find("srcIp");
-        srcIP != mirrorMapEntry.items().end()) {
+    auto srcIP = mirrorMapEntry.find("srcIp");
+    if (srcIP != mirrorMapEntry.items().end()) {
       mirrorDetails.srcIP() = getIPAddressStr(folly::toJson(srcIP->second));
     } else {
       mirrorDetails.srcIP() = "-";
     }
-    if (auto srcUDPPort = mirrorMapEntry.find("udpSrcPort");
-        srcUDPPort != mirrorMapEntry.items().end()) {
+    auto srcUDPPort = mirrorMapEntry.find("udpSrcPort");
+    if (srcUDPPort != mirrorMapEntry.items().end()) {
       mirrorDetails.srcUDPPort() = srcUDPPort->second.asString();
     } else {
       mirrorDetails.srcUDPPort() = "-";
     }
     mirrorDetails.dstMAC() = "-";
-    if (auto dstIP = mirrorMapEntry.find("destinationIp");
-        dstIP != mirrorMapEntry.items().end()) {
+    auto dstIP = mirrorMapEntry.find("destinationIp");
+    if (dstIP != mirrorMapEntry.items().end()) {
       mirrorDetails.dstIP() = getIPAddressStr(folly::toJson(dstIP->second));
     } else {
       mirrorDetails.dstIP() = "-";
     }
-    if (auto dstUDPPort = mirrorMapEntry.find("udpDstPort");
-        dstUDPPort != mirrorMapEntry.items().end()) {
+    auto dstUDPPort = mirrorMapEntry.find("udpDstPort");
+    if (dstUDPPort != mirrorMapEntry.items().end()) {
       mirrorDetails.dstUDPPort() = dstUDPPort->second.asString();
     } else {
       mirrorDetails.dstUDPPort() = "-";
@@ -156,13 +156,15 @@ class CmdShowMirror : public CmdHandler<CmdShowMirror, CmdShowMirrorTraits> {
   }
 
   RetType createModel(
-      const std::string& mirrorMap,
+      const std::string& mirrorMaps,
       const std::map<int32_t, PortInfoThrift>& portInfoEntries,
       const ObjectArgType& queriedMirrors) {
     RetType model;
     std::unordered_set<std::string> queriedSet(
         queriedMirrors.begin(), queriedMirrors.end());
-    folly::dynamic mirrorMapEntries = folly::parseJson(mirrorMap);
+    auto mirrorMapsEntries = folly::parseJson(mirrorMaps);
+    // TODO: Handle NPU ID for Multi-NPU Cases
+    auto mirrorMapEntries = mirrorMapsEntries["id=0"];
     for (const auto& mirrorMapEntryItem : mirrorMapEntries.items()) {
       cli::ShowMirrorModelEntry mirrorDetails;
       const auto& mirrorMapEntry = mirrorMapEntryItem.second;
@@ -173,8 +175,8 @@ class CmdShowMirror : public CmdHandler<CmdShowMirror, CmdShowMirrorTraits> {
       mirrorDetails.mirror() = mirrorMapEntry["name"].asString();
       mirrorDetails.status() =
           (mirrorMapEntry["isResolved"].asBool()) ? "Active" : "Configured";
-      if (auto egressPort = mirrorMapEntry.find("egressPort");
-          egressPort != mirrorMapEntry.items().end()) {
+      auto egressPort = mirrorMapEntry.find("egressPort");
+      if (egressPort != mirrorMapEntry.items().end()) {
         std::string egressPortID = egressPort->second.asString();
         mirrorDetails.egressPort() = egressPortID;
         mirrorDetails.egressPortName() =
@@ -183,8 +185,8 @@ class CmdShowMirror : public CmdHandler<CmdShowMirror, CmdShowMirrorTraits> {
         mirrorDetails.egressPort() = "-";
         mirrorDetails.egressPortName() = "-";
       }
-      if (auto tunnel = mirrorMapEntry.find("tunnel");
-          tunnel != mirrorMapEntry.items().end()) {
+      auto tunnel = mirrorMapEntry.find("tunnel");
+      if (tunnel != mirrorMapEntry.items().end()) {
         processTunnel(tunnel->second, mirrorDetails);
       } else {
         processWithNoTunnel(mirrorMapEntry, mirrorDetails);

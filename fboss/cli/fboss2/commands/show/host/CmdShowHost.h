@@ -14,6 +14,7 @@
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/host/gen-cpp2/model_types.h"
+#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
 
@@ -82,8 +83,8 @@ class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
       } else {
         hostDetails.hostName() = ndpEntryHostName;
       }
-      if (auto ndpEntryPortInfoEntry = portInfoEntries.find(ndpEntryPort);
-          ndpEntryPortInfoEntry != portInfoEntries.end()) {
+      auto ndpEntryPortInfoEntry = portInfoEntries.find(ndpEntryPort);
+      if (ndpEntryPortInfoEntry != portInfoEntries.end()) {
         const auto& ndpEntryPortInfo = ndpEntryPortInfoEntry->second;
         auto ndpEntryPortName = ndpEntryPortInfo.get_name();
         if (queriedSet.size() > 0 && queriedSet.count(ndpEntryPortName) == 0) {
@@ -104,8 +105,8 @@ class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
       } else {
         continue;
       }
-      if (auto ndpEntryPortStatusEntry = portStatusEntries.find(ndpEntryPort);
-          ndpEntryPortStatusEntry != portStatusEntries.end()) {
+      auto ndpEntryPortStatusEntry = portStatusEntries.find(ndpEntryPort);
+      if (ndpEntryPortStatusEntry != portStatusEntries.end()) {
         const auto& ndpEntryPortStatus = ndpEntryPortStatusEntry->second;
         hostDetails.adminState() =
             (ndpEntryPortStatus.get_enabled()) ? "Enabled" : "Disabled";
