@@ -102,11 +102,6 @@ cfg::DsfNode makeDsfNodeCfg(
     int64_t switchId = 0,
     cfg::DsfNodeType type = cfg::DsfNodeType::INTERFACE_NODE);
 
-cfg::SwitchConfig updateSwitchID(
-    const cfg::SwitchConfig& origCfg,
-    int64_t oldSwitchId,
-    int64_t newSwitchId);
-
 std::shared_ptr<SystemPort> makeSysPort(
     const std::optional<std::string>& qosPolicy,
     int64_t sysPortId = 1,

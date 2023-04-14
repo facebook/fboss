@@ -968,7 +968,7 @@ TEST(Port, verifyInterfaceIDsForVoqSwitches) {
   ASSERT_NE(nullptr, stateV1);
 
   auto dsfIter = config.dsfNodes()->find(
-      static_cast<int64_t>(*config.switchSettings()->switchId()));
+      static_cast<int64_t>(*stateV1->getSwitchSettings()->getSwitchId()));
   EXPECT_TRUE(dsfIter != config.dsfNodes()->end());
   auto myNode = dsfIter->second;
 

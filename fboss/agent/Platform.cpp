@@ -139,7 +139,7 @@ void Platform::init(
   const auto switchSettings = *config_->thrift.sw()->switchSettings();
   std::optional<int64_t> switchId;
   std::optional<cfg::Range64> systemPortRange;
-  auto switchType = *switchSettings.switchType();
+  auto switchType{cfg::SwitchType::NPU};
   if (switchSettings.switchIdToSwitchInfo()->size()) {
     // TODO - Initialize with correct SwitchId for the HwSwitch
     // instead of using first switchId in the list

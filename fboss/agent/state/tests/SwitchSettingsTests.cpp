@@ -297,7 +297,6 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
 
   // Check if value is updated
   cfg::SwitchConfig config = testConfigA(cfg::SwitchType::VOQ);
-  *config.switchSettings()->switchType() = cfg::SwitchType::VOQ;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
   auto switchSettingsV1 = stateV1->getSwitchSettings();

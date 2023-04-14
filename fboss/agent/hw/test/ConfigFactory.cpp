@@ -321,15 +321,21 @@ cfg::SwitchConfig genPortVlanCfg(
     bool enableFabricPorts = false) {
   cfg::SwitchConfig config;
   auto asic = hwSwitch->getPlatform()->getAsic();
-  config.switchSettings()->switchType() = asic->getSwitchType();
+  auto switchType = asic->getSwitchType();
+  int64_t switchId{0};
   if (asic->getSwitchId().has_value()) {
-    config.switchSettings()->switchId() = *asic->getSwitchId();
-    if (*config.switchSettings()->switchType() == cfg::SwitchType::VOQ ||
-        *config.switchSettings()->switchType() == cfg::SwitchType::FABRIC) {
+    switchId = *asic->getSwitchId();
+    if (switchType == cfg::SwitchType::VOQ ||
+        switchType == cfg::SwitchType::FABRIC) {
       config.dsfNodes()->insert(
           {*asic->getSwitchId(), dsfNodeConfig(*asic, *asic->getSwitchId())});
     }
   }
+  cfg::SwitchInfo switchInfo;
+  switchInfo.switchType() = switchType;
+  switchInfo.asicType() = asic->getAsicType();
+  config.switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(switchId, switchInfo)};
   // Use getPortToDefaultProfileIDMap() to genetate the default config instead
   // of using PlatformMapping.
   // The main reason is to avoid using PlatformMapping is because some of the
@@ -634,10 +640,9 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
       if (kCreateIntfsFor.find(*port.portType()) == kCreateIntfsFor.end()) {
         continue;
       }
-      // Make thrift linter happy. switchId must not be null
-      // for VOQ switch type
+      CHECK(config.switchSettings()->switchIdToSwitchInfo()->size());
       auto mySwitchId =
-          apache::thrift::can_throw(*config.switchSettings()->switchId());
+          config.switchSettings()->switchIdToSwitchInfo()->begin()->first;
       auto sysportRangeBegin =
           *config.dsfNodes()[mySwitchId].systemPortRange()->minimum();
       auto intfId = sysportRangeBegin + *port.logicalID();

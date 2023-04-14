@@ -233,6 +233,7 @@ class ThriftConfigApplier {
   std::shared_ptr<SystemPortMap> updateSystemPorts(
       const std::shared_ptr<PortMap>& ports,
       std::optional<int64_t> switchId,
+      cfg::SwitchType switchType,
       std::optional<cfg::Range64> systemPortRange);
   std::shared_ptr<Port> updatePort(
       const std::shared_ptr<Port>& orig,
@@ -471,6 +472,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         new_->resetSystemPorts(updateSystemPorts(
             new_->getPorts(),
             newSwitchSettings->getSwitchId(),
+            newSwitchSettings->getSwitchType(*newSwitchSettings->getSwitchId()),
             newSwitchSettings->getSystemPortRange()));
       }
       new_->resetSwitchSettings(std::move(newSwitchSettings));
@@ -491,6 +493,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         new_->resetSystemPorts(updateSystemPorts(
             new_->getPorts(),
             new_->getSwitchSettings()->getSwitchId(),
+            new_->getSwitchSettings()->getSwitchType(
+                *new_->getSwitchSettings()->getSwitchId()),
             new_->getSwitchSettings()->getSystemPortRange()));
       }
       changed = true;
@@ -689,6 +693,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         new_->resetSystemPorts(updateSystemPorts(
             new_->getPorts(),
             new_->getSwitchSettings()->getSwitchId(),
+            new_->getSwitchSettings()->getSwitchType(
+                *new_->getSwitchSettings()->getSwitchId()),
             new_->getSwitchSettings()->getSystemPortRange()));
       }
       changed = true;
@@ -696,7 +702,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   }
 
   {
-    auto switchType = *cfg_->switchSettings()->switchType();
+    auto switchType = new_->getSwitchSettings()->getSwitchType(
+        *new_->getSwitchSettings()->getSwitchId());
 
     // VOQ/Fabric switches require that the packets are not tagged with any
     // VLAN. We are gradually enhancing wedge_agent to handle tagged as well as
@@ -1044,7 +1051,8 @@ void ThriftConfigApplier::processInterfaceForPortForNonVoqSwitches() {
 
 void ThriftConfigApplier::processInterfaceForPort() {
   // Build Port -> interface mappings in port2InterfaceId_
-  auto switchType = *cfg_->switchSettings()->switchType();
+  auto switchType = new_->getSwitchSettings()->getSwitchType(
+      *new_->getSwitchSettings()->getSwitchId());
   switch (switchType) {
     case cfg::SwitchType::VOQ:
     case cfg::SwitchType::FABRIC:
@@ -1136,14 +1144,15 @@ void ThriftConfigApplier::updateVlanInterfaces(const Interface* intf) {
 shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
     const std::shared_ptr<PortMap>& ports,
     std::optional<int64_t> switchIdOpt,
+    cfg::SwitchType switchType,
     std::optional<cfg::Range64> systemPortRange) {
   const auto kNumVoqs = 8;
   auto sysPorts = std::make_shared<SystemPortMap>();
-  if (*cfg_->switchSettings()->switchType() != cfg::SwitchType::VOQ) {
-    return sysPorts;
-  }
   CHECK(switchIdOpt.has_value());
   auto switchId = *switchIdOpt;
+  if (switchType != cfg::SwitchType::VOQ) {
+    return sysPorts;
+  }
   auto nodeName = *cfg_->dsfNodes()->find(switchId)->second.name();
 
   QueueConfig systemPortQueues;
@@ -2099,7 +2108,8 @@ shared_ptr<VlanMap> ThriftConfigApplier::updateVlans() {
   // Once wedge_agent changes are complete, we can remove this check as
   // cfg_->vlans and origVlans will always be empty for VOQ/Fabric switches and
   // then this function will be a no-op
-  auto switchType = *cfg_->switchSettings()->switchType();
+  auto switchType = new_->getSwitchSettings()->getSwitchType(
+      *new_->getSwitchSettings()->getSwitchId());
   if (switchType == cfg::SwitchType::VOQ ||
       switchType == cfg::SwitchType::FABRIC) {
     return nullptr;
@@ -2204,7 +2214,8 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(
 }
 
 shared_ptr<VlanMap> ThriftConfigApplier::updatePseudoVlans() {
-  auto switchType = *cfg_->switchSettings()->switchType();
+  auto switchType = new_->getSwitchSettings()->getSwitchType(
+      *new_->getSwitchSettings()->getSwitchId());
   CHECK(
       switchType == cfg::SwitchType::VOQ ||
       switchType == cfg::SwitchType::FABRIC);
@@ -3104,7 +3115,7 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
     shared_ptr<Interface> newIntf;
     auto newAddrs = getInterfaceAddresses(&interfaceCfg);
     if (interfaceCfg.type() == cfg::InterfaceType::SYSTEM_PORT) {
-      auto mySwitchId = cfg_->switchSettings()->switchId();
+      auto mySwitchId = new_->getSwitchSettings()->getSwitchId();
       CHECK(mySwitchId.has_value());
       auto myDsfNode = cfg_->dsfNodes()->find(*mySwitchId)->second;
       auto sysPortRange = myDsfNode.systemPortRange();
@@ -3517,13 +3528,10 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     switchIdtoSwitchInfo = *(cfg_->switchSettings()->switchIdToSwitchInfo());
   } else {
     // TODO - remove this once switchIdToSwitchInfo config is rolled out
-    int64_t switchId = cfg_->switchSettings()->switchId().has_value()
-        ? cfg_->switchSettings()->switchId().value()
-        : 0;
     cfg::SwitchInfo switchInfo;
     switchInfo.switchType() = *cfg_->switchSettings()->switchType();
     switchInfo.asicType() = platform_->getAsic()->getAsicType();
-    switchIdtoSwitchInfo.insert(std::make_pair(switchId, switchInfo));
+    switchIdtoSwitchInfo.insert(std::make_pair(0, switchInfo));
   }
   if (origSwitchSettings->getSwitchIdToSwitchInfo() != switchIdtoSwitchInfo) {
     newSwitchSettings->setSwitchIdToSwitchInfo(switchIdtoSwitchInfo);
