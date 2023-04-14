@@ -98,8 +98,7 @@ class HwNeighborTest : public HwLinkStateDependentTest {
     return cfg;
   }
   VlanID kVlanID() const {
-    if (getProgrammedState()->getSwitchSettings()->getSwitchType() ==
-        cfg::SwitchType::NPU) {
+    if (getSwitchType() == cfg::SwitchType::NPU) {
       auto vlanId = utility::firstVlanID(getProgrammedState());
       CHECK(vlanId.has_value());
       return *vlanId;
@@ -107,8 +106,7 @@ class HwNeighborTest : public HwLinkStateDependentTest {
     XLOG(FATAL) << " No vlans on non-npu switches";
   }
   InterfaceID kIntfID() const {
-    auto switchType =
-        getProgrammedState()->getSwitchSettings()->getSwitchType();
+    auto switchType = getSwitchType();
     if (switchType == cfg::SwitchType::NPU) {
       return InterfaceID(static_cast<int>(kVlanID()));
     } else if (switchType == cfg::SwitchType::VOQ) {
@@ -132,8 +130,7 @@ class HwNeighborTest : public HwLinkStateDependentTest {
   }
 
   auto getNeighborTable(std::shared_ptr<SwitchState> state) {
-    auto switchType =
-        getProgrammedState()->getSwitchSettings()->getSwitchType();
+    auto switchType = getSwitchType();
     if (switchType == cfg::SwitchType::NPU) {
       return state->getVlans()
           ->getVlan(kVlanID())
@@ -262,8 +259,7 @@ class HwNeighborOnMultiplePortsTest : public HwLinkStateDependentTest {
   }
 
   InterfaceID getInterfaceId(const PortID& portId) const {
-    auto switchType =
-        getProgrammedState()->getSwitchSettings()->getSwitchType();
+    auto switchType = getSwitchType();
     if (switchType == cfg::SwitchType::NPU) {
       return InterfaceID(static_cast<int>((*getProgrammedState()
                                                 ->getPorts()

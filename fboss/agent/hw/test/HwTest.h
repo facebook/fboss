@@ -59,6 +59,7 @@ class HwTest : public ::testing::Test,
   }
   const HwAsic* getAsic() const;
   cfg::AsicType getAsicType() const;
+  cfg::SwitchType getSwitchType() const;
   bool isSupported(HwAsic::Feature feature) const;
 
   void packetReceived(RxPacket* /*pkt*/) noexcept override {}

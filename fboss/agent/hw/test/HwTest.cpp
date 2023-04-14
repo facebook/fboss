@@ -66,6 +66,10 @@ cfg::AsicType HwTest::getAsicType() const {
   return getAsic()->getAsicType();
 }
 
+cfg::SwitchType HwTest::getSwitchType() const {
+  return getAsic()->getSwitchType();
+}
+
 bool HwTest::isSupported(HwAsic::Feature feature) const {
   return getAsic()->isSupported(feature);
 }
