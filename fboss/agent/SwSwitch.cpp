@@ -245,7 +245,7 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       aclNexthopHandler_(new AclNexthopHandler(this)),
       teFlowNextHopHandler_(new TeFlowNexthopHandler(this)),
       dsfSubscriber_(new DsfSubscriber(this)),
-      switchInfoTable_(getSwitchInfoFromConfig()) {
+      switchInfoTable_(this, getSwitchInfoFromConfig()) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());
@@ -270,7 +270,7 @@ SwSwitch::SwSwitch(
     : SwSwitch(std::move(platform)) {
   platformMapping_ = std::move(platformMapping);
   if (config) {
-    switchInfoTable_ = SwitchInfoTable(getSwitchInfoFromConfig(config));
+    switchInfoTable_ = SwitchInfoTable(this, getSwitchInfoFromConfig(config));
   }
 }
 
@@ -1554,10 +1554,8 @@ void SwSwitch::threadLoop(StringPiece name, EventBase* eventBase) {
 
 uint32_t SwSwitch::getEthernetHeaderSize() const {
   // VOQ/Fabric switches require that the packets are not VLAN tagged.
-  return (getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ ||
-          getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::FABRIC)
-      ? EthHdr::UNTAGGED_PKT_SIZE
-      : EthHdr::SIZE;
+  return getSwitchInfoTable().vlansSupported() ? EthHdr::SIZE
+                                               : EthHdr::UNTAGGED_PKT_SIZE;
 }
 
 std::unique_ptr<TxPacket> SwSwitch::allocatePacket(uint32_t size) {
@@ -2130,10 +2128,7 @@ bool SwSwitch::sendNdpSolicitationHelper(
 
 VlanID SwSwitch::getVlanIDHelper(std::optional<VlanID> vlanID) const {
   // if vlanID does not have value, it must be VOQ or FABRIC switch
-  CHECK(
-      vlanID.has_value() ||
-      getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ ||
-      getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::FABRIC);
+  CHECK(vlanID.has_value() || !getSwitchInfoTable().vlansSupported());
 
   // TODO(skhare)
   // VOQ/Fabric switches require that the packets are not tagged with any
@@ -2154,8 +2149,7 @@ std::optional<VlanID> SwSwitch::getVlanIDForPkt(VlanID vlanID) const {
   // Once the wedge_agent changes are complete, we will no longer need this
   // function.
 
-  if (getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ ||
-      getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::FABRIC) {
+  if (!getSwitchInfoTable().vlansSupported()) {
     CHECK_EQ(vlanID, VlanID(0));
     return std::nullopt;
   } else {
@@ -2164,10 +2158,9 @@ std::optional<VlanID> SwSwitch::getVlanIDForPkt(VlanID vlanID) const {
 }
 
 std::optional<VlanID> SwSwitch::getCPUVlan() const {
-  return getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ ||
-          getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::FABRIC
-      ? std::nullopt
-      : std::make_optional(VlanID(4095));
+  return getSwitchInfoTable().vlansSupported()
+      ? std::make_optional(VlanID(4095))
+      : std::nullopt;
 }
 
 InterfaceID SwSwitch::getInterfaceIDForPort(PortID portID) const {
