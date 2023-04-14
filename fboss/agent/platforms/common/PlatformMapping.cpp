@@ -389,6 +389,26 @@ PlatformMapping::getPortTransceiverPinConfigs(
   return std::nullopt;
 }
 
+std::set<uint8_t> PlatformMapping::getTransceiverHostLanes(
+    PlatformPortProfileConfigMatcher matcher) const {
+  auto portID = matcher.getPortIDIf();
+
+  if (!portID.has_value()) {
+    throw FbossError("getTransceiverHostLanes miss portID match factor");
+  }
+
+  std::set<uint8_t> tcvrHostLanes;
+  auto pinConfigs = getPortTransceiverPinConfigs(matcher);
+  if (!pinConfigs || pinConfigs->empty()) {
+    throw FbossError("Can't find tcvr pinConfigs for portId ", *portID);
+  }
+  for (auto pin : *pinConfigs) {
+    uint8_t lane = *pin.id()->lane();
+    tcvrHostLanes.insert(lane);
+  }
+  return tcvrHostLanes;
+}
+
 std::vector<phy::PinConfig> PlatformMapping::getPortXphySidePinConfigs(
     PlatformPortProfileConfigMatcher matcher,
     phy::Side side) const {

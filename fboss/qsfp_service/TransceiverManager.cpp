@@ -38,6 +38,11 @@ DEFINE_int32(
     10000,
     "State machine update thread's heartbeat interval (ms)");
 
+DEFINE_bool(
+    use_platform_mapping,
+    false,
+    "Use platform mapping for programming ports in qsfp_service");
+
 namespace {
 constexpr auto kForceColdBootFileName = "cold_boot_once_qsfp_service";
 constexpr auto kWarmBootFlag = "can_warm_boot";
@@ -691,8 +696,21 @@ void TransceiverManager::programTransceiver(
       throw FbossError(
           "Can't find a portName for portId ", portToPortInfo.first);
     }
-    // TODO: Use Platform Mapping to get start lane and remove hardcoding of 0
     uint8_t tcvrStartLane = 0;
+    if (FLAGS_use_platform_mapping) {
+      auto tcvrHostLanes = platformMapping_->getTransceiverHostLanes(
+          PlatformPortProfileConfigMatcher(
+              portProfile /* profileID */,
+              portToPortInfo.first /* portID */,
+              std::nullopt /* portConfigOverrideFactor */));
+      if (tcvrHostLanes.empty()) {
+        throw FbossError(
+            "tcvrHostLanes empty for portId ", portToPortInfo.first);
+      }
+      // tcvrHostLanes is an ordered set. So begin() gives us the first lane
+      tcvrStartLane = *tcvrHostLanes.begin();
+    }
+
     if (tcvrStartLane > 8) {
       throw FbossError(
           "Invalid start lane of ",

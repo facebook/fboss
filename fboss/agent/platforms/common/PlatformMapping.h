@@ -98,6 +98,9 @@ class PlatformMapping {
   std::optional<std::vector<phy::PinConfig>> getPortTransceiverPinConfigs(
       PlatformPortProfileConfigMatcher matcher) const;
 
+  std::set<uint8_t> getTransceiverHostLanes(
+      PlatformPortProfileConfigMatcher matcher) const;
+
   const std::map<std::string, phy::DataPlanePhyChip>& getChips() const {
     return chips_;
   }
