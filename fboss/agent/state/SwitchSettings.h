@@ -154,13 +154,6 @@ class SwitchSettings
     set<switch_state_tags::macAddrsToBlock>(macAddrs);
   }
 
-  cfg::SwitchType getSwitchType() const {
-    return cref<switch_state_tags::switchType>()->toThrift();
-  }
-  void setSwitchType(cfg::SwitchType type) {
-    set<switch_state_tags::switchType>(type);
-  }
-
   cfg::SwitchType getSwitchType(int64_t switchId) const {
     auto switchIdToSwitchInfo = getSwitchIdToSwitchInfo();
     auto iter = switchIdToSwitchInfo.find(switchId);

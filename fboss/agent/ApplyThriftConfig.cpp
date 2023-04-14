@@ -3511,11 +3511,6 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     newSwitchSettings->setMacAddrsToBlock(cfgMacAddrsToBlock);
     switchSettingsChange = true;
   }
-  if (origSwitchSettings->getSwitchType() !=
-      cfg_->switchSettings()->switchType()) {
-    newSwitchSettings->setSwitchType(*cfg_->switchSettings()->switchType());
-    switchSettingsChange = true;
-  }
 
   SwitchIdToSwitchInfo switchIdtoSwitchInfo;
   if (cfg_->switchSettings()->switchIdToSwitchInfo()->size()) {

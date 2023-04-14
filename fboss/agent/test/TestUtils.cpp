@@ -475,8 +475,6 @@ unique_ptr<HwTestHandle> createTestHandle(
       initialState->registerPort(
           PortID(id), folly::to<string>("port", id), *port.portType());
     }
-    initialState->getSwitchSettings()->setSwitchType(
-        *config->switchSettings()->switchType());
     if (config->switchSettings()->switchIdToSwitchInfo()->size()) {
       switchIdToSwitchInfo = *config->switchSettings()->switchIdToSwitchInfo();
 
