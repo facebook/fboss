@@ -308,6 +308,13 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   EXPECT_EQ(switchInfo.switchType(), cfg::SwitchType::VOQ);
   EXPECT_EQ(switchInfo.asicType(), cfg::AsicType::ASIC_TYPE_MOCK);
   EXPECT_THROW(switchSettingsV1->getSwitchType(0), FbossError);
+  cfg::SwitchInfo switchInfo2;
+  switchInfo2.switchType() = cfg::SwitchType::FABRIC;
+  switchInfo2.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
+  config.switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(2, switchInfo2)};
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
   validateNodeSerialization(*switchSettingsV1);
 }
 

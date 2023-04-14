@@ -3534,6 +3534,10 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     switchIdtoSwitchInfo.insert(std::make_pair(0, switchInfo));
   }
   if (origSwitchSettings->getSwitchIdToSwitchInfo() != switchIdtoSwitchInfo) {
+    // If old switch id setting were valid, do not allow changing it
+    if (origSwitchSettings->getSwitchIdToSwitchInfo().size()) {
+      throw FbossError("SwitchId and SwitchInfo cannot be changed on the fly");
+    }
     newSwitchSettings->setSwitchIdToSwitchInfo(switchIdtoSwitchInfo);
     switchSettingsChange = true;
   }
