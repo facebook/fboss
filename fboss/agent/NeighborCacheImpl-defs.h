@@ -66,12 +66,7 @@ template <typename NTable>
 void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
   SwSwitch::StateUpdateFn updateFn;
 
-  cfg::SwitchType switchType{cfg::SwitchType::NPU};
-  auto switchId = sw_->getState()->getSwitchSettings()->getSwitchId();
-  if (switchId.has_value()) {
-    switchType =
-        sw_->getState()->getSwitchSettings()->getSwitchType(switchId.value());
-  }
+  auto switchType = sw_->getSwitchInfoTable().l3SwitchType();
   switch (switchType) {
     case cfg::SwitchType::NPU:
       updateFn = getUpdateFnToProgramEntryForNpu(entry);
@@ -219,12 +214,7 @@ void NeighborCacheImpl<NTable>::programPendingEntry(
     bool force) {
   SwSwitch::StateUpdateFn updateFn;
 
-  cfg::SwitchType switchType{cfg::SwitchType::NPU};
-  auto switchId = sw_->getState()->getSwitchSettings()->getSwitchId();
-  if (switchId.has_value()) {
-    switchType =
-        sw_->getState()->getSwitchSettings()->getSwitchType(switchId.value());
-  }
+  auto switchType = sw_->getSwitchInfoTable().l3SwitchType();
   switch (switchType) {
     case cfg::SwitchType::NPU:
       updateFn = getUpdateFnToProgramPendingEntryForNpu(entry, port, force);
