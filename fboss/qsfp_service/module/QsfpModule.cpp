@@ -938,6 +938,12 @@ void QsfpModule::programTransceiver(
       // Since we're touching the transceiver, we need to update the cached
       // transceiver info
       updateQsfpData(false);
+      // Cache has been updated, populate the host/mediaLane to port name
+      // mapping
+      for (auto portIt : programTcvrState.ports) {
+        auto startHostLane = portIt.second.startHostLane;
+        updateLaneToPortNameMapping(portIt.first, startHostLane);
+      }
       updateCachedTransceiverInfoLocked({});
     }
   };
@@ -951,6 +957,46 @@ void QsfpModule::programTransceiver(
     via(i2cEvb)
         .thenValue([programTcvrFunc](auto&&) mutable { programTcvrFunc(); })
         .get();
+  }
+}
+
+void QsfpModule::updateLaneToPortNameMapping(
+    const std::string& portName,
+    uint8_t startHostLane) {
+  auto hostLanes = configuredHostLanes(startHostLane);
+  auto mediaLanes = configuredMediaLanes(
+      startHostLane); // assumption: startMediaLane = startHostLane
+
+  for (auto lane : hostLanes) {
+    // First check if the lanes are already in the mapping. If yes, free them up
+    if (hostLaneToPortName.find(lane) != hostLaneToPortName.end()) {
+      auto previousPortName = hostLaneToPortName[lane];
+      for (auto it = hostLaneToPortName.cbegin();
+           it != hostLaneToPortName.cend();) {
+        if (it->second == previousPortName) {
+          it = hostLaneToPortName.erase(it);
+        } else {
+          ++it;
+        }
+      }
+    }
+    hostLaneToPortName[lane] = portName;
+  }
+
+  for (auto lane : mediaLanes) {
+    // First check if the lanes are already in the mapping. If yes, free them up
+    if (mediaLaneToPortName.find(lane) != mediaLaneToPortName.end()) {
+      auto previousPortName = mediaLaneToPortName[lane];
+      for (auto it = mediaLaneToPortName.cbegin();
+           it != mediaLaneToPortName.cend();) {
+        if (it->second == previousPortName) {
+          it = mediaLaneToPortName.erase(it);
+        } else {
+          ++it;
+        }
+      }
+    }
+    mediaLaneToPortName[lane] = portName;
   }
 }
 

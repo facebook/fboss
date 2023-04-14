@@ -617,6 +617,13 @@ class QsfpModule : public Transceiver {
       std::optional<ModuleStatus> /* curModuleStatus */ = std::nullopt) {}
 
   friend class TransceiverStateMachineTest;
+
+  std::map<uint8_t, std::string> hostLaneToPortName;
+  std::map<uint8_t, std::string> mediaLaneToPortName;
+
+  void updateLaneToPortNameMapping(
+      const std::string& portName,
+      uint8_t startHostLane);
 };
 } // namespace fboss
 } // namespace facebook
