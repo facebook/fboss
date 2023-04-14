@@ -85,8 +85,10 @@ unique_ptr<SwSwitch> createMockSw(
   std::unique_ptr<MockPlatform> platform;
   if (state) {
     const auto& switchSettings = state->getSwitchSettings();
-    platform = createMockPlatform(
-        switchSettings->getSwitchType(), switchSettings->getSwitchId());
+    auto switchId = switchSettings->getSwitchId();
+    CHECK(switchId);
+    platform =
+        createMockPlatform(switchSettings->getSwitchType(*switchId), *switchId);
   } else {
     platform = createMockPlatform();
   }
@@ -436,13 +438,14 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
 
 unique_ptr<MockPlatform> createMockPlatform(
     cfg::SwitchType switchType,
-    std::optional<int64_t> switchId) {
+    int64_t switchId) {
   auto mock = make_unique<testing::NiceMock<MockPlatform>>();
   cfg::AgentConfig thrift;
-  thrift.sw()->switchSettings()->switchType() = switchType;
-  if (switchId.has_value()) {
-    thrift.sw()->switchSettings()->switchId() = *switchId;
-  }
+  cfg::SwitchInfo switchInfo;
+  switchInfo.switchType() = switchType;
+  switchInfo.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
+  thrift.sw()->switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(switchId, switchInfo)};
   auto agentCfg = std::make_unique<AgentConfig>(thrift, "");
   mock->init(std::move(agentCfg), 0);
   return std::move(mock);
@@ -465,6 +468,7 @@ unique_ptr<HwTestHandle> createTestHandle(
   // Create the initial state, which only has the same number of ports with the
   // init config
   initialState = make_shared<SwitchState>();
+  SwitchIdToSwitchInfo switchIdToSwitchInfo;
   if (config) {
     for (const auto& port : *config->ports()) {
       auto id = *port.logicalID();
@@ -473,12 +477,28 @@ unique_ptr<HwTestHandle> createTestHandle(
     }
     initialState->getSwitchSettings()->setSwitchType(
         *config->switchSettings()->switchType());
-    if (config->switchSettings()->switchId().has_value()) {
-      initialState->getSwitchSettings()->setSwitchId(
-          *config->switchSettings()->switchId());
+    if (config->switchSettings()->switchIdToSwitchInfo()->size()) {
+      switchIdToSwitchInfo = *config->switchSettings()->switchIdToSwitchInfo();
+
+    } else {
+      int64_t switchId{0};
+      if (config->switchSettings()->switchId().has_value()) {
+        switchId = *config->switchSettings()->switchId();
+      }
+      cfg::SwitchInfo switchInfo;
+      switchInfo.switchType() = *config->switchSettings()->switchType();
+      switchInfo.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
+      switchIdToSwitchInfo.emplace(std::make_pair(switchId, switchInfo));
     }
+  } else {
+    cfg::SwitchInfo switchInfo;
+    switchInfo.switchType() = cfg::SwitchType::NPU;
+    switchInfo.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
+    switchIdToSwitchInfo.emplace(std::make_pair(0, switchInfo));
   }
 
+  initialState->getSwitchSettings()->setSwitchIdToSwitchInfo(
+      switchIdToSwitchInfo);
   auto handle = createTestHandle(initialState, flags);
   auto sw = handle->getSw();
 
@@ -535,9 +555,21 @@ void waitForRibUpdates(SwSwitch* sw) {
   sw->getRouteUpdater().program();
 }
 
-shared_ptr<SwitchState> testStateA() {
+shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
   // Setup a default state object
   auto state = make_shared<SwitchState>();
+  SwitchIdToSwitchInfo switchIdToSwitchInfo;
+  cfg::SwitchInfo switchInfo;
+  switchInfo.switchType() = switchType;
+  switchInfo.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
+  if (switchType == cfg::SwitchType::VOQ) {
+    switchIdToSwitchInfo.insert(std::make_pair(1, switchInfo));
+  } else if (switchType == cfg::SwitchType::FABRIC) {
+    switchIdToSwitchInfo.insert(std::make_pair(2, switchInfo));
+  } else {
+    switchIdToSwitchInfo.insert(std::make_pair(0, switchInfo));
+  }
+  state->getSwitchSettings()->setSwitchIdToSwitchInfo(switchIdToSwitchInfo);
 
   // Add VLAN 1, and ports 1-10 which belong to it.
   auto vlan1 = make_shared<Vlan>(VlanID(1), std::string("Vlan1"));

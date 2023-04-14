@@ -174,7 +174,9 @@ void DsfSubscriber::scheduleUpdate(
 void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
   const auto& oldSwitchSettings = stateDelta.oldState()->getSwitchSettings();
   const auto& newSwitchSettings = stateDelta.newState()->getSwitchSettings();
-  if (newSwitchSettings->getSwitchType() == cfg::SwitchType::VOQ) {
+  if (newSwitchSettings->getSwitchId().has_value() &&
+      newSwitchSettings->getSwitchType(
+          newSwitchSettings->getSwitchId().value()) == cfg::SwitchType::VOQ) {
     if (!fsdbPubSubMgr_) {
       fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>(folly::sformat(
           "{}:agent:{}",
@@ -183,7 +185,9 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     }
   } else {
     fsdbPubSubMgr_.reset();
-    if (oldSwitchSettings->getSwitchType() == cfg::SwitchType::VOQ) {
+    if (oldSwitchSettings->getSwitchId().has_value() &&
+        oldSwitchSettings->getSwitchType(
+            oldSwitchSettings->getSwitchId().value()) == cfg::SwitchType::VOQ) {
       XLOG(FATAL)
           << " Transition from VOQ to non-VOQ swtich type is not supported";
     }

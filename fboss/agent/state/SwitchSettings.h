@@ -171,11 +171,13 @@ class SwitchSettings
   }
 
   std::optional<int64_t> getSwitchId() const {
-    if (auto switchId = cref<switch_state_tags::switchId>()) {
-      return switchId->toThrift();
+    auto switchIdToSwitchInfo = getSwitchIdToSwitchInfo();
+    if (switchIdToSwitchInfo.size()) {
+      return switchIdToSwitchInfo.begin()->first;
     }
     return std::nullopt;
   }
+
   void setSwitchId(std::optional<int64_t> switchId) {
     if (!switchId) {
       ref<switch_state_tags::switchId>().reset();

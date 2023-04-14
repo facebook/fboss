@@ -66,7 +66,13 @@ template <typename NTable>
 void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
   SwSwitch::StateUpdateFn updateFn;
 
-  switch (sw_->getState()->getSwitchSettings()->getSwitchType()) {
+  cfg::SwitchType switchType{cfg::SwitchType::NPU};
+  auto switchId = sw_->getState()->getSwitchSettings()->getSwitchId();
+  if (switchId.has_value()) {
+    switchType =
+        sw_->getState()->getSwitchSettings()->getSwitchType(switchId.value());
+  }
+  switch (switchType) {
     case cfg::SwitchType::NPU:
       updateFn = getUpdateFnToProgramEntryForNpu(entry);
       break;
@@ -76,8 +82,7 @@ void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
     case cfg::SwitchType::FABRIC:
     case cfg::SwitchType::PHY:
       throw FbossError(
-          "Programming entry is not supported for switch type: ",
-          (sw_->getState()->getSwitchSettings()->getSwitchType()));
+          "Programming entry is not supported for switch type: ", switchType);
   }
 
   sw_->updateState(
@@ -214,7 +219,13 @@ void NeighborCacheImpl<NTable>::programPendingEntry(
     bool force) {
   SwSwitch::StateUpdateFn updateFn;
 
-  switch (sw_->getState()->getSwitchSettings()->getSwitchType()) {
+  cfg::SwitchType switchType{cfg::SwitchType::NPU};
+  auto switchId = sw_->getState()->getSwitchSettings()->getSwitchId();
+  if (switchId.has_value()) {
+    switchType =
+        sw_->getState()->getSwitchSettings()->getSwitchType(switchId.value());
+  }
+  switch (switchType) {
     case cfg::SwitchType::NPU:
       updateFn = getUpdateFnToProgramPendingEntryForNpu(entry, port, force);
       break;
@@ -224,8 +235,7 @@ void NeighborCacheImpl<NTable>::programPendingEntry(
     case cfg::SwitchType::FABRIC:
     case cfg::SwitchType::PHY:
       throw FbossError(
-          "Programming entry is not supported for switch type: ",
-          (sw_->getState()->getSwitchSettings()->getSwitchType()));
+          "Programming entry is not supported for switch type: ", switchType);
   }
 
   sw_->updateStateNoCoalescing(

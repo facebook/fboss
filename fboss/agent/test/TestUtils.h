@@ -88,7 +88,7 @@ std::unique_ptr<HwTestHandle> createTestHandle(
 
 std::unique_ptr<MockPlatform> createMockPlatform(
     cfg::SwitchType switchType = cfg::SwitchType::NPU,
-    std::optional<int64_t> switchId = std::nullopt);
+    int64_t switchId = 0);
 std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
     std::unique_ptr<MockPlatform> platform,
     const std::shared_ptr<SwitchState>& state,
@@ -199,7 +199,8 @@ void checkField(
  *       192.168.55.1/24
  *       2401:db00:2110:3055::0001/64
  */
-std::shared_ptr<SwitchState> testStateA();
+std::shared_ptr<SwitchState> testStateA(
+    cfg::SwitchType switchType = cfg::SwitchType::NPU);
 /*
  * Same as testStateA but with all ports
  * enabled and up

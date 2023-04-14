@@ -605,7 +605,10 @@ template <typename AddressT, typename NeighborThriftT>
 void addRemoteNeighbors(
     const std::shared_ptr<SwitchState> state,
     std::vector<NeighborThriftT>& nbrs) {
-  if (state->getSwitchSettings()->getSwitchType() != cfg::SwitchType::VOQ) {
+  auto switchId = state->getSwitchSettings()->getSwitchId();
+  if (!switchId ||
+      state->getSwitchSettings()->getSwitchType(switchId.value()) !=
+          cfg::SwitchType::VOQ) {
     return;
   }
 
@@ -651,7 +654,10 @@ template <typename AddressT, typename NeighborThriftT>
 void addRecylePortRifNeighbors(
     const std::shared_ptr<SwitchState> state,
     std::vector<NeighborThriftT>& nbrs) {
-  if (state->getSwitchSettings()->getSwitchType() != cfg::SwitchType::VOQ) {
+  auto switchId = state->getSwitchSettings()->getSwitchId();
+  if (!switchId ||
+      state->getSwitchSettings()->getSwitchType(switchId.value()) !=
+          cfg::SwitchType::VOQ) {
     return;
   }
 
@@ -2582,7 +2588,10 @@ void ThriftHandler::getBlockedNeighbors(
 }
 
 bool ThriftHandler::isSwitchType(cfg::SwitchType switchType) const {
-  return sw_->getState()->getSwitchSettings()->getSwitchType() == switchType;
+  auto switchId = sw_->getState()->getSwitchSettings()->getSwitchId();
+  CHECK(switchId.has_value());
+  return sw_->getState()->getSwitchSettings()->getSwitchType(
+             switchId.value()) == switchType;
 }
 
 bool ThriftHandler::isFabricSwitch() const {

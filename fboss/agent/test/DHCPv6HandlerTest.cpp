@@ -112,6 +112,7 @@ shared_ptr<SwitchState> testStateNAT() {
   switchSettings->setDhcpV6RelaySrc(kDhcpV6RelaySrc);
   switchSettings->setDhcpV6ReplySrc(kDhcpV6ReplySrc);
   state->resetSwitchSettings(switchSettings);
+  addSwitchInfo(state);
   return state;
 }
 

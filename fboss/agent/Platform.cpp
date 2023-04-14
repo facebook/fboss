@@ -139,16 +139,31 @@ void Platform::init(
   const auto switchSettings = *config_->thrift.sw()->switchSettings();
   std::optional<int64_t> switchId;
   std::optional<cfg::Range64> systemPortRange;
-  if (switchSettings.switchId().has_value()) {
-    switchId = *switchSettings.switchId();
-    const auto& dsfNodesConfig = *config_->thrift.sw()->dsfNodes();
-    const auto& dsfNodeConfig = dsfNodesConfig.find(*switchId);
-    if (dsfNodeConfig != dsfNodesConfig.end() &&
-        (*switchSettings.switchType() == cfg::SwitchType::VOQ)) {
-      systemPortRange = *dsfNodeConfig->second.systemPortRange();
+  auto switchType = *switchSettings.switchType();
+  if (switchSettings.switchIdToSwitchInfo()->size()) {
+    // TODO - Initialize with correct SwitchId for the HwSwitch
+    // instead of using first switchId in the list
+    switchId = switchSettings.switchIdToSwitchInfo()->begin()->first;
+    switchType =
+        *(switchSettings.switchIdToSwitchInfo()->begin()->second.switchType());
+    auto asicType =
+        *(switchSettings.switchIdToSwitchInfo()->begin()->second.asicType());
+    if (switchType == cfg::SwitchType::VOQ) {
+      const auto& dsfNodesConfig = *config_->thrift.sw()->dsfNodes();
+      const auto& dsfNodeConfig = dsfNodesConfig.find(*switchId);
+      if (dsfNodeConfig != dsfNodesConfig.end() &&
+          dsfNodeConfig->second.systemPortRange().has_value()) {
+        systemPortRange = *dsfNodeConfig->second.systemPortRange();
+      }
+    }
+    // SwitchId not supported in fabric mode
+    if (switchType == cfg::SwitchType::FABRIC &&
+        (asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
+         asicType == cfg::AsicType::ASIC_TYPE_GARONNE)) {
+      switchId = std::nullopt;
     }
   }
-  setupAsic(*switchSettings.switchType(), switchId, systemPortRange);
+  setupAsic(switchType, switchId, systemPortRange);
   initImpl(hwFeaturesDesired);
   // We should always initPorts() here instead of leaving the hw/ to call
   initPorts();

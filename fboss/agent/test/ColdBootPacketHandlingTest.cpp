@@ -99,6 +99,7 @@ class ColdBootPacketHandlingFixture : public ::testing::Test {
  private:
   std::shared_ptr<SwitchState> getColdBootState() const {
     auto coldBootState = make_shared<SwitchState>();
+    addSwitchInfo(coldBootState);
     state::PortFields portFields1;
     portFields1.portId() = PortID(1);
     portFields1.portName() = "port1";

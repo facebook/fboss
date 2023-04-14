@@ -233,7 +233,12 @@ void TunManager::setIntfStatus(
 
 int TunManager::getTableId(InterfaceID ifID) const {
   int tableId;
-  auto switchType = sw_->getState()->getSwitchSettings()->getSwitchType();
+  auto switchType{cfg::SwitchType::NPU};
+  auto switchId = sw_->getState()->getSwitchSettings()->getSwitchId();
+  if (switchId.has_value()) {
+    switchType =
+        sw_->getState()->getSwitchSettings()->getSwitchType(switchId.value());
+  }
 
   switch (switchType) {
     case cfg::SwitchType::NPU:

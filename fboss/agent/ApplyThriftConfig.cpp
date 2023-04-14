@@ -461,11 +461,13 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
 
   {
     auto newSwitchSettings = updateSwitchSettings();
+    // getSwitchId() will be valid from this point
     if (newSwitchSettings) {
-      if (newSwitchSettings->getSwitchType() !=
-              orig_->getSwitchSettings()->getSwitchType() ||
-          newSwitchSettings->getSwitchId() !=
-              orig_->getSwitchSettings()->getSwitchId()) {
+      // TODO - Handle SystemPorts for all VOQs
+      if ((newSwitchSettings->getSwitchIdToSwitchInfo() !=
+           orig_->getSwitchSettings()->getSwitchIdToSwitchInfo()) &&
+          newSwitchSettings->getSwitchType(*newSwitchSettings->getSwitchId()) !=
+              cfg::SwitchType::NPU) {
         new_->resetSystemPorts(updateSystemPorts(
             new_->getPorts(),
             newSwitchSettings->getSwitchId(),
@@ -482,9 +484,10 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     auto newPorts = updatePorts(new_->getTransceivers());
     if (newPorts) {
       new_->resetPorts(std::move(newPorts));
-      if (new_->getSwitchSettings()->getSwitchType() == cfg::SwitchType::VOQ) {
-        CHECK(cfg_->switchSettings()->switchId().has_value())
-            << "Switch id must be set for VOQ switch";
+      // TODO - Handle SystemPorts for all VOQs
+      if (new_->getSwitchSettings()->getSwitchType(
+              new_->getSwitchSettings()->getSwitchId().value()) ==
+          cfg::SwitchType::VOQ) {
         new_->resetSystemPorts(updateSystemPorts(
             new_->getPorts(),
             new_->getSwitchSettings()->getSwitchId(),
@@ -680,9 +683,9 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     if (newDsfNodes) {
       new_->resetDsfNodes(std::move(newDsfNodes));
       processUpdatedDsfNodes();
-      if (new_->getSwitchSettings()->getSwitchType() == cfg::SwitchType::VOQ) {
-        CHECK(cfg_->switchSettings()->switchId().has_value())
-            << "Switch id must be set for VOQ switch";
+      if (new_->getSwitchSettings()->getSwitchType(
+              new_->getSwitchSettings()->getSwitchId().value()) ==
+          cfg::SwitchType::VOQ) {
         new_->resetSystemPorts(updateSystemPorts(
             new_->getPorts(),
             new_->getSwitchSettings()->getSwitchId(),
@@ -3513,15 +3516,6 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     newSwitchSettings->setSwitchType(*cfg_->switchSettings()->switchType());
     switchSettingsChange = true;
   }
-  std::optional<int64_t> cfgSwitchId =
-      cfg_->switchSettings()->switchId().has_value()
-      ? *cfg_->switchSettings()->switchId()
-      : std::optional<int64_t>();
-
-  if (origSwitchSettings->getSwitchId() != cfgSwitchId) {
-    newSwitchSettings->setSwitchId(cfgSwitchId);
-    switchSettingsChange = true;
-  }
 
   SwitchIdToSwitchInfo switchIdtoSwitchInfo;
   if (cfg_->switchSettings()->switchIdToSwitchInfo()->size()) {
@@ -3560,7 +3554,8 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
         *cfg_->switchSettings()->exactMatchTableConfigs());
     switchSettingsChange = true;
   }
-  if (newSwitchSettings->getSwitchType() == cfg::SwitchType::VOQ) {
+  if (newSwitchSettings->getSwitchType(
+          newSwitchSettings->getSwitchId().value()) == cfg::SwitchType::VOQ) {
     CHECK(newSwitchSettings->getSwitchId() != std::nullopt);
     auto dsfItr = *cfg_->dsfNodes()->find(
         static_cast<int64_t>(*newSwitchSettings->getSwitchId()));

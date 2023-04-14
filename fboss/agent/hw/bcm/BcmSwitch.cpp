@@ -792,7 +792,6 @@ HwInitResult BcmSwitch::initImpl(
     std::optional<int64_t> switchId) {
   CHECK(switchType == cfg::SwitchType::NPU)
       << " Only NPU switch type supported";
-  CHECK(!switchId.has_value()) << "Can't specify switch id for Bcm switch";
   HwInitResult ret;
   ret.rib = std::make_unique<RoutingInformationBase>();
 
