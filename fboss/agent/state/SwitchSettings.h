@@ -171,6 +171,8 @@ class SwitchSettings
     return std::nullopt;
   }
 
+  std::unordered_set<SwitchID> getSwitchIds() const;
+
   cfg::SwitchDrainState getSwitchDrainState() const {
     return cref<switch_state_tags::switchDrainState>()->toThrift();
   }

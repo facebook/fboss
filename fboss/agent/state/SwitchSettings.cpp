@@ -52,6 +52,14 @@ SwitchSettings* SwitchSettings::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
+std::unordered_set<SwitchID> SwitchSettings::getSwitchIds() const {
+  std::unordered_set<SwitchID> switchIds;
+  for (const auto& switchIdAndInfo : getSwitchIdToSwitchInfo()) {
+    switchIds.insert(SwitchID(switchIdAndInfo.first));
+  }
+  return switchIds;
+}
+
 template class ThriftStructNode<SwitchSettings, state::SwitchSettingsFields>;
 
 } // namespace facebook::fboss

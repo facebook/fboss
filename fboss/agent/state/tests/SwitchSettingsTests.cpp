@@ -303,6 +303,8 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   ASSERT_NE(nullptr, switchSettingsV1);
   EXPECT_FALSE(switchSettingsV1->isPublished());
   EXPECT_EQ(switchSettingsV1->getSwitchId(), 1);
+  EXPECT_EQ(switchSettingsV1->getSwitchIds().size(), 1);
+  EXPECT_EQ(*switchSettingsV1->getSwitchIds().begin(), SwitchID(1));
   EXPECT_EQ(switchSettingsV1->getSwitchIdToSwitchInfo().size(), 1);
   auto switchInfo = switchSettingsV1->getSwitchIdToSwitchInfo().at(1);
   EXPECT_EQ(switchInfo.switchType(), cfg::SwitchType::VOQ);
