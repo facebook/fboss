@@ -38,7 +38,7 @@ SwitchInfoTable::SwitchInfoTable(
 }
 
 std::vector<SwitchID> SwitchInfoTable::getSwitchIdsOfType(
-    cfg::SwitchType type) {
+    cfg::SwitchType type) const {
   std::vector<SwitchID> switchIds;
   for (const auto& switchIdAndSwitchInfo : switchIdToSwitchInfo_) {
     if (switchIdAndSwitchInfo.second.switchType() == type) {
@@ -67,4 +67,18 @@ bool SwitchInfoTable::vlansSupported() const {
   return true;
 }
 
+cfg::SwitchType SwitchInfoTable::l3SwitchType() const {
+  /*
+   * We don't allow mixing multiple l3 switch types (since
+   * these have different programming models). So look for
+   * the first l3 switch type and return that
+   */
+  if (getSwitchIdsOfType(cfg::SwitchType::NPU).size()) {
+    return cfg::SwitchType::NPU;
+  }
+  if (getSwitchIdsOfType(cfg::SwitchType::VOQ).size()) {
+    return cfg::SwitchType::VOQ;
+  }
+  throw FbossError("No L3 NPUs found");
+}
 } // namespace facebook::fboss

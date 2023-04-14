@@ -13,9 +13,10 @@ class SwitchInfoTable {
   explicit SwitchInfoTable(
       SwSwitch* sw,
       const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo);
-  std::vector<SwitchID> getSwitchIdsOfType(cfg::SwitchType type);
+  std::vector<SwitchID> getSwitchIdsOfType(cfg::SwitchType type) const;
   std::vector<SwitchID> getSwitchIDs() const;
   bool vlansSupported() const;
+  cfg::SwitchType l3SwitchType() const;
 
  private:
   SwSwitch* sw_;
