@@ -171,14 +171,6 @@ class SwitchSettings
     return std::nullopt;
   }
 
-  void setSwitchId(std::optional<int64_t> switchId) {
-    if (!switchId) {
-      ref<switch_state_tags::switchId>().reset();
-    } else {
-      set<switch_state_tags::switchId>(*switchId);
-    }
-  }
-
   cfg::SwitchDrainState getSwitchDrainState() const {
     return cref<switch_state_tags::switchDrainState>()->toThrift();
   }
