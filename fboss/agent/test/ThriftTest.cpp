@@ -165,11 +165,37 @@ class ThriftTestAllSwitchTypes : public ::testing::Test {
             5
                    : 1;
   }
+
+  std::pair<SwitchID, cfg::SwitchType> getSwitchIdAndType() {
+    if (isNpu()) {
+      return {SwitchID(0), cfg::SwitchType::NPU};
+    } else if (isFabric()) {
+      return {SwitchID(2), cfg::SwitchType::FABRIC};
+    } else if (isVoq()) {
+      return {SwitchID(1), cfg::SwitchType::VOQ};
+    }
+    throw FbossError("Invalid switch type");
+  }
   SwSwitch* sw_;
   std::unique_ptr<HwTestHandle> handle_;
 };
 
 TYPED_TEST_SUITE(ThriftTestAllSwitchTypes, SwitchTypes);
+
+TYPED_TEST(ThriftTestAllSwitchTypes, checkSwitchId) {
+  auto switchInfoTable = this->sw_->getSwitchInfoTable();
+  auto switchIdAndType = this->getSwitchIdAndType();
+  for (const auto& type :
+       {cfg::SwitchType::NPU, cfg::SwitchType::VOQ, cfg::SwitchType::FABRIC}) {
+    if (type == switchIdAndType.second) {
+      EXPECT_EQ(
+          switchInfoTable.getSwitchIdsOfType(switchIdAndType.second)[0],
+          switchIdAndType.first);
+    } else {
+      EXPECT_EQ(switchInfoTable.getSwitchIdsOfType(type).size(), 0);
+    }
+  }
+}
 
 TYPED_TEST(ThriftTestAllSwitchTypes, listHwObjects) {
   ThriftHandler handler(this->sw_);

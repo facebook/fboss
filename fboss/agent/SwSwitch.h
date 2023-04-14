@@ -13,6 +13,7 @@
 #include "fboss/agent/PacketObserver.h"
 #include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/SwitchInfoTable.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
@@ -134,7 +135,8 @@ class SwSwitch : public HwSwitch::Callback {
    */
   SwSwitch(
       std::unique_ptr<Platform> platform,
-      std::unique_ptr<PlatformMapping> platformMapping);
+      std::unique_ptr<PlatformMapping> platformMapping,
+      cfg::SwitchConfig* config);
   ~SwSwitch() override;
 
   HwSwitch* getHw() const {
@@ -798,6 +800,10 @@ class SwSwitch : public HwSwitch::Callback {
 
   InterfaceID getInterfaceIDForPort(PortID portID) const;
 
+  const SwitchInfoTable& getSwitchInfoTable() const {
+    return switchInfoTable_;
+  }
+
  private:
   void updateStateBlockingImpl(
       folly::StringPiece name,
@@ -1026,6 +1032,7 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<FsdbSyncer> fsdbSyncer_;
   std::unique_ptr<TeFlowNexthopHandler> teFlowNextHopHandler_;
   std::unique_ptr<DsfSubscriber> dsfSubscriber_;
+  SwitchInfoTable switchInfoTable_;
   std::unique_ptr<PlatformMapping> platformMapping_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;

@@ -81,7 +81,8 @@ void initSwSwitchWithFlags(SwSwitch* sw, SwitchFlags flags) {
 
 unique_ptr<SwSwitch> createMockSw(
     const shared_ptr<SwitchState>& state,
-    SwitchFlags flags) {
+    SwitchFlags flags,
+    cfg::SwitchConfig* config) {
   std::unique_ptr<MockPlatform> platform;
   if (state) {
     const auto& switchSettings = state->getSwitchSettings();
@@ -92,7 +93,7 @@ unique_ptr<SwSwitch> createMockSw(
   } else {
     platform = createMockPlatform();
   }
-  return setupMockSwitchWithoutHW(std::move(platform), state, flags);
+  return setupMockSwitchWithoutHW(std::move(platform), state, flags, config);
 }
 
 shared_ptr<SwitchState> setAllPortState(
@@ -373,13 +374,14 @@ shared_ptr<SwitchState> publishAndApplyConfig(
 std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
     std::unique_ptr<MockPlatform> platform,
     const std::shared_ptr<SwitchState>& state,
-    SwitchFlags flags) {
+    SwitchFlags flags,
+    cfg::SwitchConfig* config) {
   // Since we are just applying a initial state and to created
   // switch, set initial config to empty.
   platform->setConfig(createEmptyAgentConfig());
   auto platformMapping = std::make_unique<MockPlatformMapping>();
-  auto sw =
-      make_unique<SwSwitch>(std::move(platform), std::move(platformMapping));
+  auto sw = make_unique<SwSwitch>(
+      std::move(platform), std::move(platformMapping), config);
   HwInitResult ret;
   ret.switchState = state ? state : make_shared<SwitchState>();
   ret.bootType = BootType::COLD_BOOT;
@@ -408,8 +410,9 @@ unique_ptr<MockPlatform> createMockPlatform(
 
 unique_ptr<HwTestHandle> createTestHandle(
     const shared_ptr<SwitchState>& state,
-    SwitchFlags flags) {
-  auto sw = createMockSw(state, flags);
+    SwitchFlags flags,
+    cfg::SwitchConfig* config) {
+  auto sw = createMockSw(state, flags, config);
   auto platform = static_cast<MockPlatform*>(sw->getPlatform());
   auto handle = platform->createTestHandle(std::move(sw));
   handle->prepareForTesting();
@@ -448,7 +451,7 @@ unique_ptr<HwTestHandle> createTestHandle(
 
   initialState->getSwitchSettings()->setSwitchIdToSwitchInfo(
       switchIdToSwitchInfo);
-  auto handle = createTestHandle(initialState, flags);
+  auto handle = createTestHandle(initialState, flags, config);
   auto sw = handle->getSw();
 
   if (config) {

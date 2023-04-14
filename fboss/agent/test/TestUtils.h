@@ -81,7 +81,8 @@ std::shared_ptr<SwitchState> publishAndApplyConfig(
  */
 std::unique_ptr<HwTestHandle> createTestHandle(
     const std::shared_ptr<SwitchState>& = nullptr,
-    SwitchFlags flags = SwitchFlags::DEFAULT);
+    SwitchFlags flags = SwitchFlags::DEFAULT,
+    cfg::SwitchConfig* cfg = nullptr);
 std::unique_ptr<HwTestHandle> createTestHandle(
     cfg::SwitchConfig* cfg,
     SwitchFlags flags = SwitchFlags::DEFAULT);
@@ -92,7 +93,8 @@ std::unique_ptr<MockPlatform> createMockPlatform(
 std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
     std::unique_ptr<MockPlatform> platform,
     const std::shared_ptr<SwitchState>& state,
-    SwitchFlags flags);
+    SwitchFlags flags,
+    cfg::SwitchConfig* config = nullptr);
 
 std::unique_ptr<SwSwitch> setupMockSwitchWithHW(
     std::unique_ptr<MockPlatform> platform,

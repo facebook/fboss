@@ -114,6 +114,10 @@ using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
 
+using facebook::fboss::AgentConfig;
+using facebook::fboss::cfg::SwitchConfig;
+using facebook::fboss::cfg::SwitchInfo;
+using facebook::fboss::cfg::SwitchType;
 using facebook::fboss::DeltaFunctions::forEachChanged;
 
 using namespace std::chrono;
@@ -189,6 +193,23 @@ facebook::fboss::PortStatus fillInPortStatus(
   return status;
 }
 
+const std::map<int64_t, SwitchInfo> getSwitchInfoFromConfig(
+    const SwitchConfig* config) {
+  return *config->switchSettings()->switchIdToSwitchInfo();
+}
+
+const std::map<int64_t, SwitchInfo> getSwitchInfoFromConfig() {
+  std::unique_ptr<AgentConfig> config;
+  try {
+    config = AgentConfig::fromDefaultFile();
+  } catch (const exception& e) {
+    // expected on devservers where no config file is available
+    return std::map<int64_t, SwitchInfo>();
+  }
+  auto swConfig = config->thrift.sw();
+  return getSwitchInfoFromConfig(&(swConfig.value()));
+}
+
 auto constexpr kHwUpdateFailures = "hw_update_failures";
 
 } // anonymous namespace
@@ -223,7 +244,8 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
           new PhySnapshotManager<kIphySnapshotIntervalSeconds>()),
       aclNexthopHandler_(new AclNexthopHandler(this)),
       teFlowNextHopHandler_(new TeFlowNexthopHandler(this)),
-      dsfSubscriber_(new DsfSubscriber(this)) {
+      dsfSubscriber_(new DsfSubscriber(this)),
+      switchInfoTable_(getSwitchInfoFromConfig()) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());
@@ -243,9 +265,13 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
 
 SwSwitch::SwSwitch(
     std::unique_ptr<Platform> platform,
-    std::unique_ptr<PlatformMapping> platformMapping)
+    std::unique_ptr<PlatformMapping> platformMapping,
+    cfg::SwitchConfig* config)
     : SwSwitch(std::move(platform)) {
   platformMapping_ = std::move(platformMapping);
+  if (config) {
+    switchInfoTable_ = SwitchInfoTable(getSwitchInfoFromConfig(config));
+  }
 }
 
 SwSwitch::~SwSwitch() {
