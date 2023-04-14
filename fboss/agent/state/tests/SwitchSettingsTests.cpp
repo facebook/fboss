@@ -305,6 +305,11 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   EXPECT_FALSE(switchSettingsV1->isPublished());
   EXPECT_EQ(switchSettingsV1->getSwitchType(), cfg::SwitchType::VOQ);
   EXPECT_EQ(switchSettingsV1->getSwitchId(), 1);
+  EXPECT_EQ(switchSettingsV1->getSwitchIdToSwitchInfo().size(), 1);
+  auto switchInfo = switchSettingsV1->getSwitchIdToSwitchInfo().at(1);
+  EXPECT_EQ(switchInfo.switchType(), cfg::SwitchType::VOQ);
+  EXPECT_EQ(switchInfo.asicType(), cfg::AsicType::ASIC_TYPE_MOCK);
+  EXPECT_THROW(switchSettingsV1->getSwitchType(0), FbossError);
   validateNodeSerialization(*switchSettingsV1);
 }
 

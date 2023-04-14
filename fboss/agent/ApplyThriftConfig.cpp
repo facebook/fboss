@@ -3523,6 +3523,24 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     switchSettingsChange = true;
   }
 
+  SwitchIdToSwitchInfo switchIdtoSwitchInfo;
+  if (cfg_->switchSettings()->switchIdToSwitchInfo()->size()) {
+    switchIdtoSwitchInfo = *(cfg_->switchSettings()->switchIdToSwitchInfo());
+  } else {
+    // TODO - remove this once switchIdToSwitchInfo config is rolled out
+    int64_t switchId = cfg_->switchSettings()->switchId().has_value()
+        ? cfg_->switchSettings()->switchId().value()
+        : 0;
+    cfg::SwitchInfo switchInfo;
+    switchInfo.switchType() = *cfg_->switchSettings()->switchType();
+    switchInfo.asicType() = platform_->getAsic()->getAsicType();
+    switchIdtoSwitchInfo.insert(std::make_pair(switchId, switchInfo));
+  }
+  if (origSwitchSettings->getSwitchIdToSwitchInfo() != switchIdtoSwitchInfo) {
+    newSwitchSettings->setSwitchIdToSwitchInfo(switchIdtoSwitchInfo);
+    switchSettingsChange = true;
+  }
+
   if (origSwitchSettings->getSwitchDrainState() !=
       *cfg_->switchSettings()->switchDrainState()) {
     newSwitchSettings->setSwitchDrainState(

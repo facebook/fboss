@@ -253,6 +253,7 @@ TEST(Udf, publish) {
 TEST(Udf, applyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
+  addSwitchInfo(stateV0);
 
   cfg::SwitchConfig config;
   cfg::UdfConfig udf;
@@ -294,6 +295,7 @@ TEST(Udf, applyConfig) {
 TEST(Udf, validateMissingPacketMatcherConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
+  addSwitchInfo(stateV0);
 
   cfg::SwitchConfig config;
   cfg::UdfConfig udf;
@@ -376,6 +378,7 @@ TEST(Udf, validateMissingUdfGroupConfig) {
 TEST(Udf, removeUdfConfigStateDelta) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
+  addSwitchInfo(stateV0);
 
   cfg::SwitchConfig config;
   cfg::UdfConfig udf;

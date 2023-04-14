@@ -136,6 +136,11 @@ cfg::SwitchConfig testConfigFabricSwitch() {
   cfg.switchSettings()->switchType() = cfg::SwitchType::FABRIC;
   cfg.switchSettings()->switchId() = 2;
   cfg.ports()->resize(kPortCount);
+  cfg::SwitchInfo switchInfo;
+  switchInfo.switchType() = cfg::SwitchType::FABRIC;
+  switchInfo.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
+  cfg.switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(2, switchInfo)};
   for (int p = 0; p < kPortCount; ++p) {
     cfg.ports()[p].logicalID() = p + 1;
     cfg.ports()[p].name() = folly::to<string>("port", p + 1);
@@ -233,10 +238,20 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
     cfg.interfaces()[1].ipAddresses()[1] = "192.168.55.1/24";
     cfg.interfaces()[1].ipAddresses()[2] = "2401:db00:2110:3055::0001/64";
     cfg.interfaces()[1].ipAddresses()[3] = "169.254.0.0/16"; // link local
+    cfg::SwitchInfo switchInfo;
+    switchInfo.switchType() = cfg::SwitchType::NPU;
+    switchInfo.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
+    cfg.switchSettings()->switchIdToSwitchInfo() = {
+        std::make_pair(0, switchInfo)};
   } else {
     cfg.switchSettings()->switchId() = 1;
     if (switchType == cfg::SwitchType::VOQ) {
       // Add config for VOQ DsfNode
+      cfg::SwitchInfo switchInfo;
+      switchInfo.switchType() = cfg::SwitchType::VOQ;
+      switchInfo.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
+      cfg.switchSettings()->switchIdToSwitchInfo() = {
+          std::make_pair(1, switchInfo)};
       cfg::DsfNode myNode = makeDsfNodeCfg(1);
       cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
       cfg.interfaces()->resize(kPortCount);
@@ -937,5 +952,11 @@ state::FibContainerFields makeFibContainerFields(
   fields.fibV4() = makeFib(v6Prefixes, true);
 
   return fields;
+}
+
+void addSwitchInfo(
+    std::shared_ptr<SwitchState>& state,
+    std::map<int64_t, cfg::SwitchInfo> switchInfo) {
+  state->getSwitchSettings()->setSwitchIdToSwitchInfo(switchInfo);
 }
 } // namespace facebook::fboss

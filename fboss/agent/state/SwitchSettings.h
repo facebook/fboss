@@ -24,6 +24,8 @@ namespace facebook::fboss {
 
 class SwitchState;
 
+using SwitchIdToSwitchInfo = std::map<int64_t, cfg::SwitchInfo>;
+
 USE_THRIFT_COW(SwitchSettings)
 RESOLVE_STRUCT_MEMBER(SwitchSettings, switch_state_tags::qcmCfg, QcmCfg)
 RESOLVE_STRUCT_MEMBER(
@@ -157,6 +159,15 @@ class SwitchSettings
   }
   void setSwitchType(cfg::SwitchType type) {
     set<switch_state_tags::switchType>(type);
+  }
+
+  cfg::SwitchType getSwitchType(int64_t switchId) const {
+    auto switchIdToSwitchInfo = getSwitchIdToSwitchInfo();
+    auto iter = switchIdToSwitchInfo.find(switchId);
+    if (iter != switchIdToSwitchInfo.end()) {
+      return *iter->second.switchType();
+    }
+    throw FbossError("No SwitchType configured for switchId ", switchId);
   }
 
   std::optional<int64_t> getSwitchId() const {
@@ -393,6 +404,15 @@ class SwitchSettings
   void setFlowletSwitchingConfig(
       std::shared_ptr<FlowletSwitchingConfig> flowletConfig) {
     ref<switch_state_tags::flowletSwitchingConfig>() = flowletConfig;
+  }
+
+  const SwitchIdToSwitchInfo getSwitchIdToSwitchInfo() const {
+    // THRIFT_COPY
+    return get<switch_state_tags::switchIdToSwitchInfo>()->toThrift();
+  }
+
+  void setSwitchIdToSwitchInfo(const SwitchIdToSwitchInfo& switchInfo) {
+    set<switch_state_tags::switchIdToSwitchInfo>(switchInfo);
   }
 
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);

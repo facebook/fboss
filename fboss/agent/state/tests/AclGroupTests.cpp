@@ -639,6 +639,7 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   config.aclTableGroup_ref()->aclTables_ref()[1] = cfgTable2;
 
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchInfo(stateV0);
   stateV0->resetAclTableGroups(tableGroups);
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());

@@ -193,6 +193,7 @@ TEST(Port, emptyConfig) {
   auto platform = createMockPlatform();
   PortID portID(1);
   auto state = make_shared<SwitchState>();
+  addSwitchInfo(state);
   state->registerPort(portID, "port1");
   auto port = state->getPorts()->getPortIf(portID);
   prepareDefaultSwPort(platform.get(), port);
@@ -335,6 +336,7 @@ TEST(Port, verifyPfcConfig) {
 TEST(Port, pauseConfig) {
   auto platform = createMockPlatform();
   auto state = make_shared<SwitchState>();
+  addSwitchInfo(state);
   auto portID = PortID(1);
   state->registerPort(portID, "port1");
   auto port = state->getPorts()->getPortIf(portID);
@@ -559,6 +561,7 @@ void checkChangedPorts(
 TEST(PortMap, applyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchInfo(stateV0);
   auto portsV0 = stateV0->getPorts();
   auto registerPort = [&](int i) {
     state::PortFields portFields;

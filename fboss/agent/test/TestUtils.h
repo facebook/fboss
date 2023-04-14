@@ -554,4 +554,13 @@ state::FibContainerFields makeFibContainerFields(
     int vrf,
     const std::set<std::string>& v4Prefixes,
     const std::set<std::string>& v6Prefixes);
+
+void addSwitchInfo(
+    std::shared_ptr<SwitchState>& state,
+    std::map<int64_t, cfg::SwitchInfo> switchInfo = {
+        {0,
+         cfg::SwitchInfo(
+             apache::thrift::FragileConstructor(),
+             cfg::SwitchType::NPU,
+             cfg::AsicType::ASIC_TYPE_MOCK)}});
 } // namespace facebook::fboss
