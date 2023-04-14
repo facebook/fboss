@@ -12,6 +12,7 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossHwUpdateError.h"
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -195,6 +196,12 @@ TYPED_TEST(ThriftTestAllSwitchTypes, checkSwitchId) {
       EXPECT_EQ(switchInfoTable.getSwitchIdsOfType(type).size(), 0);
     }
   }
+  auto hwAsicTable = this->sw_->getHwAsicTable();
+  EXPECT_NE(hwAsicTable, nullptr);
+  auto hwAsic = hwAsicTable->getHwAsicIf(switchIdAndType.first);
+  EXPECT_NE(hwAsic, nullptr);
+  EXPECT_EQ(SwitchID(*hwAsic->getSwitchId()), switchIdAndType.first);
+  EXPECT_EQ(hwAsic->getSwitchType(), switchIdAndType.second);
 }
 
 TYPED_TEST(ThriftTestAllSwitchTypes, listHwObjects) {

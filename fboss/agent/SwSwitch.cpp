@@ -18,6 +18,7 @@
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/FibHelpers.h"
 
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/IPv4Handler.h"
 #include "fboss/agent/IPv6Handler.h"
@@ -245,7 +246,8 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       aclNexthopHandler_(new AclNexthopHandler(this)),
       teFlowNextHopHandler_(new TeFlowNexthopHandler(this)),
       dsfSubscriber_(new DsfSubscriber(this)),
-      switchInfoTable_(this, getSwitchInfoFromConfig()) {
+      switchInfoTable_(this, getSwitchInfoFromConfig()),
+      hwAsicTable_(new HwAsicTable(this, getSwitchInfoFromConfig())) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());
@@ -271,6 +273,8 @@ SwSwitch::SwSwitch(
   platformMapping_ = std::move(platformMapping);
   if (config) {
     switchInfoTable_ = SwitchInfoTable(this, getSwitchInfoFromConfig(config));
+    hwAsicTable_ =
+        std::make_unique<HwAsicTable>(this, getSwitchInfoFromConfig(config));
   }
 }
 
