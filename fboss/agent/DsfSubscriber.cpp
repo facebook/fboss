@@ -172,11 +172,10 @@ void DsfSubscriber::scheduleUpdate(
 }
 
 void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
-  const auto& oldSwitchSettings = stateDelta.oldState()->getSwitchSettings();
-  const auto& newSwitchSettings = stateDelta.newState()->getSwitchSettings();
-  if (newSwitchSettings->getSwitchId().has_value() &&
-      newSwitchSettings->getSwitchType(
-          newSwitchSettings->getSwitchId().value()) == cfg::SwitchType::VOQ) {
+  // Setup Fsdb subscriber if we have switch ids of type VOQ
+  auto voqSwitchIds =
+      sw_->getSwitchInfoTable().getSwitchIdsOfType(cfg::SwitchType::VOQ);
+  if (voqSwitchIds.size()) {
     if (!fsdbPubSubMgr_) {
       fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>(folly::sformat(
           "{}:agent:{}",
@@ -184,21 +183,23 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
           fb303::ServiceData::get()->getAliveSince().count()));
     }
   } else {
-    fsdbPubSubMgr_.reset();
-    if (oldSwitchSettings->getSwitchId().has_value() &&
-        oldSwitchSettings->getSwitchType(
-            oldSwitchSettings->getSwitchId().value()) == cfg::SwitchType::VOQ) {
+    if (fsdbPubSubMgr_) {
+      // If we had a fsdbManager, it implies that we went from having VOQ
+      // switches to no VOQ switches. This is not supported.
       XLOG(FATAL)
           << " Transition from VOQ to non-VOQ swtich type is not supported";
     }
     // No processing needed on non VOQ switches
     return;
   }
-  auto mySwitchId = newSwitchSettings->getSwitchId();
-
-  auto isLocal = [mySwitchId](const std::shared_ptr<DsfNode>& node) {
-    CHECK(mySwitchId) << " Dsf node config requires local switch ID to be set";
-    return SwitchID(*mySwitchId) == node->getSwitchId();
+  // Should never get here if we don't have voq switch Ids
+  CHECK(voqSwitchIds.size());
+  auto isLocal = [&stateDelta](const std::shared_ptr<DsfNode>& node) {
+    const auto& newSwitchSettings = stateDelta.newState()->getSwitchSettings();
+    const auto& localSwitchIds = newSwitchSettings->getSwitchIds();
+    CHECK(localSwitchIds.size())
+        << " Dsf node config requires local switch ID to be set";
+    return localSwitchIds.find(node->getSwitchId()) != localSwitchIds.end();
   };
   auto isInterfaceNode = [](const std::shared_ptr<DsfNode>& node) {
     return node->getType() == cfg::DsfNodeType::INTERFACE_NODE;
@@ -211,12 +212,14 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     return network.first.str();
   };
 
-  auto getServerOptions = [mySwitchId, getLoopbackIp](
+  auto getServerOptions = [&voqSwitchIds, getLoopbackIp](
                               const std::shared_ptr<DsfNode>& node,
                               const auto& state) {
-    auto selfDsfNode = state->getDsfNodes()->getNodeIf(*mySwitchId);
-    CHECK(selfDsfNode);
-    CHECK(selfDsfNode->getLoopbackIpsSorted().size() != 0);
+    // Use loopback IP of any local VOQ switch as src for FSDB subscriptions
+    // TODO: Evaluate what we should do if one or more VOQ switches go down
+    auto localDsfNode = state->getDsfNodes()->getNodeIf(*voqSwitchIds.begin());
+    CHECK(localDsfNode);
+    CHECK(localDsfNode->getLoopbackIpsSorted().size() != 0);
 
     // Subscribe to FSDB of DSF node in the cluster with:
     //  dstIP = inband IP of that DSF node
@@ -225,7 +228,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     auto serverOptions = fsdb::FsdbStreamClient::ServerOptions(
         getLoopbackIp(node),
         FLAGS_fsdbPort,
-        (*selfDsfNode->getLoopbackIpsSorted().begin()).first.str());
+        (*localDsfNode->getLoopbackIpsSorted().begin()).first.str());
 
     return serverOptions;
   };
