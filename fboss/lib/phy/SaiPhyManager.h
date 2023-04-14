@@ -247,7 +247,11 @@ void SaiPhyManager::initializeSlotPhysImpl(PimID pimID) {
       // Set xphy's customized switch attributes before calling init
       saiPlatform->setSwitchAttributes(xphy->getSwitchAttributes());
       cfg::AgentConfig config;
-      config.sw()->switchSettings()->switchType() = cfg::SwitchType::PHY;
+      cfg::SwitchInfo switchInfo;
+      switchInfo.switchType() = cfg::SwitchType::PHY;
+      switchInfo.asicType() = saiPlatform->getAsic()->getAsicType();
+      config.sw()->switchSettings()->switchIdToSwitchInfo() = {
+          std::make_pair(0, switchInfo)};
       saiPlatform->init(
           std::make_unique<AgentConfig>(config, ""),
           0 /* No switch featured needed */);
