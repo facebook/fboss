@@ -304,15 +304,17 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     tcvrState.eepromCsumValid().copy_from(info.eepromCsumValid());
     tcvrState.moduleMediaInterface().copy_from(info.moduleMediaInterface());
 
-    for (auto it : hostLaneToPortName) {
-      tcvrState.portNameToHostLanes()[it.second].push_back(it.first);
-      tcvrStats.portNameToHostLanes()[it.second].push_back(it.first);
+    for (auto it : portNameToHostLanes) {
+      tcvrState.portNameToHostLanes()[it.first] =
+          std::vector<int>(it.second.begin(), it.second.end());
     }
+    tcvrStats.portNameToHostLanes() = *tcvrState.portNameToHostLanes();
 
-    for (auto it : mediaLaneToPortName) {
-      tcvrState.portNameToMediaLanes()[it.second].push_back(it.first);
-      tcvrStats.portNameToMediaLanes()[it.second].push_back(it.first);
+    for (auto it : portNameToMediaLanes) {
+      tcvrState.portNameToMediaLanes()[it.first] =
+          std::vector<int>(it.second.begin(), it.second.end());
     }
+    tcvrStats.portNameToMediaLanes() = *tcvrState.portNameToMediaLanes();
   }
 
   phy::LinkSnapshot snapshot;
@@ -1007,6 +1009,16 @@ void QsfpModule::updateLaneToPortNameMapping(
       }
     }
     mediaLaneToPortName[lane] = portName;
+  }
+
+  portNameToHostLanes.clear();
+  portNameToMediaLanes.clear();
+  for (auto it : hostLaneToPortName) {
+    portNameToHostLanes[it.second].insert(it.first);
+  }
+
+  for (auto it : mediaLaneToPortName) {
+    portNameToMediaLanes[it.second].insert(it.first);
   }
 }
 

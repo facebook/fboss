@@ -624,6 +624,9 @@ class QsfpModule : public Transceiver {
   void updateLaneToPortNameMapping(
       const std::string& portName,
       uint8_t startHostLane);
+
+  std::unordered_map<std::string, std::set<uint8_t>> portNameToHostLanes;
+  std::unordered_map<std::string, std::set<uint8_t>> portNameToMediaLanes;
 };
 } // namespace fboss
 } // namespace facebook
