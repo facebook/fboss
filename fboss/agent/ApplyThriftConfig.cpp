@@ -3561,21 +3561,24 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
         *cfg_->switchSettings()->exactMatchTableConfigs());
     switchSettingsChange = true;
   }
-  if (newSwitchSettings->getSwitchType(
-          newSwitchSettings->getSwitchId().value()) == cfg::SwitchType::VOQ) {
-    CHECK(newSwitchSettings->getSwitchId() != std::nullopt);
-    auto dsfItr = *cfg_->dsfNodes()->find(
-        static_cast<int64_t>(*newSwitchSettings->getSwitchId()));
-    if (dsfItr == *cfg_->dsfNodes()->end()) {
-      throw FbossError(
-          "Missing dsf config for switch id: ",
-          *newSwitchSettings->getSwitchId());
-    }
-    auto myNode = dsfItr.second;
-    auto origSysPortRange = origSwitchSettings->getSystemPortRange();
-    if (!origSysPortRange || *origSysPortRange != myNode.systemPortRange()) {
-      newSwitchSettings->setSystemPortRange(*myNode.systemPortRange());
-      switchSettingsChange = true;
+  for (auto& switchId : newSwitchSettings->getSwitchIds()) {
+    if (newSwitchSettings->getSwitchType(static_cast<int64_t>(switchId)) ==
+        cfg::SwitchType::VOQ) {
+      auto dsfItr = *cfg_->dsfNodes()->find(static_cast<int64_t>(switchId));
+      if (dsfItr == *cfg_->dsfNodes()->end()) {
+        throw FbossError(
+            "Missing dsf config for switch id: ",
+            static_cast<int64_t>(switchId));
+      }
+      auto localNode = dsfItr.second;
+      CHECK(localNode.systemPortRange().has_value());
+      auto origLocalNode = orig_->getDsfNodes()->getDsfNodeIf(switchId);
+      if (!origLocalNode ||
+          origLocalNode->getSystemPortRange() != *localNode.systemPortRange()) {
+        // TODO - get rid of single system port range on switchSettings
+        newSwitchSettings->setSystemPortRange(*localNode.systemPortRange());
+        switchSettingsChange = true;
+      }
     }
   }
 
