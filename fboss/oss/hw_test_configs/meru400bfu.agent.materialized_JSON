@@ -132,7 +132,7 @@
           "dport_map_direct.BCM8879X": "1",
           "fabric_cell_fifo_dma_enable.BCM8879X": "1",
           "fabric_device_mode.BCM8879X": "SINGLE_STAGE_FE2",
-          "fabric_load_balancing_mode.BCM8879X": "NORMAL_LOAD_BALANCE",
+          "fabric_load_balancing_mode.BCM8879X": "BALANCED_INPUT",
           "fabric_multicast_mode.BCM8879X": "DIRECT",
           "fabric_num_pipes.BCM8879X": "1",
           "fabric_pipe_map.BCM8879X": "0",
