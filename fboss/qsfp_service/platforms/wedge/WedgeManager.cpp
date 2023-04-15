@@ -481,7 +481,7 @@ void WedgeManager::updateTransceiverMap() {
     // Check whether all ports are down before the rest logic tries to erase
     // the old QsfpModule. So even after we erase this QsfpModule, we can still
     // try to hard reset to remediate it as long as all the ports are down.
-    bool safeToReset = areAllPortsDown(TransceiverID(idx));
+    bool safeToReset = areAllPortsDown(TransceiverID(idx)).first;
     auto it = lockedTransceivers->find(TransceiverID(idx));
     if (it != lockedTransceivers->end()) {
       // In the case where we already have a transceiver recorded, try to check

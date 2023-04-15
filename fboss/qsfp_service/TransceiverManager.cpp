@@ -1218,7 +1218,7 @@ std::optional<PortID> TransceiverManager::getPortIDByPortName(
  * string (ie: eth2/1/1)
  */
 std::optional<std::string> TransceiverManager::getPortNameByPortId(
-    PortID portId) {
+    PortID portId) const {
   auto portMapIt = portNameToPortID_.right.find(portId);
   if (portMapIt != portNameToPortID_.right.end()) {
     return portMapIt->second;
@@ -1274,30 +1274,38 @@ void TransceiverManager::setOverrideAgentConfigAppliedInfoForTesting(
   overrideAgentConfigAppliedInfoForTesting_ = configAppliedInfo;
 }
 
-bool TransceiverManager::areAllPortsDown(TransceiverID id) const noexcept {
+std::pair<bool, std::vector<std::string>> TransceiverManager::areAllPortsDown(
+    TransceiverID id) const noexcept {
   auto portToPortInfoIt = tcvrToPortInfo_.find(id);
   if (portToPortInfoIt == tcvrToPortInfo_.end()) {
     XLOG(WARN) << "Can't find Transceiver:" << id
                << " in cached tcvrToPortInfo_";
-    return false;
+    return {false, {}};
   }
   auto portToPortInfoWithLock = portToPortInfoIt->second->rlock();
   if (portToPortInfoWithLock->empty()) {
     XLOG(WARN) << "Can't find any programmed port for Transceiver:" << id
                << " in cached tcvrToPortInfo_";
-    return false;
+    return {false, {}};
   }
+  bool anyPortUp = false;
+  std::vector<std::string> downPorts;
   for (const auto& [portID, portInfo] : *portToPortInfoWithLock) {
     if (!portInfo.status.has_value()) {
       // If no status set, assume ports are up so we won't trigger any
       // disruptive event
-      return false;
+      return {false, {}};
     }
     if (*portInfo.status->up()) {
-      return false;
+      anyPortUp = true;
+    } else {
+      auto portName = getPortNameByPortId(portID);
+      if (portName.has_value()) {
+        downPorts.push_back(*portName);
+      }
     }
   }
-  return true;
+  return {!anyPortUp, downPorts};
 }
 
 void TransceiverManager::triggerRemediateEvents(

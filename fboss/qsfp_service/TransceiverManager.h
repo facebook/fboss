@@ -278,7 +278,9 @@ class TransceiverManager {
 
   bool readyTransceiver(TransceiverID id);
 
-  bool areAllPortsDown(TransceiverID id) const noexcept;
+  // Returns a pair of <boolean_for_all_ports_down, list_of_ports_down>
+  std::pair<bool, std::vector<std::string>> areAllPortsDown(
+      TransceiverID id) const noexcept;
 
   bool tryRemediateTransceiver(TransceiverID id);
 
@@ -339,7 +341,7 @@ class TransceiverManager {
   std::optional<PortID> getPortIDByPortName(const std::string& portName);
 
   // Function to convert port id to port name
-  std::optional<std::string> getPortNameByPortId(PortID portId);
+  std::optional<std::string> getPortNameByPortId(PortID portId) const;
 
   std::vector<PortID> getAllPlatformPorts(TransceiverID tcvrID) const;
 

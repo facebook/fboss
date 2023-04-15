@@ -345,7 +345,7 @@ bool operator()(
               << "] No enabled ports. Safe to remove";
     return true;
   }
-  bool result = xcvrMgr->areAllPortsDown(tcvrID);
+  bool result = xcvrMgr->areAllPortsDown(tcvrID).first;
   XLOG_IF(WARN, !result) << "[Transceiver:" << tcvrID
                         << "] Not all ports down. Not Safe to remove";
   return result;
