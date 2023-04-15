@@ -409,6 +409,8 @@ struct TcvrState {
   18: optional bool eepromCsumValid;
   19: optional MediaInterfaceCode moduleMediaInterface;
   20: optional TransceiverStateMachineState stateMachineState;
+  21: map<string, list<i32>> portNameToHostLanes;
+  22: map<string, list<i32>> portNameToMediaLanes;
 }
 
 struct TcvrStats {
@@ -418,6 +420,8 @@ struct TcvrStats {
   4: optional i64 remediationCounter;
   5: optional VdmDiagsStats vdmDiagsStats;
   6: optional VdmDiagsStats vdmDiagsStatsForOds;
+  7: map<string, list<i32>> portNameToHostLanes;
+  8: map<string, list<i32>> portNameToMediaLanes;
 }
 
 struct TransceiverInfo {

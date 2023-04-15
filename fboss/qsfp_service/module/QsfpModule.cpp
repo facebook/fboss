@@ -303,6 +303,16 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     tcvrStats.remediationCounter().copy_from(info.remediationCounter());
     tcvrState.eepromCsumValid().copy_from(info.eepromCsumValid());
     tcvrState.moduleMediaInterface().copy_from(info.moduleMediaInterface());
+
+    for (auto it : hostLaneToPortName) {
+      tcvrState.portNameToHostLanes()[it.second].push_back(it.first);
+      tcvrStats.portNameToHostLanes()[it.second].push_back(it.first);
+    }
+
+    for (auto it : mediaLaneToPortName) {
+      tcvrState.portNameToMediaLanes()[it.second].push_back(it.first);
+      tcvrStats.portNameToMediaLanes()[it.second].push_back(it.first);
+    }
   }
 
   phy::LinkSnapshot snapshot;
