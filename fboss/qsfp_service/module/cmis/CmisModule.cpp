@@ -1943,8 +1943,12 @@ bool CmisModule::checkLaneConfigError(
  * disruptive, but have worked in the past to recover a transceiver.
  * Always return true
  */
-bool CmisModule::remediateFlakyTransceiver() {
-  QSFP_LOG(INFO, this) << "Performing potentially disruptive remediations";
+bool CmisModule::remediateFlakyTransceiver(
+    bool allPortsDown,
+    const std::vector<std::string>& ports) {
+  QSFP_LOG(INFO, this) << "allPortsDown = " << allPortsDown
+                       << ". Performing potentially disruptive remediations on "
+                       << folly::join(",", ports);
 
   // This api accept 1 based module id however the module id in WedgeManager
   // is 0 based.

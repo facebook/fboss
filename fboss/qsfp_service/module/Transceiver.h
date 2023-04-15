@@ -204,8 +204,12 @@ class Transceiver {
   /*
    * Try to remediate such Transceiver if needed.
    * Return true means remediation is needed.
+   * When allPortsDown is true, we trigger a full remediation otherwise we just
+   * remediate specific datapaths
    */
-  virtual bool tryRemediate() = 0;
+  virtual bool tryRemediate(
+      bool allPortsDown,
+      const std::vector<std::string>& ports) = 0;
 
   virtual bool shouldRemediate() = 0;
 

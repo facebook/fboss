@@ -1230,7 +1230,9 @@ void SffModule::setPowerOverrideIfSupportedLocked(
  * disruptive, but have worked in the past to recover a transceiver.
  * Only return true if there's an actual remediation happened
  */
-bool SffModule::remediateFlakyTransceiver() {
+bool SffModule::remediateFlakyTransceiver(
+    bool /* allPortsDown */,
+    const std::vector<std::string>& /* ports */) {
   QSFP_LOG(INFO, this) << "Performing potentially disruptive remediations";
 
   resetLowPowerMode();

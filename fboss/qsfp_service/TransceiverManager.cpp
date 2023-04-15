@@ -774,9 +774,12 @@ bool TransceiverManager::tryRemediateTransceiver(TransceiverID id) {
                << ". Transeciver is not present";
     return false;
   }
-  bool didRemediate = tcvrIt->second->tryRemediate();
+  std::vector<std::string> portsToRemediate = {};
+  bool didRemediate =
+      tcvrIt->second->tryRemediate(true /* allPortsDown */, portsToRemediate);
   XLOG_IF(INFO, didRemediate)
-      << "Remediated Transceiver for Transceiver=" << id;
+      << "Remediated Transceiver for Transceiver=" << id
+      << " and ports=" << folly::join(",", portsToRemediate);
   return didRemediate;
 }
 

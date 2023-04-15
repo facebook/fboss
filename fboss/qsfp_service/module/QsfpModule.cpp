@@ -1074,11 +1074,13 @@ void QsfpModule::publishSnapshots() {
   snapshotsLocked->publishFutureSnapshots();
 }
 
-bool QsfpModule::tryRemediate() {
+bool QsfpModule::tryRemediate(
+    bool allPortsDown,
+    const std::vector<std::string>& ports) {
   // Always use i2cEvb to program transceivers if there's an i2cEvb
-  auto remediateTcvrFunc = [this]() {
+  auto remediateTcvrFunc = [this, allPortsDown, &ports]() {
     lock_guard<std::mutex> g(qsfpModuleMutex_);
-    return tryRemediateLocked();
+    return tryRemediateLocked(allPortsDown, ports);
   };
   auto i2cEvb = qsfpImpl_->getI2cEventBase();
   if (!i2cEvb) {
@@ -1096,10 +1098,13 @@ bool QsfpModule::tryRemediate() {
   }
 }
 
-bool QsfpModule::tryRemediateLocked() {
+bool QsfpModule::tryRemediateLocked(
+    bool allPortsDown,
+    const std::vector<std::string>& ports) {
   // Only update numRemediation_ iff this transceiver should remediate and
   // remediation actually happens
-  if (shouldRemediateLocked() && remediateFlakyTransceiver()) {
+  if (shouldRemediateLocked() &&
+      remediateFlakyTransceiver(allPortsDown, ports)) {
     ++numRemediation_;
     // Remediation touches the hardware, hard resetting the optics in Cmis case,
     // so set dirty so that we always do a refresh in the next cycle and update

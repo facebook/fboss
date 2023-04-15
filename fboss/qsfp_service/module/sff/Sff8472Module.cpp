@@ -376,7 +376,9 @@ Vendor Sff8472Module::getVendorInfo() {
   return vendor;
 }
 
-bool Sff8472Module::remediateFlakyTransceiver() {
+bool Sff8472Module::remediateFlakyTransceiver(
+    bool /* allPortsDown */,
+    const std::vector<std::string>& /* ports */) {
   QSFP_LOG(INFO, this) << "Performing potentially disruptive remediations";
 
   // This api accept 1 based module id however the module id in WedgeManager

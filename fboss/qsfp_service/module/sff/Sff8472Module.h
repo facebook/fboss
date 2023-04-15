@@ -123,7 +123,9 @@ class Sff8472Module : public QsfpModule {
 
   void updateQsfpData(bool allPages = true) override;
 
-  bool remediateFlakyTransceiver() override;
+  bool remediateFlakyTransceiver(
+      bool allPortsDown,
+      const std::vector<std::string>& ports) override;
 
   double getQsfpDACLength() const override {
     return 0;

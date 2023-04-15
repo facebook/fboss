@@ -212,8 +212,11 @@ class QsfpModule : public Transceiver {
   /*
    * Try to remediate such Transceiver if needed.
    * Return true means remediation is needed.
+   * When allPortsDown is true, we trigger a full remediation otherwise we just
+   * remediate specific datapaths
    */
-  bool tryRemediate() override;
+  bool tryRemediate(bool allPortsDown, const std::vector<std::string>& ports)
+      override;
 
   bool shouldRemediate() override;
 
@@ -448,7 +451,9 @@ class QsfpModule : public Transceiver {
    * disruptive, but have worked in the past to recover a transceiver.
    * Only return true if there's an actual remediation happened
    */
-  virtual bool remediateFlakyTransceiver() {
+  virtual bool remediateFlakyTransceiver(
+      bool /* allPortsDown */,
+      const std::vector<std::string>& /* ports */) {
     return false;
   }
 
@@ -547,8 +552,12 @@ class QsfpModule : public Transceiver {
   /*
    * Try to remediate such Transceiver if needed.
    * Return true means remediation is needed.
+   * When allPortsDown is true, we trigger a full remediation otherwise we just
+   * remediate specific datapaths
    */
-  bool tryRemediateLocked();
+  bool tryRemediateLocked(
+      bool allPortsDown,
+      const std::vector<std::string>& ports);
   /*
    * Perform a raw register read on the transceiver
    * This must be called with a lock held on qsfpModuleMutex_

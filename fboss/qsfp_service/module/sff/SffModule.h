@@ -389,7 +389,9 @@ class SffModule : public QsfpModule {
    * disruptive, but have worked in the past to recover a transceiver.
    * Only return true if there's an actual remediation happened
    */
-  bool remediateFlakyTransceiver() override;
+  bool remediateFlakyTransceiver(
+      bool allPortsDown,
+      const std::vector<std::string>& ports) override;
 
   // make sure that tx_disable bits are clear
   virtual void ensureTxEnabled() override;

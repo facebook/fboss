@@ -309,7 +309,9 @@ class CmisModule : public QsfpModule {
    * disruptive, but have worked in the past to recover a transceiver.
    * Only return true if there's an actual remediation happened
    */
-  bool remediateFlakyTransceiver() override;
+  bool remediateFlakyTransceiver(
+      bool allPortsDown,
+      const std::vector<std::string>& ports) override;
 
   virtual void setDiagsCapability() override;
 
