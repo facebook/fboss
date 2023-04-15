@@ -11,4 +11,7 @@ std::vector<std::string> fsdbAgentDataSwitchStateRootPath() {
 std::vector<std::string> switchStateRootPath() {
   return {};
 }
+
+void printOperDeltaPaths(const fsdb::OperDelta& /*operDelta*/) {}
+
 } // namespace facebook::fboss
