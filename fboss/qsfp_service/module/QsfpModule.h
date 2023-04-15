@@ -255,6 +255,24 @@ class QsfpModule : public Transceiver {
   virtual std::vector<uint8_t> configuredMediaLanes(
       uint8_t hostStartLane) const = 0;
 
+  const std::map<uint8_t, std::string>& getHostLaneToPortName() const {
+    return hostLaneToPortName;
+  }
+
+  const std::map<uint8_t, std::string>& getMediaLaneToPortName() const {
+    return mediaLaneToPortName;
+  }
+
+  const std::unordered_map<std::string, std::set<uint8_t>>&
+  getPortNameToHostLanes() const {
+    return portNameToHostLanes;
+  }
+
+  const std::unordered_map<std::string, std::set<uint8_t>>&
+  getPortNameToMediaLanes() const {
+    return portNameToMediaLanes;
+  }
+
  protected:
   /* Qsfp Internal Implementation */
   std::unique_ptr<TransceiverImpl> qsfpImpl_;

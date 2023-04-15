@@ -304,13 +304,13 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     tcvrState.eepromCsumValid().copy_from(info.eepromCsumValid());
     tcvrState.moduleMediaInterface().copy_from(info.moduleMediaInterface());
 
-    for (auto it : portNameToHostLanes) {
+    for (auto it : getPortNameToHostLanes()) {
       tcvrState.portNameToHostLanes()[it.first] =
           std::vector<int>(it.second.begin(), it.second.end());
     }
     tcvrStats.portNameToHostLanes() = *tcvrState.portNameToHostLanes();
 
-    for (auto it : portNameToMediaLanes) {
+    for (auto it : getPortNameToMediaLanes()) {
       tcvrState.portNameToMediaLanes()[it.first] =
           std::vector<int>(it.second.begin(), it.second.end());
     }
