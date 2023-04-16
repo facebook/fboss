@@ -61,10 +61,10 @@ class Jericho2Asic : public BroadcomAsic {
     return 64;
   }
   uint32_t getPacketBufferUnitSize() const override {
-    return 254;
+    return 4096;
   }
   uint32_t getPacketBufferDescriptorSize() const override {
-    return 40;
+    return 30;
   }
   uint32_t getMaxVariableWidthEcmpSize() const override {
     return 128;
