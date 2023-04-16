@@ -198,6 +198,10 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::aclTableGroupMaps,
     MultiAclTableGroupMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::dsfNodesMap,
+    MultiDsfNodeMap);
 /*
  * SwitchState stores the current switch configuration.
  *
@@ -450,9 +454,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<IpTunnelMap>& getTunnels() const;
   const std::shared_ptr<TeFlowTable>& getTeFlowTable() const;
 
-  const std::shared_ptr<DsfNodeMap>& getDsfNodes() const {
-    return cref<switch_state_tags::dsfNodes>();
-  }
+  const std::shared_ptr<DsfNodeMap>& getDsfNodes() const;
 
   const std::shared_ptr<UdfConfig>& getUdfConfig() const {
     if (getSwitchSettings()->getUdfConfig()) {

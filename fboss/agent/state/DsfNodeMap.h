@@ -27,6 +27,7 @@ using DsfNodeMapTraits = ThriftMapNodeTraits<
 
 class DsfNodeMap : public ThriftMapNode<DsfNodeMap, DsfNodeMapTraits> {
  public:
+  using Traits = DsfNodeMapTraits;
   using BaseT = ThriftMapNode<DsfNodeMap, DsfNodeMapTraits>;
   using BaseT::modify;
 
@@ -44,4 +45,33 @@ class DsfNodeMap : public ThriftMapNode<DsfNodeMap, DsfNodeMapTraits> {
   friend class CloneAllocator;
 };
 
+using MultiDsfNodeMapTypeClass = apache::thrift::type_class::
+    map<apache::thrift::type_class::string, DsfNodeMapTypeClass>;
+using MultiDsfNodeMapThriftType = std::map<std::string, DsfNodeMapThriftType>;
+
+class MultiDsfNodeMap;
+
+using MultiDsfNodeMapTraits = ThriftMultiMapNodeTraits<
+    MultiDsfNodeMap,
+    MultiDsfNodeMapTypeClass,
+    MultiDsfNodeMapThriftType,
+    DsfNodeMap>;
+
+class HwSwitchMatcher;
+
+class MultiDsfNodeMap
+    : public ThriftMapNode<MultiDsfNodeMap, MultiDsfNodeMapTraits> {
+ public:
+  using Traits = MultiDsfNodeMapTraits;
+  using BaseT = ThriftMapNode<MultiDsfNodeMap, MultiDsfNodeMapTraits>;
+  using BaseT::modify;
+
+  MultiDsfNodeMap() {}
+  virtual ~MultiDsfNodeMap() {}
+
+ private:
+  // Inherit the constructors required for clone()
+  using BaseT::BaseT;
+  friend class CloneAllocator;
+};
 } // namespace facebook::fboss

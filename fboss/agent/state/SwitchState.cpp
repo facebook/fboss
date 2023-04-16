@@ -11,6 +11,7 @@
 #include <memory>
 #include <tuple>
 
+#include "DsfNodeMap.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
@@ -147,6 +148,7 @@ SwitchState::SwitchState() {
   resetPorts(std::make_shared<PortMap>());
   resetIntfs(std::make_shared<InterfaceMap>());
   resetAclTableGroups(std::make_shared<AclTableGroupMap>());
+  resetDsfNodes(std::make_shared<DsfNodeMap>());
 }
 
 SwitchState::~SwitchState() {}
@@ -410,7 +412,11 @@ const std::shared_ptr<TeFlowTable>& SwitchState::getTeFlowTable() const {
 }
 
 void SwitchState::resetDsfNodes(std::shared_ptr<DsfNodeMap> dsfNodes) {
-  ref<switch_state_tags::dsfNodes>() = dsfNodes;
+  resetDefaultMap<switch_state_tags::dsfNodesMap>(dsfNodes);
+}
+
+const std::shared_ptr<DsfNodeMap>& SwitchState::getDsfNodes() const {
+  return getDefaultMap<switch_state_tags::dsfNodesMap>();
 }
 
 std::shared_ptr<const AclTableMap> SwitchState::getAclTablesForStage(
@@ -634,6 +640,9 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
         switch_state_tags::aclTableGroupMaps,
         switch_state_tags::aclTableGroupMap>();
   }
+  state->fromThrift<
+      switch_state_tags::dsfNodesMap,
+      switch_state_tags::dsfNodes>();
   return state;
 }
 
@@ -843,6 +852,9 @@ state::SwitchState SwitchState::toThrift() const {
   }
   if (auto obj = toThrift(cref<switch_state_tags::aclTableGroupMaps>())) {
     data.aclTableGroupMap() = *obj;
+  }
+  if (auto obj = toThrift(cref<switch_state_tags::dsfNodesMap>())) {
+    data.dsfNodes() = *obj;
   }
 
   return data;
