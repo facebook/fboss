@@ -283,6 +283,8 @@ TEST(SwitchSettingsTest, ThrifyMigration) {
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
+  EXPECT_EQ(
+      *stateV1->getSwitchSettings()->l3SwitchType(), cfg::SwitchType::NPU);
   validateNodeSerialization(*stateV1->getSwitchSettings());
 }
 
@@ -311,6 +313,8 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   EXPECT_EQ(
       stateV1->getDsfNodes()->getDsfNodeIf(SwitchID(1))->getSystemPortRange(),
       *stateV1->getFirstVoqSystemPortRange());
+  EXPECT_EQ(
+      *stateV1->getSwitchSettings()->l3SwitchType(), cfg::SwitchType::VOQ);
   EXPECT_EQ(switchInfo.asicType(), cfg::AsicType::ASIC_TYPE_MOCK);
   EXPECT_THROW(switchSettingsV1->getSwitchType(0), FbossError);
   cfg::SwitchInfo switchInfo2;

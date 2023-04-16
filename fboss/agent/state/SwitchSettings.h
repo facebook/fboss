@@ -190,6 +190,11 @@ class SwitchSettings
     set<switch_state_tags::exactMatchTableConfigs>(exactMatchConfigs);
   }
 
+  /*
+   * 0 or more l3 switch types {NPU, VOQ} are supported on
+   * a CPU-NPUs complex
+   */
+  std::optional<cfg::SwitchType> l3SwitchType() const;
   std::optional<cfg::Range64> getSystemPortRange() const {
     if (auto range = cref<switch_state_tags::systemPortRange>()) {
       return range->toThrift();

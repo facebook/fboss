@@ -40,6 +40,27 @@ std::unordered_set<SwitchID> SwitchSettings::getSwitchIds() const {
   return switchIds;
 }
 
+std::optional<cfg::SwitchType> SwitchSettings::l3SwitchType() const {
+  std::set<cfg::SwitchType> l3SwitchTypes;
+  for (const auto& switchIdAndInfo : getSwitchIdToSwitchInfo()) {
+    switch (*switchIdAndInfo.second.switchType()) {
+      case cfg::SwitchType::NPU:
+      case cfg::SwitchType::VOQ:
+        l3SwitchTypes.insert(*switchIdAndInfo.second.switchType());
+        break;
+      case cfg::SwitchType::PHY:
+      case cfg::SwitchType::FABRIC:
+        break;
+    }
+  }
+  CHECK(l3SwitchTypes.size() <= 1)
+      << "Only one type of l3 switch type must be present";
+  if (l3SwitchTypes.size()) {
+    return *l3SwitchTypes.begin();
+  }
+  return std::nullopt;
+}
+
 template class ThriftStructNode<SwitchSettings, state::SwitchSettingsFields>;
 
 } // namespace facebook::fboss
