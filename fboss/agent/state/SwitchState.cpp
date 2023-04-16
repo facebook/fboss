@@ -544,8 +544,16 @@ void SwitchState::fromThrift() {
       multiMap->updateNode(matcher, map->clone());
     } else if (!map->empty()) {
       // THRIFT_COPY
-      CHECK(map->toThrift() == matchedNode->toThrift())
-          << "different default matcher maps exist in state";
+      if (map->toThrift() != matchedNode->toThrift()) {
+        auto genJsonStr = [](const auto& mapThrift) {
+          std::string jsonStr;
+          apache::thrift::SimpleJSONSerializer::serialize(mapThrift, &jsonStr);
+          return folly::toPrettyJson(folly::parseJson(jsonStr));
+        };
+        XLOG(INFO) << "m-NPU map : " << genJsonStr(matchedNode->toThrift());
+        XLOG(INFO) << "default map : " << genJsonStr(map->toThrift());
+        XLOG(FATAL) << "different default matcher maps exist in state";
+      }
     }
   }
   map->fromThrift({});
