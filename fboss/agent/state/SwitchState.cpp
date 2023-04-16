@@ -637,6 +637,19 @@ VlanID SwitchState::getDefaultVlan() const {
   return VlanID(cref<switch_state_tags::defaultVlan>()->toThrift());
 }
 
+std::optional<cfg::Range64> SwitchState::getFirstVoqSystemPortRange() const {
+  for (const auto& switchIdAndInfo :
+       getSwitchSettings()->getSwitchIdToSwitchInfo()) {
+    if (*switchIdAndInfo.second.switchType() == cfg::SwitchType::VOQ) {
+      auto dsfNode =
+          getDsfNodes()->getDsfNodeIf(SwitchID(switchIdAndInfo.first));
+      CHECK(dsfNode) << "Could not find dsf node for : "
+                     << switchIdAndInfo.first;
+      return dsfNode->getSystemPortRange();
+    }
+  }
+  return std::nullopt;
+}
 std::shared_ptr<SwitchState> SwitchState::fromThrift(
     const state::SwitchState& data) {
   auto uniqState = uniquePtrFromThrift(data);

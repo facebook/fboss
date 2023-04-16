@@ -287,6 +287,11 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
     return cref<switch_state_tags::defaultDataPlaneQosPolicy>();
   }
 
+  /*
+   * Transitory api while we make SwSwitch capable of
+   * handling more than one VOQ switches
+   */
+  std::optional<cfg::Range64> getFirstVoqSystemPortRange() const;
   const std::shared_ptr<InterfaceMap>& getInterfaces() const;
   std::shared_ptr<AclEntry> getAcl(const std::string& name) const;
 

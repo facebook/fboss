@@ -308,6 +308,9 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   EXPECT_EQ(switchSettingsV1->getSwitchIdToSwitchInfo().size(), 1);
   auto switchInfo = switchSettingsV1->getSwitchIdToSwitchInfo().at(1);
   EXPECT_EQ(switchInfo.switchType(), cfg::SwitchType::VOQ);
+  EXPECT_EQ(
+      stateV1->getDsfNodes()->getDsfNodeIf(SwitchID(1))->getSystemPortRange(),
+      *stateV1->getFirstVoqSystemPortRange());
   EXPECT_EQ(switchInfo.asicType(), cfg::AsicType::ASIC_TYPE_MOCK);
   EXPECT_THROW(switchSettingsV1->getSwitchType(0), FbossError);
   cfg::SwitchInfo switchInfo2;
