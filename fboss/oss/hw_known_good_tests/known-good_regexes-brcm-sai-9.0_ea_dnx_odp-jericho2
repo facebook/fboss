@@ -52,7 +52,7 @@ HwPfcTest.*:-*Watchdog*
 # PFC traffic tests
 HwTrafficPfc*:-*Watchdog*:*Zero*:*IngressPriorityGroup*
 # Watermark tests
-HwWatermarkTest.*:-*Accuracy
+HwWatermarkTest.*
 # Qos  tests
 HwOlympicQosTests.*
 Hw2QueueToOlympicQoSTest.*

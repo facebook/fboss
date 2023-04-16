@@ -480,17 +480,38 @@ TEST_F(HwWatermarkTest, VerifyQueueWatermarkAccuracy) {
         masterLogicalInterfacePortIds()[0],
         kNumberOfPacketsToSend);
 
-    auto queueWaterMarks =
-        getQueueWatermarks(masterLogicalInterfacePortIds()[0], isVoq);
-    auto expectedWatermarkBytes =
-        utility::getEffectiveBytesPerPacket(getHwSwitch(), txPacketLen) *
-        kNumberOfPacketsToSend;
+    uint64_t expectedWatermarkBytes;
+    if (getPlatform()->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_JERICHO2) {
+      // For Jericho2, there is a limitation that one packet less than
+      // expected watermark shows up in watermark.
+      expectedWatermarkBytes =
+          utility::getEffectiveBytesPerPacket(getHwSwitch(), txPacketLen) *
+          (kNumberOfPacketsToSend - 1);
+    } else {
+      expectedWatermarkBytes =
+          utility::getEffectiveBytesPerPacket(getHwSwitch(), txPacketLen) *
+          kNumberOfPacketsToSend;
+    }
     auto roundedWatermarkBytes = utility::getRoundedBufferThreshold(
         getHwSwitch(), expectedWatermarkBytes);
+    std::map<int16_t, int64_t> queueWaterMarks;
+    int64_t maxWatermarks = 0;
+    WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
+      queueWaterMarks =
+          getQueueWatermarks(masterLogicalInterfacePortIds()[0], isVoq);
+      if (queueWaterMarks.at(kQueueId) > maxWatermarks) {
+        maxWatermarks = queueWaterMarks.at(kQueueId);
+      }
+      EXPECT_EVENTUALLY_EQ(maxWatermarks, roundedWatermarkBytes);
+    });
+
     XLOG(DBG0) << "Expected rounded watermark bytes: " << roundedWatermarkBytes
-               << ", reported watermark bytes: "
-               << queueWaterMarks.at(kQueueId);
-    EXPECT_EQ(queueWaterMarks.at(kQueueId), roundedWatermarkBytes);
+               << ", reported watermark bytes: " << maxWatermarks
+               << ", pkts TXed: " << kNumberOfPacketsToSend
+               << ", pktLen: " << txPacketLen << ", effectiveBytesPerPacket: "
+               << utility::getEffectiveBytesPerPacket(
+                      getHwSwitch(), txPacketLen);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
