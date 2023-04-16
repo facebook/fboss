@@ -52,6 +52,13 @@ void setPortTxEnable(const HwSwitch* hw, PortID port, bool enable) {
 
   portHandle->port->setOptionalAttribute(
       SaiPortTraits::Attributes::PktTxEnable{enable});
+  auto switchID = static_cast<const SaiSwitch*>(hw)->getSaiSwitchId();
+  // Disable credit WD for VoQ switches to avoid drop in queue when TX is
+  // disabled!
+  if (hw->getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ) {
+    SaiApiTable::getInstance()->switchApi().setAttribute(
+        switchID, SaiSwitchTraits::Attributes::CreditWd{enable});
+  }
 }
 
 void enableTransceiverProgramming(bool enable) {
