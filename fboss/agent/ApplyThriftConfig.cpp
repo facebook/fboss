@@ -232,9 +232,7 @@ class ThriftConfigApplier {
       const std::shared_ptr<TransceiverMap>& transceiverMap);
   std::shared_ptr<SystemPortMap> updateSystemPorts(
       const std::shared_ptr<PortMap>& ports,
-      std::optional<int64_t> switchId,
-      cfg::SwitchType switchType,
-      std::optional<cfg::Range64> systemPortRange);
+      const std::shared_ptr<SwitchSettings>& switchSettings);
   std::shared_ptr<Port> updatePort(
       const std::shared_ptr<Port>& orig,
       const cfg::Port* cfg,
@@ -469,11 +467,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
            orig_->getSwitchSettings()->getSwitchIdToSwitchInfo()) &&
           newSwitchSettings->getSwitchType(*newSwitchSettings->getSwitchId()) !=
               cfg::SwitchType::NPU) {
-        new_->resetSystemPorts(updateSystemPorts(
-            new_->getPorts(),
-            newSwitchSettings->getSwitchId(),
-            newSwitchSettings->getSwitchType(*newSwitchSettings->getSwitchId()),
-            newSwitchSettings->getSystemPortRange()));
+        new_->resetSystemPorts(
+            updateSystemPorts(new_->getPorts(), newSwitchSettings));
       }
       new_->resetSwitchSettings(std::move(newSwitchSettings));
       changed = true;
@@ -490,12 +485,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       if (new_->getSwitchSettings()->getSwitchType(
               new_->getSwitchSettings()->getSwitchId().value()) ==
           cfg::SwitchType::VOQ) {
-        new_->resetSystemPorts(updateSystemPorts(
-            new_->getPorts(),
-            new_->getSwitchSettings()->getSwitchId(),
-            new_->getSwitchSettings()->getSwitchType(
-                *new_->getSwitchSettings()->getSwitchId()),
-            new_->getSwitchSettings()->getSystemPortRange()));
+        new_->resetSystemPorts(
+            updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()));
       }
       changed = true;
     }
@@ -690,12 +681,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       if (new_->getSwitchSettings()->getSwitchType(
               new_->getSwitchSettings()->getSwitchId().value()) ==
           cfg::SwitchType::VOQ) {
-        new_->resetSystemPorts(updateSystemPorts(
-            new_->getPorts(),
-            new_->getSwitchSettings()->getSwitchId(),
-            new_->getSwitchSettings()->getSwitchType(
-                *new_->getSwitchSettings()->getSwitchId()),
-            new_->getSwitchSettings()->getSystemPortRange()));
+        new_->resetSystemPorts(
+            updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()));
       }
       changed = true;
     }
@@ -1143,18 +1130,11 @@ void ThriftConfigApplier::updateVlanInterfaces(const Interface* intf) {
 
 shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
     const std::shared_ptr<PortMap>& ports,
-    std::optional<int64_t> switchIdOpt,
-    cfg::SwitchType switchType,
-    std::optional<cfg::Range64> systemPortRange) {
+    const std::shared_ptr<SwitchSettings>& switchSettings) {
   const auto kNumVoqs = 8;
-  auto sysPorts = std::make_shared<SystemPortMap>();
-  CHECK(switchIdOpt.has_value());
-  auto switchId = *switchIdOpt;
-  if (switchType != cfg::SwitchType::VOQ) {
-    return sysPorts;
-  }
-  auto nodeName = *cfg_->dsfNodes()->find(switchId)->second.name();
 
+  static const std::set<cfg::PortType> kCreateSysPortsFor = {
+      cfg::PortType::INTERFACE_PORT, cfg::PortType::RECYCLE_PORT};
   QueueConfig systemPortQueues;
   if (cfg_->defaultVoqConfig()->size()) {
     systemPortQueues = updatePortQueues(
@@ -1163,30 +1143,40 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
         kNumVoqs,
         cfg::StreamType::UNICAST);
   }
-
-  std::set<cfg::PortType> kCreateSysPortsFor = {
-      cfg::PortType::INTERFACE_PORT, cfg::PortType::RECYCLE_PORT};
-  for (const auto& port : std::as_const(*ports)) {
-    if (kCreateSysPortsFor.find(port.second->getPortType()) ==
-        kCreateSysPortsFor.end()) {
+  auto sysPorts = std::make_shared<SystemPortMap>();
+  for (const auto& switchIdAndInfo :
+       switchSettings->getSwitchIdToSwitchInfo()) {
+    if (switchIdAndInfo.second.switchType() != cfg::SwitchType::VOQ) {
       continue;
     }
-    auto sysPort = std::make_shared<SystemPort>(
-        SystemPortID{*systemPortRange->minimum() + port.second->getID()});
-    sysPort->setSwitchId(SwitchID(switchId));
-    sysPort->setPortName(
-        folly::sformat("{}:{}", nodeName, port.second->getName()));
-    auto platformPort = platform_->getPlatformPort(port.second->getID());
-    sysPort->setCoreIndex(*platformPort->getAttachedCoreId());
-    sysPort->setCorePortIndex(*platformPort->getCorePortIndex());
-    sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
-    sysPort->setNumVoqs(kNumVoqs);
-    sysPort->setEnabled(port.second->isEnabled());
-    sysPort->setQosPolicy(port.second->getQosPolicy());
-    sysPort->resetPortQueues(systemPortQueues);
-    sysPorts->addSystemPort(std::move(sysPort));
-  }
 
+    auto switchId = switchIdAndInfo.first;
+    auto dsfNode = cfg_->dsfNodes()->find(switchId)->second;
+    auto nodeName = *dsfNode.name();
+    CHECK(dsfNode.systemPortRange());
+    auto systemPortRange = *dsfNode.systemPortRange();
+
+    for (const auto& port : std::as_const(*ports)) {
+      if (kCreateSysPortsFor.find(port.second->getPortType()) ==
+          kCreateSysPortsFor.end()) {
+        continue;
+      }
+      auto sysPort = std::make_shared<SystemPort>(
+          SystemPortID{*systemPortRange.minimum() + port.second->getID()});
+      sysPort->setSwitchId(SwitchID(switchId));
+      sysPort->setPortName(
+          folly::sformat("{}:{}", nodeName, port.second->getName()));
+      auto platformPort = platform_->getPlatformPort(port.second->getID());
+      sysPort->setCoreIndex(*platformPort->getAttachedCoreId());
+      sysPort->setCorePortIndex(*platformPort->getCorePortIndex());
+      sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
+      sysPort->setNumVoqs(kNumVoqs);
+      sysPort->setEnabled(port.second->isEnabled());
+      sysPort->setQosPolicy(port.second->getQosPolicy());
+      sysPort->resetPortQueues(systemPortQueues);
+      sysPorts->addSystemPort(std::move(sysPort));
+    }
+  }
   return sysPorts;
 }
 
