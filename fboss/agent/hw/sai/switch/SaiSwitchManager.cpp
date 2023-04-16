@@ -592,4 +592,13 @@ void SaiSwitchManager::updateStats() {
     platform_->getHwSwitch()->getSwitchStats()->update(dropStats);
   }
 }
+
+void SaiSwitchManager::configureCreditWatchdog(bool enable) {
+  if (platform_->getAsic()->getSwitchType() == cfg::SwitchType::VOQ) {
+    // Supported only for VoQ switches!
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::CreditWd{enable});
+  }
+}
+
 } // namespace facebook::fboss

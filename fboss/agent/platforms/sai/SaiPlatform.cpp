@@ -465,6 +465,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         dllPath,
         std::nullopt, // Restart Issu
         std::nullopt, // Switch Isolate
+        std::nullopt, // Credit Watchdog
   };
 }
 

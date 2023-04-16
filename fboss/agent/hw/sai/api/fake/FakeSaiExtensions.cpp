@@ -107,4 +107,9 @@ SaiSwitchTraits::Attributes::AttributeSwitchIsolateWrapper::operator()() {
   return SAI_SWITCH_ATTR_SWITCH_ISOLATE;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeCreditWdWrapper::operator()() {
+  return SAI_SWITCH_ATTR_CREDIT_WD;
+}
+
 } // namespace facebook::fboss

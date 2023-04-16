@@ -120,4 +120,13 @@ SaiSwitchTraits::Attributes::AttributeSwitchIsolateWrapper::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeCreditWdWrapper::operator()() {
+#if defined(SAI_VERSION_9_0_EA_DNX_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
+    defined(SAI_VERSION_9_0_EA_SIM_ODP)
+  return SAI_SWITCH_ATTR_CREDIT_WD;
+#endif
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

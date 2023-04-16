@@ -85,6 +85,8 @@ class SaiSwitchManager {
 
   void updateStats();
 
+  void configureCreditWatchdog(bool enable);
+
  private:
   void programEcmpLoadBalancerParams(
       std::optional<sai_uint32_t> seed,
