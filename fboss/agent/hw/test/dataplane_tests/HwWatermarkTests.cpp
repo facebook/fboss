@@ -175,7 +175,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
   bool gotExpectedDeviceWatermark(bool expectZero, int retries) {
     XLOG(DBG0) << "Expect zero watermark: " << std::boolalpha << expectZero;
     do {
-      getQueueWatermarks(masterLogicalInterfacePortIds()[0]);
+      getQueueWatermarks(masterLogicalInterfacePortIds()[0], false /*isVoq*/);
       auto deviceWatermarkBytes =
           getHwSwitchEnsemble()->getHwSwitch()->getDeviceWatermarkBytes();
       XLOG(DBG0) << "Device watermark bytes: " << deviceWatermarkBytes;
@@ -213,7 +213,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
   // VoQ stats for VoQ switches.
   const std::map<int16_t, int64_t> getQueueWatermarks(
       const PortID& portId,
-      bool isVoq = false) {
+      bool isVoq) {
     if (getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ &&
         isVoq) {
       auto sysPortId = getSystemPortID(portId, getProgrammedState());
@@ -430,7 +430,7 @@ TEST_F(HwWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
 }
 
 TEST_F(HwWatermarkTest, VerifyQueueWatermarkAccuracy) {
-  auto setup = []() {};
+  auto setup = [this]() { _setup(false); };
   auto verify = [this]() {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
 #if defined(GTEST_SKIP)
@@ -454,19 +454,24 @@ TEST_F(HwWatermarkTest, VerifyQueueWatermarkAccuracy) {
     auto kQueueId = utility::getOlympicQueueId(
         getAsic(), utility::OlympicQueueType::SILVER);
     constexpr auto kTxPacketPayloadLen{200};
-    constexpr auto kNumberOfPacketsToSend{100};
+    constexpr auto kNumberOfPacketsToSend{10};
+    const bool isVoq =
+        getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ;
     auto txPacketLen = kTxPacketPayloadLen + EthHdr::SIZE + IPv6Hdr::size() +
         UDPHeader::size();
     // Clear any watermark stats
-    getQueueWatermarks(masterLogicalInterfacePortIds()[0]);
+    getQueueWatermarks(masterLogicalInterfacePortIds()[0], isVoq);
 
-    auto sendPackets = [=](PortID port, int numPacketsToSend) {
+    auto sendPackets = [=](PortID /*port*/, int numPacketsToSend) {
+      // Send packets out on port1, so that it gets looped back, and
+      // forwarded in the pipeline to egress port0 where the watermark
+      // will be validated.
       sendUdpPkts(
           utility::kOlympicQueueToDscp(getAsic()).at(kQueueId).front(),
           kDestIp1(),
           numPacketsToSend,
           kTxPacketPayloadLen,
-          port);
+          masterLogicalInterfacePortIds()[1]);
     };
 
     utility::sendPacketsWithQueueBuildup(
@@ -476,7 +481,7 @@ TEST_F(HwWatermarkTest, VerifyQueueWatermarkAccuracy) {
         kNumberOfPacketsToSend);
 
     auto queueWaterMarks =
-        getQueueWatermarks(masterLogicalInterfacePortIds()[0]);
+        getQueueWatermarks(masterLogicalInterfacePortIds()[0], isVoq);
     auto expectedWatermarkBytes =
         utility::getEffectiveBytesPerPacket(getHwSwitch(), txPacketLen) *
         kNumberOfPacketsToSend;
