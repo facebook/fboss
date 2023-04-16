@@ -398,8 +398,8 @@ class ThriftConfigApplier {
   void validateUdfConfig(const UdfConfig& newUdfConfig);
   std::shared_ptr<UdfConfig> updateUdfConfig(bool* changed);
 
-  void processInterfaceForPortForNonVoqSwitches();
-  void processInterfaceForPortForVoqSwitches();
+  void processInterfaceForPortForNonVoqSwitches(int64_t switchId);
+  void processInterfaceForPortForVoqSwitches(int64_t switchId);
   void processInterfaceForPort();
 
   shared_ptr<FlowletSwitchingConfig> updateFlowletSwitchingConfig(
@@ -984,8 +984,13 @@ void ThriftConfigApplier::processVlanPorts() {
   }
 }
 
-void ThriftConfigApplier::processInterfaceForPortForVoqSwitches() {
-  auto systemPortRange = new_->getSwitchSettings()->getSystemPortRange();
+void ThriftConfigApplier::processInterfaceForPortForVoqSwitches(
+    int64_t switchId) {
+  // TODO - only look at ports corresponding to the passed in switchId
+  auto dsfNodeItr = cfg_->dsfNodes()->find(switchId);
+  CHECK(dsfNodeItr != cfg_->dsfNodes()->end());
+  CHECK(dsfNodeItr->second.systemPortRange().has_value());
+  auto systemPortRange = dsfNodeItr->second.systemPortRange();
   for (const auto& portCfg : *cfg_->ports()) {
     auto portType = *portCfg.portType();
     auto portID = PortID(*portCfg.logicalID());
@@ -1007,7 +1012,9 @@ void ThriftConfigApplier::processInterfaceForPortForVoqSwitches() {
   }
 }
 
-void ThriftConfigApplier::processInterfaceForPortForNonVoqSwitches() {
+void ThriftConfigApplier::processInterfaceForPortForNonVoqSwitches(
+    int64_t /*switchId*/) {
+  // TODO - only look at ports corresponding to the passed in switchId
   flat_map<VlanID, InterfaceID> vlan2InterfaceId;
   for (const auto& interfaceCfg : *cfg_->interfaces()) {
     vlan2InterfaceId[VlanID(*interfaceCfg.vlanID())] =
@@ -1038,17 +1045,22 @@ void ThriftConfigApplier::processInterfaceForPortForNonVoqSwitches() {
 
 void ThriftConfigApplier::processInterfaceForPort() {
   // Build Port -> interface mappings in port2InterfaceId_
-  auto switchType = new_->getSwitchSettings()->getSwitchType(
-      *new_->getSwitchSettings()->getSwitchId());
-  switch (switchType) {
-    case cfg::SwitchType::VOQ:
-    case cfg::SwitchType::FABRIC:
-      processInterfaceForPortForVoqSwitches();
-      break;
-    case cfg::SwitchType::NPU:
-    case cfg::SwitchType::PHY:
-      processInterfaceForPortForNonVoqSwitches();
-      break;
+  for (const auto& switchIdAndInfo :
+       new_->getSwitchSettings()->getSwitchIdToSwitchInfo()) {
+    auto switchId = switchIdAndInfo.first;
+    auto switchType = *switchIdAndInfo.second.switchType();
+    switch (switchType) {
+      case cfg::SwitchType::VOQ:
+        processInterfaceForPortForVoqSwitches(switchId);
+        break;
+      case cfg::SwitchType::NPU:
+        processInterfaceForPortForNonVoqSwitches(switchId);
+        break;
+      case cfg::SwitchType::FABRIC:
+      case cfg::SwitchType::PHY:
+        // No interface on FABRIC or PHY switch types
+        break;
+    }
   }
 }
 
