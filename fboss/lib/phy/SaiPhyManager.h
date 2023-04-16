@@ -132,6 +132,8 @@ class SaiPhyManager : public PhyManager {
 
   void gracefulExit() override;
 
+  virtual cfg::AsicType getPhyAsicType() const = 0;
+
  protected:
   void addSaiPlatform(
       GlobalXphyID xphyID,
@@ -249,7 +251,7 @@ void SaiPhyManager::initializeSlotPhysImpl(PimID pimID) {
       cfg::AgentConfig config;
       cfg::SwitchInfo switchInfo;
       switchInfo.switchType() = cfg::SwitchType::PHY;
-      switchInfo.asicType() = saiPlatform->getAsic()->getAsicType();
+      switchInfo.asicType() = getPhyAsicType();
       config.sw()->switchSettings()->switchIdToSwitchInfo() = {
           std::make_pair(0, switchInfo)};
       saiPlatform->init(
