@@ -150,6 +150,7 @@ SwitchState::SwitchState() {
   resetAclTableGroups(std::make_shared<AclTableGroupMap>());
   resetDsfNodes(std::make_shared<DsfNodeMap>());
   resetRemoteIntfs(std::make_shared<InterfaceMap>());
+  resetRemoteSystemPorts(std::make_shared<SystemPortMap>());
 }
 
 SwitchState::~SwitchState() {}
@@ -232,7 +233,12 @@ const std::shared_ptr<InterfaceMap>& SwitchState::getRemoteInterfaces() const {
 
 void SwitchState::resetRemoteSystemPorts(
     std::shared_ptr<SystemPortMap> sysPorts) {
-  ref<switch_state_tags::remoteSystemPortMap>() = sysPorts;
+  resetDefaultMap<switch_state_tags::remoteSystemPortMaps>(sysPorts);
+}
+
+const std::shared_ptr<SystemPortMap>& SwitchState::getRemoteSystemPorts()
+    const {
+  return getDefaultMap<switch_state_tags::remoteSystemPortMaps>();
 }
 
 void SwitchState::addAcl(const std::shared_ptr<AclEntry>& acl) {
