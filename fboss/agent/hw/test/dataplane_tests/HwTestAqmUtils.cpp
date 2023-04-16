@@ -12,6 +12,10 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 
+namespace {
+static constexpr auto kJerichoWordSize{16};
+} // namespace
+
 namespace facebook::fboss::utility {
 
 int getRoundedBufferThreshold(
@@ -64,6 +68,13 @@ int getRoundedBufferThreshold(
         FbossError("Invalid threshold for ASIC, ", expectedThreshold);
       }
     }
+  } else if (
+      hwSwitch->getPlatform()->getAsic()->getAsicType() ==
+      cfg::AsicType::ASIC_TYPE_JERICHO2) {
+    // Jericho2 tracks buffer usage in words and hence round up to the
+    // next multiple of word size.
+    threshold = kJerichoWordSize *
+        ceil(static_cast<double>(expectedThreshold) / kJerichoWordSize);
   } else {
     // Thresholds are applied in multiples of unit buffer size
     auto bufferUnitSize =
@@ -94,15 +105,25 @@ int getRoundedBufferThreshold(
 }
 
 size_t getEffectiveBytesPerPacket(HwSwitch* hwSwitch, int pktSizeBytes) {
-  auto packetBufferUnitBytes =
-      hwSwitch->getPlatform()->getAsic()->getPacketBufferUnitSize();
   auto bufferDescriptorBytes =
       hwSwitch->getPlatform()->getAsic()->getPacketBufferDescriptorSize();
 
-  assert(packetBufferUnitBytes);
-  size_t effectiveBytesPerPkt = packetBufferUnitBytes *
-      ((pktSizeBytes + bufferDescriptorBytes + packetBufferUnitBytes - 1) /
-       packetBufferUnitBytes);
+  size_t effectiveBytesPerPkt;
+  if (hwSwitch->getPlatform()->getAsic()->getAsicType() ==
+      cfg::AsicType::ASIC_TYPE_JERICHO2) {
+    // For Jericho2, the buffer unit size does not matter, each packet has
+    // the overhead added to it and rounded to the next multiple of word size.
+    effectiveBytesPerPkt = kJerichoWordSize *
+        ((pktSizeBytes + bufferDescriptorBytes + kJerichoWordSize - 1) /
+         kJerichoWordSize);
+  } else {
+    auto packetBufferUnitBytes =
+        hwSwitch->getPlatform()->getAsic()->getPacketBufferUnitSize();
+    assert(packetBufferUnitBytes);
+    effectiveBytesPerPkt = packetBufferUnitBytes *
+        ((pktSizeBytes + bufferDescriptorBytes + packetBufferUnitBytes - 1) /
+         packetBufferUnitBytes);
+  }
   return effectiveBytesPerPkt;
 }
 
