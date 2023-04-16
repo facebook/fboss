@@ -149,6 +149,7 @@ SwitchState::SwitchState() {
   resetIntfs(std::make_shared<InterfaceMap>());
   resetAclTableGroups(std::make_shared<AclTableGroupMap>());
   resetDsfNodes(std::make_shared<DsfNodeMap>());
+  resetRemoteIntfs(std::make_shared<InterfaceMap>());
 }
 
 SwitchState::~SwitchState() {}
@@ -222,7 +223,11 @@ const std::shared_ptr<InterfaceMap>& SwitchState::getInterfaces() const {
 }
 
 void SwitchState::resetRemoteIntfs(std::shared_ptr<InterfaceMap> intfs) {
-  ref<switch_state_tags::remoteInterfaceMap>() = intfs;
+  resetDefaultMap<switch_state_tags::remoteInterfaceMaps>(intfs);
+}
+
+const std::shared_ptr<InterfaceMap>& SwitchState::getRemoteInterfaces() const {
+  return getDefaultMap<switch_state_tags::remoteInterfaceMaps>();
 }
 
 void SwitchState::resetRemoteSystemPorts(
@@ -643,6 +648,9 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   state->fromThrift<
       switch_state_tags::dsfNodesMap,
       switch_state_tags::dsfNodes>();
+  state->fromThrift<
+      switch_state_tags::remoteInterfaceMaps,
+      switch_state_tags::remoteInterfaceMap>();
   return state;
 }
 
@@ -855,6 +863,9 @@ state::SwitchState SwitchState::toThrift() const {
   }
   if (auto obj = toThrift(cref<switch_state_tags::dsfNodesMap>())) {
     data.dsfNodes() = *obj;
+  }
+  if (auto obj = toThrift(cref<switch_state_tags::remoteInterfaceMaps>())) {
+    data.remoteInterfaceMap() = *obj;
   }
 
   return data;

@@ -202,6 +202,10 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::dsfNodesMap,
     MultiDsfNodeMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::remoteInterfaceMaps,
+    MultiInterfaceMap);
 /*
  * SwitchState stores the current switch configuration.
  *
@@ -477,9 +481,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<SystemPortMap>& getRemoteSystemPorts() const {
     return cref<switch_state_tags::remoteSystemPortMap>();
   }
-  const std::shared_ptr<InterfaceMap>& getRemoteInterfaces() const {
-    return cref<switch_state_tags::remoteInterfaceMap>();
-  }
+  const std::shared_ptr<InterfaceMap>& getRemoteInterfaces() const;
+
   /*
    * Get system ports for a given switch id
    */
