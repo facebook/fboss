@@ -654,36 +654,37 @@ template <typename AddressT, typename NeighborThriftT>
 void addRecylePortRifNeighbors(
     const std::shared_ptr<SwitchState> state,
     std::vector<NeighborThriftT>& nbrs) {
-  auto switchId = state->getSwitchSettings()->getSwitchId();
-  if (!switchId ||
-      state->getSwitchSettings()->getSwitchType(switchId.value()) !=
-          cfg::SwitchType::VOQ) {
-    return;
-  }
+  for (const auto& switchIdAndInfo :
+       state->getSwitchSettings()->getSwitchIdToSwitchInfo()) {
+    if (switchIdAndInfo.second.switchType() != cfg::SwitchType::VOQ) {
+      continue;
+    }
+    auto switchId = SwitchID(switchIdAndInfo.first);
+    auto dsfNode = state->getDsfNodes()->getDsfNodeIf(switchId);
+    CHECK(dsfNode);
+    constexpr auto kRecylePortId = 1;
+    auto localRecycleRifId =
+        InterfaceID(*dsfNode->getSystemPortRange()->minimum() + kRecylePortId);
+    const auto& localRecycleRif =
+        state->getInterfaces()->getInterface(localRecycleRifId);
+    const auto& nbrTable =
+        std::as_const(*localRecycleRif->getNeighborEntryTable<AddressT>());
+    for (const auto& ipAndEntry : nbrTable) {
+      const auto& entry = ipAndEntry.second;
+      NeighborThriftT nbrThrift;
+      nbrThrift.ip() = facebook::network::toBinaryAddress(entry->getIP());
+      nbrThrift.mac() = entry->getMac().toString();
+      nbrThrift.port() = kRecylePortId;
+      nbrThrift.vlanName() = "--";
+      // Local recycle port for RIF, should always be STATIC
+      CHECK(entry->getType() == state::NeighborEntryType::STATIC_ENTRY);
+      nbrThrift.state() = "STATIC";
+      nbrThrift.isLocal() = true;
+      nbrThrift.switchId() =
+          static_cast<int64_t>(*state->getSwitchSettings()->getSwitchId());
 
-  constexpr auto kRecylePortId = 1;
-  auto localRecycleRifId = InterfaceID(
-      *state->getSwitchSettings()->getSystemPortRange()->minimum() +
-      kRecylePortId);
-  const auto& localRecycleRif =
-      state->getInterfaces()->getInterface(localRecycleRifId);
-  const auto& nbrTable =
-      std::as_const(*localRecycleRif->getNeighborEntryTable<AddressT>());
-  for (const auto& ipAndEntry : nbrTable) {
-    const auto& entry = ipAndEntry.second;
-    NeighborThriftT nbrThrift;
-    nbrThrift.ip() = facebook::network::toBinaryAddress(entry->getIP());
-    nbrThrift.mac() = entry->getMac().toString();
-    nbrThrift.port() = kRecylePortId;
-    nbrThrift.vlanName() = "--";
-    // Local recycle port for RIF, should always be STATIC
-    CHECK(entry->getType() == state::NeighborEntryType::STATIC_ENTRY);
-    nbrThrift.state() = "STATIC";
-    nbrThrift.isLocal() = true;
-    nbrThrift.switchId() =
-        static_cast<int64_t>(*state->getSwitchSettings()->getSwitchId());
-
-    nbrs.push_back(nbrThrift);
+      nbrs.push_back(nbrThrift);
+    }
   }
 }
 } // namespace
