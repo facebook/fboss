@@ -13,7 +13,7 @@ DECLARE_bool(dsf_subscriber_cache_updated_state);
 namespace facebook::fboss {
 class SwSwitch;
 class SwitchState;
-class MultiInterfaceMap;
+class InterfaceMap;
 class SystemPortMap;
 namespace fsdb {
 class FsdbPubSubManager;
@@ -36,7 +36,7 @@ class DsfSubscriber : public StateObserver {
  private:
   void scheduleUpdate(
       const std::shared_ptr<SystemPortMap>& newSysPorts,
-      const std::shared_ptr<MultiInterfaceMap>& newRifs,
+      const std::shared_ptr<InterfaceMap>& newRifs,
       const std::string& nodeName,
       SwitchID nodeSwitchId);
   // Paths
