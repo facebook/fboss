@@ -432,22 +432,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
 
   // THRIFT_COPY
   std::optional<cfg::PfcWatchdogRecoveryAction> getPfcWatchdogRecoveryAction()
-      const {
-    auto action = safe_cref<switch_state_tags::pfcWatchdogRecoveryAction>();
-    if (!action) {
-      return std::nullopt;
-    }
-    return action->toThrift();
-  }
-
-  void setPfcWatchdogRecoveryAction(
-      std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction) {
-    if (!recoveryAction) {
-      ref<switch_state_tags::pfcWatchdogRecoveryAction>().reset();
-    } else {
-      set<switch_state_tags::pfcWatchdogRecoveryAction>(*recoveryAction);
-    }
-  }
+      const;
 
   const std::shared_ptr<LoadBalancerMap>& getLoadBalancers() const;
   const std::shared_ptr<MirrorMap>& getMirrors() const;

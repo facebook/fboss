@@ -371,7 +371,6 @@ class ThriftConfigApplier {
       const cfg::Mirror* config);
   std::shared_ptr<ForwardingInformationBaseMap>
   updateForwardingInformationBaseContainers();
-  std::optional<cfg::PfcWatchdogRecoveryAction> getPfcWatchdogRecoveryAction();
 
   std::shared_ptr<LabelForwardingEntry> createLabelForwardingEntry(
       MplsLabel label,
@@ -627,14 +626,6 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
             entry.interfaces.size(),
             " interfaces ");
       }
-    }
-  }
-
-  {
-    auto pfcWatchdogRecoveryAction = getPfcWatchdogRecoveryAction();
-    if (pfcWatchdogRecoveryAction != orig_->getPfcWatchdogRecoveryAction()) {
-      new_->setPfcWatchdogRecoveryAction(pfcWatchdogRecoveryAction);
-      changed = true;
     }
   }
 
@@ -4095,34 +4086,6 @@ ThriftConfigApplier::updateForwardingInformationBaseContainers() {
   }
 
   return origForwardingInformationBaseMap->clone(newFibContainers);
-}
-
-std::optional<cfg::PfcWatchdogRecoveryAction>
-ThriftConfigApplier::getPfcWatchdogRecoveryAction() {
-  std::shared_ptr<Port> firstPort;
-  std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction{};
-  for (const auto& port : std::as_const(*new_->getPorts())) {
-    if (port.second->getPfc().has_value() &&
-        port.second->getPfc()->watchdog().has_value()) {
-      auto pfcWd = port.second->getPfc()->watchdog().value();
-      if (!recoveryAction.has_value()) {
-        recoveryAction = *pfcWd.recoveryAction();
-        firstPort = port.second;
-        XLOG(DBG2) << "PFC watchdog recovery action initialized to "
-                   << (int)*pfcWd.recoveryAction();
-      } else if (*recoveryAction != *pfcWd.recoveryAction()) {
-        // Error: All ports should have the same recovery action configured
-        throw FbossError(
-            "PFC watchdog deadlock recovery action ",
-            *pfcWd.recoveryAction(),
-            " on ",
-            port.second->getName(),
-            " conflicting with ",
-            firstPort->getName());
-      }
-    }
-  }
-  return recoveryAction;
 }
 
 LabelNextHopEntry ThriftConfigApplier::getStaticLabelNextHopEntry(

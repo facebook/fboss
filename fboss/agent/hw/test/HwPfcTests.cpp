@@ -90,7 +90,7 @@ class HwPfcTest : public HwTest {
     cfg.portPgConfigs() = portPgConfigMap;
   }
 
-  void setupPfcAndPfcWatchdog(
+  std::shared_ptr<SwitchState> setupPfcAndPfcWatchdog(
       const PortID& portId,
       const cfg::PfcWatchdog& watchdog) {
     addPfcConfig(
@@ -106,7 +106,7 @@ class HwPfcTest : public HwTest {
       XLOG(ERR) << "PFC is not enabled on port " << portId
                 << " during PFC and watchdog setup!";
     }
-    applyNewConfig(currentConfig);
+    return applyNewConfig(currentConfig);
   }
 
   // Setup and apply the new config with passed in PFC watchdog config
@@ -516,7 +516,7 @@ TEST_F(HwPfcTest, PfcWatchdogDeadlockRecoveryActionMismatch) {
     XLOG(DBG0) << "Enable PFC watchdog and make sure programming is fine";
     initalizePfcConfigWatchdogValues(
         pfcWatchdogConfig, 1000, 3000, cfg::PfcWatchdogRecoveryAction::NO_DROP);
-    setupPfcAndPfcWatchdog(portId1, pfcWatchdogConfig);
+    auto state = setupPfcAndPfcWatchdog(portId1, pfcWatchdogConfig);
     utility::pfcWatchdogProgrammingMatchesConfig(
         getHwSwitch(), portId1, true, pfcWatchdogConfig);
     EXPECT_EQ(
@@ -530,18 +530,13 @@ TEST_F(HwPfcTest, PfcWatchdogDeadlockRecoveryActionMismatch) {
         pfcWatchdogConfig, 1200, 6000, cfg::PfcWatchdogRecoveryAction::DROP);
     /*
      * Applying this config will cause a PFC deadlock recovery action
-     * mismatch between ports and will result in FbossError!
+     * mismatch between ports and will result in FbossError in SwSwitch,
+     * In HwTests we call the isValidStateUpdate api directly to verify
+     * the check since there is no SwSwitch present
      */
-    EXPECT_THROW(
-        setupPfcAndPfcWatchdog(portId2, pfcWatchdogConfig), FbossError);
-
-    // Make sure the watchdog programming is still as previously configured
-    utility::pfcWatchdogProgrammingMatchesConfig(
-        getHwSwitch(), portId2, false, defaultPfcWatchdogConfig);
-    EXPECT_EQ(
-        utility::getPfcWatchdogRecoveryAction(),
-        utility::pfcWatchdogRecoveryAction(
-            cfg::PfcWatchdogRecoveryAction::NO_DROP));
+    auto newState = setupPfcAndPfcWatchdog(portId2, pfcWatchdogConfig);
+    EXPECT_FALSE(
+        getHwSwitch()->isValidStateUpdate(StateDelta(state, newState)));
 
     /*
      * Remove PFC watchdog from the first port and enable PFC watchdog with

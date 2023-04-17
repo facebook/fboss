@@ -871,7 +871,29 @@ state::SwitchState SwitchState::toThrift() const {
     data.remoteInterfaceMap() = *obj;
   }
 
+  // for backward compatibility
+  if (const auto& pfcWatchdogRecoveryAction = getPfcWatchdogRecoveryAction()) {
+    data.pfcWatchdogRecoveryAction() = pfcWatchdogRecoveryAction.value();
+  }
+
   return data;
+}
+
+std::optional<cfg::PfcWatchdogRecoveryAction>
+SwitchState::getPfcWatchdogRecoveryAction() const {
+  std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction{};
+  // TODO - support per port recovery action. Return first ports
+  // recovery action till then
+  for (const auto& port : std::as_const(*getPorts())) {
+    if (port.second->getPfc().has_value() &&
+        port.second->getPfc()->watchdog().has_value()) {
+      auto pfcWd = port.second->getPfc()->watchdog().value();
+      if (!recoveryAction.has_value()) {
+        return *pfcWd.recoveryAction();
+      }
+    }
+  }
+  return recoveryAction;
 }
 
 // THRIFT_COPY

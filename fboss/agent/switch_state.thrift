@@ -537,6 +537,7 @@ struct SwitchState {
   16: Address.BinaryAddress dhcpV6RelaySrc;
   17: Address.BinaryAddress dhcpV4ReplySrc;
   18: Address.BinaryAddress dhcpV6ReplySrc;
+  // Deprecated field. The portPfc field in port object is used instead.
   19: optional switch_config.PfcWatchdogRecoveryAction pfcWatchdogRecoveryAction;
   20: map<i64, SystemPortFields> systemPortMap;
   21: map<i16, FibContainerFields> fibs;
