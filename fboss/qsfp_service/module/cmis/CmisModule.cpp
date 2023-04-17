@@ -1950,11 +1950,33 @@ bool CmisModule::remediateFlakyTransceiver(
                        << ". Performing potentially disruptive remediations on "
                        << folly::join(",", ports);
 
-  // This api accept 1 based module id however the module id in WedgeManager
-  // is 0 based.
-  getTransceiverManager()->getQsfpPlatformApi()->triggerQsfpHardReset(
-      static_cast<unsigned int>(getID()) + 1);
-  moduleResetCounter_++;
+  if (allPortsDown) {
+    // This api accept 1 based module id however the module id in WedgeManager
+    // is 0 based.
+    getTransceiverManager()->getQsfpPlatformApi()->triggerQsfpHardReset(
+        static_cast<unsigned int>(getID()) + 1);
+    moduleResetCounter_++;
+  } else {
+    auto portNameToHostLanesMap = getPortNameToHostLanes();
+    for (const auto& port : ports) {
+      if (portNameToHostLanesMap.find(port) != portNameToHostLanesMap.end()) {
+        auto& lanes = portNameToHostLanesMap[port];
+        if (!lanes.empty()) {
+          auto portLaneMask = laneMask(*lanes.begin(), lanes.size());
+          QSFP_LOG(INFO, this)
+              << "Doing datapath reinit for " << port << " with lane mask "
+              << static_cast<int>(portLaneMask);
+          resetDataPathWithFunc(std::nullopt, portLaneMask);
+        } else {
+          QSFP_LOG(ERR, this) << "Host lanes empty for " << port
+                              << ". Skipping individual datapath remediation.";
+        }
+      } else {
+        QSFP_LOG(ERR, this) << "Host lanes unavailable for " << port
+                            << ". Skipping individual datapath remediation.";
+      }
+    }
+  }
 
   // Reset lastRemediateTime_ so we can use cool down before next remediation
   lastRemediateTime_ = std::time(nullptr);
