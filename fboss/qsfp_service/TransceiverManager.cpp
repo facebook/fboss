@@ -1317,19 +1317,28 @@ void TransceiverManager::triggerRemediateEvents(
   }
   BlockingStateUpdateResultList results;
   for (auto tcvrID : stableTcvrs) {
-    // For stabled transceivers, we check whether the current state machine
-    // state is INACTIVE, which means all the ports are down for such
-    // Transceiver, so that it's safe to call remediate
-    auto curState = getCurrentState(tcvrID);
-    if (curState != TransceiverStateMachineState::INACTIVE) {
-      continue;
-    }
     const auto& programmedPortToPortInfo =
         getProgrammedIphyPortToPortInfo(tcvrID);
     if (programmedPortToPortInfo.empty()) {
       // This is due to the iphy ports are disabled. So no need to remediate
       continue;
     }
+
+    auto curState = getCurrentState(tcvrID);
+    // If we are not in the active or inactive state, don't try to remediate yet
+    if (curState != TransceiverStateMachineState::ACTIVE &&
+        curState != TransceiverStateMachineState::INACTIVE) {
+      continue;
+    }
+
+    // If we are here because we are in active state, check if any of the ports
+    // are down. If yes, try to remediate (partial). If we are here because we
+    // are in inactive state, areAllPortsDown will return a non-empty list of
+    // down ports anyways, so we will try to remediate
+    if (areAllPortsDown(tcvrID).second.empty()) {
+      continue;
+    }
+
     // Then check whether we should remediate so that we don't have to create
     // too many unnecessary state machine update
     auto lockedTransceivers = transceivers_.rlock();

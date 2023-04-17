@@ -424,7 +424,7 @@ BOOST_MSM_EUML_TRANSITION_TABLE((
     IPHY_PORTS_PROGRAMMED  + REMOVE_TRANSCEIVER     [isSafeToRemove]           / logStateChanged == NOT_PRESENT,
     DISCOVERED             + REMOVE_TRANSCEIVER                                / logStateChanged == NOT_PRESENT,
     PRESENT                + REMOVE_TRANSCEIVER                                / logStateChanged == NOT_PRESENT,
-    // Only remediate transciever if all ports are down
+    // Remediate transciever if all ports are down
     INACTIVE               + REMEDIATE_TRANSCEIVER  [tryRemediateTransceiver]  / logStateChanged == XPHY_PORTS_PROGRAMMED,
     // As we allow programming events for not present transceiver, we might have the transceiver finish all programming
     // events and then insert the new transceiver later. For such case, we need to execute the new DETECT_TRANSCEIVER
@@ -436,7 +436,9 @@ BOOST_MSM_EUML_TRANSITION_TABLE((
     XPHY_PORTS_PROGRAMMED  + DETECT_TRANSCEIVER                                / logStateChanged == PRESENT,
     TRANSCEIVER_READY      + DETECT_TRANSCEIVER                                / logStateChanged == PRESENT,
     TRANSCEIVER_PROGRAMMED + DETECT_TRANSCEIVER                                / logStateChanged == PRESENT,
-    INACTIVE               + DETECT_TRANSCEIVER                                / logStateChanged == PRESENT
+    INACTIVE               + DETECT_TRANSCEIVER                                / logStateChanged == PRESENT,
+    // May need to remediate transciever if some ports are down
+    ACTIVE                 + REMEDIATE_TRANSCEIVER  [tryRemediateTransceiver]  / logStateChanged == XPHY_PORTS_PROGRAMMED
 //  +------------------------------------------------------------------------------------------------------------+
     ), TransceiverTransitionTable)
 // clang-format on
