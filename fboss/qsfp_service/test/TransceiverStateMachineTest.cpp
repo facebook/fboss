@@ -124,13 +124,19 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     MOCK_SFF,
     MOCK_SFF8472,
   };
-  std::string kPortName = "eth1/1/1";
+  std::string kPortName1 = "eth1/1/1";
+  std::string kPortName3 = "eth1/1/3";
   QsfpModule* overrideTransceiver(
+      bool multiPort,
       TransceiverType type = TransceiverType::CMIS) {
     // Set port status to DOWN so that we can remove the transceiver correctly
-    updateTransceiverActiveState(false /* up */, true /* enabled */);
+    updateTransceiverActiveState(false /* up */, true /* enabled */, portId1_);
+    if (multiPort) {
+      updateTransceiverActiveState(
+          false /* up */, true /* enabled */, portId3_);
+    }
 
-    auto overrideCmisModule = [this](bool isMock) {
+    auto overrideCmisModule = [this, multiPort](bool isMock) {
       // This override function use ids starting from 1
       transceiverManager_->overrideMgmtInterface(
           static_cast<int>(id_) + 1,
@@ -146,7 +152,12 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
                 transceiverManager_.get(), std::move(xcvrImpl)));
       } else {
         XLOG(INFO) << "Making CMIS QSFP for " << id_;
-        auto xcvrImpl = std::make_unique<Cmis200GTransceiver>(id_);
+        std::unique_ptr<FakeTransceiverImpl> xcvrImpl;
+        if (multiPort) {
+          xcvrImpl = std::make_unique<Cmis400GFr4MultiPortTransceiver>(id_);
+        } else {
+          xcvrImpl = std::make_unique<Cmis200GTransceiver>(id_);
+        }
         return transceiverManager_->overrideTransceiverForTesting(
             id_,
             std::make_unique<CmisModule>(
@@ -210,7 +221,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     return qsfpModuleXcvr;
   }
 
-  void setState(TransceiverStateMachineState state) {
+  void setState(TransceiverStateMachineState state, bool multiPort) {
     // Pause remediation
     transceiverManager_->setPauseRemediation(60, nullptr);
 
@@ -218,16 +229,27 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       // One refresh can finish discoverring xcvr after detectPresence
       transceiverManager_->refreshStateMachines();
     };
-    auto programIphy = [this]() {
-      transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
-          overrideTcvrToPortAndProfile_);
+    auto programIphy = [this, multiPort]() {
+      if (multiPort) {
+        transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+            overrideMultiPortTcvrToPortAndProfile_);
+      } else {
+        transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+            overrideTcvrToPortAndProfile_);
+      }
+
       // refreshStateMachines() will first refresh all transceivers to bring
       // them to DISCOVERED state, and then program the iphy ports
       transceiverManager_->refreshStateMachines();
     };
-    auto programIphyAndXcvr = [this]() {
-      transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
-          overrideTcvrToPortAndProfile_);
+    auto programIphyAndXcvr = [this, multiPort]() {
+      if (multiPort) {
+        transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+            overrideMultiPortTcvrToPortAndProfile_);
+      } else {
+        transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+            overrideTcvrToPortAndProfile_);
+      }
       transceiverManager_->refreshStateMachines();
       // Because MockWedgeManager doesn't have PhyManager, so this second
       // refreshStateMachines() will actually trigger xcvr ready for prog
@@ -319,6 +341,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       PRE_UPDATE_FN preUpdate,
       STATE_UPDATE_FN stateUpdate,
       VERIFY_FN verify,
+      bool multiPort,
       TransceiverType type,
       const std::string& updateStr) {
     for (auto preState : supportedStates) {
@@ -330,11 +353,12 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
                  << " from preState="
                  << apache::thrift::util::enumNameSafe(preState)
                  << " to newState="
-                 << apache::thrift::util::enumNameSafe(expectedState);
+                 << apache::thrift::util::enumNameSafe(expectedState)
+                 << ", multiPort=" << multiPort;
       // Always create a new transceiver so that we can make sure the state
       // can go back to the beginning state
-      xcvr_ = overrideTransceiver(type);
-      setState(preState);
+      xcvr_ = overrideTransceiver(multiPort, type);
+      setState(preState, multiPort);
 
       // Call preUpdate() before actual stateUpdate()
       preUpdate();
@@ -369,6 +393,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       std::set<TransceiverStateMachineState>& states,
       PRE_UPDATE_FN preUpdate,
       VERIFY_FN verify,
+      bool multiPort,
       TransceiverType type = TransceiverType::CMIS) {
     auto stateUpdateFn = [this, event]() {
       transceiverManager_->updateStateBlocking(id_, event);
@@ -382,6 +407,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         preUpdate,
         stateUpdateFn,
         verify,
+        multiPort,
         type,
         stateUpdateFnStr);
   }
@@ -395,16 +421,18 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       PRE_UPDATE_FN preUpdate,
       STATE_UPDATE_FN stateUpdate,
       VERIFY_FN verify,
+      bool multiPort,
       TransceiverType type,
       const std::string& updateStr) {
     for (auto state : states) {
       XLOG(INFO) << "Verifying Transceiver=0 State="
                  << apache::thrift::util::enumNameSafe(state)
-                 << " UNCHANGED by " << updateStr;
+                 << " UNCHANGED by " << updateStr
+                 << ", multiPort=" << multiPort;
       // Always create a new transceiver so that we can make sure the state
       // can go back to the beginning state
-      xcvr_ = overrideTransceiver(type);
-      setState(state);
+      xcvr_ = overrideTransceiver(multiPort, type);
+      setState(state, multiPort);
 
       // Call preUpdate() before actual stateUpdate()
       preUpdate();
@@ -433,6 +461,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       std::set<TransceiverStateMachineState>& states,
       PRE_UPDATE_FN preUpdate,
       VERIFY_FN verify,
+      bool multiPort,
       TransceiverType type = TransceiverType::CMIS) {
     auto stateUpdateFn = [this, event]() {
       transceiverManager_->updateStateBlocking(id_, event);
@@ -440,7 +469,13 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     auto stateUpdateFnStr = folly::to<std::string>(
         "Event=", TransceiverStateMachineUpdate::getEventName(event));
     verifyStateUnchanged(
-        states, preUpdate, stateUpdateFn, verify, type, stateUpdateFnStr);
+        states,
+        preUpdate,
+        stateUpdateFn,
+        verify,
+        multiPort,
+        type,
+        stateUpdateFnStr);
   }
 
   void verifyResetProgrammingAttributes() {
@@ -459,12 +494,12 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         transceiverManager_->getProgrammedIphyPortToPortInfo(id_).empty());
   }
 
-  void updateTransceiverActiveState(bool up, bool enabled) {
+  void updateTransceiverActiveState(bool up, bool enabled, PortID portId) {
     PortStatus status;
     status.enabled() = enabled;
     status.up() = up;
     transceiverManager_->updateTransceiverActiveState(
-        {id_}, {{portId_, status}});
+        {id_}, {{portId, status}});
     // Sleep 1s to avoid the state machine handling the event too fast
     /* sleep override */
     sleep(1);
@@ -477,15 +512,30 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
 
   void setProgramCmisModuleExpectation(
       bool isProgrammed,
-      ::testing::Sequence& s) {
+      ::testing::Sequence& s,
+      bool multiPort = false) {
     int callTimes = isProgrammed ? 1 : 0;
     MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
-    TransceiverPortState state{kPortName, 0, cfg::PortSpeed::HUNDREDG};
+    auto portSpeed = cfg::PortSpeed::HUNDREDG;
+    TransceiverPortState state{kPortName1, 0 /* startHostLane */, portSpeed};
     EXPECT_CALL(*mockXcvr, customizeTransceiverLocked(state))
         .Times(callTimes)
         .InSequence(s);
+    if (multiPort) {
+      TransceiverPortState state2{kPortName3, 2 /* startHostLane */, portSpeed};
+      EXPECT_CALL(*mockXcvr, customizeTransceiverLocked(state2))
+          .Times(callTimes)
+          .InSequence(s);
+    }
     EXPECT_CALL(*mockXcvr, updateQsfpData(true)).Times(callTimes).InSequence(s);
-    EXPECT_CALL(*mockXcvr, configureModule(0)).Times(callTimes).InSequence(s);
+    EXPECT_CALL(*mockXcvr, configureModule(0 /* startHostLane */))
+        .Times(callTimes)
+        .InSequence(s);
+    if (multiPort) {
+      EXPECT_CALL(*mockXcvr, configureModule(2 /* startHostLane */))
+          .Times(callTimes)
+          .InSequence(s);
+    }
 
     const auto& info = transceiverManager_->getTransceiverInfo(id_);
     if (auto settings = info.tcvrState()->settings()) {
@@ -544,21 +594,31 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
   QsfpModule* xcvr_;
   const TransceiverID id_ = TransceiverID(0);
   const std::vector<TransceiverID> stableXcvrIds_ = {id_};
-  const PortID portId_ = PortID(1);
+  const PortID portId1_ = PortID(1);
+  const PortID portId3_ = PortID(3);
   const cfg::PortProfileID profile_ =
       cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL;
+  const cfg::PortProfileID multiPortProfile_ =
+      cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL;
   const TransceiverManager::OverrideTcvrToPortAndProfile
       overrideTcvrToPortAndProfile_ = {
           {id_,
            {
-               {portId_, profile_},
+               {portId1_, profile_},
+           }}};
+  const TransceiverManager::OverrideTcvrToPortAndProfile
+      overrideMultiPortTcvrToPortAndProfile_ = {
+          {id_,
+           {
+               {portId1_, multiPortProfile_},
+               {portId3_, multiPortProfile_},
            }}};
   const TransceiverManager::OverrideTcvrToPortAndProfile
       emptyOverrideTcvrToPortAndProfile_ = {};
 };
 
 TEST_F(TransceiverStateMachineTest, defaultState) {
-  overrideTransceiver();
+  overrideTransceiver(false /* multiPort */);
   EXPECT_EQ(
       transceiverManager_->getCurrentState(id_),
       TransceiverStateMachineState::NOT_PRESENT);
@@ -578,13 +638,15 @@ TEST_F(TransceiverStateMachineTest, detectTransceiver) {
       TransceiverStateMachineState::PRESENT /* expected state */,
       allStates,
       []() {} /* preUpdate */,
-      []() {} /* verify */);
+      []() {} /* verify */,
+      false /* multiPort */);
   // Other states should not change even though we try to process the event
   verifyStateUnchanged(
       TransceiverStateMachineEvent::TCVR_EV_EVENT_DETECT_TRANSCEIVER,
       allStates,
       []() {} /* preUpdate */,
-      []() {} /* verify */);
+      []() {} /* verify */,
+      false /* multiPort */);
 }
 
 TEST_F(TransceiverStateMachineTest, readEeprom) {
@@ -616,13 +678,15 @@ TEST_F(TransceiverStateMachineTest, readEeprom) {
             *info.tcvrState(),
             transceiverManager_->getDiagsCapability(id_),
             false /* skipCheckingIndividualCapability */);
-      });
+      },
+      false /* multiPort */);
   // Other states should not change even though we try to process the event
   verifyStateUnchanged(
       TransceiverStateMachineEvent::TCVR_EV_READ_EEPROM,
       allStates,
       []() {} /* preUpdate */,
-      []() {} /* verify */);
+      []() {} /* verify */,
+      false /* multiPort */);
 }
 
 TEST_F(TransceiverStateMachineTest, programIphy) {
@@ -660,13 +724,15 @@ TEST_F(TransceiverStateMachineTest, programIphy) {
             EXPECT_EQ(portToProfile.second, it->second.profile);
           }
         }
-      });
+      },
+      false /* multiPort */);
   // Other states should not change even though we try to process the event
   verifyStateUnchanged(
       TransceiverStateMachineEvent::TCVR_EV_PROGRAM_IPHY,
       allStates,
       []() {} /* preUpdate */,
-      []() {} /* verify */);
+      []() {} /* verify */,
+      false /* multiPort */);
 }
 
 TEST_F(TransceiverStateMachineTest, programIphyFailed) {
@@ -713,7 +779,8 @@ TEST_F(TransceiverStateMachineTest, programIphyFailed) {
         const auto& newProgrammedIphyPorts =
             transceiverManager_->getProgrammedIphyPortToPortInfo(id_);
         EXPECT_EQ(newProgrammedIphyPorts.size(), 1);
-      });
+      },
+      false /* multiPort */);
 }
 
 TEST_F(TransceiverStateMachineTest, programXphy) {
@@ -737,7 +804,8 @@ TEST_F(TransceiverStateMachineTest, programXphy) {
         EXPECT_TRUE(stateMachine.get_attribute(isXphyProgrammed));
         EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
         EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
-      });
+      },
+      false /* multiPort */);
   // Other states should not change even though we try to process the event
   verifyStateUnchanged(
       TransceiverStateMachineEvent::TCVR_EV_PROGRAM_XPHY,
@@ -747,7 +815,8 @@ TEST_F(TransceiverStateMachineTest, programXphy) {
         EXPECT_CALL(*transceiverManager_, programExternalPhyPorts(id_, false))
             .Times(0);
       } /* preUpdate */,
-      []() {} /* verify */);
+      []() {} /* verify */,
+      false /* multiPort */);
 }
 
 ACTION(ThrowFbossError) {
@@ -786,7 +855,8 @@ TEST_F(TransceiverStateMachineTest, programXphyFailed) {
         // Now isXphyProgrammed should be true
         EXPECT_TRUE(stateMachine.get_attribute(isXphyProgrammed));
         EXPECT_FALSE(newStateMachine.get_attribute(isTransceiverProgrammed));
-      });
+      },
+      false /* multiPort */);
 }
 
 TEST_F(TransceiverStateMachineTest, readyTransceiver) {
@@ -809,6 +879,7 @@ TEST_F(TransceiverStateMachineTest, readyTransceiver) {
         EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
         EXPECT_FALSE(stateMachine.get_attribute(needResetDataPath));
       },
+      false /* multiPort */,
       TransceiverType::MOCK_CMIS);
   // Other states should not change even though we try to process the event
   verifyStateUnchanged(
@@ -816,6 +887,7 @@ TEST_F(TransceiverStateMachineTest, readyTransceiver) {
       allStates,
       []() {} /* preUpdate */,
       []() {} /* verify */,
+      false /* multiPort */,
       TransceiverType::MOCK_CMIS);
 }
 
@@ -837,6 +909,7 @@ TEST_F(TransceiverStateMachineTest, programTransceiver) {
         EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
         EXPECT_FALSE(stateMachine.get_attribute(needResetDataPath));
       },
+      false /* multiPort */,
       TransceiverType::MOCK_CMIS);
   // Other states should not change even though we try to process the event
   verifyStateUnchanged(
@@ -844,6 +917,7 @@ TEST_F(TransceiverStateMachineTest, programTransceiver) {
       allStates,
       [this]() { setProgramCmisModuleExpectation(false); },
       []() {} /* verify */,
+      false /* multiPort */,
       TransceiverType::MOCK_CMIS);
 }
 
@@ -860,7 +934,7 @@ TEST_F(TransceiverStateMachineTest, programTransceiverFailed) {
 
         // Mock throw exception on one of the functions in
         // QsfpModule::programTransceiver()
-        TransceiverPortState state{kPortName, 0, cfg::PortSpeed::HUNDREDG};
+        TransceiverPortState state{kPortName1, 0, cfg::PortSpeed::HUNDREDG};
         EXPECT_CALL(*mockXcvr, customizeTransceiverLocked(state))
             .Times(2)
             .WillOnce(ThrowFbossError());
@@ -908,6 +982,7 @@ TEST_F(TransceiverStateMachineTest, programTransceiverFailed) {
         EXPECT_TRUE(newStateMachine.get_attribute(isTransceiverProgrammed));
         EXPECT_FALSE(stateMachine.get_attribute(needResetDataPath));
       },
+      false /* multiPort */,
       TransceiverType::MOCK_CMIS);
 }
 
@@ -926,13 +1001,15 @@ TEST_F(TransceiverStateMachineTest, portUp) {
         const auto& stateMachine =
             transceiverManager_->getStateMachineForTesting(id_);
         EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
-      });
+      },
+      false /* multiPort */);
   // Other states should not change even though we try to process the event
   verifyStateUnchanged(
       TransceiverStateMachineEvent::TCVR_EV_PORT_UP,
       allStates,
       []() {} /* preUpdate */,
-      []() {} /* verify */);
+      []() {} /* verify */,
+      false /* multiPort */);
 }
 
 TEST_F(TransceiverStateMachineTest, portDown) {
@@ -959,13 +1036,15 @@ TEST_F(TransceiverStateMachineTest, portDown) {
         // Check the lastDownTime should be updated
         EXPECT_GT(
             transceiverManager_->getLastDownTime(id_), beforeStateChangedTime);
-      });
+      },
+      false /* multiPort */);
   // Other states should not change even though we try to process the event
   verifyStateUnchanged(
       TransceiverStateMachineEvent::TCVR_EV_ALL_PORTS_DOWN,
       allStates,
       []() {} /* preUpdate */,
-      []() {} /* verify */);
+      []() {} /* verify */,
+      false /* multiPort */);
 }
 
 TEST_F(TransceiverStateMachineTest, removeTransceiver) {
@@ -982,7 +1061,8 @@ TEST_F(TransceiverStateMachineTest, removeTransceiver) {
       TransceiverStateMachineState::NOT_PRESENT /* expected state */,
       allStates,
       []() {} /* preUpdate */,
-      [this]() { verifyResetProgrammingAttributes(); });
+      [this]() { verifyResetProgrammingAttributes(); },
+      false /* multiPort */);
 
   // Other after programming states need to make sure all ports down before
   // removing such transceiver in case some transient i2c issue causes we
@@ -999,9 +1079,11 @@ TEST_F(TransceiverStateMachineTest, removeTransceiver) {
       [this]() {
         // Set port status to DOWN so that we can remove the transceiver
         // correctly
-        updateTransceiverActiveState(false /* up */, true /* enabled */);
+        updateTransceiverActiveState(
+            false /* up */, true /* enabled */, portId1_);
       },
-      [this]() { verifyResetProgrammingAttributes(); });
+      [this]() { verifyResetProgrammingAttributes(); },
+      false /* multiPort */);
 
   // Only NOT_PRESENT left
   EXPECT_EQ(allStates.size(), 1);
@@ -1012,7 +1094,8 @@ TEST_F(TransceiverStateMachineTest, removeTransceiver) {
       TransceiverStateMachineEvent::TCVR_EV_REMOVE_TRANSCEIVER,
       allStates,
       []() {} /* preUpdate */,
-      []() {} /* verify */);
+      []() {} /* verify */,
+      false /* multiPort */);
 }
 
 TEST_F(TransceiverStateMachineTest, removeTransceiverFailed) {
@@ -1038,7 +1121,8 @@ TEST_F(TransceiverStateMachineTest, removeTransceiverFailed) {
 
         // Set port status to DOWN so that we can remove the transceiver
         // correctly
-        updateTransceiverActiveState(false /* up */, true /* enabled */);
+        updateTransceiverActiveState(
+            false /* up */, true /* enabled */, portId1_);
         // Then try again, it should succeed
         transceiverManager_->updateStateBlocking(
             id_, TransceiverStateMachineEvent::TCVR_EV_REMOVE_TRANSCEIVER);
@@ -1047,7 +1131,8 @@ TEST_F(TransceiverStateMachineTest, removeTransceiverFailed) {
             transceiverManager_->getCurrentState(id_),
             TransceiverStateMachineState::NOT_PRESENT);
         verifyResetProgrammingAttributes();
-      });
+      },
+      false /* multiPort */);
 }
 
 TEST_F(TransceiverStateMachineTest, remediateCmisTransceiver) {
@@ -1106,6 +1191,7 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiver) {
         // Now isTransceiverProgrammed should be true
         EXPECT_TRUE(newStateMachine.get_attribute(isTransceiverProgrammed));
       },
+      false /* multiPort */,
       TransceiverType::MOCK_CMIS,
       kRemediateTransceiverFnStr);
   // Other states should not change even though we try to process the event
@@ -1126,6 +1212,7 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiver) {
       } /* preUpdate */,
       [this]() { triggerRemediateEvents(); },
       []() {} /* verify */,
+      false /* multiPort */,
       TransceiverType::MOCK_CMIS,
       kRemediateTransceiverFnStr);
 }
@@ -1187,6 +1274,7 @@ TEST_F(TransceiverStateMachineTest, remediateSff8472Transceiver) {
         // Now isTransceiverProgrammed should be true
         EXPECT_TRUE(newStateMachine.get_attribute(isTransceiverProgrammed));
       },
+      false /* multiPort */,
       TransceiverType::MOCK_SFF8472,
       kRemediateTransceiverFnStr);
   // Other states should not change even though we try to process the event
@@ -1207,6 +1295,7 @@ TEST_F(TransceiverStateMachineTest, remediateSff8472Transceiver) {
       } /* preUpdate */,
       [this]() { triggerRemediateEvents(); },
       []() {} /* verify */,
+      false /* multiPort */,
       TransceiverType::MOCK_SFF8472,
       kRemediateTransceiverFnStr);
 }
@@ -1284,6 +1373,7 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiverFailed) {
         EXPECT_TRUE(afterProgrammingStateMachine.get_attribute(
             isTransceiverProgrammed));
       },
+      false /* multiPort */,
       TransceiverType::MOCK_CMIS,
       kRemediateTransceiverFnStr);
 }
@@ -1342,6 +1432,7 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiver) {
         // Now isTransceiverProgrammed should be true
         EXPECT_TRUE(newStateMachine.get_attribute(isTransceiverProgrammed));
       },
+      false /* multiPort */,
       TransceiverType::MOCK_SFF,
       kRemediateTransceiverFnStr);
   // Other states should not change even though we try to process the event
@@ -1361,6 +1452,7 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiver) {
       } /* preUpdate */,
       [this]() { triggerRemediateEvents(); },
       []() {} /* verify */,
+      false /* multiPort */,
       TransceiverType::MOCK_SFF,
       kRemediateTransceiverFnStr);
 }
@@ -1420,6 +1512,7 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiverFailed) {
         EXPECT_TRUE(afterProgrammingStateMachine.get_attribute(
             isTransceiverProgrammed));
       },
+      false /* multiPort */,
       TransceiverType::MOCK_SFF,
       kRemediateTransceiverFnStr);
 }
@@ -1450,6 +1543,7 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedWarmBoot) {
         EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
         EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
       } /* verify */,
+      false /* multiPort */,
       TransceiverType::CMIS,
       kWarmBootAgentConfigChangedFnStr);
 
@@ -1459,6 +1553,7 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedWarmBoot) {
       []() {} /* preUpdate */,
       [this]() { triggerAgentConfigChanged(false); } /* stateUpdate */,
       []() {} /* verify */,
+      false /* multiPort */,
       TransceiverType::CMIS,
       kWarmBootAgentConfigChangedFnStr);
 }
@@ -1500,6 +1595,7 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedColdBoot) {
         transceiverManager_->refreshStateMachines();
         EXPECT_FALSE(stateMachine.get_attribute(needResetDataPath));
       } /* verify */,
+      false /* multiPort */,
       TransceiverType::MOCK_CMIS,
       kColdBootAgentConfigChangedFnStr);
 
@@ -1509,6 +1605,7 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedColdBoot) {
       []() {} /* preUpdate */,
       [this]() { triggerAgentConfigChanged(true); } /* stateUpdate */,
       []() {} /* verify */,
+      false /* multiPort */,
       TransceiverType::MOCK_CMIS,
       kColdBootAgentConfigChangedFnStr);
 }
@@ -1538,6 +1635,7 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedWarmBootOnAbsentXcvr) {
         EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
         EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
       } /* verify */,
+      false /* multiPort */,
       TransceiverType::MOCK_CMIS,
       kWarmBootAgentConfigChangedFnStr);
 
@@ -1550,6 +1648,7 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedWarmBootOnAbsentXcvr) {
       } /* preUpdate */,
       [this]() { triggerAgentConfigChanged(false); } /* stateUpdate */,
       []() {} /* verify */,
+      false /* multiPort */,
       TransceiverType::MOCK_CMIS,
       kWarmBootAgentConfigChangedFnStr);
 }
@@ -1608,6 +1707,7 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedColdBootOnAbsentXcvr) {
 
         EXPECT_FALSE(stateMachine.get_attribute(needResetDataPath));
       } /* verify */,
+      false /* multiPort */,
       TransceiverType::MOCK_CMIS,
       kColdBootAgentConfigChangedFnStr);
 
@@ -1620,6 +1720,7 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedColdBootOnAbsentXcvr) {
       } /* preUpdate */,
       [this]() { triggerAgentConfigChanged(true); } /* stateUpdate */,
       []() {} /* verify */,
+      false /* multiPort */,
       TransceiverType::MOCK_CMIS,
       kColdBootAgentConfigChangedFnStr);
 }
@@ -1648,7 +1749,8 @@ TEST_F(TransceiverStateMachineTest, syncPortsOnRemovedTransceiver) {
       [this]() {
         // Trigger active state change function just like wedge_agent calls
         // qsfp_service syncPorts(). Bring down the ports
-        updateTransceiverActiveState(false /* up */, true /* enabled */);
+        updateTransceiverActiveState(
+            false /* up */, true /* enabled */, portId1_);
         // The refresh() will let TransceiverStateMachine trigger next event
         xcvr_->refresh();
       } /* stateUpdate */,
@@ -1657,6 +1759,7 @@ TEST_F(TransceiverStateMachineTest, syncPortsOnRemovedTransceiver) {
         // refresh(). Now check all programming attributes being removed.
         verifyResetProgrammingAttributes();
       } /* verify */,
+      false /* multiPort */,
       TransceiverType::MOCK_CMIS,
       "Triggering syncPorts with port down on a removed transceiver");
 }
@@ -1768,8 +1871,8 @@ TEST_F(TransceiverStateMachineTest, reseatTransceiver) {
   // verifyStateMachine(), we decided to break the whole tests into multiple
   // steps.
   // Step1: Mimic agent side ports down
-  xcvr_ = overrideTransceiver(TransceiverType::MOCK_SFF);
-  setState(TransceiverStateMachineState::INACTIVE);
+  xcvr_ = overrideTransceiver(false /* multiPort */, TransceiverType::MOCK_SFF);
+  setState(TransceiverStateMachineState::INACTIVE, false /* multiPort */);
 
   // Step2: Remove the transceiver and check the state machine updates
   removeCmisTransceiver(true);
