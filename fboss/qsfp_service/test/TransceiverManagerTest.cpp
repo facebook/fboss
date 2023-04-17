@@ -95,7 +95,7 @@ TEST_F(TransceiverManagerTest, getInterfacePhyInfo) {
   EXPECT_TRUE(phyInfos.find("eth1/1/1") != phyInfos.end());
   // Simulate an exception from xphyInfo and confirm that the map doesn't
   // include that interface's key
-  EXPECT_CALL(*transceiverManager_, getXphyInfo(PortID(5)))
+  EXPECT_CALL(*transceiverManager_, getXphyInfo(PortID(9)))
       .Times(1)
       .WillRepeatedly(ThrowFbossError());
   transceiverManager_->getInterfacePhyInfo(phyInfos, "eth1/2/1");

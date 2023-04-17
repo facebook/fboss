@@ -107,7 +107,8 @@ class MockWedgeManager : public WedgeManager {
           n += numPortsPerModule;
           return port;
         });
-    return std::make_unique<FakeTestPlatformMapping>(controllingPortIDs);
+    return std::make_unique<FakeTestPlatformMapping>(
+        controllingPortIDs, numPortsPerModule);
   }
 
   int numModules_;

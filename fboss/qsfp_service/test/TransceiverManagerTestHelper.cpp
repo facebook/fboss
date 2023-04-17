@@ -30,13 +30,13 @@ void TransceiverManagerTestHelper::SetUp() {
 
   // Create a wedge manager
   transceiverManager_ =
-      std::make_unique<MockWedgeManager>(numModules, 4 /* portsPerModule */);
+      std::make_unique<MockWedgeManager>(numModules, 8 /* portsPerModule */);
   transceiverManager_->init();
 }
 
 void TransceiverManagerTestHelper::resetTransceiverManager() {
   transceiverManager_.reset();
   transceiverManager_ =
-      std::make_unique<MockWedgeManager>(numModules, 4 /* portsPerModule */);
+      std::make_unique<MockWedgeManager>(numModules, 8 /* portsPerModule */);
 }
 } // namespace facebook::fboss

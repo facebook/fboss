@@ -17,7 +17,7 @@
 namespace {
 using namespace facebook::fboss;
 static const std::unordered_map<int, std::vector<cfg::PortProfileID>>
-    kPortProfilesInGroup = {
+    k4PortProfilesInGroup = {
         {0,
          {
              cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL,
@@ -44,6 +44,60 @@ static const std::unordered_map<int, std::vector<cfg::PortProfileID>>
          }},
 };
 
+static const std::unordered_map<int, std::vector<cfg::PortProfileID>>
+    k8PortProfilesInGroup = {
+        {0,
+         {
+             cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL,
+             cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL,
+             cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER,
+             cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC_OPTICAL,
+             cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
+             cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
+         }},
+        {1,
+         {
+             cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
+             cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
+         }},
+        {2,
+         {
+             cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL,
+             cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER,
+             cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
+             cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
+         }},
+        {3,
+         {
+             cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
+             cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
+         }},
+        {4,
+         {
+             cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL,
+             cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER,
+             cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
+             cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
+         }},
+        {5,
+         {
+             cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
+             cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
+         }},
+        {6,
+         {
+             cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL,
+             cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER,
+             cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
+             cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
+         }},
+        {7,
+         {
+             cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
+             cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
+         }},
+};
+
 static const std::unordered_map<
     cfg::PortProfileID,
     std::tuple<
@@ -54,6 +108,14 @@ static const std::unordered_map<
         phy::InterfaceMode,
         phy::InterfaceType>>
     kProfiles = {
+        {cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL,
+         std::make_tuple(
+             cfg::PortSpeed::HUNDREDG,
+             2,
+             phy::FecMode::RS544_2N,
+             TransmitterTechnology::OPTICAL,
+             phy::InterfaceMode::CAUI,
+             phy::InterfaceType::CAUI)},
         {cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL,
          std::make_tuple(
              cfg::PortSpeed::HUNDREDG,
@@ -100,7 +162,8 @@ static const std::unordered_map<
 namespace facebook {
 namespace fboss {
 FakeTestPlatformMapping::FakeTestPlatformMapping(
-    std::vector<int> controllingPortIds)
+    std::vector<int> controllingPortIds,
+    int portsPerSlot)
     : PlatformMapping(), controllingPortIds_(std::move(controllingPortIds)) {
   for (auto itProfile : kProfiles) {
     phy::PortProfileConfig profile;
@@ -130,7 +193,7 @@ FakeTestPlatformMapping::FakeTestPlatformMapping(
   }
 
   for (int groupID = 0; groupID < controllingPortIds_.size(); groupID++) {
-    auto portsInGroup = getPlatformPortEntriesByGroup(groupID);
+    auto portsInGroup = getPlatformPortEntriesByGroup(groupID, portsPerSlot);
     for (auto port : portsInGroup) {
       setPlatformPort(*port.mapping()->id(), port);
     }
@@ -154,9 +217,8 @@ FakeTestPlatformMapping::FakeTestPlatformMapping(
     setChip(*tcvr.name(), tcvr);
   }
 
-  CHECK(
-      getPlatformPorts().size() ==
-      controllingPortIds_.size() * kPortProfilesInGroup.size());
+  CHECK_EQ(
+      getPlatformPorts().size(), controllingPortIds_.size() * portsPerSlot);
 }
 
 cfg::PlatformPortConfig FakeTestPlatformMapping::getPlatformPortConfig(
@@ -201,7 +263,11 @@ cfg::PlatformPortConfig FakeTestPlatformMapping::getPlatformPortConfig(
 }
 
 std::vector<cfg::PlatformPortEntry>
-FakeTestPlatformMapping::getPlatformPortEntriesByGroup(int groupID) {
+FakeTestPlatformMapping::getPlatformPortEntriesByGroup(
+    int groupID,
+    int portsPerSlot) {
+  auto kPortProfilesInGroup =
+      portsPerSlot == 8 ? k8PortProfilesInGroup : k4PortProfilesInGroup;
   std::vector<cfg::PlatformPortEntry> platformPortEntries;
   for (auto& portProfiles : kPortProfilesInGroup) {
     int portID = controllingPortIds_.at(groupID) + portProfiles.first;

@@ -16,7 +16,9 @@ namespace fboss {
 
 class FakeTestPlatformMapping : public PlatformMapping {
  public:
-  explicit FakeTestPlatformMapping(std::vector<int> controllingPortIds);
+  explicit FakeTestPlatformMapping(
+      std::vector<int> controllingPortIds,
+      int portsPerSlot = 4);
   ~FakeTestPlatformMapping() {}
 
  private:
@@ -33,7 +35,8 @@ class FakeTestPlatformMapping : public PlatformMapping {
       cfg::PortProfileID profileID);
 
   std::vector<cfg::PlatformPortEntry> getPlatformPortEntriesByGroup(
-      int groupID);
+      int groupID,
+      int portsPerSlot);
   static phy::TxSettings getFakeTxSetting();
   static phy::RxSettings getFakeRxSetting();
 };
