@@ -2023,6 +2023,7 @@ void ThriftHandler::sendPkt(
     unique_ptr<fbstring> data) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
+  ensureNotFabric(__func__);
   auto buf = IOBuf::copyBuffer(
       reinterpret_cast<const uint8_t*>(data->data()), data->size());
   auto pkt = make_unique<MockRxPacket>(std::move(buf));
@@ -2037,6 +2038,7 @@ void ThriftHandler::sendPktHex(
     unique_ptr<fbstring> hex) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
+  ensureNotFabric(__func__);
   auto pkt = MockRxPacket::fromHex(StringPiece(*hex));
   pkt->setSrcPort(PortID(port));
   pkt->setSrcVlan(VlanID(vlan));
@@ -2046,6 +2048,7 @@ void ThriftHandler::sendPktHex(
 void ThriftHandler::txPkt(int32_t port, unique_ptr<fbstring> data) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
+  ensureNotFabric(__func__);
 
   unique_ptr<TxPacket> pkt = sw_->allocatePacket(data->size());
   RWPrivateCursor cursor(pkt->buf());
@@ -2057,6 +2060,7 @@ void ThriftHandler::txPkt(int32_t port, unique_ptr<fbstring> data) {
 void ThriftHandler::txPktL2(unique_ptr<fbstring> data) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
+  ensureNotFabric(__func__);
 
   unique_ptr<TxPacket> pkt = sw_->allocatePacket(data->size());
   RWPrivateCursor cursor(pkt->buf());
@@ -2068,6 +2072,7 @@ void ThriftHandler::txPktL2(unique_ptr<fbstring> data) {
 void ThriftHandler::txPktL3(unique_ptr<fbstring> payload) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
+  ensureNotFabric(__func__);
 
   unique_ptr<TxPacket> pkt = sw_->allocateL3TxPacket(payload->size());
   RWPrivateCursor cursor(pkt->buf());
