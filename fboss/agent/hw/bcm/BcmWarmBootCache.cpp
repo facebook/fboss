@@ -514,8 +514,16 @@ void BcmWarmBootCache::populateFromWarmBootState(
     const folly::dynamic& warmBootState,
     std::optional<state::WarmbootState> thriftState) {
   if (thriftState) {
-    dumpedSwSwitchState_ =
-        SwitchState::uniquePtrFromThrift(*thriftState->swSwitchState());
+    try {
+      dumpedSwSwitchState_ =
+          SwitchState::uniquePtrFromThrift(*thriftState->swSwitchState());
+    } catch (const FbossError& error) {
+      dumpBinaryThriftToFile(
+          hw_->getPlatform()->getCrashThriftSwitchStateFile(),
+          *thriftState->swSwitchState());
+      XLOG(FATAL) << "Failed to recover switch state from thrift. "
+                  << error.what();
+    }
   } else {
     XLOG(FATAL) << "Thrift switch state not found";
   }

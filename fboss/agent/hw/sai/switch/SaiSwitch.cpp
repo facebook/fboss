@@ -1776,8 +1776,15 @@ HwInitResult SaiSwitch::initLocked(
     auto [switchStateJson, switchStateThrift] =
         platform_->getWarmBootHelper()->getWarmBootState();
     if (switchStateThrift) {
-      ret.switchState =
-          SwitchState::fromThrift(*switchStateThrift->swSwitchState());
+      try {
+        ret.switchState =
+            SwitchState::fromThrift(*switchStateThrift->swSwitchState());
+      } catch (const FbossError& error) {
+        dumpBinaryThriftToFile(
+            platform_->getCrashThriftSwitchStateFile(), *switchStateThrift);
+        XLOG(FATAL) << "Failed to recover switch state from thrift. "
+                    << error.what();
+      }
     } else {
       XLOG(FATAL) << "Thrift switch state not found";
     }

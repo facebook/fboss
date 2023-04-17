@@ -412,4 +412,19 @@ struct InnerMap {
       typename TypeFor<MultiMapName>::element_type::mapped_type::element_type;
 };
 
+namespace utility {
+template <typename T, T...>
+struct TagName;
+
+template <typename T, T... Values>
+struct TagName<fatal::sequence<T, Values...>> {
+  static constexpr std::size_t size = sizeof...(Values);
+  static constexpr std::array<T, size> array = {Values...};
+  static std::string value() {
+    return std::string(std::begin(array), std::end(array));
+  }
+};
+
+} // namespace utility
+
 } // namespace facebook::fboss
