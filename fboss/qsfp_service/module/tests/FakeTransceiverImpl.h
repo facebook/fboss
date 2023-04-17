@@ -113,5 +113,10 @@ class Cmis400GCr8Transceiver : public FakeTransceiverImpl {
   explicit Cmis400GCr8Transceiver(int module);
 };
 
+class Cmis400GFr4MultiPortTransceiver : public FakeTransceiverImpl {
+ public:
+  explicit Cmis400GFr4MultiPortTransceiver(int module);
+};
+
 } // namespace fboss
 } // namespace facebook
