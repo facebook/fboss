@@ -31,8 +31,8 @@ struct CmdStartPcapTraits : public BaseCommandTraits {
 
 class CmdStartPcap : public CmdHandler<CmdStartPcap, CmdStartPcapTraits> {
  public:
-  const int32_t defaultMaxPackets_ = 10000;
-  const CaptureDirection defaultDirectionVal_ = CaptureDirection::CAPTURE_TX_RX;
+  const int32_t kDefaultMaxPackets = 10000;
+  const CaptureDirection kDefaultDirectionVal = CaptureDirection::CAPTURE_TX_RX;
   using ObjectArgType = CmdStartPcapTraits::ObjectArgType;
   using RetType = CmdStartPcapTraits::RetType;
 
@@ -48,10 +48,10 @@ class CmdStartPcap : public CmdHandler<CmdStartPcap, CmdStartPcapTraits> {
     auto maxPackets =
         CmdLocalOptions::getInstance()->getLocalOption("start_pcap", "--max");
     captureInfo.maxPackets() =
-        maxPackets.empty() ? defaultMaxPackets_ : stoi(maxPackets);
+        maxPackets.empty() ? kDefaultMaxPackets : stoi(maxPackets);
     auto direction = CmdLocalOptions::getInstance()->getLocalOption(
         "start_pcap", "--direction");
-    directionVal = direction.empty() ? defaultDirectionVal_
+    directionVal = direction.empty() ? kDefaultDirectionVal
                                      : getCaptureDirection(direction);
     captureInfo.direction() = directionVal;
     directionStr = direction.empty() ? "both Tx and Rx"

@@ -218,4 +218,16 @@ std::string getUserInfo() {
   return folly::join<std::string, std::vector<std::string>>(" | ", userInfo);
 }
 
+std::string getUnixname() {
+  auto envuser = getenv("USER");
+  if (strcmp(envuser, "root") != 0 && strcmp(envuser, "netops") != 0) {
+    return envuser;
+  }
+  // Last resort get unixname from user input
+  std::string user_from_input;
+  std::cout << "Please enter your unixname: ";
+  std::cin >> user_from_input;
+  return user_from_input;
+}
+
 } // namespace facebook::fboss::utils

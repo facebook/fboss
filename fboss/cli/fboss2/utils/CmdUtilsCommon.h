@@ -177,6 +177,7 @@ const std::string getDurationStr(folly::stop_watch<>& watch);
 const std::string getPrettyElapsedTime(const int64_t& start_time);
 
 std::string getUserInfo();
+std::string getUnixname();
 
 void setLogLevel(const std::string& logLevelStr);
 void logUsage(const CmdLogInfo& cmdLogInfo);

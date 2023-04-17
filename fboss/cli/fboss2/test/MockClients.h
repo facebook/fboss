@@ -25,6 +25,7 @@ extern std::vector<facebook::fboss::ArpEntryThrift> createArpEntries();
 
 class MockFbossCtrlAgent : public FbossCtrlSvIf {
  public:
+  MOCK_METHOD(void, reloadConfig, ());
   MOCK_METHOD(void, getAclTable, (std::vector<AclEntryThrift>&));
   MOCK_METHOD(void, getNdpTable, (std::vector<NdpEntryThrift>&));
 
