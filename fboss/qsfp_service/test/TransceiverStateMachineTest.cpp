@@ -1254,6 +1254,108 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiver) {
       kRemediateTransceiverFnStr);
 }
 
+TEST_F(TransceiverStateMachineTest, remediateCmisMultiPortTransceiver) {
+  enableRemediationTesting();
+  auto allStates = getAllStates();
+  verifyStateMachine(
+      // We can only trigger remediation from active state when some ports are
+      // down. If all ports are down, we'll trigger remediation from inactive
+      // state
+      {TransceiverStateMachineState::INACTIVE,
+       TransceiverStateMachineState::ACTIVE},
+      TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED /* expected state */,
+      allStates,
+      [this]() {
+        // Before trigger remediation, remove remediation pause
+        transceiverManager_->setPauseRemediation(0, nullptr);
+        // Give 1s buffer when comparing lastDownTime_ in shouldRemediate()
+        /* sleep override */
+        sleep(1);
+
+        // If we are remediating from inactive state, only then expect a hard
+        // reset of transceiver because then we do a full remediation
+        // We trigger a hard reset as remediation
+        MockTransceiverPlatformApi* xcvrApi =
+            static_cast<MockTransceiverPlatformApi*>(
+                transceiverManager_->getQsfpPlatformApi());
+        EXPECT_CALL(*xcvrApi, triggerQsfpHardReset(id_ + 1))
+            .Times(
+                transceiverManager_->getCurrentState(id_) ==
+                TransceiverStateMachineState::INACTIVE);
+      },
+      [this]() {
+        // When testing remediation from active state, let port1 remain UP but
+        // port2 by down
+        if (transceiverManager_->getCurrentState(id_) ==
+            TransceiverStateMachineState::ACTIVE) {
+          updateTransceiverActiveState(
+              true /* up */, true /* enabled */, portId1_);
+          updateTransceiverActiveState(
+              false /* up */, true /* enabled */, portId3_);
+        }
+        triggerRemediateEvents();
+      },
+      [this]() {
+        // Just finished remediation, so the dirty flag should be set
+        EXPECT_TRUE(xcvr_->getDirty_());
+        // state machine goes back to XPHY_PORTS_PROGRAMMED so that we can
+        // reprogram the xcvr again
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+        // Trigger a prepare transceiver which should fail because the cache is
+        // still dirty
+        transceiverManager_->updateStateBlocking(
+            id_, TransceiverStateMachineEvent::TCVR_EV_PREPARE_TRANSCEIVER);
+        // Refresh the state machine again which will first do a successful
+        // refresh and clear the dirty_ flag and then trigger
+        // PREPARE_TRANSCEIVER
+        transceiverManager_->refreshStateMachines();
+        EXPECT_EQ(
+            transceiverManager_->getCurrentState(id_),
+            TransceiverStateMachineState::TRANSCEIVER_READY);
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+
+        // Next the program transceiver event will move it to xcvr programmed
+        // state
+        transceiverManager_->updateStateBlocking(
+            id_, TransceiverStateMachineEvent::TCVR_EV_PROGRAM_TRANSCEIVER);
+        EXPECT_FALSE(xcvr_->getDirty_());
+        EXPECT_EQ(
+            transceiverManager_->getCurrentState(id_),
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED);
+        const auto& newStateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        // Now isTransceiverProgrammed should be true
+        EXPECT_TRUE(newStateMachine.get_attribute(isTransceiverProgrammed));
+      },
+      true /* multiPort */,
+      TransceiverType::MOCK_CMIS,
+      kRemediateTransceiverFnStr);
+
+  // Other states should not change even though we try to process the event
+  verifyStateUnchanged(
+      allStates,
+      [this]() {
+        // Before trigger remediation, remove remediation pause
+        transceiverManager_->setPauseRemediation(0, nullptr);
+        // Give 1s buffer when comparing lastDownTime_ in shouldRemediate()
+        /* sleep override */
+        sleep(1);
+
+        // Make sure no triggerQsfpHardReset() has been called
+        MockTransceiverPlatformApi* xcvrApi =
+            static_cast<MockTransceiverPlatformApi*>(
+                transceiverManager_->getQsfpPlatformApi());
+        EXPECT_CALL(*xcvrApi, triggerQsfpHardReset(id_ + 1)).Times(0);
+      } /* preUpdate */,
+      [this]() { triggerRemediateEvents(); },
+      []() {} /* verify */,
+      true /* multiPort */,
+      TransceiverType::MOCK_CMIS,
+      kRemediateTransceiverFnStr);
+}
+
 TEST_F(TransceiverStateMachineTest, remediateSff8472Transceiver) {
   enableRemediationTesting();
   auto allStates = getAllStates();
