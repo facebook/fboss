@@ -1085,54 +1085,65 @@ TEST_F(TransceiverStateMachineTest, portDown) {
 }
 
 TEST_F(TransceiverStateMachineTest, removeTransceiver) {
-  auto allStates = getAllStates();
-  // All states besides NOT_PRESENT can accept REMOVE_TRANSCEIVER event
-  // Only PRESENT and DISCOVERED don't need to check all ports down, since
-  // nothing is actually programmed yet.
-  // And INACTIVE also means ports are down so it should pass
-  verifyStateMachine(
-      {TransceiverStateMachineState::PRESENT,
-       TransceiverStateMachineState::DISCOVERED,
-       TransceiverStateMachineState::INACTIVE},
-      TransceiverStateMachineEvent::TCVR_EV_REMOVE_TRANSCEIVER,
-      TransceiverStateMachineState::NOT_PRESENT /* expected state */,
-      allStates,
-      []() {} /* preUpdate */,
-      [this]() { verifyResetProgrammingAttributes(); },
-      false /* multiPort */);
+  for (auto multiPort : {false, true}) {
+    XLOG(INFO) << "Verifying removeTransceiver for multiPort = " << multiPort;
+    auto allStates = getAllStates();
+    // All states besides NOT_PRESENT can accept REMOVE_TRANSCEIVER event
+    // Only PRESENT and DISCOVERED don't need to check all ports down, since
+    // nothing is actually programmed yet.
+    // And INACTIVE also means ports are down so it should pass
+    verifyStateMachine(
+        {TransceiverStateMachineState::PRESENT,
+         TransceiverStateMachineState::DISCOVERED,
+         TransceiverStateMachineState::INACTIVE},
+        TransceiverStateMachineEvent::TCVR_EV_REMOVE_TRANSCEIVER,
+        TransceiverStateMachineState::NOT_PRESENT /* expected state */,
+        allStates,
+        []() {} /* preUpdate */,
+        [this]() { verifyResetProgrammingAttributes(); },
+        multiPort);
+    // Other after programming states need to make sure all ports down before
+    // removing such transceiver in case some transient i2c issue causes we
+    // can't detect a transceiver and accidentally remove it
+    verifyStateMachine(
+        {TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
+         TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
+         TransceiverStateMachineState::TRANSCEIVER_READY,
+         TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+         TransceiverStateMachineState::ACTIVE},
+        TransceiverStateMachineEvent::TCVR_EV_REMOVE_TRANSCEIVER,
+        TransceiverStateMachineState::NOT_PRESENT /* expected state */,
+        allStates,
+        [this, multiPort]() {
+          // Set port status to DOWN so that we can remove the transceiver
+          // correctly
+          updateTransceiverActiveState(
+              false /* up */, true /* enabled */, portId1_);
+          if (multiPort) {
+            updateTransceiverActiveState(
+                false /* up */, true /* enabled */, portId3_);
+          }
+        },
+        [this]() { verifyResetProgrammingAttributes(); },
+        multiPort);
 
-  // Other after programming states need to make sure all ports down before
-  // removing such transceiver in case some transient i2c issue causes we
-  // can't detect a transceiver and accidentally remove it
-  verifyStateMachine(
-      {TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
-       TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
-       TransceiverStateMachineState::TRANSCEIVER_READY,
-       TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
-       TransceiverStateMachineState::ACTIVE},
-      TransceiverStateMachineEvent::TCVR_EV_REMOVE_TRANSCEIVER,
-      TransceiverStateMachineState::NOT_PRESENT /* expected state */,
-      allStates,
-      [this]() {
-        // Set port status to DOWN so that we can remove the transceiver
-        // correctly
-        updateTransceiverActiveState(
-            false /* up */, true /* enabled */, portId1_);
-      },
-      [this]() { verifyResetProgrammingAttributes(); },
-      false /* multiPort */);
+    // Only NOT_PRESENT left
+    EXPECT_EQ(allStates.size(), 1);
+    EXPECT_TRUE(
+        allStates.find(TransceiverStateMachineState::NOT_PRESENT) !=
+        allStates.end());
+    verifyStateUnchanged(
+        TransceiverStateMachineEvent::TCVR_EV_REMOVE_TRANSCEIVER,
+        allStates,
+        []() {} /* preUpdate */,
+        []() {} /* verify */,
+        multiPort);
 
-  // Only NOT_PRESENT left
-  EXPECT_EQ(allStates.size(), 1);
-  EXPECT_TRUE(
-      allStates.find(TransceiverStateMachineState::NOT_PRESENT) !=
-      allStates.end());
-  verifyStateUnchanged(
-      TransceiverStateMachineEvent::TCVR_EV_REMOVE_TRANSCEIVER,
-      allStates,
-      []() {} /* preUpdate */,
-      []() {} /* verify */,
-      false /* multiPort */);
+    // Reset the transceiver manager to start fresh for the next test with
+    // multiPort transceiver
+    resetTransceiverManager();
+    transceiverManager_->init();
+  }
 }
 
 TEST_F(TransceiverStateMachineTest, removeTransceiverFailed) {
