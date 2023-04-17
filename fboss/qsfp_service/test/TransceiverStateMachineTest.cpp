@@ -591,6 +591,11 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         .WillRepeatedly(::testing::Return(isPresent));
   }
 
+  void cleanup() {
+    resetTransceiverManager();
+    transceiverManager_->init();
+  }
+
   QsfpModule* xcvr_;
   const TransceiverID id_ = TransceiverID(0);
   const std::vector<TransceiverID> stableXcvrIds_ = {id_};
@@ -618,75 +623,92 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
 };
 
 TEST_F(TransceiverStateMachineTest, defaultState) {
-  overrideTransceiver(false /* multiPort */);
-  EXPECT_EQ(
-      transceiverManager_->getCurrentState(id_),
-      TransceiverStateMachineState::NOT_PRESENT);
-  verifyResetProgrammingAttributes();
+  for (auto multiPort : {false, true}) {
+    XLOG(INFO) << "Verifying defaultState for multiPort = " << multiPort;
+    overrideTransceiver(false /* multiPort */);
+    EXPECT_EQ(
+        transceiverManager_->getCurrentState(id_),
+        TransceiverStateMachineState::NOT_PRESENT);
+    verifyResetProgrammingAttributes();
+    // Prepare for testing with next multiPort value
+    cleanup();
+  }
 }
 
 TEST_F(TransceiverStateMachineTest, detectTransceiver) {
-  auto allStates = getAllStates();
-  verifyStateMachine(
-      {TransceiverStateMachineState::NOT_PRESENT,
-       TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
-       TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
-       TransceiverStateMachineState::TRANSCEIVER_READY,
-       TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
-       TransceiverStateMachineState::INACTIVE},
-      TransceiverStateMachineEvent::TCVR_EV_EVENT_DETECT_TRANSCEIVER,
-      TransceiverStateMachineState::PRESENT /* expected state */,
-      allStates,
-      []() {} /* preUpdate */,
-      []() {} /* verify */,
-      false /* multiPort */);
-  // Other states should not change even though we try to process the event
-  verifyStateUnchanged(
-      TransceiverStateMachineEvent::TCVR_EV_EVENT_DETECT_TRANSCEIVER,
-      allStates,
-      []() {} /* preUpdate */,
-      []() {} /* verify */,
-      false /* multiPort */);
+  for (auto multiPort : {false, true}) {
+    XLOG(INFO) << "Verifying detectTransceiver for multiPort = " << multiPort;
+    auto allStates = getAllStates();
+    verifyStateMachine(
+        {TransceiverStateMachineState::NOT_PRESENT,
+         TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
+         TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
+         TransceiverStateMachineState::TRANSCEIVER_READY,
+         TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+         TransceiverStateMachineState::INACTIVE},
+        TransceiverStateMachineEvent::TCVR_EV_EVENT_DETECT_TRANSCEIVER,
+        TransceiverStateMachineState::PRESENT /* expected state */,
+        allStates,
+        []() {} /* preUpdate */,
+        []() {} /* verify */,
+        multiPort);
+    // Other states should not change even though we try to process the event
+    verifyStateUnchanged(
+        TransceiverStateMachineEvent::TCVR_EV_EVENT_DETECT_TRANSCEIVER,
+        allStates,
+        []() {} /* preUpdate */,
+        []() {} /* verify */,
+        multiPort);
+    // Prepare for testing with next multiPort value
+    cleanup();
+  }
 }
 
 TEST_F(TransceiverStateMachineTest, readEeprom) {
-  auto allStates = getAllStates();
-  // Only PRESENT can accept READ_EEPROM event
-  verifyStateMachine(
-      {TransceiverStateMachineState::PRESENT},
-      TransceiverStateMachineEvent::TCVR_EV_READ_EEPROM,
-      TransceiverStateMachineState::DISCOVERED /* expected state */,
-      allStates,
-      [this]() {
-        // Make sure `discoverTransceiver` has been called
-        EXPECT_CALL(*transceiverManager_, verifyEepromChecksums(id_)).Times(1);
-      },
-      [this]() {
-        // Enter DISCOVERED will also call `resetProgrammingAttributes`
-        const auto& stateMachine =
-            transceiverManager_->getStateMachineForTesting(id_);
-        EXPECT_FALSE(stateMachine.get_attribute(isIphyProgrammed));
-        EXPECT_FALSE(stateMachine.get_attribute(isXphyProgrammed));
-        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
-        EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
+  for (auto multiPort : {false, true}) {
+    XLOG(INFO) << "Verifying readEeprom for multiPort = " << multiPort;
+    auto allStates = getAllStates();
+    // Only PRESENT can accept READ_EEPROM event
+    verifyStateMachine(
+        {TransceiverStateMachineState::PRESENT},
+        TransceiverStateMachineEvent::TCVR_EV_READ_EEPROM,
+        TransceiverStateMachineState::DISCOVERED /* expected state */,
+        allStates,
+        [this]() {
+          // Make sure `discoverTransceiver` has been called
+          EXPECT_CALL(*transceiverManager_, verifyEepromChecksums(id_))
+              .Times(1);
+        },
+        [this]() {
+          // Enter DISCOVERED will also call `resetProgrammingAttributes`
+          const auto& stateMachine =
+              transceiverManager_->getStateMachineForTesting(id_);
+          EXPECT_FALSE(stateMachine.get_attribute(isIphyProgrammed));
+          EXPECT_FALSE(stateMachine.get_attribute(isXphyProgrammed));
+          EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+          EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
 
-        // Before fetching TransceiverInfo, make sure we call refresh()
-        // to update the cached TransceiverInfo
-        xcvr_->refresh();
-        const auto& info = transceiverManager_->getTransceiverInfo(id_);
-        utility::HwTransceiverUtils::verifyDiagsCapability(
-            *info.tcvrState(),
-            transceiverManager_->getDiagsCapability(id_),
-            false /* skipCheckingIndividualCapability */);
-      },
-      false /* multiPort */);
-  // Other states should not change even though we try to process the event
-  verifyStateUnchanged(
-      TransceiverStateMachineEvent::TCVR_EV_READ_EEPROM,
-      allStates,
-      []() {} /* preUpdate */,
-      []() {} /* verify */,
-      false /* multiPort */);
+          // Before fetching TransceiverInfo, make sure we call refresh()
+          // to update the cached TransceiverInfo
+          xcvr_->refresh();
+          const auto& info = transceiverManager_->getTransceiverInfo(id_);
+          utility::HwTransceiverUtils::verifyDiagsCapability(
+              *info.tcvrState(),
+              transceiverManager_->getDiagsCapability(id_),
+              false /* skipCheckingIndividualCapability */);
+        },
+        multiPort);
+    // Other states should not change even though we try to process the event
+    verifyStateUnchanged(
+        TransceiverStateMachineEvent::TCVR_EV_READ_EEPROM,
+        allStates,
+        []() {} /* preUpdate */,
+        []() {} /* verify */,
+        multiPort);
+
+    // Prepare for testing with next multiPort value
+    cleanup();
+  }
 }
 
 TEST_F(TransceiverStateMachineTest, programIphy) {
@@ -1139,48 +1161,61 @@ TEST_F(TransceiverStateMachineTest, removeTransceiver) {
         []() {} /* verify */,
         multiPort);
 
-    // Reset the transceiver manager to start fresh for the next test with
-    // multiPort transceiver
-    resetTransceiverManager();
-    transceiverManager_->init();
+    // Prepare for testing with next multiPort value
+    cleanup();
   }
 }
 
 TEST_F(TransceiverStateMachineTest, removeTransceiverFailed) {
-  std::set<TransceiverStateMachineState> stateSet = {
-      TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
-      TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
-      TransceiverStateMachineState::TRANSCEIVER_READY,
-      TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
-      TransceiverStateMachineState::ACTIVE};
-  // If never set port state to down, we can't change the state to NOT_PRESENT
-  verifyStateUnchanged(
-      TransceiverStateMachineEvent::TCVR_EV_REMOVE_TRANSCEIVER,
-      stateSet,
-      []() {} /* preUpdate */,
-      [this]() {
-        const auto& stateMachine =
-            transceiverManager_->getStateMachineForTesting(id_);
-        // Now isIphyProgrammed should still be true
-        EXPECT_TRUE(stateMachine.get_attribute(isIphyProgrammed));
-        const auto& programmedIphyPorts =
-            transceiverManager_->getProgrammedIphyPortToPortInfo(id_);
-        EXPECT_EQ(programmedIphyPorts.size(), 1);
+  for (auto multiPort : {false, true}) {
+    XLOG(INFO) << "Verifying removeTransceiverFailed for multiPort = "
+               << multiPort;
+    std::set<TransceiverStateMachineState> stateSet = {
+        TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
+        TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
+        TransceiverStateMachineState::TRANSCEIVER_READY,
+        TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+        TransceiverStateMachineState::ACTIVE};
+    // If never set port state to down, we can't change the state to NOT_PRESENT
+    verifyStateUnchanged(
+        TransceiverStateMachineEvent::TCVR_EV_REMOVE_TRANSCEIVER,
+        stateSet,
+        []() {} /* preUpdate */,
+        [this, multiPort]() {
+          const auto& stateMachine =
+              transceiverManager_->getStateMachineForTesting(id_);
+          // Now isIphyProgrammed should still be true
+          EXPECT_TRUE(stateMachine.get_attribute(isIphyProgrammed));
+          const auto& programmedIphyPorts =
+              transceiverManager_->getProgrammedIphyPortToPortInfo(id_);
+          if (multiPort) {
+            EXPECT_EQ(programmedIphyPorts.size(), 2);
+          } else {
+            EXPECT_EQ(programmedIphyPorts.size(), 1);
+          }
 
-        // Set port status to DOWN so that we can remove the transceiver
-        // correctly
-        updateTransceiverActiveState(
-            false /* up */, true /* enabled */, portId1_);
-        // Then try again, it should succeed
-        transceiverManager_->updateStateBlocking(
-            id_, TransceiverStateMachineEvent::TCVR_EV_REMOVE_TRANSCEIVER);
+          // Set port status to DOWN so that we can remove the transceiver
+          // correctly
+          updateTransceiverActiveState(
+              false /* up */, true /* enabled */, portId1_);
+          if (multiPort) {
+            updateTransceiverActiveState(
+                false /* up */, true /* enabled */, portId3_);
+          }
+          // Then try again, it should succeed
+          transceiverManager_->updateStateBlocking(
+              id_, TransceiverStateMachineEvent::TCVR_EV_REMOVE_TRANSCEIVER);
 
-        EXPECT_EQ(
-            transceiverManager_->getCurrentState(id_),
-            TransceiverStateMachineState::NOT_PRESENT);
-        verifyResetProgrammingAttributes();
-      },
-      false /* multiPort */);
+          EXPECT_EQ(
+              transceiverManager_->getCurrentState(id_),
+              TransceiverStateMachineState::NOT_PRESENT);
+          verifyResetProgrammingAttributes();
+        },
+        multiPort);
+
+    // Prepare for testing with next multiPort value
+    cleanup();
+  }
 }
 
 TEST_F(TransceiverStateMachineTest, remediateCmisTransceiver) {
