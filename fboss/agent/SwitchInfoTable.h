@@ -10,7 +10,7 @@ class SwSwitch;
 
 class SwitchInfoTable {
  public:
-  explicit SwitchInfoTable(
+  SwitchInfoTable(
       SwSwitch* sw,
       const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo);
   std::vector<SwitchID> getSwitchIdsOfType(cfg::SwitchType type) const;
