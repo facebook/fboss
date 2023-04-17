@@ -921,6 +921,43 @@ TEST_F(TransceiverStateMachineTest, programTransceiver) {
       TransceiverType::MOCK_CMIS);
 }
 
+TEST_F(TransceiverStateMachineTest, programMultiPortTransceiver) {
+  auto allStates = getAllStates();
+  // TRANSCEIVER_READY state can accept PROGRAM_TRANSCEIVER event
+  verifyStateMachine(
+      {TransceiverStateMachineState::TRANSCEIVER_READY},
+      TransceiverStateMachineEvent::TCVR_EV_PROGRAM_TRANSCEIVER,
+      TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED /* expected state */,
+      allStates,
+      [this]() {
+        ::testing::Sequence s;
+        setProgramCmisModuleExpectation(true, s, true /* multiPort */);
+      },
+      [this]() {
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        // Now isTransceiverProgrammed should be true
+        EXPECT_TRUE(stateMachine.get_attribute(isIphyProgrammed));
+        EXPECT_TRUE(stateMachine.get_attribute(isTransceiverProgrammed));
+        EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
+        EXPECT_FALSE(stateMachine.get_attribute(needResetDataPath));
+      },
+      true /* multiPort */,
+      TransceiverType::MOCK_CMIS);
+
+  // Other states should not change even though we try to process the event
+  verifyStateUnchanged(
+      TransceiverStateMachineEvent::TCVR_EV_PROGRAM_TRANSCEIVER,
+      allStates,
+      [this]() {
+        ::testing::Sequence s;
+        setProgramCmisModuleExpectation(false, s, true /* multiPort */);
+      },
+      []() {} /* verify */,
+      true /* multiPort */,
+      TransceiverType::MOCK_CMIS);
+}
+
 TEST_F(TransceiverStateMachineTest, programTransceiverFailed) {
   std::set<TransceiverStateMachineState> stateSet = {
       TransceiverStateMachineState::TRANSCEIVER_READY};
