@@ -1046,64 +1046,76 @@ TEST_F(TransceiverStateMachineTest, programTransceiverFailed) {
 }
 
 TEST_F(TransceiverStateMachineTest, portUp) {
-  auto allStates = getAllStates();
-  // Only TRANSCEIVER_PROGRAMMED and INACTIVE can accept PORT_UP event
-  verifyStateMachine(
-      {TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
-       TransceiverStateMachineState::INACTIVE},
-      TransceiverStateMachineEvent::TCVR_EV_PORT_UP,
-      TransceiverStateMachineState::ACTIVE /* expected state */,
-      allStates,
-      []() {},
-      [this]() {
-        // Enter ACTIVE will also set `needMarkLastDownTime` to true
-        const auto& stateMachine =
-            transceiverManager_->getStateMachineForTesting(id_);
-        EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
-      },
-      false /* multiPort */);
-  // Other states should not change even though we try to process the event
-  verifyStateUnchanged(
-      TransceiverStateMachineEvent::TCVR_EV_PORT_UP,
-      allStates,
-      []() {} /* preUpdate */,
-      []() {} /* verify */,
-      false /* multiPort */);
+  for (auto multiPort : {false, true}) {
+    XLOG(INFO) << "Verifying portUp for multiPort = " << multiPort;
+    auto allStates = getAllStates();
+    // Only TRANSCEIVER_PROGRAMMED and INACTIVE can accept PORT_UP event
+    verifyStateMachine(
+        {TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+         TransceiverStateMachineState::INACTIVE},
+        TransceiverStateMachineEvent::TCVR_EV_PORT_UP,
+        TransceiverStateMachineState::ACTIVE /* expected state */,
+        allStates,
+        []() {},
+        [this]() {
+          // Enter ACTIVE will also set `needMarkLastDownTime` to true
+          const auto& stateMachine =
+              transceiverManager_->getStateMachineForTesting(id_);
+          EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
+        },
+        multiPort);
+    // Other states should not change even though we try to process the event
+    verifyStateUnchanged(
+        TransceiverStateMachineEvent::TCVR_EV_PORT_UP,
+        allStates,
+        []() {} /* preUpdate */,
+        []() {} /* verify */,
+        multiPort);
+
+    // Prepare for testing with next multiPort value
+    cleanup();
+  }
 }
 
 TEST_F(TransceiverStateMachineTest, portDown) {
-  auto allStates = getAllStates();
-  time_t beforeStateChangedTime{0};
-  // Only TRANSCEIVER_PROGRAMMED and ACTIVE can accept ALL_PORTS_DOWN event
-  verifyStateMachine(
-      {TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
-       TransceiverStateMachineState::ACTIVE},
-      TransceiverStateMachineEvent::TCVR_EV_ALL_PORTS_DOWN,
-      TransceiverStateMachineState::INACTIVE /* expected state */,
-      allStates,
-      [&beforeStateChangedTime]() {
-        beforeStateChangedTime = std::time(nullptr);
-        // Sleep 1s to avoid the state machine handling the event too fast
-        /* sleep override */
-        sleep(1);
-      },
-      [this, &beforeStateChangedTime]() {
-        // Enter INACTIVE will also mark last down time
-        const auto& stateMachine =
-            transceiverManager_->getStateMachineForTesting(id_);
-        EXPECT_FALSE(stateMachine.get_attribute(needMarkLastDownTime));
-        // Check the lastDownTime should be updated
-        EXPECT_GT(
-            transceiverManager_->getLastDownTime(id_), beforeStateChangedTime);
-      },
-      false /* multiPort */);
-  // Other states should not change even though we try to process the event
-  verifyStateUnchanged(
-      TransceiverStateMachineEvent::TCVR_EV_ALL_PORTS_DOWN,
-      allStates,
-      []() {} /* preUpdate */,
-      []() {} /* verify */,
-      false /* multiPort */);
+  for (auto multiPort : {false, true}) {
+    XLOG(INFO) << "Verifying portDown for multiPort = " << multiPort;
+    auto allStates = getAllStates();
+    time_t beforeStateChangedTime{0};
+    // Only TRANSCEIVER_PROGRAMMED and ACTIVE can accept ALL_PORTS_DOWN event
+    verifyStateMachine(
+        {TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+         TransceiverStateMachineState::ACTIVE},
+        TransceiverStateMachineEvent::TCVR_EV_ALL_PORTS_DOWN,
+        TransceiverStateMachineState::INACTIVE /* expected state */,
+        allStates,
+        [&beforeStateChangedTime]() {
+          beforeStateChangedTime = std::time(nullptr);
+          // Sleep 1s to avoid the state machine handling the event too fast
+          /* sleep override */
+          sleep(1);
+        },
+        [this, &beforeStateChangedTime]() {
+          // Enter INACTIVE will also mark last down time
+          const auto& stateMachine =
+              transceiverManager_->getStateMachineForTesting(id_);
+          EXPECT_FALSE(stateMachine.get_attribute(needMarkLastDownTime));
+          // Check the lastDownTime should be updated
+          EXPECT_GT(
+              transceiverManager_->getLastDownTime(id_),
+              beforeStateChangedTime);
+        },
+        multiPort);
+    // Other states should not change even though we try to process the event
+    verifyStateUnchanged(
+        TransceiverStateMachineEvent::TCVR_EV_ALL_PORTS_DOWN,
+        allStates,
+        []() {} /* preUpdate */,
+        []() {} /* verify */,
+        multiPort);
+    // Prepare for testing with next multiPort value
+    cleanup();
+  }
 }
 
 TEST_F(TransceiverStateMachineTest, removeTransceiver) {
