@@ -81,6 +81,9 @@ class SaiUdfManager {
 
   void removeUdfMatch(const std::shared_ptr<UdfPacketMatcher>& swUdfMatch);
 
+  std::vector<sai_object_id_t> getUdfGroupIds(
+      std::vector<std::string> udfGroupIds);
+
   const UdfMatchHandles& getUdfMatchHandles() {
     return udfMatchHandles_;
   }

@@ -183,4 +183,13 @@ sai_udf_base_t SaiUdfManager::cfgBaseToSai(
   }
   throw FbossError("Invalid udf base header type: ", cfgType);
 }
+
+std::vector<sai_object_id_t> SaiUdfManager::getUdfGroupIds(
+    std::vector<std::string> udfGroupIds) {
+  std::vector<sai_object_id_t> udfGroupSaiIds;
+  for (const auto& udfGroupName : udfGroupIds) {
+    udfGroupHandles_.at(udfGroupName)->udfGroup->adapterKey();
+  }
+  return udfGroupSaiIds;
+}
 } // namespace facebook::fboss

@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/DeltaFunctions.h"
@@ -303,6 +304,9 @@ void SaiSwitchManager::addOrUpdateEcmpLoadBalancer(
     const std::shared_ptr<LoadBalancer>& newLb) {
   programEcmpLoadBalancerParams(newLb->getSeed(), newLb->getAlgorithm());
 
+  // Get UdfGroup Ids if supported.
+  auto udfGroupIds = getUdfGroupIds(newLb);
+
   if (newLb->getIPv4Fields().begin() != newLb->getIPv4Fields().end()) {
     // v4 ECMP
     auto programmedLoadBalancer =
@@ -321,7 +325,9 @@ void SaiSwitchManager::addOrUpdateEcmpLoadBalancer(
         [&v4EcmpHashFields](const auto& entry) {
           v4EcmpHashFields.transportFields()->insert(entry->cref());
         });
-    ecmpV4Hash_ = managerTable_->hashManager().getOrCreate(v4EcmpHashFields);
+
+    ecmpV4Hash_ =
+        managerTable_->hashManager().getOrCreate(v4EcmpHashFields, udfGroupIds);
 
     // Set the new ecmp v4 hash attribute on switch obj
     setLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV4>(
@@ -346,7 +352,8 @@ void SaiSwitchManager::addOrUpdateEcmpLoadBalancer(
         [&v6EcmpHashFields](const auto& entry) {
           v6EcmpHashFields.transportFields()->insert(entry->cref());
         });
-    ecmpV6Hash_ = managerTable_->hashManager().getOrCreate(v6EcmpHashFields);
+    ecmpV6Hash_ =
+        managerTable_->hashManager().getOrCreate(v6EcmpHashFields, udfGroupIds);
 
     // Set the new ecmp v6 hash attribute on switch obj
     setLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV6>(
@@ -599,6 +606,16 @@ void SaiSwitchManager::configureCreditWatchdog(bool enable) {
     switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::CreditWd{enable});
   }
+}
+
+std::vector<sai_object_id_t> SaiSwitchManager::getUdfGroupIds(
+    const std::shared_ptr<LoadBalancer>& newLb) const {
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_UDF_HASH)) {
+    return managerTable_->udfManager().getUdfGroupIds(newLb->getUdfGroupIds());
+  }
+#endif
+  return {};
 }
 
 } // namespace facebook::fboss

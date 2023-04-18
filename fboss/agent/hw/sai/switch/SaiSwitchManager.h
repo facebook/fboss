@@ -98,6 +98,9 @@ class SaiSwitchManager {
       std::optional<cfg::HashingAlgorithm> algo);
   void addOrUpdateLagLoadBalancer(const std::shared_ptr<LoadBalancer>& newLb);
 
+  std::vector<sai_object_id_t> getUdfGroupIds(
+      const std::shared_ptr<LoadBalancer>& newLb) const;
+
   template <typename HashAttrT>
   SaiHashTraits::CreateAttributes getProgrammedHashAttr();
 
