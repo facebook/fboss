@@ -568,23 +568,16 @@ bool SffModule::getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) {
 bool SffModule::getSignalsPerMediaLane(std::vector<MediaLaneSignals>& signals) {
   assert(signals.size() == numMediaLanes());
 
-  // TODO(ccpowers): Remove tx flags once everyone uses hostLaneSignals
-  auto txLos = getSettingsValue(SffField::LOS, UPPER_BITS_MASK) >> 4;
   auto rxLos = getSettingsValue(SffField::LOS, LOWER_BITS_MASK);
-  auto txLol = getSettingsValue(SffField::LOL, UPPER_BITS_MASK) >> 4;
   auto rxLol = getSettingsValue(SffField::LOL, LOWER_BITS_MASK);
   auto txFault = getSettingsValue(SffField::FAULT, LOWER_BITS_MASK);
-  auto txAdaptEqFault = getSettingsValue(SffField::FAULT, UPPER_BITS_MASK) >> 4;
 
   for (int lane = 0; lane < signals.size(); lane++) {
     auto laneMask = (1 << lane);
     signals[lane].lane() = lane;
-    signals[lane].txLos() = txLos & laneMask;
     signals[lane].rxLos() = rxLos & laneMask;
-    signals[lane].txLol() = txLol & laneMask;
     signals[lane].rxLol() = rxLol & laneMask;
     signals[lane].txFault() = txFault & laneMask;
-    signals[lane].txAdaptEqFault() = txAdaptEqFault & laneMask;
   }
 
   return true;

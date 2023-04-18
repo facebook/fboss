@@ -1055,23 +1055,16 @@ bool CmisModule::getSignalsPerMediaLane(
     return false;
   }
 
-  // TODO(ccpowers): remove the TX flags once nobody reads them anymore
-  auto txLos = getSettingsValue(CmisField::TX_LOS_FLAG);
   auto rxLos = getSettingsValue(CmisField::RX_LOS_FLAG);
-  auto txLol = getSettingsValue(CmisField::TX_LOL_FLAG);
   auto rxLol = getSettingsValue(CmisField::RX_LOL_FLAG);
   auto txFault = getSettingsValue(CmisField::TX_FAULT_FLAG);
-  auto txEq = getSettingsValue(CmisField::TX_EQ_FLAG);
 
   for (int lane = 0; lane < signals.size(); lane++) {
     auto laneMask = (1 << lane);
     signals[lane].lane() = lane;
-    signals[lane].txLos() = txLos & laneMask;
     signals[lane].rxLos() = rxLos & laneMask;
-    signals[lane].txLol() = txLol & laneMask;
     signals[lane].rxLol() = rxLol & laneMask;
     signals[lane].txFault() = txFault & laneMask;
-    signals[lane].txAdaptEqFault() = txEq & laneMask;
   }
 
   return true;
