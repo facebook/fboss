@@ -44,14 +44,41 @@ class UdfManagerTest : public ManagerTestBase {
     return 1234;
   }
 
-  std::shared_ptr<UdfPacketMatcher> createUdfPacketMatcher() {
-    const std::string name = "testUdfPacketMatch";
+  int kOffset() {
+    return 2;
+  }
+
+  int kFieldSize() {
+    return 4;
+  }
+
+  std::string kUdfMatchName() {
+    return "testUdfPacketMatch";
+  }
+
+  std::string kUdfGroupName() {
+    return "testUdfGroupMatch";
+  }
+
+  std::shared_ptr<UdfPacketMatcher> createUdfPacketMatcher(
+      const std::string& name) {
     auto swUdfMatch = std::make_shared<UdfPacketMatcher>(name);
     swUdfMatch->setUdfl2PktType(cfg::UdfMatchL2Type::UDF_L2_PKT_TYPE_ETH);
     swUdfMatch->setUdfl3PktType(cfg::UdfMatchL3Type::UDF_L3_PKT_TYPE_IPV6);
     swUdfMatch->setUdfl4PktType(cfg::UdfMatchL4Type::UDF_L4_PKT_TYPE_UDP);
     swUdfMatch->setUdfL4DstPort(kUdpPort());
     return swUdfMatch;
+  }
+
+  std::shared_ptr<UdfGroup> createUdfGroup(
+      const std::string& name,
+      const std::vector<std::string>& matcherIds) {
+    auto swUdfGroup = std::make_shared<UdfGroup>(name);
+    swUdfGroup->setUdfBaseHeader(cfg::UdfBaseHeaderType::UDF_L2_HEADER);
+    swUdfGroup->setStartOffsetInBytes(kOffset());
+    swUdfGroup->setFieldSizeInBytes(kFieldSize());
+    swUdfGroup->setUdfPacketMatcherIds(matcherIds);
+    return swUdfGroup;
   }
 
   void validateUdfMatcher(UdfMatchSaiId saiUdfMatchId) {
@@ -72,20 +99,102 @@ class UdfManagerTest : public ManagerTestBase {
         AclEntryFieldU16(
             std::make_pair(kUdpPort(), SaiUdfManager::kL4PortMask)));
   }
+
+  void validateUdfGroup(UdfGroupSaiId saiUdfGroupId) {
+    auto& udfApi = saiApiTable->udfApi();
+    EXPECT_EQ(
+        udfApi.getAttribute(
+            saiUdfGroupId, SaiUdfGroupTraits::Attributes::Type{}),
+        SAI_UDF_GROUP_TYPE_HASH);
+    EXPECT_EQ(
+        udfApi.getAttribute(
+            saiUdfGroupId, SaiUdfGroupTraits::Attributes::Length{}),
+        kFieldSize());
+  }
+
+  void validateUdf(
+      UdfSaiId saiUdfId,
+      UdfMatchSaiId saiUdfMatchId,
+      UdfGroupSaiId saiUdfGroupId) {
+    auto& udfApi = saiApiTable->udfApi();
+    EXPECT_EQ(
+        udfApi.getAttribute(saiUdfId, SaiUdfTraits::Attributes::UdfMatchId{}),
+        saiUdfMatchId);
+    EXPECT_EQ(
+        udfApi.getAttribute(saiUdfId, SaiUdfTraits::Attributes::UdfGroupId{}),
+        saiUdfGroupId);
+    EXPECT_EQ(
+        udfApi.getAttribute(saiUdfId, SaiUdfTraits::Attributes::Base{}),
+        SAI_UDF_BASE_L2);
+    EXPECT_EQ(
+        udfApi.getAttribute(saiUdfId, SaiUdfTraits::Attributes::Offset{}),
+        kOffset());
+  }
 };
 
 TEST_F(UdfManagerTest, createUdfMatch) {
-  std::shared_ptr<UdfPacketMatcher> swUdfMatch = createUdfPacketMatcher();
+  std::shared_ptr<UdfPacketMatcher> swUdfMatch =
+      createUdfPacketMatcher(kUdfMatchName());
   auto saiUdfMatchId = saiManagerTable->udfManager().addUdfMatch(swUdfMatch);
   EXPECT_EQ(saiManagerTable->udfManager().getUdfMatchHandles().size(), 1);
   validateUdfMatcher(saiUdfMatchId);
 }
 
 TEST_F(UdfManagerTest, removeUdfMatch) {
-  std::shared_ptr<UdfPacketMatcher> swUdfMatch = createUdfPacketMatcher();
+  auto swUdfMatch = createUdfPacketMatcher(kUdfMatchName());
   auto saiUdfMatchId = saiManagerTable->udfManager().addUdfMatch(swUdfMatch);
   EXPECT_EQ(saiManagerTable->udfManager().getUdfMatchHandles().size(), 1);
   validateUdfMatcher(saiUdfMatchId);
   saiManagerTable->udfManager().removeUdfMatch(swUdfMatch);
   EXPECT_EQ(saiManagerTable->udfManager().getUdfMatchHandles().size(), 0);
+}
+
+TEST_F(UdfManagerTest, createUdfGroup) {
+  auto swUdfMatch = createUdfPacketMatcher(kUdfMatchName());
+  auto saiUdfMatchId = saiManagerTable->udfManager().addUdfMatch(swUdfMatch);
+  EXPECT_EQ(saiManagerTable->udfManager().getUdfMatchHandles().size(), 1);
+  validateUdfMatcher(saiUdfMatchId);
+
+  auto swUdfGroup = createUdfGroup(kUdfGroupName(), {kUdfMatchName()});
+  auto saiUdfGroupId = saiManagerTable->udfManager().addUdfGroup(swUdfGroup);
+  EXPECT_EQ(saiManagerTable->udfManager().getUdfGroupHandles().size(), 1);
+  validateUdfGroup(saiUdfGroupId);
+
+  auto saiUdfId = saiManagerTable->udfManager()
+                      .getUdfGroupHandles()
+                      .at(kUdfGroupName())
+                      ->udfs.at(kUdfMatchName())
+                      ->udf->adapterKey();
+  validateUdf(saiUdfId, saiUdfMatchId, saiUdfGroupId);
+}
+
+TEST_F(UdfManagerTest, removeUdfGroup) {
+  auto swUdfMatch = createUdfPacketMatcher(kUdfMatchName());
+  auto saiUdfMatchId = saiManagerTable->udfManager().addUdfMatch(swUdfMatch);
+  EXPECT_EQ(saiManagerTable->udfManager().getUdfMatchHandles().size(), 1);
+  validateUdfMatcher(saiUdfMatchId);
+
+  auto swUdfGroup = createUdfGroup(kUdfGroupName(), {kUdfMatchName()});
+  auto saiUdfGroupId = saiManagerTable->udfManager().addUdfGroup(swUdfGroup);
+  EXPECT_EQ(saiManagerTable->udfManager().getUdfGroupHandles().size(), 1);
+  validateUdfGroup(saiUdfGroupId);
+
+  auto saiUdfId = saiManagerTable->udfManager()
+                      .getUdfGroupHandles()
+                      .at(kUdfGroupName())
+                      ->udfs.at(kUdfMatchName())
+                      ->udf->adapterKey();
+  validateUdf(saiUdfId, saiUdfMatchId, saiUdfGroupId);
+
+  saiManagerTable->udfManager().removeUdfMatch(swUdfMatch);
+  EXPECT_EQ(saiManagerTable->udfManager().getUdfMatchHandles().size(), 0);
+  // SaiUdf object should be removed once UdfMatch is removed.
+  EXPECT_EQ(
+      saiManagerTable->udfManager()
+          .getUdfGroupHandles()
+          .at(kUdfGroupName())
+          ->udfs.size(),
+      0);
+  saiManagerTable->udfManager().removeUdfGroup(swUdfGroup);
+  EXPECT_EQ(saiManagerTable->udfManager().getUdfGroupHandles().size(), 0);
 }
