@@ -214,6 +214,10 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::systemPortMaps,
     MultiSystemPortMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::controlPlaneMap,
+    MultiControlPlane);
 /*
  * SwitchState stores the current switch configuration.
  *
@@ -340,9 +344,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   }
   const std::shared_ptr<QosPolicyMap>& getQosPolicies() const;
 
-  const std::shared_ptr<ControlPlane>& getControlPlane() const {
-    return cref<switch_state_tags::controlPlane>();
-  }
+  const std::shared_ptr<ControlPlane>& getControlPlane() const;
 
   const std::shared_ptr<SwitchSettings>& getSwitchSettings() const {
     return cref<switch_state_tags::switchSettings>();

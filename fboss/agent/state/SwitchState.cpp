@@ -152,6 +152,7 @@ SwitchState::SwitchState() {
   resetRemoteIntfs(std::make_shared<InterfaceMap>());
   resetRemoteSystemPorts(std::make_shared<SystemPortMap>());
   resetSystemPorts(std::make_shared<SystemPortMap>());
+  resetControlPlane(std::make_shared<ControlPlane>());
 }
 
 SwitchState::~SwitchState() {}
@@ -299,7 +300,14 @@ void SwitchState::resetQosPolicies(
 
 void SwitchState::resetControlPlane(
     std::shared_ptr<ControlPlane> controlPlane) {
-  ref<switch_state_tags::controlPlane>() = controlPlane;
+  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+  auto controlPlaneMap = cref<switch_state_tags::controlPlaneMap>()->clone();
+  if (!controlPlaneMap->getNodeIf(matcher)) {
+    controlPlaneMap->addNode(matcher, controlPlane);
+  } else {
+    controlPlaneMap->updateNode(matcher, controlPlane);
+  }
+  ref<switch_state_tags::controlPlaneMap>() = controlPlaneMap;
 }
 
 void SwitchState::resetLoadBalancers(
@@ -345,6 +353,11 @@ const std::shared_ptr<QosPolicyMap>& SwitchState::getQosPolicies() const {
 const std::shared_ptr<ForwardingInformationBaseMap>& SwitchState::getFibs()
     const {
   return getDefaultMap<switch_state_tags::fibsMap>();
+}
+
+const std::shared_ptr<ControlPlane>& SwitchState::getControlPlane() const {
+  return cref<switch_state_tags::controlPlaneMap>()->cref(
+      HwSwitchMatcher::defaultHwSwitchMatcherKey());
 }
 
 const std::shared_ptr<LabelForwardingInformationBase>&
@@ -615,6 +628,12 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     state->set<switch_state_tags::qosPolicyMap>(
         std::map<std::string, state::QosPolicyFields>());
   }
+
+  if (state->cref<switch_state_tags::controlPlaneMap>()->empty()) {
+    // keep map for default npu
+    state->resetControlPlane(state->cref<switch_state_tags::controlPlane>());
+  }
+
   state->fromThrift<
       switch_state_tags::labelFibMap,
       switch_state_tags::labelFib>();
@@ -881,6 +900,10 @@ state::SwitchState SwitchState::toThrift() const {
   }
   if (auto obj = toThrift(cref<switch_state_tags::systemPortMaps>())) {
     data.systemPortMap() = *obj;
+  }
+  if (auto controlPlane =
+          cref<switch_state_tags::controlPlaneMap>()->getControlPlane()) {
+    data.controlPlane() = controlPlane->toThrift();
   }
   // for backward compatibility
   if (const auto& pfcWatchdogRecoveryAction = getPfcWatchdogRecoveryAction()) {

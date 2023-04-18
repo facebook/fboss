@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeBase.h"
@@ -91,4 +92,37 @@ class ControlPlane
   friend class CloneAllocator;
 };
 
+using MultiControlPlaneTypeClass = apache::thrift::type_class::map<
+    apache::thrift::type_class::string,
+    apache::thrift::type_class::structure>;
+using MultiControlPlaneThriftType =
+    std::map<std::string, state::ControlPlaneFields>;
+
+class MultiControlPlane;
+
+using MultiControlPlaneTraits = ThriftMapNodeTraits<
+    MultiControlPlane,
+    MultiControlPlaneTypeClass,
+    MultiControlPlaneThriftType,
+    ControlPlane>;
+
+class HwSwitchMatcher;
+
+class MultiControlPlane
+    : public ThriftMapNode<MultiControlPlane, MultiControlPlaneTraits> {
+ public:
+  using Traits = MultiControlPlaneTraits;
+  using BaseT = ThriftMapNode<MultiControlPlane, MultiControlPlaneTraits>;
+  using BaseT::modify;
+
+  MultiControlPlane() {}
+  virtual ~MultiControlPlane() {}
+
+  std::shared_ptr<ControlPlane> getControlPlane() const;
+
+ private:
+  // Inherit the constructors required for clone()
+  using BaseT::BaseT;
+  friend class CloneAllocator;
+};
 } // namespace facebook::fboss

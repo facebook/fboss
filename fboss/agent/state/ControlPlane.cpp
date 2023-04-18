@@ -52,6 +52,14 @@ cfg::PacketRxReasonToQueue ControlPlane::makeRxReasonToQueueEntry(
   return reasonToQueue;
 }
 
+std::shared_ptr<ControlPlane> MultiControlPlane::getControlPlane() const {
+  auto iter = find(HwSwitchMatcher::defaultHwSwitchMatcherKey());
+  if (iter == cend()) {
+    return nullptr;
+  }
+  return iter->second;
+}
+
 template class ThriftStructNode<ControlPlane, state::ControlPlaneFields>;
 
 } // namespace facebook::fboss
