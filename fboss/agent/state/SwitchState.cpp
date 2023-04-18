@@ -153,6 +153,7 @@ SwitchState::SwitchState() {
   resetRemoteSystemPorts(std::make_shared<SystemPortMap>());
   resetSystemPorts(std::make_shared<SystemPortMap>());
   resetControlPlane(std::make_shared<ControlPlane>());
+  resetSwitchSettings(std::make_shared<SwitchSettings>());
 }
 
 SwitchState::~SwitchState() {}
@@ -317,7 +318,15 @@ void SwitchState::resetLoadBalancers(
 
 void SwitchState::resetSwitchSettings(
     std::shared_ptr<SwitchSettings> switchSettings) {
-  ref<switch_state_tags::switchSettings>() = switchSettings;
+  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+  auto switchSettingsMap =
+      cref<switch_state_tags::switchSettingsMap>()->clone();
+  if (!switchSettingsMap->getNodeIf(matcher)) {
+    switchSettingsMap->addNode(matcher, switchSettings);
+  } else {
+    switchSettingsMap->updateNode(matcher, switchSettings);
+  }
+  ref<switch_state_tags::switchSettingsMap>() = switchSettingsMap;
 }
 
 void SwitchState::resetBufferPoolCfgs(std::shared_ptr<BufferPoolCfgMap> cfgs) {
@@ -548,6 +557,11 @@ std::shared_ptr<InterfaceMap> SwitchState::getInterfaces(
   return toRet;
 }
 
+const std::shared_ptr<SwitchSettings>& SwitchState::getSwitchSettings() const {
+  return cref<switch_state_tags::switchSettingsMap>()->cref(
+      HwSwitchMatcher::defaultHwSwitchMatcherKey());
+}
+
 void SwitchState::revertNewTeFlowEntry(
     const std::shared_ptr<TeFlowEntry>& newTeFlowEntry,
     const std::shared_ptr<TeFlowEntry>& oldTeFlowEntry,
@@ -632,6 +646,12 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   if (state->cref<switch_state_tags::controlPlaneMap>()->empty()) {
     // keep map for default npu
     state->resetControlPlane(state->cref<switch_state_tags::controlPlane>());
+  }
+
+  if (state->cref<switch_state_tags::switchSettingsMap>()->empty()) {
+    // keep map for default npu
+    state->resetSwitchSettings(
+        state->cref<switch_state_tags::switchSettings>());
   }
 
   state->fromThrift<
@@ -752,6 +772,14 @@ state::SwitchState SwitchState::toThrift() const {
       data.aclTableGroupMaps()->clear();
     }
   }
+
+  // SwitchSettings need to restored before the transition logic
+  // for new SwitchSettings members is executed
+  if (auto switchSettings =
+          cref<switch_state_tags::switchSettingsMap>()->getSwitchSettings()) {
+    data.switchSettings() = switchSettings->toThrift();
+  }
+
   // Write defaultVlan to switchSettings and old fields for transition
   if (data.switchSettings()->defaultVlan().has_value()) {
     data.defaultVlan() = data.switchSettings()->defaultVlan().value();

@@ -417,4 +417,38 @@ class SwitchSettings
   friend class CloneAllocator;
 };
 
+using MultiSwitchSettingsTypeClass = apache::thrift::type_class::map<
+    apache::thrift::type_class::string,
+    apache::thrift::type_class::structure>;
+using MultiSwitchSettingsThriftType =
+    std::map<std::string, state::SwitchSettingsFields>;
+
+class MultiSwitchSettings;
+
+using MultiSwitchSettingsTraits = ThriftMapNodeTraits<
+    MultiSwitchSettings,
+    MultiSwitchSettingsTypeClass,
+    MultiSwitchSettingsThriftType,
+    SwitchSettings>;
+
+class HwSwitchMatcher;
+
+class MultiSwitchSettings
+    : public ThriftMapNode<MultiSwitchSettings, MultiSwitchSettingsTraits> {
+ public:
+  using Traits = MultiSwitchSettingsTraits;
+  using BaseT = ThriftMapNode<MultiSwitchSettings, MultiSwitchSettingsTraits>;
+  using BaseT::modify;
+
+  MultiSwitchSettings() {}
+  virtual ~MultiSwitchSettings() {}
+
+  std::shared_ptr<SwitchSettings> getSwitchSettings() const;
+
+ private:
+  // Inherit the constructors required for clone()
+  using BaseT::BaseT;
+  friend class CloneAllocator;
+};
+
 } // namespace facebook::fboss

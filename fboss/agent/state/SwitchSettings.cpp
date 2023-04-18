@@ -61,6 +61,14 @@ std::optional<cfg::SwitchType> SwitchSettings::l3SwitchType() const {
   return std::nullopt;
 }
 
+std::shared_ptr<SwitchSettings> MultiSwitchSettings::getSwitchSettings() const {
+  auto iter = find(HwSwitchMatcher::defaultHwSwitchMatcherKey());
+  if (iter == cend()) {
+    return nullptr;
+  }
+  return iter->second;
+}
+
 template class ThriftStructNode<SwitchSettings, state::SwitchSettingsFields>;
 
 } // namespace facebook::fboss
