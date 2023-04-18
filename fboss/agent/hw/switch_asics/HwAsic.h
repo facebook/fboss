@@ -138,6 +138,7 @@ class HwAsic {
     QUEUE_PRIORITY_LOWER_VAL_IS_HIGH_PRI,
     SAI_CONFIGURE_SEVEN_TAP,
     SWITCH_DROP_STATS,
+    SAI_UDF_HASH,
   };
 
   enum class AsicMode {
