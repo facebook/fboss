@@ -52,6 +52,7 @@
 #include "fboss/agent/hw/sai/switch/SaiTamManager.h"
 #include "fboss/agent/hw/sai/switch/SaiTunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiTxPacket.h"
+#include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/PktUtil.h"
@@ -757,6 +758,65 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
         &SaiInSegEntryManager::processRemovedInSegEntry);
   }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_UDF_HASH)) {
+    // There're several constraints for load balancer and Udf objects.
+    // 1. Udf Match needs to be processed before Udf Group (create, remove and
+    // changed).
+    // 2. In the case of removing Udf group: load balancer needs to remove
+    // association with Udf Group.
+    // 3. In the case of creating load balancer: Udf group needs to be created
+    // first.
+    // 4. In the case of changing load balancer: a. new Udf group needs to be
+    // created, b. Load balancer starts to use new Udf group, c. Remove old Udf
+    // group.
+    processAddedDelta(
+        delta.getUdfPacketMatcherDelta(),
+        managerTable_->udfManager(),
+        lockPolicy,
+        &SaiUdfManager::addUdfMatch);
+    processAddedDelta(
+        delta.getUdfGroupDelta(),
+        managerTable_->udfManager(),
+        lockPolicy,
+        &SaiUdfManager::addUdfGroup);
+    processAddedDelta(
+        delta.getLoadBalancersDelta(),
+        managerTable_->switchManager(),
+        lockPolicy,
+        &SaiSwitchManager::addOrUpdateLoadBalancer);
+    // TODO(zecheng): Process Udf Match changed
+    // TODO(zecheng): Process Udf Group changed
+    processChangedDelta(
+        delta.getLoadBalancersDelta(),
+        managerTable_->switchManager(),
+        lockPolicy,
+        &SaiSwitchManager::changeLoadBalancer);
+    processRemovedDelta(
+        delta.getLoadBalancersDelta(),
+        managerTable_->switchManager(),
+        lockPolicy,
+        &SaiSwitchManager::removeLoadBalancer);
+    processRemovedDelta(
+        delta.getUdfPacketMatcherDelta(),
+        managerTable_->udfManager(),
+        lockPolicy,
+        &SaiUdfManager::removeUdfMatch);
+    processRemovedDelta(
+        delta.getUdfGroupDelta(),
+        managerTable_->udfManager(),
+        lockPolicy,
+        &SaiUdfManager::removeUdfGroup);
+  } else {
+    processDelta(
+        delta.getLoadBalancersDelta(),
+        managerTable_->switchManager(),
+        lockPolicy,
+        &SaiSwitchManager::changeLoadBalancer,
+        &SaiSwitchManager::addOrUpdateLoadBalancer,
+        &SaiSwitchManager::removeLoadBalancer);
+  }
+#else
   processDelta(
       delta.getLoadBalancersDelta(),
       managerTable_->switchManager(),
@@ -764,6 +824,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       &SaiSwitchManager::changeLoadBalancer,
       &SaiSwitchManager::addOrUpdateLoadBalancer,
       &SaiSwitchManager::removeLoadBalancer);
+#endif
 
   /*
    * Add/update mirrors before processing ACL, as ACLs with action
