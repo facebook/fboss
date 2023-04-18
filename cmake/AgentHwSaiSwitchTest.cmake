@@ -25,6 +25,7 @@ add_executable(switch_test
     fboss/agent/hw/sai/switch/tests/SwitchManagerTest.cpp
     fboss/agent/hw/sai/switch/tests/SystemPortManagerTest.cpp
     fboss/agent/hw/sai/switch/tests/UnsupportedFeatureTest.cpp
+    fboss/agent/hw/sai/switch/tests/UdfManagerTest.cpp
     fboss/agent/hw/sai/switch/tests/VirtualRouterManagerTest.cpp
     fboss/agent/hw/sai/switch/tests/VlanManagerTest.cpp
     fboss/agent/hw/sai/switch/tests/TunnelManagerTest.cpp
