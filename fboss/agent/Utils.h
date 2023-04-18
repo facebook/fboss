@@ -13,6 +13,7 @@
 #include <type_traits> // To use 'std::integral_constant'.
 
 #include <boost/container/flat_map.hpp>
+#include <boost/filesystem/path.hpp>
 #include <boost/iterator/filter_iterator.hpp>
 
 #include <folly/FileUtil.h>
@@ -233,6 +234,8 @@ template <typename ThriftT>
 bool dumpBinaryThriftToFile(
     const std::string& filename,
     const ThriftT& thrift) {
+  // create parent path if doesn't exist
+  utilCreateDir(boost::filesystem::path(filename).parent_path().string());
   apache::thrift::BinaryProtocolWriter writer;
   folly::IOBufQueue queue;
   writer.setOutput(&queue);

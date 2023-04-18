@@ -1841,8 +1841,15 @@ HwInitResult SaiSwitch::initLocked(
         ret.switchState =
             SwitchState::fromThrift(*switchStateThrift->swSwitchState());
       } catch (const FbossError& error) {
-        dumpBinaryThriftToFile(
-            platform_->getCrashThriftSwitchStateFile(), *switchStateThrift);
+        if (!dumpBinaryThriftToFile(
+                platform_->getCrashThriftSwitchStateFile(),
+                *switchStateThrift->swSwitchState())) {
+          XLOG(ERR) << "failed to dump switch state to file: "
+                    << getPlatform()->getCrashThriftSwitchStateFile();
+        } else {
+          XLOG(DBG2) << "dumped switch state to file: "
+                     << getPlatform()->getCrashThriftSwitchStateFile();
+        }
         XLOG(FATAL) << "Failed to recover switch state from thrift. "
                     << error.what();
       }
