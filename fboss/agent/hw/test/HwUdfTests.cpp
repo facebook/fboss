@@ -44,4 +44,24 @@ TEST_F(HwUdfTest, checkUdfConfiguration) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwUdfTest, deleteUdfConfig) {
+  int udfGroupId;
+  int udfPacketMatcherId;
+  auto setup = [&]() {
+    applyNewState(setupUdfConfiguration(true));
+    udfGroupId =
+        utility::getHwUdfGroupId(getHwSwitch(), utility::kUdfGroupName);
+    udfPacketMatcherId = utility::getHwUdfPacketMatcherId(
+        getHwSwitch(), utility::kUdfPktMatcherName);
+    applyNewState(setupUdfConfiguration(false));
+  };
+  auto verify = [=]() {
+    utility::validateRemoveUdfGroup(
+        getHwSwitch(), utility::kUdfGroupName, udfGroupId);
+    utility::validateRemoveUdfPacketMatcher(
+        getHwSwitch(), utility::kUdfPktMatcherName, udfPacketMatcherId);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

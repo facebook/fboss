@@ -24,5 +24,21 @@ void validateUdfConfig(
     const std::string& udfGroupName,
     const std::string& udfPackeMatchName);
 
+void validateRemoveUdfGroup(
+    const HwSwitch* hw,
+    const std::string& udfGroupName,
+    int udfGroupId);
+
+void validateRemoveUdfPacketMatcher(
+    const HwSwitch* hw,
+    const std::string& udfPackeMatchName,
+    int udfPacketMatcherId);
+
+int getHwUdfGroupId(const HwSwitch* hw, const std::string& udfGroupName);
+
+int getHwUdfPacketMatcherId(
+    const HwSwitch* hw,
+    const std::string& udfPackeMatchName);
+
 } // namespace utility
 } // namespace facebook::fboss
