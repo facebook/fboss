@@ -117,6 +117,19 @@ UdfMatchSaiId SaiUdfManager::addUdfMatch(
   return saiUdfMatch->adapterKey();
 }
 
+void SaiUdfManager::removeUdfMatch(
+    const std::shared_ptr<UdfPacketMatcher>& swUdfMatch) {
+  XLOG(DBG2) << "Removing UdfPackerMatcher " << swUdfMatch->getName();
+  auto udfMatchHandle = udfMatchHandles_[swUdfMatch->getName()].get();
+  // Remove SaiUdfs that connect udfMatch to udfGroup
+  for (const auto udfHandle : udfMatchHandle->udfs) {
+    // Cleanup udfHandle owned by UdfGroup
+    auto udfGroupHandle = udfHandle->udfGroup;
+    udfGroupHandle->udfs.erase(swUdfMatch->getName());
+  }
+  udfMatchHandles_.erase(swUdfMatch->getName());
+}
+
 uint8_t SaiUdfManager::cfgL4MatchTypeToSai(cfg::UdfMatchL4Type cfgType) const {
   switch (cfgType) {
     case cfg::UdfMatchL4Type::UDF_L4_PKT_TYPE_ANY:
