@@ -29,7 +29,9 @@ class SaiHashManager {
       SaiStore* saiStore,
       SaiManagerTable* managerTable,
       SaiPlatform* platform);
-  std::shared_ptr<SaiHash> getOrCreate(const cfg::Fields& hashFields);
+  std::shared_ptr<SaiHash> getOrCreate(
+      const cfg::Fields& hashFields,
+      std::vector<sai_object_id_t> udfGroupIds = {});
 
   void removeUnclaimedDefaultHash();
 

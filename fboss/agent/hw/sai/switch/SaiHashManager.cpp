@@ -63,15 +63,19 @@ SaiHashTraits::Attributes::NativeHashFieldList toNativeHashFieldList(
 namespace facebook::fboss {
 
 std::shared_ptr<SaiHash> SaiHashManager::getOrCreate(
-    const cfg::Fields& hashFields) {
+    const cfg::Fields& hashFields,
+    std::vector<sai_object_id_t> udfGroupIds) {
   if (!platform_->getAsic()->isSupported(
           HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
     throw FbossError("hash field customization is unsupported");
   }
+  auto& store = saiStore_->get<SaiHashTraits>();
   auto nativeHashFields = toNativeHashFieldList(hashFields);
   SaiHashTraits::AdapterHostKey adapterHostKey{nativeHashFields, std::nullopt};
-  SaiHashTraits::CreateAttributes createAttrs{nativeHashFields, std::nullopt};
-  auto& store = saiStore_->get<SaiHashTraits>();
+  if (!udfGroupIds.empty()) {
+    adapterHostKey = std::make_tuple(nativeHashFields, udfGroupIds);
+  }
+  SaiHashTraits::CreateAttributes createAttrs = adapterHostKey;
   return store.setObject(adapterHostKey, createAttrs);
 }
 
