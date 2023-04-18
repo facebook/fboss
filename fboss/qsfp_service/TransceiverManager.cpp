@@ -672,6 +672,8 @@ TransceiverInfo TransceiverManager::getTransceiverInfo(TransceiverID id) {
     absentTcvr.present() = false;
     absentTcvr.port() = id;
     absentTcvr.timeCollected() = std::time(nullptr);
+    absentTcvr.tcvrState()->timeCollected() = std::time(nullptr);
+    absentTcvr.tcvrStats()->timeCollected() = std::time(nullptr);
     return absentTcvr;
   }
 }

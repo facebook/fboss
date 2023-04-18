@@ -1995,7 +1995,8 @@ TEST_F(TransceiverStateMachineTest, reseatTransceiver) {
     // verify that getTransceiverInfo properly returns a timestamp when
     // the transceiver isn't present
     if (isRemoval) {
-      EXPECT_GT(*xcvrInfo.timeCollected(), 0);
+      EXPECT_GT(*xcvrInfo.tcvrState()->timeCollected(), 0);
+      EXPECT_GT(*xcvrInfo.tcvrStats()->timeCollected(), 0);
     }
 
     // Both cases will kick off a PROGRAM_IPHY event

@@ -295,6 +295,9 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     }
 
     info.timeCollected() = lastRefreshTime_;
+    tcvrState.timeCollected() = lastRefreshTime_;
+    tcvrStats.timeCollected() = lastRefreshTime_;
+
     info.remediationCounter() = numRemediation_;
     info.eepromCsumValid() = verifyEepromChecksums();
 

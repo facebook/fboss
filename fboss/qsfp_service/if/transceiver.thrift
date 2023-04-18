@@ -412,6 +412,7 @@ struct TcvrState {
   20: optional TransceiverStateMachineState stateMachineState;
   21: map<string, list<i32>> portNameToHostLanes;
   22: map<string, list<i32>> portNameToMediaLanes;
+  23: i64 timeCollected;
 }
 
 struct TcvrStats {
@@ -423,6 +424,7 @@ struct TcvrStats {
   6: optional VdmDiagsStats vdmDiagsStatsForOds;
   7: map<string, list<i32>> portNameToHostLanes;
   8: map<string, list<i32>> portNameToMediaLanes;
+  9: i64 timeCollected;
 }
 
 struct TransceiverInfo {

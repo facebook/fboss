@@ -42,8 +42,11 @@ TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
 
   for (const auto& info : transInfo) {
     EXPECT_GT(
-        *info.second.timeCollected(),
-        *cachedTransInfo[info.first].timeCollected());
+        *info.second.tcvrState()->timeCollected(),
+        *cachedTransInfo[info.first].tcvrState()->timeCollected());
+    EXPECT_GT(
+        *info.second.tcvrStats()->timeCollected(),
+        *cachedTransInfo[info.first].tcvrStats()->timeCollected());
   }
 
   // Otherwise, just return the ids requested
@@ -96,8 +99,11 @@ TEST_F(WedgeManagerTest, getTransceiverInfoWithReadExceptions) {
       transInfo, std::make_unique<std::vector<int32_t>>());
   for (const auto& info : transInfo) {
     EXPECT_EQ(
-        *info.second.timeCollected(),
-        *cachedTransInfo[info.first].timeCollected());
+        *info.second.tcvrState()->timeCollected(),
+        *cachedTransInfo[info.first].tcvrState()->timeCollected());
+    EXPECT_EQ(
+        *info.second.tcvrStats()->timeCollected(),
+        *cachedTransInfo[info.first].tcvrStats()->timeCollected());
     EXPECT_EQ(*info.second.tcvrState()->present(), true);
   }
 
