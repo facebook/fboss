@@ -185,7 +185,7 @@ sai_udf_base_t SaiUdfManager::cfgBaseToSai(
 }
 
 std::vector<sai_object_id_t> SaiUdfManager::getUdfGroupIds(
-    std::vector<std::string> udfGroupIds) {
+    std::vector<std::string> udfGroupIds) const {
   std::vector<sai_object_id_t> udfGroupSaiIds;
   for (const auto& udfGroupName : udfGroupIds) {
     udfGroupHandles_.at(udfGroupName)->udfGroup->adapterKey();
