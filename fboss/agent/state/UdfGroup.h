@@ -31,6 +31,12 @@ class UdfGroup : public ThriftStructNode<UdfGroup, cfg::UdfGroup> {
   int getStartOffsetInBytes() const;
   int getFieldSizeInBytes() const;
   std::vector<std::string> getUdfPacketMatcherIds() const;
+
+  void setUdfBaseHeader(cfg::UdfBaseHeaderType header);
+  void setStartOffsetInBytes(int offset);
+  void setFieldSizeInBytes(int size);
+  void setUdfPacketMatcherIds(const std::vector<std::string>& matcherIds);
+
   static std::shared_ptr<UdfGroup> fromFollyDynamic(
       const folly::dynamic& group);
 

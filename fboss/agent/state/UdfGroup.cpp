@@ -46,5 +46,19 @@ int UdfGroup::getFieldSizeInBytes() const {
   return get<switch_config_tags::fieldSizeInBytes>()->cref();
 }
 
+void UdfGroup::setUdfBaseHeader(cfg::UdfBaseHeaderType header) {
+  set<switch_config_tags::header>(header);
+}
+void UdfGroup::setStartOffsetInBytes(int offset) {
+  set<switch_config_tags::startOffsetInBytes>(offset);
+}
+void UdfGroup::setFieldSizeInBytes(int size) {
+  set<switch_config_tags::fieldSizeInBytes>(size);
+}
+void UdfGroup::setUdfPacketMatcherIds(
+    const std::vector<std::string>& matcherIds) {
+  set<switch_config_tags::udfPacketMatcherIds>(matcherIds);
+}
+
 template class ThriftStructNode<UdfGroup, cfg::UdfGroup>;
 } // namespace facebook::fboss
