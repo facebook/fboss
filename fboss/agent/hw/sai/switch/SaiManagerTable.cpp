@@ -40,6 +40,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiTamManager.h"
 #include "fboss/agent/hw/sai/switch/SaiTunnelManager.h"
+#include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/hw/sai/switch/SaiWredManager.h"
@@ -116,6 +117,9 @@ void SaiManagerTable::createSaiTableManagers(
   tunnelManager_ = std::make_unique<SaiTunnelManager>(saiStore, this, platform);
   teFlowEntryManager_ =
       std::make_unique<UnsupportedFeatureManager>("EM entries");
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  udfManager_ = std::make_unique<SaiUdfManager>(saiStore, this, platform);
+#endif
 }
 
 SaiManagerTable::~SaiManagerTable() {
@@ -203,6 +207,11 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   routeManager_.reset();
   schedulerManager_.reset();
   teFlowEntryManager_.reset();
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  udfManager_.reset();
+#endif
+
   if (!skipSwitchManager) {
     switchManager_.reset();
   }
@@ -430,5 +439,13 @@ SaiTunnelManager& SaiManagerTable::tunnelManager() {
 
 const SaiTunnelManager& SaiManagerTable::tunnelManager() const {
   return *tunnelManager_;
+}
+
+SaiUdfManager& SaiManagerTable::udfManager() {
+  return *udfManager_;
+}
+
+const SaiUdfManager& SaiManagerTable::udfManager() const {
+  return *udfManager_;
 }
 } // namespace facebook::fboss
