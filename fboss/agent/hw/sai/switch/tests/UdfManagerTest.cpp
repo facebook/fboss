@@ -198,3 +198,116 @@ TEST_F(UdfManagerTest, removeUdfGroup) {
   saiManagerTable->udfManager().removeUdfGroup(swUdfGroup);
   EXPECT_EQ(saiManagerTable->udfManager().getUdfGroupHandles().size(), 0);
 }
+
+TEST_F(UdfManagerTest, twoMatchersWithOneGroup) {
+  auto udfMatchName1 = kUdfMatchName() + "1";
+  auto udfMatchName2 = kUdfMatchName() + "2";
+  auto swUdfMatch1 = createUdfPacketMatcher(udfMatchName1);
+  auto saiUdfMatchId1 = saiManagerTable->udfManager().addUdfMatch(swUdfMatch1);
+  auto swUdfMatch2 = createUdfPacketMatcher(udfMatchName2);
+  auto saiUdfMatchId2 = saiManagerTable->udfManager().addUdfMatch(swUdfMatch2);
+  EXPECT_EQ(saiManagerTable->udfManager().getUdfMatchHandles().size(), 2);
+
+  auto swUdfGroup =
+      createUdfGroup(kUdfGroupName(), {udfMatchName1, udfMatchName2});
+  auto saiUdfGroupId = saiManagerTable->udfManager().addUdfGroup(swUdfGroup);
+  EXPECT_EQ(saiManagerTable->udfManager().getUdfGroupHandles().size(), 1);
+  validateUdfGroup(saiUdfGroupId);
+
+  // Two SaiUdfs should be created that connect two udfMatches to the same
+  // group.
+  const auto& udfMap = saiManagerTable->udfManager()
+                           .getUdfGroupHandles()
+                           .at(kUdfGroupName())
+                           ->udfs;
+  EXPECT_EQ(udfMap.size(), 2);
+  auto saiUdfId1 = udfMap.at(udfMatchName1)->udf->adapterKey();
+  auto saiUdfId2 = udfMap.at(udfMatchName2)->udf->adapterKey();
+  validateUdf(saiUdfId1, saiUdfMatchId1, saiUdfGroupId);
+  validateUdf(saiUdfId2, saiUdfMatchId2, saiUdfGroupId);
+
+  EXPECT_EQ(
+      saiManagerTable->udfManager()
+          .getUdfMatchHandles()
+          .at(udfMatchName1)
+          ->udfs.size(),
+      1);
+  EXPECT_EQ(
+      saiManagerTable->udfManager()
+          .getUdfMatchHandles()
+          .at(udfMatchName2)
+          ->udfs.size(),
+      1);
+
+  // Remove one Udf
+  saiManagerTable->udfManager().removeUdfMatch(swUdfMatch2);
+  EXPECT_EQ(saiManagerTable->udfManager().getUdfMatchHandles().size(), 1);
+  EXPECT_EQ(udfMap.size(), 1);
+
+  // Remove the other Udf
+  saiManagerTable->udfManager().removeUdfMatch(swUdfMatch1);
+  EXPECT_EQ(saiManagerTable->udfManager().getUdfMatchHandles().size(), 0);
+  EXPECT_EQ(udfMap.size(), 0);
+
+  // Eventually remove UdfGroup
+  saiManagerTable->udfManager().removeUdfGroup(swUdfGroup);
+  EXPECT_EQ(saiManagerTable->udfManager().getUdfGroupHandles().size(), 0);
+}
+
+TEST_F(UdfManagerTest, oneMatcherWithTwoGroups) {
+  auto swUdfMatch = createUdfPacketMatcher(kUdfMatchName());
+  auto saiUdfMatchId = saiManagerTable->udfManager().addUdfMatch(swUdfMatch);
+
+  auto udfGroupName1 = kUdfMatchName() + "1";
+  auto udfGroupName2 = kUdfMatchName() + "2";
+  auto swUdfGroup1 = createUdfGroup(udfGroupName1, {kUdfMatchName()});
+  auto saiUdfGroupId1 = saiManagerTable->udfManager().addUdfGroup(swUdfGroup1);
+  auto swUdfGroup2 = createUdfGroup(udfGroupName2, {kUdfMatchName()});
+  auto saiUdfGroupId2 = saiManagerTable->udfManager().addUdfGroup(swUdfGroup2);
+  EXPECT_EQ(saiManagerTable->udfManager().getUdfGroupHandles().size(), 2);
+  validateUdfGroup(saiUdfGroupId1);
+  validateUdfGroup(saiUdfGroupId2);
+
+  // Two groups should have two SaiUdfs connecting to the same match
+  const auto& udfMap1 = saiManagerTable->udfManager()
+                            .getUdfGroupHandles()
+                            .at(udfGroupName1)
+                            ->udfs;
+  const auto& udfMap2 = saiManagerTable->udfManager()
+                            .getUdfGroupHandles()
+                            .at(udfGroupName2)
+                            ->udfs;
+  EXPECT_EQ(udfMap1.size(), 1);
+  EXPECT_EQ(udfMap2.size(), 1);
+  auto saiUdfId1 = udfMap1.at(kUdfMatchName())->udf->adapterKey();
+  auto saiUdfId2 = udfMap2.at(kUdfMatchName())->udf->adapterKey();
+  validateUdf(saiUdfId1, saiUdfMatchId, saiUdfGroupId1);
+  validateUdf(saiUdfId2, saiUdfMatchId, saiUdfGroupId2);
+  // Pointer should point to the same UdfMatchHandle
+  EXPECT_EQ(
+      udfMap1.at(kUdfMatchName())->udfMatch,
+      udfMap2.at(kUdfMatchName())->udfMatch);
+  // Udf Match should have two Udfs
+  EXPECT_EQ(
+      saiManagerTable->udfManager()
+          .getUdfMatchHandles()
+          .at(kUdfMatchName())
+          ->udfs.size(),
+      2);
+
+  // Remove one UdfGroup
+  saiManagerTable->udfManager().removeUdfGroup(swUdfGroup2);
+  EXPECT_EQ(
+      saiManagerTable->udfManager()
+          .getUdfMatchHandles()
+          .at(kUdfMatchName())
+          ->udfs.size(),
+      1);
+  validateUdf(saiUdfId1, saiUdfMatchId, saiUdfGroupId1);
+
+  // Remove remaining UdfGroup and UdfMatch
+  saiManagerTable->udfManager().removeUdfMatch(swUdfMatch);
+  EXPECT_EQ(saiManagerTable->udfManager().getUdfMatchHandles().size(), 0);
+  saiManagerTable->udfManager().removeUdfGroup(swUdfGroup1);
+  EXPECT_EQ(saiManagerTable->udfManager().getUdfGroupHandles().size(), 0);
+}
