@@ -67,8 +67,44 @@ SaiUdfMatchTraits::CreateAttributes SaiUdfManager::udfMatchAttr(
   };
 }
 
+UdfGroupSaiId SaiUdfManager::addUdfGroup(
+    const std::shared_ptr<UdfGroup>& swUdfGroup) {
+  XLOG(DBG2) << "Adding Udf group " << swUdfGroup->getName();
+  // Create Sai UDF group
+  auto udfGroupCreateAttr = udfGroupAttr(swUdfGroup);
+  auto& udfGroupStore = saiStore_->get<SaiUdfGroupTraits>();
+  auto saiUdfGroup =
+      udfGroupStore.setObject(udfGroupCreateAttr, udfGroupCreateAttr);
+  auto udfGroupHandle = std::make_unique<SaiUdfGroupHandle>();
+  udfGroupHandle->udfGroup = saiUdfGroup;
+
+  // Create Sai UDF that connects SaiUdfGroup and SaiUdfMatch
+  auto& udfStore = saiStore_->get<SaiUdfTraits>();
+  for (const auto& udfMatchName : swUdfGroup->getUdfPacketMatcherIds()) {
+    XLOG(DBG2) << "Associating Udf group " << swUdfGroup->getName()
+               << " with UdfPackerMatcher " << udfMatchName;
+    auto saiUdfMatchId = udfMatchHandles_[udfMatchName]->udfMatch->adapterKey();
+    auto udfCreateAttr =
+        udfAttr(swUdfGroup, saiUdfGroup->adapterKey(), saiUdfMatchId);
+    auto udfHandle = std::make_unique<SaiUdfHandle>();
+    udfHandle->udf = udfStore.setObject(udfCreateAttr, udfCreateAttr);
+    udfHandle->udfGroup = udfGroupHandle.get();
+    udfHandle->udfMatch = udfMatchHandles_[udfMatchName].get();
+
+    // Update pointers in UdfMatchHandle
+    udfMatchHandles_[udfMatchName]->udfs.push_back(udfHandle.get());
+
+    // Give ownership to UdfGroupHandle
+    udfGroupHandle->udfs[udfMatchName] = std::move(udfHandle);
+  }
+
+  udfGroupHandles_[swUdfGroup->getName()] = std::move(udfGroupHandle);
+  return saiUdfGroup->adapterKey();
+}
+
 UdfMatchSaiId SaiUdfManager::addUdfMatch(
     const std::shared_ptr<UdfPacketMatcher>& swUdfMatch) {
+  XLOG(DBG2) << "Adding UdfPackerMatcher " << swUdfMatch->getName();
   auto createAttributes = udfMatchAttr(swUdfMatch);
   auto& udfMatchStore = saiStore_->get<SaiUdfMatchTraits>();
   auto saiUdfMatch =
