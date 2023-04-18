@@ -36,6 +36,7 @@ void validateInterfaceAndMedium(
                phy::InterfaceType::CR4,
                // Seems to only be expected on copper per BcmPortUtils.cpp
                phy::InterfaceType::GMII,
+               phy::InterfaceType::SFI, // On fabric ports
            }},
           {TransmitterTechnology::OPTICAL,
            {
@@ -68,6 +69,7 @@ void validateInterfaceAndMedium(
                phy::InterfaceType::AUI_C2C,
                phy::InterfaceType::AUI_C2M,
                phy::InterfaceType::SR2,
+               phy::InterfaceType::SFI, // On fabric ports
            }},
       };
 
