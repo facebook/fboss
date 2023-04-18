@@ -113,8 +113,7 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeSwitchIsolateWrapper::operator()() {
-#if defined(SAI_VERSION_9_0_EA_DNX_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
-    defined(SAI_VERSION_9_0_EA_SIM_ODP)
+#if defined(SAI_VERSION_9_0_EA_DNX_ODP)
   return SAI_SWITCH_ATTR_SWITCH_ISOLATE;
 #endif
   return std::nullopt;
