@@ -102,6 +102,23 @@ UdfGroupSaiId SaiUdfManager::addUdfGroup(
   return saiUdfGroup->adapterKey();
 }
 
+void SaiUdfManager::removeUdfGroup(
+    const std::shared_ptr<UdfGroup>& swUdfGroup) {
+  XLOG(DBG2) << "Removing UdfGroup " << swUdfGroup->getName();
+  auto udfGroupHandle = udfGroupHandles_[swUdfGroup->getName()].get();
+  // Remove SaiUdfs that are still owned by UdfGroup. This means UdfMatch is
+  // referenced by multiple UdfGroups.
+  for (const auto& [udfMatchName, udfHandle] : udfGroupHandle->udfs) {
+    XLOG(DBG2) << "Removing association between UdfGroup "
+               << swUdfGroup->getName() << " and UdfPacketMatcher "
+               << udfMatchName;
+    // Cleanup UdfMatch pointer to Udf
+    std::erase(udfHandle->udfMatch->udfs, udfHandle.get());
+  }
+  udfGroupHandle->udfs.clear();
+  udfGroupHandles_.erase(swUdfGroup->getName());
+}
+
 UdfMatchSaiId SaiUdfManager::addUdfMatch(
     const std::shared_ptr<UdfPacketMatcher>& swUdfMatch) {
   XLOG(DBG2) << "Adding UdfPackerMatcher " << swUdfMatch->getName();

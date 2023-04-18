@@ -69,6 +69,8 @@ class SaiUdfManager {
 
   UdfGroupSaiId addUdfGroup(const std::shared_ptr<UdfGroup>& swUdfGroup);
 
+  void removeUdfGroup(const std::shared_ptr<UdfGroup>& swUdfGroup);
+
   UdfMatchSaiId addUdfMatch(
       const std::shared_ptr<UdfPacketMatcher>& swUdfMatch);
 
