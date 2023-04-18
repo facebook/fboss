@@ -51,6 +51,8 @@ DEFINE_int32(
 
 DEFINE_int32(pbmp_word_max, 8, "Max pbmp width as suggested by Vendor.");
 
+DEFINE_bool(enable_fdr_cinter, false, "Enable logging for fdr set calls.");
+
 using folly::join;
 using folly::to;
 using std::array;
@@ -3553,9 +3555,11 @@ int BcmCinter::bcm_port_fdr_config_set(
     int unit,
     bcm_port_t port,
     bcm_port_fdr_config_t* fdr_config) {
-  writeCintLines(cintForPortFdrConfig(*fdr_config));
-  writeCintLines(wrapFunc(
-      fmt::format("bcm_port_fdr_config_set({}, {}, &fdr_config)", unit, port)));
+  if (FLAGS_enable_fdr_cinter) {
+    writeCintLines(cintForPortFdrConfig(*fdr_config));
+    writeCintLines(wrapFunc(fmt::format(
+        "bcm_port_fdr_config_set({}, {}, &fdr_config)", unit, port)));
+  }
   return 0;
 }
 #endif

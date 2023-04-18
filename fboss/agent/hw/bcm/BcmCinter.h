@@ -1880,16 +1880,16 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
 
 #if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
   int bcm_port_fdr_config_get(
-      int unit,
-      bcm_port_t port,
-      bcm_port_fdr_config_t* fdr_config) override {
+      int /* unit */,
+      bcm_port_t /* port */,
+      bcm_port_fdr_config_t* /* fdr_config */) override {
     return 0;
   }
 
   int bcm_port_fdr_stats_get(
-      int unit,
-      bcm_port_t port,
-      bcm_port_fdr_stats_t* fdr_stats) override {
+      int /* unit */,
+      bcm_port_t /* port */,
+      bcm_port_fdr_stats_t* /* fdr_stats */) override {
     return 0;
   }
 #endif
