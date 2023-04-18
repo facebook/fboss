@@ -47,6 +47,11 @@ struct SaiUdfHandle {
 
 class SaiUdfManager {
  public:
+  using UdfMatchHandles =
+      std::unordered_map<std::string, std::unique_ptr<SaiUdfMatchHandle>>;
+  using UdfGroupHandles =
+      std::unordered_map<std::string, std::unique_ptr<SaiUdfGroupHandle>>;
+
   SaiUdfManager(
       SaiStore* saiStore,
       SaiManagerTable* managerTable,
@@ -76,15 +81,21 @@ class SaiUdfManager {
 
   void removeUdfMatch(const std::shared_ptr<UdfPacketMatcher>& swUdfMatch);
 
+  const UdfMatchHandles& getUdfMatchHandles() {
+    return udfMatchHandles_;
+  }
+
+  const UdfGroupHandles& getUdfGroupHandles() {
+    return udfGroupHandles_;
+  }
+
  private:
   uint8_t cfgL4MatchTypeToSai(cfg::UdfMatchL4Type cfgType) const;
   uint16_t cfgL3MatchTypeToSai(cfg::UdfMatchL3Type cfgType) const;
   sai_udf_base_t cfgBaseToSai(cfg::UdfBaseHeaderType cfgType) const;
 
-  std::unordered_map<std::string, std::unique_ptr<SaiUdfMatchHandle>>
-      udfMatchHandles_;
-  std::unordered_map<std::string, std::unique_ptr<SaiUdfGroupHandle>>
-      udfGroupHandles_;
+  UdfMatchHandles udfMatchHandles_;
+  UdfGroupHandles udfGroupHandles_;
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
