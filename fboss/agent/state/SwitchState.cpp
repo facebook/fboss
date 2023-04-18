@@ -151,6 +151,7 @@ SwitchState::SwitchState() {
   resetDsfNodes(std::make_shared<DsfNodeMap>());
   resetRemoteIntfs(std::make_shared<InterfaceMap>());
   resetRemoteSystemPorts(std::make_shared<SystemPortMap>());
+  resetSystemPorts(std::make_shared<SystemPortMap>());
 }
 
 SwitchState::~SwitchState() {}
@@ -385,15 +386,20 @@ const std::shared_ptr<TransceiverMap>& SwitchState::getTransceivers() const {
 void SwitchState::addSystemPort(const std::shared_ptr<SystemPort>& systemPort) {
   // For ease-of-use, automatically clone the SystemPortMap if we are still
   // pointing to a published map.
-  if (cref<switch_state_tags::systemPortMap>()->isPublished()) {
-    auto sysPortMap = cref<switch_state_tags::systemPortMap>()->clone();
-    ref<switch_state_tags::systemPortMap>() = sysPortMap;
+  auto systemPortMap = getSystemPorts();
+  if (systemPortMap->isPublished()) {
+    systemPortMap = systemPortMap->clone();
+    resetSystemPorts(systemPortMap);
   }
-  ref<switch_state_tags::systemPortMap>()->addSystemPort(systemPort);
+  getDefaultMap<switch_state_tags::systemPortMaps>()->addSystemPort(systemPort);
 }
 
 void SwitchState::resetSystemPorts(std::shared_ptr<SystemPortMap> systemPorts) {
-  ref<switch_state_tags::systemPortMap>() = systemPorts;
+  resetDefaultMap<switch_state_tags::systemPortMaps>(systemPorts);
+}
+
+const std::shared_ptr<SystemPortMap>& SwitchState::getSystemPorts() const {
+  return getDefaultMap<switch_state_tags::systemPortMaps>();
 }
 
 void SwitchState::addTunnel(const std::shared_ptr<IpTunnel>& tunnel) {
@@ -654,6 +660,9 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   state->fromThrift<
       switch_state_tags::remoteInterfaceMaps,
       switch_state_tags::remoteInterfaceMap>();
+  state->fromThrift<
+      switch_state_tags::systemPortMaps,
+      switch_state_tags::systemPortMap>();
   return state;
 }
 
@@ -870,12 +879,13 @@ state::SwitchState SwitchState::toThrift() const {
   if (auto obj = toThrift(cref<switch_state_tags::remoteInterfaceMaps>())) {
     data.remoteInterfaceMap() = *obj;
   }
-
+  if (auto obj = toThrift(cref<switch_state_tags::systemPortMaps>())) {
+    data.systemPortMap() = *obj;
+  }
   // for backward compatibility
   if (const auto& pfcWatchdogRecoveryAction = getPfcWatchdogRecoveryAction()) {
     data.pfcWatchdogRecoveryAction() = pfcWatchdogRecoveryAction.value();
   }
-
   return data;
 }
 

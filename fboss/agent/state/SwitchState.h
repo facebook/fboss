@@ -210,6 +210,10 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::remoteSystemPortMaps,
     MultiSystemPortMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::systemPortMaps,
+    MultiSystemPortMap);
 /*
  * SwitchState stores the current switch configuration.
  *
@@ -441,9 +445,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   getLabelForwardingInformationBase() const;
 
   const std::shared_ptr<TransceiverMap>& getTransceivers() const;
-  const std::shared_ptr<SystemPortMap>& getSystemPorts() const {
-    return cref<switch_state_tags::systemPortMap>();
-  }
+  const std::shared_ptr<SystemPortMap>& getSystemPorts() const;
   const std::shared_ptr<IpTunnelMap>& getTunnels() const;
   const std::shared_ptr<TeFlowTable>& getTeFlowTable() const;
 
