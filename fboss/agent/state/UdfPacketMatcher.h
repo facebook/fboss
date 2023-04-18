@@ -34,6 +34,10 @@ class UdfPacketMatcher
   cfg::UdfMatchL3Type getUdfl3PktType() const;
   cfg::UdfMatchL4Type getUdfl4PktType() const;
   std::optional<int> getUdfL4DstPort() const;
+  void setUdfl2PktType(cfg::UdfMatchL2Type type);
+  void setUdfl3PktType(cfg::UdfMatchL3Type type);
+  void setUdfl4PktType(cfg::UdfMatchL4Type type);
+  void setUdfL4DstPort(std::optional<int> port);
   static std::shared_ptr<UdfPacketMatcher> fromFollyDynamic(
       const folly::dynamic& entry);
 

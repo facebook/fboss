@@ -49,5 +49,25 @@ std::optional<int> UdfPacketMatcher::getUdfL4DstPort() const {
   return std::nullopt;
 }
 
+void UdfPacketMatcher::setUdfl2PktType(cfg::UdfMatchL2Type type) {
+  set<switch_config_tags::l2PktType>(type);
+}
+
+void UdfPacketMatcher::setUdfl3PktType(cfg::UdfMatchL3Type type) {
+  set<switch_config_tags::l3pktType>(type);
+}
+
+void UdfPacketMatcher::setUdfl4PktType(cfg::UdfMatchL4Type type) {
+  set<switch_config_tags::l4PktType>(type);
+}
+
+void UdfPacketMatcher::setUdfL4DstPort(std::optional<int> port) {
+  if (port) {
+    set<switch_config_tags::UdfL4DstPort>(*port);
+  } else {
+    ref<switch_config_tags::UdfL4DstPort>().reset();
+  }
+}
+
 template class ThriftStructNode<UdfPacketMatcher, cfg::UdfPacketMatcher>;
 } // namespace facebook::fboss
