@@ -1334,9 +1334,7 @@ void printHostLaneSignals(const std::vector<HostLaneSignals>& signals) {
   printf("\n");
 }
 
-void printMediaLaneSignals(
-    const std::vector<MediaLaneSignals>& signals,
-    bool printTxFlags) {
+void printMediaLaneSignals(const std::vector<MediaLaneSignals>& signals) {
   unsigned int numLanes = signals.size();
   if (numLanes == 0) {
     return;
@@ -1344,28 +1342,6 @@ void printMediaLaneSignals(
   printLaneLine("  Media Lane Signals: ", numLanes);
   // Assumption: If a signal is valid for first lane, it is also valid for
   // other lanes.
-  // TODO(ccpowers): Can delete this check once we remove tx flags from
-  // the media signals
-  if (printTxFlags) {
-    if (signals[0].txLos()) {
-      printf("\n    %-22s", "Tx LOS");
-      for (const auto& signal : signals) {
-        printf(" %-12d", *(signal.txLos()));
-      }
-    }
-    if (signals[0].txLol()) {
-      printf("\n    %-22s", "Tx LOL");
-      for (const auto& signal : signals) {
-        printf(" %-12d", *(signal.txLol()));
-      }
-    }
-    if (signals[0].txAdaptEqFault()) {
-      printf("\n    %-22s", "Tx Adaptive Eq Fault");
-      for (const auto& signal : signals) {
-        printf(" %-12d", *(signal.txAdaptEqFault()));
-      }
-    }
-  }
   if (signals[0].rxLos()) {
     printf("\n    %-22s", "Rx LOS");
     for (const auto& signal : signals) {
@@ -1634,16 +1610,11 @@ void printDomMonitors(const TransceiverInfo& transceiverInfo) {
 void printSignalsAndSettings(const TransceiverInfo& transceiverInfo) {
   const TcvrState& tcvrState = *can_throw(transceiverInfo.tcvrState());
   auto settings = *(tcvrState.settings());
-  // TODO(ccpowers): This is to support tx signals in both hostSignals (new)
-  // and mediaSignals(deprecated). Once more of the fleet has the new flags,
-  // we should remove support for the tx flags in mediaLaneSignals
-  auto hasNewTxFlags = false;
   if (auto hostSignals = tcvrState.hostLaneSignals()) {
     printHostLaneSignals(*hostSignals);
-    hasNewTxFlags = hostSignals->size() > 0 && hostSignals->begin()->txLos();
   }
   if (auto mediaSignals = tcvrState.mediaLaneSignals()) {
-    printMediaLaneSignals(*mediaSignals, !hasNewTxFlags);
+    printMediaLaneSignals(*mediaSignals);
   }
   if (auto hostSettings = settings.hostLaneSettings()) {
     printHostLaneSettings(*hostSettings);
