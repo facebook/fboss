@@ -8,7 +8,7 @@
 #include <folly/Subprocess.h>
 #include <glog/logging.h>
 
-#include "fboss/platform/helpers/Utils.h"
+#include "fboss/platform/fw_util/firmware_helpers/Utils.h"
 
 namespace facebook::fboss::platform::fw_util {
 std::string readSysfs(std::string);

@@ -61,14 +61,14 @@ void i2cRegWrite(
       regAddress,
       " ",
       std::to_string(value));
-  helpers::execCommand(cmd);
+  execCommand(cmd);
 }
 
 std::string
 i2cRegRead(std::string bus, std::string devAddress, std::string regAddress) {
   const std::string cmd = folly::to<std::string>(
       "i2cget -f -y ", bus, " ", devAddress, " ", regAddress);
-  std::string regVal = helpers::execCommand(cmd);
+  std::string regVal = execCommand(cmd);
   return regVal;
 }
 

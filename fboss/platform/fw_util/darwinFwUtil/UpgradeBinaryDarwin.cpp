@@ -28,7 +28,7 @@ std::string UpgradeBinaryDarwin::getBusNumber(
       " bus ",
       busNumber,
       "' | cut -d '-' -f 2 | awk '{ print $1}'");
-  std::string bus = helpers::execCommand(cmd);
+  std::string bus = execCommand(cmd);
   bus.erase(std::remove(bus.begin(), bus.end(), '\n'), bus.end());
   return bus;
 }
@@ -142,7 +142,7 @@ void UpgradeBinaryDarwin::constructCpldPath(
 std::string UpgradeBinaryDarwin::getBiosVersion() {
   const std::string cmd =
       "cat /sys/devices/virtual/dmi/id/bios_version | cut -d ':' -f 2 | cut -d '-' -f 3";
-  std::string biosVersion = helpers::execCommand(cmd);
+  std::string biosVersion = execCommand(cmd);
   biosVersion.erase(
       std::remove(biosVersion.begin(), biosVersion.end(), '\n'),
       biosVersion.end());
@@ -173,17 +173,17 @@ void UpgradeBinaryDarwin::cleanPath(std::string upgradable_component) {
   if (upgradable_component == "cpu_cpld") {
     const std::string cpu_cpld_temp_path_ver_cmd = folly::to<std::string>(
         "rm -rf /tmp/", upgradable_component, "_fpga_ver");
-    helpers::execCommand(cpu_cpld_temp_path_ver_cmd);
+    execCommand(cpu_cpld_temp_path_ver_cmd);
     const std::string cpu_cpld_temp_path_sub_ver_cmd = folly::to<std::string>(
         "rm -rf /tmp/", upgradable_component, "_fpga_sub_ver");
-    helpers::execCommand(cpu_cpld_temp_path_sub_ver_cmd);
+    execCommand(cpu_cpld_temp_path_sub_ver_cmd);
   } else if (upgradable_component == "fan_cpld") {
     const std::string fan_cpld_ver_cmd = folly::to<std::string>(
         "rm -rf /tmp/", upgradable_component, "_cpld_ver");
-    helpers::execCommand(fan_cpld_ver_cmd);
+    execCommand(fan_cpld_ver_cmd);
     const std::string fan_cpld_sub_ver_cmd = folly::to<std::string>(
         "rm -rf /tmp/", upgradable_component, "_cpld_sub_ver");
-    helpers::execCommand(fan_cpld_sub_ver_cmd);
+    execCommand(fan_cpld_sub_ver_cmd);
   } else {
     // Should never get here unless there is a logic bug in the code
     throw std::runtime_error(

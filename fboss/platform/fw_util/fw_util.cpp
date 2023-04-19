@@ -10,10 +10,9 @@
 
 #include "fboss/platform/fw_util/FirmwareUpgradeInterface.h"
 #include "fboss/platform/fw_util/darwinFwUtil/FirmwareUpgradeDarwin.h"
-#include "fboss/platform/helpers/Utils.h"
+#include "fboss/platform/fw_util/firmware_helpers/Utils.h"
 
 using namespace facebook::fboss::platform::fw_util;
-using namespace facebook::fboss::platform;
 
 std::unique_ptr<FirmwareUpgradeInterface> get_plat_type(
     std::string& upgradable_components) {
@@ -39,7 +38,7 @@ int main(int argc, char* argv[]) {
   if (firmwareUpgradeInstance) {
     firmwareUpgradeInstance->upgradeFirmware(argc, argv, upgradable_components);
   } else {
-    helpers::showDeviceInfo();
+    showDeviceInfo();
   }
   return EX_OK;
 }
