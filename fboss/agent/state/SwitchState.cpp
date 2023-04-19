@@ -593,13 +593,13 @@ void SwitchState::fromThrift() {
     if (matchedNode->empty()) {
       multiMap->updateNode(matcher, map->clone());
     } else if (!map->empty()) {
+      // if both multi map's default map and map are not empty
+      // let map take precedence and set up multi-map's default map
+      // this is because default map will contain relevant data
+      // while multi will contain obsoleted data
       // THRIFT_COPY
       if (map->toThrift() != matchedNode->toThrift()) {
-        throw FbossError(
-            "Map ",
-            utility::TagName<MapName>::value(),
-            " is different in multi-map ",
-            utility::TagName<MultiMapName>::value());
+        multiMap->updateNode(matcher, map->clone());
       }
     }
   }
