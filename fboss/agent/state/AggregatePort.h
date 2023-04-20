@@ -321,6 +321,14 @@ class AggregatePort
 
   bool isMemberPort(PortID port) const;
 
+  auto getInterfaceIDs() const {
+    return safe_cref<switch_state_tags::interfaceIDs>();
+  }
+
+  void setInterfaceIDs(const std::vector<int32_t>& interfaceIDs) {
+    set<switch_state_tags::interfaceIDs>(interfaceIDs);
+  }
+
   AggregatePort* modify(std::shared_ptr<SwitchState>* state);
 
   static bool isIngressValid(
