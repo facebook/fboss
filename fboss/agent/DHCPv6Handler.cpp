@@ -167,12 +167,15 @@ void DHCPv6Handler::processDHCPv6Packet(
     MacAddress /*dstMac*/,
     const IPv6Hdr& ipHdr,
     const DHCPv6Packet& dhcpPacket) {
-  auto vlanId = pkt->getSrcVlan();
+  auto vlanId = pkt->getSrcVlanIf();
+  auto vlanIdStr = vlanId.has_value()
+      ? folly::to<std::string>(static_cast<int>(vlanId.value()))
+      : "None";
   auto states = sw->getState();
-  auto vlan = states->getVlans()->getVlanIf(vlanId);
+  auto vlan = states->getVlans()->getVlanIf(sw->getVlanIDHelper(vlanId));
   if (!vlan) {
     sw->stats()->dhcpV6DropPkt();
-    XLOG(DBG2) << "VLAN " << vlanId << " is no longer present"
+    XLOG(DBG2) << "VLAN " << vlanIdStr << " is no longer present"
                << "DHCPv6Packet dropped.";
     return;
   }
@@ -191,7 +194,7 @@ void DHCPv6Handler::processDHCPv6Packet(
   }
 
   if (dhcp6ServerIp.isZero()) {
-    XLOG(DBG4) << "No DHCPv6 relay configured for Vlan " << vlan->getID()
+    XLOG(DBG4) << "No DHCPv6 relay configured for Vlan " << vlanIdStr
                << " dropped DHCPv6 packet";
     sw->stats()->dhcpV6DropPkt();
     return;
@@ -199,7 +202,8 @@ void DHCPv6Handler::processDHCPv6Packet(
 
   auto switchIp = states->getDhcpV6RelaySrc();
   if (switchIp.isZero()) {
-    switchIp = getSwitchVlanIPv6(states, vlanId);
+    switchIp =
+        getSwitchIntfIPv6(states, sw->getInterfaceIDForPort(pkt->getSrcPort()));
   }
 
   // link address set to unspecified
@@ -259,7 +263,7 @@ void DHCPv6Handler::processDHCPv6RelayForward(
   }
   // increment the hopcount and forward it
   dhcpPacket.hopCount++;
-  auto vlan = pkt->getSrcVlan();
+  auto vlan = pkt->getSrcVlanIf();
   auto serializeBody = [&](RWPrivateCursor* sendCursor) {
     dhcpPacket.write(sendCursor);
   };
