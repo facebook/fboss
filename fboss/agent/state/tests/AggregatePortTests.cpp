@@ -760,7 +760,7 @@ TEST(AggregatePort, serializationInverseOfDeserialization) {
       folly::MacAddress("01:02:03:04:05:06"), // systemID
       4,
       subportRange,
-      {});
+      {1});
 
   validateThriftStructNodeSerialization(*aggPort);
 
