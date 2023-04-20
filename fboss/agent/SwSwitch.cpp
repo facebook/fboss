@@ -1795,8 +1795,19 @@ void SwSwitch::sendL3Packet(
       } else {
         const auto dstAddrV6 = dstAddr.asV6();
         try {
-          auto entry = vlan->getNdpTable()->getEntry(dstAddrV6);
-          dstMac = entry->getMac();
+          auto entry = getNeighborEntryForIP(state, intf, dstAddrV6);
+          if (entry) {
+            dstMac = entry->getMac();
+          } else {
+            // TODO (skhare)
+            // The current logic relies on this block throwing an error when
+            // neighbor entry is absent so that multicast neighbor solicitation
+            // would be issued. There are unit tests (and may be some other
+            // assumptions in the code) around it. Thus, retain that behavior
+            // for now. However, consider simplifying this to an if-else block
+            // instead of try-catch.
+            throw FbossError("No neighbor entry for: ", dstAddrV6.str());
+          }
         } catch (...) {
           // We don't have dstAddr in our NDP table. Request solicitation for
           // it and let this packet be dropped.
