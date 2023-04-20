@@ -82,7 +82,8 @@ std::unique_ptr<TxPacket> createICMPv4Pkt(
 IPv4Handler::IPv4Handler(SwSwitch* sw) : sw_(sw) {}
 
 void IPv4Handler::sendICMPTimeExceeded(
-    VlanID srcVlan,
+    PortID port,
+    std::optional<VlanID> srcVlan,
     MacAddress dst,
     MacAddress src,
     IPv4Hdr& v4Hdr,
@@ -101,10 +102,11 @@ void IPv4Handler::sendICMPTimeExceeded(
 
   IPAddressV4 srcIp;
   try {
-    srcIp = getSwitchVlanIP(state, srcVlan);
+    srcIp = getSwitchIntfIP(state, sw_->getInterfaceIDForPort(port));
   } catch (const std::exception& ex) {
     srcIp = getAnyIntfIP(state);
   }
+
   auto icmpPkt = createICMPv4Pkt(
       sw_,
       dst,
@@ -116,8 +118,12 @@ void IPv4Handler::sendICMPTimeExceeded(
       ICMPv4Code::ICMPV4_CODE_TIME_EXCEEDED_TTL_EXCEEDED,
       bodyLength,
       serializeBody);
+
+  auto srcVlanStr = srcVlan.has_value()
+      ? folly::to<std::string>(static_cast<int>(srcVlan.value()))
+      : "None";
   XLOG(DBG4) << "sending ICMP Time Exceeded with srcMac " << src
-             << " dstMac: " << dst << " vlan: " << srcVlan
+             << " dstMac: " << dst << " vlan: " << srcVlanStr
              << " dstIp: " << v4Hdr.srcAddr.str() << " srcIp: " << srcIp.str()
              << " bodyLength: " << bodyLength;
   sw_->sendPacketSwitchedAsync(std::move(icmpPkt));
@@ -130,6 +136,7 @@ void IPv4Handler::handlePacket(
     Cursor cursor) {
   SwitchStats* stats = sw_->stats();
   PortID port = pkt->getSrcPort();
+  auto vlanID = pkt->getSrcVlanIf();
 
   const uint32_t l3Len = pkt->getLength() - (cursor - Cursor(pkt->buf()));
   stats->port(port)->ipv4Rx();
@@ -147,8 +154,16 @@ void IPv4Handler::handlePacket(
   auto state = sw_->getState();
   // Need to check if the packet is for self or not. We store our IP
   // in the ARP response table. Use that for now.
-  auto vlan = state->getVlans()->getVlanIf(pkt->getSrcVlan());
-  if (!vlan) {
+  auto portPtr = state->getPorts()->getPortIf(port);
+  if (!portPtr) {
+    // Received packed on unknown port
+    stats->port(port)->pktDropped();
+    return;
+  }
+  auto intfID = sw_->getInterfaceIDForPort(port);
+  auto ingressInterface = state->getInterfaces()->getInterfaceIf(intfID);
+  if (!ingressInterface) {
+    // Received packed on unknown port / interface
     stats->port(port)->pktDropped();
     return;
   }
@@ -181,7 +196,8 @@ void IPv4Handler::handlePacket(
       return;
     }
     // Forward multicast packet directly to corresponding host interface
-    intf = interfaceMap->getInterfaceInVlanIf(pkt->getSrcVlan());
+    auto intfID = sw_->getInterfaceIDForPort(port);
+    intf = state->getInterfaces()->getInterfaceIf(intfID);
   } else if (v4Hdr.dstAddr.isLinkLocal()) {
     // XXX: Ideally we should scope the limit to Link only. However we are
     // using v4 link locals in a special way on Galaxy/6pack which needs because
@@ -189,7 +205,8 @@ void IPv4Handler::handlePacket(
     //
     // Forward link-local packet directly to corresponding host interface
     // provided desAddr is assigned to that interface.
-    // intf = interfaceMap->getInterfaceInVlanIf(pkt->getSrcVlan());
+    // auto intfID = sw_->getInterfaceIDForPort(port);
+    // intf = state->getInterfaces()->getInterfaceIf(intfID);
     // if (not intf->hasAddress(v4Hdr.dstAddr)) {
     //   intf = nullptr;
     // }
@@ -223,7 +240,7 @@ void IPv4Handler::handlePacket(
     stats->port(port)->ipv4TtlExceeded();
     // Look up cpu mac from platform
     MacAddress cpuMac = sw_->getPlatform()->getLocalMac();
-    sendICMPTimeExceeded(pkt->getSrcVlan(), cpuMac, cpuMac, v4Hdr, cursor);
+    sendICMPTimeExceeded(port, vlanID, cpuMac, cpuMac, v4Hdr, cursor);
     return;
   }
 
@@ -241,7 +258,7 @@ void IPv4Handler::handlePacket(
   // We will need to manage the rate somehow. Either from HW
   // or a SW control here
   stats->port(port)->ipv4Nexthop();
-  if (!resolveMac(state, port, v4Hdr.dstAddr, pkt->getSrcVlan())) {
+  if (!resolveMac(state, port, v4Hdr.dstAddr)) {
     stats->port(port)->ipv4NoArp();
     XLOG(DBG4) << "Cannot find the interface to send out ARP request for "
                << v4Hdr.dstAddr.str();
@@ -255,16 +272,20 @@ void IPv4Handler::handlePacket(
 bool IPv4Handler::resolveMac(
     std::shared_ptr<SwitchState> state,
     PortID ingressPort,
-    IPAddressV4 dest,
-    VlanID ingressVlan) {
+    IPAddressV4 dest) {
   // need to find out our own IP and MAC addresses so that we can send the
   // ARP request out. Since the request will be broadcast, there is no need to
   // worry about which port to send the packet out.
 
-  auto ingressInterface =
-      state->getInterfaces()->getInterfaceInVlanIf(ingressVlan);
+  auto port = state->getPorts()->getPortIf(ingressPort);
+  if (!port) {
+    // Received packed on unknown port
+    return false;
+  }
+  auto intfID = sw_->getInterfaceIDForPort(ingressPort);
+  auto ingressInterface = state->getInterfaces()->getInterfaceIf(intfID);
   if (!ingressInterface) {
-    // Received packed on unknown VLAN
+    // Received packed on unknown port / interface
     return false;
   }
 

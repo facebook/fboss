@@ -1835,7 +1835,7 @@ void SwSwitch::sendL3Packet(
         ipv6_->sendMulticastNeighborSolicitations(PortID(0), dstAddr.asV6());
       } else {
         // TODO(skhare) Support optional VLAN arg to resolveMac
-        ipv4_->resolveMac(state, PortID(0), dstAddr.asV4(), vlanID.value());
+        ipv4_->resolveMac(state, PortID(0), dstAddr.asV4());
       }
     }
 
