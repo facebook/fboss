@@ -716,6 +716,30 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
   XLOG(DBG4) << "sending neighbor solicitation for " << targetIP << " on vlan "
              << vlanIDStr << " solicitedNodeAddr: " << solicitedNodeAddr.str();
 
+  // If sendNetworkControlPacketAsync is called with empty portDescriptor, the
+  // packet will be switched. However, since VOQs don't use VLANs, the ASIC
+  // would not know which port(s) to send the neighbor solicitation on.
+  // Thus, for VOQ switches:
+  //  - determine the interface for the given targetIP
+  //  - get systemPortID for the interface
+  //  - compute corresponding portID
+  //  - inject packet with pipeline bypass on that port
+  std::optional<PortDescriptor> portDescriptor{std::nullopt};
+  auto switchType = sw->getSwitchInfoTable().l3SwitchType();
+  if (switchType == cfg::SwitchType::VOQ) {
+    auto intf =
+        sw->getState()->getInterfaces()->getIntfToReach(RouterID(0), targetIP);
+    if (intf) {
+      CHECK(intf->getSystemPortID().has_value());
+      CHECK(sw->getState()->getSwitchSettings()->getSystemPortRange());
+      portDescriptor = PortDescriptor(
+          getPortID(intf->getSystemPortID().value(), sw->getState()));
+
+      XLOG(DBG4) << "Sending neighbor solicitation for " << targetIP.str()
+                 << " Using port: " << portDescriptor.value().str();
+    }
+  }
+
   sendNeighborSolicitation(
       sw,
       solicitedNodeAddr,
@@ -724,7 +748,7 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
       srcMac,
       targetIP,
       vlanID,
-      std::optional<PortDescriptor>(),
+      portDescriptor,
       ndpOptions);
 }
 
