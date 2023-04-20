@@ -66,6 +66,11 @@ void ArpHandler::handlePacket(
   PortID port = pkt->getSrcPort();
   CHECK(stats->port(port));
 
+  auto vlanID = pkt->getSrcVlanIf();
+  auto vlanIDStr = vlanID.has_value()
+      ? folly::to<std::string>(static_cast<int>(vlanID.value()))
+      : "None";
+
   stats->port(port)->arpPkt();
   // Read htype, ptype, hlen, and plen
   auto htype = cursor.readBE<uint16_t>();
@@ -91,7 +96,7 @@ void ArpHandler::handlePacket(
 
   // Look up the Vlan state.
   auto state = sw_->getState();
-  auto vlan = state->getVlans()->getVlanIf(pkt->getSrcVlan());
+  auto vlan = state->getVlans()->getVlanIf(sw_->getVlanIDHelper(vlanID));
   if (!vlan) {
     // Hmm, we don't actually have this VLAN configured.
     // Perhaps the state has changed since we received the packet.
@@ -119,7 +124,7 @@ void ArpHandler::handlePacket(
   if (!entry) {
     // The target IP does not refer to us.
     XLOG(DBG5) << "ignoring ARP message for " << targetIP.str() << " on vlan "
-               << pkt->getSrcVlan();
+               << vlanIDStr;
     stats->port(port)->arpNotMine();
 
     updater->receivedArpNotMine(
@@ -140,8 +145,8 @@ void ArpHandler::handlePacket(
 
   if (op == ARP_OP_REQUEST && !AggregatePort::isIngressValid(state, pkt)) {
     XLOG(DBG2) << "Dropping invalid ARP request ingressing on port "
-               << pkt->getSrcPort() << " on vlan " << pkt->getSrcVlan()
-               << " for " << targetIP;
+               << pkt->getSrcPort() << " on vlan " << vlanIDStr << " for "
+               << targetIP;
     return;
   }
 
@@ -157,7 +162,7 @@ void ArpHandler::handlePacket(
   // Send a reply if this is an ARP request.
   if (op == ARP_OP_REQUEST) {
     sendArpReply(
-        pkt->getSrcVlan(),
+        pkt->getSrcVlanIf(),
         pkt->getSrcPort(),
         entry->getMac(),
         targetIP,
