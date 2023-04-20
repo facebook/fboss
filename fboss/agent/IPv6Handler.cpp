@@ -743,9 +743,16 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
     if (intf) {
       CHECK(intf->getSystemPortID().has_value());
       CHECK(sw->getState()->getSwitchSettings()->getSystemPortRange());
-      portDescriptor = PortDescriptor(
-          getPortID(intf->getSystemPortID().value(), sw->getState()));
-
+      auto systemPort = sw->getState()->getSystemPorts()->getSystemPort(
+          *intf->getSystemPortID());
+      CHECK(systemPort);
+      auto dsfNode = sw->getState()->getDsfNodes()->getDsfNodeIf(
+          systemPort->getSwitchId());
+      CHECK(dsfNode);
+      CHECK(dsfNode->getSystemPortRange().has_value());
+      auto portID = intf->getSystemPortID().value() -
+          *dsfNode->getSystemPortRange()->minimum();
+      portDescriptor = PortDescriptor(PortID(portID));
       XLOG(DBG4) << "Sending neighbor solicitation for " << targetIP.str()
                  << " Using port: " << portDescriptor.value().str();
     }
