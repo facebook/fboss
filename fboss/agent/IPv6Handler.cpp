@@ -195,12 +195,23 @@ void IPv6Handler::handlePacket(
     auto intfID = sw_->getInterfaceIDForPort(port);
     intf = state->getInterfaces()->getInterfaceIf(intfID);
   } else if (ipv6.dstAddr.isLinkLocal()) {
-    // Forward link-local packet directly to corresponding host interface
-    // provided desAddr is assigned to that interface.
-    auto intfID = sw_->getInterfaceIDForPort(port);
-    intf = state->getInterfaces()->getInterfaceIf(intfID);
-    if (intf && !(intf->hasAddress(ipv6.dstAddr))) {
+    // If srcPort == CPU port, this packet was injected by self, and then
+    // trapped back via RX callback. We don't need to handle self injected
+    // packets, so sete intf = nullptr;
+    // However, these might be packts
+    // However, we would still trigger neighbor solicitation
+    // (resolveDestAndHandlePacket) if the destination IP is not already
+    // resolved.
+    if (port == PortID(0)) {
       intf = nullptr;
+    } else {
+      // Forward link-local packet directly to corresponding host interface
+      // provided desAddr is assigned to that interface.
+      auto intfID = sw_->getInterfaceIDForPort(port);
+      intf = state->getInterfaces()->getInterfaceIf(intfID);
+      if (intf && !(intf->hasAddress(ipv6.dstAddr))) {
+        intf = nullptr;
+      }
     }
   } else {
     // Else loopup host interface based on destAddr
