@@ -1342,12 +1342,17 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
     ethertype = c.readBE<uint16_t>();
   }
 
+  auto vlanID = pkt->getSrcVlanIf();
+  auto vlanIDStr = vlanID.has_value()
+      ? folly::to<std::string>(static_cast<int>(vlanID.value()))
+      : "None";
+
   std::stringstream ss;
   ss << "trapped packet: src_port=" << pkt->getSrcPort() << " srcAggPort="
      << (pkt->isFromAggregatePort()
              ? folly::to<string>(pkt->getSrcAggregatePort())
              : "None")
-     << " vlan=" << pkt->getSrcVlan() << " length=" << len << " src=" << srcMac
+     << " vlan=" << vlanIDStr << " length=" << len << " src=" << srcMac
      << " dst=" << dstMac << " ethertype=0x" << std::hex << ethertype
      << " :: " << pkt->describeDetails();
   XLOG(DBG5) << ss.str();
