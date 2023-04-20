@@ -807,19 +807,18 @@ void IPv6Handler::sendUnicastNeighborSolicitation(
 
 void IPv6Handler::sendMulticastNeighborSolicitation(
     SwSwitch* sw,
-    const IPAddressV6& targetIP,
-    const shared_ptr<Vlan>& vlan) {
+    const IPAddressV6& targetIP) {
   auto state = sw->getState();
-  auto intfID = vlan->getInterfaceID();
+  auto intf =
+      sw->getState()->getInterfaces()->getIntfToReach(RouterID(0), targetIP);
 
-  auto intf = state->getInterfaces()->getInterfaceIf(intfID);
   if (!intf) {
-    XLOG(DBG0) << "Cannot find interface " << intfID;
+    XLOG(DBG0) << "Cannot find interface for " << targetIP;
     return;
   }
 
   sendMulticastNeighborSolicitation(
-      sw, targetIP, intf->getMac(), vlan->getID());
+      sw, targetIP, intf->getMac(), intf->getVlanIDIf());
 }
 
 void IPv6Handler::resolveDestAndHandlePacket(

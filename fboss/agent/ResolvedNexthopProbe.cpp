@@ -60,7 +60,7 @@ void ResolvedNextHopProbe::timeoutExpired() noexcept {
     sw_->getNeighborUpdater()->sentArpRequest(vlanId, ip.asV4());
   } else {
     // send ndp request
-    IPv6Handler::sendMulticastNeighborSolicitation(sw_, ip.asV6(), vlan);
+    IPv6Handler::sendMulticastNeighborSolicitation(sw_, ip.asV6());
     sw_->getNeighborUpdater()->sentNeighborSolicitation(vlanId, ip.asV6());
   }
   // exponential back-off

@@ -184,7 +184,7 @@ inline void NdpCache::probeFor(folly::IPAddressV6 ip) const {
     return;
   }
   // multicast solicitation
-  IPv6Handler::sendMulticastNeighborSolicitation(getSw(), ip, vlan);
+  IPv6Handler::sendMulticastNeighborSolicitation(getSw(), ip);
 }
 
 std::list<NdpEntryThrift> NdpCache::getNdpCacheData() {

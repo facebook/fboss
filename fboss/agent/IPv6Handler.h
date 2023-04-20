@@ -88,8 +88,7 @@ class IPv6Handler : public StateObserver {
       const std::optional<VlanID>& vlanID);
   static void sendMulticastNeighborSolicitation(
       SwSwitch* sw,
-      const folly::IPAddressV6& targetIP,
-      const std::shared_ptr<Vlan>& vlan);
+      const folly::IPAddressV6& targetIP);
 
   static void sendUnicastNeighborSolicitation(
       SwSwitch* sw,
