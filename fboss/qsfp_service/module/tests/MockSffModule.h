@@ -55,6 +55,9 @@ class MockSffModule : public SffModule {
 
   MOCK_CONST_METHOD0(getQsfpTransmitterTechnology, TransmitterTechnology());
 
+  MOCK_CONST_METHOD1(configuredHostLanes, std::vector<uint8_t>(uint8_t));
+  MOCK_CONST_METHOD1(configuredMediaLanes, std::vector<uint8_t>(uint8_t));
+
   MOCK_METHOD0(ensureTxEnabled, void());
   MOCK_METHOD0(resetLowPowerMode, void());
   MOCK_METHOD0(ensureTransceiverReadyLocked, bool());

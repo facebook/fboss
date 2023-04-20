@@ -50,6 +50,9 @@ class QsfpModuleTest : public TransceiverManagerTestHelper {
     gflags::SetCommandLineOptionWithMode(
         "customize_interval", "0", gflags::SET_FLAGS_DEFAULT);
 
+    gflags::SetCommandLineOptionWithMode(
+        "use_platform_mapping", "true", gflags::SET_FLAGS_DEFAULT);
+
     EXPECT_EQ(transImpl_->getName().toString(), qsfp_->getNameString());
     EXPECT_CALL(*transImpl_, detectTransceiver()).WillRepeatedly(Return(true));
     qsfp_->detectPresence();
@@ -440,6 +443,86 @@ TEST_F(QsfpModuleTest, getNewTcvrInfo) {
   EXPECT_EQ(
       info.tcvrStats()->vdmDiagsStatsForOds(), info.vdmDiagsStatsForOds());
   EXPECT_EQ(info.tcvrStats()->remediationCounter(), info.remediationCounter());
+}
+
+TEST_F(QsfpModuleTest, verifyLaneToPortMapping) {
+  std::vector<uint8_t> lanes50GPort1 = {0, 1};
+  std::vector<uint8_t> lanes50GPort3 = {2, 3};
+  std::vector<uint8_t> lanesTwentyFiveGPort1 = {0};
+  std::vector<uint8_t> lanesTwentyFiveGPort2 = {1};
+  ProgramTransceiverState programTcvrState;
+  TransceiverPortState portState;
+
+  auto verify = [this](std::map<std::string, std::vector<int>>& expectedMap) {
+    qsfp_->useActualGetTransceiverInfo();
+    auto info = qsfp_->getTransceiverInfo();
+    EXPECT_EQ(info.tcvrState()->portNameToHostLanes(), expectedMap);
+    EXPECT_EQ(info.tcvrState()->portNameToMediaLanes(), expectedMap);
+    EXPECT_EQ(info.tcvrStats()->portNameToHostLanes(), expectedMap);
+    EXPECT_EQ(info.tcvrStats()->portNameToMediaLanes(), expectedMap);
+  };
+  // Refresh once to validate the cache before starting the test
+  transceiverManager_->refreshStateMachines();
+
+  // Initially in the test we'll call programTransceiver for 2x50G ports,
+  // correspondingly set expectations for configuredHostLanes and
+  // configuredMediaLanes
+  ON_CALL(*qsfp_, configuredHostLanes(0)).WillByDefault(Return(lanes50GPort1));
+  ON_CALL(*qsfp_, configuredHostLanes(2)).WillByDefault(Return(lanes50GPort3));
+  ON_CALL(*qsfp_, configuredMediaLanes(0)).WillByDefault(Return(lanes50GPort1));
+  ON_CALL(*qsfp_, configuredMediaLanes(2)).WillByDefault(Return(lanes50GPort3));
+
+  // Program only one port of 50G. Expect the correct host and media lanes for
+  // this port
+  portState.portName = "eth1/1/1";
+  portState.startHostLane = 0;
+  portState.speed = cfg::PortSpeed::FIFTYG;
+  programTcvrState.ports.emplace(portState.portName, portState);
+  qsfp_->programTransceiver(programTcvrState, false /* needResetDataPath */);
+  qsfp_->useActualGetTransceiverInfo();
+  std::map<std::string, std::vector<int>> expectedMap = {{"eth1/1/1", {0, 1}}};
+  verify(expectedMap);
+
+  // Now program the 2nd 50G port. Expect the correct host and media lanes for
+  // both ports
+  portState.portName = "eth1/1/3";
+  portState.startHostLane = 2;
+  portState.speed = cfg::PortSpeed::FIFTYG;
+  programTcvrState.ports.emplace(portState.portName, portState);
+  qsfp_->programTransceiver(programTcvrState, false /* needResetDataPath */);
+  expectedMap = {{"eth1/1/1", {0, 1}}, {"eth1/1/3", {2, 3}}};
+  verify(expectedMap);
+
+  // Now we'll change port 1 to 2x25G. Set the expectations correspondingly
+  programTcvrState.ports.clear();
+  ON_CALL(*qsfp_, configuredHostLanes(0))
+      .WillByDefault(Return(lanesTwentyFiveGPort1));
+  ON_CALL(*qsfp_, configuredHostLanes(1))
+      .WillByDefault(Return(lanesTwentyFiveGPort2));
+  ON_CALL(*qsfp_, configuredHostLanes(2)).WillByDefault(Return(lanes50GPort3));
+  ON_CALL(*qsfp_, configuredMediaLanes(0)).WillByDefault(Return(lanes50GPort1));
+  ON_CALL(*qsfp_, configuredMediaLanes(0))
+      .WillByDefault(Return(lanesTwentyFiveGPort1));
+  ON_CALL(*qsfp_, configuredMediaLanes(1))
+      .WillByDefault(Return(lanesTwentyFiveGPort2));
+  ON_CALL(*qsfp_, configuredMediaLanes(2)).WillByDefault(Return(lanes50GPort3));
+
+  // Configure 2x25G + 1x50G ports
+  portState.portName = "eth1/1/1";
+  portState.startHostLane = 0;
+  portState.speed = cfg::PortSpeed::TWENTYFIVEG;
+  programTcvrState.ports.emplace(portState.portName, portState);
+  portState.portName = "eth1/1/2";
+  portState.startHostLane = 1;
+  portState.speed = cfg::PortSpeed::TWENTYFIVEG;
+  programTcvrState.ports.emplace(portState.portName, portState);
+  portState.portName = "eth1/1/3";
+  portState.startHostLane = 2;
+  portState.speed = cfg::PortSpeed::FIFTYG;
+  programTcvrState.ports.emplace(portState.portName, portState);
+  qsfp_->programTransceiver(programTcvrState, false /* needResetDataPath */);
+  expectedMap = {{"eth1/1/1", {0}}, {"eth1/1/2", {1}}, {"eth1/1/3", {2, 3}}};
+  verify(expectedMap);
 }
 
 } // namespace facebook::fboss
