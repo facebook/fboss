@@ -47,6 +47,7 @@ AggregatePort::AggregatePort(
     folly::MacAddress systemID,
     uint8_t minimumLinkCount,
     Subports&& ports,
+    const std::vector<int32_t>& interfaceIDs,
     LegacyAggregatePortFields::Forwarding fwd,
     ParticipantInfo pState) {
   set<switch_state_tags::id>(id);
@@ -70,6 +71,7 @@ AggregatePort::AggregatePort(
     portToPartnerState.emplace(subport.portID, pState.toThrift());
   }
   set<switch_state_tags::portToPartnerState>(std::move(portToPartnerState));
+  set<switch_state_tags::interfaceIDs>(interfaceIDs);
 }
 
 AggregatePort::AggregatePort(

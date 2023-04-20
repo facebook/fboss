@@ -154,6 +154,7 @@ class AggregatePort
       folly::MacAddress systemID,
       uint8_t minimumLinkCount,
       Subports&& ports,
+      const std::vector<int32_t>& interfaceIDs,
       LegacyAggregatePortFields::Forwarding fwd = Forwarding::DISABLED,
       ParticipantInfo pState = ParticipantInfo::defaultParticipantInfo());
 
@@ -176,7 +177,8 @@ class AggregatePort
       uint16_t systemPriority,
       folly::MacAddress systemID,
       uint8_t minLinkCount,
-      folly::Range<Iterator> subports) {
+      folly::Range<Iterator> subports,
+      const std::vector<int32_t>& interfaceIDs) {
     return std::make_shared<AggregatePort>(
         id,
         name,
@@ -185,6 +187,7 @@ class AggregatePort
         systemID,
         minLinkCount,
         Subports(subports.begin(), subports.end()),
+        interfaceIDs,
         Forwarding::DISABLED,
         ParticipantInfo::defaultParticipantInfo());
   }

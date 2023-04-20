@@ -1994,7 +1994,8 @@ shared_ptr<AggregatePort> ThriftConfigApplier::createAggPort(
       cfgSystemPriority,
       cfgSystemID,
       cfgMinLinkCount,
-      folly::range(subports.begin(), subports.end()));
+      folly::range(subports.begin(), subports.end()),
+      {});
 }
 
 std::vector<AggregatePort::Subport> ThriftConfigApplier::getSubportsSorted(

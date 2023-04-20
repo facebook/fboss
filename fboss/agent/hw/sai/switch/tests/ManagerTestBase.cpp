@@ -300,7 +300,8 @@ std::shared_ptr<AggregatePort> ManagerTestBase::makeAggregatePort(
       systemPriority,
       systemID,
       0,
-      folly::range(subports.begin(), subports.end()));
+      folly::range(subports.begin(), subports.end()),
+      {});
 }
 
 int64_t ManagerTestBase::getSysPortId(int id) const {
