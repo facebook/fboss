@@ -279,6 +279,8 @@ class ThriftConfigApplier {
   std::shared_ptr<AggregatePort> createAggPort(const cfg::AggregatePort& cfg);
   std::vector<AggregatePort::Subport> getSubportsSorted(
       const cfg::AggregatePort& cfg);
+  std::vector<int32_t> getAggregatePortInterfaceIDs(
+      const std::vector<AggregatePort::Subport>& subports);
   std::pair<folly::MacAddress, uint16_t> getSystemLacpConfig();
   uint8_t computeMinimumLinkCount(const cfg::AggregatePort& cfg);
   std::shared_ptr<VlanMap> updateVlans();
@@ -1950,6 +1952,8 @@ shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(
   auto cfgSubports = getSubportsSorted(cfg);
   auto origSubports = origAggPort->sortedSubports();
 
+  auto cfgAggregatePortInterfaceIDs = getAggregatePortInterfaceIDs(cfgSubports);
+
   uint16_t cfgSystemPriority;
   folly::MacAddress cfgSystemID;
   std::tie(cfgSystemID, cfgSystemPriority) = getSystemLacpConfig();
@@ -1962,7 +1966,11 @@ shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(
       origAggPort->getSystemID() == cfgSystemID &&
       origAggPort->getMinimumLinkCount() == cfgMinLinkCount &&
       std::equal(
-          origSubports.begin(), origSubports.end(), cfgSubports.begin())) {
+          origSubports.begin(), origSubports.end(), cfgSubports.begin()) &&
+      std::equal(
+          origAggPort->getInterfaceIDs()->begin(),
+          origAggPort->getInterfaceIDs()->end(),
+          cfgAggregatePortInterfaceIDs.begin())) {
     return nullptr;
   }
 
@@ -1973,6 +1981,7 @@ shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(
   newAggPort->setSystemID(cfgSystemID);
   newAggPort->setMinimumLinkCount(cfgMinLinkCount);
   newAggPort->setSubports(folly::range(cfgSubports.begin(), cfgSubports.end()));
+  newAggPort->setInterfaceIDs(cfgAggregatePortInterfaceIDs);
 
   return newAggPort;
 }
@@ -1980,6 +1989,7 @@ shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(
 shared_ptr<AggregatePort> ThriftConfigApplier::createAggPort(
     const cfg::AggregatePort& cfg) {
   auto subports = getSubportsSorted(cfg);
+  auto aggregatePortInterfaceIDs = getAggregatePortInterfaceIDs(subports);
 
   uint16_t cfgSystemPriority;
   folly::MacAddress cfgSystemID;
@@ -1995,7 +2005,7 @@ shared_ptr<AggregatePort> ThriftConfigApplier::createAggPort(
       cfgSystemID,
       cfgMinLinkCount,
       folly::range(subports.begin(), subports.end()),
-      {});
+      aggregatePortInterfaceIDs);
 }
 
 std::vector<AggregatePort::Subport> ThriftConfigApplier::getSubportsSorted(
@@ -2031,6 +2041,18 @@ std::vector<AggregatePort::Subport> ThriftConfigApplier::getSubportsSorted(
   std::sort(subports.begin(), subports.end());
 
   return subports;
+}
+
+std::vector<int32_t> ThriftConfigApplier::getAggregatePortInterfaceIDs(
+    const std::vector<AggregatePort::Subport>& subports) {
+  if (subports.size() > 0) {
+    // all Aggregate member ports always belong to the same interface(s). Thus,
+    // pick the interface for any member port
+    auto subport = subports.front();
+    return port2InterfaceId_[subport.portID];
+  }
+
+  return {};
 }
 
 std::pair<folly::MacAddress, uint16_t>
