@@ -135,7 +135,24 @@ inline void NdpCache::checkReachability(
     XLOG(DBG2) << "Vlan " << getVlanID() << " not found. Skip sending probe";
     return;
   }
-  auto srcIntf = state->getInterfaces()->getInterfaceIf(vlan->getInterfaceID());
+
+  InterfaceID intfID;
+  std::shared_ptr<Interface> srcIntf;
+  switch (port.type()) {
+    case PortDescriptor::PortType::PHYSICAL:
+      intfID = getSw()->getInterfaceIDForPort(port.phyPortID());
+      srcIntf = state->getInterfaces()->getInterfaceIf(intfID);
+      break;
+    case PortDescriptor::PortType::AGGREGATE:
+      intfID = getSw()->getInterfaceIDForAggregatePort(port.aggPortID());
+      srcIntf = state->getInterfaces()->getInterfaceIf(intfID);
+      break;
+    case PortDescriptor::PortType::SYSTEM_PORT:
+      // We expect the caller to resolve the system port down to its underlying
+      // physical port.
+      throw FbossError("Received checkReachability query on systemPort");
+      break;
+  }
 
   if (!srcIntf) {
     // srcIntf must/can never be nullptr
