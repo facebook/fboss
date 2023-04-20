@@ -883,6 +883,13 @@ class SwSwitch : public HwSwitch::Callback {
 
   void updateConfigAppliedInfo();
 
+  std::shared_ptr<SwitchState> stateChanged(
+      const StateDelta& delta,
+      bool transaction) const;
+
+  fsdb::OperDelta stateChanged(const fsdb::OperDelta& delta, bool transaction)
+      const;
+
   std::string curConfigStr_;
   cfg::SwitchConfig curConfig_;
 

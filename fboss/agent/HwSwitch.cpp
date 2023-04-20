@@ -143,8 +143,9 @@ fsdb::OperDelta HwSwitch::stateChangedTransaction(
     throw FbossError("Transactions not supported on this switch");
   }
   auto goodKnownState = getProgrammedState();
+  fsdb::OperDelta result{};
   try {
-    stateChanged(delta);
+    result = stateChanged(delta);
   } catch (const FbossError& e) {
     XLOG(WARNING) << " Transaction failed with error : " << *e.message()
                   << " attempting rollback";
@@ -152,7 +153,7 @@ fsdb::OperDelta HwSwitch::stateChangedTransaction(
     setProgrammedState(goodKnownState);
     return delta;
   }
-  return fsdb::OperDelta{};
+  return result;
 }
 
 std::shared_ptr<SwitchState> HwSwitch::fillinPortInterfaces(

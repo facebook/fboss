@@ -382,7 +382,8 @@ void SwSwitch::stop(bool revertToMinAlpmState) {
   // state. Thus, directly calling underlying hw_->stateChanged()
   if (revertToMinAlpmState) {
     XLOG(DBG3) << "setup min ALPM state";
-    hw_->stateChanged(StateDelta(getState(), getMinAlpmRouteState(getState())));
+    stateChanged(
+        StateDelta(getState(), getMinAlpmRouteState(getState())), false);
   }
 }
 
@@ -1163,8 +1164,7 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
   // undesirable.  So far I don't think this brief discrepancy should cause
   // major issues.
   try {
-    newAppliedState = isTransaction ? hw_->stateChangedTransaction(delta)
-                                    : hw_->stateChanged(delta);
+    newAppliedState = stateChanged(delta, isTransaction);
   } catch (const std::exception& ex) {
     // Notify the hw_ of the crash so it can execute any device specific
     // tasks before we fatal. An example would be to dump the current hw state.
@@ -2192,4 +2192,29 @@ InterfaceID SwSwitch::getInterfaceIDForAggregatePort(
   return InterfaceID(aggregatePort->getInterfaceIDs()->at(0)->cref());
 }
 
+std::shared_ptr<SwitchState> SwSwitch::stateChanged(
+    const StateDelta& delta,
+    bool transaction) const {
+  if (!FLAGS_enable_state_oper_delta) {
+    return transaction ? hw_->stateChangedTransaction(delta)
+                       : hw_->stateChanged(delta);
+  }
+  auto inDelta = delta.getOperDelta();
+  auto outDelta = stateChanged(inDelta, transaction);
+  if (outDelta.changes()->empty()) {
+    return delta.newState();
+  }
+  if (inDelta == outDelta) {
+    return delta.oldState();
+  }
+  // obtain the state that actually got programmed
+  return StateDelta(delta.newState(), outDelta).newState();
+}
+
+fsdb::OperDelta SwSwitch::stateChanged(
+    const fsdb::OperDelta& delta,
+    bool transaction) const {
+  return transaction ? hw_->stateChangedTransaction(delta)
+                     : hw_->stateChanged(delta);
+}
 } // namespace facebook::fboss
