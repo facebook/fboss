@@ -162,17 +162,6 @@ class SwSwitch : public HwSwitch::Callback {
     return tunMgr_.get();
   }
 
-  /**
-   * Return the vlan where the CPU sits
-   *
-   * This vlan ID is used to encode the l2 vlan info when CPU sends traffic
-   * through the HW.
-   * Note: It does not mean the HW will send the packet with this vlan value.
-   * For example, Broadcom HW will overwrite this value based on its egress
-   * programming.
-   */
-  std::optional<VlanID> getCPUVlan() const;
-
   /*
    * Initialize the switch.
    *

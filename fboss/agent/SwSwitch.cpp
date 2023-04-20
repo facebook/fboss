@@ -2157,12 +2157,6 @@ std::optional<VlanID> SwSwitch::getVlanIDForPkt(VlanID vlanID) const {
   }
 }
 
-std::optional<VlanID> SwSwitch::getCPUVlan() const {
-  return getSwitchInfoTable().vlansSupported()
-      ? std::make_optional(VlanID(4095))
-      : std::nullopt;
-}
-
 InterfaceID SwSwitch::getInterfaceIDForPort(PortID portID) const {
   auto port = getState()->getPorts()->getPortIf(portID);
   CHECK(port);
