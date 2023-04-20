@@ -64,35 +64,14 @@ class ColdBootPacketHandlingFixture : public ::testing::Test {
     CounterCache counters(getSw());
     auto pkt = createTxPacket(getSw(), buf);
 
+    // Cold boot state does not have any interface. Thus, we inject packet via
+    // some unknown interface and assert that the packet does not get sent out.
+    // This verifies that agent can handle such packets (pkts dropped) without
+    // crashing.
     EXPECT_HW_CALL(getSw(), sendPacketSwitchedAsync_(_)).Times(0);
     getSw()->sendL3Packet(std::move(pkt), InterfaceID(2000));
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
-  }
-  void nonLinkLocalPacketSendNoInterface(const folly::IOBuf& buf) {
-    CounterCache counters(getSw());
-    auto pkt = createTxPacket(getSw(), buf);
-    // We expect a single call to sendPacketSwitchedAsync. In response to this
-    // packet, neighbor resolution is triggered, but since we won't find any
-    // next hops for the dst address here. No ARP/Neighbor solicitation request
-    // is generated
-    EXPECT_HW_CALL(getSw(), sendPacketSwitchedAsync_(_)).Times(1);
-    getSw()->sendL3Packet(std::move(pkt));
-    counters.update();
-    counters.checkDelta(SwitchStats::kCounterPrefix + "host.tx.sum", 1);
-  }
-  void linkLocalPacketSendNoInterface(const folly::IOBuf& buf) {
-    CounterCache counters(getSw());
-    auto pkt = createTxPacket(getSw(), buf);
-
-    // We expect a no calls to sendPacketSwitchedAsync. Since no interface was
-    // specified, we will use the CPU vlan for sending this packet out. Since
-    // CPU VLAN does no exist in our state, we drop the packet on the floor.
-    // This is fine, you can't expect us to switch a link local interface
-    // without getting VLAN/L3 interface as input.
-    EXPECT_HW_CALL(getSw(), sendPacketSwitchedAsync_(_)).Times(0);
-    getSw()->sendL3Packet(std::move(pkt));
-    counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.tx.sum", 0);
   }
 
@@ -139,32 +118,22 @@ TEST_F(ColdBootPacketHandlingFixture, v6PacketUnknownInterface) {
       MockPlatform::getMockLocalMac()));
 }
 
-TEST_F(ColdBootPacketHandlingFixture, v4PacketNoInterface) {
-  nonLinkLocalPacketSendNoInterface(createV4Packet(
-      kIPv4Addr1, kIPv4Addr2, kMac1, MockPlatform::getMockLocalMac()));
-}
-
-TEST_F(ColdBootPacketHandlingFixture, v6PacketNoInterface) {
-  nonLinkLocalPacketSendNoInterface(createV6Packet(
-      kIPv6Addr1, kIPv6Addr2, kMac1, MockPlatform::getMockLocalMac()));
-}
-
-TEST_F(ColdBootPacketHandlingFixture, v4McastPacketNoInterface) {
-  nonLinkLocalPacketSendNoInterface(createV4Packet(
+TEST_F(ColdBootPacketHandlingFixture, v4McastPacketUnknownInterface) {
+  packetSendUnknownInterface(createV4Packet(
       kIPv4Addr1, kIPv4McastAddr, kMac1, MockPlatform::getMockLocalMac()));
 }
 
-TEST_F(ColdBootPacketHandlingFixture, v6McastPacketNoInterface) {
-  nonLinkLocalPacketSendNoInterface(createV6Packet(
+TEST_F(ColdBootPacketHandlingFixture, v6McastPacketUnknownInterface) {
+  packetSendUnknownInterface(createV6Packet(
       kIPv6Addr1, kIPv6McastAddr, kMac1, MockPlatform::getMockLocalMac()));
 }
 
-TEST_F(ColdBootPacketHandlingFixture, v4LinkLocalPacketNoInterface) {
-  linkLocalPacketSendNoInterface(createV4Packet(
+TEST_F(ColdBootPacketHandlingFixture, v4LinkLocalPacketUnknownInterface) {
+  packetSendUnknownInterface(createV4Packet(
       kIPv4Addr1, kIPv4LinkLocalAddr, kMac1, MockPlatform::getMockLocalMac()));
 }
 
-TEST_F(ColdBootPacketHandlingFixture, v6LinkLocalPacketNoInterface) {
-  linkLocalPacketSendNoInterface(createV6Packet(
+TEST_F(ColdBootPacketHandlingFixture, v6LinkLocalPacketUnknownInterface) {
+  packetSendUnknownInterface(createV6Packet(
       kIPv6Addr1, kIPv6LinkLocalAddr, kMac1, MockPlatform::getMockLocalMac()));
 }

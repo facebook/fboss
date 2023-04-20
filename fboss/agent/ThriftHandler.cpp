@@ -2074,11 +2074,18 @@ void ThriftHandler::txPktL3(unique_ptr<fbstring> payload) {
   ensureConfigured(__func__);
   ensureNotFabric(__func__);
 
+  // Use any configured interface
+  const auto interfaceMap = sw_->getState()->getInterfaces();
+  if (interfaceMap->size() == 0) {
+    throw FbossError("No interface configured");
+  }
+  auto intfID = interfaceMap->at(0)->getID();
+
   unique_ptr<TxPacket> pkt = sw_->allocateL3TxPacket(payload->size());
   RWPrivateCursor cursor(pkt->buf());
   cursor.push(StringPiece(*payload));
 
-  sw_->sendL3Packet(std::move(pkt));
+  sw_->sendL3Packet(std::move(pkt), intfID);
 }
 
 Vlan* ThriftHandler::getVlan(int32_t vlanId) {

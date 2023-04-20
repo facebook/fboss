@@ -1694,7 +1694,7 @@ void SwSwitch::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept {
 
 void SwSwitch::sendL3Packet(
     std::unique_ptr<TxPacket> pkt,
-    std::optional<InterfaceID> maybeIfID) noexcept {
+    InterfaceID ifID) noexcept {
   if (!isFullyInitialized()) {
     XLOG(DBG2) << " Dropping L3 packet since device not yet initialized";
     stats()->pktDropped();
@@ -1722,19 +1722,15 @@ void SwSwitch::sendL3Packet(
 
   auto state = getState();
 
-  // Get VlanID associated with interface
-  auto vlanID = getCPUVlan();
-  if (maybeIfID.has_value()) {
-    auto intf = state->getInterfaces()->getInterfaceIf(*maybeIfID);
-    if (!intf) {
-      XLOG(ERR) << "Interface " << *maybeIfID << " doesn't exists in state.";
-      stats()->pktDropped();
-      return;
-    }
-
-    // Extract primary Vlan associated with this interface, if any
-    vlanID = intf->getVlanIDIf();
+  auto intf = state->getInterfaces()->getInterfaceIf(ifID);
+  if (!intf) {
+    XLOG(ERR) << "Interface " << ifID << " doesn't exists in state.";
+    stats()->pktDropped();
+    return;
   }
+
+  // Extract primary Vlan associated with this interface, if any
+  auto vlanID = intf->getVlanIDIf();
 
   try {
     uint16_t protocol{0};

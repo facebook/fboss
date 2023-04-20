@@ -570,9 +570,7 @@ class SwSwitch : public HwSwitch::Callback {
    *
    * @param pkt The packet that has L3 packet stored to send out
    */
-  void sendL3Packet(
-      std::unique_ptr<TxPacket> pkt,
-      std::optional<InterfaceID> ifID = std::nullopt) noexcept;
+  void sendL3Packet(std::unique_ptr<TxPacket> pkt, InterfaceID ifID) noexcept;
 
   /**
    * method to send out a packet from HW to host.
