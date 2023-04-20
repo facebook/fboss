@@ -168,7 +168,13 @@ inline void NdpCache::checkReachability(
   }
   // unicast solicitation
   IPv6Handler::sendUnicastNeighborSolicitation(
-      getSw(), targetIP, targetMac, srcIP, srcMac, vlan->getID(), port);
+      getSw(),
+      targetIP,
+      targetMac,
+      srcIP,
+      srcMac,
+      getSw()->getVlanIDForPkt(vlan->getID()),
+      port);
 }
 
 inline void NdpCache::probeFor(folly::IPAddressV6 ip) const {
