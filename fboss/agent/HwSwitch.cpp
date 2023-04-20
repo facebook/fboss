@@ -155,4 +155,32 @@ fsdb::OperDelta HwSwitch::stateChangedTransaction(
   return fsdb::OperDelta{};
 }
 
+std::shared_ptr<SwitchState> HwSwitch::fillinPortInterfaces(
+    const std::shared_ptr<SwitchState>& oldState) {
+  if (getBootType() != BootType::WARM_BOOT) {
+    return oldState;
+  }
+
+  // Populate newly added InterfaceIDs for port
+  auto newState = oldState->clone();
+  auto newPortMap = newState->getPorts()->modify(&newState);
+  for (auto port : *newPortMap) {
+    auto newPort = port.second->clone();
+
+    if (newPort->getInterfaceIDs()->size() != 0) {
+      continue;
+    }
+
+    std::vector<int32_t> interfaceIDs;
+    for (const auto& vlanMember : port.second->getVlans()) {
+      interfaceIDs.push_back(vlanMember.first);
+    }
+    newPort->setInterfaceIDs(interfaceIDs);
+    newPortMap->updatePort(newPort);
+  }
+
+  newState->publish();
+  return newState;
+}
+
 } // namespace facebook::fboss
