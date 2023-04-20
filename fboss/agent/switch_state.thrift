@@ -470,6 +470,8 @@ struct AggregatePortFields {
   8: map<i32, bool> portToFwdState;
   // PortId to ParticipantInfo struct
   9: map<i32, ParticipantInfo> portToPartnerState;
+  // List of interfaces for given aggregate port
+  10: list<i32> interfaceIDs;
 }
 
 struct TeFlowEntryFields {
