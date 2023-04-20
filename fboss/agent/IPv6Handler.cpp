@@ -834,15 +834,16 @@ void IPv6Handler::resolveDestAndHandlePacket(
   auto targetIP = hdr.dstAddr;
   auto state = sw_->getState();
 
-  auto intfID = sw_->getInterfaceIDForPort(ingressPort);
-  auto ingressInterface = state->getInterfaces()->getInterfaceIf(intfID);
-  if (!ingressInterface) {
-    // Received packed on unknown VLAN
-    return;
+  if (vlanID.has_value()) {
+    auto ingressInterface =
+        state->getInterfaces()->getInterfaceInVlanIf(vlanID.value());
+    if (!ingressInterface) {
+      // Received packed on unknown VLAN
+      return;
+    }
   }
 
-  auto route =
-      sw_->longestMatch(state, targetIP, ingressInterface->getRouterID());
+  auto route = sw_->longestMatch(state, targetIP, RouterID(0));
   if (!route || !route->isResolved()) {
     sw_->portStats(ingressPort)->ipv6DstLookupFailure();
     // No way to reach targetIP
