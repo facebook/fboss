@@ -85,7 +85,7 @@ class LldpManager : private folly::AsyncTimeout {
   static std::unique_ptr<TxPacket> createLldpPkt(
       SwSwitch* sw,
       const folly::MacAddress macaddr,
-      VlanID,
+      const std::optional<VlanID>& vlanID,
       const std::string& hostname,
       const std::string& portname,
       const std::string& portdesc,
@@ -95,7 +95,7 @@ class LldpManager : private folly::AsyncTimeout {
   static void fillLldpTlv(
       TxPacket* pkt,
       const folly::MacAddress macaddr,
-      VlanID vlanid,
+      const std::optional<VlanID>& vlanID,
       const std::string& systemdescr,
       const std::string& hostname,
       const std::string& portname,

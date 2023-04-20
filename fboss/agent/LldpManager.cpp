@@ -255,7 +255,7 @@ uint32_t LldpManager::LldpPktSize(
 void LldpManager::fillLldpTlv(
     TxPacket* pkt,
     const MacAddress macaddr,
-    VlanID vlanid,
+    const std::optional<VlanID>& vlanID,
     const std::string& systemdescr,
     const std::string& hostname,
     const std::string& portname,
@@ -263,7 +263,7 @@ void LldpManager::fillLldpTlv(
     const uint16_t ttl,
     const uint16_t capabilities) {
   RWPrivateCursor cursor(pkt->buf());
-  pkt->writeEthHeader(&cursor, LLDP_DEST_MAC, macaddr, vlanid, ETHERTYPE_LLDP);
+  pkt->writeEthHeader(&cursor, LLDP_DEST_MAC, macaddr, vlanID, ETHERTYPE_LLDP);
   // now write chassis ID TLV
   writeTlv(
       LldpTlvType::CHASSIS,
@@ -310,7 +310,7 @@ void LldpManager::fillLldpTlv(
 std::unique_ptr<TxPacket> LldpManager::createLldpPkt(
     SwSwitch* sw,
     const MacAddress macaddr,
-    VlanID vlanid,
+    const std::optional<VlanID>& vlanID,
     const std::string& hostname,
     const std::string& portname,
     const std::string& portdesc,
@@ -323,7 +323,7 @@ std::unique_ptr<TxPacket> LldpManager::createLldpPkt(
   fillLldpTlv(
       pkt.get(),
       macaddr,
-      vlanid,
+      vlanID,
       lldpSysDescStr,
       hostname,
       portname,
