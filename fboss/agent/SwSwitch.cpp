@@ -2177,4 +2177,16 @@ InterfaceID SwSwitch::getInterfaceIDForPort(PortID portID) const {
   return InterfaceID(port->getInterfaceIDs()->at(0)->cref());
 }
 
+InterfaceID SwSwitch::getInterfaceIDForAggregatePort(
+    AggregatePortID aggregatePortID) const {
+  auto aggregatePort =
+      getState()->getAggregatePorts()->getAggregatePortIf(aggregatePortID);
+  CHECK(aggregatePort);
+  // On VOQ/Fabric switches, port and interface have 1:1 relation.
+  // For non VOQ/Fabric switches, in practice, a port is always part of a
+  // single VLAN (and thus single interface).
+  CHECK_EQ(aggregatePort->getInterfaceIDs()->size(), 1);
+  return InterfaceID(aggregatePort->getInterfaceIDs()->at(0)->cref());
+}
+
 } // namespace facebook::fboss
