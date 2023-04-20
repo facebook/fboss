@@ -709,20 +709,35 @@ void IPv6Handler::sendUnicastNeighborSolicitation(
     const folly::MacAddress& targetMac,
     const folly::IPAddressV6& srcIP,
     const folly::MacAddress& srcMac,
-    const VlanID& vlanID,
+    const std::optional<VlanID>& vlanID,
     const PortDescriptor& portDescriptor) {
   auto state = sw->getState();
-  auto vlan = state->getVlans()->getVlanIf(vlanID);
-  if (!Interface::isIpAttached(targetIP, vlan->getInterfaceID(), state)) {
+
+  InterfaceID intfID;
+  switch (portDescriptor.type()) {
+    case PortDescriptor::PortType::PHYSICAL:
+      intfID = sw->getInterfaceIDForPort(portDescriptor.phyPortID());
+      break;
+    case PortDescriptor::PortType::AGGREGATE:
+      intfID = sw->getInterfaceIDForAggregatePort(portDescriptor.aggPortID());
+      break;
+    case PortDescriptor::PortType::SYSTEM_PORT:
+      // We expect the caller to resolve the system port down to its underlying
+      // physical port.
+      throw FbossError("Received checkReachability query on systemPort");
+      break;
+  }
+
+  if (!Interface::isIpAttached(targetIP, intfID, state)) {
     XLOG(DBG2) << "unicast neighbor solicitation not sent, neighbor address: "
                << targetIP << ", is not in the subnets of interface: "
-               << vlan->getInterfaceID() << " for vlan:" << vlanID;
+               << " for interface:" << intfID;
     return;
   }
 
   XLOG(DBG4) << "sending unicast neighbor solicitation to " << targetIP << "("
              << targetMac << ")"
-             << " on vlan " << vlanID << " from " << srcIP << "(" << srcMac
+             << " on interface " << intfID << " from " << srcIP << "(" << srcMac
              << ")";
 
   return sendNeighborSolicitation(

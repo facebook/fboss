@@ -97,7 +97,7 @@ class IPv6Handler : public StateObserver {
       const folly::MacAddress& targetMac,
       const folly::IPAddressV6& srcIP,
       const folly::MacAddress& srcMac,
-      const VlanID& vlanID,
+      const std::optional<VlanID>& vlanID,
       const PortDescriptor& portDescriptor);
 
  private:
