@@ -219,119 +219,138 @@ TEST(LldpManagerTest, NotEnabledTest) {
 }
 
 TEST(LldpManagerTest, LldpParse) {
-  cfg::SwitchConfig config = testConfigA();
-  *config.ports()[0].routable() = true;
+  auto lldpParseHelper = [](std::optional<VlanID> vlanID) {
+    cfg::SwitchConfig config = testConfigA();
+    *config.ports()[0].routable() = true;
 
-  auto handle = createTestHandle(&config, SwitchFlags::ENABLE_LLDP);
-  auto sw = handle->getSw();
+    auto handle = createTestHandle(&config, SwitchFlags::ENABLE_LLDP);
+    auto sw = handle->getSw();
 
-  // Cache the current stats
-  CounterCache counters(sw);
+    // Cache the current stats
+    CounterCache counters(sw);
 
-  auto pkt = LldpManager::createLldpPkt(
-      sw,
-      MacAddress("2:2:2:2:2:10"),
-      VlanID(1),
-      "somesysname0",
-      "portname",
-      "someportdesc0",
-      1,
-      LldpManager::SYSTEM_CAPABILITY_ROUTER);
+    auto pkt = LldpManager::createLldpPkt(
+        sw,
+        MacAddress("2:2:2:2:2:10"),
+        vlanID,
+        "somesysname0",
+        "portname",
+        "someportdesc0",
+        1,
+        LldpManager::SYSTEM_CAPABILITY_ROUTER);
 
-  handle->rxPacket(
-      std::make_unique<folly::IOBuf>(*pkt->buf()), PortID(1), VlanID(1));
+    handle->rxPacket(
+        std::make_unique<folly::IOBuf>(*pkt->buf()), PortID(1), vlanID);
 
-  counters.update();
-  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.unhandled.sum", 0);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "lldp.recvd.sum", 1);
-  counters.checkDelta(
-      SwitchStats::kCounterPrefix + "lldp.validate_mismatch.sum", 0);
+    counters.update();
+    counters.checkDelta(
+        SwitchStats::kCounterPrefix + "trapped.unhandled.sum", 0);
+    counters.checkDelta(SwitchStats::kCounterPrefix + "lldp.recvd.sum", 1);
+    counters.checkDelta(
+        SwitchStats::kCounterPrefix + "lldp.validate_mismatch.sum", 0);
+  };
+
+  lldpParseHelper(VlanID(1));
+  lldpParseHelper(std::nullopt /* vlanID */);
 }
 
 TEST(LldpManagerTest, LldpValidationPass) {
-  cfg::SwitchConfig config = testConfigA();
-  *config.ports()[0].routable() = true;
-  config.ports()[0].Port::name() = "FooP0";
-  config.ports()[0].Port::description() = "FooP0 Port Description here";
+  auto lldpValidationPassHelper = [](std::optional<VlanID> vlanID) {
+    cfg::SwitchConfig config = testConfigA();
+    *config.ports()[0].routable() = true;
+    config.ports()[0].Port::name() = "FooP0";
+    config.ports()[0].Port::description() = "FooP0 Port Description here";
 
-  config.ports()[0].expectedLLDPValues()[cfg::LLDPTag::SYSTEM_NAME] =
-      "somesysname0";
-  config.ports()[0].expectedLLDPValues()[cfg::LLDPTag::PORT_DESC] =
-      "someportdesc0";
+    config.ports()[0].expectedLLDPValues()[cfg::LLDPTag::SYSTEM_NAME] =
+        "somesysname0";
+    config.ports()[0].expectedLLDPValues()[cfg::LLDPTag::PORT_DESC] =
+        "someportdesc0";
 
-  auto handle = createTestHandle(&config, SwitchFlags::ENABLE_LLDP);
-  auto sw = handle->getSw();
+    auto handle = createTestHandle(&config, SwitchFlags::ENABLE_LLDP);
+    auto sw = handle->getSw();
 
-  // Cache the current stats
-  CounterCache counters(sw);
+    // Cache the current stats
+    CounterCache counters(sw);
 
-  auto pkt = LldpManager::createLldpPkt(
-      sw,
-      MacAddress("2:2:2:2:2:10"),
-      VlanID(1),
-      "somesysname0",
-      "portname",
-      "someportdesc0",
-      120,
-      LldpManager::SYSTEM_CAPABILITY_ROUTER);
+    auto pkt = LldpManager::createLldpPkt(
+        sw,
+        MacAddress("2:2:2:2:2:10"),
+        vlanID,
+        "somesysname0",
+        "portname",
+        "someportdesc0",
+        120,
+        LldpManager::SYSTEM_CAPABILITY_ROUTER);
 
-  handle->rxPacket(
-      std::make_unique<folly::IOBuf>(*pkt->buf()), PortID(1), VlanID(1));
+    handle->rxPacket(
+        std::make_unique<folly::IOBuf>(*pkt->buf()), PortID(1), vlanID);
 
-  sw->updateStats();
-  counters.update();
-  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.unhandled.sum", 0);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "lldp.recvd.sum", 1);
-  counters.checkDelta(
-      SwitchStats::kCounterPrefix + "lldp.validate_mismatch.sum", 0);
-  counters.checkDelta(
-      SwitchStats::kCounterPrefix + "lldp.neighbors_size.sum", 1);
+    sw->updateStats();
+    counters.update();
+    counters.checkDelta(
+        SwitchStats::kCounterPrefix + "trapped.unhandled.sum", 0);
+    counters.checkDelta(SwitchStats::kCounterPrefix + "lldp.recvd.sum", 1);
+    counters.checkDelta(
+        SwitchStats::kCounterPrefix + "lldp.validate_mismatch.sum", 0);
+    counters.checkDelta(
+        SwitchStats::kCounterPrefix + "lldp.neighbors_size.sum", 1);
+  };
+
+  lldpValidationPassHelper(VlanID(1));
+  lldpValidationPassHelper(std::nullopt /* vlanID */);
 }
 
 TEST(LldpManagerTest, LldpValidationFail) {
-  cfg::SwitchConfig config = testConfigA();
-  *config.ports()[0].routable() = true;
-  config.ports()[0].Port::name() = "FooP0";
-  config.ports()[0].Port::description() = "FooP0 Port Description here";
+  auto lldpValidationFailHelper = [](std::optional<VlanID> vlanID) {
+    cfg::SwitchConfig config = testConfigA();
+    *config.ports()[0].routable() = true;
+    config.ports()[0].Port::name() = "FooP0";
+    config.ports()[0].Port::description() = "FooP0 Port Description here";
 
-  config.ports()[0].expectedLLDPValues()[cfg::LLDPTag::SYSTEM_NAME] =
-      "somesysname0";
-  config.ports()[0].expectedLLDPValues()[cfg::LLDPTag::PORT_DESC] =
-      "someportdesc0";
+    config.ports()[0].expectedLLDPValues()[cfg::LLDPTag::SYSTEM_NAME] =
+        "somesysname0";
+    config.ports()[0].expectedLLDPValues()[cfg::LLDPTag::PORT_DESC] =
+        "someportdesc0";
 
-  for (const auto& v : *config.ports()[0].expectedLLDPValues()) {
-    auto port_name = std::string("<no name set>");
-    auto port_name_opt = config.ports()[0].Port::name();
-    if (port_name_opt)
-      port_name = *port_name_opt;
+    for (const auto& v : *config.ports()[0].expectedLLDPValues()) {
+      auto port_name = std::string("<no name set>");
+      auto port_name_opt = config.ports()[0].Port::name();
+      if (port_name_opt)
+        port_name = *port_name_opt;
 
-    XLOG(DBG4) << port_name << ": " << std::to_string(static_cast<int>(v.first))
-               << " -> " << v.second;
-  }
+      XLOG(DBG4) << port_name << ": "
+                 << std::to_string(static_cast<int>(v.first)) << " -> "
+                 << v.second;
+    }
 
-  auto handle = createTestHandle(&config, SwitchFlags::ENABLE_LLDP);
-  auto sw = handle->getSw();
+    auto handle = createTestHandle(&config, SwitchFlags::ENABLE_LLDP);
+    auto sw = handle->getSw();
 
-  // Cache the current stats
-  CounterCache counters(sw);
+    // Cache the current stats
+    CounterCache counters(sw);
 
-  auto pkt = LldpManager::createLldpPkt(
-      sw,
-      MacAddress("2:2:2:2:2:10"),
-      VlanID(1),
-      "otherhost",
-      "otherport",
-      "otherdesc",
-      1,
-      LldpManager::SYSTEM_CAPABILITY_ROUTER);
+    auto pkt = LldpManager::createLldpPkt(
+        sw,
+        MacAddress("2:2:2:2:2:10"),
+        vlanID,
+        "otherhost",
+        "otherport",
+        "otherdesc",
+        1,
+        LldpManager::SYSTEM_CAPABILITY_ROUTER);
 
-  handle->rxPacket(
-      std::make_unique<folly::IOBuf>(*pkt->buf()), PortID(1), VlanID(1));
+    handle->rxPacket(
+        std::make_unique<folly::IOBuf>(*pkt->buf()), PortID(1), vlanID);
 
-  counters.update();
-  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.unhandled.sum", 0);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "lldp.recvd.sum", 1);
-  counters.checkDelta(
-      SwitchStats::kCounterPrefix + "lldp.validate_mismatch.sum", 1);
+    counters.update();
+    counters.checkDelta(
+        SwitchStats::kCounterPrefix + "trapped.unhandled.sum", 0);
+    counters.checkDelta(SwitchStats::kCounterPrefix + "lldp.recvd.sum", 1);
+    counters.checkDelta(
+        SwitchStats::kCounterPrefix + "lldp.validate_mismatch.sum", 1);
+  };
+
+  lldpValidationFailHelper(VlanID(1));
+  lldpValidationFailHelper(std::nullopt /* vlanID */);
 }
 } // unnamed namespace
