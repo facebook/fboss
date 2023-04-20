@@ -2115,23 +2115,20 @@ bool SwSwitch::sendNdpSolicitationHelper(
     std::shared_ptr<SwitchState> state,
     const folly::IPAddressV6& target) {
   bool sent = false;
-  auto vlanID = intf->getVlanID();
-  auto vlan = state->getVlans()->getVlanIf(vlanID);
-  if (vlan) {
-    auto entry = vlan->getNdpTable()->getEntryIf(target);
-    if (entry == nullptr) {
-      // No entry in NDP table, create a neighbor solicitation packet
-      IPv6Handler::sendMulticastNeighborSolicitation(
-          this, target, intf->getMac(), vlan->getID());
+  auto entry = getNeighborEntryForIP(state, intf, target);
+  if (entry == nullptr) {
+    // No entry in NDP table, create a neighbor solicitation packet
+    IPv6Handler::sendMulticastNeighborSolicitation(
+        this, target, intf->getMac(), intf->getVlanIDIf());
 
-      // Notify the updater that we sent a solicitation out
-      getNeighborUpdater()->sentNeighborSolicitation(vlanID, target);
-      sent = true;
-    } else {
-      XLOG(DBG5) << "not sending neighbor solicitation for " << target.str()
-                 << ", " << ((entry->isPending()) ? "pending" : "")
-                 << " entry already exists";
-    }
+    // Notify the updater that we sent a solicitation out
+    getNeighborUpdater()->sentNeighborSolicitation(
+        getVlanIDHelper(intf->getVlanIDIf()), target);
+    sent = true;
+  } else {
+    XLOG(DBG5) << "not sending neighbor solicitation for " << target.str()
+               << ", " << ((entry->isPending()) ? "pending" : "")
+               << " entry already exists";
   }
 
   return sent;
