@@ -212,10 +212,14 @@ void DHCPv4Handler::processRequest(
     const DHCPv4Packet& dhcpPacket) {
   auto dhcpPacketOut(dhcpPacket);
   auto state = sw->getState();
-  auto vlan = state->getVlans()->getVlanIf(pkt->getSrcVlan());
+  auto vlanID = pkt->getSrcVlanIf();
+  auto vlanIDStr = vlanID.has_value()
+      ? folly::to<std::string>(static_cast<int>(vlanID.value()))
+      : "None";
+  auto vlan = state->getVlans()->getVlanIf(sw->getVlanIDHelper(vlanID));
   if (!vlan) {
     sw->stats()->dhcpV4DropPkt();
-    XLOG(DBG4) << " VLAN  " << pkt->getSrcVlan() << " is no longer present "
+    XLOG(DBG4) << " VLAN  " << vlanIDStr << " is no longer present "
                << " dropped dhcp packet received on a port in this VLAN";
     return;
   }
@@ -231,19 +235,21 @@ void DHCPv4Handler::processRequest(
 
   if (dhcpServer.isZero()) {
     sw->stats()->dhcpV4DropPkt();
-    XLOG(DBG4) << " No relay configured for VLAN : " << vlan->getID()
+    XLOG(DBG4) << " No relay configured for VLAN : " << vlanIDStr
                << " dropped dhcp packet ";
     return;
   }
 
   auto switchIp = state->getDhcpV4RelaySrc();
   if (switchIp.isZero()) {
-    auto vlanInterface =
-        state->getInterfaces()->getInterfaceInVlanIf(pkt->getSrcVlan());
-    for (auto iter : std::as_const(*vlanInterface->getAddresses())) {
-      auto address = folly::IPAddress(iter.first);
-      if (address.isV4()) {
-        switchIp = address.asV4();
+    auto interfaceID = sw->getInterfaceIDForPort(pkt->getSrcPort());
+    auto interface = state->getInterfaces()->getInterfaceIf(interfaceID);
+
+    for (auto iter : std::as_const(*interface->getAddresses())) {
+      auto address =
+          std::make_pair(folly::IPAddress(iter.first), iter.second->cref());
+      if (address.first.isV4()) {
+        switchIp = address.first.asV4();
         break;
       }
     }
@@ -282,7 +288,7 @@ void DHCPv4Handler::processRequest(
   MacAddress cpuMac = sw->getPlatform()->getLocalMac();
 
   // Prepare the packet to be sent out
-  EthHdr ethHdr = makeEthHdr(cpuMac, cpuMac, pkt->getSrcVlan());
+  EthHdr ethHdr = makeEthHdr(cpuMac, cpuMac, vlanID);
   auto ipHdr = makeIpv4Header(
       switchIp,
       dhcpServer,
