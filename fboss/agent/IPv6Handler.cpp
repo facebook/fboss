@@ -714,7 +714,7 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
       ? folly::to<std::string>(static_cast<int>(vlanID.value()))
       : "None";
   XLOG(DBG4) << "sending neighbor solicitation for " << targetIP << " on vlan "
-             << vlanIDStr;
+             << vlanIDStr << " solicitedNodeAddr: " << solicitedNodeAddr.str();
 
   sendNeighborSolicitation(
       sw,
@@ -764,7 +764,7 @@ void IPv6Handler::sendUnicastNeighborSolicitation(
   XLOG(DBG4) << "sending unicast neighbor solicitation to " << targetIP << "("
              << targetMac << ")"
              << " on interface " << intfID << " from " << srcIP << "(" << srcMac
-             << ")";
+             << ")  portDescriptor:" << portDescriptor.str();
 
   return sendNeighborSolicitation(
       sw, targetIP, targetMac, srcIP, srcMac, targetIP, vlanID, portDescriptor);
