@@ -154,6 +154,7 @@ SwitchState::SwitchState() {
   resetSystemPorts(std::make_shared<SystemPortMap>());
   resetControlPlane(std::make_shared<ControlPlane>());
   resetSwitchSettings(std::make_shared<SwitchSettings>());
+  resetAcls(std::make_shared<AclMap>());
 }
 
 SwitchState::~SwitchState() {}
@@ -247,11 +248,12 @@ const std::shared_ptr<SystemPortMap>& SwitchState::getRemoteSystemPorts()
 void SwitchState::addAcl(const std::shared_ptr<AclEntry>& acl) {
   // For ease-of-use, automatically clone the AclMap if we are still
   // pointing to a published map.
-  if (cref<switch_state_tags::aclMap>()->isPublished()) {
-    auto acls = cref<switch_state_tags::aclMap>()->clone();
-    ref<switch_state_tags::aclMap>() = acls;
+  auto acls = getAcls();
+  if (acls->isPublished()) {
+    acls = acls->clone();
+    resetAcls(acls);
   }
-  ref<switch_state_tags::aclMap>()->addEntry(acl);
+  getDefaultMap<switch_state_tags::aclMaps>()->addEntry(acl);
 }
 
 std::shared_ptr<AclEntry> SwitchState::getAcl(const std::string& name) const {
@@ -259,7 +261,11 @@ std::shared_ptr<AclEntry> SwitchState::getAcl(const std::string& name) const {
 }
 
 void SwitchState::resetAcls(std::shared_ptr<AclMap> acls) {
-  ref<switch_state_tags::aclMap>() = acls;
+  resetDefaultMap<switch_state_tags::aclMaps>(acls);
+}
+
+const std::shared_ptr<AclMap>& SwitchState::getAcls() const {
+  return getDefaultMap<switch_state_tags::aclMaps>();
 }
 
 void SwitchState::resetAclTableGroups(
@@ -611,25 +617,32 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   auto state = std::make_unique<SwitchState>();
   state->BaseT::fromThrift(switchState);
   if (FLAGS_enable_acl_table_group) {
-    if (!switchState.aclMap()->empty()) {
+    // Use old map if valid else use mmap
+    auto aclMap = state->cref<switch_state_tags::aclMap>();
+    aclMap = aclMap->size()
+        ? aclMap
+        : state->cref<switch_state_tags::aclMaps>()->getAclMap();
+    if (aclMap && aclMap->size()) {
       state->ref<switch_state_tags::aclTableGroupMap>() =
           AclTableGroupMap::createDefaultAclTableGroupMapFromThrift(
-              switchState.get_aclMap());
+              aclMap->toThrift());
+      state->resetAcls(std::make_shared<AclMap>());
       state->ref<switch_state_tags::aclMap>()->clear();
     }
   }
   if (!FLAGS_enable_acl_table_group) {
-    auto aclTableGroupMap = switchState.aclTableGroupMap();
-    if (aclTableGroupMap && aclTableGroupMap->size() > 0) {
-      state->ref<switch_state_tags::aclMap>() =
-          AclTableGroupMap::getDefaultAclTableGroupMap(*aclTableGroupMap);
+    // check legacy table first
+    auto aclMap = state->cref<switch_state_tags::aclTableGroupMap>()
+        ? AclTableGroupMap::getDefaultAclTableGroupMap(
+              state->cref<switch_state_tags::aclTableGroupMap>()->toThrift())
+        : nullptr;
+    aclMap = aclMap && aclMap->size()
+        ? aclMap
+        : state->cref<switch_state_tags::aclTableGroupMaps>()->getAclMap();
+    if (aclMap && aclMap->size()) {
+      state->resetAcls(aclMap);
       state->ref<switch_state_tags::aclTableGroupMap>()->clear();
-    } else if (
-        auto aclMap =
-            state->cref<switch_state_tags::aclTableGroupMaps>()->getAclMap()) {
-      state->ref<switch_state_tags::aclMap>() = aclMap;
-      // multi-acl table support is disabled, so clear the group map
-      state->cref<switch_state_tags::aclTableGroupMaps>()->clear();
+      state->ref<switch_state_tags::aclMap>()->clear();
     }
   }
   /* forward compatibility */
@@ -706,6 +719,7 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
       switch_state_tags::remoteSystemPortMaps,
       switch_state_tags::remoteSystemPortMap>();
 
+  state->fromThrift<switch_state_tags::aclMaps, switch_state_tags::aclMap>();
   return state;
 }
 
@@ -752,27 +766,32 @@ std::optional<ThriftType> SwitchState::toThrift(
 
 state::SwitchState SwitchState::toThrift() const {
   auto data = BaseT::toThrift();
-  auto aclMap = data.aclMap();
+  auto aclMaps = data.aclMaps();
   auto aclTableGroupMap = data.aclTableGroupMap();
+  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
   if (FLAGS_enable_acl_table_group) {
-    if (!aclMap->empty() && (!aclTableGroupMap || aclTableGroupMap->empty())) {
+    if ((aclMaps->find(matcher) != aclMaps->end()) &&
+        !data.get_aclMaps().at(matcher).empty() &&
+        (!aclTableGroupMap || aclTableGroupMap->empty())) {
       data.aclTableGroupMap() =
           AclTableGroupMap::createDefaultAclTableGroupMapFromThrift(
-              data.get_aclMap())
+              data.get_aclMaps().at(matcher))
               ->toThrift();
     }
-    aclMap->clear();
+    aclMaps->clear();
   } else {
-    if (aclTableGroupMap && !aclTableGroupMap->empty() && aclMap->empty()) {
+    if (aclTableGroupMap && !aclTableGroupMap->empty() &&
+        (aclMaps->empty() || aclMaps->find(matcher) == aclMaps->end() ||
+         data.get_aclMaps().at(matcher).empty())) {
       if (auto aclMapPtr =
               AclTableGroupMap::getDefaultAclTableGroupMap(*aclTableGroupMap)) {
-        aclMap = aclMapPtr->toThrift();
+        aclMaps->at(matcher) = aclMapPtr->toThrift();
       }
       aclTableGroupMap->clear();
     } else if (
         auto aclMapPtr =
             cref<switch_state_tags::aclTableGroupMaps>()->getAclMap()) {
-      aclMap = aclMapPtr->toThrift();
+      aclMaps->at(matcher) = aclMapPtr->toThrift();
       data.aclTableGroupMaps()->clear();
     }
   }
@@ -939,6 +958,9 @@ state::SwitchState SwitchState::toThrift() const {
   if (auto controlPlane =
           cref<switch_state_tags::controlPlaneMap>()->getControlPlane()) {
     data.controlPlane() = controlPlane->toThrift();
+  }
+  if (auto obj = toThrift(cref<switch_state_tags::aclMaps>())) {
+    data.aclMap() = *obj;
   }
   // for backward compatibility
   if (const auto& pfcWatchdogRecoveryAction = getPfcWatchdogRecoveryAction()) {

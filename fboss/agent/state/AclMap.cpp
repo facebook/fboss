@@ -11,6 +11,7 @@
 
 #include "fboss/agent/state/NodeMap-defs.h"
 
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
@@ -40,6 +41,14 @@ std::set<cfg::AclTableQualifier> PrioAclMap::requiredQualifiers() const {
     }
   }
   return qualifiers;
+}
+
+std::shared_ptr<AclMap> MultiAclMap::getAclMap() const {
+  auto iter = find(HwSwitchMatcher::defaultHwSwitchMatcherKey());
+  if (iter == cend()) {
+    return nullptr;
+  }
+  return iter->second;
 }
 
 template class ThriftMapNode<AclMap, AclMapTraits>;
