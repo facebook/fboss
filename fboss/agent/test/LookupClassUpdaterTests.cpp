@@ -104,12 +104,20 @@ class LookupClassUpdaterTest : public ::testing::Test {
     return IPAddressV4("10.0.0.4");
   }
 
+  IPAddressV4 kIp4AddrN(int n) const {
+    return IPAddressV4("10.0.0." + std::to_string(n));
+  }
+
   IPAddressV6 kIp6Addr2() const {
     return IPAddressV6("2401:db00:2110:3001::0003");
   }
 
   IPAddressV6 kIp6Addr3() const {
     return IPAddressV6("2401:db00:2110:3001::0004");
+  }
+
+  IPAddressV6 kIp6AddrN(int n) const {
+    return IPAddressV6("2401:db00:2110:3001::" + std::to_string(n));
   }
 
   MacAddress kMacAddress() const {
@@ -119,6 +127,11 @@ class LookupClassUpdaterTest : public ::testing::Test {
   MacAddress kMacAddress2() const {
     return MacAddress("01:02:03:04:05:07");
   }
+
+  MacAddress kMacAddressN(int n) const {
+    return MacAddress("01:02:03:04:05:" + std::to_string(n));
+  }
+
   SwSwitch* getSw() const {
     return sw_;
   }
@@ -334,6 +347,17 @@ class LookupClassUpdaterTest : public ::testing::Test {
       ipAddress = IPAddress(this->kIp4Addr3());
     } else {
       ipAddress = IPAddress(this->kIp6Addr3());
+    }
+
+    return ipAddress;
+  }
+
+  IPAddress getIpAddressN(int n) const {
+    IPAddress ipAddress;
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      ipAddress = IPAddress(this->kIp4AddrN(n));
+    } else {
+      ipAddress = IPAddress(this->kIp6AddrN(n));
     }
 
     return ipAddress;
@@ -778,6 +802,53 @@ TYPED_TEST(
 
   this->resolve(this->getIpAddress(), this->kMacAddress());
   verifyClassIDs();
+}
+
+TYPED_TEST(LookupClassUpdaterNeighborTest, ClassIDRebalance) {
+  int numNeighbors = 15;
+  for (int i = 1; i <= numNeighbors; i++) {
+    this->resolve(this->getIpAddressN(i), this->kMacAddressN(i));
+  }
+  // unresolve some neighbor to emulate imbalanced class id assignment
+  std::set<int> removedNeighbors;
+  for (int i = 1; i <= 2; i++) {
+    for (int j = 0; j <= 2; j++) {
+      int n = i + j * 5;
+      removedNeighbors.insert(n);
+      this->unresolveNeighbor(this->getIpAddressN(n));
+    }
+  }
+  XLOG(DBG2) << "unbalanced class id assignment";
+  auto lookupClassUpdater = this->sw_->getLookupClassUpdater();
+  auto& classID2Cnt =
+      lookupClassUpdater->getPort2ClassIDAndCount()[this->kPortID()];
+  auto isBalanced = [&]() {
+    int minCnt = numNeighbors;
+    int maxCnt = 0;
+    for (auto it : classID2Cnt) {
+      XLOG(DBG2) << "class id " << (int)it.first << " => cnt " << it.second;
+      minCnt = std::min(minCnt, it.second);
+      maxCnt = std::max(maxCnt, it.second);
+    }
+    return maxCnt - minCnt <= 1;
+  };
+  EXPECT_FALSE(isBalanced());
+
+  // emulate flush all neighbor entry and re-learn to trigger rebalance
+  this->sw_->getNeighborUpdater()->portFlushEntries(
+      PortDescriptor(this->kPortID()));
+  this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+  waitForBackgroundThread(this->sw_);
+  waitForStateUpdates(this->sw_);
+
+  for (int i = 1; i <= numNeighbors; i++) {
+    if (removedNeighbors.find(i) == removedNeighbors.end()) {
+      // this neighbor is resolved again aftre flush
+      this->resolve(this->getIpAddressN(i), this->kMacAddressN(i));
+    }
+  }
+  XLOG(DBG2) << "rebalanced class id assignment";
+  EXPECT_TRUE(isBalanced());
 }
 
 TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyClassIDSameMacDifferentIPs) {

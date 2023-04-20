@@ -48,9 +48,12 @@ class LookupClassUpdater : public StateObserver {
       VlanID vlanID,
       cfg::AclLookupClass classID);
 
- private:
   using ClassID2Count = boost::container::flat_map<cfg::AclLookupClass, int>;
+  boost::container::flat_map<PortID, ClassID2Count>& getPort2ClassIDAndCount() {
+    return port2ClassIDAndCount_;
+  }
 
+ private:
   bool portHasClassID(const std::shared_ptr<Port>& port);
 
   template <typename NeighborEntryT>
