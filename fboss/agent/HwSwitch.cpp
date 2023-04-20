@@ -179,6 +179,31 @@ std::shared_ptr<SwitchState> HwSwitch::fillinPortInterfaces(
     newPortMap->updatePort(newPort);
   }
 
+  auto newAggregatePortMap = newState->getAggregatePorts()->modify(&newState);
+  for (auto aggregatePort : *newAggregatePortMap) {
+    auto newAggregatePort = aggregatePort.second->clone();
+
+    if (newAggregatePort->getInterfaceIDs()->size() != 0) {
+      continue;
+    }
+    auto subports = newAggregatePort->sortedSubports();
+    if (subports.size() == 0) {
+      continue;
+    }
+
+    // all Aggregate member ports always belong to the same interface(s). Thus,
+    // pick the interface for any member port
+    auto portID = subports.front().portID;
+
+    std::vector<int32_t> intfIDs;
+    for (const auto& intfID :
+         *newState->getPorts()->getPort(portID)->getInterfaceIDs()) {
+      intfIDs.push_back(intfID->cref());
+    }
+
+    newAggregatePort->setInterfaceIDs(intfIDs);
+    newAggregatePortMap->updateAggregatePort(newAggregatePort);
+  }
   newState->publish();
   return newState;
 }
