@@ -897,7 +897,7 @@ TEST_F(NdpTest, FlushEntry) {
       sw, IPAddressV6("2401:db00:2110:3004::c"), VlanID(5));
   binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::c"));
   // NDP removal should trigger a static MAC entry removal
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(2);
+  EXPECT_STATE_UPDATE_TIMES(sw, 2);
   numFlushed =
       thriftHandler.flushNeighborEntry(make_unique<BinaryAddress>(binAddr), 0);
   EXPECT_EQ(numFlushed, 1);
@@ -905,7 +905,7 @@ TEST_F(NdpTest, FlushEntry) {
   waitForStateUpdates(sw);
 
   // Try flushing 2401:db00:2110:3004::c again (should be a no-op)
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_STATE_UPDATE_TIMES(sw, 0);
   binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::c"));
   numFlushed =
       thriftHandler.flushNeighborEntry(make_unique<BinaryAddress>(binAddr), 5);
@@ -1070,7 +1070,7 @@ TEST_F(NdpTest, PendingNdp) {
 
   // Verify that we don't ever overwrite a valid entry with a pending one.
   // Receive the same packet again, entry should still be valid
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_STATE_UPDATE_TIMES(sw, 0);
 
   // Send the packet to the SwSwitch
   handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), vlanID);
@@ -1775,7 +1775,7 @@ TEST_F(NdpTest, PortFlapRecover) {
   EXPECT_EQ(entry3->isPending(), false);
 
   // send a port down event to the switch for port 1
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(testing::AtLeast(1));
+  EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, 1);
   WaitForNdpEntryPending neigbor0Pending(sw, targetIP, vlanID);
   WaitForNdpEntryPending neigbor1Pending(sw, targetIP2, vlanID);
 
@@ -1806,7 +1806,7 @@ TEST_F(NdpTest, PortFlapRecover) {
   EXPECT_EQ(entry3->isPending(), false);
 
   // send a port up event to the switch for port 1
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(testing::AtLeast(1));
+  EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, 1);
   sw->linkStateChanged(PortID(1), true);
 
   sendNeighborAdvertisement(

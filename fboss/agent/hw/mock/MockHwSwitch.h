@@ -17,6 +17,7 @@
 #include "folly/MacAddress.h"
 
 #include <gmock/gmock.h>
+#include <memory>
 #include <optional>
 
 namespace facebook::fboss {
@@ -131,6 +132,10 @@ class MockHwSwitch : public HwSwitch {
       std::string(const std::vector<HwObjectType>&, bool));
   MOCK_METHOD0(updateAllPhyInfo, std::map<PortID, phy::PhyInfo>());
   MOCK_CONST_METHOD0(getFabricReachability, std::map<PortID, FabricEndpoint>());
+
+  void setInitialState(const std::shared_ptr<SwitchState>& state) {
+    setProgrammedState(state);
+  }
 
  private:
   MOCK_METHOD1(switchRunStateChangedImpl, void(SwitchRunState newState));

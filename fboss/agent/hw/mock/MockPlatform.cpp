@@ -21,6 +21,7 @@
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 
 #include <gmock/gmock.h>
+#include <memory>
 
 using std::make_unique;
 using std::string;

@@ -25,6 +25,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 
 namespace facebook::fboss {
@@ -354,6 +355,46 @@ RoutePrefixV6 makePrefixV6(std::string str);
       *tun,                                         \
       sendPacketToHost_(                            \
           RxPacketMatcher::createMatcher(name, dstIfID, matchFn)))
+
+/**
+ * Convenience macro for expecting stateChanged
+ * usage:
+ *  EXPECT_STATE_UPDATE(sw)
+ */
+#define EXPECT_STATE_UPDATE(sw) EXPECT_HW_CALL(sw, stateChangedImpl(_));
+
+#define EXPECT_STATE_UPDATE_TIMES(sw, times) \
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(times);
+
+#define EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, times) \
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(::testing::AtLeast(times));
+
+/**
+ * Convenience macro for expecting stateChanged
+ * usage:
+ *  EXPECT_STATE_UPDATE_TRANSACTION(sw)
+ */
+#define EXPECT_STATE_UPDATE_TRANSACTION(sw)         \
+  if (!FLAGS_enable_state_oper_delta) {             \
+    EXPECT_HW_CALL(sw, stateChangedTransaction(_)); \
+  } else {                                          \
+    EXPECT_HW_CALL(sw, stateChangedImpl(_));        \
+  }
+
+#define EXPECT_STATE_UPDATE_TRANSACTION_TIMES(sw, times)         \
+  if (!FLAGS_enable_state_oper_delta) {                          \
+    EXPECT_HW_CALL(sw, stateChangedTransaction(_)).Times(times); \
+  } else {                                                       \
+    EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(times);        \
+  }
+
+#define EXPECT_STATE_UPDATE_TRANSACTION_TIMES_ATLEAST(sw, times)              \
+  if (!FLAGS_enable_state_oper_delta) {                                       \
+    EXPECT_HW_CALL(sw, stateChangedTransaction(_))                            \
+        .Times(::testing::AtLeast(times));                                    \
+  } else {                                                                    \
+    EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(::testing::AtLeast(times)); \
+  }
 
 /**
  * Templatized version of Matching function for Tx/Rx packet.

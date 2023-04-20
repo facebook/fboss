@@ -294,7 +294,7 @@ TEST(ArpTest, BasicSendRequest) {
   EXPECT_NE(intf, nullptr);
 
   // Sending an ARP request will trigger state update for setting pending entry
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(2);
+  EXPECT_STATE_UPDATE_TIMES(sw, 2);
   EXPECT_SWITCHED_PKT(
       sw,
       "ARP request",
@@ -345,7 +345,7 @@ TEST(ArpTest, TableUpdates) {
 
   // Sending the ARP request to the switch should not trigger an update to the
   // ArpTable for VLAN 1, but will send a reply packet
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_STATE_UPDATE_TIMES(sw, 0);
   EXPECT_OUT_OF_PORT_PKT(
       sw,
       "ARP reply",
@@ -390,7 +390,7 @@ TEST(ArpTest, TableUpdates) {
 
   // Sending the ARP request to the switch should trigger an update to the
   // ArpTable for VLAN 1, and will then send a reply packet
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(2);
+  EXPECT_STATE_UPDATE_TIMES(sw, 2);
   EXPECT_OUT_OF_PORT_PKT(
       sw,
       "ARP reply",
@@ -431,7 +431,7 @@ TEST(ArpTest, TableUpdates) {
 
   // Sending the same packet again should generate another response,
   // but not another table update.
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_STATE_UPDATE_TIMES(sw, 0);
   EXPECT_OUT_OF_PORT_PKT(
       sw,
       "ARP reply",
@@ -477,7 +477,7 @@ TEST(ArpTest, TableUpdates) {
       // Target IP: 10.0.0.50
       "0a 00 00 32"));
 
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_STATE_UPDATE_TIMES(sw, 0);
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
   handle->rxPacket(std::move(buf), PortID(1), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
@@ -516,7 +516,7 @@ TEST(ArpTest, TableUpdates) {
 
   // Expect 2+ updates, one for the arp entry update (MAC changed)
   // And then 1 (or 2 depends on coalescing) for Static mac updates
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(testing::AtLeast(2));
+  EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, 2);
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
   handle->rxPacket(std::move(buf), PortID(2), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
@@ -562,7 +562,7 @@ TEST(ArpTest, TableUpdates) {
 
   // Arp resolution also triggers a static
   // MAC entry creation update
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(2);
+  EXPECT_STATE_UPDATE_TIMES(sw, 2);
   EXPECT_OUT_OF_PORT_PKT(
       sw,
       "ARP reply",
@@ -621,7 +621,7 @@ TEST(ArpTest, TableUpdates) {
 
   // Arp resolution also triggers a static
   // MAC entry creation update
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(2);
+  EXPECT_STATE_UPDATE_TIMES(sw, 2);
   EXPECT_OUT_OF_PORT_PKT(
       sw,
       "ARP reply",
@@ -783,7 +783,7 @@ TEST(ArpTest, FlushEntry) {
   auto sw = handle->getSw();
 
   // Send ARP replies from several nodes to populate the table
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(testing::AtLeast(1));
+  EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, 1);
   sendArpReply(handle.get(), "10.0.0.11", "02:10:20:30:40:11", 2);
   sendArpReply(handle.get(), "10.0.0.15", "02:10:20:30:40:15", 3);
   sendArpReply(handle.get(), "10.0.0.7", "02:10:20:30:40:07", 1);
@@ -821,7 +821,7 @@ TEST(ArpTest, FlushEntry) {
 
   // Via the thrift API, flush the ARP entry for 10.0.0.11
   // This in turn will trigger static MAC entry pruning update
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(testing::AtLeast(2));
+  EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, 2);
   auto binAddr = toBinaryAddress(IPAddressV4("10.0.0.11"));
   auto numFlushed =
       thriftHandler.flushNeighborEntry(make_unique<BinaryAddress>(binAddr), 1);
@@ -845,7 +845,7 @@ TEST(ArpTest, FlushEntry) {
 
   // Calling flushNeighborEntry() with an IP that isn't present in the table
   // should do nothing and return 0
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_STATE_UPDATE_TIMES(sw, 0);
   binAddr = toBinaryAddress(IPAddressV4("10.0.0.254"));
   numFlushed =
       thriftHandler.flushNeighborEntry(make_unique<BinaryAddress>(binAddr), 1);
@@ -1020,7 +1020,7 @@ TEST(ArpTest, ArpTableSerialization) {
 
   testSendArpRequest(sw, vlanID, senderIP, targetIP);
 
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_STATE_UPDATE_TIMES(sw, 0);
   vlan = sw->getState()->getVlans()->getVlanIf(vlanID);
   EXPECT_NE(vlan, nullptr);
   arpTable = vlan->getArpTable();
@@ -1094,7 +1094,7 @@ TEST(ArpTest, ArpExpiration) {
   // We wait 2.5 seconds(plus change):
   // Up to 1.5 seconds for lifetime.
   // 1 more second for probe
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(testing::AtLeast(1));
+  EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, 1);
   std::array<unique_ptr<WaitForArpEntryExpiration>, 2> arpExpirations;
 
   std::transform(
@@ -1256,7 +1256,7 @@ TEST(ArpTest, PortFlapRecover) {
       });
 
   // send a port down event to the switch for port 1
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(testing::AtLeast(1));
+  EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, 1);
   sw->linkStateChanged(PortID(1), false);
 
   // purging neighbor entries occurs on the background EVB via NeighorUpdater as
@@ -1279,7 +1279,7 @@ TEST(ArpTest, PortFlapRecover) {
   EXPECT_EQ(unaffectedEntry->isPending(), false);
 
   // send a port up event to the switch for port 1
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(testing::AtLeast(1));
+  EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, 1);
   sw->linkStateChanged(PortID(1), true);
   waitForStateUpdates(sw);
 
@@ -1338,7 +1338,7 @@ TEST(ArpTest, receivedPacketWithDirectlyConnectedDestination) {
           senderIP, MacAddress("00:02:00:00:00:01"), targetIP, vlanID));
   // The state will be updated twice: once to create a pending ARP entry and
   // once to expire the ARP entry
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(2);
+  EXPECT_STATE_UPDATE_TIMES(sw, 2);
 
   handle->rxPacket(std::move(buf), PortID(1), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
@@ -1389,7 +1389,7 @@ TEST(ArpTest, receivedPacketWithNoRouteToDestination) {
 
   // Receiving this packet should not trigger a ARP request out,
   // because no interface is able to reach that subnet
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_STATE_UPDATE_TIMES(sw, 0);
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
 
   handle->rxPacket(std::move(buf), PortID(1), vlanID);
@@ -1453,7 +1453,7 @@ TEST(ArpTest, receivedPacketWithRouteToDestination) {
 
   // Receiving this packet should trigger an ARP request to 10.0.0.22 and
   // 10.0.0.23, which causes pending arp entries to be added to the state.
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(testing::AtLeast(2));
+  EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, 2);
   for (auto nexthop : nextHops) {
     EXPECT_SWITCHED_PKT(
         sw,

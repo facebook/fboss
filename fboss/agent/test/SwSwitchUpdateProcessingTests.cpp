@@ -59,6 +59,28 @@ class SwSwitchUpdateProcessingTest : public ::testing::TestWithParam<bool> {
     }
   }
 
+  void setStateChangedReturn(
+      std::function<std::shared_ptr<SwitchState>(const StateDelta& delta)>
+          updateFn) {
+    if (sw->getHw()->transactionsSupported()) {
+      return setStateChangedTransactionReturn(updateFn);
+    }
+    EXPECT_HW_CALL(sw, stateChangedImpl(_))
+        .WillRepeatedly(::testing::WithArg<0>(::testing::Invoke(updateFn)));
+  }
+
+  void setStateChangedTransactionReturn(
+      std::function<std::shared_ptr<SwitchState>(const StateDelta& delta)>
+          updateFn) {
+    if (!FLAGS_enable_state_oper_delta) {
+      EXPECT_HW_CALL(sw, stateChangedTransaction(_))
+          .WillRepeatedly(::testing::WithArg<0>(::testing::Invoke(updateFn)));
+    } else {
+      EXPECT_HW_CALL(sw, stateChangedImpl(_))
+          .WillRepeatedly(::testing::WithArg<0>(::testing::Invoke(updateFn)));
+    }
+  }
+
   SwSwitch* sw{nullptr};
   std::unique_ptr<HwTestHandle> handle{nullptr};
 };
@@ -66,22 +88,27 @@ class SwSwitchUpdateProcessingTest : public ::testing::TestWithParam<bool> {
 TEST_P(SwSwitchUpdateProcessingTest, HwRejectsUpdateThenAccepts) {
   CounterCache counters(sw);
   auto origState = sw->getState();
-  auto newState = bringAllPortsUp(sw->getState()->clone());
   // Have HwSwitch reject this state update. In current implementation
   // this happens only in case of table overflow. However at the SwSwitch
   // layer we don't care *why* the HwSwitch rejected this update, just
   // that it did
-  setStateChangedReturn(origState);
-  auto stateUpdateFn = [=](const std::shared_ptr<SwitchState>& /*state*/) {
-    return newState;
+  setStateChangedReturn([](const StateDelta& delta) {
+    // Reject the update
+    return delta.oldState();
+  });
+  auto stateUpdateFn = [](const std::shared_ptr<SwitchState>& state) {
+    return bringAllPortsUp(state->clone());
   };
   EXPECT_THROW(
       sw->updateStateWithHwFailureProtection("Reject update", stateUpdateFn),
       FbossHwUpdateError);
-  // Have HwSwitch now accept this update
-  setStateChangedReturn(newState);
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "hw_update_failures", 1);
+  // Have HwSwitch now accept this update
+  setStateChangedReturn([](const StateDelta& delta) {
+    CHECK(delta.newState() != delta.oldState());
+    return delta.newState();
+  });
   sw->updateState("Accept update", stateUpdateFn);
   // No increament on successful updates
   counters.update();
@@ -96,10 +123,16 @@ TEST_P(SwSwitchUpdateProcessingTest, HwFailureProtectedUpdateAtEnd) {
   nonHwFailureProtectedUpdateState->publish();
   auto protectedState = nonHwFailureProtectedUpdateState->clone();
   bool transactionsSupported = sw->getHw()->transactionsSupported();
-  EXPECT_HW_CALL(sw, stateChangedImpl(_))
-      .Times(1 + (transactionsSupported ? 0 : 1));
-  if (transactionsSupported) {
-    EXPECT_HW_CALL(sw, stateChangedTransaction(_)).Times(1);
+
+  auto stateChangedImplCalls = 1 + (transactionsSupported ? 0 : 1);
+  auto stateChangedTransactionCalls = transactionsSupported ? 1 : 0;
+  if (FLAGS_enable_state_oper_delta) {
+    EXPECT_HW_CALL(sw, stateChangedImpl(_))
+        .Times(stateChangedImplCalls + stateChangedTransactionCalls);
+  } else {
+    EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(stateChangedImplCalls);
+    EXPECT_HW_CALL(sw, stateChangedTransaction(_))
+        .Times(stateChangedTransactionCalls);
   }
   auto nonHwFailureProtectedUpdateStateUpdateFn =
       [=](const std::shared_ptr<SwitchState>& state) {
@@ -124,9 +157,9 @@ TEST_P(SwSwitchUpdateProcessingTest, BackToBackHwFailureProtectedUpdates) {
   protectedState1->publish();
   auto protectedState2 = protectedState1->clone();
   if (sw->getHw()->transactionsSupported()) {
-    EXPECT_HW_CALL(sw, stateChangedTransaction(_)).Times(2);
+    EXPECT_STATE_UPDATE_TRANSACTION_TIMES(sw, 2);
   } else {
-    EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(2);
+    EXPECT_STATE_UPDATE_TIMES(sw, 2);
   }
   auto protectedState1UpdateFn =
       [=](const std::shared_ptr<SwitchState>& state) {
@@ -152,10 +185,15 @@ TEST_P(SwSwitchUpdateProcessingTest, HwFailureProtectedUpdateAtStart) {
   protectedState->publish();
   auto nonHwFailureProtectedUpdatealState = protectedState->clone();
   bool transactionsSupported = sw->getHw()->transactionsSupported();
-  EXPECT_HW_CALL(sw, stateChangedImpl(_))
-      .Times(1 + (transactionsSupported ? 0 : 1));
-  if (transactionsSupported) {
-    EXPECT_HW_CALL(sw, stateChangedTransaction(_)).Times(1);
+  auto stateChangedImplCalls = 1 + (transactionsSupported ? 0 : 1);
+  auto stateChangedTransactionCalls = transactionsSupported ? 1 : 0;
+  if (FLAGS_enable_state_oper_delta) {
+    EXPECT_HW_CALL(sw, stateChangedImpl(_))
+        .Times(stateChangedImplCalls + stateChangedTransactionCalls);
+  } else {
+    EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(stateChangedImplCalls);
+    EXPECT_HW_CALL(sw, stateChangedTransaction(_))
+        .Times(stateChangedTransactionCalls);
   }
   auto protectedStateUpdateFn = [=](const std::shared_ptr<SwitchState>& state) {
     EXPECT_EQ(state, startState);
@@ -184,27 +222,32 @@ TEST_P(
   // layer we don't care *why* the HwSwitch rejected this update, just
   // that it did
 
-  setStateChangedReturn(origState);
-  auto stateUpdateFn = [=](const std::shared_ptr<SwitchState>& state) {
-    return newState;
+  setStateChangedReturn([](const StateDelta& delta) {
+    /* reject the update */
+    return delta.oldState();
+  });
+  auto stateUpdateFn = [](const std::shared_ptr<SwitchState>& state) {
+    return bringAllPortsUp(state->clone());
   };
   EXPECT_THROW(
       sw->updateStateWithHwFailureProtection(
           "HwFailureProtectedUpdate fail", stateUpdateFn),
       FbossHwUpdateError);
 
-  auto newerState = newState->clone();
-  auto stateUpdateFn2 = [=](const std::shared_ptr<SwitchState>& state) {
-    return newerState;
-  };
   // Next update should be a non protected update since we will schedule it such
-  StateDelta expectedDelta(origState, newerState);
+  setStateChangedReturn([](const StateDelta& delta) {
+    /* accept the update */
+    return delta.newState();
+  });
+
+  StateDelta expectedDelta(origState, newState);
   auto isEqual = [&expectedDelta](const auto& delta) {
-    return delta.newState() == expectedDelta.newState() &&
-        delta.oldState() == expectedDelta.oldState();
+    return delta.newState()->toThrift() ==
+        expectedDelta.newState()->toThrift() &&
+        delta.oldState()->toThrift() == expectedDelta.oldState()->toThrift();
   };
   EXPECT_HW_CALL(sw, stateChangedImpl(testing::Truly(isEqual)));
-  sw->updateState("Accept update", stateUpdateFn2);
+  sw->updateState("Accept update", stateUpdateFn);
   waitForStateUpdates(sw);
 }
 
@@ -229,13 +272,16 @@ TEST_P(SwSwitchUpdateProcessingTest, HwFailureProtectedUpdatesDuringExit) {
     } catch (const FbossHwUpdateError&) {
     }
   });
-  std::thread updateThread2([&updatesPaused, this, &protectedStateUpdateFn]() {
+  std::thread updateThread2([this, &protectedStateUpdateFn]() {
     sw->updateStateWithHwFailureProtection(
         "HwFailureProtectedUpdate update ", protectedStateUpdateFn);
   });
   // Stop SwSwitch
-  std::thread stopThread([this]() { sw->stop(); });
-  updatesPaused.store(false);
+  std::thread stopThread([&updatesPaused, this]() {
+    sw->stop();
+    // unblock updates
+    updatesPaused.store(false);
+  });
   stopThread.join();
   updateThread.join();
   updateThread2.join();

@@ -386,6 +386,7 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
   ret.switchState = state ? state : make_shared<SwitchState>();
   ret.bootType = BootType::COLD_BOOT;
   ret.rib = std::make_unique<RoutingInformationBase>();
+  getMockHw(sw)->setInitialState(ret.switchState);
   EXPECT_HW_CALL(sw, initImpl(_, false, _, _))
       .WillOnce(Return(ByMove(std::move(ret))));
   initSwSwitchWithFlags(sw.get(), flags);
@@ -478,6 +479,8 @@ MockPlatform* getMockPlatform(std::unique_ptr<SwSwitch>& sw) {
 }
 
 std::shared_ptr<SwitchState> waitForStateUpdates(SwSwitch* sw) {
+  // empty the updates queue
+  sw->getUpdateEvb()->runInEventBaseThreadAndWait([]() {});
   // All StateUpdates scheduled from this thread will be applied in order,
   // so we can simply perform a blocking no-op update.  When it is done
   // we can be sure that all previously scheduled updates have also been

@@ -1331,7 +1331,7 @@ TEST_F(ThriftTest, syncFibIsHwProtected) {
   UnicastRoute nr1 =
       *makeUnicastRoute("aaaa::/64", "2401:db00:2110:3001::1").get();
   addRoutes->push_back(nr1);
-  EXPECT_HW_CALL(sw_, stateChangedImpl(_));
+  EXPECT_STATE_UPDATE(sw_);
   handler.addUnicastRoutes(10, std::move(addRoutes));
   auto newRoutes = std::make_unique<std::vector<UnicastRoute>>();
   UnicastRoute nr2 = *makeUnicastRoute("bbbb::/64", "42::42").get();
@@ -1473,7 +1473,7 @@ TEST_F(ThriftTest, hwUpdateErrorAfterPartialUpdate) {
       *makeUnicastRoute("aaaa::/64", "2401:db00:2110:3001::1").get();
   std::vector<UnicastRoute> routes;
   routes.push_back(nr1);
-  EXPECT_HW_CALL(sw_, stateChangedImpl(_)).Times(2);
+  EXPECT_STATE_UPDATE_TIMES(sw_, 2);
   handler.addUnicastRoutes(
       10, std::make_unique<std::vector<UnicastRoute>>(routes));
   auto oneRouteAddedState = sw_->getState();
