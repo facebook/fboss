@@ -308,3 +308,11 @@ target_link_libraries(hwswitch_matcher
   fboss_error
   fboss_types
 )
+
+add_library(switchid_scope_resolver
+  fboss/agent/SwitchIdScopeResolver.cpp
+)
+
+target_link_libraries(switchid_scope_resolver
+  fboss_types
+)
