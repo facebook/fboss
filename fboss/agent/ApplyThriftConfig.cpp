@@ -711,8 +711,10 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     }
   }
 
-  if (platform_->getAsic()->getSwitchType() != cfg::SwitchType::VOQ) {
-    // DSF node processing only needed on INTERFACE_NODEs
+  if (new_->getSwitchSettings()
+          ->getSwitchIdsOfType(cfg::SwitchType::VOQ)
+          .size() == 0) {
+    // DSF node processing only needed on VOQ Switches
     return;
   }
   thrift_cow::ThriftMapDelta delta(
