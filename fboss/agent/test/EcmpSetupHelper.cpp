@@ -303,7 +303,7 @@ std::optional<InterfaceID> BaseEcmpSetupHelper<AddrT, NextHopT>::getInterface(
     if (!port.isPhysicalPort()) {
       return std::nullopt;
     }
-    auto sysPortRange = state->getFirstVoqSystemPortRange();
+    auto sysPortRange = state->getAssociatedSystemPortRangeIf(port.phyPortID());
     if (!sysPortRange.has_value()) {
       return std::nullopt;
     }
