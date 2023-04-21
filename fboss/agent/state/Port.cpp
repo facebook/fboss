@@ -80,6 +80,15 @@ void Port::fillPhyInfo(phy::PhyInfo* phyInfo) {
   phyInfo->speed() = getSpeed();
 }
 
+InterfaceID Port::getInterfaceID() const {
+  // On VOQ/Fabric switches, port and interface have 1:1 relation.
+  // For non VOQ/Fabric switches, in practice, a port is always part of a
+  // single VLAN (and thus single interface).
+  auto intfs = getInterfaceIDs();
+  CHECK_EQ(intfs.size(), 1);
+  return InterfaceID(intfs.at(0));
+}
+
 template class ThriftStructNode<Port, state::PortFields>;
 
 } // namespace facebook::fboss
