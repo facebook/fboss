@@ -472,6 +472,10 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   bool isFabricSwitch() const;
   bool isVoqSwitch() const;
   bool isSwitchType(cfg::SwitchType switchType) const;
+  template <typename AddressT, typename NeighborThriftT>
+  void addRemoteNeighbors(
+      const std::shared_ptr<SwitchState> state,
+      std::vector<NeighborThriftT>& nbrs) const;
 
   /*
    * A pointer to the SwSwitch.  We don't own this.

@@ -598,58 +598,6 @@ PortLoopbackMode toThriftLoopbackMode(cfg::PortLoopbackMode mode) {
   }
   throw FbossError("Bogus loopback mode: ", mode);
 }
-// NOTE : pass by value of state is deliberate. We want to bump
-// a reference cnt and not have sw switch state deleted from
-// underneath us due to parallel updates
-template <typename AddressT, typename NeighborThriftT>
-void addRemoteNeighbors(
-    const std::shared_ptr<SwitchState> state,
-    std::vector<NeighborThriftT>& nbrs) {
-  auto switchId = state->getSwitchSettings()->getSwitchId();
-  if (!switchId ||
-      state->getSwitchSettings()->getSwitchType(switchId.value()) !=
-          cfg::SwitchType::VOQ) {
-    return;
-  }
-
-  CHECK(state->getSwitchSettings()->getSwitchId().has_value());
-  for (auto& nbr : nbrs) {
-    nbr.switchId() = *state->getSwitchSettings()->getSwitchId();
-  }
-  const auto& remoteRifs = state->getRemoteInterfaces();
-  const auto& remoteSysPorts = state->getRemoteSystemPorts();
-  for (const auto& idAndRif : std::as_const(*remoteRifs)) {
-    const auto& rif = idAndRif.second;
-    const auto& nbrTable =
-        std::as_const(*rif->getNeighborEntryTable<AddressT>());
-    for (const auto& ipAndEntry : nbrTable) {
-      const auto& entry = ipAndEntry.second;
-      NeighborThriftT nbrThrift;
-      nbrThrift.ip() = facebook::network::toBinaryAddress(entry->getIP());
-      nbrThrift.mac() = entry->getMac().toString();
-      CHECK(rif->getSystemPortID().has_value());
-      nbrThrift.port() = static_cast<int32_t>(*rif->getSystemPortID());
-      nbrThrift.vlanName() = "--";
-
-      switch (entry->getType()) {
-        case state::NeighborEntryType::STATIC_ENTRY:
-          nbrThrift.state() = "STATIC";
-          break;
-        case state::NeighborEntryType::DYNAMIC_ENTRY:
-          nbrThrift.state() = "DYNAMIC";
-          break;
-      }
-
-      nbrThrift.isLocal() = false;
-      const auto& sysPort =
-          remoteSysPorts->getSystemPortIf(*rif->getSystemPortID());
-      if (sysPort) {
-        nbrThrift.switchId() = static_cast<int64_t>(sysPort->getSwitchId());
-      }
-      nbrs.push_back(nbrThrift);
-    }
-  }
-}
 template <typename AddressT, typename NeighborThriftT>
 void addRecylePortRifNeighbors(
     const std::shared_ptr<SwitchState> state,
@@ -978,6 +926,55 @@ void ThriftHandler::getInterfaceDetail(
   populateInterfaceDetail(interfaceDetail, intf);
 }
 
+// NOTE : pass by value of state is deliberate. We want to bump
+// a reference cnt and not have sw switch state deleted from
+// underneath us due to parallel updates
+template <typename AddressT, typename NeighborThriftT>
+void ThriftHandler::addRemoteNeighbors(
+    const std::shared_ptr<SwitchState> state,
+    std::vector<NeighborThriftT>& nbrs) const {
+  if (!sw_->getSwitchInfoTable().haveVoqSwitches()) {
+    return;
+  }
+  for (auto& nbr : nbrs) {
+    if (*nbr.port()) {
+      nbr.switchId() = state->getAssociatedSwitchID(PortID(*nbr.port()));
+    }
+  }
+  const auto& remoteRifs = state->getRemoteInterfaces();
+  const auto& remoteSysPorts = state->getRemoteSystemPorts();
+  for (const auto& idAndRif : std::as_const(*remoteRifs)) {
+    const auto& rif = idAndRif.second;
+    const auto& nbrTable =
+        std::as_const(*rif->getNeighborEntryTable<AddressT>());
+    for (const auto& ipAndEntry : nbrTable) {
+      const auto& entry = ipAndEntry.second;
+      NeighborThriftT nbrThrift;
+      nbrThrift.ip() = facebook::network::toBinaryAddress(entry->getIP());
+      nbrThrift.mac() = entry->getMac().toString();
+      CHECK(rif->getSystemPortID().has_value());
+      nbrThrift.port() = static_cast<int32_t>(*rif->getSystemPortID());
+      nbrThrift.vlanName() = "--";
+
+      switch (entry->getType()) {
+        case state::NeighborEntryType::STATIC_ENTRY:
+          nbrThrift.state() = "STATIC";
+          break;
+        case state::NeighborEntryType::DYNAMIC_ENTRY:
+          nbrThrift.state() = "DYNAMIC";
+          break;
+      }
+
+      nbrThrift.isLocal() = false;
+      const auto& sysPort =
+          remoteSysPorts->getSystemPortIf(*rif->getSystemPortID());
+      if (sysPort) {
+        nbrThrift.switchId() = static_cast<int64_t>(sysPort->getSwitchId());
+      }
+      nbrs.push_back(nbrThrift);
+    }
+  }
+}
 void ThriftHandler::getNdpTable(std::vector<NdpEntryThrift>& ndpTable) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
