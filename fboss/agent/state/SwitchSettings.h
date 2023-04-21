@@ -163,14 +163,6 @@ class SwitchSettings
     throw FbossError("No SwitchType configured for switchId ", switchId);
   }
 
-  std::optional<int64_t> getSwitchId() const {
-    auto switchIdToSwitchInfo = getSwitchIdToSwitchInfo();
-    if (switchIdToSwitchInfo.size()) {
-      return switchIdToSwitchInfo.begin()->first;
-    }
-    return std::nullopt;
-  }
-
   std::unordered_set<SwitchID> getSwitchIds() const;
   std::unordered_set<SwitchID> getSwitchIdsOfType(cfg::SwitchType type) const;
   bool vlansSupported() const;

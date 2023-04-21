@@ -296,8 +296,7 @@ struct SwitchSettingsFields {
   7: list<BlockedMacAddress> macAddrsToBlock;
   // Switch type
   8: switch_config.SwitchType switchType = switch_config.SwitchType.NPU;
-  // Switch id (only applicable for VOQ based systems)
-  9: optional i64 switchId;
+  9: optional i64 switchId_DEPRECATED;
   10: list<switch_config.ExactMatchTableConfig> exactMatchTableConfigs;
   11: optional switch_config.Range64 systemPortRange_DEPRECATED;
   12: optional i16 defaultVlan;
