@@ -572,12 +572,20 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       typename MultiMapName,
       typename Map = typename InnerMap<MultiMapName, TypeFor>::type>
   const std::shared_ptr<Map>& getDefaultMap() const;
-
   template <
       typename MultiMapName,
       typename Map = typename InnerMap<MultiMapName, TypeFor>::type>
   std::shared_ptr<Map>& getDefaultMap();
 
+  template <
+      typename MultiMapName,
+      typename Map = typename InnerMap<MultiMapName, TypeFor>::type>
+  const std::shared_ptr<Map>& getMap(const HwSwitchMatcher& matcher) const;
+
+  template <
+      typename MultiMapName,
+      typename Map = typename InnerMap<MultiMapName, TypeFor>::type>
+  std::shared_ptr<Map>& getMap(const HwSwitchMatcher& matcher);
   bool isLocalSwitchId(SwitchID switchId) const;
   // Inherit the constructor required for clone()
   using BaseT::BaseT;

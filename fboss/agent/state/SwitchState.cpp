@@ -115,13 +115,23 @@ void SwitchState::resetMap(
 
 template <typename MultiMapName, typename Map>
 const std::shared_ptr<Map>& SwitchState::getDefaultMap() const {
-  return cref<MultiMapName>()->cref(
-      HwSwitchMatcher::defaultHwSwitchMatcherKey());
+  return getMap<MultiMapName, Map>(HwSwitchMatcher::defaultHwSwitchMatcher());
+}
+
+template <typename MultiMapName, typename Map>
+const std::shared_ptr<Map>& SwitchState::getMap(
+    const HwSwitchMatcher& matcher) const {
+  return safe_cref<MultiMapName>()->cref(matcher.matcherString());
 }
 
 template <typename MultiMapName, typename Map>
 std::shared_ptr<Map>& SwitchState::getDefaultMap() {
-  return ref<MultiMapName>()->ref(HwSwitchMatcher::defaultHwSwitchMatcherKey());
+  return getMap<MultiMapName, Map>(HwSwitchMatcher::defaultHwSwitchMatcher());
+}
+
+template <typename MultiMapName, typename Map>
+std::shared_ptr<Map>& SwitchState::getMap(const HwSwitchMatcher& matcher) {
+  return safe_ref<MultiMapName>()->ref(matcher.matcherString());
 }
 
 SwitchState::SwitchState() {
