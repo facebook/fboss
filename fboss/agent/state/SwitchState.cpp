@@ -547,8 +547,8 @@ std::shared_ptr<SwitchState> SwitchState::modifyTransceivers(
 }
 
 bool SwitchState::isLocalSwitchId(SwitchID switchId) const {
-  auto mySwitchId = getSwitchSettings()->getSwitchId();
-  return mySwitchId && SwitchID(*mySwitchId) == switchId;
+  auto localSwitchIds = getSwitchSettings()->getSwitchIds();
+  return localSwitchIds.find(switchId) != localSwitchIds.end();
 }
 
 std::shared_ptr<SystemPortMap> SwitchState::getSystemPorts(
