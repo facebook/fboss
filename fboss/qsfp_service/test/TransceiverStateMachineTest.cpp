@@ -2078,4 +2078,80 @@ TEST_F(TransceiverStateMachineTest, reseatTransceiver) {
   // Step3: Insert the transceiver back and call refreshStateMachine()
   removeCmisTransceiver(false);
 }
+
+TEST_F(TransceiverStateMachineTest, programMultiPortTransceiverSequentially) {
+  xcvr_ = overrideTransceiver(true /* multiPort */, TransceiverType::CMIS);
+  // Step1: Start with discovered state
+  setState(TransceiverStateMachineState::DISCOVERED, true /* multiPort */);
+
+  // Step2: Add one of the two ports for port programming
+  TransceiverManager::OverrideTcvrToPortAndProfile
+      onePortInMultiPortTcvrToPortAndProfile_ = {
+          {id_,
+           {
+               {portId1_, multiPortProfile_},
+           }}};
+  transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+      onePortInMultiPortTcvrToPortAndProfile_);
+
+  // Step3: Refresh multiple times to allow transition from discovered to
+  // tcvr_programmed states
+  for (auto statesToVerify :
+       {TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
+        TransceiverStateMachineState::TRANSCEIVER_READY,
+        TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED}) {
+    transceiverManager_->refreshStateMachines();
+    EXPECT_EQ(transceiverManager_->getCurrentState(id_), statesToVerify);
+  }
+
+  const auto& stateMachine =
+      transceiverManager_->getStateMachineForTesting(id_);
+  EXPECT_TRUE(stateMachine.get_attribute(isIphyProgrammed));
+  EXPECT_TRUE(stateMachine.get_attribute(isTransceiverProgrammed));
+
+  // Step4: Set port status to up to allow transition to active state for port1
+  // in next refresh
+  transceiverManager_->setOverrideAgentPortStatusForTesting(
+      true /* up */, true /* enabled */, false /* clearOnly */);
+  transceiverManager_->refreshStateMachines(); // active
+  EXPECT_EQ(
+      transceiverManager_->getCurrentState(id_),
+      TransceiverStateMachineState::ACTIVE);
+
+  // Step5: Now add the 2nd port for programming
+  transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+      overrideMultiPortTcvrToPortAndProfile_);
+  transceiverManager_->setOverrideAgentPortStatusForTesting(
+      true /* up */, true /* enabled */, false /* clearOnly */);
+
+  // Step6: Refresh and make sure we go back from active to active states
+  // through various steps
+  for (auto statesToVerify :
+       {TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
+        TransceiverStateMachineState::TRANSCEIVER_READY,
+        TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+        TransceiverStateMachineState::ACTIVE}) {
+    transceiverManager_->refreshStateMachines();
+    EXPECT_EQ(transceiverManager_->getCurrentState(id_), statesToVerify);
+  }
+  EXPECT_TRUE(stateMachine.get_attribute(isIphyProgrammed));
+  EXPECT_TRUE(stateMachine.get_attribute(isTransceiverProgrammed));
+
+  // Step7: Back to one port in the transceiver. We should again cycle from
+  // active to active state through various transitions
+  transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+      onePortInMultiPortTcvrToPortAndProfile_);
+  transceiverManager_->setOverrideAgentPortStatusForTesting(
+      true /* up */, true /* enabled */, false /* clearOnly */);
+  for (auto statesToVerify :
+       {TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
+        TransceiverStateMachineState::TRANSCEIVER_READY,
+        TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+        TransceiverStateMachineState::ACTIVE}) {
+    transceiverManager_->refreshStateMachines();
+    EXPECT_EQ(transceiverManager_->getCurrentState(id_), statesToVerify);
+  }
+  EXPECT_TRUE(stateMachine.get_attribute(isIphyProgrammed));
+  EXPECT_TRUE(stateMachine.get_attribute(isTransceiverProgrammed));
+}
 } // namespace facebook::fboss
