@@ -129,6 +129,7 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::TX_SIG_INT_CONT_AD, {CmisPages::PAGE01, 161, 1}},
     {CmisField::RX_SIG_INT_CONT_AD, {CmisPages::PAGE01, 162, 1}},
     {CmisField::CDB_SUPPORT, {CmisPages::PAGE01, 163, 1}},
+    {CmisField::MEDIA_LANE_ASSIGNMENT, {CmisPages::PAGE01, 176, 15}},
     {CmisField::DSP_FW_VERSION, {CmisPages::PAGE01, 194, 2}},
     {CmisField::BUILD_REVISION, {CmisPages::PAGE01, 196, 2}},
     {CmisField::APPLICATION_ADVERTISING2, {CmisPages::PAGE01, 223, 4}},
@@ -436,8 +437,10 @@ CmisModule::getApplicationField(uint8_t application, uint8_t startHostLane)
     const {
   for (const auto& capability : moduleCapabilities_) {
     if (capability.moduleMediaInterface == application &&
-        capability.hostStartLanes.find(startHostLane) !=
-            capability.hostStartLanes.end()) {
+        std::find(
+            capability.hostStartLanes.begin(),
+            capability.hostStartLanes.end(),
+            startHostLane) != capability.hostStartLanes.end()) {
       return capability;
     }
   }
@@ -977,11 +980,10 @@ void CmisModule::getApplicationCapabilities() {
   int length;
   int dataAddress;
 
-  getQsfpFieldAddress(
-      CmisField::APPLICATION_ADVERTISING1, dataAddress, offset, length);
-
   moduleCapabilities_.clear();
   for (uint8_t i = 0; i < 8; i++) {
+    getQsfpFieldAddress(
+        CmisField::APPLICATION_ADVERTISING1, dataAddress, offset, length);
     data = getQsfpValuePtr(dataAddress, offset + i * length, length);
 
     if (data[0] == 0xff) {
@@ -999,7 +1001,20 @@ void CmisModule::getApplicationCapabilities() {
         data[2] & FieldMasks::LOWER_FOUR_BITS_MASK;
     for (int lane = 0; lane < 8; lane++) {
       if (data[3] & (1 << lane)) {
-        applicationAdvertisingField.hostStartLanes.insert(lane);
+        applicationAdvertisingField.hostStartLanes.push_back(lane);
+      }
+    }
+
+    if (!flatMem_) {
+      getQsfpFieldAddress(
+          CmisField::MEDIA_LANE_ASSIGNMENT, dataAddress, offset, length);
+      offset += i;
+      uint8_t mediaLaneAssignment;
+      getQsfpValue(dataAddress, offset, 1, &mediaLaneAssignment);
+      for (int lane = 0; lane < 8; lane++) {
+        if (mediaLaneAssignment & (1 << lane)) {
+          applicationAdvertisingField.mediaStartLanes.push_back(lane);
+        }
       }
     }
 

@@ -219,7 +219,8 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
     auto applicationField = xcvr->getApplicationField(
         static_cast<uint8_t>(supportedApplication), 0);
     EXPECT_NE(applicationField, std::nullopt);
-    EXPECT_EQ(applicationField->hostStartLanes, std::unordered_set<int>{0});
+    EXPECT_EQ(applicationField->hostStartLanes, std::vector<int>{0});
+    EXPECT_EQ(applicationField->mediaStartLanes, std::vector<int>{0});
     for (uint8_t lane = 1; lane < 7; lane++) {
       EXPECT_EQ(
           xcvr->getApplicationField(
@@ -335,7 +336,8 @@ TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
     auto applicationField = xcvr->getApplicationField(
         static_cast<uint8_t>(supportedApplication), 0);
     EXPECT_NE(applicationField, std::nullopt);
-    EXPECT_EQ(applicationField->hostStartLanes, std::unordered_set<int>{0});
+    EXPECT_EQ(applicationField->hostStartLanes, std::vector<int>{0});
+    EXPECT_EQ(applicationField->mediaStartLanes, std::vector<int>{0});
     for (uint8_t lane = 1; lane < 7; lane++) {
       EXPECT_EQ(
           xcvr->getApplicationField(
@@ -435,7 +437,8 @@ TEST_F(CmisTest, cmis400GCr8TransceiverInfoTest) {
     auto applicationField = xcvr->getApplicationField(
         static_cast<uint8_t>(supportedApplication), 0);
     EXPECT_NE(applicationField, std::nullopt);
-    EXPECT_EQ(applicationField->hostStartLanes, std::unordered_set<int>{0});
+    EXPECT_EQ(applicationField->hostStartLanes, std::vector<int>{0});
+    EXPECT_EQ(applicationField->mediaStartLanes, std::vector<int>{});
     for (uint8_t lane = 1; lane < 7; lane++) {
       EXPECT_EQ(
           xcvr->getApplicationField(
