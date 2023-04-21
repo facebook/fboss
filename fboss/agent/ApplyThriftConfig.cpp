@@ -465,13 +465,9 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
 
   {
     auto newSwitchSettings = updateSwitchSettings();
-    // getSwitchId() will be valid from this point
     if (newSwitchSettings) {
-      // TODO - Handle SystemPorts for all VOQs
       if ((newSwitchSettings->getSwitchIdToSwitchInfo() !=
-           orig_->getSwitchSettings()->getSwitchIdToSwitchInfo()) &&
-          newSwitchSettings->getSwitchType(*newSwitchSettings->getSwitchId()) !=
-              cfg::SwitchType::NPU) {
+           orig_->getSwitchSettings()->getSwitchIdToSwitchInfo())) {
         new_->resetSystemPorts(
             updateSystemPorts(new_->getPorts(), newSwitchSettings));
       }
@@ -486,13 +482,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     auto newPorts = updatePorts(new_->getTransceivers());
     if (newPorts) {
       new_->resetPorts(std::move(newPorts));
-      // TODO - Handle SystemPorts for all VOQs
-      if (new_->getSwitchSettings()->getSwitchType(
-              new_->getSwitchSettings()->getSwitchId().value()) ==
-          cfg::SwitchType::VOQ) {
-        new_->resetSystemPorts(
-            updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()));
-      }
+      new_->resetSystemPorts(
+          updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()));
       changed = true;
     }
   }
@@ -677,12 +668,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     if (newDsfNodes) {
       new_->resetDsfNodes(std::move(newDsfNodes));
       processUpdatedDsfNodes();
-      if (new_->getSwitchSettings()->getSwitchType(
-              new_->getSwitchSettings()->getSwitchId().value()) ==
-          cfg::SwitchType::VOQ) {
-        new_->resetSystemPorts(
-            updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()));
-      }
+      new_->resetSystemPorts(
+          updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()));
       changed = true;
     }
   }
