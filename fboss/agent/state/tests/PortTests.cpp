@@ -963,15 +963,11 @@ TEST(Port, verifyInterfaceIDsForVoqSwitches) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
 
-  auto dsfIter = config.dsfNodes()->find(
-      static_cast<int64_t>(*stateV1->getSwitchSettings()->getSwitchId()));
-  EXPECT_TRUE(dsfIter != config.dsfNodes()->end());
-  auto myNode = dsfIter->second;
-
   for (const auto& port : std::as_const(*(stateV1->getPorts()))) {
     auto portID = port.second->getID();
     auto expectedIntfID = InterfaceID(
-        *myNode.systemPortRange()->minimum() + port.second->getID());
+        *stateV1->getAssociatedSystemPortRangeIf(portID)->minimum() +
+        port.second->getID());
     EXPECT_EQ(expectedIntfID, port.second->getInterfaceID());
   }
 }

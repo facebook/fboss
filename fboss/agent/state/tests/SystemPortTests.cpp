@@ -105,10 +105,7 @@ TEST(SystemPort, sysPortNameApplyConfig) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
   EXPECT_EQ(stateV1->getSystemPorts()->size(), stateV1->getPorts()->size());
-  auto switchIdOpt = stateV1->getSwitchSettings()->getSwitchId();
-  CHECK(switchIdOpt.has_value());
-  auto switchId = *switchIdOpt;
-  auto nodeName = *config.dsfNodes()->find(switchId)->second.name();
+  auto nodeName = *config.dsfNodes()->find(SwitchID(1))->second.name();
   for (auto port : std::as_const(*stateV1->getPorts())) {
     auto sysPortName =
         folly::sformat("{}:{}", nodeName, port.second->getName());
@@ -122,12 +119,11 @@ TEST(SystemPort, GetLocalSwitchPortsBySwitchId) {
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
-  auto mySwitchId = stateV1->getSwitchSettings()->getSwitchId();
-  CHECK(mySwitchId) << "Switch ID must be set for VOQ switch";
-  auto mySysPorts = stateV1->getSystemPorts(SwitchID(*mySwitchId));
+  auto localSwitchId = 1;
+  auto mySysPorts = stateV1->getSystemPorts(SwitchID(localSwitchId));
   EXPECT_EQ(mySysPorts->size(), stateV1->getSystemPorts()->size());
   // No remote sys ports
-  EXPECT_EQ(stateV1->getSystemPorts(SwitchID(*mySwitchId + 1))->size(), 0);
+  EXPECT_EQ(stateV1->getSystemPorts(SwitchID(localSwitchId + 1))->size(), 0);
 }
 
 TEST(SystemPort, GetRemoteSwitchPortsBySwitchId) {

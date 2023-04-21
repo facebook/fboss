@@ -86,10 +86,9 @@ unique_ptr<SwSwitch> createMockSw(
   std::unique_ptr<MockPlatform> platform;
   if (state) {
     const auto& switchSettings = state->getSwitchSettings();
-    auto switchId = switchSettings->getSwitchId();
-    CHECK(switchId);
+    auto switchId = switchSettings->getSwitchIdToSwitchInfo().begin()->first;
     platform =
-        createMockPlatform(switchSettings->getSwitchType(*switchId), *switchId);
+        createMockPlatform(switchSettings->getSwitchType(switchId), switchId);
   } else {
     platform = createMockPlatform();
   }
