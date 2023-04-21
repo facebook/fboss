@@ -675,17 +675,13 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   }
 
   {
-    auto switchType = new_->getSwitchSettings()->getSwitchType(
-        *new_->getSwitchSettings()->getSwitchId());
-
     // VOQ/Fabric switches require that the packets are not tagged with any
     // VLAN. We are gradually enhancing wedge_agent to handle tagged as well as
     // untagged packets. During this transition, we will use VlanID 0 as
     // "pseudoVlan" to populate SwitchState/Neighbor cache etc. data structures.
     // Once the wedge_agent changes are complete, we will no longer need
     // pseudoVlan notion.
-    if (switchType == cfg::SwitchType::VOQ ||
-        switchType == cfg::SwitchType::FABRIC) {
+    if (!new_->getSwitchSettings()->vlansSupported()) {
       auto pseudoVlans = updatePseudoVlans();
       if (pseudoVlans) {
         new_->resetVlans(std::move(pseudoVlans));
@@ -2120,10 +2116,7 @@ shared_ptr<VlanMap> ThriftConfigApplier::updateVlans() {
   // Once wedge_agent changes are complete, we can remove this check as
   // cfg_->vlans and origVlans will always be empty for VOQ/Fabric switches and
   // then this function will be a no-op
-  auto switchType = new_->getSwitchSettings()->getSwitchType(
-      *new_->getSwitchSettings()->getSwitchId());
-  if (switchType == cfg::SwitchType::VOQ ||
-      switchType == cfg::SwitchType::FABRIC) {
+  if (!new_->getSwitchSettings()->vlansSupported()) {
     return nullptr;
   }
 
@@ -2226,11 +2219,8 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(
 }
 
 shared_ptr<VlanMap> ThriftConfigApplier::updatePseudoVlans() {
-  auto switchType = new_->getSwitchSettings()->getSwitchType(
-      *new_->getSwitchSettings()->getSwitchId());
-  CHECK(
-      switchType == cfg::SwitchType::VOQ ||
-      switchType == cfg::SwitchType::FABRIC);
+  // Pseudo vlan only case of non vlan supporting configs
+  CHECK(!new_->getSwitchSettings()->vlansSupported());
 
   auto origVlans = orig_->getVlans();
   auto origVlan = origVlans->getVlanIf(kPseudoVlanID);
