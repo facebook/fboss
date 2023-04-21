@@ -953,8 +953,14 @@ void QsfpModule::programTransceiver(
       // Since we're touching the transceiver, we need to update the cached
       // transceiver info
       updateQsfpData(false);
+
       // Cache has been updated, populate the host/mediaLane to port name
       // mapping
+      // First clear the existing mappings
+      hostLaneToPortName.clear();
+      mediaLaneToPortName.clear();
+      portNameToHostLanes.clear();
+      portNameToMediaLanes.clear();
       for (auto portIt : programTcvrState.ports) {
         auto startHostLane = portIt.second.startHostLane;
         updateLaneToPortNameMapping(portIt.first, startHostLane);
@@ -983,45 +989,13 @@ void QsfpModule::updateLaneToPortNameMapping(
       startHostLane); // assumption: startMediaLane = startHostLane
 
   for (auto lane : hostLanes) {
-    // First check if the lanes are already in the mapping. If yes, free them up
-    if (hostLaneToPortName.find(lane) != hostLaneToPortName.end()) {
-      auto previousPortName = hostLaneToPortName[lane];
-      for (auto it = hostLaneToPortName.cbegin();
-           it != hostLaneToPortName.cend();) {
-        if (it->second == previousPortName) {
-          it = hostLaneToPortName.erase(it);
-        } else {
-          ++it;
-        }
-      }
-    }
     hostLaneToPortName[lane] = portName;
+    portNameToHostLanes[portName].insert(lane);
   }
 
   for (auto lane : mediaLanes) {
-    // First check if the lanes are already in the mapping. If yes, free them up
-    if (mediaLaneToPortName.find(lane) != mediaLaneToPortName.end()) {
-      auto previousPortName = mediaLaneToPortName[lane];
-      for (auto it = mediaLaneToPortName.cbegin();
-           it != mediaLaneToPortName.cend();) {
-        if (it->second == previousPortName) {
-          it = mediaLaneToPortName.erase(it);
-        } else {
-          ++it;
-        }
-      }
-    }
     mediaLaneToPortName[lane] = portName;
-  }
-
-  portNameToHostLanes.clear();
-  portNameToMediaLanes.clear();
-  for (auto it : hostLaneToPortName) {
-    portNameToHostLanes[it.second].insert(it.first);
-  }
-
-  for (auto it : mediaLaneToPortName) {
-    portNameToMediaLanes[it.second].insert(it.first);
+    portNameToMediaLanes[portName].insert(lane);
   }
 }
 

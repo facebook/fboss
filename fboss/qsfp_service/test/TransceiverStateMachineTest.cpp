@@ -2081,6 +2081,20 @@ TEST_F(TransceiverStateMachineTest, reseatTransceiver) {
 
 TEST_F(TransceiverStateMachineTest, programMultiPortTransceiverSequentially) {
   xcvr_ = overrideTransceiver(true /* multiPort */, TransceiverType::CMIS);
+  auto verifyPortToLaneMap = [this](bool bothPorts) {
+    std::map<std::string, std::vector<int>> expectedHostLaneMap = {
+        {"eth1/1/1", {0, 1}}};
+    if (bothPorts) {
+      std::vector<int> hostLanes = {2, 3};
+      expectedHostLaneMap.emplace("eth1/1/3", hostLanes);
+    }
+    const auto& info = transceiverManager_->getTransceiverInfo(id_);
+    EXPECT_EQ(info.tcvrState()->portNameToHostLanes(), expectedHostLaneMap);
+    EXPECT_EQ(info.tcvrStats()->portNameToHostLanes(), expectedHostLaneMap);
+    // TODO: media lanes have a bug for multi-port. Add that check when the bug
+    // is fixed
+  };
+
   // Step1: Start with discovered state
   setState(TransceiverStateMachineState::DISCOVERED, true /* multiPort */);
 
@@ -2117,6 +2131,7 @@ TEST_F(TransceiverStateMachineTest, programMultiPortTransceiverSequentially) {
   EXPECT_EQ(
       transceiverManager_->getCurrentState(id_),
       TransceiverStateMachineState::ACTIVE);
+  verifyPortToLaneMap(false /* bothPorts */);
 
   // Step5: Now add the 2nd port for programming
   transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
@@ -2136,6 +2151,7 @@ TEST_F(TransceiverStateMachineTest, programMultiPortTransceiverSequentially) {
   }
   EXPECT_TRUE(stateMachine.get_attribute(isIphyProgrammed));
   EXPECT_TRUE(stateMachine.get_attribute(isTransceiverProgrammed));
+  verifyPortToLaneMap(true /* bothPorts */);
 
   // Step7: Back to one port in the transceiver. We should again cycle from
   // active to active state through various transitions
@@ -2153,5 +2169,6 @@ TEST_F(TransceiverStateMachineTest, programMultiPortTransceiverSequentially) {
   }
   EXPECT_TRUE(stateMachine.get_attribute(isIphyProgrammed));
   EXPECT_TRUE(stateMachine.get_attribute(isTransceiverProgrammed));
+  verifyPortToLaneMap(false /* bothPorts */);
 }
 } // namespace facebook::fboss
