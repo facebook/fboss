@@ -173,6 +173,7 @@ class SwitchSettings
 
   std::unordered_set<SwitchID> getSwitchIds() const;
   std::unordered_set<SwitchID> getSwitchIdsOfType(cfg::SwitchType type) const;
+  bool vlansSupported() const;
 
   cfg::SwitchDrainState getSwitchDrainState() const {
     return cref<switch_state_tags::switchDrainState>()->toThrift();

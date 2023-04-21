@@ -285,6 +285,7 @@ TEST(SwitchSettingsTest, ThrifyMigration) {
   EXPECT_NE(nullptr, stateV1);
   EXPECT_EQ(
       *stateV1->getSwitchSettings()->l3SwitchType(), cfg::SwitchType::NPU);
+  EXPECT_TRUE(stateV1->getSwitchSettings()->vlansSupported());
   validateNodeSerialization(*stateV1->getSwitchSettings());
 }
 
@@ -324,6 +325,7 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
           ->getSwitchIdsOfType(cfg::SwitchType::NPU)
           .size(),
       0);
+  EXPECT_FALSE(stateV1->getSwitchSettings()->vlansSupported());
   EXPECT_EQ(switchInfo.asicType(), cfg::AsicType::ASIC_TYPE_MOCK);
   EXPECT_THROW(switchSettingsV1->getSwitchType(0), FbossError);
   cfg::SwitchInfo switchInfo2;
