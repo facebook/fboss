@@ -773,20 +773,6 @@ std::optional<cfg::Range64> SwitchState::getAssociatedSystemPortRangeIf(
   return getAssociatedSystemPortRangeIf(port->getInterfaceID());
 }
 
-std::optional<cfg::Range64> SwitchState::getFirstVoqSystemPortRange() const {
-  for (const auto& switchIdAndInfo :
-       getSwitchSettings()->getSwitchIdToSwitchInfo()) {
-    if (*switchIdAndInfo.second.switchType() == cfg::SwitchType::VOQ) {
-      auto dsfNode =
-          getDsfNodes()->getDsfNodeIf(SwitchID(switchIdAndInfo.first));
-      CHECK(dsfNode) << "Could not find dsf node for : "
-                     << switchIdAndInfo.first;
-      return dsfNode->getSystemPortRange();
-    }
-  }
-  return std::nullopt;
-}
-
 InterfaceID SwitchState::getInterfaceIDForPort(PortID portID) const {
   auto port = getPorts()->getPort(portID);
   // On VOQ/Fabric switches, port and interface have 1:1 relation.
