@@ -86,4 +86,16 @@ cfg::SwitchType SwitchInfoTable::l3SwitchType() const {
   }
   throw FbossError("No L3 NPUs found");
 }
+
+bool SwitchInfoTable::haveVoqSwitches() const {
+  return getSwitchIdsOfType(cfg::SwitchType::VOQ).size() > 0;
+}
+
+bool SwitchInfoTable::haveNpuSwitches() const {
+  return getSwitchIdsOfType(cfg::SwitchType::NPU).size() > 0;
+}
+
+bool SwitchInfoTable::haveL3Switches() const {
+  return haveVoqSwitches() || haveNpuSwitches();
+}
 } // namespace facebook::fboss
