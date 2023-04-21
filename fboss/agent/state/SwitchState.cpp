@@ -764,6 +764,15 @@ std::optional<cfg::Range64> SwitchState::getAssociatedSystemPortRangeIf(
   return dsfNode->getSystemPortRange();
 }
 
+std::optional<cfg::Range64> SwitchState::getAssociatedSystemPortRangeIf(
+    PortID portID) const {
+  auto port = getPorts()->getPortIf(portID);
+  if (!port || port->getInterfaceIDs().size() != 1) {
+    return std::nullopt;
+  }
+  return getAssociatedSystemPortRangeIf(port->getInterfaceID());
+}
+
 std::optional<cfg::Range64> SwitchState::getFirstVoqSystemPortRange() const {
   for (const auto& switchIdAndInfo :
        getSwitchSettings()->getSwitchIdToSwitchInfo()) {
