@@ -295,7 +295,7 @@ struct SwitchSettingsFields {
   6: list<BlockedNeighbor> blockNeighbors;
   7: list<BlockedMacAddress> macAddrsToBlock;
   // Switch type
-  8: switch_config.SwitchType switchType = switch_config.SwitchType.NPU;
+  8: switch_config.SwitchType switchType_DEPRECATED;
   9: optional i64 switchId_DEPRECATED;
   10: list<switch_config.ExactMatchTableConfig> exactMatchTableConfigs;
   11: optional switch_config.Range64 systemPortRange_DEPRECATED;
