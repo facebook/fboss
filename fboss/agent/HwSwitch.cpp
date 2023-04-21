@@ -168,7 +168,7 @@ std::shared_ptr<SwitchState> HwSwitch::fillinPortInterfaces(
   for (auto port : *newPortMap) {
     auto newPort = port.second->clone();
 
-    if (newPort->getInterfaceIDs()->size() != 0) {
+    if (newPort->getInterfaceIDs().size() != 0) {
       continue;
     }
 
@@ -197,9 +197,9 @@ std::shared_ptr<SwitchState> HwSwitch::fillinPortInterfaces(
     auto portID = subports.front().portID;
 
     std::vector<int32_t> intfIDs;
-    for (const auto& intfID :
-         *newState->getPorts()->getPort(portID)->getInterfaceIDs()) {
-      intfIDs.push_back(intfID->cref());
+    for (auto intfID :
+         newState->getPorts()->getPort(portID)->getInterfaceIDs()) {
+      intfIDs.push_back(intfID);
     }
 
     newAggregatePort->setInterfaceIDs(intfIDs);

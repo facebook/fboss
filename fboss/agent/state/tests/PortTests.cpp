@@ -949,12 +949,10 @@ TEST(Port, verifyInterfaceIDsForNonVoqSwitches) {
   auto expectedPort2Interface = getExpectedPort2Interface(config);
 
   for (const auto& port : std::as_const(*(stateV1->getPorts()))) {
-    for (const auto& intfID : *port.second->getInterfaceIDs()) {
+    for (auto intfID : port.second->getInterfaceIDs()) {
       auto portID = port.second->getID();
       auto expectedIntfID = expectedPort2Interface[portID];
-      auto gotIntfID = int(intfID->cref());
-
-      EXPECT_EQ(expectedIntfID, gotIntfID);
+      EXPECT_EQ(expectedIntfID, intfID);
     }
   }
 }
@@ -973,11 +971,10 @@ TEST(Port, verifyInterfaceIDsForVoqSwitches) {
   auto myNode = dsfIter->second;
 
   for (const auto& port : std::as_const(*(stateV1->getPorts()))) {
-    for (const auto& intfID : *port.second->getInterfaceIDs()) {
+    for (auto intfID : port.second->getInterfaceIDs()) {
       auto expectedIntfID =
           *myNode.systemPortRange()->minimum() + port.second->getID();
-      auto gotIntfID = static_cast<int>(intfID->cref());
-      EXPECT_EQ(expectedIntfID, gotIntfID);
+      EXPECT_EQ(expectedIntfID, intfID);
     }
   }
 }

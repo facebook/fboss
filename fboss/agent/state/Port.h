@@ -567,8 +567,8 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     set<switch_state_tags::linePinConfigs>(pinCfgs);
   }
 
-  auto getInterfaceIDs() const {
-    return safe_cref<switch_state_tags::interfaceIDs>();
+  std::vector<int32_t> getInterfaceIDs() const {
+    return safe_cref<switch_state_tags::interfaceIDs>()->toThrift();
   }
 
   void setInterfaceIDs(const std::vector<int32_t>& interfaceIDs) {
