@@ -303,11 +303,11 @@ std::optional<InterfaceID> BaseEcmpSetupHelper<AddrT, NextHopT>::getInterface(
     if (!port.isPhysicalPort()) {
       return std::nullopt;
     }
-    if (!state->getSwitchSettings()->getSystemPortRange()) {
+    auto sysPortRange = state->getFirstVoqSystemPortRange();
+    if (!sysPortRange.has_value()) {
       return std::nullopt;
     }
-    auto sysPortBase =
-        *state->getSwitchSettings()->getSystemPortRange()->minimum();
+    auto sysPortBase = *sysPortRange->minimum();
     SystemPortID sysPortId{// static_cast to avoid spurious narrowing conversion
                            // compiler warning. PortID is just 16 bits
                            static_cast<int64_t>(port.intID()) + sysPortBase};

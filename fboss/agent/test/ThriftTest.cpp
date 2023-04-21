@@ -159,15 +159,17 @@ class ThriftTestAllSwitchTypes : public ::testing::Test {
     return switchType == cfg::SwitchType::NPU;
   }
   int interfaceIdBegin() const {
+    auto switchId = getSwitchIdAndType().first;
     return isVoq() ? *sw_->getState()
-                          ->getSwitchSettings()
+                          ->getDsfNodes()
+                          ->getDsfNodeIf(switchId)
                           ->getSystemPortRange()
                           ->minimum() +
             5
                    : 1;
   }
 
-  std::pair<SwitchID, cfg::SwitchType> getSwitchIdAndType() {
+  std::pair<SwitchID, cfg::SwitchType> getSwitchIdAndType() const {
     if (isNpu()) {
       return {SwitchID(0), cfg::SwitchType::NPU};
     } else if (isFabric()) {

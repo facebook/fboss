@@ -290,8 +290,13 @@ std::vector<SystemPortID> HwSwitchEnsemble::masterLogicalSysPortIds() const {
   if (getAsic()->getSwitchType() != cfg::SwitchType::VOQ) {
     return sysPorts;
   }
-  auto sysPortRange =
-      getProgrammedState()->getSwitchSettings()->getSystemPortRange();
+  auto switchId = getHwSwitch()->getSwitchId();
+  CHECK(switchId.has_value());
+  auto sysPortRange = getProgrammedState()
+                          ->getDsfNodes()
+                          ->getDsfNodeIf(SwitchID(*switchId))
+                          ->getSystemPortRange();
+  CHECK(sysPortRange.has_value());
   for (auto port : masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})) {
     sysPorts.push_back(
         SystemPortID(*sysPortRange->minimum() + static_cast<int>(port)));

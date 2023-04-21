@@ -294,13 +294,11 @@ int TunManager::getTableIdForVoq(InterfaceID ifID) const {
   // Thus, map ifID to 1-253 with ifID - sysPortMin + 1
   // In practice, [sysPortMin, sysPortMax] range is << 253, so no risk of
   // overflow. Moreover, getTableID asserts that the computed ID is <= 253
-  if (!sw_->getState()->getSwitchSettings()->getSystemPortRange()) {
+  auto sysPortRange = sw_->getState()->getFirstVoqSystemPortRange();
+  if (!sysPortRange.has_value()) {
     throw FbossError("No system port range in SwitchSettings for VOQ switch");
   }
-  auto sysPortMin =
-      *sw_->getState()->getSwitchSettings()->getSystemPortRange()->minimum();
-
-  return ifID - sysPortMin;
+  return ifID - *sysPortRange->minimum();
 }
 
 int TunManager::getInterfaceMtu(InterfaceID ifID) const {

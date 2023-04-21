@@ -177,8 +177,12 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         if (!getAsic()->isSupported(HwAsic::Feature::VOQ)) {
           return 0L;
         }
-        auto sysPortRange =
-            getProgrammedState()->getSwitchSettings()->getSystemPortRange();
+        auto switchId = getHwSwitch()->getSwitchId();
+        CHECK(switchId.has_value());
+        auto sysPortRange = getProgrammedState()
+                                ->getDsfNodes()
+                                ->getDsfNodeIf(SwitchID(*switchId))
+                                ->getSystemPortRange();
         CHECK(sysPortRange.has_value());
         const SystemPortID sysPortId(kPort.intID() + *sysPortRange->minimum());
         return getLatestSysPortStats(sysPortId).get_queueOutBytes_().at(

@@ -195,12 +195,6 @@ class SwitchSettings
    * a CPU-NPUs complex
    */
   std::optional<cfg::SwitchType> l3SwitchType() const;
-  std::optional<cfg::Range64> getSystemPortRange() const {
-    if (auto range = cref<switch_state_tags::systemPortRange>()) {
-      return range->toThrift();
-    }
-    return std::nullopt;
-  }
   void setSystemPortRange(std::optional<cfg::Range64> systemPortRange) {
     if (!systemPortRange) {
       ref<switch_state_tags::systemPortRange>().reset();

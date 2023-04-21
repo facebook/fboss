@@ -150,8 +150,8 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForVoq(Entry* entry) {
           EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
     }
 
-    auto systemPortRange =
-        sw_->getState()->getSwitchSettings()->getSystemPortRange();
+    auto systemPortRange = sw_->getState()->getFirstVoqSystemPortRange();
+    CHECK(systemPortRange.has_value());
     auto systemPortID = *systemPortRange->minimum() + fields.port.phyPortID();
 
     auto newState = state->clone();
@@ -294,8 +294,8 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntryForVoq(
     // TODO: Handle aggregate ports for VOQ switches
     CHECK(port.isPhysicalPort());
 
-    auto systemPortRange =
-        sw_->getState()->getSwitchSettings()->getSystemPortRange();
+    auto systemPortRange = sw_->getState()->getFirstVoqSystemPortRange();
+    CHECK(systemPortRange.has_value());
     auto systemPortID = *systemPortRange->minimum() + port.phyPortID();
 
     auto asic = sw_->getPlatform()->getAsic();
