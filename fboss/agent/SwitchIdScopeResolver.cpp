@@ -29,4 +29,12 @@ std::unordered_set<SwitchID> SwitchIdScopeResolver::getSwitchIdsOfType(
 std::unordered_set<SwitchID> SwitchIdScopeResolver::l3SwitchIds() const {
   return l3SwitchIds_;
 }
+
+HwSwitchMatcher SwitchIdScopeResolver::l3SwitchMatcher() const {
+  CHECK(l3SwitchIds_.size())
+      << " One or more l3 switchIds must be set toget l3 scope";
+  return HwSwitchMatcher{
+      std::set<SwitchID>{l3SwitchIds_.cbegin(), l3SwitchIds_.cend()}};
+}
+
 } // namespace facebook::fboss
