@@ -299,10 +299,10 @@ UnicastRoute makeUnicastRoute(
 PortID getPortID(
     SystemPortID sysPortId,
     const std::shared_ptr<SwitchState>& state) {
-  auto mySwitchId = state->getSwitchSettings()->getSwitchId();
-  CHECK(mySwitchId.has_value());
+  auto sysPort = state->getSystemPorts()->getSystemPort(sysPortId);
+  auto voqSwitchId = sysPort->getSwitchId();
   auto sysPortRange = state->getDsfNodes()
-                          ->getDsfNodeIf(SwitchID(*mySwitchId))
+                          ->getDsfNodeIf(SwitchID(voqSwitchId))
                           ->getSystemPortRange();
   CHECK(sysPortRange.has_value());
   return PortID(static_cast<int64_t>(sysPortId) - *sysPortRange->minimum());
