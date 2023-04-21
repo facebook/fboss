@@ -36,6 +36,11 @@ DsfSubscriber::~DsfSubscriber() {
   stop();
 }
 
+bool DsfSubscriber::isLocal(SwitchID nodeSwitchId) const {
+  auto localSwitchIds = sw_->getSwitchInfoTable().getSwitchIDs();
+  return localSwitchIds.find(nodeSwitchId) != localSwitchIds.end();
+}
+
 void DsfSubscriber::scheduleUpdate(
     const std::shared_ptr<SystemPortMap>& newSysPorts,
     const std::shared_ptr<InterfaceMap>& newRifs,
@@ -50,9 +55,9 @@ void DsfSubscriber::scheduleUpdate(
       folly::sformat("Update state for node: {}", nodeName),
       [this, newSysPorts, newRifs, nodeSwitchId, nodeName](
           const std::shared_ptr<SwitchState>& in) {
-        if (nodeSwitchId == SwitchID(*in->getSwitchSettings()->getSwitchId())) {
+        if (isLocal(nodeSwitchId)) {
           throw FbossError(
-              " Got updates for my switch ID, from: ",
+              " Got updates for a local switch ID, from: ",
               nodeName,
               " id: ",
               nodeSwitchId);
@@ -186,13 +191,6 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
   }
   // Should never get here if we don't have voq switch Ids
   CHECK(voqSwitchIds.size());
-  auto isLocal = [&stateDelta](const std::shared_ptr<DsfNode>& node) {
-    const auto& newSwitchSettings = stateDelta.newState()->getSwitchSettings();
-    const auto& localSwitchIds = newSwitchSettings->getSwitchIds();
-    CHECK(localSwitchIds.size())
-        << " Dsf node config requires local switch ID to be set";
-    return localSwitchIds.find(node->getSwitchId()) != localSwitchIds.end();
-  };
   auto isInterfaceNode = [](const std::shared_ptr<DsfNode>& node) {
     return node->getType() == cfg::DsfNodeType::INTERFACE_NODE;
   };
@@ -228,7 +226,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
   auto addDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
     // No need to setup subscriptions to (local) yourself
     // Only IN nodes have control plane, so ignore non IN DSF nodes
-    if (isLocal(node) || !isInterfaceNode(node)) {
+    if (isLocal(node->getSwitchId()) || !isInterfaceNode(node)) {
       return;
     }
     auto nodeName = node->getName();
@@ -277,7 +275,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
   auto rmDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
     // No need to setup subscriptions to (local) yourself
     // Only IN nodes have control plane, so ignore non IN DSF nodes
-    if (isLocal(node) || !isInterfaceNode(node)) {
+    if (isLocal(node->getSwitchId()) || !isInterfaceNode(node)) {
       return;
     }
     XLOG(DBG2) << " Removing DSF subscriptions to : " << node->getName();

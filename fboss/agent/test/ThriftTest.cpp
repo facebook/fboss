@@ -192,7 +192,7 @@ TYPED_TEST(ThriftTestAllSwitchTypes, checkSwitchId) {
        {cfg::SwitchType::NPU, cfg::SwitchType::VOQ, cfg::SwitchType::FABRIC}) {
     if (type == switchIdAndType.second) {
       EXPECT_EQ(
-          switchInfoTable.getSwitchIdsOfType(switchIdAndType.second)[0],
+          *switchInfoTable.getSwitchIdsOfType(switchIdAndType.second).begin(),
           switchIdAndType.first);
     } else {
       EXPECT_EQ(switchInfoTable.getSwitchIdsOfType(type).size(), 0);

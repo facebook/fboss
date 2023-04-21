@@ -4,6 +4,8 @@
 
 #include "fboss/agent/types.h"
 
+#include <set>
+
 namespace facebook::fboss {
 
 class SwSwitch;
@@ -13,8 +15,8 @@ class SwitchInfoTable {
   SwitchInfoTable(
       SwSwitch* sw,
       const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo);
-  std::vector<SwitchID> getSwitchIdsOfType(cfg::SwitchType type) const;
-  std::vector<SwitchID> getSwitchIDs() const;
+  std::set<SwitchID> getSwitchIdsOfType(cfg::SwitchType type) const;
+  std::set<SwitchID> getSwitchIDs() const;
   bool haveVoqSwitches() const;
   bool haveNpuSwitches() const;
   bool haveL3Switches() const;

@@ -39,6 +39,7 @@ class DsfSubscriber : public StateObserver {
       const std::shared_ptr<InterfaceMap>& newRifs,
       const std::string& nodeName,
       SwitchID nodeSwitchId);
+  bool isLocal(SwitchID nodeSwitchId) const;
   // Paths
   static std::vector<std::string> getSystemPortsPath();
   static std::vector<std::string> getInterfacesPath();
