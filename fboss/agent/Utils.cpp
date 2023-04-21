@@ -311,17 +311,7 @@ PortID getPortID(
 SystemPortID getSystemPortID(
     const PortID& portId,
     const std::shared_ptr<SwitchState>& state) {
-  auto switchId = state->getSwitchSettings()->getSwitchId();
-  CHECK(switchId.has_value());
-  assert(
-      state->getSwitchSettings()->getSwitchType(*switchId) ==
-      cfg::SwitchType::VOQ);
-
-  auto mySwitchId = state->getSwitchSettings()->getSwitchId();
-  CHECK(mySwitchId.has_value());
-  auto sysPortRange = state->getDsfNodes()
-                          ->getDsfNodeIf(SwitchID(*mySwitchId))
-                          ->getSystemPortRange();
+  auto sysPortRange = state->getAssociatedSystemPortRangeIf(portId);
   CHECK(sysPortRange.has_value());
   auto systemPortId = static_cast<int64_t>(portId) + *sysPortRange->minimum();
   CHECK_LE(systemPortId, *sysPortRange->maximum());
