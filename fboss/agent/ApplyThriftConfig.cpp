@@ -3636,8 +3636,6 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
       auto origLocalNode = orig_->getDsfNodes()->getDsfNodeIf(switchId);
       if (!origLocalNode ||
           origLocalNode->getSystemPortRange() != *localNode.systemPortRange()) {
-        // TODO - get rid of single system port range on switchSettings
-        newSwitchSettings->setSystemPortRange(*localNode.systemPortRange());
         switchSettingsChange = true;
       }
     }

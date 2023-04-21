@@ -195,14 +195,6 @@ class SwitchSettings
    * a CPU-NPUs complex
    */
   std::optional<cfg::SwitchType> l3SwitchType() const;
-  void setSystemPortRange(std::optional<cfg::Range64> systemPortRange) {
-    if (!systemPortRange) {
-      ref<switch_state_tags::systemPortRange>().reset();
-    } else {
-      set<switch_state_tags::systemPortRange>(*systemPortRange);
-    }
-  }
-
   std::optional<int64_t> getDefaultVlan() const {
     if (auto defaultVlan = cref<switch_state_tags::defaultVlan>()) {
       return defaultVlan->toThrift();
