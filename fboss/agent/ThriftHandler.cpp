@@ -2170,7 +2170,7 @@ void ThriftHandler::ensureConfigured(StringPiece function) const {
 
 void ThriftHandler::ensureNPU(StringPiece function) const {
   ensureConfigured(function);
-  if (isNpuSwitch()) {
+  if (sw_->getSwitchInfoTable().haveNpuSwitches()) {
     return;
   }
 
@@ -2182,7 +2182,7 @@ void ThriftHandler::ensureNPU(StringPiece function) const {
 
 void ThriftHandler::ensureNotFabric(StringPiece function) const {
   ensureConfigured(function);
-  if (isFabricSwitch()) {
+  if (!sw_->getSwitchInfoTable().haveL3Switches()) {
     if (!function.empty()) {
       XLOG(DBG1) << function << " not supported on Fabric Switch type: ";
     }
@@ -2593,25 +2593,6 @@ void ThriftHandler::getBlockedNeighbors(
             .str();
     blockedNeighbors.emplace_back(std::move(blockedNeighbor));
   }
-}
-
-bool ThriftHandler::isSwitchType(cfg::SwitchType switchType) const {
-  auto switchId = sw_->getState()->getSwitchSettings()->getSwitchId();
-  CHECK(switchId.has_value());
-  return sw_->getState()->getSwitchSettings()->getSwitchType(
-             switchId.value()) == switchType;
-}
-
-bool ThriftHandler::isFabricSwitch() const {
-  return isSwitchType(cfg::SwitchType::FABRIC);
-}
-
-bool ThriftHandler::isVoqSwitch() const {
-  return isSwitchType(cfg::SwitchType::VOQ);
-}
-
-bool ThriftHandler::isNpuSwitch() const {
-  return isSwitchType(cfg::SwitchType::NPU);
 }
 
 void ThriftHandler::setNeighborsToBlock(

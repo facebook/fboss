@@ -468,10 +468,6 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
     FbossError error(folly::exceptionStr(ex));
     callback->exception(error);
   }
-  bool isNpuSwitch() const;
-  bool isFabricSwitch() const;
-  bool isVoqSwitch() const;
-  bool isSwitchType(cfg::SwitchType switchType) const;
   template <typename AddressT, typename NeighborThriftT>
   void addRemoteNeighbors(
       const std::shared_ptr<SwitchState> state,
