@@ -102,7 +102,8 @@ void IPv4Handler::sendICMPTimeExceeded(
 
   IPAddressV4 srcIp;
   try {
-    srcIp = getSwitchIntfIP(state, sw_->getInterfaceIDForPort(port));
+    srcIp =
+        getSwitchIntfIP(state, sw_->getState()->getInterfaceIDForPort(port));
   } catch (const std::exception& ex) {
     srcIp = getAnyIntfIP(state);
   }
@@ -160,7 +161,7 @@ void IPv4Handler::handlePacket(
     stats->port(port)->pktDropped();
     return;
   }
-  auto intfID = sw_->getInterfaceIDForPort(port);
+  auto intfID = sw_->getState()->getInterfaceIDForPort(port);
   auto ingressInterface = state->getInterfaces()->getInterfaceIf(intfID);
   if (!ingressInterface) {
     // Received packed on unknown port / interface
@@ -196,7 +197,7 @@ void IPv4Handler::handlePacket(
       return;
     }
     // Forward multicast packet directly to corresponding host interface
-    auto intfID = sw_->getInterfaceIDForPort(port);
+    auto intfID = sw_->getState()->getInterfaceIDForPort(port);
     intf = state->getInterfaces()->getInterfaceIf(intfID);
   } else if (v4Hdr.dstAddr.isLinkLocal()) {
     // XXX: Ideally we should scope the limit to Link only. However we are
@@ -205,7 +206,7 @@ void IPv4Handler::handlePacket(
     //
     // Forward link-local packet directly to corresponding host interface
     // provided desAddr is assigned to that interface.
-    // auto intfID = sw_->getInterfaceIDForPort(port);
+    // auto intfID = sw_->getState()->getInterfaceIDForPort(port);
     // intf = state->getInterfaces()->getInterfaceIf(intfID);
     // if (not intf->hasAddress(v4Hdr.dstAddr)) {
     //   intf = nullptr;
@@ -282,7 +283,7 @@ bool IPv4Handler::resolveMac(
     // Received packed on unknown port
     return false;
   }
-  auto intfID = sw_->getInterfaceIDForPort(ingressPort);
+  auto intfID = sw_->getState()->getInterfaceIDForPort(ingressPort);
   auto ingressInterface = state->getInterfaces()->getInterfaceIf(intfID);
   if (!ingressInterface) {
     // Received packed on unknown port / interface

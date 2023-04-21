@@ -786,7 +786,6 @@ class SwSwitch : public HwSwitch::Callback {
   VlanID getVlanIDHelper(std::optional<VlanID> vlanID) const;
   std::optional<VlanID> getVlanIDForPkt(VlanID vlanID) const;
 
-  InterfaceID getInterfaceIDForPort(PortID portID) const;
   InterfaceID getInterfaceIDForAggregatePort(
       AggregatePortID aggregatePortID) const;
 

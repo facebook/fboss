@@ -764,6 +764,15 @@ std::optional<cfg::Range64> SwitchState::getFirstVoqSystemPortRange() const {
   }
   return std::nullopt;
 }
+
+InterfaceID SwitchState::getInterfaceIDForPort(PortID portID) const {
+  auto port = getPorts()->getPort(portID);
+  // On VOQ/Fabric switches, port and interface have 1:1 relation.
+  // For non VOQ/Fabric switches, in practice, a port is always part of a
+  // single VLAN (and thus single interface).
+  return port->getInterfaceID();
+}
+
 std::shared_ptr<SwitchState> SwitchState::fromThrift(
     const state::SwitchState& data) {
   auto uniqState = uniquePtrFromThrift(data);

@@ -202,8 +202,8 @@ void DHCPv6Handler::processDHCPv6Packet(
 
   auto switchIp = states->getDhcpV6RelaySrc();
   if (switchIp.isZero()) {
-    switchIp =
-        getSwitchIntfIPv6(states, sw->getInterfaceIDForPort(pkt->getSrcPort()));
+    switchIp = getSwitchIntfIPv6(
+        states, sw->getState()->getInterfaceIDForPort(pkt->getSrcPort()));
   }
 
   // link address set to unspecified

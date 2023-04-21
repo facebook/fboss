@@ -140,7 +140,7 @@ inline void NdpCache::checkReachability(
   std::shared_ptr<Interface> srcIntf;
   switch (port.type()) {
     case PortDescriptor::PortType::PHYSICAL:
-      intfID = getSw()->getInterfaceIDForPort(port.phyPortID());
+      intfID = getSw()->getState()->getInterfaceIDForPort(port.phyPortID());
       srcIntf = state->getInterfaces()->getInterfaceIf(intfID);
       break;
     case PortDescriptor::PortType::AGGREGATE:
