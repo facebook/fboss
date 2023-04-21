@@ -174,6 +174,7 @@ target_link_libraries(core
   hardware_stats_cpp2
   hw_switch_fb303_stats
   switch_asics
+  switchid_scope_resolver
   ctrl_cpp2
   fboss_cpp2
   lldp

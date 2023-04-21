@@ -24,6 +24,7 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "fboss/agent/normalization/Normalizer.h"
@@ -135,7 +136,8 @@ class ThriftConfigApplier {
         cfg_(config),
         platform_(platform),
         rib_(rib),
-        aclNexthopHandler_(aclNexthopHandler) {}
+        aclNexthopHandler_(aclNexthopHandler),
+        scopeResolver_(*config->switchSettings()->switchIdToSwitchInfo()) {}
   ThriftConfigApplier(
       const std::shared_ptr<SwitchState>& orig,
       const cfg::SwitchConfig* config,
@@ -146,7 +148,8 @@ class ThriftConfigApplier {
         cfg_(config),
         platform_(platform),
         routeUpdater_(routeUpdater),
-        aclNexthopHandler_(aclNexthopHandler) {}
+        aclNexthopHandler_(aclNexthopHandler),
+        scopeResolver_(*config->switchSettings()->switchIdToSwitchInfo()) {}
 
   std::shared_ptr<SwitchState> run();
 
@@ -415,6 +418,7 @@ class ThriftConfigApplier {
   RoutingInformationBase* rib_{nullptr};
   RouteUpdateWrapper* routeUpdater_{nullptr};
   AclNexthopHandler* aclNexthopHandler_{nullptr};
+  SwitchIdScopeResolver scopeResolver_;
 
   struct InterfaceIpInfo {
     InterfaceIpInfo(uint8_t mask, MacAddress mac, InterfaceID intf)
