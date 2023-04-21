@@ -61,6 +61,17 @@ std::optional<cfg::SwitchType> SwitchSettings::l3SwitchType() const {
   return std::nullopt;
 }
 
+std::unordered_set<SwitchID> SwitchSettings::getSwitchIdsOfType(
+    cfg::SwitchType type) const {
+  std::unordered_set<SwitchID> switchIds;
+  for (const auto& switchIdAndInfo : getSwitchIdToSwitchInfo()) {
+    if (switchIdAndInfo.second.switchType() == type) {
+      switchIds.insert(SwitchID(switchIdAndInfo.first));
+    }
+  }
+  return switchIds;
+}
+
 std::shared_ptr<SwitchSettings> MultiSwitchSettings::getSwitchSettings() const {
   auto iter = find(HwSwitchMatcher::defaultHwSwitchMatcherKey());
   if (iter == cend()) {

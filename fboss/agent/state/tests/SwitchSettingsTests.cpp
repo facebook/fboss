@@ -314,6 +314,16 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   EXPECT_EQ(switchInfo.portIdRange()->maximum(), 1023);
   EXPECT_EQ(
       *stateV1->getSwitchSettings()->l3SwitchType(), cfg::SwitchType::VOQ);
+  EXPECT_EQ(
+      stateV1->getSwitchSettings()
+          ->getSwitchIdsOfType(cfg::SwitchType::VOQ)
+          .size(),
+      1);
+  EXPECT_EQ(
+      stateV1->getSwitchSettings()
+          ->getSwitchIdsOfType(cfg::SwitchType::NPU)
+          .size(),
+      0);
   EXPECT_EQ(switchInfo.asicType(), cfg::AsicType::ASIC_TYPE_MOCK);
   EXPECT_THROW(switchSettingsV1->getSwitchType(0), FbossError);
   cfg::SwitchInfo switchInfo2;
