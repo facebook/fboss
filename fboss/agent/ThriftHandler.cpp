@@ -628,9 +628,7 @@ void addRecylePortRifNeighbors(
       CHECK(entry->getType() == state::NeighborEntryType::STATIC_ENTRY);
       nbrThrift.state() = "STATIC";
       nbrThrift.isLocal() = true;
-      nbrThrift.switchId() =
-          static_cast<int64_t>(*state->getSwitchSettings()->getSwitchId());
-
+      nbrThrift.switchId() = static_cast<int64_t>(switchId);
       nbrs.push_back(nbrThrift);
     }
   }
