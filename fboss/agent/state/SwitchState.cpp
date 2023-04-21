@@ -38,7 +38,6 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 
-#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "folly/IPAddress.h"
 #include "folly/IPAddressV4.h"
@@ -97,12 +96,19 @@ namespace facebook::fboss {
 
 template <typename MultiMapName, typename Map>
 void SwitchState::resetDefaultMap(std::shared_ptr<Map> map) {
-  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcher();
+  resetMap<MultiMapName, Map>(map, matcher);
+}
+template <typename MultiMapName, typename Map>
+void SwitchState::resetMap(
+    const std::shared_ptr<Map>& map,
+    const HwSwitchMatcher& matcher) {
   auto multiMap = cref<MultiMapName>()->clone();
-  if (!multiMap->getNodeIf(matcher)) {
-    multiMap->addNode(matcher, map);
+  auto matcherKey = matcher.matcherString();
+  if (!multiMap->getNodeIf(matcherKey)) {
+    multiMap->addNode(matcherKey, map);
   } else {
-    multiMap->updateNode(matcher, map);
+    multiMap->updateNode(matcherKey, map);
   }
   ref<MultiMapName>() = multiMap;
 }
@@ -347,8 +353,10 @@ const std::shared_ptr<LoadBalancerMap>& SwitchState::getLoadBalancers() const {
   return getDefaultMap<switch_state_tags::loadBalancerMaps>();
 }
 
-void SwitchState::resetMirrors(std::shared_ptr<MirrorMap> mirrors) {
-  resetDefaultMap<switch_state_tags::mirrorMaps>(mirrors);
+void SwitchState::resetMirrors(
+    const std::shared_ptr<MirrorMap>& mirrors,
+    const HwSwitchMatcher& matcher) {
+  resetMap<switch_state_tags::mirrorMaps>(mirrors, matcher);
 }
 
 const std::shared_ptr<SflowCollectorMap>& SwitchState::getSflowCollectors()

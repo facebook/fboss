@@ -16,6 +16,7 @@
 #include <folly/Memory.h>
 #include <folly/dynamic.h>
 
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AclTableGroup.h"
@@ -495,6 +496,13 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       const std::string& name,
       cfg::PortType portType = cfg::PortType::INTERFACE_PORT);
   void addPort(const std::shared_ptr<Port>& port);
+  /*
+   * Retire default argument once all call sites have been migrated
+   */
+  void resetMirrors(
+      const std::shared_ptr<MirrorMap>& mirrors,
+      const HwSwitchMatcher& matcher =
+          HwSwitchMatcher::defaultHwSwitchMatcher());
   void resetPorts(std::shared_ptr<PortMap> ports);
   void resetAggregatePorts(std::shared_ptr<AggregatePortMap> aggPorts);
   void resetVlans(std::shared_ptr<VlanMap> vlans);
@@ -510,7 +518,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetQosPolicies(const std::shared_ptr<QosPolicyMap>& qosPolicyMap);
   void resetControlPlane(std::shared_ptr<ControlPlane> cpu);
   void resetLoadBalancers(std::shared_ptr<LoadBalancerMap> loadBalancers);
-  void resetMirrors(std::shared_ptr<MirrorMap> mirrors);
   void resetLabelForwardingInformationBase(
       std::shared_ptr<LabelForwardingInformationBase> labelFib);
   void resetForwardingInformationBases(
@@ -554,6 +561,12 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       typename MultiMapName,
       typename Map = typename InnerMap<MultiMapName, TypeFor>::type>
   void resetDefaultMap(std::shared_ptr<Map> map);
+  template <
+      typename MultiMapName,
+      typename Map = typename InnerMap<MultiMapName, TypeFor>::type>
+  void resetMap(
+      const std::shared_ptr<Map>& map,
+      const HwSwitchMatcher& matcher);
 
   template <
       typename MultiMapName,
