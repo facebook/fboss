@@ -42,9 +42,9 @@ SwitchInfoTable::SwitchInfoTable(
   }
 }
 
-std::set<SwitchID> SwitchInfoTable::getSwitchIdsOfType(
+std::unordered_set<SwitchID> SwitchInfoTable::getSwitchIdsOfType(
     cfg::SwitchType type) const {
-  std::set<SwitchID> switchIds;
+  std::unordered_set<SwitchID> switchIds;
   for (const auto& switchIdAndSwitchInfo : switchIdToSwitchInfo_) {
     if (switchIdAndSwitchInfo.second.switchType() == type) {
       switchIds.insert(switchIdAndSwitchInfo.first);
@@ -53,9 +53,9 @@ std::set<SwitchID> SwitchInfoTable::getSwitchIdsOfType(
   return switchIds;
 }
 
-std::set<SwitchID> SwitchInfoTable::getSwitchIDs() const {
+std::unordered_set<SwitchID> SwitchInfoTable::getSwitchIDs() const {
   CHECK_NE(switchIdToSwitchInfo_.size(), 0);
-  std::set<SwitchID> switchIds;
+  std::unordered_set<SwitchID> switchIds;
   for (const auto& switchIdAndSwitchInfo : switchIdToSwitchInfo_) {
     switchIds.insert(switchIdAndSwitchInfo.first);
   }

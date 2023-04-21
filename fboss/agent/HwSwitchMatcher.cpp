@@ -29,7 +29,7 @@ HwSwitchMatcher::HwSwitchMatcher(const std::string& matcherString)
   }
 }
 
-HwSwitchMatcher::HwSwitchMatcher(const std::set<SwitchID>& switchIds)
+HwSwitchMatcher::HwSwitchMatcher(const std::unordered_set<SwitchID>& switchIds)
     : switchIds_(switchIds) {
   if (switchIds.empty()) {
     throw FbossError("HwSwitchMatcher: invalid npus");

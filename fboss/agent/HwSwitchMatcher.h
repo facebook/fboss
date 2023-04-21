@@ -4,15 +4,17 @@
 
 #include "fboss/agent/types.h"
 
+#include <unordered_set>
+
 namespace facebook::fboss {
 
 class HwSwitchMatcher {
  public:
   explicit HwSwitchMatcher(const std::string& matcherString);
-  explicit HwSwitchMatcher(const std::set<SwitchID>& switchIds);
+  explicit HwSwitchMatcher(const std::unordered_set<SwitchID>& switchIds);
   HwSwitchMatcher() : HwSwitchMatcher(defaultHwSwitchMatcherKey()) {}
 
-  const std::set<SwitchID> npus() const {
+  const std::unordered_set<SwitchID> npus() const {
     return switchIds_;
   }
 
@@ -30,7 +32,7 @@ class HwSwitchMatcher {
 
  private:
   std::string matcherString_;
-  std::set<SwitchID> switchIds_;
+  std::unordered_set<SwitchID> switchIds_;
 };
 
 } // namespace facebook::fboss
