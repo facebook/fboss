@@ -3124,21 +3124,20 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
     shared_ptr<Interface> newIntf;
     auto newAddrs = getInterfaceAddresses(&interfaceCfg);
     if (interfaceCfg.type() == cfg::InterfaceType::SYSTEM_PORT) {
-      auto mySwitchId = new_->getSwitchSettings()->getSwitchId();
-      CHECK(mySwitchId.has_value());
-      auto myDsfNode = cfg_->dsfNodes()->find(*mySwitchId)->second;
-      auto sysPortRange = myDsfNode.systemPortRange();
+      auto sysPort = new_->getSystemPorts()->getSystemPort(
+          SystemPortID(*interfaceCfg.intfID()));
+      auto dsfNode = cfg_->dsfNodes()->find(sysPort->getSwitchId())->second;
+      auto sysPortRange = dsfNode.systemPortRange();
       CHECK(sysPortRange.has_value());
       if (interfaceCfg.intfID() < sysPortRange->minimum() ||
           interfaceCfg.intfID() > sysPortRange->maximum()) {
         throw FbossError(
             "Interface intfID :",
             *interfaceCfg.intfID(),
-            "is out of range for this VOQ switch intfID: ",
-            *mySwitchId,
-            "sys port range, min: ",
+            "is out of range for corresponding VOQ switch.",
+            "sys port range,->min: ",
             *sysPortRange->minimum(),
-            " max: ",
+            "->max: ",
             *sysPortRange->maximum());
       }
     }
