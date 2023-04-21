@@ -314,6 +314,10 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   }
 
   /*
+   * Get switch ID associated with port
+   */
+  SwitchID getAssociatedSwitchID(PortID portID) const;
+  /*
    * Get sys port range associated with this interface. Only applicable
    * for interfaces of type system port
    */
