@@ -314,6 +314,12 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   }
 
   /*
+   * Get sys port range associated with this interface. Only applicable
+   * for interfaces of type system port
+   */
+  std::optional<cfg::Range64> getAssociatedSystemPortRangeIf(
+      InterfaceID intfID) const;
+  /*
    * Transitory api while we make SwSwitch capable of
    * handling more than one VOQ switches
    */

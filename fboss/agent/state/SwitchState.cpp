@@ -751,6 +751,19 @@ VlanID SwitchState::getDefaultVlan() const {
   return VlanID(cref<switch_state_tags::defaultVlan>()->toThrift());
 }
 
+std::optional<cfg::Range64> SwitchState::getAssociatedSystemPortRangeIf(
+    InterfaceID intfID) const {
+  auto intf = getInterfaces()->getInterfaceIf(intfID);
+  if (!intf || intf->getType() != cfg::InterfaceType::SYSTEM_PORT) {
+    return std::nullopt;
+  }
+  auto systemPortID = intf->getSystemPortID();
+  CHECK(systemPortID.has_value());
+  auto switchId = getSystemPorts()->getSystemPort(*systemPortID)->getSwitchId();
+  auto dsfNode = getDsfNodes()->getDsfNodeIf(switchId);
+  return dsfNode->getSystemPortRange();
+}
+
 std::optional<cfg::Range64> SwitchState::getFirstVoqSystemPortRange() const {
   for (const auto& switchIdAndInfo :
        getSwitchSettings()->getSwitchIdToSwitchInfo()) {

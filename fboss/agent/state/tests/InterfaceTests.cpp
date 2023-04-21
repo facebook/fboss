@@ -657,6 +657,28 @@ TEST(Interface, getInterfaceSysPortID) {
   EXPECT_FALSE(intf->getSystemPortID().has_value());
 }
 
+TEST(Interface, getInterfaceSysPortRangeVoqSwitch) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto config = testConfigA(cfg::SwitchType::VOQ);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  auto intf = stateV1->getInterfaces()->begin()->second;
+  EXPECT_TRUE(
+      stateV1->getAssociatedSystemPortRangeIf(intf->getID()).has_value());
+}
+
+TEST(Interface, getInterfaceSysPortRange) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto config = testConfigA();
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  auto intf = stateV1->getInterfaces()->begin()->second;
+  EXPECT_FALSE(
+      stateV1->getAssociatedSystemPortRangeIf(intf->getID()).has_value());
+}
+
 TEST(Interface, getInterfacePortsVoqSwitch) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
