@@ -375,7 +375,9 @@ const std::shared_ptr<SflowCollectorMap>& SwitchState::getSflowCollectors()
 }
 
 const std::shared_ptr<MirrorMap>& SwitchState::getMirrors() const {
-  return getDefaultMap<switch_state_tags::mirrorMaps>();
+  CHECK_EQ(cref<switch_state_tags::mirrorMaps>()->size(), 1);
+  return getMap<switch_state_tags::mirrorMaps>(
+      HwSwitchMatcher(cref<switch_state_tags::mirrorMaps>()->cbegin()->first));
 }
 
 const std::shared_ptr<QosPolicyMap>& SwitchState::getQosPolicies() const {
