@@ -1469,6 +1469,9 @@ const i16 DEFAULT_FLOWLET_TABLE_SIZE = 4096;
 struct SwitchInfo {
   1: SwitchType switchType;
   2: AsicType asicType;
+  // local switch identifier
+  3: i16 switchIndex;
+  4: Range64 portIdRange;
 }
 
 /*

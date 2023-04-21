@@ -310,6 +310,9 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   EXPECT_EQ(switchSettingsV1->getSwitchIdToSwitchInfo().size(), 1);
   auto switchInfo = switchSettingsV1->getSwitchIdToSwitchInfo().at(1);
   EXPECT_EQ(switchInfo.switchType(), cfg::SwitchType::VOQ);
+  EXPECT_EQ(switchInfo.switchIndex(), 0);
+  EXPECT_EQ(switchInfo.portIdRange()->minimum(), 0);
+  EXPECT_EQ(switchInfo.portIdRange()->maximum(), 1023);
   EXPECT_EQ(
       stateV1->getDsfNodes()->getDsfNodeIf(SwitchID(1))->getSystemPortRange(),
       *stateV1->getFirstVoqSystemPortRange());
@@ -324,6 +327,22 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
       std::make_pair(2, switchInfo2)};
   EXPECT_THROW(
       publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
+  // Should allow range and switchIndex changes
+  // TODO - block this after config is rolled out everywhere
+  switchInfo2.switchType() = cfg::SwitchType::VOQ;
+  cfg::Range64 portIdRange;
+  portIdRange.minimum() = 1024;
+  portIdRange.maximum() = 2047;
+  switchInfo2.portIdRange() = portIdRange;
+  config.switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(1, switchInfo2)};
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  EXPECT_NE(nullptr, stateV2);
+  auto switchSettingsV2 = stateV2->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV2);
+  auto switchInfo3 = switchSettingsV2->getSwitchIdToSwitchInfo().at(1);
+  EXPECT_EQ(switchInfo3.portIdRange()->minimum(), 1024);
+  EXPECT_EQ(switchInfo3.portIdRange()->maximum(), 2047);
   validateNodeSerialization(*switchSettingsV1);
 }
 

@@ -31,6 +31,11 @@ SwitchInfoTable::SwitchInfoTable(
     int64_t switchId = sw_->getPlatform()->getAsic()->getSwitchId()
         ? *sw_->getPlatform()->getAsic()->getSwitchId()
         : 0;
+    cfg::Range64 portIdRange;
+    portIdRange.minimum() = 0;
+    portIdRange.maximum() = 1023;
+    switchInfo.switchIndex() = 0;
+    switchInfo.portIdRange() = portIdRange;
     switchInfo.switchType() = sw_->getPlatform()->getAsic()->getSwitchType();
     switchInfo.asicType() = sw_->getPlatform()->getAsic()->getAsicType();
     switchIdToSwitchInfo_.emplace(switchId, switchInfo);

@@ -601,5 +601,14 @@ void addSwitchInfo(
          cfg::SwitchInfo(
              apache::thrift::FragileConstructor(),
              cfg::SwitchType::NPU,
-             cfg::AsicType::ASIC_TYPE_MOCK)}});
+             cfg::AsicType::ASIC_TYPE_MOCK,
+             0,
+             cfg::Range64(apache::thrift::FragileConstructor(), 0, 1023))}});
+
+cfg::SwitchInfo createSwitchInfo(
+    cfg::SwitchType switchType,
+    cfg::AsicType asicType = cfg::AsicType::ASIC_TYPE_MOCK,
+    int64_t portIdMin = 0,
+    int64_t portIdMax = 1023,
+    int16_t switchIndex = 0);
 } // namespace facebook::fboss

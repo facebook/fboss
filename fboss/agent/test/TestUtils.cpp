@@ -137,11 +137,8 @@ cfg::SwitchConfig testConfigFabricSwitch() {
   static constexpr auto kPortCount = 20;
   cfg::SwitchConfig cfg;
   cfg.ports()->resize(kPortCount);
-  cfg::SwitchInfo switchInfo;
-  switchInfo.switchType() = cfg::SwitchType::FABRIC;
-  switchInfo.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
   cfg.switchSettings()->switchIdToSwitchInfo() = {
-      std::make_pair(2, switchInfo)};
+      std::make_pair(2, createSwitchInfo(cfg::SwitchType::FABRIC))};
   for (int p = 0; p < kPortCount; ++p) {
     cfg.ports()[p].logicalID() = p + 1;
     cfg.ports()[p].name() = folly::to<string>("port", p + 1);
@@ -238,19 +235,13 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
     cfg.interfaces()[1].ipAddresses()[1] = "192.168.55.1/24";
     cfg.interfaces()[1].ipAddresses()[2] = "2401:db00:2110:3055::0001/64";
     cfg.interfaces()[1].ipAddresses()[3] = "169.254.0.0/16"; // link local
-    cfg::SwitchInfo switchInfo;
-    switchInfo.switchType() = cfg::SwitchType::NPU;
-    switchInfo.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
     cfg.switchSettings()->switchIdToSwitchInfo() = {
-        std::make_pair(0, switchInfo)};
+        std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU))};
   } else {
     if (switchType == cfg::SwitchType::VOQ) {
       // Add config for VOQ DsfNode
-      cfg::SwitchInfo switchInfo;
-      switchInfo.switchType() = cfg::SwitchType::VOQ;
-      switchInfo.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
       cfg.switchSettings()->switchIdToSwitchInfo() = {
-          std::make_pair(1, switchInfo)};
+          std::make_pair(1, createSwitchInfo(cfg::SwitchType::VOQ))};
       cfg::DsfNode myNode = makeDsfNodeCfg(1);
       cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
       cfg.interfaces()->resize(kPortCount);
@@ -399,11 +390,8 @@ unique_ptr<MockPlatform> createMockPlatform(
     int64_t switchId) {
   auto mock = make_unique<testing::NiceMock<MockPlatform>>();
   cfg::AgentConfig thrift;
-  cfg::SwitchInfo switchInfo;
-  switchInfo.switchType() = switchType;
-  switchInfo.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
   thrift.sw()->switchSettings()->switchIdToSwitchInfo() = {
-      std::make_pair(switchId, switchInfo)};
+      std::make_pair(switchId, createSwitchInfo(switchType))};
   auto agentCfg = std::make_unique<AgentConfig>(thrift, "");
   mock->init(std::move(agentCfg), 0);
   return std::move(mock);
@@ -438,16 +426,12 @@ unique_ptr<HwTestHandle> createTestHandle(
       switchIdToSwitchInfo = *config->switchSettings()->switchIdToSwitchInfo();
 
     } else {
-      cfg::SwitchInfo switchInfo;
-      switchInfo.switchType() = *config->switchSettings()->switchType();
-      switchInfo.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
-      switchIdToSwitchInfo.emplace(std::make_pair(0, switchInfo));
+      switchIdToSwitchInfo.emplace(std::make_pair(
+          0, createSwitchInfo(*config->switchSettings()->switchType())));
     }
   } else {
-    cfg::SwitchInfo switchInfo;
-    switchInfo.switchType() = cfg::SwitchType::NPU;
-    switchInfo.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
-    switchIdToSwitchInfo.emplace(std::make_pair(0, switchInfo));
+    switchIdToSwitchInfo.emplace(
+        std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU)));
   }
 
   initialState->getSwitchSettings()->setSwitchIdToSwitchInfo(
@@ -514,15 +498,15 @@ shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
   // Setup a default state object
   auto state = make_shared<SwitchState>();
   SwitchIdToSwitchInfo switchIdToSwitchInfo;
-  cfg::SwitchInfo switchInfo;
-  switchInfo.switchType() = switchType;
-  switchInfo.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
   if (switchType == cfg::SwitchType::VOQ) {
-    switchIdToSwitchInfo.insert(std::make_pair(1, switchInfo));
+    switchIdToSwitchInfo.insert(
+        std::make_pair(1, createSwitchInfo(switchType)));
   } else if (switchType == cfg::SwitchType::FABRIC) {
-    switchIdToSwitchInfo.insert(std::make_pair(2, switchInfo));
+    switchIdToSwitchInfo.insert(
+        std::make_pair(2, createSwitchInfo(switchType)));
   } else {
-    switchIdToSwitchInfo.insert(std::make_pair(0, switchInfo));
+    switchIdToSwitchInfo.insert(
+        std::make_pair(0, createSwitchInfo(switchType)));
   }
   state->getSwitchSettings()->setSwitchIdToSwitchInfo(switchIdToSwitchInfo);
 
@@ -945,5 +929,22 @@ void addSwitchInfo(
     std::shared_ptr<SwitchState>& state,
     std::map<int64_t, cfg::SwitchInfo> switchInfo) {
   state->getSwitchSettings()->setSwitchIdToSwitchInfo(switchInfo);
+}
+
+cfg::SwitchInfo createSwitchInfo(
+    cfg::SwitchType switchType,
+    cfg::AsicType asicType,
+    int64_t portIdMin,
+    int64_t portIdMax,
+    int16_t switchIndex) {
+  cfg::SwitchInfo switchInfo;
+  switchInfo.switchType() = switchType;
+  switchInfo.asicType() = asicType;
+  cfg::Range64 portIdRange;
+  portIdRange.minimum() = portIdMin;
+  portIdRange.maximum() = portIdMax;
+  switchInfo.portIdRange() = portIdRange;
+  switchInfo.switchIndex() = switchIndex;
+  return switchInfo;
 }
 } // namespace facebook::fboss

@@ -332,6 +332,11 @@ cfg::SwitchConfig genPortVlanCfg(
     }
   }
   cfg::SwitchInfo switchInfo;
+  cfg::Range64 portIdRange;
+  portIdRange.minimum() = 0;
+  portIdRange.maximum() = 1023;
+  switchInfo.portIdRange() = portIdRange;
+  switchInfo.switchIndex() = 0;
   switchInfo.switchType() = switchType;
   switchInfo.asicType() = asic->getAsicType();
   config.switchSettings()->switchIdToSwitchInfo() = {

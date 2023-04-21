@@ -3542,17 +3542,56 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
   SwitchIdToSwitchInfo switchIdtoSwitchInfo;
   if (cfg_->switchSettings()->switchIdToSwitchInfo()->size()) {
     switchIdtoSwitchInfo = *(cfg_->switchSettings()->switchIdToSwitchInfo());
+    for (auto& entry : switchIdtoSwitchInfo) {
+      auto& switchInfo = entry.second;
+      // TODO - remove this once portIdRange is set in configerator
+      if (*switchInfo.portIdRange()->minimum() ==
+              *switchInfo.portIdRange()->maximum() &&
+          *switchInfo.portIdRange()->maximum() == 0) {
+        switchInfo.portIdRange()->minimum() = 0;
+        switchInfo.portIdRange()->maximum() = 1023;
+      }
+    }
   } else {
     // TODO - remove this once switchIdToSwitchInfo config is rolled out
     cfg::SwitchInfo switchInfo;
+    cfg::Range64 portIdRange;
+    portIdRange.minimum() = 0;
+    portIdRange.maximum() = 1023;
+    switchInfo.portIdRange() = portIdRange;
+    switchInfo.switchIndex() = 0;
     switchInfo.switchType() = *cfg_->switchSettings()->switchType();
     switchInfo.asicType() = platform_->getAsic()->getAsicType();
     switchIdtoSwitchInfo.insert(std::make_pair(0, switchInfo));
   }
+
+  // TODO - Disallow changing any switchInfo parameter after first
+  // config apply. Currently we check only switchId and SwitchType
+  // This is to allow rollout of new parameters - portIdRange and
+  // switchIndex without breaking warmboot
+  auto validateSwitchInfoChange = [](const auto& oldSwitchInfo,
+                                     const auto& newSwitchInfo) {
+    if (oldSwitchInfo.size() != newSwitchInfo.size()) {
+      return false;
+    }
+    for (const auto& switchIdAndInfo : newSwitchInfo) {
+      const auto switchId = switchIdAndInfo.first;
+      const auto& switchInfo = switchIdAndInfo.second;
+      // Disallow SwitchId and SwitchType changes
+      if (oldSwitchInfo.find(switchId) == oldSwitchInfo.end() ||
+          switchInfo.switchType() != oldSwitchInfo.at(switchId).switchType()) {
+        return false;
+      }
+    }
+    return true;
+  };
   if (origSwitchSettings->getSwitchIdToSwitchInfo() != switchIdtoSwitchInfo) {
-    // If old switch id setting were valid, do not allow changing it
-    if (origSwitchSettings->getSwitchIdToSwitchInfo().size()) {
-      throw FbossError("SwitchId and SwitchInfo cannot be changed on the fly");
+    if (origSwitchSettings->getSwitchIdToSwitchInfo().size() &&
+        !validateSwitchInfoChange(
+            origSwitchSettings->getSwitchIdToSwitchInfo(),
+            switchIdtoSwitchInfo)) {
+      throw FbossError(
+          "SwitchId and SwitchInfo type cannot be changed on the fly");
     }
     newSwitchSettings->setSwitchIdToSwitchInfo(switchIdtoSwitchInfo);
     switchSettingsChange = true;
