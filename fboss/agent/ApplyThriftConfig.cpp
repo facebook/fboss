@@ -701,13 +701,14 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
 }
 
 void ThriftConfigApplier::processUpdatedDsfNodes() {
-  auto mySwitchId = new_->getSwitchSettings()->getSwitchId();
-  CHECK(mySwitchId) << " Dsf node config requires switch ID to be set";
-  auto origDsfNode = orig_->getDsfNodes()->getNodeIf(*mySwitchId);
-  if (origDsfNode &&
-      origDsfNode->getType() !=
-          new_->getDsfNodes()->getNodeIf(*mySwitchId)->getType()) {
-    throw FbossError("Change in DSF node type is not supported");
+  auto localSwitchIds = new_->getSwitchSettings()->getSwitchIds();
+  for (auto localSwitchId : localSwitchIds) {
+    auto origDsfNode = orig_->getDsfNodes()->getNodeIf(localSwitchId);
+    if (origDsfNode &&
+        origDsfNode->getType() !=
+            new_->getDsfNodes()->getNodeIf(localSwitchId)->getType()) {
+      throw FbossError("Change in DSF node type is not supported");
+    }
   }
 
   if (platform_->getAsic()->getSwitchType() != cfg::SwitchType::VOQ) {
@@ -720,8 +721,8 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     CHECK(node->getSystemPortRange().has_value());
     return *node->getSystemPortRange()->minimum() + 1;
   };
-  auto isLocal = [mySwitchId, this](const std::shared_ptr<DsfNode>& node) {
-    return SwitchID(*mySwitchId) == node->getSwitchId();
+  auto isLocal = [localSwitchIds](const std::shared_ptr<DsfNode>& node) {
+    return localSwitchIds.find(node->getSwitchId()) != localSwitchIds.end();
   };
   auto isInterfaceNode = [](const std::shared_ptr<DsfNode>& node) {
     return node->getType() == cfg::DsfNodeType::INTERFACE_NODE;
