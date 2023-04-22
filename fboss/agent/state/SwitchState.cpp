@@ -171,7 +171,7 @@ SwitchState::SwitchState() {
   set<switch_state_tags::aclTableGroupMap>(
       std::map<cfg::AclStage, state::AclTableGroupFields>{});
   // default multi-map (for single npu) system
-  resetMirrors(std::make_shared<MirrorMap>());
+  resetDefaultMap<switch_state_tags::mirrorMaps>(std::make_shared<MirrorMap>());
   resetForwardingInformationBases(
       std::make_shared<ForwardingInformationBaseMap>());
   resetSflowCollectors(std::make_shared<SflowCollectorMap>());
@@ -387,10 +387,8 @@ const std::shared_ptr<LoadBalancerMap>& SwitchState::getLoadBalancers() const {
   return getDefaultMap<switch_state_tags::loadBalancerMaps>();
 }
 
-void SwitchState::resetMirrors(
-    const std::shared_ptr<MirrorMap>& mirrors,
-    const HwSwitchMatcher& matcher) {
-  resetMap<switch_state_tags::mirrorMaps>(mirrors, matcher);
+void SwitchState::resetMirrors(const std::shared_ptr<MirrorMap>& mirrors) {
+  resetMap<switch_state_tags::mirrorMaps>(mirrors);
 }
 
 const std::shared_ptr<SflowCollectorMap>& SwitchState::getSflowCollectors()

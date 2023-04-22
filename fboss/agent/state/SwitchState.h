@@ -511,10 +511,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   /*
    * Retire default argument once all call sites have been migrated
    */
-  void resetMirrors(
-      const std::shared_ptr<MirrorMap>& mirrors,
-      const HwSwitchMatcher& matcher =
-          HwSwitchMatcher::defaultHwSwitchMatcher());
+  void resetMirrors(const std::shared_ptr<MirrorMap>& mirrors);
   void resetPorts(std::shared_ptr<PortMap> ports);
   void resetAggregatePorts(std::shared_ptr<AggregatePortMap> aggPorts);
   void resetVlans(std::shared_ptr<VlanMap> vlans);

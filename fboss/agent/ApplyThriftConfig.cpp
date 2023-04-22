@@ -500,9 +500,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newMirrors = updateMirrors();
     if (newMirrors) {
-      new_->resetMirrors(
-          std::move(newMirrors),
-          scopeResolver_.scope(std::shared_ptr<Mirror>()));
+      new_->resetMirrors(std::move(newMirrors));
       changed = true;
     }
   }
