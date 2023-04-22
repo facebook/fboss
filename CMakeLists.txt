@@ -80,7 +80,7 @@ if (SAI_BRCM_IMPL)
   # to build bcm xgs
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSAI_VERSION_9_0_EA_DNX_ODP")
   set(SAI_VER_MAJOR "1")
-  set(SAI_VER_MINOR "11")
+  set(SAI_VER_MINOR "12")
   set(SAI_VER_RELEASE "0")
 else()
   set(SAI_VER_MAJOR "1")
