@@ -30,6 +30,18 @@ MirrorMap* MirrorMap::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
+void MultiMirrorMap::addNode(
+    std::shared_ptr<Mirror> mirror,
+    const HwSwitchMatcher& matcher) {
+  const auto& key = matcher.matcherString();
+  auto mitr = find(key);
+  if (mitr == end()) {
+    mitr = insert(key, std::make_shared<MirrorMap>()).first;
+  }
+  auto& mirrorMap = mitr->second;
+  mirrorMap->addMirror(std::move(mirror));
+}
+
 template class ThriftMapNode<MirrorMap, MirrorMapTraits>;
 
 } // namespace facebook::fboss

@@ -75,10 +75,12 @@ class MultiMirrorMap
  public:
   using Traits = MultiMirrorMapTraits;
   using BaseT = ThriftMapNode<MultiMirrorMap, MultiMirrorMapTraits>;
-  using BaseT::modify;
+  using BaseT::addNode;
 
   MultiMirrorMap() {}
   virtual ~MultiMirrorMap() {}
+
+  void addNode(std::shared_ptr<Mirror> mirror, const HwSwitchMatcher& matcher);
 
  private:
   // Inherit the constructors required for clone()
