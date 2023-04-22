@@ -13,6 +13,7 @@
 
 #include "DsfNodeMap.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AclTableGroupMap.h"
@@ -111,6 +112,29 @@ void SwitchState::resetMap(
     multiMap->updateNode(matcherKey, map);
   }
   ref<MultiMapName>() = multiMap;
+}
+
+template <typename MultiMapName, typename Map>
+void SwitchState::resetMap(const std::shared_ptr<Map>& map) {
+  auto multiMap = ref<MultiMapName>()->clone();
+  multiMap->clear();
+  SwitchIdScopeResolver scoper(getSwitchSettings()->getSwitchIdToSwitchInfo());
+  for (const auto& idAndNode : *map) {
+    auto matcher = scoper.scope(idAndNode.second);
+    multiMap->addNode(idAndNode.second, matcher);
+  }
+  ref<MultiMapName>() = multiMap;
+  /*
+   * FIXME - since we are still returning inner map from
+   * getXXX (e.g. getMirrors, getAcls etc) call we always
+   * want at least a single entity to be in that map. As
+   * once migrate get apis to return m-npu maps we can
+   * get rid of the code below
+   */
+  if (ref<MultiMapName>()->empty()) {
+    CHECK(map->empty());
+    resetDefaultMap<MultiMapName>(map);
+  }
 }
 
 template <typename MultiMapName, typename Map>
