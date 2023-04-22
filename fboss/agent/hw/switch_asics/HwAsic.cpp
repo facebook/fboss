@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/hw/switch_asics/FakeAsic.h"
 #include "fboss/agent/hw/switch_asics/GaronneAsic.h"
+#include "fboss/agent/hw/switch_asics/YubaAsic.h"
 #include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include "fboss/agent/hw/switch_asics/MarvelPhyAsic.h"
@@ -94,6 +95,9 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
     case cfg::AsicType::ASIC_TYPE_GARONNE:
       return std::make_unique<GaronneAsic>(
           switchType, switchId, systemPortRange);
+    case cfg::AsicType::ASIC_TYPE_YUBA:
+      return std::make_unique<YubaAsic>(
+          switchType, switchId, systemPortRange);      
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
       return std::make_unique<MarvelPhyAsic>(
           switchType, switchId, systemPortRange);
