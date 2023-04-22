@@ -145,6 +145,14 @@ const std::shared_ptr<Map>& SwitchState::getDefaultMap() const {
 template <typename MultiMapName, typename Map>
 const std::shared_ptr<Map>& SwitchState::getMap(
     const HwSwitchMatcher& matcher) const {
+  if (safe_cref<MultiMapName>()->find(matcher.matcherString()) ==
+      safe_cref<MultiMapName>()->end()) {
+    std::string stateJson;
+    apache::thrift::SimpleJSONSerializer::serialize(
+        BaseT::toThrift(), &stateJson);
+    XLOG(FATAL) << "Cannot find matcher " << matcher.matcherString()
+                << " in multimap " << stateJson;
+  }
   return safe_cref<MultiMapName>()->cref(matcher.matcherString());
 }
 
@@ -155,6 +163,14 @@ std::shared_ptr<Map>& SwitchState::getDefaultMap() {
 
 template <typename MultiMapName, typename Map>
 std::shared_ptr<Map>& SwitchState::getMap(const HwSwitchMatcher& matcher) {
+  if (safe_ref<MultiMapName>()->find(matcher.matcherString()) ==
+      safe_ref<MultiMapName>()->end()) {
+    std::string stateJson;
+    apache::thrift::SimpleJSONSerializer::serialize(
+        BaseT::toThrift(), &stateJson);
+    XLOG(FATAL) << "Cannot find matcher " << matcher.matcherString()
+                << " in multimap " << stateJson;
+  }
   return safe_ref<MultiMapName>()->ref(matcher.matcherString());
 }
 
