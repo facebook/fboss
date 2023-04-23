@@ -11,12 +11,56 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
 namespace facebook::fboss::utility {
+
+void HwTransceiverUtils::verifyPortNameToLaneMap(
+    const std::vector<PortID>& portIDs,
+    cfg::PortProfileID profile,
+    const PlatformMapping* platformMapping,
+    std::map<int32_t, TransceiverInfo>& tcvrInfos) {
+  const auto& platformPorts = platformMapping->getPlatformPorts();
+  const auto& chips = platformMapping->getChips();
+  for (auto portID : portIDs) {
+    auto hostLanesFromPlatformMapping =
+        platformMapping->getTransceiverHostLanes(
+            PlatformPortProfileConfigMatcher(
+                profile, portID, std::nullopt /* portConfigOverrideFactor */));
+    EXPECT_NE(hostLanesFromPlatformMapping.size(), 0);
+    auto platformPortItr = platformPorts.find(static_cast<int32_t>(portID));
+    ASSERT_NE(platformPortItr, platformPorts.end());
+    auto tcvrID = utility::getTransceiverId(platformPortItr->second, chips);
+    ASSERT_TRUE(tcvrID.has_value());
+    auto portName = *platformPortItr->second.mapping()->name();
+
+    auto tcvrInfoItr = tcvrInfos.find(*tcvrID);
+    ASSERT_NE(tcvrInfoItr, tcvrInfos.end());
+
+    auto& hostLaneMap = *tcvrInfoItr->second.tcvrState()->portNameToHostLanes();
+    // Verify port exists in the map
+    EXPECT_NE(hostLaneMap.find(portName), hostLaneMap.end());
+    // Verify we have the same host lanes in the map as returned by platform
+    // mapping
+    for (auto lane : hostLanesFromPlatformMapping) {
+      XLOG(INFO) << "Verifying lane " << lane << " on " << portName;
+      EXPECT_NE(
+          std::find(
+              hostLaneMap[portName].begin(), hostLaneMap[portName].end(), lane),
+          hostLaneMap[portName].end());
+    }
+
+    // Expect both tcvrState and tcvrStats to have the same map
+    EXPECT_EQ(
+        *tcvrInfoItr->second.tcvrState()->portNameToHostLanes(),
+        *tcvrInfoItr->second.tcvrStats()->portNameToHostLanes());
+  }
+}
 
 void HwTransceiverUtils::verifyTransceiverSettings(
     const TcvrState& tcvrState,

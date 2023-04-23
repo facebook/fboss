@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 namespace facebook::fboss::utility {
@@ -28,6 +29,12 @@ class HwTransceiverUtils {
       const TcvrState& tcvrState,
       std::optional<DiagsCapability> diagsCapability,
       bool skipCheckingIndividualCapability = true);
+
+  static void verifyPortNameToLaneMap(
+      const std::vector<PortID>& portIDs,
+      cfg::PortProfileID profile,
+      const PlatformMapping* platformMapping,
+      std::map<int32_t, TransceiverInfo>& tcvrInfo);
 
  private:
   static void verifyOpticsSettings(

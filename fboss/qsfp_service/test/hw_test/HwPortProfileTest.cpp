@@ -111,6 +111,11 @@ class HwPortProfileTest : public HwTest {
       // Assert that refresh caused transceiver info to be pulled
       // from HW
       verifyTransceiverSettings(transceivers);
+      utility::HwTransceiverUtils::verifyPortNameToLaneMap(
+          matchingPorts,
+          Profile,
+          getHwQsfpEnsemble()->getPlatformMapping(),
+          transceivers);
     };
     verifyAcrossWarmBoots(setup, verify);
   }
