@@ -16,6 +16,7 @@
 #include <folly/logging/LoggerDB.h>
 #include <folly/logging/xlog.h>
 
+#include <re2/re2.h>
 #include <chrono>
 #include <fstream>
 #include <string>
