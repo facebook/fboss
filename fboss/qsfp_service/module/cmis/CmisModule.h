@@ -343,12 +343,14 @@ class CmisModule : public QsfpModule {
       uint8_t startHostLane) const;
 
   // Returns the list of host lanes configured in the same datapath as the
-  // provided hostLane
-  std::vector<uint8_t> configuredHostLanes(uint8_t hostLane) const override;
+  // provided startHostLane
+  std::vector<uint8_t> configuredHostLanes(
+      uint8_t startHostLane) const override;
 
   // Returns the list of media lanes configured in the same datapath as the
-  // provided hostLane
-  std::vector<uint8_t> configuredMediaLanes(uint8_t hostLane) const override;
+  // provided startHostLane
+  std::vector<uint8_t> configuredMediaLanes(
+      uint8_t startHostLane) const override;
 
  private:
   // no copy or assignment

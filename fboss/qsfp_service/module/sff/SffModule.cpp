@@ -441,12 +441,18 @@ TransceiverSettings SffModule::getTransceiverSettingsInfo() {
 }
 
 std::vector<uint8_t> SffModule::configuredHostLanes(
-    uint8_t /* hostStartLane */) const {
+    uint8_t hostStartLane) const {
+  if (hostStartLane != 0) {
+    return {};
+  }
   return {0, 1, 2, 3};
 }
 
 std::vector<uint8_t> SffModule::configuredMediaLanes(
-    uint8_t /* hostStartLane */) const {
+    uint8_t hostStartLane) const {
+  if (hostStartLane != 0) {
+    return {};
+  }
   auto ext_comp_code = getExtendedSpecificationComplianceCode();
 
   if (ext_comp_code && *ext_comp_code == ExtendedSpecComplianceCode::FR1_100G) {

@@ -842,14 +842,16 @@ uint8_t CmisModule::currentConfiguredMediaInterfaceCode(
 }
 
 // Returns the list of host lanes configured in the same datapath as the
-// provided hostLane
-std::vector<uint8_t> CmisModule::configuredHostLanes(uint8_t hostLane) const {
+// provided startHostLane
+std::vector<uint8_t> CmisModule::configuredHostLanes(
+    uint8_t startHostLane) const {
   std::vector<uint8_t> cfgLanes;
-  auto currentMediaInterface = currentConfiguredMediaInterfaceCode(hostLane);
+  auto currentMediaInterface =
+      currentConfiguredMediaInterfaceCode(startHostLane);
   if (auto applicationAdvertisingField =
-          getApplicationField(currentMediaInterface, hostLane)) {
-    for (uint8_t lane = hostLane;
-         lane < hostLane + applicationAdvertisingField->hostLaneCount;
+          getApplicationField(currentMediaInterface, startHostLane)) {
+    for (uint8_t lane = startHostLane;
+         lane < startHostLane + applicationAdvertisingField->hostLaneCount;
          lane++) {
       cfgLanes.push_back(lane);
     }
@@ -858,15 +860,52 @@ std::vector<uint8_t> CmisModule::configuredHostLanes(uint8_t hostLane) const {
 }
 
 // Returns the list of media lanes configured in the same datapath as the
-// provided hostLane
-std::vector<uint8_t> CmisModule::configuredMediaLanes(uint8_t hostLane) const {
+// provided startHostLane
+std::vector<uint8_t> CmisModule::configuredMediaLanes(
+    uint8_t startHostLane) const {
   std::vector<uint8_t> cfgLanes;
-  auto currentMediaInterface = currentConfiguredMediaInterfaceCode(hostLane);
+  if (flatMem_) {
+    // FlatMem_ modules won't have page01 to read the media lane assignment
+    return cfgLanes;
+  }
+
+  auto currentMediaInterface =
+      currentConfiguredMediaInterfaceCode(startHostLane);
   if (auto applicationAdvertisingField =
-          getApplicationField(currentMediaInterface, hostLane)) {
-    // Assumes startMediaLane = hostLane
-    for (uint8_t start = hostLane;
-         start < hostLane + applicationAdvertisingField->mediaLaneCount;
+          getApplicationField(currentMediaInterface, startHostLane)) {
+    // The assignment byte has a '1' for every datapath that starts at that
+    // lane. We first need to find out the 'index (say n)' of the datapath
+    // using the given start host lane. We'll then look for a nth '1' in the
+    // corresponding media lane assignment.
+    // For example, if the hostLaneAssignment is 0x55, the corresponding
+    // mediaLaneAssignment can be 0xF. Which means that the pairing of
+    // host->media lanes will be (hostLane:0, mediaLane:0), (hostLane:2,
+    // mediaLane:1), (hostLane:4, mediaLane:2), (hostLane:6, mediaLane:3)
+    auto it = std::find(
+        applicationAdvertisingField->hostStartLanes.begin(),
+        applicationAdvertisingField->hostStartLanes.end(),
+        startHostLane);
+    if (it == applicationAdvertisingField->hostStartLanes.end()) {
+      QSFP_LOG(ERR, this) << "Couldn't find the hostStartLane "
+                          << startHostLane;
+      return cfgLanes;
+    }
+
+    auto index =
+        std::distance(applicationAdvertisingField->hostStartLanes.begin(), it);
+    uint8_t mediaStartLane = 0;
+    if (index < applicationAdvertisingField->mediaStartLanes.size()) {
+      mediaStartLane = applicationAdvertisingField->mediaStartLanes[index];
+    } else {
+      QSFP_LOG(ERR, this) << "Index " << index << " out of range for "
+                          << folly::join(
+                                 ",",
+                                 applicationAdvertisingField->mediaStartLanes);
+      return cfgLanes;
+    }
+
+    for (uint8_t start = mediaStartLane;
+         start < mediaStartLane + applicationAdvertisingField->mediaLaneCount;
          start++) {
       cfgLanes.push_back(start);
     }
@@ -883,7 +922,16 @@ unsigned int CmisModule::numHostLanes() const {
 unsigned int CmisModule::numMediaLanes() const {
   // For now assume only lane 0 is configured. This needs to be changed to
   // account for multiple ports
-  return configuredMediaLanes(0).size();
+  auto mediaLanes = configuredMediaLanes(0).size();
+  if (mediaLanes) {
+    return mediaLanes;
+  }
+  auto currentMediaInterface = currentConfiguredMediaInterfaceCode(0);
+  if (auto applicationAdvertisingField =
+          getApplicationField(currentMediaInterface, 0)) {
+    return applicationAdvertisingField->mediaLaneCount;
+  }
+  return 0;
 }
 
 SMFMediaInterfaceCode CmisModule::getSmfMediaInterface(uint8_t lane) const {
