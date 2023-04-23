@@ -2084,15 +2084,19 @@ TEST_F(TransceiverStateMachineTest, programMultiPortTransceiverSequentially) {
   auto verifyPortToLaneMap = [this](bool bothPorts) {
     std::map<std::string, std::vector<int>> expectedHostLaneMap = {
         {"eth1/1/1", {0, 1}}};
+    std::map<std::string, std::vector<int>> expectedMediaLaneMap = {
+        {"eth1/1/1", {0}}};
     if (bothPorts) {
       std::vector<int> hostLanes = {2, 3};
+      std::vector<int> mediaLanes = {1};
       expectedHostLaneMap.emplace("eth1/1/3", hostLanes);
+      expectedMediaLaneMap.emplace("eth1/1/3", mediaLanes);
     }
     const auto& info = transceiverManager_->getTransceiverInfo(id_);
     EXPECT_EQ(info.tcvrState()->portNameToHostLanes(), expectedHostLaneMap);
+    EXPECT_EQ(info.tcvrState()->portNameToMediaLanes(), expectedMediaLaneMap);
     EXPECT_EQ(info.tcvrStats()->portNameToHostLanes(), expectedHostLaneMap);
-    // TODO: media lanes have a bug for multi-port. Add that check when the bug
-    // is fixed
+    EXPECT_EQ(info.tcvrStats()->portNameToMediaLanes(), expectedMediaLaneMap);
   };
 
   // Step1: Start with discovered state
