@@ -450,9 +450,10 @@ std::vector<uint8_t> SffModule::configuredHostLanes(
 
 std::vector<uint8_t> SffModule::configuredMediaLanes(
     uint8_t hostStartLane) const {
-  if (hostStartLane != 0) {
+  if (hostStartLane != 0 || flatMem_) {
     return {};
   }
+
   auto ext_comp_code = getExtendedSpecificationComplianceCode();
 
   if (ext_comp_code && *ext_comp_code == ExtendedSpecComplianceCode::FR1_100G) {
@@ -466,7 +467,8 @@ unsigned int SffModule::numHostLanes() const {
 }
 
 unsigned int SffModule::numMediaLanes() const {
-  return configuredMediaLanes(0).size();
+  auto numLanes = configuredMediaLanes(0).size();
+  return numLanes ? numLanes : 4;
 }
 
 RateSelectSetting SffModule::getRateSelectSettingValue(RateSelectState state) {

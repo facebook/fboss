@@ -988,11 +988,13 @@ void QsfpModule::updateLaneToPortNameMapping(
   auto mediaLanes = configuredMediaLanes(
       startHostLane); // assumption: startMediaLane = startHostLane
 
+  portNameToHostLanes[portName] = {};
   for (auto lane : hostLanes) {
     hostLaneToPortName[lane] = portName;
     portNameToHostLanes[portName].insert(lane);
   }
 
+  portNameToMediaLanes[portName] = {};
   for (auto lane : mediaLanes) {
     mediaLaneToPortName[lane] = portName;
     portNameToMediaLanes[portName].insert(lane);

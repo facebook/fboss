@@ -47,6 +47,8 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
     EXPECT_NE(hostLaneMap.find(portName), hostLaneMap.end());
     // Verify we have the same host lanes in the map as returned by platform
     // mapping
+    EXPECT_EQ(
+        hostLaneMap[portName].size(), hostLanesFromPlatformMapping.size());
     for (auto lane : hostLanesFromPlatformMapping) {
       XLOG(INFO) << "Verifying lane " << lane << " on " << portName;
       EXPECT_NE(
@@ -55,10 +57,47 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
           hostLaneMap[portName].end());
     }
 
+    auto& mediaLaneMap =
+        *tcvrInfoItr->second.tcvrState()->portNameToMediaLanes();
+    std::vector<int> expectedMediaLanes;
+    auto moduleMediaInterface =
+        tcvrInfoItr->second.tcvrState()->moduleMediaInterface().ensure();
+
+    // Note for multi-port transceivers the below switch case may also need to
+    // look at speed + port + platform type. Will modify it once we get the
+    // multi-port transceivers
+    switch (moduleMediaInterface) {
+      case MediaInterfaceCode::CWDM4_100G:
+      case MediaInterfaceCode::FR4_200G:
+      case MediaInterfaceCode::FR4_400G:
+      case MediaInterfaceCode::LR4_400G_10KM:
+        expectedMediaLanes = {0, 1, 2, 3};
+        break;
+      case MediaInterfaceCode::FR1_100G:
+      case MediaInterfaceCode::LR_10G:
+      case MediaInterfaceCode::SR_10G:
+        expectedMediaLanes = {0};
+        break;
+      case MediaInterfaceCode::UNKNOWN:
+      case MediaInterfaceCode::CR4_100G:
+      case MediaInterfaceCode::CR4_200G:
+      case MediaInterfaceCode::CR8_400G:
+        expectedMediaLanes = {};
+    }
+
+    XLOG(INFO) << "Verifying that " << portName << " uses media lanes "
+               << folly::join(",", expectedMediaLanes);
+    // Verify port exists in the map
+    EXPECT_NE(mediaLaneMap.find(portName), mediaLaneMap.end());
+    EXPECT_EQ(mediaLaneMap.at(portName), expectedMediaLanes);
+
     // Expect both tcvrState and tcvrStats to have the same map
     EXPECT_EQ(
         *tcvrInfoItr->second.tcvrState()->portNameToHostLanes(),
         *tcvrInfoItr->second.tcvrStats()->portNameToHostLanes());
+    EXPECT_EQ(
+        *tcvrInfoItr->second.tcvrState()->portNameToMediaLanes(),
+        *tcvrInfoItr->second.tcvrStats()->portNameToMediaLanes());
   }
 }
 
