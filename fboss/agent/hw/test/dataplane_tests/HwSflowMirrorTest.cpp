@@ -155,7 +155,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
   void resolveMirror() {
     auto mac = utility::getFirstInterfaceMac(getProgrammedState());
     auto state = getProgrammedState()->clone();
-    auto mirrors = state->getMirrors()->clone();
+    auto mirrors = state->getMnpuMirrors()->modify(&state);
     auto mirror = mirrors->getMirrorIf("mirror")->clone();
     ASSERT_NE(mirror, nullptr);
 
@@ -177,8 +177,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     }
 
     mirror->setEgressPort(getPortsForSampling()[0]);
-    mirrors->updateNode(mirror);
-    state->resetMirrors(mirrors);
+    mirrors->updateNode(mirror, HwSwitchMatcher(mirrors->cbegin()->first));
     applyNewState(state);
   }
 
