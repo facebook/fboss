@@ -150,12 +150,10 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
       bool truncate = false) {
     resolveNeigborAndProgramRoutes(*ecmpHelper_, 1);
     auto state = getProgrammedState()->clone();
-    auto mirrors = state->getMirrors()->clone();
+    auto mirrors = state->getMnpuMirrors()->modify(&state);
     auto mirror = mirrorName == kSpan ? getSpanMirror() : getErSpanMirror();
     mirror->setTruncate(truncate);
-    mirrors->addMirror(mirror);
-    state->resetMirrors(mirrors);
-
+    mirrors->addMirror(mirror, HwSwitchMatcher(mirrors->cbegin()->first));
     applyNewState(state);
   }
 
@@ -229,7 +227,7 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
 
   void verify(const std::string& mirrorName, int payloadSize = 500) {
     auto mirror =
-        this->getProgrammedState()->getMirrors()->getMirrorIf(mirrorName);
+        this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(mirrorName);
     ASSERT_NE(mirror, nullptr);
     EXPECT_EQ(mirror->isResolved(), true);
 
