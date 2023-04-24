@@ -315,6 +315,8 @@ target_link_libraries(hw_switch_test
   trunk_utils
   Folly::folly
   validated_shell_commands_cpp2
+  hwswitch_matcher
+  switchid_scope_resolver
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )

@@ -20,6 +20,7 @@
 #include "fboss/agent/GtestDefs.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/L2Entry.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
@@ -107,6 +108,7 @@ class HwTest : public ::testing::Test,
   virtual HwSwitchEnsemble::Features featuresDesired() const {
     return {};
   }
+  SwitchIdScopeResolver scopeResolver() const;
 
   std::unique_ptr<HwSwitchEnsembleRouteUpdateWrapper> getRouteUpdater();
 
