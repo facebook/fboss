@@ -418,6 +418,10 @@ const std::shared_ptr<MirrorMap>& SwitchState::getMirrors() const {
       HwSwitchMatcher(cref<switch_state_tags::mirrorMaps>()->cbegin()->first));
 }
 
+const std::shared_ptr<MultiMirrorMap>& SwitchState::getMnpuMirrors() const {
+  return safe_cref<switch_state_tags::mirrorMaps>();
+}
+
 const std::shared_ptr<QosPolicyMap>& SwitchState::getQosPolicies() const {
   return cref<switch_state_tags::qosPolicyMaps>()->cref(
       HwSwitchMatcher::defaultHwSwitchMatcherKey());
