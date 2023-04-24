@@ -17,6 +17,19 @@ void MirrorMap::addMirror(const std::shared_ptr<Mirror>& mirror) {
   return addNode(mirror);
 }
 
+std::shared_ptr<MirrorMap> MirrorMap::fromThrift(
+    const std::map<std::string, state::MirrorFields>& mirrors) {
+  auto map = std::make_shared<MirrorMap>();
+  for (auto mirror : mirrors) {
+    auto node = std::make_shared<Mirror>();
+    node->fromThrift(mirror.second);
+    // TODO(pshaikh): make this private
+    node->markResolved();
+    map->insert(*mirror.second.name(), std::move(node));
+  }
+  return map;
+}
+
 MirrorMap* MirrorMap::modify(std::shared_ptr<SwitchState>* state) {
   if (!isPublished()) {
     CHECK(!(*state)->isPublished());
@@ -30,6 +43,17 @@ MirrorMap* MirrorMap::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
+std::shared_ptr<Mirror> MultiMirrorMap::getMirrorIf(
+    const std::string& name) const {
+  for (auto mnitr = cbegin(); mnitr != cend(); ++mnitr) {
+    auto node = mnitr->second->getNodeIf(name);
+    if (node) {
+      return node;
+    }
+  }
+  return nullptr;
+}
+
 void MultiMirrorMap::addNode(
     std::shared_ptr<Mirror> mirror,
     const HwSwitchMatcher& matcher) {
@@ -40,6 +64,17 @@ void MultiMirrorMap::addNode(
   }
   auto& mirrorMap = mitr->second;
   mirrorMap->addMirror(std::move(mirror));
+}
+
+std::shared_ptr<MultiMirrorMap> MultiMirrorMap::fromThrift(
+    const std::map<std::string, std::map<std::string, state::MirrorFields>>&
+        mnpuMirrors) {
+  auto mnpuMap = std::make_shared<MultiMirrorMap>();
+  for (const auto& matcherAndMirrors : mnpuMirrors) {
+    auto map = MirrorMap::fromThrift(matcherAndMirrors.second);
+    mnpuMap->insert(matcherAndMirrors.first, std::move(map));
+  }
+  return mnpuMap;
 }
 
 template class ThriftMapNode<MirrorMap, MirrorMapTraits>;

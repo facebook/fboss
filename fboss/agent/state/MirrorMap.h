@@ -38,17 +38,7 @@ class MirrorMap : public ThriftMapNode<MirrorMap, MirrorMapTraits> {
   void addMirror(const std::shared_ptr<Mirror>& mirror);
 
   static std::shared_ptr<MirrorMap> fromThrift(
-      const std::map<std::string, state::MirrorFields>& mirrors) {
-    auto map = std::make_shared<MirrorMap>();
-    for (auto mirror : mirrors) {
-      auto node = std::make_shared<Mirror>();
-      node->fromThrift(mirror.second);
-      // TODO(pshaikh): make this private
-      node->markResolved();
-      map->insert(*mirror.second.name(), std::move(node));
-    }
-    return map;
-  }
+      const std::map<std::string, state::MirrorFields>& mirrors);
 
  private:
   // Inherit the constructors required for clone()
@@ -81,6 +71,10 @@ class MultiMirrorMap
   virtual ~MultiMirrorMap() {}
 
   void addNode(std::shared_ptr<Mirror> mirror, const HwSwitchMatcher& matcher);
+  std::shared_ptr<Mirror> getMirrorIf(const std::string& name) const;
+  static std::shared_ptr<MultiMirrorMap> fromThrift(
+      const std::map<std::string, std::map<std::string, state::MirrorFields>>&
+          mnpuMirrors);
 
  private:
   // Inherit the constructors required for clone()
