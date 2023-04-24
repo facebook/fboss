@@ -75,6 +75,15 @@ class HwMirrorTest : public HwTest {
         getHwSwitch(), masterLogicalPortIds());
   }
 
+  void updateMirror(const std::shared_ptr<Mirror>& mirror) {
+    auto newState = this->getProgrammedState()->clone();
+    auto mnpuMirrors =
+        this->getProgrammedState()->getMnpuMirrors()->modify(&newState);
+    mnpuMirrors->updateNode(
+        mirror, HwSwitchMatcher(mnpuMirrors->cbegin()->first));
+    this->applyNewState(newState);
+  }
+
   cfg::Mirror getSpanMirror(
       const std::string& mirrorName = kSpan,
       const uint8_t dscp = kDscpDefault,
@@ -187,7 +196,8 @@ TYPED_TEST(HwMirrorTest, ResolvedSpanMirror) {
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
-    auto mirror = this->getProgrammedState()->getMirrors()->getMirrorIf(kSpan);
+    auto mirror =
+        this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kSpan);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };
 
@@ -201,7 +211,8 @@ TYPED_TEST(HwMirrorTest, DscpHasDefault) {
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
-    auto mirror = this->getProgrammedState()->getMirrors()->getMirrorIf(kSpan);
+    auto mirror =
+        this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kSpan);
     EXPECT_EQ(mirror->getDscp(), kDscpDefault);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };
@@ -216,7 +227,8 @@ TYPED_TEST(HwMirrorTest, DscpHasSetValue) {
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
-    auto mirror = this->getProgrammedState()->getMirrors()->getMirrorIf(kSpan);
+    auto mirror =
+        this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kSpan);
     EXPECT_EQ(mirror->getDscp(), kDscp);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };
@@ -235,7 +247,8 @@ TYPED_TEST(HwMirrorTest, MirrorWithTruncation) {
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
-    auto mirror = this->getProgrammedState()->getMirrors()->getMirrorIf(kSpan);
+    auto mirror =
+        this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kSpan);
     EXPECT_EQ(mirror->getDscp(), kDscp);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };
@@ -249,8 +262,8 @@ TYPED_TEST(HwMirrorTest, ResolvedErspanMirror) {
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getErspanMirror());
     this->applyNewConfig(cfg);
-    auto mirrors = this->getProgrammedState()->getMirrors()->clone();
-    auto mirror = mirrors->getMirrorIf(kErspan);
+    auto mirror =
+        this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kErspan);
     auto newMirror = std::make_shared<Mirror>(
         mirror->getID(),
         mirror->getEgressPort(),
@@ -262,14 +275,11 @@ TYPED_TEST(HwMirrorTest, ResolvedErspanMirror) {
         params.ipAddrs[1],
         params.macAddrs[0],
         params.macAddrs[1]));
-    mirrors->updateNode(newMirror);
-    auto newState = this->getProgrammedState()->clone();
-    newState->resetMirrors(mirrors);
-    this->applyNewState(newState);
+    this->updateMirror(newMirror);
   };
   auto verify = [=]() {
     auto mirror =
-        this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
+        this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kErspan);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };
   if (this->skipMirrorTest()) {
@@ -284,8 +294,8 @@ TYPED_TEST(HwMirrorTest, ResolvedSflowMirror) {
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getSflowMirror());
     this->applyNewConfig(cfg);
-    auto mirrors = this->getProgrammedState()->getMirrors()->clone();
-    auto mirror = mirrors->getMirrorIf(kSflow);
+    auto mirror =
+        this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kSflow);
     auto newMirror = std::make_shared<Mirror>(
         mirror->getID(),
         mirror->getEgressPort(),
@@ -299,13 +309,11 @@ TYPED_TEST(HwMirrorTest, ResolvedSflowMirror) {
         params.macAddrs[0],
         params.macAddrs[1],
         newMirror->getTunnelUdpPorts().value()));
-    mirrors->updateNode(newMirror);
-    auto newState = this->getProgrammedState()->clone();
-    newState->resetMirrors(mirrors);
-    this->applyNewState(newState);
+    this->updateMirror(newMirror);
   };
   auto verify = [=]() {
-    auto mirror = this->getProgrammedState()->getMirrors()->getMirrorIf(kSflow);
+    auto mirror =
+        this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kSflow);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };
   if (this->skipMirrorTest()) {
@@ -322,7 +330,7 @@ TYPED_TEST(HwMirrorTest, UnresolvedErspanMirror) {
   };
   auto verify = [=]() {
     auto mirror =
-        this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
+        this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kErspan);
     utility::verifyUnResolvedMirror(this->getHwSwitch(), mirror);
   };
   if (this->skipMirrorTest()) {
@@ -337,17 +345,19 @@ TYPED_TEST(HwMirrorTest, MirrorRemoved) {
     cfg.mirrors()->push_back(this->getSpanMirror());
     cfg.mirrors()->push_back(this->getErspanMirror());
     this->applyNewConfig(cfg);
-    auto mirrors = this->getProgrammedState()->getMirrors()->clone();
-    mirrors->removeNode(kSpan);
     auto newState = this->getProgrammedState()->clone();
-    newState->resetMirrors(mirrors);
+    auto mnpuMirrors =
+        this->getProgrammedState()->getMnpuMirrors()->modify(&newState);
+    auto mirror = mnpuMirrors->getMirrorIf(kSpan);
+    mnpuMirrors->removeNode(mirror);
     this->applyNewState(newState);
   };
   auto verify = [=]() {
-    auto local = this->getProgrammedState()->getMirrors()->getMirrorIf(kSpan);
+    auto local =
+        this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kSpan);
     EXPECT_EQ(local, nullptr);
     auto erspan =
-        this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
+        this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kErspan);
     utility::verifyUnResolvedMirror(this->getHwSwitch(), erspan);
   };
   if (this->skipMirrorTest()) {
@@ -363,22 +373,20 @@ TYPED_TEST(HwMirrorTest, UnresolvedToUnresolvedUpdate) {
     cfg.mirrors()->push_back(this->getSpanMirror());
     cfg.mirrors()->push_back(this->getErspanMirror());
     this->applyNewConfig(cfg);
-    auto mirrors = this->getProgrammedState()->getMirrors()->clone();
-    auto mirror = mirrors->getMirrorIf(kErspan);
+    auto mirror =
+        this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kErspan);
     auto newMirror = std::make_shared<Mirror>(
         mirror->getID(),
         mirror->getEgressPort(),
         std::optional<folly::IPAddress>(folly::IPAddress(params.ipAddrs[3])));
-    mirrors->updateNode(newMirror);
-    auto newState = this->getProgrammedState()->clone();
-    newState->resetMirrors(mirrors);
-    this->applyNewState(newState);
+    this->updateMirror(newMirror);
   };
   auto verify = [=]() {
-    auto local = this->getProgrammedState()->getMirrors()->getMirrorIf(kSpan);
+    auto local =
+        this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kSpan);
     utility::verifyResolvedMirror(this->getHwSwitch(), local);
     auto erspan =
-        this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
+        this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kErspan);
     utility::verifyUnResolvedMirror(this->getHwSwitch(), erspan);
   };
   if (this->skipMirrorTest()) {
@@ -394,8 +402,8 @@ TYPED_TEST(HwMirrorTest, ResolvedToResolvedUpdate) {
     cfg.mirrors()->push_back(this->getErspanMirror());
     this->applyNewConfig(cfg);
 
-    auto mirrors = this->getProgrammedState()->getMirrors()->clone();
-    auto mirror = mirrors->getMirrorIf(kErspan);
+    auto mirror =
+        this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kErspan);
     auto resolvedMirror = std::make_shared<Mirror>(
         mirror->getID(), mirror->getEgressPort(), mirror->getDestinationIp());
     resolvedMirror->setEgressPort(PortID(this->masterLogicalPortIds()[0]));
@@ -404,13 +412,9 @@ TYPED_TEST(HwMirrorTest, ResolvedToResolvedUpdate) {
         params.ipAddrs[1],
         params.macAddrs[0],
         params.macAddrs[1]));
-    mirrors->updateNode(resolvedMirror);
-    auto newState = this->getProgrammedState()->clone();
-    newState->resetMirrors(mirrors);
-    this->applyNewState(newState);
+    this->updateMirror(resolvedMirror);
 
-    mirrors = this->getProgrammedState()->getMirrors()->clone();
-    mirror = mirrors->getMirrorIf(kErspan);
+    mirror = this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kErspan);
     auto updatedMirror = std::make_shared<Mirror>(
         mirror->getID(), mirror->getEgressPort(), mirror->getDestinationIp());
     updatedMirror->setEgressPort(PortID(this->masterLogicalPortIds()[1]));
@@ -419,14 +423,11 @@ TYPED_TEST(HwMirrorTest, ResolvedToResolvedUpdate) {
         params.ipAddrs[3],
         params.macAddrs[2],
         params.macAddrs[3]));
-    mirrors->updateNode(updatedMirror);
-    auto updatedState = this->getProgrammedState()->clone();
-    updatedState->resetMirrors(mirrors);
-    this->applyNewState(updatedState);
+    this->updateMirror(updatedMirror);
   };
   auto verify = [=]() {
     auto mirror =
-        this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
+        this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kErspan);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };
   if (this->skipMirrorTest()) {
@@ -442,8 +443,8 @@ TYPED_TEST(HwMirrorTest, ResolvedToUnresolvedUpdate) {
     cfg.mirrors()->push_back(this->getErspanMirror());
     this->applyNewConfig(cfg);
 
-    auto mirrors = this->getProgrammedState()->getMirrors()->clone();
-    auto mirror = mirrors->getMirrorIf(kErspan);
+    auto mirror =
+        this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kErspan);
     auto resolvedMirror = std::make_shared<Mirror>(
         mirror->getID(), mirror->getEgressPort(), mirror->getDestinationIp());
     resolvedMirror->setEgressPort(PortID(this->masterLogicalPortIds()[0]));
@@ -452,23 +453,16 @@ TYPED_TEST(HwMirrorTest, ResolvedToUnresolvedUpdate) {
         params.ipAddrs[1],
         params.macAddrs[0],
         params.macAddrs[1]));
-    mirrors->updateNode(resolvedMirror);
-    auto newState = this->getProgrammedState()->clone();
-    newState->resetMirrors(mirrors);
-    this->applyNewState(newState);
+    this->updateMirror(resolvedMirror);
 
-    mirrors = this->getProgrammedState()->getMirrors()->clone();
-    mirror = mirrors->getMirrorIf(kErspan);
+    mirror = this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kErspan);
     auto updatedMirror = std::make_shared<Mirror>(
         mirror->getID(), mirror->getEgressPort(), mirror->getDestinationIp());
-    mirrors->updateNode(updatedMirror);
-    auto updatedState = this->getProgrammedState()->clone();
-    updatedState->resetMirrors(mirrors);
-    this->applyNewState(updatedState);
+    this->updateMirror(updatedMirror);
   };
   auto verify = [=]() {
     auto mirror =
-        this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
+        this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kErspan);
     utility::verifyUnResolvedMirror(this->getHwSwitch(), mirror);
   };
   if (this->skipMirrorTest()) {
@@ -488,7 +482,7 @@ TYPED_TEST(HwMirrorTest, NoPortMirroringIfUnResolved) {
   };
   auto verify = [=]() {
     auto mirror =
-        this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
+        this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kErspan);
     utility::verifyUnResolvedMirror(this->getHwSwitch(), mirror);
     utility::verifyPortNoMirrorDestination(
         this->getHwSwitch(),
@@ -515,8 +509,8 @@ TYPED_TEST(HwMirrorTest, PortMirroringIfResolved) {
     portCfg->egressMirror() = kErspan;
     this->applyNewConfig(cfg);
 
-    auto mirrors = this->getProgrammedState()->getMirrors()->clone();
-    auto mirror = mirrors->getMirrorIf(kErspan);
+    auto mirror =
+        this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kErspan);
     auto updatedMirror = std::make_shared<Mirror>(
         mirror->getID(), mirror->getEgressPort(), mirror->getDestinationIp());
     updatedMirror->setEgressPort(PortID(this->masterLogicalPortIds()[1]));
@@ -525,14 +519,11 @@ TYPED_TEST(HwMirrorTest, PortMirroringIfResolved) {
         params.ipAddrs[3],
         params.macAddrs[2],
         params.macAddrs[3]));
-    mirrors->updateNode(updatedMirror);
-    auto updatedState = this->getProgrammedState()->clone();
-    updatedState->resetMirrors(mirrors);
-    this->applyNewState(updatedState);
+    this->updateMirror(updatedMirror);
   };
   auto verify = [=]() {
     auto mirror =
-        this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
+        this->getProgrammedState()->getMnpuMirrors()->getMirrorIf(kErspan);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
     std::vector<uint64_t> destinations;
     utility::getAllMirrorDestinations(this->getHwSwitch(), destinations);
