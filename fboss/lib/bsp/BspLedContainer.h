@@ -20,7 +20,7 @@ class BspLedContainer {
 
  private:
   LedMapping ledMapping_;
-  int tcvrID_;
+  int ledID_;
   std::unique_ptr<LedIO> ledIO_;
 };
 
