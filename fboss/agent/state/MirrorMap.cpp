@@ -66,6 +66,18 @@ void MultiMirrorMap::addNode(
   mirrorMap->addMirror(std::move(mirror));
 }
 
+void MultiMirrorMap::updateNode(
+    std::shared_ptr<Mirror> mirror,
+    const HwSwitchMatcher& matcher) {
+  const auto& key = matcher.matcherString();
+  auto mitr = find(key);
+  if (mitr == end()) {
+    throw FbossError("No mirrors found for switchIds: ", key);
+  }
+  auto& mirrorMap = mitr->second;
+  mirrorMap->updateNode(std::move(mirror));
+}
+
 MultiMirrorMap* MultiMirrorMap::modify(std::shared_ptr<SwitchState>* state) {
   if (!isPublished()) {
     CHECK(!(*state)->isPublished());

@@ -67,6 +67,7 @@ class MultiMirrorMap
   using BaseT = ThriftMapNode<MultiMirrorMap, MultiMirrorMapTraits>;
   using BaseT::addNode;
   using BaseT::modify;
+  using BaseT::updateNode;
 
   MultiMirrorMap() {}
   virtual ~MultiMirrorMap() {}
@@ -79,6 +80,9 @@ class MultiMirrorMap
       const HwSwitchMatcher& matcher) {
     addNode(mirror, matcher);
   }
+  void updateNode(
+      std::shared_ptr<Mirror> mirror,
+      const HwSwitchMatcher& matcher);
   std::shared_ptr<Mirror> getMirrorIf(const std::string& name) const;
   static std::shared_ptr<MultiMirrorMap> fromThrift(
       const std::map<std::string, std::map<std::string, state::MirrorFields>>&
