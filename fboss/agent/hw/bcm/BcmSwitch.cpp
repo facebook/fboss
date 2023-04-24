@@ -1989,7 +1989,8 @@ bool BcmSwitch::isValidStateUpdate(const StateDelta& delta) const {
         }
       });
   isValid = isValid &&
-      (newState->getMirrors()->size() <= platform_->getAsic()->getMaxMirrors());
+      (newState->getMnpuMirrors()->numMirrors() <=
+       platform_->getAsic()->getMaxMirrors());
 
   forEachChanged(
       delta.getMirrorsDelta(),
