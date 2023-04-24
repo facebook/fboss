@@ -124,6 +124,14 @@ class MirrorManagerTest : public ::testing::Test {
     sw_->updateStateBlocking(name, func);
   }
 
+  std::shared_ptr<SwitchState> addNewMirror(
+      const std::shared_ptr<SwitchState>& state,
+      std::shared_ptr<Mirror> mirror) {
+    auto newState = state->clone();
+    auto mirrors = newState->getMirrors()->modify(&newState);
+    mirrors->addMirror(mirror);
+    return newState;
+  }
   std::shared_ptr<SwitchState> addNeighbor(
       const std::shared_ptr<SwitchState>& state,
       InterfaceID interfaceId,
@@ -181,10 +189,7 @@ class MirrorManagerTest : public ::testing::Test {
         name,
         std::make_optional<PortID>(egressPort),
         std::optional<IPAddress>());
-    auto newState = state->isPublished() ? state->clone() : state;
-    auto mirrors = newState->getMirrors()->modify(&newState);
-    mirrors->addMirror(mirror);
-    return newState;
+    return addNewMirror(state, mirror);
   }
 
   std::shared_ptr<SwitchState> addErspanMirror(
@@ -193,11 +198,7 @@ class MirrorManagerTest : public ::testing::Test {
       AddrT remoteIp) {
     auto mirror = std::make_shared<Mirror>(
         name, std::optional<PortID>(), std::make_optional<IPAddress>(remoteIp));
-
-    auto newState = state->isPublished() ? state->clone() : state;
-    auto mirrors = newState->getMirrors()->modify(&newState);
-    mirrors->addMirror(mirror);
-    return newState;
+    return addNewMirror(state, mirror);
   }
 
   std::shared_ptr<SwitchState> addErspanMirror(
@@ -209,11 +210,7 @@ class MirrorManagerTest : public ::testing::Test {
         name,
         std::make_optional<PortID>(PortID(egressPort)),
         std::make_optional<IPAddress>(remoteIp));
-
-    auto newState = state->isPublished() ? state->clone() : state;
-    auto mirrors = newState->getMirrors()->modify(&newState);
-    mirrors->addMirror(mirror);
-    return newState;
+    return addNewMirror(state, mirror);
   }
 
   std::shared_ptr<SwitchState> addSflowMirror(
@@ -228,10 +225,7 @@ class MirrorManagerTest : public ::testing::Test {
         std::make_optional<IPAddress>(remoteIp),
         std::optional<IPAddress>(),
         std::make_optional<TunnelUdpPorts>(srcPort, dstPort));
-    auto newState = state->isPublished() ? state->clone() : state;
-    auto mirrors = newState->getMirrors()->modify(&newState);
-    mirrors->addMirror(mirror);
-    return newState;
+    return addNewMirror(state, mirror);
   }
 
  protected:
