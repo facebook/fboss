@@ -10,6 +10,7 @@
 
 #include "fboss/agent/MirrorManager.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -128,8 +129,10 @@ class MirrorManagerTest : public ::testing::Test {
       const std::shared_ptr<SwitchState>& state,
       std::shared_ptr<Mirror> mirror) {
     auto newState = state->clone();
-    auto mirrors = newState->getMirrors()->modify(&newState);
-    mirrors->addMirror(mirror);
+    auto mirrors = newState->getMnpuMirrors()->modify(&newState);
+    SwitchIdScopeResolver resolver(
+        state->getSwitchSettings()->getSwitchIdToSwitchInfo());
+    mirrors->addMirror(mirror, resolver.scope(mirror));
     return newState;
   }
   std::shared_ptr<SwitchState> addNeighbor(
