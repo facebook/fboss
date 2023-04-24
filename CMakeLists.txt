@@ -76,9 +76,9 @@ if (SAI_BRCM_IMPL)
   # TODO (skhare) IS_OSS_BRCM_SAI is only a short-term change to unblock.
   # Refactor/fix the code and then remove this flag.
   add_definitions (-DIS_OSS_BRCM_SAI=true)
-  # TODO: Replace SAI_VERSION_9_0_EA_DNX_ODP with SAI_VERSION_9_0_EA_ODP
-  # to build bcm xgs
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSAI_VERSION_9_0_EA_DNX_ODP")
+  # Build for BCM DNX by default. For XGS, set the ENV variable SAI_SDK_VERSION
+  # to build for BCM XGS.
+  set(SAI_SDK_VERSION "SAI_VERSION_9_0_EA_DNX_ODP")
   set(SAI_VER_MAJOR "1")
   set(SAI_VER_MINOR "12")
   set(SAI_VER_RELEASE "0")
@@ -87,6 +87,17 @@ else()
   set(SAI_VER_MINOR "7")
   set(SAI_VER_RELEASE "1")
 endif()
+
+if (NOT "$ENV{SAI_SDK_VERSION}" STREQUAL "")
+  message(STATUS "ENV SAI_SDK_VERSION is set to $ENV{SAI_SDK_VERSION}")
+  set(SAI_SDK_VERSION "$ENV{SAI_SDK_VERSION}")
+endif()
+message(STATUS "Building for SAI_SDK_VERSION: ${SAI_SDK_VERSION}")
+
+if (NOT "${SAI_SDK_VERSION}" STREQUAL "")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D${SAI_SDK_VERSION}")
+endif()
+message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 
 message(STATUS "Building for SAI Spec ${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE}")
 set(SAI_VER_SUFFIX "${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE}")
