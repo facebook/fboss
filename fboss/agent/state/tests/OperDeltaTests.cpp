@@ -40,7 +40,7 @@ TEST(OperDeltaTests, OperDeltaCompute) {
   EXPECT_EQ(delta1.getOperDelta().changes()->size(), 24);
 
   auto stateV2 = stateV1->clone();
-  auto mnpuMirrors = stateV1->getMnpuMirrors()->modify(&stateV2);
+  auto mnpuMirrors = stateV1->getMirrors()->modify(&stateV2);
   state::MirrorFields mirror{};
   mirror.name() = "mirror0";
   mirror.configHasEgressPort() = true;

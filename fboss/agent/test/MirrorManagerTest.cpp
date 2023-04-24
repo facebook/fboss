@@ -129,7 +129,7 @@ class MirrorManagerTest : public ::testing::Test {
       const std::shared_ptr<SwitchState>& state,
       std::shared_ptr<Mirror> mirror) {
     auto newState = state->clone();
-    auto mirrors = newState->getMnpuMirrors()->modify(&newState);
+    auto mirrors = newState->getMirrors()->modify(&newState);
     mirrors->addNode(mirror, HwSwitchMatcher(mirrors->cbegin()->first));
     return newState;
   }
@@ -137,7 +137,7 @@ class MirrorManagerTest : public ::testing::Test {
       const std::shared_ptr<SwitchState>& state,
       std::shared_ptr<Mirror> mirror) {
     auto newState = state->clone();
-    auto mirrors = newState->getMnpuMirrors()->modify(&newState);
+    auto mirrors = newState->getMirrors()->modify(&newState);
     mirrors->updateNode(mirror, HwSwitchMatcher(mirrors->cbegin()->first));
     return newState;
   }
@@ -267,7 +267,7 @@ TYPED_TEST(MirrorManagerTest, CanNotUpdateMirrors) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->isResolved());
   });
@@ -290,7 +290,7 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithoutRoutes) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->isResolved());
   });
@@ -309,7 +309,7 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithoutArpEntry) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->isResolved());
   });
@@ -324,7 +324,7 @@ TYPED_TEST(MirrorManagerTest, LocalMirrorAlreadyResolved) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
   });
@@ -350,7 +350,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithoutEgressPort) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
     ASSERT_TRUE(mirror->getEgressPort().has_value());
@@ -400,7 +400,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithEgressPort) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
     ASSERT_TRUE(mirror->getEgressPort().has_value());
@@ -450,7 +450,7 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithEgressPort) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->isResolved());
     EXPECT_TRUE(mirror->getEgressPort().has_value());
@@ -476,7 +476,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithDirectlyConnectedRoute) {
       });
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
     EXPECT_TRUE(mirror->getEgressPort().has_value());
@@ -509,7 +509,7 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithDirectlyConnectedRoute) {
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
     EXPECT_NE(state, nullptr);
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->isResolved());
     EXPECT_FALSE(mirror->getEgressPort().has_value());
@@ -546,7 +546,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteDelete) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
     EXPECT_TRUE(mirror->getEgressPort().has_value());
@@ -571,7 +571,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteDelete) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
     EXPECT_TRUE(mirror->getEgressPort().has_value());
@@ -613,7 +613,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteAdd) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
     EXPECT_TRUE(mirror->getEgressPort().has_value());
@@ -650,7 +650,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteAdd) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
     EXPECT_TRUE(mirror->getEgressPort().has_value());
@@ -703,7 +703,7 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteDel) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
     EXPECT_TRUE(mirror->getEgressPort().has_value());
@@ -728,7 +728,7 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteDel) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->isResolved());
     EXPECT_TRUE(mirror->getEgressPort().has_value());
@@ -768,7 +768,7 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteAdd) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->isResolved());
     EXPECT_TRUE(mirror->getEgressPort().has_value());
@@ -806,7 +806,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnNeighborChange) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
     EXPECT_TRUE(mirror->getEgressPort().has_value());
@@ -851,7 +851,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnNeighborChange) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
     EXPECT_TRUE(mirror->getEgressPort().has_value());
@@ -916,8 +916,7 @@ TYPED_TEST(MirrorManagerTest, GreMirrorWithSrcIp) {
         updatedState = this->addErspanMirror(
             updatedState, kMirrorName, params.mirrorDestination);
 
-        auto oldMirror =
-            updatedState->getMnpuMirrors()->getMirrorIf(kMirrorName);
+        auto oldMirror = updatedState->getMirrors()->getMirrorIf(kMirrorName);
         auto mirror = std::make_shared<Mirror>(
             kMirrorName,
             oldMirror->getEgressPort(),
@@ -931,7 +930,7 @@ TYPED_TEST(MirrorManagerTest, GreMirrorWithSrcIp) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
     ASSERT_TRUE(mirror->getMirrorTunnel().has_value());
@@ -960,8 +959,7 @@ TYPED_TEST(MirrorManagerTest, SflowMirrorWithSrcIp) {
         updatedState = this->addSflowMirror(
             updatedState, kMirrorName, params.mirrorDestination, 10101, 20202);
 
-        auto oldMirror =
-            updatedState->getMnpuMirrors()->getMirrorIf(kMirrorName);
+        auto oldMirror = updatedState->getMirrors()->getMirrorIf(kMirrorName);
         auto mirror = std::make_shared<Mirror>(
             kMirrorName,
             oldMirror->getEgressPort(),
@@ -976,7 +974,7 @@ TYPED_TEST(MirrorManagerTest, SflowMirrorWithSrcIp) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
     ASSERT_TRUE(mirror->getMirrorTunnel().has_value());
@@ -1022,7 +1020,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorOnMirrorUpdate) {
       "update sflow mirror config",
       [=](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = state->clone();
-        auto oldMirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+        auto oldMirror = state->getMirrors()->getMirrorIf(kMirrorName);
 
         // unresolve and update with non-resolving affecting update,
         // mirror so mirror manager resolves it again.
@@ -1038,7 +1036,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorOnMirrorUpdate) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
     ASSERT_TRUE(mirror->getMirrorTunnel().has_value());
@@ -1067,7 +1065,7 @@ TYPED_TEST(MirrorManagerTest, ConfigHasEgressPort) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->configHasEgressPort());
   });
@@ -1088,7 +1086,7 @@ TYPED_TEST(MirrorManagerTest, ConfigHasEgressPort) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->configHasEgressPort());
     EXPECT_TRUE(mirror->isResolved());
@@ -1104,7 +1102,7 @@ TYPED_TEST(MirrorManagerTest, ConfigHasEgressPort) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->configHasEgressPort());
     EXPECT_FALSE(mirror->isResolved());
@@ -1123,7 +1121,7 @@ TYPED_TEST(MirrorManagerTest, NeighborUpdates) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->isResolved());
   });
@@ -1150,7 +1148,7 @@ TYPED_TEST(MirrorManagerTest, NeighborUpdates) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
     ASSERT_TRUE(mirror->getEgressPort().has_value());
@@ -1167,7 +1165,7 @@ TYPED_TEST(MirrorManagerTest, NeighborUpdates) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
     ASSERT_TRUE(mirror->getEgressPort().has_value());
@@ -1190,7 +1188,7 @@ TYPED_TEST(MirrorManagerTest, NeighborUpdates) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
     ASSERT_TRUE(mirror->getEgressPort().has_value());
@@ -1211,7 +1209,7 @@ TYPED_TEST(MirrorManagerTest, UpdateRoute) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->isResolved());
   });
@@ -1238,7 +1236,7 @@ TYPED_TEST(MirrorManagerTest, UpdateRoute) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
     EXPECT_FALSE(mirror->configHasEgressPort());
@@ -1253,7 +1251,7 @@ TYPED_TEST(MirrorManagerTest, UpdateRoute) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->configHasEgressPort());
     EXPECT_TRUE(mirror->isResolved());
@@ -1268,7 +1266,7 @@ TYPED_TEST(MirrorManagerTest, UpdateRoute) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto mirror = state->getMnpuMirrors()->getMirrorIf(kMirrorName);
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->configHasEgressPort());
     EXPECT_TRUE(mirror->isResolved());

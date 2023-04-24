@@ -416,7 +416,7 @@ const std::shared_ptr<SflowCollectorMap>& SwitchState::getSflowCollectors()
   return getDefaultMap<switch_state_tags::sflowCollectorMaps>();
 }
 
-const std::shared_ptr<MultiMirrorMap>& SwitchState::getMnpuMirrors() const {
+const std::shared_ptr<MultiMirrorMap>& SwitchState::getMirrors() const {
   return safe_cref<switch_state_tags::mirrorMaps>();
 }
 

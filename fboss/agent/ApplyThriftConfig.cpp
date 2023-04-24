@@ -2720,12 +2720,10 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls(
               aclAction->cref<switch_state_tags::ingressMirror>();
           const auto& egMirror =
               aclAction->cref<switch_state_tags::egressMirror>();
-          if (inMirror &&
-              !new_->getMnpuMirrors()->getMirrorIf(inMirror->cref())) {
+          if (inMirror && !new_->getMirrors()->getMirrorIf(inMirror->cref())) {
             throw FbossError("Mirror ", inMirror->cref(), " is undefined");
           }
-          if (egMirror &&
-              !new_->getMnpuMirrors()->getMirrorIf(egMirror->cref())) {
+          if (egMirror && !new_->getMirrors()->getMirrorIf(egMirror->cref())) {
             throw FbossError("Mirror ", egMirror->cref(), " is undefined");
           }
         }
@@ -3916,7 +3914,7 @@ Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
 }
 
 std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
-  const auto& origMirrors = orig_->getMnpuMirrors();
+  const auto& origMirrors = orig_->getMirrors();
   auto newMirrors = std::make_shared<MirrorMap>();
 
   bool changed = false;

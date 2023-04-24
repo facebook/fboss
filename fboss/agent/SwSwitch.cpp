@@ -2010,7 +2010,7 @@ bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
 
   // Ensure only one sflow mirror session is configured
   int sflowMirrorCount = 0;
-  for (auto mniter : std::as_const(*(delta.newState()->getMnpuMirrors()))) {
+  for (auto mniter : std::as_const(*(delta.newState()->getMirrors()))) {
     for (auto iter : std::as_const(*mniter.second)) {
       auto mirror = iter.second;
       if (mirror->type() == Mirror::Type::SFLOW) {

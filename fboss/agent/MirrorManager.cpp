@@ -41,7 +41,7 @@ void MirrorManager::stateUpdated(const StateDelta& delta) {
 std::shared_ptr<SwitchState> MirrorManager::resolveMirrors(
     const std::shared_ptr<SwitchState>& state) {
   auto updatedState = state->clone();
-  auto mnpuMirrors = state->getMnpuMirrors()->modify(&updatedState);
+  auto mnpuMirrors = state->getMirrors()->modify(&updatedState);
   bool mirrorsUpdated = false;
 
   for (auto mniter = mnpuMirrors->cbegin(); mniter != mnpuMirrors->cend();
@@ -72,7 +72,7 @@ std::shared_ptr<SwitchState> MirrorManager::resolveMirrors(
 }
 
 bool MirrorManager::hasMirrorChanges(const StateDelta& delta) {
-  return (sw_->getState()->getMnpuMirrors()->numMirrors() > 0) &&
+  return (sw_->getState()->getMirrors()->numMirrors() > 0) &&
       (!isEmpty(delta.getMirrorsDelta()) || !isEmpty(delta.getFibsDelta()) ||
        std::any_of(
            std::begin(delta.getVlansDelta()),

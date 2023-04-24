@@ -82,7 +82,7 @@ class ResolvedNexthopMonitorTest : public ::testing::Test {
   std::shared_ptr<SwitchState> toggleIgnoredStateUpdate(
       const std::shared_ptr<SwitchState>& state) {
     auto newState = state->isPublished() ? state->clone() : state;
-    auto mnpuMirrors = newState->getMnpuMirrors()->modify(&newState);
+    auto mnpuMirrors = newState->getMirrors()->modify(&newState);
     auto mirror = mnpuMirrors->getMirrorIf("mirror");
     if (!mirror) {
       mirror = std::make_shared<Mirror>(

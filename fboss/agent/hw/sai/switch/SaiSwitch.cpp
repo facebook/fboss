@@ -2374,7 +2374,7 @@ bool SaiSwitch::isValidStateUpdateLocked(
     throw FbossError("QCM is not supported on SAI");
   }
 
-  if (delta.newState()->getMnpuMirrors()->numMirrors() >
+  if (delta.newState()->getMirrors()->numMirrors() >
       getPlatform()->getAsic()->getMaxMirrors()) {
     XLOG(ERR) << "Number of mirrors configured is high on this platform";
     return false;
