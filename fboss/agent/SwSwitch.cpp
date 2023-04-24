@@ -2008,6 +2008,20 @@ bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
       },
       [&](const shared_ptr<Port>& /* delport */) {});
 
+  // Ensure only one sflow mirror session is configured
+  int sflowMirrorCount = 0;
+  for (auto mniter : std::as_const(*(delta.newState()->getMnpuMirrors()))) {
+    for (auto iter : std::as_const(*mniter.second)) {
+      auto mirror = iter.second;
+      if (mirror->type() == Mirror::Type::SFLOW) {
+        sflowMirrorCount++;
+      }
+    }
+  }
+  if (sflowMirrorCount > 1) {
+    XLOG(ERR) << "More than one sflow mirrors configured";
+    isValid = false;
+  }
   return isValid && hw_->isValidStateUpdate(delta);
 }
 

@@ -2005,18 +2005,6 @@ bool BcmSwitch::isValidStateUpdate(const StateDelta& delta) const {
         }
       });
 
-  int sflowMirrorCount = 0;
-  for (auto iter : std::as_const(*(newState->getMirrors()))) {
-    auto mirror = iter.second;
-    if (mirror->type() == Mirror::Type::SFLOW) {
-      sflowMirrorCount++;
-    }
-  }
-
-  if (sflowMirrorCount > 1) {
-    XLOG(ERR) << "More than one sflow mirrors configured";
-    isValid = false;
-  }
   forEachAdded(
       delta.getQosPoliciesDelta(),
       [&](const std::shared_ptr<QosPolicy>& qosPolicy) {
