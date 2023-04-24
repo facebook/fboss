@@ -66,6 +66,22 @@ void MultiMirrorMap::addNode(
   mirrorMap->addMirror(std::move(mirror));
 }
 
+MultiMirrorMap* MultiMirrorMap::modify(std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  SwitchState::modify(state);
+  auto newMnpuMirrors = clone();
+  for (auto mnitr = cbegin(); mnitr != cend(); ++mnitr) {
+    (*newMnpuMirrors)[mnitr->first] = mnitr->second->clone();
+  }
+  auto* ptr = newMnpuMirrors.get();
+  (*state)->resetMirrors(std::move(newMnpuMirrors));
+  return ptr;
+}
+
 std::shared_ptr<MultiMirrorMap> MultiMirrorMap::fromThrift(
     const std::map<std::string, std::map<std::string, state::MirrorFields>>&
         mnpuMirrors) {

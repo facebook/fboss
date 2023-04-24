@@ -659,4 +659,18 @@ TEST_F(MirrorTest, MirrorThrifty) {
   EXPECT_EQ(mirrorsThrift, newMirrors->toThrift());
 }
 
+TEST_F(MirrorTest, Modify) {
+  config_.mirrors()->push_back(
+      utility::getSPANMirror("span", MirrorTest::egressPort));
+  publishWithStateUpdate();
+  state_->publish();
+  auto oldMirrors = state_->getMnpuMirrors();
+  EXPECT_TRUE(oldMirrors->isPublished());
+  for (auto mnitr = oldMirrors->cbegin(); mnitr != oldMirrors->cend();
+       ++mnitr) {
+    EXPECT_TRUE(mnitr->second->isPublished());
+  }
+  auto newMirrors = state_->getMnpuMirrors()->modify(&state_);
+  EXPECT_NE(newMirrors, oldMirrors.get());
+}
 } // namespace facebook::fboss
