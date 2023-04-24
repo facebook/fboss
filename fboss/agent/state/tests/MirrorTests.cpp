@@ -86,7 +86,7 @@ TEST_F(MirrorTest, MirrorWithPort) {
   config_.mirrors()->push_back(
       utility::getSPANMirror("mirror0", MirrorTest::egressPortName));
   publishWithStateUpdate();
-  auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
+  auto mirror = state_->getMnpuMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), true);
@@ -102,7 +102,7 @@ TEST_F(MirrorTest, MirrorWithPortId) {
   config_.mirrors()->push_back(
       utility::getSPANMirror("mirror0", MirrorTest::egressPort));
   publishWithStateUpdate();
-  auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
+  auto mirror = state_->getMnpuMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), true);
@@ -121,7 +121,7 @@ TEST_F(MirrorTest, MirrorWithPortIdAndDscp) {
       std::nullopt /*src addr*/,
       MirrorTest::dscp));
   publishWithStateUpdate();
-  auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
+  auto mirror = state_->getMnpuMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), true);
@@ -137,7 +137,7 @@ TEST_F(MirrorTest, MirrorWithIp) {
   config_.mirrors()->push_back(
       utility::getGREMirror("mirror0", MirrorTest::tunnelDestination));
   publishWithStateUpdate();
-  auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
+  auto mirror = state_->getMnpuMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), false);
@@ -159,7 +159,7 @@ TEST_F(MirrorTest, MirrorWithIpAndDscp) {
       MirrorTest::dscp));
 
   publishWithStateUpdate();
-  auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
+  auto mirror = state_->getMnpuMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), false);
@@ -179,7 +179,7 @@ TEST_F(MirrorTest, MirrorWithPortAndIp) {
       "mirror0", MirrorTest::egressPortName, MirrorTest::tunnelDestination));
 
   publishWithStateUpdate();
-  auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
+  auto mirror = state_->getMnpuMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), true);
@@ -199,7 +199,7 @@ TEST_F(MirrorTest, MirrorWithPortIdAndIp) {
   config_.mirrors()->push_back(utility::getGREMirrorWithPort(
       "mirror0", MirrorTest::egressPort, MirrorTest::tunnelDestination));
   publishWithStateUpdate();
-  auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
+  auto mirror = state_->getMnpuMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), true);
@@ -222,7 +222,7 @@ TEST_F(MirrorTest, MirrorWithPortIdAndIpAndDscp) {
       std::nullopt /* src addr */,
       MirrorTest::dscp));
   publishWithStateUpdate();
-  auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
+  auto mirror = state_->getMnpuMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), true);
@@ -249,7 +249,7 @@ TEST_F(MirrorTest, MirrorWithPortIdAndIpAndSflowTunnel) {
       MirrorTest::dscp));
   publishWithStateUpdate();
 
-  auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
+  auto mirror = state_->getMnpuMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), true);
@@ -271,7 +271,7 @@ TEST_F(MirrorTest, MirrorWithNameNoPortNoIp) {
   mirror0.name() = "mirror0";
   config_.mirrors()->push_back(mirror0);
   publishWithFbossError();
-  auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
+  auto mirror = state_->getMnpuMirrors()->getMirrorIf("mirror0");
   EXPECT_EQ(mirror, nullptr);
 }
 
@@ -281,7 +281,7 @@ TEST_F(MirrorTest, MirrorWithNameAndDscpNoPortNoIp) {
   config_.mirrors()->push_back(mirror0);
   mirror0.dscp() = MirrorTest::dscp;
   publishWithFbossError();
-  auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
+  auto mirror = state_->getMnpuMirrors()->getMirrorIf("mirror0");
   EXPECT_EQ(mirror, nullptr);
 }
 
@@ -290,7 +290,7 @@ TEST_F(MirrorTest, MirrorWithTunnelNoPortNoIp) {
   mirror0.name() = "mirror0";
   config_.mirrors()->push_back(mirror0);
   publishWithFbossError();
-  auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
+  auto mirror = state_->getMnpuMirrors()->getMirrorIf("mirror0");
 }
 
 TEST_F(MirrorTest, MirrorWithTruncation) {
@@ -302,7 +302,7 @@ TEST_F(MirrorTest, MirrorWithTruncation) {
       MirrorTest::dscp,
       true));
   publishWithStateUpdate();
-  auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
+  auto mirror = state_->getMnpuMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getTruncate(), true);
 }
@@ -316,7 +316,7 @@ TEST_F(MirrorTest, MirrorWithoutTruncation) {
       MirrorTest::dscp,
       false));
   publishWithStateUpdate();
-  auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
+  auto mirror = state_->getMnpuMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getTruncate(), false);
 }
@@ -410,7 +410,7 @@ TEST_F(MirrorTest, WithStateChange) {
        .ip() = "10.0.0.2";
   publishWithStateUpdate();
 
-  auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
+  auto mirror = state_->getMnpuMirrors()->getMirrorIf("mirror0");
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), false);
@@ -568,36 +568,37 @@ TEST_F(MirrorTest, ToAndFromThrift) {
       folly::IPAddress("10.0.1.10"),
       MirrorTest::dscp));
   publishWithStateUpdate();
-  auto span = state_->getMirrors()->getMirrorIf("span");
+  auto span = state_->getMnpuMirrors()->getMirrorIf("span");
   *span;
-  auto unresolved = state_->getMirrors()->getMirrorIf("unresolved");
-  auto with_dscp = state_->getMirrors()->getMirrorIf("with_dscp");
-  auto resolved = state_->getMirrors()->getMirrorIf("resolved");
+  auto unresolved = state_->getMnpuMirrors()->getMirrorIf("unresolved");
+  auto with_dscp = state_->getMnpuMirrors()->getMirrorIf("with_dscp");
+  auto resolved = state_->getMnpuMirrors()->getMirrorIf("resolved");
   resolved->setEgressPort(MirrorTest::egressPort);
   resolved->setMirrorTunnel(MirrorTunnel(
       folly::IPAddress("1.1.1.1"),
       folly::IPAddress("2.2.2.2"),
       folly::MacAddress("1:1:1:1:1:1"),
       folly::MacAddress("2:2:2:2:2:2")));
-  auto withTunnelType = state_->getMirrors()->getMirrorIf("with_tunnel_type");
+  auto withTunnelType =
+      state_->getMnpuMirrors()->getMirrorIf("with_tunnel_type");
   auto reconstructedState = SwitchState::fromThrift(state_->toThrift());
 
   EXPECT_EQ(
-      *(reconstructedState->getMirrors()->getMirrorIf("span")),
-      *(state_->getMirrors()->getMirrorIf("span")));
+      *(reconstructedState->getMnpuMirrors()->getMirrorIf("span")),
+      *(state_->getMnpuMirrors()->getMirrorIf("span")));
 
   EXPECT_EQ(
-      *(reconstructedState->getMirrors()->getMirrorIf("unresolved")),
-      *(state_->getMirrors()->getMirrorIf("unresolved")));
+      *(reconstructedState->getMnpuMirrors()->getMirrorIf("unresolved")),
+      *(state_->getMnpuMirrors()->getMirrorIf("unresolved")));
   EXPECT_EQ(
-      *(reconstructedState->getMirrors()->getMirrorIf("resolved")),
-      *(state_->getMirrors()->getMirrorIf("resolved")));
+      *(reconstructedState->getMnpuMirrors()->getMirrorIf("resolved")),
+      *(state_->getMnpuMirrors()->getMirrorIf("resolved")));
   EXPECT_EQ(
-      *(reconstructedState->getMirrors()->getMirrorIf("with_dscp")),
-      *(state_->getMirrors()->getMirrorIf("with_dscp")));
+      *(reconstructedState->getMnpuMirrors()->getMirrorIf("with_dscp")),
+      *(state_->getMnpuMirrors()->getMirrorIf("with_dscp")));
   EXPECT_EQ(
-      *(reconstructedState->getMirrors()->getMirrorIf("with_tunnel_type")),
-      *(state_->getMirrors()->getMirrorIf("with_tunnel_type")));
+      *(reconstructedState->getMnpuMirrors()->getMirrorIf("with_tunnel_type")),
+      *(state_->getMnpuMirrors()->getMirrorIf("with_tunnel_type")));
 }
 
 TEST_F(MirrorTest, GreMirrorWithSrcIP) {
@@ -608,7 +609,7 @@ TEST_F(MirrorTest, GreMirrorWithSrcIP) {
       MirrorTest::dscp,
       true));
   publishWithStateUpdate();
-  auto mirror0 = state_->getMirrors()->getMirrorIf("mirror0");
+  auto mirror0 = state_->getMnpuMirrors()->getMirrorIf("mirror0");
   EXPECT_EQ(mirror0->getID(), "mirror0");
   EXPECT_EQ(mirror0->getDestinationIp(), MirrorTest::tunnelDestination);
   EXPECT_EQ(mirror0->getSrcIp(), folly::IPAddress("10.0.0.1"));
@@ -627,7 +628,7 @@ TEST_F(MirrorTest, SflowMirrorWithSrcIP) {
       MirrorTest::dscp,
       true));
   publishWithStateUpdate();
-  auto mirror0 = state_->getMirrors()->getMirrorIf("mirror0");
+  auto mirror0 = state_->getMnpuMirrors()->getMirrorIf("mirror0");
   EXPECT_EQ(mirror0->getID(), "mirror0");
   EXPECT_EQ(mirror0->getDestinationIp(), MirrorTest::tunnelDestination);
   EXPECT_EQ(mirror0->getSrcIp(), folly::IPAddress("10.0.0.1"));
@@ -652,9 +653,9 @@ TEST_F(MirrorTest, MirrorThrifty) {
       MirrorTest::dscp,
       true));
   publishWithStateUpdate();
-  auto& mirrors = state_->getMirrors();
+  auto& mirrors = state_->getMnpuMirrors();
   auto mirrorsThrift = mirrors->toThrift();
-  auto newMirrors = MirrorMap::fromThrift(mirrorsThrift);
+  auto newMirrors = MultiMirrorMap::fromThrift(mirrorsThrift);
   EXPECT_EQ(mirrorsThrift, newMirrors->toThrift());
 }
 
