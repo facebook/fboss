@@ -509,10 +509,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       const std::string& name,
       cfg::PortType portType = cfg::PortType::INTERFACE_PORT);
   void addPort(const std::shared_ptr<Port>& port);
-  /*
-   * Retire default argument once all call sites have been migrated
-   */
   void resetMirrors(const std::shared_ptr<MirrorMap>& mirrors);
+  void resetMirrors(const std::shared_ptr<MultiMirrorMap>& mirrors);
   void resetPorts(std::shared_ptr<PortMap> ports);
   void resetAggregatePorts(std::shared_ptr<AggregatePortMap> aggPorts);
   void resetVlans(std::shared_ptr<VlanMap> vlans);

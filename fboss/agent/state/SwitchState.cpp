@@ -407,6 +407,10 @@ void SwitchState::resetMirrors(const std::shared_ptr<MirrorMap>& mirrors) {
   resetMap<switch_state_tags::mirrorMaps>(mirrors);
 }
 
+void SwitchState::resetMirrors(const std::shared_ptr<MultiMirrorMap>& mirrors) {
+  ref<switch_state_tags::mirrorMaps>() = mirrors;
+}
+
 const std::shared_ptr<SflowCollectorMap>& SwitchState::getSflowCollectors()
     const {
   return getDefaultMap<switch_state_tags::sflowCollectorMaps>();
