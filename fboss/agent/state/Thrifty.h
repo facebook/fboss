@@ -368,7 +368,7 @@ struct ThriftMapNode : public thrift_cow::ThriftMapNode<Traits, Resolver> {
   std::shared_ptr<Node> removeNode(const KeyType& key) {
     auto node = removeNodeIf(key);
     if (!node) {
-      throw FbossError("node ", key, " does not exist");
+      throw FbossError("Cannot remove node ", key, " does not exist");
     }
     return node;
   }
@@ -386,7 +386,7 @@ struct ThriftMapNode : public thrift_cow::ThriftMapNode<Traits, Resolver> {
   const std::shared_ptr<Node>& getNode(KeyType key) const {
     auto iter = this->find(key);
     if (iter == this->end()) {
-      throw FbossError("node ", key, " does not exist");
+      throw FbossError("Cannot get node ", key, " does not exist");
     }
     return iter->second;
   }
