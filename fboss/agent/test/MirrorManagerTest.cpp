@@ -135,6 +135,17 @@ class MirrorManagerTest : public ::testing::Test {
     mirrors->addMirror(mirror, resolver.scope(mirror));
     return newState;
   }
+  std::shared_ptr<SwitchState> updateMirror(
+      const std::shared_ptr<SwitchState>& state,
+      std::shared_ptr<Mirror> mirror) {
+    auto newState = state->clone();
+    auto mirrors = newState->getMnpuMirrors()->modify(&newState);
+    SwitchIdScopeResolver resolver(
+        state->getSwitchSettings()->getSwitchIdToSwitchInfo());
+    mirrors->updateNode(mirror, resolver.scope(mirror));
+    return newState;
+  }
+
   std::shared_ptr<SwitchState> addNeighbor(
       const std::shared_ptr<SwitchState>& state,
       InterfaceID interfaceId,
@@ -916,8 +927,7 @@ TYPED_TEST(MirrorManagerTest, GreMirrorWithSrcIp) {
             oldMirror->getEgressPort(),
             oldMirror->getDestinationIp(),
             std::make_optional<folly::IPAddress>(params.mirrorSource));
-        updatedState->getMirrors()->updateNode(mirror);
-        return updatedState;
+        return this->updateMirror(updatedState, mirror);
       });
 
   RouteNextHopSet nextHops = {params.nextHop(0)};
@@ -962,8 +972,7 @@ TYPED_TEST(MirrorManagerTest, SflowMirrorWithSrcIp) {
             oldMirror->getDestinationIp(),
             std::make_optional<folly::IPAddress>(params.mirrorSource),
             oldMirror->getTunnelUdpPorts());
-        updatedState->getMirrors()->updateNode(mirror);
-        return updatedState;
+        return this->updateMirror(updatedState, mirror);
       });
 
   RouteNextHopSet nextHops = {params.nextHop(0)};
@@ -1028,11 +1037,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorOnMirrorUpdate) {
             std::optional<IPAddress>(),
             oldMirror->getTunnelUdpPorts());
         mirror->setTruncate(true);
-
-        auto mirrors = updatedState->getMirrors()->clone();
-        mirrors->updateNode(mirror);
-        updatedState->resetMirrors(mirrors);
-        return updatedState;
+        return this->updateMirror(updatedState, mirror);
       });
 
   this->verifyStateUpdate([=]() {
