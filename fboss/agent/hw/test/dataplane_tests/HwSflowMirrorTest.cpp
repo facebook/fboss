@@ -177,7 +177,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     }
 
     mirror->setEgressPort(getPortsForSampling()[0]);
-    mirrors->updateNode(mirror, HwSwitchMatcher(mirrors->cbegin()->first));
+    mirrors->updateNode(mirror, scopeResolver().scope(mirror));
     applyNewState(state);
   }
 

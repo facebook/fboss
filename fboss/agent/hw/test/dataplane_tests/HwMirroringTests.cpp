@@ -153,7 +153,7 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
     auto mirrors = state->getMirrors()->modify(&state);
     auto mirror = mirrorName == kSpan ? getSpanMirror() : getErSpanMirror();
     mirror->setTruncate(truncate);
-    mirrors->addMirror(mirror, HwSwitchMatcher(mirrors->cbegin()->first));
+    mirrors->addMirror(mirror, scopeResolver().scope(mirror));
     applyNewState(state);
   }
 

@@ -79,8 +79,7 @@ class HwMirrorTest : public HwTest {
     auto newState = this->getProgrammedState()->clone();
     auto mnpuMirrors =
         this->getProgrammedState()->getMirrors()->modify(&newState);
-    mnpuMirrors->updateNode(
-        mirror, HwSwitchMatcher(mnpuMirrors->cbegin()->first));
+    mnpuMirrors->updateNode(mirror, scopeResolver().scope(mirror));
     this->applyNewState(newState);
   }
   void updateMirrors(const std::vector<std::shared_ptr<Mirror>>& mirrors) {
