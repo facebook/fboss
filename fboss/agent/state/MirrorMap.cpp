@@ -78,6 +78,15 @@ void MultiMirrorMap::updateNode(
   mirrorMap->updateNode(std::move(mirror));
 }
 
+void MultiMirrorMap::removeNode(const std::shared_ptr<Mirror>& mirror) {
+  for (auto mitr = begin(); mitr != end(); ++mitr) {
+    if (mitr->second->remove(mirror->getID())) {
+      return;
+    }
+  }
+  throw FbossError("Mirror not found: ", mirror->getID());
+}
+
 MultiMirrorMap* MultiMirrorMap::modify(std::shared_ptr<SwitchState>* state) {
   if (!isPublished()) {
     CHECK(!(*state)->isPublished());
