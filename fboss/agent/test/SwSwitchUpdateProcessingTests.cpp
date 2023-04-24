@@ -280,8 +280,8 @@ TEST_P(SwSwitchUpdateProcessingTest, HwFailureProtectedUpdatesDuringExit) {
   std::thread stopThread([&updatesPaused, this]() {
     sw->stop();
     // unblock updates
-    updatesPaused.store(false);
   });
+  updatesPaused.store(false);
   stopThread.join();
   updateThread.join();
   updateThread2.join();
