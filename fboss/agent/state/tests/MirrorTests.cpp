@@ -673,4 +673,24 @@ TEST_F(MirrorTest, Modify) {
   auto newMirrors = state_->getMnpuMirrors()->modify(&state_);
   EXPECT_NE(newMirrors, oldMirrors.get());
 }
+
+TEST_F(MirrorTest, NumMirrors) {
+  config_.mirrors()->push_back(
+      utility::getSPANMirror("mirror0", MirrorTest::egressPort));
+  config_.mirrors()->push_back(
+      utility::getGREMirror("mirror1", MirrorTest::tunnelDestination));
+  config_.mirrors()->push_back(utility::getSFlowMirror(
+      "mirror2",
+      8998,
+      9889,
+      MirrorTest::tunnelDestination,
+      folly::IPAddress("10.0.0.1"),
+      MirrorTest::dscp,
+      true));
+  publishWithStateUpdate();
+  EXPECT_EQ(state_->getMnpuMirrors()->numMirrors(), 3);
+  config_.mirrors()->pop_back();
+  publishWithStateUpdate();
+  EXPECT_EQ(state_->getMnpuMirrors()->numMirrors(), 2);
+}
 } // namespace facebook::fboss

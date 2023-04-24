@@ -114,6 +114,14 @@ std::shared_ptr<MultiMirrorMap> MultiMirrorMap::fromThrift(
   return mnpuMap;
 }
 
+size_t MultiMirrorMap::numMirrors() const {
+  size_t cnt = 0;
+  for (auto mnitr = cbegin(); mnitr != cend(); ++mnitr) {
+    cnt += mnitr->second->size();
+  }
+  return cnt;
+}
+
 template class ThriftMapNode<MirrorMap, MirrorMapTraits>;
 
 } // namespace facebook::fboss

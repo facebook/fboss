@@ -89,6 +89,7 @@ class MultiMirrorMap
   static std::shared_ptr<MultiMirrorMap> fromThrift(
       const std::map<std::string, std::map<std::string, state::MirrorFields>>&
           mnpuMirrors);
+  size_t numMirrors() const;
 
  private:
   // Inherit the constructors required for clone()
