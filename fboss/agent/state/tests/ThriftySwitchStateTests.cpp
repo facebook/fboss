@@ -349,7 +349,7 @@ TEST(ThriftySwitchState, MultiMaps) {
 
 TEST(ThriftySwitchState, EmptyMultiMap) {
   auto state = SwitchState::fromThrift(state::SwitchState{});
-  EXPECT_NO_THROW(state->getMirrors());
+  EXPECT_NO_THROW(state->getMnpuMirrors());
   EXPECT_NO_THROW(state->getFibs());
 
   state::SwitchState stThr;
@@ -362,7 +362,8 @@ TEST(ThriftySwitchState, EmptyMultiMap) {
   state = SwitchState::fromThrift(stThr);
   /* mirror0 is found in multi map for default npu and is same as what was added
    * in legacy map */
-  EXPECT_EQ(state->getMirrors()->getNode("mirror0")->toThrift(), mirror);
+  EXPECT_EQ(
+      state->getMnpuMirrors()->getMirrorIf("mirror0")->toThrift(), mirror);
   auto mirrors = *state->toThrift().mirrorMap();
   EXPECT_EQ(mirrors.size(), 1);
 

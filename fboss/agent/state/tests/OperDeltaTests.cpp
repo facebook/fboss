@@ -10,6 +10,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FsdbHelper.h"
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -39,14 +40,14 @@ TEST(OperDeltaTests, OperDeltaCompute) {
   EXPECT_EQ(delta1.getOperDelta().changes()->size(), 24);
 
   auto stateV2 = stateV1->clone();
-  auto mirrors = stateV2->getMirrors()->clone();
+  auto mnpuMirrors = stateV1->getMnpuMirrors()->modify(&stateV2);
   state::MirrorFields mirror{};
   mirror.name() = "mirror0";
   mirror.configHasEgressPort() = true;
   mirror.egressPort() = 1;
   mirror.isResolved() = true;
-  mirrors->addMirror(std::make_shared<Mirror>(mirror));
-  stateV2->resetMirrors(mirrors);
+  HwSwitchMatcher matcher(mnpuMirrors->begin()->first);
+  mnpuMirrors->addMirror(std::make_shared<Mirror>(mirror), matcher);
   stateV2->publish();
 
   auto delta2 = StateDelta(stateV1, stateV2);
