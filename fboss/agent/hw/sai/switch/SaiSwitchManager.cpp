@@ -608,6 +608,13 @@ void SaiSwitchManager::configureCreditWatchdog(bool enable) {
   }
 }
 
+void SaiSwitchManager::setSwitchIsolate(bool isolate) {
+  // Supported only for FABRIC switches!
+  // It is checked while applying thrift config
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::SwitchIsolate{isolate});
+}
+
 std::vector<sai_object_id_t> SaiSwitchManager::getUdfGroupIds(
     const std::shared_ptr<LoadBalancer>& newLb) const {
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
