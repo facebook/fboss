@@ -37,28 +37,28 @@ LedIO::LedIO(LedMapping ledMapping) {
   init();
 }
 
-void LedIO::setColor(LedIO::Color color) {
+void LedIO::setColor(led::LedColor color) {
   if (color == currColor_) {
     return;
   }
 
   switch (color) {
-    case LedIO::Color::BLUE:
-      currColor_ = LedIO::Color::BLUE;
+    case led::LedColor::BLUE:
+      currColor_ = led::LedColor::BLUE;
       blueOn();
       break;
-    case LedIO::Color::YELLOW:
-      currColor_ = LedIO::Color::YELLOW;
+    case led::LedColor::YELLOW:
+      currColor_ = led::LedColor::YELLOW;
       yellowOn();
       break;
-    case LedIO::Color::OFF:
-      if (LedIO::Color::BLUE == currColor_) {
+    case led::LedColor::OFF:
+      if (led::LedColor::BLUE == currColor_) {
         blueOff();
-      } else if (LedIO::Color::YELLOW == currColor_) {
+      } else if (led::LedColor::YELLOW == currColor_) {
         yellowOff();
       }
 
-      currColor_ = LedIO::Color::OFF;
+      currColor_ = led::LedColor::OFF;
       XLOG(INFO) << fmt::format("Trace: set LED {:d} (0 base) to OFF", id_);
       break;
     default:
@@ -67,12 +67,12 @@ void LedIO::setColor(LedIO::Color color) {
   }
 }
 
-LedIO::Color LedIO::getColor() const {
+led::LedColor LedIO::getColor() const {
   return currColor_;
 }
 
 void LedIO::init() {
-  currColor_ = LedIO::Color::OFF;
+  currColor_ = led::LedColor::OFF;
   if (bluePath_.has_value()) {
     blueOff();
   }

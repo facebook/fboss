@@ -34,27 +34,27 @@ class LedTests : public ::testing::Test {
     VerifyLedOff();
 
     // Since current color is Off, setting it to Off again will be noop
-    led_->setColor(LedIO::Color::OFF);
+    led_->setColor(led::LedColor::OFF);
     VerifyLedOff();
 
     // Change current color from Off to Blue
-    led_->setColor(LedIO::Color::BLUE);
+    led_->setColor(led::LedColor::BLUE);
     VerifyBlueOn();
 
     // Since current color is Blue, setting it to Blue again will be noop
-    led_->setColor(LedIO::Color::BLUE);
+    led_->setColor(led::LedColor::BLUE);
     VerifyBlueOn();
 
     // Change current color from Blue to Off
-    led_->setColor(LedIO::Color::OFF);
+    led_->setColor(led::LedColor::OFF);
     VerifyLedOff();
 
     // Change current color from Off to Yellow
-    led_->setColor(LedIO::Color::YELLOW);
+    led_->setColor(led::LedColor::YELLOW);
     VerifyYellowOn();
 
     // Since current color is Yellow, setting it to Yellow again will be noop
-    led_->setColor(LedIO::Color::YELLOW);
+    led_->setColor(led::LedColor::YELLOW);
     VerifyYellowOn();
 
     close(blueFd_);
@@ -88,7 +88,7 @@ class LedTests : public ::testing::Test {
   void VerifyLedOff() {
     EXPECT_EQ('0', ReadLedFile(blueFd_));
     EXPECT_EQ('0', ReadLedFile(yellowFd_));
-    EXPECT_EQ(LedIO::Color::OFF, led_->getColor());
+    EXPECT_EQ(led::LedColor::OFF, led_->getColor());
   }
 
   // Verify that the blue file contains a single 1, the yellow file
@@ -96,7 +96,7 @@ class LedTests : public ::testing::Test {
   void VerifyBlueOn() {
     EXPECT_EQ('1', ReadLedFile(blueFd_));
     EXPECT_EQ('0', ReadLedFile(yellowFd_));
-    EXPECT_EQ(LedIO::Color::BLUE, led_->getColor());
+    EXPECT_EQ(led::LedColor::BLUE, led_->getColor());
   }
 
   // Verify that the yellow file contains a single 1, the blue file
@@ -104,7 +104,7 @@ class LedTests : public ::testing::Test {
   void VerifyYellowOn() {
     EXPECT_EQ('0', ReadLedFile(blueFd_));
     EXPECT_EQ('1', ReadLedFile(yellowFd_));
-    EXPECT_EQ(LedIO::Color::YELLOW, led_->getColor());
+    EXPECT_EQ(led::LedColor::YELLOW, led_->getColor());
   }
 
   folly::test::TemporaryDirectory tmpDir_;

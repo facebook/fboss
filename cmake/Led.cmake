@@ -8,5 +8,6 @@ add_library(ledIO
 target_link_libraries(ledIO
   Folly::folly
   led_mapping_cpp2
+  led_structs_types_cpp2
   error
 )
