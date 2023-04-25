@@ -224,6 +224,7 @@ class SaiTracer {
   sai_system_port_api_t* systemPortApi_;
   sai_tam_api_t* tamApi_;
   sai_tunnel_api_t* tunnelApi_;
+  sai_udf_api_t* udfApi_;
   sai_virtual_router_api_t* virtualRouterApi_;
   sai_vlan_api_t* vlanApi_;
   sai_wred_api_t* wredApi_;
@@ -384,6 +385,8 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_TAM, "tam_"},
       {SAI_OBJECT_TYPE_TUNNEL, "tunnel_"},
       {SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY, "tunnelTerm_"},
+      {SAI_OBJECT_TYPE_UDF, "udf_"},
+      {SAI_OBJECT_TYPE_UDF_MATCH, "udfMatch_"},
       {SAI_OBJECT_TYPE_UDF_GROUP, "udfGroup_"},
       {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, "virtualRouter_"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_"},
@@ -440,6 +443,9 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_TAM, "tam_api->"},
       {SAI_OBJECT_TYPE_TUNNEL, "tunnel_api->"},
       {SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY, "tunnel_api->"},
+      {SAI_OBJECT_TYPE_UDF, "udf_api->"},
+      {SAI_OBJECT_TYPE_UDF_MATCH, "udf_api->"},
+      {SAI_OBJECT_TYPE_UDF_GROUP, "udf_api->"},
       {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, "virtual_router_api->"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_api->"},
       {SAI_OBJECT_TYPE_VLAN_MEMBER, "vlan_api->"},

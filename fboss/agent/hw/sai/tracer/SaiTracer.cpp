@@ -42,6 +42,7 @@
 #include "fboss/agent/hw/sai/tracer/SystemPortApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/TamApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/TunnelApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/UdfApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/VirtualRouterApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/VlanApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/WredApiTracer.h"
@@ -343,6 +344,12 @@ sai_status_t __wrap_sai_api_query(
           static_cast<sai_tunnel_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrappedTunnelApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "tunnel_api");
+      break;
+    case SAI_API_UDF:
+      SaiTracer::getInstance()->udfApi_ =
+          static_cast<sai_udf_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrappedUdfApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "udf_api");
       break;
     case SAI_API_VIRTUAL_ROUTER:
       SaiTracer::getInstance()->virtualRouterApi_ =
@@ -1424,6 +1431,15 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY:
       setTunnelTermAttributes(attr_list, attr_count, attrLines);
       break;
+    case SAI_OBJECT_TYPE_UDF:
+      setUdfAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_UDF_MATCH:
+      setUdfMatchAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_UDF_GROUP:
+      setUdfGroupAttributes(attr_list, attr_count, attrLines);
+      break;
     case SAI_OBJECT_TYPE_VIRTUAL_ROUTER:
       setVirtualRouterAttributes(attr_list, attr_count, attrLines);
       break;
@@ -1763,6 +1779,8 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TUNNEL, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_UDF, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_UDF_MATCH, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_UDF_GROUP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VIRTUAL_ROUTER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VLAN, 0);
