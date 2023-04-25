@@ -398,16 +398,8 @@ TEST(ThriftySwitchState, MultiMapsDifferent) {
       makeFibContainerFields(
           1, {"100.1.1.1/24", "200.1.1.1/24"}, {"101::1/64", "201::1/64"}));
 
-  EXPECT_THROW(SwitchState::fromThrift(stateThrift0), FbossError);
+  EXPECT_NO_THROW(SwitchState::fromThrift(stateThrift0));
 
   auto fibs = utility::TagName<switch_state_tags::fibs>::value();
   EXPECT_EQ(fibs, "fibs");
-
-  try {
-    SwitchState::fromThrift(stateThrift0);
-  } catch (const FbossError& e) {
-    EXPECT_EQ(
-        e.what(),
-        folly::to<std::string>("Map fibs is different in multi-map fibsMap"));
-  }
 }
