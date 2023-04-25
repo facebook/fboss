@@ -150,7 +150,7 @@ void SaiUdfManager::removeUdfMatch(
 uint8_t SaiUdfManager::cfgL4MatchTypeToSai(cfg::UdfMatchL4Type cfgType) const {
   switch (cfgType) {
     case cfg::UdfMatchL4Type::UDF_L4_PKT_TYPE_ANY:
-      throw FbossError("Unsupported udf l4 match type any.");
+      return 0;
     case cfg::UdfMatchL4Type::UDF_L4_PKT_TYPE_UDP:
       return static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP);
     case cfg::UdfMatchL4Type::UDF_L4_PKT_TYPE_TCP:
@@ -162,7 +162,7 @@ uint8_t SaiUdfManager::cfgL4MatchTypeToSai(cfg::UdfMatchL4Type cfgType) const {
 uint16_t SaiUdfManager::cfgL3MatchTypeToSai(cfg::UdfMatchL3Type cfgType) const {
   switch (cfgType) {
     case cfg::UdfMatchL3Type::UDF_L3_PKT_TYPE_ANY:
-      throw FbossError("Unsupported udf l3 match type any.");
+      return 0;
     case cfg::UdfMatchL3Type::UDF_L3_PKT_TYPE_IPV4:
       return static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4);
     case cfg::UdfMatchL3Type::UDF_L3_PKT_TYPE_IPV6:
