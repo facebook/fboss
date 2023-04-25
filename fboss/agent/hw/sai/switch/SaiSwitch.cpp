@@ -1038,6 +1038,12 @@ void SaiSwitch::processSwitchSettingsChangedLocked(
     managerTable_->counterManager().setMaxRouteCounterIDs(
         newSwitchSettings->getMaxRouteCounterIDs());
   }
+
+  const auto oldVal = oldSwitchSettings->isSwitchDrained();
+  const auto newVal = newSwitchSettings->isSwitchDrained();
+  if (oldVal != newVal) {
+    managerTable_->switchManager().setSwitchIsolate(newVal);
+  }
 }
 
 template <typename LockPolicyT>
