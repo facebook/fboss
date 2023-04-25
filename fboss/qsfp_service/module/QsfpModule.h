@@ -489,7 +489,7 @@ class QsfpModule : public Transceiver {
    * configured for 100G-CWDM4 application, then getModuleMediaInterface will
    * return 200G-FR4
    */
-  virtual MediaInterfaceCode getModuleMediaInterface();
+  virtual MediaInterfaceCode getModuleMediaInterface() const = 0;
 
   /*
    * Returns true if getting the mediaInterfaceId is successful, false otherwise

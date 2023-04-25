@@ -801,6 +801,23 @@ bool SffModule::getMediaInterfaceId(
   return true;
 }
 
+MediaInterfaceCode SffModule::getModuleMediaInterface() const {
+  auto extSpecCompliance = getExtendedSpecificationComplianceCode();
+  if (!extSpecCompliance) {
+    QSFP_LOG(ERR, this)
+        << "getExtendedSpecificationComplianceCode returned nullopt";
+    return MediaInterfaceCode::UNKNOWN;
+  }
+  if (auto it = mediaInterfaceMapping.find(*extSpecCompliance);
+      it != mediaInterfaceMapping.end()) {
+    return it->second;
+  }
+  QSFP_LOG(ERR, this) << "Cannot find "
+                      << apache::thrift::util::enumNameSafe(*extSpecCompliance)
+                      << " in mediaInterfaceMapping";
+  return MediaInterfaceCode::UNKNOWN;
+}
+
 ModuleStatus SffModule::getModuleStatus() {
   ModuleStatus moduleStatus;
   std::array<uint8_t, 2> status = {{0, 0}};

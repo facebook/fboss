@@ -226,6 +226,20 @@ bool Sff8472Module::getMediaInterfaceId(
   return true;
 }
 
+MediaInterfaceCode Sff8472Module::getModuleMediaInterface() const {
+  auto ethernet10GCompliance = getEthernet10GComplianceCode();
+
+  if (auto it = mediaInterfaceMapping.find(ethernet10GCompliance);
+      it != mediaInterfaceMapping.end()) {
+    return it->second;
+  }
+  QSFP_LOG(ERR, this) << "Cannot find "
+                      << apache::thrift::util::enumNameSafe(
+                             ethernet10GCompliance)
+                      << " in mediaInterfaceMapping";
+  return MediaInterfaceCode::UNKNOWN;
+}
+
 Ethernet10GComplianceCode Sff8472Module::getEthernet10GComplianceCode() const {
   return Ethernet10GComplianceCode(
       getSettingsValue(Sff8472Field::ETHERNET_10G_COMPLIANCE_CODE));

@@ -425,7 +425,7 @@ class CmisModule : public QsfpModule {
    * configured for 100G-CWDM4 application, then getModuleMediaInterface will
    * return 200G-FR4
    */
-  MediaInterfaceCode getModuleMediaInterface() override;
+  MediaInterfaceCode getModuleMediaInterface() const override;
 
   void resetDataPathWithFunc(
       std::optional<std::function<void()>> afterDataPathDeinitFunc =

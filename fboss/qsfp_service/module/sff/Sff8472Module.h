@@ -148,6 +148,8 @@ class Sff8472Module : public QsfpModule {
   void readSff8472Field(Sff8472Field field, uint8_t* data);
   void writeSff8472Field(Sff8472Field field, uint8_t* data);
 
+  MediaInterfaceCode getModuleMediaInterface() const override;
+
  protected:
   uint8_t a0LowerPage_[MAX_QSFP_PAGE_SIZE] = {0};
   uint8_t a2LowerPage_[MAX_QSFP_PAGE_SIZE] = {0};

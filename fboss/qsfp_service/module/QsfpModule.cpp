@@ -857,17 +857,6 @@ ModuleStatus QsfpModule::readAndClearCachedModuleStatus() {
   return moduleStatus;
 }
 
-MediaInterfaceCode QsfpModule::getModuleMediaInterface() {
-  std::vector<MediaInterfaceId> mediaInterfaceCodes(numMediaLanes());
-  if (!getMediaInterfaceId(mediaInterfaceCodes)) {
-    return MediaInterfaceCode::UNKNOWN;
-  }
-  if (!mediaInterfaceCodes.empty()) {
-    return mediaInterfaceCodes[0].get_code();
-  }
-  return MediaInterfaceCode::UNKNOWN;
-}
-
 TransceiverManagementInterface QsfpModule::getTransceiverManagementInterface(
     const uint8_t moduleId,
     const unsigned int oneBasedPort) {

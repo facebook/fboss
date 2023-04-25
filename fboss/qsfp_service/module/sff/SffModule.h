@@ -274,6 +274,8 @@ class SffModule : public QsfpModule {
   std::vector<uint8_t> configuredMediaLanes(
       uint8_t hostStartLane) const override;
 
+  MediaInterfaceCode getModuleMediaInterface() const override;
+
  private:
   // no copy or assignment
   SffModule(SffModule const&) = delete;

@@ -2267,7 +2267,7 @@ void CmisModule::configureModule(uint8_t startHostLane) {
       << "Rx Equalizer configuration not specified in the QSFP config";
 }
 
-MediaInterfaceCode CmisModule::getModuleMediaInterface() {
+MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
   // Go over all module capabilities and return the one with max speed
   auto maxSpeed = cfg::PortSpeed::DEFAULT;
   auto moduleMediaInterface = MediaInterfaceCode::UNKNOWN;
