@@ -197,12 +197,14 @@ DeltaValue<ControlPlane> StateDelta::getControlPlaneDelta() const {
 }
 
 thrift_cow::ThriftMapDelta<MirrorMap> StateDelta::getMirrorsDelta() const {
-  const auto& key = HwSwitchMatcher::defaultHwSwitchMatcherKey();
-  auto oldMirrors = old_->cref<switch_state_tags::mirrorMaps>()->getNodeIf(key);
-  auto newMirrors = new_->cref<switch_state_tags::mirrorMaps>()->getNodeIf(key);
+  const auto& oldMirrorMaps = old_->getMirrors();
+  const auto& newMirrorMaps = new_->getMirrors();
+  auto oldMirrors =
+      oldMirrorMaps->size() ? oldMirrorMaps->cbegin()->second.get() : nullptr;
+  auto newMirrors =
+      newMirrorMaps->size() ? newMirrorMaps->cbegin()->second.get() : nullptr;
 
-  return thrift_cow::ThriftMapDelta<MirrorMap>(
-      oldMirrors.get(), newMirrors.get());
+  return thrift_cow::ThriftMapDelta<MirrorMap>(oldMirrors, newMirrors);
 }
 
 thrift_cow::ThriftMapDelta<TransceiverMap> StateDelta::getTransceiversDelta()
