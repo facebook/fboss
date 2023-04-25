@@ -3582,6 +3582,10 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
 
   if (origSwitchSettings->getSwitchDrainState() !=
       *cfg_->switchSettings()->switchDrainState()) {
+    if (newSwitchSettings->getSwitchIdsOfType(cfg::SwitchType::FABRIC).size() ==
+        0) {
+      throw FbossError("Switch drain/isolate is supported only on FDSW");
+    }
     newSwitchSettings->setSwitchDrainState(
         *cfg_->switchSettings()->switchDrainState());
     switchSettingsChange = true;

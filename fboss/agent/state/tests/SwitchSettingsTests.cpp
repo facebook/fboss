@@ -52,7 +52,7 @@ TEST(SwitchSettingsTest, applySwitchDrainState) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
 
-  cfg::SwitchConfig config;
+  cfg::SwitchConfig config = testConfigA(cfg::SwitchType::FABRIC);
   *config.switchSettings()->switchDrainState() = cfg::SwitchDrainState::DRAINED;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
