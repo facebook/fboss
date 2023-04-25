@@ -14,7 +14,6 @@
 
 #include "fboss/agent/hw/sai/api/VlanApi.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
-#include "fboss/agent/hw/sai/tracer/VlanApiTracer.h"
 
 using folly::to;
 

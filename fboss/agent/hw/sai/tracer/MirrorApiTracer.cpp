@@ -13,7 +13,6 @@
 #include <utility>
 
 #include "fboss/agent/hw/sai/api/MirrorApi.h"
-#include "fboss/agent/hw/sai/tracer/MirrorApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
 
 using folly::to;

@@ -5,7 +5,6 @@
 #include <utility>
 
 #include "fboss/agent/hw/sai/api/TunnelApi.h"
-#include "fboss/agent/hw/sai/tracer/TunnelApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
 
 using folly::to;
