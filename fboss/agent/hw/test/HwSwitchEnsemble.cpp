@@ -146,12 +146,22 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewConfig(
   if (routingInformationBase_) {
     auto routeUpdater = getRouteUpdater();
     applyNewState(applyThriftConfig(
-        originalState, &config, getPlatform(), &routeUpdater));
+        originalState,
+        &config,
+        getPlatform(),
+        &routeUpdater,
+        nullptr,
+        getPlatform()->getPlatformMapping()));
     routeUpdater.program();
     return getProgrammedState();
   }
-  return applyNewState(
-      applyThriftConfig(originalState, &config, getPlatform()));
+  return applyNewState(applyThriftConfig(
+      originalState,
+      &config,
+      getPlatform(),
+      (RoutingInformationBase*)nullptr,
+      nullptr,
+      getPlatform()->getPlatformMapping()));
 }
 
 std::shared_ptr<SwitchState> HwSwitchEnsemble::updateEncapIndices(

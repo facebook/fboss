@@ -131,25 +131,30 @@ class ThriftConfigApplier {
       const cfg::SwitchConfig* config,
       const Platform* platform,
       RoutingInformationBase* rib,
-      AclNexthopHandler* aclNexthopHandler)
+      AclNexthopHandler* aclNexthopHandler,
+      const PlatformMapping* platformMapping)
       : orig_(orig),
         cfg_(config),
         platform_(platform),
         rib_(rib),
         aclNexthopHandler_(aclNexthopHandler),
-        scopeResolver_(*config->switchSettings()->switchIdToSwitchInfo()) {}
+        scopeResolver_(*config->switchSettings()->switchIdToSwitchInfo()),
+        platformMapping_(platformMapping) {}
+
   ThriftConfigApplier(
       const std::shared_ptr<SwitchState>& orig,
       const cfg::SwitchConfig* config,
       const Platform* platform,
       RouteUpdateWrapper* routeUpdater,
-      AclNexthopHandler* aclNexthopHandler)
+      AclNexthopHandler* aclNexthopHandler,
+      const PlatformMapping* platformMapping)
       : orig_(orig),
         cfg_(config),
         platform_(platform),
         routeUpdater_(routeUpdater),
         aclNexthopHandler_(aclNexthopHandler),
-        scopeResolver_(*config->switchSettings()->switchIdToSwitchInfo()) {}
+        scopeResolver_(*config->switchSettings()->switchIdToSwitchInfo()),
+        platformMapping_(platformMapping) {}
 
   std::shared_ptr<SwitchState> run();
 
@@ -419,6 +424,7 @@ class ThriftConfigApplier {
   RouteUpdateWrapper* routeUpdater_{nullptr};
   AclNexthopHandler* aclNexthopHandler_{nullptr};
   SwitchIdScopeResolver scopeResolver_;
+  const PlatformMapping* platformMapping_{nullptr};
 
   struct InterfaceIpInfo {
     InterfaceIpInfo(uint8_t mask, MacAddress mac, InterfaceID intf)
@@ -4377,9 +4383,11 @@ shared_ptr<SwitchState> applyThriftConfig(
     const cfg::SwitchConfig* config,
     const Platform* platform,
     RoutingInformationBase* rib,
-    AclNexthopHandler* aclNexthopHandler) {
+    AclNexthopHandler* aclNexthopHandler,
+    const PlatformMapping* platformMapping) {
   cfg::SwitchConfig emptyConfig;
-  return ThriftConfigApplier(state, config, platform, rib, aclNexthopHandler)
+  return ThriftConfigApplier(
+             state, config, platform, rib, aclNexthopHandler, platformMapping)
       .run();
 }
 shared_ptr<SwitchState> applyThriftConfig(
@@ -4387,10 +4395,16 @@ shared_ptr<SwitchState> applyThriftConfig(
     const cfg::SwitchConfig* config,
     const Platform* platform,
     RouteUpdateWrapper* routeUpdater,
-    AclNexthopHandler* aclNexthopHandler) {
+    AclNexthopHandler* aclNexthopHandler,
+    const PlatformMapping* platformMapping) {
   cfg::SwitchConfig emptyConfig;
   return ThriftConfigApplier(
-             state, config, platform, routeUpdater, aclNexthopHandler)
+             state,
+             config,
+             platform,
+             routeUpdater,
+             aclNexthopHandler,
+             platformMapping)
       .run();
 }
 
