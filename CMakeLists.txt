@@ -552,6 +552,10 @@ find_library(EXPRTK exprtk)
 find_path(EXPRTK_INCLUDE_DIR NAMES exprtk.hpp)
 include_directories(${EXPRTK_INCLUDE_DIR})
 
+# OSS is still using C++17. Use following flag to allow internal build
+# to use C++20 features. Remove the below flag once OSS start using C++20.
+add_definitions (-DIS_OSS_CPP17=true)
+
 # Unit Testing
 add_definitions (-DIS_OSS=true)
 find_package(Threads REQUIRED)
