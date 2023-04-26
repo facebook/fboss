@@ -47,41 +47,6 @@ using std::make_shared;
 using std::shared_ptr;
 using std::chrono::seconds;
 
-namespace {
-constexpr auto kInterfaces = "interfaces";
-constexpr auto kPorts = "ports";
-constexpr auto kVlans = "vlans";
-constexpr auto kDefaultVlan = "defaultVlan";
-constexpr auto kAcls = "acls";
-constexpr auto kSflowCollectors = "sFlowCollectors";
-constexpr auto kControlPlane = "controlPlane";
-constexpr auto kQosPolicies = "qosPolicies";
-constexpr auto kArpTimeout = "arpTimeout";
-constexpr auto kNdpTimeout = "ndpTimeout";
-constexpr auto kArpAgerInterval = "arpAgerInterval";
-constexpr auto kMaxNeighborProbes = "maxNeighborProbes";
-constexpr auto kStaleEntryInterval = "staleEntryInterval";
-constexpr auto kLoadBalancers = "loadBalancers";
-constexpr auto kMirrors = "mirrors";
-constexpr auto kAggregatePorts = "aggregatePorts";
-constexpr auto kLabelForwardingInformationBase = "labelFib";
-constexpr auto kSwitchSettings = "switchSettings";
-constexpr auto kDefaultDataplaneQosPolicy = "defaultDataPlaneQosPolicy";
-constexpr auto kQcmCfg = "qcmConfig";
-constexpr auto kBufferPoolCfgs = "bufferPoolConfigs";
-constexpr auto kFibs = "fibs";
-constexpr auto kTransceivers = "transceivers";
-constexpr auto kAclTableGroups = "aclTableGroups";
-constexpr auto kSystemPorts = "systemPorts";
-constexpr auto kTunnels = "ipTunnels";
-constexpr auto kTeFlows = "teFlows";
-constexpr auto kRemoteSystemPorts = "remoteSystemPorts";
-constexpr auto kRemoteInterfaces = "remoteInterfaces";
-constexpr auto kDsfNodes = "dsfNodes";
-constexpr auto kUdfConfig = "udfConfig";
-constexpr auto kFlowletSwitchingConfig = "flowletSwitchingConfig";
-} // namespace
-
 // TODO: it might be worth splitting up limits for ecmp/ucmp
 DEFINE_uint32(
     ecmp_width,
