@@ -61,6 +61,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <boost/container/flat_map.hpp>
 #include <boost/container/flat_set.hpp>
@@ -1200,7 +1201,9 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
     std::shared_ptr<Port> newPort;
     // Find present Transceiver if it exists in TransceiverMap
     std::shared_ptr<TransceiverSpec> transceiver;
-    if (auto tcvrID = platform_->getPlatformPort(id)->getTransceiverID()) {
+    auto platformPort = platformMapping_->getPlatformPort(id);
+    const auto& chips = platformMapping_->getChips();
+    if (auto tcvrID = utility::getTransceiverId(platformPort, chips)) {
       transceiver = transceiverMap->getTransceiverIf(*tcvrID);
     }
     if (!origPort) {
