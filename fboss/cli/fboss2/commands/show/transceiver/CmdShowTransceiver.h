@@ -201,6 +201,25 @@ class CmdShowTransceiver
         std::vector<double> rxPower;
         std::vector<double> rxSnr;
         for (const auto& channel : tcvrStats.get_channels()) {
+          // Check if the transceiverInfo is updated to have the
+          // portNameToMediaLanes field
+          if (tcvrStats.portNameToMediaLanes().is_set()) {
+            // Need to filter out the lanes for this specific port
+            auto portToLaneMapIt = tcvrStats.portNameToMediaLanes()->find(
+                portEntries[portId].get_name());
+            // If the port in question exists in the map and if the
+            // channel number is not in the list, skip printing information
+            // about this channel
+            if (portToLaneMapIt != tcvrStats.portNameToMediaLanes()->end() &&
+                std::find(
+                    portToLaneMapIt->second.begin(),
+                    portToLaneMapIt->second.end(),
+                    channel.get_channel()) == portToLaneMapIt->second.end()) {
+              continue;
+            }
+            // If the port doesn't exist in the map, it's likely not configured
+            // yet. Display all channels in this case
+          }
           current.push_back(channel.get_sensors().get_txBias().get_value());
           txPower.push_back(channel.get_sensors().get_txPwrdBm()->get_value());
           rxPower.push_back(channel.get_sensors().get_rxPwrdBm()->get_value());
