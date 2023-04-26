@@ -191,6 +191,7 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::CR8_400G:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
+    default:
       return 0;
   }
 }
@@ -211,6 +212,7 @@ unsigned int QsfpModule::numMediaLanes() const {
     case MediaInterfaceCode::CR8_400G:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
+    default:
       return 0;
   }
 }
