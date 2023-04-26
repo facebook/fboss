@@ -82,6 +82,8 @@ class PlatformMapping {
     return platformPorts_;
   }
 
+  const cfg::PlatformPortEntry& getPlatformPort(int32_t portId) const;
+
   const std::optional<phy::PortProfileConfig> getPortProfileConfig(
       PlatformPortProfileConfigMatcher matcher) const;
 

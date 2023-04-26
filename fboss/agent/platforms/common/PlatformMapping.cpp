@@ -631,5 +631,14 @@ PlatformMapping::getCorePinMapping(const std::vector<cfg::Port>& ports) const {
   return corePinMapping;
 }
 
+const cfg::PlatformPortEntry& PlatformMapping::getPlatformPort(
+    int32_t portId) const {
+  auto entry = platformPorts_.find(portId);
+  if (entry != platformPorts_.end()) {
+    return entry->second;
+  }
+  throw FbossError("No PlatformMapping entry for port ", portId);
+}
+
 } // namespace fboss
 } // namespace facebook

@@ -7,18 +7,17 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#pragma once
-
-#include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
+#include "fboss/agent/hw/mock/MockPlatformMapping.h"
 
 #include <gmock/gmock.h>
 
 namespace facebook::fboss {
 
-class MockPlatformMapping : public Wedge100PlatformMapping {
- public:
-  MockPlatformMapping();
-  ~MockPlatformMapping() override = default;
-};
-
-}; // namespace facebook::fboss
+MockPlatformMapping::MockPlatformMapping() : Wedge100PlatformMapping() {
+  for (auto& entry : platformPorts_) {
+    auto& platformPort = entry.second;
+    platformPort.mapping()->attachedCoreId() = 0;
+    platformPort.mapping()->attachedCorePortIndex() = 0;
+  }
+}
+} // namespace facebook::fboss

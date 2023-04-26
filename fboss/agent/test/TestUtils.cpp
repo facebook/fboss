@@ -359,7 +359,9 @@ shared_ptr<SwitchState> publishAndApplyConfig(
     const Platform* platform,
     RoutingInformationBase* rib) {
   state->publish();
-  return applyThriftConfig(state, config, platform, rib);
+  auto platformMapping = std::make_unique<MockPlatformMapping>();
+  return applyThriftConfig(
+      state, config, platform, rib, nullptr, platformMapping.get());
 }
 
 std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(

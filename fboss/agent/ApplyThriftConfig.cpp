@@ -1167,9 +1167,13 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
       sysPort->setSwitchId(SwitchID(switchId));
       sysPort->setPortName(
           folly::sformat("{}:{}", nodeName, port.second->getName()));
-      auto platformPort = platform_->getPlatformPort(port.second->getID());
-      sysPort->setCoreIndex(*platformPort->getAttachedCoreId());
-      sysPort->setCorePortIndex(*platformPort->getCorePortIndex());
+      auto platformPort =
+          platformMapping_->getPlatformPort(port.second->getID());
+      CHECK(platformPort.mapping()->attachedCoreId().has_value());
+      CHECK(platformPort.mapping()->attachedCorePortIndex().has_value());
+      sysPort->setCoreIndex(platformPort.mapping()->attachedCoreId().value());
+      sysPort->setCorePortIndex(
+          platformPort.mapping()->attachedCorePortIndex().value());
       sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
       sysPort->setNumVoqs(kNumVoqs);
       sysPort->setEnabled(port.second->isEnabled());
