@@ -40,7 +40,7 @@ FbFpgaI2c::FbFpgaI2c(
     int version)
     : I2cController(
           folly::to<std::string>("i2cController.pim.", pimId, ".rtc.", rtcId)),
-      io_(std::make_unique<FbDomFpga>(move(io))),
+      io_(std::make_unique<FbDomFpga>(std::move(io))),
       rtcId_(rtcId),
       version_(version) {
   fpga_ = io_.get();
@@ -238,7 +238,7 @@ FbFpgaI2cController::FbFpgaI2cController(
     uint32_t rtcId,
     uint32_t pim,
     int version)
-    : syncedFbI2c_(folly::in_place, move(io), rtcId, pim, version),
+    : syncedFbI2c_(folly::in_place, std::move(io), rtcId, pim, version),
       eventBase_(std::make_unique<folly::EventBase>()),
       thread_(new std::thread([&, pim, rtcId]() {
         initThread(folly::format("I2c_pim{:d}_rtc{:d}", pim, rtcId).str());

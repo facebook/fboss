@@ -36,7 +36,7 @@ class MinipackLed {
   };
 
   explicit MinipackLed(std::unique_ptr<FpgaMemoryRegister> io)
-      : io_(move(io)) {}
+      : io_(std::move(io)) {}
 
   void setColor(Color color);
 
