@@ -459,6 +459,14 @@ void LinkTest::logLinkDbgMessage(std::vector<PortID>& portIDs) const {
   }
 }
 
+void LinkTest::setLinkState(bool enable, std::vector<PortID>& portIds) {
+  for (const auto& port : portIds) {
+    setPortStatus(port, enable);
+  }
+  EXPECT_NO_THROW(
+      waitForLinkStatus(portIds, enable, 60, std::chrono::milliseconds(1000)););
+}
+
 int linkTestMain(int argc, char** argv, PlatformInitFn initPlatformFn) {
   ::testing::InitGoogleTest(&argc, argv);
   initAgentTest(argc, argv, initPlatformFn);

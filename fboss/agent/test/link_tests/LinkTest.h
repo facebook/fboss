@@ -111,6 +111,8 @@ class LinkTest : public AgentTest {
 
   void TearDown() override;
 
+  void setLinkState(bool enable, std::vector<PortID>& portIds);
+
  public:
   bool sendAndCheckReachabilityOnAllCabledPorts() {
     sw()->getLldpMgr()->sendLldpOnAllPorts();
