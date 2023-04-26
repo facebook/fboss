@@ -125,17 +125,13 @@ class MirrorManagerTest : public ::testing::Test {
   void updateState(folly::StringPiece name, StateUpdateFn func) {
     sw_->updateStateBlocking(name, func);
   }
-  SwitchIdScopeResolver scopeResolver() const {
-    return SwitchIdScopeResolver(
-        sw_->getState()->getSwitchSettings()->getSwitchIdToSwitchInfo());
-  }
 
   std::shared_ptr<SwitchState> addNewMirror(
       const std::shared_ptr<SwitchState>& state,
       std::shared_ptr<Mirror> mirror) {
     auto newState = state->clone();
     auto mirrors = newState->getMirrors()->modify(&newState);
-    mirrors->addNode(mirror, scopeResolver().scope(mirror));
+    mirrors->addNode(mirror, sw_->getScopeResolver()->scope(mirror));
     return newState;
   }
   std::shared_ptr<SwitchState> updateMirror(
@@ -143,7 +139,7 @@ class MirrorManagerTest : public ::testing::Test {
       std::shared_ptr<Mirror> mirror) {
     auto newState = state->clone();
     auto mirrors = newState->getMirrors()->modify(&newState);
-    mirrors->updateNode(mirror, scopeResolver().scope(mirror));
+    mirrors->updateNode(mirror, sw_->getScopeResolver()->scope(mirror));
     return newState;
   }
 
