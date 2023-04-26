@@ -113,7 +113,18 @@ void SaiUdfManager::removeUdfGroup(
                << swUdfGroup->getName() << " and UdfPacketMatcher "
                << udfMatchName;
     // Cleanup UdfMatch pointer to Udf
-    std::erase(udfHandle->udfMatch->udfs, udfHandle.get());
+    // OSS build still using c++17 rather than c++20. Hence the following erase
+    // would not compile.
+    // std::erase(udfHandle->udfMatch->udfs, udfHandle.get());
+    auto& udfList = udfHandle->udfMatch->udfs;
+    auto iter = std::find(udfList.begin(), udfList.end(), udfHandle.get());
+    if (iter != udfList.end()) {
+      udfList.erase(iter);
+    } else {
+      throw FbossError(
+          "Cannot find UdfMatch " + udfMatchName +
+          " association with UdfGroup " + swUdfGroup->getName());
+    }
   }
   udfGroupHandle->udfs.clear();
   udfGroupHandles_.erase(swUdfGroup->getName());
