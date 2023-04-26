@@ -9,14 +9,6 @@
 
 namespace facebook::fboss {
 
-std::shared_ptr<Mirror> MirrorMap::getMirrorIf(const std::string& name) const {
-  return getNodeIf(name);
-}
-
-void MirrorMap::addMirror(const std::shared_ptr<Mirror>& mirror) {
-  return addNode(mirror);
-}
-
 std::shared_ptr<MirrorMap> MirrorMap::fromThrift(
     const std::map<std::string, state::MirrorFields>& mirrors) {
   auto map = std::make_shared<MirrorMap>();
@@ -28,19 +20,6 @@ std::shared_ptr<MirrorMap> MirrorMap::fromThrift(
     map->insert(*mirror.second.name(), std::move(node));
   }
   return map;
-}
-
-MirrorMap* MirrorMap::modify(std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
-  }
-
-  SwitchState::modify(state);
-  auto newMirrors = clone();
-  auto* ptr = newMirrors.get();
-  (*state)->resetMirrors(std::move(newMirrors));
-  return ptr;
 }
 
 std::shared_ptr<Mirror> MultiMirrorMap::getMirrorIf(
@@ -63,7 +42,7 @@ void MultiMirrorMap::addNode(
     mitr = insert(key, std::make_shared<MirrorMap>()).first;
   }
   auto& mirrorMap = mitr->second;
-  mirrorMap->addMirror(std::move(mirror));
+  mirrorMap->addNode(std::move(mirror));
 }
 
 void MultiMirrorMap::updateNode(
