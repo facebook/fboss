@@ -191,8 +191,9 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::CR8_400G:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
-    default:
       return 0;
+    default:
+      throw QsfpModuleError("invalid module media interface");
   }
 }
 
@@ -212,8 +213,9 @@ unsigned int QsfpModule::numMediaLanes() const {
     case MediaInterfaceCode::CR8_400G:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
-    default:
       return 0;
+    default:
+      throw QsfpModuleError("invalid module media interface");
   }
 }
 
