@@ -120,7 +120,12 @@
       "switchIdToSwitchInfo": {
         "0": {
             "switchType": 2,
-            "asicType": 11
+            "asicType": 11,
+            "switchIndex": 0,
+            "portIdRange": {
+              "minimum": 0,
+              "maximum": 1023
+            }
         }
       }
     },
@@ -153,6 +158,7 @@
           "bcm_stat_interval.BCM8885X_ADAPTER": "0",
           "custom_feature_adapter_do_collect_enable.BCM8885X_ADAPTER": "1",
           "custom_feature_kbp_multithread_en.BCM8885X": "0",
+          "custom_feature_mesh_topology_sync_mode": "1",
           "custom_feature_multithread_en.BCM8885X": "1",
           "custom_feature_programmability_standard_image_name.BCM8885X": "standard_1",
           "custom_feature_ptp_cosq_port.BCM8885X": "204",

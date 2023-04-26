@@ -107,7 +107,12 @@
       "switchIdToSwitchInfo": {
         "0": {
             "switchType": 0,
-            "asicType": 5
+            "asicType": 5,
+            "switchIndex": 0,
+            "portIdRange": {
+              "minimum": 0,
+              "maximum": 1023
+            }
         }
       }
     },
@@ -124,6 +129,7 @@
           "ccm_dma_enable": "0",
           "ccmdma_intr_enable": "0",
           "core_clock_frequency": "1325",
+          "custom_feature_mesh_topology_sync_mode": "1",
           "device_clock_frequency": "1325",
           "dport_map_port_1": "49",
           "dport_map_port_100": "113",

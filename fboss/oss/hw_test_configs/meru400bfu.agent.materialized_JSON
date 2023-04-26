@@ -109,7 +109,12 @@
       "switchIdToSwitchInfo": {
         "0": {
             "switchType": 3,
-            "asicType": 12
+            "asicType": 12,
+            "switchIndex": 0,
+            "portIdRange": {
+              "minimum": 0,
+              "maximum": 1023
+            }
         }
       }
     },
@@ -129,6 +134,7 @@
           "core_clock_speed_khz.BCM8879X": "1000000",
           "custom_feature_access_only.BCM8879X": "0",
           "custom_feature_lane_swap_disable.BCM8879X": "0",
+          "custom_feature_mesh_topology_sync_mode": "1",
           "dport_map_direct.BCM8879X": "1",
           "fabric_cell_fifo_dma_enable.BCM8879X": "1",
           "fabric_device_mode.BCM8879X": "SINGLE_STAGE_FE2",

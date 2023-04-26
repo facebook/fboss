@@ -107,7 +107,12 @@
       "switchIdToSwitchInfo": {
         "0": {
             "switchType": 0,
-            "asicType": 4
+            "asicType": 4,
+            "switchIndex": 0,
+            "portIdRange": {
+              "minimum": 0,
+              "maximum": 1023
+            }
         }
       }
     },
@@ -122,6 +127,7 @@
           "bcm_linkscan_interval": "25000",
           "bcm_num_cos": "0xa",
           "buf.mqueue.guarantee.0": "0x0b",
+          "custom_feature_mesh_topology_sync_mode": "1",
           "dport_map_enable": "0x1",
           "dport_map_port_1": "49",
           "dport_map_port_10": "58",

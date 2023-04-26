@@ -107,7 +107,12 @@
       "switchIdToSwitchInfo": {
         "0": {
             "switchType": 0,
-            "asicType": 3
+            "asicType": 3,
+            "switchIndex": 0,
+            "portIdRange": {
+              "minimum": 0,
+              "maximum": 1023
+            }
         }
       }
     },
@@ -121,6 +126,7 @@
         "config": {
           "bcm_linkscan_interval": "25000",
           "bcm_num_cos": "8",
+          "custom_feature_mesh_topology_sync_mode": "1",
           "ipv6_lpm_128b_enable": "0x1",
           "l2_mem_entries": "0x8000",
           "l2xmsg_mode": "0x1",
