@@ -41,7 +41,6 @@ class PackageFboss:
 
     BIN = "bin"
     LIB = "lib"
-    LIB64 = "lib64"
     DATA = "share"
 
     GETDEPS = "build/fbcode_builder/getdeps.py"
@@ -51,10 +50,10 @@ class PackageFboss:
     NAME_TO_EXECUTABLES = {
         "fboss": (BIN, []),
         "gflags": (LIB, []),
-        "glog": (LIB64, []),
+        "glog": (LIB, []),
         "libevent": (LIB, []),
         "libsodium": (LIB, []),
-        "python-ld": (LIB, []),
+        "python": (LIB, []),
     }
 
     def __init__(self):
@@ -65,7 +64,6 @@ class PackageFboss:
         )
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.BIN))
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.LIB))
-        os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.LIB64))
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.DATA))
 
     def _get_install_dir_for(self, name):
@@ -74,9 +72,9 @@ class PackageFboss:
         # regex matching for the directory name.
         if self.scratch_path is not None:
             scratch_path = self.scratch_path
-            scratch_path_installed_dir = scratch_path + "/" + "installed/"
-            target_installed_dir = glob.glob(scratch_path_installed_dir + name + "*")
-            return target_installed_dir[0]
+            scratch_path_installed_dir = os.path.join(scratch_path, "installed", name)
+            target_installed_dirs = glob.glob(scratch_path_installed_dir + "*")
+            return target_installed_dirs
 
         get_install_dir_cmd = [PackageFboss.GETDEPS, "show-inst-dir", name]
         return (
@@ -143,20 +141,25 @@ class PackageFboss:
         print(f"Copying binaries...")
 
         for name, exec_type_and_execs in list(PackageFboss.NAME_TO_EXECUTABLES.items()):
-            executable_path = self._get_install_dir_for(name)
-            executable_type, executables = exec_type_and_execs
-            bin_pkg_path = os.path.join(tmp_dir_name, executable_type)
-            # If module does not have executables listed, then copy all
-            if not executables:
-                executables = os.listdir(os.path.join(executable_path, executable_type))
+            installed_dirs = self._get_install_dir_for(name)
+            for installed_dir in installed_dirs:
+                executable_type, executables = exec_type_and_execs
+                bin_pkg_path = os.path.join(tmp_dir_name, executable_type)
+                # Get the matching executable_type dir in the installed dir
+                executable_path = glob.glob(
+                    os.path.join(installed_dir, executable_type) + "*"
+                )[0]
+                # If module does not have executables listed, then copy all
+                if not executables:
+                    executables = os.listdir(executable_path)
 
-            for e in executables:
-                abs_path = os.path.join(executable_path, executable_type, e)
-                print(f"Copying {abs_path} to {bin_pkg_path}")
-                try:
-                    shutil.copy(abs_path, bin_pkg_path)
-                except IOError:
-                    print("Skipping non-existent " + abs_path)
+                for e in executables:
+                    abs_path = os.path.join(executable_path, e)
+                    print(f"Copying {abs_path} to {bin_pkg_path}")
+                    try:
+                        shutil.copy(abs_path, bin_pkg_path)
+                    except IOError:
+                        print("Skipping non-existent " + abs_path)
 
         self._copy_run_scripts(tmp_dir_name)
         self._copy_run_configs(tmp_dir_name)
