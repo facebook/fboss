@@ -87,6 +87,8 @@ phy::VCOFrequency BcmPlatform::getVCOFrequency(
       FOLLY_FALLTHROUGH;
     case cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG:
       FOLLY_FALLTHROUGH;
+    case cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG:
+      FOLLY_FALLTHROUGH;
     case cfg::PortSpeed::TWENTYFIVEG:
       switch (fecMode) {
         case phy::FecMode::RS544:
