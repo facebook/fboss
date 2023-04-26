@@ -11,6 +11,7 @@
 #include "fboss/agent/MirrorManager.h"
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -124,13 +125,17 @@ class MirrorManagerTest : public ::testing::Test {
   void updateState(folly::StringPiece name, StateUpdateFn func) {
     sw_->updateStateBlocking(name, func);
   }
+  SwitchIdScopeResolver scopeResolver() const {
+    return SwitchIdScopeResolver(
+        sw_->getState()->getSwitchSettings()->getSwitchIdToSwitchInfo());
+  }
 
   std::shared_ptr<SwitchState> addNewMirror(
       const std::shared_ptr<SwitchState>& state,
       std::shared_ptr<Mirror> mirror) {
     auto newState = state->clone();
     auto mirrors = newState->getMirrors()->modify(&newState);
-    mirrors->addNode(mirror, HwSwitchMatcher(mirrors->cbegin()->first));
+    mirrors->addNode(mirror, scopeResolver().scope(mirror));
     return newState;
   }
   std::shared_ptr<SwitchState> updateMirror(
@@ -138,7 +143,7 @@ class MirrorManagerTest : public ::testing::Test {
       std::shared_ptr<Mirror> mirror) {
     auto newState = state->clone();
     auto mirrors = newState->getMirrors()->modify(&newState);
-    mirrors->updateNode(mirror, HwSwitchMatcher(mirrors->cbegin()->first));
+    mirrors->updateNode(mirror, scopeResolver().scope(mirror));
     return newState;
   }
 

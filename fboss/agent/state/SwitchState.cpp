@@ -187,7 +187,6 @@ SwitchState::SwitchState() {
   set<switch_state_tags::aclTableGroupMap>(
       std::map<cfg::AclStage, state::AclTableGroupFields>{});
   // default multi-map (for single npu) system
-  resetDefaultMap<switch_state_tags::mirrorMaps>(std::make_shared<MirrorMap>());
   resetForwardingInformationBases(
       std::make_shared<ForwardingInformationBaseMap>());
   resetSflowCollectors(std::make_shared<SflowCollectorMap>());
@@ -739,9 +738,9 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   state->fromThrift<
       switch_state_tags::sflowCollectorMaps,
       switch_state_tags::sflowCollectorMap>();
-  state->fromThrift<
-      switch_state_tags::mirrorMaps,
-      switch_state_tags::mirrorMap>();
+  state
+      ->fromThrift<switch_state_tags::mirrorMaps, switch_state_tags::mirrorMap>(
+          true /*emptyMnpuMapOk*/);
   state->fromThrift<switch_state_tags::fibsMap, switch_state_tags::fibs>();
   state->fromThrift<
       switch_state_tags::ipTunnelMaps,
