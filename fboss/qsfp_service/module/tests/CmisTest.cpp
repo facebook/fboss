@@ -354,8 +354,8 @@ TEST_F(CmisTest, flatMemTransceiverInfoTest) {
   EXPECT_EQ(
       info.transceiverManagementInterface(),
       TransceiverManagementInterface::CMIS);
-  EXPECT_EQ(xcvr->numHostLanes(), 4);
-  EXPECT_EQ(xcvr->numMediaLanes(), 0);
+  EXPECT_EQ(xcvr->numHostLanes(), 0); // Unknown MediaInterface
+  EXPECT_EQ(xcvr->numMediaLanes(), 0); // Unknown MediaInterface
 
   TransceiverTestsHelper tests(info);
   tests.verifyVendorName("FACETEST");

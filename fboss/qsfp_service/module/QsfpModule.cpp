@@ -175,6 +175,46 @@ QsfpModule::detectPresenceLocked() {
   return {currentQsfpStatus, statusChanged};
 }
 
+unsigned int QsfpModule::numHostLanes() const {
+  switch (getModuleMediaInterface()) {
+    case MediaInterfaceCode::LR_10G:
+    case MediaInterfaceCode::SR_10G:
+      return 1;
+    case MediaInterfaceCode::CWDM4_100G:
+    case MediaInterfaceCode::CR4_100G:
+    case MediaInterfaceCode::FR1_100G:
+    case MediaInterfaceCode::FR4_200G:
+    case MediaInterfaceCode::CR4_200G:
+      return 4;
+    case MediaInterfaceCode::FR4_400G:
+    case MediaInterfaceCode::LR4_400G_10KM:
+    case MediaInterfaceCode::CR8_400G:
+      return 8;
+    case MediaInterfaceCode::UNKNOWN:
+      return 0;
+  }
+}
+
+unsigned int QsfpModule::numMediaLanes() const {
+  switch (getModuleMediaInterface()) {
+    case MediaInterfaceCode::LR_10G:
+    case MediaInterfaceCode::SR_10G:
+    case MediaInterfaceCode::FR1_100G:
+      return 1;
+    case MediaInterfaceCode::CWDM4_100G:
+    case MediaInterfaceCode::CR4_100G:
+    case MediaInterfaceCode::FR4_200G:
+    case MediaInterfaceCode::CR4_200G:
+    case MediaInterfaceCode::FR4_400G:
+    case MediaInterfaceCode::LR4_400G_10KM:
+      return 4;
+    case MediaInterfaceCode::CR8_400G:
+      return 8;
+    case MediaInterfaceCode::UNKNOWN:
+      return 0;
+  }
+}
+
 void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
   // Migration plan from fields in TransceiverInfo to being inside state/states:
   // 1. Populate data to old fields then populate state/states from old fields

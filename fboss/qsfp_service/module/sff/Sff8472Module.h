@@ -45,14 +45,6 @@ class Sff8472Module : public QsfpModule {
     return DOMDataUnion();
   }
 
-  unsigned int numHostLanes() const override {
-    return 1;
-  }
-
-  unsigned int numMediaLanes() const override {
-    return 1;
-  }
-
   void customizeTransceiverLocked(
       TransceiverPortState& /* portState */) override {}
 

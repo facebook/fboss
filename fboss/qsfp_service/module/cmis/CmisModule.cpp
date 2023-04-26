@@ -913,27 +913,6 @@ std::vector<uint8_t> CmisModule::configuredMediaLanes(
   return cfgLanes;
 }
 
-unsigned int CmisModule::numHostLanes() const {
-  // For now assume only lane 0 is configured. This needs to be changed to
-  // account for multiple ports
-  return configuredHostLanes(0).size();
-}
-
-unsigned int CmisModule::numMediaLanes() const {
-  // For now assume only lane 0 is configured. This needs to be changed to
-  // account for multiple ports
-  auto mediaLanes = configuredMediaLanes(0).size();
-  if (mediaLanes) {
-    return mediaLanes;
-  }
-  auto currentMediaInterface = currentConfiguredMediaInterfaceCode(0);
-  if (auto applicationAdvertisingField =
-          getApplicationField(currentMediaInterface, 0)) {
-    return applicationAdvertisingField->mediaLaneCount;
-  }
-  return 0;
-}
-
 SMFMediaInterfaceCode CmisModule::getSmfMediaInterface(uint8_t lane) const {
   if (lane >= 8) {
     QSFP_LOG(ERR, this) << "Invalid lane number " << lane;

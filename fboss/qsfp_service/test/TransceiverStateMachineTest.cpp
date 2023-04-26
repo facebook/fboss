@@ -40,8 +40,6 @@ class MockSff8472Module : public Sff8472Module {
       TransceiverManager* transceiverManager,
       std::unique_ptr<MockSff8472TransceiverImpl> qsfpImpl)
       : Sff8472Module(transceiverManager, std::move(qsfpImpl)) {
-    ON_CALL(*this, updateQsfpData(testing::_))
-        .WillByDefault(testing::Assign(&dirty_, false));
     ON_CALL(*this, ensureTransceiverReadyLocked())
         .WillByDefault(testing::Return(true));
   }
@@ -57,7 +55,6 @@ class MockSff8472Module : public Sff8472Module {
       ensureRxOutputSquelchEnabled,
       void(const std::vector<HostLaneSettings>&));
   MOCK_METHOD0(resetDataPath, void());
-  MOCK_METHOD1(updateQsfpData, void(bool));
   MOCK_METHOD1(updateCachedTransceiverInfoLocked, void(ModuleStatus));
   MOCK_METHOD0(ensureTransceiverReadyLocked, bool());
 };

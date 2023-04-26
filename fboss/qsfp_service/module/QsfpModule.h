@@ -146,15 +146,15 @@ class QsfpModule : public Transceiver {
   ModuleStatus readAndClearCachedModuleStatus() override;
 
   /*
-   * Returns the number of host lanes. Should be overridden by the appropriate
-   * module's subclass
+   * Returns the total number of media lanes supported by the inserted
+   * transceiver
    */
-  virtual unsigned int numHostLanes() const = 0;
+  unsigned int numHostLanes() const;
   /*
-   * Returns the number of media lanes. Should be overridden by the appropriate
-   * module's subclass
+   * Returns the total number of media lanes supported by the inserted
+   * transceiver
    */
-  virtual unsigned int numMediaLanes() const = 0;
+  unsigned int numMediaLanes() const;
 
   virtual void configureModule(uint8_t /* startHostLane */) {}
 

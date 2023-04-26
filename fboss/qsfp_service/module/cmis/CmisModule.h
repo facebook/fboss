@@ -82,15 +82,6 @@ class CmisModule : public QsfpModule {
 
   using LengthAndGauge = std::pair<double, uint8_t>;
 
-  /*
-   * Returns the number of lanes on the host side
-   */
-  unsigned int numHostLanes() const override;
-  /*
-   * Returns the number of lanes on the media side
-   */
-  unsigned int numMediaLanes() const override;
-
   void configureModule(uint8_t startHostLane) override;
 
   /*

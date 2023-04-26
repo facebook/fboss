@@ -462,15 +462,6 @@ std::vector<uint8_t> SffModule::configuredMediaLanes(
   return {0, 1, 2, 3};
 }
 
-unsigned int SffModule::numHostLanes() const {
-  return configuredHostLanes(0).size();
-}
-
-unsigned int SffModule::numMediaLanes() const {
-  auto numLanes = configuredMediaLanes(0).size();
-  return numLanes ? numLanes : 4;
-}
-
 RateSelectSetting SffModule::getRateSelectSettingValue(RateSelectState state) {
   /* This refers to the optimised bit rate
    * The various values here are listed in the spec:

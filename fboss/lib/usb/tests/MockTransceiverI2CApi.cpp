@@ -32,7 +32,7 @@ void MockTransceiverI2CApi::moduleRead(
       (len != 1 && throwReadExceptionForDomQuery_)) {
     throw std::exception();
   }
-  if (offset == 0) {
+  if (offset == 0 && len == 1) {
     if (overridenMgmtInterface_.find(module) != overridenMgmtInterface_.end()) {
       buf[0] = overridenMgmtInterface_[module];
     } else {

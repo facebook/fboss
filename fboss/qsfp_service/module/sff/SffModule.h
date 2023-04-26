@@ -65,15 +65,6 @@ class SffModule : public QsfpModule {
   using LengthAndGauge = std::pair<double, uint8_t>;
 
   /*
-   * Returns the number of lanes on the host side
-   */
-  unsigned int numHostLanes() const override;
-  /*
-   * Returns the number of lanes on the media side
-   */
-  unsigned int numMediaLanes() const override;
-
-  /*
    * This function veifies the Module eeprom register checksum for various
    * pages.
    */

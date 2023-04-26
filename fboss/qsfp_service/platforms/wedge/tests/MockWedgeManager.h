@@ -32,8 +32,6 @@ class MockWedgeManager : public WedgeManager {
     return PlatformType::PLATFORM_WEDGE;
   }
 
-  std::map<TransceiverID, MockSffModule*> mockTransceivers_;
-
   std::unique_ptr<TransceiverI2CApi> getI2CBus() override {
     return std::make_unique<MockTransceiverI2CApi>();
   }
