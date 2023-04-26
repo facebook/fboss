@@ -7,8 +7,6 @@ namespace go facebook.fboss.fsdb_common
 cpp_include "folly/container/F14Map.h"
 cpp_include "folly/container/F14Set.h"
 
-include "thrift/annotation/cpp.thrift"
-
 const string kFsdbServiceHandlerNativeStatsPrefix = "fsdb.handler.";
 const string kFsdbStatsFanOutNativeStatsPrefix = "fsdb.statsFanOut.";
 
@@ -23,8 +21,7 @@ enum ExportType {
   PERCENT = 4,
 }
 
-@cpp.Type{template = "folly::F14FastSet"}
-typedef set<ExportType> ExportTypes
+typedef set<ExportType> (cpp.template = 'folly::F14FastSet') ExportTypes
 
 enum FsdbErrorCode {
   NONE = 0,
@@ -55,12 +52,9 @@ typedef string SubscriberId
 typedef string Metric
 typedef string EchoBackTag
 
-@cpp.Type{template = "folly::F14FastSet"}
-typedef set<PublisherId> PublisherIds
-@cpp.Type{template = "folly::F14FastSet"}
-typedef set<SubscriberId> SubscriberIds
-@cpp.Type{template = "folly::F14FastSet"}
-typedef set<Metric> Metrics
+typedef set<PublisherId> (cpp.template = 'folly::F14FastSet') PublisherIds
+typedef set<SubscriberId> (cpp.template = 'folly::F14FastSet') SubscriberIds
+typedef set<Metric> (cpp.template = 'folly::F14FastSet') Metrics
 
 // NOTE: Fully Qualified => Fq
 struct FqMetric {
@@ -68,5 +62,4 @@ struct FqMetric {
   2: Metric metric;
 }
 
-@cpp.Type{template = "folly::F14FastMap"}
-typedef map<PublisherId, Metrics> FqMetrics
+typedef map<PublisherId, Metrics> (cpp.template = 'folly::F14FastMap') FqMetrics
