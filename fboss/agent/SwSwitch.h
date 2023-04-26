@@ -57,6 +57,7 @@ class PortUpdateHandler;
 class RxPacket;
 class SwitchState;
 class SwitchStats;
+class SwitchIdScopeResolver;
 class StateDelta;
 class NeighborUpdater;
 class PacketLogger;
@@ -160,6 +161,9 @@ class SwSwitch : public HwSwitch::Callback {
 
   TunManager* getTunManager() {
     return tunMgr_.get();
+  }
+  const SwitchIdScopeResolver* getScopeResolver() const {
+    return scopeResolver_.get();
   }
 
   /*
@@ -1035,6 +1039,7 @@ class SwSwitch : public HwSwitch::Callback {
   SwitchInfoTable switchInfoTable_;
   std::unique_ptr<PlatformMapping> platformMapping_;
   std::unique_ptr<HwAsicTable> hwAsicTable_;
+  std::unique_ptr<SwitchIdScopeResolver> scopeResolver_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>

@@ -53,6 +53,7 @@
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/StaticL2ForNeighborObserver.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TeFlowNexthopHandler.h"
 #include "fboss/agent/TunManager.h"
@@ -247,7 +248,8 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       teFlowNextHopHandler_(new TeFlowNexthopHandler(this)),
       dsfSubscriber_(new DsfSubscriber(this)),
       switchInfoTable_(this, getSwitchInfoFromConfig()),
-      hwAsicTable_(new HwAsicTable(this, getSwitchInfoFromConfig())) {
+      hwAsicTable_(new HwAsicTable(this, getSwitchInfoFromConfig())),
+      scopeResolver_(new SwitchIdScopeResolver(getSwitchInfoFromConfig())) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());
@@ -275,6 +277,8 @@ SwSwitch::SwSwitch(
     switchInfoTable_ = SwitchInfoTable(this, getSwitchInfoFromConfig(config));
     hwAsicTable_ =
         std::make_unique<HwAsicTable>(this, getSwitchInfoFromConfig(config));
+    scopeResolver_ = std::make_unique<SwitchIdScopeResolver>(
+        getSwitchInfoFromConfig(config));
   }
 }
 
