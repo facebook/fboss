@@ -562,7 +562,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       const std::shared_ptr<MultiMapType>& multiMap) const;
 
   template <typename MultiMapName, typename MapName>
-  void fromThrift();
+  void fromThrift(bool emptyMnpuMapOk = false);
 
   template <
       typename MultiMapName,

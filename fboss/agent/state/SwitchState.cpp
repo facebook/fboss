@@ -649,10 +649,16 @@ void SwitchState::revertNewTeFlowEntry(
  * is not empty then confirm they are same.
  */
 template <typename MultiMapName, typename MapName>
-void SwitchState::fromThrift() {
+void SwitchState::fromThrift(bool emptyMnpuMapOk) {
   const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
   auto& map = this->ref<MapName>();
   auto& multiMap = this->ref<MultiMapName>();
+  if (emptyMnpuMapOk && multiMap->empty() && map->empty()) {
+    // emptyMnpuMapOk is set for maps that have been
+    // migrated away from the assumption of always having
+    // the default matcher entry in m-npu map
+    return;
+  }
   if (multiMap->empty() || !multiMap->getNodeIf(matcher)) {
     multiMap->addNode(matcher, map->clone());
   } else if (auto matchedNode = multiMap->getNodeIf(matcher)) {
