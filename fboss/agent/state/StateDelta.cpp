@@ -200,8 +200,8 @@ StateDelta::getUdfPacketMatcherDelta() const {
 }
 
 thrift_cow::ThriftMapDelta<DsfNodeMap> StateDelta::getDsfNodesDelta() const {
-  return thrift_cow::ThriftMapDelta<DsfNodeMap>(
-      old_->getDsfNodes().get(), new_->getDsfNodes().get());
+  return getFirstMapDelta<DsfNodeMap>(
+      old_->getMnpuDsfNodes(), new_->getMnpuDsfNodes());
 }
 
 DeltaValue<ControlPlane> StateDelta::getControlPlaneDelta() const {
