@@ -52,6 +52,19 @@ DEFINE_bool(
 
 namespace facebook::fboss {
 
+namespace {
+template <typename Map, typename MultiNpuMap>
+thrift_cow::ThriftMapDelta<Map> getFirstMapDelta(
+    const std::shared_ptr<MultiNpuMap>& oldMnpuMap,
+    const std::shared_ptr<MultiNpuMap>& newMnpuMap) {
+  auto oldMap =
+      oldMnpuMap->size() ? oldMnpuMap->cbegin()->second.get() : nullptr;
+  auto newMap =
+      newMnpuMap->size() ? newMnpuMap->cbegin()->second.get() : nullptr;
+  return thrift_cow::ThriftMapDelta<Map>(oldMap, newMap);
+}
+} // namespace
+
 StateDelta::StateDelta(
     std::shared_ptr<SwitchState> oldState,
     std::shared_ptr<SwitchState> newState)
@@ -197,14 +210,7 @@ DeltaValue<ControlPlane> StateDelta::getControlPlaneDelta() const {
 }
 
 thrift_cow::ThriftMapDelta<MirrorMap> StateDelta::getMirrorsDelta() const {
-  const auto& oldMirrorMaps = old_->getMirrors();
-  const auto& newMirrorMaps = new_->getMirrors();
-  auto oldMirrors =
-      oldMirrorMaps->size() ? oldMirrorMaps->cbegin()->second.get() : nullptr;
-  auto newMirrors =
-      newMirrorMaps->size() ? newMirrorMaps->cbegin()->second.get() : nullptr;
-
-  return thrift_cow::ThriftMapDelta<MirrorMap>(oldMirrors, newMirrors);
+  return getFirstMapDelta<MirrorMap>(old_->getMirrors(), new_->getMirrors());
 }
 
 thrift_cow::ThriftMapDelta<TransceiverMap> StateDelta::getTransceiversDelta()
