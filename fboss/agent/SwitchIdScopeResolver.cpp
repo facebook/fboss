@@ -12,7 +12,10 @@ SwitchIdScopeResolver::SwitchIdScopeResolver(
   CHECK(voqSwitchIds.empty() || npuSwitchIds.empty())
       << " Only one of "
          "voq, npu switch types can be present in a chassis";
-  l3SwitchIds_ = voqSwitchIds.size() ? voqSwitchIds : npuSwitchIds;
+  if (voqSwitchIds.size() || npuSwitchIds.size()) {
+    l3SwitchMatcher_ = std::make_unique<HwSwitchMatcher>(
+        voqSwitchIds.size() ? voqSwitchIds : npuSwitchIds);
+  }
 }
 
 std::unordered_set<SwitchID> SwitchIdScopeResolver::getSwitchIdsOfType(
@@ -26,14 +29,10 @@ std::unordered_set<SwitchID> SwitchIdScopeResolver::getSwitchIdsOfType(
   return ids;
 }
 
-std::unordered_set<SwitchID> SwitchIdScopeResolver::l3SwitchIds() const {
-  return l3SwitchIds_;
-}
-
-HwSwitchMatcher SwitchIdScopeResolver::l3SwitchMatcher() const {
-  CHECK(l3SwitchIds_.size())
+const HwSwitchMatcher& SwitchIdScopeResolver::l3SwitchMatcher() const {
+  CHECK(l3SwitchMatcher_)
       << " One or more l3 switchIds must be set toget l3 scope";
-  return HwSwitchMatcher{l3SwitchIds_};
+  return *l3SwitchMatcher_;
 }
 
 } // namespace facebook::fboss
