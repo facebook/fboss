@@ -464,6 +464,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<TeFlowTable>& getTeFlowTable() const;
 
   const std::shared_ptr<DsfNodeMap>& getDsfNodes() const;
+  const std::shared_ptr<MultiDsfNodeMap>& getMnpuDsfNodes() const;
 
   const std::shared_ptr<UdfConfig>& getUdfConfig() const {
     if (getSwitchSettings()->getUdfConfig()) {

@@ -483,6 +483,10 @@ const std::shared_ptr<DsfNodeMap>& SwitchState::getDsfNodes() const {
   return getDefaultMap<switch_state_tags::dsfNodesMap>();
 }
 
+const std::shared_ptr<MultiDsfNodeMap>& SwitchState::getMnpuDsfNodes() const {
+  return safe_cref<switch_state_tags::dsfNodesMap>();
+}
+
 std::shared_ptr<const AclTableMap> SwitchState::getAclTablesForStage(
     cfg::AclStage aclStage) const {
   if (getAclTableGroups() &&
