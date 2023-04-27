@@ -64,10 +64,25 @@ class MultiDsfNodeMap
  public:
   using Traits = MultiDsfNodeMapTraits;
   using BaseT = ThriftMultiMapNode<MultiDsfNodeMap, MultiDsfNodeMapTraits>;
+  using BaseT::addNode;
+  using BaseT::getNodeIf;
   using BaseT::modify;
+  using BaseT::removeNode;
+  using BaseT::updateNode;
 
-  MultiDsfNodeMap() {}
-  virtual ~MultiDsfNodeMap() {}
+  MultiDsfNodeMap() = default;
+  virtual ~MultiDsfNodeMap() = default;
+
+  MultiDsfNodeMap* modify(std::shared_ptr<SwitchState>* state);
+  void addNode(
+      std::shared_ptr<DsfNode> dsfNode,
+      const HwSwitchMatcher& matcher);
+  std::shared_ptr<DsfNode> getNodeIf(SwitchID switchID) const;
+  void updateNode(
+      std::shared_ptr<DsfNode> dsfNode,
+      const HwSwitchMatcher& matcher);
+  void removeNode(SwitchID switchId);
+  size_t numNodes() const;
 
  private:
   // Inherit the constructors required for clone()
