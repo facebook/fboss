@@ -243,3 +243,42 @@ TEST_F(PtpTests, verifyPtpTcAfterLinkFlap) {
   XLOG(INFO) << "Ensure PTP TC still works as expected";
   verifyPtpTcOnPorts(portDescriptorSet, PTPMessageType::PTP_DELAY_REQUEST);
 }
+
+// Validate PTP TC when PTP is enabled while port is down.
+TEST_F(PtpTests, enablePtpPortDown) {
+  folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
+  auto entry = HwTestPacketTrapEntry(sw()->getHw(), dstPrefix);
+  auto ecmpPorts = getVlanOwningCabledPorts();
+  std::vector<PortID> portVec;
+  boost::container::flat_set<PortDescriptor> portDescriptorSet;
+  // For the sake of time, use the first 5 ports.
+  const auto kNumPort = 5;
+  for (const auto& portDescriptor : ecmpPorts) {
+    portVec.push_back(portDescriptor.phyPortID());
+    portDescriptorSet.insert(portDescriptor);
+    if (portVec.size() >= kNumPort) {
+      break;
+    }
+  }
+  programDefaultRoute(ecmpPorts, sw()->getPlatform()->getLocalMac());
+
+  // 1. Disable PTP
+  XLOG(DBG2) << "Disabling PTP";
+  setPtpTcEnable(false);
+
+  // 2. Bring ports down
+  XLOG(DBG2) << "Bringing port down";
+  setLinkState(false, portVec);
+
+  // 3. Enable PTP
+  XLOG(DBG2) << "Enabling PTP";
+  setPtpTcEnable(true);
+
+  // 4. Bring ports up
+  XLOG(DBG2) << "Bringing port up";
+  setLinkState(true, portVec);
+
+  // 5. Ensure PTP TC works.
+  XLOG(INFO) << "Ensure PTP TC still works after port up";
+  verifyPtpTcOnPorts(portDescriptorSet, PTPMessageType::PTP_DELAY_REQUEST);
+}
