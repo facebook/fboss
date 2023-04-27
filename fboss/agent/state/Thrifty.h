@@ -13,6 +13,7 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/NodeMap.h"
 
@@ -288,6 +289,7 @@ struct ThriftMapNodeTraits {
   using Type = MapThrift;
   using KeyType = typename Type::key_type;
   using KeyCompare = std::less<KeyType>;
+  using Node = NODE;
   // for structure
   template <typename...>
   struct ValueTraits {
@@ -311,6 +313,8 @@ struct ThriftMultiMapNodeTraits {
   using Type = MultiMapThrift;
   using KeyType = typename Type::key_type;
   using KeyCompare = std::less<KeyType>;
+  using InnerMap = MAP;
+  using Node = InnerMap;
 
   // for map
   template <typename...>
@@ -419,6 +423,68 @@ template <
 struct ThriftMultiMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
   using Base = ThriftMapNode<MAP, Traits, Resolver>;
   using Base::Base;
+  using InnerMap = typename Traits::InnerMap;
+  using InnerNode = typename InnerMap::Traits::Node;
+
+  void addNode(
+      std::shared_ptr<InnerNode> node,
+      const HwSwitchMatcher& matcher) {
+    const auto& key = matcher.matcherString();
+    auto mitr = this->find(key);
+    if (mitr == this->end()) {
+      mitr = this->insert(key, std::make_shared<InnerMap>()).first;
+    }
+    auto& innerMap = mitr->second;
+    innerMap->addNode(std::move(node));
+  }
+
+  void updateNode(
+      std::shared_ptr<InnerNode> node,
+      const HwSwitchMatcher& matcher) {
+    const auto& key = matcher.matcherString();
+    auto mitr = this->find(key);
+    if (mitr == this->end()) {
+      throw FbossError("No map found for switchIds: ", key);
+    }
+    auto& innerMap = mitr->second;
+    innerMap->updateNode(std::move(node));
+  }
+
+  void removeNode(std::shared_ptr<InnerNode> node) {
+    for (auto mitr = this->begin(); mitr != this->end(); ++mitr) {
+      if (mitr->second->remove(node->getID())) {
+        return;
+      }
+    }
+    throw FbossError("node not found: ", node->getID());
+  }
+
+  std::shared_ptr<InnerNode> getNodeIf(
+      const typename InnerMap::Traits::KeyType& key) const {
+    for (auto mnitr = this->cbegin(); mnitr != this->cend(); ++mnitr) {
+      auto node = mnitr->second->getNodeIf(key);
+      if (node) {
+        return node;
+      }
+    }
+    return nullptr;
+  }
+
+  void addMapNode(
+      std::shared_ptr<InnerMap> node,
+      const HwSwitchMatcher& matcher) {
+    Base::addNode(matcher.matcherString(), node);
+  }
+
+  std::shared_ptr<InnerMap> getMapNodeIf(const HwSwitchMatcher& matcher) const {
+    return Base::getNodeIf(matcher.matcherString());
+  }
+
+  void updateMapNode(
+      std::shared_ptr<InnerMap> node,
+      const HwSwitchMatcher& matcher) {
+    Base::updateNode(matcher.matcherString(), node);
+  }
 };
 
 namespace utility {

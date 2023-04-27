@@ -70,11 +70,10 @@ void SwitchState::resetMap(
     const std::shared_ptr<Map>& map,
     const HwSwitchMatcher& matcher) {
   auto multiMap = cref<MultiMapName>()->clone();
-  auto matcherKey = matcher.matcherString();
-  if (!multiMap->getNodeIf(matcherKey)) {
-    multiMap->addNode(matcherKey, map);
+  if (!multiMap->getMapNodeIf(matcher)) {
+    multiMap->addMapNode(map, matcher);
   } else {
-    multiMap->updateNode(matcherKey, map);
+    multiMap->updateMapNode(map, matcher);
   }
   ref<MultiMapName>() = multiMap;
 }
@@ -315,12 +314,12 @@ void SwitchState::resetSflowCollectors(
 
 void SwitchState::resetQosPolicies(
     const std::shared_ptr<QosPolicyMap>& qosPolicies) {
-  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcher();
   auto qosPolicyMaps = cref<switch_state_tags::qosPolicyMaps>()->clone();
-  if (!qosPolicyMaps->getNodeIf(matcher)) {
-    qosPolicyMaps->addNode(matcher, qosPolicies);
+  if (!qosPolicyMaps->getMapNodeIf(matcher)) {
+    qosPolicyMaps->addMapNode(qosPolicies, matcher);
   } else {
-    qosPolicyMaps->updateNode(matcher, qosPolicies);
+    qosPolicyMaps->updateMapNode(qosPolicies, matcher);
   }
   ref<switch_state_tags::qosPolicyMaps>() = qosPolicyMaps;
 }
@@ -614,7 +613,7 @@ void SwitchState::revertNewTeFlowEntry(
  */
 template <typename MultiMapName, typename MapName>
 void SwitchState::fromThrift(bool emptyMnpuMapOk) {
-  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcher();
   auto& map = this->ref<MapName>();
   auto& multiMap = this->ref<MultiMapName>();
   if (emptyMnpuMapOk && multiMap->empty() && map->empty()) {
@@ -623,11 +622,11 @@ void SwitchState::fromThrift(bool emptyMnpuMapOk) {
     // the default matcher entry in m-npu map
     return;
   }
-  if (multiMap->empty() || !multiMap->getNodeIf(matcher)) {
-    multiMap->addNode(matcher, map->clone());
-  } else if (auto matchedNode = multiMap->getNodeIf(matcher)) {
+  if (multiMap->empty() || !multiMap->getMapNodeIf(matcher)) {
+    multiMap->addMapNode(map->clone(), matcher);
+  } else if (auto matchedNode = multiMap->getMapNodeIf(matcher)) {
     if (matchedNode->empty()) {
-      multiMap->updateNode(matcher, map->clone());
+      multiMap->updateMapNode(map->clone(), matcher);
     } else if (!map->empty()) {
       // if both multi map's default map and map are not empty
       // let map take precedence and set up multi-map's default map
@@ -635,7 +634,7 @@ void SwitchState::fromThrift(bool emptyMnpuMapOk) {
       // while multi will contain obsoleted data
       // THRIFT_COPY
       if (map->toThrift() != matchedNode->toThrift()) {
-        multiMap->updateNode(matcher, map->clone());
+        multiMap->updateMapNode(map->clone(), matcher);
       }
     }
   }
@@ -823,8 +822,8 @@ std::optional<ThriftType> SwitchState::toThrift(
   if (!multiMap || multiMap->empty()) {
     return std::nullopt;
   }
-  const auto& key = HwSwitchMatcher::defaultHwSwitchMatcherKey();
-  if (auto map = multiMap->getNodeIf(key)) {
+  const auto& key = HwSwitchMatcher::defaultHwSwitchMatcher();
+  if (auto map = multiMap->getMapNodeIf(key)) {
     return map->toThrift();
   }
   return std::nullopt;
@@ -973,9 +972,9 @@ state::SwitchState SwitchState::toThrift() const {
     data.sflowCollectorMap() = *obj;
   }
   if (!cref<switch_state_tags::qosPolicyMaps>()->empty()) {
-    auto key = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+    auto key = HwSwitchMatcher::defaultHwSwitchMatcher();
     if (auto qosPolicys =
-            cref<switch_state_tags::qosPolicyMaps>()->getNodeIf(key)) {
+            cref<switch_state_tags::qosPolicyMaps>()->getMapNodeIf(key)) {
       data.qosPolicyMap() = qosPolicys->toThrift();
     }
   }

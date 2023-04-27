@@ -5,8 +5,6 @@
 #include "fboss/agent/state/NodeMap-defs.h"
 #include "fboss/agent/state/SwitchState.h"
 
-#include "fboss/agent/HwSwitchMatcher.h"
-
 namespace facebook::fboss {
 
 std::shared_ptr<MirrorMap> MirrorMap::fromThrift(
@@ -24,46 +22,7 @@ std::shared_ptr<MirrorMap> MirrorMap::fromThrift(
 
 std::shared_ptr<Mirror> MultiMirrorMap::getMirrorIf(
     const std::string& name) const {
-  for (auto mnitr = cbegin(); mnitr != cend(); ++mnitr) {
-    auto node = mnitr->second->getNodeIf(name);
-    if (node) {
-      return node;
-    }
-  }
-  return nullptr;
-}
-
-void MultiMirrorMap::addNode(
-    std::shared_ptr<Mirror> mirror,
-    const HwSwitchMatcher& matcher) {
-  const auto& key = matcher.matcherString();
-  auto mitr = find(key);
-  if (mitr == end()) {
-    mitr = insert(key, std::make_shared<MirrorMap>()).first;
-  }
-  auto& mirrorMap = mitr->second;
-  mirrorMap->addNode(std::move(mirror));
-}
-
-void MultiMirrorMap::updateNode(
-    std::shared_ptr<Mirror> mirror,
-    const HwSwitchMatcher& matcher) {
-  const auto& key = matcher.matcherString();
-  auto mitr = find(key);
-  if (mitr == end()) {
-    throw FbossError("No mirrors found for switchIds: ", key);
-  }
-  auto& mirrorMap = mitr->second;
-  mirrorMap->updateNode(std::move(mirror));
-}
-
-void MultiMirrorMap::removeNode(const std::shared_ptr<Mirror>& mirror) {
-  for (auto mitr = begin(); mitr != end(); ++mitr) {
-    if (mitr->second->remove(mirror->getID())) {
-      return;
-    }
-  }
-  throw FbossError("Mirror not found: ", mirror->getID());
+  return getNodeIf(name);
 }
 
 MultiMirrorMap* MultiMirrorMap::modify(std::shared_ptr<SwitchState>* state) {
