@@ -31,6 +31,8 @@ namespace facebook::fboss {
  */
 
 BENCHMARK(HwTeFlowStatsCollection) {
+  folly::BenchmarkSuspender suspender;
+
   static std::string nextHopAddr("1::1");
   static std::string ifName("fboss2000");
   static std::string dstIpStart("100");
@@ -57,7 +59,6 @@ BENCHMARK(HwTeFlowStatsCollection) {
         AgentEnsemble::enableExactMatch(bcm);
       };
 
-  folly::BenchmarkSuspender suspender;
   ensemble = createAgentEnsemble(initialConfigFn, platformConfigFn);
   const auto& ports = ensemble->masterLogicalPortIds();
   auto hwSwitch = ensemble->getHw();
