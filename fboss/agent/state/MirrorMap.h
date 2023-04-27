@@ -55,10 +55,10 @@ using MultiMirrorMapTraits = ThriftMultiMapNodeTraits<
 class HwSwitchMatcher;
 
 class MultiMirrorMap
-    : public ThriftMapNode<MultiMirrorMap, MultiMirrorMapTraits> {
+    : public ThriftMultiMapNode<MultiMirrorMap, MultiMirrorMapTraits> {
  public:
   using Traits = MultiMirrorMapTraits;
-  using BaseT = ThriftMapNode<MultiMirrorMap, MultiMirrorMapTraits>;
+  using BaseT = ThriftMultiMapNode<MultiMirrorMap, MultiMirrorMapTraits>;
   using BaseT::addNode;
   using BaseT::modify;
   using BaseT::removeNode;

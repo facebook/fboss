@@ -163,10 +163,10 @@ using MultiAclMapTraits = ThriftMultiMapNodeTraits<
 
 class HwSwitchMatcher;
 
-class MultiAclMap : public ThriftMapNode<MultiAclMap, MultiAclMapTraits> {
+class MultiAclMap : public ThriftMultiMapNode<MultiAclMap, MultiAclMapTraits> {
  public:
   using Traits = MultiAclMapTraits;
-  using BaseT = ThriftMapNode<MultiAclMap, MultiAclMapTraits>;
+  using BaseT = ThriftMultiMapNode<MultiAclMap, MultiAclMapTraits>;
   using BaseT::modify;
 
   MultiAclMap() {}

@@ -412,6 +412,15 @@ struct InnerMap {
       typename TypeFor<MultiMapName>::element_type::mapped_type::element_type;
 };
 
+template <
+    typename MAP,
+    typename Traits,
+    typename Resolver = thrift_cow::TypeIdentity<MAP>>
+struct ThriftMultiMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
+  using Base = ThriftMapNode<MAP, Traits, Resolver>;
+  using Base::Base;
+};
+
 namespace utility {
 template <typename T, T...>
 struct TagName;

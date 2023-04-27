@@ -71,10 +71,10 @@ using MultiQosPolicyMapTraits = ThriftMultiMapNodeTraits<
 class HwSwitchMatcher;
 
 class MultiQosPolicyMap
-    : public ThriftMapNode<MultiQosPolicyMap, MultiQosPolicyMapTraits> {
+    : public ThriftMultiMapNode<MultiQosPolicyMap, MultiQosPolicyMapTraits> {
  public:
   using Traits = MultiQosPolicyMapTraits;
-  using BaseT = ThriftMapNode<MultiQosPolicyMap, MultiQosPolicyMapTraits>;
+  using BaseT = ThriftMultiMapNode<MultiQosPolicyMap, MultiQosPolicyMapTraits>;
   using BaseT::modify;
 
   MultiQosPolicyMap() {}

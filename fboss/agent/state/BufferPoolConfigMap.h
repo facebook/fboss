@@ -62,12 +62,13 @@ using MultiBufferPoolCfgMapTraits = ThriftMultiMapNodeTraits<
 
 class HwSwitchMatcher;
 
-class MultiBufferPoolCfgMap
-    : public ThriftMapNode<MultiBufferPoolCfgMap, MultiBufferPoolCfgMapTraits> {
+class MultiBufferPoolCfgMap : public ThriftMultiMapNode<
+                                  MultiBufferPoolCfgMap,
+                                  MultiBufferPoolCfgMapTraits> {
  public:
   using Traits = MultiBufferPoolCfgMapTraits;
   using BaseT =
-      ThriftMapNode<MultiBufferPoolCfgMap, MultiBufferPoolCfgMapTraits>;
+      ThriftMultiMapNode<MultiBufferPoolCfgMap, MultiBufferPoolCfgMapTraits>;
   using BaseT::modify;
 
   MultiBufferPoolCfgMap() {}

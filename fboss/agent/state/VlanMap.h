@@ -115,10 +115,11 @@ using MultiVlanMapTraits = ThriftMultiMapNodeTraits<
 
 class HwSwitchMatcher;
 
-class MultiVlanMap : public ThriftMapNode<MultiVlanMap, MultiVlanMapTraits> {
+class MultiVlanMap
+    : public ThriftMultiMapNode<MultiVlanMap, MultiVlanMapTraits> {
  public:
   using Traits = MultiVlanMapTraits;
-  using BaseT = ThriftMapNode<MultiVlanMap, MultiVlanMapTraits>;
+  using BaseT = ThriftMultiMapNode<MultiVlanMap, MultiVlanMapTraits>;
   using BaseT::modify;
 
   MultiVlanMap() {}

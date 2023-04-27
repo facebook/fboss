@@ -91,10 +91,11 @@ using MultiPortMapTraits = ThriftMultiMapNodeTraits<
 
 class HwSwitchMatcher;
 
-class MultiPortMap : public ThriftMapNode<MultiPortMap, MultiPortMapTraits> {
+class MultiPortMap
+    : public ThriftMultiMapNode<MultiPortMap, MultiPortMapTraits> {
  public:
   using Traits = MultiPortMapTraits;
-  using BaseT = ThriftMapNode<MultiPortMap, MultiPortMapTraits>;
+  using BaseT = ThriftMultiMapNode<MultiPortMap, MultiPortMapTraits>;
   using BaseT::modify;
 
   MultiPortMap() {}

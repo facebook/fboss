@@ -134,10 +134,10 @@ using MultiInterfaceMapTraits = ThriftMultiMapNodeTraits<
 class HwSwitchMatcher;
 
 class MultiInterfaceMap
-    : public ThriftMapNode<MultiInterfaceMap, MultiInterfaceMapTraits> {
+    : public ThriftMultiMapNode<MultiInterfaceMap, MultiInterfaceMapTraits> {
  public:
   using Traits = MultiInterfaceMapTraits;
-  using BaseT = ThriftMapNode<MultiInterfaceMap, MultiInterfaceMapTraits>;
+  using BaseT = ThriftMultiMapNode<MultiInterfaceMap, MultiInterfaceMapTraits>;
   using BaseT::modify;
 
   MultiInterfaceMap() {}

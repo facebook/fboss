@@ -99,10 +99,10 @@ using MultiTeFlowTableTraits = ThriftMultiMapNodeTraits<
 class HwSwitchMatcher;
 
 class MultiTeFlowTable
-    : public ThriftMapNode<MultiTeFlowTable, MultiTeFlowTableTraits> {
+    : public ThriftMultiMapNode<MultiTeFlowTable, MultiTeFlowTableTraits> {
  public:
   using Traits = MultiTeFlowTableTraits;
-  using BaseT = ThriftMapNode<MultiTeFlowTable, MultiTeFlowTableTraits>;
+  using BaseT = ThriftMultiMapNode<MultiTeFlowTable, MultiTeFlowTableTraits>;
   using BaseT::modify;
 
   MultiTeFlowTable() {}

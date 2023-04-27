@@ -60,10 +60,10 @@ using MultiDsfNodeMapTraits = ThriftMultiMapNodeTraits<
 class HwSwitchMatcher;
 
 class MultiDsfNodeMap
-    : public ThriftMapNode<MultiDsfNodeMap, MultiDsfNodeMapTraits> {
+    : public ThriftMultiMapNode<MultiDsfNodeMap, MultiDsfNodeMapTraits> {
  public:
   using Traits = MultiDsfNodeMapTraits;
-  using BaseT = ThriftMapNode<MultiDsfNodeMap, MultiDsfNodeMapTraits>;
+  using BaseT = ThriftMultiMapNode<MultiDsfNodeMap, MultiDsfNodeMapTraits>;
   using BaseT::modify;
 
   MultiDsfNodeMap() {}

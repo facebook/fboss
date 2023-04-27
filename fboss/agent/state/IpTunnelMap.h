@@ -70,10 +70,10 @@ using MultiIpTunnelMapTraits = ThriftMultiMapNodeTraits<
 class HwSwitchMatcher;
 
 class MultiIpTunnelMap
-    : public ThriftMapNode<MultiIpTunnelMap, MultiIpTunnelMapTraits> {
+    : public ThriftMultiMapNode<MultiIpTunnelMap, MultiIpTunnelMapTraits> {
  public:
   using Traits = MultiIpTunnelMapTraits;
-  using BaseT = ThriftMapNode<MultiIpTunnelMap, MultiIpTunnelMapTraits>;
+  using BaseT = ThriftMultiMapNode<MultiIpTunnelMap, MultiIpTunnelMapTraits>;
   using BaseT::modify;
 
   MultiIpTunnelMap() {}

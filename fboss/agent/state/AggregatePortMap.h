@@ -89,12 +89,13 @@ using MultiAggregatePortMapTraits = ThriftMultiMapNodeTraits<
 
 class HwSwitchMatcher;
 
-class MultiAggregatePortMap
-    : public ThriftMapNode<MultiAggregatePortMap, MultiAggregatePortMapTraits> {
+class MultiAggregatePortMap : public ThriftMultiMapNode<
+                                  MultiAggregatePortMap,
+                                  MultiAggregatePortMapTraits> {
  public:
   using Traits = MultiAggregatePortMapTraits;
   using BaseT =
-      ThriftMapNode<MultiAggregatePortMap, MultiAggregatePortMapTraits>;
+      ThriftMultiMapNode<MultiAggregatePortMap, MultiAggregatePortMapTraits>;
   using BaseT::modify;
 
   MultiAggregatePortMap() {}
