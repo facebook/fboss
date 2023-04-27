@@ -96,10 +96,36 @@ void modifyFlowEntry(
     std::shared_ptr<TeFlowEntry>& newFlowEntry,
     bool enable);
 
+class FlowEntryGenerator {
+ public:
+  explicit FlowEntryGenerator(
+      std::string& dstIpStart,
+      std::string& nhopAddress,
+      std::string& ifName,
+      uint16_t srcPort,
+      uint32_t numEntries)
+      : dstIpStart(dstIpStart),
+        nhopAddress(nhopAddress),
+        ifName(ifName),
+        srcPort(srcPort),
+        numEntries(numEntries) {}
+
+  std::vector<std::shared_ptr<TeFlowEntry>> generateFlowEntries() const;
+  std::string getCounterId(int index) const;
+  std::string getDstIp(int index) const;
+
+ private:
+  std::string dstIpStart;
+  std::string nhopAddress;
+  std::string ifName;
+  uint16_t srcPort;
+  uint32_t numEntries;
+};
+
 std::vector<std::shared_ptr<TeFlowEntry>> makeFlowEntries(
-    std::string dstIp,
-    std::string nhopAdd,
-    std::string ifName,
+    std::string& dstIp,
+    std::string& nhopAdd,
+    std::string& ifName,
     uint16_t srcPort,
     uint32_t numEntries);
 

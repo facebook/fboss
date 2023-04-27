@@ -27,6 +27,7 @@ using folly::StringPiece;
 
 namespace {
 static folly::IPAddressV6 kAddr1{"100::"};
+static std::string kDstIpStart = "100";
 static std::string kNhopAddrA("1::1");
 static std::string kNhopAddrB("2::2");
 static std::string kIfName1("fboss2000");
@@ -337,7 +338,7 @@ TEST_F(HwTeFlowTest, validateHwProtection) {
 
   // Overflow Hw table. This should not raise exception.
   auto flowEntries = makeFlowEntries(
-      "100", kNhopAddrA, kIfName1, masterLogicalPortIds()[0], 32500);
+      kDstIpStart, kNhopAddrA, kIfName1, masterLogicalPortIds()[0], 32500);
 
   EXPECT_NO_THROW(addFlowEntries(getHwSwitchEnsemble(), flowEntries));
 
@@ -356,7 +357,7 @@ TEST_F(HwTeFlowTest, verifyTeFlowScale) {
     this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
     this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
     auto flowEntries = makeFlowEntries(
-        "100", kNhopAddrA, kIfName1, masterLogicalPortIds()[0], 8192);
+        kDstIpStart, kNhopAddrA, kIfName1, masterLogicalPortIds()[0], 8192);
     addFlowEntries(getHwSwitchEnsemble(), flowEntries);
   };
 

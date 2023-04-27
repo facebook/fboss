@@ -117,27 +117,36 @@ std::shared_ptr<TeFlowEntry> makeFlowEntry(
   return flowEntry;
 }
 
-std::vector<std::shared_ptr<TeFlowEntry>> makeFlowEntries(
-    std::string dstIpStart,
-    std::string nhopAdd,
-    std::string ifName,
-    uint16_t srcPort,
-    uint32_t numEntries) {
+std::vector<std::shared_ptr<TeFlowEntry>>
+FlowEntryGenerator::generateFlowEntries() const {
   std::vector<std::shared_ptr<TeFlowEntry>> flowEntries;
-  int count{0};
-  int i{0};
-  int j{0};
-  while (++count <= numEntries) {
-    std::string prefix = fmt::format("{}:{}:{}::", dstIpStart, i, j);
-    std::string counter = fmt::format("counter{}", count);
-    flowEntries.emplace_back(
-        makeFlowEntry(prefix, nhopAdd, ifName, srcPort, counter));
-    if (j++ > 255) {
-      i++;
-      j = 0;
-    }
+  for (auto index = 0; index < numEntries; index++) {
+    flowEntries.emplace_back(makeFlowEntry(
+        getDstIp(index), nhopAddress, ifName, srcPort, getCounterId(index)));
   }
   return flowEntries;
+}
+
+std::string FlowEntryGenerator::getCounterId(int index) const {
+  return fmt::format("counter{}", index + 1);
+}
+
+std::string FlowEntryGenerator::getDstIp(int index) const {
+  auto i = int(index / 256);
+  auto j = index % 256;
+  std::string prefix = fmt::format("{}:{}:{}::", dstIpStart, i, j);
+  return prefix;
+}
+
+std::vector<std::shared_ptr<TeFlowEntry>> makeFlowEntries(
+    std::string& dstIpStart,
+    std::string& nhopAdd,
+    std::string& ifName,
+    uint16_t srcPort,
+    uint32_t numEntries) {
+  auto generator =
+      FlowEntryGenerator(dstIpStart, nhopAdd, ifName, srcPort, numEntries);
+  return generator.generateFlowEntries();
 }
 
 void addFlowEntry(

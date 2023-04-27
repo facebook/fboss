@@ -33,6 +33,7 @@ namespace facebook::fboss {
 BENCHMARK(HwTeFlowStatsCollection) {
   static std::string nextHopAddr("1::1");
   static std::string ifName("fboss2000");
+  static std::string dstIpStart("100");
   static int prefixLength(61);
   uint32_t numEntries = FLAGS_teflow_scale_entries;
   // @lint-ignore CLANGTIDY
@@ -74,7 +75,7 @@ BENCHMARK(HwTeFlowStatsCollection) {
       ensemble->getSw()->getState(), {PortDescriptor(ports[1])}));
   // Add Entries
   auto flowEntries = utility::makeFlowEntries(
-      "100", nextHopAddr, ifName, ports[0], numEntries);
+      dstIpStart, nextHopAddr, ifName, ports[0], numEntries);
   state = ensemble->getSw()->getState();
   utility::addFlowEntries(&state, flowEntries);
   ensemble->applyNewState(state, true /* rollback on fail */);
