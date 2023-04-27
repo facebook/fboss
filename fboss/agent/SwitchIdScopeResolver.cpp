@@ -16,6 +16,13 @@ SwitchIdScopeResolver::SwitchIdScopeResolver(
     l3SwitchMatcher_ = std::make_unique<HwSwitchMatcher>(
         voqSwitchIds.size() ? voqSwitchIds : npuSwitchIds);
   }
+  std::unordered_set<SwitchID> allSwitchIds;
+  for (const auto& switchIdAndInfo : switchIdToSwitchInfo_) {
+    allSwitchIds.insert(SwitchID(switchIdAndInfo.first));
+  }
+  if (allSwitchIds.size()) {
+    allSwitchMatcher_ = std::make_unique<HwSwitchMatcher>(allSwitchIds);
+  }
 }
 
 std::unordered_set<SwitchID> SwitchIdScopeResolver::getSwitchIdsOfType(
@@ -31,8 +38,14 @@ std::unordered_set<SwitchID> SwitchIdScopeResolver::getSwitchIdsOfType(
 
 const HwSwitchMatcher& SwitchIdScopeResolver::l3SwitchMatcher() const {
   CHECK(l3SwitchMatcher_)
-      << " One or more l3 switchIds must be set toget l3 scope";
+      << " One or more l3 switchIds must be set to get l3 scope";
   return *l3SwitchMatcher_;
+}
+
+const HwSwitchMatcher& SwitchIdScopeResolver::allSwitchMatcher() const {
+  CHECK(allSwitchMatcher_)
+      << " One or more all switchIds must be set to get allSwitch scope";
+  return *allSwitchMatcher_;
 }
 
 } // namespace facebook::fboss
