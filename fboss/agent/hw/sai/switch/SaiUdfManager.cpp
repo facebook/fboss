@@ -44,11 +44,11 @@ SaiUdfMatchTraits::CreateAttributes SaiUdfManager::udfMatchAttr(
   // L2 Match Type - match l3 protocol
   auto l2MatchType = cfgL3MatchTypeToSai(swUdfMatch->getUdfl3PktType());
   auto l2MatchAttr = SaiUdfMatchTraits::Attributes::L2Type{
-      AclEntryFieldU16(std::make_pair(l2MatchType, kMaskDontCare))};
+      AclEntryFieldU16(std::make_pair(l2MatchType, kMaskAny))};
   // L3 Match Type - match l4 protocol
   auto l3MatchType = cfgL4MatchTypeToSai(swUdfMatch->getUdfl4PktType());
-  auto l3MatchAttr = SaiUdfMatchTraits::Attributes::L3Type{
-      AclEntryFieldU8(std::make_pair(l3MatchType, kMaskDontCare))};
+  auto l3MatchAttr = SaiUdfMatchTraits::Attributes::L3Type{AclEntryFieldU8(
+      std::make_pair(l3MatchType, static_cast<uint8_t>(kMaskAny)))};
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   // L4 Dst Port
   auto l4DstPortAttr = SaiUdfMatchTraits::Attributes::L4DstPortType{

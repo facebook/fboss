@@ -86,13 +86,11 @@ class UdfManagerTest : public ManagerTestBase {
     EXPECT_EQ(
         udfApi.getAttribute(
             saiUdfMatchId, SaiUdfMatchTraits::Attributes::L2Type{}),
-        AclEntryFieldU16(
-            std::make_pair(kIpv6Type(), SaiUdfManager::kMaskDontCare)));
+        AclEntryFieldU16(std::make_pair(kIpv6Type(), SaiUdfManager::kMaskAny)));
     EXPECT_EQ(
         udfApi.getAttribute(
             saiUdfMatchId, SaiUdfMatchTraits::Attributes::L3Type{}),
-        AclEntryFieldU8(
-            std::make_pair(kUdpType(), SaiUdfManager::kMaskDontCare)));
+        AclEntryFieldU8(std::make_pair(kUdpType(), SaiUdfManager::kMaskAny)));
     EXPECT_EQ(
         udfApi.getAttribute(
             saiUdfMatchId, SaiUdfMatchTraits::Attributes::L4DstPortType{}),
