@@ -43,6 +43,14 @@ class FsdbSyncer : public StateObserver {
   static std::vector<std::string> getAgentSwitchStatePath();
   static std::vector<std::string> getAgentSwitchConfigPath();
 
+  bool isReadyForStatePublishing() {
+    return readyForStatePublishing_.load();
+  }
+
+  bool isReadyForStatPublishing() {
+    return readyForStatPublishing_.load();
+  }
+
  private:
   void fsdbStatPublisherStateChanged(
       fsdb::FsdbStreamClient::State oldState,
