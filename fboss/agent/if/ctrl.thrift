@@ -1318,6 +1318,11 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   map<i64, SystemPortThrift> getSystemPorts() throws (
     1: fboss.FbossBaseError error,
   );
+
+  /*
+   * Only applicable to DSF Fabric Switch
+   */
+  bool isSwitchDrained() throws (1: fboss.FbossBaseError error);
 }
 
 service NeighborListenerClient extends fb303.FacebookService {

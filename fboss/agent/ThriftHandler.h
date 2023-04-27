@@ -403,6 +403,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getInterfacePhyInfo(
       std::map<std::string, phy::PhyInfo>& phyInfos,
       std::unique_ptr<std::vector<std::string>> portNames) override;
+  bool isSwitchDrained() override;
 
  protected:
   void addMplsRoutesImpl(

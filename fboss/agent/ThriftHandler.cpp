@@ -2728,6 +2728,11 @@ void ThriftHandler::getInterfacePhyInfo(
   }
 }
 
+bool ThriftHandler::isSwitchDrained() {
+  return sw_->getState()->getSwitchSettings()->getSwitchDrainState() ==
+      cfg::SwitchDrainState::DRAINED;
+}
+
 void ThriftHandler::addTeFlows(
     std::unique_ptr<std::vector<FlowEntry>> teFlowEntries) {
   auto log = LOG_THRIFT_CALL(DBG1);
