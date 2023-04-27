@@ -1,0 +1,5 @@
+publish(
+    wiki_root_path = "FBOSS_Platform/Platform_Services/sensor_service/",
+    srcs = ["./sensor_service/README.md"],
+    oncall = "fboss_platform",
+)
