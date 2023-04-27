@@ -475,8 +475,13 @@ const std::shared_ptr<TeFlowTable>& SwitchState::getTeFlowTable() const {
   return getDefaultMap<switch_state_tags::teFlowTables>();
 }
 
-void SwitchState::resetDsfNodes(std::shared_ptr<DsfNodeMap> dsfNodes) {
+void SwitchState::resetDsfNodes(const std::shared_ptr<DsfNodeMap>& dsfNodes) {
   resetDefaultMap<switch_state_tags::dsfNodesMap>(dsfNodes);
+}
+
+void SwitchState::resetDsfNodes(
+    const std::shared_ptr<MultiDsfNodeMap>& dsfNodes) {
+  ref<switch_state_tags::dsfNodesMap>() = dsfNodes;
 }
 
 const std::shared_ptr<DsfNodeMap>& SwitchState::getDsfNodes() const {
