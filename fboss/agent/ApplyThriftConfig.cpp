@@ -932,13 +932,13 @@ std::shared_ptr<UdfConfig> ThriftConfigApplier::updateUdfConfig(bool* changed) {
 }
 
 std::shared_ptr<DsfNodeMap> ThriftConfigApplier::updateDsfNodes() {
-  auto origNodes = orig_->getDsfNodes();
+  auto origNodes = orig_->getMnpuDsfNodes();
   auto newNodes = std::make_shared<DsfNodeMap>();
   newNodes->fromThrift(*cfg_->dsfNodes());
   bool changed = false;
   for (const auto& idAndNode : *newNodes) {
     auto newNode = idAndNode.second;
-    auto origNode = origNodes->getDsfNodeIf(newNode->getID());
+    auto origNode = origNodes->getNodeIf(newNode->getID());
     if (!origNode || *origNode != *newNode) {
       changed |= true;
     } else {
@@ -952,7 +952,7 @@ std::shared_ptr<DsfNodeMap> ThriftConfigApplier::updateDsfNodes() {
   // a. If a node got removed, we would see a delta in size
   // b. If size remained the same and nodes got updated we would
   // see a delta in the loop above
-  changed |= (origNodes->size() != newNodes->size());
+  changed |= (origNodes->numNodes() != newNodes->size());
   if (changed) {
     return newNodes;
   }
@@ -3636,7 +3636,7 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
       }
       auto localNode = dsfItr.second;
       CHECK(localNode.systemPortRange().has_value());
-      auto origLocalNode = orig_->getDsfNodes()->getDsfNodeIf(switchId);
+      auto origLocalNode = orig_->getMnpuDsfNodes()->getNodeIf(switchId);
       if (!origLocalNode ||
           origLocalNode->getSystemPortRange() != *localNode.systemPortRange()) {
         switchSettingsChange = true;
