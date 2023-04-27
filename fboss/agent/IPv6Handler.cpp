@@ -746,7 +746,7 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
       auto systemPort = sw->getState()->getSystemPorts()->getSystemPort(
           *intf->getSystemPortID());
       CHECK(systemPort);
-      auto dsfNode = sw->getState()->getDsfNodes()->getDsfNodeIf(
+      auto dsfNode = sw->getState()->getMnpuDsfNodes()->getNodeIf(
           systemPort->getSwitchId());
       CHECK(dsfNode);
       CHECK(dsfNode->getSystemPortRange().has_value());

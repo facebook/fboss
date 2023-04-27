@@ -301,8 +301,8 @@ PortID getPortID(
     const std::shared_ptr<SwitchState>& state) {
   auto sysPort = state->getSystemPorts()->getSystemPort(sysPortId);
   auto voqSwitchId = sysPort->getSwitchId();
-  auto sysPortRange = state->getDsfNodes()
-                          ->getDsfNodeIf(SwitchID(voqSwitchId))
+  auto sysPortRange = state->getMnpuDsfNodes()
+                          ->getNodeIf(SwitchID(voqSwitchId))
                           ->getSystemPortRange();
   CHECK(sysPortRange.has_value());
   return PortID(static_cast<int64_t>(sysPortId) - *sysPortRange->minimum());

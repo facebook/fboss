@@ -714,10 +714,10 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
 void ThriftConfigApplier::processUpdatedDsfNodes() {
   auto localSwitchIds = new_->getSwitchSettings()->getSwitchIds();
   for (auto localSwitchId : localSwitchIds) {
-    auto origDsfNode = orig_->getDsfNodes()->getNodeIf(localSwitchId);
+    auto origDsfNode = orig_->getMnpuDsfNodes()->getNodeIf(localSwitchId);
     if (origDsfNode &&
         origDsfNode->getType() !=
-            new_->getDsfNodes()->getNodeIf(localSwitchId)->getType()) {
+            new_->getMnpuDsfNodes()->getNodeIf(localSwitchId)->getType()) {
       throw FbossError("Change in DSF node type is not supported");
     }
   }
@@ -728,8 +728,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     // DSF node processing only needed on VOQ Switches
     return;
   }
-  thrift_cow::ThriftMapDelta delta(
-      orig_->getDsfNodes().get(), new_->getDsfNodes().get());
+  auto delta = StateDelta(orig_, new_).getDsfNodesDelta();
   auto getRecyclePortId = [](const std::shared_ptr<DsfNode>& node) {
     CHECK(node->getSystemPortRange().has_value());
     return *node->getSystemPortRange()->minimum() + 1;
