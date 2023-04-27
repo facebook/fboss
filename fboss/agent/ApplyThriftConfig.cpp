@@ -114,6 +114,16 @@ std::shared_ptr<facebook::fboss::SwitchState> updateFibFromConfig(
   return *nextStatePtr;
 }
 
+template <typename MultiMap, typename Map>
+std::shared_ptr<MultiMap> toMnpuMap(
+    const std::shared_ptr<Map>& map,
+    const facebook::fboss::SwitchIdScopeResolver& resolver) {
+  auto multiMap = std::make_shared<MultiMap>();
+  for (const auto& idAndNode : *map) {
+    multiMap->addNode(idAndNode.second, resolver.scope(idAndNode.second));
+  }
+  return multiMap;
+}
 } // anonymous namespace
 
 namespace facebook::fboss {
@@ -507,7 +517,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newMirrors = updateMirrors();
     if (newMirrors) {
-      new_->resetMirrors(std::move(newMirrors));
+      new_->resetMirrors(toMnpuMap<MultiMirrorMap>(newMirrors, scopeResolver_));
       changed = true;
     }
   }

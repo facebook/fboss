@@ -366,10 +366,6 @@ const std::shared_ptr<LoadBalancerMap>& SwitchState::getLoadBalancers() const {
   return getDefaultMap<switch_state_tags::loadBalancerMaps>();
 }
 
-void SwitchState::resetMirrors(const std::shared_ptr<MirrorMap>& mirrors) {
-  resetMap<switch_state_tags::mirrorMaps>(mirrors);
-}
-
 void SwitchState::resetMirrors(const std::shared_ptr<MultiMirrorMap>& mirrors) {
   ref<switch_state_tags::mirrorMaps>() = mirrors;
 }
