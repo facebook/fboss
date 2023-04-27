@@ -9,7 +9,7 @@ namespace facebook::fboss {
 FbFpgaPimQsfpController::FbFpgaPimQsfpController(
     std::unique_ptr<FpgaMemoryRegion> io,
     unsigned int portsPerPim)
-    : memoryRegion_(move(io)),
+    : memoryRegion_(std::move(io)),
       portsPerPim_(portsPerPim),
       registerOffsetToMutex_(setupRegisterOffsetToMutex()) {}
 
