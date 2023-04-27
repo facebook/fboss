@@ -364,6 +364,24 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getPortStatus) {
   }
 }
 
+TYPED_TEST(ThriftTestAllSwitchTypes, getSetSwitchDrainState) {
+  ThriftHandler handler(this->sw_);
+  auto switchDrainFn =
+      [this](const shared_ptr<SwitchState>& state) -> shared_ptr<SwitchState> {
+    shared_ptr<SwitchState> newState{state};
+    auto oldSwitchSettings = state->getSwitchSettings();
+    auto newSwitchSettings = oldSwitchSettings->modify(&newState);
+    newSwitchSettings->setSwitchDrainState(cfg::SwitchDrainState::DRAINED);
+    return newState;
+  };
+
+  if (this->isFabric()) {
+    EXPECT_FALSE(handler.isSwitchDrained());
+    this->sw_->updateStateBlocking("Switch drain", switchDrainFn);
+    EXPECT_TRUE(handler.isSwitchDrained());
+  }
+}
+
 TYPED_TEST(ThriftTestAllSwitchTypes, getAndSetNeighborsToBlock) {
   ThriftHandler handler(this->sw_);
 
