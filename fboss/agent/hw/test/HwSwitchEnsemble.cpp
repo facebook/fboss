@@ -303,8 +303,8 @@ std::vector<SystemPortID> HwSwitchEnsemble::masterLogicalSysPortIds() const {
   auto switchId = getHwSwitch()->getSwitchId();
   CHECK(switchId.has_value());
   auto sysPortRange = getProgrammedState()
-                          ->getDsfNodes()
-                          ->getDsfNodeIf(SwitchID(*switchId))
+                          ->getMnpuDsfNodes()
+                          ->getNodeIf(SwitchID(*switchId))
                           ->getSystemPortRange();
   CHECK(sysPortRange.has_value());
   for (auto port : masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})) {
