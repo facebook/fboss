@@ -1,5 +1,0 @@
-publish(
-    wiki_root_path = "FBOSS_Platform/Platform_Services/Fan_Service",
-    folder = "./",
-    oncall = "fboss_platform",
-)

@@ -1,5 +1,0 @@
-publish(
-    wiki_root_path = "FBOSS_Platform/Platform_Utils/weutil",
-    folder = "./",
-    oncall = "fboss_platform",
-)

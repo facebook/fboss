@@ -1,5 +1,29 @@
 publish(
-    wiki_root_path = "FBOSS_Platform/Platform_Services/sensor_service/",
-    srcs = ["./sensor_service/README.md"],
+    wiki_root_path = "FBOSS_Platform/Platform_Services/fan_service",
+    srcs = ["fan_service/README.md"],
+    oncall = "fboss_platform",
+)
+
+publish(
+    wiki_root_path = "FBOSS_Platform/Platform_Services/rackmon",
+    srcs = ["rackmon/README.md"],
+    oncall = "fboss_platform",
+)
+
+publish(
+    wiki_root_path = "FBOSS_Platform/Platform_Services/sensor_service",
+    srcs = ["sensor_service/README.md"],
+    oncall = "fboss_platform",
+)
+
+publish(
+    wiki_root_path = "FBOSS_Platform/Platform_Utils/fw_util",
+    srcs = ["fw_util/README.md"],
+    oncall = "fboss_platform",
+)
+
+publish(
+    wiki_root_path = "FBOSS_Platform/Platform_Utils/weutil",
+    srcs = ["weutil/README.md"],
     oncall = "fboss_platform",
 )
