@@ -608,7 +608,7 @@ void addRecylePortRifNeighbors(
       continue;
     }
     auto switchId = SwitchID(switchIdAndInfo.first);
-    auto dsfNode = state->getDsfNodes()->getDsfNodeIf(switchId);
+    auto dsfNode = state->getMnpuDsfNodes()->getNodeIf(switchId);
     CHECK(dsfNode);
     constexpr auto kRecylePortId = 1;
     auto localRecycleRifId =
@@ -2812,7 +2812,14 @@ void ThriftHandler::getFabricReachability(
 void ThriftHandler::getDsfNodes(std::map<int64_t, cfg::DsfNode>& dsfNodes) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  dsfNodes = sw_->getState()->getDsfNodes()->toThrift();
+  for (const auto& matcherAndNodes :
+       std::as_const(*sw_->getState()->getMnpuDsfNodes())) {
+    for (const auto& idAndNode : std::as_const(*matcherAndNodes.second)) {
+      dsfNodes.insert(
+          {static_cast<int64_t>(idAndNode.first),
+           idAndNode.second->toThrift()});
+    }
+  }
 }
 
 void ThriftHandler::getSystemPorts(
