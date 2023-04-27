@@ -10,8 +10,10 @@
 namespace facebook::fboss {
 namespace cfg {
 class Mirror;
-}
+class DsfNode;
+} // namespace cfg
 class Mirror;
+class DsfNode;
 
 class SwitchIdScopeResolver {
  public:
@@ -23,6 +25,12 @@ class SwitchIdScopeResolver {
   }
   const HwSwitchMatcher& scope(const std::shared_ptr<Mirror>& /*m*/) const {
     return l3SwitchMatcher();
+  }
+  const HwSwitchMatcher& scope(const cfg::DsfNode& /*m*/) const {
+    return allSwitchMatcher();
+  }
+  const HwSwitchMatcher& scope(const std::shared_ptr<DsfNode>& /*m*/) const {
+    return allSwitchMatcher();
   }
 
  private:
