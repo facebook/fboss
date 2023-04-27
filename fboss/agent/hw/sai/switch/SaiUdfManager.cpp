@@ -205,7 +205,13 @@ std::vector<sai_object_id_t> SaiUdfManager::getUdfGroupIds(
     std::vector<std::string> udfGroupIds) const {
   std::vector<sai_object_id_t> udfGroupSaiIds;
   for (const auto& udfGroupName : udfGroupIds) {
-    udfGroupHandles_.at(udfGroupName)->udfGroup->adapterKey();
+    if (udfGroupHandles_.find(udfGroupName) != udfGroupHandles_.end()) {
+      udfGroupSaiIds.push_back(
+          udfGroupHandles_.at(udfGroupName)->udfGroup->adapterKey());
+    } else {
+      throw FbossError(
+          "Unable to find SaiUdfGroupId for UdfGroup " + udfGroupName);
+    }
   }
   return udfGroupSaiIds;
 }

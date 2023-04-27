@@ -309,3 +309,38 @@ TEST_F(UdfManagerTest, oneMatcherWithTwoGroups) {
   saiManagerTable->udfManager().removeUdfGroup(swUdfGroup1);
   EXPECT_EQ(saiManagerTable->udfManager().getUdfGroupHandles().size(), 0);
 }
+
+TEST_F(UdfManagerTest, getUdfGroupIds) {
+  auto swUdfMatch = createUdfPacketMatcher(kUdfMatchName());
+  saiManagerTable->udfManager().addUdfMatch(swUdfMatch);
+
+  auto udfGroupName1 = kUdfMatchName() + "1";
+  auto udfGroupName2 = kUdfMatchName() + "2";
+  auto swUdfGroup1 = createUdfGroup(udfGroupName1, {kUdfMatchName()});
+  auto saiUdfGroupId1 = saiManagerTable->udfManager().addUdfGroup(swUdfGroup1);
+  auto swUdfGroup2 = createUdfGroup(udfGroupName2, {kUdfMatchName()});
+  auto saiUdfGroupId2 = saiManagerTable->udfManager().addUdfGroup(swUdfGroup2);
+  EXPECT_EQ(saiManagerTable->udfManager().getUdfGroupHandles().size(), 2);
+  validateUdfGroup(saiUdfGroupId1);
+  validateUdfGroup(saiUdfGroupId2);
+
+  auto gotUdfGroupList = saiManagerTable->udfManager().getUdfGroupIds(
+      {udfGroupName1, udfGroupName2});
+  EXPECT_EQ(gotUdfGroupList.size(), 2);
+  EXPECT_EQ(gotUdfGroupList[0], saiUdfGroupId1);
+  EXPECT_EQ(gotUdfGroupList[1], saiUdfGroupId2);
+
+  auto gotUdfGroupList1 =
+      saiManagerTable->udfManager().getUdfGroupIds({udfGroupName1});
+  EXPECT_EQ(gotUdfGroupList1.size(), 1);
+  EXPECT_EQ(gotUdfGroupList1[0], saiUdfGroupId1);
+
+  auto gotUdfGroupList2 =
+      saiManagerTable->udfManager().getUdfGroupIds({udfGroupName2});
+  EXPECT_EQ(gotUdfGroupList2.size(), 1);
+  EXPECT_EQ(gotUdfGroupList2[0], saiUdfGroupId2);
+
+  EXPECT_THROW(
+      saiManagerTable->udfManager().getUdfGroupIds({kUdfMatchName()}),
+      FbossError);
+}
