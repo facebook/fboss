@@ -1406,7 +1406,7 @@ void LookupClassRouteUpdater::processMacAddrsToBlockAdded(
 
     subnetCacheUpdated |=
         (addBlockedNeighborIPtoSubnetCache<folly::IPAddressV4>(
-             vlanID, blockedNeighborMac, newState) |
+             vlanID, blockedNeighborMac, newState) ||
          addBlockedNeighborIPtoSubnetCache<folly::IPAddressV6>(
              vlanID, blockedNeighborMac, newState));
   }
