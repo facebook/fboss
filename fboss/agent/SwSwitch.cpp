@@ -514,6 +514,18 @@ void SwSwitch::updateLldpStats() {
   stats()->LldpNeighborsSize(lldpManager_->getDB()->pruneExpiredNeighbors());
 }
 
+void SwSwitch::publishStatsToFsdb() {
+  AgentStats agentStats;
+  agentStats.hwPortStats() = getHw()->getPortStats();
+  agentStats.sysPortStats() = getHw()->getSysPortStats();
+
+  agentStats.hwAsicErrors() = getHw()->getSwitchStats()->getHwAsicErrors();
+  agentStats.teFlowStats() = getTeFlowStats();
+  stats()->fillAgentStats(agentStats);
+  agentStats.bufferPoolStats() = getBufferPoolStats();
+  fsdbSyncer_->statsUpdated(std::move(agentStats));
+}
+
 void SwSwitch::updateStats() {
   SCOPE_EXIT {
     if (FLAGS_publish_stats_to_fsdb) {
@@ -522,16 +534,7 @@ void SwSwitch::updateStats() {
           std::chrono::duration_cast<std::chrono::seconds>(
               now - *publishedStatsToFsdbAt_)
                   .count() > FLAGS_fsdbStatsStreamIntervalSeconds) {
-        AgentStats agentStats;
-        agentStats.hwPortStats() = getHw()->getPortStats();
-        agentStats.sysPortStats() = getHw()->getSysPortStats();
-
-        agentStats.hwAsicErrors() =
-            getHw()->getSwitchStats()->getHwAsicErrors();
-        agentStats.teFlowStats() = getTeFlowStats();
-        stats()->fillAgentStats(agentStats);
-        agentStats.bufferPoolStats() = getBufferPoolStats();
-        fsdbSyncer_->statsUpdated(std::move(agentStats));
+        publishStatsToFsdb();
         publishedStatsToFsdbAt_ = now;
       }
     }

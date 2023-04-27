@@ -214,6 +214,8 @@ class SwSwitch : public HwSwitch::Callback {
 
   void updateLldpStats();
 
+  void publishStatsToFsdb();
+
   void updateStats();
 
   std::tuple<folly::dynamic, state::WarmbootState> gracefulExitState() const;
