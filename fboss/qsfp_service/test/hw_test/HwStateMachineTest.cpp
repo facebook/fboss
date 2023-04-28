@@ -124,17 +124,16 @@ class HwStateMachineTest : public HwTest {
           curState == TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
         // Just finished transceiver programming
         // Only care enabled ports
-        if (programmedPortToPortInfo.size() == 1) {
-          const auto tcvrInfo = wedgeMgr->getTransceiverInfo(id);
-          auto portName = wedgeMgr->getPortNameByPortId(
-              programmedPortToPortInfo.begin()->first);
-          CHECK(portName.has_value());
-          utility::HwTransceiverUtils::verifyTransceiverSettings(
-              *tcvrInfo.tcvrState(),
-              *portName,
-              programmedPortToPortInfo.begin()->second.profile);
-          utility::HwTransceiverUtils::verifyDiagsCapability(
-              *tcvrInfo.tcvrState(), wedgeMgr->getDiagsCapability(id));
+        if (!programmedPortToPortInfo.empty()) {
+          for (const auto& [portID, portInfo] : programmedPortToPortInfo) {
+            const auto tcvrInfo = wedgeMgr->getTransceiverInfo(id);
+            auto portName = wedgeMgr->getPortNameByPortId(portID);
+            CHECK(portName.has_value());
+            utility::HwTransceiverUtils::verifyTransceiverSettings(
+                *tcvrInfo.tcvrState(), *portName, portInfo.profile);
+            utility::HwTransceiverUtils::verifyDiagsCapability(
+                *tcvrInfo.tcvrState(), wedgeMgr->getDiagsCapability(id));
+          }
         }
         // After transceiver is programmed, needResetDataPath should be false
         EXPECT_FALSE(wedgeMgr->getNeedResetDataPath(id));
@@ -226,62 +225,51 @@ TEST_F(HwStateMachineTestWithoutIphyProgramming, CheckOpticsDetection) {
 
 TEST_F(HwStateMachineTest, CheckPortsProgrammed) {
   auto verify = [this]() {
-    auto checkTransceiverProgrammed =
-        [this](const std::vector<TransceiverID>& tcvrs) {
-          auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
-          std::vector<PortID> xphyPorts;
-          if (auto phyManager = wedgeMgr->getPhyManager()) {
-            xphyPorts = phyManager->getXphyPorts();
-          }
+    auto checkTransceiverProgrammed = [this](const std::vector<TransceiverID>&
+                                                 tcvrs) {
+      auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+      std::vector<PortID> xphyPorts;
+      if (auto phyManager = wedgeMgr->getPhyManager()) {
+        xphyPorts = phyManager->getXphyPorts();
+      }
 
-          for (auto id : tcvrs) {
-            // Verify IPHY/ XPHY/ TCVR programmed as expected
-            const auto& portAndProfile =
-                wedgeMgr->getOverrideProgrammedIphyPortAndProfileForTest(id);
-            // Check programmed iphy port and profile
-            const auto programmedPortToPortInfo =
-                wedgeMgr->getProgrammedIphyPortToPortInfo(id);
-            const auto& transceiver = wedgeMgr->getTransceiverInfo(id);
-            if (portAndProfile.empty()) {
-              // If iphy port and profile is empty, it means the ports are
-              // disabled. We don't need to program such transceivers
-              EXPECT_TRUE(programmedPortToPortInfo.empty());
-            } else {
-              EXPECT_EQ(programmedPortToPortInfo.size(), portAndProfile.size());
-              for (const auto& [portID, portInfo] : programmedPortToPortInfo) {
-                auto expectedPortAndProfileIt = portAndProfile.find(portID);
-                EXPECT_TRUE(expectedPortAndProfileIt != portAndProfile.end());
-                EXPECT_EQ(portInfo.profile, expectedPortAndProfileIt->second);
-                if (std::find(xphyPorts.begin(), xphyPorts.end(), portID) !=
-                    xphyPorts.end()) {
-                  utility::verifyXphyPort(
-                      portID,
-                      portInfo.profile,
-                      transceiver,
-                      getHwQsfpEnsemble());
-                }
-              }
-              // TODO(joseph5wu) Usually we only need to program optical
-              // Transceiver which doesn't need to support split-out copper
-              // cable for flex ports. Which means for the optical transceiver,
-              // it usually has one programmed iphy port and profile. If in the
-              // future, we need to support flex port copper transceiver
-              // programming, we might need to combine the speeds of all flex
-              // port to program such transceiver.
-              if (programmedPortToPortInfo.size() == 1) {
-                auto portName = wedgeMgr->getPortNameByPortId(
-                    programmedPortToPortInfo.begin()->first);
-                CHECK(portName.has_value());
-                utility::HwTransceiverUtils::verifyTransceiverSettings(
-                    *transceiver.tcvrState(),
-                    *portName,
-                    programmedPortToPortInfo.begin()->second.profile);
-                utility::HwTransceiverUtils::verifyDiagsCapability(
-                    *transceiver.tcvrState(), wedgeMgr->getDiagsCapability(id));
-              }
+      for (auto id : tcvrs) {
+        // Verify IPHY/ XPHY/ TCVR programmed as expected
+        const auto& portAndProfile =
+            wedgeMgr->getOverrideProgrammedIphyPortAndProfileForTest(id);
+        // Check programmed iphy port and profile
+        const auto programmedPortToPortInfo =
+            wedgeMgr->getProgrammedIphyPortToPortInfo(id);
+        const auto& transceiver = wedgeMgr->getTransceiverInfo(id);
+        if (portAndProfile.empty()) {
+          // If iphy port and profile is empty, it means the ports are
+          // disabled. We don't need to program such transceivers
+          EXPECT_TRUE(programmedPortToPortInfo.empty());
+        } else {
+          EXPECT_EQ(programmedPortToPortInfo.size(), portAndProfile.size());
+          for (const auto& [portID, portInfo] : programmedPortToPortInfo) {
+            auto expectedPortAndProfileIt = portAndProfile.find(portID);
+            EXPECT_TRUE(expectedPortAndProfileIt != portAndProfile.end());
+            EXPECT_EQ(portInfo.profile, expectedPortAndProfileIt->second);
+            if (std::find(xphyPorts.begin(), xphyPorts.end(), portID) !=
+                xphyPorts.end()) {
+              utility::verifyXphyPort(
+                  portID, portInfo.profile, transceiver, getHwQsfpEnsemble());
             }
           }
-        };
+          if (!programmedPortToPortInfo.empty()) {
+            for (const auto& [portID, portInfo] : programmedPortToPortInfo) {
+              auto portName = wedgeMgr->getPortNameByPortId(portID);
+              CHECK(portName.has_value());
+              utility::HwTransceiverUtils::verifyTransceiverSettings(
+                  *transceiver.tcvrState(), *portName, portInfo.profile);
+              utility::HwTransceiverUtils::verifyDiagsCapability(
+                  *transceiver.tcvrState(), wedgeMgr->getDiagsCapability(id));
+            }
+          }
+        }
+      }
+    };
 
     checkTransceiverProgrammed(getPresentTransceivers());
     checkTransceiverProgrammed(getAbsentTransceivers());
