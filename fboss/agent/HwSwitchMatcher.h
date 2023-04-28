@@ -14,7 +14,7 @@ class HwSwitchMatcher {
   explicit HwSwitchMatcher(const std::unordered_set<SwitchID>& switchIds);
   HwSwitchMatcher() : HwSwitchMatcher(defaultHwSwitchMatcherKey()) {}
 
-  const std::unordered_set<SwitchID> npus() const {
+  const std::unordered_set<SwitchID> switchIds() const {
     return switchIds_;
   }
 
