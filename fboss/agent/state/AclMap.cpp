@@ -43,7 +43,7 @@ std::set<cfg::AclTableQualifier> PrioAclMap::requiredQualifiers() const {
   return qualifiers;
 }
 
-std::shared_ptr<AclMap> MultiAclMap::getAclMap() const {
+std::shared_ptr<AclMap> MultiSwitchAclMap::getAclMap() const {
   auto iter = find(HwSwitchMatcher::defaultHwSwitchMatcherKey());
   if (iter == cend()) {
     return nullptr;

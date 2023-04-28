@@ -223,7 +223,10 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::switchSettingsMap,
     MultiSwitchSettings);
-RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::aclMaps, MultiAclMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::aclMaps,
+    MultiSwitchAclMap);
 /*
  * SwitchState stores the current switch configuration.
  *
