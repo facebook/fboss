@@ -5,8 +5,10 @@ namespace cpp2 facebook.fboss.fsdb
 namespace go facebook.fboss.fsdb_oper
 
 include "fboss/fsdb/if/fsdb_common.thrift"
+include "thrift/annotation/cpp.thrift"
 
-typedef binary (cpp2.type = "::folly::fbstring") fbbinary
+@cpp.Type{name = "::folly::fbstring"}
+typedef binary fbbinary
 
 /*
  * Generic types for interacting w/ OperState
