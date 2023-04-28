@@ -198,7 +198,7 @@ RESOLVE_STRUCT_MEMBER(
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::aclTableGroupMaps,
-    MultiAclTableGroupMap);
+    MultiSwitchAclTableGroupMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::dsfNodesMap,

@@ -389,7 +389,7 @@ TEST(AclGroup, SerializeAclTableGroup) {
   EXPECT_EQ(*(tableGroupBack->getAclTableMap()), *tableMap);
 }
 
-TEST(AclGroup, SerializeMultiAclTableGroupMap) {
+TEST(AclGroup, SerializeMultiSwitchAclTableGroupMap) {
   /*
    * Simulate conditions similar to the default Acl Table Group
    * created in switch state and verify the non multi ACL to multi
