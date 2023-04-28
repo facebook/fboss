@@ -53,41 +53,41 @@ TEST(DsfNode, SerDeserSwitchState) {
   // Check all dsfNodes should be there
   for (auto switchID : {SwitchID(1), SwitchID(2)}) {
     EXPECT_TRUE(
-        *state->getMnpuDsfNodes()->getNodeIf(switchID) ==
-        *stateBack->getMnpuDsfNodes()->getNodeIf(switchID));
+        *state->getDsfNodes()->getNodeIf(switchID) ==
+        *stateBack->getDsfNodes()->getNodeIf(switchID));
   }
-  EXPECT_EQ(state->getMnpuDsfNodes()->numNodes(), 2);
+  EXPECT_EQ(state->getDsfNodes()->numNodes(), 2);
 }
 
 TEST(DsfNode, addRemove) {
   auto state = std::make_shared<SwitchState>();
   auto dsfNode1 = makeDsfNode(1);
   auto dsfNode2 = makeDsfNode(2);
-  state->getMnpuDsfNodes()->addNode(dsfNode1, scope());
-  state->getMnpuDsfNodes()->addNode(dsfNode2, scope());
-  EXPECT_EQ(state->getMnpuDsfNodes()->numNodes(), 2);
+  state->getDsfNodes()->addNode(dsfNode1, scope());
+  state->getDsfNodes()->addNode(dsfNode2, scope());
+  EXPECT_EQ(state->getDsfNodes()->numNodes(), 2);
 
-  state->getMnpuDsfNodes()->removeNode(SwitchID(1));
-  EXPECT_EQ(state->getMnpuDsfNodes()->numNodes(), 1);
-  EXPECT_EQ(state->getMnpuDsfNodes()->getNodeIf(SwitchID(1)), nullptr);
-  EXPECT_NE(state->getMnpuDsfNodes()->getNodeIf(SwitchID(2)), nullptr);
+  state->getDsfNodes()->removeNode(SwitchID(1));
+  EXPECT_EQ(state->getDsfNodes()->numNodes(), 1);
+  EXPECT_EQ(state->getDsfNodes()->getNodeIf(SwitchID(1)), nullptr);
+  EXPECT_NE(state->getDsfNodes()->getNodeIf(SwitchID(2)), nullptr);
 }
 
 TEST(DsfNode, update) {
   auto state = std::make_shared<SwitchState>();
   auto dsfNode = makeDsfNode(1);
-  state->getMnpuDsfNodes()->addNode(dsfNode, scope());
-  EXPECT_EQ(state->getMnpuDsfNodes()->numNodes(), 1);
+  state->getDsfNodes()->addNode(dsfNode, scope());
+  EXPECT_EQ(state->getDsfNodes()->numNodes(), 1);
   auto newDsfNode = makeDsfNode(1, cfg::DsfNodeType::FABRIC_NODE);
-  state->getMnpuDsfNodes()->updateNode(newDsfNode, scope());
+  state->getDsfNodes()->updateNode(newDsfNode, scope());
 
-  EXPECT_NE(*dsfNode, *state->getMnpuDsfNodes()->getNodeIf(SwitchID(1)));
+  EXPECT_NE(*dsfNode, *state->getDsfNodes()->getNodeIf(SwitchID(1)));
 }
 
 TEST(DsfNode, publish) {
   auto state = std::make_shared<SwitchState>();
   state->publish();
-  EXPECT_TRUE(state->getMnpuDsfNodes()->isPublished());
+  EXPECT_TRUE(state->getDsfNodes()->isPublished());
 }
 
 TEST(DsfNode, dsfNodeApplyConfig) {
@@ -96,13 +96,13 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
-  EXPECT_EQ(stateV1->getMnpuDsfNodes()->numNodes(), 2);
+  EXPECT_EQ(stateV1->getDsfNodes()->numNodes(), 2);
   // Add node
   config.dsfNodes()->insert({5, makeDsfNodeCfg(5)});
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
 
   ASSERT_NE(nullptr, stateV2);
-  EXPECT_EQ(stateV2->getMnpuDsfNodes()->numNodes(), 3);
+  EXPECT_EQ(stateV2->getDsfNodes()->numNodes(), 3);
   EXPECT_EQ(
       stateV2->getRemoteSystemPorts()->size(),
       stateV1->getRemoteSystemPorts()->size() + 1);
@@ -117,7 +117,7 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   config.dsfNodes()->insert({5, updatedDsfNode});
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   ASSERT_NE(nullptr, stateV3);
-  EXPECT_EQ(stateV3->getMnpuDsfNodes()->numNodes(), 3);
+  EXPECT_EQ(stateV3->getDsfNodes()->numNodes(), 3);
   EXPECT_EQ(
       stateV3->getRemoteSystemPorts()->size(),
       stateV2->getRemoteSystemPorts()->size());
@@ -129,7 +129,7 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   config.dsfNodes()->erase(5);
   auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
   ASSERT_NE(nullptr, stateV4);
-  EXPECT_EQ(stateV4->getMnpuDsfNodes()->numNodes(), 2);
+  EXPECT_EQ(stateV4->getDsfNodes()->numNodes(), 2);
   EXPECT_EQ(
       stateV4->getRemoteSystemPorts()->size(),
       stateV3->getRemoteSystemPorts()->size() - 1);
@@ -144,13 +144,13 @@ TEST(DsfNode, dsfNodeUpdateLocalDsfNodeConfig) {
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
-  EXPECT_EQ(stateV1->getMnpuDsfNodes()->numNodes(), 2);
+  EXPECT_EQ(stateV1->getDsfNodes()->numNodes(), 2);
   EXPECT_GT(config.dsfNodes()[1].loopbackIps()->size(), 0);
   config.dsfNodes()[1].loopbackIps()->clear();
   EXPECT_EQ(config.dsfNodes()[1].loopbackIps()->size(), 0);
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   ASSERT_NE(nullptr, stateV2);
-  EXPECT_EQ(stateV1->getMnpuDsfNodes()->numNodes(), 2);
+  EXPECT_EQ(stateV1->getDsfNodes()->numNodes(), 2);
 }
 
 TEST(DSFNode, loopackIpsSorted) {

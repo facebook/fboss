@@ -301,7 +301,7 @@ PortID getPortID(
     const std::shared_ptr<SwitchState>& state) {
   auto sysPort = state->getSystemPorts()->getSystemPort(sysPortId);
   auto voqSwitchId = sysPort->getSwitchId();
-  auto sysPortRange = state->getMnpuDsfNodes()
+  auto sysPortRange = state->getDsfNodes()
                           ->getNodeIf(SwitchID(voqSwitchId))
                           ->getSystemPortRange();
   CHECK(sysPortRange.has_value());

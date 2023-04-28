@@ -207,8 +207,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
                               const auto& state) {
     // Use loopback IP of any local VOQ switch as src for FSDB subscriptions
     // TODO: Evaluate what we should do if one or more VOQ switches go down
-    auto localDsfNode =
-        state->getMnpuDsfNodes()->getNodeIf(*voqSwitchIds.begin());
+    auto localDsfNode = state->getDsfNodes()->getNodeIf(*voqSwitchIds.begin());
     CHECK(localDsfNode);
     CHECK(localDsfNode->getLoopbackIpsSorted().size() != 0);
 

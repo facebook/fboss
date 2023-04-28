@@ -715,10 +715,10 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
 void ThriftConfigApplier::processUpdatedDsfNodes() {
   auto localSwitchIds = new_->getSwitchSettings()->getSwitchIds();
   for (auto localSwitchId : localSwitchIds) {
-    auto origDsfNode = orig_->getMnpuDsfNodes()->getNodeIf(localSwitchId);
+    auto origDsfNode = orig_->getDsfNodes()->getNodeIf(localSwitchId);
     if (origDsfNode &&
         origDsfNode->getType() !=
-            new_->getMnpuDsfNodes()->getNodeIf(localSwitchId)->getType()) {
+            new_->getDsfNodes()->getNodeIf(localSwitchId)->getType()) {
       throw FbossError("Change in DSF node type is not supported");
     }
   }
@@ -933,7 +933,7 @@ std::shared_ptr<UdfConfig> ThriftConfigApplier::updateUdfConfig(bool* changed) {
 }
 
 std::shared_ptr<DsfNodeMap> ThriftConfigApplier::updateDsfNodes() {
-  auto origNodes = orig_->getMnpuDsfNodes();
+  auto origNodes = orig_->getDsfNodes();
   auto newNodes = std::make_shared<DsfNodeMap>();
   newNodes->fromThrift(*cfg_->dsfNodes());
   bool changed = false;
@@ -3637,7 +3637,7 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
       }
       auto localNode = dsfItr.second;
       CHECK(localNode.systemPortRange().has_value());
-      auto origLocalNode = orig_->getMnpuDsfNodes()->getNodeIf(switchId);
+      auto origLocalNode = orig_->getDsfNodes()->getNodeIf(switchId);
       if (!origLocalNode ||
           origLocalNode->getSystemPortRange() != *localNode.systemPortRange()) {
         switchSettingsChange = true;

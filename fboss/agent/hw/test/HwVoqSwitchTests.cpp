@@ -180,7 +180,7 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         auto switchId = getHwSwitch()->getSwitchId();
         CHECK(switchId.has_value());
         auto sysPortRange = getProgrammedState()
-                                ->getMnpuDsfNodes()
+                                ->getDsfNodes()
                                 ->getNodeIf(SwitchID(*switchId))
                                 ->getSystemPortRange();
         CHECK(sysPortRange.has_value());

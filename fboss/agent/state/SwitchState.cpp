@@ -483,7 +483,7 @@ void SwitchState::resetDsfNodes(
   ref<switch_state_tags::dsfNodesMap>() = dsfNodes;
 }
 
-const std::shared_ptr<MultiDsfNodeMap>& SwitchState::getMnpuDsfNodes() const {
+const std::shared_ptr<MultiDsfNodeMap>& SwitchState::getDsfNodes() const {
   return safe_cref<switch_state_tags::dsfNodesMap>();
 }
 
@@ -788,7 +788,7 @@ std::optional<cfg::Range64> SwitchState::getAssociatedSystemPortRangeIf(
   auto systemPortID = intf->getSystemPortID();
   CHECK(systemPortID.has_value());
   auto switchId = getSystemPorts()->getSystemPort(*systemPortID)->getSwitchId();
-  auto dsfNode = getMnpuDsfNodes()->getNodeIf(switchId);
+  auto dsfNode = getDsfNodes()->getNodeIf(switchId);
   return dsfNode->getSystemPortRange();
 }
 
