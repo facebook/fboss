@@ -126,8 +126,12 @@ class HwStateMachineTest : public HwTest {
         // Only care enabled ports
         if (programmedPortToPortInfo.size() == 1) {
           const auto tcvrInfo = wedgeMgr->getTransceiverInfo(id);
+          auto portName = wedgeMgr->getPortNameByPortId(
+              programmedPortToPortInfo.begin()->first);
+          CHECK(portName.has_value());
           utility::HwTransceiverUtils::verifyTransceiverSettings(
               *tcvrInfo.tcvrState(),
+              *portName,
               programmedPortToPortInfo.begin()->second.profile);
           utility::HwTransceiverUtils::verifyDiagsCapability(
               *tcvrInfo.tcvrState(), wedgeMgr->getDiagsCapability(id));
@@ -265,8 +269,12 @@ TEST_F(HwStateMachineTest, CheckPortsProgrammed) {
               // programming, we might need to combine the speeds of all flex
               // port to program such transceiver.
               if (programmedPortToPortInfo.size() == 1) {
+                auto portName = wedgeMgr->getPortNameByPortId(
+                    programmedPortToPortInfo.begin()->first);
+                CHECK(portName.has_value());
                 utility::HwTransceiverUtils::verifyTransceiverSettings(
                     *transceiver.tcvrState(),
+                    *portName,
                     programmedPortToPortInfo.begin()->second.profile);
                 utility::HwTransceiverUtils::verifyDiagsCapability(
                     *transceiver.tcvrState(), wedgeMgr->getDiagsCapability(id));

@@ -412,6 +412,8 @@ class TransceiverManager {
       std::string&& /* portName */,
       phy::PhyStats&& /* stat */) const {}
 
+  std::optional<TransceiverID> getTransceiverID(PortID id);
+
  protected:
   /*
    * Check to see if we can attempt a warm boot.
@@ -451,8 +453,6 @@ class TransceiverManager {
       const std::map<int32_t, PortStatus>& portStatus) noexcept;
 
   void publishLinkSnapshots(PortID portID);
-
-  std::optional<TransceiverID> getTransceiverID(PortID id);
 
   // Restore phy state from the last cached warm boot qsfp_service state
   // Called this after initializing all the xphys during warm boot

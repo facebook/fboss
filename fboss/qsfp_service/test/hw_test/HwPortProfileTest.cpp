@@ -56,12 +56,14 @@ class HwPortProfileTest : public HwTest {
   }
 
   void verifyTransceiverSettings(
-      const std::map<int32_t, TransceiverInfo>& transceivers) {
+      const std::map<std::string, TransceiverInfo>& transceivers) {
     XLOG(INFO) << " Will verify transceiver settings for : "
                << transceivers.size() << " ports.";
     for (auto idAndTransceiver : transceivers) {
       utility::HwTransceiverUtils::verifyTransceiverSettings(
-          *idAndTransceiver.second.tcvrState(), Profile);
+          *idAndTransceiver.second.tcvrState(),
+          idAndTransceiver.first,
+          Profile);
     }
   }
 
@@ -110,7 +112,17 @@ class HwPortProfileTest : public HwTest {
       // there.
       // Assert that refresh caused transceiver info to be pulled
       // from HW
-      verifyTransceiverSettings(transceivers);
+      std::map<std::string, TransceiverInfo> portToTransceiverInfoMap;
+      for (auto port : matchingPorts) {
+        auto transceiverId =
+            getHwQsfpEnsemble()->getWedgeManager()->getTransceiverID(port);
+        CHECK(transceiverId.has_value());
+        auto portName =
+            getHwQsfpEnsemble()->getWedgeManager()->getPortNameByPortId(port);
+        CHECK(portName.has_value());
+        portToTransceiverInfoMap[*portName] = transceivers[*transceiverId];
+      }
+      verifyTransceiverSettings(portToTransceiverInfoMap);
       utility::HwTransceiverUtils::verifyPortNameToLaneMap(
           matchingPorts,
           Profile,

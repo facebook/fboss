@@ -20,6 +20,7 @@ class HwTransceiverUtils {
  public:
   static void verifyTransceiverSettings(
       const TcvrState& tcvrState,
+      const std::string& portName,
       cfg::PortProfileID profile);
 
   // T114627923 Because some old firmware might not enable all capabilities

@@ -103,6 +103,7 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
 
 void HwTransceiverUtils::verifyTransceiverSettings(
     const TcvrState& tcvrState,
+    const std::string& portName,
     cfg::PortProfileID profile) {
   auto id = *tcvrState.port();
   if (!*tcvrState.present()) {
@@ -110,7 +111,7 @@ void HwTransceiverUtils::verifyTransceiverSettings(
     return;
   }
 
-  XLOG(INFO) << " Verifying: " << id;
+  XLOG(INFO) << " Verifying: " << id << ", portName = " << portName;
   // Only testing QSFP and SFP transceivers right now
   EXPECT_TRUE(
       *tcvrState.transceiver() == TransceiverType::QSFP ||
