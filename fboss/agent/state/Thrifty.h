@@ -450,13 +450,17 @@ struct ThriftMultiMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
     innerMap->updateNode(std::move(node));
   }
 
-  void removeNode(std::shared_ptr<InnerNode> node) {
+  void removeNode(const typename InnerMap::Traits::KeyType& key) {
     for (auto mitr = this->begin(); mitr != this->end(); ++mitr) {
-      if (mitr->second->remove(node->getID())) {
+      if (mitr->second->remove(key)) {
         return;
       }
     }
-    throw FbossError("node not found: ", node->getID());
+    throw FbossError("node not found: ", key);
+  }
+
+  void removeNode(std::shared_ptr<InnerNode> node) {
+    removeNode(node->getID());
   }
 
   std::shared_ptr<InnerNode> getNodeIf(
