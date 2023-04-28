@@ -30,6 +30,17 @@ const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig(
         switchInfo.portIdRange()->maximum() = 1023;
       }
       switchInfoMap.emplace(entry.first, switchInfo);
+      if (switchInfo.switchType() == cfg::SwitchType::VOQ &&
+          !switchInfo.systemPortRange()) {
+        auto dsfItr =
+            *config->dsfNodes()->find(static_cast<int64_t>(entry.first));
+        if (dsfItr != *config->dsfNodes()->end()) {
+          auto localNode = dsfItr.second;
+          CHECK(localNode.systemPortRange().has_value());
+          switchInfo.systemPortRange() = *localNode.systemPortRange();
+        }
+      }
+      switchInfoMap.emplace(entry.first, switchInfo);
     }
   } else {
     // TODO - Remove this once switchInfo config is set everywhere
