@@ -537,7 +537,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void addTunnel(const std::shared_ptr<IpTunnel>& tunnel);
   void resetTunnels(std::shared_ptr<IpTunnelMap> tunnels);
   void resetTeFlowTable(std::shared_ptr<TeFlowTable> teFlowTable);
-  void resetDsfNodes(const std::shared_ptr<DsfNodeMap>& dsfNodes);
   void resetDsfNodes(const std::shared_ptr<MultiDsfNodeMap>& dsfNodes);
   std::shared_ptr<AclTableGroupMap>& getAclTablesForStage(
       const folly::dynamic& swJson);
