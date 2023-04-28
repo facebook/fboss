@@ -365,7 +365,8 @@ const std::shared_ptr<LoadBalancerMap>& SwitchState::getLoadBalancers() const {
   return getDefaultMap<switch_state_tags::loadBalancerMaps>();
 }
 
-void SwitchState::resetMirrors(const std::shared_ptr<MultiMirrorMap>& mirrors) {
+void SwitchState::resetMirrors(
+    const std::shared_ptr<MultiSwitchMirrorMap>& mirrors) {
   ref<switch_state_tags::mirrorMaps>() = mirrors;
 }
 
@@ -374,7 +375,7 @@ const std::shared_ptr<SflowCollectorMap>& SwitchState::getSflowCollectors()
   return getDefaultMap<switch_state_tags::sflowCollectorMaps>();
 }
 
-const std::shared_ptr<MultiMirrorMap>& SwitchState::getMirrors() const {
+const std::shared_ptr<MultiSwitchMirrorMap>& SwitchState::getMirrors() const {
   return safe_cref<switch_state_tags::mirrorMaps>();
 }
 
@@ -475,11 +476,11 @@ const std::shared_ptr<TeFlowTable>& SwitchState::getTeFlowTable() const {
 }
 
 void SwitchState::resetDsfNodes(
-    const std::shared_ptr<MultiDsfNodeMap>& dsfNodes) {
+    const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodes) {
   ref<switch_state_tags::dsfNodesMap>() = dsfNodes;
 }
 
-const std::shared_ptr<MultiDsfNodeMap>& SwitchState::getDsfNodes() const {
+const std::shared_ptr<MultiSwitchDsfNodeMap>& SwitchState::getDsfNodes() const {
   return safe_cref<switch_state_tags::dsfNodesMap>();
 }
 

@@ -519,7 +519,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newMirrors = updateMirrors();
     if (newMirrors) {
-      new_->resetMirrors(toMnpuMap<MultiMirrorMap>(newMirrors, scopeResolver_));
+      new_->resetMirrors(
+          toMnpuMap<MultiSwitchMirrorMap>(newMirrors, scopeResolver_));
       changed = true;
     }
   }
@@ -684,7 +685,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     auto newDsfNodes = updateDsfNodes();
     if (newDsfNodes) {
       new_->resetDsfNodes(
-          toMnpuMap<MultiDsfNodeMap>(newDsfNodes, scopeResolver_));
+          toMnpuMap<MultiSwitchDsfNodeMap>(newDsfNodes, scopeResolver_));
       processUpdatedDsfNodes();
       new_->resetSystemPorts(
           updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()));

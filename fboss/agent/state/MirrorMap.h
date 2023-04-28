@@ -40,29 +40,33 @@ class MirrorMap : public ThriftMapNode<MirrorMap, MirrorMapTraits> {
   friend class CloneAllocator;
 };
 
-using MultiMirrorMapTypeClass = apache::thrift::type_class::
+using MultiSwitchMirrorMapTypeClass = apache::thrift::type_class::
     map<apache::thrift::type_class::string, MirrorMapTypeClass>;
-using MultiMirrorMapThriftType = std::map<std::string, MirrorMapThriftType>;
+using MultiSwitchMirrorMapThriftType =
+    std::map<std::string, MirrorMapThriftType>;
 
-class MultiMirrorMap;
+class MultiSwitchMirrorMap;
 
-using MultiMirrorMapTraits = ThriftMultiSwitchMapNodeTraits<
-    MultiMirrorMap,
-    MultiMirrorMapTypeClass,
-    MultiMirrorMapThriftType,
+using MultiSwitchMirrorMapTraits = ThriftMultiSwitchMapNodeTraits<
+    MultiSwitchMirrorMap,
+    MultiSwitchMirrorMapTypeClass,
+    MultiSwitchMirrorMapThriftType,
     MirrorMap>;
 
 class HwSwitchMatcher;
 
-class MultiMirrorMap
-    : public ThriftMultiSwitchMapNode<MultiMirrorMap, MultiMirrorMapTraits> {
+class MultiSwitchMirrorMap : public ThriftMultiSwitchMapNode<
+                                 MultiSwitchMirrorMap,
+                                 MultiSwitchMirrorMapTraits> {
  public:
-  using Traits = MultiMirrorMapTraits;
-  using BaseT = ThriftMultiSwitchMapNode<MultiMirrorMap, MultiMirrorMapTraits>;
+  using Traits = MultiSwitchMirrorMapTraits;
+  using BaseT = ThriftMultiSwitchMapNode<
+      MultiSwitchMirrorMap,
+      MultiSwitchMirrorMapTraits>;
   using BaseT::modify;
 
-  MultiMirrorMap* modify(std::shared_ptr<SwitchState>* state);
-  static std::shared_ptr<MultiMirrorMap> fromThrift(
+  MultiSwitchMirrorMap* modify(std::shared_ptr<SwitchState>* state);
+  static std::shared_ptr<MultiSwitchMirrorMap> fromThrift(
       const std::map<std::string, std::map<std::string, state::MirrorFields>>&
           mnpuMirrors);
 

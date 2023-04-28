@@ -20,7 +20,8 @@ std::shared_ptr<MirrorMap> MirrorMap::fromThrift(
   return map;
 }
 
-MultiMirrorMap* MultiMirrorMap::modify(std::shared_ptr<SwitchState>* state) {
+MultiSwitchMirrorMap* MultiSwitchMirrorMap::modify(
+    std::shared_ptr<SwitchState>* state) {
   if (!isPublished()) {
     CHECK(!(*state)->isPublished());
     return this;
@@ -36,10 +37,10 @@ MultiMirrorMap* MultiMirrorMap::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
-std::shared_ptr<MultiMirrorMap> MultiMirrorMap::fromThrift(
+std::shared_ptr<MultiSwitchMirrorMap> MultiSwitchMirrorMap::fromThrift(
     const std::map<std::string, std::map<std::string, state::MirrorFields>>&
         mnpuMirrors) {
-  auto mnpuMap = std::make_shared<MultiMirrorMap>();
+  auto mnpuMap = std::make_shared<MultiSwitchMirrorMap>();
   for (const auto& matcherAndMirrors : mnpuMirrors) {
     auto map = MirrorMap::fromThrift(matcherAndMirrors.second);
     mnpuMap->insert(matcherAndMirrors.first, std::move(map));

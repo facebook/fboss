@@ -42,7 +42,7 @@ TEST(DsfNode, SerDeserSwitchState) {
   auto dsfNode1 = makeDsfNode(1);
   auto dsfNode2 = makeDsfNode(2);
 
-  auto dsfNodeMap = std::make_shared<MultiDsfNodeMap>();
+  auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
   dsfNodeMap->addNode(dsfNode1, scope());
   dsfNodeMap->addNode(dsfNode2, scope());
   state->resetDsfNodes(dsfNodeMap);

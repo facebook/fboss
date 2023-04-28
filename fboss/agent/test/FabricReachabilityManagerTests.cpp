@@ -103,7 +103,7 @@ TEST_F(FabricReachabilityManagerTest, validateRemoteOffset) {
       "rdswA",
       cfg::AsicType::ASIC_TYPE_JERICHO2,
       PlatformType::PLATFORM_MERU400BIU);
-  auto dsfNodeMap = std::make_shared<MultiDsfNodeMap>();
+  auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
   dsfNodeMap->addNode(dsfNode, getScope(dsfNode));
   newState->resetDsfNodes(dsfNodeMap);
 
@@ -143,7 +143,7 @@ TEST_F(FabricReachabilityManagerTest, validateProcessReachabilityInfo) {
   hwReachabilityMap.emplace(swPort->getID(), endpoint);
 
   auto dsfNode = makeDsfNode(10, "fdswA", cfg::AsicType::ASIC_TYPE_RAMON);
-  auto dsfNodeMap = std::make_shared<MultiDsfNodeMap>();
+  auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
   dsfNodeMap->addNode(dsfNode, getScope(dsfNode));
   newState->resetDsfNodes(dsfNodeMap);
 
@@ -178,7 +178,7 @@ TEST_F(FabricReachabilityManagerTest, validateUnattachedEndpoint) {
   newState->getPorts()->addPort(swPort);
 
   auto dsfNode = makeDsfNode(10, "fdswA");
-  auto dsfNodeMap = std::make_shared<MultiDsfNodeMap>();
+  auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
   dsfNodeMap->addNode(dsfNode, getScope(dsfNode));
   newState->resetDsfNodes(dsfNodeMap);
 
@@ -230,7 +230,7 @@ TEST_F(FabricReachabilityManagerTest, validateUnexpectedNeighbors) {
   auto dsfNode1 = makeDsfNode(10, "fdswB");
   auto dsfNode2 = makeDsfNode(20, "fdswA");
 
-  auto dsfNodeMap = std::make_shared<MultiDsfNodeMap>();
+  auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
   dsfNodeMap->addNode(dsfNode1, getScope(dsfNode1));
   dsfNodeMap->addNode(dsfNode2, getScope(dsfNode2));
   newState->resetDsfNodes(dsfNodeMap);

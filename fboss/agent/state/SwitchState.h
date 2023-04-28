@@ -152,7 +152,7 @@ RESOLVE_STRUCT_MEMBER(
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::mirrorMaps,
-    MultiMirrorMap);
+    MultiSwitchMirrorMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::sflowCollectorMaps,
@@ -202,7 +202,7 @@ RESOLVE_STRUCT_MEMBER(
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::dsfNodesMap,
-    MultiDsfNodeMap);
+    MultiSwitchDsfNodeMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::remoteInterfaceMaps,
@@ -453,7 +453,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       const;
 
   const std::shared_ptr<LoadBalancerMap>& getLoadBalancers() const;
-  const std::shared_ptr<MultiMirrorMap>& getMirrors() const;
+  const std::shared_ptr<MultiSwitchMirrorMap>& getMirrors() const;
   const std::shared_ptr<ForwardingInformationBaseMap>& getFibs() const;
   const std::shared_ptr<LabelForwardingInformationBase>&
   getLabelForwardingInformationBase() const;
@@ -463,7 +463,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<IpTunnelMap>& getTunnels() const;
   const std::shared_ptr<TeFlowTable>& getTeFlowTable() const;
 
-  const std::shared_ptr<MultiDsfNodeMap>& getDsfNodes() const;
+  const std::shared_ptr<MultiSwitchDsfNodeMap>& getDsfNodes() const;
 
   const std::shared_ptr<UdfConfig>& getUdfConfig() const {
     if (getSwitchSettings()->getUdfConfig()) {
@@ -508,7 +508,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       const std::string& name,
       cfg::PortType portType = cfg::PortType::INTERFACE_PORT);
   void addPort(const std::shared_ptr<Port>& port);
-  void resetMirrors(const std::shared_ptr<MultiMirrorMap>& mirrors);
+  void resetMirrors(const std::shared_ptr<MultiSwitchMirrorMap>& mirrors);
   void resetPorts(std::shared_ptr<PortMap> ports);
   void resetAggregatePorts(std::shared_ptr<AggregatePortMap> aggPorts);
   void resetVlans(std::shared_ptr<VlanMap> vlans);
@@ -537,7 +537,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void addTunnel(const std::shared_ptr<IpTunnel>& tunnel);
   void resetTunnels(std::shared_ptr<IpTunnelMap> tunnels);
   void resetTeFlowTable(std::shared_ptr<TeFlowTable> teFlowTable);
-  void resetDsfNodes(const std::shared_ptr<MultiDsfNodeMap>& dsfNodes);
+  void resetDsfNodes(const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodes);
   std::shared_ptr<AclTableGroupMap>& getAclTablesForStage(
       const folly::dynamic& swJson);
 

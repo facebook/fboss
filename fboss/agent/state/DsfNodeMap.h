@@ -39,26 +39,29 @@ class DsfNodeMap : public ThriftMapNode<DsfNodeMap, DsfNodeMapTraits> {
   friend class CloneAllocator;
 };
 
-using MultiDsfNodeMapTypeClass = apache::thrift::type_class::
+using MultiSwitchDsfNodeMapTypeClass = apache::thrift::type_class::
     map<apache::thrift::type_class::string, DsfNodeMapTypeClass>;
-using MultiDsfNodeMapThriftType = std::map<std::string, DsfNodeMapThriftType>;
+using MultiSwitchDsfNodeMapThriftType =
+    std::map<std::string, DsfNodeMapThriftType>;
 
-class MultiDsfNodeMap;
+class MultiSwitchDsfNodeMap;
 
-using MultiDsfNodeMapTraits = ThriftMultiSwitchMapNodeTraits<
-    MultiDsfNodeMap,
-    MultiDsfNodeMapTypeClass,
-    MultiDsfNodeMapThriftType,
+using MultiSwitchDsfNodeMapTraits = ThriftMultiSwitchMapNodeTraits<
+    MultiSwitchDsfNodeMap,
+    MultiSwitchDsfNodeMapTypeClass,
+    MultiSwitchDsfNodeMapThriftType,
     DsfNodeMap>;
 
 class HwSwitchMatcher;
 
-class MultiDsfNodeMap
-    : public ThriftMultiSwitchMapNode<MultiDsfNodeMap, MultiDsfNodeMapTraits> {
+class MultiSwitchDsfNodeMap : public ThriftMultiSwitchMapNode<
+                                  MultiSwitchDsfNodeMap,
+                                  MultiSwitchDsfNodeMapTraits> {
  public:
-  using Traits = MultiDsfNodeMapTraits;
-  using BaseT =
-      ThriftMultiSwitchMapNode<MultiDsfNodeMap, MultiDsfNodeMapTraits>;
+  using Traits = MultiSwitchDsfNodeMapTraits;
+  using BaseT = ThriftMultiSwitchMapNode<
+      MultiSwitchDsfNodeMap,
+      MultiSwitchDsfNodeMapTraits>;
 
  private:
   // Inherit the constructors required for clone()

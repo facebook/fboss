@@ -654,7 +654,7 @@ TEST_F(MirrorTest, MirrorThrifty) {
   publishWithStateUpdate();
   auto& mirrors = state_->getMirrors();
   auto mirrorsThrift = mirrors->toThrift();
-  auto newMirrors = MultiMirrorMap::fromThrift(mirrorsThrift);
+  auto newMirrors = MultiSwitchMirrorMap::fromThrift(mirrorsThrift);
   EXPECT_EQ(mirrorsThrift, newMirrors->toThrift());
 }
 
