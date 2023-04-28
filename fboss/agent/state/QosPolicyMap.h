@@ -55,32 +55,33 @@ class QosPolicyMap : public ThriftMapNode<QosPolicyMap, QosPolicyMapTraits> {
 
 using QosPolicyMapDelta = thrift_cow::ThriftMapDelta<QosPolicyMap>;
 
-using MultiQosPolicyMapTypeClass = apache::thrift::type_class::
+using MultiSwitchQosPolicyMapTypeClass = apache::thrift::type_class::
     map<apache::thrift::type_class::string, QosPolicyMapTypeClass>;
-using MultiQosPolicyMapThriftType =
+using MultiSwitchQosPolicyMapThriftType =
     std::map<std::string, QosPolicyMapThriftType>;
 
-class MultiQosPolicyMap;
+class MultiSwitchQosPolicyMap;
 
-using MultiQosPolicyMapTraits = ThriftMultiSwitchMapNodeTraits<
-    MultiQosPolicyMap,
-    MultiQosPolicyMapTypeClass,
-    MultiQosPolicyMapThriftType,
+using MultiSwitchQosPolicyMapTraits = ThriftMultiSwitchMapNodeTraits<
+    MultiSwitchQosPolicyMap,
+    MultiSwitchQosPolicyMapTypeClass,
+    MultiSwitchQosPolicyMapThriftType,
     QosPolicyMap>;
 
 class HwSwitchMatcher;
 
-class MultiQosPolicyMap : public ThriftMultiSwitchMapNode<
-                              MultiQosPolicyMap,
-                              MultiQosPolicyMapTraits> {
+class MultiSwitchQosPolicyMap : public ThriftMultiSwitchMapNode<
+                                    MultiSwitchQosPolicyMap,
+                                    MultiSwitchQosPolicyMapTraits> {
  public:
-  using Traits = MultiQosPolicyMapTraits;
-  using BaseT =
-      ThriftMultiSwitchMapNode<MultiQosPolicyMap, MultiQosPolicyMapTraits>;
+  using Traits = MultiSwitchQosPolicyMapTraits;
+  using BaseT = ThriftMultiSwitchMapNode<
+      MultiSwitchQosPolicyMap,
+      MultiSwitchQosPolicyMapTraits>;
   using BaseT::modify;
 
-  MultiQosPolicyMap() {}
-  virtual ~MultiQosPolicyMap() {}
+  MultiSwitchQosPolicyMap() {}
+  virtual ~MultiSwitchQosPolicyMap() {}
 
  private:
   // Inherit the constructors required for clone()

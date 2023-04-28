@@ -77,29 +77,31 @@ class PortMap : public ThriftMapNode<PortMap, PortMapTraits> {
   friend class CloneAllocator;
 };
 
-using MultiPortMapTypeClass = apache::thrift::type_class::
+using MultiSwitchPortMapTypeClass = apache::thrift::type_class::
     map<apache::thrift::type_class::string, PortMapTypeClass>;
-using MultiPortMapThriftType = std::map<std::string, PortMapThriftType>;
+using MultiSwitchPortMapThriftType = std::map<std::string, PortMapThriftType>;
 
-class MultiPortMap;
+class MultiSwitchPortMap;
 
-using MultiPortMapTraits = ThriftMultiSwitchMapNodeTraits<
-    MultiPortMap,
-    MultiPortMapTypeClass,
-    MultiPortMapThriftType,
+using MultiSwitchPortMapTraits = ThriftMultiSwitchMapNodeTraits<
+    MultiSwitchPortMap,
+    MultiSwitchPortMapTypeClass,
+    MultiSwitchPortMapThriftType,
     PortMap>;
 
 class HwSwitchMatcher;
 
-class MultiPortMap
-    : public ThriftMultiSwitchMapNode<MultiPortMap, MultiPortMapTraits> {
+class MultiSwitchPortMap : public ThriftMultiSwitchMapNode<
+                               MultiSwitchPortMap,
+                               MultiSwitchPortMapTraits> {
  public:
-  using Traits = MultiPortMapTraits;
-  using BaseT = ThriftMultiSwitchMapNode<MultiPortMap, MultiPortMapTraits>;
+  using Traits = MultiSwitchPortMapTraits;
+  using BaseT =
+      ThriftMultiSwitchMapNode<MultiSwitchPortMap, MultiSwitchPortMapTraits>;
   using BaseT::modify;
 
-  MultiPortMap() {}
-  virtual ~MultiPortMap() {}
+  MultiSwitchPortMap() {}
+  virtual ~MultiSwitchPortMap() {}
 
  private:
   // Inherit the constructors required for clone()

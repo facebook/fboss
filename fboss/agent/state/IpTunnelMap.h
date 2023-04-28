@@ -55,31 +55,33 @@ class IpTunnelMap : public ThriftMapNode<IpTunnelMap, IpTunnelMapTraits> {
   friend class CloneAllocator;
 };
 
-using MultiIpTunnelMapTypeClass = apache::thrift::type_class::
+using MultiSwitchIpTunnelMapTypeClass = apache::thrift::type_class::
     map<apache::thrift::type_class::string, IpTunnelMapClass>;
-using MultiIpTunnelMapThriftType = std::map<std::string, IpTunnelMapThriftType>;
+using MultiSwitchIpTunnelMapThriftType =
+    std::map<std::string, IpTunnelMapThriftType>;
 
-class MultiIpTunnelMap;
+class MultiSwitchIpTunnelMap;
 
-using MultiIpTunnelMapTraits = ThriftMultiSwitchMapNodeTraits<
-    MultiIpTunnelMap,
-    MultiIpTunnelMapTypeClass,
-    MultiIpTunnelMapThriftType,
+using MultiSwitchIpTunnelMapTraits = ThriftMultiSwitchMapNodeTraits<
+    MultiSwitchIpTunnelMap,
+    MultiSwitchIpTunnelMapTypeClass,
+    MultiSwitchIpTunnelMapThriftType,
     IpTunnelMap>;
 
 class HwSwitchMatcher;
 
-class MultiIpTunnelMap : public ThriftMultiSwitchMapNode<
-                             MultiIpTunnelMap,
-                             MultiIpTunnelMapTraits> {
+class MultiSwitchIpTunnelMap : public ThriftMultiSwitchMapNode<
+                                   MultiSwitchIpTunnelMap,
+                                   MultiSwitchIpTunnelMapTraits> {
  public:
-  using Traits = MultiIpTunnelMapTraits;
-  using BaseT =
-      ThriftMultiSwitchMapNode<MultiIpTunnelMap, MultiIpTunnelMapTraits>;
+  using Traits = MultiSwitchIpTunnelMapTraits;
+  using BaseT = ThriftMultiSwitchMapNode<
+      MultiSwitchIpTunnelMap,
+      MultiSwitchIpTunnelMapTraits>;
   using BaseT::modify;
 
-  MultiIpTunnelMap() {}
-  virtual ~MultiIpTunnelMap() {}
+  MultiSwitchIpTunnelMap() {}
+  virtual ~MultiSwitchIpTunnelMap() {}
 
  private:
   // Inherit the constructors required for clone()

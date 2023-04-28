@@ -56,33 +56,33 @@ class LoadBalancerMap
   friend class CloneAllocator;
 };
 
-using MultiLoadBalancerMapTypeClass = apache::thrift::type_class::
+using MultiSwitchLoadBalancerMapTypeClass = apache::thrift::type_class::
     map<apache::thrift::type_class::string, LoadBalancerMapTypeClass>;
-using MultiLoadBalancerMapThriftType =
+using MultiSwitchLoadBalancerMapThriftType =
     std::map<std::string, LoadBalancerMapThriftType>;
 
-class MultiLoadBalancerMap;
+class MultiSwitchLoadBalancerMap;
 
-using MultiLoadBalancerMapTraits = ThriftMultiSwitchMapNodeTraits<
-    MultiLoadBalancerMap,
-    MultiLoadBalancerMapTypeClass,
-    MultiLoadBalancerMapThriftType,
+using MultiSwitchLoadBalancerMapTraits = ThriftMultiSwitchMapNodeTraits<
+    MultiSwitchLoadBalancerMap,
+    MultiSwitchLoadBalancerMapTypeClass,
+    MultiSwitchLoadBalancerMapThriftType,
     LoadBalancerMap>;
 
 class HwSwitchMatcher;
 
-class MultiLoadBalancerMap : public ThriftMultiSwitchMapNode<
-                                 MultiLoadBalancerMap,
-                                 MultiLoadBalancerMapTraits> {
+class MultiSwitchLoadBalancerMap : public ThriftMultiSwitchMapNode<
+                                       MultiSwitchLoadBalancerMap,
+                                       MultiSwitchLoadBalancerMapTraits> {
  public:
-  using Traits = MultiLoadBalancerMapTraits;
+  using Traits = MultiSwitchLoadBalancerMapTraits;
   using BaseT = ThriftMultiSwitchMapNode<
-      MultiLoadBalancerMap,
-      MultiLoadBalancerMapTraits>;
+      MultiSwitchLoadBalancerMap,
+      MultiSwitchLoadBalancerMapTraits>;
   using BaseT::modify;
 
-  MultiLoadBalancerMap() {}
-  virtual ~MultiLoadBalancerMap() {}
+  MultiSwitchLoadBalancerMap() {}
+  virtual ~MultiSwitchLoadBalancerMap() {}
 
  private:
   // Inherit the constructors required for clone()

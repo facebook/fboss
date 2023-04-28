@@ -156,7 +156,7 @@ RESOLVE_STRUCT_MEMBER(
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::sflowCollectorMaps,
-    MultiSflowCollectorMap);
+    MultiSwitchSflowCollectorMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::labelFibMap,
@@ -164,11 +164,11 @@ RESOLVE_STRUCT_MEMBER(
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::qosPolicyMaps,
-    MultiQosPolicyMap);
+    MultiSwitchQosPolicyMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::ipTunnelMaps,
-    MultiIpTunnelMap);
+    MultiSwitchIpTunnelMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::teFlowTables,
@@ -180,7 +180,7 @@ RESOLVE_STRUCT_MEMBER(
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::loadBalancerMaps,
-    MultiLoadBalancerMap);
+    MultiSwitchLoadBalancerMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::transceiverMaps,
@@ -190,11 +190,14 @@ RESOLVE_STRUCT_MEMBER(
     switch_state_tags::bufferPoolCfgMaps,
     MultiSwitchBufferPoolCfgMap);
 RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::vlanMaps, MultiVlanMap);
-RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::portMaps, MultiPortMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::portMaps,
+    MultiSwitchPortMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::interfaceMaps,
-    MultiInterfaceMap);
+    MultiSwitchInterfaceMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::aclTableGroupMaps,
@@ -206,7 +209,7 @@ RESOLVE_STRUCT_MEMBER(
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::remoteInterfaceMaps,
-    MultiInterfaceMap);
+    MultiSwitchInterfaceMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::remoteSystemPortMaps,

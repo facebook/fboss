@@ -118,32 +118,33 @@ class InterfaceMap : public ThriftMapNode<InterfaceMap, InterfaceMapTraits> {
   friend class CloneAllocator;
 };
 
-using MultiInterfaceMapTypeClass = apache::thrift::type_class::
+using MultiSwitchInterfaceMapTypeClass = apache::thrift::type_class::
     map<apache::thrift::type_class::string, InterfaceMapTypeClass>;
-using MultiInterfaceMapThriftType =
+using MultiSwitchInterfaceMapThriftType =
     std::map<std::string, InterfaceMapThriftType>;
 
-class MultiInterfaceMap;
+class MultiSwitchInterfaceMap;
 
-using MultiInterfaceMapTraits = ThriftMultiSwitchMapNodeTraits<
-    MultiInterfaceMap,
-    MultiInterfaceMapTypeClass,
-    MultiInterfaceMapThriftType,
+using MultiSwitchInterfaceMapTraits = ThriftMultiSwitchMapNodeTraits<
+    MultiSwitchInterfaceMap,
+    MultiSwitchInterfaceMapTypeClass,
+    MultiSwitchInterfaceMapThriftType,
     InterfaceMap>;
 
 class HwSwitchMatcher;
 
-class MultiInterfaceMap : public ThriftMultiSwitchMapNode<
-                              MultiInterfaceMap,
-                              MultiInterfaceMapTraits> {
+class MultiSwitchInterfaceMap : public ThriftMultiSwitchMapNode<
+                                    MultiSwitchInterfaceMap,
+                                    MultiSwitchInterfaceMapTraits> {
  public:
-  using Traits = MultiInterfaceMapTraits;
-  using BaseT =
-      ThriftMultiSwitchMapNode<MultiInterfaceMap, MultiInterfaceMapTraits>;
+  using Traits = MultiSwitchInterfaceMapTraits;
+  using BaseT = ThriftMultiSwitchMapNode<
+      MultiSwitchInterfaceMap,
+      MultiSwitchInterfaceMapTraits>;
   using BaseT::modify;
 
-  MultiInterfaceMap() {}
-  virtual ~MultiInterfaceMap() {}
+  MultiSwitchInterfaceMap() {}
+  virtual ~MultiSwitchInterfaceMap() {}
 
  private:
   // Inherit the constructors required for clone()
