@@ -122,21 +122,39 @@ void HwTransceiverUtils::verifyTransceiverSettings(
     XLOG(INFO) << " Skip verifying optics settings: " << *tcvrState.port()
                << ", for copper cable";
   } else {
-    verifyOpticsSettings(tcvrState, profile);
+    verifyOpticsSettings(tcvrState, portName, profile);
   }
 
   verifyMediaInterfaceCompliance(tcvrState, profile);
 
-  verifyDataPathEnabled(tcvrState);
+  verifyDataPathEnabled(tcvrState, portName);
 }
 
 void HwTransceiverUtils::verifyOpticsSettings(
     const TcvrState& tcvrState,
+    const std::string& portName,
     cfg::PortProfileID profile) {
   auto settings = apache::thrift::can_throw(*tcvrState.settings());
+  const auto& portToMediaMap = *tcvrState.portNameToMediaLanes();
+  const auto& portToHostMap = *tcvrState.portNameToHostLanes();
+
+  CHECK(portToMediaMap.find(portName) != portToMediaMap.end());
+  CHECK(portToHostMap.find(portName) != portToHostMap.end());
+
+  const auto& relevantMediaLanes = portToMediaMap.at(portName);
+  const auto& relevantHostLanes = portToHostMap.at(portName);
+
+  EXPECT_GT(relevantMediaLanes.size(), 0);
+  EXPECT_GT(relevantHostLanes.size(), 0);
 
   for (auto& mediaLane :
        apache::thrift::can_throw(*settings.mediaLaneSettings())) {
+    if (std::find(
+            relevantMediaLanes.begin(),
+            relevantMediaLanes.end(),
+            *mediaLane.lane()) == relevantMediaLanes.end()) {
+      continue;
+    }
     EXPECT_FALSE(*mediaLane.txDisable())
         << "Transceiver:" << *tcvrState.port() << ", Lane=" << *mediaLane.lane()
         << " txDisable doesn't match expected";
@@ -161,6 +179,12 @@ void HwTransceiverUtils::verifyOpticsSettings(
 
     for (auto& hostLane :
          apache::thrift::can_throw(*settings.hostLaneSettings())) {
+      if (std::find(
+              relevantHostLanes.begin(),
+              relevantHostLanes.end(),
+              *hostLane.lane()) == relevantHostLanes.end()) {
+        continue;
+      }
       EXPECT_EQ(
           *hostLane.rxSquelch(),
           profile ==
@@ -330,8 +354,16 @@ void HwTransceiverUtils::verifyCopper53gProfile(
   }
 }
 
-void HwTransceiverUtils::verifyDataPathEnabled(const TcvrState& tcvrState) {
+void HwTransceiverUtils::verifyDataPathEnabled(
+    const TcvrState& tcvrState,
+    const std::string& portName) {
   auto mgmtInterface = tcvrState.transceiverManagementInterface();
+
+  const auto& portToHostMap = *tcvrState.portNameToHostLanes();
+  CHECK(portToHostMap.find(portName) != portToHostMap.end());
+  const auto& relevantHostLanes = portToHostMap.at(portName);
+  EXPECT_GT(relevantHostLanes.size(), 0);
+
   if (!mgmtInterface) {
     throw FbossError(
         "Transceiver:",
@@ -343,6 +375,12 @@ void HwTransceiverUtils::verifyDataPathEnabled(const TcvrState& tcvrState) {
     // All lanes should have `false` Deinit
     if (auto hostLaneSignals = tcvrState.hostLaneSignals()) {
       for (const auto& laneSignals : *hostLaneSignals) {
+        if (std::find(
+                relevantHostLanes.begin(),
+                relevantHostLanes.end(),
+                *laneSignals.lane()) == relevantHostLanes.end()) {
+          continue;
+        }
         EXPECT_TRUE(laneSignals.dataPathDeInit().has_value())
             << "Transceiver:" << *tcvrState.port()
             << ", Lane=" << *laneSignals.lane()
