@@ -1475,6 +1475,7 @@ struct SwitchInfo {
   // local switch identifier
   3: i16 switchIndex;
   4: Range64 portIdRange;
+  5: optional Range64 systemPortRange;
 }
 
 /*

@@ -596,19 +596,21 @@ state::FibContainerFields makeFibContainerFields(
 
 void addSwitchInfo(
     std::shared_ptr<SwitchState>& state,
-    std::map<int64_t, cfg::SwitchInfo> switchInfo = {
-        {0,
-         cfg::SwitchInfo(
-             apache::thrift::FragileConstructor(),
-             cfg::SwitchType::NPU,
-             cfg::AsicType::ASIC_TYPE_MOCK,
-             0,
-             cfg::Range64(apache::thrift::FragileConstructor(), 0, 1023))}});
+    cfg::SwitchType switchType = cfg::SwitchType::NPU,
+    int64_t SwitchId = 0,
+    cfg::AsicType asicType = cfg::AsicType::ASIC_TYPE_MOCK,
+    int64_t portIdMin = 0,
+    int64_t portIdMax = 1023,
+    int16_t switchIndex = 0,
+    std::optional<int64_t> sysPortMin = std::nullopt,
+    std::optional<int64_t> sysPortMax = std::nullopt);
 
 cfg::SwitchInfo createSwitchInfo(
     cfg::SwitchType switchType,
     cfg::AsicType asicType = cfg::AsicType::ASIC_TYPE_MOCK,
     int64_t portIdMin = 0,
     int64_t portIdMax = 1023,
-    int16_t switchIndex = 0);
+    int16_t switchIndex = 0,
+    std::optional<int64_t> sysPortMin = std::nullopt,
+    std::optional<int64_t> sysPortMax = std::nullopt);
 } // namespace facebook::fboss

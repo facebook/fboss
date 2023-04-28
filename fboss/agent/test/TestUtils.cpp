@@ -942,8 +942,24 @@ state::FibContainerFields makeFibContainerFields(
 
 void addSwitchInfo(
     std::shared_ptr<SwitchState>& state,
-    std::map<int64_t, cfg::SwitchInfo> switchInfo) {
-  state->getSwitchSettings()->setSwitchIdToSwitchInfo(switchInfo);
+    cfg::SwitchType switchType,
+    int64_t switchId,
+    cfg::AsicType asicType,
+    int64_t portIdMin,
+    int64_t portIdMax,
+    int16_t switchIndex,
+    std::optional<int64_t> sysPortMin,
+    std::optional<int64_t> sysPortMax) {
+  state->getSwitchSettings()->setSwitchIdToSwitchInfo({std::make_pair(
+      switchId,
+      createSwitchInfo(
+          switchType,
+          asicType,
+          portIdMin,
+          portIdMax,
+          switchIndex,
+          sysPortMin,
+          sysPortMax))});
 }
 
 cfg::SwitchInfo createSwitchInfo(
@@ -951,7 +967,9 @@ cfg::SwitchInfo createSwitchInfo(
     cfg::AsicType asicType,
     int64_t portIdMin,
     int64_t portIdMax,
-    int16_t switchIndex) {
+    int16_t switchIndex,
+    std::optional<int64_t> sysPortMin,
+    std::optional<int64_t> sysPortMax) {
   cfg::SwitchInfo switchInfo;
   switchInfo.switchType() = switchType;
   switchInfo.asicType() = asicType;
@@ -960,6 +978,12 @@ cfg::SwitchInfo createSwitchInfo(
   portIdRange.maximum() = portIdMax;
   switchInfo.portIdRange() = portIdRange;
   switchInfo.switchIndex() = switchIndex;
+  if (sysPortMin && sysPortMax) {
+    cfg::Range64 systemPortRange;
+    systemPortRange.minimum() = *sysPortMin;
+    systemPortRange.maximum() = *sysPortMax;
+    switchInfo.systemPortRange() = systemPortRange;
+  }
   return switchInfo;
 }
 } // namespace facebook::fboss
