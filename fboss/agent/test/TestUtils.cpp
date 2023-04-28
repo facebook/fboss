@@ -373,6 +373,19 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
   // switch, set initial config to empty.
   platform->setConfig(createEmptyAgentConfig());
   auto platformMapping = std::make_unique<MockPlatformMapping>();
+  cfg::SwitchConfig emptyConfig;
+  if (!config) {
+    config = &emptyConfig;
+  }
+  if (config->switchSettings()->switchIdToSwitchInfo()->empty()) {
+    if (state && state->getSwitchSettings()->getSwitchIdToSwitchInfo().size()) {
+      config->switchSettings()->switchIdToSwitchInfo() =
+          state->getSwitchSettings()->getSwitchIdToSwitchInfo();
+    } else {
+      config->switchSettings()->switchIdToSwitchInfo() = {
+          std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU))};
+    }
+  }
   auto sw = make_unique<SwSwitch>(
       std::move(platform), std::move(platformMapping), config);
   HwInitResult ret;

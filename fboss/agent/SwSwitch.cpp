@@ -28,6 +28,7 @@
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/LookupClassUpdater.h"
+#include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #if FOLLY_HAS_COROUTINES
@@ -195,23 +196,6 @@ facebook::fboss::PortStatus fillInPortStatus(
   return status;
 }
 
-const std::map<int64_t, SwitchInfo> getSwitchInfoFromConfig(
-    const SwitchConfig* config) {
-  return *config->switchSettings()->switchIdToSwitchInfo();
-}
-
-const std::map<int64_t, SwitchInfo> getSwitchInfoFromConfig() {
-  std::unique_ptr<AgentConfig> config;
-  try {
-    config = AgentConfig::fromDefaultFile();
-  } catch (const exception& e) {
-    // expected on devservers where no config file is available
-    return std::map<int64_t, SwitchInfo>();
-  }
-  auto swConfig = config->thrift.sw();
-  return getSwitchInfoFromConfig(&(swConfig.value()));
-}
-
 auto constexpr kHwUpdateFailures = "hw_update_failures";
 
 } // anonymous namespace
@@ -247,9 +231,10 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       aclNexthopHandler_(new AclNexthopHandler(this)),
       teFlowNextHopHandler_(new TeFlowNexthopHandler(this)),
       dsfSubscriber_(new DsfSubscriber(this)),
-      switchInfoTable_(this, getSwitchInfoFromConfig()),
-      hwAsicTable_(new HwAsicTable(this, getSwitchInfoFromConfig())),
-      scopeResolver_(new SwitchIdScopeResolver(getSwitchInfoFromConfig())) {
+      switchInfoTable_(getSwitchInfoFromConfig(platform_.get())),
+      hwAsicTable_(new HwAsicTable(getSwitchInfoFromConfig(platform_.get()))),
+      scopeResolver_(
+          new SwitchIdScopeResolver(getSwitchInfoFromConfig(platform_.get()))) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());
@@ -274,11 +259,12 @@ SwSwitch::SwSwitch(
     : SwSwitch(std::move(platform)) {
   platformMapping_ = std::move(platformMapping);
   if (config) {
-    switchInfoTable_ = SwitchInfoTable(this, getSwitchInfoFromConfig(config));
-    hwAsicTable_ =
-        std::make_unique<HwAsicTable>(this, getSwitchInfoFromConfig(config));
+    switchInfoTable_ =
+        SwitchInfoTable(getSwitchInfoFromConfig(config, platform_.get()));
+    hwAsicTable_ = std::make_unique<HwAsicTable>(
+        getSwitchInfoFromConfig(config, platform_.get()));
     scopeResolver_ = std::make_unique<SwitchIdScopeResolver>(
-        getSwitchInfoFromConfig(config));
+        getSwitchInfoFromConfig(config, platform_.get()));
   }
 }
 

@@ -18,6 +18,7 @@
 #include <string>
 
 #include "fboss/agent/AclNexthopHandler.h"
+
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/LoadBalancerConfigApplier.h"
@@ -25,6 +26,7 @@
 #include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
+#include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "fboss/agent/normalization/Normalizer.h"
@@ -3545,32 +3547,6 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     switchSettingsChange = true;
   }
 
-  SwitchIdToSwitchInfo switchIdtoSwitchInfo;
-  if (cfg_->switchSettings()->switchIdToSwitchInfo()->size()) {
-    switchIdtoSwitchInfo = *(cfg_->switchSettings()->switchIdToSwitchInfo());
-    for (auto& entry : switchIdtoSwitchInfo) {
-      auto& switchInfo = entry.second;
-      // TODO - remove this once portIdRange is set in configerator
-      if (*switchInfo.portIdRange()->minimum() ==
-              *switchInfo.portIdRange()->maximum() &&
-          *switchInfo.portIdRange()->maximum() == 0) {
-        switchInfo.portIdRange()->minimum() = 0;
-        switchInfo.portIdRange()->maximum() = 1023;
-      }
-    }
-  } else {
-    // TODO - remove this once switchIdToSwitchInfo config is rolled out
-    cfg::SwitchInfo switchInfo;
-    cfg::Range64 portIdRange;
-    portIdRange.minimum() = 0;
-    portIdRange.maximum() = 1023;
-    switchInfo.portIdRange() = portIdRange;
-    switchInfo.switchIndex() = 0;
-    switchInfo.switchType() = *cfg_->switchSettings()->switchType();
-    switchInfo.asicType() = platform_->getAsic()->getAsicType();
-    switchIdtoSwitchInfo.insert(std::make_pair(0, switchInfo));
-  }
-
   // TODO - Disallow changing any switchInfo parameter after first
   // config apply. Currently we check only switchId and SwitchType
   // This is to allow rollout of new parameters - portIdRange and
@@ -3591,6 +3567,9 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     }
     return true;
   };
+
+  SwitchIdToSwitchInfo switchIdtoSwitchInfo =
+      getSwitchInfoFromConfig(cfg_, platform_);
   if (origSwitchSettings->getSwitchIdToSwitchInfo() != switchIdtoSwitchInfo) {
     if (origSwitchSettings->getSwitchIdToSwitchInfo().size() &&
         !validateSwitchInfoChange(

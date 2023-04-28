@@ -7,17 +7,13 @@
 
 namespace facebook::fboss {
 
-class SwSwitch;
-
 class HwAsicTable {
  public:
-  HwAsicTable(
-      SwSwitch* sw,
+  explicit HwAsicTable(
       const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo);
   const HwAsic* getHwAsicIf(SwitchID switchID) const;
 
  private:
-  SwSwitch* sw_;
   std::map<SwitchID, std::unique_ptr<HwAsic>> hwAsics_;
 };
 

@@ -1,0 +1,65 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+#include "fboss/agent/SwitchInfoUtils.h"
+
+#include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/Platform.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+
+namespace facebook::fboss {
+const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig(
+    const cfg::SwitchConfig* config,
+    const Platform* platform) {
+  std::map<int64_t, cfg::SwitchInfo> switchInfoMap;
+  if (config && config->switchSettings()->switchIdToSwitchInfo()->size()) {
+    for (auto& entry : *config->switchSettings()->switchIdToSwitchInfo()) {
+      auto switchInfo = entry.second;
+      // TODO - remove this once portIdRange is set everywhere
+      if (*switchInfo.portIdRange()->minimum() ==
+              *switchInfo.portIdRange()->maximum() &&
+          *switchInfo.portIdRange()->maximum() == 0) {
+        switchInfo.portIdRange()->minimum() = 0;
+        switchInfo.portIdRange()->maximum() = 1023;
+      }
+      switchInfoMap.emplace(entry.first, switchInfo);
+    }
+  } else {
+    // TODO - Remove this once switchInfo config is set everywhere
+    cfg::SwitchInfo switchInfo;
+    int64_t switchId = platform->getAsic()->getSwitchId()
+        ? *platform->getAsic()->getSwitchId()
+        : 0;
+    facebook::fboss::cfg::Range64 portIdRange;
+    portIdRange.minimum() = 0;
+    portIdRange.maximum() = 1023;
+    switchInfo.switchIndex() = 0;
+    switchInfo.portIdRange() = portIdRange;
+    switchInfo.switchType() = platform->getAsic()->getSwitchType();
+    switchInfo.asicType() = platform->getAsic()->getAsicType();
+    switchInfoMap.emplace(switchId, switchInfo);
+  }
+  return switchInfoMap;
+}
+
+const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig(
+    const Platform* platform) {
+  std::unique_ptr<AgentConfig> config;
+  try {
+    config = AgentConfig::fromDefaultFile();
+  } catch (const std::exception& e) {
+    // expected on devservers where no config file is available
+    return std::map<int64_t, cfg::SwitchInfo>();
+  }
+  auto swConfig = config->thrift.sw();
+  return getSwitchInfoFromConfig(&(swConfig.value()), platform);
+}
+
+} // namespace facebook::fboss

@@ -59,6 +59,10 @@ add_library(address_utils
   fboss/agent/AddressUtil.h
 )
 
+add_library(switchinfo_utils
+  fboss/agent/SwitchInfoUtils.h
+)
+
 target_link_libraries(address_utils
   network_address_cpp2
   Folly::folly
@@ -166,6 +170,7 @@ add_library(core
 
 target_link_libraries(core
   agent_config_cpp2
+  switchinfo_utils
   stats
   utils
   fb303::fb303
