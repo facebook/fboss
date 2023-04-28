@@ -240,12 +240,20 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
   } else {
     if (switchType == cfg::SwitchType::VOQ) {
       // Add config for VOQ DsfNode
-      cfg.switchSettings()->switchIdToSwitchInfo() = {
-          std::make_pair(1, createSwitchInfo(cfg::SwitchType::VOQ))};
       cfg::DsfNode myNode = makeDsfNodeCfg(1);
       cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
       cfg.interfaces()->resize(kPortCount);
       CHECK(myNode.systemPortRange().has_value());
+      cfg.switchSettings()->switchIdToSwitchInfo() = {std::make_pair(
+          1,
+          createSwitchInfo(
+              cfg::SwitchType::VOQ,
+              cfg::AsicType::ASIC_TYPE_MOCK,
+              0, /* port id range min */
+              1023, /* port id range max */
+              0, /* switchIndex */
+              *myNode.systemPortRange()->minimum(),
+              *myNode.systemPortRange()->maximum()))};
       for (auto i = 0; i < kPortCount; ++i) {
         auto intfId =
             *cfg.ports()[i].logicalID() + *myNode.systemPortRange()->minimum();
