@@ -161,8 +161,8 @@ class ThriftTestAllSwitchTypes : public ::testing::Test {
   int interfaceIdBegin() const {
     auto switchId = getSwitchIdAndType().first;
     return isVoq() ? *sw_->getState()
-                          ->getDsfNodes()
-                          ->getDsfNodeIf(switchId)
+                          ->getMnpuDsfNodes()
+                          ->getNodeIf(switchId)
                           ->getSystemPortRange()
                           ->minimum() +
             5

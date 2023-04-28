@@ -681,7 +681,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newDsfNodes = updateDsfNodes();
     if (newDsfNodes) {
-      new_->resetDsfNodes(std::move(newDsfNodes));
+      new_->resetDsfNodes(
+          toMnpuMap<MultiDsfNodeMap>(newDsfNodes, scopeResolver_));
       processUpdatedDsfNodes();
       new_->resetSystemPorts(
           updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()));

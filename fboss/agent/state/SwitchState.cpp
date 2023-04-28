@@ -167,7 +167,6 @@ SwitchState::SwitchState() {
   resetPorts(std::make_shared<PortMap>());
   resetIntfs(std::make_shared<InterfaceMap>());
   resetAclTableGroups(std::make_shared<AclTableGroupMap>());
-  resetDsfNodes(std::make_shared<DsfNodeMap>());
   resetRemoteIntfs(std::make_shared<InterfaceMap>());
   resetRemoteSystemPorts(std::make_shared<SystemPortMap>());
   resetSystemPorts(std::make_shared<SystemPortMap>());
@@ -484,10 +483,6 @@ void SwitchState::resetDsfNodes(
   ref<switch_state_tags::dsfNodesMap>() = dsfNodes;
 }
 
-const std::shared_ptr<DsfNodeMap>& SwitchState::getDsfNodes() const {
-  return getDefaultMap<switch_state_tags::dsfNodesMap>();
-}
-
 const std::shared_ptr<MultiDsfNodeMap>& SwitchState::getMnpuDsfNodes() const {
   return safe_cref<switch_state_tags::dsfNodesMap>();
 }
@@ -740,9 +735,9 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
         switch_state_tags::aclTableGroupMaps,
         switch_state_tags::aclTableGroupMap>();
   }
-  state->fromThrift<
-      switch_state_tags::dsfNodesMap,
-      switch_state_tags::dsfNodes>();
+  state
+      ->fromThrift<switch_state_tags::dsfNodesMap, switch_state_tags::dsfNodes>(
+          true /*emptyMnpuMapOk*/);
   state->fromThrift<
       switch_state_tags::remoteInterfaceMaps,
       switch_state_tags::remoteInterfaceMap>();
@@ -793,7 +788,7 @@ std::optional<cfg::Range64> SwitchState::getAssociatedSystemPortRangeIf(
   auto systemPortID = intf->getSystemPortID();
   CHECK(systemPortID.has_value());
   auto switchId = getSystemPorts()->getSystemPort(*systemPortID)->getSwitchId();
-  auto dsfNode = getDsfNodes()->getDsfNodeIf(switchId);
+  auto dsfNode = getMnpuDsfNodes()->getNodeIf(switchId);
   return dsfNode->getSystemPortRange();
 }
 
