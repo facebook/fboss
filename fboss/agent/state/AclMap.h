@@ -155,7 +155,7 @@ using MultiAclMapThriftType = std::map<std::string, AclMapThriftType>;
 
 class MultiAclMap;
 
-using MultiAclMapTraits = ThriftMultiMapNodeTraits<
+using MultiAclMapTraits = ThriftMultiSwitchMapNodeTraits<
     MultiAclMap,
     MultiAclMapTypeClass,
     MultiAclMapThriftType,
@@ -163,10 +163,11 @@ using MultiAclMapTraits = ThriftMultiMapNodeTraits<
 
 class HwSwitchMatcher;
 
-class MultiAclMap : public ThriftMultiMapNode<MultiAclMap, MultiAclMapTraits> {
+class MultiAclMap
+    : public ThriftMultiSwitchMapNode<MultiAclMap, MultiAclMapTraits> {
  public:
   using Traits = MultiAclMapTraits;
-  using BaseT = ThriftMultiMapNode<MultiAclMap, MultiAclMapTraits>;
+  using BaseT = ThriftMultiSwitchMapNode<MultiAclMap, MultiAclMapTraits>;
   using BaseT::modify;
 
   MultiAclMap() {}

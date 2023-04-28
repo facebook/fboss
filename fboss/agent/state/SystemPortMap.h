@@ -72,7 +72,7 @@ using MultiSystemPortMapThriftType =
 
 class MultiSystemPortMap;
 
-using MultiSystemPortMapTraits = ThriftMultiMapNodeTraits<
+using MultiSystemPortMapTraits = ThriftMultiSwitchMapNodeTraits<
     MultiSystemPortMap,
     MultiSystemPortMapTypeClass,
     MultiSystemPortMapThriftType,
@@ -80,12 +80,13 @@ using MultiSystemPortMapTraits = ThriftMultiMapNodeTraits<
 
 class HwSwitchMatcher;
 
-class MultiSystemPortMap
-    : public ThriftMultiMapNode<MultiSystemPortMap, MultiSystemPortMapTraits> {
+class MultiSystemPortMap : public ThriftMultiSwitchMapNode<
+                               MultiSystemPortMap,
+                               MultiSystemPortMapTraits> {
  public:
   using Traits = MultiSystemPortMapTraits;
   using BaseT =
-      ThriftMultiMapNode<MultiSystemPortMap, MultiSystemPortMapTraits>;
+      ThriftMultiSwitchMapNode<MultiSystemPortMap, MultiSystemPortMapTraits>;
   using BaseT::modify;
 
   MultiSystemPortMap() {}

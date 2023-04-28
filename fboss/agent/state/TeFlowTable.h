@@ -90,7 +90,7 @@ using MultiTeFlowTableThriftType = std::map<std::string, TeFlowTableThriftType>;
 
 class MultiTeFlowTable;
 
-using MultiTeFlowTableTraits = ThriftMultiMapNodeTraits<
+using MultiTeFlowTableTraits = ThriftMultiSwitchMapNodeTraits<
     MultiTeFlowTable,
     MultiTeFlowTableTypeClass,
     MultiTeFlowTableThriftType,
@@ -98,11 +98,13 @@ using MultiTeFlowTableTraits = ThriftMultiMapNodeTraits<
 
 class HwSwitchMatcher;
 
-class MultiTeFlowTable
-    : public ThriftMultiMapNode<MultiTeFlowTable, MultiTeFlowTableTraits> {
+class MultiTeFlowTable : public ThriftMultiSwitchMapNode<
+                             MultiTeFlowTable,
+                             MultiTeFlowTableTraits> {
  public:
   using Traits = MultiTeFlowTableTraits;
-  using BaseT = ThriftMultiMapNode<MultiTeFlowTable, MultiTeFlowTableTraits>;
+  using BaseT =
+      ThriftMultiSwitchMapNode<MultiTeFlowTable, MultiTeFlowTableTraits>;
   using BaseT::modify;
 
   MultiTeFlowTable() {}

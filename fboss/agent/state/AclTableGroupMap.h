@@ -92,7 +92,7 @@ using MultiAclTableGroupMapThriftType =
 
 class MultiAclTableGroupMap;
 
-using MultiAclTableGroupMapTraits = ThriftMultiMapNodeTraits<
+using MultiAclTableGroupMapTraits = ThriftMultiSwitchMapNodeTraits<
     MultiAclTableGroupMap,
     MultiAclTableGroupMapTypeClass,
     MultiAclTableGroupMapThriftType,
@@ -100,13 +100,14 @@ using MultiAclTableGroupMapTraits = ThriftMultiMapNodeTraits<
 
 class HwSwitchMatcher;
 
-class MultiAclTableGroupMap : public ThriftMultiMapNode<
+class MultiAclTableGroupMap : public ThriftMultiSwitchMapNode<
                                   MultiAclTableGroupMap,
                                   MultiAclTableGroupMapTraits> {
  public:
   using Traits = MultiAclTableGroupMapTraits;
-  using BaseT =
-      ThriftMultiMapNode<MultiAclTableGroupMap, MultiAclTableGroupMapTraits>;
+  using BaseT = ThriftMultiSwitchMapNode<
+      MultiAclTableGroupMap,
+      MultiAclTableGroupMapTraits>;
   using BaseT::modify;
 
   MultiAclTableGroupMap() {}

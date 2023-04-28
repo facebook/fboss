@@ -61,7 +61,7 @@ using MultiIpTunnelMapThriftType = std::map<std::string, IpTunnelMapThriftType>;
 
 class MultiIpTunnelMap;
 
-using MultiIpTunnelMapTraits = ThriftMultiMapNodeTraits<
+using MultiIpTunnelMapTraits = ThriftMultiSwitchMapNodeTraits<
     MultiIpTunnelMap,
     MultiIpTunnelMapTypeClass,
     MultiIpTunnelMapThriftType,
@@ -69,11 +69,13 @@ using MultiIpTunnelMapTraits = ThriftMultiMapNodeTraits<
 
 class HwSwitchMatcher;
 
-class MultiIpTunnelMap
-    : public ThriftMultiMapNode<MultiIpTunnelMap, MultiIpTunnelMapTraits> {
+class MultiIpTunnelMap : public ThriftMultiSwitchMapNode<
+                             MultiIpTunnelMap,
+                             MultiIpTunnelMapTraits> {
  public:
   using Traits = MultiIpTunnelMapTraits;
-  using BaseT = ThriftMultiMapNode<MultiIpTunnelMap, MultiIpTunnelMapTraits>;
+  using BaseT =
+      ThriftMultiSwitchMapNode<MultiIpTunnelMap, MultiIpTunnelMapTraits>;
   using BaseT::modify;
 
   MultiIpTunnelMap() {}

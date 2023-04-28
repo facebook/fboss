@@ -46,7 +46,7 @@ using MultiMirrorMapThriftType = std::map<std::string, MirrorMapThriftType>;
 
 class MultiMirrorMap;
 
-using MultiMirrorMapTraits = ThriftMultiMapNodeTraits<
+using MultiMirrorMapTraits = ThriftMultiSwitchMapNodeTraits<
     MultiMirrorMap,
     MultiMirrorMapTypeClass,
     MultiMirrorMapThriftType,
@@ -55,10 +55,10 @@ using MultiMirrorMapTraits = ThriftMultiMapNodeTraits<
 class HwSwitchMatcher;
 
 class MultiMirrorMap
-    : public ThriftMultiMapNode<MultiMirrorMap, MultiMirrorMapTraits> {
+    : public ThriftMultiSwitchMapNode<MultiMirrorMap, MultiMirrorMapTraits> {
  public:
   using Traits = MultiMirrorMapTraits;
-  using BaseT = ThriftMultiMapNode<MultiMirrorMap, MultiMirrorMapTraits>;
+  using BaseT = ThriftMultiSwitchMapNode<MultiMirrorMap, MultiMirrorMapTraits>;
   using BaseT::modify;
 
   MultiMirrorMap* modify(std::shared_ptr<SwitchState>* state);

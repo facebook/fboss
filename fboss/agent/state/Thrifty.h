@@ -308,7 +308,7 @@ template <
     typename MultiMapTypeClass,
     typename MultiMapThrift,
     typename MAP>
-struct ThriftMultiMapNodeTraits {
+struct ThriftMultiSwitchMapNodeTraits {
   using TC = MultiMapTypeClass;
   using Type = MultiMapThrift;
   using KeyType = typename Type::key_type;
@@ -420,7 +420,7 @@ template <
     typename MAP,
     typename Traits,
     typename Resolver = thrift_cow::TypeIdentity<MAP>>
-struct ThriftMultiMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
+struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
   using Base = ThriftMapNode<MAP, Traits, Resolver>;
   using Base::Base;
   using InnerMap = typename Traits::InnerMap;

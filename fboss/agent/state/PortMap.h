@@ -83,7 +83,7 @@ using MultiPortMapThriftType = std::map<std::string, PortMapThriftType>;
 
 class MultiPortMap;
 
-using MultiPortMapTraits = ThriftMultiMapNodeTraits<
+using MultiPortMapTraits = ThriftMultiSwitchMapNodeTraits<
     MultiPortMap,
     MultiPortMapTypeClass,
     MultiPortMapThriftType,
@@ -92,10 +92,10 @@ using MultiPortMapTraits = ThriftMultiMapNodeTraits<
 class HwSwitchMatcher;
 
 class MultiPortMap
-    : public ThriftMultiMapNode<MultiPortMap, MultiPortMapTraits> {
+    : public ThriftMultiSwitchMapNode<MultiPortMap, MultiPortMapTraits> {
  public:
   using Traits = MultiPortMapTraits;
-  using BaseT = ThriftMultiMapNode<MultiPortMap, MultiPortMapTraits>;
+  using BaseT = ThriftMultiSwitchMapNode<MultiPortMap, MultiPortMapTraits>;
   using BaseT::modify;
 
   MultiPortMap() {}

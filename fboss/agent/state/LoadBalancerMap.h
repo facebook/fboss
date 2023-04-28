@@ -63,7 +63,7 @@ using MultiLoadBalancerMapThriftType =
 
 class MultiLoadBalancerMap;
 
-using MultiLoadBalancerMapTraits = ThriftMultiMapNodeTraits<
+using MultiLoadBalancerMapTraits = ThriftMultiSwitchMapNodeTraits<
     MultiLoadBalancerMap,
     MultiLoadBalancerMapTypeClass,
     MultiLoadBalancerMapThriftType,
@@ -71,13 +71,14 @@ using MultiLoadBalancerMapTraits = ThriftMultiMapNodeTraits<
 
 class HwSwitchMatcher;
 
-class MultiLoadBalancerMap : public ThriftMultiMapNode<
+class MultiLoadBalancerMap : public ThriftMultiSwitchMapNode<
                                  MultiLoadBalancerMap,
                                  MultiLoadBalancerMapTraits> {
  public:
   using Traits = MultiLoadBalancerMapTraits;
-  using BaseT =
-      ThriftMultiMapNode<MultiLoadBalancerMap, MultiLoadBalancerMapTraits>;
+  using BaseT = ThriftMultiSwitchMapNode<
+      MultiLoadBalancerMap,
+      MultiLoadBalancerMapTraits>;
   using BaseT::modify;
 
   MultiLoadBalancerMap() {}

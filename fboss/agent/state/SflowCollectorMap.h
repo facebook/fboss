@@ -54,7 +54,7 @@ using MultiSflowCollectorMapThriftType =
 
 class MultiSflowCollectorMap;
 
-using MultiSflowCollectorMapTraits = ThriftMultiMapNodeTraits<
+using MultiSflowCollectorMapTraits = ThriftMultiSwitchMapNodeTraits<
     MultiSflowCollectorMap,
     MultiSflowCollectorMapTypeClass,
     MultiSflowCollectorMapThriftType,
@@ -62,13 +62,14 @@ using MultiSflowCollectorMapTraits = ThriftMultiMapNodeTraits<
 
 class HwSwitchMatcher;
 
-class MultiSflowCollectorMap : public ThriftMultiMapNode<
+class MultiSflowCollectorMap : public ThriftMultiSwitchMapNode<
                                    MultiSflowCollectorMap,
                                    MultiSflowCollectorMapTraits> {
  public:
   using Traits = MultiSflowCollectorMapTraits;
-  using BaseT =
-      ThriftMultiMapNode<MultiSflowCollectorMap, MultiSflowCollectorMapTraits>;
+  using BaseT = ThriftMultiSwitchMapNode<
+      MultiSflowCollectorMap,
+      MultiSflowCollectorMapTraits>;
   using BaseT::modify;
 
   MultiSflowCollectorMap() {}

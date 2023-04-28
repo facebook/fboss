@@ -75,7 +75,7 @@ using MultiForwardingInformationBaseMapThriftType =
 
 class MultiForwardingInformationBaseMap;
 
-using MultiForwardingInformationBaseMapTraits = ThriftMultiMapNodeTraits<
+using MultiForwardingInformationBaseMapTraits = ThriftMultiSwitchMapNodeTraits<
     MultiForwardingInformationBaseMap,
     MultiForwardingInformationBaseMapTypeClass,
     MultiForwardingInformationBaseMapThriftType,
@@ -84,12 +84,12 @@ using MultiForwardingInformationBaseMapTraits = ThriftMultiMapNodeTraits<
 class HwSwitchMatcher;
 
 class MultiForwardingInformationBaseMap
-    : public ThriftMultiMapNode<
+    : public ThriftMultiSwitchMapNode<
           MultiForwardingInformationBaseMap,
           MultiForwardingInformationBaseMapTraits> {
  public:
   using Traits = MultiForwardingInformationBaseMapTraits;
-  using BaseT = ThriftMultiMapNode<
+  using BaseT = ThriftMultiSwitchMapNode<
       MultiForwardingInformationBaseMap,
       MultiForwardingInformationBaseMapTraits>;
   using BaseT::modify;

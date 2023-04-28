@@ -45,7 +45,7 @@ using MultiDsfNodeMapThriftType = std::map<std::string, DsfNodeMapThriftType>;
 
 class MultiDsfNodeMap;
 
-using MultiDsfNodeMapTraits = ThriftMultiMapNodeTraits<
+using MultiDsfNodeMapTraits = ThriftMultiSwitchMapNodeTraits<
     MultiDsfNodeMap,
     MultiDsfNodeMapTypeClass,
     MultiDsfNodeMapThriftType,
@@ -54,10 +54,11 @@ using MultiDsfNodeMapTraits = ThriftMultiMapNodeTraits<
 class HwSwitchMatcher;
 
 class MultiDsfNodeMap
-    : public ThriftMultiMapNode<MultiDsfNodeMap, MultiDsfNodeMapTraits> {
+    : public ThriftMultiSwitchMapNode<MultiDsfNodeMap, MultiDsfNodeMapTraits> {
  public:
   using Traits = MultiDsfNodeMapTraits;
-  using BaseT = ThriftMultiMapNode<MultiDsfNodeMap, MultiDsfNodeMapTraits>;
+  using BaseT =
+      ThriftMultiSwitchMapNode<MultiDsfNodeMap, MultiDsfNodeMapTraits>;
 
  private:
   // Inherit the constructors required for clone()

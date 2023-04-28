@@ -107,7 +107,7 @@ using MultiVlanMapThriftType = std::map<std::string, VlanMapThriftType>;
 
 class MultiVlanMap;
 
-using MultiVlanMapTraits = ThriftMultiMapNodeTraits<
+using MultiVlanMapTraits = ThriftMultiSwitchMapNodeTraits<
     MultiVlanMap,
     MultiVlanMapTypeClass,
     MultiVlanMapThriftType,
@@ -116,10 +116,10 @@ using MultiVlanMapTraits = ThriftMultiMapNodeTraits<
 class HwSwitchMatcher;
 
 class MultiVlanMap
-    : public ThriftMultiMapNode<MultiVlanMap, MultiVlanMapTraits> {
+    : public ThriftMultiSwitchMapNode<MultiVlanMap, MultiVlanMapTraits> {
  public:
   using Traits = MultiVlanMapTraits;
-  using BaseT = ThriftMultiMapNode<MultiVlanMap, MultiVlanMapTraits>;
+  using BaseT = ThriftMultiSwitchMapNode<MultiVlanMap, MultiVlanMapTraits>;
   using BaseT::modify;
 
   MultiVlanMap() {}

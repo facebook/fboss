@@ -75,7 +75,7 @@ using MultiTransceiverMapThriftType =
 
 class MultiTransceiverMap;
 
-using MultiTransceiverMapTraits = ThriftMultiMapNodeTraits<
+using MultiTransceiverMapTraits = ThriftMultiSwitchMapNodeTraits<
     MultiTransceiverMap,
     MultiTransceiverMapTypeClass,
     MultiTransceiverMapThriftType,
@@ -83,13 +83,13 @@ using MultiTransceiverMapTraits = ThriftMultiMapNodeTraits<
 
 class HwSwitchMatcher;
 
-class MultiTransceiverMap : public ThriftMultiMapNode<
+class MultiTransceiverMap : public ThriftMultiSwitchMapNode<
                                 MultiTransceiverMap,
                                 MultiTransceiverMapTraits> {
  public:
   using Traits = MultiTransceiverMapTraits;
   using BaseT =
-      ThriftMultiMapNode<MultiTransceiverMap, MultiTransceiverMapTraits>;
+      ThriftMultiSwitchMapNode<MultiTransceiverMap, MultiTransceiverMapTraits>;
   using BaseT::modify;
 
   MultiTransceiverMap() {}
