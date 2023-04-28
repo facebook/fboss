@@ -68,34 +68,37 @@ class ForwardingInformationBaseMap : public ThriftMapNode<
   friend class CloneAllocator;
 };
 
-using MultiForwardingInformationBaseMapTypeClass = apache::thrift::type_class::
-    map<apache::thrift::type_class::string, ForwardingInformationBaseMapClass>;
-using MultiForwardingInformationBaseMapThriftType =
+using MultiSwitchForwardingInformationBaseMapTypeClass =
+    apache::thrift::type_class::map<
+        apache::thrift::type_class::string,
+        ForwardingInformationBaseMapClass>;
+using MultiSwitchForwardingInformationBaseMapThriftType =
     std::map<std::string, ForwardingInformationBaseMapThriftType>;
 
-class MultiForwardingInformationBaseMap;
+class MultiSwitchForwardingInformationBaseMap;
 
-using MultiForwardingInformationBaseMapTraits = ThriftMultiSwitchMapNodeTraits<
-    MultiForwardingInformationBaseMap,
-    MultiForwardingInformationBaseMapTypeClass,
-    MultiForwardingInformationBaseMapThriftType,
-    ForwardingInformationBaseMap>;
+using MultiSwitchForwardingInformationBaseMapTraits =
+    ThriftMultiSwitchMapNodeTraits<
+        MultiSwitchForwardingInformationBaseMap,
+        MultiSwitchForwardingInformationBaseMapTypeClass,
+        MultiSwitchForwardingInformationBaseMapThriftType,
+        ForwardingInformationBaseMap>;
 
 class HwSwitchMatcher;
 
-class MultiForwardingInformationBaseMap
+class MultiSwitchForwardingInformationBaseMap
     : public ThriftMultiSwitchMapNode<
-          MultiForwardingInformationBaseMap,
-          MultiForwardingInformationBaseMapTraits> {
+          MultiSwitchForwardingInformationBaseMap,
+          MultiSwitchForwardingInformationBaseMapTraits> {
  public:
-  using Traits = MultiForwardingInformationBaseMapTraits;
+  using Traits = MultiSwitchForwardingInformationBaseMapTraits;
   using BaseT = ThriftMultiSwitchMapNode<
-      MultiForwardingInformationBaseMap,
-      MultiForwardingInformationBaseMapTraits>;
+      MultiSwitchForwardingInformationBaseMap,
+      MultiSwitchForwardingInformationBaseMapTraits>;
   using BaseT::modify;
 
-  MultiForwardingInformationBaseMap() {}
-  virtual ~MultiForwardingInformationBaseMap() {}
+  MultiSwitchForwardingInformationBaseMap() {}
+  virtual ~MultiSwitchForwardingInformationBaseMap() {}
 
  private:
   // Inherit the constructors required for clone()

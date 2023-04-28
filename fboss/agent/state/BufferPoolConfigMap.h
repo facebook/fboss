@@ -47,33 +47,33 @@ class BufferPoolCfgMap
   friend class CloneAllocator;
 };
 
-using MultiBufferPoolCfgMapTypeClass = apache::thrift::type_class::
+using MultiSwitchBufferPoolCfgMapTypeClass = apache::thrift::type_class::
     map<apache::thrift::type_class::string, BufferPoolCfgMapTypeClass>;
-using MultiBufferPoolCfgMapThriftType =
+using MultiSwitchBufferPoolCfgMapThriftType =
     std::map<std::string, BufferPoolCfgMapThriftType>;
 
-class MultiBufferPoolCfgMap;
+class MultiSwitchBufferPoolCfgMap;
 
-using MultiBufferPoolCfgMapTraits = ThriftMultiSwitchMapNodeTraits<
-    MultiBufferPoolCfgMap,
-    MultiBufferPoolCfgMapTypeClass,
-    MultiBufferPoolCfgMapThriftType,
+using MultiSwitchBufferPoolCfgMapTraits = ThriftMultiSwitchMapNodeTraits<
+    MultiSwitchBufferPoolCfgMap,
+    MultiSwitchBufferPoolCfgMapTypeClass,
+    MultiSwitchBufferPoolCfgMapThriftType,
     BufferPoolCfgMap>;
 
 class HwSwitchMatcher;
 
-class MultiBufferPoolCfgMap : public ThriftMultiSwitchMapNode<
-                                  MultiBufferPoolCfgMap,
-                                  MultiBufferPoolCfgMapTraits> {
+class MultiSwitchBufferPoolCfgMap : public ThriftMultiSwitchMapNode<
+                                        MultiSwitchBufferPoolCfgMap,
+                                        MultiSwitchBufferPoolCfgMapTraits> {
  public:
-  using Traits = MultiBufferPoolCfgMapTraits;
+  using Traits = MultiSwitchBufferPoolCfgMapTraits;
   using BaseT = ThriftMultiSwitchMapNode<
-      MultiBufferPoolCfgMap,
-      MultiBufferPoolCfgMapTraits>;
+      MultiSwitchBufferPoolCfgMap,
+      MultiSwitchBufferPoolCfgMapTraits>;
   using BaseT::modify;
 
-  MultiBufferPoolCfgMap() {}
-  virtual ~MultiBufferPoolCfgMap() {}
+  MultiSwitchBufferPoolCfgMap() {}
+  virtual ~MultiSwitchBufferPoolCfgMap() {}
 
  private:
   // Inherit the constructors required for clone()

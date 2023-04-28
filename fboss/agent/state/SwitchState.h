@@ -148,7 +148,7 @@ RESOLVE_STRUCT_MEMBER(
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::fibsMap,
-    MultiForwardingInformationBaseMap);
+    MultiSwitchForwardingInformationBaseMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::mirrorMaps,
@@ -176,7 +176,7 @@ RESOLVE_STRUCT_MEMBER(
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::aggregatePortMaps,
-    MultiAggregatePortMap);
+    MultiSwitchAggregatePortMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::loadBalancerMaps,
@@ -188,7 +188,7 @@ RESOLVE_STRUCT_MEMBER(
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::bufferPoolCfgMaps,
-    MultiBufferPoolCfgMap);
+    MultiSwitchBufferPoolCfgMap);
 RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::vlanMaps, MultiVlanMap);
 RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::portMaps, MultiPortMap);
 RESOLVE_STRUCT_MEMBER(
