@@ -59,8 +59,6 @@ class MultiDsfNodeMap
   using Traits = MultiDsfNodeMapTraits;
   using BaseT = ThriftMultiMapNode<MultiDsfNodeMap, MultiDsfNodeMapTraits>;
 
-  size_t numNodes() const;
-
  private:
   // Inherit the constructors required for clone()
   using BaseT::BaseT;

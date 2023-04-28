@@ -474,6 +474,14 @@ struct ThriftMultiMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
     return nullptr;
   }
 
+  size_t numNodes() const {
+    size_t cnt = 0;
+    for (auto mnitr = this->cbegin(); mnitr != this->cend(); ++mnitr) {
+      cnt += mnitr->second->size();
+    }
+    return cnt;
+  }
+
   void addMapNode(
       std::shared_ptr<InnerMap> node,
       const HwSwitchMatcher& matcher) {

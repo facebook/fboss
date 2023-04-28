@@ -7,13 +7,5 @@
 
 namespace facebook::fboss {
 
-size_t MultiDsfNodeMap::numNodes() const {
-  size_t cnt = 0;
-  for (auto mnitr = cbegin(); mnitr != cend(); ++mnitr) {
-    cnt += mnitr->second->size();
-  }
-  return cnt;
-}
-
 template class ThriftMapNode<DsfNodeMap, DsfNodeMapTraits>;
 } // namespace facebook::fboss
