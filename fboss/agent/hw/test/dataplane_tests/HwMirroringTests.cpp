@@ -153,7 +153,7 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
     auto mirrors = state->getMirrors()->modify(&state);
     auto mirror = mirrorName == kSpan ? getSpanMirror() : getErSpanMirror();
     mirror->setTruncate(truncate);
-    mirrors->addMirror(mirror, scopeResolver().scope(mirror));
+    mirrors->addNode(mirror, scopeResolver().scope(mirror));
     applyNewState(state);
   }
 
@@ -227,7 +227,7 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
 
   void verify(const std::string& mirrorName, int payloadSize = 500) {
     auto mirror =
-        this->getProgrammedState()->getMirrors()->getMirrorIf(mirrorName);
+        this->getProgrammedState()->getMirrors()->getNodeIf(mirrorName);
     ASSERT_NE(mirror, nullptr);
     EXPECT_EQ(mirror->isResolved(), true);
 

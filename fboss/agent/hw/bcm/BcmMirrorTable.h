@@ -20,7 +20,7 @@ class BcmMirrorTable {
       const std::shared_ptr<Mirror>& newMirror);
 
   BcmMirror* getMirror(const std::string& mirrorName) const;
-  BcmMirror* getMirrorIf(const std::string& mirrorName) const;
+  BcmMirror* getNodeIf(const std::string& mirrorName) const;
 
  private:
   using BcmMirrorMap =

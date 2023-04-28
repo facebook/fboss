@@ -270,7 +270,7 @@ class SaiPortManager {
       MirrorDirection direction,
       MirrorAction action,
       std::optional<std::string> mirrorId);
-  void addMirror(const std::shared_ptr<Port>& swPort);
+  void addNode(const std::shared_ptr<Port>& swPort);
   void removeMirror(const std::shared_ptr<Port>& swPort);
   void addSamplePacket(const std::shared_ptr<Port>& swPort);
   void removeSamplePacket(const std::shared_ptr<Port>& swPort);

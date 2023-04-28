@@ -83,7 +83,7 @@ class ResolvedNexthopMonitorTest : public ::testing::Test {
       const std::shared_ptr<SwitchState>& state) {
     auto newState = state->isPublished() ? state->clone() : state;
     auto mnpuMirrors = newState->getMirrors()->modify(&newState);
-    auto mirror = mnpuMirrors->getMirrorIf("mirror");
+    auto mirror = mnpuMirrors->getNodeIf("mirror");
     if (!mirror) {
       mirror = std::make_shared<Mirror>(
           std::string("mirror"),

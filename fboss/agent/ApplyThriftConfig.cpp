@@ -2745,10 +2745,10 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls(
               aclAction->cref<switch_state_tags::ingressMirror>();
           const auto& egMirror =
               aclAction->cref<switch_state_tags::egressMirror>();
-          if (inMirror && !new_->getMirrors()->getMirrorIf(inMirror->cref())) {
+          if (inMirror && !new_->getMirrors()->getNodeIf(inMirror->cref())) {
             throw FbossError("Mirror ", inMirror->cref(), " is undefined");
           }
-          if (egMirror && !new_->getMirrors()->getMirrorIf(egMirror->cref())) {
+          if (egMirror && !new_->getMirrors()->getNodeIf(egMirror->cref())) {
             throw FbossError("Mirror ", egMirror->cref(), " is undefined");
           }
         }
@@ -3928,7 +3928,7 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
   size_t numExistingProcessed = 0;
   int sflowMirrorCount = 0;
   for (const auto& mirrorCfg : *cfg_->mirrors()) {
-    auto origMirror = origMirrors->getMirrorIf(*mirrorCfg.name());
+    auto origMirror = origMirrors->getNodeIf(*mirrorCfg.name());
     std::shared_ptr<Mirror> newMirror;
     if (origMirror) {
       newMirror = updateMirror(origMirror, &mirrorCfg);
@@ -3947,9 +3947,9 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
     changed |= updateThriftMapNode(newMirrors.get(), origMirror, newMirror);
   }
 
-  if (numExistingProcessed != origMirrors->numMirrors()) {
+  if (numExistingProcessed != origMirrors->numNodes()) {
     // Some existing Mirrors were removed.
-    CHECK_LT(numExistingProcessed, origMirrors->numMirrors());
+    CHECK_LT(numExistingProcessed, origMirrors->numNodes());
     changed = true;
   }
 

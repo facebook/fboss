@@ -1869,7 +1869,7 @@ bool BcmSwitch::isValidPortUpdate(
     const shared_ptr<Port>& newPort,
     const shared_ptr<SwitchState>& newState) const {
   if (auto mirrorName = newPort->getIngressMirror()) {
-    auto mirror = newState->getMirrors()->getMirrorIf(mirrorName.value());
+    auto mirror = newState->getMirrors()->getNodeIf(mirrorName.value());
     if (!mirror) {
       XLOG(ERR) << "Ingress mirror " << mirrorName.value()
                 << " for port : " << newPort->getID() << " not found";
@@ -1878,7 +1878,7 @@ bool BcmSwitch::isValidPortUpdate(
   }
 
   if (auto mirrorName = newPort->getEgressMirror()) {
-    auto mirror = newState->getMirrors()->getMirrorIf(mirrorName.value());
+    auto mirror = newState->getMirrors()->getNodeIf(mirrorName.value());
     if (!mirror) {
       XLOG(ERR) << "Egress mirror " << mirrorName.value()
                 << " for port : " << newPort->getID() << " not found";
@@ -1897,7 +1897,7 @@ bool BcmSwitch::isValidPortUpdate(
       return false;
     }
     auto ingressMirror =
-        newState->getMirrors()->getMirrorIf(ingressMirrorName.value());
+        newState->getMirrors()->getNodeIf(ingressMirrorName.value());
     if (ingressMirror->type() != Mirror::Type::SFLOW) {
       XLOG(ERR) << "Ingress mirror " << ingressMirrorName.value()
                 << " for sampled port not sflow : " << newPort->getID();
@@ -1989,7 +1989,7 @@ bool BcmSwitch::isValidStateUpdate(const StateDelta& delta) const {
         }
       });
   isValid = isValid &&
-      (newState->getMirrors()->numMirrors() <=
+      (newState->getMirrors()->numNodes() <=
        platform_->getAsic()->getMaxMirrors());
 
   forEachChanged(

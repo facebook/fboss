@@ -447,7 +447,7 @@ void SaiPortManager::loadPortQueues(const Port& swPort) {
       saiPort->adapterKey(), portHandle->queues, updatedPortQueue);
 }
 
-void SaiPortManager::addMirror(const std::shared_ptr<Port>& swPort) {
+void SaiPortManager::addNode(const std::shared_ptr<Port>& swPort) {
   bool samplingMirror = swPort->getSampleDestination().has_value() &&
       swPort->getSampleDestination() == cfg::SampleDestination::MIRROR;
   /*

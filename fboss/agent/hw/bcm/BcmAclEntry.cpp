@@ -91,7 +91,7 @@ std::optional<facebook::fboss::BcmMirrorHandle> getAclMirrorHandle(
     const facebook::fboss::BcmSwitch* hw,
     const std::optional<std::string>& mirrorName) {
   auto* mirror = mirrorName
-      ? hw->getBcmMirrorTable()->getMirrorIf(mirrorName.value())
+      ? hw->getBcmMirrorTable()->getNodeIf(mirrorName.value())
       : nullptr;
   if (!mirror) {
     return std::nullopt;
@@ -874,7 +874,7 @@ void BcmAclEntry::applyMirrorAction(
     const std::string& mirrorName,
     MirrorAction action,
     MirrorDirection direction) {
-  auto* bcmMirror = hw_->getBcmMirrorTable()->getMirrorIf(mirrorName);
+  auto* bcmMirror = hw_->getBcmMirrorTable()->getNodeIf(mirrorName);
   CHECK(bcmMirror != nullptr);
   bcmMirror->applyAclMirrorAction(handle_, action, direction);
 }

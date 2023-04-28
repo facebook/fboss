@@ -241,7 +241,7 @@ TEST_F(AclTableManagerTest, aclMirroring) {
       mirrorId,
       std::make_optional<PortID>(PortID(1)),
       std::optional<folly::IPAddress>());
-  saiManagerTable->mirrorManager().addMirror(mirror);
+  saiManagerTable->mirrorManager().addNode(mirror);
   auto aclEntry =
       std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
   aclEntry->setDscp(kDscp());

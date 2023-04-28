@@ -156,7 +156,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     auto mac = utility::getFirstInterfaceMac(getProgrammedState());
     auto state = getProgrammedState()->clone();
     auto mirrors = state->getMirrors()->modify(&state);
-    auto mirror = mirrors->getMirrorIf("mirror")->clone();
+    auto mirror = mirrors->getNodeIf("mirror")->clone();
     ASSERT_NE(mirror, nullptr);
 
     auto ip = mirror->getDestinationIp().value();

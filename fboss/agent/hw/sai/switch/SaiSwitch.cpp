@@ -835,7 +835,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       managerTable_->mirrorManager(),
       lockPolicy,
       &SaiMirrorManager::changeMirror,
-      &SaiMirrorManager::addMirror,
+      &SaiMirrorManager::addNode,
       &SaiMirrorManager::removeMirror);
 
   processDelta(
@@ -2380,7 +2380,7 @@ bool SaiSwitch::isValidStateUpdateLocked(
     throw FbossError("QCM is not supported on SAI");
   }
 
-  if (delta.newState()->getMirrors()->numMirrors() >
+  if (delta.newState()->getMirrors()->numNodes() >
       getPlatform()->getAsic()->getMaxMirrors()) {
     XLOG(ERR) << "Number of mirrors configured is high on this platform";
     return false;

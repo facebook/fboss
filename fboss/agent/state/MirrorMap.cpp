@@ -20,11 +20,6 @@ std::shared_ptr<MirrorMap> MirrorMap::fromThrift(
   return map;
 }
 
-std::shared_ptr<Mirror> MultiMirrorMap::getMirrorIf(
-    const std::string& name) const {
-  return getNodeIf(name);
-}
-
 MultiMirrorMap* MultiMirrorMap::modify(std::shared_ptr<SwitchState>* state) {
   if (!isPublished()) {
     CHECK(!(*state)->isPublished());
@@ -50,14 +45,6 @@ std::shared_ptr<MultiMirrorMap> MultiMirrorMap::fromThrift(
     mnpuMap->insert(matcherAndMirrors.first, std::move(map));
   }
   return mnpuMap;
-}
-
-size_t MultiMirrorMap::numMirrors() const {
-  size_t cnt = 0;
-  for (auto mnitr = cbegin(); mnitr != cend(); ++mnitr) {
-    cnt += mnitr->second->size();
-  }
-  return cnt;
 }
 
 template class ThriftMapNode<MirrorMap, MirrorMapTraits>;

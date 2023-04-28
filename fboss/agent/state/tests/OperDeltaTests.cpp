@@ -50,7 +50,7 @@ TEST(OperDeltaTests, OperDeltaCompute) {
   auto mirrorObj = std::make_shared<Mirror>(mirror);
   SwitchIdScopeResolver scopeResolver(
       *config.switchSettings()->switchIdToSwitchInfo());
-  mnpuMirrors->addMirror(mirrorObj, scopeResolver.scope(mirrorObj));
+  mnpuMirrors->addNode(mirrorObj, scopeResolver.scope(mirrorObj));
   stateV2->publish();
 
   auto delta2 = StateDelta(stateV1, stateV2);

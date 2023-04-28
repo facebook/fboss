@@ -59,26 +59,12 @@ class MultiMirrorMap
  public:
   using Traits = MultiMirrorMapTraits;
   using BaseT = ThriftMultiMapNode<MultiMirrorMap, MultiMirrorMapTraits>;
-  using BaseT::addNode;
   using BaseT::modify;
-  using BaseT::removeNode;
-  using BaseT::updateNode;
-
-  MultiMirrorMap() {}
-  virtual ~MultiMirrorMap() {}
 
   MultiMirrorMap* modify(std::shared_ptr<SwitchState>* state);
-
-  void addMirror(
-      const std::shared_ptr<Mirror>& mirror,
-      const HwSwitchMatcher& matcher) {
-    addNode(mirror, matcher);
-  }
-  std::shared_ptr<Mirror> getMirrorIf(const std::string& name) const;
   static std::shared_ptr<MultiMirrorMap> fromThrift(
       const std::map<std::string, std::map<std::string, state::MirrorFields>>&
           mnpuMirrors);
-  size_t numMirrors() const;
 
  private:
   // Inherit the constructors required for clone()

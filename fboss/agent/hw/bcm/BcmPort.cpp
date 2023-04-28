@@ -1830,7 +1830,7 @@ void BcmPort::applyMirrorAction(
   if (!mirrorName) {
     return;
   }
-  auto* bcmMirror = hw_->getBcmMirrorTable()->getMirrorIf(mirrorName.value());
+  auto* bcmMirror = hw_->getBcmMirrorTable()->getNodeIf(mirrorName.value());
   CHECK(bcmMirror != nullptr);
   bcmMirror->applyPortMirrorAction(getPortID(), action, direction, destination);
 }

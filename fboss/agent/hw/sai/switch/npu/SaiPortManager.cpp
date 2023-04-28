@@ -180,7 +180,7 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   }
 
   addSamplePacket(swPort);
-  addMirror(swPort);
+  addNode(swPort);
   addPfc(swPort);
   programPfcBuffers(swPort);
 

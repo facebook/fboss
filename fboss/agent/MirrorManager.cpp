@@ -72,7 +72,7 @@ std::shared_ptr<SwitchState> MirrorManager::resolveMirrors(
 }
 
 bool MirrorManager::hasMirrorChanges(const StateDelta& delta) {
-  return (sw_->getState()->getMirrors()->numMirrors() > 0) &&
+  return (sw_->getState()->getMirrors()->numNodes() > 0) &&
       (!isEmpty(delta.getMirrorsDelta()) || !isEmpty(delta.getFibsDelta()) ||
        std::any_of(
            std::begin(delta.getVlansDelta()),
