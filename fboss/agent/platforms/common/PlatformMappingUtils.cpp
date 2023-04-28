@@ -30,6 +30,7 @@
 #include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
 #include "fboss/agent/platforms/common/minipack/MinipackPlatformMapping.h"
 #include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
+#include "fboss/agent/platforms/common/morgan/Morgan800ccPlatformMapping.h"
 #include "fboss/agent/platforms/common/sandia/SandiaPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge40/Wedge40PlatformMapping.h"
@@ -168,6 +169,10 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<Meru400biaPlatformMapping>()
           : std::make_unique<Meru400biaPlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_MORGAN800CC:
+      return platformMappingStr.empty()
+          ? std::make_unique<Morgan800ccPlatformMapping>()
+          : std::make_unique<Morgan800ccPlatformMapping>(platformMappingStr);    
   }
   return nullptr;
 }
