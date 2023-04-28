@@ -7,30 +7,6 @@
 
 namespace facebook::fboss {
 
-std::shared_ptr<DsfNode> DsfNodeMap::getDsfNodeIf(SwitchID switchId) const {
-  return getNodeIf(static_cast<int64_t>(switchId));
-}
-
-void DsfNodeMap::addDsfNode(const std::shared_ptr<DsfNode>& dsfNode) {
-  return addNode(dsfNode);
-}
-
-MultiDsfNodeMap* MultiDsfNodeMap::modify(std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
-  }
-
-  SwitchState::modify(state);
-  auto newMnpuMap = clone();
-  for (auto mnitr = cbegin(); mnitr != cend(); ++mnitr) {
-    (*newMnpuMap)[mnitr->first] = mnitr->second->clone();
-  }
-  auto* ptr = newMnpuMap.get();
-  (*state)->resetDsfNodes(std::move(newMnpuMap));
-  return ptr;
-}
-
 void MultiDsfNodeMap::addNode(
     std::shared_ptr<DsfNode> node,
     const HwSwitchMatcher& matcher) {

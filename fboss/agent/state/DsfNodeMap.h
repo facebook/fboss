@@ -29,15 +29,9 @@ class DsfNodeMap : public ThriftMapNode<DsfNodeMap, DsfNodeMapTraits> {
  public:
   using Traits = DsfNodeMapTraits;
   using BaseT = ThriftMapNode<DsfNodeMap, DsfNodeMapTraits>;
-  using BaseT::modify;
 
-  DsfNodeMap() {}
-  virtual ~DsfNodeMap() {}
-
-  DsfNodeMap* modify(std::shared_ptr<SwitchState>* state);
-  std::shared_ptr<DsfNode> getDsfNodeIf(SwitchID switchId) const;
-
-  void addDsfNode(const std::shared_ptr<DsfNode>& dsfNode);
+  DsfNodeMap() = default;
+  virtual ~DsfNodeMap() = default;
 
  private:
   // Inherit the constructors required for clone()
