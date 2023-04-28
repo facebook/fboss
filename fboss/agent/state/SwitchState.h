@@ -184,12 +184,15 @@ RESOLVE_STRUCT_MEMBER(
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::transceiverMaps,
-    MultiTransceiverMap);
+    MultiSwitchTransceiverMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::bufferPoolCfgMaps,
     MultiSwitchBufferPoolCfgMap);
-RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::vlanMaps, MultiVlanMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::vlanMaps,
+    MultiSwitchVlanMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::portMaps,
@@ -213,11 +216,11 @@ RESOLVE_STRUCT_MEMBER(
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::remoteSystemPortMaps,
-    MultiSystemPortMap);
+    MultiSwitchSystemPortMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::systemPortMaps,
-    MultiSystemPortMap);
+    MultiSwitchSystemPortMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::controlPlaneMap,

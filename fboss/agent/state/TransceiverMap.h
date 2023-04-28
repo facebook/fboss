@@ -68,32 +68,33 @@ class TransceiverMap
   friend class CloneAllocator;
 };
 
-using MultiTransceiverMapTypeClass = apache::thrift::type_class::
+using MultiSwitchTransceiverMapTypeClass = apache::thrift::type_class::
     map<apache::thrift::type_class::string, TransceiverMapTypeClass>;
-using MultiTransceiverMapThriftType =
+using MultiSwitchTransceiverMapThriftType =
     std::map<std::string, TransceiverMapThriftType>;
 
-class MultiTransceiverMap;
+class MultiSwitchTransceiverMap;
 
-using MultiTransceiverMapTraits = ThriftMultiSwitchMapNodeTraits<
-    MultiTransceiverMap,
-    MultiTransceiverMapTypeClass,
-    MultiTransceiverMapThriftType,
+using MultiSwitchTransceiverMapTraits = ThriftMultiSwitchMapNodeTraits<
+    MultiSwitchTransceiverMap,
+    MultiSwitchTransceiverMapTypeClass,
+    MultiSwitchTransceiverMapThriftType,
     TransceiverMap>;
 
 class HwSwitchMatcher;
 
-class MultiTransceiverMap : public ThriftMultiSwitchMapNode<
-                                MultiTransceiverMap,
-                                MultiTransceiverMapTraits> {
+class MultiSwitchTransceiverMap : public ThriftMultiSwitchMapNode<
+                                      MultiSwitchTransceiverMap,
+                                      MultiSwitchTransceiverMapTraits> {
  public:
-  using Traits = MultiTransceiverMapTraits;
-  using BaseT =
-      ThriftMultiSwitchMapNode<MultiTransceiverMap, MultiTransceiverMapTraits>;
+  using Traits = MultiSwitchTransceiverMapTraits;
+  using BaseT = ThriftMultiSwitchMapNode<
+      MultiSwitchTransceiverMap,
+      MultiSwitchTransceiverMapTraits>;
   using BaseT::modify;
 
-  MultiTransceiverMap() {}
-  virtual ~MultiTransceiverMap() {}
+  MultiSwitchTransceiverMap() {}
+  virtual ~MultiSwitchTransceiverMap() {}
 
  private:
   // Inherit the constructors required for clone()

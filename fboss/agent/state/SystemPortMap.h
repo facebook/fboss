@@ -65,32 +65,33 @@ class SystemPortMap : public ThriftMapNode<SystemPortMap, SystemPortMapTraits> {
   bool isRemote_;
 };
 
-using MultiSystemPortMapTypeClass = apache::thrift::type_class::
+using MultiSwitchSystemPortMapTypeClass = apache::thrift::type_class::
     map<apache::thrift::type_class::string, SystemPortMapTypeClass>;
-using MultiSystemPortMapThriftType =
+using MultiSwitchSystemPortMapThriftType =
     std::map<std::string, SystemPortMapThriftType>;
 
-class MultiSystemPortMap;
+class MultiSwitchSystemPortMap;
 
-using MultiSystemPortMapTraits = ThriftMultiSwitchMapNodeTraits<
-    MultiSystemPortMap,
-    MultiSystemPortMapTypeClass,
-    MultiSystemPortMapThriftType,
+using MultiSwitchSystemPortMapTraits = ThriftMultiSwitchMapNodeTraits<
+    MultiSwitchSystemPortMap,
+    MultiSwitchSystemPortMapTypeClass,
+    MultiSwitchSystemPortMapThriftType,
     SystemPortMap>;
 
 class HwSwitchMatcher;
 
-class MultiSystemPortMap : public ThriftMultiSwitchMapNode<
-                               MultiSystemPortMap,
-                               MultiSystemPortMapTraits> {
+class MultiSwitchSystemPortMap : public ThriftMultiSwitchMapNode<
+                                     MultiSwitchSystemPortMap,
+                                     MultiSwitchSystemPortMapTraits> {
  public:
-  using Traits = MultiSystemPortMapTraits;
-  using BaseT =
-      ThriftMultiSwitchMapNode<MultiSystemPortMap, MultiSystemPortMapTraits>;
+  using Traits = MultiSwitchSystemPortMapTraits;
+  using BaseT = ThriftMultiSwitchMapNode<
+      MultiSwitchSystemPortMap,
+      MultiSwitchSystemPortMapTraits>;
   using BaseT::modify;
 
-  MultiSystemPortMap() {}
-  virtual ~MultiSystemPortMap() {}
+  MultiSwitchSystemPortMap() {}
+  virtual ~MultiSwitchSystemPortMap() {}
 
  private:
   // Inherit the constructors required for clone()

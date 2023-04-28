@@ -101,29 +101,31 @@ class VlanMap : public ThriftMapNode<VlanMap, VlanMapTraits> {
   friend class CloneAllocator;
 };
 
-using MultiVlanMapTypeClass = apache::thrift::type_class::
+using MultiSwitchVlanMapTypeClass = apache::thrift::type_class::
     map<apache::thrift::type_class::string, VlanMapTypeClass>;
-using MultiVlanMapThriftType = std::map<std::string, VlanMapThriftType>;
+using MultiSwitchVlanMapThriftType = std::map<std::string, VlanMapThriftType>;
 
-class MultiVlanMap;
+class MultiSwitchVlanMap;
 
-using MultiVlanMapTraits = ThriftMultiSwitchMapNodeTraits<
-    MultiVlanMap,
-    MultiVlanMapTypeClass,
-    MultiVlanMapThriftType,
+using MultiSwitchVlanMapTraits = ThriftMultiSwitchMapNodeTraits<
+    MultiSwitchVlanMap,
+    MultiSwitchVlanMapTypeClass,
+    MultiSwitchVlanMapThriftType,
     VlanMap>;
 
 class HwSwitchMatcher;
 
-class MultiVlanMap
-    : public ThriftMultiSwitchMapNode<MultiVlanMap, MultiVlanMapTraits> {
+class MultiSwitchVlanMap : public ThriftMultiSwitchMapNode<
+                               MultiSwitchVlanMap,
+                               MultiSwitchVlanMapTraits> {
  public:
-  using Traits = MultiVlanMapTraits;
-  using BaseT = ThriftMultiSwitchMapNode<MultiVlanMap, MultiVlanMapTraits>;
+  using Traits = MultiSwitchVlanMapTraits;
+  using BaseT =
+      ThriftMultiSwitchMapNode<MultiSwitchVlanMap, MultiSwitchVlanMapTraits>;
   using BaseT::modify;
 
-  MultiVlanMap() {}
-  virtual ~MultiVlanMap() {}
+  MultiSwitchVlanMap() {}
+  virtual ~MultiSwitchVlanMap() {}
 
  private:
   // Inherit the constructors required for clone()
