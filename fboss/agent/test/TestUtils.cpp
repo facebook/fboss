@@ -435,8 +435,8 @@ unique_ptr<HwTestHandle> createTestHandle(
     cfg::SwitchConfig* config,
     SwitchFlags flags) {
   shared_ptr<SwitchState> initialState{nullptr};
-  // Create the initial state, which only has the same number of ports with the
-  // init config
+  // Create the initial state, which only has the same number of ports with
+  // the init config
   initialState = make_shared<SwitchState>();
   SwitchIdToSwitchInfo switchIdToSwitchInfo;
   if (config) {

@@ -70,6 +70,8 @@ cfg::SwitchConfig createSwitchConfig(
     std::optional<std::string> routerAddress = std::nullopt) {
   // Create a thrift config to use
   cfg::SwitchConfig config;
+  config.switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU))};
   config.vlans()->resize(2);
   *config.vlans()[0].name() = "PrimaryVlan";
   *config.vlans()[0].id() = 5;
