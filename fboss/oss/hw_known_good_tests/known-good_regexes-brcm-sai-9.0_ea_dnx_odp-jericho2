@@ -1,7 +1,7 @@
 # All tests matching following filters are expected to PASS on Meru400biu
 # Basic VOQ switch tests
 HwVoqSwitchTest*
-HwVoqSwitchWithFabriPortsTest.*
+HwVoqSwitchWithFabricPortsTest.*
 HwVoqSwitchWithMultipleDsfNodesTest.*
 # Basic forwarding tests
 HwJumboFramesTest.*
