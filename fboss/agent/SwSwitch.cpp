@@ -768,7 +768,8 @@ void SwSwitch::init(
   heartbeatWatchdog_->start();
 
   setSwitchRunState(SwitchRunState::INITIALIZED);
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::ROUTE_PROGRAMMING)) {
+  if (getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::ROUTE_PROGRAMMING)) {
     SwSwitchRouteUpdateWrapper(this, rib_.get()).programMinAlpmState();
   }
   if (FLAGS_log_all_fib_updates) {

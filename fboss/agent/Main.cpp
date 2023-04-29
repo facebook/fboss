@@ -23,6 +23,7 @@
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossInit.h"
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/RestartTimeTracker.h"
@@ -336,8 +337,9 @@ void AgentInitializer::stopAgent(bool setupWarmboot) {
 #endif
 #endif
   } else {
-    auto revertToMinAlpmState = sw_->getPlatform()->getAsic()->isSupported(
-        HwAsic::Feature::ROUTE_PROGRAMMING);
+    auto revertToMinAlpmState =
+        sw_->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+            HwAsic::Feature::ROUTE_PROGRAMMING);
     sw_->stop(revertToMinAlpmState);
   }
 }
