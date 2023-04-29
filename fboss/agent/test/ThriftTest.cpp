@@ -14,6 +14,7 @@
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
@@ -204,6 +205,13 @@ TYPED_TEST(ThriftTestAllSwitchTypes, checkSwitchId) {
   EXPECT_NE(hwAsic, nullptr);
   EXPECT_EQ(SwitchID(*hwAsic->getSwitchId()), switchIdAndType.first);
   EXPECT_EQ(hwAsic->getSwitchType(), switchIdAndType.second);
+  auto config = testConfigA(switchIdAndType.second);
+  EXPECT_EQ(
+      *(this->sw_->getScopeResolver()
+            ->scope(PortID(*(config.ports()[0].logicalID())))
+            .switchIds()
+            .begin()),
+      switchIdAndType.first);
 }
 
 TYPED_TEST(ThriftTestAllSwitchTypes, listHwObjects) {

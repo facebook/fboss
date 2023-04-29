@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/SwitchIdScopeResolver.h"
+#include "fboss/agent/FbossError.h"
 
 namespace facebook::fboss {
 
@@ -46,6 +47,19 @@ const HwSwitchMatcher& SwitchIdScopeResolver::allSwitchMatcher() const {
   CHECK(allSwitchMatcher_)
       << " One or more all switchIds must be set to get allSwitch scope";
   return *allSwitchMatcher_;
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(PortID portId) const {
+  for (const auto& switchIdAndSwitchInfo : switchIdToSwitchInfo_) {
+    if (portId >=
+            PortID(*switchIdAndSwitchInfo.second.portIdRange()->minimum()) &&
+        portId <=
+            PortID(*switchIdAndSwitchInfo.second.portIdRange()->maximum())) {
+      return HwSwitchMatcher(std::unordered_set<SwitchID>(
+          {SwitchID(switchIdAndSwitchInfo.first)}));
+    }
+  }
+  throw FbossError("No switch found for port ", portId);
 }
 
 } // namespace facebook::fboss

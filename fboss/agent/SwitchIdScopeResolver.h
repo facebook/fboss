@@ -32,6 +32,7 @@ class SwitchIdScopeResolver {
   const HwSwitchMatcher& scope(const std::shared_ptr<DsfNode>& /*m*/) const {
     return allSwitchMatcher();
   }
+  HwSwitchMatcher scope(PortID portId) const;
 
  private:
   const HwSwitchMatcher& l3SwitchMatcher() const;

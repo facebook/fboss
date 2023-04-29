@@ -28,4 +28,20 @@ const HwAsic* HwAsicTable::getHwAsicIf(SwitchID switchID) const {
   return nullptr;
 }
 
+bool HwAsicTable::isFeatureSupported(SwitchID switchId, HwAsic::Feature feature)
+    const {
+  auto asic = getHwAsicIf(switchId);
+  CHECK(asic);
+  return asic->isSupported(feature);
+}
+
+bool HwAsicTable::isFeatureSupportedOnAnyAsic(HwAsic::Feature feature) const {
+  for (const auto& entry : hwAsics_) {
+    if (entry.second->isSupported(feature)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 } // namespace facebook::fboss
