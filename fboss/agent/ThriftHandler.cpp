@@ -14,6 +14,7 @@
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/LinkAggregationManager.h"
@@ -22,6 +23,7 @@
 #include "fboss/agent/RouteUpdateLogger.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
@@ -200,6 +202,9 @@ void getPortInfoHelper(
     }
   }
 
+  auto switchIds = sw.getScopeResolver()->scope(port->getID()).switchIds();
+  CHECK_EQ(switchIds.size(), 1);
+  auto asic = sw.getHwAsicTable()->getHwAsicIf(*switchIds.begin());
   for (const auto& queue : std::as_const(*port->getPortQueues())) {
     PortQueueThrift pq;
     *pq.id() = queue->getID();
@@ -211,21 +216,18 @@ void getPortInfoHelper(
     }
     if (queue->getReservedBytes()) {
       pq.reservedBytes() = queue->getReservedBytes().value();
-    } else if (sw.getPlatform()->getAsic()->isSupported(
-                   HwAsic::Feature::BUFFER_POOL)) {
-      pq.reservedBytes() = sw.getPlatform()->getAsic()->getDefaultReservedBytes(
-          queue->getStreamType(), false);
+    } else if (asic->isSupported(HwAsic::Feature::BUFFER_POOL)) {
+      pq.reservedBytes() =
+          asic->getDefaultReservedBytes(queue->getStreamType(), false);
     }
     if (queue->getScalingFactor()) {
       pq.scalingFactor() =
           apache::thrift::TEnumTraits<cfg::MMUScalingFactor>::findName(
               queue->getScalingFactor().value());
-    } else if (sw.getPlatform()->getAsic()->isSupported(
-                   HwAsic::Feature::BUFFER_POOL)) {
+    } else if (asic->isSupported(HwAsic::Feature::BUFFER_POOL)) {
       pq.scalingFactor() =
           apache::thrift::TEnumTraits<cfg::MMUScalingFactor>::findName(
-              sw.getPlatform()->getAsic()->getDefaultScalingFactor(
-                  queue->getStreamType(), false));
+              asic->getDefaultScalingFactor(queue->getStreamType(), false));
     }
     if (const auto& aqms = queue->getAqms()) {
       std::vector<ActiveQueueManagement> aqmsThrift;
