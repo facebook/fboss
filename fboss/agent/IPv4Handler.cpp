@@ -277,20 +277,8 @@ bool IPv4Handler::resolveMac(
   // need to find out our own IP and MAC addresses so that we can send the
   // ARP request out. Since the request will be broadcast, there is no need to
   // worry about which port to send the packet out.
+  auto route = sw_->longestMatch(state, dest, RouterID(0));
 
-  auto port = state->getPorts()->getPortIf(ingressPort);
-  if (!port) {
-    // Received packed on unknown port
-    return false;
-  }
-  auto intfID = sw_->getState()->getInterfaceIDForPort(ingressPort);
-  auto ingressInterface = state->getInterfaces()->getInterfaceIf(intfID);
-  if (!ingressInterface) {
-    // Received packed on unknown port / interface
-    return false;
-  }
-
-  auto route = sw_->longestMatch(state, dest, ingressInterface->getRouterID());
   if (!route || !route->isResolved()) {
     sw_->portStats(ingressPort)->ipv4DstLookupFailure();
     // No way to reach dest
