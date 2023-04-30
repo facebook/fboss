@@ -460,3 +460,22 @@ TEST(HwPortFb303Stats, queueNameChangeResetsValue) {
     }
   }
 }
+
+TEST(HwPortFb303StatsTest, ChangePfcPriority) {
+  HwPortFb303Stats stats(kPortName, kQueue2Name, kEnabledPfcPriorities);
+  std::vector<PfcPriority> newPriorities(
+      {static_cast<PfcPriority>(5), static_cast<PfcPriority>(6)});
+  stats.pfcPriorityChanged(newPriorities);
+  for (auto statKey : stats.kPfcStatKeys()) {
+    for (auto pfcPriority : kEnabledPfcPriorities) {
+      EXPECT_FALSE(fbData->getStatMap()->contains(
+          HwPortFb303Stats::statName(statKey, kPortName, pfcPriority)));
+    }
+    for (auto pfcPriority : newPriorities) {
+      EXPECT_TRUE(fbData->getStatMap()->contains(
+          HwPortFb303Stats::statName(statKey, kPortName, pfcPriority)));
+    }
+    EXPECT_TRUE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::statName(statKey, kPortName)));
+  }
+}
