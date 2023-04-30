@@ -838,8 +838,7 @@ sai_status_t get_port_attribute_fn(
         attr->value.booldata = port.linkTrainingEnable;
         break;
       case SAI_PORT_ATTR_FABRIC_REACHABILITY:
-        attr->value.reachability.switch_id = 0;
-        attr->value.reachability.reachable = false;
+        attr->value.reachability.reachable = true;
         break;
       case SAI_PORT_ATTR_FABRIC_ATTACHED_SWITCH_ID:
         attr->value.u32 = 0;

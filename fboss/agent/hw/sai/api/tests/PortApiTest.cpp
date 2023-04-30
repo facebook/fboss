@@ -435,3 +435,14 @@ TEST_F(PortApiTest, getFabricAttachedSwitchType) {
       id, SaiPortTraits::Attributes::FabricAttachedSwitchType{});
   EXPECT_EQ(swType, SAI_SWITCH_TYPE_VOQ);
 }
+
+TEST_F(PortApiTest, getFabricReachability) {
+  const auto switchId = 3;
+  auto id = createPort(100000, {42}, true);
+  sai_fabric_port_reachability_t reachability;
+  reachability.switch_id = switchId;
+  auto reachabilityGot = portApi->getAttribute(
+      id, SaiPortTraits::Attributes::FabricReachability{reachability});
+  EXPECT_EQ(reachabilityGot.switch_id, switchId);
+  EXPECT_TRUE(reachabilityGot.reachable);
+}
