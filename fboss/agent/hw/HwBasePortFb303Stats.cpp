@@ -154,6 +154,40 @@ void HwBasePortFb303Stats::queueRemoved(int queueId) {
   queueId2Name_.erase(queueId);
 }
 
+void HwBasePortFb303Stats::pfcPriorityChanged(
+    std::vector<PfcPriority> enabledPriorities) {
+  if (enabledPfcPriorities_ == enabledPriorities) {
+    // No change in priorities
+    return;
+  }
+
+  for (auto& pfcPriority : enabledPfcPriorities_) {
+    // Remove old priorities stats
+    for (auto statKey : kPfcStatKeys()) {
+      portCounters_.removeStat(statName(statKey, portName_, pfcPriority));
+    }
+  }
+  enabledPfcPriorities_ = std::move(enabledPriorities);
+
+  for (auto pfcPriority : enabledPfcPriorities_) {
+    for (auto statKey : kPfcStatKeys()) {
+      portCounters_.reinitStat(
+          statName(statKey, portName_, pfcPriority), std::nullopt);
+    }
+  }
+  if (enabledPfcPriorities_.size()) {
+    // If PFC is enabled for priorities, init aggregated port
+    // PFC counters as well.
+    for (auto statKey : kPfcStatKeys()) {
+      portCounters_.reinitStat(statName(statKey, portName_), std::nullopt);
+    }
+  } else {
+    for (auto statKey : kPfcStatKeys()) {
+      portCounters_.removeStat(statName(statKey, portName_));
+    }
+  }
+}
+
 void HwBasePortFb303Stats::updateStat(
     const std::chrono::seconds& now,
     folly::StringPiece statKey,
