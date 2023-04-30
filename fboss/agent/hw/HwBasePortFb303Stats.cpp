@@ -31,6 +31,13 @@ std::string HwBasePortFb303Stats::statName(
       portName, ".", "queue", queueId, ".", queueName, ".", statName);
 }
 
+std::string HwBasePortFb303Stats::statName(
+    folly::StringPiece statName,
+    folly::StringPiece portName,
+    PfcPriority priority) {
+  return folly::to<std::string>(portName, ".", statName, ".priority", priority);
+}
+
 int64_t HwBasePortFb303Stats::getCounterLastIncrement(
     folly::StringPiece statKey) const {
   return portCounters_.getCounterLastIncrement(statKey.str());
@@ -58,6 +65,28 @@ void HwBasePortFb303Stats::reinitStats(std::optional<std::string> oldPortName) {
   }
   if (macsecStatsInited_) {
     reinitMacsecStats(oldPortName);
+  }
+  // Init per priority PFC stats
+  for (auto pfcPriority : enabledPfcPriorities_) {
+    for (auto statKey : kPfcStatKeys()) {
+      auto newStatName = statName(statKey, portName_, pfcPriority);
+      std::optional<std::string> oldStatName = oldPortName
+          ? std::optional<std::string>(
+                statName(statKey, *oldPortName, pfcPriority))
+          : std::nullopt;
+      portCounters_.reinitStat(newStatName, oldStatName);
+    }
+  }
+  if (enabledPfcPriorities_.size()) {
+    // If PFC is enabled for priorities, init aggregated port
+    // PFC counters as well.
+    for (auto statKey : kPfcStatKeys()) {
+      auto newStatName = statName(statKey, portName_);
+      std::optional<std::string> oldStatName = oldPortName
+          ? std::optional<std::string>(statName(statKey, *oldPortName))
+          : std::nullopt;
+      portCounters_.reinitStat(newStatName, oldStatName);
+    }
   }
 }
 
