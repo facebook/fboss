@@ -290,12 +290,12 @@ class BcmPort {
   void removePortPfcStatsLocked(
       const BcmPort::PortStatsWLockedPtr& lockedPortStatsPtr,
       const std::shared_ptr<Port>& swPort,
-      Port::PfcPriorityList priorities);
+      const std::vector<PfcPriority>& priorities);
   void reinitPortPfcStats(const std::shared_ptr<Port>& swPort);
   void updatePortPfcStats(
       std::chrono::seconds now,
       HwPortStats& curPortStats,
-      Port::PfcPriorityList pfcPriorities);
+      const std::vector<PfcPriority>& pfcPriorities);
   std::string getPfcPriorityStatsKey(
       folly::StringPiece statKey,
       PfcPriority priority);

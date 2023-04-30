@@ -862,11 +862,11 @@ TEST(Port, portSerilization) {
   EXPECT_EQ(port->getGbLinePrbs(), prbsState);
 
   // Pfc Priorities
-  EXPECT_TRUE(!port->getPfcPriorities());
+  EXPECT_TRUE(port->getPfcPriorities().empty());
   std::optional<std::vector<int16_t>> pfcPriorities{{42}};
   port->setPfcPriorities(pfcPriorities);
-  EXPECT_TRUE(port->getPfcPriorities());
-  EXPECT_EQ(port->getPfcPriorities()->size(), 1);
+  EXPECT_TRUE(!port->getPfcPriorities().empty());
+  EXPECT_EQ(port->getPfcPriorities().size(), 1);
 
   // expected LLDP values
   EXPECT_TRUE(port->getLLDPValidations().empty());

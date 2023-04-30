@@ -1831,12 +1831,13 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       (*newProfileConfigRef == orig->getProfileConfig());
 
   const auto& oldPfcPriorities = orig->getPfcPriorities();
-  auto pfcPrioritiesUnchanged = !newPfcPriorities && !oldPfcPriorities;
-  if (newPfcPriorities && oldPfcPriorities &&
-      (*newPfcPriorities).size() == oldPfcPriorities->size()) {
+  auto pfcPrioritiesUnchanged = !newPfcPriorities && oldPfcPriorities.empty();
+  if (newPfcPriorities && !oldPfcPriorities.empty() &&
+      (*newPfcPriorities).size() == oldPfcPriorities.size()) {
     pfcPrioritiesUnchanged = true;
     for (int i = 0; i < (*newPfcPriorities).size(); ++i) {
-      if ((*newPfcPriorities).at(i) != oldPfcPriorities->at(i)->cref()) {
+      if (static_cast<PfcPriority>((*newPfcPriorities).at(i)) !=
+          oldPfcPriorities.at(i)) {
         pfcPrioritiesUnchanged = false;
         break;
       }
