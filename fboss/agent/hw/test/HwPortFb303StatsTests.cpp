@@ -26,6 +26,9 @@ HwPortFb303Stats::QueueId2Name kQueue2Name = {
     {2, "silver"},
 };
 
+std::vector<PfcPriority> kEnabledPfcPriorities(
+    {static_cast<PfcPriority>(2), static_cast<PfcPriority>(3)});
+
 HwPortStats getInitedStats() {
   MacsecStats macsecStats{
       apache::thrift::FragileConstructor(),
@@ -263,7 +266,7 @@ TEST(HwPortFb303StatsTest, StatName) {
 }
 
 TEST(HwPortFb303StatsTest, StatsInit) {
-  HwPortFb303Stats stats(kPortName, kQueue2Name);
+  HwPortFb303Stats stats(kPortName, kQueue2Name, kEnabledPfcPriorities);
   for (auto statKey : stats.kPortStatKeys()) {
     EXPECT_TRUE(fbData->getStatMap()->contains(
         HwPortFb303Stats::statName(statKey, kPortName)));
@@ -273,6 +276,14 @@ TEST(HwPortFb303StatsTest, StatsInit) {
       EXPECT_TRUE(fbData->getStatMap()->contains(HwPortFb303Stats::statName(
           statKey, kPortName, queueIdAndName.first, queueIdAndName.second)));
     }
+  }
+  for (auto statKey : stats.kPfcStatKeys()) {
+    for (auto pfcPriority : kEnabledPfcPriorities) {
+      EXPECT_TRUE(fbData->getStatMap()->contains(
+          HwPortFb303Stats::statName(statKey, kPortName, pfcPriority)));
+    }
+    EXPECT_TRUE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::statName(statKey, kPortName)));
   }
 }
 
