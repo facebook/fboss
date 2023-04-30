@@ -126,6 +126,9 @@ class SimSwitch : public HwSwitch {
   std::map<PortID, FabricEndpoint> getFabricReachability() const override {
     return {};
   }
+  std::vector<PortID> getSwitchReachability(int64_t switchId) const override {
+    return {};
+  }
 
   uint32_t generateDeterministicSeed(
       LoadBalancerID /*loadBalancerID*/,
