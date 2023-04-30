@@ -66,6 +66,7 @@ class HwBasePortFb303Stats {
       const = 0;
   virtual const std::vector<folly::StringPiece>& kOutMacsecPortStatKeys()
       const = 0;
+  virtual const std::vector<folly::StringPiece>& kPfcStatKeys() const = 0;
 
  protected:
   void reinitStats(std::optional<std::string> oldPortName);

@@ -95,6 +95,15 @@ HwPortFb303Stats::kOutMacsecPortStatKeys() const {
   return kMacsecOutKeys;
 }
 
+const std::vector<folly::StringPiece>& HwPortFb303Stats::kPfcStatKeys() const {
+  static std::vector<folly::StringPiece> kPfcKeys{
+      kInPfc(),
+      kInPfcXon(),
+      kOutPfc(),
+  };
+  return kPfcKeys;
+}
+
 void HwPortFb303Stats::updateStats(
     const HwPortStats& curPortStats,
     const std::chrono::seconds& retrievedAt) {
