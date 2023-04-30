@@ -305,7 +305,7 @@ TEST(HwPortFb303StatsTest, StatsDeInit) {
 TEST(HwPortFb303StatsTest, ReInit) {
   constexpr auto kNewPortName = "eth1/2/1";
 
-  HwPortFb303Stats stats(kPortName, kQueue2Name);
+  HwPortFb303Stats stats(kPortName, kQueue2Name, kEnabledPfcPriorities);
   stats.portNameChanged(kNewPortName);
   for (const auto& sName : stats.kPortStatKeys()) {
     EXPECT_TRUE(fbData->getStatMap()->contains(
@@ -320,6 +320,18 @@ TEST(HwPortFb303StatsTest, ReInit) {
       EXPECT_FALSE(fbData->getStatMap()->contains(HwPortFb303Stats::statName(
           statKey, kPortName, queueIdAndName.first, queueIdAndName.second)));
     }
+  }
+  for (auto statKey : stats.kPfcStatKeys()) {
+    for (auto pfcPriority : kEnabledPfcPriorities) {
+      EXPECT_TRUE(fbData->getStatMap()->contains(
+          HwPortFb303Stats::statName(statKey, kNewPortName, pfcPriority)));
+      EXPECT_FALSE(fbData->getStatMap()->contains(
+          HwPortFb303Stats::statName(statKey, kPortName, pfcPriority)));
+    }
+    EXPECT_TRUE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::statName(statKey, kNewPortName)));
+    EXPECT_FALSE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::statName(statKey, kPortName)));
   }
 }
 
