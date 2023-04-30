@@ -203,4 +203,12 @@ void HwBasePortFb303Stats::updateStat(
     int64_t val) {
   portCounters_.updateStat(now, statName(statKey, portName_), val);
 }
+
+void HwBasePortFb303Stats::updateStat(
+    const std::chrono::seconds& now,
+    folly::StringPiece statKey,
+    PfcPriority priority,
+    int64_t val) {
+  portCounters_.updateStat(now, statName(statKey, portName_, priority), val);
+}
 } // namespace facebook::fboss

@@ -99,6 +99,14 @@ class HwBasePortFb303Stats {
       folly::StringPiece statKey,
       int queueId,
       int64_t val);
+  /*
+   * update port PFC stat
+   */
+  void updateStat(
+      const std::chrono::seconds& now,
+      folly::StringPiece statKey,
+      PfcPriority priority,
+      int64_t val);
 
   void updateQueueWatermarkStats(
       const std::map<int16_t, int64_t>& queueWatermarkBytes) const;
