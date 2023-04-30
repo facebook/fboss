@@ -17,6 +17,14 @@ class HwSwitchMatcher {
   const std::unordered_set<SwitchID> switchIds() const {
     return switchIds_;
   }
+  /*
+   * Get switchId - only applies when switchIds.size() == 1
+   */
+  SwitchID switchId() const {
+    CHECK_EQ(switchIds_.size(), 1)
+        << "SwitchId api only applies when, switchIds.size() == 1";
+    return *switchIds_.begin();
+  }
 
   const std::string& matcherString() const {
     return matcherString_;
