@@ -531,9 +531,13 @@ std::pair<sai_uint8_t, sai_uint8_t> SaiPortManager::preparePfcConfigs(
   sai_uint8_t rxPfc = 0;
 
   if (pfc.has_value()) {
-    // PFC is enabled for all priorities on a port
-    txPfc = (*pfc->tx()) ? 0xff : 0;
-    rxPfc = (*pfc->rx()) ? 0xff : 0;
+    sai_uint8_t enabledPriorities = 0; // Bitmap of enabled PFC priorities
+    for (auto pri : swPort->getPfcPriorities()) {
+      enabledPriorities |= (1 << static_cast<PfcPriority>(pri));
+    }
+    // PFC is enabled for priorities specified in PG configs
+    txPfc = (*pfc->tx()) ? enabledPriorities : 0;
+    rxPfc = (*pfc->rx()) ? enabledPriorities : 0;
   }
   return std::pair(txPfc, rxPfc);
 }
