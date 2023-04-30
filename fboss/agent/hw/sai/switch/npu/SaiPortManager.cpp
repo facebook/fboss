@@ -162,8 +162,11 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   programSerdes(saiPort, swPort, handle.get());
 
   if (swPort->isEnabled()) {
+    HwBasePortFb303Stats::QueueId2Name queueId2Name{};
     portStats_.emplace(
-        swPort->getID(), std::make_unique<HwPortFb303Stats>(swPort->getName()));
+        swPort->getID(),
+        std::make_unique<HwPortFb303Stats>(
+            swPort->getName(), queueId2Name, swPort->getPfcPriorities()));
   }
 
   bool samplingMirror = swPort->getSampleDestination().has_value() &&
@@ -255,13 +258,19 @@ void SaiPortManager::changePortImpl(
   if (newPort->isEnabled()) {
     if (!oldPort->isEnabled()) {
       // Port transitioned from disabled to enabled, setup port stats
+      HwBasePortFb303Stats::QueueId2Name queueId2Name{};
       portStats_.emplace(
           newPort->getID(),
-          std::make_unique<HwPortFb303Stats>(newPort->getName()));
+          std::make_unique<HwPortFb303Stats>(
+              newPort->getName(), queueId2Name, newPort->getPfcPriorities()));
     } else if (oldPort->getName() != newPort->getName()) {
       // Port was already enabled, but Port name changed - update stats
       portStats_.find(newPort->getID())
           ->second->portNameChanged(newPort->getName());
+    }
+    if (oldPort->getPfc() != newPort->getPfc()) {
+      portStats_.find(newPort->getID())
+          ->second->pfcPriorityChanged(newPort->getPfcPriorities());
     }
   } else if (oldPort->isEnabled()) {
     // Port transitioned from enabled to disabled, remove stats
