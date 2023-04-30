@@ -458,3 +458,18 @@ TEST_F(PortManagerTest, togglePtpTcEnable) {
     checkPort(swPort->getID(), handle, true, 9412, ptpTcEnable);
   }
 }
+
+TEST_F(PortManagerTest, getFabricReachabilityForSwitch) {
+  std::shared_ptr<Port> swPort0 = makePort(p0);
+  swPort0->setPortType(cfg::PortType::FABRIC_PORT);
+  saiManagerTable->portManager().addPort(swPort0);
+
+  std::shared_ptr<Port> swPort1 = makePort(p1);
+  swPort1->setPortType(cfg::PortType::FABRIC_PORT);
+  saiManagerTable->portManager().addPort(swPort1);
+
+  std::vector<PortID> portIds =
+      saiManagerTable->portManager().getFabricReachabilityForSwitch(
+          static_cast<SwitchID>(0));
+  EXPECT_EQ(portIds.size(), 2);
+}

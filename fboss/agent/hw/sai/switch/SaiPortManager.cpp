@@ -1129,6 +1129,23 @@ bool SaiPortManager::fecStatsSupported(PortID portId) const {
   return false;
 }
 
+std::vector<PortID> SaiPortManager::getFabricReachabilityForSwitch(
+    const SwitchID& switchId) const {
+  std::vector<PortID> reachablePorts;
+  const auto& portApi = SaiApiTable::getInstance()->portApi();
+  for (const auto& [portId, handle] : handles_) {
+    if (getPortType(portId) == cfg::PortType::FABRIC_PORT) {
+      sai_fabric_port_reachability_t reachability;
+      reachability.switch_id = switchId;
+      auto attr = SaiPortTraits::Attributes::FabricReachability{reachability};
+      if (portApi.getAttribute(handle->port->adapterKey(), attr).reachable) {
+        reachablePorts.push_back(portId);
+      }
+    }
+  }
+  return reachablePorts;
+}
+
 std::optional<FabricEndpoint> SaiPortManager::getFabricReachabilityForPort(
     const PortID& portId,
     const SaiPortHandle* portHandle) const {
