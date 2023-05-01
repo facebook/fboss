@@ -113,6 +113,8 @@ TEST(AggregatePort, singleTrunkWithOnePhysicalPort) {
 
   // This config has an aggregate port comprised of a single physical port
   cfg::SwitchConfig config;
+  config.switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU))};
   config.ports()->resize(1);
   preparedMockPortConfig(config.ports()[0], 1);
 
@@ -158,6 +160,8 @@ TEST(AggregatePort, singleTrunkWithTwoPhysicalPorts) {
   baseState->registerPort(PortID(2), "port2");
 
   cfg::SwitchConfig baseConfig;
+  baseConfig.switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU))};
   baseConfig.ports()->resize(2);
   preparedMockPortConfig(baseConfig.ports()[0], 1);
   preparedMockPortConfig(baseConfig.ports()[1], 2);
@@ -214,6 +218,8 @@ TEST(AggregatePort, singleTrunkIdempotence) {
 
   // This config has an aggregate port comprised of two physical ports
   cfg::SwitchConfig baseConfig;
+  baseConfig.switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU))};
   baseConfig.ports()->resize(2);
   preparedMockPortConfig(baseConfig.ports()[0], 1);
   preparedMockPortConfig(baseConfig.ports()[1], 2);
@@ -271,6 +277,8 @@ TEST(AggregatePort, singleTrunkWithoutPhysicalPorts) {
 
   // This config has an aggregate port comprised of two physical ports
   cfg::SwitchConfig baseConfig;
+  baseConfig.switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU))};
   baseConfig.ports()->resize(2);
   preparedMockPortConfig(baseConfig.ports()[0], 1);
   preparedMockPortConfig(baseConfig.ports()[1], 2);
@@ -331,6 +339,8 @@ TEST(AggregatePort, noTrunk) {
 
   // This config has an aggregate port comprised of two physical ports
   cfg::SwitchConfig baseConfig;
+  baseConfig.switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU))};
   baseConfig.ports()->resize(2);
   preparedMockPortConfig(baseConfig.ports()[0], 1);
   preparedMockPortConfig(baseConfig.ports()[1], 2);

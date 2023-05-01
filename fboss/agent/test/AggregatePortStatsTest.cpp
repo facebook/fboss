@@ -27,6 +27,8 @@ using namespace facebook::fboss;
 namespace {
 cfg::SwitchConfig createConfig(AggregatePortID id, const std::string& name) {
   cfg::SwitchConfig config;
+  config.switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU))};
   config.ports()->resize(2);
   preparedMockPortConfig(config.ports()[0], 1);
   preparedMockPortConfig(config.ports()[1], 2);

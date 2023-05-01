@@ -33,6 +33,7 @@ class SwitchIdScopeResolver {
     return allSwitchMatcher();
   }
   HwSwitchMatcher scope(PortID portId) const;
+  HwSwitchMatcher scope(const cfg::AggregatePort& aggPort) const;
 
  private:
   const HwSwitchMatcher& l3SwitchMatcher() const;

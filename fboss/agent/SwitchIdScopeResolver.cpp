@@ -62,4 +62,14 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(PortID portId) const {
   throw FbossError("No switch found for port ", portId);
 }
 
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const cfg::AggregatePort& aggPort) const {
+  std::unordered_set<SwitchID> switchIds;
+  for (const auto& subport : *aggPort.memberPorts()) {
+    auto subPortSwitchIds = scope(PortID(*subport.memberPortID())).switchIds();
+    switchIds.insert(subPortSwitchIds.begin(), subPortSwitchIds.end());
+  }
+  return HwSwitchMatcher(switchIds);
+}
+
 } // namespace facebook::fboss

@@ -2037,15 +2037,6 @@ shared_ptr<AggregatePort> ThriftConfigApplier::createAggPort(
 
 std::vector<AggregatePort::Subport> ThriftConfigApplier::getSubportsSorted(
     const cfg::AggregatePort& cfg) {
-  if ((*cfg.memberPorts()).size() >
-      platform_->getAsic()->getMaxLagMemberSize()) {
-    throw FbossError(
-        "Trying to set ",
-        (*cfg.memberPorts()).size(),
-        " lag members, ",
-        "which is greater than the hardware limit ",
-        platform_->getAsic()->getMaxLagMemberSize());
-  }
   std::vector<AggregatePort::Subport> subports(
       std::distance(cfg.memberPorts()->begin(), cfg.memberPorts()->end()));
 
@@ -2060,13 +2051,27 @@ std::vector<AggregatePort::Subport> ThriftConfigApplier::getSubportsSorted(
     auto rate = *cfg.memberPorts()[i].rate();
     auto activity = *cfg.memberPorts()[i].activity();
     auto multiplier = *cfg.memberPorts()[i].holdTimerMultiplier();
-
     subports[i] =
         AggregatePort::Subport(id, priority, rate, activity, multiplier);
   }
 
   std::sort(subports.begin(), subports.end());
 
+  if (!subports.empty()) {
+    auto switchIds = scopeResolver_.scope(cfg).switchIds();
+    if (switchIds.size() > 1) {
+      throw FbossError("Multi Switch LAG not supported ", *cfg.key());
+    }
+    auto asic = hwAsicTable_->getHwAsicIf(*switchIds.begin());
+    if (subports.size() > asic->getMaxLagMemberSize()) {
+      throw FbossError(
+          "Trying to set ",
+          (*cfg.memberPorts()).size(),
+          " lag members, ",
+          "which is greater than the hardware limit ",
+          asic->getMaxLagMemberSize());
+    }
+  }
   return subports;
 }
 
