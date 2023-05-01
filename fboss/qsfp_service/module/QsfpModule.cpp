@@ -104,7 +104,15 @@ QsfpModule::QsfpModule(
 
 QsfpModule::~QsfpModule() {
   // The transceiver has been removed
+  removeTransceiver();
+}
+
+void QsfpModule::removeTransceiver() {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
+  removeTransceiverLocked();
+}
+
+void QsfpModule::removeTransceiverLocked() {
   getTransceiverManager()->updateStateBlocking(
       getID(), TransceiverStateMachineEvent::TCVR_EV_REMOVE_TRANSCEIVER);
 }

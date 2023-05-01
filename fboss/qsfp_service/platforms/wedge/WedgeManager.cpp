@@ -451,6 +451,7 @@ void WedgeManager::triggerQsfpHardResetLocked(
 
   if (auto it = lockedTransceivers->find(TransceiverID(idx));
       it != lockedTransceivers->end()) {
+    it->second->removeTransceiver();
     lockedTransceivers->erase(it);
   }
 }
@@ -492,6 +493,7 @@ void WedgeManager::updateTransceiverMap() {
       } else {
         // The management changes. Need to Delete the old module to make place
         // for the new one.
+        it->second->removeTransceiver();
         lockedTransceivers->erase(it);
       }
     }
