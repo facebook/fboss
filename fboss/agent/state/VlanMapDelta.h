@@ -53,7 +53,7 @@ class VlanDelta : public DeltaValue<Vlan> {
 };
 
 template <>
-struct ThriftMapNodeDeltaTraits<VlanMap> {
+struct MapDeltaTraits<VlanMap> {
   using mapped_type = typename VlanMap::mapped_type;
   using Extractor = Extractor<VlanMap>;
   using DeltaValue = VlanDelta;

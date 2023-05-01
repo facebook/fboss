@@ -37,7 +37,7 @@ struct Extractor {
   using value_type = std::conditional_t<
       is_mapped_type_shared_ptr_v<MAP>,
       mapped_type,
-      mapped_type*>;
+      std::add_pointer_t<std::add_const_t<mapped_type>>>;
 
   static const key_type& getKey(typename MAP::const_iterator i) {
     return i->first;
@@ -62,7 +62,8 @@ template <typename MAP>
 struct MapDeltaTraits {
   using mapped_type = typename MAP::mapped_type;
   using Extractor = Extractor<MAP>;
-  using DeltaValue = DeltaValue<mapped_type, const mapped_type*>;
+  using value_type = typename Extractor::value_type;
+  using DeltaValue = DeltaValue<mapped_type, value_type>;
   using NodeWrapper = typename DeltaValue::NodeWrapper;
   using DeltaValueIterator = DeltaValueIterator<MAP, DeltaValue, Extractor>;
   using MapPointerTraits = MapPointerTraits<MAP>;
@@ -103,18 +104,8 @@ class MapDelta {
 };
 
 template <typename MAP>
-struct ThriftMapNodeDeltaTraits {
-  using mapped_type = typename MAP::mapped_type;
-  using Extractor = Extractor<MAP>;
-  using DeltaValue = DeltaValue<mapped_type, typename Extractor::value_type>;
-  using NodeWrapper = typename DeltaValue::NodeWrapper;
-  using DeltaValueIterator = DeltaValueIterator<MAP, DeltaValue, Extractor>;
-  using MapPointerTraits = MapPointerTraits<MAP>;
-};
-
-template <typename MAP>
-struct ThriftMapDelta : MapDelta<MAP, ThriftMapNodeDeltaTraits> {
-  using Base = MapDelta<MAP, ThriftMapNodeDeltaTraits>;
+struct ThriftMapDelta : MapDelta<MAP, MapDeltaTraits> {
+  using Base = MapDelta<MAP, MapDeltaTraits>;
   ThriftMapDelta(const MAP* oldMap, const MAP* newMap) : Base(oldMap, newMap) {}
 };
 
