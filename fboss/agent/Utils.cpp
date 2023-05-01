@@ -439,4 +439,40 @@ std::shared_ptr<NdpEntry> getNeighborEntryForIP(
   return entry;
 }
 
+OperDeltaFilter::OperDeltaFilter(SwitchID switchId) : switchId_(switchId) {}
+
+std::optional<fsdb::OperDelta> OperDeltaFilter::filter(
+    const fsdb::OperDelta& delta,
+    int index) const {
+  fsdb::OperDelta result{};
+  result.protocol() = *delta.protocol();
+  if (delta.metadata().has_value()) {
+    result.metadata() = *delta.metadata();
+  }
+
+  for (const auto& change : *delta.changes()) {
+    auto& path = *change.path()->raw();
+    if (path.size() < index + 1) {
+      continue;
+    }
+    const auto& matcherStr = path[index];
+    auto iter = matchersCache_.find(matcherStr);
+    if (iter == matchersCache_.end()) {
+      // if matcher string is not found in cache, cache it.
+      HwSwitchMatcher matcher(matcherStr);
+      auto result =
+          matchersCache_.emplace(matcherStr, HwSwitchMatcher(matcherStr));
+      iter = result.first;
+    }
+    CHECK(iter != matchersCache_.end());
+    if (iter->second.has(switchId_)) {
+      result.changes()->push_back(change);
+    }
+  }
+  if (result.changes()->empty()) {
+    return std::nullopt;
+  }
+  return result;
+}
+
 } // namespace facebook::fboss

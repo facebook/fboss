@@ -24,6 +24,7 @@
 #include <folly/Range.h>
 #include <folly/lang/Bits.h>
 #include <folly/logging/xlog.h>
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/state/NdpEntry.h"
 
 #include <thrift/lib/cpp2/protocol/BinaryProtocol.h>
@@ -31,6 +32,7 @@
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
+#include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
 #include <chrono>
 
@@ -276,5 +278,21 @@ std::shared_ptr<NdpEntry> getNeighborEntryForIP(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& intf,
     const folly::IPAddressV6& ipAddr);
+
+class OperDeltaFilter {
+ public:
+  explicit OperDeltaFilter(SwitchID switchId);
+  std::optional<fsdb::OperDelta> filterWithSwitchStateRootPath(
+      const fsdb::OperDelta& delta) const {
+    return filter(delta, 1);
+  }
+
+  std::optional<fsdb::OperDelta> filter(const fsdb::OperDelta& delta, int index)
+      const;
+
+ private:
+  SwitchID switchId_;
+  mutable std::map<std::string, HwSwitchMatcher> matchersCache_;
+};
 
 } // namespace facebook::fboss
