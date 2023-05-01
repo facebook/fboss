@@ -12,22 +12,22 @@
 
 namespace facebook::fboss {
 
-thrift_cow::ThriftMapDelta<ForwardingInformationBaseV4>
+ThriftMapDelta<ForwardingInformationBaseV4>
 ForwardingInformationBaseContainerDelta::getV4FibDelta() const {
-  return thrift_cow::ThriftMapDelta<ForwardingInformationBaseV4>(
+  return ThriftMapDelta<ForwardingInformationBaseV4>(
       getOld() ? getOld()->getFibV4().get() : nullptr,
       getNew() ? getNew()->getFibV4().get() : nullptr);
 }
 
-thrift_cow::ThriftMapDelta<ForwardingInformationBaseV6>
+ThriftMapDelta<ForwardingInformationBaseV6>
 ForwardingInformationBaseContainerDelta::getV6FibDelta() const {
-  return thrift_cow::ThriftMapDelta<ForwardingInformationBaseV6>(
+  return ThriftMapDelta<ForwardingInformationBaseV6>(
       getOld() ? getOld()->getFibV6().get() : nullptr,
       getNew() ? getNew()->getFibV6().get() : nullptr);
 }
 
-template class thrift_cow::ThriftMapDelta<ForwardingInformationBaseV4>;
-template class thrift_cow::ThriftMapDelta<ForwardingInformationBaseV6>;
+template struct ThriftMapDelta<ForwardingInformationBaseV4>;
+template struct ThriftMapDelta<ForwardingInformationBaseV6>;
 template class MapDelta<
     ForwardingInformationBaseMap,
     ForwardingInformationBaseMapDeltaTraits>;

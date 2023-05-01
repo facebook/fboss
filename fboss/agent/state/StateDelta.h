@@ -73,40 +73,38 @@ class StateDelta {
     return new_;
   }
 
-  thrift_cow::ThriftMapDelta<PortMap> getPortsDelta() const;
+  ThriftMapDelta<PortMap> getPortsDelta() const;
   VlanMapDelta getVlansDelta() const;
   InterfaceMapDelta getIntfsDelta() const;
   DeltaValue<QosPolicy> getDefaultDataPlaneQosPolicyDelta() const;
   AclMapDelta getAclsDelta(
       cfg::AclStage aclStage = cfg::AclStage::INGRESS,
       std::optional<std::string> tableName = std::nullopt) const;
-  thrift_cow::ThriftMapDelta<AclTableMap> getAclTablesDelta(
-      cfg::AclStage aclStage) const;
-  thrift_cow::ThriftMapDelta<AclTableGroupMap> getAclTableGroupsDelta() const;
+  ThriftMapDelta<AclTableMap> getAclTablesDelta(cfg::AclStage aclStage) const;
+  ThriftMapDelta<AclTableGroupMap> getAclTableGroupsDelta() const;
   QosPolicyMapDelta getQosPoliciesDelta() const;
-  thrift_cow::ThriftMapDelta<AggregatePortMap> getAggregatePortsDelta() const;
-  thrift_cow::ThriftMapDelta<SflowCollectorMap> getSflowCollectorsDelta() const;
-  thrift_cow::ThriftMapDelta<LoadBalancerMap> getLoadBalancersDelta() const;
+  ThriftMapDelta<AggregatePortMap> getAggregatePortsDelta() const;
+  ThriftMapDelta<SflowCollectorMap> getSflowCollectorsDelta() const;
+  ThriftMapDelta<LoadBalancerMap> getLoadBalancersDelta() const;
   DeltaValue<ControlPlane> getControlPlaneDelta() const;
-  thrift_cow::ThriftMapDelta<UdfPacketMatcherMap> getUdfPacketMatcherDelta()
-      const;
-  thrift_cow::ThriftMapDelta<UdfGroupMap> getUdfGroupDelta() const;
+  ThriftMapDelta<UdfPacketMatcherMap> getUdfPacketMatcherDelta() const;
+  ThriftMapDelta<UdfGroupMap> getUdfGroupDelta() const;
 
-  thrift_cow::ThriftMapDelta<MirrorMap> getMirrorsDelta() const;
+  ThriftMapDelta<MirrorMap> getMirrorsDelta() const;
 
-  thrift_cow::ThriftMapDelta<TransceiverMap> getTransceiversDelta() const;
+  ThriftMapDelta<TransceiverMap> getTransceiversDelta() const;
   ForwardingInformationBaseMapDelta getFibsDelta() const;
-  thrift_cow::ThriftMapDelta<LabelForwardingInformationBase>
+  ThriftMapDelta<LabelForwardingInformationBase>
   getLabelForwardingInformationBaseDelta() const;
   DeltaValue<SwitchSettings> getSwitchSettingsDelta() const;
   DeltaValue<FlowletSwitchingConfig> getFlowletSwitchingConfigDelta() const;
-  thrift_cow::ThriftMapDelta<SystemPortMap> getSystemPortsDelta() const;
-  thrift_cow::ThriftMapDelta<IpTunnelMap> getIpTunnelsDelta() const;
-  thrift_cow::ThriftMapDelta<TeFlowTable> getTeFlowEntriesDelta() const;
+  ThriftMapDelta<SystemPortMap> getSystemPortsDelta() const;
+  ThriftMapDelta<IpTunnelMap> getIpTunnelsDelta() const;
+  ThriftMapDelta<TeFlowTable> getTeFlowEntriesDelta() const;
   // Remote object deltas
-  thrift_cow::ThriftMapDelta<SystemPortMap> getRemoteSystemPortsDelta() const;
+  ThriftMapDelta<SystemPortMap> getRemoteSystemPortsDelta() const;
   InterfaceMapDelta getRemoteIntfsDelta() const;
-  thrift_cow::ThriftMapDelta<DsfNodeMap> getDsfNodesDelta() const;
+  ThriftMapDelta<DsfNodeMap> getDsfNodesDelta() const;
 
   const fsdb::OperDelta& getOperDelta() const;
 

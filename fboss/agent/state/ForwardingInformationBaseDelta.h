@@ -21,8 +21,8 @@ class ForwardingInformationBaseContainerDelta
  public:
   using DeltaValue<ForwardingInformationBaseContainer>::DeltaValue;
 
-  thrift_cow::ThriftMapDelta<ForwardingInformationBaseV4> getV4FibDelta() const;
-  thrift_cow::ThriftMapDelta<ForwardingInformationBaseV6> getV6FibDelta() const;
+  ThriftMapDelta<ForwardingInformationBaseV4> getV4FibDelta() const;
+  ThriftMapDelta<ForwardingInformationBaseV6> getV6FibDelta() const;
 
   template <typename AddrT>
   auto getFibDelta() const {
@@ -37,8 +37,7 @@ class ForwardingInformationBaseContainerDelta
 template <typename IGNORED>
 struct ForwardingInformationBaseMapDeltaTraits {
   using mapped_type = typename ForwardingInformationBaseMap::mapped_type;
-  using ExtractorT =
-      thrift_cow::ThriftMapNodeExtractor<ForwardingInformationBaseMap>;
+  using ExtractorT = ThriftMapNodeExtractor<ForwardingInformationBaseMap>;
   using DeltaValueT = ForwardingInformationBaseContainerDelta;
 };
 

@@ -53,7 +53,7 @@ class QosPolicyMap : public ThriftMapNode<QosPolicyMap, QosPolicyMapTraits> {
   friend class CloneAllocator;
 };
 
-using QosPolicyMapDelta = thrift_cow::ThriftMapDelta<QosPolicyMap>;
+using QosPolicyMapDelta = ThriftMapDelta<QosPolicyMap>;
 
 using MultiSwitchQosPolicyMapTypeClass = apache::thrift::type_class::
     map<apache::thrift::type_class::string, QosPolicyMapTypeClass>;

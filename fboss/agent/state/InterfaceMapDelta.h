@@ -39,19 +39,17 @@ class InterfaceDelta : public DeltaValue<Interface> {
 
  public:
   auto getArpEntriesDelta() const {
-    return thrift_cow::ThriftMapDelta(
-        getArpEntries(getOld()), getArpEntries(getNew()));
+    return ThriftMapDelta(getArpEntries(getOld()), getArpEntries(getNew()));
   }
   auto getNdpEntriesDelta() const {
-    return thrift_cow::ThriftMapDelta(
-        getNdpEntries(getOld()), getNdpEntries(getNew()));
+    return ThriftMapDelta(getNdpEntries(getOld()), getNdpEntries(getNew()));
   }
 };
 
 template <typename IGNORED>
 struct InterfaceMapDeltaTraits {
   using mapped_type = typename InterfaceMap::mapped_type;
-  using ExtractorT = thrift_cow::ThriftMapNodeExtractor<InterfaceMap>;
+  using ExtractorT = ThriftMapNodeExtractor<InterfaceMap>;
   using DeltaValueT = InterfaceDelta;
 };
 

@@ -11,6 +11,18 @@
 
 #include <fboss/agent/state/NodeMapDelta.h>
 
+namespace {
+template <typename T>
+struct IsSharedPtr {
+  static constexpr bool value = false;
+};
+
+template <typename T>
+struct IsSharedPtr<std::shared_ptr<T>> {
+  static constexpr bool value = true;
+};
+} // namespace
+
 namespace facebook::fboss {
 
 template <typename MAP>
@@ -65,6 +77,40 @@ class MapDelta {
 
  private:
   Impl impl_;
+};
+
+template <typename MAP>
+struct ThriftMapNodeExtractor {
+  using key_type = typename MAP::key_type;
+  using mapped_type = typename MAP::mapped_type;
+  using value_type = std::conditional_t<
+      IsSharedPtr<mapped_type>::value,
+      mapped_type,
+      const mapped_type*>;
+
+  static const key_type& getKey(typename MAP::const_iterator i) {
+    return i->first;
+  }
+  static value_type getValue(typename MAP::const_iterator i) {
+    if constexpr (IsSharedPtr<mapped_type>::value) {
+      return i->second;
+    } else {
+      return &i->second;
+    }
+  }
+};
+
+template <typename MAP>
+struct ThriftMapNodeDeltaTraits {
+  using mapped_type = typename MAP::mapped_type;
+  using ExtractorT = ThriftMapNodeExtractor<MAP>;
+  using DeltaValueT = DeltaValue<mapped_type, typename ExtractorT::value_type>;
+};
+
+template <typename MAP>
+struct ThriftMapDelta : MapDelta<MAP, ThriftMapNodeDeltaTraits> {
+  using Base = MapDelta<MAP, ThriftMapNodeDeltaTraits>;
+  ThriftMapDelta(const MAP* oldMap, const MAP* newMap) : Base(oldMap, newMap) {}
 };
 
 } // namespace facebook::fboss

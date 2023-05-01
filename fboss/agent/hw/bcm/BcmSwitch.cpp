@@ -2533,8 +2533,7 @@ void BcmSwitch::processNeighborTableDelta(
       ArpTable,
       NdpTable>;
   using NeighborEntryT = typename NeighborTableT::Entry;
-  using NeighborEntryDeltaT =
-      typename thrift_cow::ThriftMapDelta<NeighborTableT>::VALUE;
+  using NeighborEntryDeltaT = typename ThriftMapDelta<NeighborTableT>::VALUE;
   std::vector<NeighborEntryDeltaT> discardedNeighborEntryDelta;
 
   for (const auto& vlanDelta : stateDelta.getVlansDelta()) {

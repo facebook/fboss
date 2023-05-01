@@ -147,7 +147,7 @@ void DsfSubscriber::scheduleUpdate(
 
         if (newSysPorts) {
           auto origSysPorts = out->getSystemPorts(nodeSwitchId);
-          thrift_cow::ThriftMapDelta<SystemPortMap> delta(
+          ThriftMapDelta<SystemPortMap> delta(
               origSysPorts.get(), newSysPorts.get());
           auto remoteSysPorts = out->getRemoteSystemPorts()->modify(&out);
           processDelta(delta, remoteSysPorts, makeRemoteSysPort);

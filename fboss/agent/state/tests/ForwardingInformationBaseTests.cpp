@@ -97,8 +97,7 @@ TEST(ForwardingInformationBaseV4, IPv4DefaultPrefixComparesSmallest) {
   ForwardingInformationBaseV4 oldFib;
   auto newFib = getFibV4();
 
-  thrift_cow::ThriftMapDelta<ForwardingInformationBaseV4> delta(
-      &oldFib, newFib.get());
+  ThriftMapDelta<ForwardingInformationBaseV4> delta(&oldFib, newFib.get());
   std::shared_ptr<RouteV4> firstRouteObserved;
 
   DeltaFunctions::forEachAdded(delta, [&](std::shared_ptr<RouteV4> newRoute) {
@@ -118,8 +117,7 @@ TEST(ForwardingInformationBaseV6, IPv6DefaultPrefixFound) {
 
   validateThriftMapMapSerialization(*newFib);
 
-  thrift_cow::ThriftMapDelta<ForwardingInformationBaseV6> delta(
-      &oldFib, newFib.get());
+  ThriftMapDelta<ForwardingInformationBaseV6> delta(&oldFib, newFib.get());
   std::shared_ptr<RouteV6> defaultRouteObserved;
 
   RoutePrefixV6 defaultPrefixV6{folly::IPAddressV6("::"), 0};
