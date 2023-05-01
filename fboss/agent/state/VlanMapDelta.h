@@ -21,8 +21,8 @@ class VlanDelta;
 template <>
 struct ThriftMapNodeDeltaTraits<VlanMap> {
   using mapped_type = typename VlanMap::mapped_type;
-  using ExtractorT = ThriftMapNodeExtractor<VlanMap>;
-  using DeltaValueT = VlanDelta;
+  using Extractor = ThriftMapNodeExtractor<VlanMap>;
+  using DeltaValue = VlanDelta;
 };
 /*
  * VlanMapDelta is a small wrapper on top of NodeMapDelta<VlanMap>.

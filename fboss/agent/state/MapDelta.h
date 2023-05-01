@@ -41,18 +41,18 @@ struct Extractor {
 template <typename MAP>
 struct MapDeltaTraits {
   using mapped_type = typename MAP::mapped_type;
-  using DeltaValueT = DeltaValue<mapped_type, const mapped_type*>;
-  using ExtractorT = Extractor<MAP>;
+  using DeltaValue = DeltaValue<mapped_type, const mapped_type*>;
+  using Extractor = Extractor<MAP>;
 };
 
 template <typename MAP, template <typename> typename Traits = MapDeltaTraits>
 class MapDelta {
  public:
   using MapType = MAP;
-  using VALUE = typename Traits<MAP>::DeltaValueT;
+  using VALUE = typename Traits<MAP>::DeltaValue;
   using Node = typename MAP::mapped_type;
   using NodeWrapper = typename VALUE::NodeWrapper;
-  using NodeMapExtractor = typename Traits<MAP>::ExtractorT;
+  using NodeMapExtractor = typename Traits<MAP>::Extractor;
   using Iterator = DeltaValueIterator<MAP, VALUE, NodeMapExtractor>;
   using Impl = MapDeltaImpl<MAP, VALUE, Iterator>;
 
@@ -103,8 +103,8 @@ struct ThriftMapNodeExtractor {
 template <typename MAP>
 struct ThriftMapNodeDeltaTraits {
   using mapped_type = typename MAP::mapped_type;
-  using ExtractorT = ThriftMapNodeExtractor<MAP>;
-  using DeltaValueT = DeltaValue<mapped_type, typename ExtractorT::value_type>;
+  using Extractor = ThriftMapNodeExtractor<MAP>;
+  using DeltaValue = DeltaValue<mapped_type, typename Extractor::value_type>;
 };
 
 template <typename MAP>
