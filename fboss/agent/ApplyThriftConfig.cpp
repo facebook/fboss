@@ -3755,16 +3755,10 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
 shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
   if (!hwAsicTable_->isFeatureSupportedOnAnyAsic(HwAsic::Feature::CPU_PORT)) {
     if (cfg_->cpuTrafficPolicy()) {
-      auto getAsicNamesString = [](const auto& names) {
-        std::stringstream ss;
-        for (const auto& name : names) {
-          ss << name << " ";
-        }
-        return ss.str();
-      };
       throw FbossError(
           "No member of ASIC list supports CPU port ",
-          getAsicNamesString(hwAsicTable_->asicNames()));
+          folly::join<std::string, std::vector<std::string>>(
+              " ", hwAsicTable_->asicNames()));
     }
     return nullptr;
   }
