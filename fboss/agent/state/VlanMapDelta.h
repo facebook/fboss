@@ -18,12 +18,6 @@
 namespace facebook::fboss {
 
 class VlanDelta;
-template <>
-struct ThriftMapNodeDeltaTraits<VlanMap> {
-  using mapped_type = typename VlanMap::mapped_type;
-  using Extractor = ThriftMapNodeExtractor<VlanMap>;
-  using DeltaValue = VlanDelta;
-};
 /*
  * VlanMapDelta is a small wrapper on top of NodeMapDelta<VlanMap>.
  *
@@ -56,6 +50,16 @@ class VlanDelta : public DeltaValue<Vlan> {
         getOld() ? getOld()->getMacTable().get() : nullptr,
         getNew() ? getNew()->getMacTable().get() : nullptr);
   }
+};
+
+template <>
+struct ThriftMapNodeDeltaTraits<VlanMap> {
+  using mapped_type = typename VlanMap::mapped_type;
+  using Extractor = ThriftMapNodeExtractor<VlanMap>;
+  using DeltaValue = VlanDelta;
+  using NodeWrapper = typename DeltaValue::NodeWrapper;
+  using DeltaValueIterator = DeltaValueIterator<VlanMap, DeltaValue, Extractor>;
+  using MapPointerTraits = MapPointerTraits<VlanMap>;
 };
 
 using VlanMapDelta = ThriftMapDelta<VlanMap>;

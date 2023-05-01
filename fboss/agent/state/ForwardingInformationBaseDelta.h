@@ -39,6 +39,10 @@ struct ForwardingInformationBaseMapDeltaTraits {
   using mapped_type = typename ForwardingInformationBaseMap::mapped_type;
   using Extractor = ThriftMapNodeExtractor<ForwardingInformationBaseMap>;
   using DeltaValue = ForwardingInformationBaseContainerDelta;
+  using NodeWrapper = typename DeltaValue::NodeWrapper;
+  using DeltaValueIterator =
+      DeltaValueIterator<ForwardingInformationBaseMap, DeltaValue, Extractor>;
+  using MapPointerTraits = MapPointerTraits<ForwardingInformationBaseMap>;
 };
 
 using ForwardingInformationBaseMapDelta = MapDelta<

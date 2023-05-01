@@ -43,6 +43,9 @@ struct MapDeltaTraits {
   using mapped_type = typename MAP::mapped_type;
   using DeltaValue = DeltaValue<mapped_type, const mapped_type*>;
   using Extractor = Extractor<MAP>;
+  using NodeWrapper = typename DeltaValue::NodeWrapper;
+  using DeltaValueIterator = DeltaValueIterator<MAP, DeltaValue, Extractor>;
+  using MapPointerTraits = MapPointerTraits<MAP>;
 };
 
 template <typename MAP, template <typename> typename Traits = MapDeltaTraits>
@@ -50,10 +53,10 @@ class MapDelta {
  public:
   using MapType = MAP;
   using VALUE = typename Traits<MAP>::DeltaValue;
-  using Node = typename MAP::mapped_type;
-  using NodeWrapper = typename VALUE::NodeWrapper;
+  using Node = typename Traits<MAP>::mapped_type;
+  using NodeWrapper = typename Traits<MAP>::NodeWrapper;
   using NodeMapExtractor = typename Traits<MAP>::Extractor;
-  using Iterator = DeltaValueIterator<MAP, VALUE, NodeMapExtractor>;
+  using Iterator = typename Traits<MAP>::DeltaValueIterator;
   using Impl = MapDeltaImpl<MAP, VALUE, Iterator>;
 
   MapDelta(const MAP* oldMap, const MAP* newMap)
@@ -105,6 +108,9 @@ struct ThriftMapNodeDeltaTraits {
   using mapped_type = typename MAP::mapped_type;
   using Extractor = ThriftMapNodeExtractor<MAP>;
   using DeltaValue = DeltaValue<mapped_type, typename Extractor::value_type>;
+  using NodeWrapper = typename DeltaValue::NodeWrapper;
+  using DeltaValueIterator = DeltaValueIterator<MAP, DeltaValue, Extractor>;
+  using MapPointerTraits = MapPointerTraits<MAP>;
 };
 
 template <typename MAP>

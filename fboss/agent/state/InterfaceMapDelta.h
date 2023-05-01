@@ -51,6 +51,10 @@ struct InterfaceMapDeltaTraits {
   using mapped_type = typename InterfaceMap::mapped_type;
   using Extractor = ThriftMapNodeExtractor<InterfaceMap>;
   using DeltaValue = InterfaceDelta;
+  using NodeWrapper = typename DeltaValue::NodeWrapper;
+  using DeltaValueIterator =
+      DeltaValueIterator<InterfaceMap, DeltaValue, Extractor>;
+  using MapPointerTraits = MapPointerTraits<InterfaceMap>;
 };
 
 using InterfaceMapDelta = MapDelta<InterfaceMap, InterfaceMapDeltaTraits>;
