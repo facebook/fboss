@@ -4065,7 +4065,8 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
             sFlow tunneling.");
       }
       if (destinationIp->isV6() &&
-          !platform_->getAsic()->isSupported(HwAsic::Feature::SFLOWv6)) {
+          !hwAsicTable_->isFeatureSupportedOnAnyAsic(
+              HwAsic::Feature::SFLOWv6)) {
         throw FbossError("SFLOWv6 is not supported on this platform");
       }
       udpPorts = TunnelUdpPorts(
@@ -4073,7 +4074,8 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
     } else if (auto greTunnel = tunnel->greTunnel()) {
       destinationIp = folly::IPAddress(*greTunnel->ip());
       if (destinationIp->isV6() &&
-          !platform_->getAsic()->isSupported(HwAsic::Feature::ERSPANv6)) {
+          !hwAsicTable_->isFeatureSupportedOnAnyAsic(
+              HwAsic::Feature::ERSPANv6)) {
         throw FbossError("ERSPANv6 is not supported on this platform");
       }
     }
