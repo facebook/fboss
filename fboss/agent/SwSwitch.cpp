@@ -37,10 +37,10 @@
 #include "fboss/agent/AclNexthopHandler.h"
 #include "fboss/agent/DsfSubscriber.h"
 #include "fboss/agent/FsdbSyncer.h"
-#include "fboss/agent/HwSwitchSyncer.h"
 #include "fboss/agent/MPLSHandler.h"
 #include "fboss/agent/MacTableManager.h"
 #include "fboss/agent/MirrorManager.h"
+#include "fboss/agent/MultiHwSwitchSyncer.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PacketLogger.h"
 #include "fboss/agent/PacketObserver.h"
@@ -236,7 +236,7 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       hwAsicTable_(new HwAsicTable(getSwitchInfoFromConfig(platform_.get()))),
       scopeResolver_(
           new SwitchIdScopeResolver(getSwitchInfoFromConfig(platform_.get()))),
-      hwSwitchSyncer_(nullptr) {
+      multiHwSwitchSyncer_(nullptr) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());
@@ -653,7 +653,8 @@ void SwSwitch::init(
       platform_->getAsic()->getSwitchId());
   const auto& [switchID, switchInfo] =
       *switchInfoTable_.getSwitchIdToSwitchInfo().begin();
-  hwSwitchSyncer_ = std::make_unique<HwSwitchSyncer>(hw_, switchID, switchInfo);
+  multiHwSwitchSyncer_ = std::make_unique<MultiHwSwitchSyncer>(
+      hw_, switchInfoTable_.getSwitchIdToSwitchInfo());
   auto initialState = hwInitRet.switchState;
   bootType_ = hwInitRet.bootType;
   rib_ = std::move(hwInitRet.rib);
@@ -694,7 +695,7 @@ void SwSwitch::init(
         StateDelta(std::make_shared<SwitchState>(), initialState));
   });
 
-  hwSwitchSyncer_->start();
+  multiHwSwitchSyncer_->start();
   startThreads();
   XLOG(DBG2)
       << "Time to init switch and start all threads "
@@ -2203,7 +2204,7 @@ InterfaceID SwSwitch::getInterfaceIDForAggregatePort(
 std::shared_ptr<SwitchState> SwSwitch::stateChanged(
     const StateDelta& delta,
     bool transaction) const {
-  return hwSwitchSyncer_->stateChanged(delta, transaction);
+  return multiHwSwitchSyncer_->stateChanged(delta, transaction);
 }
 
 fsdb::OperDelta SwSwitch::stateChanged(
