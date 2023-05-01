@@ -103,8 +103,8 @@ class MapDelta {
   Impl impl_;
 };
 
-template <typename MAP>
-struct ThriftMapDelta : MapDelta<MAP, MapDeltaTraits> {
+template <typename MAP, template <typename> typename Traits = MapDeltaTraits>
+struct ThriftMapDelta : MapDelta<MAP, Traits> {
   using Base = MapDelta<MAP, MapDeltaTraits>;
   ThriftMapDelta(const MAP* oldMap, const MAP* newMap) : Base(oldMap, newMap) {}
 };
