@@ -15,6 +15,7 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <memory>
 #include <optional>
+#include <sstream>
 #include <string>
 
 #include "fboss/agent/AclNexthopHandler.h"
@@ -3752,11 +3753,18 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
 }
 
 shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
-  if (!platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
+  if (!hwAsicTable_->isFeatureSupportedOnAnyAsic(HwAsic::Feature::CPU_PORT)) {
     if (cfg_->cpuTrafficPolicy()) {
+      auto getAsicNamesString = [](const auto& names) {
+        std::stringstream ss;
+        for (const auto& name : names) {
+          ss << name << " ";
+        }
+        return ss.str();
+      };
       throw FbossError(
-          platform_->getAsic()->getAsicTypeStr(),
-          " ASIC does not support CPU port");
+          "No member of ASIC list supports CPU port ",
+          getAsicNamesString(hwAsicTable_->asicNames()));
     }
     return nullptr;
   }
@@ -3828,8 +3836,7 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
 
   // check whether queue setting changed
   QueueConfig newQueues;
-  for (auto streamType :
-       platform_->getAsic()->getQueueStreamTypes(cfg::PortType::CPU_PORT)) {
+  for (auto streamType : hwAsicTable_->getCpuPortQueueStreamTypes()) {
     auto tmpPortQueues = updatePortQueues(
         origCPU->getQueuesConfig(),
         *cfg_->cpuQueues(),

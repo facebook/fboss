@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <unordered_set>
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/types.h"
 
@@ -14,8 +15,15 @@ class HwAsicTable {
   const HwAsic* getHwAsicIf(SwitchID switchID) const;
   bool isFeatureSupported(SwitchID switchId, HwAsic::Feature feature) const;
   bool isFeatureSupportedOnAnyAsic(HwAsic::Feature feature) const;
+  std::vector<std::string> asicNames() const;
+  std::set<cfg::StreamType> getCpuPortQueueStreamTypes() const;
+  std::set<cfg::StreamType> getQueueStreamTypes(
+      SwitchID switchId,
+      cfg::PortType portType) const;
 
  private:
+  std::unordered_set<SwitchID> getSwitchIdsOfType(cfg::SwitchType type) const;
+  std::unordered_set<SwitchID> getL3SwitchIds() const;
   std::map<SwitchID, std::unique_ptr<HwAsic>> hwAsics_;
 };
 

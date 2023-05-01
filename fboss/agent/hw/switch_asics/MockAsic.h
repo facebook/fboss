@@ -35,6 +35,8 @@ class MockAsic : public HwAsic {
       case Feature::WIDE_ECMP:
       case HwAsic::Feature::LINK_TRAINING:
         return false;
+      case Feature::CPU_PORT:
+        return getSwitchType() != cfg::SwitchType::FABRIC;
 
       default:
         return true;
