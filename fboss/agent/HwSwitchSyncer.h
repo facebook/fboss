@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/types.h"
@@ -52,6 +53,7 @@ class HwSwitchSyncer {
   cfg::SwitchInfo info_;
   folly::EventBase hwSwitchManagerEvb_;
   std::unique_ptr<std::thread> hwSwitchManagerThread_;
+  OperDeltaFilter operDeltaFilter_;
 };
 
 } // namespace facebook::fboss

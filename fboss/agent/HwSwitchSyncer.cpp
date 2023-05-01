@@ -22,7 +22,10 @@ HwSwitchSyncer::HwSwitchSyncer(
     HwSwitch* hwSwitch,
     const SwitchID& switchId,
     const cfg::SwitchInfo& info)
-    : hwSwitch_(hwSwitch), switchId_(switchId), info_(info) {}
+    : hwSwitch_(hwSwitch),
+      switchId_(switchId),
+      info_(info),
+      operDeltaFilter_(switchId) {}
 
 void HwSwitchSyncer::start() {
   hwSwitchManagerThread_.reset(new std::thread([this]() { run(); }));
@@ -74,11 +77,17 @@ std::shared_ptr<SwitchState> HwSwitchSyncer::stateChangedImpl(
     return update.isTransaction ? hwSwitch_->stateChangedTransaction(stateDelta)
                                 : hwSwitch_->stateChanged(stateDelta);
   }
-  auto outDelta = stateChangedImpl(update.inDelta, update.isTransaction);
+  // filter out deltas that don't apply to this switch
+  auto inDelta = operDeltaFilter_.filter(update.inDelta, 1);
+  if (!inDelta) {
+    // no-op
+    return update.newState;
+  }
+  auto outDelta = stateChangedImpl(*inDelta, update.isTransaction);
   if (outDelta.changes()->empty()) {
     return update.newState;
   }
-  if (update.inDelta == outDelta) {
+  if (*inDelta == outDelta) {
     return update.oldState;
   }
   // obtain the state that actually got programmed
