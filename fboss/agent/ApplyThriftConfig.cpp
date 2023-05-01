@@ -154,7 +154,7 @@ class ThriftConfigApplier {
         platform_(platform),
         rib_(rib),
         aclNexthopHandler_(aclNexthopHandler),
-        scopeResolver_(*config->switchSettings()->switchIdToSwitchInfo()),
+        scopeResolver_(getSwitchInfoFromConfig(config, platform)),
         platformMapping_(platformMapping),
         hwAsicTable_(hwAsicTable) {}
 
@@ -171,7 +171,7 @@ class ThriftConfigApplier {
         platform_(platform),
         routeUpdater_(routeUpdater),
         aclNexthopHandler_(aclNexthopHandler),
-        scopeResolver_(*config->switchSettings()->switchIdToSwitchInfo()),
+        scopeResolver_(getSwitchInfoFromConfig(config, platform)),
         platformMapping_(platformMapping),
         hwAsicTable_(hwAsicTable) {}
 
