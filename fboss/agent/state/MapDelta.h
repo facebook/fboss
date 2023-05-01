@@ -30,19 +30,39 @@ struct Extractor {
   using key_type = typename MAP::key_type;
   using mapped_type = typename MAP::mapped_type;
 
+  template <typename T>
+  static constexpr bool is_mapped_type_shared_ptr_v =
+      IsSharedPtr<typename T::mapped_type>::value;
+
+  using value_type = std::conditional_t<
+      is_mapped_type_shared_ptr_v<MAP>,
+      mapped_type,
+      mapped_type*>;
+
   static const key_type& getKey(typename MAP::const_iterator i) {
     return i->first;
   }
+
+  template <
+      typename T = MAP,
+      typename = std::enable_if_t<!is_mapped_type_shared_ptr_v<T>>>
   static const mapped_type* getValue(typename MAP::const_iterator i) {
     return &i->second;
+  }
+
+  template <
+      typename T = MAP,
+      typename = std::enable_if_t<is_mapped_type_shared_ptr_v<T>>>
+  static const mapped_type getValue(typename MAP::const_iterator i) {
+    return i->second;
   }
 };
 
 template <typename MAP>
 struct MapDeltaTraits {
   using mapped_type = typename MAP::mapped_type;
-  using DeltaValue = DeltaValue<mapped_type, const mapped_type*>;
   using Extractor = Extractor<MAP>;
+  using DeltaValue = DeltaValue<mapped_type, const mapped_type*>;
   using NodeWrapper = typename DeltaValue::NodeWrapper;
   using DeltaValueIterator = DeltaValueIterator<MAP, DeltaValue, Extractor>;
   using MapPointerTraits = MapPointerTraits<MAP>;
@@ -83,30 +103,9 @@ class MapDelta {
 };
 
 template <typename MAP>
-struct ThriftMapNodeExtractor {
-  using key_type = typename MAP::key_type;
-  using mapped_type = typename MAP::mapped_type;
-  using value_type = std::conditional_t<
-      IsSharedPtr<mapped_type>::value,
-      mapped_type,
-      const mapped_type*>;
-
-  static const key_type& getKey(typename MAP::const_iterator i) {
-    return i->first;
-  }
-  static value_type getValue(typename MAP::const_iterator i) {
-    if constexpr (IsSharedPtr<mapped_type>::value) {
-      return i->second;
-    } else {
-      return &i->second;
-    }
-  }
-};
-
-template <typename MAP>
 struct ThriftMapNodeDeltaTraits {
   using mapped_type = typename MAP::mapped_type;
-  using Extractor = ThriftMapNodeExtractor<MAP>;
+  using Extractor = Extractor<MAP>;
   using DeltaValue = DeltaValue<mapped_type, typename Extractor::value_type>;
   using NodeWrapper = typename DeltaValue::NodeWrapper;
   using DeltaValueIterator = DeltaValueIterator<MAP, DeltaValue, Extractor>;

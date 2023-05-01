@@ -37,7 +37,7 @@ class ForwardingInformationBaseContainerDelta
 template <typename IGNORED>
 struct ForwardingInformationBaseMapDeltaTraits {
   using mapped_type = typename ForwardingInformationBaseMap::mapped_type;
-  using Extractor = ThriftMapNodeExtractor<ForwardingInformationBaseMap>;
+  using Extractor = Extractor<ForwardingInformationBaseMap>;
   using DeltaValue = ForwardingInformationBaseContainerDelta;
   using NodeWrapper = typename DeltaValue::NodeWrapper;
   using DeltaValueIterator =

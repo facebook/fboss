@@ -55,7 +55,7 @@ class VlanDelta : public DeltaValue<Vlan> {
 template <>
 struct ThriftMapNodeDeltaTraits<VlanMap> {
   using mapped_type = typename VlanMap::mapped_type;
-  using Extractor = ThriftMapNodeExtractor<VlanMap>;
+  using Extractor = Extractor<VlanMap>;
   using DeltaValue = VlanDelta;
   using NodeWrapper = typename DeltaValue::NodeWrapper;
   using DeltaValueIterator = DeltaValueIterator<VlanMap, DeltaValue, Extractor>;

@@ -49,7 +49,7 @@ class InterfaceDelta : public DeltaValue<Interface> {
 template <typename IGNORED>
 struct InterfaceMapDeltaTraits {
   using mapped_type = typename InterfaceMap::mapped_type;
-  using Extractor = ThriftMapNodeExtractor<InterfaceMap>;
+  using Extractor = Extractor<InterfaceMap>;
   using DeltaValue = InterfaceDelta;
   using NodeWrapper = typename DeltaValue::NodeWrapper;
   using DeltaValueIterator =
