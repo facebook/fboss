@@ -7,6 +7,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/types.h"
 
+#include <folly/futures/Future.h>
 #include <folly/io/async/EventBase.h>
 
 namespace facebook::fboss {
@@ -14,15 +15,16 @@ namespace facebook::fboss {
 class HwSwitch;
 class StateDelta;
 
+struct HwSwitchStateUpdate {
+  HwSwitchStateUpdate(const StateDelta& delta, bool transaction);
+  std::shared_ptr<SwitchState> oldState;
+  std::shared_ptr<SwitchState> newState;
+  fsdb::OperDelta inDelta;
+  bool isTransaction;
+};
+
 class HwSwitchSyncer {
  public:
-  struct HwSwitchStateUpdate {
-    HwSwitchStateUpdate(const StateDelta& delta, bool transaction);
-    std::shared_ptr<SwitchState> oldState;
-    std::shared_ptr<SwitchState> newState;
-    fsdb::OperDelta inDelta;
-    bool isTransaction;
-  };
   HwSwitchSyncer(
       HwSwitch* hwSwitch,
       const SwitchID& switchId,
@@ -32,9 +34,8 @@ class HwSwitchSyncer {
 
   ~HwSwitchSyncer();
 
-  std::shared_ptr<SwitchState> stateChanged(
-      const StateDelta& delta,
-      bool transaction);
+  folly::Future<std::shared_ptr<SwitchState>> stateChanged(
+      HwSwitchStateUpdate update);
 
  private:
   std::shared_ptr<SwitchState> stateChangedImpl(

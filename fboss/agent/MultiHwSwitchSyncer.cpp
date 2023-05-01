@@ -48,6 +48,32 @@ std::shared_ptr<SwitchState> MultiHwSwitchSyncer::stateChanged(
   // TODO: support more than one switches
   CHECK_EQ(hwSwitchSyncers_.size(), 1);
   auto iter = hwSwitchSyncers_.begin();
-  return iter->second->stateChanged(delta, transaction);
+  auto switchId = iter->first;
+  auto update = HwSwitchStateUpdate(delta, transaction);
+  auto future = stateChanged(switchId, update);
+  return getStateUpdateResult(switchId, std::move(future));
+}
+
+folly::Future<std::shared_ptr<SwitchState>> MultiHwSwitchSyncer::stateChanged(
+    SwitchID switchId,
+    const HwSwitchStateUpdate& update) {
+  auto iter = hwSwitchSyncers_.find(switchId);
+  if (iter == hwSwitchSyncers_.end()) {
+    throw FbossError("hw switch syncer for switch id ", switchId, " not found");
+  }
+  return iter->second->stateChanged(update);
+}
+
+std::shared_ptr<SwitchState> MultiHwSwitchSyncer::getStateUpdateResult(
+    SwitchID switchId,
+    folly::Future<std::shared_ptr<SwitchState>>&& future) {
+  auto result = std::move(future).getTry();
+  if (result.hasException()) {
+    XLOG(ERR) << "Failed to get state update result for switch id " << switchId
+              << ":" << result.exception().what();
+    result.exception().throw_exception();
+  }
+  CHECK(result.hasValue());
+  return result.value();
 }
 } // namespace facebook::fboss

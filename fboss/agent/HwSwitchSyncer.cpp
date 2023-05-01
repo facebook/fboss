@@ -5,12 +5,11 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/state/StateDelta.h"
-#include "folly/futures/Future.h"
 #include "folly/futures/Promise.h"
 
 namespace facebook::fboss {
 
-HwSwitchSyncer::HwSwitchStateUpdate::HwSwitchStateUpdate(
+HwSwitchStateUpdate::HwSwitchStateUpdate(
     const StateDelta& delta,
     bool transaction)
     : oldState(delta.oldState()),
@@ -50,10 +49,8 @@ HwSwitchSyncer::~HwSwitchSyncer() {
   stop();
 }
 
-std::shared_ptr<SwitchState> HwSwitchSyncer::stateChanged(
-    const StateDelta& delta,
-    bool transaction) {
-  HwSwitchStateUpdate update(delta, transaction);
+folly::Future<std::shared_ptr<SwitchState>> HwSwitchSyncer::stateChanged(
+    HwSwitchStateUpdate update) {
   auto [promise, semiFuture] =
       folly::makePromiseContract<std::shared_ptr<SwitchState>>();
 
@@ -63,11 +60,8 @@ std::shared_ptr<SwitchState> HwSwitchSyncer::stateChanged(
     promise.setWith([update, this]() { return stateChangedImpl(update); });
   });
 
-  auto result = std::move(semiFuture).via(&hwSwitchManagerEvb_).getTry();
-  if (result.hasException()) {
-    // TODO: handle exception
-  }
-  return result.value();
+  auto future = std::move(semiFuture).via(&hwSwitchManagerEvb_);
+  return future;
 }
 
 std::shared_ptr<SwitchState> HwSwitchSyncer::stateChangedImpl(
