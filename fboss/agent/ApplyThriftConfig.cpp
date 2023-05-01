@@ -1688,11 +1688,15 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   }
 
   // For now, we only support update unicast port queues for ports
+  auto switchIds = SwitchIdScopeResolver(
+                       new_->getSwitchSettings()->getSwitchIdToSwitchInfo())
+                       .scope(orig->getID())
+                       .switchIds();
+  CHECK_EQ(switchIds.size(), 1);
+  auto asic = hwAsicTable_->getHwAsicIf(*switchIds.begin());
   QueueConfig portQueues;
-  for (auto streamType :
-       platform_->getAsic()->getQueueStreamTypes(*portConf->portType())) {
-    auto maxQueues =
-        platform_->getAsic()->getDefaultNumPortQueues(streamType, false);
+  for (auto streamType : asic->getQueueStreamTypes(*portConf->portType())) {
+    auto maxQueues = asic->getDefaultNumPortQueues(streamType, false);
     auto tmpPortQueues = updatePortQueues(
         orig->getPortQueues()->impl(),
         cfgPortQueues,
@@ -1738,7 +1742,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     bool pause_tx = *pause.tx();
 
     if (pfc_rx || pfc_tx) {
-      if (!platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+      if (!asic->isSupported(HwAsic::Feature::PFC)) {
         throw FbossError(
             "Port ",
             orig->getID(),
