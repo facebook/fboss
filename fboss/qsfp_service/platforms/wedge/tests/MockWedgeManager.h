@@ -38,7 +38,6 @@ class MockWedgeManager : public WedgeManager {
 
   MOCK_METHOD1(getXphyInfo, phy::PhyInfo(PortID));
   MOCK_METHOD0(clearAllTransceiverReset, void());
-  MOCK_METHOD1(triggerQsfpHardReset, void(int));
   MOCK_METHOD1(verifyEepromChecksums, bool(TransceiverID));
   MOCK_METHOD2(programExternalPhyPorts, void(TransceiverID, bool));
   MOCK_METHOD1(readyTransceiver, bool(TransceiverID));

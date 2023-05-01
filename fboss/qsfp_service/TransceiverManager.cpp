@@ -1778,6 +1778,7 @@ Transceiver* FOLLY_NULLABLE TransceiverManager::overrideTransceiverForTesting(
   auto lockedTransceivers = transceivers_.wlock();
   // Keep the same logic as updateTransceiverMap()
   if (auto it = lockedTransceivers->find(id); it != lockedTransceivers->end()) {
+    it->second->removeTransceiver();
     lockedTransceivers->erase(it);
   }
   // Only set the override transceiver if it's not null so that we can support

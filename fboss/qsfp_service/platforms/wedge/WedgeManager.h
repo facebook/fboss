@@ -177,9 +177,6 @@ class WedgeManager : public TransceiverManager {
 
   using LockedTransceiversPtr = folly::Synchronized<
       std::map<TransceiverID, std::unique_ptr<Transceiver>>>::WLockedPtr;
-  void triggerQsfpHardResetLocked(
-      int idx,
-      LockedTransceiversPtr& lockedTransceivers);
 
   std::unique_ptr<QsfpFsdbSyncManager> fsdbSyncManager_;
 };

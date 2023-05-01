@@ -102,10 +102,7 @@ QsfpModule::QsfpModule(
   markLastDownTime();
 }
 
-QsfpModule::~QsfpModule() {
-  // The transceiver has been removed
-  removeTransceiver();
-}
+QsfpModule::~QsfpModule() {}
 
 void QsfpModule::removeTransceiver() {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
