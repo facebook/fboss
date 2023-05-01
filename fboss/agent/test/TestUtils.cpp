@@ -368,8 +368,13 @@ shared_ptr<SwitchState> publishAndApplyConfig(
     RoutingInformationBase* rib) {
   state->publish();
   auto platformMapping = std::make_unique<MockPlatformMapping>();
+  auto hwAsicTable = HwAsicTable(
+      config->switchSettings()->switchIdToSwitchInfo()->size()
+          ? *config->switchSettings()->switchIdToSwitchInfo()
+          : std::map<int64_t, cfg::SwitchInfo>(
+                {{0, createSwitchInfo(cfg::SwitchType::NPU)}}));
   return applyThriftConfig(
-      state, config, platform, rib, nullptr, platformMapping.get());
+      state, config, platform, platformMapping.get(), &hwAsicTable, rib);
 }
 
 std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(

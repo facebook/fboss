@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
@@ -296,6 +297,8 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   // Test and observer threads can both apply state
   // updadtes. So protect with a mutex
   mutable std::mutex updateStateMutex_;
+
+  std::unique_ptr<HwAsicTable> hwAsicTable_;
 };
 
 } // namespace facebook::fboss

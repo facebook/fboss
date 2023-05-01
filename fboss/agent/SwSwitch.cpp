@@ -1896,16 +1896,18 @@ void SwSwitch::applyConfig(
                                    originalState,
                                    &newConfig,
                                    getPlatform(),
+                                   platformMapping_.get(),
+                                   hwAsicTable_.get(),
                                    &routeUpdater,
-                                   aclNexthopHandler_.get(),
-                                   platformMapping_.get())
+                                   aclNexthopHandler_.get())
                              : applyThriftConfig(
                                    originalState,
                                    &newConfig,
                                    getPlatform(),
+                                   platformMapping_.get(),
+                                   hwAsicTable_.get(),
                                    (RoutingInformationBase*)nullptr,
-                                   aclNexthopHandler_.get(),
-                                   platformMapping_.get());
+                                   aclNexthopHandler_.get());
 
         if (newState && !isValidStateUpdate(StateDelta(state, newState))) {
           throw FbossError("Invalid config passed in, skipping");

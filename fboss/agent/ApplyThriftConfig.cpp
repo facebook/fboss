@@ -20,6 +20,7 @@
 #include "fboss/agent/AclNexthopHandler.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/LoadBalancerConfigApplier.h"
 #include "fboss/agent/Platform.h"
@@ -145,14 +146,16 @@ class ThriftConfigApplier {
       const Platform* platform,
       RoutingInformationBase* rib,
       AclNexthopHandler* aclNexthopHandler,
-      const PlatformMapping* platformMapping)
+      const PlatformMapping* platformMapping,
+      const HwAsicTable* hwAsicTable)
       : orig_(orig),
         cfg_(config),
         platform_(platform),
         rib_(rib),
         aclNexthopHandler_(aclNexthopHandler),
         scopeResolver_(*config->switchSettings()->switchIdToSwitchInfo()),
-        platformMapping_(platformMapping) {}
+        platformMapping_(platformMapping),
+        hwAsicTable_(hwAsicTable) {}
 
   ThriftConfigApplier(
       const std::shared_ptr<SwitchState>& orig,
@@ -160,14 +163,16 @@ class ThriftConfigApplier {
       const Platform* platform,
       RouteUpdateWrapper* routeUpdater,
       AclNexthopHandler* aclNexthopHandler,
-      const PlatformMapping* platformMapping)
+      const PlatformMapping* platformMapping,
+      const HwAsicTable* hwAsicTable)
       : orig_(orig),
         cfg_(config),
         platform_(platform),
         routeUpdater_(routeUpdater),
         aclNexthopHandler_(aclNexthopHandler),
         scopeResolver_(*config->switchSettings()->switchIdToSwitchInfo()),
-        platformMapping_(platformMapping) {}
+        platformMapping_(platformMapping),
+        hwAsicTable_(hwAsicTable) {}
 
   std::shared_ptr<SwitchState> run();
 
@@ -438,6 +443,7 @@ class ThriftConfigApplier {
   AclNexthopHandler* aclNexthopHandler_{nullptr};
   SwitchIdScopeResolver scopeResolver_;
   const PlatformMapping* platformMapping_{nullptr};
+  const HwAsicTable* hwAsicTable_{nullptr};
 
   struct InterfaceIpInfo {
     InterfaceIpInfo(uint8_t mask, MacAddress mac, InterfaceID intf)
@@ -4380,21 +4386,29 @@ shared_ptr<SwitchState> applyThriftConfig(
     const shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
     const Platform* platform,
+    const PlatformMapping* platformMapping,
+    const HwAsicTable* hwAsicTable,
     RoutingInformationBase* rib,
-    AclNexthopHandler* aclNexthopHandler,
-    const PlatformMapping* platformMapping) {
+    AclNexthopHandler* aclNexthopHandler) {
   cfg::SwitchConfig emptyConfig;
   return ThriftConfigApplier(
-             state, config, platform, rib, aclNexthopHandler, platformMapping)
+             state,
+             config,
+             platform,
+             rib,
+             aclNexthopHandler,
+             platformMapping,
+             hwAsicTable)
       .run();
 }
 shared_ptr<SwitchState> applyThriftConfig(
     const shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
     const Platform* platform,
+    const PlatformMapping* platformMapping,
+    const HwAsicTable* hwAsicTable,
     RouteUpdateWrapper* routeUpdater,
-    AclNexthopHandler* aclNexthopHandler,
-    const PlatformMapping* platformMapping) {
+    AclNexthopHandler* aclNexthopHandler) {
   cfg::SwitchConfig emptyConfig;
   return ThriftConfigApplier(
              state,
@@ -4402,7 +4416,8 @@ shared_ptr<SwitchState> applyThriftConfig(
              platform,
              routeUpdater,
              aclNexthopHandler,
-             platformMapping)
+             platformMapping,
+             hwAsicTable)
       .run();
 }
 

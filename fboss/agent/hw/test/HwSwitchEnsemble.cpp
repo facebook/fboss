@@ -35,6 +35,7 @@
 
 #include <folly/experimental/FunctionScheduler.h>
 #include <folly/gen/Base.h>
+#include <utility>
 
 DEFINE_bool(
     setup_thrift,
@@ -149,9 +150,9 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewConfig(
         originalState,
         &config,
         getPlatform(),
-        &routeUpdater,
-        nullptr,
-        getPlatform()->getPlatformMapping()));
+        getPlatform()->getPlatformMapping(),
+        hwAsicTable_.get(),
+        &routeUpdater));
     routeUpdater.program();
     return getProgrammedState();
   }
@@ -159,9 +160,8 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewConfig(
       originalState,
       &config,
       getPlatform(),
-      (RoutingInformationBase*)nullptr,
-      nullptr,
-      getPlatform()->getPlatformMapping()));
+      getPlatform()->getPlatformMapping(),
+      hwAsicTable_.get()));
 }
 
 std::shared_ptr<SwitchState> HwSwitchEnsemble::updateEncapIndices(
@@ -435,6 +435,17 @@ void HwSwitchEnsemble::setupEnsemble(
     const HwSwitchEnsembleInitInfo& initInfo) {
   platform_ = std::move(platform);
   linkToggler_ = std::move(linkToggler);
+  auto asic = platform_->getAsic();
+  cfg::SwitchInfo switchInfo;
+  switchInfo.switchType() = asic->getSwitchType();
+  switchInfo.asicType() = asic->getAsicType();
+  cfg::Range64 portIdRange;
+  portIdRange.minimum() = 0;
+  portIdRange.maximum() = 1023;
+  switchInfo.portIdRange() = portIdRange;
+  hwAsicTable_ =
+      std::make_unique<HwAsicTable>(std::map<int64_t, cfg::SwitchInfo>(
+          {{asic->getSwitchId() ? *asic->getSwitchId() : 0, switchInfo}}));
 
   auto hwInitResult = getHwSwitch()->init(
       this,
