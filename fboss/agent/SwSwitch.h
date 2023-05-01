@@ -82,6 +82,7 @@ class FsdbSyncer;
 class TeFlowNexthopHandler;
 class DsfSubscriber;
 class HwAsicTable;
+class HwSwitchSyncer;
 
 enum class SwitchFlags : int {
   DEFAULT = 0,
@@ -1042,6 +1043,7 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<PlatformMapping> platformMapping_;
   std::unique_ptr<HwAsicTable> hwAsicTable_;
   std::unique_ptr<SwitchIdScopeResolver> scopeResolver_;
+  std::unique_ptr<HwSwitchSyncer> hwSwitchSyncer_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>

@@ -37,6 +37,7 @@
 #include "fboss/agent/AclNexthopHandler.h"
 #include "fboss/agent/DsfSubscriber.h"
 #include "fboss/agent/FsdbSyncer.h"
+#include "fboss/agent/HwSwitchSyncer.h"
 #include "fboss/agent/MPLSHandler.h"
 #include "fboss/agent/MacTableManager.h"
 #include "fboss/agent/MirrorManager.h"
@@ -234,7 +235,8 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       switchInfoTable_(getSwitchInfoFromConfig(platform_.get())),
       hwAsicTable_(new HwAsicTable(getSwitchInfoFromConfig(platform_.get()))),
       scopeResolver_(
-          new SwitchIdScopeResolver(getSwitchInfoFromConfig(platform_.get()))) {
+          new SwitchIdScopeResolver(getSwitchInfoFromConfig(platform_.get()))),
+      hwSwitchSyncer_(nullptr) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());
@@ -649,6 +651,9 @@ void SwSwitch::init(
       false /*failHwCallsOnWarmboot*/,
       platform_->getAsic()->getSwitchType(),
       platform_->getAsic()->getSwitchId());
+  const auto& [switchID, switchInfo] =
+      *switchInfoTable_.getSwitchIdToSwitchInfo().begin();
+  hwSwitchSyncer_ = std::make_unique<HwSwitchSyncer>(hw_, switchID, switchInfo);
   auto initialState = hwInitRet.switchState;
   bootType_ = hwInitRet.bootType;
   rib_ = std::move(hwInitRet.rib);
@@ -689,6 +694,7 @@ void SwSwitch::init(
         StateDelta(std::make_shared<SwitchState>(), initialState));
   });
 
+  hwSwitchSyncer_->start();
   startThreads();
   XLOG(DBG2)
       << "Time to init switch and start all threads "
@@ -2197,20 +2203,7 @@ InterfaceID SwSwitch::getInterfaceIDForAggregatePort(
 std::shared_ptr<SwitchState> SwSwitch::stateChanged(
     const StateDelta& delta,
     bool transaction) const {
-  if (!FLAGS_enable_state_oper_delta) {
-    return transaction ? hw_->stateChangedTransaction(delta)
-                       : hw_->stateChanged(delta);
-  }
-  auto inDelta = delta.getOperDelta();
-  auto outDelta = stateChanged(inDelta, transaction);
-  if (outDelta.changes()->empty()) {
-    return delta.newState();
-  }
-  if (inDelta == outDelta) {
-    return delta.oldState();
-  }
-  // obtain the state that actually got programmed
-  return StateDelta(delta.newState(), outDelta).newState();
+  return hwSwitchSyncer_->stateChanged(delta, transaction);
 }
 
 fsdb::OperDelta SwSwitch::stateChanged(
