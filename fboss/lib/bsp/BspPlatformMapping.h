@@ -18,6 +18,8 @@ class BspPlatformMapping {
   int getPimIDFromTcvrID(int tcvrID) const;
   int numTransceivers() const;
   int numPims() const;
+  int getLedId(int tcvrId, int tcvrLaneId) const;
+  LedMapping getLedMapping(int pimId, int ledId) const;
 
  private:
   BspPlatformMappingThrift bspMapping_;
