@@ -157,7 +157,6 @@ SwitchState::SwitchState() {
   resetLabelForwardingInformationBase(
       std::make_shared<LabelForwardingInformationBase>());
   resetQosPolicies(std::make_shared<QosPolicyMap>());
-  resetTunnels(std::make_shared<IpTunnelMap>());
   resetTeFlowTable(std::make_shared<TeFlowTable>());
   resetAggregatePorts(std::make_shared<AggregatePortMap>());
   resetLoadBalancers(std::make_shared<LoadBalancerMap>());
@@ -449,14 +448,6 @@ const std::shared_ptr<SystemPortMap>& SwitchState::getSystemPorts() const {
   return getDefaultMap<switch_state_tags::systemPortMaps>();
 }
 
-void SwitchState::resetTunnels(std::shared_ptr<IpTunnelMap> tunnels) {
-  resetDefaultMap<switch_state_tags::ipTunnelMaps>(tunnels);
-}
-
-const std::shared_ptr<IpTunnelMap>& SwitchState::getTunnels() const {
-  return getDefaultMap<switch_state_tags::ipTunnelMaps>();
-}
-
 void SwitchState::resetTunnels(
     std::shared_ptr<MultiSwitchIpTunnelMap> tunnels) {
   ref<switch_state_tags::ipTunnelMaps>() = tunnels;
@@ -705,7 +696,7 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   state->fromThrift<switch_state_tags::fibsMap, switch_state_tags::fibs>();
   state->fromThrift<
       switch_state_tags::ipTunnelMaps,
-      switch_state_tags::ipTunnelMap>();
+      switch_state_tags::ipTunnelMap>(true /*emptyMnpuMapOk*/);
   state->fromThrift<
       switch_state_tags::teFlowTables,
       switch_state_tags::teFlowTable>();
