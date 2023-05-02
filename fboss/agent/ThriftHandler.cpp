@@ -756,7 +756,6 @@ void ThriftHandler::addUnicastRoutesInVrf(
     int32_t vrf) {
   auto clientName = apache::thrift::util::enumNameSafe(ClientID(client));
   auto log = LOG_THRIFT_CALL(DBG1, clientName);
-  ensureConfigured(__func__);
   ensureNotFabric(__func__);
   updateUnicastRoutesImpl(vrf, client, routes, "addUnicastRoutesInVrf", false);
 }
@@ -782,7 +781,6 @@ void ThriftHandler::deleteUnicastRoutesInVrf(
     int32_t vrf) {
   auto clientName = apache::thrift::util::enumNameSafe(ClientID(client));
   auto log = LOG_THRIFT_CALL(DBG1, clientName);
-  ensureConfigured(__func__);
   ensureNotFabric(__func__);
 
   auto updater = sw_->getRouteUpdater();
@@ -2019,7 +2017,6 @@ void ThriftHandler::sendPkt(
     int32_t vlan,
     unique_ptr<fbstring> data) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured(__func__);
   ensureNotFabric(__func__);
   auto buf = IOBuf::copyBuffer(
       reinterpret_cast<const uint8_t*>(data->data()), data->size());
@@ -2034,7 +2031,6 @@ void ThriftHandler::sendPktHex(
     int32_t vlan,
     unique_ptr<fbstring> hex) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured(__func__);
   ensureNotFabric(__func__);
   auto pkt = MockRxPacket::fromHex(StringPiece(*hex));
   pkt->setSrcPort(PortID(port));
@@ -2044,7 +2040,6 @@ void ThriftHandler::sendPktHex(
 
 void ThriftHandler::txPkt(int32_t port, unique_ptr<fbstring> data) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured(__func__);
   ensureNotFabric(__func__);
 
   unique_ptr<TxPacket> pkt = sw_->allocatePacket(data->size());
@@ -2056,7 +2051,6 @@ void ThriftHandler::txPkt(int32_t port, unique_ptr<fbstring> data) {
 
 void ThriftHandler::txPktL2(unique_ptr<fbstring> data) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured(__func__);
   ensureNotFabric(__func__);
 
   unique_ptr<TxPacket> pkt = sw_->allocatePacket(data->size());
@@ -2068,7 +2062,6 @@ void ThriftHandler::txPktL2(unique_ptr<fbstring> data) {
 
 void ThriftHandler::txPktL3(unique_ptr<fbstring> payload) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured(__func__);
   ensureNotFabric(__func__);
 
   // Use any configured interface
@@ -2189,6 +2182,18 @@ void ThriftHandler::ensureNotFabric(StringPiece function) const {
       XLOG(DBG1) << function << " not supported on Fabric Switch type: ";
     }
     throw FbossError(function, " not supported on Fabric switch type");
+  }
+}
+
+void ThriftHandler::ensureVoqOrFabric(StringPiece function) const {
+  ensureConfigured(function);
+  if (!sw_->getSwitchInfoTable().haveVoqSwitches() &&
+      !sw_->getSwitchInfoTable().haveFabricSwitches()) {
+    if (!function.empty()) {
+      XLOG(DBG1) << function
+                 << " only supported on Voq or Fabric Switch type: ";
+    }
+    throw FbossError(function, " only supported on Voq or Fabric Switch type");
   }
 }
 
@@ -2600,7 +2605,6 @@ void ThriftHandler::getBlockedNeighbors(
 void ThriftHandler::setNeighborsToBlock(
     std::unique_ptr<std::vector<cfg::Neighbor>> neighborsToBlock) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured(__func__);
   ensureNPU(__func__);
   std::string neighborsToBlockStr;
   std::vector<std::pair<VlanID, folly::IPAddress>> blockNeighbors;
@@ -2662,7 +2666,6 @@ void ThriftHandler::getMacAddrsToBlock(
 
 void ThriftHandler::setMacAddrsToBlock(
     std::unique_ptr<std::vector<cfg::MacAndVlan>> macAddrsToBlock) {
-  ensureConfigured(__func__);
   ensureNPU(__func__);
   std::string macAddrsToBlockStr;
   std::vector<std::pair<VlanID, folly::MacAddress>> blockMacAddrs;
@@ -2805,7 +2808,7 @@ void ThriftHandler::getTeFlowTableDetails(
 void ThriftHandler::getFabricReachability(
     std::map<std::string, FabricEndpoint>& reachability) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured(__func__);
+  ensureVoqOrFabric(__func__);
   // get cached data as stored in the fabric manager
   auto portId2FabricEndpoint = sw_->getHw()->getFabricReachability();
   auto state = sw_->getState();
@@ -2818,7 +2821,7 @@ void ThriftHandler::getFabricReachability(
 
 void ThriftHandler::getDsfNodes(std::map<int64_t, cfg::DsfNode>& dsfNodes) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured(__func__);
+  ensureVoqOrFabric(__func__);
   for (const auto& matcherAndNodes :
        std::as_const(*sw_->getState()->getDsfNodes())) {
     for (const auto& idAndNode : std::as_const(*matcherAndNodes.second)) {

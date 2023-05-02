@@ -494,9 +494,12 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getAndSetNeighborsToBlock) {
 TYPED_TEST(ThriftTestAllSwitchTypes, getDsfNodes) {
   ThriftHandler handler(this->sw_);
   std::map<int64_t, cfg::DsfNode> dsfNodes;
-  handler.getDsfNodes(dsfNodes);
-  auto expected = this->isNpu() ? 0 : 2;
-  EXPECT_EQ(dsfNodes.size(), expected);
+  if (this->isNpu()) {
+    EXPECT_THROW(handler.getDsfNodes(dsfNodes), FbossError);
+  } else {
+    handler.getDsfNodes(dsfNodes);
+    EXPECT_EQ(dsfNodes.size(), 2);
+  }
 }
 
 TYPED_TEST(ThriftTestAllSwitchTypes, getSysPorts) {

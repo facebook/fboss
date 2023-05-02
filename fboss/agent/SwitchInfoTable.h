@@ -16,6 +16,7 @@ class SwitchInfoTable {
   std::unordered_set<SwitchID> getSwitchIDs() const;
   bool haveVoqSwitches() const;
   bool haveNpuSwitches() const;
+  bool haveFabricSwitches() const;
   bool haveL3Switches() const;
   bool vlansSupported() const;
   cfg::SwitchType l3SwitchType() const;

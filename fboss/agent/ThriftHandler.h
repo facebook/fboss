@@ -430,6 +430,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
  private:
   void ensureNPU(folly::StringPiece function) const;
   void ensureNotFabric(folly::StringPiece function) const;
+  void ensureVoqOrFabric(folly::StringPiece function) const;
   struct ThreadLocalListener {
     EventBase* eventBase;
     std::unordered_map<
