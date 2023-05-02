@@ -24,5 +24,22 @@ void IpTunnelMap::removeTunnel(std::string id) {
   removeNodeIf(id);
 }
 
+MultiSwitchIpTunnelMap* MultiSwitchIpTunnelMap::modify(
+    std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  SwitchState::modify(state);
+  auto newMnpuMap = clone();
+  for (auto mnitr = cbegin(); mnitr != cend(); ++mnitr) {
+    (*newMnpuMap)[mnitr->first] = mnitr->second->clone();
+  }
+  auto* ptr = newMnpuMap.get();
+  (*state)->resetTunnels(std::move(newMnpuMap));
+  return ptr;
+}
+
 template class ThriftMapNode<IpTunnelMap, IpTunnelMapTraits>;
 } // namespace facebook::fboss

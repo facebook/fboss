@@ -80,8 +80,10 @@ class MultiSwitchIpTunnelMap : public ThriftMultiSwitchMapNode<
       MultiSwitchIpTunnelMapTraits>;
   using BaseT::modify;
 
-  MultiSwitchIpTunnelMap() {}
-  virtual ~MultiSwitchIpTunnelMap() {}
+  MultiSwitchIpTunnelMap() = default;
+  virtual ~MultiSwitchIpTunnelMap() = default;
+
+  MultiSwitchIpTunnelMap* modify(std::shared_ptr<SwitchState>* state);
 
  private:
   // Inherit the constructors required for clone()
