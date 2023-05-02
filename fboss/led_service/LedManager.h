@@ -10,6 +10,8 @@
 #pragma once
 
 #include <folly/Format.h>
+#include <folly/Synchronized.h>
+#include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
 #include <stdexcept>
 #include "fboss/agent/FbossError.h"
@@ -38,14 +40,18 @@ class LedManager {
   };
 
  public:
-  LedManager() {}
-  virtual ~LedManager() {}
+  LedManager();
+  virtual ~LedManager();
 
   // Initialize the Led Manager, get system container
   virtual void initLedManager() {}
 
   // On getting the update from FSDB, update portDisplayList_
   void updateLedStatus() {}
+
+  folly::EventBase* getEventBase() {
+    return eventBase_.get();
+  }
 
   // Forbidden copy constructor and assignment operator
   LedManager(LedManager const&) = delete;
@@ -74,6 +80,10 @@ class LedManager {
   std::vector<int> getLedIdFromSwPort(
       uint32_t portId,
       cfg::PortProfileID portProfile) const;
+
+ private:
+  std::unique_ptr<std::thread> ledManagerThread_{nullptr};
+  std::unique_ptr<folly::EventBase> eventBase_;
 };
 
 } // namespace facebook::fboss
