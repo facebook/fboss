@@ -538,6 +538,25 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getCpuPortStats) {
   handler.getCpuPortStats(cpuPortStats);
 }
 
+TYPED_TEST(ThriftTestAllSwitchTypes, getSwitchReachability) {
+  ThriftHandler handler(this->sw_);
+  std::unique_ptr<std::vector<std::string>> switchNames =
+      std::make_unique<std::vector<std::string>>();
+  switchNames->push_back("dsfNodeCfg1");
+  std::map<std::string, std::vector<std::string>> reachabilityMatrix;
+  if (this->isNpu()) {
+    EXPECT_HW_CALL(this->sw_, getSwitchReachability(testing::_)).Times(0);
+    EXPECT_THROW(
+        handler.getSwitchReachability(
+            reachabilityMatrix, std::move(switchNames)),
+        FbossError);
+  } else {
+    EXPECT_HW_CALL(this->sw_, getSwitchReachability(testing::_)).Times(1);
+    handler.getSwitchReachability(reachabilityMatrix, std::move(switchNames));
+    EXPECT_EQ(reachabilityMatrix.size(), 1);
+  }
+}
+
 std::unique_ptr<UnicastRoute> makeUnicastRoute(
     std::string prefixStr,
     std::string nxtHop,
