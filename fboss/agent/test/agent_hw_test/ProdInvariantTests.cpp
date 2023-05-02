@@ -228,7 +228,7 @@ TEST_F(ProdInvariantTest, verifyInvariants) {
   auto verify = [&]() {
     verifyAcl();
     // TODO: Uncomment once tests are more stable.
-    // verifyCopp();
+    verifyCopp();
     // verifyLoadBalancing();
     // verifyDscpToQueueMapping();
     verifySafeDiagCommands();
