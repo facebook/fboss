@@ -30,7 +30,12 @@ TransceiverInfo getTransceiverInfo(cfg::PortProfileID profileID) {
   auto speed = getSpeed(profileID);
   MediaInterfaceCode mediaInterface;
   TransceiverManagementInterface mgmtInterface;
-  if (speed == cfg::PortSpeed::FOURHUNDREDG) {
+  if (speed == cfg::PortSpeed::EIGHTHUNDREDG) {
+    // TODO(hgulati): update mediaInterface after adding 800G support from
+    // transceiver side
+    mediaInterface = MediaInterfaceCode::UNKNOWN;
+    mgmtInterface = TransceiverManagementInterface::CMIS;
+  } else if (speed == cfg::PortSpeed::FOURHUNDREDG) {
     mediaInterface = MediaInterfaceCode::FR4_400G;
     mgmtInterface = TransceiverManagementInterface::CMIS;
   } else if (speed == cfg::PortSpeed::TWOHUNDREDG) {
