@@ -447,4 +447,108 @@ TEST_F(CmisTest, cmis400GCr8TransceiverInfoTest) {
     }
   }
 }
+
+TEST_F(CmisTest, cmis2x400GFr4TransceiverInfoTest) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x400GFr4Transceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+  const auto& info = xcvr->getTransceiverInfo();
+  EXPECT_TRUE(info.transceiverManagementInterface());
+  EXPECT_EQ(
+      info.transceiverManagementInterface(),
+      TransceiverManagementInterface::CMIS);
+  EXPECT_EQ(xcvr->numHostLanes(), 8);
+  EXPECT_EQ(xcvr->numMediaLanes(), 8);
+  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::FR4_400Gx2);
+  for (auto& media : *info.settings()->mediaInterface()) {
+    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::FR4_400G);
+    EXPECT_EQ(media.code(), MediaInterfaceCode::FR4_400G);
+  }
+
+  // Check cmisStateChanged
+  EXPECT_TRUE(
+      info.status() && info.status()->cmisStateChanged() &&
+      *info.status()->cmisStateChanged());
+
+  utility::HwTransceiverUtils::verifyDiagsCapability(
+      *info.tcvrState(),
+      transceiverManager_->getDiagsCapability(xcvrID),
+      false /* skipCheckingIndividualCapability */);
+
+  TransceiverTestsHelper tests(info);
+  tests.verifyVendorName("FACETEST");
+
+  auto diagsCap = transceiverManager_->getDiagsCapability(xcvrID);
+  EXPECT_TRUE(diagsCap.has_value());
+  std::vector<prbs::PrbsPolynomial> expectedSysPolynomials = {
+      prbs::PrbsPolynomial::PRBS31Q,
+      prbs::PrbsPolynomial::PRBS23Q,
+      prbs::PrbsPolynomial::PRBS15Q,
+      prbs::PrbsPolynomial::PRBS13Q,
+      prbs::PrbsPolynomial::PRBS9Q,
+      prbs::PrbsPolynomial::PRBS7Q,
+      prbs::PrbsPolynomial::PRBS31,
+      prbs::PrbsPolynomial::PRBS23,
+      prbs::PrbsPolynomial::PRBS15,
+      prbs::PrbsPolynomial::PRBS13,
+      prbs::PrbsPolynomial::PRBS9,
+      prbs::PrbsPolynomial::PRBS7};
+  std::vector<prbs::PrbsPolynomial> expectedLinePolynomials = {
+      prbs::PrbsPolynomial::PRBS31Q,
+      prbs::PrbsPolynomial::PRBS23Q,
+      prbs::PrbsPolynomial::PRBS15Q,
+      prbs::PrbsPolynomial::PRBS13Q,
+      prbs::PrbsPolynomial::PRBS9Q,
+      prbs::PrbsPolynomial::PRBS7Q,
+      prbs::PrbsPolynomial::PRBS31,
+      prbs::PrbsPolynomial::PRBS23,
+      prbs::PrbsPolynomial::PRBS15,
+      prbs::PrbsPolynomial::PRBS13,
+      prbs::PrbsPolynomial::PRBS9,
+      prbs::PrbsPolynomial::PRBS7};
+
+  auto linePrbsCapability = *(*diagsCap).prbsLineCapabilities();
+  auto sysPrbsCapability = *(*diagsCap).prbsSystemCapabilities();
+
+  tests.verifyPrbsPolynomials(expectedLinePolynomials, linePrbsCapability);
+  tests.verifyPrbsPolynomials(expectedSysPolynomials, sysPrbsCapability);
+
+  for (auto unsupportedApplication : {SMFMediaInterfaceCode::LR4_10_400G}) {
+    EXPECT_EQ(
+        xcvr->getApplicationField(
+            static_cast<uint8_t>(unsupportedApplication), 0),
+        std::nullopt);
+  }
+
+  for (auto supportedApplication :
+       {SMFMediaInterfaceCode::FR4_400G,
+        SMFMediaInterfaceCode::FR1_100G,
+        SMFMediaInterfaceCode::FR4_200G,
+        SMFMediaInterfaceCode::CWDM4_100G}) {
+    auto applicationField = xcvr->getApplicationField(
+        static_cast<uint8_t>(supportedApplication), 0);
+    EXPECT_NE(applicationField, std::nullopt);
+    std::vector<int> expectedStartLanes;
+    if (supportedApplication == SMFMediaInterfaceCode::FR1_100G) {
+      expectedStartLanes = {0, 1, 2, 3, 4, 5, 6, 7};
+    } else {
+      expectedStartLanes = {0, 4};
+    }
+    EXPECT_EQ(applicationField->hostStartLanes, expectedStartLanes);
+    EXPECT_EQ(applicationField->mediaStartLanes, expectedStartLanes);
+    for (uint8_t lane = 0; lane <= 7; lane++) {
+      if (std::find(
+              expectedStartLanes.begin(), expectedStartLanes.end(), lane) !=
+          expectedStartLanes.end()) {
+        continue;
+      }
+      // For lanes that are not expected to be start lanes, getApplicationField
+      // should return nullopt
+      EXPECT_EQ(
+          xcvr->getApplicationField(
+              static_cast<uint8_t>(supportedApplication), lane),
+          std::nullopt);
+    }
+  }
+}
 } // namespace facebook::fboss
