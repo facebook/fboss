@@ -559,16 +559,12 @@ struct SaiPortSerdesTraits {
 
       std::optional<Attributes::IDriver>,
       std::optional<Attributes::TxFirPre1>,
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       std::optional<Attributes::TxFirPre2>,
-#endif
       std::optional<Attributes::TxFirMain>,
       std::optional<Attributes::TxFirPost1>,
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       std::optional<Attributes::TxFirPost2>,
       std::optional<Attributes::TxFirPost3>,
       std::optional<Attributes::TxLutMode>,
-#endif
       std::optional<Attributes::RxCtleCode>,
       std::optional<Attributes::RxDspMode>,
       std::optional<Attributes::RxAfeTrim>,
