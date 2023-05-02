@@ -51,7 +51,8 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
   void setupAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
-      std::optional<cfg::Range64> systemPortRange) override;
+      std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac) override;
   // Forbidden copy constructor and assignment operator
   BcmTestWedge40Platform(BcmTestWedge40Platform const&) = delete;
   BcmTestWedge40Platform& operator=(BcmTestWedge40Platform const&) = delete;

@@ -11,8 +11,9 @@ class Jericho2Asic : public BroadcomAsic {
   Jericho2Asic(
       cfg::SwitchType type,
       std::optional<int64_t> id,
-      std::optional<cfg::Range64> systemPortRange)
-      : BroadcomAsic(type, id, systemPortRange, {cfg::SwitchType::VOQ}) {}
+      std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac)
+      : BroadcomAsic(type, id, systemPortRange, mac, {cfg::SwitchType::VOQ}) {}
   bool isSupported(Feature) const override;
   cfg::AsicType getAsicType() const override {
     return cfg::AsicType::ASIC_TYPE_JERICHO2;

@@ -40,7 +40,8 @@ class SaiCloudRipperPlatform : public SaiTajoPlatform {
   void setupAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
-      std::optional<cfg::Range64> systemPortRange) override;
+      std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac) override;
   std::vector<sai_system_port_config_t> getInternalSystemPortConfig()
       const override;
   std::unique_ptr<EbroAsic> asic_;

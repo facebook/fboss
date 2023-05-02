@@ -373,8 +373,9 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       auto agentCfg = config();
       CHECK(agentCfg) << " agent config must be set ";
       uint32_t systemCores = 0;
-      const Jericho2Asic indus(cfg::SwitchType::VOQ, 0, std::nullopt);
-      const EbroAsic ebro(cfg::SwitchType::VOQ, 0, std::nullopt);
+      auto localMac = getLocalMac();
+      const Jericho2Asic indus(cfg::SwitchType::VOQ, 0, std::nullopt, localMac);
+      const EbroAsic ebro(cfg::SwitchType::VOQ, 0, std::nullopt, localMac);
       for (const auto& [id, dsfNode] : *agentCfg->thrift.sw()->dsfNodes()) {
         if (dsfNode.type() != cfg::DsfNodeType::INTERFACE_NODE) {
           continue;

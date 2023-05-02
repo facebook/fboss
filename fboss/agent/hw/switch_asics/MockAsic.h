@@ -13,11 +13,13 @@ class MockAsic : public HwAsic {
   MockAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
-      std::optional<cfg::Range64> systemPortRange)
+      std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac)
       : HwAsic(
             switchType,
             switchId,
             systemPortRange,
+            mac,
             {cfg::SwitchType::NPU,
              cfg::SwitchType::VOQ,
              cfg::SwitchType::FABRIC}) {}

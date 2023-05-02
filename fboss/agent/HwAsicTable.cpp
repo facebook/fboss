@@ -10,13 +10,16 @@ namespace facebook::fboss {
 HwAsicTable::HwAsicTable(
     const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo) {
   for (const auto& switchIdAndSwitchInfo : switchIdToSwitchInfo) {
+    // TODO - pass proper mac to asic create
+    folly::MacAddress mac;
     hwAsics_.emplace(
         SwitchID(switchIdAndSwitchInfo.first),
         HwAsic::makeAsic(
             *switchIdAndSwitchInfo.second.asicType(),
             *switchIdAndSwitchInfo.second.switchType(),
             switchIdAndSwitchInfo.first,
-            std::nullopt));
+            std::nullopt,
+            mac));
   }
 }
 

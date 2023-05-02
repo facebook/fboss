@@ -31,8 +31,10 @@ SaiMeru800biaPlatform::SaiMeru800biaPlatform(
 void SaiMeru800biaPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    std::optional<cfg::Range64> systemPortRange) {
-  asic_ = std::make_unique<Jericho3Asic>(switchType, switchId, systemPortRange);
+    std::optional<cfg::Range64> systemPortRange,
+    folly::MacAddress& mac) {
+  asic_ = std::make_unique<Jericho3Asic>(
+      switchType, switchId, systemPortRange, mac);
 }
 
 HwAsic* SaiMeru800biaPlatform::getAsic() const {

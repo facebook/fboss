@@ -313,7 +313,8 @@ class Platform {
   virtual void setupAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
-      std::optional<cfg::Range64> systemPortRange) = 0;
+      std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac) = 0;
 
   std::unique_ptr<AgentConfig> config_;
 

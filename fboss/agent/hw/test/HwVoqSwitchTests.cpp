@@ -646,11 +646,13 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
     auto dsfNodes = curDsfNodes;
     const auto& firstDsfNode = dsfNodes.begin()->second;
     CHECK(firstDsfNode.systemPortRange().has_value());
+    auto mac = getPlatform()->getLocalMac();
     auto asic = HwAsic::makeAsic(
         *firstDsfNode.asicType(),
         cfg::SwitchType::VOQ,
         *firstDsfNode.switchId(),
-        *firstDsfNode.systemPortRange());
+        *firstDsfNode.systemPortRange(),
+        mac);
     auto otherDsfNodeCfg = utility::dsfNodeConfig(*asic, kRemoteSwitchId);
     dsfNodes.insert({*otherDsfNodeCfg.switchId(), otherDsfNodeCfg});
     return dsfNodes;

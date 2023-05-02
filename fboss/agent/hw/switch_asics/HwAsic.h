@@ -2,6 +2,7 @@
 
 #pragma once
 #include <fboss/lib/phy/gen-cpp2/phy_types.h>
+#include <folly/MacAddress.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 namespace facebook::fboss {
@@ -12,6 +13,7 @@ class HwAsic {
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
       std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac,
       std::unordered_set<cfg::SwitchType> supportedModes = {
           cfg::SwitchType::NPU});
   enum class Feature {
@@ -159,7 +161,8 @@ class HwAsic {
       cfg::AsicType asicType,
       cfg::SwitchType switchType,
       std::optional<int64_t> switchID,
-      std::optional<cfg::Range64> systemPortRange);
+      std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac);
   virtual bool isSupported(Feature) const = 0;
   virtual cfg::AsicType getAsicType() const = 0;
   std::string getAsicTypeStr() const;
@@ -298,6 +301,7 @@ class HwAsic {
   std::optional<int64_t> switchId_;
   std::optional<cfg::Range64> systemPortRange_;
   cfg::StreamType defaultStreamType_{cfg::StreamType::ALL};
+  folly::MacAddress asicMac_;
 };
 
 } // namespace facebook::fboss

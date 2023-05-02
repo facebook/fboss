@@ -11,8 +11,14 @@ class RamonAsic : public BroadcomAsic {
   RamonAsic(
       cfg::SwitchType type,
       std::optional<int64_t> id,
-      std::optional<cfg::Range64> systemPortRange)
-      : BroadcomAsic(type, id, systemPortRange, {cfg::SwitchType::FABRIC}) {}
+      std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac)
+      : BroadcomAsic(
+            type,
+            id,
+            systemPortRange,
+            mac,
+            {cfg::SwitchType::FABRIC}) {}
   bool isSupported(Feature feature) const override;
   cfg::AsicType getAsicType() const override {
     return cfg::AsicType::ASIC_TYPE_RAMON;

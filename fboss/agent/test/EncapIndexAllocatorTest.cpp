@@ -88,8 +88,9 @@ class EncapIndexAllocatorTest : public ::testing::Test {
 };
 
 TEST_F(EncapIndexAllocatorTest, unsupportedAsic) {
+  folly::MacAddress mac;
   auto asic = std::make_unique<TomahawkAsic>(
-      cfg::SwitchType::NPU, std::nullopt, std::nullopt);
+      cfg::SwitchType::NPU, std::nullopt, std::nullopt, mac);
   EXPECT_THROW(allocator.getNextAvailableEncapIdx(nullptr, *asic), FbossError);
 }
 

@@ -28,8 +28,10 @@ SaiSandiaPlatform::SaiSandiaPlatform(
 void SaiSandiaPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    std::optional<cfg::Range64> systemPortRange) {
-  asic_ = std::make_unique<GaronneAsic>(switchType, switchId, systemPortRange);
+    std::optional<cfg::Range64> systemPortRange,
+    folly::MacAddress& mac) {
+  asic_ =
+      std::make_unique<GaronneAsic>(switchType, switchId, systemPortRange, mac);
 }
 
 std::string SaiSandiaPlatform::getHwConfig() {

@@ -752,13 +752,16 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
   };
   auto getDsfNodeAsic =
       [&isInterfaceNode](const std::shared_ptr<DsfNode>& node) {
+        // TODO - Get correct mac and pass it to asic create
+        folly::MacAddress mac;
         CHECK(isInterfaceNode(node))
             << " Only expect to be called for Interface nodes";
         return HwAsic::makeAsic(
             node->getAsicType(),
             cfg::SwitchType::VOQ,
             static_cast<int64_t>(node->getSwitchId()),
-            node->getSystemPortRange());
+            node->getSystemPortRange(),
+            mac);
       };
   auto processLoopbacks = [&](const std::shared_ptr<DsfNode>& node,
                               const HwAsic* dsfNodeAsic) {

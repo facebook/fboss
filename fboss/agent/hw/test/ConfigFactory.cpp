@@ -102,19 +102,20 @@ cfg::DsfNode dsfNodeConfig(const HwAsic& myAsic, int64_t otherSwitchId) {
       range.maximum() = *range.minimum() + blockSize;
       systemPortRange = range;
     }
+    auto localMac = utility::kLocalCpuMac();
     switch (fromAsic.getAsicType()) {
       case cfg::AsicType::ASIC_TYPE_JERICHO2:
         return std::make_unique<Jericho2Asic>(
-            fromAsic.getSwitchType(), switchId, systemPortRange);
+            fromAsic.getSwitchType(), switchId, systemPortRange, localMac);
       case cfg::AsicType::ASIC_TYPE_JERICHO3:
         return std::make_unique<Jericho3Asic>(
-            fromAsic.getSwitchType(), switchId, systemPortRange);
+            fromAsic.getSwitchType(), switchId, systemPortRange, localMac);
       case cfg::AsicType::ASIC_TYPE_RAMON:
         return std::make_unique<RamonAsic>(
-            fromAsic.getSwitchType(), switchId, std::nullopt);
+            fromAsic.getSwitchType(), switchId, std::nullopt, localMac);
       case cfg::AsicType::ASIC_TYPE_EBRO:
         return std::make_unique<EbroAsic>(
-            fromAsic.getSwitchType(), switchId, systemPortRange);
+            fromAsic.getSwitchType(), switchId, systemPortRange, localMac);
       default:
         throw FbossError("Unexpected asic type: ", fromAsic.getAsicTypeStr());
     }

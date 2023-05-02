@@ -12,11 +12,13 @@ class EbroAsic : public TajoAsic {
   EbroAsic(
       cfg::SwitchType type,
       std::optional<int64_t> id,
-      std::optional<cfg::Range64> systemPortRange)
+      std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac)
       : TajoAsic(
             type,
             id,
             systemPortRange,
+            mac,
             {cfg::SwitchType::NPU,
              cfg::SwitchType::VOQ,
              cfg::SwitchType::FABRIC}) {}

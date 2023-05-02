@@ -163,7 +163,7 @@ void Platform::init(
       switchId = std::nullopt;
     }
   }
-  setupAsic(switchType, switchId, systemPortRange);
+  setupAsic(switchType, switchId, systemPortRange, localMac_);
   initImpl(hwFeaturesDesired);
   // We should always initPorts() here instead of leaving the hw/ to call
   initPorts();

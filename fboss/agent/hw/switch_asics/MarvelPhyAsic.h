@@ -11,8 +11,9 @@ class MarvelPhyAsic : public HwAsic {
   MarvelPhyAsic(
       cfg::SwitchType type,
       std::optional<int64_t> id,
-      std::optional<cfg::Range64> systemPortRange)
-      : HwAsic(type, id, systemPortRange, {cfg::SwitchType::PHY}) {}
+      std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac)
+      : HwAsic(type, id, systemPortRange, mac, {cfg::SwitchType::PHY}) {}
   bool isSupported(Feature feature) const override;
   cfg::AsicType getAsicType() const override {
     return cfg::AsicType::ASIC_TYPE_SANDIA_PHY;
