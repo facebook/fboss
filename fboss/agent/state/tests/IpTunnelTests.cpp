@@ -40,7 +40,7 @@ TEST(Tunnel, SerDeserSwitchState) {
 
   auto tunnel0 = makeTunnel("tunnel0");
   auto tunnel1 = makeTunnel("tunnel1");
-  auto tunnels = state->getMultiSwitchTunnels()->modify(&state);
+  auto tunnels = state->getTunnels()->modify(&state);
 
   tunnels->addNode(tunnel0, scope());
   tunnels->addNode(tunnel1, scope());
@@ -50,8 +50,8 @@ TEST(Tunnel, SerDeserSwitchState) {
 
   for (auto tunnelID : {"tunnel0", "tunnel1"}) {
     EXPECT_TRUE(
-        *state->getMultiSwitchTunnels()->getNode(tunnelID) ==
-        *stateBack->getMultiSwitchTunnels()->getNode(tunnelID));
+        *state->getTunnels()->getNode(tunnelID) ==
+        *stateBack->getTunnels()->getNode(tunnelID));
   }
 }
 
@@ -61,10 +61,10 @@ TEST(Tunnel, AddRemove) {
   auto tunnel0 = makeTunnel("tunnel0");
   auto tunnel1 = makeTunnel("tunnel1");
 
-  auto tunnels = state->getMultiSwitchTunnels()->modify(&state);
+  auto tunnels = state->getTunnels()->modify(&state);
   tunnels->addNode(tunnel0, scope());
   tunnels->addNode(tunnel1, scope());
   tunnels->removeNode("tunnel0");
-  EXPECT_EQ(state->getMultiSwitchTunnels()->getNodeIf("tunnel0"), nullptr);
-  EXPECT_NE(state->getMultiSwitchTunnels()->getNodeIf("tunnel1"), nullptr);
+  EXPECT_EQ(state->getTunnels()->getNodeIf("tunnel0"), nullptr);
+  EXPECT_NE(state->getTunnels()->getNodeIf("tunnel1"), nullptr);
 }

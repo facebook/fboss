@@ -256,8 +256,7 @@ ThriftMapDelta<SystemPortMap> StateDelta::getRemoteSystemPortsDelta() const {
 }
 
 ThriftMapDelta<IpTunnelMap> StateDelta::getIpTunnelsDelta() const {
-  return getFirstMapDelta<IpTunnelMap>(
-      old_->getMultiSwitchTunnels(), new_->getMultiSwitchTunnels());
+  return getFirstMapDelta<IpTunnelMap>(old_->getTunnels(), new_->getTunnels());
 }
 
 ThriftMapDelta<TeFlowTable> StateDelta::getTeFlowEntriesDelta() const {

@@ -453,8 +453,7 @@ void SwitchState::resetTunnels(
   ref<switch_state_tags::ipTunnelMaps>() = tunnels;
 }
 
-const std::shared_ptr<MultiSwitchIpTunnelMap>&
-SwitchState::getMultiSwitchTunnels() const {
+const std::shared_ptr<MultiSwitchIpTunnelMap>& SwitchState::getTunnels() const {
   return safe_cref<switch_state_tags::ipTunnelMaps>();
 }
 

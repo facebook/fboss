@@ -4192,7 +4192,7 @@ ThriftConfigApplier::createLabelForwardingEntry(
 }
 
 std::shared_ptr<IpTunnelMap> ThriftConfigApplier::updateIpInIpTunnels() {
-  const auto& origTunnels = orig_->getMultiSwitchTunnels();
+  const auto& origTunnels = orig_->getTunnels();
   auto newTunnels = std::make_shared<IpTunnelMap>();
 
   bool changed = false;
