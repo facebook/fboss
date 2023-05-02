@@ -439,6 +439,11 @@ void HwTransceiverUtils::verifyDiagsCapability(
 
   switch (*mgmtInterface) {
     case TransceiverManagementInterface::CMIS:
+      if (TransmitterTechnology::COPPER ==
+          *(tcvrState.cable().value_or({}).transmitterTech())) {
+        // FlatMem modules don't support diagsCapability
+        return;
+      }
       EXPECT_TRUE(diagsCapability.has_value());
       if (!skipCheckingIndividualCapability) {
         EXPECT_TRUE(*diagsCapability->diagnostics());
