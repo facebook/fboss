@@ -25,6 +25,13 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
     cfg::PortProfileID profile,
     const PlatformMapping* platformMapping,
     std::map<int32_t, TransceiverInfo>& tcvrInfos) {
+  if (profile == cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER ||
+      profile == cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL) {
+    // We use these profiles on Meru400biu and Meru400bfu with 200G optics in a
+    // hacky configuration which invalidates the verification of media/host
+    // lanes in this function.
+    return;
+  }
   const auto& platformPorts = platformMapping->getPlatformPorts();
   const auto& chips = platformMapping->getChips();
   for (auto portID : portIDs) {
@@ -121,13 +128,24 @@ void HwTransceiverUtils::verifyTransceiverSettings(
       *(tcvrState.cable().value_or({}).transmitterTech())) {
     XLOG(INFO) << " Skip verifying optics settings: " << *tcvrState.port()
                << ", for copper cable";
-  } else {
+  } else if (
+      profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER &&
+      profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL) {
+    // We use these profiles on Meru400biu and Meru400bfu with 200G optics in a
+    // hacky configuration which invalidates the verification of optics settings
+    // in this function.
     verifyOpticsSettings(tcvrState, portName, profile);
   }
 
   verifyMediaInterfaceCompliance(tcvrState, profile);
 
-  verifyDataPathEnabled(tcvrState, portName);
+  if (profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER &&
+      profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL) {
+    // We use these profiles on Meru400biu and Meru400bfu with 200G optics in a
+    // hacky configuration which invalidates the verification of datapath in
+    // this function.
+    verifyDataPathEnabled(tcvrState, portName);
+  }
 }
 
 void HwTransceiverUtils::verifyOpticsSettings(
