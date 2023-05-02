@@ -470,6 +470,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<TransceiverMap>& getTransceivers() const;
   const std::shared_ptr<SystemPortMap>& getSystemPorts() const;
   const std::shared_ptr<IpTunnelMap>& getTunnels() const;
+  const std::shared_ptr<MultiSwitchIpTunnelMap>& getMultiSwitchTunnels() const;
   const std::shared_ptr<TeFlowTable>& getTeFlowTable() const;
 
   const std::shared_ptr<MultiSwitchDsfNodeMap>& getDsfNodes() const;
@@ -545,6 +546,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetSystemPorts(std::shared_ptr<SystemPortMap> systemPorts);
   void addTunnel(const std::shared_ptr<IpTunnel>& tunnel);
   void resetTunnels(std::shared_ptr<IpTunnelMap> tunnels);
+  void resetTunnels(std::shared_ptr<MultiSwitchIpTunnelMap> tunnels);
+
   void resetTeFlowTable(std::shared_ptr<TeFlowTable> teFlowTable);
   void resetDsfNodes(const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodes);
   std::shared_ptr<AclTableGroupMap>& getAclTablesForStage(

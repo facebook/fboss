@@ -467,6 +467,16 @@ const std::shared_ptr<IpTunnelMap>& SwitchState::getTunnels() const {
   return getDefaultMap<switch_state_tags::ipTunnelMaps>();
 }
 
+void SwitchState::resetTunnels(
+    std::shared_ptr<MultiSwitchIpTunnelMap> tunnels) {
+  ref<switch_state_tags::ipTunnelMaps>() = tunnels;
+}
+
+const std::shared_ptr<MultiSwitchIpTunnelMap>&
+SwitchState::getMultiSwitchTunnels() const {
+  return safe_cref<switch_state_tags::ipTunnelMaps>();
+}
+
 void SwitchState::resetTeFlowTable(std::shared_ptr<TeFlowTable> flowTable) {
   resetDefaultMap<switch_state_tags::teFlowTables>(flowTable);
 }
