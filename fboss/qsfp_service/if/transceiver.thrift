@@ -194,6 +194,7 @@ enum MediaInterfaceCode {
   SR_10G = 8,
   CR4_200G = 9,
   CR8_400G = 10,
+  FR4_400Gx2 = 11,
 }
 
 // The extended specification compliance code of the transceiver module.
@@ -218,6 +219,7 @@ enum TransceiverModuleIdentifier {
   QSFP28 = 0x11,
   QSFP_DD = 0x18,
   QSFP_PLUS_CMIS = 0x1E,
+  OSFP = 0x19,
   MINIPHOTON_OBO = 0x91,
 }
 

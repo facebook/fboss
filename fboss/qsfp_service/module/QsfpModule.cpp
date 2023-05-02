@@ -194,6 +194,7 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::FR4_400G:
     case MediaInterfaceCode::LR4_400G_10KM:
     case MediaInterfaceCode::CR8_400G:
+    case MediaInterfaceCode::FR4_400Gx2:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
       return 0;
@@ -216,6 +217,7 @@ unsigned int QsfpModule::numMediaLanes() const {
     case MediaInterfaceCode::LR4_400G_10KM:
       return 4;
     case MediaInterfaceCode::CR8_400G:
+    case MediaInterfaceCode::FR4_400Gx2:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
       return 0;
@@ -911,7 +913,8 @@ TransceiverManagementInterface QsfpModule::getTransceiverManagementInterface(
     const unsigned int oneBasedPort) {
   if (moduleId ==
           static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS_CMIS) ||
-      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_DD)) {
+      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_DD) ||
+      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::OSFP)) {
     return TransceiverManagementInterface::CMIS;
   } else if (
       moduleId ==

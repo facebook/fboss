@@ -78,6 +78,7 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
       case MediaInterfaceCode::FR4_200G:
       case MediaInterfaceCode::FR4_400G:
       case MediaInterfaceCode::LR4_400G_10KM:
+      case MediaInterfaceCode::FR4_400Gx2: // FIXME
         expectedMediaLanes = {0, 1, 2, 3};
         break;
       case MediaInterfaceCode::FR1_100G:
@@ -451,7 +452,8 @@ void HwTransceiverUtils::verifyDiagsCapability(
         EXPECT_EQ(
             *diagsCapability->vdm(),
             (*mediaIntfCode == MediaInterfaceCode::FR4_400G ||
-             *mediaIntfCode == MediaInterfaceCode::LR4_400G_10KM));
+             *mediaIntfCode == MediaInterfaceCode::LR4_400G_10KM ||
+             *mediaIntfCode == MediaInterfaceCode::FR4_400Gx2));
         EXPECT_TRUE(*diagsCapability->cdb());
         EXPECT_TRUE(*diagsCapability->prbsLine());
         EXPECT_TRUE(*diagsCapability->prbsSystem());
