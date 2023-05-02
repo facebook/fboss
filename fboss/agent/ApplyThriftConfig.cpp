@@ -675,7 +675,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newTunnels = updateIpInIpTunnels();
     if (newTunnels) {
-      new_->resetTunnels(std::move(newTunnels));
+      new_->resetTunnels(
+          toMnpuMap<MultiSwitchIpTunnelMap>(newTunnels, scopeResolver_));
       changed = true;
     }
   }
@@ -4191,15 +4192,16 @@ ThriftConfigApplier::createLabelForwardingEntry(
 }
 
 std::shared_ptr<IpTunnelMap> ThriftConfigApplier::updateIpInIpTunnels() {
-  const auto& origTunnels = orig_->getTunnels();
-  IpTunnelMap::NodeContainer newTunnels;
+  const auto& origTunnels = orig_->getMultiSwitchTunnels();
+  auto newTunnels = std::make_shared<IpTunnelMap>();
+
   bool changed = false;
   size_t numExistingProcessed = 0;
   if (!cfg_->ipInIpTunnels().has_value()) {
     return nullptr;
   }
   for (const auto& tunnelCfg : cfg_->ipInIpTunnels().value()) {
-    auto origTunnel = origTunnels->getTunnelIf(*tunnelCfg.ipInIpTunnelId());
+    auto origTunnel = origTunnels->getNodeIf(*tunnelCfg.ipInIpTunnelId());
     std::shared_ptr<IpTunnel> newTunnel;
     if (origTunnel) {
       newTunnel = updateIpInIpTunnel(origTunnel, &tunnelCfg);
@@ -4208,7 +4210,7 @@ std::shared_ptr<IpTunnelMap> ThriftConfigApplier::updateIpInIpTunnels() {
       newTunnel = createIpInIpTunnel(tunnelCfg);
     }
 
-    changed |= updateMap(&newTunnels, origTunnel, newTunnel);
+    changed |= updateThriftMapNode(newTunnels.get(), origTunnel, newTunnel);
   }
 
   if (numExistingProcessed != origTunnels->size()) {
@@ -4220,7 +4222,7 @@ std::shared_ptr<IpTunnelMap> ThriftConfigApplier::updateIpInIpTunnels() {
   if (!changed) {
     return nullptr;
   }
-  return origTunnels->clone(std::move(newTunnels));
+  return newTunnels;
 }
 
 shared_ptr<IpTunnel> ThriftConfigApplier::updateIpInIpTunnel(
