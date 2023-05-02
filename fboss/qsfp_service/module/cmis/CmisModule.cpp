@@ -2262,7 +2262,7 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
         firstModuleCapability->moduleMediaInterface);
     if (smfCode == SMFMediaInterfaceCode::FR4_400G &&
         firstModuleCapability->hostStartLanes.size() == 2) {
-      moduleMediaInterface = MediaInterfaceCode::FR4_400Gx2;
+      moduleMediaInterface = MediaInterfaceCode::FR4_2x400G;
     } else {
       moduleMediaInterface = mediaInterfaceMapping[smfCode];
     }

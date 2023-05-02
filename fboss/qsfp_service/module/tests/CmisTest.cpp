@@ -459,7 +459,7 @@ TEST_F(CmisTest, cmis2x400GFr4TransceiverInfoTest) {
       TransceiverManagementInterface::CMIS);
   EXPECT_EQ(xcvr->numHostLanes(), 8);
   EXPECT_EQ(xcvr->numMediaLanes(), 8);
-  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::FR4_400Gx2);
+  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::FR4_2x400G);
   for (auto& media : *info.settings()->mediaInterface()) {
     EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::FR4_400G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::FR4_400G);
