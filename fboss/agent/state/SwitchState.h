@@ -544,7 +544,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetTransceivers(std::shared_ptr<TransceiverMap> transceivers);
   void addSystemPort(const std::shared_ptr<SystemPort>& systemPort);
   void resetSystemPorts(std::shared_ptr<SystemPortMap> systemPorts);
-  void addTunnel(const std::shared_ptr<IpTunnel>& tunnel);
   void resetTunnels(std::shared_ptr<IpTunnelMap> tunnels);
   void resetTunnels(std::shared_ptr<MultiSwitchIpTunnelMap> tunnels);
 

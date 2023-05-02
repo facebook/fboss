@@ -449,16 +449,6 @@ const std::shared_ptr<SystemPortMap>& SwitchState::getSystemPorts() const {
   return getDefaultMap<switch_state_tags::systemPortMaps>();
 }
 
-void SwitchState::addTunnel(const std::shared_ptr<IpTunnel>& tunnel) {
-  // For ease-of-use, automatically clone the TunnelMap if we are still
-  // pointing to a published map.
-  if (getTunnels()->isPublished()) {
-    auto ipTunnelMap = getTunnels()->clone();
-    resetTunnels(ipTunnelMap);
-  }
-  getDefaultMap<switch_state_tags::ipTunnelMaps>()->addTunnel(tunnel);
-}
-
 void SwitchState::resetTunnels(std::shared_ptr<IpTunnelMap> tunnels) {
   resetDefaultMap<switch_state_tags::ipTunnelMaps>(tunnels);
 }

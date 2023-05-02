@@ -474,6 +474,15 @@ struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
     return nullptr;
   }
 
+  std::shared_ptr<InnerNode> getNode(
+      const typename InnerMap::Traits::KeyType& key) const {
+    auto node = getNodeIf(key);
+    if (!node) {
+      throw FbossError("node not found: ", key);
+    }
+    return node;
+  }
+
   size_t numNodes() const {
     size_t cnt = 0;
     for (auto mnitr = this->cbegin(); mnitr != this->cend(); ++mnitr) {
