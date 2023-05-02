@@ -160,6 +160,9 @@ inline int64_t getCumulativeValue(
 #define ASSERT_EVENTUALLY_LT(expr1, expr2) \
   _ASSERT_EVENTUALLY(expr1 < expr2, ASSERT_LT(expr1, expr2))
 
+#define CO_ASSERT_EVENTUALLY_TRUE(expr) \
+  _ASSERT_EVENTUALLY((bool)(expr), CO_ASSERT_TRUE(expr))
+
 #define EXPECT_EVENTUALLY_TRUE(expr) \
   _EXPECT_EVENTUALLY((bool)(expr), EXPECT_TRUE(expr))
 #define EXPECT_EVENTUALLY_FALSE(expr) \
