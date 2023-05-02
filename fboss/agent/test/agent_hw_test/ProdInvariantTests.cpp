@@ -115,18 +115,17 @@ void ProdInvariantTest::setupConfigFlag() {
   cfg::AgentConfig testConfig;
   utility::setPortToDefaultProfileIDMap(
       std::make_shared<PortMap>(), platform());
-  if (checkBaseConfigPortsEmpty()) {
-    testConfig.sw() = initialConfig();
-    const auto& baseConfig = platform()->config();
-    testConfig.platform() = *baseConfig->thrift.platform();
-    auto newcfg = AgentConfig(
-        testConfig,
-        apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-            testConfig));
-    auto newCfgFile = getTestConfigPath();
-    newcfg.dumpConfig(newCfgFile);
-    FLAGS_config = newCfgFile;
-  }
+  testConfig.sw() = initialConfig();
+  const auto& baseConfig = platform()->config();
+  testConfig.defaultCommandLineArgs() =
+      *baseConfig->thrift.defaultCommandLineArgs();
+  testConfig.platform() = *baseConfig->thrift.platform();
+  auto newCfg = AgentConfig(
+      testConfig,
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(testConfig));
+  auto newCfgFile = getTestConfigPath();
+  newCfg.dumpConfig(newCfgFile);
+  FLAGS_config = newCfgFile;
   // reload config so that test config is loaded
   platform()->reloadConfig();
 }
