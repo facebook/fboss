@@ -11,9 +11,11 @@ namespace facebook::fboss {
 namespace cfg {
 class Mirror;
 class DsfNode;
+class IpInIpTunnel;
 } // namespace cfg
 class Mirror;
 class DsfNode;
+class IpTunnel;
 
 class SwitchIdScopeResolver {
  public:
@@ -34,6 +36,12 @@ class SwitchIdScopeResolver {
   }
   HwSwitchMatcher scope(PortID portId) const;
   HwSwitchMatcher scope(const cfg::AggregatePort& aggPort) const;
+  const HwSwitchMatcher& scope(const cfg::IpInIpTunnel& /*m*/) const {
+    return l3SwitchMatcher();
+  }
+  const HwSwitchMatcher& scope(const std::shared_ptr<IpTunnel>& /*m*/) const {
+    return l3SwitchMatcher();
+  }
 
  private:
   const HwSwitchMatcher& l3SwitchMatcher() const;
