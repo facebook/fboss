@@ -30,6 +30,8 @@ namespace facebook::fboss {
  */
 class LedManager {
   using PortDisplayInfo = struct PortDisplayInfo {
+    std::string portName;
+    cfg::PortProfileID portProfileId;
     bool operationStateUp{false};
     bool neighborReachable{false};
     led::LedColor currentLedColor{led::LedColor::UNKNOWN};
@@ -68,6 +70,10 @@ class LedManager {
     return led::LedColor::UNKNOWN;
   }
   virtual void setLedColor(uint32_t portId, led::LedColor ledColor) {}
+
+  std::vector<int> getLedIdFromSwPort(
+      uint32_t portId,
+      cfg::PortProfileID portProfile) const;
 };
 
 } // namespace facebook::fboss
