@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <folly/logging/xlog.h>
 #include <re2/re2.h>
@@ -407,6 +408,23 @@ std::set<uint8_t> PlatformMapping::getTransceiverHostLanes(
     tcvrHostLanes.insert(lane);
   }
   return tcvrHostLanes;
+}
+
+int PlatformMapping::getTransceiverIdFromSwPort(PortID swPort) const {
+  const auto& platformPorts = getPlatformPorts();
+  const auto& chips = getChips();
+
+  auto platformPortItr = platformPorts.find(static_cast<int32_t>(swPort));
+  if (platformPortItr == platformPorts.end()) {
+    throw FbossError("Can't find Platform Port for portId ", swPort);
+  }
+
+  auto tcvrID = utility::getTransceiverId(platformPortItr->second, chips);
+  if (tcvrID.has_value()) {
+    throw FbossError("Can't find Tcvr ID for portId ", swPort);
+  }
+
+  return tcvrID.value();
 }
 
 std::vector<phy::PinConfig> PlatformMapping::getPortXphySidePinConfigs(
