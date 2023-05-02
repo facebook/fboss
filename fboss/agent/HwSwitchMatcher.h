@@ -34,6 +34,13 @@ class HwSwitchMatcher {
     return switchIds_.find(switchId) != switchIds_.end();
   }
 
+  bool operator==(const HwSwitchMatcher& r) const {
+    return std::tie(matcherString_, switchIds_) ==
+        std::tie(r.matcherString_, r.switchIds_);
+  }
+  bool operator!=(const HwSwitchMatcher& r) const {
+    return !(*this == r);
+  }
   static HwSwitchMatcher defaultHwSwitchMatcher();
 
   static const std::string& defaultHwSwitchMatcherKey();

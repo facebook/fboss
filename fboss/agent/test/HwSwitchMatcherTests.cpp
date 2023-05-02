@@ -36,3 +36,11 @@ TEST(NpuMatcherTest, DefaultMatcher) {
   EXPECT_EQ(matcher.matcherString(), "id=0");
   EXPECT_EQ(HwSwitchMatcher::defaultHwSwitchMatcher().matcherString(), "id=0");
 }
+
+TEST(NpuMatcherTest, Compare) {
+  HwSwitchMatcher matcher1(std::unordered_set<SwitchID>{SwitchID(1)});
+  HwSwitchMatcher matcher2(std::unordered_set<SwitchID>{SwitchID(2)});
+  EXPECT_NE(matcher1, matcher2);
+  EXPECT_EQ(matcher1, matcher1);
+  EXPECT_EQ(matcher2, matcher2);
+}
