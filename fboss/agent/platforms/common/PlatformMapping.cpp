@@ -427,6 +427,34 @@ int PlatformMapping::getTransceiverIdFromSwPort(PortID swPort) const {
   return tcvrID.value();
 }
 
+std::vector<PortID> PlatformMapping::getSwPortListFromTransceiverId(
+    int tcvrId) const {
+  std::optional<phy::DataPlanePhyChip> tcvrChip;
+  for (const auto& chip : getChips()) {
+    if (*chip.second.type() == phy::DataPlanePhyChipType::TRANSCEIVER &&
+        *chip.second.physicalID() == tcvrId) {
+      tcvrChip = chip.second;
+      break;
+    }
+  }
+  if (!tcvrChip) {
+    throw FbossError(
+        "Can't find transceiver: ", tcvrId, " from PlatformMapping");
+  }
+
+  const auto& platformPorts =
+      utility::getPlatformPortsByChip(getPlatformPorts(), *tcvrChip);
+  if (platformPorts.empty()) {
+    throw FbossError("Can't find platformPorts for transceiver: ", tcvrId);
+  }
+
+  std::vector<PortID> swPorts;
+  for (auto platformPort : platformPorts) {
+    swPorts.push_back(PortID(*platformPort.mapping()->id()));
+  }
+  return swPorts;
+}
+
 std::vector<phy::PinConfig> PlatformMapping::getPortXphySidePinConfigs(
     PlatformPortProfileConfigMatcher matcher,
     phy::Side side) const {

@@ -105,6 +105,8 @@ class PlatformMapping {
 
   int getTransceiverIdFromSwPort(PortID swPort) const;
 
+  std::vector<PortID> getSwPortListFromTransceiverId(int tcvrId) const;
+
   const std::map<std::string, phy::DataPlanePhyChip>& getChips() const {
     return chips_;
   }
