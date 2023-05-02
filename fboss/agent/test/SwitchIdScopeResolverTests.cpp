@@ -39,3 +39,16 @@ TEST_F(SwitchIdScopeResolverTest, dsfNodeScope) {
   EXPECT_EQ(
       l3SwitchMatcher(), scopeResolver().scope(std::shared_ptr<DsfNode>()));
 }
+
+TEST_F(SwitchIdScopeResolverTest, portScope) {
+  EXPECT_EQ(l3SwitchMatcher(), scopeResolver().scope(PortID(6)));
+}
+
+TEST_F(SwitchIdScopeResolverTest, aggPortScope) {
+  cfg::AggregatePort aggPort;
+  aggPort.name() = "agg";
+  cfg::AggregatePortMember member;
+  member.memberPortID() = 6;
+  aggPort.memberPorts()->push_back(member);
+  EXPECT_EQ(l3SwitchMatcher(), scopeResolver().scope(aggPort));
+}
