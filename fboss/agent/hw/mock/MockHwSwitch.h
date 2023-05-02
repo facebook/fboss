@@ -134,7 +134,7 @@ class MockHwSwitch : public HwSwitch {
   MOCK_CONST_METHOD0(getFabricReachability, std::map<PortID, FabricEndpoint>());
   MOCK_CONST_METHOD1(
       getSwitchReachability,
-      std::vector<PortID>(int64_t switchId));
+      std::vector<PortID>(SwitchID switchId));
 
   void setInitialState(const std::shared_ptr<SwitchState>& state) {
     setProgrammedState(state);

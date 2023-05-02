@@ -1312,6 +1312,9 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   map<string, FabricEndpoint> getFabricReachability() throws (
     1: fboss.FbossBaseError error,
   );
+  map<string, list<string>> getSwitchReachability(
+    1: list<string> switchNames,
+  ) throws (1: fboss.FbossBaseError error);
   map<i64, switch_config.DsfNode> getDsfNodes() throws (
     1: fboss.FbossBaseError error,
   );

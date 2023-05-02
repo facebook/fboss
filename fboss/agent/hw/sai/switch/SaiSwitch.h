@@ -203,7 +203,7 @@ class SaiSwitch : public HwSwitch {
 
   phy::FecMode getPortFECMode(PortID port) const override;
   std::map<PortID, FabricEndpoint> getFabricReachability() const override;
-  std::vector<PortID> getSwitchReachability(int64_t switchId) const override;
+  std::vector<PortID> getSwitchReachability(SwitchID switchId) const override;
 
   void rollbackInTest(const std::shared_ptr<SwitchState>& knownGoodState);
 
@@ -274,7 +274,7 @@ class SaiSwitch : public HwSwitch {
 
   std::map<PortID, FabricEndpoint> getFabricReachabilityLocked() const;
 
-  std::vector<PortID> getSwitchReachabilityLocked(int64_t switchId) const;
+  std::vector<PortID> getSwitchReachabilityLocked(SwitchID switchId) const;
 
   void gracefulExitLocked(
       const std::lock_guard<std::mutex>& lock,

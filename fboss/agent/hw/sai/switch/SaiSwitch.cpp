@@ -1541,15 +1541,14 @@ std::map<PortID, FabricEndpoint> SaiSwitch::getFabricReachabilityLocked()
   return fabricReachabilityManager_->getReachabilityInfo();
 }
 
-std::vector<PortID> SaiSwitch::getSwitchReachability(int64_t switchId) const {
+std::vector<PortID> SaiSwitch::getSwitchReachability(SwitchID switchId) const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return getSwitchReachabilityLocked(switchId);
 }
 
 std::vector<PortID> SaiSwitch::getSwitchReachabilityLocked(
-    int64_t switchId) const {
-  return managerTable_->portManager().getFabricReachabilityForSwitch(
-      static_cast<SwitchID>(switchId));
+    SwitchID switchId) const {
+  return managerTable_->portManager().getFabricReachabilityForSwitch(switchId);
 }
 
 void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {

@@ -2819,6 +2819,34 @@ void ThriftHandler::getFabricReachability(
   }
 }
 
+void ThriftHandler::getSwitchReachability(
+    std::map<std::string, std::vector<string>>& reachabilityMatrix,
+    std::unique_ptr<std::vector<std::string>> switchNames) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureVoqOrFabric(__func__);
+  if (switchNames->empty()) {
+    throw FbossError("Empty switch name list input for getSwitchReachability.");
+  }
+  std::unordered_set<std::string> switchNameSet{
+      switchNames->begin(), switchNames->end()};
+  for (const auto& [_, dsfNodes] :
+       std::as_const(*sw_->getState()->getDsfNodes())) {
+    for (const auto& [_, node] : std::as_const(*dsfNodes)) {
+      if (std::find(
+              switchNameSet.begin(), switchNameSet.end(), node->getName()) !=
+          switchNameSet.end()) {
+        std::vector<std::string> reachablePorts;
+        for (const auto& port :
+             sw_->getHw()->getSwitchReachability(node->getSwitchId())) {
+          reachablePorts.push_back(
+              sw_->getState()->getPorts()->getPort(port)->getName());
+        }
+        reachabilityMatrix.insert({node->getName(), std::move(reachablePorts)});
+      }
+    }
+  }
+}
+
 void ThriftHandler::getDsfNodes(std::map<int64_t, cfg::DsfNode>& dsfNodes) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureVoqOrFabric(__func__);

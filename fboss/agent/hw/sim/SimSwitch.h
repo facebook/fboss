@@ -126,7 +126,7 @@ class SimSwitch : public HwSwitch {
   std::map<PortID, FabricEndpoint> getFabricReachability() const override {
     return {};
   }
-  std::vector<PortID> getSwitchReachability(int64_t switchId) const override {
+  std::vector<PortID> getSwitchReachability(SwitchID switchId) const override {
     return {};
   }
 

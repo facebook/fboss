@@ -283,6 +283,9 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getTeFlowTableDetails(std::vector<TeFlowDetails>& flowTable) override;
   void getFabricReachability(
       std::map<std::string, FabricEndpoint>& reachability) override;
+  void getSwitchReachability(
+      std::map<std::string, std::vector<std::string>>& reachabilityMatrix,
+      std::unique_ptr<std::vector<std::string>> switchNames) override;
   void getDsfNodes(std::map<int64_t, cfg::DsfNode>& dsfNodes) override;
   void getSystemPorts(std::map<int64_t, SystemPortThrift>& sysPorts) override;
   void getSysPortStats(
