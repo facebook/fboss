@@ -666,9 +666,9 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
         ? aclMap
         : state->cref<switch_state_tags::aclTableGroupMaps>()->getAclMap();
     if (aclMap && aclMap->size()) {
-      state->resetAcls(aclMap);
-      state->ref<switch_state_tags::aclTableGroupMap>()->clear();
-      state->ref<switch_state_tags::aclMap>()->clear();
+      state->set<switch_state_tags::aclMap>(aclMap->toThrift());
+      state->ref<switch_state_tags::aclTableGroupMap>().reset();
+      state->resetAclTableGroups(std::make_shared<AclTableGroupMap>());
     }
   }
   /* forward compatibility */
@@ -726,7 +726,7 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   state->fromThrift<
       switch_state_tags::interfaceMaps,
       switch_state_tags::interfaceMap>();
-  if (switchState.aclTableGroupMap()) {
+  if (state->cref<switch_state_tags::aclTableGroupMap>()) {
     // set multi map if acl table group map exists
     state->fromThrift<
         switch_state_tags::aclTableGroupMaps,
@@ -829,33 +829,32 @@ std::optional<ThriftType> SwitchState::toThrift(
 state::SwitchState SwitchState::toThrift() const {
   auto data = BaseT::toThrift();
   auto aclMaps = data.aclMaps();
-  auto aclTableGroupMap = data.aclTableGroupMap();
+  auto aclTableGroupMaps = data.aclTableGroupMaps();
   const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
   if (FLAGS_enable_acl_table_group) {
     if ((aclMaps->find(matcher) != aclMaps->end()) &&
         !data.get_aclMaps().at(matcher).empty() &&
-        (!aclTableGroupMap || aclTableGroupMap->empty())) {
-      data.aclTableGroupMap() =
+        (aclTableGroupMaps->empty() ||
+         aclTableGroupMaps->find(matcher) == aclTableGroupMaps->end() ||
+         aclTableGroupMaps->find(matcher)->second.empty())) {
+      data.aclTableGroupMaps()->emplace(
+          matcher,
           AclTableGroupMap::createDefaultAclTableGroupMapFromThrift(
               data.get_aclMaps().at(matcher))
-              ->toThrift();
+              ->toThrift());
     }
     aclMaps->clear();
   } else {
-    if (aclTableGroupMap && !aclTableGroupMap->empty() &&
+    if (!aclTableGroupMaps->empty() &&
+        (aclTableGroupMaps->find(matcher) != aclTableGroupMaps->end()) &&
         (aclMaps->empty() || aclMaps->find(matcher) == aclMaps->end() ||
-         data.get_aclMaps().at(matcher).empty())) {
-      if (auto aclMapPtr =
-              AclTableGroupMap::getDefaultAclTableGroupMap(*aclTableGroupMap)) {
+         aclMaps->find(matcher)->second.empty())) {
+      if (auto aclMapPtr = AclTableGroupMap::getDefaultAclTableGroupMap(
+              aclTableGroupMaps[matcher])) {
         aclMaps->at(matcher) = aclMapPtr->toThrift();
       }
-      aclTableGroupMap->clear();
-    } else if (
-        auto aclMapPtr =
-            cref<switch_state_tags::aclTableGroupMaps>()->getAclMap()) {
-      aclMaps->at(matcher) = aclMapPtr->toThrift();
-      data.aclTableGroupMaps()->clear();
     }
+    aclTableGroupMaps->clear();
   }
 
   // SwitchSettings need to restored before the transition logic
