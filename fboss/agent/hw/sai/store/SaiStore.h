@@ -100,6 +100,7 @@ class SaiObjectStore {
       bool addToWarmbootHandles = false) {
     auto object = reloadObject(adapterKey, addToWarmbootHandles);
     object->setOwnedByAdapter(true);
+    XLOGF(DBG5, "SaiStore reload by adapter {}", *object.get());
     return object;
   }
 
