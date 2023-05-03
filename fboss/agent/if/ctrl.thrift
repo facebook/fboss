@@ -272,6 +272,7 @@ enum PortLoopbackMode {
   NONE = 0,
   MAC = 1,
   PHY = 2,
+  NIF = 3,
 }
 
 struct LinearQueueCongestionDetection {

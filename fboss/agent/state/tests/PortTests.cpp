@@ -438,6 +438,9 @@ TEST(Port, loopbackModeConfig) {
   expected = cfg::PortLoopbackMode::MAC;
   changeAndVerifyLoopbackMode(expected);
 
+  expected = cfg::PortLoopbackMode::NIF;
+  changeAndVerifyLoopbackMode(expected);
+
   expected = cfg::PortLoopbackMode::NONE;
   changeAndVerifyLoopbackMode(expected);
 }

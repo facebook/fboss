@@ -245,6 +245,8 @@ bcm_port_loopback_t fbToBcmLoopbackMode(cfg::PortLoopbackMode inMode) {
       return BCM_PORT_LOOPBACK_PHY;
     case cfg::PortLoopbackMode::MAC:
       return BCM_PORT_LOOPBACK_MAC;
+    case cfg::PortLoopbackMode::NIF:
+      throw FbossError("Nif loopback is unsupported for native BCM");
   }
   CHECK(0) << "Should never reach here";
   return BCM_PORT_LOOPBACK_NONE;

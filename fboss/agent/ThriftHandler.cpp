@@ -586,6 +586,8 @@ cfg::PortLoopbackMode toLoopbackMode(PortLoopbackMode mode) {
       return cfg::PortLoopbackMode::MAC;
     case PortLoopbackMode::PHY:
       return cfg::PortLoopbackMode::PHY;
+    case PortLoopbackMode::NIF:
+      return cfg::PortLoopbackMode::NIF;
   }
   throw FbossError("Bogus loopback mode: ", mode);
 }
@@ -597,6 +599,8 @@ PortLoopbackMode toThriftLoopbackMode(cfg::PortLoopbackMode mode) {
       return PortLoopbackMode::MAC;
     case cfg::PortLoopbackMode::PHY:
       return PortLoopbackMode::PHY;
+    case cfg::PortLoopbackMode::NIF:
+      return PortLoopbackMode::NIF;
   }
   throw FbossError("Bogus loopback mode: ", mode);
 }

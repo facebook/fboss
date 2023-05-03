@@ -821,6 +821,7 @@ enum PortLoopbackMode {
   NONE = 0,
   PHY = 1,
   MAC = 2,
+  NIF = 3,
 }
 
 enum LLDPTag {

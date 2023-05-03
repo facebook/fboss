@@ -2035,7 +2035,10 @@ TEST_F(ThriftTest, setLoopbackMode) {
   };
 
   for (auto lbMode :
-       {PortLoopbackMode::MAC, PortLoopbackMode::PHY, PortLoopbackMode::NONE}) {
+       {PortLoopbackMode::NIF,
+        PortLoopbackMode::MAC,
+        PortLoopbackMode::PHY,
+        PortLoopbackMode::NONE}) {
     // MAC
     handler.setPortLoopbackMode(firstPort, lbMode);
     handler.getAllPortLoopbackMode(port2LoopbackMode);
