@@ -440,12 +440,23 @@ void SwitchState::addSystemPort(const std::shared_ptr<SystemPort>& systemPort) {
   getDefaultMap<switch_state_tags::systemPortMaps>()->addSystemPort(systemPort);
 }
 
-void SwitchState::resetSystemPorts(std::shared_ptr<SystemPortMap> systemPorts) {
+void SwitchState::resetSystemPorts(
+    const std::shared_ptr<SystemPortMap>& systemPorts) {
   resetDefaultMap<switch_state_tags::systemPortMaps>(systemPorts);
+}
+
+void SwitchState::resetSystemPorts(
+    const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts) {
+  ref<switch_state_tags::systemPortMaps>() = systemPorts;
 }
 
 const std::shared_ptr<SystemPortMap>& SwitchState::getSystemPorts() const {
   return getDefaultMap<switch_state_tags::systemPortMaps>();
+}
+
+const std::shared_ptr<MultiSwitchSystemPortMap>&
+SwitchState::getMultiSwitchSystemPorts() const {
+  return safe_cref<switch_state_tags::systemPortMaps>();
 }
 
 void SwitchState::resetTunnels(
