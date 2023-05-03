@@ -262,6 +262,11 @@ const std::shared_ptr<SystemPortMap>& SwitchState::getRemoteSystemPorts()
   return getDefaultMap<switch_state_tags::remoteSystemPortMaps>();
 }
 
+const std::shared_ptr<MultiSwitchSystemPortMap>&
+SwitchState::getMultiSwitchRemoteSystemPorts() const {
+  return safe_cref<switch_state_tags::remoteSystemPortMaps>();
+}
+
 void SwitchState::addAcl(const std::shared_ptr<AclEntry>& acl) {
   // For ease-of-use, automatically clone the AclMap if we are still
   // pointing to a published map.
