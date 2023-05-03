@@ -156,6 +156,36 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "attachedCorePortIndex": 2
       },
       "supportedProfiles": {
+        "24": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC0",
+                  "lane": 0
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC0",
+                  "lane": 1
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC0",
+                  "lane": 2
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC0",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
         "38": {
           "pins": {
             "iphy": [
@@ -350,6 +380,36 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "attachedCorePortIndex": 3
       },
       "supportedProfiles": {
+        "24": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC1",
+                  "lane": 0
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC1",
+                  "lane": 1
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC1",
+                  "lane": 2
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC1",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
         "38": {
           "pins": {
             "iphy": [
@@ -544,6 +604,36 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "attachedCorePortIndex": 4
       },
       "supportedProfiles": {
+        "24": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC2",
+                  "lane": 0
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC2",
+                  "lane": 1
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC2",
+                  "lane": 2
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC2",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
         "38": {
           "pins": {
             "iphy": [
@@ -738,6 +828,36 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "attachedCorePortIndex": 5
       },
       "supportedProfiles": {
+        "24": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC3",
+                  "lane": 0
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC3",
+                  "lane": 1
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC3",
+                  "lane": 2
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC3",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
         "38": {
           "pins": {
             "iphy": [
@@ -932,6 +1052,36 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "attachedCorePortIndex": 6
       },
       "supportedProfiles": {
+        "24": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC4",
+                  "lane": 0
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC4",
+                  "lane": 1
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC4",
+                  "lane": 2
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC4",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
         "38": {
           "pins": {
             "iphy": [
@@ -1126,6 +1276,36 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "attachedCorePortIndex": 7
       },
       "supportedProfiles": {
+        "24": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC5",
+                  "lane": 0
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC5",
+                  "lane": 1
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC5",
+                  "lane": 2
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC5",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
         "38": {
           "pins": {
             "iphy": [
@@ -1320,6 +1500,36 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "attachedCorePortIndex": 8
       },
       "supportedProfiles": {
+        "24": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC6",
+                  "lane": 0
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC6",
+                  "lane": 1
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC6",
+                  "lane": 2
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC6",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
         "38": {
           "pins": {
             "iphy": [
@@ -1514,6 +1724,36 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "attachedCorePortIndex": 9
       },
       "supportedProfiles": {
+        "24": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC7",
+                  "lane": 0
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC7",
+                  "lane": 1
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC7",
+                  "lane": 2
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC7",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
         "38": {
           "pins": {
             "iphy": [
@@ -1708,6 +1948,36 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "attachedCorePortIndex": 10
       },
       "supportedProfiles": {
+        "24": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC8",
+                  "lane": 0
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC8",
+                  "lane": 1
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC8",
+                  "lane": 2
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC8",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
         "38": {
           "pins": {
             "iphy": [
@@ -1902,6 +2172,36 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "attachedCorePortIndex": 11
       },
       "supportedProfiles": {
+        "24": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC9",
+                  "lane": 0
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC9",
+                  "lane": 1
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC9",
+                  "lane": 2
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC9",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
         "38": {
           "pins": {
             "iphy": [
@@ -2096,6 +2396,36 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "attachedCorePortIndex": 12
       },
       "supportedProfiles": {
+        "24": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC10",
+                  "lane": 0
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC10",
+                  "lane": 1
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC10",
+                  "lane": 2
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC10",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
         "38": {
           "pins": {
             "iphy": [
@@ -2290,6 +2620,36 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "attachedCorePortIndex": 13
       },
       "supportedProfiles": {
+        "24": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC11",
+                  "lane": 0
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC11",
+                  "lane": 1
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC11",
+                  "lane": 2
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC11",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
         "38": {
           "pins": {
             "iphy": [
@@ -2484,6 +2844,36 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "attachedCorePortIndex": 14
       },
       "supportedProfiles": {
+        "24": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC12",
+                  "lane": 0
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC12",
+                  "lane": 1
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC12",
+                  "lane": 2
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC12",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
         "38": {
           "pins": {
             "iphy": [
@@ -2678,6 +3068,36 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "attachedCorePortIndex": 15
       },
       "supportedProfiles": {
+        "24": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC13",
+                  "lane": 0
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC13",
+                  "lane": 1
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC13",
+                  "lane": 2
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC13",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
         "38": {
           "pins": {
             "iphy": [
@@ -2872,6 +3292,36 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "attachedCorePortIndex": 16
       },
       "supportedProfiles": {
+        "24": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC14",
+                  "lane": 0
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC14",
+                  "lane": 1
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC14",
+                  "lane": 2
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC14",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
         "38": {
           "pins": {
             "iphy": [
@@ -3066,6 +3516,36 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "attachedCorePortIndex": 17
       },
       "supportedProfiles": {
+        "24": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC15",
+                  "lane": 0
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC15",
+                  "lane": 1
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC15",
+                  "lane": 2
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC15",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
         "38": {
           "pins": {
             "iphy": [
@@ -3260,6 +3740,36 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "attachedCorePortIndex": 18
       },
       "supportedProfiles": {
+        "24": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC16",
+                  "lane": 0
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC16",
+                  "lane": 1
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC16",
+                  "lane": 2
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC16",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
         "38": {
           "pins": {
             "iphy": [
@@ -3454,6 +3964,36 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "attachedCorePortIndex": 19
       },
       "supportedProfiles": {
+        "24": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC17",
+                  "lane": 0
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC17",
+                  "lane": 1
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC17",
+                  "lane": 2
+                }
+              },
+              {
+                "id": {
+                  "chip": "BC17",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
         "38": {
           "pins": {
             "iphy": [
@@ -3540,11 +4080,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
         }
       }
     },
-    "256": {
+    "1024": {
       "mapping": {
-        "id": 256,
+        "id": 1024,
         "name": "fab1/10/1",
-        "controllingPort": 256,
+        "controllingPort": 1024,
         "pins": [
           {
             "a": {
@@ -3585,14 +4125,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC0",
+                  "lane": 0
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC0",
+                  "lane": 0
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "257": {
+    "1025": {
       "mapping": {
-        "id": 257,
+        "id": 1025,
         "name": "fab1/10/2",
-        "controllingPort": 257,
+        "controllingPort": 1025,
         "pins": [
           {
             "a": {
@@ -3633,14 +4197,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+      "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC0",
+                  "lane": 1
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC0",
+                  "lane": 1
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "258": {
+    "1026": {
       "mapping": {
-        "id": 258,
+        "id": 1026,
         "name": "fab1/10/3",
-        "controllingPort": 258,
+        "controllingPort": 1026,
         "pins": [
           {
             "a": {
@@ -3681,14 +4269,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC0",
+                  "lane": 2
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC0",
+                  "lane": 2
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "259": {
+    "1027": {
       "mapping": {
-        "id": 259,
+        "id": 1027,
         "name": "fab1/10/4",
-        "controllingPort": 259,
+        "controllingPort": 1027,
         "pins": [
           {
             "a": {
@@ -3729,14 +4341,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC0",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC0",
+                  "lane": 3
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "260": {
+    "1028": {
       "mapping": {
-        "id": 260,
+        "id": 1028,
         "name": "fab1/10/5",
-        "controllingPort": 260,
+        "controllingPort": 1028,
         "pins": [
           {
             "a": {
@@ -3777,14 +4413,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC0",
+                  "lane": 4
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC0",
+                  "lane": 4
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "261": {
+    "1029": {
       "mapping": {
-        "id": 261,
+        "id": 1029,
         "name": "fab1/10/6",
-        "controllingPort": 261,
+        "controllingPort": 1029,
         "pins": [
           {
             "a": {
@@ -3825,14 +4485,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC0",
+                  "lane": 5
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC0",
+                  "lane": 5
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "262": {
+    "1030": {
       "mapping": {
-        "id": 262,
+        "id": 1030,
         "name": "fab1/10/7",
-        "controllingPort": 262,
+        "controllingPort": 1030,
         "pins": [
           {
             "a": {
@@ -3873,14 +4557,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC0",
+                  "lane": 6
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC0",
+                  "lane": 6
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "263": {
+    "1031": {
       "mapping": {
-        "id": 263,
+        "id": 1031,
         "name": "fab1/10/8",
-        "controllingPort": 263,
+        "controllingPort": 1031,
         "pins": [
           {
             "a": {
@@ -3921,14 +4629,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC0",
+                  "lane": 7
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC0",
+                  "lane": 7
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "264": {
+    "1032": {
       "mapping": {
-        "id": 264,
+        "id": 1032,
         "name": "fab1/9/1",
-        "controllingPort": 264,
+        "controllingPort": 1032,
         "pins": [
           {
             "a": {
@@ -3969,14 +4701,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC1",
+                  "lane": 0
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC1",
+                  "lane": 0
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "265": {
+    "1033": {
       "mapping": {
-        "id": 265,
+        "id": 1033,
         "name": "fab1/9/2",
-        "controllingPort": 265,
+        "controllingPort": 1033,
         "pins": [
           {
             "a": {
@@ -4017,14 +4773,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC1",
+                  "lane": 1
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC1",
+                  "lane": 1
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "266": {
+    "1034": {
       "mapping": {
-        "id": 266,
+        "id": 1034,
         "name": "fab1/9/3",
-        "controllingPort": 266,
+        "controllingPort": 1034,
         "pins": [
           {
             "a": {
@@ -4065,14 +4845,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC1",
+                  "lane": 2
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC1",
+                  "lane": 2
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "267": {
+    "1035": {
       "mapping": {
-        "id": 267,
+        "id": 1035,
         "name": "fab1/9/4",
-        "controllingPort": 267,
+        "controllingPort": 1035,
         "pins": [
           {
             "a": {
@@ -4113,14 +4917,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC1",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC1",
+                  "lane": 3
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "268": {
+    "1036": {
       "mapping": {
-        "id": 268,
+        "id": 1036,
         "name": "fab1/9/5",
-        "controllingPort": 268,
+        "controllingPort": 1036,
         "pins": [
           {
             "a": {
@@ -4161,14 +4989,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC1",
+                  "lane": 4
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC1",
+                  "lane": 4
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "269": {
+    "1037": {
       "mapping": {
-        "id": 269,
+        "id": 1037,
         "name": "fab1/9/6",
-        "controllingPort": 269,
+        "controllingPort": 1037,
         "pins": [
           {
             "a": {
@@ -4209,14 +5061,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC1",
+                  "lane": 5
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC1",
+                  "lane": 5
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "270": {
+    "1038": {
       "mapping": {
-        "id": 270,
+        "id": 1038,
         "name": "fab1/9/7",
-        "controllingPort": 270,
+        "controllingPort": 1038,
         "pins": [
           {
             "a": {
@@ -4257,14 +5133,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC1",
+                  "lane": 6
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC1",
+                  "lane": 6
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "271": {
+    "1039": {
       "mapping": {
-        "id": 271,
+        "id": 1039,
         "name": "fab1/9/8",
-        "controllingPort": 271,
+        "controllingPort": 1039,
         "pins": [
           {
             "a": {
@@ -4305,14 +5205,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC1",
+                  "lane": 7
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC1",
+                  "lane": 7
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "272": {
+    "1040": {
       "mapping": {
-        "id": 272,
+        "id": 1040,
         "name": "fab1/8/1",
-        "controllingPort": 272,
+        "controllingPort": 1040,
         "pins": [
           {
             "a": {
@@ -4353,14 +5277,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC2",
+                  "lane": 0
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC2",
+                  "lane": 0
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "273": {
+    "1041": {
       "mapping": {
-        "id": 273,
+        "id": 1041,
         "name": "fab1/8/2",
-        "controllingPort": 273,
+        "controllingPort": 1041,
         "pins": [
           {
             "a": {
@@ -4401,14 +5349,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC2",
+                  "lane": 1
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC2",
+                  "lane": 1
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "274": {
+    "1042": {
       "mapping": {
-        "id": 274,
+        "id": 1042,
         "name": "fab1/8/3",
-        "controllingPort": 274,
+        "controllingPort": 1042,
         "pins": [
           {
             "a": {
@@ -4449,14 +5421,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC2",
+                  "lane": 2
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC2",
+                  "lane": 2
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "275": {
+    "1043": {
       "mapping": {
-        "id": 275,
+        "id": 1043,
         "name": "fab1/8/4",
-        "controllingPort": 275,
+        "controllingPort": 1043,
         "pins": [
           {
             "a": {
@@ -4497,14 +5493,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC2",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC2",
+                  "lane": 3
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "276": {
+    "1044": {
       "mapping": {
-        "id": 276,
+        "id": 1044,
         "name": "fab1/8/5",
-        "controllingPort": 276,
+        "controllingPort": 1044,
         "pins": [
           {
             "a": {
@@ -4545,14 +5565,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC2",
+                  "lane": 4
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC2",
+                  "lane": 4
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "277": {
+    "1045": {
       "mapping": {
-        "id": 277,
+        "id": 1045,
         "name": "fab1/8/6",
-        "controllingPort": 277,
+        "controllingPort": 1045,
         "pins": [
           {
             "a": {
@@ -4593,14 +5637,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC2",
+                  "lane": 5
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC2",
+                  "lane": 5
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "278": {
+    "1046": {
       "mapping": {
-        "id": 278,
+        "id": 1046,
         "name": "fab1/8/7",
-        "controllingPort": 278,
+        "controllingPort": 1046,
         "pins": [
           {
             "a": {
@@ -4641,14 +5709,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC2",
+                  "lane": 6
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC2",
+                  "lane": 6
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "279": {
+    "1047": {
       "mapping": {
-        "id": 279,
+        "id": 1047,
         "name": "fab1/8/8",
-        "controllingPort": 279,
+        "controllingPort": 1047,
         "pins": [
           {
             "a": {
@@ -4689,14 +5781,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC2",
+                  "lane": 7
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC2",
+                  "lane": 7
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "280": {
+    "1048": {
       "mapping": {
-        "id": 280,
+        "id": 1048,
         "name": "fab1/7/1",
-        "controllingPort": 280,
+        "controllingPort": 1048,
         "pins": [
           {
             "a": {
@@ -4737,14 +5853,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC3",
+                  "lane": 0
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC3",
+                  "lane": 0
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "281": {
+    "1049": {
       "mapping": {
-        "id": 281,
+        "id": 1049,
         "name": "fab1/7/2",
-        "controllingPort": 281,
+        "controllingPort": 1049,
         "pins": [
           {
             "a": {
@@ -4785,14 +5925,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC3",
+                  "lane": 1
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC3",
+                  "lane": 1
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "282": {
+    "1050": {
       "mapping": {
-        "id": 282,
+        "id": 1050,
         "name": "fab1/7/3",
-        "controllingPort": 282,
+        "controllingPort": 1050,
         "pins": [
           {
             "a": {
@@ -4833,14 +5997,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC3",
+                  "lane": 2
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC3",
+                  "lane": 2
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "283": {
+    "1051": {
       "mapping": {
-        "id": 283,
+        "id": 1051,
         "name": "fab1/7/4",
-        "controllingPort": 283,
+        "controllingPort": 1051,
         "pins": [
           {
             "a": {
@@ -4881,14 +6069,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC3",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC3",
+                  "lane": 3
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "284": {
+    "1052": {
       "mapping": {
-        "id": 284,
+        "id": 1052,
         "name": "fab1/7/5",
-        "controllingPort": 284,
+        "controllingPort": 1052,
         "pins": [
           {
             "a": {
@@ -4929,14 +6141,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC3",
+                  "lane": 4
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC3",
+                  "lane": 4
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "285": {
+    "1053": {
       "mapping": {
-        "id": 285,
+        "id": 1053,
         "name": "fab1/7/6",
-        "controllingPort": 285,
+        "controllingPort": 1053,
         "pins": [
           {
             "a": {
@@ -4977,14 +6213,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC3",
+                  "lane": 5
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC3",
+                  "lane": 5
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "286": {
+    "1054": {
       "mapping": {
-        "id": 286,
+        "id": 1054,
         "name": "fab1/7/7",
-        "controllingPort": 286,
+        "controllingPort": 1054,
         "pins": [
           {
             "a": {
@@ -5025,14 +6285,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC3",
+                  "lane": 6
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC3",
+                  "lane": 6
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "287": {
+    "1055": {
       "mapping": {
-        "id": 287,
+        "id": 1055,
         "name": "fab1/7/8",
-        "controllingPort": 287,
+        "controllingPort": 1055,
         "pins": [
           {
             "a": {
@@ -5073,14 +6357,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC3",
+                  "lane": 7
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC3",
+                  "lane": 7
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "288": {
+    "1056": {
       "mapping": {
-        "id": 288,
+        "id": 1056,
         "name": "fab1/6/1",
-        "controllingPort": 288,
+        "controllingPort": 1056,
         "pins": [
           {
             "a": {
@@ -5121,14 +6429,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC4",
+                  "lane": 0
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC4",
+                  "lane": 0
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "289": {
+    "1057": {
       "mapping": {
-        "id": 289,
+        "id": 1057,
         "name": "fab1/6/2",
-        "controllingPort": 289,
+        "controllingPort": 1057,
         "pins": [
           {
             "a": {
@@ -5169,14 +6501,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC4",
+                  "lane": 1
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC4",
+                  "lane": 1
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "290": {
+    "1058": {
       "mapping": {
-        "id": 290,
+        "id": 1058,
         "name": "fab1/6/3",
-        "controllingPort": 290,
+        "controllingPort": 1058,
         "pins": [
           {
             "a": {
@@ -5217,14 +6573,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC4",
+                  "lane": 2
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC4",
+                  "lane": 2
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "291": {
+    "1059": {
       "mapping": {
-        "id": 291,
+        "id": 1059,
         "name": "fab1/6/4",
-        "controllingPort": 291,
+        "controllingPort": 1059,
         "pins": [
           {
             "a": {
@@ -5265,14 +6645,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC4",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC4",
+                  "lane": 3
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "292": {
+    "1060": {
       "mapping": {
-        "id": 292,
+        "id": 1060,
         "name": "fab1/6/5",
-        "controllingPort": 292,
+        "controllingPort": 1060,
         "pins": [
           {
             "a": {
@@ -5313,14 +6717,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC4",
+                  "lane": 4
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC4",
+                  "lane": 4
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "293": {
+    "1061": {
       "mapping": {
-        "id": 293,
+        "id": 1061,
         "name": "fab1/6/6",
-        "controllingPort": 293,
+        "controllingPort": 1061,
         "pins": [
           {
             "a": {
@@ -5361,14 +6789,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC4",
+                  "lane": 5
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC4",
+                  "lane": 5
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "294": {
+    "1062": {
       "mapping": {
-        "id": 294,
+        "id": 1062,
         "name": "fab1/6/7",
-        "controllingPort": 294,
+        "controllingPort": 1062,
         "pins": [
           {
             "a": {
@@ -5409,14 +6861,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC4",
+                  "lane": 6
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC4",
+                  "lane": 6
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "295": {
+    "1063": {
       "mapping": {
-        "id": 295,
+        "id": 1063,
         "name": "fab1/6/8",
-        "controllingPort": 295,
+        "controllingPort": 1063,
         "pins": [
           {
             "a": {
@@ -5457,14 +6933,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC4",
+                  "lane": 7
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC4",
+                  "lane": 7
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "296": {
+    "1064": {
       "mapping": {
-        "id": 296,
+        "id": 1064,
         "name": "fab1/5/1",
-        "controllingPort": 296,
+        "controllingPort": 1064,
         "pins": [
           {
             "a": {
@@ -5505,14 +7005,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC5",
+                  "lane": 0
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC5",
+                  "lane": 0
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "297": {
+    "1065": {
       "mapping": {
-        "id": 297,
+        "id": 1065,
         "name": "fab1/5/2",
-        "controllingPort": 297,
+        "controllingPort": 1065,
         "pins": [
           {
             "a": {
@@ -5553,14 +7077,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC5",
+                  "lane": 1
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC5",
+                  "lane": 1
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "298": {
+    "1066": {
       "mapping": {
-        "id": 298,
+        "id": 1066,
         "name": "fab1/5/3",
-        "controllingPort": 298,
+        "controllingPort": 1066,
         "pins": [
           {
             "a": {
@@ -5601,14 +7149,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC5",
+                  "lane": 2
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC5",
+                  "lane": 2
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "299": {
+    "1067": {
       "mapping": {
-        "id": 299,
+        "id": 1067,
         "name": "fab1/5/4",
-        "controllingPort": 299,
+        "controllingPort": 1067,
         "pins": [
           {
             "a": {
@@ -5649,14 +7221,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC5",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC5",
+                  "lane": 3
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "300": {
+    "1068": {
       "mapping": {
-        "id": 300,
+        "id": 1068,
         "name": "fab1/5/5",
-        "controllingPort": 300,
+        "controllingPort": 1068,
         "pins": [
           {
             "a": {
@@ -5697,14 +7293,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC5",
+                  "lane": 4
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC5",
+                  "lane": 4
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "301": {
+    "1069": {
       "mapping": {
-        "id": 301,
+        "id": 1069,
         "name": "fab1/5/6",
-        "controllingPort": 301,
+        "controllingPort": 1069,
         "pins": [
           {
             "a": {
@@ -5745,14 +7365,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC5",
+                  "lane": 5
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC5",
+                  "lane": 5
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "302": {
+    "1070": {
       "mapping": {
-        "id": 302,
+        "id": 1070,
         "name": "fab1/5/7",
-        "controllingPort": 302,
+        "controllingPort": 1070,
         "pins": [
           {
             "a": {
@@ -5793,14 +7437,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC5",
+                  "lane": 6
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC5",
+                  "lane": 6
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "303": {
+    "1071": {
       "mapping": {
-        "id": 303,
+        "id": 1071,
         "name": "fab1/5/8",
-        "controllingPort": 303,
+        "controllingPort": 1071,
         "pins": [
           {
             "a": {
@@ -5841,14 +7509,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC5",
+                  "lane": 7
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC5",
+                  "lane": 7
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "304": {
+    "1072": {
       "mapping": {
-        "id": 304,
+        "id": 1072,
         "name": "fab1/4/1",
-        "controllingPort": 304,
+        "controllingPort": 1072,
         "pins": [
           {
             "a": {
@@ -5889,14 +7581,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC6",
+                  "lane": 0
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC6",
+                  "lane": 0
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "305": {
+    "1073": {
       "mapping": {
-        "id": 305,
+        "id": 1073,
         "name": "fab1/4/2",
-        "controllingPort": 305,
+        "controllingPort": 1073,
         "pins": [
           {
             "a": {
@@ -5937,14 +7653,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC6",
+                  "lane": 1
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC6",
+                  "lane": 1
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "306": {
+    "1074": {
       "mapping": {
-        "id": 306,
+        "id": 1074,
         "name": "fab1/4/3",
-        "controllingPort": 306,
+        "controllingPort": 1074,
         "pins": [
           {
             "a": {
@@ -5985,14 +7725,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC6",
+                  "lane": 2
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC6",
+                  "lane": 2
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "307": {
+    "1075": {
       "mapping": {
-        "id": 307,
+        "id": 1075,
         "name": "fab1/4/4",
-        "controllingPort": 307,
+        "controllingPort": 1075,
         "pins": [
           {
             "a": {
@@ -6033,14 +7797,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC6",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC6",
+                  "lane": 3
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "308": {
+    "1076": {
       "mapping": {
-        "id": 308,
+        "id": 1076,
         "name": "fab1/4/5",
-        "controllingPort": 308,
+        "controllingPort": 1076,
         "pins": [
           {
             "a": {
@@ -6081,14 +7869,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC6",
+                  "lane": 4
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC6",
+                  "lane": 4
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "309": {
+    "1077": {
       "mapping": {
-        "id": 309,
+        "id": 1077,
         "name": "fab1/4/6",
-        "controllingPort": 309,
+        "controllingPort": 1077,
         "pins": [
           {
             "a": {
@@ -6129,14 +7941,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC6",
+                  "lane": 5
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC6",
+                  "lane": 5
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "310": {
+    "1078": {
       "mapping": {
-        "id": 310,
+        "id": 1078,
         "name": "fab1/4/7",
-        "controllingPort": 310,
+        "controllingPort": 1078,
         "pins": [
           {
             "a": {
@@ -6177,14 +8013,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC6",
+                  "lane": 6
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC6",
+                  "lane": 6
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "311": {
+    "1079": {
       "mapping": {
-        "id": 311,
+        "id": 1079,
         "name": "fab1/4/8",
-        "controllingPort": 311,
+        "controllingPort": 1079,
         "pins": [
           {
             "a": {
@@ -6225,14 +8085,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC6",
+                  "lane": 7
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC6",
+                  "lane": 7
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "312": {
+    "1080": {
       "mapping": {
-        "id": 312,
+        "id": 1080,
         "name": "fab1/3/1",
-        "controllingPort": 312,
+        "controllingPort": 1080,
         "pins": [
           {
             "a": {
@@ -6273,14 +8157,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC7",
+                  "lane": 0
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC7",
+                  "lane": 0
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "313": {
+    "1081": {
       "mapping": {
-        "id": 313,
+        "id": 1081,
         "name": "fab1/3/2",
-        "controllingPort": 313,
+        "controllingPort": 1081,
         "pins": [
           {
             "a": {
@@ -6321,14 +8229,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC7",
+                  "lane": 1
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC7",
+                  "lane": 1
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "314": {
+    "1082": {
       "mapping": {
-        "id": 314,
+        "id": 1082,
         "name": "fab1/3/3",
-        "controllingPort": 314,
+        "controllingPort": 1082,
         "pins": [
           {
             "a": {
@@ -6369,14 +8301,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC7",
+                  "lane": 2
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC7",
+                  "lane": 2
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "315": {
+    "1083": {
       "mapping": {
-        "id": 315,
+        "id": 1083,
         "name": "fab1/3/4",
-        "controllingPort": 315,
+        "controllingPort": 1083,
         "pins": [
           {
             "a": {
@@ -6417,14 +8373,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC7",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC7",
+                  "lane": 3
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "316": {
+    "1084": {
       "mapping": {
-        "id": 316,
+        "id": 1084,
         "name": "fab1/3/5",
-        "controllingPort": 316,
+        "controllingPort": 1084,
         "pins": [
           {
             "a": {
@@ -6465,14 +8445,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC7",
+                  "lane": 4
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC7",
+                  "lane": 4
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "317": {
+    "1085": {
       "mapping": {
-        "id": 317,
+        "id": 1085,
         "name": "fab1/3/6",
-        "controllingPort": 317,
+        "controllingPort": 1085,
         "pins": [
           {
             "a": {
@@ -6513,14 +8517,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC7",
+                  "lane": 5
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC7",
+                  "lane": 5
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "318": {
+    "1086": {
       "mapping": {
-        "id": 318,
+        "id": 1086,
         "name": "fab1/3/7",
-        "controllingPort": 318,
+        "controllingPort": 1086,
         "pins": [
           {
             "a": {
@@ -6561,14 +8589,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC7",
+                  "lane": 6
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC7",
+                  "lane": 6
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "319": {
+    "1087": {
       "mapping": {
-        "id": 319,
+        "id": 1087,
         "name": "fab1/3/8",
-        "controllingPort": 319,
+        "controllingPort": 1087,
         "pins": [
           {
             "a": {
@@ -6609,14 +8661,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC7",
+                  "lane": 7
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC7",
+                  "lane": 7
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "320": {
+    "1088": {
       "mapping": {
-        "id": 320,
+        "id": 1088,
         "name": "fab1/1/1",
-        "controllingPort": 320,
+        "controllingPort": 1088,
         "pins": [
           {
             "a": {
@@ -6657,14 +8733,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC8",
+                  "lane": 0
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC8",
+                  "lane": 0
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "321": {
+    "1089": {
       "mapping": {
-        "id": 321,
+        "id": 1089,
         "name": "fab1/1/2",
-        "controllingPort": 321,
+        "controllingPort": 1089,
         "pins": [
           {
             "a": {
@@ -6705,14 +8805,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC8",
+                  "lane": 1
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC8",
+                  "lane": 1
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "322": {
+    "1090": {
       "mapping": {
-        "id": 322,
+        "id": 1090,
         "name": "fab1/1/3",
-        "controllingPort": 322,
+        "controllingPort": 1090,
         "pins": [
           {
             "a": {
@@ -6753,14 +8877,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC8",
+                  "lane": 2
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC8",
+                  "lane": 2
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "323": {
+    "1091": {
       "mapping": {
-        "id": 323,
+        "id": 1091,
         "name": "fab1/1/4",
-        "controllingPort": 323,
+        "controllingPort": 1091,
         "pins": [
           {
             "a": {
@@ -6801,14 +8949,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC8",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC8",
+                  "lane": 3
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "324": {
+    "1092": {
       "mapping": {
-        "id": 324,
+        "id": 1092,
         "name": "fab1/1/5",
-        "controllingPort": 324,
+        "controllingPort": 1092,
         "pins": [
           {
             "a": {
@@ -6849,14 +9021,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC8",
+                  "lane": 4
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC8",
+                  "lane": 4
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "325": {
+    "1093": {
       "mapping": {
-        "id": 325,
+        "id": 1093,
         "name": "fab1/1/6",
-        "controllingPort": 325,
+        "controllingPort": 1093,
         "pins": [
           {
             "a": {
@@ -6897,14 +9093,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC8",
+                  "lane": 5
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC8",
+                  "lane": 5
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "326": {
+    "1094": {
       "mapping": {
-        "id": 326,
+        "id": 1094,
         "name": "fab1/1/7",
-        "controllingPort": 326,
+        "controllingPort": 1094,
         "pins": [
           {
             "a": {
@@ -6945,14 +9165,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC8",
+                  "lane": 6
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC8",
+                  "lane": 6
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "327": {
+    "1095": {
       "mapping": {
-        "id": 327,
+        "id": 1095,
         "name": "fab1/1/8",
-        "controllingPort": 327,
+        "controllingPort": 1095,
         "pins": [
           {
             "a": {
@@ -6993,14 +9237,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC8",
+                  "lane": 7
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC8",
+                  "lane": 7
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "328": {
+    "1096": {
       "mapping": {
-        "id": 328,
+        "id": 1096,
         "name": "fab1/2/1",
-        "controllingPort": 328,
+        "controllingPort": 1096,
         "pins": [
           {
             "a": {
@@ -7041,14 +9309,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC9",
+                  "lane": 0
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC9",
+                  "lane": 0
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "329": {
+    "1097": {
       "mapping": {
-        "id": 329,
+        "id": 1097,
         "name": "fab1/2/2",
-        "controllingPort": 329,
+        "controllingPort": 1097,
         "pins": [
           {
             "a": {
@@ -7089,14 +9381,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC9",
+                  "lane": 1
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC9",
+                  "lane": 1
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "330": {
+    "1098": {
       "mapping": {
-        "id": 330,
+        "id": 1098,
         "name": "fab1/2/3",
-        "controllingPort": 330,
+        "controllingPort": 1098,
         "pins": [
           {
             "a": {
@@ -7137,14 +9453,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC9",
+                  "lane": 2
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC9",
+                  "lane": 2
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "331": {
+    "1099": {
       "mapping": {
-        "id": 331,
+        "id": 1099,
         "name": "fab1/2/4",
-        "controllingPort": 331,
+        "controllingPort": 1099,
         "pins": [
           {
             "a": {
@@ -7185,14 +9525,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC9",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC9",
+                  "lane": 3
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "332": {
+    "1100": {
       "mapping": {
-        "id": 332,
+        "id": 1100,
         "name": "fab1/2/5",
-        "controllingPort": 332,
+        "controllingPort": 1100,
         "pins": [
           {
             "a": {
@@ -7233,14 +9597,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC9",
+                  "lane": 4
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC9",
+                  "lane": 4
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "333": {
+    "1101": {
       "mapping": {
-        "id": 333,
+        "id": 1101,
         "name": "fab1/2/6",
-        "controllingPort": 333,
+        "controllingPort": 1101,
         "pins": [
           {
             "a": {
@@ -7281,14 +9669,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC9",
+                  "lane": 5
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC9",
+                  "lane": 5
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "334": {
+    "1102": {
       "mapping": {
-        "id": 334,
+        "id": 1102,
         "name": "fab1/2/7",
-        "controllingPort": 334,
+        "controllingPort": 1102,
         "pins": [
           {
             "a": {
@@ -7329,14 +9741,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC9",
+                  "lane": 6
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC9",
+                  "lane": 6
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "335": {
+    "1103": {
       "mapping": {
-        "id": 335,
+        "id": 1103,
         "name": "fab1/2/8",
-        "controllingPort": 335,
+        "controllingPort": 1103,
         "pins": [
           {
             "a": {
@@ -7377,14 +9813,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC9",
+                  "lane": 7
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC9",
+                  "lane": 7
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "336": {
+    "1104": {
       "mapping": {
-        "id": 336,
+        "id": 1104,
         "name": "fab1/30/1",
-        "controllingPort": 336,
+        "controllingPort": 1104,
         "pins": [
           {
             "a": {
@@ -7425,14 +9885,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC10",
+                  "lane": 0
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC10",
+                  "lane": 0
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "337": {
+    "1105": {
       "mapping": {
-        "id": 337,
+        "id": 1105,
         "name": "fab1/30/2",
-        "controllingPort": 337,
+        "controllingPort": 1105,
         "pins": [
           {
             "a": {
@@ -7473,14 +9957,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC10",
+                  "lane": 1
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC10",
+                  "lane": 1
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "338": {
+    "1106": {
       "mapping": {
-        "id": 338,
+        "id": 1106,
         "name": "fab1/30/3",
-        "controllingPort": 338,
+        "controllingPort": 1106,
         "pins": [
           {
             "a": {
@@ -7521,14 +10029,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC10",
+                  "lane": 2
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC10",
+                  "lane": 2
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "339": {
+    "1107": {
       "mapping": {
-        "id": 339,
+        "id": 1107,
         "name": "fab1/30/4",
-        "controllingPort": 339,
+        "controllingPort": 1107,
         "pins": [
           {
             "a": {
@@ -7569,14 +10101,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC10",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC10",
+                  "lane": 3
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "340": {
+    "1108": {
       "mapping": {
-        "id": 340,
+        "id": 1108,
         "name": "fab1/30/5",
-        "controllingPort": 340,
+        "controllingPort": 1108,
         "pins": [
           {
             "a": {
@@ -7617,14 +10173,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC10",
+                  "lane": 4
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC10",
+                  "lane": 4
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "341": {
+    "1109": {
       "mapping": {
-        "id": 341,
+        "id": 1109,
         "name": "fab1/30/6",
-        "controllingPort": 341,
+        "controllingPort": 1109,
         "pins": [
           {
             "a": {
@@ -7665,14 +10245,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC10",
+                  "lane": 5
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC10",
+                  "lane": 5
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "342": {
+    "1110": {
       "mapping": {
-        "id": 342,
+        "id": 1110,
         "name": "fab1/30/7",
-        "controllingPort": 342,
+        "controllingPort": 1110,
         "pins": [
           {
             "a": {
@@ -7713,14 +10317,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC10",
+                  "lane": 6
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC10",
+                  "lane": 6
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "343": {
+    "1111": {
       "mapping": {
-        "id": 343,
+        "id": 1111,
         "name": "fab1/30/8",
-        "controllingPort": 343,
+        "controllingPort": 1111,
         "pins": [
           {
             "a": {
@@ -7761,14 +10389,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC10",
+                  "lane": 7
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC10",
+                  "lane": 7
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "344": {
+    "1112": {
       "mapping": {
-        "id": 344,
+        "id": 1112,
         "name": "fab1/29/1",
-        "controllingPort": 344,
+        "controllingPort": 1112,
         "pins": [
           {
             "a": {
@@ -7809,14 +10461,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC11",
+                  "lane": 0
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC11",
+                  "lane": 0
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "345": {
+    "1113": {
       "mapping": {
-        "id": 345,
+        "id": 1113,
         "name": "fab1/29/2",
-        "controllingPort": 345,
+        "controllingPort": 1113,
         "pins": [
           {
             "a": {
@@ -7857,14 +10533,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC11",
+                  "lane": 1
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC11",
+                  "lane": 1
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "346": {
+    "1114": {
       "mapping": {
-        "id": 346,
+        "id": 1114,
         "name": "fab1/29/3",
-        "controllingPort": 346,
+        "controllingPort": 1114,
         "pins": [
           {
             "a": {
@@ -7905,14 +10605,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC11",
+                  "lane": 2
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC11",
+                  "lane": 2
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "347": {
+    "1115": {
       "mapping": {
-        "id": 347,
+        "id": 1115,
         "name": "fab1/29/4",
-        "controllingPort": 347,
+        "controllingPort": 1115,
         "pins": [
           {
             "a": {
@@ -7953,14 +10677,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC11",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC11",
+                  "lane": 3
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "348": {
+    "1116": {
       "mapping": {
-        "id": 348,
+        "id": 1116,
         "name": "fab1/29/5",
-        "controllingPort": 348,
+        "controllingPort": 1116,
         "pins": [
           {
             "a": {
@@ -8001,14 +10749,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC11",
+                  "lane": 4
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC11",
+                  "lane": 4
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "349": {
+    "1117": {
       "mapping": {
-        "id": 349,
+        "id": 1117,
         "name": "fab1/29/6",
-        "controllingPort": 349,
+        "controllingPort": 1117,
         "pins": [
           {
             "a": {
@@ -8049,14 +10821,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC11",
+                  "lane": 5
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC11",
+                  "lane": 5
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "350": {
+    "1118": {
       "mapping": {
-        "id": 350,
+        "id": 1118,
         "name": "fab1/29/7",
-        "controllingPort": 350,
+        "controllingPort": 1118,
         "pins": [
           {
             "a": {
@@ -8097,14 +10893,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC11",
+                  "lane": 6
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC11",
+                  "lane": 6
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "351": {
+    "1119": {
       "mapping": {
-        "id": 351,
+        "id": 1119,
         "name": "fab1/29/8",
-        "controllingPort": 351,
+        "controllingPort": 1119,
         "pins": [
           {
             "a": {
@@ -8145,14 +10965,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC11",
+                  "lane": 7
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC11",
+                  "lane": 7
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "352": {
+    "1120": {
       "mapping": {
-        "id": 352,
+        "id": 1120,
         "name": "fab1/32/1",
-        "controllingPort": 352,
+        "controllingPort": 1120,
         "pins": [
           {
             "a": {
@@ -8193,14 +11037,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC12",
+                  "lane": 0
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC12",
+                  "lane": 0
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "353": {
+    "1121": {
       "mapping": {
-        "id": 353,
+        "id": 1121,
         "name": "fab1/32/2",
-        "controllingPort": 353,
+        "controllingPort": 1121,
         "pins": [
           {
             "a": {
@@ -8241,14 +11109,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC12",
+                  "lane": 1
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC12",
+                  "lane": 1
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "354": {
+    "1122": {
       "mapping": {
-        "id": 354,
+        "id": 1122,
         "name": "fab1/32/3",
-        "controllingPort": 354,
+        "controllingPort": 1122,
         "pins": [
           {
             "a": {
@@ -8289,14 +11181,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC12",
+                  "lane": 2
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC12",
+                  "lane": 2
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "355": {
+    "1123": {
       "mapping": {
-        "id": 355,
+        "id": 1123,
         "name": "fab1/32/4",
-        "controllingPort": 355,
+        "controllingPort": 1123,
         "pins": [
           {
             "a": {
@@ -8337,14 +11253,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC12",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC12",
+                  "lane": 3
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "356": {
+    "1124": {
       "mapping": {
-        "id": 356,
+        "id": 1124,
         "name": "fab1/32/5",
-        "controllingPort": 356,
+        "controllingPort": 1124,
         "pins": [
           {
             "a": {
@@ -8385,14 +11325,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC12",
+                  "lane": 4
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC12",
+                  "lane": 4
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "357": {
+    "1125": {
       "mapping": {
-        "id": 357,
+        "id": 1125,
         "name": "fab1/32/6",
-        "controllingPort": 357,
+        "controllingPort": 1125,
         "pins": [
           {
             "a": {
@@ -8433,14 +11397,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC12",
+                  "lane": 5
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC12",
+                  "lane": 5
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "358": {
+    "1126": {
       "mapping": {
-        "id": 358,
+        "id": 1126,
         "name": "fab1/32/7",
-        "controllingPort": 358,
+        "controllingPort": 1126,
         "pins": [
           {
             "a": {
@@ -8481,14 +11469,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC12",
+                  "lane": 6
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC12",
+                  "lane": 6
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "359": {
+    "1127": {
       "mapping": {
-        "id": 359,
+        "id": 1127,
         "name": "fab1/32/8",
-        "controllingPort": 359,
+        "controllingPort": 1127,
         "pins": [
           {
             "a": {
@@ -8529,14 +11541,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC12",
+                  "lane": 7
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC12",
+                  "lane": 7
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "360": {
+    "1128": {
       "mapping": {
-        "id": 360,
+        "id": 1128,
         "name": "fab1/33/1",
-        "controllingPort": 360,
+        "controllingPort": 1128,
         "pins": [
           {
             "a": {
@@ -8577,14 +11613,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC13",
+                  "lane": 0
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC13",
+                  "lane": 0
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "361": {
+    "1129": {
       "mapping": {
-        "id": 361,
+        "id": 1129,
         "name": "fab1/33/2",
-        "controllingPort": 361,
+        "controllingPort": 1129,
         "pins": [
           {
             "a": {
@@ -8625,14 +11685,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC13",
+                  "lane": 1
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC13",
+                  "lane": 1
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "362": {
+    "1130": {
       "mapping": {
-        "id": 362,
+        "id": 1130,
         "name": "fab1/33/3",
-        "controllingPort": 362,
+        "controllingPort": 1130,
         "pins": [
           {
             "a": {
@@ -8673,14 +11757,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC13",
+                  "lane": 2
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC13",
+                  "lane": 2
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "363": {
+    "1131": {
       "mapping": {
-        "id": 363,
+        "id": 1131,
         "name": "fab1/33/4",
-        "controllingPort": 363,
+        "controllingPort": 1131,
         "pins": [
           {
             "a": {
@@ -8721,14 +11829,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC13",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC13",
+                  "lane": 3
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "364": {
+    "1132": {
       "mapping": {
-        "id": 364,
+        "id": 1132,
         "name": "fab1/33/5",
-        "controllingPort": 364,
+        "controllingPort": 1132,
         "pins": [
           {
             "a": {
@@ -8769,14 +11901,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC13",
+                  "lane": 4
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC13",
+                  "lane": 4
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "365": {
+    "1133": {
       "mapping": {
-        "id": 365,
+        "id": 1133,
         "name": "fab1/33/6",
-        "controllingPort": 365,
+        "controllingPort": 1133,
         "pins": [
           {
             "a": {
@@ -8817,14 +11973,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC13",
+                  "lane": 5
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC13",
+                  "lane": 5
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "366": {
+    "1134": {
       "mapping": {
-        "id": 366,
+        "id": 1134,
         "name": "fab1/33/7",
-        "controllingPort": 366,
+        "controllingPort": 1134,
         "pins": [
           {
             "a": {
@@ -8865,14 +12045,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC13",
+                  "lane": 6
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC13",
+                  "lane": 6
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "367": {
+    "1135": {
       "mapping": {
-        "id": 367,
+        "id": 1135,
         "name": "fab1/33/8",
-        "controllingPort": 367,
+        "controllingPort": 1135,
         "pins": [
           {
             "a": {
@@ -8913,14 +12117,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC13",
+                  "lane": 7
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC13",
+                  "lane": 7
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "368": {
+    "1136": {
       "mapping": {
-        "id": 368,
+        "id": 1136,
         "name": "fab1/31/1",
-        "controllingPort": 368,
+        "controllingPort": 1136,
         "pins": [
           {
             "a": {
@@ -8961,14 +12189,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC14",
+                  "lane": 0
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC14",
+                  "lane": 0
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "369": {
+    "1137": {
       "mapping": {
-        "id": 369,
+        "id": 1137,
         "name": "fab1/31/2",
-        "controllingPort": 369,
+        "controllingPort": 1137,
         "pins": [
           {
             "a": {
@@ -9009,14 +12261,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC14",
+                  "lane": 1
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC14",
+                  "lane": 1
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "370": {
+    "1138": {
       "mapping": {
-        "id": 370,
+        "id": 1138,
         "name": "fab1/31/3",
-        "controllingPort": 370,
+        "controllingPort": 1138,
         "pins": [
           {
             "a": {
@@ -9057,14 +12333,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC14",
+                  "lane": 2
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC14",
+                  "lane": 2
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "371": {
+    "1139": {
       "mapping": {
-        "id": 371,
+        "id": 1139,
         "name": "fab1/31/4",
-        "controllingPort": 371,
+        "controllingPort": 1139,
         "pins": [
           {
             "a": {
@@ -9105,14 +12405,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC14",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC14",
+                  "lane": 3
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "372": {
+    "1140": {
       "mapping": {
-        "id": 372,
+        "id": 1140,
         "name": "fab1/31/5",
-        "controllingPort": 372,
+        "controllingPort": 1140,
         "pins": [
           {
             "a": {
@@ -9153,14 +12477,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC14",
+                  "lane": 4
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC14",
+                  "lane": 4
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "373": {
+    "1141": {
       "mapping": {
-        "id": 373,
+        "id": 1141,
         "name": "fab1/31/6",
-        "controllingPort": 373,
+        "controllingPort": 1141,
         "pins": [
           {
             "a": {
@@ -9201,14 +12549,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC14",
+                  "lane": 5
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC14",
+                  "lane": 5
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "374": {
+    "1142": {
       "mapping": {
-        "id": 374,
+        "id": 1142,
         "name": "fab1/31/7",
-        "controllingPort": 374,
+        "controllingPort": 1142,
         "pins": [
           {
             "a": {
@@ -9249,14 +12621,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC14",
+                  "lane": 6
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC14",
+                  "lane": 6
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "375": {
+    "1143": {
       "mapping": {
-        "id": 375,
+        "id": 1143,
         "name": "fab1/31/8",
-        "controllingPort": 375,
+        "controllingPort": 1143,
         "pins": [
           {
             "a": {
@@ -9297,14 +12693,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC14",
+                  "lane": 7
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC14",
+                  "lane": 7
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "376": {
+    "1144": {
       "mapping": {
-        "id": 376,
+        "id": 1144,
         "name": "fab1/34/1",
-        "controllingPort": 376,
+        "controllingPort": 1144,
         "pins": [
           {
             "a": {
@@ -9345,14 +12765,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC15",
+                  "lane": 0
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC15",
+                  "lane": 0
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "377": {
+    "1145": {
       "mapping": {
-        "id": 377,
+        "id": 1145,
         "name": "fab1/34/2",
-        "controllingPort": 377,
+        "controllingPort": 1145,
         "pins": [
           {
             "a": {
@@ -9393,14 +12837,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC15",
+                  "lane": 1
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC15",
+                  "lane": 1
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "378": {
+    "1146": {
       "mapping": {
-        "id": 378,
+        "id": 1146,
         "name": "fab1/34/3",
-        "controllingPort": 378,
+        "controllingPort": 1146,
         "pins": [
           {
             "a": {
@@ -9441,14 +12909,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC15",
+                  "lane": 2
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC15",
+                  "lane": 2
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "379": {
+    "1147": {
       "mapping": {
-        "id": 379,
+        "id": 1147,
         "name": "fab1/34/4",
-        "controllingPort": 379,
+        "controllingPort": 1147,
         "pins": [
           {
             "a": {
@@ -9489,14 +12981,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC15",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC15",
+                  "lane": 3
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "380": {
+    "1148": {
       "mapping": {
-        "id": 380,
+        "id": 1148,
         "name": "fab1/34/5",
-        "controllingPort": 380,
+        "controllingPort": 1148,
         "pins": [
           {
             "a": {
@@ -9537,14 +13053,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC15",
+                  "lane": 4
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC15",
+                  "lane": 4
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "381": {
+    "1149": {
       "mapping": {
-        "id": 381,
+        "id": 1149,
         "name": "fab1/34/6",
-        "controllingPort": 381,
+        "controllingPort": 1149,
         "pins": [
           {
             "a": {
@@ -9585,14 +13125,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC15",
+                  "lane": 5
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC15",
+                  "lane": 5
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "382": {
+    "1150": {
       "mapping": {
-        "id": 382,
+        "id": 1150,
         "name": "fab1/34/7",
-        "controllingPort": 382,
+        "controllingPort": 1150,
         "pins": [
           {
             "a": {
@@ -9633,14 +13197,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC15",
+                  "lane": 6
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC15",
+                  "lane": 6
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "383": {
+    "1151": {
       "mapping": {
-        "id": 383,
+        "id": 1151,
         "name": "fab1/34/8",
-        "controllingPort": 383,
+        "controllingPort": 1151,
         "pins": [
           {
             "a": {
@@ -9681,14 +13269,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC15",
+                  "lane": 7
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC15",
+                  "lane": 7
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "384": {
+    "1152": {
       "mapping": {
-        "id": 384,
+        "id": 1152,
         "name": "fab1/38/1",
-        "controllingPort": 384,
+        "controllingPort": 1152,
         "pins": [
           {
             "a": {
@@ -9729,14 +13341,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC16",
+                  "lane": 0
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC16",
+                  "lane": 0
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "385": {
+    "1153": {
       "mapping": {
-        "id": 385,
+        "id": 1153,
         "name": "fab1/38/2",
-        "controllingPort": 385,
+        "controllingPort": 1153,
         "pins": [
           {
             "a": {
@@ -9777,14 +13413,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC16",
+                  "lane": 1
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC16",
+                  "lane": 1
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "386": {
+    "1154": {
       "mapping": {
-        "id": 386,
+        "id": 1154,
         "name": "fab1/38/3",
-        "controllingPort": 386,
+        "controllingPort": 1154,
         "pins": [
           {
             "a": {
@@ -9825,14 +13485,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC16",
+                  "lane": 2
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC16",
+                  "lane": 2
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "387": {
+    "1155": {
       "mapping": {
-        "id": 387,
+        "id": 1155,
         "name": "fab1/38/4",
-        "controllingPort": 387,
+        "controllingPort": 1155,
         "pins": [
           {
             "a": {
@@ -9873,14 +13557,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC16",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC16",
+                  "lane": 3
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "388": {
+    "1156": {
       "mapping": {
-        "id": 388,
+        "id": 1156,
         "name": "fab1/38/5",
-        "controllingPort": 388,
+        "controllingPort": 1156,
         "pins": [
           {
             "a": {
@@ -9921,14 +13629,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC16",
+                  "lane": 4
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC16",
+                  "lane": 4
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "389": {
+    "1157": {
       "mapping": {
-        "id": 389,
+        "id": 1157,
         "name": "fab1/38/6",
-        "controllingPort": 389,
+        "controllingPort": 1157,
         "pins": [
           {
             "a": {
@@ -9969,14 +13701,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC16",
+                  "lane": 5
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC16",
+                  "lane": 5
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "390": {
+    "1158": {
       "mapping": {
-        "id": 390,
+        "id": 1158,
         "name": "fab1/38/7",
-        "controllingPort": 390,
+        "controllingPort": 1158,
         "pins": [
           {
             "a": {
@@ -10017,14 +13773,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC16",
+                  "lane": 6
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC16",
+                  "lane": 6
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "391": {
+    "1159": {
       "mapping": {
-        "id": 391,
+        "id": 1159,
         "name": "fab1/38/8",
-        "controllingPort": 391,
+        "controllingPort": 1159,
         "pins": [
           {
             "a": {
@@ -10065,14 +13845,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC16",
+                  "lane": 7
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC16",
+                  "lane": 7
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "392": {
+    "1160": {
       "mapping": {
-        "id": 392,
+        "id": 1160,
         "name": "fab1/37/1",
-        "controllingPort": 392,
+        "controllingPort": 1160,
         "pins": [
           {
             "a": {
@@ -10113,14 +13917,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC17",
+                  "lane": 0
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC17",
+                  "lane": 0
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "393": {
+    "1161": {
       "mapping": {
-        "id": 393,
+        "id": 1161,
         "name": "fab1/37/2",
-        "controllingPort": 393,
+        "controllingPort": 1161,
         "pins": [
           {
             "a": {
@@ -10161,14 +13989,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC17",
+                  "lane": 1
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC17",
+                  "lane": 1
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "394": {
+    "1162": {
       "mapping": {
-        "id": 394,
+        "id": 1162,
         "name": "fab1/37/3",
-        "controllingPort": 394,
+        "controllingPort": 1162,
         "pins": [
           {
             "a": {
@@ -10209,14 +14061,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC17",
+                  "lane": 2
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC17",
+                  "lane": 2
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "395": {
+    "1163": {
       "mapping": {
-        "id": 395,
+        "id": 1163,
         "name": "fab1/37/4",
-        "controllingPort": 395,
+        "controllingPort": 1163,
         "pins": [
           {
             "a": {
@@ -10257,14 +14133,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC17",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC17",
+                  "lane": 3
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "396": {
+    "1164": {
       "mapping": {
-        "id": 396,
+        "id": 1164,
         "name": "fab1/37/5",
-        "controllingPort": 396,
+        "controllingPort": 1164,
         "pins": [
           {
             "a": {
@@ -10305,14 +14205,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC17",
+                  "lane": 4
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC17",
+                  "lane": 4
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "397": {
+    "1165": {
       "mapping": {
-        "id": 397,
+        "id": 1165,
         "name": "fab1/37/6",
-        "controllingPort": 397,
+        "controllingPort": 1165,
         "pins": [
           {
             "a": {
@@ -10353,14 +14277,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC17",
+                  "lane": 5
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC17",
+                  "lane": 5
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "398": {
+    "1166": {
       "mapping": {
-        "id": 398,
+        "id": 1166,
         "name": "fab1/37/7",
-        "controllingPort": 398,
+        "controllingPort": 1166,
         "pins": [
           {
             "a": {
@@ -10401,14 +14349,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC17",
+                  "lane": 6
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC17",
+                  "lane": 6
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "399": {
+    "1167": {
       "mapping": {
-        "id": 399,
+        "id": 1167,
         "name": "fab1/37/8",
-        "controllingPort": 399,
+        "controllingPort": 1167,
         "pins": [
           {
             "a": {
@@ -10449,14 +14421,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC17",
+                  "lane": 7
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC17",
+                  "lane": 7
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "400": {
+    "1168": {
       "mapping": {
-        "id": 400,
+        "id": 1168,
         "name": "fab1/35/1",
-        "controllingPort": 400,
+        "controllingPort": 1168,
         "pins": [
           {
             "a": {
@@ -10497,14 +14493,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC18",
+                  "lane": 0
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC18",
+                  "lane": 0
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "401": {
+    "1169": {
       "mapping": {
-        "id": 401,
+        "id": 1169,
         "name": "fab1/35/2",
-        "controllingPort": 401,
+        "controllingPort": 1169,
         "pins": [
           {
             "a": {
@@ -10545,14 +14565,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC18",
+                  "lane": 1
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC18",
+                  "lane": 1
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "402": {
+    "1170": {
       "mapping": {
-        "id": 402,
+        "id": 1170,
         "name": "fab1/35/3",
-        "controllingPort": 402,
+        "controllingPort": 1170,
         "pins": [
           {
             "a": {
@@ -10593,14 +14637,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC18",
+                  "lane": 2
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC18",
+                  "lane": 2
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "403": {
+    "1171": {
       "mapping": {
-        "id": 403,
+        "id": 1171,
         "name": "fab1/35/4",
-        "controllingPort": 403,
+        "controllingPort": 1171,
         "pins": [
           {
             "a": {
@@ -10641,14 +14709,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC18",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC18",
+                  "lane": 3
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "404": {
+    "1172": {
       "mapping": {
-        "id": 404,
+        "id": 1172,
         "name": "fab1/35/5",
-        "controllingPort": 404,
+        "controllingPort": 1172,
         "pins": [
           {
             "a": {
@@ -10689,14 +14781,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC18",
+                  "lane": 4
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC18",
+                  "lane": 4
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "405": {
+    "1173": {
       "mapping": {
-        "id": 405,
+        "id": 1173,
         "name": "fab1/35/6",
-        "controllingPort": 405,
+        "controllingPort": 1173,
         "pins": [
           {
             "a": {
@@ -10737,14 +14853,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC18",
+                  "lane": 5
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC18",
+                  "lane": 5
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "406": {
+    "1174": {
       "mapping": {
-        "id": 406,
+        "id": 1174,
         "name": "fab1/35/7",
-        "controllingPort": 406,
+        "controllingPort": 1174,
         "pins": [
           {
             "a": {
@@ -10785,14 +14925,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC18",
+                  "lane": 6
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC18",
+                  "lane": 6
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "407": {
+    "1175": {
       "mapping": {
-        "id": 407,
+        "id": 1175,
         "name": "fab1/35/8",
-        "controllingPort": 407,
+        "controllingPort": 1175,
         "pins": [
           {
             "a": {
@@ -10833,14 +14997,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC18",
+                  "lane": 7
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC18",
+                  "lane": 7
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "408": {
+    "1176": {
       "mapping": {
-        "id": 408,
+        "id": 1176,
         "name": "fab1/36/1",
-        "controllingPort": 408,
+        "controllingPort": 1176,
         "pins": [
           {
             "a": {
@@ -10881,14 +15069,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC19",
+                  "lane": 0
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC19",
+                  "lane": 0
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "409": {
+    "1177": {
       "mapping": {
-        "id": 409,
+        "id": 1177,
         "name": "fab1/36/2",
-        "controllingPort": 409,
+        "controllingPort": 1177,
         "pins": [
           {
             "a": {
@@ -10929,14 +15141,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC19",
+                  "lane": 1
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC19",
+                  "lane": 1
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "410": {
+    "1178": {
       "mapping": {
-        "id": 410,
+        "id": 1178,
         "name": "fab1/36/3",
-        "controllingPort": 410,
+        "controllingPort": 1178,
         "pins": [
           {
             "a": {
@@ -10977,14 +15213,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC19",
+                  "lane": 2
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC19",
+                  "lane": 2
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "411": {
+    "1179": {
       "mapping": {
-        "id": 411,
+        "id": 1179,
         "name": "fab1/36/4",
-        "controllingPort": 411,
+        "controllingPort": 1179,
         "pins": [
           {
             "a": {
@@ -11025,14 +15285,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC19",
+                  "lane": 3
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC19",
+                  "lane": 3
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "412": {
+    "1180": {
       "mapping": {
-        "id": 412,
+        "id": 1180,
         "name": "fab1/36/5",
-        "controllingPort": 412,
+        "controllingPort": 1180,
         "pins": [
           {
             "a": {
@@ -11073,14 +15357,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC19",
+                  "lane": 4
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC19",
+                  "lane": 4
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "413": {
+    "1181": {
       "mapping": {
-        "id": 413,
+        "id": 1181,
         "name": "fab1/36/6",
-        "controllingPort": 413,
+        "controllingPort": 1181,
         "pins": [
           {
             "a": {
@@ -11121,14 +15429,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC19",
+                  "lane": 5
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC19",
+                  "lane": 5
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "414": {
+    "1182": {
       "mapping": {
-        "id": 414,
+        "id": 1182,
         "name": "fab1/36/7",
-        "controllingPort": 414,
+        "controllingPort": 1182,
         "pins": [
           {
             "a": {
@@ -11169,14 +15501,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             ]
           }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC19",
+                  "lane": 6
+                }
+              }
+            ]
+          }
+        },
+        "41": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC19",
+                  "lane": 6
+                }
+              }
+            ]
+          }
         }
       }
     },
-    "415": {
+    "1183": {
       "mapping": {
-        "id": 415,
+        "id": 1183,
         "name": "fab1/36/8",
-        "controllingPort": 415,
+        "controllingPort": 1183,
         "pins": [
           {
             "a": {
@@ -11207,6 +15563,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         },
         "37": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC19",
+                  "lane": 7
+                }
+              }
+            ]
+          }
+        },
+        "40": {
+          "pins": {
+            "iphy": [
+              {
+                "id": {
+                  "chip": "BC19",
+                  "lane": 7
+                }
+              }
+            ]
+          }
+        },
+        "41": {
           "pins": {
             "iphy": [
               {
@@ -11525,6 +15905,70 @@ constexpr auto kJsonPlatformMappingStr = R"(
   "platformSupportedProfiles": [
     {
       "factor": {
+        "profileID": 11
+      },
+      "profile": {
+        "speed": 10000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 1,
+          "interfaceMode": 10,
+          "interfaceType": 10
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 24
+      },
+      "profile": {
+        "speed": 200000,
+        "iphy": {
+          "numLanes": 4,
+          "modulation": 2,
+          "fec": 11,
+          "medium": 1,
+          "interfaceMode": 12,
+          "interfaceType": 12
+        }
+      }
+    },
+     {
+      "factor": {
+        "profileID": 36
+      },
+      "profile": {
+        "speed": 53125,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 2,
+          "fec": 545,
+          "medium": 1,
+          "interfaceMode": 41,
+          "interfaceType": 41
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 37
+      },
+      "profile": {
+        "speed": 53125,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 2,
+          "fec": 545,
+          "medium": 3,
+          "interfaceMode": 41,
+          "interfaceType": 41
+        }
+      }
+    },
+    {
+      "factor": {
         "profileID": 38
       },
       "profile": {
@@ -11557,17 +16001,33 @@ constexpr auto kJsonPlatformMappingStr = R"(
     },
     {
       "factor": {
-        "profileID": 11
+        "profileID": 40
       },
       "profile": {
-        "speed": 10000,
+        "speed": 106250,
         "iphy": {
           "numLanes": 1,
-          "modulation": 1,
-          "fec": 1,
+          "modulation": 2,
+          "fec": 544,
           "medium": 1,
-          "interfaceMode": 10,
-          "interfaceType": 10
+          "interfaceMode": 41,
+          "interfaceType": 41
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 41
+      },
+      "profile": {
+        "speed": 106250,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 2,
+          "fec": 544,
+          "medium": 3,
+          "interfaceMode": 41,
+          "interfaceType": 41
         }
       }
     }

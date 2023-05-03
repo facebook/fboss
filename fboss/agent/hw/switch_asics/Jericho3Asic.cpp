@@ -26,9 +26,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::OBM_COUNTERS:
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
     case HwAsic::Feature::SFLOW_SAMPLING:
-    case HwAsic::Feature::PTP_TC:
-    case HwAsic::Feature::PTP_TC_PCS:
-    case HwAsic::Feature::PFC:
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
     case HwAsic::Feature::WIDE_ECMP:
     case HwAsic::Feature::ALPM_ROUTE_PROJECTION:
@@ -68,8 +65,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::MEDIA_TYPE:
-    case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
-    case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::PORT_FABRIC_ISOLATE:
@@ -79,6 +74,11 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::QUEUE_PRIORITY_LOWER_VAL_IS_HIGH_PRI:
     case HwAsic::Feature::SWITCH_DROP_STATS:
       return true;
+
+    case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
+    case HwAsic::Feature::BUFFER_POOL:
+    case HwAsic::Feature::PFC:
+      return getAsicMode() != AsicMode::ASIC_MODE_SIM;
 
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
@@ -138,6 +138,8 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_SAMPLEPACKET_TRAP:
     case HwAsic::Feature::TRAP_PRIORITY_LOWER_VAL_IS_LOWER_PRI:
     case HwAsic::Feature::SAI_UDF_HASH:
+    case HwAsic::Feature::PTP_TC:
+    case HwAsic::Feature::PTP_TC_PCS:
       return false;
   }
   return false;

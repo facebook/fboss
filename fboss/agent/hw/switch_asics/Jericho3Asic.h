@@ -18,6 +18,12 @@ class Jericho3Asic : public BroadcomAsic {
   cfg::AsicType getAsicType() const override {
     return cfg::AsicType::ASIC_TYPE_JERICHO3;
   }
+  AsicMode getAsicMode() const override {
+    static const AsicMode asicMode = std::getenv("BCM_SIM_PATH")
+        ? AsicMode::ASIC_MODE_SIM
+        : AsicMode::ASIC_MODE_HW;
+    return asicMode;
+  }
   phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
     return phy::DataPlanePhyChipType::IPHY;
   }
@@ -84,7 +90,7 @@ class Jericho3Asic : public BroadcomAsic {
     return getMMUSizeBytes() / 2;
   }
   uint32_t getNumCores() const override {
-    return 2;
+    return 4;
   }
   bool scalingFactorBasedDynamicThresholdSupported() const override {
     return true;
