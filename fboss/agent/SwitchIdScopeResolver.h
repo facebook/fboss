@@ -43,6 +43,8 @@ class SwitchIdScopeResolver {
     return l3SwitchMatcher();
   }
 
+  HwSwitchMatcher scope(SystemPortID sysPortID) const;
+
  private:
   const HwSwitchMatcher& l3SwitchMatcher() const;
   const HwSwitchMatcher& allSwitchMatcher() const;

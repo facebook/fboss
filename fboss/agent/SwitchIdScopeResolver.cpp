@@ -72,4 +72,19 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
   return HwSwitchMatcher(switchIds);
 }
 
+HwSwitchMatcher SwitchIdScopeResolver::scope(SystemPortID sysPortId) const {
+  auto sysPortInt = static_cast<int64_t>(sysPortId);
+  for (const auto& [id, info] : switchIdToSwitchInfo_) {
+    if (!info.systemPortRange().has_value()) {
+      continue;
+    }
+    if (sysPortInt >= *info.systemPortRange()->minimum() &&
+        sysPortInt <= *info.systemPortRange()->maximum()) {
+      return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(id)}));
+    }
+  }
+
+  throw FbossError("No switchId found for sys port: ", sysPortInt);
+}
+
 } // namespace facebook::fboss

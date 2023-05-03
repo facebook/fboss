@@ -52,3 +52,8 @@ TEST_F(SwitchIdScopeResolverTest, aggPortScope) {
   aggPort.memberPorts()->push_back(member);
   EXPECT_EQ(l3SwitchMatcher(), scopeResolver().scope(aggPort));
 }
+
+TEST_F(SwitchIdScopeResolverTest, sysPortScope) {
+  EXPECT_EQ(l3SwitchMatcher(), scopeResolver().scope(SystemPortID(101)));
+  EXPECT_THROW(scopeResolver().scope(SystemPortID(1001)), FbossError);
+}
