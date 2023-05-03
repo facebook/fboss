@@ -564,15 +564,18 @@ bool SwitchState::isLocalSwitchId(SwitchID switchId) const {
 
 std::shared_ptr<SystemPortMap> SwitchState::getSystemPorts(
     SwitchID switchId) const {
-  auto sysPorts =
-      isLocalSwitchId(switchId) ? getSystemPorts() : getRemoteSystemPorts();
+  auto mSwitchSysPorts = isLocalSwitchId(switchId)
+      ? getMultiSwitchSystemPorts()
+      : getMultiSwitchRemoteSystemPorts();
   auto toRet = std::make_shared<SystemPortMap>();
-  for (const auto& idAndSysPort : std::as_const(*sysPorts)) {
-    const auto& sysPort = idAndSysPort.second;
-    if (sysPort->getSwitchId() == switchId) {
-      toRet->addSystemPort(sysPort);
+  for (const auto& [_, sysPorts] : std::as_const(*mSwitchSysPorts)) {
+    for (const auto& idAndSysPort : std::as_const(*sysPorts)) {
+      const auto& sysPort = idAndSysPort.second;
+      if (sysPort->getSwitchId() == switchId) {
+        toRet->addSystemPort(sysPort);
+      }
     }
-  }
+  };
   return toRet;
 }
 std::shared_ptr<InterfaceMap> SwitchState::getInterfaces(

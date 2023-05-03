@@ -158,11 +158,13 @@ TEST(SystemPort, GetRemoteSwitchPortsBySwitchId) {
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   int64_t remoteSwitchId = 100;
+  HwSwitchMatcher scope{std::unordered_set<SwitchID>{SwitchID(1)}};
   auto sysPort1 = makeSysPort("olympic", 1, remoteSwitchId);
   auto sysPort2 = makeSysPort("olympic", 2, remoteSwitchId);
   auto stateV2 = stateV1->clone();
-  auto remoteSysPorts = stateV2->getRemoteSystemPorts()->modify(&stateV2);
-  remoteSysPorts->addSystemPort(sysPort1);
-  remoteSysPorts->addSystemPort(sysPort2);
+  auto remoteSysPorts =
+      stateV2->getMultiSwitchRemoteSystemPorts()->modify(&stateV2);
+  remoteSysPorts->addNode(sysPort1, scope);
+  remoteSysPorts->addNode(sysPort2, scope);
   EXPECT_EQ(stateV2->getSystemPorts(SwitchID(remoteSwitchId))->size(), 2);
 }
