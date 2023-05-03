@@ -257,6 +257,11 @@ void SwitchState::resetRemoteSystemPorts(
   resetDefaultMap<switch_state_tags::remoteSystemPortMaps>(sysPorts);
 }
 
+void SwitchState::resetRemoteSystemPorts(
+    const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts) {
+  ref<switch_state_tags::remoteSystemPortMaps>() = systemPorts;
+}
+
 const std::shared_ptr<SystemPortMap>& SwitchState::getRemoteSystemPorts()
     const {
   return getDefaultMap<switch_state_tags::remoteSystemPortMaps>();

@@ -558,6 +558,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       const folly::dynamic& swJson);
 
   void resetRemoteSystemPorts(std::shared_ptr<SystemPortMap> systemPorts);
+  void resetRemoteSystemPorts(
+      const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts);
   void resetRemoteIntfs(std::shared_ptr<InterfaceMap> intfs);
 
   static std::shared_ptr<SwitchState> fromThrift(

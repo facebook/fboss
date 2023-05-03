@@ -69,20 +69,22 @@ TEST(SystemPort, AddRemove) {
 TEST(SystemPort, Modify) {
   {
     auto state = std::make_shared<SwitchState>();
-    auto origSysPorts = state->getSystemPorts();
+    auto origSysPorts = state->getMultiSwitchSystemPorts();
     EXPECT_EQ(origSysPorts.get(), origSysPorts->modify(&state));
     state->publish();
     EXPECT_NE(origSysPorts.get(), origSysPorts->modify(&state));
-    EXPECT_NE(origSysPorts.get(), state->getSystemPorts().get());
+    EXPECT_NE(origSysPorts.get(), state->getMultiSwitchSystemPorts().get());
   }
   {
     // Remote sys ports modify
     auto state = std::make_shared<SwitchState>();
-    auto origRemoteSysPorts = state->getRemoteSystemPorts();
+    auto origRemoteSysPorts = state->getMultiSwitchRemoteSystemPorts();
     EXPECT_EQ(origRemoteSysPorts.get(), origRemoteSysPorts->modify(&state));
     state->publish();
     EXPECT_NE(origRemoteSysPorts.get(), origRemoteSysPorts->modify(&state));
-    EXPECT_NE(origRemoteSysPorts.get(), state->getRemoteSystemPorts().get());
+    EXPECT_NE(
+        origRemoteSysPorts.get(),
+        state->getMultiSwitchRemoteSystemPorts().get());
   }
 }
 

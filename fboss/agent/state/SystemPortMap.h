@@ -95,6 +95,7 @@ class MultiSwitchSystemPortMap : public ThriftMultiSwitchMapNode<
 
   std::shared_ptr<SystemPort> getSystemPort(const std::string& name) const;
   std::shared_ptr<SystemPort> getSystemPortIf(const std::string& name) const;
+  MultiSwitchSystemPortMap* modify(std::shared_ptr<SwitchState>* state);
 
  private:
   // Inherit the constructors required for clone()
