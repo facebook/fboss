@@ -46,8 +46,8 @@ TEST(SystemPort, SerDeserSwitchState) {
   // Check all systemPorts should be there
   for (auto sysPortID : {SystemPortID(1), SystemPortID(2)}) {
     EXPECT_TRUE(
-        *state->getSystemPorts()->getSystemPort(sysPortID) ==
-        *stateBack->getSystemPorts()->getSystemPort(sysPortID));
+        *state->getMultiSwitchSystemPorts()->getNodeIf(sysPortID) ==
+        *stateBack->getMultiSwitchSystemPorts()->getNodeIf(sysPortID));
   }
 }
 
@@ -59,9 +59,11 @@ TEST(SystemPort, AddRemove) {
 
   state->addSystemPort(sysPort1);
   state->addSystemPort(sysPort2);
-  state->getSystemPorts()->removeSystemPort(SystemPortID(1));
-  EXPECT_EQ(state->getSystemPorts()->getSystemPortIf(SystemPortID(1)), nullptr);
-  EXPECT_NE(state->getSystemPorts()->getSystemPortIf(SystemPortID(2)), nullptr);
+  state->getMultiSwitchSystemPorts()->removeNode(SystemPortID(1));
+  EXPECT_EQ(
+      state->getMultiSwitchSystemPorts()->getNodeIf(SystemPortID(1)), nullptr);
+  EXPECT_NE(
+      state->getMultiSwitchSystemPorts()->getNodeIf(SystemPortID(2)), nullptr);
 }
 
 TEST(SystemPort, Modify) {
@@ -90,7 +92,9 @@ TEST(SystemPort, sysPortApplyConfig) {
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
-  EXPECT_EQ(stateV1->getSystemPorts()->size(), stateV1->getPorts()->size());
+  EXPECT_EQ(
+      stateV1->getMultiSwitchSystemPorts()->numNodes(),
+      stateV1->getPorts()->size());
   // Flip one port to fabric port type and see that sys ports are updated
   config.ports()->begin()->portType() = cfg::PortType::FABRIC_PORT;
   // Prune the interface corresponding to now changed port type
@@ -108,7 +112,9 @@ TEST(SystemPort, sysPortApplyConfig) {
 
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   ASSERT_NE(nullptr, stateV2);
-  EXPECT_EQ(stateV2->getSystemPorts()->size(), stateV2->getPorts()->size() - 1);
+  EXPECT_EQ(
+      stateV2->getMultiSwitchSystemPorts()->numNodes(),
+      stateV2->getPorts()->size() - 1);
 }
 
 TEST(SystemPort, sysPortNameApplyConfig) {
@@ -117,13 +123,17 @@ TEST(SystemPort, sysPortNameApplyConfig) {
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
-  EXPECT_EQ(stateV1->getSystemPorts()->size(), stateV1->getPorts()->size());
+  EXPECT_EQ(
+      stateV1->getMultiSwitchSystemPorts()->numNodes(),
+      stateV1->getPorts()->size());
   auto nodeName = *config.dsfNodes()->find(SwitchID(1))->second.name();
   for (auto port : std::as_const(*stateV1->getPorts())) {
     auto sysPortName =
         folly::sformat("{}:{}", nodeName, port.second->getName());
     XLOG(DBG2) << " Looking for sys port : " << sysPortName;
-    EXPECT_NE(nullptr, stateV1->getSystemPorts()->getSystemPortIf(sysPortName));
+    EXPECT_NE(
+        nullptr,
+        stateV1->getMultiSwitchSystemPorts()->getSystemPortIf(sysPortName));
   }
 }
 TEST(SystemPort, GetLocalSwitchPortsBySwitchId) {
@@ -134,7 +144,8 @@ TEST(SystemPort, GetLocalSwitchPortsBySwitchId) {
   ASSERT_NE(nullptr, stateV1);
   auto localSwitchId = 1;
   auto mySysPorts = stateV1->getSystemPorts(SwitchID(localSwitchId));
-  EXPECT_EQ(mySysPorts->size(), stateV1->getSystemPorts()->size());
+  EXPECT_EQ(
+      mySysPorts->size(), stateV1->getMultiSwitchSystemPorts()->numNodes());
   // No remote sys ports
   EXPECT_EQ(stateV1->getSystemPorts(SwitchID(localSwitchId + 1))->size(), 0);
 }
