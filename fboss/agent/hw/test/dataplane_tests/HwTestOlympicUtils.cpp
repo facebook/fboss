@@ -203,6 +203,11 @@ void addVoqQueueConfig(
     queue.name() = folly::to<std::string>("queue", queueId);
     *queue.scheduling() = cfg::QueueScheduling::INTERNAL;
 
+    if (asic->scalingFactorBasedDynamicThresholdSupported()) {
+      queue.scalingFactor() = cfg::MMUScalingFactor::ONE;
+    }
+    queue.reservedBytes() = 1500; // Set to possible MTU!
+
     if (queueId == getOlympicQueueId(asic, OlympicQueueType::ECN1)) {
       queue.aqms() = {};
       queue.aqms()->push_back(kGetOlympicEcnConfig());

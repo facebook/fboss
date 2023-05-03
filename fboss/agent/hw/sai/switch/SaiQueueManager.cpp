@@ -249,8 +249,6 @@ void SaiQueueManager::changeQueue(
     changeQueueEcnWred(queueHandle, newPortQueue);
   }
   if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL) &&
-      (queueType != SAI_QUEUE_TYPE_UNICAST_VOQ) &&
-      (queueType != SAI_QUEUE_TYPE_MULTICAST_VOQ) &&
       (queueType != SAI_QUEUE_TYPE_FABRIC_TX)) {
     changeQueueBufferProfile(queueHandle, newPortQueue);
   }
