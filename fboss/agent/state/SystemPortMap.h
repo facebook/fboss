@@ -90,8 +90,11 @@ class MultiSwitchSystemPortMap : public ThriftMultiSwitchMapNode<
       MultiSwitchSystemPortMapTraits>;
   using BaseT::modify;
 
-  MultiSwitchSystemPortMap() {}
-  virtual ~MultiSwitchSystemPortMap() {}
+  MultiSwitchSystemPortMap() = default;
+  virtual ~MultiSwitchSystemPortMap() = default;
+
+  std::shared_ptr<SystemPort> getSystemPort(const std::string& name) const;
+  std::shared_ptr<SystemPort> getSystemPortIf(const std::string& name) const;
 
  private:
   // Inherit the constructors required for clone()

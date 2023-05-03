@@ -70,5 +70,24 @@ SystemPortMap* SystemPortMap::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
+std::shared_ptr<SystemPort> MultiSwitchSystemPortMap::getSystemPort(
+    const std::string& name) const {
+  auto port = getSystemPortIf(name);
+  if (!port) {
+    throw FbossError("SystemPort with name: ", name, " not found");
+  }
+  return port;
+}
+
+std::shared_ptr<SystemPort> MultiSwitchSystemPortMap::getSystemPortIf(
+    const std::string& name) const {
+  for (const auto& [_, map] : *this) {
+    if (auto sysPort = map->getSystemPortIf(name)) {
+      return sysPort;
+    }
+  }
+  return nullptr;
+}
+
 template class ThriftMapNode<SystemPortMap, SystemPortMapTraits>;
 } // namespace facebook::fboss
