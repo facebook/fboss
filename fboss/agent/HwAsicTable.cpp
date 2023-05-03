@@ -23,12 +23,20 @@ HwAsicTable::HwAsicTable(
   }
 }
 
-const HwAsic* HwAsicTable::getHwAsicIf(SwitchID switchID) const {
+HwAsic* HwAsicTable::getHwAsicIfImpl(SwitchID switchID) const {
   auto iter = hwAsics_.find(switchID);
   if (iter != hwAsics_.end()) {
     return iter->second.get();
   }
   return nullptr;
+}
+
+const HwAsic* HwAsicTable::getHwAsicIf(SwitchID switchID) const {
+  return getHwAsicIfImpl(switchID);
+}
+
+HwAsic* HwAsicTable::getHwAsicIf(SwitchID switchID) {
+  return getHwAsicIfImpl(switchID);
 }
 
 bool HwAsicTable::isFeatureSupported(SwitchID switchId, HwAsic::Feature feature)
