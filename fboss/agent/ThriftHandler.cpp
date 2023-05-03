@@ -2861,13 +2861,17 @@ void ThriftHandler::getDsfNodes(std::map<int64_t, cfg::DsfNode>& dsfNodes) {
 }
 
 void ThriftHandler::getSystemPorts(
-    std::map<int64_t, SystemPortThrift>& sysPorts) {
+    std::map<int64_t, SystemPortThrift>& sysPortsThrift) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
+  auto fillSysPorts = [&sysPortsThrift](const auto& mSwitchSysPorts) {
+    for (const auto& [_, sysPorts] : std::as_const(*mSwitchSysPorts)) {
+      sysPortsThrift.merge(sysPorts->toThrift());
+    }
+  };
   auto state = sw_->getState();
-  sysPorts = state->getSystemPorts()->toThrift();
-  auto remoteSysPorts = state->getRemoteSystemPorts()->toThrift();
-  sysPorts.merge(remoteSysPorts);
+  fillSysPorts(state->getMultiSwitchSystemPorts());
+  fillSysPorts(state->getMultiSwitchRemoteSystemPorts());
 }
 
 void ThriftHandler::getSysPortStats(
