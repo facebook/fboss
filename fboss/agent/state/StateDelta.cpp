@@ -321,4 +321,6 @@ template struct ThriftMapDelta<SystemPortMap>;
 template struct ThriftMapDelta<IpTunnelMap>;
 template struct ThriftMapDelta<TeFlowTable>;
 
+template struct MultiSwitchMapDelta<MultiSwitchMirrorMap>;
+
 } // namespace facebook::fboss
