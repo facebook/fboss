@@ -109,4 +109,22 @@ struct ThriftMapDelta : MapDelta<MAP, Traits> {
   ThriftMapDelta(const MAP* oldMap, const MAP* newMap) : Base(oldMap, newMap) {}
 };
 
+template <typename OuterMap>
+struct MultiSwitchMapDeltaTraits
+    : NestedMapDeltaTraits<
+          OuterMap, /* outer map */
+          typename OuterMap::InnerMap, /* inner map */
+          ThriftMapDelta, /* map delta for outer map */
+          ThriftMapDelta, /* map delta for inner map */
+          MapDeltaTraits, /* map delta traits for outer map */
+          MapDeltaTraits /* map delta traits for inner map */
+          > {};
+
+template <typename OuterMap>
+struct MultiSwitchMapDelta
+    : NestedMapDelta<MultiSwitchMapDeltaTraits<OuterMap>> {
+  using Base = NestedMapDelta<MultiSwitchMapDeltaTraits<OuterMap>>;
+  using Base::Base;
+};
+
 } // namespace facebook::fboss

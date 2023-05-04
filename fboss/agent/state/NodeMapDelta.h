@@ -332,4 +332,174 @@ class NodeMapDelta {
   Impl impl_;
 };
 
+template <
+    typename OuterMapType,
+    typename InnerMapType,
+    template <typename, template <typename> typename>
+    typename OuterMapDeltaType,
+    template <typename, template <typename> typename>
+    typename InnerMapDeltaType,
+    template <typename>
+    typename OuterMapDeltaTraitsType,
+    template <typename>
+    typename InnerMapDeltaTraitsType>
+struct NestedMapDeltaTraits {
+  using OuterMap = OuterMapType;
+  using InnerMap = InnerMapType;
+  using OuterMapDeltaTraits = OuterMapDeltaTraitsType<OuterMap>;
+  using InnerMapDeltaTraits = InnerMapDeltaTraitsType<InnerMap>;
+  using OuterMapDelta = OuterMapDeltaType<OuterMap, OuterMapDeltaTraitsType>;
+  using InnerMapDelta = InnerMapDeltaType<InnerMap, InnerMapDeltaTraitsType>;
+};
+
+/*
+ * Nested Map Delta Iterator
+ */
+template <typename NestedMapDeltaTraits>
+struct NestedMapDeltaIterator {
+  using OuterMap = typename NestedMapDeltaTraits::OuterMap;
+  using InnerMap = typename NestedMapDeltaTraits::InnerMap;
+  using OuterMapDelta = typename NestedMapDeltaTraits::OuterMapDelta;
+  using InnerMapDelta = typename NestedMapDeltaTraits::InnerMapDelta;
+  using OuterDeltaIteraor = typename OuterMapDelta::Iterator;
+  using InnerDeltaIteraor = typename InnerMapDelta::Iterator;
+
+  using value_type = typename InnerMapDelta::VALUE;
+  using InnerNodeWrapper = typename InnerMapDelta::VALUE::NodeWrapper;
+
+  NestedMapDeltaIterator(OuterDeltaIteraor begin, OuterDeltaIteraor end)
+      : outerMapBegin_(begin),
+        outerMapEnd_(end),
+        outerMapCurrent_(outerMapBegin_),
+        innerMapDelta_(getNullDelta()),
+        innerMapCurrent_(innerMapDelta_.begin()) {
+    update();
+    updateValue();
+  }
+
+  const value_type& operator*() const {
+    return value_;
+  }
+  const value_type* operator->() const {
+    return &value_;
+  }
+
+  NestedMapDeltaIterator& operator++() {
+    advance();
+    return *this;
+  }
+
+  NestedMapDeltaIterator operator++(int) {
+    NestedMapDeltaIterator tmp(*this);
+    advance();
+    return tmp;
+  }
+
+  bool operator==(const NestedMapDeltaIterator& other) const {
+    return outerMapCurrent_ == other.outerMapCurrent_ &&
+        innerMapCurrent_ == other.innerMapCurrent_;
+  }
+
+  bool operator!=(const NestedMapDeltaIterator& other) const {
+    return !operator==(other);
+  }
+
+ private:
+  void update() {
+    // to find a right place for inner map delta iterator fast forward outer map
+    // delta iterator to where inner map diffes
+    while (outerMapCurrent_ != outerMapEnd_) {
+      auto innerOld = outerMapCurrent_->getOld().get();
+      auto innerNew = outerMapCurrent_->getNew().get();
+      innerMapDelta_ = InnerMapDelta(innerOld, innerNew);
+      if (innerMapDelta_.begin() != innerMapDelta_.end()) {
+        // outer map has difference in inner map
+        innerMapCurrent_ = innerMapDelta_.begin();
+        break;
+      }
+      outerMapCurrent_++;
+    }
+    if (outerMapCurrent_ == outerMapEnd_) {
+      // indicate an end, by setting outer map delta iterators inner map delta
+      // iterator current is same as that of null delta
+      outerMapBegin_ = outerMapEnd_;
+      innerMapDelta_ = getNullDelta();
+      // null delta must be empty
+      CHECK(innerMapDelta_.begin() == innerMapDelta_.end());
+      innerMapCurrent_ = innerMapDelta_.end();
+    }
+  }
+
+  void updateValue() {
+    if (innerMapCurrent_ != innerMapDelta_.end()) {
+      value_ = *innerMapCurrent_;
+    } else {
+      // end of iteration
+      value_ = value_type(nullptr, nullptr);
+    }
+  }
+
+  void advance() {
+    CHECK(innerMapCurrent_ != innerMapDelta_.end())
+        << "inner map delta iterator is at end";
+    // advance iterator on inner map delta
+    innerMapCurrent_++;
+    if (innerMapCurrent_ == innerMapDelta_.end()) {
+      // if  inner  map  delta is exhausted,
+      // advance iterator on outer map delts
+      CHECK(outerMapCurrent_ != outerMapEnd_)
+          << "outer map delta iterator is at end";
+      ++outerMapCurrent_;
+      update();
+    }
+    updateValue();
+  }
+
+  static const InnerMapDelta& getNullDelta() {
+    const static InnerMapDelta delta(nullptr, nullptr);
+    return delta;
+  }
+
+  // iterator on outer map, tracking start, end and current iterator
+  OuterDeltaIteraor outerMapBegin_;
+  OuterDeltaIteraor outerMapEnd_;
+  OuterDeltaIteraor outerMapCurrent_;
+
+  // map delta on inner map, where outer map differs currently
+  // iterator on where inner map differs.
+  InnerMapDelta innerMapDelta_;
+  InnerDeltaIteraor innerMapCurrent_;
+
+  value_type value_{nullptr, nullptr};
+};
+
+template <typename NestedMapDeltaTraits>
+struct NestedMapDelta {
+  using OuterMap = typename NestedMapDeltaTraits::OuterMap;
+  using OuterMapDelta = typename NestedMapDeltaTraits::OuterMapDelta;
+  using Iterator = NestedMapDeltaIterator<NestedMapDeltaTraits>;
+  using NodeWrapper = typename Iterator::InnerNodeWrapper;
+
+  NestedMapDelta(const OuterMap* oldMap, const OuterMap* newMap)
+      : outerMapDelta_(oldMap, newMap) {}
+
+  Iterator begin() const {
+    return Iterator(outerMapDelta_.begin(), outerMapDelta_.end());
+  }
+
+  Iterator end() const {
+    return Iterator(outerMapDelta_.end(), outerMapDelta_.end());
+  }
+
+  auto getNew() const {
+    return outerMapDelta_.getNew();
+  }
+
+  auto getOld() const {
+    return outerMapDelta_.getOld();
+  }
+
+ private:
+  OuterMapDelta outerMapDelta_{};
+};
 } // namespace facebook::fboss
