@@ -594,11 +594,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   template <
       typename MultiMapName,
       typename Map = typename InnerMap<MultiMapName, TypeFor>::type>
-  void resetMap(const std::shared_ptr<Map>& map);
-
-  template <
-      typename MultiMapName,
-      typename Map = typename InnerMap<MultiMapName, TypeFor>::type>
   const std::shared_ptr<Map>& getDefaultMap() const;
   template <
       typename MultiMapName,
