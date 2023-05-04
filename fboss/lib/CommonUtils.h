@@ -162,6 +162,10 @@ inline int64_t getCumulativeValue(
 
 #define CO_ASSERT_EVENTUALLY_TRUE(expr) \
   _ASSERT_EVENTUALLY((bool)(expr), CO_ASSERT_TRUE(expr))
+#define CO_ASSERT_EVENTUALLY_FALSE(expr) \
+  _ASSERT_EVENTUALLY(!expr, CO_ASSERT_FALSE(expr))
+#define CO_ASSERT_EVENTUALLY_EQ(expr1, expr2) \
+  _ASSERT_EVENTUALLY(expr1 == expr2, CO_ASSERT_EQ(expr1, expr2))
 
 #define EXPECT_EVENTUALLY_TRUE(expr) \
   _EXPECT_EVENTUALLY((bool)(expr), EXPECT_TRUE(expr))
