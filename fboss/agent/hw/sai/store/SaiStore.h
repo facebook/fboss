@@ -645,14 +645,14 @@ namespace fmt {
 template <typename SaiObjectTraits>
 struct formatter<facebook::fboss::SaiObjectStore<SaiObjectTraits>> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
   auto format(
       const facebook::fboss::SaiObjectStore<SaiObjectTraits>& store,
-      FormatContext& ctx) {
+      FormatContext& ctx) const {
     std::stringstream ss;
     ss << "Object type: "
        << facebook::fboss::saiObjectTypeToString(SaiObjectTraits::ObjectType)

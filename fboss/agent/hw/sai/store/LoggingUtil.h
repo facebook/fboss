@@ -20,14 +20,14 @@ namespace fmt {
 template <typename SaiObjectTraits>
 struct formatter<facebook::fboss::SaiObject<SaiObjectTraits>> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
   auto format(
       const facebook::fboss::SaiObject<SaiObjectTraits>& saiObject,
-      FormatContext& ctx) {
+      FormatContext& ctx) const {
     return format_to(
         ctx.out(), "{}: {}", saiObject.adapterKey(), saiObject.attributes());
   }
@@ -36,14 +36,14 @@ struct formatter<facebook::fboss::SaiObject<SaiObjectTraits>> {
 template <typename SaiObjectTraits>
 struct formatter<facebook::fboss::SaiObjectWithCounters<SaiObjectTraits>> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
   auto format(
       const facebook::fboss::SaiObjectWithCounters<SaiObjectTraits>& saiObject,
-      FormatContext& ctx) {
+      FormatContext& ctx) const {
     return format_to(
         ctx.out(), "{}: {}", saiObject.adapterKey(), saiObject.attributes());
   }
