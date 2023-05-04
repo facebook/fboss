@@ -195,8 +195,10 @@ ThriftMapDelta<UdfPacketMatcherMap> StateDelta::getUdfPacketMatcherDelta()
       oldUdfPacketMatcherMap.get(), newUdfPacketMatcherMap.get());
 }
 
-ThriftMapDelta<DsfNodeMap> StateDelta::getDsfNodesDelta() const {
-  return getFirstMapDelta<DsfNodeMap>(old_->getDsfNodes(), new_->getDsfNodes());
+MultiSwitchMapDelta<MultiSwitchDsfNodeMap> StateDelta::getDsfNodesDelta()
+    const {
+  return MultiSwitchMapDelta<MultiSwitchDsfNodeMap>(
+      old_->getDsfNodes().get(), new_->getDsfNodes().get());
 }
 
 DeltaValue<ControlPlane> StateDelta::getControlPlaneDelta() const {
@@ -204,8 +206,9 @@ DeltaValue<ControlPlane> StateDelta::getControlPlaneDelta() const {
       old_->getControlPlane(), new_->getControlPlane());
 }
 
-ThriftMapDelta<MirrorMap> StateDelta::getMirrorsDelta() const {
-  return getFirstMapDelta<MirrorMap>(old_->getMirrors(), new_->getMirrors());
+MultiSwitchMapDelta<MultiSwitchMirrorMap> StateDelta::getMirrorsDelta() const {
+  return MultiSwitchMapDelta<MultiSwitchMirrorMap>(
+      old_->getMirrors().get(), new_->getMirrors().get());
 }
 
 ThriftMapDelta<TransceiverMap> StateDelta::getTransceiversDelta() const {

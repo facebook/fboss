@@ -90,7 +90,7 @@ class StateDelta {
   ThriftMapDelta<UdfPacketMatcherMap> getUdfPacketMatcherDelta() const;
   ThriftMapDelta<UdfGroupMap> getUdfGroupDelta() const;
 
-  ThriftMapDelta<MirrorMap> getMirrorsDelta() const;
+  MultiSwitchMapDelta<MultiSwitchMirrorMap> getMirrorsDelta() const;
 
   ThriftMapDelta<TransceiverMap> getTransceiversDelta() const;
   ForwardingInformationBaseMapDelta getFibsDelta() const;
@@ -104,7 +104,7 @@ class StateDelta {
   // Remote object deltas
   ThriftMapDelta<SystemPortMap> getRemoteSystemPortsDelta() const;
   InterfaceMapDelta getRemoteIntfsDelta() const;
-  ThriftMapDelta<DsfNodeMap> getDsfNodesDelta() const;
+  MultiSwitchMapDelta<MultiSwitchDsfNodeMap> getDsfNodesDelta() const;
 
   const fsdb::OperDelta& getOperDelta() const;
 
