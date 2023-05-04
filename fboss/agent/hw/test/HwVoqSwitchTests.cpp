@@ -661,7 +661,9 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
  protected:
   void addRemoteSysPort(SystemPortID portId) {
     auto newState = getProgrammedState()->clone();
-    auto localPort = newState->getSystemPorts()->cbegin()->second;
+    const auto& localPorts =
+        newState->getMultiSwitchSystemPorts()->cbegin()->second;
+    auto localPort = localPorts->cbegin()->second;
     auto remoteSystemPorts =
         newState->getRemoteSystemPorts()->modify(&newState);
     auto numPrevPorts = remoteSystemPorts->size();
