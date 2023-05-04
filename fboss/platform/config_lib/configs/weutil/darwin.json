@@ -1,0 +1,20 @@
+{
+  "chassisEepromName" : "CHASSIS" ,
+  "fruEepromList" : {
+    "PEM" : {
+      "path" : "/run/devmap/eeproms/PEM_EEPROM",
+      "offset" : 0,
+      "idEepromFormatVer" : 0
+    },
+    "FANSPINNER" : {
+      "path" : "/run/devmap/eeproms/FANSPINNER_EEPROM",
+      "offset" : 0,
+      "idEepromFormatVer" : 0
+    },
+    "RACKMON" : {
+      "path" : "/run/devmap/eeproms/RACKMON_EEPROM",
+      "offset" : 0,
+      "idEepromFormatVer" : 0
+    }
+  }
+}
