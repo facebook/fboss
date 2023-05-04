@@ -439,17 +439,6 @@ const std::shared_ptr<TransceiverMap>& SwitchState::getTransceivers() const {
   return getDefaultMap<switch_state_tags::transceiverMaps>();
 }
 
-void SwitchState::addSystemPort(const std::shared_ptr<SystemPort>& systemPort) {
-  // For ease-of-use, automatically clone the SystemPortMap if we are still
-  // pointing to a published map.
-  auto systemPortMap = getSystemPorts();
-  if (systemPortMap->isPublished()) {
-    systemPortMap = systemPortMap->clone();
-    resetSystemPorts(systemPortMap);
-  }
-  getDefaultMap<switch_state_tags::systemPortMaps>()->addSystemPort(systemPort);
-}
-
 void SwitchState::resetSystemPorts(
     const std::shared_ptr<SystemPortMap>& systemPorts) {
   resetDefaultMap<switch_state_tags::systemPortMaps>(systemPorts);

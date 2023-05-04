@@ -37,8 +37,9 @@ TEST(SystemPort, SerDeserSwitchState) {
   auto sysPort1 = makeSysPort("olympic", 1);
   auto sysPort2 = makeSysPort("olympic", 2);
 
-  state->addSystemPort(sysPort1);
-  state->addSystemPort(sysPort2);
+  HwSwitchMatcher scope{std::unordered_set<SwitchID>{SwitchID(0)}};
+  state->getMultiSwitchSystemPorts()->addNode(sysPort1, scope);
+  state->getMultiSwitchSystemPorts()->addNode(sysPort2, scope);
 
   auto serialized = state->toThrift();
   auto stateBack = SwitchState::fromThrift(serialized);
@@ -57,8 +58,9 @@ TEST(SystemPort, AddRemove) {
   auto sysPort1 = makeSysPort("olympic", 1);
   auto sysPort2 = makeSysPort("olympic", 2);
 
-  state->addSystemPort(sysPort1);
-  state->addSystemPort(sysPort2);
+  HwSwitchMatcher scope{std::unordered_set<SwitchID>{SwitchID(0)}};
+  state->getMultiSwitchSystemPorts()->addNode(sysPort1, scope);
+  state->getMultiSwitchSystemPorts()->addNode(sysPort2, scope);
   state->getMultiSwitchSystemPorts()->removeNode(SystemPortID(1));
   EXPECT_EQ(
       state->getMultiSwitchSystemPorts()->getNodeIf(SystemPortID(1)), nullptr);
