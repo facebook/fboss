@@ -322,5 +322,19 @@ template struct ThriftMapDelta<IpTunnelMap>;
 template struct ThriftMapDelta<TeFlowTable>;
 
 template struct MultiSwitchMapDelta<MultiSwitchMirrorMap>;
+template struct MultiSwitchMapDelta<MultiSwitchSflowCollectorMap>;
+template struct MultiSwitchMapDelta<MultiLabelForwardingInformationBase>;
+template struct MultiSwitchMapDelta<MultiSwitchQosPolicyMap>;
+template struct MultiSwitchMapDelta<MultiSwitchIpTunnelMap>;
+template struct MultiSwitchMapDelta<MultiTeFlowTable>;
+template struct MultiSwitchMapDelta<MultiSwitchAggregatePortMap>;
+template struct MultiSwitchMapDelta<MultiSwitchLoadBalancerMap>;
+template struct MultiSwitchMapDelta<MultiSwitchTransceiverMap>;
+template struct MultiSwitchMapDelta<MultiSwitchBufferPoolCfgMap>;
+template struct MultiSwitchMapDelta<MultiSwitchPortMap>;
+template struct MultiSwitchMapDelta<MultiSwitchAclTableGroupMap>;
+template struct MultiSwitchMapDelta<MultiSwitchDsfNodeMap>;
+template struct MultiSwitchMapDelta<MultiSwitchSystemPortMap>;
+template struct MultiSwitchMapDelta<MultiSwitchAclMap>;
 
 } // namespace facebook::fboss
