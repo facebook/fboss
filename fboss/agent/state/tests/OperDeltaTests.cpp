@@ -11,7 +11,6 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FsdbHelper.h"
 #include "fboss/agent/HwSwitchMatcher.h"
-#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -48,9 +47,8 @@ TEST(OperDeltaTests, OperDeltaCompute) {
   mirror.egressPort() = 1;
   mirror.isResolved() = true;
   auto mirrorObj = std::make_shared<Mirror>(mirror);
-  SwitchIdScopeResolver scopeResolver(
-      *config.switchSettings()->switchIdToSwitchInfo());
-  mnpuMirrors->addNode(mirrorObj, scopeResolver.scope(mirrorObj));
+  HwSwitchMatcher scope(std::unordered_set<SwitchID>({SwitchID(0)}));
+  mnpuMirrors->addNode(mirrorObj, scope);
   stateV2->publish();
 
   auto delta2 = StateDelta(stateV1, stateV2);

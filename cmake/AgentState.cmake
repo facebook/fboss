@@ -107,7 +107,6 @@ target_link_libraries(state
   fsdb_helper
   label_forwarding_action
   hwswitch_matcher
-  switchid_scope_resolver
   nodebase
   state_utils
   radix_tree
