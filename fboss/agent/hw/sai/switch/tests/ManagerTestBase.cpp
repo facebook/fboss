@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -95,11 +96,12 @@ void ManagerTestBase::setupSaiPlatform() {
     }
   }
   if (setupStage & SetupStage::SYSTEM_PORT) {
-    auto* ports = setupState->getSystemPorts()->modify(&setupState);
+    auto* ports = setupState->getMultiSwitchSystemPorts()->modify(&setupState);
     for (const auto& testInterface : testInterfaces) {
       auto swPort =
           makeSystemPort(std::nullopt, kSysPortOffset + testInterface.id);
-      ports->addSystemPort(swPort);
+      ports->addNode(
+          swPort, HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)})));
     }
   }
   if (setupStage & SetupStage::VLAN) {

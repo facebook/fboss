@@ -80,13 +80,15 @@ class QueueManagerTest : public ManagerTestBase {
         kSysPortOffset + testInterfaces[0].remoteHosts[0].port.id);
   }
   std::shared_ptr<SystemPort> firstSysPort() const {
-    return programmedState->getSystemPorts()->getSystemPort(firstSysPortId());
+    return programmedState->getMultiSwitchSystemPorts()->getNode(
+        firstSysPortId());
   }
   // TODO - look at only the configured VOQs once
   // QOS is supported on system ports
   std::vector<int> voqIds(SystemPortID sysPortId) const {
     std::vector<int> voqs;
-    auto sysPort = programmedState->getSystemPorts()->getSystemPort(sysPortId);
+    auto sysPort =
+        programmedState->getMultiSwitchSystemPorts()->getNode(sysPortId);
     if (sysPort->getQosPolicy()) {
       // TODO - look at configured queues from qos policy
     }

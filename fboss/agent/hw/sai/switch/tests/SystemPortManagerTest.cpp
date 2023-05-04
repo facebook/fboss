@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -22,6 +23,9 @@ class SystemPortManagerTest : public ManagerTestBase {
   void SetUp() override {
     setupStage = SetupStage::PORT;
     ManagerTestBase::SetUp();
+  }
+  HwSwitchMatcher matcher() const {
+    return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
   }
 };
 
@@ -59,8 +63,8 @@ TEST_F(SystemPortManagerTest, addDupSystemPort) {
 TEST_F(SystemPortManagerTest, addSystemPortViaSwitchState) {
   std::shared_ptr<SystemPort> swSystemPort = makeSystemPort(std::nullopt);
   auto state = programmedState;
-  auto sysPortMgr = state->getSystemPorts()->modify(&state);
-  sysPortMgr->addSystemPort(swSystemPort);
+  auto sysPortMgr = state->getMultiSwitchSystemPorts()->modify(&state);
+  sysPortMgr->addNode(swSystemPort, matcher());
   applyNewState(state);
   auto handle =
       saiManagerTable->systemPortManager().getSystemPortHandle(SystemPortID(1));
@@ -73,8 +77,8 @@ TEST_F(SystemPortManagerTest, addSystemPortViaSwitchState) {
 TEST_F(SystemPortManagerTest, assertVoq) {
   std::shared_ptr<SystemPort> swSystemPort = makeSystemPort(std::nullopt);
   auto state = programmedState;
-  auto sysPortMgr = state->getSystemPorts()->modify(&state);
-  sysPortMgr->addSystemPort(swSystemPort);
+  auto sysPortMgr = state->getMultiSwitchSystemPorts()->modify(&state);
+  sysPortMgr->addNode(swSystemPort, matcher());
   applyNewState(state);
   auto handle =
       saiManagerTable->systemPortManager().getSystemPortHandle(SystemPortID(1));
@@ -123,14 +127,14 @@ TEST_F(SystemPortManagerTest, changeSystemPort) {
 TEST_F(SystemPortManagerTest, changeSystemPortViaSwitchState) {
   std::shared_ptr<SystemPort> swSystemPort = makeSystemPort(std::nullopt);
   auto state = programmedState;
-  auto sysPorts = state->getSystemPorts()->modify(&state);
-  sysPorts->addSystemPort(swSystemPort);
+  auto sysPorts = state->getMultiSwitchSystemPorts()->modify(&state);
+  sysPorts->addNode(swSystemPort, matcher());
   applyNewState(state);
   auto newState = state->clone();
-  sysPorts = newState->getSystemPorts()->modify(&newState);
+  sysPorts = newState->getMultiSwitchSystemPorts()->modify(&newState);
   auto newSysPort = sysPorts->getNodeIf(SystemPortID(1))->clone();
   newSysPort->setSwitchId(SwitchID(0));
-  sysPorts->updateNode(newSysPort);
+  sysPorts->updateNode(newSysPort, matcher());
   applyNewState(newState);
   auto handle =
       saiManagerTable->systemPortManager().getSystemPortHandle(SystemPortID(1));
@@ -178,11 +182,11 @@ TEST_F(SystemPortManagerTest, removeSystemPort) {
 TEST_F(SystemPortManagerTest, removeSystemPortViaSwitchState) {
   std::shared_ptr<SystemPort> swSystemPort = makeSystemPort(std::nullopt);
   auto state = programmedState;
-  auto sysPorts = state->getSystemPorts()->modify(&state);
-  sysPorts->addSystemPort(swSystemPort);
+  auto sysPorts = state->getMultiSwitchSystemPorts()->modify(&state);
+  sysPorts->addNode(swSystemPort, matcher());
   applyNewState(state);
   auto newState = state->clone();
-  sysPorts = newState->getSystemPorts()->modify(&newState);
+  sysPorts = newState->getMultiSwitchSystemPorts()->modify(&newState);
   sysPorts->removeNode(swSystemPort->getID());
   applyNewState(newState);
   auto handle =
@@ -195,7 +199,7 @@ TEST_F(SystemPortManagerTest, removeRemoteSystemPortViaSwitchState) {
       makeSystemPort(std::nullopt, 1, 42 /*remote switch id*/);
   auto state = programmedState;
   auto sysPorts = state->getRemoteSystemPorts()->modify(&state);
-  sysPorts->addSystemPort(swSystemPort);
+  sysPorts->addNode(swSystemPort);
   applyNewState(state);
   auto newState = state->clone();
   sysPorts = newState->getRemoteSystemPorts()->modify(&newState);
