@@ -272,6 +272,11 @@ const std::shared_ptr<AclMap>& SwitchState::getAcls() const {
   return getDefaultMap<switch_state_tags::aclMaps>();
 }
 
+const std::shared_ptr<MultiSwitchAclMap>& SwitchState::getMultiSwitchAcls()
+    const {
+  return safe_cref<switch_state_tags::aclMaps>();
+}
+
 void SwitchState::resetAclTableGroups(
     std::shared_ptr<AclTableGroupMap> aclTableGroups) {
   resetDefaultMap<switch_state_tags::aclTableGroupMaps>(aclTableGroups);
