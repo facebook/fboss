@@ -1207,7 +1207,7 @@ void TransceiverManager::waitForAllBlockingStateUpdateDone(
  * software port id (or the agent port id) for that
  */
 std::optional<PortID> TransceiverManager::getPortIDByPortName(
-    const std::string& portName) {
+    const std::string& portName) const {
   auto portMapIt = portNameToPortID_.left.find(portName);
   if (portMapIt != portNameToPortID_.left.end()) {
     return portMapIt->second;

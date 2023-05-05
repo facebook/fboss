@@ -338,7 +338,7 @@ class TransceiverManager {
   TransceiverInfo getTransceiverInfo(TransceiverID id);
 
   // Function to convert port name string to software port id
-  std::optional<PortID> getPortIDByPortName(const std::string& portName);
+  std::optional<PortID> getPortIDByPortName(const std::string& portName) const;
 
   // Function to convert port id to port name
   std::optional<std::string> getPortNameByPortId(PortID portId) const;
