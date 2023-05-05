@@ -1037,14 +1037,20 @@ Type* SwitchState::modify(std::shared_ptr<SwitchState>* state) {
   if ((*state)->isPublished()) {
     SwitchState::modify(state);
   }
-  auto newMnpuMap = (*state)->cref<Tag>()->clone();
+  auto newMnpuMap = (*state)->cref<Tag>();
+  if (newMnpuMap->isPublished()) {
+    newMnpuMap = newMnpuMap->clone();
+    (*state)->ref<Tag>() = newMnpuMap;
+  }
+  auto* ptr = newMnpuMap.get();
   for (auto mnitr = newMnpuMap->cbegin(); mnitr != newMnpuMap->cend();
        ++mnitr) {
+    if (!mnitr->second->isPublished()) {
+      continue;
+    }
     auto newMap = mnitr->second->clone();
     newMnpuMap->ref(mnitr->first) = newMap;
   }
-  auto* ptr = newMnpuMap.get();
-  (*state)->ref<Tag>() = newMnpuMap;
   return ptr;
 }
 

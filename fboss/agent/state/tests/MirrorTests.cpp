@@ -692,4 +692,33 @@ TEST_F(MirrorTest, NumMirrors) {
   publishWithStateUpdate();
   EXPECT_EQ(state_->getMirrors()->numNodes(), 2);
 }
+
+TEST_F(MirrorTest, MirrorMapModify) {
+  config_.mirrors()->push_back(
+      utility::getSPANMirror("mirror0", MirrorTest::egressPort));
+  config_.mirrors()->push_back(
+      utility::getGREMirror("mirror1", MirrorTest::tunnelDestination));
+  config_.mirrors()->push_back(utility::getSFlowMirror(
+      "mirror2",
+      8998,
+      9889,
+      MirrorTest::tunnelDestination,
+      folly::IPAddress("10.0.0.1"),
+      MirrorTest::dscp,
+      true));
+  publishWithStateUpdate();
+  state_->publish();
+  auto oldStatePtr = state_.get();
+  auto mirrors = state_->getMirrors();
+  auto newMirrors = mirrors->modify(&state_);
+  auto newStatePtr = state_.get();
+  ASSERT_TRUE(!state_->isPublished());
+  EXPECT_NE(oldStatePtr, newStatePtr);
+  EXPECT_NE(mirrors.get(), newMirrors);
+  // do not publish state and mirror map
+  auto newMirrors2 = newMirrors->modify(&state_);
+  EXPECT_EQ(state_.get(), newStatePtr);
+  // no change
+  EXPECT_EQ(newMirrors2, newMirrors);
+}
 } // namespace facebook::fboss
