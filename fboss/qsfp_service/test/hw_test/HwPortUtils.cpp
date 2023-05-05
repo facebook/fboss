@@ -160,29 +160,6 @@ std::vector<TransceiverID> getTransceiverIds(
   return transceivers;
 }
 
-PortStatus getPortStatus(PortID portId, const HwQsfpEnsemble* ensemble) {
-  auto transceiverId = getTranscieverIdx(portId, ensemble);
-  EXPECT_TRUE(transceiverId);
-  auto config = *ensemble->getWedgeManager()->getAgentConfig()->thrift.sw();
-  std::optional<cfg::Port> portCfg;
-  for (auto& port : *config.ports()) {
-    if (*port.logicalID() == static_cast<uint16_t>(portId)) {
-      portCfg = port;
-      break;
-    }
-  }
-  CHECK(portCfg);
-  PortStatus status;
-  status.enabled() = *portCfg->state() == cfg::PortState::ENABLED;
-  TransceiverIdxThrift idx;
-  idx.transceiverId() = *transceiverId;
-  status.transceiverIdx() = idx;
-  // Mark port down to force transceiver programming
-  status.up() = false;
-  status.speedMbps() = static_cast<int64_t>(*portCfg->speed());
-  return status;
-}
-
 IphyAndXphyPorts findAvailablePorts(
     HwQsfpEnsemble* hwQsfpEnsemble,
     std::optional<cfg::PortProfileID> profile,

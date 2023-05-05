@@ -54,7 +54,6 @@ std::vector<TransceiverID> getTransceiverIds(
     const std::vector<PortID>& ports,
     const HwQsfpEnsemble* ensemble,
     bool ignoreNotFound = false);
-PortStatus getPortStatus(PortID portId, const HwQsfpEnsemble* ensemble);
 
 // Find the available iphy ports and xphy ports from agent config.
 // If profile is set, we will also filter the ports based on profile
