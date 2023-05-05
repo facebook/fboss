@@ -544,6 +544,10 @@ class HwTrafficPfcGenTest
      */
     FLAGS_ingress_egress_buffer_pool_size =
         testParams.buffer.globalShared + testParams.buffer.globalHeadroom;
+    if (testParams.buffer.pgHeadroom == 0) {
+      // Force headroom 0 for lossless PG
+      FLAGS_allow_zero_headroom_for_lossless_pg = true;
+    }
     HwLinkStateDependentTest::SetUp();
   }
 };

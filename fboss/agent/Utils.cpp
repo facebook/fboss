@@ -44,6 +44,10 @@ DEFINE_uint64(
     ingress_egress_buffer_pool_size,
     0,
     "Common ingress/egress buffer pool size override");
+DEFINE_bool(
+    allow_zero_headroom_for_lossless_pg,
+    false,
+    "Allow lossless PG to have headroom as zero");
 
 namespace facebook::fboss {
 
