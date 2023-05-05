@@ -170,6 +170,12 @@ class MultiSwitchAclMap : public ThriftMultiSwitchMapNode<
   using Traits = MultiSwitchAclMapTraits;
   using BaseT =
       ThriftMultiSwitchMapNode<MultiSwitchAclMap, MultiSwitchAclMapTraits>;
+  using BaseT::modify;
+
+  MultiSwitchAclMap() = default;
+  virtual ~MultiSwitchAclMap() = default;
+
+  MultiSwitchAclMap* modify(std::shared_ptr<SwitchState>* state);
 
   std::shared_ptr<AclMap> getAclMap() const;
 

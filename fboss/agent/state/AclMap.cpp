@@ -51,6 +51,23 @@ std::shared_ptr<AclMap> MultiSwitchAclMap::getAclMap() const {
   return iter->second;
 }
 
+MultiSwitchAclMap* MultiSwitchAclMap::modify(
+    std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  SwitchState::modify(state);
+  auto newMultiSwitchMap = clone();
+  for (auto mnitr = cbegin(); mnitr != cend(); ++mnitr) {
+    (*newMultiSwitchMap)[mnitr->first] = mnitr->second->clone();
+  }
+  auto* ptr = newMultiSwitchMap.get();
+  (*state)->resetAcls(std::move(newMultiSwitchMap));
+  return ptr;
+}
+
 template class ThriftMapNode<AclMap, AclMapTraits>;
 FBOSS_INSTANTIATE_NODE_MAP(PrioAclMap, PrioAclMapTraits);
 
