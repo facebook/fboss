@@ -76,6 +76,8 @@ class HwPfcTest : public HwTest {
       pgConfig.bufferPoolName() = "bufferNew";
       // provide atleast 1 cell worth of minLimit
       pgConfig.minLimitBytes() = 300;
+      // Non zero headroom to specify this is a no-drop class
+      pgConfig.headroomLimitBytes() = 1000;
       portPgConfigs.emplace_back(pgConfig);
     }
 

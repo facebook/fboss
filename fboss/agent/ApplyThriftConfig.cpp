@@ -1462,8 +1462,12 @@ ThriftConfigApplier::findEnabledPfcPriorities(PortPgConfigs& portPgCfgs) {
 
   std::vector<int16_t> tmpPfcPri;
   for (auto& portPgCfg : portPgCfgs) {
-    // We have a 1:1 mapping between PG id and PFC priority
-    tmpPfcPri.push_back(static_cast<int16_t>(portPgCfg->getID()));
+    // If we have non-zero value in headroom, then its a lossless PG
+    if ((portPgCfg->getHeadroomLimitBytes() &&
+         *portPgCfg->getHeadroomLimitBytes()) ||
+        FLAGS_allow_zero_headroom_for_lossless_pg) {
+      tmpPfcPri.push_back(static_cast<int16_t>(portPgCfg->getID()));
+    }
   }
   if (tmpPfcPri.empty()) {
     return std::nullopt;
