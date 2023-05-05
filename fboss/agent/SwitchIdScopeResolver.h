@@ -12,10 +12,12 @@ namespace cfg {
 class Mirror;
 class DsfNode;
 class IpInIpTunnel;
+class AclEntry;
 } // namespace cfg
 class Mirror;
 class DsfNode;
 class IpTunnel;
+class AclEntry;
 
 class SwitchIdScopeResolver {
  public:
@@ -40,6 +42,12 @@ class SwitchIdScopeResolver {
     return l3SwitchMatcher();
   }
   const HwSwitchMatcher& scope(const std::shared_ptr<IpTunnel>& /*m*/) const {
+    return l3SwitchMatcher();
+  }
+  const HwSwitchMatcher& scope(const cfg::AclEntry& /*acl*/) const {
+    return l3SwitchMatcher();
+  }
+  const HwSwitchMatcher& scope(const std::shared_ptr<AclEntry>& /*acl*/) const {
     return l3SwitchMatcher();
   }
 
