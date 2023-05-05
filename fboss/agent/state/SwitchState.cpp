@@ -1032,6 +1032,27 @@ bool SwitchState::operator==(const SwitchState& other) const {
   return (toThrift() == other.toThrift());
 }
 
+template <typename Tag, typename Type>
+Type* SwitchState::modify(std::shared_ptr<SwitchState>* state) {
+  if ((*state)->isPublished()) {
+    SwitchState::modify(state);
+  }
+  auto newMnpuMap = (*state)->cref<Tag>()->clone();
+  for (auto mnitr = newMnpuMap->cbegin(); mnitr != newMnpuMap->cend();
+       ++mnitr) {
+    auto newMap = mnitr->second->clone();
+    newMnpuMap->ref(mnitr->first) = newMap;
+  }
+  auto* ptr = newMnpuMap.get();
+  (*state)->ref<Tag>() = newMnpuMap;
+  return ptr;
+}
+
+template MultiSwitchMirrorMap* SwitchState::modify<
+    switch_state_tags::mirrorMaps>(std::shared_ptr<SwitchState>*);
+template MultiSwitchIpTunnelMap* SwitchState::modify<
+    switch_state_tags::ipTunnelMaps>(std::shared_ptr<SwitchState>*);
+
 template class ThriftStructNode<SwitchState, state::SwitchState>;
 
 } // namespace facebook::fboss

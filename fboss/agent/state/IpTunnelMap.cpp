@@ -26,19 +26,7 @@ void IpTunnelMap::removeTunnel(std::string id) {
 
 MultiSwitchIpTunnelMap* MultiSwitchIpTunnelMap::modify(
     std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
-  }
-
-  SwitchState::modify(state);
-  auto newMnpuMap = clone();
-  for (auto mnitr = cbegin(); mnitr != cend(); ++mnitr) {
-    (*newMnpuMap)[mnitr->first] = mnitr->second->clone();
-  }
-  auto* ptr = newMnpuMap.get();
-  (*state)->resetTunnels(std::move(newMnpuMap));
-  return ptr;
+  return SwitchState::modify<switch_state_tags::ipTunnelMaps>(state);
 }
 
 template class ThriftMapNode<IpTunnelMap, IpTunnelMapTraits>;

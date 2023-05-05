@@ -570,6 +570,9 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
     return !(*this == other);
   }
 
+  template <typename Tag, typename Type = typename TypeFor<Tag>::element_type>
+  static Type* modify(std::shared_ptr<SwitchState>* state);
+
  private:
   template <
       typename MultiMapType,
