@@ -531,7 +531,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetIntfs(std::shared_ptr<InterfaceMap> intfs);
   void addAcl(const std::shared_ptr<AclEntry>& acl);
   void addAclTable(const std::shared_ptr<AclTable>& aclTable);
-  void resetAcls(std::shared_ptr<AclMap> acls);
+  void resetAcls(const std::shared_ptr<AclMap>& acls);
+  void resetAcls(const std::shared_ptr<MultiSwitchAclMap>& acls);
   void resetAclTableGroups(std::shared_ptr<AclTableGroupMap> aclTableGroups);
   void resetSflowCollectors(
       const std::shared_ptr<SflowCollectorMap>& collectors);

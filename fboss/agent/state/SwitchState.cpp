@@ -264,8 +264,12 @@ std::shared_ptr<AclEntry> SwitchState::getAcl(const std::string& name) const {
   return getAcls()->getEntryIf(name);
 }
 
-void SwitchState::resetAcls(std::shared_ptr<AclMap> acls) {
+void SwitchState::resetAcls(const std::shared_ptr<AclMap>& acls) {
   resetDefaultMap<switch_state_tags::aclMaps>(acls);
+}
+
+void SwitchState::resetAcls(const std::shared_ptr<MultiSwitchAclMap>& acls) {
+  ref<switch_state_tags::aclMaps>() = acls;
 }
 
 const std::shared_ptr<AclMap>& SwitchState::getAcls() const {
