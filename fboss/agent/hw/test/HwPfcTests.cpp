@@ -85,6 +85,7 @@ class HwPfcTest : public HwTest {
     std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
     cfg::BufferPoolConfig poolConfig;
     poolConfig.sharedBytes() = 10000;
+    poolConfig.headroomBytes() = 2000;
     bufferPoolCfgMap.insert(std::make_pair("bufferNew", poolConfig));
     currentConfig.bufferPoolConfigs() = bufferPoolCfgMap;
 
