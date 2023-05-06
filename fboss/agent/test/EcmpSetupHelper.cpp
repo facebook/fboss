@@ -354,15 +354,17 @@ template <typename IPAddrT>
 EcmpSetupTargetedPorts<IPAddrT>::EcmpSetupTargetedPorts(
     const std::shared_ptr<SwitchState>& inputState,
     std::optional<folly::MacAddress> nextHopMac,
-    RouterID routerId)
+    RouterID routerId,
+    bool forProdConfig)
     : BaseEcmpSetupHelper<IPAddrT, EcmpNextHopT>(), routerId_(routerId) {
-  computeNextHops(inputState, nextHopMac);
+  computeNextHops(inputState, nextHopMac, forProdConfig);
 }
 
 template <typename IPAddrT>
 void EcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
     const std::shared_ptr<SwitchState>& inputState,
-    std::optional<folly::MacAddress> nextHopMac) {
+    std::optional<folly::MacAddress> nextHopMac,
+    bool forProdConfig) {
   BaseEcmpSetupHelperT::portDesc2Interface_ =
       BaseEcmpSetupHelperT::computePortDesc2Interface(inputState);
   auto intf2Subnet =
@@ -380,12 +382,20 @@ void EcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
     }
     auto subnetIp = IPAddrT(ipAddrStr);
     auto bytes = subnetIp.toByteArray();
-    // Add a offset to compute next in subnet next hop IP.
-    // Essentially for l3 intf with subnet X, we
-    // would compute next hops by incrementing last octet
-    // of subnet.
-    int lastOctet = (bytes[bytes.size() - 1] + (++offset)) % 255;
-    // Fail if we goto 255 at the last oct
+    int lastOctet = bytes[bytes.size() - 1];
+    offset++;
+    if (forProdConfig) {
+      // Flip last bit to compute next hop IP because prod configs
+      // can have uplink interfaces with /127 subnets.
+      lastOctet ^= 1;
+    } else {
+      // Add a offset to compute next in subnet next hop IP.
+      // Essentially for l3 intf with subnet X, we
+      // would compute next hops by incrementing last octet
+      // of subnet.
+      lastOctet = (lastOctet + offset) % 255;
+    }
+    // Fail if we go to 255 at the last octet
     CHECK_GT(255, lastOctet);
     bytes[bytes.size() - 1] = static_cast<uint8_t>(lastOctet);
     BaseEcmpSetupHelperT::nhops_.push_back(EcmpNextHopT(
@@ -702,7 +712,8 @@ void MplsEcmpSetupTargetedPorts<IPAddrT>::setupECMPForwarding(
 template <typename IPAddrT>
 void MplsEcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
     const std::shared_ptr<SwitchState>& inputState,
-    std::optional<folly::MacAddress> nextHopMac) {
+    std::optional<folly::MacAddress> nextHopMac,
+    bool forProdConfig) {
   BaseEcmpSetupHelperT::portDesc2Interface_ =
       BaseEcmpSetupHelperT::computePortDesc2Interface(inputState);
   auto intf2Subnet =
@@ -714,12 +725,20 @@ void MplsEcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
     auto intf = portDescAndInterface.second;
     auto subnetIp = IPAddrT(intf2Subnet[intf].first.str());
     auto bytes = subnetIp.toByteArray();
-    // Add a offset to compute next in subnet next hop IP.
-    // Essentially for l3 intf with subnet X, we
-    // would compute next hops by incrementing last octet
-    // of subnet.
-    int lastOctet = (bytes[bytes.size() - 1] + (++offset)) % 255;
-    // Fail if we goto 255 at the last oct
+    int lastOctet = bytes[bytes.size() - 1];
+    offset++;
+    if (forProdConfig) {
+      // Flip last bit to compute next hop IP because prod configs
+      // can have uplink interfaces with /127 subnets.
+      lastOctet ^= 1;
+    } else {
+      // Add a offset to compute next in subnet next hop IP.
+      // Essentially for l3 intf with subnet X, we
+      // would compute next hops by incrementing last octet
+      // of subnet.
+      lastOctet = (lastOctet + offset) % 255;
+    }
+    // Fail if we go to 255 at the last octet
     CHECK_GT(255, lastOctet);
     bytes[bytes.size() - 1] = static_cast<uint8_t>(lastOctet);
     BaseEcmpSetupHelperT::nhops_.push_back(EcmpMplsNextHop<IPAddrT>(

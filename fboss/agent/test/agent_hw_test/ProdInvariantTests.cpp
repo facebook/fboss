@@ -42,12 +42,16 @@ void ProdInvariantTest::setupAgentTestEcmp(
     ports.insert(ecmpPort);
   });
 
+  // When prod config is used, use uplink's subnet IP with last bit flipped as
+  // the next hop IP.
+  auto forProdConfig =
+      useProdConfig_.has_value() ? useProdConfig_.value() : false;
+  utility::EcmpSetupTargetedPorts6 ecmp6(sw()->getState(), forProdConfig);
+
   sw()->updateStateBlocking("Resolve nhops", [&](auto state) {
-    utility::EcmpSetupTargetedPorts6 ecmp6(state);
     return ecmp6.resolveNextHops(state, ports);
   });
 
-  utility::EcmpSetupTargetedPorts6 ecmp6(sw()->getState());
   ecmp6.programRoutes(
       std::make_unique<SwSwitchRouteUpdateWrapper>(sw()->getRouteUpdater()),
       ports);
@@ -228,7 +232,7 @@ TEST_F(ProdInvariantTest, verifyInvariants) {
     verifyAcl();
     // TODO: Uncomment once tests are more stable.
     verifyCopp();
-    // verifyLoadBalancing();
+    verifyLoadBalancing();
     // verifyDscpToQueueMapping();
     verifySafeDiagCommands();
   };
