@@ -144,7 +144,6 @@ SwitchState::SwitchState() {
   resetAclTableGroups(std::make_shared<AclTableGroupMap>());
   resetRemoteIntfs(std::make_shared<InterfaceMap>());
   resetRemoteSystemPorts(std::make_shared<SystemPortMap>());
-  resetSystemPorts(std::make_shared<SystemPortMap>());
   resetControlPlane(std::make_shared<ControlPlane>());
   resetSwitchSettings(std::make_shared<SwitchSettings>());
   resetAcls(std::make_shared<AclMap>());
@@ -728,7 +727,7 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
       switch_state_tags::remoteInterfaceMap>();
   state->fromThrift<
       switch_state_tags::systemPortMaps,
-      switch_state_tags::systemPortMap>();
+      switch_state_tags::systemPortMap>(true /*emptyMnpuMapOk*/);
   state->fromThrift<
       switch_state_tags::remoteSystemPortMaps,
       switch_state_tags::remoteSystemPortMap>();
@@ -761,7 +760,7 @@ SwitchID SwitchState::getAssociatedSwitchID(PortID portID) const {
   }
   auto systemPortID = intf->getSystemPortID();
   CHECK(systemPortID.has_value());
-  return getSystemPorts()->getSystemPort(*systemPortID)->getSwitchId();
+  return getMultiSwitchSystemPorts()->getNode(*systemPortID)->getSwitchId();
 }
 
 std::optional<cfg::Range64> SwitchState::getAssociatedSystemPortRangeIf(
@@ -772,7 +771,8 @@ std::optional<cfg::Range64> SwitchState::getAssociatedSystemPortRangeIf(
   }
   auto systemPortID = intf->getSystemPortID();
   CHECK(systemPortID.has_value());
-  auto switchId = getSystemPorts()->getSystemPort(*systemPortID)->getSwitchId();
+  auto switchId =
+      getMultiSwitchSystemPorts()->getNode(*systemPortID)->getSwitchId();
   auto dsfNode = getDsfNodes()->getNodeIf(switchId);
   return dsfNode->getSystemPortRange();
 }

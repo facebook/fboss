@@ -365,6 +365,10 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   portIdRange2.minimum() = 0;
   portIdRange2.maximum() = 2047;
   switchInfo2.portIdRange() = portIdRange2;
+  cfg::Range64 sysPortRange;
+  sysPortRange.minimum() = 100;
+  sysPortRange.maximum() = 200;
+  switchInfo2.systemPortRange() = sysPortRange;
   config.switchSettings()->switchIdToSwitchInfo() = {
       std::make_pair(1, switchInfo2)};
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());

@@ -494,8 +494,9 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     if (newSwitchSettings) {
       if ((newSwitchSettings->getSwitchIdToSwitchInfo() !=
            orig_->getSwitchSettings()->getSwitchIdToSwitchInfo())) {
-        new_->resetSystemPorts(
-            updateSystemPorts(new_->getPorts(), newSwitchSettings));
+        new_->resetSystemPorts(toMnpuMap<MultiSwitchSystemPortMap>(
+            updateSystemPorts(new_->getPorts(), newSwitchSettings),
+            scopeResolver_));
       }
       new_->resetSwitchSettings(std::move(newSwitchSettings));
       changed = true;
@@ -508,8 +509,9 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     auto newPorts = updatePorts(new_->getTransceivers());
     if (newPorts) {
       new_->resetPorts(std::move(newPorts));
-      new_->resetSystemPorts(
-          updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()));
+      new_->resetSystemPorts(toMnpuMap<MultiSwitchSystemPortMap>(
+          updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()),
+          scopeResolver_));
       changed = true;
     }
   }
@@ -695,8 +697,9 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       new_->resetDsfNodes(
           toMnpuMap<MultiSwitchDsfNodeMap>(newDsfNodes, scopeResolver_));
       processUpdatedDsfNodes();
-      new_->resetSystemPorts(
-          updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()));
+      new_->resetSystemPorts(toMnpuMap<MultiSwitchSystemPortMap>(
+          updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()),
+          scopeResolver_));
       changed = true;
     }
   }
