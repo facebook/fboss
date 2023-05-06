@@ -55,5 +55,11 @@ TEST_F(SwitchIdScopeResolverTest, aggPortScope) {
 
 TEST_F(SwitchIdScopeResolverTest, sysPortScope) {
   EXPECT_EQ(l3SwitchMatcher(), scopeResolver().scope(SystemPortID(101)));
+  EXPECT_EQ(
+      l3SwitchMatcher(),
+      scopeResolver().scope(std::make_shared<SystemPort>(SystemPortID(101))));
   EXPECT_THROW(scopeResolver().scope(SystemPortID(1001)), FbossError);
+  EXPECT_THROW(
+      scopeResolver().scope(std::make_shared<SystemPort>(SystemPortID(1001))),
+      FbossError);
 }

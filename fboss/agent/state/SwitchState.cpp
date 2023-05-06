@@ -13,7 +13,6 @@
 
 #include "DsfNodeMap.h"
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AclTableGroupMap.h"

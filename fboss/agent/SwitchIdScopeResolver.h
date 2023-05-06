@@ -13,11 +13,13 @@ class Mirror;
 class DsfNode;
 class IpInIpTunnel;
 class AclEntry;
+class SystemPort;
 } // namespace cfg
 class Mirror;
 class DsfNode;
 class IpTunnel;
 class AclEntry;
+class SystemPort;
 
 class SwitchIdScopeResolver {
  public:
@@ -52,6 +54,8 @@ class SwitchIdScopeResolver {
   }
 
   HwSwitchMatcher scope(SystemPortID sysPortID) const;
+  HwSwitchMatcher scope(const std::shared_ptr<SystemPort>& sysPort) const;
+  HwSwitchMatcher scope(const cfg::SystemPort& sysPort) const;
 
  private:
   const HwSwitchMatcher& l3SwitchMatcher() const;

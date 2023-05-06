@@ -2,6 +2,7 @@
 
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/state/SystemPort.h"
 
 namespace facebook::fboss {
 
@@ -85,6 +86,11 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(SystemPortID sysPortId) const {
   }
 
   throw FbossError("No switchId found for sys port: ", sysPortInt);
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<SystemPort>& sysPort) const {
+  return scope(sysPort->getID());
 }
 
 } // namespace facebook::fboss
