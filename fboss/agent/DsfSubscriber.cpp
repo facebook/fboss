@@ -9,6 +9,7 @@
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/SystemPortMap.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
@@ -26,7 +27,6 @@ namespace facebook::fboss {
 using ThriftMapTypeClass = apache::thrift::type_class::map<
     apache::thrift::type_class::integral,
     apache::thrift::type_class::structure>;
-using SysPortMapThriftType = std::map<int64_t, state::SystemPortFields>;
 
 DsfSubscriber::DsfSubscriber(SwSwitch* sw) : sw_(sw) {
   sw_->registerStateObserver(this, "DSFSubscriber");
@@ -246,12 +246,18 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
           for (const auto& change : *operStateUnit.changes()) {
             if (change.path()->path() == getSystemPortsPath()) {
               XLOG(DBG2) << " Got sys port update from : " << nodeName;
+              MultiSwitchSystemPortMap mswitchSysPorts;
+              mswitchSysPorts.fromThrift(thrift_cow::deserialize<
+                                         MultiSwitchSystemPortMapTypeClass,
+                                         MultiSwitchSystemPortMapThriftType>(
+                  fsdb::OperProtocol::BINARY, *change.state()->contents()));
               newSysPorts = std::make_shared<SystemPortMap>();
-              newSysPorts->fromThrift(
-                  thrift_cow::
-                      deserialize<ThriftMapTypeClass, SysPortMapThriftType>(
-                          fsdb::OperProtocol::BINARY,
-                          *change.state()->contents()));
+              for (const auto& [_, sysPortMap] :
+                   std::as_const(mswitchSysPorts)) {
+                for (const auto& [_, sysPort] : std::as_const(*sysPortMap)) {
+                  newSysPorts->addNode(sysPort);
+                }
+              }
             } else if (change.path()->path() == getInterfacesPath()) {
               XLOG(DBG2) << " Got rif update from : " << nodeName;
               newRifs = std::make_shared<InterfaceMap>();

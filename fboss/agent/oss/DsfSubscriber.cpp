@@ -5,7 +5,7 @@
 namespace facebook::fboss {
 
 std::vector<std::string> DsfSubscriber::getSystemPortsPath() {
-  return {"agent", "switchState", "systemPortMap"};
+  return {"agent", "switchState", "systemPortMaps"};
 }
 
 std::vector<std::string> DsfSubscriber::getInterfacesPath() {
