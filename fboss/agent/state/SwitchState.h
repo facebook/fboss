@@ -545,7 +545,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetBufferPoolCfgs(std::shared_ptr<BufferPoolCfgMap> cfgs);
   void addTransceiver(const std::shared_ptr<TransceiverSpec>& transceiver);
   void resetTransceivers(std::shared_ptr<TransceiverMap> transceivers);
-  void resetSystemPorts(const std::shared_ptr<SystemPortMap>& systemPorts);
   void resetSystemPorts(
       const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts);
 

@@ -53,20 +53,19 @@ void SystemPortMap::removeSystemPort(SystemPortID id) {
 }
 
 SystemPortMap* SystemPortMap::modify(std::shared_ptr<SwitchState>* state) {
+  bool isRemote = (this == (*state)->getRemoteSystemPorts().get());
+  CHECK(isRemote)
+      << "(local) sys ports map migrated to mswitch paradigm."
+      << "Modify for it should only happen on MultiSwitchSystemPortMap";
   if (!isPublished()) {
     CHECK(!(*state)->isPublished());
     return this;
   }
 
-  bool isRemote = (this == (*state)->getRemoteSystemPorts().get());
   SwitchState::modify(state);
   auto newSystemPorts = clone();
   auto* ptr = newSystemPorts.get();
-  if (isRemote) {
-    (*state)->resetRemoteSystemPorts(std::move(newSystemPorts));
-  } else {
-    (*state)->resetSystemPorts(std::move(newSystemPorts));
-  }
+  (*state)->resetRemoteSystemPorts(std::move(newSystemPorts));
   return ptr;
 }
 
