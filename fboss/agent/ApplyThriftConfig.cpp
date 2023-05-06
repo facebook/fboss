@@ -3166,7 +3166,7 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
     shared_ptr<Interface> newIntf;
     auto newAddrs = getInterfaceAddresses(&interfaceCfg);
     if (interfaceCfg.type() == cfg::InterfaceType::SYSTEM_PORT) {
-      auto sysPort = new_->getSystemPorts()->getSystemPort(
+      auto sysPort = new_->getMultiSwitchSystemPorts()->getNode(
           SystemPortID(*interfaceCfg.intfID()));
       auto dsfNode = cfg_->dsfNodes()->find(sysPort->getSwitchId())->second;
       auto sysPortRange = dsfNode.systemPortRange();
