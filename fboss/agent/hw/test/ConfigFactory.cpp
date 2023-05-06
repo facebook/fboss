@@ -340,6 +340,9 @@ cfg::SwitchConfig genPortVlanCfg(
   switchInfo.switchIndex() = 0;
   switchInfo.switchType() = switchType;
   switchInfo.asicType() = asic->getAsicType();
+  if (asic->getSystemPortRange().has_value()) {
+    switchInfo.systemPortRange() = *asic->getSystemPortRange();
+  }
   config.switchSettings()->switchIdToSwitchInfo() = {
       std::make_pair(switchId, switchInfo)};
   // Use getPortToDefaultProfileIDMap() to genetate the default config instead
