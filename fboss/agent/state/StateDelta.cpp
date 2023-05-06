@@ -256,7 +256,7 @@ DeltaValue<QosPolicy> StateDelta::getDefaultDataPlaneQosPolicyDelta() const {
 
 ThriftMapDelta<SystemPortMap> StateDelta::getSystemPortsDelta() const {
   return getFirstMapDelta<SystemPortMap>(
-      old_->getMultiSwitchSystemPorts(), new_->getMultiSwitchSystemPorts());
+      old_->getSystemPorts(), new_->getSystemPorts());
 }
 
 ThriftMapDelta<SystemPortMap> StateDelta::getRemoteSystemPortsDelta() const {

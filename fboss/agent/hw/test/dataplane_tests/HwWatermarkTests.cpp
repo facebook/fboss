@@ -94,7 +94,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
     } else {
       auto systemPortId = getSystemPortID(portId, getProgrammedState());
       portName = getProgrammedState()
-                     ->getMultiSwitchSystemPorts()
+                     ->getSystemPorts()
                      ->getNodeIf(systemPortId)
                      ->getPortName();
     }

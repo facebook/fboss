@@ -96,7 +96,7 @@ void ManagerTestBase::setupSaiPlatform() {
     }
   }
   if (setupStage & SetupStage::SYSTEM_PORT) {
-    auto* ports = setupState->getMultiSwitchSystemPorts()->modify(&setupState);
+    auto* ports = setupState->getSystemPorts()->modify(&setupState);
     for (const auto& testInterface : testInterfaces) {
       auto swPort =
           makeSystemPort(std::nullopt, kSysPortOffset + testInterface.id);

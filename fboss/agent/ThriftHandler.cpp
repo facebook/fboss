@@ -2874,7 +2874,7 @@ void ThriftHandler::getSystemPorts(
     }
   };
   auto state = sw_->getState();
-  fillSysPorts(state->getMultiSwitchSystemPorts());
+  fillSysPorts(state->getSystemPorts());
   fillSysPorts(state->getMultiSwitchRemoteSystemPorts());
 }
 

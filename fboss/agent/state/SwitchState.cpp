@@ -433,12 +433,8 @@ void SwitchState::resetSystemPorts(
   ref<switch_state_tags::systemPortMaps>() = systemPorts;
 }
 
-const std::shared_ptr<SystemPortMap>& SwitchState::getSystemPorts() const {
-  return getDefaultMap<switch_state_tags::systemPortMaps>();
-}
-
-const std::shared_ptr<MultiSwitchSystemPortMap>&
-SwitchState::getMultiSwitchSystemPorts() const {
+const std::shared_ptr<MultiSwitchSystemPortMap>& SwitchState::getSystemPorts()
+    const {
   return safe_cref<switch_state_tags::systemPortMaps>();
 }
 
@@ -538,7 +534,7 @@ bool SwitchState::isLocalSwitchId(SwitchID switchId) const {
 std::shared_ptr<SystemPortMap> SwitchState::getSystemPorts(
     SwitchID switchId) const {
   auto mSwitchSysPorts = isLocalSwitchId(switchId)
-      ? getMultiSwitchSystemPorts()
+      ? getSystemPorts()
       : getMultiSwitchRemoteSystemPorts();
   auto toRet = std::make_shared<SystemPortMap>();
   for (const auto& [_, sysPorts] : std::as_const(*mSwitchSysPorts)) {
@@ -760,7 +756,7 @@ SwitchID SwitchState::getAssociatedSwitchID(PortID portID) const {
   }
   auto systemPortID = intf->getSystemPortID();
   CHECK(systemPortID.has_value());
-  return getMultiSwitchSystemPorts()->getNode(*systemPortID)->getSwitchId();
+  return getSystemPorts()->getNode(*systemPortID)->getSwitchId();
 }
 
 std::optional<cfg::Range64> SwitchState::getAssociatedSystemPortRangeIf(
@@ -771,8 +767,7 @@ std::optional<cfg::Range64> SwitchState::getAssociatedSystemPortRangeIf(
   }
   auto systemPortID = intf->getSystemPortID();
   CHECK(systemPortID.has_value());
-  auto switchId =
-      getMultiSwitchSystemPorts()->getNode(*systemPortID)->getSwitchId();
+  auto switchId = getSystemPorts()->getNode(*systemPortID)->getSwitchId();
   auto dsfNode = getDsfNodes()->getNodeIf(switchId);
   return dsfNode->getSystemPortRange();
 }

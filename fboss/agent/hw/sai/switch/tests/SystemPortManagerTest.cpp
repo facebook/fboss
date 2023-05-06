@@ -63,7 +63,7 @@ TEST_F(SystemPortManagerTest, addDupSystemPort) {
 TEST_F(SystemPortManagerTest, addSystemPortViaSwitchState) {
   std::shared_ptr<SystemPort> swSystemPort = makeSystemPort(std::nullopt);
   auto state = programmedState;
-  auto sysPortMgr = state->getMultiSwitchSystemPorts()->modify(&state);
+  auto sysPortMgr = state->getSystemPorts()->modify(&state);
   sysPortMgr->addNode(swSystemPort, matcher());
   applyNewState(state);
   auto handle =
@@ -77,7 +77,7 @@ TEST_F(SystemPortManagerTest, addSystemPortViaSwitchState) {
 TEST_F(SystemPortManagerTest, assertVoq) {
   std::shared_ptr<SystemPort> swSystemPort = makeSystemPort(std::nullopt);
   auto state = programmedState;
-  auto sysPortMgr = state->getMultiSwitchSystemPorts()->modify(&state);
+  auto sysPortMgr = state->getSystemPorts()->modify(&state);
   sysPortMgr->addNode(swSystemPort, matcher());
   applyNewState(state);
   auto handle =
@@ -127,11 +127,11 @@ TEST_F(SystemPortManagerTest, changeSystemPort) {
 TEST_F(SystemPortManagerTest, changeSystemPortViaSwitchState) {
   std::shared_ptr<SystemPort> swSystemPort = makeSystemPort(std::nullopt);
   auto state = programmedState;
-  auto sysPorts = state->getMultiSwitchSystemPorts()->modify(&state);
+  auto sysPorts = state->getSystemPorts()->modify(&state);
   sysPorts->addNode(swSystemPort, matcher());
   applyNewState(state);
   auto newState = state->clone();
-  sysPorts = newState->getMultiSwitchSystemPorts()->modify(&newState);
+  sysPorts = newState->getSystemPorts()->modify(&newState);
   auto newSysPort = sysPorts->getNodeIf(SystemPortID(1))->clone();
   newSysPort->setSwitchId(SwitchID(0));
   sysPorts->updateNode(newSysPort, matcher());
@@ -182,11 +182,11 @@ TEST_F(SystemPortManagerTest, removeSystemPort) {
 TEST_F(SystemPortManagerTest, removeSystemPortViaSwitchState) {
   std::shared_ptr<SystemPort> swSystemPort = makeSystemPort(std::nullopt);
   auto state = programmedState;
-  auto sysPorts = state->getMultiSwitchSystemPorts()->modify(&state);
+  auto sysPorts = state->getSystemPorts()->modify(&state);
   sysPorts->addNode(swSystemPort, matcher());
   applyNewState(state);
   auto newState = state->clone();
-  sysPorts = newState->getMultiSwitchSystemPorts()->modify(&newState);
+  sysPorts = newState->getSystemPorts()->modify(&newState);
   sysPorts->removeNode(swSystemPort->getID());
   applyNewState(newState);
   auto handle =

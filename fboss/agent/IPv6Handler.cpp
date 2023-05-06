@@ -743,8 +743,8 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
         sw->getState()->getInterfaces()->getIntfToReach(RouterID(0), targetIP);
     if (intf) {
       CHECK(intf->getSystemPortID().has_value());
-      auto systemPort = sw->getState()->getMultiSwitchSystemPorts()->getNode(
-          *intf->getSystemPortID());
+      auto systemPort =
+          sw->getState()->getSystemPorts()->getNode(*intf->getSystemPortID());
       CHECK(systemPort);
       auto dsfNode =
           sw->getState()->getDsfNodes()->getNodeIf(systemPort->getSwitchId());
