@@ -92,6 +92,21 @@ sai_service_method_table_t kSaiServiceMethodTable = {
 using namespace facebook::fboss;
 SaiSwitchTraits::Attributes::HwInfo getHwInfo(SaiPlatform* platform) {
   std::vector<int8_t> connectionHandle;
+  // Use connection handle from switchInfo if available
+  const auto agentConfig = platform->getConfig();
+  const auto switchSettings = agentConfig->thrift.sw()->switchSettings();
+  for (const auto& switchIdAndInfo : *switchSettings->switchIdToSwitchInfo()) {
+    if (switchIdAndInfo.first == platform->getAsic()->getSwitchId()) {
+      if (switchIdAndInfo.second.connectionHandle()) {
+        auto connStr = *switchIdAndInfo.second.connectionHandle();
+        std::copy(
+            connStr.c_str(),
+            connStr.c_str() + connStr.size() + 1,
+            std::back_inserter(connectionHandle));
+        return connectionHandle;
+      }
+    }
+  }
   auto connStr = platform->getPlatformAttribute(
       cfg::PlatformAttributes::CONNECTION_HANDLE);
   if (connStr.has_value()) {

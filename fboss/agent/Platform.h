@@ -270,6 +270,10 @@ class Platform {
     return platformMapping_.get();
   }
 
+  const AgentConfig* getConfig() const {
+    return config_.get();
+  }
+
   /*
    * The override transceiver map functions are only used for testing
    */
