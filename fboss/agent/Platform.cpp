@@ -131,11 +131,7 @@ void Platform::init(
     uint32_t hwFeaturesDesired) {
   // take ownership of the config if passed in
   config_ = std::move(config);
-  // Override local mac from config if set
-  if (auto macStr = getPlatformAttribute(cfg::PlatformAttributes::MAC)) {
-    XLOG(DBG2) << " Setting platform mac to: " << macStr.value();
-    localMac_ = folly::MacAddress(*macStr);
-  }
+  auto macStr = getPlatformAttribute(cfg::PlatformAttributes::MAC);
   const auto switchSettings = *config_->thrift.sw()->switchSettings();
   std::optional<int64_t> switchId;
   std::optional<cfg::Range64> systemPortRange;
@@ -162,6 +158,15 @@ void Platform::init(
          asicType == cfg::AsicType::ASIC_TYPE_GARONNE)) {
       switchId = std::nullopt;
     }
+    if (switchSettings.switchIdToSwitchInfo()->begin()->second.switchMac()) {
+      macStr =
+          *switchSettings.switchIdToSwitchInfo()->begin()->second.switchMac();
+    }
+  }
+  // Override local mac from config if set
+  if (macStr) {
+    XLOG(DBG2) << " Setting platform mac to: " << macStr.value();
+    localMac_ = folly::MacAddress(*macStr);
   }
   setupAsic(switchType, switchId, systemPortRange, localMac_);
   initImpl(hwFeaturesDesired);
