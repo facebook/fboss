@@ -20,6 +20,7 @@ class DsfNode;
 class IpTunnel;
 class AclEntry;
 class SystemPort;
+class Vlan;
 
 class SwitchIdScopeResolver {
  public:
@@ -52,6 +53,7 @@ class SwitchIdScopeResolver {
   const HwSwitchMatcher& scope(const std::shared_ptr<AclEntry>& /*acl*/) const {
     return l3SwitchMatcher();
   }
+  const HwSwitchMatcher scope(const std::shared_ptr<Vlan>& vlan) const;
 
   HwSwitchMatcher scope(SystemPortID sysPortID) const;
   HwSwitchMatcher scope(const std::shared_ptr<SystemPort>& sysPort) const;

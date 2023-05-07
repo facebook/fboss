@@ -3,6 +3,7 @@
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/SystemPort.h"
+#include "fboss/agent/state/Vlan.h"
 
 namespace facebook::fboss {
 
@@ -93,4 +94,13 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
   return scope(sysPort->getID());
 }
 
+const HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<Vlan>& vlan) const {
+  std::unordered_set<SwitchID> switchIds;
+  for (const auto& port : vlan->getPorts()) {
+    auto portSwitchIds = scope(PortID(port.first)).switchIds();
+    switchIds.insert(portSwitchIds.begin(), portSwitchIds.end());
+  }
+  return HwSwitchMatcher(switchIds);
+}
 } // namespace facebook::fboss

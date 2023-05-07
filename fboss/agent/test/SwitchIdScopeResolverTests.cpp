@@ -3,6 +3,7 @@
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
+#include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 
@@ -62,4 +63,10 @@ TEST_F(SwitchIdScopeResolverTest, sysPortScope) {
   EXPECT_THROW(
       scopeResolver().scope(std::make_shared<SystemPort>(SystemPortID(1001))),
       FbossError);
+}
+
+TEST_F(SwitchIdScopeResolverTest, vlanScope) {
+  auto vlan1 = std::make_shared<Vlan>(VlanID(1), std::string("Vlan1"));
+  vlan1->setPorts({{0, true}});
+  EXPECT_EQ(l3SwitchMatcher(), scopeResolver().scope(vlan1));
 }
