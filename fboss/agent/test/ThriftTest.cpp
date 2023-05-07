@@ -203,6 +203,17 @@ TYPED_TEST(ThriftTestAllSwitchTypes, checkSwitchId) {
   EXPECT_NE(hwAsicTable, nullptr);
   auto hwAsic = hwAsicTable->getHwAsicIf(switchIdAndType.first);
   EXPECT_NE(hwAsic, nullptr);
+  if (this->isVoq()) {
+    EXPECT_EQ(hwAsic->getAsicMac(), folly::MacAddress("02:00:00:00:0F:0B"));
+  }
+  if (this->isFabric() || this->isVoq()) {
+    EXPECT_EQ(
+        *(switchInfoTable.getSwitchIdToSwitchInfo()
+              .at(switchIdAndType.first)
+
+              .connectionHandle()),
+        "68:00");
+  }
   EXPECT_EQ(SwitchID(*hwAsic->getSwitchId()), switchIdAndType.first);
   EXPECT_EQ(hwAsic->getSwitchType(), switchIdAndType.second);
   auto config = testConfigA(switchIdAndType.second);

@@ -43,6 +43,12 @@ const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig(
           switchInfo.systemPortRange() = *localNode.systemPortRange();
         }
       }
+
+      if ((switchInfo.switchType() == cfg::SwitchType::VOQ ||
+           switchInfo.switchType() == cfg::SwitchType::FABRIC) &&
+          !switchInfo.switchMac()) {
+        switchInfo.switchMac() = platform->getLocalMac().toString();
+      }
       switchInfoMap.emplace(entry.first, switchInfo);
     }
   } else {

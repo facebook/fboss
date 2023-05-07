@@ -138,8 +138,19 @@ cfg::SwitchConfig testConfigFabricSwitch() {
   static constexpr auto kPortCount = 20;
   cfg::SwitchConfig cfg;
   cfg.ports()->resize(kPortCount);
-  cfg.switchSettings()->switchIdToSwitchInfo() = {
-      std::make_pair(2, createSwitchInfo(cfg::SwitchType::FABRIC))};
+  cfg.switchSettings()->switchIdToSwitchInfo() = {std::make_pair(
+      2,
+      createSwitchInfo(
+          cfg::SwitchType::FABRIC,
+          cfg::AsicType::ASIC_TYPE_MOCK,
+          0, /* port id range min */
+          1023, /* port id range max */
+          0, /* switchIndex */
+          std::nullopt, /* systemPort min */
+          std::nullopt, /* systemPort max */
+          std::nullopt, /* switchMac */
+          "68:00" /* connection handle */))};
+
   for (int p = 0; p < kPortCount; ++p) {
     cfg.ports()[p].logicalID() = p + 1;
     cfg.ports()[p].name() = folly::to<string>("port", p + 1);
@@ -256,7 +267,9 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
                   DEFAULT_PORT_ID_RANGE_MAX(), /* port id range max */
               0, /* switchIndex */
               *myNode.systemPortRange()->minimum(),
-              *myNode.systemPortRange()->maximum()))};
+              *myNode.systemPortRange()->maximum(),
+              "02:00:00:00:0F:0B", /* switchMac */
+              "68:00" /* connection handle */))};
       for (auto i = 0; i < kPortCount; ++i) {
         auto intfId =
             *cfg.ports()[i].logicalID() + *myNode.systemPortRange()->minimum();
@@ -965,7 +978,9 @@ void addSwitchInfo(
     int64_t portIdMax,
     int16_t switchIndex,
     std::optional<int64_t> sysPortMin,
-    std::optional<int64_t> sysPortMax) {
+    std::optional<int64_t> sysPortMax,
+    std::optional<std::string> mac,
+    std::optional<std::string> connectionHandle) {
   state->getSwitchSettings()->setSwitchIdToSwitchInfo({std::make_pair(
       switchId,
       createSwitchInfo(
@@ -975,7 +990,9 @@ void addSwitchInfo(
           portIdMax,
           switchIndex,
           sysPortMin,
-          sysPortMax))});
+          sysPortMax,
+          mac,
+          connectionHandle))});
 }
 
 cfg::SwitchInfo createSwitchInfo(
@@ -985,7 +1002,9 @@ cfg::SwitchInfo createSwitchInfo(
     int64_t portIdMax,
     int16_t switchIndex,
     std::optional<int64_t> sysPortMin,
-    std::optional<int64_t> sysPortMax) {
+    std::optional<int64_t> sysPortMax,
+    std::optional<std::string> mac,
+    std::optional<std::string> connectionHandle) {
   cfg::SwitchInfo switchInfo;
   switchInfo.switchType() = switchType;
   switchInfo.asicType() = asicType;
@@ -999,6 +1018,12 @@ cfg::SwitchInfo createSwitchInfo(
     systemPortRange.minimum() = *sysPortMin;
     systemPortRange.maximum() = *sysPortMax;
     switchInfo.systemPortRange() = systemPortRange;
+  }
+  if (mac) {
+    switchInfo.switchMac() = *mac;
+  }
+  if (connectionHandle) {
+    switchInfo.connectionHandle() = *connectionHandle;
   }
   return switchInfo;
 }

@@ -285,6 +285,11 @@ class HwAsic {
   void setDefaultStreamType(cfg::StreamType streamType) {
     defaultStreamType_ = streamType;
   }
+
+  const folly::MacAddress& getAsicMac() const {
+    return asicMac_;
+  }
+
   struct RecyclePortInfo {
     uint32_t coreId;
     uint32_t corePortIndex;

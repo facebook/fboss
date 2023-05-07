@@ -605,7 +605,9 @@ void addSwitchInfo(
         cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
     int16_t switchIndex = 0,
     std::optional<int64_t> sysPortMin = std::nullopt,
-    std::optional<int64_t> sysPortMax = std::nullopt);
+    std::optional<int64_t> sysPortMax = std::nullopt,
+    std::optional<std::string> mac = std::nullopt,
+    std::optional<std::string> connectionHandle = std::nullopt);
 
 cfg::SwitchInfo createSwitchInfo(
     cfg::SwitchType switchType,
@@ -616,5 +618,7 @@ cfg::SwitchInfo createSwitchInfo(
         cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
     int16_t switchIndex = 0,
     std::optional<int64_t> sysPortMin = std::nullopt,
-    std::optional<int64_t> sysPortMax = std::nullopt);
+    std::optional<int64_t> sysPortMax = std::nullopt,
+    std::optional<std::string> mac = std::nullopt,
+    std::optional<std::string> connectionHandle = std::nullopt);
 } // namespace facebook::fboss

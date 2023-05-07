@@ -3,6 +3,7 @@
 #include "fboss/agent/HwAsicTable.h"
 #include <optional>
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/platforms/common/PlatformMappingUtils.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 
@@ -10,8 +11,9 @@ namespace facebook::fboss {
 HwAsicTable::HwAsicTable(
     const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo) {
   for (const auto& switchIdAndSwitchInfo : switchIdToSwitchInfo) {
-    // TODO - pass proper mac to asic create
-    folly::MacAddress mac;
+    folly::MacAddress mac = switchIdAndSwitchInfo.second.switchMac()
+        ? folly::MacAddress(*switchIdAndSwitchInfo.second.switchMac())
+        : getLocalMacAddress();
     hwAsics_.emplace(
         SwitchID(switchIdAndSwitchInfo.first),
         HwAsic::makeAsic(
