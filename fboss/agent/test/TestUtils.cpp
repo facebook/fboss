@@ -31,6 +31,7 @@
 #include "fboss/agent/test/MockTunManager.h"
 
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 
 #include <folly/Memory.h>
@@ -249,8 +250,10 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
           createSwitchInfo(
               cfg::SwitchType::VOQ,
               cfg::AsicType::ASIC_TYPE_MOCK,
-              0, /* port id range min */
-              1023, /* port id range max */
+              cfg::switch_config_constants::
+                  DEFAULT_PORT_ID_RANGE_MIN(), /* port id range min */
+              cfg::switch_config_constants::
+                  DEFAULT_PORT_ID_RANGE_MAX(), /* port id range max */
               0, /* switchIndex */
               *myNode.systemPortRange()->minimum(),
               *myNode.systemPortRange()->maximum()))};

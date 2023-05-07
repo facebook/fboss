@@ -440,8 +440,10 @@ void HwSwitchEnsemble::setupEnsemble(
   switchInfo.switchType() = asic->getSwitchType();
   switchInfo.asicType() = asic->getAsicType();
   cfg::Range64 portIdRange;
-  portIdRange.minimum() = 0;
-  portIdRange.maximum() = 1023;
+  portIdRange.minimum() =
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN();
+  portIdRange.maximum() =
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
   switchInfo.portIdRange() = portIdRange;
   hwAsicTable_ =
       std::make_unique<HwAsicTable>(std::map<int64_t, cfg::SwitchInfo>(

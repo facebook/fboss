@@ -334,8 +334,10 @@ cfg::SwitchConfig genPortVlanCfg(
   }
   cfg::SwitchInfo switchInfo;
   cfg::Range64 portIdRange;
-  portIdRange.minimum() = 0;
-  portIdRange.maximum() = 1023;
+  portIdRange.minimum() =
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN();
+  portIdRange.maximum() =
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
   switchInfo.portIdRange() = portIdRange;
   switchInfo.switchIndex() = 0;
   switchInfo.switchType() = switchType;

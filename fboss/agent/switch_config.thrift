@@ -1469,6 +1469,8 @@ struct ExactMatchTableConfig {
 }
 
 const i16 DEFAULT_FLOWLET_TABLE_SIZE = 4096;
+const i64 DEFAULT_PORT_ID_RANGE_MIN = 0;
+const i64 DEFAULT_PORT_ID_RANGE_MAX = 2047;
 
 struct SwitchInfo {
   1: SwitchType switchType;

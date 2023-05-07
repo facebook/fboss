@@ -330,8 +330,12 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   auto switchInfo = switchSettingsV1->getSwitchIdToSwitchInfo().at(1);
   EXPECT_EQ(switchInfo.switchType(), cfg::SwitchType::VOQ);
   EXPECT_EQ(switchInfo.switchIndex(), 0);
-  EXPECT_EQ(switchInfo.portIdRange()->minimum(), 0);
-  EXPECT_EQ(switchInfo.portIdRange()->maximum(), 1023);
+  EXPECT_EQ(
+      switchInfo.portIdRange()->minimum(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN());
+  EXPECT_EQ(
+      switchInfo.portIdRange()->maximum(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX());
   EXPECT_EQ(
       *stateV1->getSwitchSettings()->l3SwitchType(), cfg::SwitchType::VOQ);
   EXPECT_EQ(
@@ -351,8 +355,10 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   switchInfo2.switchType() = cfg::SwitchType::FABRIC;
   switchInfo2.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
   cfg::Range64 portIdRange;
-  portIdRange.minimum() = 0;
-  portIdRange.maximum() = 1023;
+  portIdRange.minimum() =
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN();
+  portIdRange.maximum() =
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
   switchInfo2.portIdRange() = portIdRange;
   config.switchSettings()->switchIdToSwitchInfo() = {
       std::make_pair(2, switchInfo2)};
@@ -362,8 +368,10 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   // TODO - block this after config is rolled out everywhere
   switchInfo2.switchType() = cfg::SwitchType::VOQ;
   cfg::Range64 portIdRange2;
-  portIdRange2.minimum() = 0;
-  portIdRange2.maximum() = 2047;
+  portIdRange2.minimum() =
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN();
+  portIdRange2.maximum() =
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX() + 1;
   switchInfo2.portIdRange() = portIdRange2;
   cfg::Range64 sysPortRange;
   sysPortRange.minimum() = 100;
@@ -376,8 +384,12 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   auto switchSettingsV2 = stateV2->getSwitchSettings();
   ASSERT_NE(nullptr, switchSettingsV2);
   auto switchInfo3 = switchSettingsV2->getSwitchIdToSwitchInfo().at(1);
-  EXPECT_EQ(switchInfo3.portIdRange()->minimum(), 0);
-  EXPECT_EQ(switchInfo3.portIdRange()->maximum(), 2047);
+  EXPECT_EQ(
+      switchInfo3.portIdRange()->minimum(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN());
+  EXPECT_EQ(
+      switchInfo3.portIdRange()->maximum(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX() + 1);
   validateNodeSerialization(*switchSettingsV1);
 }
 
