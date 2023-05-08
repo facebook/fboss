@@ -465,6 +465,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<LoadBalancerMap>& getLoadBalancers() const;
   const std::shared_ptr<MultiSwitchLoadBalancerMap>&
   getMultiSwitchLoadBalancers() const;
+  const std::shared_ptr<MultiTeFlowTable>& getMultiSwitchTeFlowTable() const;
   const std::shared_ptr<MultiSwitchMirrorMap>& getMirrors() const;
   const std::shared_ptr<ForwardingInformationBaseMap>& getFibs() const;
   const std::shared_ptr<LabelForwardingInformationBase>&
@@ -553,6 +554,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetTunnels(std::shared_ptr<MultiSwitchIpTunnelMap> tunnels);
 
   void resetTeFlowTable(std::shared_ptr<TeFlowTable> teFlowTable);
+  void resetTeFlowTable(std::shared_ptr<MultiTeFlowTable> teFlowTable);
   void resetDsfNodes(const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodes);
   std::shared_ptr<AclTableGroupMap>& getAclTablesForStage(
       const folly::dynamic& swJson);

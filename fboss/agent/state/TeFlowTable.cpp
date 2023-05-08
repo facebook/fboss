@@ -194,6 +194,23 @@ std::shared_ptr<SwitchState> TeFlowSyncer::programFlowEntries(
   return addDelTeFlows(state, addTeFlows, delTeFlows);
 }
 
+MultiTeFlowTable* MultiTeFlowTable::modify(
+    std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  SwitchState::modify(state);
+  auto map = clone();
+  for (auto mnitr = cbegin(); mnitr != cend(); ++mnitr) {
+    (*map)[mnitr->first] = mnitr->second->clone();
+  }
+  auto* ptr = map.get();
+  (*state)->resetTeFlowTable(std::move(map));
+  return ptr;
+}
+
 template class ThriftMapNode<TeFlowTable, TeFlowTableThriftTraits>;
 
 } // namespace facebook::fboss

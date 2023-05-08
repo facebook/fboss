@@ -22,6 +22,7 @@ class AclEntry;
 class SystemPort;
 class Vlan;
 class LoadBalancer;
+class TeFlowEntry;
 
 class SwitchIdScopeResolver {
  public:
@@ -45,6 +46,10 @@ class SwitchIdScopeResolver {
   }
   const HwSwitchMatcher& scope(
       const std::shared_ptr<LoadBalancer>& /*m*/) const {
+    return l3SwitchMatcher();
+  }
+  const HwSwitchMatcher& scope(
+      const std::shared_ptr<TeFlowEntry>& /*m*/) const {
     return l3SwitchMatcher();
   }
   HwSwitchMatcher scope(PortID portId) const;

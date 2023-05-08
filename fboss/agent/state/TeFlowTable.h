@@ -107,8 +107,10 @@ class MultiTeFlowTable : public ThriftMultiSwitchMapNode<
       ThriftMultiSwitchMapNode<MultiTeFlowTable, MultiTeFlowTableTraits>;
   using BaseT::modify;
 
-  MultiTeFlowTable() {}
-  virtual ~MultiTeFlowTable() {}
+  MultiTeFlowTable() = default;
+  virtual ~MultiTeFlowTable() = default;
+
+  MultiTeFlowTable* modify(std::shared_ptr<SwitchState>* state);
 
  private:
   // Inherit the constructors required for clone()
