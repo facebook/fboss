@@ -143,7 +143,6 @@ SwitchState::SwitchState() {
   resetIntfs(std::make_shared<InterfaceMap>());
   resetAclTableGroups(std::make_shared<AclTableGroupMap>());
   resetRemoteIntfs(std::make_shared<InterfaceMap>());
-  resetRemoteSystemPorts(std::make_shared<SystemPortMap>());
   resetControlPlane(std::make_shared<ControlPlane>());
   resetSwitchSettings(std::make_shared<SwitchSettings>());
   resetAcls(std::make_shared<AclMap>());
@@ -721,7 +720,7 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
       switch_state_tags::systemPortMap>(true /*emptyMnpuMapOk*/);
   state->fromThrift<
       switch_state_tags::remoteSystemPortMaps,
-      switch_state_tags::remoteSystemPortMap>();
+      switch_state_tags::remoteSystemPortMap>(true /*emptyMnpuMapOk*/);
 
   state->fromThrift<switch_state_tags::aclMaps, switch_state_tags::aclMap>();
   return state;
