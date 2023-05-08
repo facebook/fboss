@@ -98,11 +98,12 @@ class StateDelta {
   getLabelForwardingInformationBaseDelta() const;
   DeltaValue<SwitchSettings> getSwitchSettingsDelta() const;
   DeltaValue<FlowletSwitchingConfig> getFlowletSwitchingConfigDelta() const;
-  ThriftMapDelta<SystemPortMap> getSystemPortsDelta() const;
+  MultiSwitchMapDelta<MultiSwitchSystemPortMap> getSystemPortsDelta() const;
   ThriftMapDelta<IpTunnelMap> getIpTunnelsDelta() const;
   ThriftMapDelta<TeFlowTable> getTeFlowEntriesDelta() const;
   // Remote object deltas
-  ThriftMapDelta<SystemPortMap> getRemoteSystemPortsDelta() const;
+  MultiSwitchMapDelta<MultiSwitchSystemPortMap> getRemoteSystemPortsDelta()
+      const;
   InterfaceMapDelta getRemoteIntfsDelta() const;
   MultiSwitchMapDelta<MultiSwitchDsfNodeMap> getDsfNodesDelta() const;
 

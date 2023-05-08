@@ -254,14 +254,17 @@ DeltaValue<QosPolicy> StateDelta::getDefaultDataPlaneQosPolicyDelta() const {
       new_->getDefaultDataPlaneQosPolicy());
 }
 
-ThriftMapDelta<SystemPortMap> StateDelta::getSystemPortsDelta() const {
-  return getFirstMapDelta<SystemPortMap>(
-      old_->getSystemPorts(), new_->getSystemPorts());
+MultiSwitchMapDelta<MultiSwitchSystemPortMap> StateDelta::getSystemPortsDelta()
+    const {
+  return MultiSwitchMapDelta<MultiSwitchSystemPortMap>(
+      old_->getSystemPorts().get(), new_->getSystemPorts().get());
 }
 
-ThriftMapDelta<SystemPortMap> StateDelta::getRemoteSystemPortsDelta() const {
-  return ThriftMapDelta<SystemPortMap>(
-      old_->getRemoteSystemPorts().get(), new_->getRemoteSystemPorts().get());
+MultiSwitchMapDelta<MultiSwitchSystemPortMap>
+StateDelta::getRemoteSystemPortsDelta() const {
+  return MultiSwitchMapDelta<MultiSwitchSystemPortMap>(
+      old_->getMultiSwitchRemoteSystemPorts().get(),
+      new_->getMultiSwitchRemoteSystemPorts().get());
 }
 
 ThriftMapDelta<IpTunnelMap> StateDelta::getIpTunnelsDelta() const {
