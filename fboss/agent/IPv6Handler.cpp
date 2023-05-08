@@ -226,8 +226,10 @@ void IPv6Handler::handlePacket(
     XLOG(DBG4) << "Rx IPv6 Packet with hop limit exceeded";
     sw_->portStats(port)->pktDropped();
     sw_->portStats(port)->ipv6HopExceeded();
-    // Look up cpu mac from platform
-    MacAddress cpuMac = sw_->getPlatform()->getLocalMac();
+    // Look up cpu mac from switchInfo
+    auto switchId = sw_->getScopeResolver()->scope(port).switchId();
+    MacAddress cpuMac =
+        sw_->getHwAsicTable()->getHwAsicIf(switchId)->getAsicMac();
     sendICMPv6TimeExceeded(port, vlanID, cpuMac, cpuMac, ipv6, cursor);
     return;
   }
