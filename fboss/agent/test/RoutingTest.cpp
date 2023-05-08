@@ -175,6 +175,17 @@ class RoutingFixture : public ::testing::Test {
  public:
   void SetUp() override {
     auto config = getSwitchConfig();
+    config.switchSettings()->switchIdToSwitchInfo() = {
+        {0,
+         createSwitchInfo(
+             cfg::SwitchType::NPU,
+             cfg::AsicType::ASIC_TYPE_MOCK,
+             cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
+             cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
+             0, /* switchIndex */
+             std::nullopt, /* sysPortMin */
+             std::nullopt, /* sysPortMax */
+             MockPlatform::getMockLocalMac().toString())}};
     handle = createTestHandle(&config, SwitchFlags::ENABLE_TUN);
     sw = handle->getSw();
 

@@ -1769,8 +1769,11 @@ void SwSwitch::sendL3Packet(
       buf->append(tailRoom);
     }
 
+    auto vlan = state->getVlans()->getVlan(getVlanIDHelper(vlanID));
+    auto switchId = getScopeResolver()->scope(vlan).switchId();
     // We always use our CPU's mac-address as source mac-address
-    const folly::MacAddress srcMac = getPlatform()->getLocalMac();
+    const folly::MacAddress srcMac =
+        getHwAsicTable()->getHwAsicIf(switchId)->getAsicMac();
 
     // Derive destination mac address
     folly::MacAddress dstMac{};
@@ -1787,7 +1790,6 @@ void SwSwitch::sendL3Packet(
       // Resolve neighbor mac address for given destination address. If address
       // doesn't exists in NDP table then request neighbor solicitation for it.
       CHECK(dstAddr.isLinkLocal());
-      auto vlan = state->getVlans()->getVlan(getVlanIDHelper(vlanID));
       if (dstAddr.isV4()) {
         // We do not consult ARP table to forward v4 link local addresses.
         // Reason explained below.
