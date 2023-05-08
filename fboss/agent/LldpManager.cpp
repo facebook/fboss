@@ -16,8 +16,10 @@
 #include <folly/io/Cursor.h>
 #include <folly/logging/xlog.h>
 #include <unistd.h>
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -334,8 +336,10 @@ std::unique_ptr<TxPacket> LldpManager::createLldpPkt(
 }
 
 void LldpManager::sendLldpInfo(const std::shared_ptr<Port>& port) {
-  MacAddress cpuMac = sw_->getPlatform()->getLocalMac();
   PortID thisPortID = port->getID();
+  auto switchId = sw_->getScopeResolver()->scope(thisPortID).switchId();
+  MacAddress cpuMac =
+      sw_->getHwAsicTable()->getHwAsicIf(switchId)->getAsicMac();
 
   const size_t kMaxLen = 64;
   std::array<char, kMaxLen> hostname;
