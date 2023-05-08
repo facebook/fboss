@@ -106,7 +106,10 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
     waitForStateUpdates(sw_);
     EXPECT_EQ(
         sysPorts->toThrift(),
-        sw_->getState()->getRemoteSystemPorts()->toThrift());
+        sw_->getState()
+            ->getMultiSwitchRemoteSystemPorts()
+            ->cbegin()
+            ->second->toThrift());
     EXPECT_EQ(
         expectedRifs.toThrift(),
         sw_->getState()->getRemoteInterfaces()->toThrift());
