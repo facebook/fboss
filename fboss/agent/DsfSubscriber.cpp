@@ -4,6 +4,7 @@
 #include <fb303/ServiceData.h>
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/state/DsfNode.h"
 #include "fboss/agent/state/InterfaceMap.h"
@@ -118,32 +119,45 @@ void DsfSubscriber::scheduleUpdate(
           return clonedNode;
         };
 
-        auto processDelta =
-            [&](auto& delta, auto& mapToUpdate, auto& makeRemote) {
-              DeltaFunctions::forEachChanged(
-                  delta,
-                  [&](const auto& oldNode, const auto& newNode) {
-                    if (*oldNode != *newNode) {
-                      // Compare contents as we reconstructed
-                      // map from deserialized FSDB
-                      // subscriptions. So can't just rely on
-                      // pointer comparison here.
-                      auto clonedNode = makeRemote(oldNode, newNode);
-                      mapToUpdate->updateNode(clonedNode);
-                      changed = true;
-                    }
-                  },
-                  [&](const auto& newNode) {
-                    auto clonedNode = makeRemote(
-                        std::decay_t<decltype(newNode)>{nullptr}, newNode);
-                    mapToUpdate->addNode(clonedNode);
-                    changed = true;
-                  },
-                  [&](const auto& rmNode) {
-                    mapToUpdate->removeNode(rmNode);
-                    changed = true;
-                  });
-            };
+        auto processDelta = [&]<typename MapT>(
+                                auto& delta,
+                                MapT* mapToUpdate,
+                                auto& makeRemote) {
+          DeltaFunctions::forEachChanged(
+              delta,
+              [&](const auto& oldNode, const auto& newNode) {
+                if (*oldNode != *newNode) {
+                  // Compare contents as we reconstructed
+                  // map from deserialized FSDB
+                  // subscriptions. So can't just rely on
+                  // pointer comparison here.
+                  auto clonedNode = makeRemote(oldNode, newNode);
+                  if constexpr (std::
+                                    is_same_v<MapT, MultiSwitchSystemPortMap>) {
+                    mapToUpdate->updateNode(
+                        clonedNode, sw_->getScopeResolver()->scope(clonedNode));
+                  } else {
+                    mapToUpdate->updateNode(clonedNode);
+                  }
+                  changed = true;
+                }
+              },
+              [&](const auto& newNode) {
+                auto clonedNode = makeRemote(
+                    std::decay_t<decltype(newNode)>{nullptr}, newNode);
+                if constexpr (std::is_same_v<MapT, MultiSwitchSystemPortMap>) {
+                  mapToUpdate->addNode(
+                      clonedNode, sw_->getScopeResolver()->scope(clonedNode));
+                } else {
+                  mapToUpdate->addNode(clonedNode);
+                }
+                changed = true;
+              },
+              [&](const auto& rmNode) {
+                mapToUpdate->removeNode(rmNode);
+                changed = true;
+              });
+        };
 
         if (newSysPorts) {
           auto origSysPorts = out->getSystemPorts(nodeSwitchId);
