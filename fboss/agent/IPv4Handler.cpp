@@ -239,8 +239,10 @@ void IPv4Handler::handlePacket(
     XLOG(DBG4) << "Rx IPv4 Packet with TTL expired";
     stats->port(port)->pktDropped();
     stats->port(port)->ipv4TtlExceeded();
-    // Look up cpu mac from platform
-    MacAddress cpuMac = sw_->getPlatform()->getLocalMac();
+    // Look up cpu mac from switchInfo
+    auto switchId = sw_->getScopeResolver()->scope(port).switchId();
+    MacAddress cpuMac =
+        sw_->getHwAsicTable()->getHwAsicIf(switchId)->getAsicMac();
     sendICMPTimeExceeded(port, vlanID, cpuMac, cpuMac, v4Hdr, cursor);
     return;
   }
