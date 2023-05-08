@@ -19,6 +19,9 @@ SwitchIdScopeResolver::SwitchIdScopeResolver(
     l3SwitchMatcher_ = std::make_unique<HwSwitchMatcher>(
         voqSwitchIds.size() ? voqSwitchIds : npuSwitchIds);
   }
+  if (voqSwitchIds.size()) {
+    voqSwitchMatcher_ = std::make_unique<HwSwitchMatcher>(voqSwitchIds);
+  }
   std::unordered_set<SwitchID> allSwitchIds;
   for (const auto& switchIdAndInfo : switchIdToSwitchInfo_) {
     allSwitchIds.insert(SwitchID(switchIdAndInfo.first));
@@ -49,6 +52,12 @@ const HwSwitchMatcher& SwitchIdScopeResolver::allSwitchMatcher() const {
   CHECK(allSwitchMatcher_)
       << " One or more all switchIds must be set to get allSwitch scope";
   return *allSwitchMatcher_;
+}
+
+const HwSwitchMatcher& SwitchIdScopeResolver::voqSwitchMatcher() const {
+  CHECK(voqSwitchMatcher_)
+      << " One or more voq switchIds must be set to get voq scope";
+  return *voqSwitchMatcher_;
 }
 
 HwSwitchMatcher SwitchIdScopeResolver::scope(PortID portId) const {

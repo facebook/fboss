@@ -62,9 +62,11 @@ class SwitchIdScopeResolver {
  private:
   const HwSwitchMatcher& l3SwitchMatcher() const;
   const HwSwitchMatcher& allSwitchMatcher() const;
+  const HwSwitchMatcher& voqSwitchMatcher() const;
   std::unordered_set<SwitchID> getSwitchIdsOfType(cfg::SwitchType type) const;
   std::map<int64_t, cfg::SwitchInfo> switchIdToSwitchInfo_;
   std::unique_ptr<HwSwitchMatcher> l3SwitchMatcher_;
   std::unique_ptr<HwSwitchMatcher> allSwitchMatcher_;
+  std::unique_ptr<HwSwitchMatcher> voqSwitchMatcher_;
 };
 } // namespace facebook::fboss
