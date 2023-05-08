@@ -17,9 +17,11 @@
 
 #include "fboss/agent/DHCPv4OptionsOfInterest.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/DHCPv4Packet.h"
@@ -284,8 +286,9 @@ void DHCPv4Handler::processRequest(
     return;
   }
   dhcpPacketOut.giaddr = switchIp;
-  // Look up cpu mac from platform
-  MacAddress cpuMac = sw->getPlatform()->getLocalMac();
+  // Look up cpu mac from HwAsicTable
+  auto switchId = sw->getScopeResolver()->scope(vlan).switchId();
+  MacAddress cpuMac = sw->getHwAsicTable()->getHwAsicIf(switchId)->getAsicMac();
 
   // Prepare the packet to be sent out
   EthHdr ethHdr = makeEthHdr(cpuMac, cpuMac, vlanID);
@@ -321,7 +324,8 @@ void DHCPv4Handler::processReply(
   if (switchIp.isZero()) {
     switchIp = origIPHdr.dstAddr;
   }
-  MacAddress cpuMac = sw->getPlatform()->getLocalMac();
+  auto switchId = sw->getScopeResolver()->scope(pkt->getSrcPort()).switchId();
+  MacAddress cpuMac = sw->getHwAsicTable()->getHwAsicIf(switchId)->getAsicMac();
   // Extract client MAC address from dhcp reply
   uint8_t chaddr[MacAddress::SIZE];
   memcpy(chaddr, dhcpPacketOut.chaddr.data(), MacAddress::SIZE);

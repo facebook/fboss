@@ -83,6 +83,17 @@ shared_ptr<SwitchState> testState() {
   DhcpV4OverrideMap overrides;
   overrides[kClientMacOverride] = kDhcpOverride;
   vlans->getVlan(VlanID(1))->setDhcpV4RelayOverrides(overrides);
+  addSwitchInfo(
+      state,
+      cfg::SwitchType::NPU,
+      0, /*SwitchId*/
+      cfg::AsicType::ASIC_TYPE_MOCK,
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
+      0, /* switchIndex*/
+      std::nullopt, /* sysPort min*/
+      std::nullopt, /*sysPort max()*/
+      MockPlatform::getMockLocalMac().toString());
   return state;
 }
 
@@ -92,7 +103,17 @@ shared_ptr<SwitchState> testStateNAT() {
   switchSettings->setDhcpV4RelaySrc(kDhcpV4RelaySrc);
   switchSettings->setDhcpV4ReplySrc(kDhcpV4ReplySrc);
   state->resetSwitchSettings(switchSettings);
-  addSwitchInfo(state);
+  addSwitchInfo(
+      state,
+      cfg::SwitchType::NPU,
+      0, /*SwitchId*/
+      cfg::AsicType::ASIC_TYPE_MOCK,
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
+      0, /* switchIndex*/
+      std::nullopt, /* sysPort min*/
+      std::nullopt, /*sysPort max()*/
+      MockPlatform::getMockLocalMac().toString());
   return state;
 }
 
