@@ -65,6 +65,11 @@ IphyAndXphyPorts findAvailablePorts(
     bool onlyCabled = false);
 
 std::set<PortID> getCabledPorts(const AgentConfig& conf);
+std::map<PortID, cfg::PortProfileID> getCabledPortsAndProfiles(
+    const HwQsfpEnsemble* ensemble);
+std::set<PortID> getCabledPorts(const HwQsfpEnsemble* ensemble);
+std::vector<std::pair<std::string, std::string>> getCabledPairs(
+    const HwQsfpEnsemble* ensemble);
 std::vector<TransceiverID> getCabledPortTranceivers(
     const AgentConfig& conf,
     const HwQsfpEnsemble* ensemble);

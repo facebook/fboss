@@ -212,6 +212,50 @@ std::set<PortID> getCabledPorts(const AgentConfig& config) {
   return cabledPorts;
 }
 
+std::map<PortID, cfg::PortProfileID> getCabledPortsAndProfiles(
+    const HwQsfpEnsemble* ensemble) {
+  std::map<PortID, cfg::PortProfileID> cabledPorts;
+  auto wedgeManager = ensemble->getWedgeManager();
+  auto qsfpTestConfig = wedgeManager->getQsfpConfig()->thrift.qsfpTestConfig();
+  CHECK(qsfpTestConfig.has_value());
+  for (const auto& cabledPairs : *qsfpTestConfig->cabledPortPairs()) {
+    auto& aPortName = *cabledPairs.aPortName();
+    auto& zPortName = *cabledPairs.zPortName();
+    auto aPortId = wedgeManager->getPortIDByPortName(aPortName);
+    auto zPortId = wedgeManager->getPortIDByPortName(zPortName);
+    CHECK(aPortId.has_value());
+    CHECK(zPortId.has_value());
+    cabledPorts[*aPortId] = *cabledPairs.profileID();
+    cabledPorts[*zPortId] = *cabledPairs.profileID();
+  }
+  return cabledPorts;
+}
+
+std::set<PortID> getCabledPorts(const HwQsfpEnsemble* ensemble) {
+  std::set<PortID> cabledPorts;
+  auto portsAndProfiles = getCabledPortsAndProfiles(ensemble);
+  std::transform(
+      portsAndProfiles.begin(),
+      portsAndProfiles.end(),
+      std::inserter(cabledPorts, cabledPorts.end()),
+      [](auto pair) { return pair.first; });
+  return cabledPorts;
+}
+
+std::vector<std::pair<std::string, std::string>> getCabledPairs(
+    const HwQsfpEnsemble* ensemble) {
+  std::vector<std::pair<std::string, std::string>> cabledPairs;
+  auto wedgeManager = ensemble->getWedgeManager();
+  auto qsfpTestConfig = wedgeManager->getQsfpConfig()->thrift.qsfpTestConfig();
+  CHECK(qsfpTestConfig.has_value());
+  for (const auto& cabledTestPairs : *qsfpTestConfig->cabledPortPairs()) {
+    auto& aPortName = *cabledTestPairs.aPortName();
+    auto& zPortName = *cabledTestPairs.zPortName();
+    cabledPairs.push_back({aPortName, zPortName});
+  }
+  return cabledPairs;
+}
+
 std::vector<TransceiverID> getCabledPortTranceivers(
     const AgentConfig& config,
     const HwQsfpEnsemble* ensemble) {
