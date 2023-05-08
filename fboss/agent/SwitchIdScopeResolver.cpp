@@ -95,7 +95,8 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(SystemPortID sysPortId) const {
     }
   }
 
-  throw FbossError("No switchId found for sys port: ", sysPortInt);
+  // This is a non local sys port. So it maps to all local voq switchIds
+  return voqSwitchMatcher();
 }
 
 HwSwitchMatcher SwitchIdScopeResolver::scope(

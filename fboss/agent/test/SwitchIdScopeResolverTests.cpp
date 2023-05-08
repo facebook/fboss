@@ -22,6 +22,9 @@ class SwitchIdScopeResolverTest : public ::testing::Test {
   HwSwitchMatcher l3SwitchMatcher() const {
     return HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID{1}});
   }
+  HwSwitchMatcher voqSwitchMatcher() const {
+    return l3SwitchMatcher();
+  }
   const SwitchIdScopeResolver& scopeResolver() const {
     return *sw_->getScopeResolver();
   }
@@ -55,14 +58,14 @@ TEST_F(SwitchIdScopeResolverTest, aggPortScope) {
 }
 
 TEST_F(SwitchIdScopeResolverTest, sysPortScope) {
-  EXPECT_EQ(l3SwitchMatcher(), scopeResolver().scope(SystemPortID(101)));
+  EXPECT_EQ(voqSwitchMatcher(), scopeResolver().scope(SystemPortID(101)));
   EXPECT_EQ(
-      l3SwitchMatcher(),
+      voqSwitchMatcher(),
       scopeResolver().scope(std::make_shared<SystemPort>(SystemPortID(101))));
-  EXPECT_THROW(scopeResolver().scope(SystemPortID(1001)), FbossError);
-  EXPECT_THROW(
-      scopeResolver().scope(std::make_shared<SystemPort>(SystemPortID(1001))),
-      FbossError);
+  EXPECT_EQ(voqSwitchMatcher(), scopeResolver().scope(SystemPortID(1001)));
+  EXPECT_EQ(
+      voqSwitchMatcher(),
+      scopeResolver().scope(std::make_shared<SystemPort>(SystemPortID(1001))));
 }
 
 TEST_F(SwitchIdScopeResolverTest, vlanScope) {
