@@ -16,9 +16,12 @@ include "fboss/agent/switch_config.thrift"
 include "fboss/agent/platform_config.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/agent/hw/hardware_stats.thrift"
+include "thrift/annotation/cpp.thrift"
 
-typedef binary (cpp2.type = "::folly::fbstring") fbbinary
-typedef string (cpp2.type = "::folly::fbstring") fbstring
+@cpp.Type{name = "::folly::fbstring"}
+typedef binary fbbinary
+@cpp.Type{name = "::folly::fbstring"}
+typedef string fbstring
 
 const i32 DEFAULT_CTRL_PORT = 5909;
 const i32 NO_VLAN = -1;

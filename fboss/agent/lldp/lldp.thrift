@@ -38,7 +38,7 @@ struct LinkNeighborFields {
   2: i16 localPort;
   3: i16 localVlan;
   // network byte order
-  4: i64 srcMac (cpp2.type = "std::uint64_t");
+  4: i64 srcMac;
 
   5: LldpChassisIdType chassisIdType = LldpChassisIdType.RESERVED;
   6: LldpPortIdType portIdType = LldpPortIdType.RESERVED;
