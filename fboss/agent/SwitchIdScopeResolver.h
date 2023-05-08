@@ -21,6 +21,7 @@ class IpTunnel;
 class AclEntry;
 class SystemPort;
 class Vlan;
+class LoadBalancer;
 
 class SwitchIdScopeResolver {
  public:
@@ -38,6 +39,13 @@ class SwitchIdScopeResolver {
   }
   const HwSwitchMatcher& scope(const std::shared_ptr<DsfNode>& /*m*/) const {
     return allSwitchMatcher();
+  }
+  const HwSwitchMatcher& scope(const cfg::LoadBalancer& /*m*/) const {
+    return l3SwitchMatcher();
+  }
+  const HwSwitchMatcher& scope(
+      const std::shared_ptr<LoadBalancer>& /*m*/) const {
+    return l3SwitchMatcher();
   }
   HwSwitchMatcher scope(PortID portId) const;
   HwSwitchMatcher scope(const cfg::AggregatePort& aggPort) const;

@@ -81,8 +81,10 @@ class MultiSwitchLoadBalancerMap : public ThriftMultiSwitchMapNode<
       MultiSwitchLoadBalancerMapTraits>;
   using BaseT::modify;
 
-  MultiSwitchLoadBalancerMap() {}
-  virtual ~MultiSwitchLoadBalancerMap() {}
+  MultiSwitchLoadBalancerMap() = default;
+  virtual ~MultiSwitchLoadBalancerMap() = default;
+
+  MultiSwitchLoadBalancerMap* modify(std::shared_ptr<SwitchState>* state);
 
  private:
   // Inherit the constructors required for clone()

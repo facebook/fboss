@@ -317,6 +317,11 @@ void SwitchState::resetLoadBalancers(
   resetDefaultMap<switch_state_tags::loadBalancerMaps>(loadBalancers);
 }
 
+void SwitchState::resetLoadBalancers(
+    std::shared_ptr<MultiSwitchLoadBalancerMap> loadBalancers) {
+  ref<switch_state_tags::loadBalancerMaps>() = loadBalancers;
+}
+
 void SwitchState::resetSwitchSettings(
     std::shared_ptr<SwitchSettings> switchSettings) {
   const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
@@ -340,6 +345,11 @@ const std::shared_ptr<BufferPoolCfgMap> SwitchState::getBufferPoolCfgs() const {
 
 const std::shared_ptr<LoadBalancerMap>& SwitchState::getLoadBalancers() const {
   return getDefaultMap<switch_state_tags::loadBalancerMaps>();
+}
+
+const std::shared_ptr<MultiSwitchLoadBalancerMap>&
+SwitchState::getMultiSwitchLoadBalancers() const {
+  return safe_cref<switch_state_tags::loadBalancerMaps>();
 }
 
 void SwitchState::resetMirrors(

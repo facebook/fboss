@@ -170,8 +170,8 @@ ThriftMapDelta<SflowCollectorMap> StateDelta::getSflowCollectorsDelta() const {
 }
 
 ThriftMapDelta<LoadBalancerMap> StateDelta::getLoadBalancersDelta() const {
-  return ThriftMapDelta<LoadBalancerMap>(
-      old_->getLoadBalancers().get(), new_->getLoadBalancers().get());
+  return getFirstMapDelta<LoadBalancerMap>(
+      old_->getMultiSwitchLoadBalancers(), new_->getMultiSwitchLoadBalancers());
 }
 
 ThriftMapDelta<UdfGroupMap> StateDelta::getUdfGroupDelta() const {
