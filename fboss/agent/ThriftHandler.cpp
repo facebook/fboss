@@ -944,7 +944,7 @@ void ThriftHandler::addRemoteNeighbors(
     }
   }
   const auto& remoteRifs = state->getRemoteInterfaces();
-  const auto& remoteSysPorts = state->getRemoteSystemPorts();
+  const auto& remoteSysPorts = state->getMultiSwitchRemoteSystemPorts();
   for (const auto& idAndRif : std::as_const(*remoteRifs)) {
     const auto& rif = idAndRif.second;
     const auto& nbrTable =
@@ -968,8 +968,7 @@ void ThriftHandler::addRemoteNeighbors(
       }
 
       nbrThrift.isLocal() = false;
-      const auto& sysPort =
-          remoteSysPorts->getSystemPortIf(*rif->getSystemPortID());
+      const auto& sysPort = remoteSysPorts->getNodeIf(*rif->getSystemPortID());
       if (sysPort) {
         nbrThrift.switchId() = static_cast<int64_t>(sysPort->getSwitchId());
       }
@@ -977,6 +976,7 @@ void ThriftHandler::addRemoteNeighbors(
     }
   }
 }
+
 void ThriftHandler::getNdpTable(std::vector<NdpEntryThrift>& ndpTable) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
