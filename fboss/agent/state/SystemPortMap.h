@@ -44,19 +44,10 @@ class SystemPortMap : public ThriftMapNode<SystemPortMap, SystemPortMapTraits> {
   SystemPortMap();
   ~SystemPortMap() override;
 
-  const std::shared_ptr<SystemPort> getSystemPort(SystemPortID id) const {
-    return getNode(id);
-  }
-  std::shared_ptr<SystemPort> getSystemPortIf(SystemPortID id) const {
-    return getNodeIf(id);
-  }
   std::shared_ptr<SystemPort> getSystemPort(const std::string& name) const;
   std::shared_ptr<SystemPort> getSystemPortIf(const std::string& name) const;
 
   void addSystemPort(const std::shared_ptr<SystemPort>& systemPort);
-  void updateSystemPort(const std::shared_ptr<SystemPort>& systemPort);
-  void removeSystemPort(SystemPortID id);
-  SystemPortMap* modify(std::shared_ptr<SwitchState>* state);
 
  private:
   // Inherit the constructors required for clone()
