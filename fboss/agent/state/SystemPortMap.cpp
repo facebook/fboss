@@ -78,9 +78,9 @@ MultiSwitchSystemPortMap* MultiSwitchSystemPortMap::modify(
 
   bool isRemote = (this == (*state)->getRemoteSystemPorts().get());
   if (isRemote) {
-    (*state)->resetRemoteSystemPorts(std::move(newMswitchMap));
+    (*state)->ref<switch_state_tags::remoteSystemPortMaps>() = newMswitchMap;
   } else {
-    (*state)->resetSystemPorts(std::move(newMswitchMap));
+    (*state)->ref<switch_state_tags::systemPortMaps>() = newMswitchMap;
   }
   return ptr;
 }

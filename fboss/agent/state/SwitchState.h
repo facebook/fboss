@@ -553,8 +553,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   std::shared_ptr<AclTableGroupMap>& getAclTablesForStage(
       const folly::dynamic& swJson);
 
-  void resetRemoteSystemPorts(
-      const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts);
   void resetRemoteIntfs(std::shared_ptr<InterfaceMap> intfs);
 
   static std::shared_ptr<SwitchState> fromThrift(
