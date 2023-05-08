@@ -287,7 +287,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       applyConfigAndEnableTrunks(config);
       setupIPECMP(aggInfo);
       applyNewState(utility::addLoadBalancers(
-          getPlatform(), getProgrammedState(), loadBalancers));
+          getPlatform(), getProgrammedState(), loadBalancers, scopeResolver()));
     };
     auto verify = [=]() {
       pumpIPTrafficAndVerifyLoadBalanced(
@@ -313,7 +313,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       applyConfigAndEnableTrunks(config);
       setupIP2MPLSECMP(aggInfo);
       applyNewState(utility::addLoadBalancers(
-          getPlatform(), getProgrammedState(), loadBalancers));
+          getPlatform(), getProgrammedState(), loadBalancers, scopeResolver()));
     };
     auto verify = [=]() {
       pumpIPTrafficAndVerifyLoadBalanced(
@@ -347,7 +347,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       applyConfigAndEnableTrunks(config);
       setupMPLSECMP(aggInfo);
       applyNewState(utility::addLoadBalancers(
-          getPlatform(), getProgrammedState(), loadBalancers));
+          getPlatform(), getProgrammedState(), loadBalancers, scopeResolver()));
     };
     auto verify = [=]() {
       pumpMPLSTrafficAndVerifyLoadBalanced(
@@ -373,7 +373,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       applyNewConfig(config);
       setupMPLSECMP(aggInfo);
       applyNewState(utility::addLoadBalancers(
-          getPlatform(), getProgrammedState(), loadBalancers));
+          getPlatform(), getProgrammedState(), loadBalancers, scopeResolver()));
     };
     auto verify = [=]() {
       pumpMPLSTrafficAndVerifyLoadBalanced(
