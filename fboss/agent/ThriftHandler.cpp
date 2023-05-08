@@ -944,7 +944,7 @@ void ThriftHandler::addRemoteNeighbors(
     }
   }
   const auto& remoteRifs = state->getRemoteInterfaces();
-  const auto& remoteSysPorts = state->getMultiSwitchRemoteSystemPorts();
+  const auto& remoteSysPorts = state->getRemoteSystemPorts();
   for (const auto& idAndRif : std::as_const(*remoteRifs)) {
     const auto& rif = idAndRif.second;
     const auto& nbrTable =
@@ -2875,7 +2875,7 @@ void ThriftHandler::getSystemPorts(
   };
   auto state = sw_->getState();
   fillSysPorts(state->getSystemPorts());
-  fillSysPorts(state->getMultiSwitchRemoteSystemPorts());
+  fillSysPorts(state->getRemoteSystemPorts());
 }
 
 void ThriftHandler::getSysPortStats(

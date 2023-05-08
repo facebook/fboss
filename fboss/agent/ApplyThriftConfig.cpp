@@ -835,7 +835,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     sysPort->setSpeedMbps(recyclePortInfo.speedMbps); // 10G
     sysPort->setNumVoqs(8);
     sysPort->setEnabled(true);
-    auto sysPorts = new_->getMultiSwitchRemoteSystemPorts()->modify(&new_);
+    auto sysPorts = new_->getRemoteSystemPorts()->modify(&new_);
     sysPorts->addNode(sysPort, scopeResolver_.scope(sysPort));
     CHECK(node->getMac().has_value());
     auto intf = std::make_shared<Interface>(
@@ -859,7 +859,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     }
     if (!isLocal(node)) {
       auto recyclePortId = getRecyclePortId(node);
-      auto sysPorts = new_->getMultiSwitchRemoteSystemPorts()->modify(&new_);
+      auto sysPorts = new_->getRemoteSystemPorts()->modify(&new_);
       sysPorts->removeNode(SystemPortID(recyclePortId));
       auto intfs = new_->getRemoteInterfaces()->clone();
       intfs->removeNodeIf(InterfaceID(recyclePortId));

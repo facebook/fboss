@@ -263,8 +263,7 @@ MultiSwitchMapDelta<MultiSwitchSystemPortMap> StateDelta::getSystemPortsDelta()
 MultiSwitchMapDelta<MultiSwitchSystemPortMap>
 StateDelta::getRemoteSystemPortsDelta() const {
   return MultiSwitchMapDelta<MultiSwitchSystemPortMap>(
-      old_->getMultiSwitchRemoteSystemPorts().get(),
-      new_->getMultiSwitchRemoteSystemPorts().get());
+      old_->getRemoteSystemPorts().get(), new_->getRemoteSystemPorts().get());
 }
 
 ThriftMapDelta<IpTunnelMap> StateDelta::getIpTunnelsDelta() const {

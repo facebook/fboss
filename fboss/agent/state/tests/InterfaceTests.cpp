@@ -614,8 +614,7 @@ TEST(Interface, getRemoteInterfacesBySwitchId) {
   int64_t remoteSwitchId = 100;
   auto sysPort1 = makeSysPort("olympic", 1001, remoteSwitchId);
   auto stateV2 = stateV1->clone();
-  auto remoteSysPorts =
-      stateV2->getMultiSwitchRemoteSystemPorts()->modify(&stateV2);
+  auto remoteSysPorts = stateV2->getRemoteSystemPorts()->modify(&stateV2);
   remoteSysPorts->addNode(
       sysPort1, HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID{1}})));
   auto remoteInterfaces = stateV2->getRemoteInterfaces()->modify(&stateV2);

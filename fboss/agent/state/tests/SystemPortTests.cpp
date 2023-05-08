@@ -78,13 +78,11 @@ TEST(SystemPort, Modify) {
   {
     // Remote sys ports modify
     auto state = std::make_shared<SwitchState>();
-    auto origRemoteSysPorts = state->getMultiSwitchRemoteSystemPorts();
+    auto origRemoteSysPorts = state->getRemoteSystemPorts();
     EXPECT_EQ(origRemoteSysPorts.get(), origRemoteSysPorts->modify(&state));
     state->publish();
     EXPECT_NE(origRemoteSysPorts.get(), origRemoteSysPorts->modify(&state));
-    EXPECT_NE(
-        origRemoteSysPorts.get(),
-        state->getMultiSwitchRemoteSystemPorts().get());
+    EXPECT_NE(origRemoteSysPorts.get(), state->getRemoteSystemPorts().get());
   }
 }
 
@@ -154,8 +152,7 @@ TEST(SystemPort, GetRemoteSwitchPortsBySwitchId) {
   auto sysPort1 = makeSysPort("olympic", 1, remoteSwitchId);
   auto sysPort2 = makeSysPort("olympic", 2, remoteSwitchId);
   auto stateV2 = stateV1->clone();
-  auto remoteSysPorts =
-      stateV2->getMultiSwitchRemoteSystemPorts()->modify(&stateV2);
+  auto remoteSysPorts = stateV2->getRemoteSystemPorts()->modify(&stateV2);
   remoteSysPorts->addNode(sysPort1, scope);
   remoteSysPorts->addNode(sysPort2, scope);
   EXPECT_EQ(stateV2->getSystemPorts(SwitchID(remoteSwitchId))->size(), 2);

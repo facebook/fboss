@@ -522,9 +522,7 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getSysPorts) {
     EXPECT_EQ(
         sysPorts.size(),
         this->sw_->getState()->getSystemPorts()->numNodes() +
-            this->sw_->getState()
-                ->getMultiSwitchRemoteSystemPorts()
-                ->numNodes());
+            this->sw_->getState()->getRemoteSystemPorts()->numNodes());
   } else {
     EXPECT_EQ(sysPorts.size(), 0);
   }

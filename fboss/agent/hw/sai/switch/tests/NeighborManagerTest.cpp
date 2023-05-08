@@ -33,8 +33,7 @@ class NeighborManagerTest : public ManagerTestBase {
         42, /*sys port id*/
         42 /* switch id */);
     auto newState = programmedState;
-    auto sysPortMap =
-        newState->getMultiSwitchRemoteSystemPorts()->modify(&newState);
+    auto sysPortMap = newState->getRemoteSystemPorts()->modify(&newState);
     sysPortMap->addNode(
         remoteSysPort,
         HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)})));

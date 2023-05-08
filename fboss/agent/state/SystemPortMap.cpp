@@ -76,7 +76,7 @@ MultiSwitchSystemPortMap* MultiSwitchSystemPortMap::modify(
   }
   auto* ptr = newMswitchMap.get();
 
-  bool isRemote = (this == (*state)->getMultiSwitchRemoteSystemPorts().get());
+  bool isRemote = (this == (*state)->getRemoteSystemPorts().get());
   if (isRemote) {
     (*state)->resetRemoteSystemPorts(std::move(newMswitchMap));
   } else {

@@ -98,7 +98,7 @@ TEST_F(SystemPortManagerTest, addRemoteSystemPortViaSwitchState) {
   std::shared_ptr<SystemPort> swSystemPort =
       makeSystemPort(std::nullopt, 1, 42 /*remote switch id*/);
   auto state = programmedState;
-  auto sysPortMgr = state->getMultiSwitchRemoteSystemPorts()->modify(&state);
+  auto sysPortMgr = state->getRemoteSystemPorts()->modify(&state);
   sysPortMgr->addNode(swSystemPort, matcher());
   applyNewState(state);
   auto handle =
@@ -149,11 +149,11 @@ TEST_F(SystemPortManagerTest, changeRemoteSystemPortViaSwitchState) {
   std::shared_ptr<SystemPort> swSystemPort =
       makeSystemPort(std::nullopt, 1, 42 /*remote switch id*/);
   auto state = programmedState;
-  auto sysPorts = state->getMultiSwitchRemoteSystemPorts()->modify(&state);
+  auto sysPorts = state->getRemoteSystemPorts()->modify(&state);
   sysPorts->addNode(swSystemPort, matcher());
   applyNewState(state);
   auto newState = state->clone();
-  sysPorts = newState->getMultiSwitchRemoteSystemPorts()->modify(&newState);
+  sysPorts = newState->getRemoteSystemPorts()->modify(&newState);
   auto newSysPort = sysPorts->getNodeIf(SystemPortID(1))->clone();
   newSysPort->setSwitchId(SwitchID(0));
   sysPorts->updateNode(newSysPort, matcher());
@@ -198,11 +198,11 @@ TEST_F(SystemPortManagerTest, removeRemoteSystemPortViaSwitchState) {
   std::shared_ptr<SystemPort> swSystemPort =
       makeSystemPort(std::nullopt, 1, 42 /*remote switch id*/);
   auto state = programmedState;
-  auto sysPorts = state->getMultiSwitchRemoteSystemPorts()->modify(&state);
+  auto sysPorts = state->getRemoteSystemPorts()->modify(&state);
   sysPorts->addNode(swSystemPort, matcher());
   applyNewState(state);
   auto newState = state->clone();
-  sysPorts = newState->getMultiSwitchRemoteSystemPorts()->modify(&newState);
+  sysPorts = newState->getRemoteSystemPorts()->modify(&newState);
   sysPorts->removeNode(swSystemPort->getID());
   applyNewState(newState);
   auto handle =

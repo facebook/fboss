@@ -163,8 +163,7 @@ void DsfSubscriber::scheduleUpdate(
           auto origSysPorts = out->getSystemPorts(nodeSwitchId);
           ThriftMapDelta<SystemPortMap> delta(
               origSysPorts.get(), newSysPorts.get());
-          auto remoteSysPorts =
-              out->getMultiSwitchRemoteSystemPorts()->modify(&out);
+          auto remoteSysPorts = out->getRemoteSystemPorts()->modify(&out);
           processDelta(delta, remoteSysPorts, makeRemoteSysPort);
         }
         if (newRifs) {

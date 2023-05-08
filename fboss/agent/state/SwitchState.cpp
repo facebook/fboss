@@ -231,13 +231,8 @@ void SwitchState::resetRemoteSystemPorts(
   ref<switch_state_tags::remoteSystemPortMaps>() = systemPorts;
 }
 
-const std::shared_ptr<SystemPortMap>& SwitchState::getRemoteSystemPorts()
-    const {
-  return getDefaultMap<switch_state_tags::remoteSystemPortMaps>();
-}
-
 const std::shared_ptr<MultiSwitchSystemPortMap>&
-SwitchState::getMultiSwitchRemoteSystemPorts() const {
+SwitchState::getRemoteSystemPorts() const {
   return safe_cref<switch_state_tags::remoteSystemPortMaps>();
 }
 
@@ -522,9 +517,8 @@ bool SwitchState::isLocalSwitchId(SwitchID switchId) const {
 
 std::shared_ptr<SystemPortMap> SwitchState::getSystemPorts(
     SwitchID switchId) const {
-  auto mSwitchSysPorts = isLocalSwitchId(switchId)
-      ? getSystemPorts()
-      : getMultiSwitchRemoteSystemPorts();
+  auto mSwitchSysPorts =
+      isLocalSwitchId(switchId) ? getSystemPorts() : getRemoteSystemPorts();
   auto toRet = std::make_shared<SystemPortMap>();
   for (const auto& [_, sysPorts] : std::as_const(*mSwitchSysPorts)) {
     for (const auto& idAndSysPort : std::as_const(*sysPorts)) {

@@ -104,8 +104,8 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   ASSERT_NE(nullptr, stateV2);
   EXPECT_EQ(stateV2->getDsfNodes()->numNodes(), 3);
   EXPECT_EQ(
-      stateV2->getMultiSwitchRemoteSystemPorts()->numNodes(),
-      stateV1->getMultiSwitchRemoteSystemPorts()->numNodes() + 1);
+      stateV2->getRemoteSystemPorts()->numNodes(),
+      stateV1->getRemoteSystemPorts()->numNodes() + 1);
   EXPECT_EQ(
       stateV2->getRemoteInterfaces()->size(),
       stateV1->getRemoteInterfaces()->size() + 1);
@@ -119,8 +119,8 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   ASSERT_NE(nullptr, stateV3);
   EXPECT_EQ(stateV3->getDsfNodes()->numNodes(), 3);
   EXPECT_EQ(
-      stateV3->getMultiSwitchRemoteSystemPorts()->numNodes(),
-      stateV2->getMultiSwitchRemoteSystemPorts()->numNodes());
+      stateV3->getRemoteSystemPorts()->numNodes(),
+      stateV2->getRemoteSystemPorts()->numNodes());
   EXPECT_EQ(
       stateV3->getRemoteInterfaces()->size(),
       stateV2->getRemoteInterfaces()->size());
@@ -131,8 +131,8 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   ASSERT_NE(nullptr, stateV4);
   EXPECT_EQ(stateV4->getDsfNodes()->numNodes(), 2);
   EXPECT_EQ(
-      stateV4->getMultiSwitchRemoteSystemPorts()->numNodes(),
-      stateV3->getMultiSwitchRemoteSystemPorts()->numNodes() - 1);
+      stateV4->getRemoteSystemPorts()->numNodes(),
+      stateV3->getRemoteSystemPorts()->numNodes() - 1);
   EXPECT_EQ(
       stateV4->getRemoteInterfaces()->size(),
       stateV3->getRemoteInterfaces()->size() - 1);
