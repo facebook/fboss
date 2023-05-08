@@ -257,14 +257,16 @@ TEST_F(HwIngressBufferTest, validateHighBufferValues) {
 // cfg, PGs should be in lossy mode now; validate that SDK programming
 // is as per cfg.
 TEST_F(HwIngressBufferTest, validateLossyMode) {
-  auto setup = [&]() { setupHelper(false /* enable headroom */); };
+  auto setup = [&]() {
+    setupHelper(false /* enable headroom */, false /* pfcEnable */);
+  };
 
   auto verify = [&]() {
     utility::checkSwHwPgCfgMatch(
         getHwSwitch(),
         getProgrammedState()->getPort(
             PortID(masterLogicalInterfacePortIds()[0])),
-        true /*pfcEnable*/);
+        false /* pfcEnable */);
   };
 
   verifyAcrossWarmBoots(setup, verify);
