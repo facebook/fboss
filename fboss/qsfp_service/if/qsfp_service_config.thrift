@@ -8,6 +8,7 @@ namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.qsfp_service_config
 
 include "fboss/qsfp_service/if/transceiver.thrift"
+include "fboss/agent/switch_config.thrift"
 
 struct QsfpSdkVersion {
   // The version associated with the desired Sdk
@@ -44,6 +45,16 @@ struct TransceiverConfigOverride {
   2: TransceiverOverrides config;
 }
 
+struct CabledTestPair {
+  1: string aPortName;
+  2: string zPortName;
+  3: switch_config.PortProfileID profileID;
+}
+
+struct QsfpTestConfig {
+  1: list<CabledTestPair> cabledPortPairs;
+}
+
 struct QsfpServiceConfig {
   // This is used to override the default command line arguments we
   // pass to qsfp service.
@@ -55,4 +66,6 @@ struct QsfpServiceConfig {
 
   // Sdk versions for QSFP service
   3: optional QsfpSdkVersion sdk_version;
+
+  4: optional QsfpTestConfig qsfpTestConfig;
 }
