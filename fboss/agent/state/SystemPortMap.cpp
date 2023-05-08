@@ -64,25 +64,13 @@ std::shared_ptr<SystemPort> MultiSwitchSystemPortMap::getSystemPortIf(
 
 MultiSwitchSystemPortMap* MultiSwitchSystemPortMap::modify(
     std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
-  }
-
-  SwitchState::modify(state);
-  auto newMswitchMap = clone();
-  for (auto mnitr = cbegin(); mnitr != cend(); ++mnitr) {
-    (*newMswitchMap)[mnitr->first] = mnitr->second->clone();
-  }
-  auto* ptr = newMswitchMap.get();
-
   bool isRemote = (this == (*state)->getRemoteSystemPorts().get());
   if (isRemote) {
-    (*state)->ref<switch_state_tags::remoteSystemPortMaps>() = newMswitchMap;
+    return SwitchState::modify<switch_state_tags::remoteSystemPortMaps>(state);
   } else {
-    (*state)->ref<switch_state_tags::systemPortMaps>() = newMswitchMap;
+    return SwitchState::modify<switch_state_tags::systemPortMaps>(state);
   }
-  return ptr;
 }
+
 template class ThriftMapNode<SystemPortMap, SystemPortMapTraits>;
 } // namespace facebook::fboss
