@@ -10,11 +10,13 @@
 #include "fboss/agent/LinkAggregationManager.h"
 
 #include "fboss/agent/AggregatePortStats.h"
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/LacpController.h"
 #include "fboss/agent/LacpTypes-defs.h"
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/state/AggregatePortMap.h"
@@ -327,7 +329,9 @@ bool LinkAggregationManager::transmit(LACPDU lacpdu, PortID portID) {
 
   folly::io::RWPrivateCursor writer(pkt->buf());
 
-  folly::MacAddress cpuMac = sw_->getPlatform()->getLocalMac();
+  auto switchId = sw_->getScopeResolver()->scope(portID).switchId();
+  MacAddress cpuMac =
+      sw_->getHwAsicTable()->getHwAsicIf(switchId)->getAsicMac();
 
   auto port = sw_->getState()->getPorts()->getPortIf(portID);
   CHECK(port);
