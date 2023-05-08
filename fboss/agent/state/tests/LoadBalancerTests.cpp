@@ -146,6 +146,12 @@ uint32_t generateDefaultLagSeed(const Platform* platform) {
   return folly::hash::twang_32from64(mac64);
 }
 
+namespace {
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(10)}};
+}
+} // namespace
+
 } // namespace
 
 TEST(LoadBalancer, defaultConfiguration) {
@@ -178,8 +184,8 @@ TEST(LoadBalancer, defaultConfiguration) {
       publishAndApplyConfig(initialState, &config, platform.get());
   ASSERT_NE(nullptr, finalState);
 
-  auto ecmpLoadBalancer =
-      finalState->getLoadBalancers()->getLoadBalancerIf(LoadBalancerID::ECMP);
+  auto ecmpLoadBalancer = finalState->getMultiSwitchLoadBalancers()->getNodeIf(
+      LoadBalancerID::ECMP);
   ASSERT_NE(nullptr, ecmpLoadBalancer);
   checkLoadBalancer(
       ecmpLoadBalancer,
@@ -192,7 +198,7 @@ TEST(LoadBalancer, defaultConfiguration) {
       mplsFields,
       udfGroupIds);
 
-  auto lagLoadBalancer = finalState->getLoadBalancers()->getLoadBalancerIf(
+  auto lagLoadBalancer = finalState->getMultiSwitchLoadBalancers()->getNodeIf(
       LoadBalancerID::AGGREGATE_PORT);
   ASSERT_NE(nullptr, lagLoadBalancer);
   checkLoadBalancer(
@@ -237,8 +243,8 @@ TEST(LoadBalancer, udfGroupIdsConfiguration) {
       publishAndApplyConfig(initialState, &config, platform.get());
   ASSERT_NE(nullptr, finalState);
 
-  auto ecmpLoadBalancer =
-      finalState->getLoadBalancers()->getLoadBalancerIf(LoadBalancerID::ECMP);
+  auto ecmpLoadBalancer = finalState->getMultiSwitchLoadBalancers()->getNodeIf(
+      LoadBalancerID::ECMP);
   ASSERT_NE(nullptr, ecmpLoadBalancer);
   checkLoadBalancer(
       ecmpLoadBalancer,
@@ -422,9 +428,9 @@ TEST(LoadBalancerMap, addLoadBalancer) {
   auto startState =
       publishAndApplyConfig(baseState, &baseConfig, platform.get());
   ASSERT_NE(nullptr, startState);
-  auto startLoadBalancers = startState->getLoadBalancers();
+  auto startLoadBalancers = startState->getMultiSwitchLoadBalancers();
   ASSERT_NE(nullptr, startLoadBalancers);
-  EXPECT_EQ(1, startLoadBalancers->size());
+  EXPECT_EQ(1, startLoadBalancers->numNodes());
 
   // This config adds a DEFAULT_LAG_HASH LoadBalancer
   cfg::SwitchConfig config;
@@ -432,21 +438,25 @@ TEST(LoadBalancerMap, addLoadBalancer) {
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
-  auto endLoadBalancers = endState->getLoadBalancers();
+  auto endLoadBalancers = endState->getMultiSwitchLoadBalancers();
   ASSERT_NE(nullptr, endLoadBalancers);
-  EXPECT_EQ(2, endLoadBalancers->getGeneration());
-  EXPECT_EQ(2, endLoadBalancers->size());
+  EXPECT_EQ(2, endLoadBalancers->getFirstMap()->getGeneration());
+  EXPECT_EQ(2, endLoadBalancers->numNodes());
 
   std::set<LoadBalancerID> updated = {};
   std::set<LoadBalancerID> added = {LoadBalancerID::AGGREGATE_PORT};
   std::set<LoadBalancerID> removed = {};
   checkLoadBalancersDelta(
-      startLoadBalancers, endLoadBalancers, updated, added, removed);
+      startLoadBalancers->getFirstMap(),
+      endLoadBalancers->getFirstMap(),
+      updated,
+      added,
+      removed);
 
   // Check LoadBalancerID::ECMP has not been modified
   EXPECT_EQ(
-      startLoadBalancers->getLoadBalancerIf(LoadBalancerID::ECMP),
-      endLoadBalancers->getLoadBalancerIf(LoadBalancerID::ECMP));
+      startLoadBalancers->getNodeIf(LoadBalancerID::ECMP),
+      endLoadBalancers->getNodeIf(LoadBalancerID::ECMP));
 }
 
 TEST(LoadBalancerMap, removeLoadBalancer) {
@@ -459,9 +469,9 @@ TEST(LoadBalancerMap, removeLoadBalancer) {
   auto startState =
       publishAndApplyConfig(baseState, &baseConfig, platform.get());
   ASSERT_NE(nullptr, startState);
-  auto startLoadBalancers = startState->getLoadBalancers();
+  auto startLoadBalancers = startState->getMultiSwitchLoadBalancers();
   ASSERT_NE(nullptr, startLoadBalancers);
-  EXPECT_EQ(2, startLoadBalancers->size());
+  EXPECT_EQ(2, startLoadBalancers->numNodes());
 
   // This config removes the DEFAULT_LAG_HASH LoadBalancer
   cfg::SwitchConfig config;
@@ -470,21 +480,25 @@ TEST(LoadBalancerMap, removeLoadBalancer) {
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
-  auto endLoadBalancers = endState->getLoadBalancers();
+  auto endLoadBalancers = endState->getMultiSwitchLoadBalancers();
   ASSERT_NE(nullptr, endLoadBalancers);
-  EXPECT_EQ(2, endLoadBalancers->getGeneration());
-  EXPECT_EQ(1, endLoadBalancers->size());
+  EXPECT_EQ(2, endLoadBalancers->getFirstMap()->getGeneration());
+  EXPECT_EQ(1, endLoadBalancers->numNodes());
 
   std::set<LoadBalancerID> updated = {};
   std::set<LoadBalancerID> added = {};
   std::set<LoadBalancerID> removed = {LoadBalancerID::AGGREGATE_PORT};
   checkLoadBalancersDelta(
-      startLoadBalancers, endLoadBalancers, updated, added, removed);
+      startLoadBalancers->getFirstMap(),
+      endLoadBalancers->getFirstMap(),
+      updated,
+      added,
+      removed);
 
   // Check LoadBalancerID::ECMP has not been modified
   EXPECT_EQ(
-      startLoadBalancers->getLoadBalancerIf(LoadBalancerID::ECMP),
-      endLoadBalancers->getLoadBalancerIf(LoadBalancerID::ECMP));
+      startLoadBalancers->getNodeIf(LoadBalancerID::ECMP),
+      endLoadBalancers->getNodeIf(LoadBalancerID::ECMP));
 }
 
 TEST(LoadBalancerMap, updateLoadBalancer) {
@@ -497,11 +511,11 @@ TEST(LoadBalancerMap, updateLoadBalancer) {
   auto startState =
       publishAndApplyConfig(baseState, &baseConfig, platform.get());
   ASSERT_NE(nullptr, startState);
-  auto startLoadBalancers = startState->getLoadBalancers();
+  auto startLoadBalancers = startState->getMultiSwitchLoadBalancers();
   ASSERT_NE(nullptr, startLoadBalancers);
-  EXPECT_EQ(2, startLoadBalancers->size());
+  EXPECT_EQ(2, startLoadBalancers->numNodes());
   auto startEcmpLoadBalancer =
-      startLoadBalancers->getLoadBalancerIf(LoadBalancerID::ECMP);
+      startLoadBalancers->getNodeIf(LoadBalancerID::ECMP);
   ASSERT_NE(nullptr, startEcmpLoadBalancer);
 
   // This config modifies the DEFAULT_EMCP_HASH LoadBalancer
@@ -512,25 +526,29 @@ TEST(LoadBalancerMap, updateLoadBalancer) {
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
-  auto endLoadBalancers = endState->getLoadBalancers();
+  auto endLoadBalancers = endState->getMultiSwitchLoadBalancers();
   ASSERT_NE(nullptr, endLoadBalancers);
-  EXPECT_EQ(2, endLoadBalancers->getGeneration());
-  EXPECT_EQ(2, endLoadBalancers->size());
+  EXPECT_EQ(2, endLoadBalancers->getFirstMap()->getGeneration());
+  EXPECT_EQ(2, endLoadBalancers->numNodes());
 
   std::set<LoadBalancerID> updated = {LoadBalancerID::ECMP};
   std::set<LoadBalancerID> added = {};
   std::set<LoadBalancerID> removed = {};
   checkLoadBalancersDelta(
-      startLoadBalancers, endLoadBalancers, updated, added, removed);
+      startLoadBalancers->getFirstMap(),
+      endLoadBalancers->getFirstMap(),
+      updated,
+      added,
+      removed);
 
   // Check LoadBalancerID::AGGREGATE_PORT has not been modified
   EXPECT_EQ(
-      startLoadBalancers->getLoadBalancerIf(LoadBalancerID::AGGREGATE_PORT),
-      endLoadBalancers->getLoadBalancerIf(LoadBalancerID::AGGREGATE_PORT));
+      startLoadBalancers->getNodeIf(LoadBalancerID::AGGREGATE_PORT),
+      endLoadBalancers->getNodeIf(LoadBalancerID::AGGREGATE_PORT));
 
   LoadBalancer::UdfGroupIds udfGroupIds{};
   checkLoadBalancer(
-      endLoadBalancers->getLoadBalancerIf(LoadBalancerID::ECMP),
+      endLoadBalancers->getNodeIf(LoadBalancerID::ECMP),
       startEcmpLoadBalancer->getID(),
       startEcmpLoadBalancer->getAlgorithm(),
       startEcmpLoadBalancer->getSeed(),
@@ -578,33 +596,36 @@ TEST(LoadBalancerMap, deserializationInverseOfSerlization) {
       LoadBalancer::MPLSField::THIRD_LABEL};
   LoadBalancer::UdfGroupIds udfGroupIds{};
 
-  LoadBalancerMap loadBalancerMap;
-  loadBalancerMap.addLoadBalancer(std::make_shared<LoadBalancer>(
-      aggPortOrigLoadBalancerID,
-      aggPortOrigHash,
-      aggPortOrigSeed,
-      aggPortOrigV4Src,
-      aggPortOrigV6Dst,
-      aggPortOrigTransportSrcAndDst,
-      aggMplsFields,
-      udfGroupIds));
-  loadBalancerMap.addLoadBalancer(std::make_shared<LoadBalancer>(
-      ecmpOrigLoadBalancerID,
-      ecmpOrigHash,
-      ecmpOrigSeed,
-      ecmpOrigV4Dst,
-      ecmpOrigV6Src,
-      ecmpOrigTransportSrcAndDst,
-      ecmpMplsFields,
-      udfGroupIds));
+  MultiSwitchLoadBalancerMap loadBalancerMap;
+  loadBalancerMap.addNode(
+      std::make_shared<LoadBalancer>(
+          aggPortOrigLoadBalancerID,
+          aggPortOrigHash,
+          aggPortOrigSeed,
+          aggPortOrigV4Src,
+          aggPortOrigV6Dst,
+          aggPortOrigTransportSrcAndDst,
+          aggMplsFields,
+          udfGroupIds),
+      scope());
+  loadBalancerMap.addNode(
+      std::make_shared<LoadBalancer>(
+          ecmpOrigLoadBalancerID,
+          ecmpOrigHash,
+          ecmpOrigSeed,
+          ecmpOrigV4Dst,
+          ecmpOrigV6Src,
+          ecmpOrigTransportSrcAndDst,
+          ecmpMplsFields,
+          udfGroupIds),
+      scope());
 
   auto serializedLoadBalancerMap = loadBalancerMap.toThrift();
   auto deserializedLoadBalancerMapPtr =
-      std::make_shared<LoadBalancerMap>(serializedLoadBalancerMap);
+      std::make_shared<MultiSwitchLoadBalancerMap>(serializedLoadBalancerMap);
 
   checkLoadBalancer(
-      deserializedLoadBalancerMapPtr->getLoadBalancerIf(
-          LoadBalancerID::AGGREGATE_PORT),
+      deserializedLoadBalancerMapPtr->getNodeIf(LoadBalancerID::AGGREGATE_PORT),
       aggPortOrigLoadBalancerID,
       aggPortOrigHash,
       aggPortOrigSeed,
@@ -614,7 +635,7 @@ TEST(LoadBalancerMap, deserializationInverseOfSerlization) {
       aggMplsFields,
       udfGroupIds);
   checkLoadBalancer(
-      deserializedLoadBalancerMapPtr->getLoadBalancerIf(LoadBalancerID::ECMP),
+      deserializedLoadBalancerMapPtr->getNodeIf(LoadBalancerID::ECMP),
       ecmpOrigLoadBalancerID,
       ecmpOrigHash,
       ecmpOrigSeed,

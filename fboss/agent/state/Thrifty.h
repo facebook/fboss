@@ -506,6 +506,10 @@ struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
       const HwSwitchMatcher& matcher) {
     Base::updateNode(matcher.matcherString(), node);
   }
+
+  std::shared_ptr<InnerMap> getFirstMap() const {
+    return this->size() ? this->cbegin()->second : nullptr;
+  }
 };
 
 namespace utility {
