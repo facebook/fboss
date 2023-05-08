@@ -664,8 +664,8 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
     const auto& localPorts = newState->getSystemPorts()->cbegin()->second;
     auto localPort = localPorts->cbegin()->second;
     auto remoteSystemPorts =
-        newState->getRemoteSystemPorts()->modify(&newState);
-    auto numPrevPorts = remoteSystemPorts->size();
+        newState->getMultiSwitchRemoteSystemPorts()->modify(&newState);
+    auto numPrevPorts = remoteSystemPorts->numNodes();
     auto remoteSysPort = std::make_shared<SystemPort>(portId);
     remoteSysPort->setSwitchId(kRemoteSwitchId);
     remoteSysPort->setNumVoqs(localPort->getNumVoqs());
@@ -673,10 +673,12 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
     remoteSysPort->setCorePortIndex(localPort->getCorePortIndex());
     remoteSysPort->setSpeedMbps(localPort->getSpeedMbps());
     remoteSysPort->setEnabled(true);
-    remoteSystemPorts->addSystemPort(remoteSysPort);
+    remoteSystemPorts->addNode(
+        remoteSysPort, scopeResolver().scope(remoteSysPort));
     applyNewState(newState);
     EXPECT_EQ(
-        getProgrammedState()->getRemoteSystemPorts()->size(), numPrevPorts + 1);
+        getProgrammedState()->getMultiSwitchRemoteSystemPorts()->numNodes(),
+        numPrevPorts + 1);
   }
   void addRemoteInterface(
       InterfaceID intfId,
