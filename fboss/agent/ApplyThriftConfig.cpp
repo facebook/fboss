@@ -119,7 +119,7 @@ std::shared_ptr<facebook::fboss::SwitchState> updateFibFromConfig(
 }
 
 template <typename MultiMap, typename Map>
-std::shared_ptr<MultiMap> toMnpuMap(
+std::shared_ptr<MultiMap> toMultiSwitchMap(
     const std::shared_ptr<Map>& map,
     const facebook::fboss::SwitchIdScopeResolver& resolver) {
   auto multiMap = std::make_shared<MultiMap>();
@@ -494,7 +494,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     if (newSwitchSettings) {
       if ((newSwitchSettings->getSwitchIdToSwitchInfo() !=
            orig_->getSwitchSettings()->getSwitchIdToSwitchInfo())) {
-        new_->resetSystemPorts(toMnpuMap<MultiSwitchSystemPortMap>(
+        new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
             updateSystemPorts(new_->getPorts(), newSwitchSettings),
             scopeResolver_));
       }
@@ -509,7 +509,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     auto newPorts = updatePorts(new_->getTransceivers());
     if (newPorts) {
       new_->resetPorts(std::move(newPorts));
-      new_->resetSystemPorts(toMnpuMap<MultiSwitchSystemPortMap>(
+      new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
           updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()),
           scopeResolver_));
       changed = true;
@@ -529,7 +529,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     auto newMirrors = updateMirrors();
     if (newMirrors) {
       new_->resetMirrors(
-          toMnpuMap<MultiSwitchMirrorMap>(newMirrors, scopeResolver_));
+          toMultiSwitchMap<MultiSwitchMirrorMap>(newMirrors, scopeResolver_));
       changed = true;
     }
   }
@@ -678,7 +678,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     auto newTunnels = updateIpInIpTunnels();
     if (newTunnels) {
       new_->resetTunnels(
-          toMnpuMap<MultiSwitchIpTunnelMap>(newTunnels, scopeResolver_));
+          toMultiSwitchMap<MultiSwitchIpTunnelMap>(newTunnels, scopeResolver_));
       changed = true;
     }
   }
@@ -695,9 +695,9 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     auto newDsfNodes = updateDsfNodes();
     if (newDsfNodes) {
       new_->resetDsfNodes(
-          toMnpuMap<MultiSwitchDsfNodeMap>(newDsfNodes, scopeResolver_));
+          toMultiSwitchMap<MultiSwitchDsfNodeMap>(newDsfNodes, scopeResolver_));
       processUpdatedDsfNodes();
-      new_->resetSystemPorts(toMnpuMap<MultiSwitchSystemPortMap>(
+      new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
           updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()),
           scopeResolver_));
       changed = true;
