@@ -178,6 +178,21 @@ AclEntry* AclEntry::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
+AclEntry* AclEntry::modify(
+    std::shared_ptr<SwitchState>* state,
+    const HwSwitchMatcher& matcher) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  MultiSwitchAclMap* acls = (*state)->getMultiSwitchAcls()->modify(state);
+  auto newEntry = clone();
+  auto* ptr = newEntry.get();
+  acls->updateNode(std::move(newEntry), matcher);
+  return ptr;
+}
+
 AclEntry::AclEntry(int priority, const std::string& name) {
   set<switch_state_tags::priority>(priority);
   set<switch_state_tags::name>(name);

@@ -352,6 +352,21 @@ TEST(Acl, aclModifyPublished) {
   EXPECT_NE(mulitSwitchAclMap.get(), mulitSwitchAclMap->modify(&state));
 }
 
+TEST(Acl, aclEntryModifyUnpublished) {
+  auto state = make_shared<SwitchState>();
+  auto aclEntry = make_shared<AclEntry>(0, std::string("acl0"));
+  state->getMultiSwitchAcls()->addNode(aclEntry, scope());
+  EXPECT_EQ(aclEntry.get(), aclEntry->modify(&state, scope()));
+}
+
+TEST(Acl, aclEntryModifyPublished) {
+  auto state = make_shared<SwitchState>();
+  auto aclEntry = make_shared<AclEntry>(0, std::string("acl0"));
+  state->getMultiSwitchAcls()->addNode(aclEntry, scope());
+  state->publish();
+  EXPECT_NE(aclEntry.get(), aclEntry->modify(&state, scope()));
+}
+
 TEST(Acl, AclGeneration) {
   FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();

@@ -397,6 +397,10 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
 
   AclEntry* modify(std::shared_ptr<SwitchState>* state);
 
+  AclEntry* modify(
+      std::shared_ptr<SwitchState>* state,
+      const HwSwitchMatcher& matcher);
+
  private:
   // Inherit the constructors required for clone()
   using BaseT::BaseT;
