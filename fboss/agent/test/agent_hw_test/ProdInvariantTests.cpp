@@ -94,6 +94,11 @@ cfg::SwitchConfig ProdInvariantTest::getConfigFromFlag() {
   for (auto& port : *config.ports()) {
     port.loopbackMode() = cfg::PortLoopbackMode::MAC;
   }
+  for (auto& intf : *config.interfaces()) {
+    if (intf.ndp()) {
+      intf.ndp()->routerAdvertisementSeconds() = 0;
+    }
+  }
   return config;
 }
 
