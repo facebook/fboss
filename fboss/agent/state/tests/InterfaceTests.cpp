@@ -190,7 +190,8 @@ TEST_F(InterfaceTest, getSetArpTable) {
   arp.interfaceId() = 1;
   arp.state() = state::NeighborState::Reachable;
   arpTable.insert({*arp.ipaddress(), arp});
-  auto intf1 = state->getInterfaces()->getInterface(InterfaceID(1))->clone();
+  auto intf1 =
+      state->getMultiSwitchInterfaces()->getNode(InterfaceID(1))->clone();
   intf1->setArpTable(arpTable);
   EXPECT_EQ(arpTable, intf1->getArpTable()->toThrift());
   EXPECT_EQ(
@@ -212,7 +213,8 @@ TEST_F(InterfaceTest, getSetNdpTable) {
   ndp.interfaceId() = 1;
   ndp.state() = state::NeighborState::Reachable;
   ndpTable.insert({*ndp.ipaddress(), ndp});
-  auto intf1 = state->getInterfaces()->getInterface(InterfaceID(1))->clone();
+  auto intf1 =
+      state->getMultiSwitchInterfaces()->getNode(InterfaceID(1))->clone();
   intf1->setNdpTable(ndpTable);
   EXPECT_EQ(ndpTable, intf1->getNdpTable()->toThrift());
   EXPECT_EQ(
@@ -224,11 +226,11 @@ TEST_F(InterfaceTest, getSetNdpTable) {
 TEST(Interface, Modify) {
   {
     auto state = std::make_shared<SwitchState>();
-    auto origIntfs = state->getInterfaces();
+    auto origIntfs = state->getMultiSwitchInterfaces();
     EXPECT_EQ(origIntfs.get(), origIntfs->modify(&state));
     state->publish();
     EXPECT_NE(origIntfs.get(), origIntfs->modify(&state));
-    EXPECT_NE(origIntfs.get(), state->getInterfaces().get());
+    EXPECT_NE(origIntfs.get(), state->getMultiSwitchInterfaces().get());
   }
   {
     // Remote sys ports modify
@@ -265,7 +267,7 @@ TEST(Interface, applyConfig) {
     state = publishAndApplyConfig(oldState, &config, platform.get());
     EXPECT_NE(oldState, state);
     ASSERT_NE(nullptr, state);
-    interface = state->getInterfaces()->getInterface(id);
+    interface = state->getMultiSwitchInterfaces()->getNode(id);
     EXPECT_NE(oldInterface, interface);
     ASSERT_NE(nullptr, interface);
   };
@@ -491,10 +493,24 @@ void checkChangedIntfs(
   validateSerialization(*newIntfs);
 }
 
+void checkChangedIntfs(
+    const shared_ptr<MultiSwitchInterfaceMap>& oldIntfs,
+    const shared_ptr<MultiSwitchInterfaceMap>& newIntfs,
+    const std::set<uint16_t> changedIDs,
+    const std::set<uint16_t> addedIDs,
+    const std::set<uint16_t> removedIDs) {
+  checkChangedIntfs(
+      oldIntfs->cbegin()->second,
+      newIntfs->cbegin()->second,
+      changedIDs,
+      addedIDs,
+      removedIDs);
+}
+
 TEST(InterfaceMap, applyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  auto intfsV0 = stateV0->getInterfaces();
+  auto intfsV0 = stateV0->getMultiSwitchInterfaces();
 
   cfg::SwitchConfig config;
   config.vlans()->resize(2);
@@ -512,25 +528,23 @@ TEST(InterfaceMap, applyConfig) {
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
-  auto intfsV1 = stateV1->getInterfaces();
+  auto intfsV1 = stateV1->getMultiSwitchInterfaces();
   EXPECT_NE(intfsV1, intfsV0);
-  EXPECT_EQ(1, intfsV1->getGeneration());
-  EXPECT_EQ(2, intfsV1->size());
+  EXPECT_EQ(2, intfsV1->numNodes());
 
   // verify interface intfID==1
-  auto intf1 = intfsV1->getInterface(InterfaceID(1));
+  auto intf1 = intfsV1->getNode(InterfaceID(1));
   auto vlan1 = stateV1->getVlans()->getVlanIf(intf1->getVlanID());
   ASSERT_NE(nullptr, intf1);
   EXPECT_EQ(VlanID(1), intf1->getVlanID());
   EXPECT_EQ("00:00:00:00:00:11", intf1->getMac().toString());
-  EXPECT_EQ(0, intf1->getGeneration());
   EXPECT_EQ(vlan1->getInterfaceID(), intf1->getID());
   checkChangedIntfs(intfsV0, intfsV1, {}, {1, 2}, {});
 
   // getInterface() should throw on a non-existent interface
-  EXPECT_THROW(intfsV1->getInterface(InterfaceID(99)), FbossError);
+  EXPECT_THROW(intfsV1->getNode(InterfaceID(99)), FbossError);
   // getInterfaceIf() should return nullptr on a non-existent interface
-  EXPECT_EQ(nullptr, intfsV1->getInterfaceIf(InterfaceID(99)));
+  EXPECT_EQ(nullptr, intfsV1->getNodeIf(InterfaceID(99)));
 
   // applying the same configure results in no change
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, platform.get()));
@@ -541,11 +555,10 @@ TEST(InterfaceMap, applyConfig) {
   config.interfaces()[1].ipAddresses()[1] = "::1/48";
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   ASSERT_NE(nullptr, stateV2);
-  auto intfsV2 = stateV2->getInterfaces();
+  auto intfsV2 = stateV2->getMultiSwitchInterfaces();
   EXPECT_NE(intfsV1, intfsV2);
-  EXPECT_EQ(2, intfsV2->getGeneration());
-  EXPECT_EQ(2, intfsV2->size());
-  auto intf2 = intfsV2->getInterface(InterfaceID(2));
+  EXPECT_EQ(2, intfsV2->numNodes());
+  auto intf2 = intfsV2->getNode(InterfaceID(2));
   EXPECT_EQ(3, intf2->getAddresses()->size()); // v6 link-local is added
 
   checkChangedIntfs(intfsV1, intfsV2, {2}, {}, {});
@@ -565,16 +578,15 @@ TEST(InterfaceMap, applyConfig) {
 
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   ASSERT_NE(nullptr, stateV3);
-  auto intfsV3 = stateV3->getInterfaces();
+  auto intfsV3 = stateV3->getMultiSwitchInterfaces();
   EXPECT_NE(intfsV2, intfsV3);
-  EXPECT_EQ(3, intfsV3->getGeneration());
-  EXPECT_EQ(3, intfsV3->size());
-  auto intf3 = intfsV3->getInterface(InterfaceID(3));
+  EXPECT_EQ(3, intfsV3->numNodes());
+  auto intf3 = intfsV3->getNode(InterfaceID(3));
   EXPECT_EQ(1, intf3->getAddresses()->size());
   EXPECT_EQ(
       config.interfaces()[0].mac().value_or({}), intf3->getMac().toString());
   // intf 1 should not be there anymroe
-  EXPECT_EQ(nullptr, intfsV3->getInterfaceIf(InterfaceID(1)));
+  EXPECT_EQ(nullptr, intfsV3->getNodeIf(InterfaceID(1)));
   auto vlan3 = stateV3->getVlans()->getVlanIf(intf3->getVlanID());
   EXPECT_EQ(vlan3->getInterfaceID(), intf3->getID());
   auto newvlan1 = stateV3->getVlans()->getVlanIf(VlanID(1));
@@ -584,13 +596,12 @@ TEST(InterfaceMap, applyConfig) {
 
   // change the MTU
   config.interfaces()[0].mtu() = 1337;
-  EXPECT_EQ(1500, intfsV3->getInterface(InterfaceID(3))->getMtu());
+  EXPECT_EQ(1500, intfsV3->getNode(InterfaceID(3))->getMtu());
   auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
   ASSERT_NE(nullptr, stateV4);
-  auto intfsV4 = stateV4->getInterfaces();
+  auto intfsV4 = stateV4->getMultiSwitchInterfaces();
   EXPECT_NE(intfsV3, intfsV4);
-  EXPECT_EQ(4, intfsV4->getGeneration());
-  EXPECT_EQ(1337, intfsV4->getInterface(InterfaceID(3))->getMtu());
+  EXPECT_EQ(1337, intfsV4->getNode(InterfaceID(3))->getMtu());
 }
 
 TEST(Interface, getLocalInterfacesBySwitchId) {
@@ -601,7 +612,7 @@ TEST(Interface, getLocalInterfacesBySwitchId) {
   ASSERT_NE(nullptr, stateV1);
   auto localSwitchId = 1;
   auto myRif = stateV1->getInterfaces(SwitchID(localSwitchId));
-  EXPECT_EQ(myRif->size(), stateV1->getInterfaces()->size());
+  EXPECT_EQ(myRif->size(), stateV1->getMultiSwitchInterfaces()->numNodes());
   // No remote sys ports
   EXPECT_EQ(stateV1->getInterfaces(SwitchID(localSwitchId + 1))->size(), 0);
 }
@@ -615,7 +626,7 @@ TEST(Interface, getRemoteInterfacesBySwitchId) {
   auto localSwitchId = 1;
   CHECK(localSwitchId) << "Switch ID must be set for VOQ switch";
   auto myRif = stateV1->getInterfaces(SwitchID(localSwitchId));
-  EXPECT_EQ(myRif->size(), stateV1->getInterfaces()->size());
+  EXPECT_EQ(myRif->size(), stateV1->getMultiSwitchInterfaces()->numNodes());
   int64_t remoteSwitchId = 100;
   auto sysPort1 = makeSysPort("olympic", 1001, remoteSwitchId);
   auto stateV2 = stateV1->clone();
@@ -645,7 +656,8 @@ TEST(Interface, getInterfaceSysPortIDVoqSwitch) {
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
-  auto intf = stateV1->getInterfaces()->begin()->second;
+  auto multiIntfs = stateV1->getMultiSwitchInterfaces();
+  auto intf = multiIntfs->cbegin()->second->cbegin()->second;
   EXPECT_TRUE(intf->getSystemPortID().has_value());
   EXPECT_EQ(
       static_cast<int64_t>(intf->getID()),
@@ -658,7 +670,8 @@ TEST(Interface, getInterfaceSysPortID) {
   auto config = testConfigA();
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
-  auto intf = stateV1->getInterfaces()->begin()->second;
+  auto multiIntfs = stateV1->getMultiSwitchInterfaces();
+  auto intf = multiIntfs->cbegin()->second->cbegin()->second;
   EXPECT_FALSE(intf->getSystemPortID().has_value());
 }
 
@@ -668,7 +681,8 @@ TEST(Interface, getInterfaceSysPortRangeVoqSwitch) {
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
-  auto intf = stateV1->getInterfaces()->begin()->second;
+  auto multiIntfs = stateV1->getMultiSwitchInterfaces();
+  auto intf = multiIntfs->cbegin()->second->cbegin()->second;
   EXPECT_TRUE(
       stateV1->getAssociatedSystemPortRangeIf(intf->getID()).has_value());
 }
@@ -679,7 +693,8 @@ TEST(Interface, getInterfaceSysPortRange) {
   auto config = testConfigA();
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
-  auto intf = stateV1->getInterfaces()->begin()->second;
+  auto multiIntfs = stateV1->getMultiSwitchInterfaces();
+  auto intf = multiIntfs->cbegin()->second->cbegin()->second;
   EXPECT_FALSE(
       stateV1->getAssociatedSystemPortRangeIf(intf->getID()).has_value());
 }
@@ -690,7 +705,8 @@ TEST(Interface, getInterfacePortsVoqSwitch) {
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
-  auto intf = stateV1->getInterfaces()->begin()->second;
+  auto multiIntfs = stateV1->getMultiSwitchInterfaces();
+  auto intf = multiIntfs->cbegin()->second->cbegin()->second;
   EXPECT_EQ(getPortsForInterface(intf->getID(), stateV1).size(), 1);
 }
 
@@ -700,7 +716,8 @@ TEST(Interface, getInterfacePorts) {
   auto config = testConfigA();
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
-  auto intf = stateV1->getInterfaces()->begin()->second;
+  auto multiIntfs = stateV1->getMultiSwitchInterfaces();
+  auto intf = multiIntfs->cbegin()->second->cbegin()->second;
   EXPECT_EQ(getPortsForInterface(intf->getID(), stateV1).size(), 11);
 }
 
@@ -780,7 +797,8 @@ TEST(Interface, modify) {
   auto config = testConfigA();
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
-  auto intf = stateV1->getInterfaces()->begin()->second;
+  auto multiIntfs = stateV1->getMultiSwitchInterfaces();
+  auto intf = multiIntfs->cbegin()->second->cbegin()->second;
   auto intfModified = intf->modify(&stateV1);
   EXPECT_EQ(intf.get(), intfModified);
   intf->publish();
@@ -790,5 +808,6 @@ TEST(Interface, modify) {
   auto newMtu = oldMtu + 1000;
   intfModified->setMtu(newMtu);
   EXPECT_EQ(
-      stateV1->getInterfaces()->getInterface(intf->getID())->getMtu(), newMtu);
+      stateV1->getMultiSwitchInterfaces()->getNode(intf->getID())->getMtu(),
+      newMtu);
 }
