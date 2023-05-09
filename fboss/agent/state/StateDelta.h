@@ -100,7 +100,7 @@ class StateDelta {
   DeltaValue<FlowletSwitchingConfig> getFlowletSwitchingConfigDelta() const;
   MultiSwitchMapDelta<MultiSwitchSystemPortMap> getSystemPortsDelta() const;
   ThriftMapDelta<IpTunnelMap> getIpTunnelsDelta() const;
-  ThriftMapDelta<TeFlowTable> getTeFlowEntriesDelta() const;
+  MultiSwitchMapDelta<MultiTeFlowTable> getTeFlowEntriesDelta() const;
   // Remote object deltas
   MultiSwitchMapDelta<MultiSwitchSystemPortMap> getRemoteSystemPortsDelta()
       const;
