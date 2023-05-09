@@ -202,9 +202,14 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
       }
       throw FbossError("Can't find safe profiles for ports:", portSetStr);
     }
+
+    bool isJericho2 =
+        platform->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2;
+    bool isJericho3 =
+        platform->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3;
+
     auto bestSpeed = cfg::PortSpeed::DEFAULT;
-    if (platform->getAsic()->getAsicType() ==
-        cfg::AsicType::ASIC_TYPE_JERICHO2) {
+    if (isJericho2 || isJericho3) {
       // For J2c we always want to choose the following
       // speeds since that's what we have in hw chip config
       // and J2c does not support dynamic port speed change yet.
@@ -215,10 +220,11 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
       }
       switch (*platPortItr->second.mapping()->portType()) {
         case cfg::PortType::INTERFACE_PORT:
-          bestSpeed = cfg::PortSpeed::HUNDREDG;
+          bestSpeed =
+              getDefaultInterfaceSpeed(platform->getAsic()->getAsicType());
           break;
         case cfg::PortType::FABRIC_PORT:
-          bestSpeed = cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG;
+          bestSpeed = getDefaultFabricSpeed(platform->getAsic()->getAsicType());
           break;
         case cfg::PortType::RECYCLE_PORT:
           bestSpeed = cfg::PortSpeed::XG;
