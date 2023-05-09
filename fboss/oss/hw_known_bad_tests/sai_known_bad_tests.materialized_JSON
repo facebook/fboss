@@ -7778,15 +7778,6 @@
         },
         {
           "test_name_regex": "HwIngressBufferTest.validateIngressPoolParamChange"
-        },
-        {
-          "test_name_regex": "HwWideEcmpTest.WideUcmp256WidthUnderflow"
-        },
-        {
-          "test_name_regex": "HwWideEcmpTest.WideUcmpCheckMultipleSlotUnderflow"
-        },
-        {
-          "test_name_regex": "HwWideEcmpTest.WideUcmpUnderflow"
         }
     ],
     "brcm/9.0_ea_odp/9.0_ea_odp/tomahawk4": [
