@@ -118,6 +118,11 @@ const std::shared_ptr<Interface> MultiSwitchInterfaceMap::getIntfToReach(
   return nullptr;
 }
 
+MultiSwitchInterfaceMap* MultiSwitchInterfaceMap::modify(
+    std::shared_ptr<SwitchState>* state) {
+  return SwitchState::modify<switch_state_tags::interfaceMaps>(state);
+}
+
 template class ThriftMapNode<InterfaceMap, InterfaceMapTraits>;
 
 } // namespace facebook::fboss

@@ -149,6 +149,8 @@ class MultiSwitchInterfaceMap : public ThriftMultiSwitchMapNode<
       RouterID router,
       const folly::IPAddress& dest) const;
 
+  MultiSwitchInterfaceMap* modify(std::shared_ptr<SwitchState>* state);
+
  private:
   // Inherit the constructors required for clone()
   using BaseT::BaseT;
