@@ -295,7 +295,7 @@ TEST(ThriftySwitchState, InterfaceMap) {
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
-  auto interfaces = endState->getInterfaces();
+  auto interfaces = endState->getMultiSwitchInterfaces();
 
   auto state = SwitchState();
   state.resetIntfs(interfaces);

@@ -85,7 +85,7 @@ SUBCLASS* NeighborTable<IPADDR, ENTRY, SUBCLASS>::modify(
   auto newTable = this->clone();
   // Make clone of interface
   auto interfacePtr =
-      (*state)->getInterfaces()->getInterface(interfaceId).get();
+      (*state)->getMultiSwitchInterfaces()->getNode(interfaceId).get();
   interfacePtr = interfacePtr->modify(state);
   interfacePtr->setNeighborEntryTable<IPADDR>(newTable->toThrift());
   return interfacePtr->getNeighborEntryTable<IPADDR>().get();

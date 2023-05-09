@@ -208,8 +208,13 @@ void SwitchState::addIntf(const std::shared_ptr<Interface>& intf) {
   getDefaultMap<switch_state_tags::interfaceMaps>()->addInterface(intf);
 }
 
-void SwitchState::resetIntfs(std::shared_ptr<InterfaceMap> intfs) {
+void SwitchState::resetIntfs(const std::shared_ptr<InterfaceMap>& intfs) {
   resetDefaultMap<switch_state_tags::interfaceMaps>(intfs);
+}
+
+void SwitchState::resetIntfs(
+    const std::shared_ptr<MultiSwitchInterfaceMap>& intfs) {
+  ref<switch_state_tags::interfaceMaps>() = intfs;
 }
 
 const std::shared_ptr<InterfaceMap>& SwitchState::getInterfaces() const {

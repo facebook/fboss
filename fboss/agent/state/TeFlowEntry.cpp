@@ -55,7 +55,7 @@ bool TeFlowEntry::isNexthopResolved(
     return false;
   }
   auto interface =
-      state->getInterfaces()->getInterfaceIf(nhop.intfID().value());
+      state->getMultiSwitchInterfaces()->getNodeIf(nhop.intfID().value());
   std::optional<folly::MacAddress> dstMac;
   if (nhop.addr().isV6()) {
     dstMac = getNeighborMac<folly::IPAddressV6>(
