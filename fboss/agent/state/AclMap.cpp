@@ -20,19 +20,6 @@ AclMap::AclMap() {}
 
 AclMap::~AclMap() {}
 
-AclMap* AclMap::modify(std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
-  }
-
-  SwitchState::modify(state);
-  auto newAcls = clone();
-  auto* ptr = newAcls.get();
-  (*state)->resetAcls(std::move(newAcls));
-  return ptr;
-}
-
 std::set<cfg::AclTableQualifier> PrioAclMap::requiredQualifiers() const {
   std::set<cfg::AclTableQualifier> qualifiers{};
   for (const auto& entry : *this) {

@@ -145,7 +145,6 @@ SwitchState::SwitchState() {
   resetRemoteIntfs(std::make_shared<InterfaceMap>());
   resetControlPlane(std::make_shared<ControlPlane>());
   resetSwitchSettings(std::make_shared<SwitchSettings>());
-  resetAcls(std::make_shared<AclMap>());
 }
 
 SwitchState::~SwitchState() {}
@@ -231,31 +230,12 @@ SwitchState::getRemoteSystemPorts() const {
   return safe_cref<switch_state_tags::remoteSystemPortMaps>();
 }
 
-void SwitchState::addAcl(const std::shared_ptr<AclEntry>& acl) {
-  // For ease-of-use, automatically clone the AclMap if we are still
-  // pointing to a published map.
-  auto acls = getAcls();
-  if (acls->isPublished()) {
-    acls = acls->clone();
-    resetAcls(acls);
-  }
-  getDefaultMap<switch_state_tags::aclMaps>()->addEntry(acl);
-}
-
 std::shared_ptr<AclEntry> SwitchState::getAcl(const std::string& name) const {
-  return getAcls()->getEntryIf(name);
-}
-
-void SwitchState::resetAcls(const std::shared_ptr<AclMap>& acls) {
-  resetDefaultMap<switch_state_tags::aclMaps>(acls);
+  return getMultiSwitchAcls()->getNodeIf(name);
 }
 
 void SwitchState::resetAcls(const std::shared_ptr<MultiSwitchAclMap>& acls) {
   ref<switch_state_tags::aclMaps>() = acls;
-}
-
-const std::shared_ptr<AclMap>& SwitchState::getAcls() const {
-  return getDefaultMap<switch_state_tags::aclMaps>();
 }
 
 const std::shared_ptr<MultiSwitchAclMap>& SwitchState::getMultiSwitchAcls()
@@ -633,7 +613,7 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
       state->ref<switch_state_tags::aclTableGroupMap>() =
           AclTableGroupMap::createDefaultAclTableGroupMapFromThrift(
               aclMap->toThrift());
-      state->resetAcls(std::make_shared<AclMap>());
+      state->resetAcls(std::make_shared<MultiSwitchAclMap>());
       state->ref<switch_state_tags::aclMap>()->clear();
     }
   }
@@ -726,7 +706,8 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
       switch_state_tags::remoteSystemPortMaps,
       switch_state_tags::remoteSystemPortMap>(true /*emptyMnpuMapOk*/);
 
-  state->fromThrift<switch_state_tags::aclMaps, switch_state_tags::aclMap>();
+  state->fromThrift<switch_state_tags::aclMaps, switch_state_tags::aclMap>(
+      true /*emptyMnpuMapOk*/);
   return state;
 }
 

@@ -340,7 +340,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<InterfaceMap>& getInterfaces() const;
   std::shared_ptr<AclEntry> getAcl(const std::string& name) const;
 
-  const std::shared_ptr<AclMap>& getAcls() const;
   const std::shared_ptr<MultiSwitchAclMap>& getMultiSwitchAcls() const;
 
   const std::shared_ptr<AclTableGroupMap>& getAclTableGroups() const;
@@ -528,9 +527,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void addVlan(const std::shared_ptr<Vlan>& vlan);
   void addIntf(const std::shared_ptr<Interface>& intf);
   void resetIntfs(std::shared_ptr<InterfaceMap> intfs);
-  void addAcl(const std::shared_ptr<AclEntry>& acl);
   void addAclTable(const std::shared_ptr<AclTable>& aclTable);
-  void resetAcls(const std::shared_ptr<AclMap>& acls);
   void resetAcls(const std::shared_ptr<MultiSwitchAclMap>& acls);
   void resetAclTableGroups(std::shared_ptr<AclTableGroupMap> aclTableGroups);
   void resetSflowCollectors(

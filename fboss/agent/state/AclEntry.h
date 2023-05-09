@@ -395,8 +395,6 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
 
   std::set<cfg::AclTableQualifier> getRequiredAclTableQualifiers() const;
 
-  AclEntry* modify(std::shared_ptr<SwitchState>* state);
-
   AclEntry* modify(
       std::shared_ptr<SwitchState>* state,
       const HwSwitchMatcher& matcher);
