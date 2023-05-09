@@ -440,7 +440,6 @@ TEST(LoadBalancerMap, addLoadBalancer) {
   ASSERT_NE(nullptr, endState);
   auto endLoadBalancers = endState->getMultiSwitchLoadBalancers();
   ASSERT_NE(nullptr, endLoadBalancers);
-  EXPECT_EQ(2, endLoadBalancers->getFirstMap()->getGeneration());
   EXPECT_EQ(2, endLoadBalancers->numNodes());
 
   std::set<LoadBalancerID> updated = {};
@@ -482,7 +481,6 @@ TEST(LoadBalancerMap, removeLoadBalancer) {
   ASSERT_NE(nullptr, endState);
   auto endLoadBalancers = endState->getMultiSwitchLoadBalancers();
   ASSERT_NE(nullptr, endLoadBalancers);
-  EXPECT_EQ(2, endLoadBalancers->getFirstMap()->getGeneration());
   EXPECT_EQ(1, endLoadBalancers->numNodes());
 
   std::set<LoadBalancerID> updated = {};
@@ -528,7 +526,6 @@ TEST(LoadBalancerMap, updateLoadBalancer) {
   ASSERT_NE(nullptr, endState);
   auto endLoadBalancers = endState->getMultiSwitchLoadBalancers();
   ASSERT_NE(nullptr, endLoadBalancers);
-  EXPECT_EQ(2, endLoadBalancers->getFirstMap()->getGeneration());
   EXPECT_EQ(2, endLoadBalancers->numNodes());
 
   std::set<LoadBalancerID> updated = {LoadBalancerID::ECMP};

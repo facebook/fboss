@@ -73,7 +73,7 @@ std::shared_ptr<LoadBalancer> LoadBalancerConfigParser::parse(
 }
 
 LoadBalancerConfigApplier::LoadBalancerConfigApplier(
-    const std::shared_ptr<LoadBalancerMap>& originalLoadBalancers,
+    const std::shared_ptr<MultiSwitchLoadBalancerMap>& originalLoadBalancers,
     const std::vector<cfg::LoadBalancer>& loadBalancersConfig,
     const Platform* platform)
     : originalLoadBalancers_(originalLoadBalancers),
@@ -115,7 +115,7 @@ LoadBalancerConfigApplier::updateLoadBalancers() {
     }
 
     auto origLoadBalancer =
-        originalLoadBalancers_->getLoadBalancerIf(newLoadBalancer->getID());
+        originalLoadBalancers_->getNodeIf(newLoadBalancer->getID());
 
     if (origLoadBalancer) {
       // The LoadBalancer existed in the previous configuration
@@ -146,9 +146,9 @@ LoadBalancerConfigApplier::updateLoadBalancers() {
         &newLoadBalancers, std::move(newLoadBalancer));
   }
 
-  if (numExistingProcessed != originalLoadBalancers_->size()) {
+  if (numExistingProcessed != originalLoadBalancers_->numNodes()) {
     // Some existing LoadBalancers were removed.
-    CHECK_LT(numExistingProcessed, originalLoadBalancers_->size());
+    CHECK_LT(numExistingProcessed, originalLoadBalancers_->numNodes());
     changed = true;
   }
 
@@ -156,7 +156,7 @@ LoadBalancerConfigApplier::updateLoadBalancers() {
     return nullptr;
   }
 
-  return originalLoadBalancers_->clone(newLoadBalancers);
+  return std::make_shared<LoadBalancerMap>(newLoadBalancers);
 }
 
 } // namespace facebook::fboss

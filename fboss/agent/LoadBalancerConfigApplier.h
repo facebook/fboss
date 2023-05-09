@@ -54,7 +54,7 @@ class LoadBalancerConfigParser {
 class LoadBalancerConfigApplier {
  public:
   LoadBalancerConfigApplier(
-      const std::shared_ptr<LoadBalancerMap>& originalLoadBalancers,
+      const std::shared_ptr<MultiSwitchLoadBalancerMap>& originalLoadBalancers,
       const std::vector<cfg::LoadBalancer>& loadBalancersConfig,
       const Platform* platform);
   ~LoadBalancerConfigApplier();
@@ -74,7 +74,7 @@ class LoadBalancerConfigApplier {
       LoadBalancerMap::NodeContainer* loadBalancerContainer,
       std::shared_ptr<LoadBalancer> loadBalancer) const;
 
-  const std::shared_ptr<LoadBalancerMap>& originalLoadBalancers_;
+  const std::shared_ptr<MultiSwitchLoadBalancerMap>& originalLoadBalancers_;
   const std::vector<cfg::LoadBalancer>& loadBalancersConfig_;
   const Platform* platform_;
 };
