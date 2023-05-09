@@ -55,7 +55,7 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
     constexpr auto fmtString =
-        "{:<45}{:<19}{:<12}{:<19}{:<14}{:<9}{:<12}{:<45}\n";
+        "{:<45}{:<19}{:<12}{:<19}{:<14}{:<9}{:<12}{:<45}{:<21}\n";
 
     out << fmt::format(
         fmtString,
@@ -66,7 +66,8 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
         "State",
         "TTL",
         "CLASSID",
-        "Voq Switch");
+        "Voq Switch",
+        "Resolved Since");
 
     for (const auto& entry : model.get_ndpEntries()) {
       auto vlan = entry.get_vlanName();
@@ -83,7 +84,8 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
           entry.get_state(),
           entry.get_ttl(),
           entry.get_classID(),
-          entry.get_switchName());
+          entry.get_switchName(),
+          entry.get_resolvedSince());
     }
     out << std::endl;
   }
@@ -122,6 +124,15 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
               ? folly::to<std::string>(
                     *ditr->second.name(), " (", *entry.switchId(), ")")
               : folly::to<std::string>(*entry.switchId());
+        }
+        ndpDetails.resolvedSince() = "--";
+        if (entry.resolvedSince().has_value()) {
+          time_t timestamp = static_cast<time_t>(entry.resolvedSince().value());
+          std::tm tm;
+          localtime_r(&timestamp, &tm);
+          std::ostringstream oss;
+          oss << std::put_time(&tm, "%Y-%m-%d %T");
+          ndpDetails.resolvedSince() = oss.str();
         }
 
         model.ndpEntries()->push_back(ndpDetails);

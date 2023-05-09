@@ -14,4 +14,5 @@ struct NdpEntry {
   7: i32 ttl;
   8: i32 classID;
   9: string switchName;
+  10: string resolvedSince;
 }
