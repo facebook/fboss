@@ -197,6 +197,7 @@ struct NeighborEntryFields {
   7: optional i64 encapIndex;
   8: bool isLocal = true;
   9: NeighborEntryType type = NeighborEntryType.DYNAMIC_ENTRY;
+  10: optional i64 resolvedSince;
 }
 
 typedef map<string, NeighborEntryFields> NeighborEntries
