@@ -673,9 +673,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
 
   {
     LoadBalancerConfigApplier loadBalancerConfigApplier(
-        orig_->getMultiSwitchLoadBalancers(),
-        cfg_->get_loadBalancers(),
-        platform_);
+        orig_->getLoadBalancers(), cfg_->get_loadBalancers(), platform_);
     auto newLoadBalancers = loadBalancerConfigApplier.updateLoadBalancers();
     if (newLoadBalancers) {
       new_->resetLoadBalancers(toMultiSwitchMap<MultiSwitchLoadBalancerMap>(

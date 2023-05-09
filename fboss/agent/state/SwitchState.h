@@ -463,9 +463,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   std::optional<cfg::PfcWatchdogRecoveryAction> getPfcWatchdogRecoveryAction()
       const;
 
-  const std::shared_ptr<LoadBalancerMap>& getLoadBalancers() const;
-  const std::shared_ptr<MultiSwitchLoadBalancerMap>&
-  getMultiSwitchLoadBalancers() const;
+  const std::shared_ptr<MultiSwitchLoadBalancerMap>& getLoadBalancers() const;
   const std::shared_ptr<MultiTeFlowTable>& getMultiSwitchTeFlowTable() const;
   const std::shared_ptr<MultiSwitchMirrorMap>& getMirrors() const;
   const std::shared_ptr<ForwardingInformationBaseMap>& getFibs() const;

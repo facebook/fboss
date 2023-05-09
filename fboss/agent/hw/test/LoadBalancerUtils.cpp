@@ -142,7 +142,7 @@ std::shared_ptr<SwitchState> addLoadBalancers(
     return inputState;
   }
   auto newState{inputState->clone()};
-  auto lbMap = newState->getMultiSwitchLoadBalancers()->modify(&newState);
+  auto lbMap = newState->getLoadBalancers()->modify(&newState);
   for (const auto& loadBalancerCfg : loadBalancerCfgs) {
     auto loadBalancer =
         LoadBalancerConfigParser(platform).parse(loadBalancerCfg);

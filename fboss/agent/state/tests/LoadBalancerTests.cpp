@@ -184,8 +184,8 @@ TEST(LoadBalancer, defaultConfiguration) {
       publishAndApplyConfig(initialState, &config, platform.get());
   ASSERT_NE(nullptr, finalState);
 
-  auto ecmpLoadBalancer = finalState->getMultiSwitchLoadBalancers()->getNodeIf(
-      LoadBalancerID::ECMP);
+  auto ecmpLoadBalancer =
+      finalState->getLoadBalancers()->getNodeIf(LoadBalancerID::ECMP);
   ASSERT_NE(nullptr, ecmpLoadBalancer);
   checkLoadBalancer(
       ecmpLoadBalancer,
@@ -198,8 +198,8 @@ TEST(LoadBalancer, defaultConfiguration) {
       mplsFields,
       udfGroupIds);
 
-  auto lagLoadBalancer = finalState->getMultiSwitchLoadBalancers()->getNodeIf(
-      LoadBalancerID::AGGREGATE_PORT);
+  auto lagLoadBalancer =
+      finalState->getLoadBalancers()->getNodeIf(LoadBalancerID::AGGREGATE_PORT);
   ASSERT_NE(nullptr, lagLoadBalancer);
   checkLoadBalancer(
       lagLoadBalancer,
@@ -243,8 +243,8 @@ TEST(LoadBalancer, udfGroupIdsConfiguration) {
       publishAndApplyConfig(initialState, &config, platform.get());
   ASSERT_NE(nullptr, finalState);
 
-  auto ecmpLoadBalancer = finalState->getMultiSwitchLoadBalancers()->getNodeIf(
-      LoadBalancerID::ECMP);
+  auto ecmpLoadBalancer =
+      finalState->getLoadBalancers()->getNodeIf(LoadBalancerID::ECMP);
   ASSERT_NE(nullptr, ecmpLoadBalancer);
   checkLoadBalancer(
       ecmpLoadBalancer,
@@ -428,7 +428,7 @@ TEST(LoadBalancerMap, addLoadBalancer) {
   auto startState =
       publishAndApplyConfig(baseState, &baseConfig, platform.get());
   ASSERT_NE(nullptr, startState);
-  auto startLoadBalancers = startState->getMultiSwitchLoadBalancers();
+  auto startLoadBalancers = startState->getLoadBalancers();
   ASSERT_NE(nullptr, startLoadBalancers);
   EXPECT_EQ(1, startLoadBalancers->numNodes());
 
@@ -438,7 +438,7 @@ TEST(LoadBalancerMap, addLoadBalancer) {
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
-  auto endLoadBalancers = endState->getMultiSwitchLoadBalancers();
+  auto endLoadBalancers = endState->getLoadBalancers();
   ASSERT_NE(nullptr, endLoadBalancers);
   EXPECT_EQ(2, endLoadBalancers->numNodes());
 
@@ -468,7 +468,7 @@ TEST(LoadBalancerMap, removeLoadBalancer) {
   auto startState =
       publishAndApplyConfig(baseState, &baseConfig, platform.get());
   ASSERT_NE(nullptr, startState);
-  auto startLoadBalancers = startState->getMultiSwitchLoadBalancers();
+  auto startLoadBalancers = startState->getLoadBalancers();
   ASSERT_NE(nullptr, startLoadBalancers);
   EXPECT_EQ(2, startLoadBalancers->numNodes());
 
@@ -479,7 +479,7 @@ TEST(LoadBalancerMap, removeLoadBalancer) {
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
-  auto endLoadBalancers = endState->getMultiSwitchLoadBalancers();
+  auto endLoadBalancers = endState->getLoadBalancers();
   ASSERT_NE(nullptr, endLoadBalancers);
   EXPECT_EQ(1, endLoadBalancers->numNodes());
 
@@ -509,7 +509,7 @@ TEST(LoadBalancerMap, updateLoadBalancer) {
   auto startState =
       publishAndApplyConfig(baseState, &baseConfig, platform.get());
   ASSERT_NE(nullptr, startState);
-  auto startLoadBalancers = startState->getMultiSwitchLoadBalancers();
+  auto startLoadBalancers = startState->getLoadBalancers();
   ASSERT_NE(nullptr, startLoadBalancers);
   EXPECT_EQ(2, startLoadBalancers->numNodes());
   auto startEcmpLoadBalancer =
@@ -524,7 +524,7 @@ TEST(LoadBalancerMap, updateLoadBalancer) {
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
-  auto endLoadBalancers = endState->getMultiSwitchLoadBalancers();
+  auto endLoadBalancers = endState->getLoadBalancers();
   ASSERT_NE(nullptr, endLoadBalancers);
   EXPECT_EQ(2, endLoadBalancers->numNodes());
 

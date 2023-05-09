@@ -91,7 +91,7 @@ class BcmRtag7Test : public BcmTest {
         id, v4Fields, v6Fields, transportFields, mplsFields, udfGroupIds);
 
     auto state = getProgrammedState()->clone();
-    auto loadBalancers = state->getMultiSwitchLoadBalancers()->modify(&state);
+    auto loadBalancers = state->getLoadBalancers()->modify(&state);
     if (!loadBalancers->getNodeIf(id)) {
       loadBalancers->addNode(loadBalancer, scopeResolver().scope(loadBalancer));
     } else {
@@ -122,7 +122,7 @@ class BcmRtag7Test : public BcmTest {
         id, v4Fields, v6Fields, transportFields, mplsFields, udfGroupIds);
     auto state = getProgrammedState();
 
-    auto loadBalancers = state->getMultiSwitchLoadBalancers()->modify(&state);
+    auto loadBalancers = state->getLoadBalancers()->modify(&state);
     if (!loadBalancers->getNodeIf(id)) {
       loadBalancers->addNode(loadBalancer, scopeResolver().scope(loadBalancer));
     } else {
