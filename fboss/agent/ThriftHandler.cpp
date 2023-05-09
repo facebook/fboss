@@ -964,6 +964,13 @@ void ThriftHandler::addRemoteNeighbors(
           break;
         case state::NeighborEntryType::DYNAMIC_ENTRY:
           nbrThrift.state() = "DYNAMIC";
+          // Update resolved timestamp for dynamic neighbor entries.
+          if (entry->getResolvedSince().has_value()) {
+            nbrThrift.resolvedSince() = entry->getResolvedSince().value();
+          } else {
+            XLOG(WARNING) << "Dynamic neighbor entry " << ipAndEntry.first
+                          << " is missing resolved timestamp";
+          }
           break;
       }
 
