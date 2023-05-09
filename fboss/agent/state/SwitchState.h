@@ -338,6 +338,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
    */
   std::optional<cfg::Range64> getAssociatedSystemPortRangeIf(PortID port) const;
   const std::shared_ptr<InterfaceMap>& getInterfaces() const;
+  const std::shared_ptr<MultiSwitchInterfaceMap>& getMultiSwitchInterfaces()
+      const;
   std::shared_ptr<AclEntry> getAcl(const std::string& name) const;
 
   const std::shared_ptr<MultiSwitchAclMap>& getAcls() const;
