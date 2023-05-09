@@ -32,13 +32,21 @@ using std::shared_ptr;
 
 DECLARE_bool(enable_acl_table_group);
 
+namespace {
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+} // namespace
+
 TEST(Acl, applyConfig) {
   FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   auto aclEntry = make_shared<AclEntry>(0, std::string("acl0"));
-  stateV0->addAcl(aclEntry);
-  auto aclV0 = stateV0->getAcl("acl0");
+  auto multiSwitchAcls = stateV0->getMultiSwitchAcls()->modify(&stateV0);
+  multiSwitchAcls->addNode(aclEntry, scope());
+  auto MultiSwitchAclMap = stateV0->getMultiSwitchAcls();
+  auto aclV0 = MultiSwitchAclMap->getNodeIf("acl0");
   EXPECT_EQ(0, aclV0->getGeneration());
   EXPECT_FALSE(aclV0->isPublished());
   EXPECT_EQ(0, aclV0->getPriority());
@@ -332,16 +340,16 @@ TEST(Acl, Icmp) {
 
 TEST(Acl, aclModifyUnpublished) {
   auto state = make_shared<SwitchState>();
-  auto aclMap = state->getAcls();
-  EXPECT_EQ(aclMap.get(), aclMap->modify(&state));
+  auto mulitSwitchAclMap = state->getMultiSwitchAcls();
+  EXPECT_EQ(mulitSwitchAclMap.get(), mulitSwitchAclMap->modify(&state));
 }
 
 TEST(Acl, aclModifyPublished) {
   auto state = make_shared<SwitchState>();
   state->publish();
-  auto aclMap = state->getAcls();
-  validateThriftMapMapSerialization(*aclMap);
-  EXPECT_NE(aclMap.get(), aclMap->modify(&state));
+  auto mulitSwitchAclMap = state->getMultiSwitchAcls();
+  validateThriftMapMapSerialization(*mulitSwitchAclMap);
+  EXPECT_NE(mulitSwitchAclMap.get(), mulitSwitchAclMap->modify(&state));
 }
 
 TEST(Acl, AclGeneration) {

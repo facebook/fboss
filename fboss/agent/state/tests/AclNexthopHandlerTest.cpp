@@ -39,6 +39,11 @@ namespace facebook::fboss {
 
 namespace {
 constexpr AdminDistance DISTANCE = AdminDistance::STATIC_ROUTE;
+
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+
 }; // namespace
 
 template <typename AddrType>
@@ -201,8 +206,8 @@ class AclNexthopHandlerTest : public ::testing::Test {
     action.setRedirectToNextHop(redirectToNextHop);
     aclEntry->setAclAction(action);
     auto newState = state->isPublished() ? state->clone() : state;
-    auto aclMap = newState->getAcls()->modify(&newState);
-    aclMap->addNode(aclEntry);
+    auto MultiSwitchAclMap = newState->getMultiSwitchAcls()->modify(&newState);
+    MultiSwitchAclMap->addNode(aclEntry, scope());
     return newState;
   }
 
@@ -231,7 +236,7 @@ class AclNexthopHandlerTest : public ::testing::Test {
       const RouteNextHopSet& expectedNexthops) {
     auto verifyResolvedNexthops = [&]() {
       auto state = sw_->getState();
-      auto aclEntry = state->getAcls()->getEntry(aclName);
+      auto aclEntry = state->getMultiSwitchAcls()->getNodeIf(aclName);
       EXPECT_NE(aclEntry, nullptr);
       const auto& action = aclEntry->getAclAction();
       auto matchAction = MatchAction::fromThrift(action->toThrift());
