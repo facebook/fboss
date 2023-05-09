@@ -106,6 +106,18 @@ InterfaceMap* InterfaceMap::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
+const std::shared_ptr<Interface> MultiSwitchInterfaceMap::getIntfToReach(
+    RouterID router,
+    const folly::IPAddress& dest) const {
+  for (const auto& [_, intfMap] : std::as_const(*this)) {
+    auto intf = intfMap->getIntfToReach(router, dest);
+    if (intf) {
+      return intf;
+    }
+  }
+  return nullptr;
+}
+
 template class ThriftMapNode<InterfaceMap, InterfaceMapTraits>;
 
 } // namespace facebook::fboss

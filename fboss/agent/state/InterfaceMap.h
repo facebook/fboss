@@ -143,8 +143,11 @@ class MultiSwitchInterfaceMap : public ThriftMultiSwitchMapNode<
       MultiSwitchInterfaceMapTraits>;
   using BaseT::modify;
 
-  MultiSwitchInterfaceMap() {}
-  virtual ~MultiSwitchInterfaceMap() {}
+  MultiSwitchInterfaceMap() = default;
+  virtual ~MultiSwitchInterfaceMap() = default;
+  const std::shared_ptr<Interface> getIntfToReach(
+      RouterID router,
+      const folly::IPAddress& dest) const;
 
  private:
   // Inherit the constructors required for clone()
