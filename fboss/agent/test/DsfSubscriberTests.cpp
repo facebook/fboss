@@ -107,6 +107,29 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
     EXPECT_EQ(
         sysPorts->toThrift(),
         sw_->getState()->getRemoteSystemPorts()->cbegin()->second->toThrift());
+
+    for (const auto& [_, localRif] :
+         std::as_const(*sw_->getState()->getRemoteInterfaces())) {
+      const auto& expectedRif = expectedRifs.at(localRif->getID());
+      // Since resolved timestamp is only set locally, update expectedRifs to
+      // the same timestamp such that they're the same, for both arp and ndp.
+      for (const auto& [_, arp] : std::as_const(*localRif->getArpTable())) {
+        EXPECT_TRUE(arp->getResolvedSince().has_value());
+        if (arp->getResolvedSince().has_value()) {
+          expectedRif->getArpTable()
+              ->at(arp->getID())
+              ->setResolvedSince(*arp->getResolvedSince());
+        }
+      }
+      for (const auto& [_, ndp] : std::as_const(*localRif->getNdpTable())) {
+        EXPECT_TRUE(ndp->getResolvedSince().has_value());
+        if (ndp->getResolvedSince().has_value()) {
+          expectedRif->getNdpTable()
+              ->at(ndp->getID())
+              ->setResolvedSince(*ndp->getResolvedSince());
+        }
+      }
+    }
     EXPECT_EQ(
         expectedRifs.toThrift(),
         sw_->getState()->getRemoteInterfaces()->toThrift());

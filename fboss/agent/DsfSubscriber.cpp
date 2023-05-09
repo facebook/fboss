@@ -86,9 +86,43 @@ void DsfSubscriber::scheduleUpdate(
           return false;
         };
 
+        auto updateResolvedTimestamp = [&](const auto& oldTable,
+                                           const auto& nbrEntryIter) {
+          // If the remote neighbor entry got added the first time, update
+          // the resolved timestamp.
+          if (!oldTable ||
+              (std::as_const(*oldTable).find(nbrEntryIter->second->getID())) ==
+                  oldTable->cend()) {
+            nbrEntryIter->second->setResolvedSince(
+                static_cast<int64_t>(std::time(nullptr)));
+          } else {
+            // Retain the resolved timestamp from the old entry.
+            nbrEntryIter->second->setResolvedSince(
+                oldTable->at(nbrEntryIter->second->getID())
+                    ->getResolvedSince());
+          }
+        };
+
+        auto updateNeighborEntry = [&](const auto& oldTable,
+                                       const auto& clonedTable) {
+          auto nbrEntryIter = clonedTable->begin();
+          while (nbrEntryIter != clonedTable->end()) {
+            if (skipProgramming(nbrEntryIter)) {
+              nbrEntryIter = clonedTable->erase(nbrEntryIter);
+            } else {
+              nbrEntryIter->second->setIsLocal(false);
+              if (nbrEntryIter->second->getType() ==
+                  state::NeighborEntryType::DYNAMIC_ENTRY) {
+                updateResolvedTimestamp(oldTable, nbrEntryIter);
+              }
+              ++nbrEntryIter;
+            }
+          }
+        };
+
         auto makeRemoteSysPort = [&](const auto& /*oldNode*/,
                                      const auto& newNode) { return newNode; };
-        auto makeRemoteRif = [&](const auto& /*oldNode*/, const auto& newNode) {
+        auto makeRemoteRif = [&](const auto& oldNode, const auto& newNode) {
           auto clonedNode = newNode->clone();
 
           if (newNode->isPublished()) {
@@ -96,25 +130,12 @@ void DsfSubscriber::scheduleUpdate(
             clonedNode->setNdpTable(newNode->getNdpTable()->toThrift());
           }
 
-          auto arpEntryIter = (*clonedNode->getArpTable()).begin();
-          while (arpEntryIter != (*clonedNode->getArpTable()).end()) {
-            if (skipProgramming(arpEntryIter)) {
-              arpEntryIter = (*clonedNode->getArpTable()).erase(arpEntryIter);
-            } else {
-              arpEntryIter->second->setIsLocal(false);
-              ++arpEntryIter;
-            }
-          }
-
-          auto ndpEntryIter = (*clonedNode->getNdpTable()).begin();
-          while (ndpEntryIter != (*clonedNode->getNdpTable()).end()) {
-            if (skipProgramming(ndpEntryIter)) {
-              ndpEntryIter = (*clonedNode->getNdpTable()).erase(ndpEntryIter);
-            } else {
-              ndpEntryIter->second->setIsLocal(false);
-              ++ndpEntryIter;
-            }
-          }
+          updateNeighborEntry(
+              oldNode ? oldNode->getArpTable() : nullptr,
+              clonedNode->getArpTable());
+          updateNeighborEntry(
+              oldNode ? oldNode->getNdpTable() : nullptr,
+              clonedNode->getNdpTable());
 
           return clonedNode;
         };
