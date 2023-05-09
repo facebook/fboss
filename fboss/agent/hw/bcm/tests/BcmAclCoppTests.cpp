@@ -30,20 +30,22 @@ void checkCoppAclMatch(
     std::shared_ptr<SwitchState> state,
     BcmSwitch* hw,
     int unit) {
-  auto& swAcls = state->getAcls();
+  auto& swAcls = state->getMultiSwitchAcls();
   int coppAclsCount = fpGroupNumAclEntries(
       unit, hw->getPlatform()->getAsic()->getDefaultACLGroupID());
-  ASSERT_EQ(swAcls->size(), coppAclsCount);
+  ASSERT_EQ(swAcls->numNodes(), coppAclsCount);
   // check all coop acls are sync between h/w and s/w
-  for (auto& iter : std::as_const(*swAcls)) {
-    const auto& swAcl = iter.second;
-    auto hwAcl = hw->getAclTable()->getAclIf(swAcl->getPriority());
-    ASSERT_NE(nullptr, hwAcl);
-    ASSERT_TRUE(BcmAclEntry::isStateSame(
-        hw,
-        hw->getPlatform()->getAsic()->getDefaultACLGroupID(),
-        hwAcl->getHandle(),
-        swAcl));
+  for (auto& mIter : std::as_const(*swAcls)) {
+    for (auto& iter : std::as_const(*mIter.second)) {
+      const auto& swAcl = iter.second;
+      auto hwAcl = hw->getAclTable()->getAclIf(swAcl->getPriority());
+      ASSERT_NE(nullptr, hwAcl);
+      ASSERT_TRUE(BcmAclEntry::isStateSame(
+          hw,
+          hw->getPlatform()->getAsic()->getDefaultACLGroupID(),
+          hwAcl->getHandle(),
+          swAcl));
+    }
   }
 }
 
