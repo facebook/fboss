@@ -40,6 +40,12 @@ using ::testing::ByRef;
 using ::testing::Eq;
 using ::testing::Return;
 
+namespace {
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+} // namespace
+
 class SwSwitchTest : public ::testing::Test {
  public:
   void SetUp() override {
@@ -170,11 +176,11 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
   stateV0->publish();
 
   auto stateV1 = stateV0->clone();
-  auto aclMap1 = stateV1->getAcls()->modify(&stateV1);
+  auto aclMap1 = stateV1->getMultiSwitchAcls()->modify(&stateV1);
 
   auto aclEntry0 = std::make_shared<AclEntry>(0, std::string("acl0"));
   aclEntry0->setDscp(0x24);
-  aclMap1->addNode(aclEntry0);
+  aclMap1->addNode(aclEntry0, scope());
 
   stateV1->publish();
 
@@ -182,10 +188,10 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
 
   // ACL without any qualifier should fail validation
   auto stateV2 = stateV0->clone();
-  auto aclMap2 = stateV2->getAcls()->modify(&stateV2);
+  auto aclMap2 = stateV2->getMultiSwitchAcls()->modify(&stateV2);
 
   auto aclEntry1 = std::make_shared<AclEntry>(0, std::string("acl1"));
-  aclMap2->addNode(aclEntry1);
+  aclMap2->addNode(aclEntry1, scope());
 
   stateV2->publish();
 

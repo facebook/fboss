@@ -281,7 +281,7 @@ TYPED_TEST(AclNexthopHandlerTest, UnresolvedAclNextHop) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto aclEntry = state->getAcls()->getEntry(kAclName);
+    auto aclEntry = state->getMultiSwitchAcls()->getNode(kAclName);
     EXPECT_NE(aclEntry, nullptr);
     auto action = aclEntry->getAclAction();
     auto resolvedNexthopSet = util::toRouteNextHopSet(

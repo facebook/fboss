@@ -32,6 +32,9 @@ void verifySwitchStateSerialization(const SwitchState& state) {
   auto stateBack = SwitchState::fromThrift(state.toThrift());
   EXPECT_EQ(state, *stateBack);
 }
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
 } // namespace
 
 TEST(ThriftySwitchState, BasicTest) {
@@ -121,9 +124,9 @@ TEST(ThriftySwitchState, AclMap) {
   auto acl1 = std::make_shared<AclEntry>(1, std::string("acl1"));
   auto acl2 = std::make_shared<AclEntry>(2, std::string("acl2"));
 
-  auto aclMap = std::make_shared<AclMap>();
-  aclMap->addEntry(acl1);
-  aclMap->addEntry(acl2);
+  auto aclMap = std::make_shared<MultiSwitchAclMap>();
+  aclMap->addNode(acl1, scope());
+  aclMap->addNode(acl2, scope());
 
   auto state = SwitchState();
   state.resetAcls(aclMap);

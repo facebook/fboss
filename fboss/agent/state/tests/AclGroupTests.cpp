@@ -124,6 +124,27 @@ void verifyAclHelper(
     EXPECT_EQ(map->getEntryIf(entry3->getID())->getDscp(), kDscpVal3);
   }
 }
+
+void verifyAclHelper(
+    std::shared_ptr<const MultiSwitchAclMap> map,
+    std::shared_ptr<AclEntry> entry1,
+    std::shared_ptr<AclEntry> entry2,
+    std::shared_ptr<AclEntry> entry3 = nullptr) {
+  EXPECT_EQ(map->getNodeIf(entry1->getID())->getID(), kDscp1);
+  EXPECT_EQ(map->getNodeIf(entry2->getID())->getID(), kDscp2);
+  EXPECT_EQ(map->getNodeIf(entry1->getID())->getDscp(), kDscpVal1);
+  EXPECT_EQ(map->getNodeIf(entry2->getID())->getDscp(), kDscpVal2);
+
+  if (entry3 != nullptr) {
+    EXPECT_EQ(map->getNodeIf(entry3->getID())->getID(), kDscp3);
+    EXPECT_EQ(map->getNodeIf(entry3->getID())->getDscp(), kDscpVal3);
+  }
+}
+
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+
 } // namespace
 
 TEST(AclGroup, TestEquality) {
@@ -222,19 +243,19 @@ TEST(AclGroup, SerializeAclMap) {
   entry1->setDscp(kDscpVal1);
   entry2->setDscp(kDscpVal2);
 
-  auto map = std::make_shared<AclMap>();
-  map->addEntry(entry1);
-  map->addEntry(entry2);
+  auto map = std::make_shared<MultiSwitchAclMap>();
+  map->addNode(entry1, scope());
+  map->addNode(entry2, scope());
 
   auto serialized = map->toThrift();
-  auto mapBack = std::make_shared<AclMap>(serialized);
+  auto mapBack = std::make_shared<MultiSwitchAclMap>(serialized);
 
-  EXPECT_EQ(*map, *mapBack);
+  EXPECT_EQ(map->toThrift(), mapBack->toThrift());
   verifyAclHelper(mapBack, entry1, entry2);
-  EXPECT_EQ(mapBack->getEntryIf(entry1->getID())->getID(), kDscp1);
-  EXPECT_EQ(mapBack->getEntryIf(entry2->getID())->getID(), kDscp2);
-  EXPECT_EQ(mapBack->getEntryIf(entry1->getID())->getDscp(), kDscpVal1);
-  EXPECT_EQ(mapBack->getEntryIf(entry2->getID())->getDscp(), kDscpVal2);
+  EXPECT_EQ(mapBack->getNodeIf(entry1->getID())->getID(), kDscp1);
+  EXPECT_EQ(mapBack->getNodeIf(entry2->getID())->getID(), kDscp2);
+  EXPECT_EQ(mapBack->getNodeIf(entry1->getID())->getDscp(), kDscpVal1);
+  EXPECT_EQ(mapBack->getNodeIf(entry2->getID())->getDscp(), kDscpVal2);
 
   auto state = SwitchState();
   state.resetAcls(map);
@@ -245,16 +266,16 @@ TEST(AclGroup, SerializeAclMap) {
   verifyAclHelper(thriftConvertedMap, entry1, entry2);
 
   // remove an entry
-  map->removeEntry(entry1);
-  EXPECT_FALSE(map->getEntryIf(entry1->getID()));
+  map->removeNode(entry1);
+  EXPECT_FALSE(map->getNodeIf(entry1->getID()));
 
   serialized = map->toThrift();
-  mapBack = std::make_shared<AclMap>(serialized);
+  mapBack = std::make_shared<MultiSwitchAclMap>(serialized);
 
-  EXPECT_EQ(*map, *mapBack);
-  EXPECT_FALSE(mapBack->getEntryIf(entry1->getID()));
-  EXPECT_TRUE(mapBack->getEntryIf(entry2->getID()));
-  EXPECT_EQ(mapBack->getEntryIf(entry2->getID())->getDscp(), kDscpVal2);
+  EXPECT_EQ(map->toThrift(), mapBack->toThrift());
+  EXPECT_FALSE(mapBack->getNodeIf(entry1->getID()));
+  EXPECT_TRUE(mapBack->getNodeIf(entry2->getID()));
+  EXPECT_EQ(mapBack->getNodeIf(entry2->getID())->getDscp(), kDscpVal2);
 }
 
 TEST(AclGroup, SerializeAclTable) {
