@@ -510,6 +510,18 @@ struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
   std::shared_ptr<InnerMap> getFirstMap() const {
     return this->size() ? this->cbegin()->second : nullptr;
   }
+
+  std::shared_ptr<MAP> clone() const {
+    auto cloned = Base::clone();
+    for (auto mnitr = cloned->cbegin(); mnitr != cloned->cend(); ++mnitr) {
+      if (!mnitr->second->isPublished()) {
+        continue;
+      }
+      auto newMap = mnitr->second->clone();
+      cloned->ref(mnitr->first) = newMap;
+    }
+    return cloned;
+  }
 };
 
 namespace utility {
