@@ -334,8 +334,8 @@ TEST(LoadBalancer, Thrifty) {
 namespace {
 
 void checkLoadBalancersDelta(
-    const std::shared_ptr<LoadBalancerMap>& oldLoadBalancers,
-    const std::shared_ptr<LoadBalancerMap>& newLoadBalancers,
+    const std::shared_ptr<MultiSwitchLoadBalancerMap>& oldLoadBalancers,
+    const std::shared_ptr<MultiSwitchLoadBalancerMap>& newLoadBalancers,
     const std::set<LoadBalancerID>& changedIDs,
     const std::set<LoadBalancerID>& addedIDs,
     const std::set<LoadBalancerID>& removedIDs) {
@@ -446,11 +446,7 @@ TEST(LoadBalancerMap, addLoadBalancer) {
   std::set<LoadBalancerID> added = {LoadBalancerID::AGGREGATE_PORT};
   std::set<LoadBalancerID> removed = {};
   checkLoadBalancersDelta(
-      startLoadBalancers->getFirstMap(),
-      endLoadBalancers->getFirstMap(),
-      updated,
-      added,
-      removed);
+      startLoadBalancers, endLoadBalancers, updated, added, removed);
 
   // Check LoadBalancerID::ECMP has not been modified
   EXPECT_EQ(
@@ -487,11 +483,7 @@ TEST(LoadBalancerMap, removeLoadBalancer) {
   std::set<LoadBalancerID> added = {};
   std::set<LoadBalancerID> removed = {LoadBalancerID::AGGREGATE_PORT};
   checkLoadBalancersDelta(
-      startLoadBalancers->getFirstMap(),
-      endLoadBalancers->getFirstMap(),
-      updated,
-      added,
-      removed);
+      startLoadBalancers, endLoadBalancers, updated, added, removed);
 
   // Check LoadBalancerID::ECMP has not been modified
   EXPECT_EQ(
@@ -532,11 +524,7 @@ TEST(LoadBalancerMap, updateLoadBalancer) {
   std::set<LoadBalancerID> added = {};
   std::set<LoadBalancerID> removed = {};
   checkLoadBalancersDelta(
-      startLoadBalancers->getFirstMap(),
-      endLoadBalancers->getFirstMap(),
-      updated,
-      added,
-      removed);
+      startLoadBalancers, endLoadBalancers, updated, added, removed);
 
   // Check LoadBalancerID::AGGREGATE_PORT has not been modified
   EXPECT_EQ(

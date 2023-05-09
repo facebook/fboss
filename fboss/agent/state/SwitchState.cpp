@@ -135,7 +135,6 @@ SwitchState::SwitchState() {
   resetQosPolicies(std::make_shared<QosPolicyMap>());
   resetTeFlowTable(std::make_shared<TeFlowTable>());
   resetAggregatePorts(std::make_shared<AggregatePortMap>());
-  resetLoadBalancers(std::make_shared<LoadBalancerMap>());
   resetTransceivers(std::make_shared<TransceiverMap>());
   resetBufferPoolCfgs(std::make_shared<BufferPoolCfgMap>());
   resetVlans(std::make_shared<VlanMap>());
@@ -294,11 +293,6 @@ void SwitchState::resetControlPlane(
     controlPlaneMap->updateNode(matcher, controlPlane);
   }
   ref<switch_state_tags::controlPlaneMap>() = controlPlaneMap;
-}
-
-void SwitchState::resetLoadBalancers(
-    std::shared_ptr<LoadBalancerMap> loadBalancers) {
-  resetDefaultMap<switch_state_tags::loadBalancerMaps>(loadBalancers);
 }
 
 void SwitchState::resetLoadBalancers(
@@ -675,7 +669,7 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
       switch_state_tags::aggregatePortMap>();
   state->fromThrift<
       switch_state_tags::loadBalancerMaps,
-      switch_state_tags::loadBalancerMap>();
+      switch_state_tags::loadBalancerMap>(true /*emptyMnpuMapOk*/);
   state->fromThrift<
       switch_state_tags::transceiverMaps,
       switch_state_tags::transceiverMap>();
