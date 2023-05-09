@@ -220,8 +220,8 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
     acl->setAclAction(action);
 
     auto state = this->getProgrammedState()->clone();
-    auto acls = state->getAcls()->modify(&state);
-    acls->addNode(acl);
+    auto acls = state->getMultiSwitchAcls()->modify(&state);
+    acls->addNode(acl, scopeResolver().scope(acl));
     this->applyNewState(state);
   }
 

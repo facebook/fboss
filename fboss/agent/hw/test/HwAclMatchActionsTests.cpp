@@ -26,7 +26,7 @@ void checkSwAclSendToQueue(
     const std::string& aclName,
     bool sendToCPU,
     int queueId) {
-  auto acl = state->getAcl(aclName);
+  auto acl = state->getMultiSwitchAcls()->getNodeIf(aclName);
   ASSERT_TRUE(acl->getAclAction());
   ASSERT_TRUE(acl->getAclAction()->cref<switch_state_tags::sendToQueue>());
   ASSERT_EQ(
@@ -50,7 +50,7 @@ void checkSwActionDscpValue(
     std::shared_ptr<SwitchState> state,
     const std::string& aclName,
     int32_t dscpValue) {
-  auto acl = state->getAcl(aclName);
+  auto acl = state->getMultiSwitchAcls()->getNodeIf(aclName);
   ASSERT_TRUE(acl->getAclAction());
   ASSERT_TRUE(acl->getAclAction()->cref<switch_state_tags::setDscp>());
   ASSERT_EQ(

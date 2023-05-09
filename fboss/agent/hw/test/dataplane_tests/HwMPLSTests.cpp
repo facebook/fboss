@@ -364,7 +364,8 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     MatchAction action = MatchAction();
     action.setRedirectToNextHop(redirectToNextHop);
     newAcl->setAclAction(action);
-    newState->addAcl(newAcl);
+    auto acls = newState->getMultiSwitchAcls()->modify(&newState);
+    acls->addNode(newAcl, scopeResolver().scope(newAcl));
     applyNewState(newState);
   }
 
