@@ -3,11 +3,11 @@
 
 import abc
 import csv
+import json
 import os
 import re
 import subprocess
 import sys
-import tempfile
 import time
 from argparse import ArgumentParser
 from datetime import datetime
@@ -30,8 +30,8 @@ from datetime import datetime
 #  ./run_test.py sai --config $confFile --filter=<filter_regex> --list_tests # Print the matching tests but do not run any test
 #  ./run_test.py sai --config $confFile --sdk_logging /root/all_replayer_logs # ALL tests with SAI replayer logging
 
-#  ./run_test.py sai --config $confFile --skip-known-bad-tests $knownBadTestsFile --file HwRouteScaleTest.turboFabricScaleTest # skip running known bad tests
-#  ./run_test.py sai --config $confFile --skip-known-bad-tests $knownBadTestsFile # skip running known bad tests
+#  ./run_test.py sai --config $confFile --skip-known-bad-tests $test-config --file HwRouteScaleTest.turboFabricScaleTest # skip running known bad tests
+#  ./run_test.py sai --config $confFile --skip-known-bad-tests $test-config # skip running known bad tests
 #
 #  ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig #  --mgmt-if eth0 # Using custom mgmt-if
 
@@ -57,6 +57,7 @@ OPT_ARG_SIMULATOR = "--simulator"
 SUB_CMD_BCM = "bcm"
 SUB_CMD_SAI = "sai"
 WARMBOOT_CHECK_FILE = "/dev/shm/fboss/warm_boot/can_warm_boot_0"
+KNOWN_BAD_TESTS = "./share/hw_known_bad_tests/sai_known_bad_tests.materialized_JSON"
 
 
 class TestRunner(abc.ABC):
@@ -107,16 +108,20 @@ class TestRunner(abc.ABC):
         return run_test_result
 
     def _get_known_bad_test_regex(self):
-        if not args.skip_known_bad_tests or not os.path.isfile(
-            args.skip_known_bad_tests
-        ):
+        if not args.skip_known_bad_tests:
             return None
 
-        with open(args.skip_known_bad_tests) as f:
-            lines = f.readlines()
-            lines = [line.strip().strip('"') for line in lines]
-        known_bad_tests = ":".join(lines)
-        return known_bad_tests
+        with open(KNOWN_BAD_TESTS) as f:
+            known_bad_test_json = json.load(f)
+            known_bad_test_structs = known_bad_test_json["known_bad_tests"][
+                args.skip_known_bad_tests
+            ]
+            known_bad_tests = []
+            for test_struct in known_bad_test_structs:
+                known_bad_test = test_struct["test_name_regex"]
+                known_bad_tests.append(known_bad_test)
+        known_bad_tests_str = ":".join(known_bad_tests)
+        return known_bad_tests_str
 
     def _parse_list_test_output(self, output):
         ret = []
@@ -354,6 +359,7 @@ class TestRunner(abc.ABC):
         print(f"\nTest output stored at: {output_csv}")
 
     def run_test(self, args):
+        regexes = []
         if args.filter_file:
             with open(args.filter_file) as file:
                 regexes = [
@@ -397,7 +403,7 @@ class SaiTestRunner(TestRunner):
         return ""
 
     def _get_test_binary_name(self):
-        return args.sai_bin if args.sai_bin else "sai_test-sai_impl-1.11.0"
+        return args.sai_bin if args.sai_bin else "sai_test-sai_impl-1.12.0"
 
     def _get_sdk_logging_flags(self, sdk_logging_dir, test_prefix, test_to_run):
         return [
@@ -467,9 +473,9 @@ if __name__ == "__main__":
         OPT_ARG_SKIP_KNOWN_BAD_TESTS,
         type=str,
         help=(
-            "skip running known bad tests specified in a file e.g. "
+            "test config to specify which known bad tests to skip e.g. "
             + OPT_ARG_SKIP_KNOWN_BAD_TESTS
-            + "=path-to-known-bad-tests-file"
+            + "=brcm/7.2.0.0_odp/7.2.0.0_odp/tomahawk"
         ),
     )
     ap.add_argument(
