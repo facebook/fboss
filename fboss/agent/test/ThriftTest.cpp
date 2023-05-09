@@ -549,6 +549,42 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getCpuPortStats) {
   handler.getCpuPortStats(cpuPortStats);
 }
 
+TYPED_TEST(ThriftTestAllSwitchTypes, getAclTable) {
+  ThriftHandler handler(this->sw_);
+
+  auto switchIdAndType = this->getSwitchIdAndType();
+
+  std::vector<AclEntryThrift> aclTable;
+  handler.getAclTable(aclTable);
+  EXPECT_EQ(aclTable.size(), 0);
+  // No ACLs on fabric switches
+  if (!this->isFabric()) {
+    cfg::SwitchConfig config = testConfigA(switchIdAndType.second);
+    config.acls()->resize(2);
+    config.acls()[0].name() = "acl1";
+    config.acls()[0].actionType() = cfg::AclActionType::DENY;
+    config.acls()[0].srcIp() = "192.168.0.1";
+    config.acls()[0].dstIp() = "192.168.0.0/24";
+    config.acls()[0].srcPort() = 5;
+    config.acls()[0].dstPort() = 8;
+    config.acls()[1].name() = "acl2";
+    config.acls()[1].actionType() = cfg::AclActionType::DENY;
+    config.acls()[1].srcIp() = "192.168.1.1";
+    config.acls()[1].dstIp() = "192.168.1.0/24";
+    config.acls()[1].srcPort() = 5;
+    config.acls()[1].dstPort() = 8;
+    this->sw_->applyConfig("New config with acls", config);
+    auto state = this->sw_->getState();
+    handler.getAclTable(aclTable);
+    EXPECT_EQ(aclTable.size(), 2);
+    EXPECT_EQ(*aclTable[0].name(), "acl1");
+    EXPECT_EQ(*aclTable[0].srcPort(), 5);
+    EXPECT_EQ(*aclTable[0].dstPort(), 8);
+    EXPECT_EQ(*aclTable[0].actionType(), "deny");
+    EXPECT_EQ(*aclTable[1].name(), "acl2");
+  }
+}
+
 TYPED_TEST(ThriftTestAllSwitchTypes, getSwitchReachability) {
   ThriftHandler handler(this->sw_);
   std::unique_ptr<std::vector<std::string>> switchNames =
