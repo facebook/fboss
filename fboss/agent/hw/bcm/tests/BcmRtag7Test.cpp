@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"
+#include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/LoadBalancerMap.h"
@@ -28,14 +29,12 @@ constexpr int kUdfHashFields = BCM_HASH_FIELD_SRCMOD | BCM_HASH_FIELD_SRCPORT;
 namespace facebook::fboss {
 
 class BcmRtag7Test : public BcmTest {
- public:
-  void updateLoadBalancers(std::shared_ptr<LoadBalancerMap> loadBalancerMap) {
-    auto newState = getProgrammedState()->clone();
-    newState->resetLoadBalancers(loadBalancerMap);
-    applyNewState(newState);
+ protected:
+  cfg::SwitchConfig initialConfig() const override {
+    return utility::onePortPerInterfaceConfig(
+        getHwSwitch(), masterLogicalPortIds());
   }
 
- protected:
   std::shared_ptr<SwitchState> setupFullEcmpHash() {
     auto noMplsFields = LoadBalancer::MPLSFields{};
     return setupHash(
@@ -87,27 +86,27 @@ class BcmRtag7Test : public BcmTest {
       const LoadBalancer::TransportFields& transportFields,
       const LoadBalancer::MPLSFields& mplsFields,
       const LoadBalancer::UdfGroupIds& udfGroupIds) {
+    applyNewConfig(initialConfig());
     auto loadBalancer = makeLoadBalancer(
         id, v4Fields, v6Fields, transportFields, mplsFields, udfGroupIds);
 
-    auto loadBalancers = getProgrammedState()->getLoadBalancers()->clone();
+    auto state = getProgrammedState()->clone();
+    auto loadBalancers = state->getMultiSwitchLoadBalancers()->modify(&state);
     if (!loadBalancers->getNodeIf(id)) {
-      loadBalancers->addNode(std::move(loadBalancer));
+      loadBalancers->addNode(loadBalancer, scopeResolver().scope(loadBalancer));
     } else {
-      loadBalancers->updateNode(std::move(loadBalancer));
+      loadBalancers->updateNode(
+          loadBalancer, scopeResolver().scope(loadBalancer));
     }
 
     auto udfConfigState = std::make_shared<UdfConfig>();
     auto udfConfig = utility::addUdfConfig();
     udfConfigState->fromThrift(udfConfig);
 
-    auto state = getProgrammedState();
-    state->modify(&state);
     auto switchSettings = state->getSwitchSettings();
     switchSettings = switchSettings->clone();
     switchSettings->setUdfConfig(udfConfigState);
     state->resetSwitchSettings(switchSettings);
-    state->resetLoadBalancers(std::move(loadBalancers));
     return state;
   }
 
@@ -118,29 +117,29 @@ class BcmRtag7Test : public BcmTest {
       const LoadBalancer::TransportFields& transportFields,
       const LoadBalancer::MPLSFields& mplsFields,
       const LoadBalancer::UdfGroupIds& udfGroupIds) {
+    applyNewConfig(initialConfig());
     auto loadBalancer = makeLoadBalancer(
         id, v4Fields, v6Fields, transportFields, mplsFields, udfGroupIds);
-
-    auto loadBalancers = getProgrammedState()->getLoadBalancers()->clone();
-    if (!loadBalancers->getNodeIf(id)) {
-      loadBalancers->addNode(std::move(loadBalancer));
-    } else {
-      loadBalancers->updateNode(std::move(loadBalancer));
-    }
     auto state = getProgrammedState();
-    state->modify(&state);
-    state->resetLoadBalancers(std::move(loadBalancers));
+
+    auto loadBalancers = state->getMultiSwitchLoadBalancers()->modify(&state);
+    if (!loadBalancers->getNodeIf(id)) {
+      loadBalancers->addNode(loadBalancer, scopeResolver().scope(loadBalancer));
+    } else {
+      loadBalancers->updateNode(
+          loadBalancer, scopeResolver().scope(loadBalancer));
+    }
     return state;
   }
 
-  std::unique_ptr<LoadBalancer> makeLoadBalancer(
+  std::shared_ptr<LoadBalancer> makeLoadBalancer(
       LoadBalancerID id,
       const LoadBalancer::IPv4Fields& v4Fields,
       const LoadBalancer::IPv6Fields& v6Fields,
       const LoadBalancer::TransportFields& transportFields,
       const LoadBalancer::MPLSFields& mplsFields,
       const LoadBalancer::UdfGroupIds& udfGroupIds) {
-    return std::make_unique<LoadBalancer>(
+    return std::make_shared<LoadBalancer>(
         id,
         cfg::HashingAlgorithm::CRC16_CCITT,
         getSeed(id),
