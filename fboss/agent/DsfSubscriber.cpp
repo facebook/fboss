@@ -88,11 +88,13 @@ void DsfSubscriber::scheduleUpdate(
 
         auto updateResolvedTimestamp = [&](const auto& oldTable,
                                            const auto& nbrEntryIter) {
-          // If the remote neighbor entry got added the first time, update
+          // If dynamic neighbor entry got added the first time, update
           // the resolved timestamp.
-          if (!oldTable ||
-              (std::as_const(*oldTable).find(nbrEntryIter->second->getID())) ==
-                  oldTable->cend()) {
+          if (nbrEntryIter->second->getType() ==
+                  state::NeighborEntryType::DYNAMIC_ENTRY &&
+              (!oldTable ||
+               (std::as_const(*oldTable).find(nbrEntryIter->second->getID())) ==
+                   oldTable->cend())) {
             nbrEntryIter->second->setResolvedSince(
                 static_cast<int64_t>(std::time(nullptr)));
           } else {
@@ -111,10 +113,7 @@ void DsfSubscriber::scheduleUpdate(
               nbrEntryIter = clonedTable->erase(nbrEntryIter);
             } else {
               nbrEntryIter->second->setIsLocal(false);
-              if (nbrEntryIter->second->getType() ==
-                  state::NeighborEntryType::DYNAMIC_ENTRY) {
-                updateResolvedTimestamp(oldTable, nbrEntryIter);
-              }
+              updateResolvedTimestamp(oldTable, nbrEntryIter);
               ++nbrEntryIter;
             }
           }

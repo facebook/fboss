@@ -805,6 +805,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       }
       neighbor.isLocal() = isLocal(node);
       neighbor.type() = state::NeighborEntryType::STATIC_ENTRY;
+      neighbor.resolvedSince() = static_cast<int64_t>(std::time(nullptr));
       if (network.first.isV6()) {
         ndpTable.insert({*neighbor.ipaddress(), neighbor});
       } else {

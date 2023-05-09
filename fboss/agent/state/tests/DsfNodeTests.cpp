@@ -29,6 +29,17 @@ std::shared_ptr<DsfNode> makeDsfNode(
   return dsfNode;
 }
 
+void verifyStaticNbrResolveTimestamp(
+    const std::shared_ptr<InterfaceMap>& interfaceMap) {
+  for (const auto& [_, interface] : std::as_const(*interfaceMap)) {
+    for (const auto& [_, nbrEntry] : std::as_const(*interface->getNdpTable())) {
+      if (nbrEntry->getType() == state::NeighborEntryType::STATIC_ENTRY) {
+        EXPECT_TRUE(nbrEntry->getResolvedSince().has_value());
+      }
+    }
+  }
+}
+
 TEST(DsfNode, SerDeserDsfNode) {
   auto dsfNode = makeDsfNode();
   auto serialized = dsfNode->toFollyDynamic();
@@ -97,6 +108,7 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
   EXPECT_EQ(stateV1->getDsfNodes()->numNodes(), 2);
+  verifyStaticNbrResolveTimestamp(stateV1->getRemoteInterfaces());
   // Add node
   config.dsfNodes()->insert({5, makeDsfNodeCfg(5)});
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
@@ -109,6 +121,7 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   EXPECT_EQ(
       stateV2->getRemoteInterfaces()->size(),
       stateV1->getRemoteInterfaces()->size() + 1);
+  verifyStaticNbrResolveTimestamp(stateV2->getRemoteInterfaces());
 
   // Update node
   config.dsfNodes()->erase(5);
@@ -124,6 +137,7 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   EXPECT_EQ(
       stateV3->getRemoteInterfaces()->size(),
       stateV2->getRemoteInterfaces()->size());
+  verifyStaticNbrResolveTimestamp(stateV3->getRemoteInterfaces());
 
   // Erase node
   config.dsfNodes()->erase(5);
@@ -136,6 +150,7 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   EXPECT_EQ(
       stateV4->getRemoteInterfaces()->size(),
       stateV3->getRemoteInterfaces()->size() - 1);
+  verifyStaticNbrResolveTimestamp(stateV4->getRemoteInterfaces());
 }
 
 TEST(DsfNode, dsfNodeUpdateLocalDsfNodeConfig) {
