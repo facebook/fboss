@@ -330,7 +330,14 @@ class ThriftConfigApplier {
       cfg::AclStage aclStage,
       const cfg::AclTable& configTable,
       int* numExistingTablesProcessed);
-  std::shared_ptr<AclMap> updateAcls(
+  std::shared_ptr<AclMap> updateAclsImpl(
+      cfg::AclStage aclStage,
+      std::vector<cfg::AclEntry> configEntries,
+      std::optional<std::string> tableName = std::nullopt);
+  std::shared_ptr<MultiSwitchAclMap> updateAcls(
+      cfg::AclStage aclStage,
+      std::vector<cfg::AclEntry> configEntries);
+  std::shared_ptr<AclMap> updateAclsForTable(
       cfg::AclStage aclStage,
       std::vector<cfg::AclEntry> configEntries,
       std::optional<std::string> tableName = std::nullopt);
@@ -2619,7 +2626,7 @@ std::shared_ptr<AclTable> ThriftConfigApplier::updateAclTable(
                     ->getTableIf(tableName);
   }
 
-  auto newTableEntries = updateAcls(
+  auto newTableEntries = updateAclsForTable(
       aclStage, *(configTable.aclEntries()), std::make_optional(tableName));
   auto newTablePriority = *configTable.priority();
   std::vector<cfg::AclTableActionType> newActionTypes =
@@ -2657,7 +2664,24 @@ std::shared_ptr<AclTable> ThriftConfigApplier::updateAclTable(
   return newTable;
 }
 
-std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls(
+std::shared_ptr<MultiSwitchAclMap> ThriftConfigApplier::updateAcls(
+    cfg::AclStage aclStage,
+    std::vector<cfg::AclEntry> configEntries) {
+  auto acls = updateAclsImpl(aclStage, configEntries);
+  if (!acls) {
+    return nullptr;
+  }
+  return toMultiSwitchMap<MultiSwitchAclMap>(acls, scopeResolver_);
+}
+
+std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsForTable(
+    cfg::AclStage aclStage,
+    std::vector<cfg::AclEntry> configEntries,
+    std::optional<std::string> tableName) {
+  return updateAclsImpl(aclStage, configEntries, tableName);
+}
+
+std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
     cfg::AclStage aclStage,
     std::vector<cfg::AclEntry> configEntries,
     std::optional<std::string> tableName) {
@@ -2806,7 +2830,7 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls(
       changed = true;
     }
   } else {
-    if (numExistingProcessed != orig_->getAcls()->size()) {
+    if (numExistingProcessed != orig_->getMultiSwitchAcls()->numNodes()) {
       // Some existing ACLs were removed (single acl table implementation).
       changed = true;
     }
@@ -2822,7 +2846,7 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls(
         ->clone(std::move(newAcls));
   }
 
-  return orig_->getAcls()->clone(std::move(newAcls));
+  return std::make_shared<AclMap>(std::move(newAcls));
 }
 
 std::shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
@@ -2845,7 +2869,7 @@ std::shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
     }
   } else { // single acl table implementation
     CHECK(!tableName.has_value());
-    origAcl = orig_->getAcls()->getEntryIf(
+    origAcl = orig_->getMultiSwitchAcls()->getNodeIf(
         *acl.name()); // orig_ empty in coldboot, or comes from
                       // follydynamic in warmboot
   }
