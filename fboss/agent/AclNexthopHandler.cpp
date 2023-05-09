@@ -3,6 +3,7 @@
 #include "fboss/agent/AclNexthopHandler.h"
 #include <folly/logging/xlog.h>
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AclTable.h"
@@ -24,7 +25,7 @@ AclNexthopHandler::~AclNexthopHandler() {
   sw_->unregisterStateObserver(this);
 }
 bool AclNexthopHandler::hasAclChanges(const StateDelta& delta) {
-  bool aclsChanged = (sw_->getState()->getAcls()->size() > 0) &&
+  bool aclsChanged = (sw_->getState()->getMultiSwitchAcls()->numNodes() > 0) &&
       (!isEmpty(delta.getAclsDelta()));
   aclsChanged =
       (aclsChanged || !isEmpty(delta.getFibsDelta()) ||
@@ -94,19 +95,22 @@ void AclNexthopHandler::resolveActionNexthops(MatchAction& action) {
   action.setRedirectToNextHop(std::make_pair(redirect.value().first, nexthops));
 }
 
-std::shared_ptr<AclMap> AclNexthopHandler::updateAcls(
+std::shared_ptr<MultiSwitchAclMap> AclNexthopHandler::updateAcls(
     std::shared_ptr<SwitchState>& newState) {
   bool changed = false;
-  auto origAcls = newState->getAcls();
-  for (const auto& iter : std::as_const(*origAcls)) {
-    if (updateAcl(iter.second, newState)) {
-      changed = true;
+  auto origmultiSwitchAcls = newState->getMultiSwitchAcls();
+  for (const auto& mIter : std::as_const(*origmultiSwitchAcls)) {
+    auto origAcls = mIter.second;
+    for (const auto& iter : std::as_const(*origAcls)) {
+      if (updateAcl(iter.second, newState)) {
+        changed = true;
+      }
     }
   }
   if (!changed) {
     return nullptr;
   }
-  return newState->getAcls();
+  return newState->getMultiSwitchAcls();
 }
 
 AclEntry* FOLLY_NULLABLE AclNexthopHandler::updateAcl(
@@ -115,7 +119,8 @@ AclEntry* FOLLY_NULLABLE AclNexthopHandler::updateAcl(
   const auto& origAclAction = origAclEntry->getAclAction();
   if (origAclAction &&
       origAclAction->cref<switch_state_tags::redirectToNextHop>()) {
-    auto newAclEntry = origAclEntry->modify(&newState);
+    auto newAclEntry = origAclEntry->modify(
+        &newState, sw_->getScopeResolver()->scope(origAclEntry));
     newAclEntry->setEnabled(true);
 
     // THRIFT_COPY
