@@ -721,4 +721,22 @@ TEST_F(MirrorTest, MirrorMapModify) {
   // no change
   EXPECT_EQ(newMirrors2, newMirrors);
 }
+
+TEST_F(MirrorTest, MultiMapClone) {
+  config_.mirrors()->push_back(
+      utility::getSPANMirror("mirror0", MirrorTest::egressPortName));
+  publishWithStateUpdate();
+  auto mirrors = state_->getMirrors();
+  mirrors->publish();
+  EXPECT_TRUE(mirrors->isPublished());
+  for (auto iter = mirrors->cbegin(); iter != mirrors->cend(); ++iter) {
+    EXPECT_TRUE(iter->second->isPublished());
+  }
+
+  auto newMirrors = mirrors->clone();
+  EXPECT_TRUE(!newMirrors->isPublished());
+  for (auto iter = newMirrors->cbegin(); iter != newMirrors->cend(); ++iter) {
+    EXPECT_TRUE(!iter->second->isPublished());
+  }
+}
 } // namespace facebook::fboss

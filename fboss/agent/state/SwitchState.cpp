@@ -1028,16 +1028,7 @@ Type* SwitchState::modify(std::shared_ptr<SwitchState>* state) {
     newMnpuMap = newMnpuMap->clone();
     (*state)->ref<Tag>() = newMnpuMap;
   }
-  auto* ptr = newMnpuMap.get();
-  for (auto mnitr = newMnpuMap->cbegin(); mnitr != newMnpuMap->cend();
-       ++mnitr) {
-    if (!mnitr->second->isPublished()) {
-      continue;
-    }
-    auto newMap = mnitr->second->clone();
-    newMnpuMap->ref(mnitr->first) = newMap;
-  }
-  return ptr;
+  return newMnpuMap.get();
 }
 
 template MultiSwitchInterfaceMap* SwitchState::modify<
