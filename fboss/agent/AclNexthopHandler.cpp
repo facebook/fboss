@@ -25,7 +25,7 @@ AclNexthopHandler::~AclNexthopHandler() {
   sw_->unregisterStateObserver(this);
 }
 bool AclNexthopHandler::hasAclChanges(const StateDelta& delta) {
-  bool aclsChanged = (sw_->getState()->getMultiSwitchAcls()->numNodes() > 0) &&
+  bool aclsChanged = (sw_->getState()->getAcls()->numNodes() > 0) &&
       (!isEmpty(delta.getAclsDelta()));
   aclsChanged =
       (aclsChanged || !isEmpty(delta.getFibsDelta()) ||
@@ -98,7 +98,7 @@ void AclNexthopHandler::resolveActionNexthops(MatchAction& action) {
 std::shared_ptr<MultiSwitchAclMap> AclNexthopHandler::updateAcls(
     std::shared_ptr<SwitchState>& newState) {
   bool changed = false;
-  auto origmultiSwitchAcls = newState->getMultiSwitchAcls();
+  auto origmultiSwitchAcls = newState->getAcls();
   for (const auto& mIter : std::as_const(*origmultiSwitchAcls)) {
     auto origAcls = mIter.second;
     for (const auto& iter : std::as_const(*origAcls)) {
@@ -110,7 +110,7 @@ std::shared_ptr<MultiSwitchAclMap> AclNexthopHandler::updateAcls(
   if (!changed) {
     return nullptr;
   }
-  return newState->getMultiSwitchAcls();
+  return newState->getAcls();
 }
 
 AclEntry* FOLLY_NULLABLE AclNexthopHandler::updateAcl(

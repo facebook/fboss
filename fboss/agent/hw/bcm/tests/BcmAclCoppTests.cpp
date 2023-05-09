@@ -30,7 +30,7 @@ void checkCoppAclMatch(
     std::shared_ptr<SwitchState> state,
     BcmSwitch* hw,
     int unit) {
-  auto& swAcls = state->getMultiSwitchAcls();
+  auto& swAcls = state->getAcls();
   int coppAclsCount = fpGroupNumAclEntries(
       unit, hw->getPlatform()->getAsic()->getDefaultACLGroupID());
   ASSERT_EQ(swAcls->numNodes(), coppAclsCount);

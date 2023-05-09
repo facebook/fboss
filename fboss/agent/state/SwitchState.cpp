@@ -231,15 +231,14 @@ SwitchState::getRemoteSystemPorts() const {
 }
 
 std::shared_ptr<AclEntry> SwitchState::getAcl(const std::string& name) const {
-  return getMultiSwitchAcls()->getNodeIf(name);
+  return getAcls()->getNodeIf(name);
 }
 
 void SwitchState::resetAcls(const std::shared_ptr<MultiSwitchAclMap>& acls) {
   ref<switch_state_tags::aclMaps>() = acls;
 }
 
-const std::shared_ptr<MultiSwitchAclMap>& SwitchState::getMultiSwitchAcls()
-    const {
+const std::shared_ptr<MultiSwitchAclMap>& SwitchState::getAcls() const {
   return safe_cref<switch_state_tags::aclMaps>();
 }
 

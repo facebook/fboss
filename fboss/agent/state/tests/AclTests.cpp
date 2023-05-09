@@ -43,10 +43,10 @@ TEST(Acl, applyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   auto aclEntry = make_shared<AclEntry>(0, std::string("acl0"));
-  auto multiSwitchAcls = stateV0->getMultiSwitchAcls()->modify(&stateV0);
-  multiSwitchAcls->addNode(aclEntry, scope());
-  auto MultiSwitchAclMap = stateV0->getMultiSwitchAcls();
-  auto aclV0 = MultiSwitchAclMap->getNodeIf("acl0");
+  auto aclsV0 = stateV0->getAcls()->modify(&stateV0);
+  aclsV0->addNode(aclEntry, scope());
+  auto aclsV1 = stateV0->getAcls();
+  auto aclV0 = aclsV1->getNodeIf("acl0");
   EXPECT_EQ(0, aclV0->getGeneration());
   EXPECT_FALSE(aclV0->isPublished());
   EXPECT_EQ(0, aclV0->getPriority());
@@ -133,8 +133,8 @@ TEST(Acl, applyConfig) {
 
   auto stateV3 = publishAndApplyConfig(stateV2, &configV1, platform.get());
   EXPECT_NE(nullptr, stateV3);
-  auto acls = stateV3->getMultiSwitchAcls();
-  validateThriftMapMapSerialization(*stateV3->getMultiSwitchAcls());
+  auto acls = stateV3->getAcls();
+  validateThriftMapMapSerialization(*stateV3->getAcls());
   auto aclV3 = stateV3->getAcl("acl3");
   ASSERT_NE(nullptr, aclV3);
   EXPECT_NE(aclV0, aclV3);
@@ -340,29 +340,29 @@ TEST(Acl, Icmp) {
 
 TEST(Acl, aclModifyUnpublished) {
   auto state = make_shared<SwitchState>();
-  auto mulitSwitchAclMap = state->getMultiSwitchAcls();
-  EXPECT_EQ(mulitSwitchAclMap.get(), mulitSwitchAclMap->modify(&state));
+  auto acls = state->getAcls();
+  EXPECT_EQ(acls.get(), acls->modify(&state));
 }
 
 TEST(Acl, aclModifyPublished) {
   auto state = make_shared<SwitchState>();
   state->publish();
-  auto mulitSwitchAclMap = state->getMultiSwitchAcls();
-  validateThriftMapMapSerialization(*mulitSwitchAclMap);
-  EXPECT_NE(mulitSwitchAclMap.get(), mulitSwitchAclMap->modify(&state));
+  auto acls = state->getAcls();
+  validateThriftMapMapSerialization(*acls);
+  EXPECT_NE(acls.get(), acls->modify(&state));
 }
 
 TEST(Acl, aclEntryModifyUnpublished) {
   auto state = make_shared<SwitchState>();
   auto aclEntry = make_shared<AclEntry>(0, std::string("acl0"));
-  state->getMultiSwitchAcls()->addNode(aclEntry, scope());
+  state->getAcls()->addNode(aclEntry, scope());
   EXPECT_EQ(aclEntry.get(), aclEntry->modify(&state, scope()));
 }
 
 TEST(Acl, aclEntryModifyPublished) {
   auto state = make_shared<SwitchState>();
   auto aclEntry = make_shared<AclEntry>(0, std::string("acl0"));
-  state->getMultiSwitchAcls()->addNode(aclEntry, scope());
+  state->getAcls()->addNode(aclEntry, scope());
   state->publish();
   EXPECT_NE(aclEntry.get(), aclEntry->modify(&state, scope()));
 }
@@ -432,7 +432,7 @@ TEST(Acl, AclGeneration) {
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(stateV1, nullptr);
-  auto acls = stateV1->getMultiSwitchAcls();
+  auto acls = stateV1->getAcls();
   validateThriftMapMapSerialization(*acls);
   EXPECT_NE(acls, nullptr);
   EXPECT_NE(acls->getNodeIf("acl1"), nullptr);
@@ -998,13 +998,11 @@ TEST(Acl, GetRequiredAclTableQualifiers) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  validateThriftMapMapSerialization(*stateV1->getMultiSwitchAcls());
-  auto q0 = stateV1->getMultiSwitchAcls()
-                ->getNodeIf("acl0")
-                ->getRequiredAclTableQualifiers();
-  auto q1 = stateV1->getMultiSwitchAcls()
-                ->getNodeIf("acl1")
-                ->getRequiredAclTableQualifiers();
+  validateThriftMapMapSerialization(*stateV1->getAcls());
+  auto q0 =
+      stateV1->getAcls()->getNodeIf("acl0")->getRequiredAclTableQualifiers();
+  auto q1 =
+      stateV1->getAcls()->getNodeIf("acl1")->getRequiredAclTableQualifiers();
 
   std::set<cfg::AclTableQualifier> qualifiers0{
       cfg::AclTableQualifier::SRC_IPV4,

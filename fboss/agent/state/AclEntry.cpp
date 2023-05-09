@@ -173,7 +173,7 @@ AclEntry* AclEntry::modify(
     return this;
   }
 
-  MultiSwitchAclMap* acls = (*state)->getMultiSwitchAcls()->modify(state);
+  MultiSwitchAclMap* acls = (*state)->getAcls()->modify(state);
   auto newEntry = clone();
   auto* ptr = newEntry.get();
   acls->updateNode(std::move(newEntry), matcher);

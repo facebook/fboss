@@ -2830,7 +2830,7 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
       changed = true;
     }
   } else {
-    if (numExistingProcessed != orig_->getMultiSwitchAcls()->numNodes()) {
+    if (numExistingProcessed != orig_->getAcls()->numNodes()) {
       // Some existing ACLs were removed (single acl table implementation).
       changed = true;
     }
@@ -2869,7 +2869,7 @@ std::shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
     }
   } else { // single acl table implementation
     CHECK(!tableName.has_value());
-    origAcl = orig_->getMultiSwitchAcls()->getNodeIf(
+    origAcl = orig_->getAcls()->getNodeIf(
         *acl.name()); // orig_ empty in coldboot, or comes from
                       // follydynamic in warmboot
   }

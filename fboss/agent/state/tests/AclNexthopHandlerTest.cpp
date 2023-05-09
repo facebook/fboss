@@ -206,8 +206,8 @@ class AclNexthopHandlerTest : public ::testing::Test {
     action.setRedirectToNextHop(redirectToNextHop);
     aclEntry->setAclAction(action);
     auto newState = state->isPublished() ? state->clone() : state;
-    auto MultiSwitchAclMap = newState->getMultiSwitchAcls()->modify(&newState);
-    MultiSwitchAclMap->addNode(aclEntry, scope());
+    auto acls = newState->getAcls()->modify(&newState);
+    acls->addNode(aclEntry, scope());
     return newState;
   }
 
@@ -236,7 +236,7 @@ class AclNexthopHandlerTest : public ::testing::Test {
       const RouteNextHopSet& expectedNexthops) {
     auto verifyResolvedNexthops = [&]() {
       auto state = sw_->getState();
-      auto aclEntry = state->getMultiSwitchAcls()->getNodeIf(aclName);
+      auto aclEntry = state->getAcls()->getNodeIf(aclName);
       EXPECT_NE(aclEntry, nullptr);
       const auto& action = aclEntry->getAclAction();
       auto matchAction = MatchAction::fromThrift(action->toThrift());
@@ -281,7 +281,7 @@ TYPED_TEST(AclNexthopHandlerTest, UnresolvedAclNextHop) {
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto aclEntry = state->getMultiSwitchAcls()->getNode(kAclName);
+    auto aclEntry = state->getAcls()->getNode(kAclName);
     EXPECT_NE(aclEntry, nullptr);
     auto action = aclEntry->getAclAction();
     auto resolvedNexthopSet = util::toRouteNextHopSet(

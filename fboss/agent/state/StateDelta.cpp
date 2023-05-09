@@ -123,14 +123,14 @@ AclMapDelta StateDelta::getAclsDelta(
     }
   } else {
     // Single ACL Table support
-    auto oldMultiSwitchAcls = old_->getMultiSwitchAcls();
+    auto oldMultiSwitchAcls = old_->getAcls();
     oldAcls.reset(new PrioAclMap());
     for (const auto& iter : std::as_const(*oldMultiSwitchAcls)) {
       if (iter.second) {
         oldAcls->addAcls(iter.second);
       }
     }
-    auto newMultiSwitchAcls = new_->getMultiSwitchAcls();
+    auto newMultiSwitchAcls = new_->getAcls();
     newAcls.reset(new PrioAclMap());
     for (const auto& iter : std::as_const(*newMultiSwitchAcls)) {
       if (iter.second) {

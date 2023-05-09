@@ -82,7 +82,7 @@ class BcmAclNexthopTest : public BcmTest {
 
   void updateAcl(std::string name, RouteNextHopSet nexthops) {
     auto newState = getProgrammedState()->clone();
-    auto origAclEntry = newState->getMultiSwitchAcls()->getNodeIf(name);
+    auto origAclEntry = newState->getAcls()->getNodeIf(name);
     auto newAclEntry = origAclEntry->modify(&newState, scope());
     // THRIFT_COPY
     MatchAction action =
@@ -156,8 +156,7 @@ TEST_F(BcmAclNexthopTest, AddAclWithRedirect) {
   };
 
   auto verify = [=]() {
-    const auto& acl =
-        getProgrammedState()->getMultiSwitchAcls()->getNodeIf(kAclName);
+    const auto& acl = getProgrammedState()->getAcls()->getNodeIf(kAclName);
     verifyAclEntryProgramming(acl, nexthops);
   };
 
@@ -174,8 +173,7 @@ TEST_F(BcmAclNexthopTest, NoResolvedNexthops) {
   };
 
   auto verify = [=]() {
-    const auto& acl =
-        getProgrammedState()->getMultiSwitchAcls()->getNodeIf(kAclName);
+    const auto& acl = getProgrammedState()->getAcls()->getNodeIf(kAclName);
     verifyAclEntryProgramming(acl, nexthops);
   };
 
@@ -208,8 +206,7 @@ TEST_F(BcmAclNexthopTest, AddAclWithRedirectV6) {
     updateAcl(kAclName, nexthops);
   };
   auto verify = [=]() {
-    const auto& acl =
-        getProgrammedState()->getMultiSwitchAcls()->getNodeIf(kAclName);
+    const auto& acl = getProgrammedState()->getAcls()->getNodeIf(kAclName);
     verifyAclEntryProgramming(acl, nexthops);
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -225,8 +222,7 @@ TEST_F(BcmAclNexthopTest, NoResolvedNexthopsV6) {
   };
 
   auto verify = [=]() {
-    const auto& acl =
-        getProgrammedState()->getMultiSwitchAcls()->getNodeIf(kAclName);
+    const auto& acl = getProgrammedState()->getAcls()->getNodeIf(kAclName);
     verifyAclEntryProgramming(acl, nexthops);
   };
 

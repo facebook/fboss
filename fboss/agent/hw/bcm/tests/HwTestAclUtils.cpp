@@ -60,7 +60,7 @@ void checkSwHwAclMatch(
     const std::optional<std::string>& /*aclTableName*/) {
   auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
 
-  auto swAcl = state->getMultiSwitchAcls()->getNodeIf(aclName);
+  auto swAcl = state->getAcls()->getNodeIf(aclName);
   ASSERT_NE(nullptr, swAcl);
   auto hwAcl = bcmSwitch->getAclTable()->getAclIf(swAcl->getPriority());
   ASSERT_NE(nullptr, hwAcl);
@@ -102,7 +102,7 @@ bool isQualifierPresent(
     const std::string& aclName) {
   auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
 
-  auto swAcl = state->getMultiSwitchAcls()->getNodeIf(aclName);
+  auto swAcl = state->getAcls()->getNodeIf(aclName);
   auto hwAcl = bcmSwitch->getAclTable()->getAclIf(swAcl->getPriority());
 
   bcm_field_IpFrag_t hwValueIpFrag{};

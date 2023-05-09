@@ -328,7 +328,7 @@ TEST_F(MirrorTest, AclMirror) {
   configureAcl("acl0");
   configureAclMirror("acl0", "mirror0");
   publishWithStateUpdate();
-  auto entry = state_->getMultiSwitchAcls()->getNodeIf("acl0");
+  auto entry = state_->getAcls()->getNodeIf("acl0");
   EXPECT_NE(entry, nullptr);
   auto action = entry->getAclAction();
   ASSERT_EQ(action != nullptr, true);
@@ -438,7 +438,7 @@ TEST_F(MirrorTest, AddAclAndPortToMirror) {
   }
 
   for (int i = 0; i < 2; i++) {
-    auto entry = state_->getMultiSwitchAcls()->getNodeIf(acls[i]);
+    auto entry = state_->getAcls()->getNodeIf(acls[i]);
     EXPECT_NE(entry, nullptr);
     auto action = entry->getAclAction();
     ASSERT_EQ(action != nullptr, true);
@@ -483,7 +483,7 @@ TEST_F(MirrorTest, DeleleteAclAndPortToMirror) {
   publishWithStateUpdate();
 
   for (int i = 0; i < 2; i++) {
-    auto entry = state_->getMultiSwitchAcls()->getNodeIf(acls[i]);
+    auto entry = state_->getAcls()->getNodeIf(acls[i]);
     if (i) {
       EXPECT_EQ(entry, nullptr);
       auto port = state_->getPorts()->getPortIf(ports[i]);

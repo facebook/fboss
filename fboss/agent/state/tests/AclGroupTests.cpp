@@ -99,8 +99,7 @@ void verifyMultiAclSerialization(
   auto thriftStateBack = SwitchState::fromThrift(thriftyIntr);
   if (!enableMultiAcl) {
     EXPECT_EQ(
-        state.getMultiSwitchAcls()->toThrift(),
-        thriftStateBack->getMultiSwitchAcls()->toThrift());
+        state.getAcls()->toThrift(), thriftStateBack->getAcls()->toThrift());
   } else {
     EXPECT_EQ(
         state.cref<switch_state_tags::aclTableGroupMaps>()->toThrift(),
@@ -447,11 +446,9 @@ TEST(AclGroup, SerializeMultiSwitchAclTableGroupMap) {
   verifyMultiAclSerialization(state, true);
 
   auto thriftConvertedState = thriftMultiAclSerializeDeserialize(state, true);
-  auto thriftConvertedMultiSwitchAcls =
-      thriftConvertedState->getMultiSwitchAcls();
-  CHECK_NE(thriftConvertedMultiSwitchAcls->size(), 0);
-  auto thriftConvertedMap = thriftConvertedMultiSwitchAcls->begin()->second;
-  verifyAclHelper(thriftConvertedMap, entry1, entry2, entry3);
+  auto thriftConvertedAcls = thriftConvertedState->getAcls();
+  CHECK_NE(thriftConvertedAcls->numNodes(), 0);
+  verifyAclHelper(thriftConvertedAcls, entry1, entry2, entry3);
 }
 
 TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {

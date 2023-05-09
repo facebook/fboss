@@ -1013,9 +1013,8 @@ void ThriftHandler::getL2Table(std::vector<L2EntryThrift>& l2Table) {
 void ThriftHandler::getAclTable(std::vector<AclEntryThrift>& aclTable) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  aclTable.reserve(sw_->getState()->getMultiSwitchAcls()->numNodes());
-  for (const auto& mIter :
-       std::as_const(*(sw_->getState()->getMultiSwitchAcls()))) {
+  aclTable.reserve(sw_->getState()->getAcls()->numNodes());
+  for (const auto& mIter : std::as_const(*(sw_->getState()->getAcls()))) {
     for (const auto& iter : std::as_const(*mIter.second)) {
       const auto& aclEntry = iter.second;
       aclTable.push_back(populateAclEntryThrift(*aclEntry));
