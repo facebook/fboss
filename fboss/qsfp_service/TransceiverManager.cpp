@@ -205,9 +205,7 @@ const std::set<std::string> TransceiverManager::getPortNames(
   auto it = portGroupMap_.find(tcvrId);
   if (it != portGroupMap_.end() && !it->second.empty()) {
     for (const auto& port : it->second) {
-      if (auto portName = port.name()) {
-        ports.insert(*portName);
-      }
+      ports.insert(*port.mapping()->name());
     }
   }
   return ports;

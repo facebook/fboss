@@ -69,12 +69,11 @@ WedgeManager::~WedgeManager() {
 }
 
 void WedgeManager::loadConfig() {
-  agentConfig_ = AgentConfig::fromDefaultFile();
-
-  // Process agent config info here.
-  for (const auto& port : *agentConfig_->thrift.sw()->ports()) {
+  const auto& platformPorts = platformMapping_->getPlatformPorts();
+  for (const auto& it : platformPorts) {
+    auto port = it.second;
     // Get the transceiver id based on the port info from config.
-    auto portId = *port.logicalID();
+    auto portId = *port.mapping()->id();
     auto transceiverId = getTransceiverID(PortID(portId));
     if (!transceiverId) {
       XLOG(ERR) << "Did not find transceiver id for port id " << portId;
@@ -83,15 +82,13 @@ void WedgeManager::loadConfig() {
     // Add the port to the transceiver indexed port group.
     auto portGroupIt = portGroupMap_.find(transceiverId.value());
     if (portGroupIt == portGroupMap_.end()) {
-      portGroupMap_[transceiverId.value()] = std::set<cfg::Port>{port};
+      portGroupMap_[transceiverId.value()] =
+          std::set<cfg::PlatformPortEntry>{port};
     } else {
       portGroupIt->second.insert(port);
     }
-    std::string portName = "";
-    if (auto name = port.name()) {
-      portName = *name;
-      portNameToModule_[portName] = transceiverId.value();
-    }
+    std::string portName = *port.mapping()->name();
+    portNameToModule_[portName] = transceiverId.value();
     XLOG(INFO) << "Added port " << portName << " with portId " << portId
                << " to transceiver " << transceiverId.value();
   }
@@ -134,6 +131,8 @@ void WedgeManager::initTransceiverMap() {
   // Also try to load the config file here so that we have transceiver to port
   // mapping and port name recognization.
   loadConfig();
+
+  agentConfig_ = AgentConfig::fromDefaultFile();
 
   // Set overrideTcvrToPortAndProfileForTest_ if
   // FLAGS_override_program_iphy_ports_for_test true.

@@ -11,6 +11,7 @@
 #pragma once
 
 #include <boost/bimap.hpp>
+#include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
@@ -38,7 +39,7 @@ DECLARE_bool(can_qsfp_service_warm_boot);
 namespace facebook::fboss {
 class TransceiverManager {
   using PortNameMap = std::map<std::string, int32_t>;
-  using PortGroups = std::map<int32_t, std::set<cfg::Port>>;
+  using PortGroups = std::map<int32_t, std::set<cfg::PlatformPortEntry>>;
   using PortNameIdMap = boost::bimap<std::string, PortID>;
 
  public:
