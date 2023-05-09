@@ -11,9 +11,16 @@ namespace facebook::fboss {
 HwAsicTable::HwAsicTable(
     const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo) {
   for (const auto& switchIdAndSwitchInfo : switchIdToSwitchInfo) {
-    folly::MacAddress mac = switchIdAndSwitchInfo.second.switchMac()
-        ? folly::MacAddress(*switchIdAndSwitchInfo.second.switchMac())
-        : getLocalMacAddress();
+    folly::MacAddress mac;
+    if (switchIdAndSwitchInfo.second.switchMac()) {
+      mac = folly::MacAddress(*switchIdAndSwitchInfo.second.switchMac());
+    } else {
+      try {
+        mac = getLocalMacAddress();
+      } catch (const std::exception& e) {
+        // Expected when fake bcm tests run without config
+      }
+    }
     hwAsics_.emplace(
         SwitchID(switchIdAndSwitchInfo.first),
         HwAsic::makeAsic(
