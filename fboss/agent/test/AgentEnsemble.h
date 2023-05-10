@@ -11,6 +11,7 @@
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/Main.h"
 
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
@@ -152,6 +153,8 @@ class AgentEnsemble : public TestEnsembleIf {
   void setLoopbackMode(cfg::PortLoopbackMode mode) {
     mode_ = mode;
   }
+
+  const SwitchIdScopeResolver& scopeResolver() const;
 
  private:
   void writeConfig(const cfg::SwitchConfig& config);

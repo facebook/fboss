@@ -78,7 +78,7 @@ BENCHMARK(HwTeFlowStatsCollection) {
   auto flowEntries = utility::makeFlowEntries(
       dstIpStart, nextHopAddr, ifName, ports[0], numEntries);
   state = ensemble->getSw()->getState();
-  utility::addFlowEntries(&state, flowEntries);
+  utility::addFlowEntries(&state, flowEntries, ensemble->scopeResolver());
   ensemble->applyNewState(state, true /* rollback on fail */);
   CHECK_EQ(utility::getNumTeFlowEntries(hwSwitch), numEntries);
   // Measure stats collection time for 9K entries

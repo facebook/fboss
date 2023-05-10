@@ -2312,11 +2312,11 @@ void BcmSwitch::processTeFlowChanges(
   if (!discardedFlows.empty()) {
     SwitchState::modify(appliedState);
     XLOG(DBG2) << "Discarded Teflows size : " << discardedFlows.size();
-    auto newFlowTable = delta.newState()->getTeFlowTable();
-    auto oldFlowTable = delta.oldState()->getTeFlowTable();
+    auto newFlowTable = delta.newState()->getMultiSwitchTeFlowTable();
+    auto oldFlowTable = delta.oldState()->getMultiSwitchTeFlowTable();
     for (const auto& flow : discardedFlows) {
-      auto oldEntry = oldFlowTable->getTeFlowIf(flow);
-      auto newEntry = newFlowTable->getTeFlowIf(flow);
+      auto oldEntry = oldFlowTable->getNodeIf(getTeFlowStr(flow));
+      auto newEntry = newFlowTable->getNodeIf(getTeFlowStr(flow));
       SwitchState::revertNewTeFlowEntry(newEntry, oldEntry, appliedState);
     }
   }

@@ -74,13 +74,13 @@ void teFlowAddDelEntriesBenchmarkHelper(bool measureAdd) {
       makeFlowEntries(dstIpStart, nextHopAddr, ifName, ports[0], numEntries);
   if (measureAdd) {
     state = ensemble->getSw()->getState();
-    utility::addFlowEntries(&state, flowEntries);
+    utility::addFlowEntries(&state, flowEntries, ensemble->scopeResolver());
     suspender.dismiss();
     state = ensemble->applyNewState(state, true /* rollback on fail */);
     suspender.rehire();
   } else {
     state = ensemble->getSw()->getState();
-    utility::addFlowEntries(&state, flowEntries);
+    utility::addFlowEntries(&state, flowEntries, ensemble->scopeResolver());
     state = ensemble->applyNewState(state, true /* rollback on fail */);
     CHECK_EQ(utility::getNumTeFlowEntries(hwSwitch), numEntries);
     utility::deleteFlowEntries(&state, flowEntries);

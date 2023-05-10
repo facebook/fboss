@@ -60,7 +60,8 @@ void checkSwHwTeFlowMatch(
     std::shared_ptr<SwitchState> state,
     TeFlow flow) {
   const auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
-  auto flowEntry = state->getTeFlowTable()->getTeFlowIf(flow);
+  auto flowEntry =
+      state->getMultiSwitchTeFlowTable()->getNodeIf(getTeFlowStr(flow));
   int gid = bcmSwitch->getPlatform()->getAsic()->getDefaultTeFlowGroupID();
 
   auto hwTeFlows = bcmSwitch->getTeFlowTable()->getTeFlowIf(flowEntry);

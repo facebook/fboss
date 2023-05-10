@@ -61,7 +61,8 @@ void addFlowEntries(
     std::vector<std::shared_ptr<TeFlowEntry>>& flowEntries);
 void addFlowEntries(
     std::shared_ptr<SwitchState>* state,
-    std::vector<std::shared_ptr<TeFlowEntry>>& flowEntries);
+    std::vector<std::shared_ptr<TeFlowEntry>>& flowEntries,
+    const SwitchIdScopeResolver& resolver);
 
 void deleteFlowEntry(
     HwSwitchEnsemble* hwEnsemble,
