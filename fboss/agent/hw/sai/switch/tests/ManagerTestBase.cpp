@@ -100,6 +100,7 @@ void ManagerTestBase::setupSaiPlatform() {
     }
   }
 
+  HwSwitchMatcher scope(std::unordered_set<SwitchID>({SwitchID(0)}));
   if (setupStage & SetupStage::PORT) {
     auto* ports = setupState->getPorts()->modify(&setupState);
     for (const auto& testInterface : testInterfaces) {
@@ -114,8 +115,7 @@ void ManagerTestBase::setupSaiPlatform() {
     for (const auto& testInterface : testInterfaces) {
       auto swPort =
           makeSystemPort(std::nullopt, kSysPortOffset + testInterface.id);
-      ports->addNode(
-          swPort, HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)})));
+      ports->addNode(swPort, scope);
     }
   }
   if (setupStage & SetupStage::VLAN) {
@@ -126,14 +126,15 @@ void ManagerTestBase::setupSaiPlatform() {
     }
   }
   if (setupStage & SetupStage::INTERFACE) {
-    auto* interfaces = setupState->getInterfaces()->modify(&setupState);
+    auto* interfaces =
+        setupState->getMultiSwitchInterfaces()->modify(&setupState);
     for (const auto& testInterface : testInterfaces) {
       auto swInterface = makeInterface(testInterface);
-      interfaces->addInterface(swInterface);
+      interfaces->addNode(swInterface, scope);
       if (setupStage & SetupStage::SYSTEM_PORT) {
         auto swPortInterface =
             makeInterface(testInterface, cfg::InterfaceType::SYSTEM_PORT);
-        interfaces->addInterface(swPortInterface);
+        interfaces->addNode(swPortInterface, scope);
       }
     }
   }
