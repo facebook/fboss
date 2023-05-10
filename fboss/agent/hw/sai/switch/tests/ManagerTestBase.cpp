@@ -77,6 +77,20 @@ void ManagerTestBase::setupSaiPlatform() {
   saiStore = saiSwitch->getSaiStore();
   saiManagerTable = saiSwitch->managerTable();
 
+  std::map<int64_t, cfg::SwitchInfo> switchId2SwitchInfo{};
+  cfg::SwitchInfo switchInfo{};
+  cfg::Range64 portIdRange;
+  portIdRange.minimum() =
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN();
+  portIdRange.maximum() =
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
+  switchInfo.portIdRange() = portIdRange;
+  switchInfo.switchIndex() = 0;
+  // defaulting to NPU
+  switchInfo.switchType() = cfg::SwitchType::NPU;
+  switchInfo.asicType() = saiPlatform->getAsic()->getAsicType();
+  switchId2SwitchInfo.emplace(SwitchID(0), switchInfo);
+  resolver = std::make_unique<SwitchIdScopeResolver>(switchId2SwitchInfo);
   auto setupState = ret.switchState->clone();
   for (int i = 0; i < testInterfaces.size(); ++i) {
     if (i == 0) {
@@ -580,4 +594,8 @@ void ManagerTestBase::applyNewState(
   programmedState->publish();
 }
 
+const SwitchIdScopeResolver& ManagerTestBase::scopeResolver() const {
+  CHECK(resolver);
+  return *resolver;
+}
 } // namespace facebook::fboss

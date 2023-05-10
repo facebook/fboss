@@ -32,6 +32,7 @@ add_executable(switch_test
 )
 
 target_link_libraries(switch_test
+    switchid_scope_resolver
     sai_platform
     sai_store
     sai_switch
@@ -48,6 +49,7 @@ add_library(manager_test_base
 
 target_link_libraries(manager_test_base
   core
+  switchid_scope_resolver
   sai_store
   sai_switch
   fake_sai
