@@ -553,6 +553,8 @@ shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
         std::make_pair(0, createSwitchInfo(switchType)));
   }
   state->getSwitchSettings()->setSwitchIdToSwitchInfo(switchIdToSwitchInfo);
+  HwSwitchMatcher matcher{std::unordered_set<SwitchID>(
+      {SwitchID(switchIdToSwitchInfo.begin()->first)})};
 
   // Add VLAN 1, and ports 1-10 which belong to it.
   auto vlan1 = make_shared<Vlan>(VlanID(1), std::string("Vlan1"));
@@ -593,7 +595,8 @@ shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
   addrs1.emplace(IPAddress("fe80::"), 64); // link local
 
   intf1->setAddresses(addrs1);
-  state->addIntf(intf1);
+  auto allIntfs = state->getMultiSwitchInterfaces()->modify(&state);
+  allIntfs->addNode(intf1, matcher);
   vlan1->setInterfaceID(InterfaceID(1));
 
   // Add Interface 55 to VLAN 55
@@ -611,7 +614,7 @@ shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
   addrs55.emplace(IPAddress("192.168.55.1"), 24);
   addrs55.emplace(IPAddress("2401:db00:2110:3055::0001"), 64);
   intf55->setAddresses(addrs55);
-  state->addIntf(intf55);
+  allIntfs->addNode(intf55, matcher);
   vlan55->setInterfaceID(InterfaceID(55));
 
   return state;
@@ -670,7 +673,9 @@ shared_ptr<SwitchState> testStateB() {
   addrs1.emplace(IPAddress("192.168.0.1"), 24);
   addrs1.emplace(IPAddress("2401:db00:2110:3001::0001"), 64);
   intf1->setAddresses(addrs1);
-  state->addIntf(intf1);
+  auto allIntfs = state->getMultiSwitchInterfaces()->modify(&state);
+  allIntfs->addNode(
+      intf1, HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)})));
   vlan1->setInterfaceID(InterfaceID(1));
   return state;
 }

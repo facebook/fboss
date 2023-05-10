@@ -198,16 +198,6 @@ void SwitchState::addVlan(const std::shared_ptr<Vlan>& vlan) {
   getDefaultMap<switch_state_tags::vlanMaps>()->addVlan(vlan);
 }
 
-void SwitchState::addIntf(const std::shared_ptr<Interface>& intf) {
-  if (getInterfaces()->isPublished()) {
-    // For ease-of-use, automatically clone the InterfaceMap if we are still
-    // pointing to a published map.
-    auto intfs = getInterfaces()->clone();
-    resetIntfs(intfs);
-  }
-  getDefaultMap<switch_state_tags::interfaceMaps>()->addInterface(intf);
-}
-
 void SwitchState::resetIntfs(const std::shared_ptr<InterfaceMap>& intfs) {
   resetDefaultMap<switch_state_tags::interfaceMaps>(intfs);
 }

@@ -66,7 +66,9 @@ unique_ptr<SwSwitch> setupSwitch() {
     addrs1.emplace(IPAddress("10.0.0.1"), 24);
     addrs1.emplace(IPAddress("192.168.0.1"), 24);
     intf1->setAddresses(addrs1);
-    state->addIntf(intf1);
+    auto allIntfs = state->getMultiSwitchInterfaces()->modify(&state);
+    allIntfs->addNode(
+        intf1, HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)})));
 
     // Set up an arp response table for VLAN 1 with entries for
     // 10.0.0.1 and 192.168.0.1
