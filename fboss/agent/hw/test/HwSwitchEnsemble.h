@@ -13,6 +13,7 @@
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/L2Entry.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
@@ -244,6 +245,8 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       const int totalLinkCount);
 
   virtual bool isSai() const = 0;
+
+  SwitchIdScopeResolver scopeResolver() const;
 
  protected:
   /*

@@ -702,4 +702,9 @@ void HwSwitchEnsemble::clearPfcWatchdogCounter(
   }
 }
 
+SwitchIdScopeResolver HwSwitchEnsemble::scopeResolver() const {
+  CHECK(getProgrammedState());
+  return SwitchIdScopeResolver(
+      getProgrammedState()->getSwitchSettings()->getSwitchIdToSwitchInfo());
+}
 } // namespace facebook::fboss
