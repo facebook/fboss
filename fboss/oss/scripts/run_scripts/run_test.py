@@ -54,6 +54,7 @@ OPT_ARG_MGT_IF = "--mgmt-if"
 OPT_ARG_SAI_BIN = "--sai-bin"
 OPT_ARG_FRUID_PATH = "--fruid-path"
 OPT_ARG_SIMULATOR = "--simulator"
+OPT_ARG_SAI_LOGGING = "--sai_logging"
 SUB_CMD_BCM = "bcm"
 SUB_CMD_SAI = "sai"
 WARMBOOT_CHECK_FILE = "/dev/shm/fboss/warm_boot/can_warm_boot_0"
@@ -83,6 +84,10 @@ class TestRunner(abc.ABC):
 
     @abc.abstractmethod
     def _get_sdk_logging_flags(self):
+        pass
+
+    @abc.abstractmethod
+    def _get_sai_logging_flags(self):
         pass
 
     def _get_test_run_cmd(self, conf_file, test_to_run, flags):
@@ -208,7 +213,13 @@ class TestRunner(abc.ABC):
             print("Failed to restart bcmsim service", flush=True)
 
     def _run_test(
-        self, conf_file, test_to_run, setup_warmboot, warmrun, sdk_logging_dir
+        self,
+        conf_file,
+        test_to_run,
+        setup_warmboot,
+        warmrun,
+        sdk_logging_dir,
+        sai_logging,
     ):
         flags = [self.WARMBOOT_SETUP_OPTION] if setup_warmboot else []
         test_prefix = self.WARMBOOT_PREFIX if warmrun else self.COLDBOOT_PREFIX
@@ -217,6 +228,8 @@ class TestRunner(abc.ABC):
             flags = flags + self._get_sdk_logging_flags(
                 sdk_logging_dir, test_prefix, test_to_run
             )
+
+        flags += self._get_sai_logging_flags(sai_logging)
 
         try:
             print(
@@ -298,7 +311,12 @@ class TestRunner(abc.ABC):
             if args.simulator:
                 self._restart_bcmsim(args.simulator)
             test_output = self._run_test(
-                conf_file, test_to_run, warmboot, False, args.sdk_logging
+                conf_file,
+                test_to_run,
+                warmboot,
+                False,
+                args.sdk_logging,
+                args.sai_logging,
             )
             output = test_output.decode("utf-8")
             print(
@@ -314,7 +332,12 @@ class TestRunner(abc.ABC):
                     flush=True,
                 )
                 test_output = self._run_test(
-                    conf_file, test_to_run, False, True, args.sdk_logging
+                    conf_file,
+                    test_to_run,
+                    False,
+                    True,
+                    args.sdk_logging,
+                    args.sai_logging,
                 )
                 output = test_output.decode("utf-8")
                 print(
@@ -396,6 +419,10 @@ class BcmTestRunner(TestRunner):
         # TODO
         return []
 
+    def _get_sai_logging_flags(self):
+        # N/A
+        return []
+
 
 class SaiTestRunner(TestRunner):
     def _get_config_path(self):
@@ -416,6 +443,9 @@ class SaiTestRunner(TestRunner):
                 "replayer-log-" + test_prefix + test_to_run.replace("/", "-"),
             ),
         ]
+
+    def _get_sai_logging_flags(self, sai_logging):
+        return ["--enable_sai_log", sai_logging]
 
 
 if __name__ == "__main__":
@@ -516,6 +546,12 @@ if __name__ == "__main__":
             "Specify what asic simulator to use if configured. "
             "Default is None, meaning physical asic is used"
         ),
+    )
+    ap.add_argument(
+        OPT_ARG_SAI_LOGGING,
+        type=str,
+        default="WARN",
+        help=("Enable SAI logging (Options: DEBUG|INFO|NOTICE|WARN|ERROR|CRITICAL)"),
     )
 
     # Add subparsers for different test types
