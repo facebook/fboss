@@ -1,0 +1,32 @@
+{
+  "defaultCommandLineArgs": {
+    "mode": "meru400bfu"
+  },
+  "transceiverConfigOverrides": [
+    
+  ],
+  "qsfpTestConfig": {
+    "cabledPortPairs": [
+      {
+        "aPortName": "fab1/11/2",
+        "zPortName": "fab1/14/2",
+        "profileID": 36
+      },
+      {
+        "aPortName": "fab1/11/4",
+        "zPortName": "fab1/14/4",
+        "profileID": 36
+      },
+      {
+        "aPortName": "fab1/15/2",
+        "zPortName": "fab1/18/2",
+        "profileID": 37
+      },
+      {
+        "aPortName": "fab1/15/4",
+        "zPortName": "fab1/18/4",
+        "profileID": 37
+      }
+    ]
+  }
+}
