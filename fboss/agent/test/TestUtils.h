@@ -242,27 +242,6 @@ cfg::SwitchConfig testConfigA(
 cfg::SwitchConfig testConfigAWithLookupClasses();
 
 /*
- * Create a SwitchState for testing.
- *
- * Profile B:
- *   - 10 ports, 1 VLAN, 1 interface
- *   - Ports 1-10 are in VLAN 1
- *   - Interface 1:
- *     - VLAN 1
- *     - MAC 00:02:00:00:00:01
- *     - IPs:
- *       10.0.0.1/24
- *       192.168.0.1/24
- *       2401:db00:2110:3001::0001/64
- */
-std::shared_ptr<SwitchState> testStateB();
-
-/*
- * Same as testStateA but with all ports
- * enabled and up
- */
-std::shared_ptr<SwitchState> testStateBWithPortsUp();
-/*
  * Convenience macro that wraps EXPECT_CALL() on the underlying MockHwSwitch
  */
 #define EXPECT_HW_CALL(sw, method) EXPECT_CALL(*getMockHw(sw), method)

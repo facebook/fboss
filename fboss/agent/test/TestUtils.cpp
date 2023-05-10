@@ -646,44 +646,6 @@ shared_ptr<SwitchState> testStateAWithoutIpv4VlanIntf(VlanID vlanId) {
   return removeVlanIPv4Address(testStateA(), vlanId);
 }
 
-shared_ptr<SwitchState> testStateB() {
-  // Setup a default state object
-  auto state = make_shared<SwitchState>();
-
-  // Add VLAN 1, and ports 1-9 which belong to it.
-  auto vlan1 = make_shared<Vlan>(VlanID(1), std::string("Vlan1"));
-  state->addVlan(vlan1);
-  for (int idx = 1; idx <= 10; ++idx) {
-    state->registerPort(PortID(idx), folly::to<string>("port", idx));
-    vlan1->addPort(PortID(idx), false);
-  }
-
-  // Add Interface 1 to VLAN 1
-  auto intf1 = make_shared<Interface>(
-      InterfaceID(1),
-      RouterID(0),
-      std::optional<VlanID>(1),
-      folly::StringPiece("fboss1"),
-      MacAddress("00:02:00:00:00:01"),
-      9000,
-      false, /* is virtual */
-      false /* is state_sync disabled */);
-  Interface::Addresses addrs1;
-  addrs1.emplace(IPAddress("10.0.0.1"), 24);
-  addrs1.emplace(IPAddress("192.168.0.1"), 24);
-  addrs1.emplace(IPAddress("2401:db00:2110:3001::0001"), 64);
-  intf1->setAddresses(addrs1);
-  auto allIntfs = state->getMultiSwitchInterfaces()->modify(&state);
-  allIntfs->addNode(
-      intf1, HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)})));
-  vlan1->setInterfaceID(InterfaceID(1));
-  return state;
-}
-
-shared_ptr<SwitchState> testStateBWithPortsUp() {
-  return bringAllPortsUp(testStateB());
-}
-
 std::string fbossHexDump(const IOBuf* buf) {
   Cursor cursor(buf);
   size_t length = cursor.totalLength();
