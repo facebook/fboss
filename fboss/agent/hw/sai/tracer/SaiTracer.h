@@ -37,8 +37,12 @@ DECLARE_bool(enable_get_attr_log);
 using PrimitiveFunction = std::string (*)(const sai_attribute_t*, int);
 using AttributeFunction =
     void (*)(const sai_attribute_t*, int, std::vector<std::string>&);
-using ListFunction =
-    void (*)(const sai_attribute_t*, int, uint32_t, std::vector<std::string>&);
+using ListFunction = void (*)(
+    const sai_attribute_t*,
+    int,
+    uint32_t,
+    std::vector<std::string>&,
+    bool);
 
 #define TYPE_INDEX(type) std::type_index(typeid(type)).hash_code()
 
@@ -139,7 +143,8 @@ class SaiTracer {
       sai_object_id_t get_object_id,
       uint32_t attr_count,
       const sai_attribute_t* attr,
-      sai_object_type_t object_type);
+      sai_object_type_t object_type,
+      sai_status_t rv);
 
   void logSetAttrFn(
       const std::string& fn_name,
@@ -287,7 +292,8 @@ class SaiTracer {
   std::vector<std::string> setAttrList(
       const sai_attribute_t* attr_list,
       uint32_t attr_count,
-      sai_object_type_t object_type);
+      sai_object_type_t object_type,
+      sai_status_t rv = 0);
 
   std::string createFnCall(
       const std::string& fn_name,
@@ -529,7 +535,8 @@ class SaiTracer {
   void set##obj_type##Attributes(                \
       const sai_attribute_t* attr_list,          \
       uint32_t attr_count,                       \
-      std::vector<std::string>& attrLines);
+      std::vector<std::string>& attrLines,       \
+      sai_status_t rv);
 
 #define WRAP_CREATE_FUNC(obj_type, sai_obj_type, api_type)                 \
   sai_status_t wrap_create_##obj_type(                                     \
@@ -601,7 +608,8 @@ class SaiTracer {
           obj_type##_id,                                                     \
           attr_count,                                                        \
           attr_list,                                                         \
-          sai_obj_type);                                                     \
+          sai_obj_type,                                                      \
+          rv);                                                               \
       SaiTracer::getInstance()->logPostInvocation(rv, obj_type##_id, begin); \
       return rv;                                                             \
     }                                                                        \
@@ -722,7 +730,8 @@ class SaiTracer {
   void set##obj_type##Attributes(                                            \
       const sai_attribute_t* attr_list,                                      \
       uint32_t attr_count,                                                   \
-      std::vector<std::string>& attrLines) {                                 \
+      std::vector<std::string>& attrLines,                                   \
+      sai_status_t rv) {                                                     \
     uint32_t listCount = 0;                                                  \
                                                                              \
     for (int i = 0; i < attr_count; ++i) {                                   \
@@ -748,7 +757,8 @@ class SaiTracer {
         auto listFuncMatch =                                                 \
             SaiTracer::getInstance()->listFuncMap_.find(typeIndex);          \
         if (listFuncMatch != SaiTracer::getInstance()->listFuncMap_.end()) { \
-          (*listFuncMatch->second)(attr_list, i, listCount++, attrLines);    \
+          (*listFuncMatch->second)(                                          \
+              attr_list, i, listCount++, attrLines, rv == 0);                \
           continue;                                                          \
         }                                                                    \
       }
