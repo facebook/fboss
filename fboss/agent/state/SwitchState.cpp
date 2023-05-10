@@ -224,6 +224,11 @@ const std::shared_ptr<InterfaceMap>& SwitchState::getRemoteInterfaces() const {
   return getDefaultMap<switch_state_tags::remoteInterfaceMaps>();
 }
 
+const std::shared_ptr<MultiSwitchInterfaceMap>&
+SwitchState::getMultiSwitchRemoteInterfaces() const {
+  return safe_cref<switch_state_tags::remoteInterfaceMaps>();
+}
+
 const std::shared_ptr<MultiSwitchSystemPortMap>&
 SwitchState::getRemoteSystemPorts() const {
   return safe_cref<switch_state_tags::remoteSystemPortMaps>();
