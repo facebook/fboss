@@ -2114,23 +2114,20 @@ bool SwSwitch::sendArpRequestHelper(
     folly::IPAddressV4 source,
     folly::IPAddressV4 target) {
   bool sent = false;
-  auto vlanID = intf->getVlanID();
-  auto vlan = state->getVlans()->getVlanIf(vlanID);
-  if (vlan) {
-    auto entry = vlan->getArpTable()->getEntryIf(target);
-    if (entry == nullptr) {
-      // No entry in ARP table, send ARP request
-      auto mac = intf->getMac();
-      ArpHandler::sendArpRequest(this, vlanID, mac, source, target);
+  auto entry = getNeighborEntryForIP<ArpEntry>(state, intf, target);
+  if (entry == nullptr) {
+    // No entry in ARP table, send ARP request
+    ArpHandler::sendArpRequest(
+        this, intf->getVlanIDIf(), intf->getMac(), source, target);
 
-      // Notify the updater that we sent an arp request
-      getNeighborUpdater()->sentArpRequest(vlanID, target);
-      sent = true;
-    } else {
-      XLOG(DBG4) << "not sending arp for " << target.str() << ", "
-                 << ((entry->isPending()) ? "pending " : "")
-                 << "entry already exists";
-    }
+    // Notify the updater that we sent an arp request
+    getNeighborUpdater()->sentArpRequest(
+        getVlanIDHelper(intf->getVlanIDIf()), target);
+    sent = true;
+  } else {
+    XLOG(DBG5) << "not sending arp for " << target.str() << ", "
+               << ((entry->isPending()) ? "pending " : "")
+               << "entry already exists";
   }
 
   return sent;
