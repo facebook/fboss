@@ -426,6 +426,8 @@ struct InterfaceFields {
   11: switch_config.InterfaceType type = switch_config.InterfaceType.VLAN;
   12: NeighborEntries arpTable;
   13: NeighborEntries ndpTable;
+  14: map<string, NeighborResponseEntryFields> arpResponseTable;
+  15: map<string, NeighborResponseEntryFields> ndpResponseTable;
 }
 
 enum LacpState {
