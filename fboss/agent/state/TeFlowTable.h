@@ -4,6 +4,7 @@
 
 #include <string>
 
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/state/TeFlowEntry.h"
@@ -65,6 +66,7 @@ class TeFlowTable : public ThriftMapNode<TeFlowTable, TeFlowTableThriftTraits> {
 class TeFlowSyncer {
  public:
   std::shared_ptr<SwitchState> programFlowEntries(
+      const HwSwitchMatcher& matcher,
       const std::shared_ptr<SwitchState>& state,
       const std::vector<FlowEntry>& addTeFlows,
       const std::vector<TeFlow>& delTeFlows,
@@ -76,10 +78,12 @@ class TeFlowSyncer {
       const FlowEntry& flowEntry,
       const int& dstIpPrefixLength);
   std::shared_ptr<SwitchState> addDelTeFlows(
+      const HwSwitchMatcher& matcher,
       const std::shared_ptr<SwitchState>& state,
       const std::vector<FlowEntry>& entriesToAdd,
       const std::vector<TeFlow>& entriesToDel);
   std::shared_ptr<SwitchState> syncTeFlows(
+      const HwSwitchMatcher& matcher,
       const std::shared_ptr<SwitchState>& state,
       const std::vector<FlowEntry>& flowEntries);
 };

@@ -213,8 +213,12 @@ void addSyncFlowEntries(
     bool addSync) {
   auto newState = hwEnsemble->getProgrammedState();
   TeFlowSyncer teFlowSyncer;
-  newState =
-      teFlowSyncer.programFlowEntries(newState, *flowEntries, {}, addSync);
+  newState = teFlowSyncer.programFlowEntries(
+      hwEnsemble->scopeResolver().scope(std::shared_ptr<TeFlowEntry>()),
+      newState,
+      *flowEntries,
+      {},
+      addSync);
   hwEnsemble->applyNewState(newState);
 }
 
@@ -223,7 +227,12 @@ void deleteFlowEntries(
     std::shared_ptr<std::vector<TeFlow>>& teFlows) {
   auto newState = hwEnsemble->getProgrammedState();
   TeFlowSyncer teFlowSyncer;
-  newState = teFlowSyncer.programFlowEntries(newState, {}, *teFlows, false);
+  newState = teFlowSyncer.programFlowEntries(
+      hwEnsemble->scopeResolver().scope(std::shared_ptr<TeFlowEntry>()),
+      newState,
+      {},
+      *teFlows,
+      false);
   hwEnsemble->applyNewState(newState);
 }
 

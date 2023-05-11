@@ -334,8 +334,8 @@ TEST_F(TeFlowTest, addRemoveTeFlow) {
   auto flowEntry = makeFlow("100::1");
   teFlowEntries->emplace_back(flowEntry);
   updateState("add te flow", [&](const auto& state) {
-    auto newState =
-        teFlowSyncer.programFlowEntries(state, *teFlowEntries, {}, false);
+    auto newState = teFlowSyncer.programFlowEntries(
+        scope(), state, *teFlowEntries, {}, false);
     return newState;
   });
   state = sw_->getState();
@@ -366,8 +366,8 @@ TEST_F(TeFlowTest, addRemoveTeFlow) {
   auto newFlowEntries = std::make_unique<std::vector<FlowEntry>>();
   newFlowEntries->emplace_back(flowEntry2);
   updateState("modify te flow", [&](const auto& state) {
-    auto newState =
-        teFlowSyncer.programFlowEntries(state, *newFlowEntries, {}, false);
+    auto newState = teFlowSyncer.programFlowEntries(
+        scope(), state, *newFlowEntries, {}, false);
     return newState;
   });
   state = sw_->getState();
@@ -377,7 +377,8 @@ TEST_F(TeFlowTest, addRemoveTeFlow) {
   auto teFlows = std::make_unique<std::vector<TeFlow>>();
   teFlows->emplace_back(*flowEntry.flow());
   updateState("delete te flow", [&](const auto& state) {
-    auto newState = teFlowSyncer.programFlowEntries(state, {}, *teFlows, false);
+    auto newState =
+        teFlowSyncer.programFlowEntries(scope(), state, {}, *teFlows, false);
     return newState;
   });
   state = sw_->getState();
@@ -392,8 +393,8 @@ TEST_F(TeFlowTest, addRemoveTeFlow) {
     bulkEntries->emplace_back(makeFlow(prefix));
   }
   updateState("bulk add te flow", [&](const auto& state) {
-    auto newState =
-        teFlowSyncer.programFlowEntries(state, *bulkEntries, {}, false);
+    auto newState = teFlowSyncer.programFlowEntries(
+        scope(), state, *bulkEntries, {}, false);
     return newState;
   });
   state = sw_->getState();
@@ -410,8 +411,8 @@ TEST_F(TeFlowTest, addRemoveTeFlow) {
     deletionFlows->emplace_back(flow);
   }
   updateState("bulk delete te flow", [&](const auto& state) {
-    auto newState =
-        teFlowSyncer.programFlowEntries(state, {}, *deletionFlows, false);
+    auto newState = teFlowSyncer.programFlowEntries(
+        scope(), state, {}, *deletionFlows, false);
     return newState;
   });
   state = sw_->getState();
@@ -471,8 +472,8 @@ TEST_F(TeFlowTest, syncTeFlows) {
   }
   // sync teflow
   updateState("sync te flow", [&](const auto& state) {
-    auto newState =
-        teFlowSyncer.programFlowEntries(state, *syncFlowEntries, {}, true);
+    auto newState = teFlowSyncer.programFlowEntries(
+        scope(), state, *syncFlowEntries, {}, true);
     return newState;
   });
 
@@ -506,8 +507,8 @@ TEST_F(TeFlowTest, syncTeFlows) {
     syncFlowEntries2->emplace_back(flowEntry);
   }
   updateState("sync same te flow", [&](const auto& state) {
-    auto newState =
-        teFlowSyncer.programFlowEntries(state, *syncFlowEntries2, {}, true);
+    auto newState = teFlowSyncer.programFlowEntries(
+        scope(), state, *syncFlowEntries2, {}, true);
     return newState;
   });
   state = sw_->getState();
@@ -525,8 +526,8 @@ TEST_F(TeFlowTest, syncTeFlows) {
   updateEntries->emplace_back(flowEntry1);
   updateEntries->emplace_back(flowEntry2);
   updateState("sync te flow for update", [&](const auto& state) {
-    auto newState =
-        teFlowSyncer.programFlowEntries(state, *updateEntries, {}, true);
+    auto newState = teFlowSyncer.programFlowEntries(
+        scope(), state, *updateEntries, {}, true);
     return newState;
   });
   state = sw_->getState();
@@ -538,8 +539,8 @@ TEST_F(TeFlowTest, syncTeFlows) {
   // sync flows with no entries
   auto nullFlowEntries = std::make_unique<std::vector<FlowEntry>>();
   updateState("sync null flow", [&](const auto& state) {
-    auto newState =
-        teFlowSyncer.programFlowEntries(state, *nullFlowEntries, {}, true);
+    auto newState = teFlowSyncer.programFlowEntries(
+        scope(), state, *nullFlowEntries, {}, true);
     return newState;
   });
   state = sw_->getState();

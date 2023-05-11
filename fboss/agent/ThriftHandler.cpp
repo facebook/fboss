@@ -2757,7 +2757,12 @@ void ThriftHandler::addTeFlows(
   auto updateFn = [=, teFlows = std::move(*teFlowEntries)](
                       const std::shared_ptr<SwitchState>& state) {
     TeFlowSyncer teFlowSyncer;
-    auto newState = teFlowSyncer.programFlowEntries(state, teFlows, {}, false);
+    auto newState = teFlowSyncer.programFlowEntries(
+        sw_->getScopeResolver()->scope(std::shared_ptr<TeFlowEntry>()),
+        state,
+        teFlows,
+        {},
+        false);
     if (!sw_->isValidStateUpdate(StateDelta(state, newState))) {
       throw FbossError("Invalid TE flow entries");
     }
@@ -2777,7 +2782,12 @@ void ThriftHandler::deleteTeFlows(
   auto updateFn = [=, flows = std::move(*teFlows)](
                       const std::shared_ptr<SwitchState>& state) {
     TeFlowSyncer teFlowSyncer;
-    auto newState = teFlowSyncer.programFlowEntries(state, {}, flows, false);
+    auto newState = teFlowSyncer.programFlowEntries(
+        sw_->getScopeResolver()->scope(std::shared_ptr<TeFlowEntry>()),
+        state,
+        {},
+        flows,
+        false);
     return newState;
   };
   sw_->updateStateBlocking("deleteTeFlows", updateFn);
@@ -2791,7 +2801,12 @@ void ThriftHandler::syncTeFlows(
                       const std::shared_ptr<SwitchState>& state)
       -> shared_ptr<SwitchState> {
     TeFlowSyncer teFlowSyncer;
-    auto newState = teFlowSyncer.programFlowEntries(state, teFlows, {}, true);
+    auto newState = teFlowSyncer.programFlowEntries(
+        sw_->getScopeResolver()->scope(std::shared_ptr<TeFlowEntry>()),
+        state,
+        teFlows,
+        {},
+        true);
     if (state == newState) {
       return nullptr;
     }
