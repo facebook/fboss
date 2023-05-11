@@ -48,6 +48,14 @@ HwAsic* HwAsicTable::getHwAsicIf(SwitchID switchID) {
   return getHwAsicIfImpl(switchID);
 }
 
+const HwAsic* HwAsicTable::getHwAsic(SwitchID switchID) const {
+  auto asic = getHwAsicIfImpl(switchID);
+  if (!asic) {
+    throw FbossError("Unable to find asic for switch ID: ", switchID);
+  }
+  return asic;
+}
+
 bool HwAsicTable::isFeatureSupported(SwitchID switchId, HwAsic::Feature feature)
     const {
   auto asic = getHwAsicIf(switchId);

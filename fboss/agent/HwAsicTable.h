@@ -14,6 +14,7 @@ class HwAsicTable {
       const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo);
   const HwAsic* getHwAsicIf(SwitchID switchID) const;
   HwAsic* getHwAsicIf(SwitchID switchID);
+  const HwAsic* getHwAsic(SwitchID switchID) const;
   bool isFeatureSupported(SwitchID switchId, HwAsic::Feature feature) const;
   bool isFeatureSupportedOnAnyAsic(HwAsic::Feature feature) const;
   std::vector<std::string> asicNames() const;
