@@ -381,4 +381,20 @@ void NeighborUpdaterImpl::updateNdpEntryClassID(
   cache->updateEntryClassID(ip, classID);
 }
 
+void NeighborUpdaterImpl::updateArpEntryClassIDForIntf(
+    InterfaceID intfID,
+    folly::IPAddressV4 ip,
+    std::optional<cfg::AclLookupClass> classID = std::nullopt) {
+  auto cache = getArpCacheForIntf(intfID);
+  cache->updateEntryClassID(ip, classID);
+}
+
+void NeighborUpdaterImpl::updateNdpEntryClassIDForIntf(
+    InterfaceID intfID,
+    folly::IPAddressV6 ip,
+    std::optional<cfg::AclLookupClass> classID = std::nullopt) {
+  auto cache = getNdpCacheForIntf(intfID);
+  cache->updateEntryClassID(ip, classID);
+}
+
 } // namespace facebook::fboss

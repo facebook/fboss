@@ -67,8 +67,12 @@ NEIGHBOR_UPDATER_METHOD(private, interfaceRemoved, void, InterfaceID, intfID)
 NEIGHBOR_UPDATER_METHOD(private, timeoutsChanged, void, std::chrono::seconds, arpTimeout, std::chrono::seconds, ndpTimeout, std::chrono::seconds, staleEntryInterval, uint32_t, maxNeighborProbes)
 
 // Lookup class updaters
+// TODO(skhare) Remove after completely migrating to intfCaches_
 NEIGHBOR_UPDATER_METHOD(private, updateArpEntryClassID, void, VlanID, vlan, folly::IPAddressV4, ip, std::optional<cfg::AclLookupClass>, classID);
 NEIGHBOR_UPDATER_METHOD(private, updateNdpEntryClassID, void, VlanID, vlan, folly::IPAddressV6, ip, std::optional<cfg::AclLookupClass>, classID);
+
+NEIGHBOR_UPDATER_METHOD(private, updateArpEntryClassIDForIntf, void, InterfaceID, intfID, folly::IPAddressV4, ip, std::optional<cfg::AclLookupClass>, classID);
+NEIGHBOR_UPDATER_METHOD(private, updateNdpEntryClassIDForIntf, void, InterfaceID, intfID, folly::IPAddressV6, ip, std::optional<cfg::AclLookupClass>, classID);
 
 #undef ARG_LIST
 #undef GET_MACRO
