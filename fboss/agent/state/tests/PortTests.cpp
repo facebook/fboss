@@ -45,6 +45,10 @@ void prepareDefaultSwPort(Platform* platform, shared_ptr<Port> port) {
   port->resetPinConfigs(
       platform->getPlatformMapping()->getPortIphyPinConfigs(matcher));
 }
+
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
 } // namespace
 
 // Test to validate isAnyInterfacePortInLoopbackMode
@@ -1075,4 +1079,25 @@ TEST(Port, portDrainState) {
     auto newerPort = std::make_shared<Port>(newPort->toThrift());
     EXPECT_EQ(newerPort->getPortDrainState(), cfg::PortDrainState::DRAINED);
   }
+}
+
+TEST(Port, portModifyUnpublished) {
+  auto state = make_shared<SwitchState>();
+  state::PortFields portFields;
+  portFields.portId() = PortID(42);
+  portFields.portName() = "test_port";
+  auto port = std::make_shared<Port>(std::move(portFields));
+  state->getMultiSwitchPorts()->addNode(port, scope());
+  EXPECT_EQ(port.get(), port->modify(&state, scope()));
+}
+
+TEST(Port, portModifyPublished) {
+  auto state = make_shared<SwitchState>();
+  state::PortFields portFields;
+  portFields.portId() = PortID(42);
+  portFields.portName() = "test_port";
+  auto port = std::make_shared<Port>(std::move(portFields));
+  state->getMultiSwitchPorts()->addNode(port, scope());
+  state->publish();
+  EXPECT_NE(port.get(), port->modify(&state, scope()));
 }

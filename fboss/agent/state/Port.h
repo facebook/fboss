@@ -583,6 +583,9 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
   }
 
   Port* modify(std::shared_ptr<SwitchState>* state);
+  Port* modify(
+      std::shared_ptr<SwitchState>* state,
+      const HwSwitchMatcher& matcher);
 
   void fillPhyInfo(phy::PhyInfo* phyInfo);
 

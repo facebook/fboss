@@ -70,6 +70,21 @@ Port* Port::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
+Port* Port::modify(
+    std::shared_ptr<SwitchState>* state,
+    const HwSwitchMatcher& matcher) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  MultiSwitchPortMap* ports = (*state)->getMultiSwitchPorts()->modify(state);
+  auto newPort = clone();
+  auto* ptr = newPort.get();
+  ports->updateNode(std::move(newPort), matcher);
+  return ptr;
+}
+
 Port::Port(PortID id, const std::string& name) {
   set<switch_state_tags::portId>(id);
   set<switch_state_tags::portName>(name);
