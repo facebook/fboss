@@ -17,6 +17,8 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/state/ArpResponseTable.h"
+#include "fboss/agent/state/NdpResponseTable.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
@@ -36,6 +38,14 @@ class SwitchState;
 class Interface;
 RESOLVE_STRUCT_MEMBER(Interface, switch_state_tags::arpTable, ArpTable)
 RESOLVE_STRUCT_MEMBER(Interface, switch_state_tags::ndpTable, NdpTable)
+RESOLVE_STRUCT_MEMBER(
+    Interface,
+    switch_state_tags::arpResponseTable,
+    ArpResponseTable)
+RESOLVE_STRUCT_MEMBER(
+    Interface,
+    switch_state_tags::ndpResponseTable,
+    NdpResponseTable)
 
 /*
  * Interface stores a routing domain on the switch
@@ -191,6 +201,20 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
       return setArpTable(std::move(nbrTable));
     }
     return setNdpTable(std::move(nbrTable));
+  }
+
+  const std::shared_ptr<ArpResponseTable> getArpResponseTable() const {
+    return get<switch_state_tags::arpResponseTable>();
+  }
+  void setArpResponseTable(std::shared_ptr<ArpResponseTable> table) {
+    ref<switch_state_tags::arpResponseTable>() = std::move(table);
+  }
+
+  const std::shared_ptr<NdpResponseTable> getNdpResponseTable() const {
+    return get<switch_state_tags::ndpResponseTable>();
+  }
+  void setNdpResponseTable(std::shared_ptr<NdpResponseTable> table) {
+    ref<switch_state_tags::ndpResponseTable>() = std::move(table);
   }
 
   auto getAddresses() const {
