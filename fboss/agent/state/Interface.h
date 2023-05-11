@@ -189,6 +189,9 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
     return getNdpTable();
   }
 
+  template <typename NTable>
+  inline const std::shared_ptr<NTable> getNeighborTable() const;
+
   void setArpTable(state::NeighborEntries arpTable) {
     set<switch_state_tags::arpTable>(std::move(arpTable));
   }
@@ -331,5 +334,10 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
   using Base::Base;
   friend class CloneAllocator;
 };
+
+template <typename NTable>
+inline const std::shared_ptr<NTable> Interface::getNeighborTable() const {
+  return this->template getNeighborEntryTable<typename NTable::AddressType>();
+}
 
 } // namespace facebook::fboss
