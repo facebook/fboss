@@ -16,19 +16,6 @@ std::shared_ptr<TeFlowEntry> TeFlowEntry::createTeFlowEntry(
   return teFlowEntry;
 }
 
-TeFlowEntry* TeFlowEntry::modify(std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
-  }
-
-  TeFlowTable* table = (*state)->getTeFlowTable()->modify(state);
-  auto newEntry = clone();
-  auto* ptr = newEntry.get();
-  table->updateNode(std::move(newEntry));
-  return ptr;
-}
-
 std::string TeFlowEntry::getID() const {
   return getTeFlowStr(getFlow()->toThrift());
 }

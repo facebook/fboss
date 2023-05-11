@@ -428,10 +428,6 @@ void SwitchState::resetTeFlowTable(
   ref<switch_state_tags::teFlowTables>() = flowTable;
 }
 
-const std::shared_ptr<TeFlowTable> SwitchState::getTeFlowTable() const {
-  return cref<switch_state_tags::teFlowTables>()->getFirstMap();
-}
-
 const std::shared_ptr<MultiTeFlowTable>&
 SwitchState::getMultiSwitchTeFlowTable() const {
   return safe_cref<switch_state_tags::teFlowTables>();
@@ -557,11 +553,14 @@ void SwitchState::revertNewTeFlowEntry(
     const std::shared_ptr<TeFlowEntry>& oldTeFlowEntry,
     std::shared_ptr<SwitchState>* appliedState) {
   auto clonedTeFlowTable =
-      (*appliedState)->getTeFlowTable()->modify(appliedState);
+      (*appliedState)->getMultiSwitchTeFlowTable()->modify(appliedState);
   if (oldTeFlowEntry) {
-    clonedTeFlowTable->updateNode(oldTeFlowEntry);
+    auto [node, matcher] =
+        clonedTeFlowTable->getNodeAndScope(oldTeFlowEntry->getID());
+    DCHECK_EQ(node.get(), oldTeFlowEntry.get());
+    clonedTeFlowTable->updateNode(oldTeFlowEntry, matcher);
   } else {
-    clonedTeFlowTable->removeNode(newTeFlowEntry);
+    clonedTeFlowTable->removeNode(newTeFlowEntry->getID());
   }
 }
 
