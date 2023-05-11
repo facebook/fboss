@@ -382,6 +382,9 @@ class ThriftConfigApplier {
       const shared_ptr<Interface>& orig,
       const cfg::Interface* config,
       const Interface::Addresses& addrs);
+  bool updateNeighborResponseTablesForIntfs(
+      Interface* intf,
+      const Interface::Addresses& addrs);
   std::string getInterfaceName(const cfg::Interface* config);
   folly::MacAddress getInterfaceMac(const cfg::Interface* config);
   Interface::Addresses getInterfaceAddresses(const cfg::Interface* config);
@@ -3248,6 +3251,7 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
       *config->isVirtual(),
       *config->isStateSyncDisabled(),
       *config->type());
+  updateNeighborResponseTablesForIntfs(intf.get(), addrs);
   intf->setAddresses(addrs);
   if (auto ndp = config->ndp()) {
     if (ndp->routerAddress() &&
@@ -3301,7 +3305,50 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   newIntf->setMtu(mtu);
   newIntf->setIsVirtual(*config->isVirtual());
   newIntf->setIsStateSyncDisabled(*config->isStateSyncDisabled());
+  updateNeighborResponseTablesForIntfs(newIntf.get(), addrs);
   return newIntf;
+}
+
+bool ThriftConfigApplier::updateNeighborResponseTablesForIntfs(
+    Interface* intf,
+    const Interface::Addresses& addrs) {
+  auto arpChanged = false, ndpChanged = false;
+  auto origArp = intf->getArpResponseTable();
+  auto origNdp = intf->getNdpResponseTable();
+  ArpResponseTable::NodeContainer arpTable;
+  NdpResponseTable::NodeContainer ndpTable;
+
+  auto mac = intf->getMac();
+  auto intfID = intf->getID();
+
+  for (const auto& [ip, mask] : addrs) {
+    if (ip.isV4()) {
+      auto origNode = origArp->getEntry(ip.asV4());
+      auto newNode = updateNeighborResponseEntry(
+          origNode,
+          ip.asV4(),
+          ThriftConfigApplier::InterfaceIpInfo{mask, mac, intfID});
+      arpChanged |= updateMap(&arpTable, origNode, newNode);
+    } else {
+      auto origNode = origNdp->getEntry(ip.asV6());
+      auto newNode = updateNeighborResponseEntry(
+          origNode,
+          ip.asV6(),
+          ThriftConfigApplier::InterfaceIpInfo{mask, mac, intfID});
+      ndpChanged |= updateMap(&ndpTable, origNode, newNode);
+    }
+  }
+
+  arpChanged |= origArp->size() != arpTable.size();
+  ndpChanged |= origNdp->size() != ndpTable.size();
+
+  if (arpChanged) {
+    intf->setArpResponseTable(origArp->clone(std::move(arpTable)));
+  }
+  if (ndpChanged) {
+    intf->setNdpResponseTable(origNdp->clone(std::move(ndpTable)));
+  }
+  return arpChanged || ndpChanged;
 }
 
 shared_ptr<SflowCollectorMap> ThriftConfigApplier::updateSflowCollectors() {
