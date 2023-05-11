@@ -84,7 +84,7 @@ class InterfaceMap : public ThriftMapNode<InterfaceMap, InterfaceMapTraits> {
 
   /*
    *  Get interface which has the given vlan. If multiple
-   *  interfaces exist, this will return the default interface.
+   *  interfaces exist, this will return the first interface.
    */
   std::shared_ptr<Interface> getInterfaceInVlanIf(VlanID vlan) const;
 
