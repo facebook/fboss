@@ -100,6 +100,8 @@ class MultiSwitchPortMap : public ThriftMultiSwitchMapNode<
       ThriftMultiSwitchMapNode<MultiSwitchPortMap, MultiSwitchPortMapTraits>;
   using BaseT::modify;
 
+  MultiSwitchPortMap* modify(std::shared_ptr<SwitchState>* state);
+
   MultiSwitchPortMap() {}
   virtual ~MultiSwitchPortMap() {}
 

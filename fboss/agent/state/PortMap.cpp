@@ -66,6 +66,11 @@ std::shared_ptr<Port> PortMap::getPortIf(const std::string& name) const {
   return nullptr;
 }
 
+MultiSwitchPortMap* MultiSwitchPortMap::modify(
+    std::shared_ptr<SwitchState>* state) {
+  return SwitchState::modify<switch_state_tags::portMaps>(state);
+}
+
 template class ThriftMapNode<PortMap, PortMapTraits>;
 
 } // namespace facebook::fboss

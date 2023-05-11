@@ -1040,6 +1040,8 @@ template MultiSwitchSystemPortMap* SwitchState::modify<
     switch_state_tags::systemPortMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchSystemPortMap* SwitchState::modify<
     switch_state_tags::remoteSystemPortMaps>(std::shared_ptr<SwitchState>*);
+template MultiSwitchPortMap* SwitchState::modify<switch_state_tags::portMaps>(
+    std::shared_ptr<SwitchState>*);
 
 template class ThriftStructNode<SwitchState, state::SwitchState>;
 
