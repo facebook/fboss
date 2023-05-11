@@ -93,7 +93,11 @@ class NeighborUpdaterImpl {
   NeighborUpdaterImpl(NeighborUpdaterImpl const&) = delete;
   NeighborUpdaterImpl& operator=(NeighborUpdaterImpl const&) = delete;
 
+  // TODO(skhare) Remove after completely migrating to intfCaches_
   boost::container::flat_map<VlanID, std::shared_ptr<NeighborCaches>> caches_;
+
+  boost::container::flat_map<InterfaceID, std::shared_ptr<NeighborCaches>>
+      intfCaches_;
 
   SwSwitch* sw_{nullptr};
 
