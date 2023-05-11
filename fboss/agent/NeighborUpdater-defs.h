@@ -48,8 +48,12 @@ NEIGHBOR_UPDATER_METHOD(public, receivedArpNotMine, void, VlanID, vlan, folly::I
 NEIGHBOR_UPDATER_METHOD(public, portDown, void, PortDescriptor, port)
 NEIGHBOR_UPDATER_METHOD(public, portFlushEntries, void, PortDescriptor, port)
 
+// TODO(skhare) Remove after completely migrating to intfCaches_
 NEIGHBOR_UPDATER_METHOD_NO_ARGS(public, getArpCacheData, std::list<ArpEntryThrift>)
 NEIGHBOR_UPDATER_METHOD_NO_ARGS(public, getNdpCacheData, std::list<NdpEntryThrift>)
+
+NEIGHBOR_UPDATER_METHOD_NO_ARGS(public, getArpCacheDataForIntf, std::list<ArpEntryThrift>)
+NEIGHBOR_UPDATER_METHOD_NO_ARGS(public, getNdpCacheDataForIntf, std::list<NdpEntryThrift>)
 
 // State update helpers
 // TODO(skhare) Remove after completely migrating to intfCaches_

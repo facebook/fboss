@@ -104,6 +104,22 @@ std::list<NdpEntryThrift> NeighborUpdaterImpl::getNdpCacheData() {
   return entries;
 }
 
+std::list<ArpEntryThrift> NeighborUpdaterImpl::getArpCacheDataForIntf() {
+  std::list<ArpEntryThrift> entries;
+  for (auto it = intfCaches_.begin(); it != intfCaches_.end(); ++it) {
+    entries.splice(entries.end(), it->second->arpCache->getArpCacheData());
+  }
+  return entries;
+}
+
+std::list<NdpEntryThrift> NeighborUpdaterImpl::getNdpCacheDataForIntf() {
+  std::list<NdpEntryThrift> entries;
+  for (auto it = intfCaches_.begin(); it != intfCaches_.end(); ++it) {
+    entries.splice(entries.end(), it->second->ndpCache->getNdpCacheData());
+  }
+  return entries;
+}
+
 shared_ptr<ArpCache> NeighborUpdaterImpl::getArpCacheInternal(VlanID vlan) {
   auto res = caches_.find(vlan);
   if (res == caches_.end()) {
