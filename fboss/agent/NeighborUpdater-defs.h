@@ -52,9 +52,14 @@ NEIGHBOR_UPDATER_METHOD_NO_ARGS(public, getArpCacheData, std::list<ArpEntryThrif
 NEIGHBOR_UPDATER_METHOD_NO_ARGS(public, getNdpCacheData, std::list<NdpEntryThrift>)
 
 // State update helpers
+// TODO(skhare) Remove after completely migrating to intfCaches_
 NEIGHBOR_UPDATER_METHOD(private, vlanAdded, void, VlanID, vlanID, const std::shared_ptr<SwitchState>, state)
 NEIGHBOR_UPDATER_METHOD(private, vlanDeleted, void, VlanID, vlanID)
 NEIGHBOR_UPDATER_METHOD(private, vlanChanged, void, VlanID, vlanID, InterfaceID, intfID, std::string, vlanName)
+
+NEIGHBOR_UPDATER_METHOD(private, interfaceAdded, void, InterfaceID, intfID, const std::shared_ptr<SwitchState>, state)
+NEIGHBOR_UPDATER_METHOD(private, interfaceRemoved, void, InterfaceID, intfID)
+
 NEIGHBOR_UPDATER_METHOD(private, timeoutsChanged, void, std::chrono::seconds, arpTimeout, std::chrono::seconds, ndpTimeout, std::chrono::seconds, staleEntryInterval, uint32_t, maxNeighborProbes)
 
 // Lookup class updaters

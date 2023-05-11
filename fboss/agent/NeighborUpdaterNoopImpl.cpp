@@ -116,4 +116,11 @@ void NeighborUpdaterNoopImpl::updateNdpEntryClassID(
     VlanID /*vlan*/,
     folly::IPAddressV6 /*ip*/,
     std::optional<cfg::AclLookupClass> /*classID*/) {}
+
+void NeighborUpdaterNoopImpl::interfaceAdded(
+    InterfaceID intfID,
+    std::shared_ptr<SwitchState> state) {}
+
+void NeighborUpdaterNoopImpl::interfaceRemoved(InterfaceID intfID) {}
+
 } // namespace facebook::fboss

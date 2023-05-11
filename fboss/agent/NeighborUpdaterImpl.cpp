@@ -313,6 +313,25 @@ void NeighborUpdaterImpl::vlanChanged(
   }
 }
 
+void NeighborUpdaterImpl::interfaceAdded(
+    InterfaceID intfID,
+    std::shared_ptr<SwitchState> state) {
+  auto intf = state->getInterfaces()->getInterface(intfID);
+  intfCaches_.emplace(intfID, createCachesForIntf(state.get(), intf.get()));
+}
+
+void NeighborUpdaterImpl::interfaceRemoved(InterfaceID intfID) {
+  auto iter = intfCaches_.find(intfID);
+  if (iter != intfCaches_.end()) {
+    intfCaches_.erase(iter);
+  } else {
+    // TODO(aeckert): May want to fatal here when a cache doesn't exist for a
+    // specific vlan. Need to make sure that caches are correctly created for
+    // the initial SwitchState to avoid false positives
+    XLOG(DBG0) << "Deleted Vlan with no corresponding NeighborCaches";
+  }
+}
+
 void NeighborUpdaterImpl::timeoutsChanged(
     std::chrono::seconds arpTimeout,
     std::chrono::seconds ndpTimeout,
