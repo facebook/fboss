@@ -178,11 +178,6 @@ inline void NdpCache::checkReachability(
 }
 
 inline void NdpCache::probeFor(folly::IPAddressV6 ip) const {
-  auto vlan = getSw()->getState()->getVlans()->getVlanIf(getVlanID());
-  if (!vlan) {
-    XLOG(DBG2) << "Vlan " << getVlanID() << " not found. Skip sending probe";
-    return;
-  }
   // multicast solicitation
   IPv6Handler::sendMulticastNeighborSolicitation(getSw(), ip);
 }
