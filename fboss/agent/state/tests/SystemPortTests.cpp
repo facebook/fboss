@@ -66,6 +66,18 @@ TEST(SystemPort, AddRemove) {
   EXPECT_NE(state->getSystemPorts()->getNodeIf(SystemPortID(2)), nullptr);
 }
 
+TEST(SystemPort, GetScope) {
+  auto state = std::make_shared<SwitchState>();
+
+  auto sysPort1 = makeSysPort("olympic", 1);
+
+  HwSwitchMatcher scope{std::unordered_set<SwitchID>{SwitchID(0)}};
+  state->getSystemPorts()->addNode(sysPort1, scope);
+  EXPECT_EQ(
+      state->getSystemPorts()->getNodeAndScope(sysPort1->getID()).second,
+      scope);
+}
+
 TEST(SystemPort, Modify) {
   {
     auto state = std::make_shared<SwitchState>();

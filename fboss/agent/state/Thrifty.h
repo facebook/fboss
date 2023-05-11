@@ -483,6 +483,17 @@ struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
     return node;
   }
 
+  std::pair<std::shared_ptr<InnerNode>, HwSwitchMatcher> getNodeAndScope(
+      const typename InnerMap::Traits::KeyType& key) const {
+    for (auto mnitr = this->cbegin(); mnitr != this->cend(); ++mnitr) {
+      auto nitr = mnitr->second->find(key);
+      if (nitr != mnitr->second->cend()) {
+        return std::make_pair(nitr->second, HwSwitchMatcher(mnitr->first));
+      }
+    }
+    throw FbossError("node not found: ", key);
+  }
+
   size_t numNodes() const {
     size_t cnt = 0;
     for (auto mnitr = this->cbegin(); mnitr != this->cend(); ++mnitr) {
