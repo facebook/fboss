@@ -274,7 +274,7 @@ void ArpHandler::sendArpReply(
 
 void ArpHandler::sendArpRequest(
     SwSwitch* sw,
-    VlanID vlanID,
+    std::optional<VlanID> vlanID,
     const MacAddress& srcMac,
     const IPAddressV4& senderIP,
     const IPAddressV4& targetIP) {

@@ -58,7 +58,7 @@ class ArpHandler {
    */
   static void sendArpRequest(
       SwSwitch* sw,
-      VlanID vlan,
+      std::optional<VlanID> vlanID,
       const folly::MacAddress& srcMac,
       const folly::IPAddressV4& senderIP,
       const folly::IPAddressV4& targetIP);
