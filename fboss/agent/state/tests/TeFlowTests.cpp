@@ -147,7 +147,7 @@ TEST_F(TeFlowTest, SerDeserFlowEntry) {
 TEST_F(TeFlowTest, serDeserSwitchState) {
   auto state = this->sw_->getState();
   state->modify(&state);
-  auto flowTable = state->getMultiSwitchTeFlowTable().get()->modify(&state);
+  auto flowTable = state->getTeFlowTable().get()->modify(&state);
   auto flowEntry1 = makeFlow("100::");
   auto flowId1 = makeFlowKey("100::");
   auto teFlowEntry1 = TeFlowEntry::createTeFlowEntry(flowEntry1);
@@ -158,7 +158,7 @@ TEST_F(TeFlowTest, serDeserSwitchState) {
   auto teFlowEntry2 = TeFlowEntry::createTeFlowEntry(flowEntry2);
   teFlowEntry2->resolve(state);
   flowTable->addNode(teFlowEntry2, scope());
-  EXPECT_EQ(state->getMultiSwitchTeFlowTable()->numNodes(), 2);
+  EXPECT_EQ(state->getTeFlowTable()->numNodes(), 2);
   auto serialized = state->toThrift();
   auto stateBack = SwitchState::fromThrift(serialized);
   EXPECT_EQ(state->toThrift(), stateBack->toThrift());
@@ -167,7 +167,7 @@ TEST_F(TeFlowTest, serDeserSwitchState) {
 TEST_F(TeFlowTest, AddDeleteTeFlow) {
   auto state = sw_->getState();
   state->modify(&state);
-  auto flowTable = state->getMultiSwitchTeFlowTable().get()->modify(&state);
+  auto flowTable = state->getTeFlowTable().get()->modify(&state);
   auto flowId = makeFlowKey("100::");
 
   // No NDP entry should result in throw
@@ -203,14 +203,14 @@ TEST_F(TeFlowTest, NextHopResolution) {
 
   updateState("add te flow", [&](const auto& state) {
     auto newState = state->clone();
-    auto flowTable = newState->getMultiSwitchTeFlowTable()->modify(&newState);
+    auto flowTable = newState->getTeFlowTable()->modify(&newState);
     auto teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
     teFlowEntry->resolve(newState);
     flowTable->addNode(teFlowEntry, scope());
     return newState;
   });
-  auto tableEntry = sw_->getState()->getMultiSwitchTeFlowTable()->getNodeIf(
-      getTeFlowStr(flowId));
+  auto tableEntry =
+      sw_->getState()->getTeFlowTable()->getNodeIf(getTeFlowStr(flowId));
   verifyFlowEntry(tableEntry);
 
   // test neighbor removal
@@ -218,8 +218,8 @@ TEST_F(TeFlowTest, NextHopResolution) {
   sw_->getNeighborUpdater()->waitForPendingUpdates();
   waitForBackgroundThread(sw_);
   waitForStateUpdates(sw_);
-  tableEntry = sw_->getState()->getMultiSwitchTeFlowTable()->getNodeIf(
-      getTeFlowStr(flowId));
+  tableEntry =
+      sw_->getState()->getTeFlowTable()->getNodeIf(getTeFlowStr(flowId));
   EXPECT_EQ(tableEntry->getEnabled(), false);
   EXPECT_EQ(tableEntry->getResolvedNextHops()->size(), 0);
 
@@ -234,8 +234,8 @@ TEST_F(TeFlowTest, NextHopResolution) {
   sw_->getNeighborUpdater()->waitForPendingUpdates();
   waitForBackgroundThread(sw_);
   waitForStateUpdates(sw_);
-  tableEntry = sw_->getState()->getMultiSwitchTeFlowTable()->getNodeIf(
-      getTeFlowStr(flowId));
+  tableEntry =
+      sw_->getState()->getTeFlowTable()->getNodeIf(getTeFlowStr(flowId));
   EXPECT_EQ(tableEntry->getEnabled(), true);
   verifyFlowEntry(tableEntry);
 }
@@ -253,7 +253,7 @@ TEST_F(TeFlowTest, TeFlowStats) {
 
   updateState("add te flow", [&](const auto& state) {
     auto newState = state->clone();
-    auto flowTable = newState->getMultiSwitchTeFlowTable()->modify(&newState);
+    auto flowTable = newState->getTeFlowTable()->modify(&newState);
     for (const auto& flowEntry : flowEntries) {
       auto teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
       teFlowEntry->resolve(newState);
@@ -293,7 +293,7 @@ TEST_F(TeFlowTest, TeFlowCounter) {
 
   updateState("add te flows", [&](const auto& state) {
     auto newState = state->clone();
-    auto flowTable = newState->getMultiSwitchTeFlowTable()->modify(&newState);
+    auto flowTable = newState->getTeFlowTable()->modify(&newState);
     for (const auto& flowEntry : flowEntries) {
       auto teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
       teFlowEntry->resolve(newState);
@@ -302,7 +302,7 @@ TEST_F(TeFlowTest, TeFlowCounter) {
     return newState;
   });
 
-  EXPECT_EQ(sw_->getState()->getMultiSwitchTeFlowTable()->numNodes(), 3);
+  EXPECT_EQ(sw_->getState()->getTeFlowTable()->numNodes(), 3);
   int testByteCounterValue = 64;
   auto updateCounter = [&testByteCounterValue](auto counterID) {
     auto counter = std::make_unique<facebook::stats::MonotonicCounter>(
@@ -339,7 +339,7 @@ TEST_F(TeFlowTest, addRemoveTeFlow) {
     return newState;
   });
   state = sw_->getState();
-  auto teFlowTable = state->getMultiSwitchTeFlowTable();
+  auto teFlowTable = state->getTeFlowTable();
   auto verifyEntry = [&teFlowTable](
                          const auto& flow,
                          const auto& nhop,
@@ -371,7 +371,7 @@ TEST_F(TeFlowTest, addRemoveTeFlow) {
     return newState;
   });
   state = sw_->getState();
-  teFlowTable = state->getMultiSwitchTeFlowTable();
+  teFlowTable = state->getTeFlowTable();
   verifyEntry(*flowEntry.flow(), kNhopAddrB, "counter1", "fboss55");
 
   auto teFlows = std::make_unique<std::vector<TeFlow>>();
@@ -382,7 +382,7 @@ TEST_F(TeFlowTest, addRemoveTeFlow) {
     return newState;
   });
   state = sw_->getState();
-  teFlowTable = state->getMultiSwitchTeFlowTable();
+  teFlowTable = state->getTeFlowTable();
   auto tableEntry = teFlowTable->getNodeIf(getTeFlowStr(*flowEntry.flow()));
   EXPECT_EQ(tableEntry, nullptr);
 
@@ -398,7 +398,7 @@ TEST_F(TeFlowTest, addRemoveTeFlow) {
     return newState;
   });
   state = sw_->getState();
-  teFlowTable = state->getMultiSwitchTeFlowTable();
+  teFlowTable = state->getTeFlowTable();
   EXPECT_EQ(teFlowTable->numNodes(), 4);
 
   // bulk delete
@@ -416,7 +416,7 @@ TEST_F(TeFlowTest, addRemoveTeFlow) {
     return newState;
   });
   state = sw_->getState();
-  teFlowTable = state->getMultiSwitchTeFlowTable();
+  teFlowTable = state->getTeFlowTable();
   EXPECT_EQ(teFlowTable->numNodes(), 2);
   for (const auto& prefix : flowsToDelete) {
     TeFlow flow;
@@ -438,7 +438,7 @@ TEST_F(TeFlowTest, syncTeFlows) {
 
   updateState("add te flows", [&](const auto& state) {
     auto newState = state->clone();
-    auto flowTable = newState->getMultiSwitchTeFlowTable()->modify(&newState);
+    auto flowTable = newState->getTeFlowTable()->modify(&newState);
     for (const auto& flowEntry : *flowEntries) {
       auto teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
       teFlowEntry->resolve(newState);
@@ -448,7 +448,7 @@ TEST_F(TeFlowTest, syncTeFlows) {
   });
 
   state = sw_->getState();
-  auto teFlowTable = state->getMultiSwitchTeFlowTable();
+  auto teFlowTable = state->getTeFlowTable();
   EXPECT_EQ(teFlowTable->numNodes(), 4);
 
   // Ensure that all entries are created
@@ -478,7 +478,7 @@ TEST_F(TeFlowTest, syncTeFlows) {
   });
 
   state = sw_->getState();
-  teFlowTable = state->getMultiSwitchTeFlowTable();
+  teFlowTable = state->getTeFlowTable();
   EXPECT_EQ(teFlowTable->numNodes(), 3);
   // Ensure that newly added entries are present
   for (const auto& prefix : syncPrefixes) {
@@ -512,7 +512,7 @@ TEST_F(TeFlowTest, syncTeFlows) {
     return newState;
   });
   state = sw_->getState();
-  auto teFlowTableAfterSync = state->getMultiSwitchTeFlowTable();
+  auto teFlowTableAfterSync = state->getTeFlowTable();
   // Ensure teflow table pointers and contents are same
   EXPECT_EQ(teFlowTable, teFlowTableAfterSync);
   EXPECT_EQ(*teFlowTable, *teFlowTableAfterSync);
@@ -531,7 +531,7 @@ TEST_F(TeFlowTest, syncTeFlows) {
     return newState;
   });
   state = sw_->getState();
-  teFlowTable = state->getMultiSwitchTeFlowTable();
+  teFlowTable = state->getTeFlowTable();
   teflowEntryAfterSync = teFlowTable->getNodeIf(getTeFlowStr(teFlow));
   // Ensure that pointer to entries and contents are different
   EXPECT_NE(teflowEntryBeforeSync, teflowEntryAfterSync);
@@ -544,6 +544,6 @@ TEST_F(TeFlowTest, syncTeFlows) {
     return newState;
   });
   state = sw_->getState();
-  teFlowTable = state->getMultiSwitchTeFlowTable();
+  teFlowTable = state->getTeFlowTable();
   EXPECT_EQ(teFlowTable->numNodes(), 0);
 }

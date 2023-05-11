@@ -153,7 +153,7 @@ void addFlowEntry(
     HwSwitchEnsemble* hwEnsemble,
     std::shared_ptr<TeFlowEntry>& flowEntry) {
   auto state = hwEnsemble->getProgrammedState()->clone();
-  auto teFlows = state->getMultiSwitchTeFlowTable()->modify(&state);
+  auto teFlows = state->getTeFlowTable()->modify(&state);
   teFlows->addNode(flowEntry, hwEnsemble->scopeResolver().scope(flowEntry));
   hwEnsemble->applyNewState(state, true);
 }
@@ -162,7 +162,7 @@ void addFlowEntries(
     HwSwitchEnsemble* hwEnsemble,
     std::vector<std::shared_ptr<TeFlowEntry>>& flowEntries) {
   auto state = hwEnsemble->getProgrammedState()->clone();
-  auto teFlows = state->getMultiSwitchTeFlowTable()->modify(&state);
+  auto teFlows = state->getTeFlowTable()->modify(&state);
   for (auto& flowEntry : flowEntries) {
     teFlows->addNode(flowEntry, hwEnsemble->scopeResolver().scope(flowEntry));
   }
@@ -173,7 +173,7 @@ void addFlowEntries(
     std::shared_ptr<SwitchState>* state,
     std::vector<std::shared_ptr<TeFlowEntry>>& flowEntries,
     const SwitchIdScopeResolver& resolver) {
-  auto teFlows = (*state)->getMultiSwitchTeFlowTable()->modify(state);
+  auto teFlows = (*state)->getTeFlowTable()->modify(state);
   for (auto& flowEntry : flowEntries) {
     teFlows->addNode(flowEntry, resolver.scope(flowEntry));
   }
@@ -182,8 +182,7 @@ void addFlowEntries(
 void deleteFlowEntry(
     HwSwitchEnsemble* hwEnsemble,
     std::shared_ptr<TeFlowEntry>& flowEntry) {
-  auto teFlows =
-      hwEnsemble->getProgrammedState()->getMultiSwitchTeFlowTable()->clone();
+  auto teFlows = hwEnsemble->getProgrammedState()->getTeFlowTable()->clone();
   teFlows->removeNode(flowEntry);
   auto newState = hwEnsemble->getProgrammedState()->clone();
   newState->resetTeFlowTable(teFlows);
@@ -201,7 +200,7 @@ void deleteFlowEntries(
 void deleteFlowEntries(
     std::shared_ptr<SwitchState>* state,
     std::vector<std::shared_ptr<TeFlowEntry>>& flowEntries) {
-  auto teFlows = (*state)->getMultiSwitchTeFlowTable()->modify(state);
+  auto teFlows = (*state)->getTeFlowTable()->modify(state);
   for (auto& flowEntry : flowEntries) {
     teFlows->removeNode(flowEntry);
   }
@@ -244,8 +243,7 @@ void modifyFlowEntry(
     std::string ifName,
     std::string counterID) {
   auto flow = makeFlowKey(dstIp, srcPort);
-  auto teFlows =
-      hwEnsemble->getProgrammedState()->getMultiSwitchTeFlowTable()->clone();
+  auto teFlows = hwEnsemble->getProgrammedState()->getTeFlowTable()->clone();
   auto newFlowEntry = makeFlowEntry(dstIp, nhopAdd, ifName, srcPort, counterID);
   teFlows->updateNode(
       newFlowEntry, hwEnsemble->scopeResolver().scope(newFlowEntry));
@@ -258,8 +256,7 @@ void modifyFlowEntry(
     HwSwitchEnsemble* hwEnsemble,
     std::shared_ptr<TeFlowEntry>& newFlowEntry,
     bool enable) {
-  auto teFlows =
-      hwEnsemble->getProgrammedState()->getMultiSwitchTeFlowTable()->clone();
+  auto teFlows = hwEnsemble->getProgrammedState()->getTeFlowTable()->clone();
   newFlowEntry->setEnabled(enable);
   teFlows->updateNode(
       newFlowEntry, hwEnsemble->scopeResolver().scope(newFlowEntry));

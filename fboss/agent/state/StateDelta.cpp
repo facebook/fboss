@@ -274,8 +274,7 @@ ThriftMapDelta<IpTunnelMap> StateDelta::getIpTunnelsDelta() const {
 MultiSwitchMapDelta<MultiTeFlowTable> StateDelta::getTeFlowEntriesDelta()
     const {
   return MultiSwitchMapDelta<MultiTeFlowTable>(
-      old_->getMultiSwitchTeFlowTable().get(),
-      new_->getMultiSwitchTeFlowTable().get());
+      old_->getTeFlowTable().get(), new_->getTeFlowTable().get());
 }
 
 const fsdb::OperDelta& StateDelta::getOperDelta() const {

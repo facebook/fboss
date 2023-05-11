@@ -38,7 +38,7 @@ TEST_F(ManagerTestBase, checkInvalidL2LearningModeTransition) {
 
 TEST_F(ManagerTestBase, checkTeFlowSupport) {
   auto newState = std::make_shared<SwitchState>();
-  auto newFlowTable = newState->getMultiSwitchTeFlowTable();
+  auto newFlowTable = newState->getTeFlowTable();
   TeFlow flow;
   flow.srcPort() = 42;
   auto entry = std::make_shared<TeFlowEntry>(flow);

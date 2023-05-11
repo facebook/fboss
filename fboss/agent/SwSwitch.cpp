@@ -556,7 +556,7 @@ TeFlowStats SwSwitch::getTeFlowStats() {
   std::map<std::string, HwTeFlowStats> hwTeFlowStats;
   auto statMap = facebook::fb303::fbData->getStatMap();
   for (const auto& [_, teFlowTable] :
-       std::as_const(*getState()->getMultiSwitchTeFlowTable())) {
+       std::as_const(*getState()->getTeFlowTable())) {
     for (const auto& [flowStr, flowEntry] : std::as_const(*teFlowTable)) {
       std::ignore = flowStr;
       if (const auto& counter = flowEntry->getCounterID()) {

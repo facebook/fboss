@@ -107,7 +107,7 @@ std::shared_ptr<SwitchState> TeFlowSyncer::addDelTeFlows(
     const std::vector<FlowEntry>& entriesToAdd,
     const std::vector<TeFlow>& entriesToDel) {
   auto newState = state->clone();
-  auto teFlowTable = newState->getMultiSwitchTeFlowTable()->modify(&newState);
+  auto teFlowTable = newState->getTeFlowTable()->modify(&newState);
   auto numAddFlows = entriesToAdd.size();
   auto numDelFlows = entriesToDel.size();
   int dstIpPrefixLength = 0;
@@ -143,11 +143,11 @@ std::shared_ptr<SwitchState> TeFlowSyncer::syncTeFlows(
     const std::shared_ptr<SwitchState>& state,
     const std::vector<FlowEntry>& flowEntries) {
   auto numFlows = flowEntries.size();
-  auto oldNumFlows = state->getMultiSwitchTeFlowTable()->numNodes();
+  auto oldNumFlows = state->getTeFlowTable()->numNodes();
   auto newState = state->clone();
   auto newTeFlowTable = std::make_shared<MultiTeFlowTable>();
   newState->resetTeFlowTable(newTeFlowTable);
-  auto teFlowTable = state->getMultiSwitchTeFlowTable();
+  auto teFlowTable = state->getTeFlowTable();
   auto dstIpPrefixLength = getDstIpPrefixLength(state);
   bool tableChanged = false;
 

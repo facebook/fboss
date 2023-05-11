@@ -21,7 +21,7 @@ TeFlowNexthopHandler::~TeFlowNexthopHandler() {
   sw_->unregisterStateObserver(this);
 }
 bool TeFlowNexthopHandler::hasTeFlowChanges(const StateDelta& delta) {
-  return (sw_->getState()->getMultiSwitchTeFlowTable()->numNodes() > 0) &&
+  return (sw_->getState()->getTeFlowTable()->numNodes() > 0) &&
       (!isEmpty(delta.getVlansDelta()));
 }
 
@@ -56,8 +56,7 @@ std::shared_ptr<SwitchState> TeFlowNexthopHandler::updateTeFlowEntries(
     const std::shared_ptr<SwitchState>& state) {
   bool changed = false;
   auto newState = state->clone();
-  auto multiTeFlowTable =
-      newState->getMultiSwitchTeFlowTable()->modify(&newState);
+  auto multiTeFlowTable = newState->getTeFlowTable()->modify(&newState);
   for (auto iter = multiTeFlowTable->begin(); iter != multiTeFlowTable->end();
        iter++) {
     auto teFlowTable = iter->second;
