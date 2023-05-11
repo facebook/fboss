@@ -14,9 +14,11 @@ SwitchIdScopeResolver::SwitchIdScopeResolver(
     : switchIdToSwitchInfo_(switchIdToSwitchInfo) {
   auto voqSwitchIds = getSwitchIdsOfType(cfg::SwitchType::VOQ);
   auto npuSwitchIds = getSwitchIdsOfType(cfg::SwitchType::NPU);
-  CHECK(voqSwitchIds.empty() || npuSwitchIds.empty())
-      << " Only one of "
-         "voq, npu switch types can be present in a chassis";
+  if (voqSwitchIds.size() && npuSwitchIds.size()) {
+    throw FbossError(
+        " Only one of "
+        "voq, npu switch types can be present in a chassis");
+  }
   if (voqSwitchIds.size() || npuSwitchIds.size()) {
     l3SwitchMatcher_ = std::make_unique<HwSwitchMatcher>(
         voqSwitchIds.size() ? voqSwitchIds : npuSwitchIds);
@@ -44,21 +46,31 @@ std::unordered_set<SwitchID> SwitchIdScopeResolver::getSwitchIdsOfType(
   return ids;
 }
 
+void SwitchIdScopeResolver::checkL3() const {
+  if (!l3SwitchMatcher_) {
+    throw FbossError(" One or more l3 switchIds must be set to get l3 scope");
+  }
+}
 const HwSwitchMatcher& SwitchIdScopeResolver::l3SwitchMatcher() const {
-  CHECK(l3SwitchMatcher_)
-      << " One or more l3 switchIds must be set to get l3 scope";
+  checkL3();
   return *l3SwitchMatcher_;
 }
 
 const HwSwitchMatcher& SwitchIdScopeResolver::allSwitchMatcher() const {
-  CHECK(allSwitchMatcher_)
-      << " One or more all switchIds must be set to get allSwitch scope";
+  if (!allSwitchMatcher_) {
+    throw FbossError(
+        "One or more all switchIds must be set to get allSwitch scope");
+  }
   return *allSwitchMatcher_;
 }
 
+void SwitchIdScopeResolver::checkVoq() const {
+  if (!voqSwitchMatcher_) {
+    throw FbossError(" One or more voq switchIds must be set to get voq scope");
+  }
+}
 const HwSwitchMatcher& SwitchIdScopeResolver::voqSwitchMatcher() const {
-  CHECK(voqSwitchMatcher_)
-      << " One or more voq switchIds must be set to get voq scope";
+  checkVoq();
   return *voqSwitchMatcher_;
 }
 
@@ -77,6 +89,7 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(PortID portId) const {
 
 HwSwitchMatcher SwitchIdScopeResolver::scope(
     const cfg::AggregatePort& aggPort) const {
+  checkL3();
   std::unordered_set<SwitchID> switchIds;
   for (const auto& subport : *aggPort.memberPorts()) {
     auto subPortSwitchIds = scope(PortID(*subport.memberPortID())).switchIds();
@@ -108,6 +121,7 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 
 const HwSwitchMatcher SwitchIdScopeResolver::scope(
     const std::shared_ptr<Vlan>& vlan) const {
+  checkL3();
   std::unordered_set<SwitchID> switchIds;
   for (const auto& port : vlan->getPorts()) {
     auto portSwitchIds = scope(PortID(port.first)).switchIds();

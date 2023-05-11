@@ -78,6 +78,8 @@ class SwitchIdScopeResolver {
       const std::shared_ptr<SwitchState>& state) const;
 
  private:
+  void checkL3() const;
+  void checkVoq() const;
   const HwSwitchMatcher& l3SwitchMatcher() const;
   const HwSwitchMatcher& allSwitchMatcher() const;
   const HwSwitchMatcher& voqSwitchMatcher() const;
