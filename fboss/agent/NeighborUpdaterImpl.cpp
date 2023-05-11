@@ -99,6 +99,34 @@ shared_ptr<NdpCache> NeighborUpdaterImpl::getNdpCacheInternal(VlanID vlan) {
   return res->second->ndpCache;
 }
 
+shared_ptr<ArpCache> NeighborUpdaterImpl::getArpCacheForIntf(
+    InterfaceID intfID) {
+  return getArpCacheInternalForIntf(intfID);
+}
+
+shared_ptr<ArpCache> NeighborUpdaterImpl::getArpCacheInternalForIntf(
+    InterfaceID intfID) {
+  auto res = intfCaches_.find(intfID);
+  if (res == intfCaches_.end()) {
+    throw FbossError("Tried to get ARP cache non-existent interface ", intfID);
+  }
+  return res->second->arpCache;
+}
+
+shared_ptr<NdpCache> NeighborUpdaterImpl::getNdpCacheForIntf(
+    InterfaceID intfID) {
+  return getNdpCacheInternalForIntf(intfID);
+}
+
+shared_ptr<NdpCache> NeighborUpdaterImpl::getNdpCacheInternalForIntf(
+    InterfaceID intfID) {
+  auto res = intfCaches_.find(intfID);
+  if (res == intfCaches_.end()) {
+    throw FbossError("Tried to get Ndp cache non-existent interface ", intfID);
+  }
+  return res->second->ndpCache;
+}
+
 void NeighborUpdaterImpl::sentNeighborSolicitation(
     VlanID vlan,
     IPAddressV6 ip) {
