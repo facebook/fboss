@@ -818,7 +818,6 @@ void IPv6Handler::sendUnicastNeighborSolicitation(
 void IPv6Handler::sendMulticastNeighborSolicitation(
     SwSwitch* sw,
     const IPAddressV6& targetIP) {
-  auto state = sw->getState();
   auto intf =
       sw->getState()->getInterfaces()->getIntfToReach(RouterID(0), targetIP);
 
