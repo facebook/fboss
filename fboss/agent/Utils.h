@@ -25,7 +25,6 @@
 #include <folly/lang/Bits.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/HwSwitchMatcher.h"
-#include "fboss/agent/state/NdpEntry.h"
 
 #include <thrift/lib/cpp2/protocol/BinaryProtocol.h>
 
@@ -275,10 +274,11 @@ bool readThriftFromBinaryFile(
  * for VLAN based interface, look up the neighbor table for VLAN.
  * for Port based interface, look up the neighbor table for interface.
  */
-std::shared_ptr<NdpEntry> getNeighborEntryForIP(
+template <typename NeighborEntryT>
+std::shared_ptr<NeighborEntryT> getNeighborEntryForIP(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& intf,
-    const folly::IPAddressV6& ipAddr);
+    const folly::IPAddress& ipAddr);
 
 class OperDeltaFilter {
  public:

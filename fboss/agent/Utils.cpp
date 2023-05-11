@@ -14,8 +14,10 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SysError.h"
+#include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/NdpEntry.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 
@@ -420,24 +422,45 @@ void enableExactMatch(std::string& yamlCfg) {
   }
 }
 
-std::shared_ptr<NdpEntry> getNeighborEntryForIP(
+// Avoid template linker errors by listing possible template instantiations:
+// https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
+template std::shared_ptr<ArpEntry> getNeighborEntryForIP<ArpEntry>(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& intf,
-    const folly::IPAddressV6& ipAddr) {
-  std::shared_ptr<NdpEntry> entry{nullptr};
+    const folly::IPAddress& ipAddr);
+template std::shared_ptr<NdpEntry> getNeighborEntryForIP<NdpEntry>(
+    const std::shared_ptr<SwitchState>& state,
+    const std::shared_ptr<Interface>& intf,
+    const folly::IPAddress& ipAddr);
+
+template <typename NeighborEntryT>
+std::shared_ptr<NeighborEntryT> getNeighborEntryForIP(
+    const std::shared_ptr<SwitchState>& state,
+    const std::shared_ptr<Interface>& intf,
+    const folly::IPAddress& ipAddr) {
+  std::shared_ptr<NeighborEntryT> entry{nullptr};
 
   switch (intf->getType()) {
     case cfg::InterfaceType::VLAN: {
       auto vlanID = intf->getVlanID();
       auto vlan = state->getVlans()->getVlanIf(vlanID);
       if (vlan) {
-        entry = vlan->getNdpTable()->getEntryIf(ipAddr);
+        if constexpr (std::is_same_v<NeighborEntryT, ArpEntry>) {
+          entry = vlan->getArpTable()->getEntryIf(ipAddr.asV4());
+        } else {
+          entry = vlan->getNdpTable()->getEntryIf(ipAddr.asV6());
+        }
       }
       break;
     }
     case cfg::InterfaceType::SYSTEM_PORT: {
-      const auto& nbrTable = intf->getNdpTable();
-      entry = nbrTable->getEntryIf(ipAddr);
+      if constexpr (std::is_same_v<NeighborEntryT, ArpEntry>) {
+        const auto& arpTable = intf->getArpTable();
+        entry = arpTable->getEntryIf(ipAddr.asV4());
+      } else {
+        const auto& nbrTable = intf->getNdpTable();
+        entry = nbrTable->getEntryIf(ipAddr.asV6());
+      }
       break;
     }
   }
