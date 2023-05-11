@@ -150,6 +150,17 @@ class MultiSwitchInterfaceMap : public ThriftMultiSwitchMapNode<
       const folly::IPAddress& dest) const;
 
   MultiSwitchInterfaceMap* modify(std::shared_ptr<SwitchState>* state);
+  /*
+   *  Get interface which has the given vlan. If multiple
+   *  interfaces exist, this will return the first interface.
+   */
+  std::shared_ptr<Interface> getInterfaceInVlanIf(VlanID vlan) const;
+
+  /*
+   * Same as getInterfaceInVlanIf but throws a execption
+   * instead of returning null
+   */
+  const std::shared_ptr<Interface> getInterfaceInVlan(VlanID vlan) const;
 
  private:
   // Inherit the constructors required for clone()

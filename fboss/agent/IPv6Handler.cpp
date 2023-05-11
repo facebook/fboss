@@ -845,7 +845,7 @@ void IPv6Handler::resolveDestAndHandlePacket(
 
   if (vlanID.has_value()) {
     auto ingressInterface =
-        state->getInterfaces()->getInterfaceInVlanIf(vlanID.value());
+        state->getMultiSwitchInterfaces()->getInterfaceInVlanIf(vlanID.value());
     if (!ingressInterface) {
       // Received packed on unknown VLAN
       return;

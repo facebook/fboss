@@ -122,7 +122,8 @@ IPAddressV4 getSwitchVlanIP(
     const std::shared_ptr<SwitchState>& state,
     VlanID vlan) {
   IPAddressV4 switchIp;
-  auto vlanInterface = state->getInterfaces()->getInterfaceInVlan(vlan);
+  auto vlanInterface =
+      state->getMultiSwitchInterfaces()->getInterfaceInVlan(vlan);
 
   return getIPAddress<IPAddressV4>(
       vlanInterface->getID(), vlanInterface->getAddresses());
@@ -139,7 +140,8 @@ IPAddressV4 getSwitchIntfIP(
 IPAddressV6 getSwitchVlanIPv6(
     const std::shared_ptr<SwitchState>& state,
     VlanID vlan) {
-  auto vlanInterface = state->getInterfaces()->getInterfaceInVlan(vlan);
+  auto vlanInterface =
+      state->getMultiSwitchInterfaces()->getInterfaceInVlan(vlan);
 
   return getIPAddress<IPAddressV6>(
       vlanInterface->getID(), vlanInterface->getAddresses());

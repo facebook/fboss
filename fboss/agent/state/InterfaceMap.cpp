@@ -123,6 +123,26 @@ MultiSwitchInterfaceMap* MultiSwitchInterfaceMap::modify(
   return SwitchState::modify<switch_state_tags::interfaceMaps>(state);
 }
 
+std::shared_ptr<Interface> MultiSwitchInterfaceMap::getInterfaceInVlanIf(
+    VlanID vlan) const {
+  for (const auto& [_, intfMap] : *this) {
+    auto intf = intfMap->getInterfaceInVlan(vlan);
+    if (intf) {
+      return intf;
+    }
+  }
+  return nullptr;
+}
+
+const std::shared_ptr<Interface> MultiSwitchInterfaceMap::getInterfaceInVlan(
+    VlanID vlan) const {
+  auto interface = getInterfaceInVlanIf(vlan);
+  if (!interface) {
+    throw FbossError("No interface in vlan : ", vlan);
+  }
+  return interface;
+}
+
 template class ThriftMapNode<InterfaceMap, InterfaceMapTraits>;
 
 } // namespace facebook::fboss

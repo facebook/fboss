@@ -78,7 +78,7 @@ namespace facebook::fboss::utility {
 folly::MacAddress getInterfaceMac(
     const std::shared_ptr<SwitchState>& state,
     VlanID vlan) {
-  return state->getInterfaces()->getInterfaceInVlan(vlan)->getMac();
+  return state->getMultiSwitchInterfaces()->getInterfaceInVlan(vlan)->getMac();
 }
 folly::MacAddress getInterfaceMac(
     const std::shared_ptr<SwitchState>& state,

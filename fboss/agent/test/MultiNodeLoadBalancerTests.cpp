@@ -122,7 +122,8 @@ TEST_F(MultiNodeLoadBalancerTest, verifyFullHashLoadBalance) {
   auto verify = [this]() {
     auto state = sw()->getState();
     auto vlan = state->getVlans()->cbegin()->second->getID();
-    auto localMac = state->getInterfaces()->getInterfaceInVlan(vlan)->getMac();
+    auto localMac =
+        state->getMultiSwitchInterfaces()->getInterfaceInVlan(vlan)->getMac();
     for (auto isV6 : {true, false}) {
       facebook::fboss::utility::pumpTraffic(
           isV6, sw()->getHw(), localMac, vlan);
