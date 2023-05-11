@@ -159,6 +159,16 @@ void NeighborUpdater::sendNeighborUpdates(const VlanDelta& delta) {
   }
 }
 
+void NeighborUpdater::sendNeighborUpdatesForIntf(const InterfaceDelta& delta) {
+  std::vector<std::string> added;
+  std::vector<std::string> deleted;
+  collectPresenceChange(delta.getArpDelta(), &added, &deleted);
+  collectPresenceChange(delta.getNdpDelta(), &added, &deleted);
+  if (!(added.empty() && deleted.empty())) {
+    sw_->invokeNeighborListener(added, deleted);
+  }
+}
+
 void NeighborUpdater::portChanged(
     const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {
