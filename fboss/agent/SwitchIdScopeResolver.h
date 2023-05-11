@@ -14,6 +14,7 @@ class DsfNode;
 class IpInIpTunnel;
 class AclEntry;
 class SystemPort;
+class Port;
 } // namespace cfg
 class Mirror;
 class DsfNode;
@@ -25,6 +26,7 @@ class LoadBalancer;
 class TeFlowEntry;
 class SwitchState;
 class Interface;
+class Port;
 
 class SwitchIdScopeResolver {
  public:
@@ -55,6 +57,8 @@ class SwitchIdScopeResolver {
     return l3SwitchMatcher();
   }
   HwSwitchMatcher scope(PortID portId) const;
+  HwSwitchMatcher scope(const std::shared_ptr<Port>& port) const;
+  HwSwitchMatcher scope(const cfg::Port& port) const;
   HwSwitchMatcher scope(const cfg::AggregatePort& aggPort) const;
   const HwSwitchMatcher& scope(const cfg::IpInIpTunnel& /*m*/) const {
     return l3SwitchMatcher();

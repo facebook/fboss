@@ -3,6 +3,7 @@
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/SystemPort.h"
 #include "fboss/agent/state/Vlan.h"
@@ -85,6 +86,15 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(PortID portId) const {
     }
   }
   throw FbossError("No switch found for port ", portId);
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<Port>& port) const {
+  return scope(port->getID());
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(const cfg::Port& port) const {
+  return scope(PortID(*port.logicalID()));
 }
 
 HwSwitchMatcher SwitchIdScopeResolver::scope(

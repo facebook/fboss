@@ -107,6 +107,20 @@ TYPED_TEST(SwitchIdScopeResolverTest, portScope) {
   this->expectSwitchId(PortID(6));
 }
 
+TYPED_TEST(SwitchIdScopeResolverTest, portObjScope) {
+  state::PortFields portFields;
+  portFields.portId() = PortID(1);
+  portFields.portName() = "port1";
+  auto port = std::make_shared<Port>(std::move(portFields));
+  this->expectSwitchId(port);
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, portcfgScope) {
+  cfg::Port port;
+  port.logicalID() = 1;
+  this->expectSwitchId(port);
+}
+
 TYPED_TEST(SwitchIdScopeResolverTest, aggPortScope) {
   cfg::AggregatePort aggPort;
   aggPort.name() = "agg";
