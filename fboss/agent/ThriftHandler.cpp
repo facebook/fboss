@@ -2811,9 +2811,13 @@ void ThriftHandler::getTeFlowTableDetails(
     std::vector<TeFlowDetails>& flowTable) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  auto teFlowTable = sw_->getState()->getTeFlowTable();
-  for (const auto& [flowStr, flowEntry] : std::as_const(*teFlowTable)) {
-    flowTable.emplace_back(flowEntry->toDetails());
+  auto multiTeFlowTable = sw_->getState()->getMultiSwitchTeFlowTable();
+  for (auto iter = multiTeFlowTable->cbegin(); iter != multiTeFlowTable->cend();
+       iter++) {
+    auto teFlowTable = iter->second;
+    for (const auto& [flowStr, flowEntry] : std::as_const(*teFlowTable)) {
+      flowTable.emplace_back(flowEntry->toDetails());
+    }
   }
 }
 
