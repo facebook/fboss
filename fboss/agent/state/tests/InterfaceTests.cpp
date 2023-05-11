@@ -801,9 +801,16 @@ TEST(Interface, modify) {
   auto intf = multiIntfs->cbegin()->second->cbegin()->second;
   auto intfModified = intf->modify(&stateV1);
   EXPECT_EQ(intf.get(), intfModified);
+  auto scope = multiIntfs->getNodeAndScope(intf->getID()).second;
+  auto intfMap = multiIntfs->getMapNodeIf(scope);
+  multiIntfs->publish();
+  intfMap->publish();
   intf->publish();
   intfModified = intf->modify(&stateV1);
   EXPECT_NE(intf.get(), intfModified);
+  EXPECT_NE(stateV1->getMultiSwitchInterfaces()->getNode(intf->getID()), intf);
+  EXPECT_NE(stateV1->getMultiSwitchInterfaces()->getMapNodeIf(scope), intfMap);
+  EXPECT_NE(stateV1->getMultiSwitchInterfaces(), multiIntfs);
   auto oldMtu = intfModified->getMtu();
   auto newMtu = oldMtu + 1000;
   intfModified->setMtu(newMtu);

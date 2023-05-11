@@ -148,11 +148,11 @@ Interface* Interface::modify(std::shared_ptr<SwitchState>* state) {
     CHECK(!(*state)->isPublished());
     return this;
   }
-
-  InterfaceMap* interfaces = (*state)->getInterfaces()->modify(state);
+  auto interfaces = (*state)->getMultiSwitchInterfaces()->modify(state);
+  auto scope = interfaces->getNodeAndScope(getID()).second;
   auto newInterface = clone();
   auto* ptr = newInterface.get();
-  interfaces->updateInterface(std::move(newInterface));
+  interfaces->updateNode(std::move(newInterface), scope);
   return ptr;
 }
 
