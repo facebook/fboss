@@ -28,6 +28,19 @@ class InterfaceDelta : public DeltaValue<Interface> {
  public:
   using NeighborEntriesDelta = MapDelta<state::NeighborEntries>;
   using DeltaValue<Interface>::DeltaValue;
+  using ArpTableDelta = ThriftMapDelta<ArpTable>;
+  using NdpTableDelta = ThriftMapDelta<NdpTable>;
+
+  ArpTableDelta getArpDelta() const {
+    return ArpTableDelta(
+        getOld() ? getOld()->getArpTable().get() : nullptr,
+        getNew() ? getNew()->getArpTable().get() : nullptr);
+  }
+  NdpTableDelta getNdpDelta() const {
+    return NdpTableDelta(
+        getOld() ? getOld()->getNdpTable().get() : nullptr,
+        getNew() ? getNew()->getNdpTable().get() : nullptr);
+  }
 
  private:
   auto* getArpEntries(const std::shared_ptr<Interface>& intf) const {
