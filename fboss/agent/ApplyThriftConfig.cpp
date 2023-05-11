@@ -3262,6 +3262,48 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
   return intf;
 }
 
+shared_ptr<Interface> ThriftConfigApplier::updateInterface(
+    const shared_ptr<Interface>& orig,
+    const cfg::Interface* config,
+    const Interface::Addresses& addrs) {
+  CHECK_EQ(orig->getID(), InterfaceID(*config->intfID()));
+
+  cfg::NdpConfig ndp;
+  if (config->ndp()) {
+    ndp = *config->ndp();
+  }
+  auto name = getInterfaceName(config);
+  auto mac = getInterfaceMac(config);
+  auto mtu = config->mtu().value_or(Interface::kDefaultMtu);
+  if (orig->getRouterID() == RouterID(*config->routerID()) &&
+      (!orig->getVlanIDIf().has_value() ||
+       orig->getVlanIDIf().value() == VlanID(*config->vlanID())) &&
+      orig->getName() == name && orig->getMac() == mac &&
+      orig->getAddressesCopy() == addrs &&
+      orig->getNdpConfig()->toThrift() == ndp && orig->getMtu() == mtu &&
+      orig->isVirtual() == *config->isVirtual() &&
+      orig->isStateSyncDisabled() == *config->isStateSyncDisabled() &&
+      orig->getType() == *config->type()) {
+    // No change
+    return nullptr;
+  }
+
+  auto newIntf = orig->clone();
+  newIntf->setRouterID(RouterID(*config->routerID()));
+  newIntf->setType(*config->type());
+  if (newIntf->getType() == cfg::InterfaceType::VLAN) {
+    newIntf->setVlanID(VlanID(*config->vlanID()));
+  }
+  newIntf->setName(name);
+  newIntf->setMac(mac);
+  newIntf->setAddresses(addrs);
+  newIntf->setNdpConfig(ndp);
+  newIntf->setMtu(mtu);
+  newIntf->setIsVirtual(*config->isVirtual());
+  newIntf->setIsStateSyncDisabled(*config->isStateSyncDisabled());
+  return newIntf;
+}
+
 shared_ptr<SflowCollectorMap> ThriftConfigApplier::updateSflowCollectors() {
   auto origCollectors = orig_->getSflowCollectors();
   SflowCollectorMap::NodeContainer newCollectors;
@@ -3314,48 +3356,6 @@ shared_ptr<SflowCollector> ThriftConfigApplier::updateSflowCollector(
   }
 
   return newCollector;
-}
-
-shared_ptr<Interface> ThriftConfigApplier::updateInterface(
-    const shared_ptr<Interface>& orig,
-    const cfg::Interface* config,
-    const Interface::Addresses& addrs) {
-  CHECK_EQ(orig->getID(), InterfaceID(*config->intfID()));
-
-  cfg::NdpConfig ndp;
-  if (config->ndp()) {
-    ndp = *config->ndp();
-  }
-  auto name = getInterfaceName(config);
-  auto mac = getInterfaceMac(config);
-  auto mtu = config->mtu().value_or(Interface::kDefaultMtu);
-  if (orig->getRouterID() == RouterID(*config->routerID()) &&
-      (!orig->getVlanIDIf().has_value() ||
-       orig->getVlanIDIf().value() == VlanID(*config->vlanID())) &&
-      orig->getName() == name && orig->getMac() == mac &&
-      orig->getAddressesCopy() == addrs &&
-      orig->getNdpConfig()->toThrift() == ndp && orig->getMtu() == mtu &&
-      orig->isVirtual() == *config->isVirtual() &&
-      orig->isStateSyncDisabled() == *config->isStateSyncDisabled() &&
-      orig->getType() == *config->type()) {
-    // No change
-    return nullptr;
-  }
-
-  auto newIntf = orig->clone();
-  newIntf->setRouterID(RouterID(*config->routerID()));
-  newIntf->setType(*config->type());
-  if (newIntf->getType() == cfg::InterfaceType::VLAN) {
-    newIntf->setVlanID(VlanID(*config->vlanID()));
-  }
-  newIntf->setName(name);
-  newIntf->setMac(mac);
-  newIntf->setAddresses(addrs);
-  newIntf->setNdpConfig(ndp);
-  newIntf->setMtu(mtu);
-  newIntf->setIsVirtual(*config->isVirtual());
-  newIntf->setIsStateSyncDisabled(*config->isStateSyncDisabled());
-  return newIntf;
 }
 
 shared_ptr<QcmCfg> ThriftConfigApplier::createQcmCfg(
