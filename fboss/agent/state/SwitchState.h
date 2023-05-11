@@ -552,7 +552,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
 
   void resetTunnels(std::shared_ptr<MultiSwitchIpTunnelMap> tunnels);
 
-  void resetTeFlowTable(std::shared_ptr<TeFlowTable> teFlowTable);
   void resetTeFlowTable(std::shared_ptr<MultiTeFlowTable> teFlowTable);
   void resetDsfNodes(const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodes);
   std::shared_ptr<AclTableGroupMap>& getAclTablesForStage(

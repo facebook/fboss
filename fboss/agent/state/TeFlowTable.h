@@ -55,7 +55,6 @@ class TeFlowTable : public ThriftMapNode<TeFlowTable, TeFlowTableThriftTraits> {
   void addTeFlowEntry(const std::shared_ptr<TeFlowEntry>& teFlowEntry);
   void changeTeFlowEntry(const std::shared_ptr<TeFlowEntry>& teFlowEntry);
   void removeTeFlowEntry(const TeFlow& id);
-  TeFlowTable* modify(std::shared_ptr<SwitchState>* state);
 
  private:
   // Inherit the constructors required for clone()

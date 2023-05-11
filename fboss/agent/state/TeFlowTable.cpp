@@ -36,19 +36,6 @@ void TeFlowTable::removeTeFlowEntry(const TeFlow& flowId) {
   XLOG(DBG3) << "Deleting TeFlow " << oldFlowEntry->str();
 }
 
-TeFlowTable* TeFlowTable::modify(std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
-  }
-
-  SwitchState::modify(state);
-  auto newTable = clone();
-  auto* ptr = newTable.get();
-  (*state)->resetTeFlowTable(std::move(newTable));
-  return ptr;
-}
-
 void toAppend(const TeFlow& flow, std::string* result) {
   std::string flowJson;
   apache::thrift::SimpleJSONSerializer::serialize(flow, &flowJson);
