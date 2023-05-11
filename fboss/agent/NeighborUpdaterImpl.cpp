@@ -246,6 +246,35 @@ uint32_t NeighborUpdaterImpl::flushEntry(VlanID vlan, IPAddress ip) {
   return count;
 }
 
+bool NeighborUpdaterImpl::flushEntryImplForIntf(
+    InterfaceID intfID,
+    IPAddress ip) {
+  if (ip.isV4()) {
+    auto cache = getArpCacheInternalForIntf(intfID);
+    return cache->flushEntryBlocking(ip.asV4());
+  }
+  auto cache = getNdpCacheInternalForIntf(intfID);
+  return cache->flushEntryBlocking(ip.asV6());
+}
+
+uint32_t NeighborUpdaterImpl::flushEntryForIntf(
+    InterfaceID intfID,
+    IPAddress ip) {
+  uint32_t count{0};
+  if (intfID == InterfaceID(0)) {
+    for (auto it = intfCaches_.begin(); it != intfCaches_.end(); ++it) {
+      if (flushEntryImplForIntf(it->first, ip)) {
+        ++count;
+      }
+    }
+  } else {
+    if (flushEntryImplForIntf(intfID, ip)) {
+      ++count;
+    }
+  }
+  return count;
+}
+
 void NeighborUpdaterImpl::vlanAdded(
     VlanID vlanID,
     std::shared_ptr<SwitchState> state) {

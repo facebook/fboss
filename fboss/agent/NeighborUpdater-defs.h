@@ -33,6 +33,7 @@
 #endif
 
 NEIGHBOR_UPDATER_METHOD(public, flushEntry, uint32_t, VlanID, vlan, folly::IPAddress, ip)
+NEIGHBOR_UPDATER_METHOD(public, flushEntryForIntf, uint32_t, InterfaceID, intfID, folly::IPAddress, ip)
 
 // Ndp events
 NEIGHBOR_UPDATER_METHOD(public, sentNeighborSolicitation, void, VlanID, vlan, folly::IPAddressV6, ip)

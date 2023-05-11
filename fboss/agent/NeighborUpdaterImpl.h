@@ -98,7 +98,10 @@ class NeighborUpdaterImpl {
   std::shared_ptr<NdpCache> getNdpCacheForIntf(InterfaceID intfID);
   std::shared_ptr<NdpCache> getNdpCacheInternalForIntf(InterfaceID intfID);
 
+  // TODO(skhare) Remove after completely migrating to intfCaches_
   bool flushEntryImpl(VlanID vlan, folly::IPAddress ip);
+
+  bool flushEntryImplForIntf(InterfaceID intfID, folly::IPAddress ip);
 
   // Forbidden copy constructor and assignment operator
   NeighborUpdaterImpl(NeighborUpdaterImpl const&) = delete;

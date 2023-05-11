@@ -85,6 +85,12 @@ uint32_t NeighborUpdaterNoopImpl::flushEntry(
   return 0;
 }
 
+uint32_t NeighborUpdaterNoopImpl::flushEntryForIntf(
+    InterfaceID /*intfID*/,
+    IPAddress /*ip*/) {
+  return 0;
+}
+
 void NeighborUpdaterNoopImpl::vlanAdded(
     VlanID /*vlanID*/,
     std::shared_ptr<SwitchState> /*state*/) {}
