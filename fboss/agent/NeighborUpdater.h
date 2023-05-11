@@ -60,6 +60,8 @@ class NeighborUpdater : public StateObserver {
 
   void stateUpdated(const StateDelta& delta) override;
 
+  void processInterfaceUpdates(const StateDelta& stateDelta);
+
   // Zero-cost forwarders. See comment in NeighborUpdater-defs.h.
 #define ARG_TEMPLATE_PARAMETER(TYPE, NAME) typename T_##NAME
 #define ARG_RVALUE_REF_TYPE(TYPE, NAME) T_##NAME&& NAME
