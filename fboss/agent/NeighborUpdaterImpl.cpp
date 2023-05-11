@@ -60,6 +60,26 @@ auto NeighborUpdaterImpl::createCaches(
   return caches;
 }
 
+auto NeighborUpdaterImpl::createCachesForIntf(
+    const SwitchState* state,
+    const Interface* intf) -> std::shared_ptr<NeighborCaches> {
+  // TODO(skhare) Remove after completely migrating to intfCaches_
+  // at the moment, NeighborCacheImpl has vlanID, vlanName
+  // fields so pass some values. These fields will be removed as we migrate to
+  // intfCaches_
+  const auto kPseudoVlanID = VlanID(0);
+  const auto kPseudoVlanName = std::string("pseudoVlan");
+  auto caches = std::make_shared<NeighborCaches>(
+      sw_, state, kPseudoVlanID, kPseudoVlanName, intf->getID());
+
+  // We need to populate the caches from the SwitchState when a vlan is added
+  // After this, we no longer process Arp or Ndp deltas for this vlan.
+  caches->arpCache->repopulate(intf->getArpTable());
+  caches->ndpCache->repopulate(intf->getNdpTable());
+
+  return caches;
+}
+
 shared_ptr<ArpCache> NeighborUpdaterImpl::getArpCacheFor(VlanID vlan) {
   return getArpCacheInternal(vlan);
 }

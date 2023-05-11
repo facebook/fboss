@@ -71,9 +71,14 @@ class NeighborUpdaterImpl {
 #include "fboss/agent/NeighborUpdater-defs.h"
 #undef NEIGHBOR_UPDATER_METHOD
 
+  // TODO(skhare) Remove after completely migrating to intfCaches_
   std::shared_ptr<NeighborCaches> createCaches(
       const SwitchState* state,
       const Vlan* vlan);
+
+  std::shared_ptr<NeighborCaches> createCachesForIntf(
+      const SwitchState* state,
+      const Interface* intf);
 
   void portChanged(
       const std::shared_ptr<Port>& oldPort,
