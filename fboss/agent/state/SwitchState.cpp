@@ -179,6 +179,11 @@ const std::shared_ptr<PortMap>& SwitchState::getPorts() const {
   return getDefaultMap<switch_state_tags::portMaps>();
 }
 
+const std::shared_ptr<MultiSwitchPortMap>& SwitchState::getMultiSwitchPorts()
+    const {
+  return safe_cref<switch_state_tags::portMaps>();
+}
+
 void SwitchState::resetVlans(std::shared_ptr<VlanMap> vlans) {
   resetDefaultMap<switch_state_tags::vlanMaps>(vlans);
 }
