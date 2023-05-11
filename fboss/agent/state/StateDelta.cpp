@@ -86,9 +86,9 @@ StateDelta::StateDelta(
 
 StateDelta::~StateDelta() {}
 
-ThriftMapDelta<PortMap> StateDelta::getPortsDelta() const {
-  return ThriftMapDelta<PortMap>(
-      old_->getPorts().get(), new_->getPorts().get());
+MultiSwitchMapDelta<MultiSwitchPortMap> StateDelta::getPortsDelta() const {
+  return MultiSwitchMapDelta<MultiSwitchPortMap>(
+      old_->getMultiSwitchPorts().get(), new_->getMultiSwitchPorts().get());
 }
 
 VlanMapDelta StateDelta::getVlansDelta() const {

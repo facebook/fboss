@@ -73,7 +73,7 @@ class StateDelta {
     return new_;
   }
 
-  ThriftMapDelta<PortMap> getPortsDelta() const;
+  MultiSwitchMapDelta<MultiSwitchPortMap> getPortsDelta() const;
   VlanMapDelta getVlansDelta() const;
   InterfaceMapDelta getIntfsDelta() const;
   DeltaValue<QosPolicy> getDefaultDataPlaneQosPolicyDelta() const;
