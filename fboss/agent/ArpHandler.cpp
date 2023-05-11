@@ -293,25 +293,23 @@ void ArpHandler::sendArpRequest(
 
 void ArpHandler::sendArpRequest(
     SwSwitch* sw,
-    const shared_ptr<Vlan>& vlan,
-    const IPAddressV4& targetIP) {
-  auto state = sw->getState();
-  auto intfID = vlan->getInterfaceID();
+    const folly::IPAddressV4& targetIP) {
+  auto intf =
+      sw->getState()->getInterfaces()->getIntfToReach(RouterID(0), targetIP);
 
-  if (!Interface::isIpAttached(targetIP, intfID, state)) {
-    XLOG(DBG0) << "Cannot reach " << targetIP << " on interface " << intfID;
-    return;
-  }
-
-  auto intf = state->getInterfaces()->getInterfaceIf(intfID);
   if (!intf) {
-    XLOG(DBG0) << "Cannot find interface " << intfID;
+    XLOG(DBG0) << "Cannot find interface for " << targetIP;
     return;
   }
+
   auto addrToReach = intf->getAddressToReach(targetIP);
 
   sendArpRequest(
-      sw, vlan->getID(), intf->getMac(), addrToReach->first.asV4(), targetIP);
+      sw,
+      intf->getVlanIDIf(),
+      intf->getMac(),
+      addrToReach->first.asV4(),
+      targetIP);
 }
 
 } // namespace facebook::fboss

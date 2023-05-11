@@ -56,7 +56,7 @@ void ResolvedNextHopProbe::timeoutExpired() noexcept {
 
   if (ip.isV4()) {
     // send arp request
-    ArpHandler::sendArpRequest(sw_, vlan, ip.asV4());
+    ArpHandler::sendArpRequest(sw_, ip.asV4());
     sw_->getNeighborUpdater()->sentArpRequest(vlanId, ip.asV4());
   } else {
     // send ndp request

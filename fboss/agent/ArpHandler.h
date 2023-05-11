@@ -62,10 +62,7 @@ class ArpHandler {
       const folly::MacAddress& srcMac,
       const folly::IPAddressV4& senderIP,
       const folly::IPAddressV4& targetIP);
-  static void sendArpRequest(
-      SwSwitch* sw,
-      const std::shared_ptr<Vlan>& vlan,
-      const folly::IPAddressV4& targetIP);
+  static void sendArpRequest(SwSwitch* sw, const folly::IPAddressV4& targetIP);
 
   /*
    * Send gratuitous arp on all vlans
