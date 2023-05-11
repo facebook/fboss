@@ -2,6 +2,8 @@
 
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/SystemPort.h"
 #include "fboss/agent/state/Vlan.h"
 
@@ -112,5 +114,19 @@ const HwSwitchMatcher SwitchIdScopeResolver::scope(
     switchIds.insert(portSwitchIds.begin(), portSwitchIds.end());
   }
   return HwSwitchMatcher(switchIds);
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<Interface>& intf,
+    const std::shared_ptr<SwitchState>& state) const {
+  switch (intf->getType()) {
+    case cfg::InterfaceType::SYSTEM_PORT:
+      return scope(SystemPortID(static_cast<int64_t>(intf->getID())));
+    case cfg::InterfaceType::VLAN:
+      return scope(
+          state->getVlans()->getNode(VlanID(static_cast<int>(intf->getID()))));
+  }
+  throw FbossError(
+      "Unexpected interface type: ", static_cast<int>(intf->getType()));
 }
 } // namespace facebook::fboss

@@ -23,6 +23,8 @@ class SystemPort;
 class Vlan;
 class LoadBalancer;
 class TeFlowEntry;
+class SwitchState;
+class Interface;
 
 class SwitchIdScopeResolver {
  public:
@@ -71,6 +73,9 @@ class SwitchIdScopeResolver {
   HwSwitchMatcher scope(SystemPortID sysPortID) const;
   HwSwitchMatcher scope(const std::shared_ptr<SystemPort>& sysPort) const;
   HwSwitchMatcher scope(const cfg::SystemPort& sysPort) const;
+  HwSwitchMatcher scope(
+      const std::shared_ptr<Interface>& intf,
+      const std::shared_ptr<SwitchState>& state) const;
 
  private:
   const HwSwitchMatcher& l3SwitchMatcher() const;
