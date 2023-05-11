@@ -109,8 +109,8 @@ class HwEcmpTest : public HwLinkStateDependentTest {
       auto portId = port.phyPortID();
       InterfaceID intfId(
           *state->getPorts()->getPort(portId)->getInterfaceIDs().begin());
-      return state->getInterfaces()
-          ->getInterface(intfId)
+      return state->getMultiSwitchInterfaces()
+          ->getNode(intfId)
           ->getNdpTable()
           ->modify(intfId, &state);
     }

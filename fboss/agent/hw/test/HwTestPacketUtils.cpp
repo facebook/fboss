@@ -83,7 +83,7 @@ folly::MacAddress getInterfaceMac(
 folly::MacAddress getInterfaceMac(
     const std::shared_ptr<SwitchState>& state,
     InterfaceID intf) {
-  return state->getInterfaces()->getInterface(intf)->getMac();
+  return state->getMultiSwitchInterfaces()->getNode(intf)->getMac();
 }
 
 folly::MacAddress getFirstInterfaceMac(const cfg::SwitchConfig& cfg) {
@@ -98,7 +98,8 @@ folly::MacAddress getFirstInterfaceMac(const cfg::SwitchConfig& cfg) {
 }
 
 folly::MacAddress getFirstInterfaceMac(std::shared_ptr<SwitchState> state) {
-  auto intf = std::as_const(*state->getInterfaces()->cbegin()).second;
+  const auto& intfMap = state->getMultiSwitchInterfaces()->cbegin()->second;
+  const auto& intf = std::as_const(*intfMap->cbegin()).second;
   return intf->getMac();
 }
 
