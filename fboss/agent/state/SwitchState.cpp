@@ -175,6 +175,10 @@ void SwitchState::resetPorts(std::shared_ptr<PortMap> ports) {
   resetDefaultMap<switch_state_tags::portMaps>(ports);
 }
 
+void SwitchState::resetPorts(std::shared_ptr<MultiSwitchPortMap> ports) {
+  ref<switch_state_tags::portMaps>() = ports;
+}
+
 const std::shared_ptr<PortMap>& SwitchState::getPorts() const {
   return getDefaultMap<switch_state_tags::portMaps>();
 }
