@@ -169,27 +169,20 @@ IphyAndXphyPorts findAvailablePorts(
       hwQsfpEnsemble->getPlatformMapping()->getPlatformPorts();
   const auto& chips = hwQsfpEnsemble->getPlatformMapping()->getChips();
   IphyAndXphyPorts ports;
-  auto agentConfig = hwQsfpEnsemble->getWedgeManager()->getAgentConfig();
-  auto cabledPorts = getCabledPorts(hwQsfpEnsemble);
-  auto& swConfig = *agentConfig->thrift.sw();
-  auto isPortCabled = [&cabledPorts](PortID port) -> bool {
-    return cabledPorts.find(port) != cabledPorts.end();
-  };
-  for (auto& port : *swConfig.ports()) {
-    if (onlyCabled && !isPortCabled(PortID(*port.logicalID()))) {
+  auto cabledPorts = getCabledPortsAndProfiles(hwQsfpEnsemble);
+  for (auto& platformPort : platformPorts) {
+    auto cabled = cabledPorts.find(PortID(platformPort.first));
+    if (profile.has_value() &&
+        (cabled == cabledPorts.end() || cabled->second != profile.value())) {
       continue;
     }
-    if (*port.state() != cfg::PortState::ENABLED) {
-      continue;
-    }
-    if (profile && *port.profileID() != *profile) {
-      continue;
-    }
-
+    cfg::PortProfileID profileToUse = profile.has_value()
+        ? profileToUse = profile.value()
+        : platformPort.second.get_supportedProfiles().begin()->first;
     auto portIDAndProfile =
-        std::make_pair(*port.logicalID(), *port.profileID());
+        std::make_pair(PortID(platformPort.first), profileToUse);
     const auto& xphy = utility::getDataPlanePhyChips(
-        platformPorts.find(*port.logicalID())->second,
+        platformPorts.find(cabled->first)->second,
         chips,
         phy::DataPlanePhyChipType::XPHY);
     if (!xphy.empty()) {
