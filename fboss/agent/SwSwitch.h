@@ -805,6 +805,8 @@ class SwSwitch : public HwSwitch::Callback {
   }
 
  private:
+  std::optional<folly::MacAddress> getSourceMac(
+      const std::shared_ptr<Interface>& intf) const;
   void updateStateBlockingImpl(
       folly::StringPiece name,
       StateUpdateFn fn,

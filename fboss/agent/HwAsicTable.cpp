@@ -56,6 +56,14 @@ const HwAsic* HwAsicTable::getHwAsic(SwitchID switchID) const {
   return asic;
 }
 
+std::unordered_set<SwitchID> HwAsicTable::getSwitchIDs() const {
+  std::unordered_set<SwitchID> swIds;
+  for (const auto& [swId, _] : hwAsics_) {
+    swIds.insert(SwitchID(swId));
+  }
+  return swIds;
+}
+
 bool HwAsicTable::isFeatureSupported(SwitchID switchId, HwAsic::Feature feature)
     const {
   auto asic = getHwAsicIf(switchId);

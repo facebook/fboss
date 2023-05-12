@@ -22,6 +22,7 @@ class HwAsicTable {
   std::set<cfg::StreamType> getQueueStreamTypes(
       SwitchID switchId,
       cfg::PortType portType) const;
+  std::unordered_set<SwitchID> getSwitchIDs() const;
 
  private:
   HwAsic* getHwAsicIfImpl(SwitchID switchID) const;

@@ -1700,6 +1700,24 @@ void SwSwitch::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept {
   }
 }
 
+std::optional<folly::MacAddress> SwSwitch::getSourceMac(
+    const std::shared_ptr<Interface>& intf) const {
+  try {
+    auto switchId = getScopeResolver()->scope(intf, getState()).switchId();
+    // We always use our CPU's mac-address as source mac-address
+    return getHwAsicTable()->getHwAsic(switchId)->getAsicMac();
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to get Mac for intf :" << intf->getID() << " "
+              << folly::exceptionStr(ex);
+    auto swIds = getHwAsicTable()->getSwitchIDs();
+    if (swIds.size()) {
+      XLOG(DBG2) << " Falling back to first switchID mac";
+      return getHwAsicTable()->getHwAsic(*swIds.begin())->getAsicMac();
+    }
+  }
+  return std::nullopt;
+}
+
 void SwSwitch::sendL3Packet(
     std::unique_ptr<TxPacket> pkt,
     InterfaceID ifID) noexcept {
@@ -1771,11 +1789,12 @@ void SwSwitch::sendL3Packet(
       buf->append(tailRoom);
     }
 
-    auto vlan = state->getVlans()->getVlan(getVlanIDHelper(vlanID));
-    auto switchId = getScopeResolver()->scope(vlan).switchId();
-    // We always use our CPU's mac-address as source mac-address
-    const folly::MacAddress srcMac =
-        getHwAsicTable()->getHwAsicIf(switchId)->getAsicMac();
+    auto srcMacOpt = getSourceMac(intf);
+    if (!srcMacOpt.has_value()) {
+      XLOG(WARNING) << " Failed to get source mac for intf: " << intf->getID();
+      return;
+    }
+    auto srcMac = *srcMacOpt;
 
     // Derive destination mac address
     folly::MacAddress dstMac{};
