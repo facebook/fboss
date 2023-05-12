@@ -279,8 +279,8 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
         "Add new route", [=](const std::shared_ptr<SwitchState>& state) {
           auto newState = state->clone();
 
-          VlanID vlanId = newState->getInterfaces()
-                              ->getInterface(this->kInterfaceID())
+          VlanID vlanId = newState->getMultiSwitchInterfaces()
+                              ->getNode(this->kInterfaceID())
                               ->getVlanID();
           Vlan* vlan = newState->getVlans()->getVlanIf(VlanID(vlanId)).get();
           auto* neighborTable =

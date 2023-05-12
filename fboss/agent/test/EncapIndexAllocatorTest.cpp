@@ -63,7 +63,8 @@ class EncapIndexAllocatorTest : public ::testing::Test {
       std::shared_ptr<SwitchState> state,
       const folly::IPAddressV6& ip,
       int64_t encapIdx) const {
-    auto firstIntf = state->getInterfaces()->cbegin()->second;
+    const auto& intfMap = state->getMultiSwitchInterfaces()->cbegin()->second;
+    const auto& firstIntf = intfMap->cbegin()->second;
     state::NeighborEntryFields nbr;
     nbr.mac() = "02:00:00:00:00:01";
     nbr.interfaceId() = static_cast<int>(firstIntf->getID());
@@ -76,10 +77,8 @@ class EncapIndexAllocatorTest : public ::testing::Test {
     nbr.encapIndex() = encapIdx;
     auto nbrTable = firstIntf->getNdpTable()->toThrift();
     nbrTable.insert({*nbr.ipaddress(), nbr});
-    auto interfaceMap = state->getInterfaces()->modify(&state);
-    auto interface = interfaceMap->getInterface(firstIntf->getID())->clone();
+    auto interface = firstIntf->modify(&state);
     interface->setNdpTable(nbrTable);
-    interfaceMap->updateNode(interface);
     return state;
   }
 

@@ -151,7 +151,7 @@ class MirrorManagerTest : public ::testing::Test {
       PortID port) {
     auto newState = state->isPublished() ? state->clone() : state;
     VlanID vlanId =
-        newState->getInterfaces()->getInterface(interfaceId)->getVlanID();
+        newState->getMultiSwitchInterfaces()->getNode(interfaceId)->getVlanID();
     Vlan* vlan = newState->getVlans()->getVlanIf(VlanID(vlanId)).get();
     auto* neighborTable =
         vlan->template getNeighborEntryTable<AddrT>().get()->modify(
@@ -166,7 +166,7 @@ class MirrorManagerTest : public ::testing::Test {
       const AddrT& ip) {
     auto newState = state->isPublished() ? state->clone() : state;
     VlanID vlanId =
-        newState->getInterfaces()->getInterface(interfaceId)->getVlanID();
+        newState->getMultiSwitchInterfaces()->getNode(interfaceId)->getVlanID();
     Vlan* vlan = newState->getVlans()->getVlanIf(VlanID(vlanId)).get();
     auto* neighborTable =
         vlan->template getNeighborEntryTable<AddrT>().get()->modify(
@@ -362,7 +362,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithoutEgressPort) {
     EXPECT_EQ(tunnel.dstIp, IPAddress(params.mirrorDestination));
     EXPECT_EQ(tunnel.dstMac, params.neighborMACs[0]);
     const auto& interface =
-        state->getInterfaces()->getInterfaceIf(params.interfaces[0]);
+        state->getMultiSwitchInterfaces()->getNodeIf(params.interfaces[0]);
     const auto& addr = interface->getAddressToReach(params.neighborIPs[0]);
     ASSERT_TRUE(addr.has_value());
     EXPECT_EQ(tunnel.srcIp, addr->first);
@@ -413,7 +413,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithEgressPort) {
     EXPECT_EQ(tunnel.dstMac, params.neighborMACs[1]);
 
     const auto& interface =
-        state->getInterfaces()->getInterfaceIf(params.interfaces[1]);
+        state->getMultiSwitchInterfaces()->getNodeIf(params.interfaces[1]);
     const auto& addr = interface->getAddressToReach(params.neighborIPs[1]);
 
     ASSERT_TRUE(addr.has_value());
@@ -489,7 +489,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithDirectlyConnectedRoute) {
     EXPECT_EQ(tunnel.dstMac, params.neighborMACs[0]);
 
     const auto& interface =
-        state->getInterfaces()->getInterfaceIf(params.interfaces[0]);
+        state->getMultiSwitchInterfaces()->getNodeIf(params.interfaces[0]);
     const auto& addr = interface->getAddressToReach(params.neighborIPs[0]);
 
     ASSERT_TRUE(addr.has_value());
@@ -559,7 +559,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteDelete) {
     EXPECT_EQ(tunnel.dstMac, params.neighborMACs[0]);
 
     const auto& interface0 =
-        state->getInterfaces()->getInterfaceIf(params.interfaces[0]);
+        state->getMultiSwitchInterfaces()->getNodeIf(params.interfaces[0]);
     const auto& addr = interface0->getAddressToReach(params.neighborIPs[0]);
 
     ASSERT_TRUE(addr.has_value());
@@ -584,7 +584,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteDelete) {
     EXPECT_EQ(tunnel.dstMac, params.neighborMACs[1]);
 
     const auto& interface1 =
-        state->getInterfaces()->getInterfaceIf(params.interfaces[1]);
+        state->getMultiSwitchInterfaces()->getNodeIf(params.interfaces[1]);
     const auto& addr = interface1->getAddressToReach(params.neighborIPs[1]);
 
     ASSERT_TRUE(addr.has_value());
@@ -626,7 +626,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteAdd) {
     EXPECT_EQ(tunnel.dstMac, params.neighborMACs[1]);
 
     const auto& interface1 =
-        state->getInterfaces()->getInterfaceIf(params.interfaces[1]);
+        state->getMultiSwitchInterfaces()->getNodeIf(params.interfaces[1]);
     const auto& addr = interface1->getAddressToReach(params.neighborIPs[1]);
 
     ASSERT_TRUE(addr.has_value());
@@ -663,7 +663,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteAdd) {
     EXPECT_EQ(tunnel.dstMac, params.neighborMACs[0]);
 
     const auto& interface0 =
-        state->getInterfaces()->getInterfaceIf(params.interfaces[0]);
+        state->getMultiSwitchInterfaces()->getNodeIf(params.interfaces[0]);
     const auto& addr = interface0->getAddressToReach(params.neighborIPs[0]);
 
     ASSERT_TRUE(addr.has_value());
@@ -716,7 +716,7 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteDel) {
     EXPECT_EQ(tunnel.dstMac, params.neighborMACs[0]);
 
     const auto& interface =
-        state->getInterfaces()->getInterfaceIf(params.interfaces[0]);
+        state->getMultiSwitchInterfaces()->getNodeIf(params.interfaces[0]);
     const auto& addr = interface->getAddressToReach(params.neighborIPs[0]);
 
     ASSERT_TRUE(addr.has_value());
@@ -819,7 +819,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnNeighborChange) {
     EXPECT_EQ(tunnel.dstMac, params.neighborMACs[0]);
 
     const auto& interface0 =
-        state->getInterfaces()->getInterfaceIf(params.interfaces[0]);
+        state->getMultiSwitchInterfaces()->getNodeIf(params.interfaces[0]);
     const auto& addr = interface0->getAddressToReach(params.neighborIPs[0]);
 
     ASSERT_TRUE(addr.has_value());
@@ -864,7 +864,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnNeighborChange) {
     EXPECT_EQ(tunnel.dstMac, params.neighborMACs[0]);
 
     const auto& interface1 =
-        state->getInterfaces()->getInterfaceIf(params.interfaces[0]);
+        state->getMultiSwitchInterfaces()->getNodeIf(params.interfaces[0]);
     const auto& addr = interface1->getAddressToReach(params.neighborIPs[0]);
 
     ASSERT_TRUE(addr.has_value());
@@ -939,7 +939,7 @@ TYPED_TEST(MirrorManagerTest, GreMirrorWithSrcIp) {
     EXPECT_EQ(tunnel.dstIp, IPAddress(params.mirrorDestination));
     EXPECT_EQ(tunnel.dstMac, params.neighborMACs[0]);
     const auto& interface =
-        state->getInterfaces()->getInterfaceIf(params.interfaces[0]);
+        state->getMultiSwitchInterfaces()->getNodeIf(params.interfaces[0]);
     EXPECT_EQ(tunnel.srcIp, folly::IPAddress(params.mirrorSource));
     EXPECT_EQ(tunnel.srcMac, interface->getMac());
     EXPECT_FALSE(tunnel.udpPorts.has_value());
@@ -983,7 +983,7 @@ TYPED_TEST(MirrorManagerTest, SflowMirrorWithSrcIp) {
     EXPECT_EQ(tunnel.dstIp, IPAddress(params.mirrorDestination));
     EXPECT_EQ(tunnel.dstMac, params.neighborMACs[0]);
     const auto& interface =
-        state->getInterfaces()->getInterfaceIf(params.interfaces[0]);
+        state->getMultiSwitchInterfaces()->getNodeIf(params.interfaces[0]);
     EXPECT_EQ(tunnel.srcIp, folly::IPAddress(params.mirrorSource));
     EXPECT_EQ(tunnel.srcMac, interface->getMac());
     EXPECT_TRUE(tunnel.udpPorts.has_value());
@@ -1045,7 +1045,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorOnMirrorUpdate) {
     EXPECT_EQ(tunnel.dstIp, IPAddress(params.mirrorDestination));
     EXPECT_EQ(tunnel.dstMac, params.neighborMACs[0]);
     const auto& interface =
-        state->getInterfaces()->getInterfaceIf(params.interfaces[0]);
+        state->getMultiSwitchInterfaces()->getNodeIf(params.interfaces[0]);
     EXPECT_EQ(tunnel.srcMac, interface->getMac());
     EXPECT_TRUE(tunnel.udpPorts.has_value());
     EXPECT_EQ(tunnel.udpPorts->udpSrcPort, 10101);

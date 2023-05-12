@@ -36,7 +36,8 @@ class MultiNodeTest : public AgentTest {
       AddrT addr,
       InterfaceID intfID) const {
     auto state = sw()->getState();
-    auto vlan = state->getInterfaces()->getInterfaceIf(intfID)->getVlanID();
+    auto vlan =
+        state->getMultiSwitchInterfaces()->getNodeIf(intfID)->getVlanID();
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
       auto entry = sw()->getState()
                        ->getVlans()
