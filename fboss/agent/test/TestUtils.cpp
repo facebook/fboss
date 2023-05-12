@@ -360,8 +360,10 @@ shared_ptr<SwitchState> removeVlanIPv4Address(
     const shared_ptr<SwitchState>& in,
     VlanID vlanID) {
   auto newState = in->clone();
-  for (auto iter : std::as_const(*newState->getInterfaces())) {
-    const auto& intf = iter.second;
+  auto intfInVlan =
+      newState->getMultiSwitchInterfaces()->getInterfaceInVlanIf(vlanID);
+  if (intfInVlan) {
+    auto intf = intfInVlan->modify(&newState);
     if (intf->getVlanID() == vlanID) {
       Interface::Addresses newAddresses;
       for (auto iter : std::as_const(*intf->getAddresses())) {
