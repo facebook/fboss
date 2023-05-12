@@ -170,7 +170,7 @@ IphyAndXphyPorts findAvailablePorts(
   const auto& chips = hwQsfpEnsemble->getPlatformMapping()->getChips();
   IphyAndXphyPorts ports;
   auto agentConfig = hwQsfpEnsemble->getWedgeManager()->getAgentConfig();
-  auto cabledPorts = getCabledPorts(*agentConfig);
+  auto cabledPorts = getCabledPorts(hwQsfpEnsemble);
   auto& swConfig = *agentConfig->thrift.sw();
   auto isPortCabled = [&cabledPorts](PortID port) -> bool {
     return cabledPorts.find(port) != cabledPorts.end();
@@ -262,7 +262,7 @@ std::vector<TransceiverID> getCabledPortTranceivers(
   std::unordered_set<TransceiverID> transceivers;
   // There could be multiple ports in a single transceiver. Therefore use a set
   // to get unique cabled transceivers
-  for (auto port : getCabledPorts(config)) {
+  for (auto port : getCabledPorts(ensemble)) {
     transceivers.insert(*getTranscieverIdx(port, ensemble));
   }
   return std::vector<TransceiverID>(transceivers.begin(), transceivers.end());
