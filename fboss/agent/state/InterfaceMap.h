@@ -161,6 +161,23 @@ class MultiSwitchInterfaceMap : public ThriftMultiSwitchMapNode<
    * instead of returning null
    */
   const std::shared_ptr<Interface> getInterfaceInVlan(VlanID vlan) const;
+  /*
+   *  Get interface which has the given IPAddress. If multiple
+   *  interfaces have the same address (unlikely) we return the
+   *  first one. If no interface is found that has the given IP,
+   *  we return null.
+   */
+  std::shared_ptr<Interface> getInterfaceIf(
+      RouterID router,
+      const folly::IPAddress& ip) const;
+
+  /*
+   * Same as get interface by IP above, but throws a execption
+   * instead of returning null
+   */
+  const std::shared_ptr<Interface> getInterface(
+      RouterID router,
+      const folly::IPAddress& ip) const;
 
  private:
   // Inherit the constructors required for clone()

@@ -239,7 +239,8 @@ void testSendArpRequest(
   auto state = sw->getState();
   auto vlan = state->getVlans()->getVlanIf(vlanID);
   EXPECT_NE(vlan, nullptr);
-  auto intf = state->getInterfaces()->getInterfaceIf(RouterID(0), senderIP);
+  auto intf =
+      state->getMultiSwitchInterfaces()->getInterfaceIf(RouterID(0), senderIP);
   EXPECT_NE(intf, nullptr);
 
   // Cache the current stats
@@ -290,7 +291,8 @@ TEST(ArpTest, BasicSendRequest) {
   auto state = sw->getState();
   auto vlan = state->getVlans()->getVlanIf(vlanID);
   EXPECT_NE(vlan, nullptr);
-  auto intf = state->getInterfaces()->getInterfaceIf(RouterID(0), senderIP);
+  auto intf =
+      state->getMultiSwitchInterfaces()->getInterfaceIf(RouterID(0), senderIP);
   EXPECT_NE(intf, nullptr);
 
   // Sending an ARP request will trigger state update for setting pending entry
@@ -1083,7 +1085,7 @@ TEST(ArpTest, ArpExpiration) {
   }
 
   // Expect one more probe to be sent out before targetIP[1] is expired
-  auto intfs = sw->getState()->getInterfaces();
+  auto intfs = sw->getState()->getMultiSwitchInterfaces();
   auto intf = intfs->getInterfaceIf(RouterID(0), senderIP);
   EXPECT_SWITCHED_PKT(
       sw,

@@ -38,11 +38,9 @@ std::shared_ptr<Interface> InterfaceMap::getInterfaceIf(
 const std::shared_ptr<Interface> InterfaceMap::getInterface(
     RouterID router,
     const IPAddress& ip) const {
-  for (auto itr = begin(); itr != end(); ++itr) {
-    auto intf = itr->second;
-    if (intf->getRouterID() == router && intf->hasAddress(ip)) {
-      return intf;
-    }
+  auto intf = getInterfaceIf(router, ip);
+  if (intf) {
+    return intf;
   }
   throw FbossError("No interface with ip : ", ip);
 }
@@ -143,6 +141,27 @@ const std::shared_ptr<Interface> MultiSwitchInterfaceMap::getInterfaceInVlan(
   return interface;
 }
 
+std::shared_ptr<Interface> MultiSwitchInterfaceMap::getInterfaceIf(
+    RouterID router,
+    const IPAddress& ip) const {
+  for (const auto& [_, intfMap] : *this) {
+    auto intf = intfMap->getInterfaceIf(router, ip);
+    if (intf) {
+      return intf;
+    }
+  }
+  return nullptr;
+}
+
+const std::shared_ptr<Interface> MultiSwitchInterfaceMap::getInterface(
+    RouterID router,
+    const IPAddress& ip) const {
+  auto intf = getInterfaceIf(router, ip);
+  if (intf) {
+    return intf;
+  }
+  throw FbossError("No interface with ip : ", ip);
+}
 template class ThriftMapNode<InterfaceMap, InterfaceMapTraits>;
 
 } // namespace facebook::fboss
