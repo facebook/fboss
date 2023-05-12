@@ -1246,7 +1246,7 @@ InterfaceStats* SwSwitch::interfaceStats(InterfaceID intfID) {
   if (intfStats) {
     return intfStats;
   }
-  auto interfaceIf = getState()->getInterfaces()->getInterfaceIf(intfID);
+  auto interfaceIf = getState()->getMultiSwitchInterfaces()->getNodeIf(intfID);
   if (!interfaceIf) {
     XLOG(DBG0) << "Interface node doesn't exist, use default name=intf"
                << intfID;
@@ -1752,7 +1752,7 @@ void SwSwitch::sendL3Packet(
 
   auto state = getState();
 
-  auto intf = state->getInterfaces()->getInterfaceIf(ifID);
+  auto intf = state->getMultiSwitchInterfaces()->getNodeIf(ifID);
   if (!intf) {
     XLOG(ERR) << "Interface " << ifID << " doesn't exists in state.";
     stats()->pktDropped();
