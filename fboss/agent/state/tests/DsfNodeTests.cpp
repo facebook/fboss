@@ -29,15 +29,17 @@ std::shared_ptr<DsfNode> makeDsfNode(
   return dsfNode;
 }
 
-void verifyStaticNbrResolveTimestamp(
+int64_t verifyStaticNbrResolveTimestamp(
     const std::shared_ptr<InterfaceMap>& interfaceMap) {
   for (const auto& [_, interface] : std::as_const(*interfaceMap)) {
     for (const auto& [_, nbrEntry] : std::as_const(*interface->getNdpTable())) {
       if (nbrEntry->getType() == state::NeighborEntryType::STATIC_ENTRY) {
         EXPECT_TRUE(nbrEntry->getResolvedSince().has_value());
+        return nbrEntry->getResolvedSince().value();
       }
     }
   }
+  throw FbossError("No static nbr entry found");
 }
 
 TEST(DsfNode, SerDeserDsfNode) {
@@ -108,7 +110,10 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
   EXPECT_EQ(stateV1->getDsfNodes()->numNodes(), 2);
-  verifyStaticNbrResolveTimestamp(stateV1->getRemoteInterfaces());
+  // No static neighbor
+  EXPECT_THROW(
+      verifyStaticNbrResolveTimestamp(stateV1->getRemoteInterfaces()),
+      FbossError);
   // Add node
   config.dsfNodes()->insert({5, makeDsfNodeCfg(5)});
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
@@ -121,13 +126,13 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   EXPECT_EQ(
       stateV2->getRemoteInterfaces()->size(),
       stateV1->getRemoteInterfaces()->size() + 1);
-  verifyStaticNbrResolveTimestamp(stateV2->getRemoteInterfaces());
+  // Expect valid resolved timestamp
+  auto initialTs =
+      verifyStaticNbrResolveTimestamp(stateV2->getRemoteInterfaces());
+  EXPECT_GT(initialTs, 0);
 
-  // Update node
-  config.dsfNodes()->erase(5);
-  auto updatedDsfNode = makeDsfNodeCfg(5);
-  updatedDsfNode.name() = "newName";
-  config.dsfNodes()->insert({5, updatedDsfNode});
+  // Config update with no change in dsf nodes
+  *config.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   ASSERT_NE(nullptr, stateV3);
   EXPECT_EQ(stateV3->getDsfNodes()->numNodes(), 3);
@@ -137,20 +142,67 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   EXPECT_EQ(
       stateV3->getRemoteInterfaces()->size(),
       stateV2->getRemoteInterfaces()->size());
-  verifyStaticNbrResolveTimestamp(stateV3->getRemoteInterfaces());
+  // No change in resolved timestamp
+  EXPECT_EQ(
+      initialTs,
+      verifyStaticNbrResolveTimestamp(stateV3->getRemoteInterfaces()));
+
+  // Add new FN node
+  config.dsfNodes()->insert(
+      {6, makeDsfNodeCfg(6, cfg::DsfNodeType::FABRIC_NODE)});
+  auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
+
+  ASSERT_NE(nullptr, stateV4);
+  EXPECT_EQ(stateV4->getDsfNodes()->numNodes(), 4);
+  EXPECT_EQ(
+      stateV4->getRemoteSystemPorts()->numNodes(),
+      stateV3->getRemoteSystemPorts()->numNodes());
+  EXPECT_EQ(
+      stateV4->getRemoteInterfaces()->size(),
+      stateV3->getRemoteInterfaces()->size());
+  // No change in resolved timestamp
+  EXPECT_EQ(
+      initialTs,
+      verifyStaticNbrResolveTimestamp(stateV4->getRemoteInterfaces()));
+
+  // Sleep 2 sec to get a new resolved timestamp
+  // @lint-ignore CLANGTIDY
+  sleep(2);
+
+  // Update IN node 5
+  config.dsfNodes()->erase(5);
+  auto updatedDsfNode = makeDsfNodeCfg(5);
+  updatedDsfNode.name() = "newName";
+  config.dsfNodes()->insert({5, updatedDsfNode});
+  auto stateV5 = publishAndApplyConfig(stateV2, &config, platform.get());
+  ASSERT_NE(nullptr, stateV5);
+  EXPECT_EQ(stateV5->getDsfNodes()->numNodes(), 4);
+  EXPECT_EQ(
+      stateV5->getRemoteSystemPorts()->numNodes(),
+      stateV2->getRemoteSystemPorts()->numNodes());
+  EXPECT_EQ(
+      stateV5->getRemoteInterfaces()->size(),
+      stateV2->getRemoteInterfaces()->size());
+  // Node updated - resolved timestamp should be updated
+  EXPECT_LT(
+      initialTs,
+      verifyStaticNbrResolveTimestamp(stateV5->getRemoteInterfaces()));
 
   // Erase node
   config.dsfNodes()->erase(5);
-  auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
-  ASSERT_NE(nullptr, stateV4);
-  EXPECT_EQ(stateV4->getDsfNodes()->numNodes(), 2);
+  auto stateV6 = publishAndApplyConfig(stateV5, &config, platform.get());
+  ASSERT_NE(nullptr, stateV6);
+  EXPECT_EQ(stateV6->getDsfNodes()->numNodes(), 3);
   EXPECT_EQ(
-      stateV4->getRemoteSystemPorts()->numNodes(),
-      stateV3->getRemoteSystemPorts()->numNodes() - 1);
+      stateV6->getRemoteSystemPorts()->numNodes(),
+      stateV5->getRemoteSystemPorts()->numNodes() - 1);
   EXPECT_EQ(
-      stateV4->getRemoteInterfaces()->size(),
-      stateV3->getRemoteInterfaces()->size() - 1);
-  verifyStaticNbrResolveTimestamp(stateV4->getRemoteInterfaces());
+      stateV6->getRemoteInterfaces()->size(),
+      stateV5->getRemoteInterfaces()->size() - 1);
+  // No static neighbor again
+  EXPECT_THROW(
+      verifyStaticNbrResolveTimestamp(stateV6->getRemoteInterfaces()),
+      FbossError);
 }
 
 TEST(DsfNode, dsfNodeUpdateLocalDsfNodeConfig) {
