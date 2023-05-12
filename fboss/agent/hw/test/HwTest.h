@@ -98,7 +98,7 @@ class HwTest : public ::testing::Test,
 
   std::vector<PortID> getAllPortsInGroup(PortID portID) const;
 
-  SwitchIdScopeResolver scopeResolver() const;
+  const SwitchIdScopeResolver& scopeResolver() const;
 
  protected:
   /*

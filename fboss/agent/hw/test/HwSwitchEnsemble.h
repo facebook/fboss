@@ -246,7 +246,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
 
   virtual bool isSai() const = 0;
 
-  SwitchIdScopeResolver scopeResolver() const;
+  const SwitchIdScopeResolver& scopeResolver() const override;
 
  protected:
   /*
@@ -306,6 +306,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   mutable std::mutex updateStateMutex_;
 
   std::unique_ptr<HwAsicTable> hwAsicTable_;
+  std::unique_ptr<SwitchIdScopeResolver> scopeResolver_;
 };
 
 } // namespace facebook::fboss

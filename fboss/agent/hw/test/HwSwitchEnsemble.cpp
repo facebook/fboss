@@ -445,9 +445,9 @@ void HwSwitchEnsemble::setupEnsemble(
   portIdRange.maximum() =
       cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
   switchInfo.portIdRange() = portIdRange;
-  hwAsicTable_ =
-      std::make_unique<HwAsicTable>(std::map<int64_t, cfg::SwitchInfo>(
-          {{asic->getSwitchId() ? *asic->getSwitchId() : 0, switchInfo}}));
+  auto switchIdToSwitchInfo = std::map<int64_t, cfg::SwitchInfo>(
+      {{asic->getSwitchId() ? *asic->getSwitchId() : 0, switchInfo}});
+  hwAsicTable_ = std::make_unique<HwAsicTable>(switchIdToSwitchInfo);
 
   auto hwInitResult = getHwSwitch()->init(
       this,
@@ -462,6 +462,8 @@ void HwSwitchEnsemble::setupEnsemble(
   // This will catch errors if test cases accidentally try to modify this
   // programmedState_ without first cloning it.
   programmedState_->publish();
+  scopeResolver_ =
+      std::make_unique<SwitchIdScopeResolver>(switchIdToSwitchInfo);
   StaticL2ForNeighborHwSwitchUpdater updater(this);
   updater.stateUpdated(
       StateDelta(std::make_shared<SwitchState>(), programmedState_));
@@ -702,9 +704,8 @@ void HwSwitchEnsemble::clearPfcWatchdogCounter(
   }
 }
 
-SwitchIdScopeResolver HwSwitchEnsemble::scopeResolver() const {
-  CHECK(getProgrammedState());
-  return SwitchIdScopeResolver(
-      getProgrammedState()->getSwitchSettings()->getSwitchIdToSwitchInfo());
+const SwitchIdScopeResolver& HwSwitchEnsemble::scopeResolver() const {
+  CHECK(scopeResolver_);
+  return *scopeResolver_;
 }
 } // namespace facebook::fboss

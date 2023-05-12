@@ -278,9 +278,4 @@ std::map<PortID, HwPortStats> AgentEnsemble::getLatestPortStats(
 HwPortStats AgentEnsemble::getLatestPortStats(const PortID& port) {
   return getLatestPortStats(std::vector<PortID>{port})[port];
 }
-
-const SwitchIdScopeResolver& AgentEnsemble::scopeResolver() const {
-  CHECK(getSw()->getScopeResolver());
-  return *(getSw()->getScopeResolver());
-}
 } // namespace facebook::fboss
