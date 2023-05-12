@@ -19,6 +19,10 @@ using folly::IPAddress;
 using folly::IPAddressV6;
 using std::string;
 
+DEFINE_bool(
+    skip_stop_pfc_test_traffic,
+    false,
+    "Skip stopping traffic after traffic test!");
 namespace {
 static constexpr auto kGlobalSharedBytes{20000};
 static constexpr auto kGlobalHeadroomBytes{4771136};
@@ -391,10 +395,12 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
             {masterLogicalInterfacePortIds()[0],
              masterLogicalInterfacePortIds()[1]});
       }
-      // stop traffic so that unconfiguration can happen without issues
-      stopTraffic(
-          {masterLogicalInterfacePortIds()[0],
-           masterLogicalInterfacePortIds()[1]});
+      if (!FLAGS_skip_stop_pfc_test_traffic) {
+        // stop traffic so that unconfiguration can happen without issues
+        stopTraffic(
+            {masterLogicalInterfacePortIds()[0],
+             masterLogicalInterfacePortIds()[1]});
+      }
     };
     verifyAcrossWarmBoots(setup, verify);
   }
