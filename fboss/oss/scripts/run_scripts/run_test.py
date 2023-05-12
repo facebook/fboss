@@ -14,32 +14,110 @@ from datetime import datetime
 
 # Helper to run HwTests
 #
-# Sample invocation:
-#  ./run_test.py sai --config $confFile # run ALL Hw SAI tests: coldboot + #  warmboot
-#  ./run_test.py sai --config $confFile --coldboot_only # run cold boot only
-#  ./run_test.py sai --config $confFile --filter=*Route*V6* # run tests #  matching filter
-#  ./run_test.py sai --config $confFile --filter=*Vlan*:*Port* # run tests matching "Vlan" and "Port" filters
-#  ./run_test.py sai --config $confFile --filter=*Vlan*:*Port*:-*Mac*:*Intf* # run tests matching "Vlan" and "Port" filters, but excluding "Mac" and "Intf" tests in that list
-
-#  ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig # single test
-#  ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig --sdk_logging /tmp/XYZ # SAI replayer logging
-#  ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig --coldboot_only # single test, cold boot
-#  ./run_test.py sai --config $confFile --filter=HwAclQualifierTest* # some control plane tests
-#  ./run_test.py sai --config $confFile --filter=HwOlympicQosSchedulerTest* # some dataplane tests
-#  ./run_test.py sai --config $confFile --list_tests # Print all the tests but do not run any test
-#  ./run_test.py sai --config $confFile --filter=<filter_regex> --list_tests # Print the matching tests but do not run any test
-#  ./run_test.py sai --config $confFile --sdk_logging /root/all_replayer_logs # ALL tests with SAI replayer logging
-
-#  ./run_test.py sai --config $confFile --skip-known-bad-tests $test-config --file HwRouteScaleTest.turboFabricScaleTest # skip running known bad tests
-#  ./run_test.py sai --config $confFile --skip-known-bad-tests $test-config # skip running known bad tests
+# RUNNING HW TESTS:
+# -----------------
 #
-#  ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig #  --mgmt-if eth0 # Using custom mgmt-if
-
-# ./run_test.py sai --config $confFile --coldboot_only --filter_file=$filter-file # fboss.git/fboss/oss/hw_known_good_tests/ for filter files
+# Running HW Test Regression:
 #
-# Running non-OSS:
-#  ./run_test.py sai --config fuji.agent.materialized_JSON --filter HwVlanTest.VlanApplyConfig --sdk_logging /root/skhare/sai_replayer_logs --no-oss --sai-bin /root/skhare/sai_test-brcm-7.2.0.0_odp --mgmt-if eth0
+#  1. Run entire BCM SAI XGS Regression for a specific ASIC type and SDK
 #
+#   ./run_test.py sai --config $confFile --skip-known-bad-tests $test-config
+#      Example to run HW Tests on Fuji Tomahawk4 Platform with bcm-sai SDK 8.2 and skips all known bad tests
+#     ./run_test.py sai --config fuji.agent.materialized_JSON --skip-known-bad-tests "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk4"
+#
+#  2. Run entire SAI DNX regression for Jericho2 and SDK:
+#   ./run_test.py sai --config $confFile --coldboot_only --filter_file=$filter-file
+#      Example to run HW Tests on Meru Jericho2 Platform and runs only the known good test listed for Jericho2 asic.
+#     ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter_file=known-good_regexes-brcm-sai-9.0_ea_dnx_odp-jericho2
+#
+# Sample invocation for HW Tests:
+#
+#  1. Running all HW SAI TESTS:
+#      ./run_test.py sai --config $confFile
+#      desc: Runs ALL Hw SAI tests: coldboot and warmboot
+#
+#  2. Running only coldboot tests:
+#      ./run_test.py sai --config $confFile --coldboot_only
+#      desc: Runs all HW tests only on coldboot mode
+#
+#  3. Running specific tests through regex:
+#      ./run_test.py sai --config $confFile --filter=*Route*V6*
+#      desc: Runs only the HW test matching the regex *Route*V6*
+#
+#      e./run_test.py sai --config $confFile --filter=*Vlan*:*Port*
+#      desc: Run tests matching "Vlan" and "Port" filters
+#
+#  4. Running specific tests through regex and excluding certain tests:
+#      ./run_test.py sai --config $confFile --filter=*Vlan*:*Port*:-*Mac*:*Intf*
+#      desc: Run tests matching "Vlan" and "Port" filters, but excluding "Mac" and "Intf" tests in that list
+#
+#  5. Running a targetted test:
+#      ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig
+#      desc: Runs a single test by providing the entire test name as a filter
+#
+#  6. Enable SAI Replayer Logging:
+#      ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig --sdk_logging /tmp/XYZ #
+#      desc: Enables SAI Replayer Logging for the specified test case
+#
+#      ./run_test.py sai --config $confFile --sdk_logging /root/all_replayer_logs
+#      desc: Enables SAI replayer Logging for all test cases
+#
+#  7. Running a single test in coldboot mode:
+#      ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig --coldboot_only
+#      desc: Runs a single test and performs only coldboot
+#
+#  8. Example of control plane tests:
+#      ./run_test.py sai --config $confFile --filter=HwAclQualifierTest*
+#      desc: Sample HW test by programming the hardware and validating the functionality
+#
+#  9. Example of data plane tests:
+#      ./run_test.py sai --config $confFile --filter=HwOlympicQosSchedulerTest*
+#      desc: Sample HW test by programming the hardware, creating a dataplane loop and validating functionality
+#
+#  10. List all tests in the test binary:
+#      ./run_test.py sai --config $confFile --list_tests
+#      desc: Print all the tests but do not run any test
+#
+#  11. List tests matching given regex:
+#      ./run_test.py sai --config $confFile --filter=<filter_regex> --list_tests
+#      desc: Print the matching tests but do not run any test
+#
+#  12. Skip running Known Bad Tests:
+#      ./run_test.py sai --config $confFile --skip-known-bad-tests $test-config
+#      desc: Run tests but skip running known bad tests for a specific platform
+#
+#  13. Use Custom Management Interface:
+#      ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig --mgmt-if eth0
+#      desc: Instead of eth0, provide a custom mgmt-if
+#
+#  14. Running non-OSS Binary using run_test helper:
+#      ./run_test.py sai --config fuji.agent.materialized_JSON --filter HwVlanTest.VlanApplyConfig --sdk_logging /root/skhare/sai_replayer_logs --no-oss --sai-bin /root/skhare/sai_test-brcm-7.2.0.0_odp --mgmt-if eth0
+#      desc: Runs tests but does not use OSS binary for testing
+#
+#
+# TERMS & DEFINITIONS:
+# ---------------------
+#
+# Known good tests:
+# We maintain a list of known good tests per SDK per platform to run the HW tests
+# Known good tests are listed under fboss.git/fboss/oss/hw_known_good_tests/
+# This list can be provided to run_test.py as an argument --filter_file which
+# will run only those tests that are listed in the file
+#
+# Skip known bad tests:
+# We maintain a list of known bad tests per SDK per platform to skip running them
+# when running the entite suite of HW tests. There is a consolidated Json file under
+# fboss.git/oss/hw_known_bad_tests/sai_known_bad_tests.materialized_JSON. This file is indexed
+# based on $test-config format - vendor/coldboot-sdk-version-from/warmboot-sdk-version-to/asic.
+# The known bad list can be provided to run_test.py as an argument --skip-known-bad-tests $testConfig
+# which can be used to skip running known bad tests for specific platforms.
+# eg: To skip running bad tests on tomahawk asic on SDK 7.2, the test-config to be used is
+# "brcm/7.2.0.0_odp/7.2.0.0_odp/tomahawk"
+#
+# (TODO):
+# SDK Logging:
+# Coldboot & Warmboot:
+# Regex
 
 OPT_ARG_COLDBOOT = "--coldboot_only"
 OPT_ARG_FILTER = "--filter"
