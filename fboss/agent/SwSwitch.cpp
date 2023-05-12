@@ -1703,7 +1703,11 @@ void SwSwitch::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept {
 std::optional<folly::MacAddress> SwSwitch::getSourceMac(
     const std::shared_ptr<Interface>& intf) const {
   try {
-    auto switchId = getScopeResolver()->scope(intf, getState()).switchId();
+    auto switchIds = getScopeResolver()->scope(intf, getState()).switchIds();
+    if (switchIds.empty()) {
+      throw FbossError("No switchId scope found for intf: ", intf->getID());
+    }
+    auto switchId = *switchIds.begin();
     // We always use our CPU's mac-address as source mac-address
     return getHwAsicTable()->getHwAsic(switchId)->getAsicMac();
   } catch (const std::exception& ex) {
