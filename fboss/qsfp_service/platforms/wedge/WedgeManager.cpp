@@ -132,8 +132,6 @@ void WedgeManager::initTransceiverMap() {
   // mapping and port name recognization.
   loadConfig();
 
-  agentConfig_ = AgentConfig::fromDefaultFile();
-
   // Set overrideTcvrToPortAndProfileForTest_ if
   // FLAGS_override_program_iphy_ports_for_test true.
   setOverrideTcvrToPortAndProfileForTesting();
