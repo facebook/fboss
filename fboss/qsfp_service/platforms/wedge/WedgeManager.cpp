@@ -883,18 +883,23 @@ void WedgeManager::setOverrideTcvrToPortAndProfileForTesting(
       auto tcvrID = TransceiverID(*chip.second.physicalID());
       overrideTcvrToPortAndProfileForTest_[tcvrID] = {};
     }
-    // Use Agent config to get the iphy port and profile
-    const auto& swConfig = agentConfig_->thrift.sw();
-    for (const auto& port : *swConfig->ports()) {
-      // Only need ENABLED ports
-      if (*port.state() != cfg::PortState::ENABLED) {
-        continue;
-      }
+    // Use QSFP config to get the iphy port and profile
+    auto qsfpTestConfig = qsfpConfig_->thrift.qsfpTestConfig();
+    CHECK(qsfpTestConfig.has_value());
+    for (const auto& portPairs : *qsfpTestConfig->cabledPortPairs()) {
+      auto aPortID = getPortIDByPortName(*portPairs.aPortName());
+      auto zPortID = getPortIDByPortName(*portPairs.zPortName());
+      CHECK(aPortID.has_value());
+      CHECK(zPortID.has_value());
       // If the SW port has transceiver id, add it to
       // overrideTcvrToPortAndProfile
-      if (auto tcvrID = getTransceiverID(PortID(*port.logicalID()))) {
+      if (auto tcvrID = getTransceiverID(PortID(*aPortID))) {
         overrideTcvrToPortAndProfileForTest_[*tcvrID].emplace(
-            *port.logicalID(), *port.profileID());
+            *aPortID, *portPairs.profileID());
+      }
+      if (auto tcvrID = getTransceiverID(PortID(*zPortID))) {
+        overrideTcvrToPortAndProfileForTest_[*tcvrID].emplace(
+            *zPortID, *portPairs.profileID());
       }
     }
   }
