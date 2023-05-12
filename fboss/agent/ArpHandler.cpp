@@ -220,31 +220,34 @@ static void sendArp(
 }
 
 void ArpHandler::floodGratuituousArp() {
-  for (auto iter : std::as_const(*sw_->getState()->getInterfaces())) {
-    const auto& intf = iter.second;
-    // mostly for agent tests where we dont want to flood arp
-    // causing loop, when ports are in loopback
-    if (isAnyInterfacePortInLoopbackMode(sw_->getState(), intf)) {
-      XLOG(DBG2) << "Do not flood gratuituous arp on interface: "
-                 << intf->getName();
-      continue;
-    }
-    for (auto iter : std::as_const(*intf->getAddresses())) {
-      auto addrEntry = folly::IPAddress(iter.first);
-      if (!addrEntry.isV4()) {
+  for (const auto& [_, intfMap] :
+       std::as_const(*sw_->getState()->getMultiSwitchInterfaces())) {
+    for (auto iiter : std::as_const(*intfMap)) {
+      const auto& intf = iiter.second;
+      // mostly for agent tests where we dont want to flood arp
+      // causing loop, when ports are in loopback
+      if (isAnyInterfacePortInLoopbackMode(sw_->getState(), intf)) {
+        XLOG(DBG2) << "Do not flood gratuituous arp on interface: "
+                   << intf->getName();
         continue;
       }
-      auto v4Addr = addrEntry.asV4();
-      // Gratuitous arps have both source and destination IPs set to
-      // originator's address
-      sendArp(
-          sw_,
-          intf->getVlanIDIf(),
-          ARP_OP_REQUEST,
-          intf->getMac(),
-          v4Addr,
-          MacAddress::BROADCAST,
-          v4Addr);
+      for (auto iter : std::as_const(*intf->getAddresses())) {
+        auto addrEntry = folly::IPAddress(iter.first);
+        if (!addrEntry.isV4()) {
+          continue;
+        }
+        auto v4Addr = addrEntry.asV4();
+        // Gratuitous arps have both source and destination IPs set to
+        // originator's address
+        sendArp(
+            sw_,
+            intf->getVlanIDIf(),
+            ARP_OP_REQUEST,
+            intf->getMac(),
+            v4Addr,
+            MacAddress::BROADCAST,
+            v4Addr);
+      }
     }
   }
 }
@@ -294,8 +297,8 @@ void ArpHandler::sendArpRequest(
 void ArpHandler::sendArpRequest(
     SwSwitch* sw,
     const folly::IPAddressV4& targetIP) {
-  auto intf =
-      sw->getState()->getInterfaces()->getIntfToReach(RouterID(0), targetIP);
+  auto intf = sw->getState()->getMultiSwitchInterfaces()->getIntfToReach(
+      RouterID(0), targetIP);
 
   if (!intf) {
     XLOG(DBG0) << "Cannot find interface for " << targetIP;

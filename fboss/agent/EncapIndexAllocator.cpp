@@ -36,13 +36,14 @@ int64_t EncapIndexAllocator::getNextAvailableEncapIdx(
         extractIndices(idAndVlan.second->getArpTable());
         extractIndices(idAndVlan.second->getNdpTable());
       });
-  std::for_each(
-      state->getInterfaces()->cbegin(),
-      state->getInterfaces()->cend(),
-      [&](const auto& idAndIntf) {
-        extractIndices(idAndIntf.second->getArpTable());
-        extractIndices(idAndIntf.second->getNdpTable());
-      });
+  for (const auto& [_, intfMap] :
+       std::as_const(*state->getMultiSwitchInterfaces())) {
+    std::for_each(
+        intfMap->cbegin(), intfMap->cend(), [&](const auto& idAndIntf) {
+          extractIndices(idAndIntf.second->getArpTable());
+          extractIndices(idAndIntf.second->getNdpTable());
+        });
+  }
   auto start = *asic.getReservedEncapIndexRange().minimum() +
       kEncapIdxReservedForLoopbacks;
   while (start <= *asic.getReservedEncapIndexRange().maximum()) {
@@ -80,14 +81,13 @@ std::shared_ptr<SwitchState> EncapIndexAllocator::updateEncapIndices(
     for (const auto& intfDelta : delta.getIntfsDelta()) {
       auto updateIntf =
           [&](auto newNbr, const auto& nbrTable, InterfaceID intfId) {
-            auto intfMap = newState->getInterfaces()->modify(&newState);
-            auto intf = intfMap->getInterface(intfId);
+            auto intf = newState->getMultiSwitchInterfaces()->getNode(intfId);
             if (intf->getType() != cfg::InterfaceType::SYSTEM_PORT) {
               return;
             }
             auto updatedNbr = handleNewNbr(newNbr);
             if (updatedNbr) {
-              auto intfNew = intf->clone();
+              auto intfNew = intf->modify(&newState);
               auto updatedNbrTable = nbrTable->toThrift();
               if (!nbrTable->getEntry(newNbr->getIP())) {
                 updatedNbrTable.insert(
@@ -102,7 +102,6 @@ std::shared_ptr<SwitchState> EncapIndexAllocator::updateEncapIndices(
               } else {
                 intfNew->setArpTable(updatedNbrTable);
               }
-              intfMap->updateNode(intfNew);
             }
           };
       DeltaFunctions::forEachChanged(
