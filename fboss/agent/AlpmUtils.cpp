@@ -92,16 +92,14 @@ std::shared_ptr<SwitchState> getMinAlpmRouteState(
     vlan->setNdpTable(std::make_shared<NdpTable>());
   }
 
-  auto newIntfMap = noRoutesState->getInterfaces()->clone();
-  for (const auto& [intfID, interface] :
-       std::as_const(*noRoutesState->getInterfaces())) {
-    std::ignore = intfID;
-    CHECK(interface->isPublished());
-    auto newIntf = interface->clone();
-    newIntf->setAddresses(Interface::Addresses{});
-    newIntfMap->updateNode(newIntf);
+  auto allIntfs = noRoutesState->getMultiSwitchInterfaces();
+  for (const auto& [_, intfMap] : std::as_const(*allIntfs)) {
+    for (const auto& [_, interface] : std::as_const(*intfMap)) {
+      CHECK(interface->isPublished());
+      auto newIntf = interface->modify(&noRoutesState);
+      newIntf->setAddresses(Interface::Addresses{});
+    }
   }
-  noRoutesState->resetIntfs(newIntfMap);
   return setupMinAlpmRouteState(noRoutesState);
 }
 
