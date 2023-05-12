@@ -468,6 +468,12 @@ class SaiSwitch : public HwSwitch {
 
   void checkAndSetSdkDowngradeVersion() const;
 
+  template <typename LockPolicyT>
+  void processAclTableGroupDelta(
+      const StateDelta& delta,
+      const AclTableGroupMap& aclTableGroupMap,
+      const LockPolicyT& lockPolicy);
+
   /*
    * SaiSwitch must support a few varieties of concurrent access:
    * 1. state updates on the SwSwitch update thread calling stateChanged

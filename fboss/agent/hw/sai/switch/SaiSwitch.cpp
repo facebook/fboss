@@ -862,37 +862,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
 
     if (delta.getAclTableGroupsDelta().getNew()) {
       // Process delta for the entries of each table in the new state
-      for (const auto& iter :
-           std::as_const(*delta.getAclTableGroupsDelta().getNew())) {
-        const auto& tableGroup = iter.second;
-        auto aclStage = tableGroup->getID();
-
-        processDelta(
-            delta.getAclTablesDelta(aclStage),
-            managerTable_->aclTableManager(),
-            lockPolicy,
-            &SaiAclTableManager::changedAclTable,
-            &SaiAclTableManager::addAclTable,
-            &SaiAclTableManager::removeAclTable,
-            aclStage);
-
-        if (delta.getAclTablesDelta(aclStage).getNew()) {
-          // Process delta for the entries of each table in the new state
-          for (const auto& iter :
-               std::as_const(*delta.getAclTablesDelta(aclStage).getNew())) {
-            auto table = iter.second;
-            auto tableName = table->getID();
-            processDelta(
-                delta.getAclsDelta(aclStage, tableName),
-                managerTable_->aclTableManager(),
-                lockPolicy,
-                &SaiAclTableManager::changedAclEntry,
-                &SaiAclTableManager::addAclEntry,
-                &SaiAclTableManager::removeAclEntry,
-                tableName);
-          }
-        }
-      }
+      processAclTableGroupDelta(
+          delta, *delta.getAclTableGroupsDelta().getNew(), lockPolicy);
     }
   } else {
     std::set<cfg::AclTableQualifier> oldRequiredQualifiers{};
@@ -3110,5 +3081,41 @@ void SaiSwitch::rollbackInTest(
     const std::shared_ptr<SwitchState>& knownGoodState) {
   rollback(knownGoodState);
   setProgrammedState(knownGoodState);
+}
+
+template <typename LockPolicyT>
+void SaiSwitch::processAclTableGroupDelta(
+    const StateDelta& delta,
+    const AclTableGroupMap& aclTableGroupMap,
+    const LockPolicyT& lockPolicy) {
+  for (const auto& [_, tableGroup] : aclTableGroupMap) {
+    auto aclStage = tableGroup->getID();
+
+    processDelta(
+        delta.getAclTablesDelta(aclStage),
+        managerTable_->aclTableManager(),
+        lockPolicy,
+        &SaiAclTableManager::changedAclTable,
+        &SaiAclTableManager::addAclTable,
+        &SaiAclTableManager::removeAclTable,
+        aclStage);
+
+    if (delta.getAclTablesDelta(aclStage).getNew()) {
+      // Process delta for the entries of each table in the new state
+      for (const auto& iter :
+           std::as_const(*delta.getAclTablesDelta(aclStage).getNew())) {
+        auto table = iter.second;
+        auto tableName = table->getID();
+        processDelta(
+            delta.getAclsDelta(aclStage, tableName),
+            managerTable_->aclTableManager(),
+            lockPolicy,
+            &SaiAclTableManager::changedAclEntry,
+            &SaiAclTableManager::addAclEntry,
+            &SaiAclTableManager::removeAclEntry,
+            tableName);
+      }
+    }
+  }
 }
 } // namespace facebook::fboss
