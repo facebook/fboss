@@ -132,6 +132,11 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 const HwSwitchMatcher SwitchIdScopeResolver::scope(
     const std::shared_ptr<Vlan>& vlan) const {
   checkL3();
+  if (vlan->getPorts().empty()) {
+    // VLANs corresponding to loopback intfs have no ports
+    // associated with them.
+    return *l3SwitchMatcher_;
+  }
   std::unordered_set<SwitchID> switchIds;
   for (const auto& port : vlan->getPorts()) {
     auto portSwitchIds = scope(PortID(port.first)).switchIds();
