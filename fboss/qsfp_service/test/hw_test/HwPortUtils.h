@@ -71,7 +71,6 @@ std::set<PortID> getCabledPorts(const HwQsfpEnsemble* ensemble);
 std::vector<std::pair<std::string, std::string>> getCabledPairs(
     const HwQsfpEnsemble* ensemble);
 std::vector<TransceiverID> getCabledPortTranceivers(
-    const AgentConfig& conf,
     const HwQsfpEnsemble* ensemble);
 bool match(std::vector<TransceiverID> l, std::vector<TransceiverID> r);
 bool containsSubset(

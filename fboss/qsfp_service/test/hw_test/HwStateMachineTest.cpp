@@ -31,9 +31,8 @@ class HwStateMachineTest : public HwTest {
     getHwQsfpEnsemble()->getWedgeManager()->getTransceiversInfo(
         presentTcvrs, std::make_unique<std::vector<int32_t>>());
 
-    auto agentConfig = getHwQsfpEnsemble()->getWedgeManager()->getAgentConfig();
     auto cabledTransceivers = utility::legacyTransceiverIds(
-        utility::getCabledPortTranceivers(*agentConfig, getHwQsfpEnsemble()));
+        utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
 
     // Get all transceivers from platform mapping
     const auto& chips = getHwQsfpEnsemble()->getPlatformMapping()->getChips();

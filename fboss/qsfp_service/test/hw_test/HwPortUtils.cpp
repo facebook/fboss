@@ -257,7 +257,6 @@ std::vector<std::pair<std::string, std::string>> getCabledPairs(
 }
 
 std::vector<TransceiverID> getCabledPortTranceivers(
-    const AgentConfig& config,
     const HwQsfpEnsemble* ensemble) {
   std::unordered_set<TransceiverID> transceivers;
   // There could be multiple ports in a single transceiver. Therefore use a set

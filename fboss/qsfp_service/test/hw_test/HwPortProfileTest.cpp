@@ -10,7 +10,6 @@
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/test/hw_test/HwTest.h"
 
-#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"

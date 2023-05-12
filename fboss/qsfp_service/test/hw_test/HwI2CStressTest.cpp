@@ -2,7 +2,6 @@
 
 #include "fboss/qsfp_service/test/hw_test/HwTest.h"
 
-#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
@@ -19,9 +18,8 @@ constexpr int kI2cStressTestIterations = 200;
 namespace facebook::fboss {
 
 TEST_F(HwTest, i2cStressRead) {
-  auto agentConfig = getHwQsfpEnsemble()->getWedgeManager()->getAgentConfig();
   auto transceivers = utility::legacyTransceiverIds(
-      utility::getCabledPortTranceivers(*agentConfig, getHwQsfpEnsemble()));
+      utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   std::map<int32_t, TransceiverInfo> transceiversInfo;
   getHwQsfpEnsemble()->getWedgeManager()->getTransceiversInfo(
@@ -73,9 +71,8 @@ TEST_F(HwTest, i2cStressRead) {
 }
 
 TEST_F(HwTest, i2cStressWrite) {
-  auto agentConfig = getHwQsfpEnsemble()->getWedgeManager()->getAgentConfig();
   auto transceivers = utility::legacyTransceiverIds(
-      utility::getCabledPortTranceivers(*agentConfig, getHwQsfpEnsemble()));
+      utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   std::map<int32_t, TransceiverInfo> transceiversInfo;
   getHwQsfpEnsemble()->getWedgeManager()->getTransceiversInfo(

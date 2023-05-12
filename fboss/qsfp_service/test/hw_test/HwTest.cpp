@@ -98,9 +98,7 @@ void HwTest::setupForWarmboot() const {
 // Refresh transceivers and retry after some unsuccessful attempts
 std::vector<TransceiverID> HwTest::refreshTransceiversWithRetry(
     int numRetries) {
-  auto agentConfig = ensemble_->getWedgeManager()->getAgentConfig();
-  auto expectedIds =
-      utility::getCabledPortTranceivers(*agentConfig, getHwQsfpEnsemble());
+  auto expectedIds = utility::getCabledPortTranceivers(getHwQsfpEnsemble());
   std::map<int32_t, TransceiverInfo> transceiversBeforeRefresh;
   std::vector<TransceiverID> transceiverIds;
   ensemble_->getWedgeManager()->getTransceiversInfo(
@@ -161,9 +159,8 @@ std::vector<TransceiverID> HwTest::refreshTransceiversWithRetry(
 // TransceiverManager::refreshStateMachines()
 void HwTest::waitTillCabledTcvrProgrammed(int numRetries) {
   // First get all expected transceivers based on cabled ports from agent.conf
-  auto agentConfig = ensemble_->getWedgeManager()->getAgentConfig();
   const auto& expectedIds =
-      utility::getCabledPortTranceivers(*agentConfig, getHwQsfpEnsemble());
+      utility::getCabledPortTranceivers(getHwQsfpEnsemble());
 
   // Due to some platforms are easy to have i2c issue which causes the current
   // refresh not work as expected. Adding enough retries to make sure that we
