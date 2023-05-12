@@ -194,17 +194,6 @@ IphyAndXphyPorts findAvailablePorts(
   return ports;
 }
 
-std::set<PortID> getCabledPorts(const AgentConfig& config) {
-  std::set<PortID> cabledPorts;
-  auto& swConfig = *config.thrift.sw();
-  for (auto& port : *swConfig.ports()) {
-    if (!(*port.expectedLLDPValues()).empty()) {
-      cabledPorts.insert(PortID(*port.logicalID()));
-    }
-  }
-  return cabledPorts;
-}
-
 std::map<PortID, cfg::PortProfileID> getCabledPortsAndProfiles(
     const HwQsfpEnsemble* ensemble) {
   std::map<PortID, cfg::PortProfileID> cabledPorts;
