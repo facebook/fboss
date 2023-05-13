@@ -81,7 +81,8 @@ class StateDelta {
       cfg::AclStage aclStage = cfg::AclStage::INGRESS,
       std::optional<std::string> tableName = std::nullopt) const;
   ThriftMapDelta<AclTableMap> getAclTablesDelta(cfg::AclStage aclStage) const;
-  ThriftMapDelta<AclTableGroupMap> getAclTableGroupsDelta() const;
+  MultiSwitchMapDelta<MultiSwitchAclTableGroupMap> getAclTableGroupsDelta()
+      const;
   QosPolicyMapDelta getQosPoliciesDelta() const;
   ThriftMapDelta<AggregatePortMap> getAggregatePortsDelta() const;
   ThriftMapDelta<SflowCollectorMap> getSflowCollectorsDelta() const;

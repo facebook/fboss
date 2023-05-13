@@ -2,6 +2,7 @@
 
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/state/AclTableGroup.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -158,4 +159,15 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
   throw FbossError(
       "Unexpected interface type: ", static_cast<int>(intf->getType()));
 }
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const cfg::AclTableGroup& /*aclTableGroup*/) const {
+  return l3SwitchMatcher();
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<AclTableGroup>& /*aclTableGroup*/) const {
+  return l3SwitchMatcher();
+}
+
 } // namespace facebook::fboss

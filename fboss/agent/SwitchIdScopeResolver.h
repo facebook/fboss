@@ -27,6 +27,7 @@ class TeFlowEntry;
 class SwitchState;
 class Interface;
 class Port;
+class AclTableGroup;
 
 class SwitchIdScopeResolver {
  public:
@@ -80,6 +81,10 @@ class SwitchIdScopeResolver {
   HwSwitchMatcher scope(
       const std::shared_ptr<Interface>& intf,
       const std::shared_ptr<SwitchState>& state) const;
+
+  HwSwitchMatcher scope(const cfg::AclTableGroup& aclTableGroup) const;
+  HwSwitchMatcher scope(
+      const std::shared_ptr<AclTableGroup>& aclTableGroup) const;
 
  private:
   void checkL3() const;

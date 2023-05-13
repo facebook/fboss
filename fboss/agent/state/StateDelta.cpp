@@ -149,9 +149,11 @@ ThriftMapDelta<AclTableMap> StateDelta::getAclTablesDelta(
       new_->getAclTablesForStage(aclStage).get());
 }
 
-ThriftMapDelta<AclTableGroupMap> StateDelta::getAclTableGroupsDelta() const {
-  return ThriftMapDelta<AclTableGroupMap>(
-      old_->getAclTableGroups().get(), new_->getAclTableGroups().get());
+MultiSwitchMapDelta<MultiSwitchAclTableGroupMap>
+StateDelta::getAclTableGroupsDelta() const {
+  return MultiSwitchMapDelta<MultiSwitchAclTableGroupMap>(
+      old_->getMultiSwitchAclTableGroups().get(),
+      new_->getMultiSwitchAclTableGroups().get());
 }
 
 QosPolicyMapDelta StateDelta::getQosPoliciesDelta() const {

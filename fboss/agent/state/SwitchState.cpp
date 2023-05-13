@@ -259,9 +259,19 @@ void SwitchState::resetAclTableGroups(
   resetDefaultMap<switch_state_tags::aclTableGroupMaps>(aclTableGroups);
 }
 
+void SwitchState::resetAclTableGroups(
+    std::shared_ptr<MultiSwitchAclTableGroupMap> aclTableGroups) {
+  ref<switch_state_tags::aclTableGroupMaps>() = aclTableGroups;
+}
+
 const std::shared_ptr<AclTableGroupMap>& SwitchState::getAclTableGroups()
     const {
   return getDefaultMap<switch_state_tags::aclTableGroupMaps>();
+}
+
+const std::shared_ptr<MultiSwitchAclTableGroupMap>&
+SwitchState::getMultiSwitchAclTableGroups() const {
+  return safe_cref<switch_state_tags::aclTableGroupMaps>();
 }
 
 void SwitchState::resetAggregatePorts(

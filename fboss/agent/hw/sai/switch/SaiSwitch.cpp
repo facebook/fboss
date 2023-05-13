@@ -862,8 +862,10 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
 
     if (delta.getAclTableGroupsDelta().getNew()) {
       // Process delta for the entries of each table in the new state
-      processAclTableGroupDelta(
-          delta, *delta.getAclTableGroupsDelta().getNew(), lockPolicy);
+      for (const auto& [_, tableGroupMap] :
+           *delta.getAclTableGroupsDelta().getNew()) {
+        processAclTableGroupDelta(delta, *tableGroupMap, lockPolicy);
+      }
     }
   } else {
     std::set<cfg::AclTableQualifier> oldRequiredQualifiers{};
