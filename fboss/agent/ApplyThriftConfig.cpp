@@ -549,7 +549,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     if (FLAGS_enable_acl_table_group) {
       auto newAclTableGroups = updateAclTableGroups();
       if (newAclTableGroups) {
-        new_->resetAclTableGroups(std::move(newAclTableGroups));
+        new_->resetAclTableGroups(toMultiSwitchMap<MultiSwitchAclTableGroupMap>(
+            newAclTableGroups, scopeResolver_));
         changed = true;
       }
     } else {
@@ -2502,7 +2503,7 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
 }
 
 std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
-  auto origAclTableGroups = orig_->getAclTableGroups();
+  auto origAclTableGroups = orig_->getMultiSwitchAclTableGroups();
   AclTableGroupMap::NodeContainer newAclTableGroups;
 
   if (!cfg_->aclTableGroup()) {
@@ -2522,7 +2523,7 @@ std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
   }
 
   auto origAclTableGroup =
-      origAclTableGroups->getAclTableGroupIf(cfg::AclStage::INGRESS);
+      origAclTableGroups->getNodeIf(cfg::AclStage::INGRESS);
 
   auto newAclTableGroup =
       updateAclTableGroup(*cfg_->aclTableGroup()->stage(), origAclTableGroup);
@@ -2533,7 +2534,7 @@ std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
     return nullptr;
   }
 
-  return origAclTableGroups->clone(std::move(newAclTableGroups));
+  return std::make_shared<AclTableGroupMap>(std::move(newAclTableGroups));
 }
 
 std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
@@ -2562,8 +2563,8 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
       changed = true;
       newAclTableMap->addTable(newTable);
     } else {
-      newAclTableMap->addTable(orig_->getAclTableGroups()
-                                   ->getAclTableGroup(aclStage)
+      newAclTableMap->addTable(orig_->getMultiSwitchAclTableGroups()
+                                   ->getNodeIf(aclStage)
                                    ->getAclTableMap()
                                    ->getTableIf(*(aclTable.name())));
     }
@@ -2620,13 +2621,13 @@ std::shared_ptr<AclTable> ThriftConfigApplier::updateAclTable(
     int* numExistingTablesProcessed) {
   auto tableName = *configTable.name();
   std::shared_ptr<AclTable> origTable;
-  if (orig_->getAclTableGroups() &&
-      orig_->getAclTableGroups()->getAclTableGroupIf(aclStage) &&
-      orig_->getAclTableGroups()
-          ->getAclTableGroup(aclStage)
+  if (orig_->getMultiSwitchAclTableGroups() &&
+      orig_->getMultiSwitchAclTableGroups()->getNodeIf(aclStage) &&
+      orig_->getMultiSwitchAclTableGroups()
+          ->getNodeIf(aclStage)
           ->getAclTableMap()) {
-    origTable = orig_->getAclTableGroups()
-                    ->getAclTableGroup(aclStage)
+    origTable = orig_->getMultiSwitchAclTableGroups()
+                    ->getNodeIf(aclStage)
                     ->getAclTableMap()
                     ->getTableIf(tableName);
   }
