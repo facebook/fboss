@@ -448,10 +448,12 @@ const std::shared_ptr<MultiSwitchDsfNodeMap>& SwitchState::getDsfNodes() const {
 
 std::shared_ptr<const AclTableMap> SwitchState::getAclTablesForStage(
     cfg::AclStage aclStage) const {
-  if (getAclTableGroups() &&
-      getAclTableGroups()->getAclTableGroupIf(aclStage) &&
-      getAclTableGroups()->getAclTableGroup(aclStage)->getAclTableMap()) {
-    return getAclTableGroups()->getAclTableGroup(aclStage)->getAclTableMap();
+  if (getMultiSwitchAclTableGroups() &&
+      getMultiSwitchAclTableGroups()->getNodeIf(aclStage) &&
+      getMultiSwitchAclTableGroups()->getNodeIf(aclStage)->getAclTableMap()) {
+    return getMultiSwitchAclTableGroups()
+        ->getNodeIf(aclStage)
+        ->getAclTableMap();
   }
 
   return nullptr;
