@@ -345,8 +345,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
 
   const std::shared_ptr<MultiSwitchAclMap>& getAcls() const;
 
-  const std::shared_ptr<MultiSwitchAclTableGroupMap>&
-  getMultiSwitchAclTableGroups() const;
+  const std::shared_ptr<MultiSwitchAclTableGroupMap>& getAclTableGroups() const;
 
   std::chrono::seconds getArpTimeout() const {
     auto arpTimeoutSwSettings = getSwitchSettings()->getArpTimeout();

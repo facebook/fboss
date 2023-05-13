@@ -39,8 +39,7 @@ std::shared_ptr<AclEntry> getSwAcl(
     cfg::AclStage aclStage,
     const std::string& aclTableName) {
   if (FLAGS_enable_acl_table_group) {
-    auto aclTableGroup =
-        state->getMultiSwitchAclTableGroups()->getNodeIf(aclStage);
+    auto aclTableGroup = state->getAclTableGroups()->getNodeIf(aclStage);
     auto aclTable = aclTableGroup->getAclTableMap()->getTableIf(aclTableName);
     return aclTable->getAclMap()->getEntry(aclName);
   } else {
