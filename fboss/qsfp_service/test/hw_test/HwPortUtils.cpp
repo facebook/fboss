@@ -160,10 +160,10 @@ std::vector<TransceiverID> getTransceiverIds(
   return transceivers;
 }
 
-IphyAndXphyPorts findAvailablePorts(
+// This only returns cabled ports
+IphyAndXphyPorts findAvailableCabledPorts(
     HwQsfpEnsemble* hwQsfpEnsemble,
-    std::optional<cfg::PortProfileID> profile,
-    bool onlyCabled) {
+    std::optional<cfg::PortProfileID> profile) {
   std::set<PortID> xPhyPorts;
   const auto& platformPorts =
       hwQsfpEnsemble->getPlatformMapping()->getPlatformPorts();
@@ -172,17 +172,20 @@ IphyAndXphyPorts findAvailablePorts(
   auto cabledPorts = getCabledPortsAndProfiles(hwQsfpEnsemble);
   for (auto& platformPort : platformPorts) {
     auto cabled = cabledPorts.find(PortID(platformPort.first));
-    if (profile.has_value() &&
-        (cabled == cabledPorts.end() || cabled->second != profile.value())) {
+    // If not a cabled port, don't include this port
+    if (cabled == cabledPorts.end()) {
       continue;
     }
-    cfg::PortProfileID profileToUse = profile.has_value()
-        ? profileToUse = profile.value()
-        : platformPort.second.get_supportedProfiles().begin()->first;
+    // If profile is passed in, check if it matches the cabled port
+    if (profile.has_value() && cabled->second != profile.value()) {
+      continue;
+    }
+
+    cfg::PortProfileID profileToUse = cabled->second;
     auto portIDAndProfile =
         std::make_pair(PortID(platformPort.first), profileToUse);
     const auto& xphy = utility::getDataPlanePhyChips(
-        platformPorts.find(cabled->first)->second,
+        platformPorts.find(platformPort.first)->second,
         chips,
         phy::DataPlanePhyChipType::XPHY);
     if (!xphy.empty()) {

@@ -69,7 +69,7 @@ class HwPortProfileTest : public HwTest {
  protected:
   void runTest() {
     const auto& ports =
-        utility::findAvailablePorts(getHwQsfpEnsemble(), Profile, true);
+        utility::findAvailableCabledPorts(getHwQsfpEnsemble(), Profile);
     EXPECT_TRUE(!(ports.xphyPorts.empty() && ports.iphyPorts.empty()));
     std::vector<PortID> matchingPorts;
     // Program xphy

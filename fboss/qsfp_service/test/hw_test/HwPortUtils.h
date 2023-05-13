@@ -57,12 +57,10 @@ std::vector<TransceiverID> getTransceiverIds(
 
 // Find the available iphy ports and xphy ports from agent config.
 // If profile is set, we will also filter the ports based on profile
-// Otherwise, we're only looking for ENABLED ports from the config
-// We can also filter the cabled ports
-IphyAndXphyPorts findAvailablePorts(
+// Otherwise, we're only looking for cabled ports from the config
+IphyAndXphyPorts findAvailableCabledPorts(
     HwQsfpEnsemble* qsfpEnsemble,
-    std::optional<cfg::PortProfileID> profile = std::nullopt,
-    bool onlyCabled = false);
+    std::optional<cfg::PortProfileID> profile = std::nullopt);
 
 std::map<PortID, cfg::PortProfileID> getCabledPortsAndProfiles(
     const HwQsfpEnsemble* ensemble);
