@@ -62,12 +62,33 @@ class HwXphyPortStatsCollectionTest : public HwExternalPhyPortTest {
       /* sleep override */
       sleep(getSleepSeconds(
           getHwQsfpEnsemble()->getWedgeManager()->getPlatformType()));
+
+      auto counterKeys = fb303::fbData->getCounterKeys();
       // Now check the stats collection future job is done.
       for (const auto& [port, _] : availableXphyPorts) {
         EXPECT_TRUE(
             getHwQsfpEnsemble()->getPhyManager()->isXphyStatsCollectionDone(
                 port))
             << "port:" << port << " xphy stats collection is not done";
+
+        // Verify fb303 has the XPHY FEC counters
+        auto portName =
+            getHwQsfpEnsemble()->getWedgeManager()->getPortNameByPortId(port);
+        CHECK(portName.has_value());
+        for (const auto side : {"system", "line"}) {
+          auto counterPrefix =
+              folly::to<std::string>(*portName, ".xphy.", side);
+          for (const auto& counterName :
+               {folly::to<std::string>(counterPrefix, ".fec_uncorrectable.sum"),
+                folly::to<std::string>(
+                    counterPrefix, ".fec_correctable.sum")}) {
+            EXPECT_TRUE(
+                std::find(
+                    counterKeys.begin(), counterKeys.end(), counterName) !=
+                counterKeys.end())
+                << "counter " << counterName << " not present in fb303";
+          }
+        }
       }
     };
     verifyAcrossWarmBoots(setup, verify);
