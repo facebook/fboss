@@ -345,7 +345,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
 
   const std::shared_ptr<MultiSwitchAclMap>& getAcls() const;
 
-  const std::shared_ptr<AclTableGroupMap>& getAclTableGroups() const;
   const std::shared_ptr<MultiSwitchAclTableGroupMap>&
   getMultiSwitchAclTableGroups() const;
 
