@@ -147,6 +147,16 @@ const HwSwitchMatcher SwitchIdScopeResolver::scope(
 }
 
 HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<AclTableGroup>& /*aclTableGroup*/) const {
+  return l3SwitchMatcher();
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const cfg::AclTableGroup& /*aclTableGroup*/) const {
+  return l3SwitchMatcher();
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
     const std::shared_ptr<Interface>& intf,
     const std::shared_ptr<SwitchState>& state) const {
   switch (intf->getType()) {
@@ -161,13 +171,30 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 }
 
 HwSwitchMatcher SwitchIdScopeResolver::scope(
-    const cfg::AclTableGroup& /*aclTableGroup*/) const {
-  return l3SwitchMatcher();
+    const std::shared_ptr<Interface>& intf,
+    const cfg::SwitchConfig& cfg) const {
+  switch (intf->getType()) {
+    case cfg::InterfaceType::SYSTEM_PORT:
+      return scope(SystemPortID(static_cast<int64_t>(intf->getID())));
+    case cfg::InterfaceType::VLAN: {
+      int vlanId(static_cast<int>(intf->getID()));
+      auto vitr = std::find_if(
+          cfg.vlans()->cbegin(),
+          cfg.vlans()->cend(),
+          [vlanId](const auto& vlan) { return vlan.id() == vlanId; });
+      if (vitr == cfg.vlans()->cend()) {
+        throw FbossError("No vlan found for : ", vlanId);
+      }
+      Vlan::MemberPorts vlanMembers;
+      for (const auto& vlanPort : *cfg.vlanPorts()) {
+        if (vlanPort.vlanID() == vlanId) {
+          vlanMembers.emplace(std::make_pair(*vlanPort.logicalPort(), true));
+        }
+      }
+      return scope(std::make_shared<Vlan>(&*vitr, vlanMembers));
+    }
+  }
+  throw FbossError(
+      "Unexpected interface type: ", static_cast<int>(intf->getType()));
 }
-
-HwSwitchMatcher SwitchIdScopeResolver::scope(
-    const std::shared_ptr<AclTableGroup>& /*aclTableGroup*/) const {
-  return l3SwitchMatcher();
-}
-
 } // namespace facebook::fboss

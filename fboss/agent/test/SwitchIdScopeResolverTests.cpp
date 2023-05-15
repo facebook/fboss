@@ -78,7 +78,6 @@ class SwitchIdScopeResolverTest : public ::testing::Test {
     return switchType == cfg::SwitchType::NPU;
   }
 
- private:
   const SwitchInfoTable& switchInfo() const {
     return sw_->getSwitchInfoTable();
   }
@@ -157,5 +156,17 @@ TYPED_TEST(SwitchIdScopeResolverTest, vlanScope) {
     this->expectThrow(vlan1);
   } else {
     this->expectL3(vlan1);
+  }
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, interfaceScope) {
+  if (this->isFabric()) {
+    return;
+  } else {
+    auto state = this->sw_->getState();
+    auto allIntfs = state->getMultiSwitchInterfaces();
+    auto intf = allIntfs->getFirstMap()->cbegin()->second;
+    this->expectL3(intf, state);
+    this->expectL3(intf, this->sw_->getConfig());
   }
 }
