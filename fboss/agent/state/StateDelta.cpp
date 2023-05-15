@@ -53,15 +53,18 @@ DEFINE_bool(
 namespace facebook::fboss {
 
 namespace {
-template <typename Map, typename MultiNpuMap>
-ThriftMapDelta<Map> getFirstMapDelta(
+template <
+    typename Map,
+    typename MultiNpuMap,
+    typename Delta = ThriftMapDelta<Map>>
+Delta getFirstMapDelta(
     const std::shared_ptr<MultiNpuMap>& oldMnpuMap,
     const std::shared_ptr<MultiNpuMap>& newMnpuMap) {
   auto oldMap =
       oldMnpuMap->size() ? oldMnpuMap->cbegin()->second.get() : nullptr;
   auto newMap =
       newMnpuMap->size() ? newMnpuMap->cbegin()->second.get() : nullptr;
-  return ThriftMapDelta<Map>(oldMap, newMap);
+  return Delta(oldMap, newMap);
 }
 } // namespace
 
@@ -96,13 +99,20 @@ VlanMapDelta StateDelta::getVlansDelta() const {
 }
 
 InterfaceMapDelta StateDelta::getIntfsDelta() const {
-  return InterfaceMapDelta(
-      old_->getInterfaces().get(), new_->getInterfaces().get());
+  return getFirstMapDelta<
+      InterfaceMap,
+      MultiSwitchInterfaceMap,
+      InterfaceMapDelta>(
+      old_->getMultiSwitchInterfaces(), new_->getMultiSwitchInterfaces());
 }
 
 InterfaceMapDelta StateDelta::getRemoteIntfsDelta() const {
-  return InterfaceMapDelta(
-      old_->getRemoteInterfaces().get(), new_->getRemoteInterfaces().get());
+  return getFirstMapDelta<
+      InterfaceMap,
+      MultiSwitchInterfaceMap,
+      InterfaceMapDelta>(
+      old_->getMultiSwitchRemoteInterfaces(),
+      new_->getMultiSwitchRemoteInterfaces());
 }
 
 AclMapDelta StateDelta::getAclsDelta(
