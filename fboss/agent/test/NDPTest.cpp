@@ -76,11 +76,11 @@ cfg::SwitchConfig createSwitchConfig(
   *config.vlans()[0].name() = "PrimaryVlan";
   *config.vlans()[0].id() = 5;
   *config.vlans()[0].routable() = true;
-  config.vlans()[0].intfID() = 1234;
+  config.vlans()[0].intfID() = 5;
   *config.vlans()[1].name() = "DefaultHWVlan";
   *config.vlans()[1].id() = 1;
   *config.vlans()[1].routable() = true;
-  config.vlans()[1].intfID() = 4321;
+  config.vlans()[1].intfID() = 1;
 
   config.vlanPorts()->resize(10);
   config.ports()->resize(10);
@@ -99,7 +99,7 @@ cfg::SwitchConfig createSwitchConfig(
   }
 
   config.interfaces()->resize(2);
-  *config.interfaces()[0].intfID() = 1234;
+  *config.interfaces()[0].intfID() = 5;
   *config.interfaces()[0].vlanID() = 5;
   config.interfaces()[0].name() = "PrimaryInterface";
   config.interfaces()[0].mtu() = 9000;
@@ -116,7 +116,7 @@ cfg::SwitchConfig createSwitchConfig(
   if (routerAddress) {
     config.interfaces()[0].ndp()->routerAddress() = *routerAddress;
   }
-  *config.interfaces()[1].intfID() = 4321;
+  *config.interfaces()[1].intfID() = 1;
   *config.interfaces()[1].vlanID() = 1;
   config.interfaces()[1].name() = "DefaultHWInterface";
   config.interfaces()[1].mtu() = 9000;
@@ -681,8 +681,7 @@ void NdpTest::validateRouterAdv(std::optional<std::string> configuredRouterIp) {
   sw->initialConfigApplied(std::chrono::steady_clock::now());
 
   auto state = sw->getState();
-  auto intfConfig =
-      state->getMultiSwitchInterfaces()->getNode(InterfaceID(1234));
+  auto intfConfig = state->getMultiSwitchInterfaces()->getNode(InterfaceID(5));
   PrefixVector expectedPrefixes{
       {IPAddressV6("2401:db00:2110:3004::"), 64},
       {IPAddressV6("fe80::"), 64},
