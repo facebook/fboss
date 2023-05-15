@@ -1029,6 +1029,8 @@ Type* SwitchState::modify(std::shared_ptr<SwitchState>* state) {
 
 template MultiSwitchInterfaceMap* SwitchState::modify<
     switch_state_tags::interfaceMaps>(std::shared_ptr<SwitchState>*);
+template MultiSwitchInterfaceMap* SwitchState::modify<
+    switch_state_tags::remoteInterfaceMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchMirrorMap* SwitchState::modify<
     switch_state_tags::mirrorMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchIpTunnelMap* SwitchState::modify<

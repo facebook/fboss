@@ -118,7 +118,12 @@ const std::shared_ptr<Interface> MultiSwitchInterfaceMap::getIntfToReach(
 
 MultiSwitchInterfaceMap* MultiSwitchInterfaceMap::modify(
     std::shared_ptr<SwitchState>* state) {
-  return SwitchState::modify<switch_state_tags::interfaceMaps>(state);
+  bool isRemote = (this == (*state)->getMultiSwitchRemoteInterfaces().get());
+  if (isRemote) {
+    return SwitchState::modify<switch_state_tags::remoteInterfaceMaps>(state);
+  } else {
+    return SwitchState::modify<switch_state_tags::interfaceMaps>(state);
+  }
 }
 
 std::shared_ptr<Interface> MultiSwitchInterfaceMap::getInterfaceInVlanIf(
