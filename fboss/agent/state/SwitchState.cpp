@@ -215,8 +215,8 @@ void SwitchState::resetIntfs(
   ref<switch_state_tags::interfaceMaps>() = intfs;
 }
 
-const std::shared_ptr<InterfaceMap>& SwitchState::getInterfaces() const {
-  return getDefaultMap<switch_state_tags::interfaceMaps>();
+std::shared_ptr<InterfaceMap> SwitchState::getInterfaces() const {
+  return safe_cref<switch_state_tags::interfaceMaps>()->getFirstMap();
 }
 
 const std::shared_ptr<MultiSwitchInterfaceMap>&
@@ -228,8 +228,8 @@ void SwitchState::resetRemoteIntfs(std::shared_ptr<InterfaceMap> intfs) {
   resetDefaultMap<switch_state_tags::remoteInterfaceMaps>(intfs);
 }
 
-const std::shared_ptr<InterfaceMap>& SwitchState::getRemoteInterfaces() const {
-  return getDefaultMap<switch_state_tags::remoteInterfaceMaps>();
+std::shared_ptr<InterfaceMap> SwitchState::getRemoteInterfaces() const {
+  return safe_cref<switch_state_tags::remoteInterfaceMaps>()->getFirstMap();
 }
 
 const std::shared_ptr<MultiSwitchInterfaceMap>&

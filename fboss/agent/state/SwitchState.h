@@ -338,7 +338,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
    * for ports that have intf of type SYS_PORT attached.
    */
   std::optional<cfg::Range64> getAssociatedSystemPortRangeIf(PortID port) const;
-  const std::shared_ptr<InterfaceMap>& getInterfaces() const;
+  std::shared_ptr<InterfaceMap> getInterfaces() const;
   const std::shared_ptr<MultiSwitchInterfaceMap>& getMultiSwitchInterfaces()
       const;
   std::shared_ptr<AclEntry> getAcl(const std::string& name) const;
@@ -496,7 +496,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
    * Remote objects
    */
   const std::shared_ptr<MultiSwitchSystemPortMap>& getRemoteSystemPorts() const;
-  const std::shared_ptr<InterfaceMap>& getRemoteInterfaces() const;
+  std::shared_ptr<InterfaceMap> getRemoteInterfaces() const;
   const std::shared_ptr<MultiSwitchInterfaceMap>&
   getMultiSwitchRemoteInterfaces() const;
 
