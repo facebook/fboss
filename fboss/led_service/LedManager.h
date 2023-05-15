@@ -81,6 +81,10 @@ class LedManager {
       uint32_t portId,
       cfg::PortProfileID portProfile) const;
 
+  std::vector<uint32_t> getCommonLedSwPorts(
+      uint32_t portId,
+      cfg::PortProfileID portProfile) const;
+
  private:
   std::unique_ptr<std::thread> ledManagerThread_{nullptr};
   std::unique_ptr<folly::EventBase> eventBase_;

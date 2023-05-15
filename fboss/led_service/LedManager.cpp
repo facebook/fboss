@@ -62,4 +62,61 @@ std::vector<int> LedManager::getLedIdFromSwPort(
   return std::vector<int>(ledIdSet.begin(), ledIdSet.end());
 }
 
+/*
+ * getCommonLedSwPorts
+ *
+ * Multiple SW Ports can display the status through same LED in some platforms.
+ * This function helps in that scenario. If more than one SW port is
+ * represented by one LED then this function returns the list of all common SW
+ * port which is sharing the LED with the given port. Ths function does:
+ * 1. Find transceiver Id for this SW Port
+ * 2. Get all SW port list supported by this transceiver (irrespective of the
+ *    port profile)
+ * 3. Check if any of the other SW port in the same transceiver has the same
+ *    Led ids as current port (while checking this, use each port's respective
+ *    port profile because these ports can have different profiles)
+ * 4. Make a list of all SW ports whose LED Id matches (partially or fully)
+ *    with the current port Led ids
+ */
+std::vector<uint32_t> LedManager::getCommonLedSwPorts(
+    uint32_t portId,
+    cfg::PortProfileID portProfile) const {
+  auto tcvrId = platformMapping_->getTransceiverIdFromSwPort(PortID(portId));
+  auto allSwPortsForTcvr =
+      platformMapping_->getSwPortListFromTransceiverId(tcvrId);
+
+  auto anyLedMatch = [](const std::vector<int>& ledList1,
+                        const std::vector<int>& ledList2) -> bool {
+    for (auto led1 : ledList1) {
+      if (std::find(ledList2.begin(), ledList2.end(), led1) != ledList2.end()) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  auto currSwPortLedIds = getLedIdFromSwPort(portId, portProfile);
+  if (currSwPortLedIds.empty()) {
+    XLOG(ERR) << "No LED Id available for port " << portId;
+    return {};
+  }
+
+  std::vector<uint32_t> commonSwPorts;
+  commonSwPorts.push_back(portId);
+
+  for (auto swPort : allSwPortsForTcvr) {
+    if (PortID(portId) == swPort ||
+        portDisplayList_.find(swPort) == portDisplayList_.end()) {
+      continue;
+    }
+
+    auto thisPortProfile = portDisplayList_.at(swPort).portProfileId;
+    auto thisSwPortLedIds = getLedIdFromSwPort(swPort, thisPortProfile);
+    if (anyLedMatch(currSwPortLedIds, thisSwPortLedIds)) {
+      commonSwPorts.push_back(swPort);
+    }
+  }
+  return commonSwPorts;
+}
+
 } // namespace facebook::fboss
