@@ -128,6 +128,17 @@ std::shared_ptr<MultiMap> toMultiSwitchMap(
   }
   return multiMap;
 }
+template <typename MultiMap, typename Map>
+std::shared_ptr<MultiMap> toMultiSwitchMap(
+    const std::shared_ptr<Map>& map,
+    const facebook::fboss::cfg::SwitchConfig& cfg,
+    const facebook::fboss::SwitchIdScopeResolver& resolver) {
+  auto multiMap = std::make_shared<MultiMap>();
+  for (const auto& idAndNode : *map) {
+    multiMap->addNode(idAndNode.second, resolver.scope(idAndNode.second, cfg));
+  }
+  return multiMap;
+}
 } // anonymous namespace
 
 namespace facebook::fboss {
@@ -573,7 +584,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newIntfs = updateInterfaces();
     if (newIntfs) {
-      new_->resetIntfs(std::move(newIntfs));
+      new_->resetIntfs(toMultiSwitchMap<MultiSwitchInterfaceMap>(
+          std::move(newIntfs), *cfg_, scopeResolver_));
       changed = true;
     }
   }
