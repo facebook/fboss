@@ -14,8 +14,8 @@ HwResourceStatsTest.l3Stats
 HwEcmpTest.*:-*Ucmp*
 # Load Balancer Tests
 # UCMP support lacking in DNX
-HwLoadBalancerTestV4.*:-*Ucmp*
-HwLoadBalancerTestV6.*:-*Ucmp*
+HwLoadBalancerTestV4.*:-*Ucmp*:*Mpls*
+HwLoadBalancerTestV6.*:-*Ucmp*:*Mpls*
 HwHashConsistencyTest.*:-*EcmpExpand*:*MemberOrder*
 # LB Tests with ROCE traffic
 HwLoadBalancerNegativeTestV6RoCE.*
