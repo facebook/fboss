@@ -3193,7 +3193,7 @@ bool ThriftConfigApplier::updateNeighborResponseTables(
 }
 
 std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
-  auto origIntfs = orig_->getInterfaces();
+  auto origIntfs = orig_->getMultiSwitchInterfaces();
   InterfaceMap::NodeContainer newIntfs;
   bool changed = false;
 
@@ -3202,7 +3202,7 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
 
   for (const auto& interfaceCfg : *cfg_->interfaces()) {
     InterfaceID id(*interfaceCfg.intfID());
-    auto origIntf = origIntfs->getInterfaceIf(id);
+    auto origIntf = origIntfs->getNodeIf(id);
     shared_ptr<Interface> newIntf;
     auto newAddrs = getInterfaceAddresses(&interfaceCfg);
     if (interfaceCfg.type() == cfg::InterfaceType::SYSTEM_PORT) {
@@ -3233,9 +3233,9 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
     changed |= updateMap(&newIntfs, origIntf, newIntf);
   }
 
-  if (numExistingProcessed != origIntfs->size()) {
+  if (numExistingProcessed != origIntfs->numNodes()) {
     // Some existing interfaces were removed.
-    CHECK_LT(numExistingProcessed, origIntfs->size());
+    CHECK_LT(numExistingProcessed, origIntfs->numNodes());
     changed = true;
   }
 
@@ -3243,7 +3243,7 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
     return nullptr;
   }
 
-  return origIntfs->clone(std::move(newIntfs));
+  return std::make_shared<InterfaceMap>(std::move(newIntfs));
 }
 
 shared_ptr<Interface> ThriftConfigApplier::createInterface(
