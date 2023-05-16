@@ -850,6 +850,8 @@ typedef string PortPgConfigName
 
 typedef string BufferPoolConfigName
 
+typedef string PortFlowletConfigName
+
 const i32 DEFAULT_PORT_MTU = 9412;
 
 enum PortType {
@@ -1026,6 +1028,11 @@ struct Port {
    * Represents if this port is drained in DSF
    */
   29: PortDrainState drainState = PortDrainState.UNDRAINED;
+
+  /*
+   * PortFlowletConfigName to covey the flowlet config profile used for DLB
+   */
+  30: optional PortFlowletConfigName flowletConfigName;
 }
 
 enum LacpPortRate {
@@ -1674,6 +1681,15 @@ struct UdfConfig {
   2: map<string, UdfPacketMatcher> udfPacketMatcher;
 }
 
+struct PortFlowletConfig {
+  // port scaling factor for dynamic load balancing
+  1: i16 scalingFactor;
+  // weight of traffic load in determining ports quality
+  2: i16 loadWeight;
+  // weight of total queue size in determining port quality
+  3: i16 queueWeight;
+}
+
 struct FlowletSwitchingConfig {
   // wait for lack of activitiy interval on the flow before load balancing
   1: i16 inactivityIntervalUsecs;
@@ -1825,4 +1841,5 @@ struct SwitchConfig {
   49: optional UdfConfig udfConfig;
   50: optional FlowletSwitchingConfig flowletSwitchingConfig;
   51: list<PortQueue> defaultVoqConfig = [];
+  52: optional map<PortFlowletConfigName, PortFlowletConfig> portFlowletConfigs;
 }
