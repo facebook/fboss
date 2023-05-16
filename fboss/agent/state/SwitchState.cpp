@@ -215,10 +215,6 @@ void SwitchState::resetIntfs(
   ref<switch_state_tags::interfaceMaps>() = intfs;
 }
 
-std::shared_ptr<InterfaceMap> SwitchState::getInterfaces() const {
-  return safe_cref<switch_state_tags::interfaceMaps>()->getFirstMap();
-}
-
 const std::shared_ptr<MultiSwitchInterfaceMap>&
 SwitchState::getMultiSwitchInterfaces() const {
   return safe_cref<switch_state_tags::interfaceMaps>();
