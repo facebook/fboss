@@ -62,12 +62,12 @@ class InterfaceDelta : public DeltaValue<Interface> {
 template <typename IGNORED>
 struct InterfaceMapDeltaTraits {
   using mapped_type = typename InterfaceMap::mapped_type;
-  using Extractor = Extractor<InterfaceMap>;
-  using DeltaValue = InterfaceDelta;
-  using NodeWrapper = typename DeltaValue::NodeWrapper;
+  using Extractor = ExtractorT<InterfaceMap>;
+  using Delta = InterfaceDelta;
+  using NodeWrapper = typename Delta::NodeWrapper;
   using DeltaValueIterator =
-      DeltaValueIterator<InterfaceMap, DeltaValue, Extractor>;
-  using MapPointerTraits = MapPointerTraits<InterfaceMap>;
+      DeltaValueIteratorT<InterfaceMap, Delta, Extractor>;
+  using MapPointerTraits = MapPointerTraitsT<InterfaceMap>;
 };
 
 using InterfaceMapDelta = MapDelta<InterfaceMap, InterfaceMapDeltaTraits>;

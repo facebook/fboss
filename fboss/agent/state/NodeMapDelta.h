@@ -20,7 +20,7 @@
 namespace facebook::fboss {
 
 template <typename MAP>
-class MapPointerTraits {
+class MapPointerTraitsT {
  public:
   using RawConstPointerType = const MAP*;
   // Embed const in MapPointerType for raw pointers.
@@ -81,7 +81,7 @@ class DeltaValue {
 };
 
 template <typename MAP, typename VALUE, typename MAP_EXTRACTOR>
-class DeltaValueIterator {
+class DeltaValueIteratorT {
  private:
   using InnerIter = typename MAP::const_iterator;
   auto getKey(InnerIter it) {
@@ -102,7 +102,7 @@ class DeltaValueIterator {
   using pointer = VALUE*;
   using reference = VALUE&;
 
-  DeltaValueIterator(
+  DeltaValueIteratorT(
       const MapType* oldMap,
       typename MapType::const_iterator oldIt,
       const MapType* newMap,
@@ -128,20 +128,20 @@ class DeltaValueIterator {
     return &value_;
   }
 
-  DeltaValueIterator& operator++() {
+  DeltaValueIteratorT& operator++() {
     advance();
     return *this;
   }
-  DeltaValueIterator operator++(int) {
-    DeltaValueIterator tmp(*this);
+  DeltaValueIteratorT operator++(int) {
+    DeltaValueIteratorT tmp(*this);
     advance();
     return tmp;
   }
 
-  bool operator==(const DeltaValueIterator& other) const {
+  bool operator==(const DeltaValueIteratorT& other) const {
     return oldIt_ == other.oldIt_ && newIt_ == other.newIt_;
   }
-  bool operator!=(const DeltaValueIterator& other) const {
+  bool operator!=(const DeltaValueIteratorT& other) const {
     return !operator==(other);
   }
 
@@ -217,12 +217,12 @@ class DeltaValueIterator {
 
 template <typename MAP, typename VALUE, typename MAP_EXTRACTOR>
 const typename VALUE::NodeWrapper
-    DeltaValueIterator<MAP, VALUE, MAP_EXTRACTOR>::nullNode_ = nullptr;
+    DeltaValueIteratorT<MAP, VALUE, MAP_EXTRACTOR>::nullNode_ = nullptr;
 template <
     typename MAP,
     typename VALUE,
     typename ITERATOR,
-    typename MAPPOINTERTRAITS = MapPointerTraits<MAP>>
+    typename MAPPOINTERTRAITS = MapPointerTraitsT<MAP>>
 class MapDeltaImpl {
  public:
   using MapPointerType = typename MAPPOINTERTRAITS::MapPointerType;
@@ -290,7 +290,7 @@ template <
     typename MAP,
     typename VALUE =
         DeltaValue<typename MAP::Node, std::shared_ptr<typename MAP::Node>>,
-    typename MAPPOINTERTRAITS = MapPointerTraits<MAP>>
+    typename MAPPOINTERTRAITS = MapPointerTraitsT<MAP>>
 class NodeMapDelta {
  public:
   using MapPointerType = typename MAPPOINTERTRAITS::MapPointerType;
@@ -309,7 +309,7 @@ class NodeMapDelta {
       return *i;
     }
   };
-  using Iterator = DeltaValueIterator<MAP, VALUE, NodeMapExtractor>;
+  using Iterator = DeltaValueIteratorT<MAP, VALUE, NodeMapExtractor>;
   using Impl = MapDeltaImpl<MAP, VALUE, Iterator, MAPPOINTERTRAITS>;
 
   NodeMapDelta(MapPointerType&& oldMap, MapPointerType&& newMap)

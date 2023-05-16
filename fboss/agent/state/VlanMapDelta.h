@@ -55,11 +55,11 @@ class VlanDelta : public DeltaValue<Vlan> {
 template <>
 struct MapDeltaTraits<VlanMap> {
   using mapped_type = typename VlanMap::mapped_type;
-  using Extractor = Extractor<VlanMap>;
-  using DeltaValue = VlanDelta;
-  using NodeWrapper = typename DeltaValue::NodeWrapper;
-  using DeltaValueIterator = DeltaValueIterator<VlanMap, DeltaValue, Extractor>;
-  using MapPointerTraits = MapPointerTraits<VlanMap>;
+  using Extractor = ExtractorT<VlanMap>;
+  using Delta = VlanDelta;
+  using NodeWrapper = typename Delta::NodeWrapper;
+  using DeltaValueIterator = DeltaValueIteratorT<VlanMap, Delta, Extractor>;
+  using MapPointerTraits = MapPointerTraitsT<VlanMap>;
 };
 
 using VlanMapDelta = ThriftMapDelta<VlanMap>;

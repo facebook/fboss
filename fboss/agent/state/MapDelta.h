@@ -26,7 +26,7 @@ struct IsSharedPtr<std::shared_ptr<T>> {
 namespace facebook::fboss {
 
 template <typename MAP>
-struct Extractor {
+struct ExtractorT {
   using key_type = typename MAP::key_type;
   using mapped_type = typename MAP::mapped_type;
 
@@ -61,19 +61,19 @@ struct Extractor {
 template <typename MAP>
 struct MapDeltaTraits {
   using mapped_type = typename MAP::mapped_type;
-  using Extractor = Extractor<MAP>;
+  using Extractor = ExtractorT<MAP>;
   using value_type = typename Extractor::value_type;
-  using DeltaValue = DeltaValue<mapped_type, value_type>;
-  using NodeWrapper = typename DeltaValue::NodeWrapper;
-  using DeltaValueIterator = DeltaValueIterator<MAP, DeltaValue, Extractor>;
-  using MapPointerTraits = MapPointerTraits<MAP>;
+  using Delta = DeltaValue<mapped_type, value_type>;
+  using NodeWrapper = typename Delta::NodeWrapper;
+  using DeltaValueIterator = DeltaValueIteratorT<MAP, Delta, Extractor>;
+  using MapPointerTraits = MapPointerTraitsT<MAP>;
 };
 
 template <typename MAP, template <typename> typename Traits = MapDeltaTraits>
 class MapDelta {
  public:
   using MapType = MAP;
-  using VALUE = typename Traits<MAP>::DeltaValue;
+  using VALUE = typename Traits<MAP>::Delta;
   using Node = typename Traits<MAP>::mapped_type;
   using NodeWrapper = typename Traits<MAP>::NodeWrapper;
   using NodeMapExtractor = typename Traits<MAP>::Extractor;
