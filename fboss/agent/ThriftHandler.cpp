@@ -943,42 +943,45 @@ void ThriftHandler::addRemoteNeighbors(
       nbr.switchId() = state->getAssociatedSwitchID(PortID(*nbr.port()));
     }
   }
-  const auto& remoteRifs = state->getRemoteInterfaces();
+  const auto& remoteRifs = state->getMultiSwitchRemoteInterfaces();
   const auto& remoteSysPorts = state->getRemoteSystemPorts();
-  for (const auto& idAndRif : std::as_const(*remoteRifs)) {
-    const auto& rif = idAndRif.second;
-    const auto& nbrTable =
-        std::as_const(*rif->getNeighborEntryTable<AddressT>());
-    for (const auto& ipAndEntry : nbrTable) {
-      const auto& entry = ipAndEntry.second;
-      NeighborThriftT nbrThrift;
-      nbrThrift.ip() = facebook::network::toBinaryAddress(entry->getIP());
-      nbrThrift.mac() = entry->getMac().toString();
-      CHECK(rif->getSystemPortID().has_value());
-      nbrThrift.port() = static_cast<int32_t>(*rif->getSystemPortID());
-      nbrThrift.vlanName() = "--";
+  for (const auto& [_, rifMap] : std::as_const(*remoteRifs)) {
+    for (const auto& idAndRif : std::as_const(*rifMap)) {
+      const auto& rif = idAndRif.second;
+      const auto& nbrTable =
+          std::as_const(*rif->getNeighborEntryTable<AddressT>());
+      for (const auto& ipAndEntry : nbrTable) {
+        const auto& entry = ipAndEntry.second;
+        NeighborThriftT nbrThrift;
+        nbrThrift.ip() = facebook::network::toBinaryAddress(entry->getIP());
+        nbrThrift.mac() = entry->getMac().toString();
+        CHECK(rif->getSystemPortID().has_value());
+        nbrThrift.port() = static_cast<int32_t>(*rif->getSystemPortID());
+        nbrThrift.vlanName() = "--";
 
-      switch (entry->getType()) {
-        case state::NeighborEntryType::STATIC_ENTRY:
-          nbrThrift.state() = "STATIC";
-          break;
-        case state::NeighborEntryType::DYNAMIC_ENTRY:
-          nbrThrift.state() = "DYNAMIC";
-          break;
-      }
+        switch (entry->getType()) {
+          case state::NeighborEntryType::STATIC_ENTRY:
+            nbrThrift.state() = "STATIC";
+            break;
+          case state::NeighborEntryType::DYNAMIC_ENTRY:
+            nbrThrift.state() = "DYNAMIC";
+            break;
+        }
 
-      nbrThrift.isLocal() = false;
-      const auto& sysPort = remoteSysPorts->getNodeIf(*rif->getSystemPortID());
-      if (sysPort) {
-        nbrThrift.switchId() = static_cast<int64_t>(sysPort->getSwitchId());
+        nbrThrift.isLocal() = false;
+        const auto& sysPort =
+            remoteSysPorts->getNodeIf(*rif->getSystemPortID());
+        if (sysPort) {
+          nbrThrift.switchId() = static_cast<int64_t>(sysPort->getSwitchId());
+        }
+        if (entry->getResolvedSince().has_value()) {
+          nbrThrift.resolvedSince() = entry->getResolvedSince().value();
+        } else {
+          XLOG(WARNING) << "Neighbor entry " << ipAndEntry.first
+                        << " is missing resolved timestamp";
+        }
+        nbrs.push_back(nbrThrift);
       }
-      if (entry->getResolvedSince().has_value()) {
-        nbrThrift.resolvedSince() = entry->getResolvedSince().value();
-      } else {
-        XLOG(WARNING) << "Neighbor entry " << ipAndEntry.first
-                      << " is missing resolved timestamp";
-      }
-      nbrs.push_back(nbrThrift);
     }
   }
 }
