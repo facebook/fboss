@@ -2080,17 +2080,24 @@ void ThriftHandler::txPktL3(unique_ptr<fbstring> payload) {
   ensureNotFabric(__func__);
 
   // Use any configured interface
-  const auto interfaceMap = sw_->getState()->getInterfaces();
-  if (interfaceMap->size() == 0) {
+  const auto interfaceMap = sw_->getState()->getMultiSwitchInterfaces();
+  if (interfaceMap->numNodes() == 0) {
     throw FbossError("No interface configured");
   }
-  auto intfID = interfaceMap->at(0)->getID();
+  std::optional<InterfaceID> intfID;
+  for (const auto& [_, intfs] : std::as_const(*interfaceMap)) {
+    if (!intfs->empty()) {
+      intfID = intfs->at(0)->getID();
+      break;
+    }
+  }
+  CHECK(intfID.has_value());
 
   unique_ptr<TxPacket> pkt = sw_->allocateL3TxPacket(payload->size());
   RWPrivateCursor cursor(pkt->buf());
   cursor.push(StringPiece(*payload));
 
-  sw_->sendL3Packet(std::move(pkt), intfID);
+  sw_->sendL3Packet(std::move(pkt), *intfID);
 }
 
 Vlan* ThriftHandler::getVlan(int32_t vlanId) {
@@ -2116,6 +2123,7 @@ int32_t ThriftHandler::flushNeighborEntry(
 
 void ThriftHandler::getVlanAddresses(Addresses& addrs, int32_t vlan) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  ensureNPU(__func__);
   getVlanAddresses(getVlan(vlan), addrs, toAddress);
 }
 
@@ -2123,6 +2131,7 @@ void ThriftHandler::getVlanAddressesByName(
     Addresses& addrs,
     unique_ptr<string> vlan) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  ensureNPU(__func__);
   getVlanAddresses(getVlan(*vlan), addrs, toAddress);
 }
 
@@ -2130,6 +2139,7 @@ void ThriftHandler::getVlanBinaryAddresses(
     BinaryAddresses& addrs,
     int32_t vlan) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  ensureNPU(__func__);
   getVlanAddresses(getVlan(vlan), addrs, toBinaryAddress);
 }
 
@@ -2137,6 +2147,7 @@ void ThriftHandler::getVlanBinaryAddressesByName(
     BinaryAddresses& addrs,
     const std::unique_ptr<std::string> vlan) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  ensureNPU(__func__);
   getVlanAddresses(getVlan(*vlan), addrs, toBinaryAddress);
 }
 
@@ -2145,15 +2156,16 @@ void ThriftHandler::getVlanAddresses(
     const Vlan* vlan,
     std::vector<ADDR_TYPE>& addrs,
     ADDR_CONVERTER& converter) {
-  ensureConfigured(__func__);
   CHECK(vlan);
   // Explicitly take ownership of interface map
-  auto interfaces = sw_->getState()->getInterfaces();
-  for (auto iter : std::as_const(*interfaces)) {
-    auto intf = iter.second;
-    if (intf->getVlanID() == vlan->getID()) {
-      for (auto addrAndMask : intf->getAddressesCopy()) {
-        addrs.push_back(converter(addrAndMask.first));
+  auto interfaces = sw_->getState()->getMultiSwitchInterfaces();
+  for (const auto& [_, intfMap] : std::as_const(*interfaces)) {
+    for (auto iter : std::as_const(*intfMap)) {
+      auto intf = iter.second;
+      if (intf->getVlanID() == vlan->getID()) {
+        for (auto addrAndMask : intf->getAddressesCopy()) {
+          addrs.push_back(converter(addrAndMask.first));
+        }
       }
     }
   }

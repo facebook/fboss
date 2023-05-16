@@ -770,6 +770,54 @@ TYPED_TEST(ThriftTestAllSwitchTypes, multipleClientSyncFib) {
   verifyPrefixesPresent(prefixA4, prefixA6, AdminDistance::EBGP);
   verifyPrefixesPresent(prefixB4, prefixB6, AdminDistance::OPENR);
 }
+TYPED_TEST(ThriftTestAllSwitchTypes, getVlanAddresses) {
+  ThriftHandler handler(this->sw_);
+  using Addresses = std::vector<facebook::network::thrift::Address>;
+  using BinaryAddresses = std::vector<facebook::network::thrift::BinaryAddress>;
+  auto constexpr kVlan = 1;
+  auto constexpr kVlanName = "Vlan1";
+  if (this->isNpu()) {
+    {
+      Addresses addrs;
+      handler.getVlanAddresses(addrs, kVlan);
+      EXPECT_GT(addrs.size(), 0);
+    }
+    {
+      Addresses addrs;
+      handler.getVlanAddressesByName(
+          addrs, std::make_unique<std::string>(kVlanName));
+      EXPECT_GT(addrs.size(), 0);
+    }
+    {
+      BinaryAddresses addrs;
+      handler.getVlanBinaryAddresses(addrs, kVlan);
+      EXPECT_GT(addrs.size(), 0);
+    }
+    {
+      BinaryAddresses addrs;
+      handler.getVlanBinaryAddressesByName(
+          addrs, std::make_unique<std::string>(kVlanName));
+      EXPECT_GT(addrs.size(), 0);
+    }
+  } else {
+    {
+      Addresses addrs;
+      EXPECT_THROW(handler.getVlanAddresses(addrs, 1), FbossError);
+      EXPECT_THROW(
+          handler.getVlanAddressesByName(
+              addrs, std::make_unique<std::string>(kVlanName)),
+          FbossError);
+    }
+    {
+      BinaryAddresses addrs;
+      EXPECT_THROW(handler.getVlanBinaryAddresses(addrs, 1), FbossError);
+      EXPECT_THROW(
+          handler.getVlanBinaryAddressesByName(
+              addrs, std::make_unique<std::string>(kVlanName)),
+          FbossError);
+    }
+  }
+}
 
 TEST_F(ThriftTest, getAndSetMacAddrsToBlock) {
   ThriftHandler handler(sw_);
