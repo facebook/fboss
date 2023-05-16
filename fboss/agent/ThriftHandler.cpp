@@ -620,7 +620,7 @@ void addRecylePortRifNeighbors(
     auto localRecycleRifId =
         InterfaceID(*dsfNode->getSystemPortRange()->minimum() + kRecylePortId);
     const auto& localRecycleRif =
-        state->getInterfaces()->getInterface(localRecycleRifId);
+        state->getMultiSwitchInterfaces()->getNode(localRecycleRifId);
     const auto& nbrTable =
         std::as_const(*localRecycleRif->getNeighborEntryTable<AddressT>());
     for (const auto& ipAndEntry : nbrTable) {
@@ -896,21 +896,25 @@ void ThriftHandler::getAllInterfaces(
     std::map<int32_t, InterfaceDetail>& interfaces) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  const auto interfaceMap = sw_->getState()->getInterfaces();
-  for (auto iter : std::as_const(*interfaceMap)) {
-    const auto& intf = iter.second;
-    auto& interfaceDetail = interfaces[intf->getID()];
-    populateInterfaceDetail(interfaceDetail, intf);
+  const auto interfaceMap = sw_->getState()->getMultiSwitchInterfaces();
+  for (const auto& [_, intfs] : std::as_const(*interfaceMap)) {
+    for (auto iter : std::as_const(*intfs)) {
+      const auto& intf = iter.second;
+      auto& interfaceDetail = interfaces[intf->getID()];
+      populateInterfaceDetail(interfaceDetail, intf);
+    }
   }
 }
 
 void ThriftHandler::getInterfaceList(std::vector<std::string>& interfaceList) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  const auto interfaceMap = sw_->getState()->getInterfaces();
-  for (auto iter : std::as_const(*interfaceMap)) {
-    auto intf = iter.second;
-    interfaceList.push_back(intf->getName());
+  const auto interfaceMap = sw_->getState()->getMultiSwitchInterfaces();
+  for (const auto& [_, intfs] : std::as_const(*interfaceMap)) {
+    for (auto iter : std::as_const(*intfs)) {
+      auto intf = iter.second;
+      interfaceList.push_back(intf->getName());
+    }
   }
 }
 
@@ -919,7 +923,7 @@ void ThriftHandler::getInterfaceDetail(
     int32_t interfaceId) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  const auto intf = sw_->getState()->getInterfaces()->getInterfaceIf(
+  const auto intf = sw_->getState()->getMultiSwitchInterfaces()->getNodeIf(
       InterfaceID(interfaceId));
 
   if (!intf) {
@@ -2406,7 +2410,7 @@ void ThriftHandler::addMplsRoutesImpl(
       auto iter = labelFibEntryNextHopAddress2Interface.find(
           std::make_pair(RouterID(0), nexthop.addr()));
       if (iter == labelFibEntryNextHopAddress2Interface.end()) {
-        auto result = (*state)->getInterfaces()->getIntfToReach(
+        auto result = (*state)->getMultiSwitchInterfaces()->getIntfToReach(
             RouterID(0), nexthop.addr());
         if (!result) {
           throw FbossError(

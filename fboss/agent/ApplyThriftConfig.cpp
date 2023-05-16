@@ -4405,8 +4405,8 @@ ThriftConfigApplier::updateStaticMplsRoutes(
       }
       // check if nhopAddress is in in one of the interface subnets
       // look up in interfaces of default router (RouterID(0))
-      auto inftToReach =
-          new_->getInterfaces()->getIntfToReach(RouterID(0), nhopAddress);
+      auto inftToReach = new_->getMultiSwitchInterfaces()->getIntfToReach(
+          RouterID(0), nhopAddress);
       if (!inftToReach) {
         throw FbossError(
             "static mpls route for label ",

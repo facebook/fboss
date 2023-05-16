@@ -770,6 +770,7 @@ TYPED_TEST(ThriftTestAllSwitchTypes, multipleClientSyncFib) {
   verifyPrefixesPresent(prefixA4, prefixA6, AdminDistance::EBGP);
   verifyPrefixesPresent(prefixB4, prefixB6, AdminDistance::OPENR);
 }
+
 TYPED_TEST(ThriftTestAllSwitchTypes, getVlanAddresses) {
   ThriftHandler handler(this->sw_);
   using Addresses = std::vector<facebook::network::thrift::Address>;
@@ -816,6 +817,40 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getVlanAddresses) {
               addrs, std::make_unique<std::string>(kVlanName)),
           FbossError);
     }
+  }
+}
+
+TYPED_TEST(ThriftTestAllSwitchTypes, getAllInterfaces) {
+  ThriftHandler handler(this->sw_);
+  std::map<int32_t, InterfaceDetail> intfs;
+  handler.getAllInterfaces(intfs);
+  if (this->isFabric()) {
+    EXPECT_TRUE(intfs.empty());
+  } else {
+    EXPECT_FALSE(intfs.empty());
+  }
+}
+
+TYPED_TEST(ThriftTestAllSwitchTypes, getInterfaceList) {
+  ThriftHandler handler(this->sw_);
+  std::vector<std::string> intfs;
+  handler.getInterfaceList(intfs);
+  if (this->isFabric()) {
+    EXPECT_TRUE(intfs.empty());
+  } else {
+    EXPECT_FALSE(intfs.empty());
+  }
+}
+
+TYPED_TEST(ThriftTestAllSwitchTypes, getInterfaceDetail) {
+  ThriftHandler handler(this->sw_);
+  InterfaceDetail intfDetail;
+  auto intfId = this->isVoq() ? 101 : 1;
+  if (this->isFabric()) {
+    EXPECT_THROW(handler.getInterfaceDetail(intfDetail, intfId), FbossError);
+  } else {
+    handler.getInterfaceDetail(intfDetail, intfId);
+    EXPECT_EQ(*intfDetail.interfaceId(), intfId);
   }
 }
 
