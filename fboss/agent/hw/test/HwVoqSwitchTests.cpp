@@ -685,7 +685,7 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
       const Interface::Addresses& subnets) {
     auto newState = getProgrammedState();
     auto newRemoteInterfaces =
-        newState->getRemoteInterfaces()->modify(&newState);
+        newState->getMultiSwitchRemoteInterfaces()->modify(&newState);
     auto numPrevIntfs = newRemoteInterfaces->size();
     auto newRemoteInterface = std::make_shared<Interface>(
         intfId,
@@ -698,10 +698,13 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
         false,
         cfg::InterfaceType::SYSTEM_PORT);
     newRemoteInterface->setAddresses(subnets);
-    newRemoteInterfaces->addInterface(newRemoteInterface);
+    newRemoteInterfaces->addNode(
+        newRemoteInterface,
+        scopeResolver().scope(newRemoteInterface, newState));
     applyNewState(newState);
     EXPECT_EQ(
-        getProgrammedState()->getRemoteInterfaces()->size(), numPrevIntfs + 1);
+        getProgrammedState()->getMultiSwitchRemoteInterfaces()->numNodes(),
+        numPrevIntfs + 1);
   }
   void addRemoveRemoteNeighbor(
       const folly::IPAddressV6& neighborIp,
@@ -710,9 +713,10 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
       bool add,
       std::optional<int64_t> encapIndex = std::nullopt) {
     auto outState = getProgrammedState();
-    auto interfaceMap = outState->getRemoteInterfaces()->modify(&outState);
-    auto interface = interfaceMap->getInterface(intfID)->clone();
-    auto ndpTable = interfaceMap->getInterface(intfID)->getNdpTable()->clone();
+    auto interfaceMap =
+        outState->getMultiSwitchRemoteInterfaces()->modify(&outState);
+    auto interface = interfaceMap->getNode(intfID)->clone();
+    auto ndpTable = interfaceMap->getNode(intfID)->getNdpTable()->clone();
     if (add) {
       const folly::MacAddress kNeighborMac{"2:3:4:5:6:7"};
       state::NeighborEntryFields ndp;
@@ -730,7 +734,8 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
       ndpTable->remove(neighborIp.str());
     }
     interface->setNdpTable(ndpTable->toThrift());
-    interfaceMap->updateNode(interface);
+    interfaceMap->updateNode(
+        interface, scopeResolver().scope(interface, outState));
     applyNewState(outState);
   }
 };
