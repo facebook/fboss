@@ -352,6 +352,11 @@ const std::shared_ptr<ForwardingInformationBaseMap>& SwitchState::getFibs()
   return getDefaultMap<switch_state_tags::fibsMap>();
 }
 
+const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>&
+SwitchState::getMultiSwitchFibs() const {
+  return safe_cref<switch_state_tags::fibsMap>();
+}
+
 const std::shared_ptr<ControlPlane>& SwitchState::getControlPlane() const {
   return cref<switch_state_tags::controlPlaneMap>()->cref(
       HwSwitchMatcher::defaultHwSwitchMatcherKey());
@@ -370,6 +375,11 @@ void SwitchState::resetLabelForwardingInformationBase(
 void SwitchState::resetForwardingInformationBases(
     std::shared_ptr<ForwardingInformationBaseMap> fibs) {
   resetDefaultMap<switch_state_tags::fibsMap>(fibs);
+}
+
+void SwitchState::resetForwardingInformationBases(
+    std::shared_ptr<MultiSwitchForwardingInformationBaseMap> fibs) {
+  ref<switch_state_tags::fibsMap>() = fibs;
 }
 
 void SwitchState::addTransceiver(

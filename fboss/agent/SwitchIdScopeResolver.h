@@ -28,6 +28,7 @@ class SwitchState;
 class Interface;
 class Port;
 class AclTableGroup;
+class ForwardingInformationBaseContainer;
 
 class SwitchIdScopeResolver {
  public:
@@ -88,6 +89,8 @@ class SwitchIdScopeResolver {
   HwSwitchMatcher scope(const cfg::AclTableGroup& aclTableGroup) const;
   HwSwitchMatcher scope(
       const std::shared_ptr<AclTableGroup>& aclTableGroup) const;
+  HwSwitchMatcher scope(
+      const std::shared_ptr<ForwardingInformationBaseContainer>& fibs) const;
 
  private:
   void checkL3() const;

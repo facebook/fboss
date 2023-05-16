@@ -170,3 +170,12 @@ TYPED_TEST(SwitchIdScopeResolverTest, interfaceScope) {
     this->expectL3(intf, this->sw_->getConfig());
   }
 }
+
+TYPED_TEST(SwitchIdScopeResolverTest, fibContainerScope) {
+  auto fibContainer = std::make_shared<ForwardingInformationBaseContainer>();
+  if (this->isFabric()) {
+    this->expectThrow(fibContainer);
+  } else {
+    this->expectSwitchId(fibContainer);
+  }
+}
