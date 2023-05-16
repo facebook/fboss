@@ -19,4 +19,7 @@ std::string getFanServiceConfig(
 std::string getWeutilConfig(
     const std::optional<std::string>& platformName = std::nullopt);
 
+std::string getFirmwareConfig(
+    const std::optional<std::string>& platformName = std::nullopt);
+
 } // namespace facebook::fboss::platform::config_lib
