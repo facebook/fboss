@@ -110,8 +110,6 @@ class InterfaceMap : public ThriftMapNode<InterfaceMap, InterfaceMapTraits> {
   void addInterface(const std::shared_ptr<Interface>& interface);
   void updateInterface(const std::shared_ptr<Interface>& interface);
 
-  InterfaceMap* modify(std::shared_ptr<SwitchState>* state);
-
  private:
   // Inherit the constructors required for clone()
   using Base::Base;
