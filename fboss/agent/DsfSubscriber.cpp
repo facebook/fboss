@@ -194,7 +194,7 @@ void DsfSubscriber::scheduleUpdate(
         if (newRifs) {
           auto origRifs = out->getInterfaces(nodeSwitchId);
           InterfaceMapDelta delta(origRifs.get(), newRifs.get());
-          auto remoteRifs = out->getMultiSwitchRemoteInterfaces()->modify(&out);
+          auto remoteRifs = out->getRemoteInterfaces()->modify(&out);
           processDelta(delta, remoteRifs, makeRemoteRif);
         }
         if (FLAGS_dsf_subscriber_cache_updated_state) {

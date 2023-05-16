@@ -794,9 +794,8 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
                               const HwAsic* dsfNodeAsic) {
     auto recyclePortId = getRecyclePortId(node);
     InterfaceID intfID(recyclePortId);
-    auto intfs = isLocal(node)
-        ? new_->getMultiSwitchInterfaces()->modify(&new_)
-        : new_->getMultiSwitchRemoteInterfaces()->modify(&new_);
+    auto intfs = isLocal(node) ? new_->getMultiSwitchInterfaces()->modify(&new_)
+                               : new_->getRemoteInterfaces()->modify(&new_);
     auto intf = intfs->getNode(intfID)->clone();
     Interface::Addresses addresses;
     // THRIFT_COPY: evaluate if getting entire thrift table is needed.
@@ -874,7 +873,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         true,
         true,
         cfg::InterfaceType::SYSTEM_PORT);
-    auto intfs = new_->getMultiSwitchRemoteInterfaces()->modify(&new_);
+    auto intfs = new_->getRemoteInterfaces()->modify(&new_);
     intfs->addNode(intf, scopeResolver_.scope(intf, new_));
     processLoopbacks(node, dsfNodeAsic.get());
   };
@@ -886,7 +885,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       auto recyclePortId = getRecyclePortId(node);
       auto sysPorts = new_->getRemoteSystemPorts()->modify(&new_);
       sysPorts->removeNode(SystemPortID(recyclePortId));
-      auto intfs = new_->getMultiSwitchRemoteInterfaces()->modify(&new_);
+      auto intfs = new_->getRemoteInterfaces()->modify(&new_);
       intfs->removeNode(InterfaceID(recyclePortId));
     } else {
       // Local DSF node removal should be accompanied by

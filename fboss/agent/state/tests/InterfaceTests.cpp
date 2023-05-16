@@ -238,12 +238,11 @@ TEST(Interface, Modify) {
   {
     // Remote sys ports modify
     auto state = std::make_shared<SwitchState>();
-    auto origRemoteIntfs = state->getMultiSwitchRemoteInterfaces();
+    auto origRemoteIntfs = state->getRemoteInterfaces();
     EXPECT_EQ(origRemoteIntfs.get(), origRemoteIntfs->modify(&state));
     state->publish();
     EXPECT_NE(origRemoteIntfs.get(), origRemoteIntfs->modify(&state));
-    EXPECT_NE(
-        origRemoteIntfs.get(), state->getMultiSwitchRemoteInterfaces().get());
+    EXPECT_NE(origRemoteIntfs.get(), state->getRemoteInterfaces().get());
   }
 }
 
@@ -619,8 +618,7 @@ TEST(Interface, getRemoteInterfacesBySwitchId) {
   auto remoteSysPorts = stateV2->getRemoteSystemPorts()->modify(&stateV2);
   remoteSysPorts->addNode(
       sysPort1, HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID{1}})));
-  auto remoteInterfaces =
-      stateV2->getMultiSwitchRemoteInterfaces()->modify(&stateV2);
+  auto remoteInterfaces = stateV2->getRemoteInterfaces()->modify(&stateV2);
   auto rif = std::make_shared<Interface>(
       InterfaceID(1001),
       RouterID(0),

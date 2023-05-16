@@ -943,7 +943,7 @@ void ThriftHandler::addRemoteNeighbors(
       nbr.switchId() = state->getAssociatedSwitchID(PortID(*nbr.port()));
     }
   }
-  const auto& remoteRifs = state->getMultiSwitchRemoteInterfaces();
+  const auto& remoteRifs = state->getRemoteInterfaces();
   const auto& remoteSysPorts = state->getRemoteSystemPorts();
   for (const auto& [_, rifMap] : std::as_const(*remoteRifs)) {
     for (const auto& idAndRif : std::as_const(*rifMap)) {

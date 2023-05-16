@@ -111,8 +111,7 @@ InterfaceMapDelta StateDelta::getRemoteIntfsDelta() const {
       InterfaceMap,
       MultiSwitchInterfaceMap,
       InterfaceMapDelta>(
-      old_->getMultiSwitchRemoteInterfaces(),
-      new_->getMultiSwitchRemoteInterfaces());
+      old_->getRemoteInterfaces(), new_->getRemoteInterfaces());
 }
 
 AclMapDelta StateDelta::getAclsDelta(

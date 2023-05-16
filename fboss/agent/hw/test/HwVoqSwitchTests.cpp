@@ -685,7 +685,7 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
       const Interface::Addresses& subnets) {
     auto newState = getProgrammedState();
     auto newRemoteInterfaces =
-        newState->getMultiSwitchRemoteInterfaces()->modify(&newState);
+        newState->getRemoteInterfaces()->modify(&newState);
     auto numPrevIntfs = newRemoteInterfaces->size();
     auto newRemoteInterface = std::make_shared<Interface>(
         intfId,
@@ -703,7 +703,7 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
         scopeResolver().scope(newRemoteInterface, newState));
     applyNewState(newState);
     EXPECT_EQ(
-        getProgrammedState()->getMultiSwitchRemoteInterfaces()->numNodes(),
+        getProgrammedState()->getRemoteInterfaces()->numNodes(),
         numPrevIntfs + 1);
   }
   void addRemoveRemoteNeighbor(
@@ -713,8 +713,7 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
       bool add,
       std::optional<int64_t> encapIndex = std::nullopt) {
     auto outState = getProgrammedState();
-    auto interfaceMap =
-        outState->getMultiSwitchRemoteInterfaces()->modify(&outState);
+    auto interfaceMap = outState->getRemoteInterfaces()->modify(&outState);
     auto interface = interfaceMap->getNode(intfID)->clone();
     auto ndpTable = interfaceMap->getNode(intfID)->getNdpTable()->clone();
     if (add) {

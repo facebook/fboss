@@ -109,7 +109,7 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
         sw_->getState()->getRemoteSystemPorts()->getFirstMap()->toThrift());
 
     for (const auto& [_, intfMap] :
-         std::as_const(*sw_->getState()->getMultiSwitchRemoteInterfaces())) {
+         std::as_const(*sw_->getState()->getRemoteInterfaces())) {
       for (const auto& [_, localRif] : std::as_const(*intfMap)) {
         const auto& expectedRif = expectedRifs.at(localRif->getID());
         // Since resolved timestamp is only set locally, update expectedRifs to
@@ -134,10 +134,7 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
     }
     EXPECT_EQ(
         expectedRifs.toThrift(),
-        sw_->getState()
-            ->getMultiSwitchRemoteInterfaces()
-            ->getFirstMap()
-            ->toThrift());
+        sw_->getState()->getRemoteInterfaces()->getFirstMap()->toThrift());
 
     // neighbor entries are modified to set isLocal=false
     // Thus, if neighbor table is non-empty, programmed vs. actually
@@ -146,10 +143,7 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
     // programmed vs actually programmed state would be equal.
     EXPECT_TRUE(
         rifs->toThrift() !=
-            sw_->getState()
-                ->getMultiSwitchRemoteInterfaces()
-                ->getFirstMap()
-                ->toThrift() ||
+            sw_->getState()->getRemoteInterfaces()->getFirstMap()->toThrift() ||
         noNeighbors || !publishState);
   };
 

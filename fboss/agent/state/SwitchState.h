@@ -496,8 +496,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
    * Remote objects
    */
   const std::shared_ptr<MultiSwitchSystemPortMap>& getRemoteSystemPorts() const;
-  const std::shared_ptr<MultiSwitchInterfaceMap>&
-  getMultiSwitchRemoteInterfaces() const;
+  const std::shared_ptr<MultiSwitchInterfaceMap>& getRemoteInterfaces() const;
 
   /*
    * Get system ports for a given switch id

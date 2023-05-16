@@ -234,7 +234,7 @@ void SwitchState::resetRemoteIntfs(
 }
 
 const std::shared_ptr<MultiSwitchInterfaceMap>&
-SwitchState::getMultiSwitchRemoteInterfaces() const {
+SwitchState::getRemoteInterfaces() const {
   return safe_cref<switch_state_tags::remoteInterfaceMaps>();
 }
 
@@ -531,7 +531,7 @@ std::shared_ptr<InterfaceMap> SwitchState::getInterfaces(
   }
   bool isLocal = isLocalSwitchId(switchId);
   auto mSwitchIntfs =
-      isLocal ? getMultiSwitchInterfaces() : getMultiSwitchRemoteInterfaces();
+      isLocal ? getMultiSwitchInterfaces() : getRemoteInterfaces();
   auto toRet = std::make_shared<InterfaceMap>();
   auto sysPorts = getSystemPorts(switchId);
   for (const auto& [_, intfMap] : std::as_const(*mSwitchIntfs)) {

@@ -42,7 +42,7 @@ class NeighborManagerTest : public ManagerTestBase {
             {folly::IPAddress("100::1"), 64},
             {folly::IPAddress("100.0.0.1"), 24},
         });
-    auto rifMap = newState->getMultiSwitchRemoteInterfaces()->modify(&newState);
+    auto rifMap = newState->getRemoteInterfaces()->modify(&newState);
     rifMap->addNode(remoteRif, matcher);
     applyNewState(newState);
   }
