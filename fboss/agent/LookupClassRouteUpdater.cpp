@@ -189,7 +189,7 @@ void LookupClassRouteUpdater::updateSubnetsCache(
 
     auto& subnetsCache = vlan2SubnetsCache_[vlanID];
     auto interface =
-        newState->getMultiSwitchInterfaces()->getNodeIf(vlan->getInterfaceID());
+        newState->getInterfaces()->getNodeIf(vlan->getInterfaceID());
     if (interface) {
       for (auto iter : std::as_const(*interface->getAddresses())) {
         auto address =
@@ -245,8 +245,7 @@ void LookupClassRouteUpdater::processPortRemovedForVlan(
     return;
   }
 
-  auto interface =
-      newState->getMultiSwitchInterfaces()->getNodeIf(vlan->getInterfaceID());
+  auto interface = newState->getInterfaces()->getNodeIf(vlan->getInterfaceID());
   if (!interface) {
     return;
   }
@@ -762,9 +761,8 @@ bool LookupClassRouteUpdater::addRouteToMultiNextHopMap(
     std::optional<std::pair<folly::IPAddress, VlanID>> addedNeighborIPandVlan,
     const RidAndCidr& ridAndCidr) {
   for (const auto& nextHop : route->getForwardInfo().getNextHopSet()) {
-    auto vlanID = newState->getMultiSwitchInterfaces()
-                      ->getNodeIf(nextHop.intf())
-                      ->getVlanID();
+    auto vlanID =
+        newState->getInterfaces()->getNodeIf(nextHop.intf())->getVlanID();
     if (!belongsToSubnetInCache(vlanID, nextHop.addr())) {
       continue;
     }
@@ -805,9 +803,8 @@ LookupClassRouteUpdater::addRouteAndFindClassID(
   std::optional<cfg::AclLookupClass> routeClassID{std::nullopt};
   std::set<folly::IPAddress> neighborsWithClassId;
   for (const auto& nextHop : addedRoute->getForwardInfo().getNextHopSet()) {
-    auto vlanID = newState->getMultiSwitchInterfaces()
-                      ->getNodeIf(nextHop.intf())
-                      ->getVlanID();
+    auto vlanID =
+        newState->getInterfaces()->getNodeIf(nextHop.intf())->getVlanID();
     if (!belongsToSubnetInCache(vlanID, nextHop.addr())) {
       continue;
     }
@@ -1024,9 +1021,8 @@ void LookupClassRouteUpdater::processRouteRemoved(
   auto routeClassID = removedRoute->getClassID();
   auto& newState = stateDelta.newState();
   for (const auto& nextHop : removedRoute->getForwardInfo().getNextHopSet()) {
-    auto vlanID = newState->getMultiSwitchInterfaces()
-                      ->getNodeIf(nextHop.intf())
-                      ->getVlanID();
+    auto vlanID =
+        newState->getInterfaces()->getNodeIf(nextHop.intf())->getVlanID();
     if (!belongsToSubnetInCache(vlanID, nextHop.addr())) {
       continue;
     }
@@ -1156,8 +1152,8 @@ LookupClassRouteUpdater::getInterfaceSubnetForIPIf(
     return std::nullopt;
   }
 
-  auto interface = switchState->getMultiSwitchInterfaces()->getNodeIf(
-      vlan->getInterfaceID());
+  auto interface =
+      switchState->getInterfaces()->getNodeIf(vlan->getInterfaceID());
   if (interface) {
     for (auto iter : std::as_const(*interface->getAddresses())) {
       std::pair<folly::IPAddress, uint8_t> address(
@@ -1204,8 +1200,8 @@ bool LookupClassRouteUpdater::isSubnetCachedByLookupClasses(
     return false;
   }
 
-  auto interface = switchState->getMultiSwitchInterfaces()->getNodeIf(
-      vlan->getInterfaceID());
+  auto interface =
+      switchState->getInterfaces()->getNodeIf(vlan->getInterfaceID());
   if (!interface) {
     return false;
   }

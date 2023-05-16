@@ -681,7 +681,7 @@ void NdpTest::validateRouterAdv(std::optional<std::string> configuredRouterIp) {
   sw->initialConfigApplied(std::chrono::steady_clock::now());
 
   auto state = sw->getState();
-  auto intfConfig = state->getMultiSwitchInterfaces()->getNode(InterfaceID(5));
+  auto intfConfig = state->getInterfaces()->getNode(InterfaceID(5));
   PrefixVector expectedPrefixes{
       {IPAddressV6("2401:db00:2110:3004::"), 64},
       {IPAddressV6("fe80::"), 64},

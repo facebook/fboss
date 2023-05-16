@@ -126,8 +126,7 @@ void ManagerTestBase::setupSaiPlatform() {
     }
   }
   if (setupStage & SetupStage::INTERFACE) {
-    auto* interfaces =
-        setupState->getMultiSwitchInterfaces()->modify(&setupState);
+    auto* interfaces = setupState->getInterfaces()->modify(&setupState);
     for (const auto& testInterface : testInterfaces) {
       auto swInterface = makeInterface(testInterface);
       interfaces->addNode(swInterface, scope);

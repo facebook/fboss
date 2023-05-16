@@ -598,9 +598,8 @@ class HwMacLearningAndMyStationInteractionTest : public HwMacLearningTest {
                             ->getVlans()
                             .begin()
                             ->first;
-          auto intf = getProgrammedState()
-                          ->getMultiSwitchInterfaces()
-                          ->getInterfaceInVlan(vlanID);
+          auto intf =
+              getProgrammedState()->getInterfaces()->getInterfaceInVlan(vlanID);
           for (auto iter : std::as_const(*intf->getAddresses())) {
             auto addrEntry = folly::IPAddress(iter.first);
             if (!addrEntry.isV4()) {

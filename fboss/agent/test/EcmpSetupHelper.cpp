@@ -50,8 +50,7 @@ flat_map<InterfaceID, folly::CIDRNetwork> computeInterface2Subnet(
     const std::shared_ptr<SwitchState>& inputState,
     bool v6) {
   boost::container::flat_map<InterfaceID, folly::CIDRNetwork> intf2Network;
-  for (const auto& [_, intfMap] :
-       std::as_const(*inputState->getMultiSwitchInterfaces())) {
+  for (const auto& [_, intfMap] : std::as_const(*inputState->getInterfaces())) {
     for (auto iter : std::as_const(*intfMap)) {
       const auto& intf = iter.second;
       for (const auto& cidrStr : intf->getAddressesCopy()) {
@@ -196,8 +195,7 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolvePortRifNextHop(
     nbr.encapIndex() = *encapIdx;
   }
   nbrTable.insert({*nbr.ipaddress(), nbr});
-  auto origIntf =
-      outputState->getMultiSwitchInterfaces()->getNode(intf->getID());
+  auto origIntf = outputState->getInterfaces()->getNode(intf->getID());
   auto interface = origIntf->modify(&outputState);
   interface->setNeighborEntryTable<AddrT>(nbrTable);
   return outputState;
@@ -230,8 +228,7 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::unresolvePortRifNextHop(
   auto nbrTable = intf->getNeighborEntryTable<AddrT>()->toThrift();
   auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
   nbrTable.erase(nhopIp.str());
-  auto origIntf =
-      outputState->getMultiSwitchInterfaces()->getNode(intf->getID());
+  auto origIntf = outputState->getInterfaces()->getNode(intf->getID());
   auto interface = origIntf->modify(&outputState);
   interface->setNeighborEntryTable<AddrT>(nbrTable);
   return outputState;
@@ -245,7 +242,7 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolveNextHop(
     bool useLinkLocal,
     std::optional<int64_t> encapIdx) const {
   auto intfID = portDesc2Interface_.find(nhop.portDesc)->second;
-  auto intf = inputState->getMultiSwitchInterfaces()->getNode(intfID);
+  auto intf = inputState->getInterfaces()->getNode(intfID);
   switch (intf->getType()) {
     case cfg::InterfaceType::VLAN:
       CHECK(!encapIdx.has_value())
@@ -266,7 +263,7 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::unresolveNextHop(
     const NextHopT& nhop,
     bool useLinkLocal) const {
   auto intfID = portDesc2Interface_.find(nhop.portDesc)->second;
-  auto intf = inputState->getMultiSwitchInterfaces()->getNode(intfID);
+  auto intf = inputState->getInterfaces()->getNode(intfID);
   switch (intf->getType()) {
     case cfg::InterfaceType::VLAN:
       return unresolveVlanRifNextHop(inputState, nhop, intf, useLinkLocal);
@@ -292,8 +289,8 @@ std::optional<InterfaceID> BaseEcmpSetupHelper<AddrT, NextHopT>::getInterface(
     const PortDescriptor& port,
     const std::shared_ptr<SwitchState>& state) const {
   if (auto vlan = getVlan(port, state)) {
-    auto intf = state->getMultiSwitchInterfaces()->getNodeIf(
-        InterfaceID(static_cast<int>(*vlan)));
+    auto intf =
+        state->getInterfaces()->getNodeIf(InterfaceID(static_cast<int>(*vlan)));
     if (!intf) {
       // No interface config for this vlan
       return std::nullopt;
@@ -314,7 +311,7 @@ std::optional<InterfaceID> BaseEcmpSetupHelper<AddrT, NextHopT>::getInterface(
     SystemPortID sysPortId{// static_cast to avoid spurious narrowing conversion
                            // compiler warning. PortID is just 16 bits
                            static_cast<int64_t>(port.intID()) + sysPortBase};
-    if (auto intf = state->getMultiSwitchInterfaces()->getNodeIf(
+    if (auto intf = state->getInterfaces()->getNodeIf(
             InterfaceID(static_cast<int>(sysPortId)))) {
       return intf->getID();
     }

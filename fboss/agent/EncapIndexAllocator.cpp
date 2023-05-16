@@ -36,8 +36,7 @@ int64_t EncapIndexAllocator::getNextAvailableEncapIdx(
         extractIndices(idAndVlan.second->getArpTable());
         extractIndices(idAndVlan.second->getNdpTable());
       });
-  for (const auto& [_, intfMap] :
-       std::as_const(*state->getMultiSwitchInterfaces())) {
+  for (const auto& [_, intfMap] : std::as_const(*state->getInterfaces())) {
     std::for_each(
         intfMap->cbegin(), intfMap->cend(), [&](const auto& idAndIntf) {
           extractIndices(idAndIntf.second->getArpTable());
@@ -81,7 +80,7 @@ std::shared_ptr<SwitchState> EncapIndexAllocator::updateEncapIndices(
     for (const auto& intfDelta : delta.getIntfsDelta()) {
       auto updateIntf =
           [&](auto newNbr, const auto& nbrTable, InterfaceID intfId) {
-            auto intf = newState->getMultiSwitchInterfaces()->getNode(intfId);
+            auto intf = newState->getInterfaces()->getNode(intfId);
             if (intf->getType() != cfg::InterfaceType::SYSTEM_PORT) {
               return;
             }

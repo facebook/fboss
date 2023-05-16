@@ -277,14 +277,12 @@ class MultiNodeLacpTest : public MultiNodeTest {
     if (isDUT()) {
       auto state = sw()->getState();
       auto vlan = state->getVlans()->cbegin()->second->getID();
-      auto srcMac =
-          state->getMultiSwitchInterfaces()->getInterfaceInVlan(vlan)->getMac();
-      auto destMac = getNeighborEntry(
-                         getNeighborIpAddrs<folly::IPAddressV6>()[0],
-                         state->getMultiSwitchInterfaces()
-                             ->getInterfaceInVlan(vlan)
-                             ->getID())
-                         .first;
+      auto srcMac = state->getInterfaces()->getInterfaceInVlan(vlan)->getMac();
+      auto destMac =
+          getNeighborEntry(
+              getNeighborIpAddrs<folly::IPAddressV6>()[0],
+              state->getInterfaces()->getInterfaceInVlan(vlan)->getID())
+              .first;
       for (const auto& sendV6 : {true, false}) {
         utility::pumpTraffic(
             sendV6, sw()->getHw(), destMac, vlan, std::nullopt, 255, srcMac);
@@ -461,14 +459,12 @@ class MultiNodeRoutingLoop : public MultiNodeLacpTest {
     disableTTLDecrementsForRoute<folly::IPAddressV6>(prefix_);
     auto state = sw()->getState();
     auto vlan = state->getVlans()->cbegin()->second->getID();
-    auto srcMac =
-        state->getMultiSwitchInterfaces()->getInterfaceInVlan(vlan)->getMac();
-    auto destMac = getNeighborEntry(
-                       getNeighborIpAddrs<folly::IPAddressV6>()[0],
-                       state->getMultiSwitchInterfaces()
-                           ->getInterfaceInVlan(vlan)
-                           ->getID())
-                       .first;
+    auto srcMac = state->getInterfaces()->getInterfaceInVlan(vlan)->getMac();
+    auto destMac =
+        getNeighborEntry(
+            getNeighborIpAddrs<folly::IPAddressV6>()[0],
+            state->getInterfaces()->getInterfaceInVlan(vlan)->getID())
+            .first;
     utility::pumpTraffic(
         sw()->getHw(),
         destMac,

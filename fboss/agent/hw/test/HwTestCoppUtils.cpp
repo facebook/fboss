@@ -430,7 +430,7 @@ void sendAndVerifyPkts(
 std::shared_ptr<facebook::fboss::Interface> getEligibleInterface(
     std::shared_ptr<SwitchState> swState) {
   VlanID downlinkBaseVlanId(kDownlinkBaseVlanId);
-  auto intfMap = swState->getMultiSwitchInterfaces()->modify(&swState);
+  auto intfMap = swState->getInterfaces()->modify(&swState);
   for (const auto& [_, intfMap] : *intfMap) {
     for (auto iter = intfMap->begin(); iter != intfMap->end(); ++iter) {
       auto intf = iter->second;

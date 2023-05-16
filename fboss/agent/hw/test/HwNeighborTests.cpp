@@ -133,7 +133,7 @@ class HwNeighborTest : public HwLinkStateDependentTest {
           ->template getNeighborTable<NTable>()
           ->modify(kVlanID(), &state);
     } else if (switchType == cfg::SwitchType::VOQ) {
-      return state->getMultiSwitchInterfaces()
+      return state->getInterfaces()
           ->getNode(kIntfID())
           ->template getNeighborEntryTable<IPAddrT>()
           ->modify(kIntfID(), &state);

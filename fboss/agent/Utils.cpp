@@ -94,8 +94,7 @@ void utilCreateDir(folly::StringPiece path) {
 
 IPAddressV4 getAnyIntfIP(const std::shared_ptr<SwitchState>& state) {
   IPAddressV4 intfIp;
-  for (const auto& [_, intfMap] :
-       std::as_const(*state->getMultiSwitchInterfaces())) {
+  for (const auto& [_, intfMap] : std::as_const(*state->getInterfaces())) {
     for (const auto& intfIter : std::as_const(*intfMap)) {
       const auto& intf = intfIter.second;
       for (auto iter : std::as_const(*intf->getAddresses())) {
@@ -111,8 +110,7 @@ IPAddressV4 getAnyIntfIP(const std::shared_ptr<SwitchState>& state) {
 
 IPAddressV6 getAnyIntfIPv6(const std::shared_ptr<SwitchState>& state) {
   IPAddressV6 intfIp;
-  for (const auto& [_, intfMap] :
-       std::as_const(*state->getMultiSwitchInterfaces())) {
+  for (const auto& [_, intfMap] : std::as_const(*state->getInterfaces())) {
     for (const auto& intfIter : std::as_const(*intfMap)) {
       const auto& intf = intfIter.second;
       for (auto iter : std::as_const(*intf->getAddresses())) {
@@ -130,8 +128,7 @@ IPAddressV4 getSwitchVlanIP(
     const std::shared_ptr<SwitchState>& state,
     VlanID vlan) {
   IPAddressV4 switchIp;
-  auto vlanInterface =
-      state->getMultiSwitchInterfaces()->getInterfaceInVlan(vlan);
+  auto vlanInterface = state->getInterfaces()->getInterfaceInVlan(vlan);
 
   return getIPAddress<IPAddressV4>(
       vlanInterface->getID(), vlanInterface->getAddresses());
@@ -140,7 +137,7 @@ IPAddressV4 getSwitchVlanIP(
 IPAddressV4 getSwitchIntfIP(
     const std::shared_ptr<SwitchState>& state,
     InterfaceID intfID) {
-  auto interface = state->getMultiSwitchInterfaces()->getNode(intfID);
+  auto interface = state->getInterfaces()->getNode(intfID);
 
   return getIPAddress<IPAddressV4>(intfID, interface->getAddresses());
 }
@@ -148,8 +145,7 @@ IPAddressV4 getSwitchIntfIP(
 IPAddressV6 getSwitchVlanIPv6(
     const std::shared_ptr<SwitchState>& state,
     VlanID vlan) {
-  auto vlanInterface =
-      state->getMultiSwitchInterfaces()->getInterfaceInVlan(vlan);
+  auto vlanInterface = state->getInterfaces()->getInterfaceInVlan(vlan);
 
   return getIPAddress<IPAddressV6>(
       vlanInterface->getID(), vlanInterface->getAddresses());
@@ -158,7 +154,7 @@ IPAddressV6 getSwitchVlanIPv6(
 IPAddressV6 getSwitchIntfIPv6(
     const std::shared_ptr<SwitchState>& state,
     InterfaceID intfID) {
-  auto interface = state->getMultiSwitchInterfaces()->getNode(intfID);
+  auto interface = state->getInterfaces()->getNode(intfID);
 
   return getIPAddress<IPAddressV6>(intfID, interface->getAddresses());
 }
@@ -335,7 +331,7 @@ SystemPortID getSystemPortID(
 std::vector<PortID> getPortsForInterface(
     InterfaceID intfId,
     const std::shared_ptr<SwitchState>& state) {
-  auto intf = state->getMultiSwitchInterfaces()->getNodeIf(intfId);
+  auto intf = state->getInterfaces()->getNodeIf(intfId);
   if (!intf) {
     return {};
   }

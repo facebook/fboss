@@ -78,12 +78,12 @@ namespace facebook::fboss::utility {
 folly::MacAddress getInterfaceMac(
     const std::shared_ptr<SwitchState>& state,
     VlanID vlan) {
-  return state->getMultiSwitchInterfaces()->getInterfaceInVlan(vlan)->getMac();
+  return state->getInterfaces()->getInterfaceInVlan(vlan)->getMac();
 }
 folly::MacAddress getInterfaceMac(
     const std::shared_ptr<SwitchState>& state,
     InterfaceID intf) {
-  return state->getMultiSwitchInterfaces()->getNode(intf)->getMac();
+  return state->getInterfaces()->getNode(intf)->getMac();
 }
 
 folly::MacAddress getFirstInterfaceMac(const cfg::SwitchConfig& cfg) {
@@ -98,7 +98,7 @@ folly::MacAddress getFirstInterfaceMac(const cfg::SwitchConfig& cfg) {
 }
 
 folly::MacAddress getFirstInterfaceMac(std::shared_ptr<SwitchState> state) {
-  const auto& intfMap = state->getMultiSwitchInterfaces()->cbegin()->second;
+  const auto& intfMap = state->getInterfaces()->cbegin()->second;
   const auto& intf = std::as_const(*intfMap->cbegin()).second;
   return intf->getMac();
 }

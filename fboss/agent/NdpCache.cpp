@@ -141,11 +141,11 @@ inline void NdpCache::checkReachability(
   switch (port.type()) {
     case PortDescriptor::PortType::PHYSICAL:
       intfID = getSw()->getState()->getInterfaceIDForPort(port.phyPortID());
-      srcIntf = state->getMultiSwitchInterfaces()->getNodeIf(intfID);
+      srcIntf = state->getInterfaces()->getNodeIf(intfID);
       break;
     case PortDescriptor::PortType::AGGREGATE:
       intfID = getSw()->getInterfaceIDForAggregatePort(port.aggPortID());
-      srcIntf = state->getMultiSwitchInterfaces()->getNodeIf(intfID);
+      srcIntf = state->getInterfaces()->getNodeIf(intfID);
       break;
     case PortDescriptor::PortType::SYSTEM_PORT:
       // We expect the caller to resolve the system port down to its underlying

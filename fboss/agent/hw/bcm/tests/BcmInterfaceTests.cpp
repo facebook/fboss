@@ -130,8 +130,7 @@ void checkSwHwIntfMatch(
     int unit,
     std::shared_ptr<SwitchState> state,
     bool verifyIngress) {
-  for (const auto& [_, intfMap] :
-       std::as_const(*state->getMultiSwitchInterfaces())) {
+  for (const auto& [_, intfMap] : std::as_const(*state->getInterfaces())) {
     for (auto iter : std::as_const(*intfMap)) {
       const auto& swIntf = iter.second;
       bcm_l3_info_t l3HwStatus;

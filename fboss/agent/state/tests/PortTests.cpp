@@ -62,8 +62,7 @@ TEST(Port, checkPortLoopbackMode) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
 
-  for (auto [_, intfMap] :
-       std::as_const(*stateV1->getMultiSwitchInterfaces())) {
+  for (auto [_, intfMap] : std::as_const(*stateV1->getInterfaces())) {
     for (auto iter : std::as_const(*intfMap)) {
       auto intf = iter.second;
       EXPECT_FALSE(isAnyInterfacePortInLoopbackMode(stateV1, intf));
@@ -77,8 +76,7 @@ TEST(Port, checkPortLoopbackMode) {
   }
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
 
-  for (auto [_, intfMap] :
-       std::as_const(*stateV1->getMultiSwitchInterfaces())) {
+  for (auto [_, intfMap] : std::as_const(*stateV1->getInterfaces())) {
     for (auto iter : std::as_const(*intfMap)) {
       EXPECT_TRUE(isAnyInterfacePortInLoopbackMode(stateV2, iter.second));
     }

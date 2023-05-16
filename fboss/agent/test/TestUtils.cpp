@@ -360,8 +360,7 @@ shared_ptr<SwitchState> removeVlanIPv4Address(
     const shared_ptr<SwitchState>& in,
     VlanID vlanID) {
   auto newState = in->clone();
-  auto intfInVlan =
-      newState->getMultiSwitchInterfaces()->getInterfaceInVlanIf(vlanID);
+  auto intfInVlan = newState->getInterfaces()->getInterfaceInVlanIf(vlanID);
   if (intfInVlan) {
     auto intf = intfInVlan->modify(&newState);
     if (intf->getVlanID() == vlanID) {
@@ -597,7 +596,7 @@ shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
   addrs1.emplace(IPAddress("fe80::"), 64); // link local
 
   intf1->setAddresses(addrs1);
-  auto allIntfs = state->getMultiSwitchInterfaces()->modify(&state);
+  auto allIntfs = state->getInterfaces()->modify(&state);
   allIntfs->addNode(intf1, matcher);
   vlan1->setInterfaceID(InterfaceID(1));
 

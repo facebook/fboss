@@ -794,7 +794,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
                               const HwAsic* dsfNodeAsic) {
     auto recyclePortId = getRecyclePortId(node);
     InterfaceID intfID(recyclePortId);
-    auto intfs = isLocal(node) ? new_->getMultiSwitchInterfaces()->modify(&new_)
+    auto intfs = isLocal(node) ? new_->getInterfaces()->modify(&new_)
                                : new_->getRemoteInterfaces()->modify(&new_);
     auto intf = intfs->getNode(intfID)->clone();
     Interface::Addresses addresses;
@@ -3191,7 +3191,7 @@ bool ThriftConfigApplier::updateNeighborResponseTables(
 }
 
 std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
-  auto origIntfs = orig_->getMultiSwitchInterfaces();
+  auto origIntfs = orig_->getInterfaces();
   InterfaceMap::NodeContainer newIntfs;
   bool changed = false;
 
@@ -4405,8 +4405,8 @@ ThriftConfigApplier::updateStaticMplsRoutes(
       }
       // check if nhopAddress is in in one of the interface subnets
       // look up in interfaces of default router (RouterID(0))
-      auto inftToReach = new_->getMultiSwitchInterfaces()->getIntfToReach(
-          RouterID(0), nhopAddress);
+      auto inftToReach =
+          new_->getInterfaces()->getIntfToReach(RouterID(0), nhopAddress);
       if (!inftToReach) {
         throw FbossError(
             "static mpls route for label ",

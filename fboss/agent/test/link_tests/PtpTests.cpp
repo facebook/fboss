@@ -34,9 +34,7 @@ class PtpTests : public LinkTest {
     }
     auto vlanId = *vlan;
     const auto dstMac = sw()->getPlatform()->getLocalMac();
-    auto intf =
-        sw()->getState()->getMultiSwitchInterfaces()->getInterfaceInVlan(
-            vlanId);
+    auto intf = sw()->getState()->getInterfaces()->getInterfaceInVlan(vlanId);
 
     auto srcIp = folly::IPAddressV6("1::1"); // arbit
     return utility::makePTPTxPacket(

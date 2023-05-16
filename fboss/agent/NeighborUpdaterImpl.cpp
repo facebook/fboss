@@ -332,7 +332,7 @@ void NeighborUpdaterImpl::vlanChanged(
 void NeighborUpdaterImpl::interfaceAdded(
     InterfaceID intfID,
     std::shared_ptr<SwitchState> state) {
-  auto intf = state->getMultiSwitchInterfaces()->getNode(intfID);
+  auto intf = state->getInterfaces()->getNode(intfID);
   intfCaches_.emplace(intfID, createCachesForIntf(state.get(), intf.get()));
 }
 

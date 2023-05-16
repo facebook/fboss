@@ -41,8 +41,7 @@ bool TeFlowEntry::isNexthopResolved(
     XLOG(WARNING) << "Unresolved nexthop for TE flow " << nhop;
     return false;
   }
-  auto interface =
-      state->getMultiSwitchInterfaces()->getNodeIf(nhop.intfID().value());
+  auto interface = state->getInterfaces()->getNodeIf(nhop.intfID().value());
   std::optional<folly::MacAddress> dstMac;
   if (nhop.addr().isV6()) {
     dstMac = getNeighborMac<folly::IPAddressV6>(

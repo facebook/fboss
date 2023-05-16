@@ -170,7 +170,7 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForVoq(Entry* entry) {
     auto systemPortID = *systemPortRange->minimum() + fields.port.phyPortID();
 
     auto newState = state->clone();
-    auto intfMap = newState->getMultiSwitchInterfaces()->modify(&newState);
+    auto intfMap = newState->getInterfaces()->modify(&newState);
     // interfaceID is same as the systemPortID
     auto interfaceID = InterfaceID(systemPortID);
     auto intf = intfMap->getNode(interfaceID);
@@ -323,7 +323,7 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntryForVoq(
         EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
 
     auto newState = state->clone();
-    auto intfMap = newState->getMultiSwitchInterfaces()->modify(&newState);
+    auto intfMap = newState->getInterfaces()->modify(&newState);
     // interfaceID is same as the systemPortID
     auto interfaceID = InterfaceID(systemPortID);
     auto intf = intfMap->getNode(interfaceID);

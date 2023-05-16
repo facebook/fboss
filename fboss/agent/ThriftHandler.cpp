@@ -620,7 +620,7 @@ void addRecylePortRifNeighbors(
     auto localRecycleRifId =
         InterfaceID(*dsfNode->getSystemPortRange()->minimum() + kRecylePortId);
     const auto& localRecycleRif =
-        state->getMultiSwitchInterfaces()->getNode(localRecycleRifId);
+        state->getInterfaces()->getNode(localRecycleRifId);
     const auto& nbrTable =
         std::as_const(*localRecycleRif->getNeighborEntryTable<AddressT>());
     for (const auto& ipAndEntry : nbrTable) {
@@ -896,7 +896,7 @@ void ThriftHandler::getAllInterfaces(
     std::map<int32_t, InterfaceDetail>& interfaces) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  const auto interfaceMap = sw_->getState()->getMultiSwitchInterfaces();
+  const auto interfaceMap = sw_->getState()->getInterfaces();
   for (const auto& [_, intfs] : std::as_const(*interfaceMap)) {
     for (auto iter : std::as_const(*intfs)) {
       const auto& intf = iter.second;
@@ -909,7 +909,7 @@ void ThriftHandler::getAllInterfaces(
 void ThriftHandler::getInterfaceList(std::vector<std::string>& interfaceList) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  const auto interfaceMap = sw_->getState()->getMultiSwitchInterfaces();
+  const auto interfaceMap = sw_->getState()->getInterfaces();
   for (const auto& [_, intfs] : std::as_const(*interfaceMap)) {
     for (auto iter : std::as_const(*intfs)) {
       auto intf = iter.second;
@@ -923,8 +923,8 @@ void ThriftHandler::getInterfaceDetail(
     int32_t interfaceId) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  const auto intf = sw_->getState()->getMultiSwitchInterfaces()->getNodeIf(
-      InterfaceID(interfaceId));
+  const auto intf =
+      sw_->getState()->getInterfaces()->getNodeIf(InterfaceID(interfaceId));
 
   if (!intf) {
     throw FbossError("no such interface ", interfaceId);
@@ -2084,7 +2084,7 @@ void ThriftHandler::txPktL3(unique_ptr<fbstring> payload) {
   ensureNotFabric(__func__);
 
   // Use any configured interface
-  const auto interfaceMap = sw_->getState()->getMultiSwitchInterfaces();
+  const auto interfaceMap = sw_->getState()->getInterfaces();
   if (interfaceMap->numNodes() == 0) {
     throw FbossError("No interface configured");
   }
@@ -2162,7 +2162,7 @@ void ThriftHandler::getVlanAddresses(
     ADDR_CONVERTER& converter) {
   CHECK(vlan);
   // Explicitly take ownership of interface map
-  auto interfaces = sw_->getState()->getMultiSwitchInterfaces();
+  auto interfaces = sw_->getState()->getInterfaces();
   for (const auto& [_, intfMap] : std::as_const(*interfaces)) {
     for (auto iter : std::as_const(*intfMap)) {
       auto intf = iter.second;
@@ -2410,7 +2410,7 @@ void ThriftHandler::addMplsRoutesImpl(
       auto iter = labelFibEntryNextHopAddress2Interface.find(
           std::make_pair(RouterID(0), nexthop.addr()));
       if (iter == labelFibEntryNextHopAddress2Interface.end()) {
-        auto result = (*state)->getMultiSwitchInterfaces()->getIntfToReach(
+        auto result = (*state)->getInterfaces()->getIntfToReach(
             RouterID(0), nexthop.addr());
         if (!result) {
           throw FbossError(

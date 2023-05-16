@@ -215,8 +215,8 @@ void SwitchState::resetIntfs(
   ref<switch_state_tags::interfaceMaps>() = intfs;
 }
 
-const std::shared_ptr<MultiSwitchInterfaceMap>&
-SwitchState::getMultiSwitchInterfaces() const {
+const std::shared_ptr<MultiSwitchInterfaceMap>& SwitchState::getInterfaces()
+    const {
   return safe_cref<switch_state_tags::interfaceMaps>();
 }
 
@@ -523,8 +523,7 @@ std::shared_ptr<SystemPortMap> SwitchState::getSystemPorts(
 std::shared_ptr<InterfaceMap> SwitchState::getInterfaces(
     SwitchID switchId) const {
   bool isLocal = isLocalSwitchId(switchId);
-  auto mSwitchIntfs =
-      isLocal ? getMultiSwitchInterfaces() : getRemoteInterfaces();
+  auto mSwitchIntfs = isLocal ? getInterfaces() : getRemoteInterfaces();
   auto toRet = std::make_shared<InterfaceMap>();
   auto sysPorts = getSystemPorts(switchId);
   for (const auto& [_, intfMap] : std::as_const(*mSwitchIntfs)) {
@@ -728,7 +727,7 @@ SwitchID SwitchState::getAssociatedSwitchID(PortID portID) const {
         " expected: 1 got: ",
         port->getInterfaceIDs().size());
   }
-  auto intf = getMultiSwitchInterfaces()->getNodeIf(port->getInterfaceID());
+  auto intf = getInterfaces()->getNodeIf(port->getInterfaceID());
 
   if (!intf || intf->getType() != cfg::InterfaceType::SYSTEM_PORT) {
     throw FbossError("TODO: figure out switch id for non VOQ switch ports");
@@ -740,7 +739,7 @@ SwitchID SwitchState::getAssociatedSwitchID(PortID portID) const {
 
 std::optional<cfg::Range64> SwitchState::getAssociatedSystemPortRangeIf(
     InterfaceID intfID) const {
-  auto intf = getMultiSwitchInterfaces()->getNodeIf(intfID);
+  auto intf = getInterfaces()->getNodeIf(intfID);
   if (!intf || intf->getType() != cfg::InterfaceType::SYSTEM_PORT) {
     return std::nullopt;
   }

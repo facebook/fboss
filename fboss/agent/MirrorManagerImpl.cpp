@@ -134,8 +134,7 @@ MirrorManagerImpl<AddrT>::resolveMirrorNextHopNeighbor(
   AddrT mirrorNextHopIp = getIPAddress<AddrT>(nexthop.addr());
   InterfaceID mirrorEgressInterface = nexthop.intf();
 
-  auto interface =
-      state->getMultiSwitchInterfaces()->getNodeIf(mirrorEgressInterface);
+  auto interface = state->getInterfaces()->getNodeIf(mirrorEgressInterface);
   auto vlan = state->getVlans()->getVlanIf(interface->getVlanID());
 
   if (interface->hasAddress(mirrorNextHopIp)) {
@@ -157,8 +156,7 @@ MirrorTunnel MirrorManagerImpl<AddrT>::resolveMirrorTunnel(
     const NextHop& nextHop,
     const std::shared_ptr<NeighborEntryT>& neighbor,
     const std::optional<TunnelUdpPorts>& udpPorts) {
-  const auto interface =
-      state->getMultiSwitchInterfaces()->getNodeIf(nextHop.intf());
+  const auto interface = state->getInterfaces()->getNodeIf(nextHop.intf());
   const auto iter = interface->getAddressToReach(neighbor->getIP());
 
   if (udpPorts.has_value()) {

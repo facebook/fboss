@@ -120,8 +120,7 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   // No remote neighbor
   EXPECT_EQ(getStaticNbrTimestamps(stateV1->getRemoteInterfaces()).size(), 0);
   // Have local static nbrs
-  auto localStaticNbrs =
-      getStaticNbrTimestamps(stateV1->getMultiSwitchInterfaces());
+  auto localStaticNbrs = getStaticNbrTimestamps(stateV1->getInterfaces());
   EXPECT_EQ(localStaticNbrs.size(), 2);
   std::for_each(localStaticNbrs.begin(), localStaticNbrs.end(), [](auto ts) {
     EXPECT_GT(ts, 0);
@@ -144,9 +143,7 @@ TEST(DsfNode, dsfNodeApplyConfig) {
     EXPECT_GT(ts, 0);
   });
   // No change in local static nbrs
-  EXPECT_EQ(
-      localStaticNbrs,
-      getStaticNbrTimestamps(stateV1->getMultiSwitchInterfaces()));
+  EXPECT_EQ(localStaticNbrs, getStaticNbrTimestamps(stateV1->getInterfaces()));
 
   // Config update with no change in dsf nodes
   *config.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
@@ -160,9 +157,7 @@ TEST(DsfNode, dsfNodeApplyConfig) {
       stateV3->getRemoteInterfaces()->numNodes(),
       stateV2->getRemoteInterfaces()->numNodes());
   // No change in resolved timestamp
-  EXPECT_EQ(
-      localStaticNbrs,
-      getStaticNbrTimestamps(stateV1->getMultiSwitchInterfaces()));
+  EXPECT_EQ(localStaticNbrs, getStaticNbrTimestamps(stateV1->getInterfaces()));
   EXPECT_EQ(
       initialTsRemote, getStaticNbrTimestamps(stateV1->getRemoteInterfaces()));
   // Add new FN node
@@ -179,9 +174,7 @@ TEST(DsfNode, dsfNodeApplyConfig) {
       stateV4->getRemoteInterfaces()->numNodes(),
       stateV3->getRemoteInterfaces()->numNodes());
   // No change in resolved timestamp
-  EXPECT_EQ(
-      localStaticNbrs,
-      getStaticNbrTimestamps(stateV1->getMultiSwitchInterfaces()));
+  EXPECT_EQ(localStaticNbrs, getStaticNbrTimestamps(stateV1->getInterfaces()));
   EXPECT_EQ(
       initialTsRemote, getStaticNbrTimestamps(stateV1->getRemoteInterfaces()));
   // Sleep 2 sec to get a new resolved timestamp
@@ -209,9 +202,7 @@ TEST(DsfNode, dsfNodeApplyConfig) {
     EXPECT_LT(initialTsRemote[i], newTsRemote[i]);
   }
   // No change in local static nbrs
-  EXPECT_EQ(
-      localStaticNbrs,
-      getStaticNbrTimestamps(stateV1->getMultiSwitchInterfaces()));
+  EXPECT_EQ(localStaticNbrs, getStaticNbrTimestamps(stateV1->getInterfaces()));
   // Erase node
   config.dsfNodes()->erase(5);
   auto stateV6 = publishAndApplyConfig(stateV5, &config, platform.get());
@@ -226,9 +217,7 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   // No remote static neighbor again
   EXPECT_EQ(getStaticNbrTimestamps(stateV1->getRemoteInterfaces()).size(), 0);
   // No change in local static nbrs
-  EXPECT_EQ(
-      localStaticNbrs,
-      getStaticNbrTimestamps(stateV1->getMultiSwitchInterfaces()));
+  EXPECT_EQ(localStaticNbrs, getStaticNbrTimestamps(stateV1->getInterfaces()));
 }
 
 TEST(DsfNode, dsfNodeUpdateLocalDsfNodeConfig) {

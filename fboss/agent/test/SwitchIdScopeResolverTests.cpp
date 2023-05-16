@@ -164,7 +164,7 @@ TYPED_TEST(SwitchIdScopeResolverTest, interfaceScope) {
     return;
   } else {
     auto state = this->sw_->getState();
-    auto allIntfs = state->getMultiSwitchInterfaces();
+    auto allIntfs = state->getInterfaces();
     auto intf = allIntfs->getFirstMap()->cbegin()->second;
     this->expectL3(intf, state);
     this->expectL3(intf, this->sw_->getConfig());

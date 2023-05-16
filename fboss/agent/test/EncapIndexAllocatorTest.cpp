@@ -63,7 +63,7 @@ class EncapIndexAllocatorTest : public ::testing::Test {
       std::shared_ptr<SwitchState> state,
       const folly::IPAddressV6& ip,
       int64_t encapIdx) const {
-    const auto& intfMap = state->getMultiSwitchInterfaces()->cbegin()->second;
+    const auto& intfMap = state->getInterfaces()->cbegin()->second;
     const auto& firstIntf = intfMap->cbegin()->second;
     state::NeighborEntryFields nbr;
     nbr.mac() = "02:00:00:00:00:01";

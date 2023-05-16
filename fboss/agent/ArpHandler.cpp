@@ -221,7 +221,7 @@ static void sendArp(
 
 void ArpHandler::floodGratuituousArp() {
   for (const auto& [_, intfMap] :
-       std::as_const(*sw_->getState()->getMultiSwitchInterfaces())) {
+       std::as_const(*sw_->getState()->getInterfaces())) {
     for (auto iiter : std::as_const(*intfMap)) {
       const auto& intf = iiter.second;
       // mostly for agent tests where we dont want to flood arp
@@ -297,8 +297,8 @@ void ArpHandler::sendArpRequest(
 void ArpHandler::sendArpRequest(
     SwSwitch* sw,
     const folly::IPAddressV4& targetIP) {
-  auto intf = sw->getState()->getMultiSwitchInterfaces()->getIntfToReach(
-      RouterID(0), targetIP);
+  auto intf =
+      sw->getState()->getInterfaces()->getIntfToReach(RouterID(0), targetIP);
 
   if (!intf) {
     XLOG(DBG0) << "Cannot find interface for " << targetIP;

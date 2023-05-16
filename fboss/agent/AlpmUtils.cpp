@@ -92,7 +92,7 @@ std::shared_ptr<SwitchState> getMinAlpmRouteState(
     vlan->setNdpTable(std::make_shared<NdpTable>());
   }
 
-  auto allIntfs = noRoutesState->getMultiSwitchInterfaces();
+  auto allIntfs = noRoutesState->getInterfaces();
   for (const auto& [_, intfMap] : std::as_const(*allIntfs)) {
     for (const auto& [_, interface] : std::as_const(*intfMap)) {
       CHECK(interface->isPublished());

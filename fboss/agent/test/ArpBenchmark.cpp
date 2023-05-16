@@ -66,7 +66,7 @@ unique_ptr<SwSwitch> setupSwitch() {
     addrs1.emplace(IPAddress("10.0.0.1"), 24);
     addrs1.emplace(IPAddress("192.168.0.1"), 24);
     intf1->setAddresses(addrs1);
-    auto allIntfs = state->getMultiSwitchInterfaces()->modify(&state);
+    auto allIntfs = state->getInterfaces()->modify(&state);
     allIntfs->addNode(
         intf1, HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)})));
 

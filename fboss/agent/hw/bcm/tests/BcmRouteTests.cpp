@@ -255,7 +255,7 @@ class BcmRouteTest : public BcmTest {
 
     ipv4Routes = ipv6Routes = 0;
     for (const auto& [_, intfMap] :
-         std::as_const(*getProgrammedState()->getMultiSwitchInterfaces())) {
+         std::as_const(*getProgrammedState()->getInterfaces())) {
       for (auto intfIter : std::as_const(*intfMap)) {
         const auto& interface = intfIter.second;
         for (auto iter : std::as_const(*interface->getAddresses())) {
@@ -619,7 +619,7 @@ TEST_F(BcmRouteHostReferenceTest, AddNoRoutesAndCheckDefaultHostReference) {
 
     /* entries are created for non-local IP addresses of interface */
     for (const auto& [_, intfMap] :
-         std::as_const(*getProgrammedState()->getMultiSwitchInterfaces())) {
+         std::as_const(*getProgrammedState()->getInterfaces())) {
       for (auto intfIter : std::as_const(*intfMap)) {
         const auto& interface = intfIter.second;
         for (auto iter : std::as_const(*interface->getAddresses())) {

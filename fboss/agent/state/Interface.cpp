@@ -133,7 +133,7 @@ bool Interface::isIpAttached(
     folly::IPAddress ip,
     InterfaceID intfID,
     const std::shared_ptr<SwitchState>& state) {
-  const auto& allIntfs = state->getMultiSwitchInterfaces();
+  const auto& allIntfs = state->getInterfaces();
   const auto intf = allIntfs->getNodeIf(intfID);
   if (!intf) {
     return false;
@@ -148,7 +148,7 @@ Interface* Interface::modify(std::shared_ptr<SwitchState>* state) {
     CHECK(!(*state)->isPublished());
     return this;
   }
-  auto interfaces = (*state)->getMultiSwitchInterfaces()->modify(state);
+  auto interfaces = (*state)->getInterfaces()->modify(state);
   auto scope = interfaces->getNodeAndScope(getID()).second;
   auto newInterface = clone();
   auto* ptr = newInterface.get();
