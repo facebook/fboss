@@ -524,7 +524,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetAggregatePorts(std::shared_ptr<AggregatePortMap> aggPorts);
   void resetVlans(std::shared_ptr<VlanMap> vlans);
   void addVlan(const std::shared_ptr<Vlan>& vlan);
-  void resetIntfs(const std::shared_ptr<InterfaceMap>& intfs);
   void resetIntfs(const std::shared_ptr<MultiSwitchInterfaceMap>& intfs);
   void addAclTable(const std::shared_ptr<AclTable>& aclTable);
   void resetAcls(const std::shared_ptr<MultiSwitchAclMap>& acls);
@@ -555,9 +554,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   std::shared_ptr<AclTableGroupMap>& getAclTablesForStage(
       const folly::dynamic& swJson);
 
-  void resetRemoteIntfs(const std::shared_ptr<InterfaceMap>& intfs);
-  void resetRemoteIntfs(const std::shared_ptr<MultiSwitchInterfaceMap>& intfs);
-
   static std::shared_ptr<SwitchState> fromThrift(
       const state::SwitchState& data);
   state::SwitchState toThrift() const;
@@ -571,6 +567,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   static Type* modify(std::shared_ptr<SwitchState>* state);
 
  private:
+  void resetRemoteIntfs(const std::shared_ptr<MultiSwitchInterfaceMap>& intfs);
+
   template <
       typename MultiMapType,
       typename ThriftType = typename MultiMapType::Node::ThriftType>

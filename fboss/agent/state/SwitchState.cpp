@@ -206,10 +206,6 @@ void SwitchState::addVlan(const std::shared_ptr<Vlan>& vlan) {
   getDefaultMap<switch_state_tags::vlanMaps>()->addVlan(vlan);
 }
 
-void SwitchState::resetIntfs(const std::shared_ptr<InterfaceMap>& intfs) {
-  resetDefaultMap<switch_state_tags::interfaceMaps>(intfs);
-}
-
 void SwitchState::resetIntfs(
     const std::shared_ptr<MultiSwitchInterfaceMap>& intfs) {
   ref<switch_state_tags::interfaceMaps>() = intfs;
@@ -218,10 +214,6 @@ void SwitchState::resetIntfs(
 const std::shared_ptr<MultiSwitchInterfaceMap>& SwitchState::getInterfaces()
     const {
   return safe_cref<switch_state_tags::interfaceMaps>();
-}
-
-void SwitchState::resetRemoteIntfs(const std::shared_ptr<InterfaceMap>& intfs) {
-  resetDefaultMap<switch_state_tags::remoteInterfaceMaps>(intfs);
 }
 
 void SwitchState::resetRemoteIntfs(
