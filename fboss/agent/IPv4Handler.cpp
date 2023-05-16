@@ -162,7 +162,7 @@ void IPv4Handler::handlePacket(
     return;
   }
   auto intfID = sw_->getState()->getInterfaceIDForPort(port);
-  auto ingressInterface = state->getInterfaces()->getInterfaceIf(intfID);
+  auto ingressInterface = state->getMultiSwitchInterfaces()->getNodeIf(intfID);
   if (!ingressInterface) {
     // Received packed on unknown port / interface
     stats->port(port)->pktDropped();
@@ -186,7 +186,7 @@ void IPv4Handler::handlePacket(
   // Get the Interface to which this packet should be forwarded in host
   // TODO: assume vrf 0 now
   std::shared_ptr<Interface> intf{nullptr};
-  auto interfaceMap = state->getInterfaces();
+  auto interfaceMap = state->getMultiSwitchInterfaces();
   if (v4Hdr.dstAddr.isMulticast()) {
     // If packet is received on a lag member port, ensure that
     // LAG is in forwarding state
@@ -198,7 +198,7 @@ void IPv4Handler::handlePacket(
     }
     // Forward multicast packet directly to corresponding host interface
     auto intfID = sw_->getState()->getInterfaceIDForPort(port);
-    intf = state->getInterfaces()->getInterfaceIf(intfID);
+    intf = state->getMultiSwitchInterfaces()->getNodeIf(intfID);
   } else if (v4Hdr.dstAddr.isLinkLocal()) {
     // XXX: Ideally we should scope the limit to Link only. However we are
     // using v4 link locals in a special way on Galaxy/6pack which needs because
@@ -207,7 +207,7 @@ void IPv4Handler::handlePacket(
     // Forward link-local packet directly to corresponding host interface
     // provided desAddr is assigned to that interface.
     // auto intfID = sw_->getState()->getInterfaceIDForPort(port);
-    // intf = state->getInterfaces()->getInterfaceIf(intfID);
+    // intf = state->getMultiSwitchInterfaces()->getNodeIf(intfID);
     // if (not intf->hasAddress(v4Hdr.dstAddr)) {
     //   intf = nullptr;
     // }
@@ -287,11 +287,11 @@ bool IPv4Handler::resolveMac(
     return false;
   }
 
-  auto intfs = state->getInterfaces();
+  auto intfs = state->getMultiSwitchInterfaces();
   auto nhs = route->getForwardInfo().getNextHopSet();
   auto sent = false;
   for (auto nh : nhs) {
-    auto intf = intfs->getInterfaceIf(nh.intf());
+    auto intf = intfs->getNodeIf(nh.intf());
     if (intf) {
       if (nh.addr().isV4()) {
         auto source = intf->getAddressToReach(nh.addr())->first.asV4();
