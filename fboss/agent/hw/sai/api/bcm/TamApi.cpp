@@ -7,6 +7,7 @@
     !defined(SAI_VERSION_8_2_0_0_SIM_ODP) &&                                  \
     !defined(SAI_VERSION_9_0_EA_ODP) &&                                       \
     !defined(SAI_VERSION_9_0_EA_DNX_ODP) &&                                   \
+    !defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP) &&                               \
     !defined(SAI_VERSION_9_0_EA_SIM_ODP)
 
 extern "C" {
@@ -27,6 +28,7 @@ SaiTamEventTraits::Attributes::AttributeSwitchEventType::operator()() {
     !defined(SAI_VERSION_8_2_0_0_SIM_ODP) &&                                  \
     !defined(SAI_VERSION_9_0_EA_ODP) &&                                       \
     !defined(SAI_VERSION_9_0_EA_DNX_ODP) &&                                   \
+    !defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP) &&                               \
     !defined(SAI_VERSION_9_0_EA_SIM_ODP)
   return SAI_TAM_EVENT_ATTR_SWITCH_EVENT_TYPE;
 #else
@@ -41,6 +43,7 @@ SaiTamEventTraits::Attributes::AttributeEventId::operator()() {
     !defined(SAI_VERSION_8_2_0_0_SIM_ODP) &&                                  \
     !defined(SAI_VERSION_9_0_EA_ODP) &&                                       \
     !defined(SAI_VERSION_9_0_EA_DNX_ODP) &&                                   \
+    !defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP) &&                               \
     !defined(SAI_VERSION_9_0_EA_SIM_ODP)
   return SAI_TAM_EVENT_ATTR_EVENT_ID;
 #else

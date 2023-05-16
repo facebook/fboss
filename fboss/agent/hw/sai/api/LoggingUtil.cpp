@@ -95,6 +95,7 @@ folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
     defined(SAI_VERSION_8_2_0_0_DNX_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
     defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
     defined(SAI_VERSION_9_0_EA_SIM_ODP) ||                                     \
+    defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP) ||                                 \
     defined(SAI_VERSION_9_0_EA_DNX_ODP)) &&                                    \
     SAI_API_VERSION < SAI_VERSION(1, 10, 0)
     case SAI_API_SEGMENTROUTE:
