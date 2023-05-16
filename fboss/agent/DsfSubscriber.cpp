@@ -143,6 +143,7 @@ void DsfSubscriber::scheduleUpdate(
                                 auto& delta,
                                 MapT* mapToUpdate,
                                 auto& makeRemote) {
+          const auto& scopeResolver = sw_->getScopeResolver();
           DeltaFunctions::forEachChanged(
               delta,
               [&](const auto& oldNode, const auto& newNode) {
@@ -155,9 +156,11 @@ void DsfSubscriber::scheduleUpdate(
                   if constexpr (std::
                                     is_same_v<MapT, MultiSwitchSystemPortMap>) {
                     mapToUpdate->updateNode(
-                        clonedNode, sw_->getScopeResolver()->scope(clonedNode));
+                        clonedNode, scopeResolver->scope(clonedNode));
                   } else {
-                    mapToUpdate->updateNode(clonedNode);
+                    mapToUpdate->updateNode(
+                        clonedNode,
+                        scopeResolver->scope(clonedNode, sw_->getState()));
                   }
                   changed = true;
                 }
@@ -167,9 +170,11 @@ void DsfSubscriber::scheduleUpdate(
                     std::decay_t<decltype(newNode)>{nullptr}, newNode);
                 if constexpr (std::is_same_v<MapT, MultiSwitchSystemPortMap>) {
                   mapToUpdate->addNode(
-                      clonedNode, sw_->getScopeResolver()->scope(clonedNode));
+                      clonedNode, scopeResolver->scope(clonedNode));
                 } else {
-                  mapToUpdate->addNode(clonedNode);
+                  mapToUpdate->addNode(
+                      clonedNode,
+                      scopeResolver->scope(clonedNode, sw_->getState()));
                 }
                 changed = true;
               },
@@ -189,7 +194,7 @@ void DsfSubscriber::scheduleUpdate(
         if (newRifs) {
           auto origRifs = out->getInterfaces(nodeSwitchId);
           InterfaceMapDelta delta(origRifs.get(), newRifs.get());
-          auto remoteRifs = out->getRemoteInterfaces()->modify(&out);
+          auto remoteRifs = out->getMultiSwitchRemoteInterfaces()->modify(&out);
           processDelta(delta, remoteRifs, makeRemoteRif);
         }
         if (FLAGS_dsf_subscriber_cache_updated_state) {

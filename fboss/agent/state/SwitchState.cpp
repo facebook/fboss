@@ -126,6 +126,8 @@ SwitchState::SwitchState() {
 
   set<switch_state_tags::aclTableGroupMap>(
       std::map<cfg::AclStage, state::AclTableGroupFields>{});
+  resetIntfs(std::make_shared<MultiSwitchInterfaceMap>());
+  resetRemoteIntfs(std::make_shared<MultiSwitchInterfaceMap>());
   // default multi-map (for single npu) system
   resetForwardingInformationBases(
       std::make_shared<ForwardingInformationBaseMap>());
@@ -138,9 +140,7 @@ SwitchState::SwitchState() {
   resetBufferPoolCfgs(std::make_shared<BufferPoolCfgMap>());
   resetVlans(std::make_shared<VlanMap>());
   resetPorts(std::make_shared<PortMap>());
-  resetIntfs(std::make_shared<InterfaceMap>());
   resetAclTableGroups(std::make_shared<AclTableGroupMap>());
-  resetRemoteIntfs(std::make_shared<InterfaceMap>());
   resetControlPlane(std::make_shared<ControlPlane>());
   resetSwitchSettings(std::make_shared<SwitchSettings>());
 }
@@ -697,7 +697,7 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   state->fromThrift<switch_state_tags::portMaps, switch_state_tags::portMap>();
   state->fromThrift<
       switch_state_tags::interfaceMaps,
-      switch_state_tags::interfaceMap>();
+      switch_state_tags::interfaceMap>(true /*emptyMnpuMapOk*/);
   if (state->cref<switch_state_tags::aclTableGroupMap>()) {
     // set multi map if acl table group map exists
     state->fromThrift<
@@ -709,7 +709,7 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
           true /*emptyMnpuMapOk*/);
   state->fromThrift<
       switch_state_tags::remoteInterfaceMaps,
-      switch_state_tags::remoteInterfaceMap>();
+      switch_state_tags::remoteInterfaceMap>(true /*emptyMnpuMapOk*/);
   state->fromThrift<
       switch_state_tags::systemPortMaps,
       switch_state_tags::systemPortMap>(true /*emptyMnpuMapOk*/);

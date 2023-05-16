@@ -33,18 +33,17 @@ class NeighborManagerTest : public ManagerTestBase {
         42, /*sys port id*/
         42 /* switch id */);
     auto newState = programmedState;
+    HwSwitchMatcher matcher(std::unordered_set<SwitchID>({SwitchID(0)}));
     auto sysPortMap = newState->getRemoteSystemPorts()->modify(&newState);
-    sysPortMap->addNode(
-        remoteSysPort,
-        HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)})));
+    sysPortMap->addNode(remoteSysPort, matcher);
     remoteRif = makeInterface(
         *remoteSysPort,
         {
             {folly::IPAddress("100::1"), 64},
             {folly::IPAddress("100.0.0.1"), 24},
         });
-    auto rifMap = newState->getRemoteInterfaces()->modify(&newState);
-    rifMap->addInterface(remoteRif);
+    auto rifMap = newState->getMultiSwitchRemoteInterfaces()->modify(&newState);
+    rifMap->addNode(remoteRif, matcher);
     applyNewState(newState);
   }
 

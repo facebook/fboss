@@ -29,9 +29,12 @@ using std::shared_ptr;
 using ::testing::Return;
 
 namespace {
-void validateSerialization(const InterfaceMap& node) {
-  auto nodeBack = std::make_shared<InterfaceMap>(node.toThrift());
-  EXPECT_EQ(node.toThrift(), nodeBack->toThrift());
+void validateSerialization(const std::shared_ptr<InterfaceMap>& node) {
+  if (!node) {
+    return;
+  }
+  auto nodeBack = std::make_shared<InterfaceMap>(node->toThrift());
+  EXPECT_EQ(node->toThrift(), nodeBack->toThrift());
 }
 } // namespace
 
@@ -235,11 +238,12 @@ TEST(Interface, Modify) {
   {
     // Remote sys ports modify
     auto state = std::make_shared<SwitchState>();
-    auto origRemoteIntfs = state->getRemoteInterfaces();
+    auto origRemoteIntfs = state->getMultiSwitchRemoteInterfaces();
     EXPECT_EQ(origRemoteIntfs.get(), origRemoteIntfs->modify(&state));
     state->publish();
     EXPECT_NE(origRemoteIntfs.get(), origRemoteIntfs->modify(&state));
-    EXPECT_NE(origRemoteIntfs.get(), state->getRemoteInterfaces().get());
+    EXPECT_NE(
+        origRemoteIntfs.get(), state->getMultiSwitchRemoteInterfaces().get());
   }
 }
 
@@ -451,14 +455,15 @@ TEST(Interface, applyConfig) {
  * callback for the specified list of changed interfaces.
  */
 void checkChangedIntfs(
-    const shared_ptr<InterfaceMap>& oldIntfs,
-    const shared_ptr<InterfaceMap>& newIntfs,
+    const shared_ptr<MultiSwitchInterfaceMap>& oldIntfs,
+    const shared_ptr<MultiSwitchInterfaceMap>& newIntfs,
     const std::set<uint16_t> changedIDs,
     const std::set<uint16_t> addedIDs,
     const std::set<uint16_t> removedIDs) {
+  HwSwitchMatcher matcher{std::unordered_set<SwitchID>({SwitchID(0)})};
   auto oldState = make_shared<SwitchState>();
-  oldState->resetIntfs(oldIntfs);
   auto newState = make_shared<SwitchState>();
+  oldState->resetIntfs(oldIntfs);
   newState->resetIntfs(newIntfs);
 
   std::set<uint16_t> foundChanged;
@@ -488,22 +493,8 @@ void checkChangedIntfs(
   EXPECT_EQ(addedIDs, foundAdded);
   EXPECT_EQ(removedIDs, foundRemoved);
 
-  validateSerialization(*oldIntfs);
-  validateSerialization(*newIntfs);
-}
-
-void checkChangedIntfs(
-    const shared_ptr<MultiSwitchInterfaceMap>& oldIntfs,
-    const shared_ptr<MultiSwitchInterfaceMap>& newIntfs,
-    const std::set<uint16_t> changedIDs,
-    const std::set<uint16_t> addedIDs,
-    const std::set<uint16_t> removedIDs) {
-  checkChangedIntfs(
-      oldIntfs->cbegin()->second,
-      newIntfs->cbegin()->second,
-      changedIDs,
-      addedIDs,
-      removedIDs);
+  validateSerialization(oldIntfs->getFirstMap());
+  validateSerialization(newIntfs->getFirstMap());
 }
 
 TEST(InterfaceMap, applyConfig) {
@@ -628,7 +619,8 @@ TEST(Interface, getRemoteInterfacesBySwitchId) {
   auto remoteSysPorts = stateV2->getRemoteSystemPorts()->modify(&stateV2);
   remoteSysPorts->addNode(
       sysPort1, HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID{1}})));
-  auto remoteInterfaces = stateV2->getRemoteInterfaces()->modify(&stateV2);
+  auto remoteInterfaces =
+      stateV2->getMultiSwitchRemoteInterfaces()->modify(&stateV2);
   auto rif = std::make_shared<Interface>(
       InterfaceID(1001),
       RouterID(0),
@@ -640,7 +632,10 @@ TEST(Interface, getRemoteInterfacesBySwitchId) {
       false,
       cfg::InterfaceType::SYSTEM_PORT);
 
-  remoteInterfaces->addInterface(rif);
+  remoteInterfaces->addNode(
+      rif,
+      HwSwitchMatcher(
+          std::unordered_set<SwitchID>({SwitchID{remoteSwitchId}})));
 
   EXPECT_EQ(stateV2->getInterfaces(SwitchID(remoteSwitchId))->size(), 1);
 }

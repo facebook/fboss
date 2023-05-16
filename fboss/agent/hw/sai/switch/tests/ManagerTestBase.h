@@ -260,9 +260,10 @@ class ManagerTestBase : public ::testing::Test {
 
   const SwitchIdScopeResolver& scopeResolver() const;
 
+  std::unique_ptr<SwitchIdScopeResolver> resolver{};
+
  private:
   static constexpr uint8_t kPortQueueMax = 8;
-  std::unique_ptr<SwitchIdScopeResolver> resolver{};
 };
 
 } // namespace facebook::fboss
