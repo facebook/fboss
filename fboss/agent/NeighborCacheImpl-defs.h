@@ -170,10 +170,10 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForVoq(Entry* entry) {
     auto systemPortID = *systemPortRange->minimum() + fields.port.phyPortID();
 
     auto newState = state->clone();
-    auto intfMap = newState->getInterfaces()->modify(&newState);
+    auto intfMap = newState->getMultiSwitchInterfaces()->modify(&newState);
     // interfaceID is same as the systemPortID
     auto interfaceID = InterfaceID(systemPortID);
-    auto intf = intfMap->getInterface(interfaceID);
+    auto intf = intfMap->getNode(interfaceID);
     auto intfNew = intf->clone();
 
     auto nbrTable = intf->getTable<NTable>();
@@ -214,7 +214,8 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForVoq(Entry* entry) {
     }
 
     intfNew->setNdpTable(updatedNbrTable);
-    intfMap->updateNode(intfNew);
+    intfMap->updateNode(
+        intfNew, sw_->getScopeResolver()->scope(intfNew, newState));
 
     return newState;
   };
@@ -322,10 +323,10 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntryForVoq(
         EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
 
     auto newState = state->clone();
-    auto intfMap = newState->getInterfaces()->modify(&newState);
+    auto intfMap = newState->getMultiSwitchInterfaces()->modify(&newState);
     // interfaceID is same as the systemPortID
     auto interfaceID = InterfaceID(systemPortID);
-    auto intf = intfMap->getInterface(interfaceID);
+    auto intf = intfMap->getNode(interfaceID);
     auto intfNew = intf->clone();
 
     auto nbrTable = intf->getTable<NTable>();
@@ -362,7 +363,8 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntryForVoq(
 
     updatedNbrTable.insert({fields.ip.str(), nbrEntry});
     intfNew->setNdpTable(updatedNbrTable);
-    intfMap->updateNode(intfNew);
+    intfMap->updateNode(
+        intfNew, sw_->getScopeResolver()->scope(intfNew, newState));
 
     return newState;
   };
