@@ -31,7 +31,8 @@ ResolvedNextHopProbe::ResolvedNextHopProbe(
 void ResolvedNextHopProbe::timeoutExpired() noexcept {
   auto ip = nexthop_.addr();
   auto state = sw_->getState();
-  auto intf = state->getInterfaces()->getInterfaceIf(nexthop_.intfID().value());
+  auto intf =
+      state->getMultiSwitchInterfaces()->getNodeIf(nexthop_.intfID().value());
   if (!intf) {
     // probe and state update runs in distinct threads. probe runs in background
     // thread while state update in update thread.
