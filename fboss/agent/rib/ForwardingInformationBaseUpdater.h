@@ -45,10 +45,11 @@ class ForwardingInformationBaseUpdater {
       const facebook::fboss::NetworkToRouteMap<AddressT>& rib,
       const std::shared_ptr<
           facebook::fboss::ForwardingInformationBase<AddressT>>& fib);
-  std::shared_ptr<facebook::fboss::LabelForwardingInformationBase>
+  std::shared_ptr<facebook::fboss::MultiLabelForwardingInformationBase>
   createUpdatedLabelFib(
       const facebook::fboss::NetworkToRouteMap<LabelID>& rib,
-      std::shared_ptr<facebook::fboss::LabelForwardingInformationBase> fib);
+      std::shared_ptr<facebook::fboss::MultiLabelForwardingInformationBase>
+          fib);
 
   const SwitchIdScopeResolver* resolver_;
   RouterID vrf_;

@@ -64,7 +64,7 @@ std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
       createUpdatedFib(v6NetworkToRoute_, previousFibContainer->getFibV6());
 
   auto newLabelFib = createUpdatedLabelFib(
-      labelToRoute_, state->getLabelForwardingInformationBase());
+      labelToRoute_, state->getMultiLabelForwardingInformationBase());
 
   if (!newFibV4 && !newFibV6 && !newLabelFib) {
     // return nextState in case we modified state above to insert new VRF
@@ -151,16 +151,16 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
                  : nullptr;
 }
 
-std::shared_ptr<facebook::fboss::LabelForwardingInformationBase>
+std::shared_ptr<facebook::fboss::MultiLabelForwardingInformationBase>
 ForwardingInformationBaseUpdater::createUpdatedLabelFib(
     const facebook::fboss::NetworkToRouteMap<LabelID>& rib,
-    std::shared_ptr<facebook::fboss::LabelForwardingInformationBase> fib) {
+    std::shared_ptr<facebook::fboss::MultiLabelForwardingInformationBase> fib) {
   if (!FLAGS_mpls_rib) {
     return nullptr;
   }
 
   bool updated = false;
-  auto newFib = std::make_shared<LabelForwardingInformationBase>();
+  auto newFib = std::make_shared<MultiLabelForwardingInformationBase>();
   for (const auto& entry : rib) {
     const auto& label = entry.first;
     const auto& ribRoute = entry.second;
@@ -186,16 +186,18 @@ ForwardingInformationBaseUpdater::createUpdatedLabelFib(
       throw FbossError("invalid label next hop");
     }
     CHECK(fibRoute->isPublished());
-    newFib->addNode(fibRoute);
+    newFib->addNode(fibRoute, resolver_->scope(fibRoute));
   }
   // Check for deleted routes. Routes that were in the previous FIB
   // and have now been removed
-  for (const auto& iter : std::as_const(*fib)) {
-    const auto& fibEntry = iter.second;
-    const auto& label = fibEntry->getID();
-    if (!newFib->getNodeIf(label)) {
-      updated = true;
-      break;
+  for (const auto& miter : std::as_const(*fib)) {
+    for (const auto& iter : std::as_const(*miter.second)) {
+      const auto& fibEntry = iter.second;
+      const auto& label = fibEntry->getID();
+      if (!newFib->getNodeIf(label)) {
+        updated = true;
+        break;
+      }
     }
   }
   return updated ? newFib : nullptr;
