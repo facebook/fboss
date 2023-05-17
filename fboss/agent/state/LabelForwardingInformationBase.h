@@ -45,10 +45,6 @@ class LabelForwardingInformationBase
 
   LabelForwardingInformationBase* modify(std::shared_ptr<SwitchState>* state);
 
-  LabelForwardingEntry* modifyLabelEntry(
-      std::shared_ptr<SwitchState>* state,
-      std::shared_ptr<LabelForwardingEntry> entry);
-
   LabelForwardingInformationBase* programLabel(
       std::shared_ptr<SwitchState>* state,
       Label label,

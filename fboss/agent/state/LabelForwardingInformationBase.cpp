@@ -51,7 +51,7 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(
     resolve(newEntry);
     writableLabelFib->addNode(newEntry);
   } else {
-    auto* entryToUpdate = modifyLabelEntry(state, entry);
+    auto entryToUpdate = entry->clone();
     entryToUpdate->update(
         client, LabelNextHopEntry(std::move(nexthops), distance));
     entryToUpdate->setResolved(*entryToUpdate->getBestEntry().second);
@@ -59,6 +59,7 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(
                << "nhop count:" << nexthopCount
                << " in label forwarding information base for client:"
                << static_cast<int>(client);
+    writableLabelFib->updateNode(entryToUpdate);
   }
   return writableLabelFib;
 }
@@ -75,7 +76,7 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::unprogramLabel(
         label.value(),
         " which does not exist in Label Information Base");
   }
-  auto* entryToUpdate = modifyLabelEntry(state, entry);
+  auto entryToUpdate = entry->clone();
   entryToUpdate->delEntryForClient(client);
   XLOG(DBG2) << "removed label:" << label.value()
              << " from label forwarding information base for client:"
@@ -86,6 +87,7 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::unprogramLabel(
     writableLabelFib->removeNode(entry);
   } else {
     entryToUpdate->setResolved(*(entryToUpdate->getBestEntry().second));
+    writableLabelFib->updateNode(std::move(entryToUpdate));
   }
   return writableLabelFib;
 }
@@ -99,7 +101,7 @@ LabelForwardingInformationBase::purgeEntriesForClient(
   while (iter != writableLabelFib->end()) {
     auto entry = iter->second;
     if (entry->getEntryForClient(client)) {
-      auto entryToModify = modifyLabelEntry(state, entry);
+      auto entryToModify = entry->clone();
       entryToModify->delEntryForClient(client);
       if (entryToModify->getEntryForClients().isEmpty()) {
         XLOG(DBG1) << "Purging empty forwarding entry for label:"
@@ -109,6 +111,7 @@ LabelForwardingInformationBase::purgeEntriesForClient(
       } else {
         entryToModify->setResolved(*(entryToModify->getBestEntry().second));
       }
+      writableLabelFib->updateNode(std::move(entryToModify));
     }
     ++iter;
   }
@@ -147,22 +150,6 @@ bool LabelForwardingInformationBase::isValidNextHopSet(
     }
   }
   return true;
-}
-
-LabelForwardingEntry* LabelForwardingInformationBase::modifyLabelEntry(
-    std::shared_ptr<SwitchState>* state,
-    std::shared_ptr<LabelForwardingEntry> entry) {
-  if (!entry->isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return entry.get();
-  }
-
-  LabelForwardingInformationBase* labelFib =
-      (*state)->getLabelForwardingInformationBase()->modify(state);
-  auto newEntry = entry->clone();
-  auto* ptr = newEntry.get();
-  labelFib->updateNode(std::move(newEntry));
-  return ptr;
 }
 
 template class ThriftMapNode<
