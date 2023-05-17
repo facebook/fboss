@@ -129,8 +129,6 @@ SwitchState::SwitchState() {
   resetIntfs(std::make_shared<MultiSwitchInterfaceMap>());
   resetRemoteIntfs(std::make_shared<MultiSwitchInterfaceMap>());
   // default multi-map (for single npu) system
-  resetForwardingInformationBases(
-      std::make_shared<ForwardingInformationBaseMap>());
   resetSflowCollectors(std::make_shared<SflowCollectorMap>());
   resetLabelForwardingInformationBase(
       std::make_shared<LabelForwardingInformationBase>());
@@ -657,7 +655,8 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   state
       ->fromThrift<switch_state_tags::mirrorMaps, switch_state_tags::mirrorMap>(
           true /*emptyMnpuMapOk*/);
-  state->fromThrift<switch_state_tags::fibsMap, switch_state_tags::fibs>();
+  state->fromThrift<switch_state_tags::fibsMap, switch_state_tags::fibs>(
+      true /* emptyMnpuMapOk */);
   state->fromThrift<
       switch_state_tags::ipTunnelMaps,
       switch_state_tags::ipTunnelMap>(true /*emptyMnpuMapOk*/);
