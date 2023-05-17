@@ -209,3 +209,13 @@ TYPED_TEST(SwitchIdScopeResolverTest, aclScope) {
     this->expectL3(std::shared_ptr<AclEntry>());
   }
 }
+
+TYPED_TEST(SwitchIdScopeResolverTest, qosPolicyScope) {
+  if (this->isFabric()) {
+    this->expectThrow(cfg::QosPolicy{});
+    this->expectThrow(std::shared_ptr<QosPolicy>{});
+  } else {
+    this->expectL3(cfg::QosPolicy{});
+    this->expectL3(std::shared_ptr<QosPolicy>());
+  }
+}

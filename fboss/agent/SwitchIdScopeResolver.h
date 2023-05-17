@@ -16,6 +16,7 @@ class AclEntry;
 class SystemPort;
 class Port;
 class BufferPoolConfig;
+class QosPolicy;
 } // namespace cfg
 class Mirror;
 class DsfNode;
@@ -31,6 +32,7 @@ class Port;
 class AclTableGroup;
 class ForwardingInformationBaseContainer;
 class BufferPoolCfg;
+class QosPolicy;
 template <typename T>
 class Route;
 
@@ -101,6 +103,12 @@ class SwitchIdScopeResolver {
   }
   const HwSwitchMatcher& scope(
       const std::shared_ptr<BufferPoolCfg>& /*b*/) const {
+    return l3SwitchMatcher();
+  }
+  const HwSwitchMatcher& scope(const cfg::QosPolicy& /*q*/) const {
+    return l3SwitchMatcher();
+  }
+  const HwSwitchMatcher& scope(const std::shared_ptr<QosPolicy>& /*q*/) const {
     return l3SwitchMatcher();
   }
 
