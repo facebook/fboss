@@ -151,25 +151,25 @@ TEST(LabelForwardingEntryTests, getBestEntry) {
         clientID,
         clientNextHopsEntry[clientID](AdminDistance::DIRECTLY_CONNECTED));
   }
-  LabelForwardingInformationBase::resolve(entry);
+  MultiLabelForwardingInformationBase::resolve(entry);
 
   EXPECT_EQ(
       clientNextHopsEntry[ClientID::OPENR](AdminDistance::DIRECTLY_CONNECTED),
       entry->getForwardInfo());
 
   entry->delEntryForClient(ClientID::OPENR);
-  LabelForwardingInformationBase::resolve(entry);
+  MultiLabelForwardingInformationBase::resolve(entry);
   EXPECT_EQ(
       clientNextHopsEntry[ClientID::BGPD](AdminDistance::DIRECTLY_CONNECTED),
       entry->getForwardInfo());
   entry->delEntryForClient(ClientID::BGPD);
-  LabelForwardingInformationBase::resolve(entry);
+  MultiLabelForwardingInformationBase::resolve(entry);
   EXPECT_EQ(
       clientNextHopsEntry[ClientID::STATIC_ROUTE](
           AdminDistance::DIRECTLY_CONNECTED),
       entry->getForwardInfo());
   entry->delEntryForClient(ClientID::STATIC_ROUTE);
-  LabelForwardingInformationBase::resolve(entry);
+  MultiLabelForwardingInformationBase::resolve(entry);
   EXPECT_EQ(
       clientNextHopsEntry[ClientID::INTERFACE_ROUTE](
           AdminDistance::DIRECTLY_CONNECTED),
@@ -222,7 +222,7 @@ TEST(LabelForwardingEntryTests, HasLabelNextHop) {
           5001,
           ClientID::OPENR,
           util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED)));
-  LabelForwardingInformationBase::resolve(entry);
+  MultiLabelForwardingInformationBase::resolve(entry);
   const auto& nexthop = entry->getForwardInfo();
   EXPECT_NE(nexthop.getNextHopSet().size(), 0);
 }

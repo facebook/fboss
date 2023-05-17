@@ -61,13 +61,6 @@ class LabelForwardingInformationBase
       std::shared_ptr<SwitchState>* state,
       ClientID client);
 
-  static bool isValidNextHopSet(const LabelNextHopSet& nexthops);
-
-  // Used for resolving route when mpls rib is not enabled
-  static void resolve(std::shared_ptr<LabelForwardingEntry> entry) {
-    entry->setResolved(*(entry->getBestEntry().second));
-  }
-
  private:
   // Inherit the constructors required for clone()
   using Base::Base;
@@ -105,6 +98,13 @@ class MultiLabelForwardingInformationBase
 
   MultiLabelForwardingInformationBase() {}
   virtual ~MultiLabelForwardingInformationBase() {}
+
+  static bool isValidNextHopSet(const LabelNextHopSet& nexthops);
+
+  // Used for resolving route when mpls rib is not enabled
+  static void resolve(std::shared_ptr<LabelForwardingEntry> entry) {
+    entry->setResolved(*(entry->getBestEntry().second));
+  }
 
  private:
   // Inherit the constructors required for clone()

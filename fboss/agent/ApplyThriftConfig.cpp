@@ -4431,7 +4431,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
           staticMplsRouteEntry.get_ingressLabel(),
           LabelNextHopEntry::Action::NEXTHOPS,
           resolvedNextHops);
-      LabelForwardingInformationBase::resolve(node);
+      MultiLabelForwardingInformationBase::resolve(node);
       labelFib->addNode(node);
     } else {
       auto entryToUpdate = entry->clone();
@@ -4439,7 +4439,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
           ClientID::STATIC_ROUTE,
           getStaticLabelNextHopEntry(
               LabelNextHopEntry::Action::NEXTHOPS, resolvedNextHops));
-      LabelForwardingInformationBase::resolve(entryToUpdate);
+      MultiLabelForwardingInformationBase::resolve(entryToUpdate);
       labelFib->updateNode(entryToUpdate);
     }
   }
@@ -4451,7 +4451,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
           staticMplsRouteEntry.get_ingressLabel(),
           LabelNextHopEntry::Action::DROP,
           LabelNextHopSet());
-      LabelForwardingInformationBase::resolve(node);
+      MultiLabelForwardingInformationBase::resolve(node);
       labelFib->addNode(node);
     } else {
       auto entryToUpdate = entry->clone();
@@ -4459,7 +4459,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
           ClientID::STATIC_ROUTE,
           getStaticLabelNextHopEntry(
               LabelNextHopEntry::Action::DROP, LabelNextHopSet()));
-      LabelForwardingInformationBase::resolve(entryToUpdate);
+      MultiLabelForwardingInformationBase::resolve(entryToUpdate);
       labelFib->updateNode(entryToUpdate);
     }
   }
@@ -4471,7 +4471,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
           staticMplsRouteEntry.get_ingressLabel(),
           LabelNextHopEntry::Action::TO_CPU,
           LabelNextHopSet());
-      LabelForwardingInformationBase::resolve(node);
+      MultiLabelForwardingInformationBase::resolve(node);
       labelFib->addNode(node);
     } else {
       auto entryToUpdate = entry->clone();
@@ -4479,7 +4479,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
           ClientID::STATIC_ROUTE,
           getStaticLabelNextHopEntry(
               LabelNextHopEntry::Action::TO_CPU, LabelNextHopSet()));
-      LabelForwardingInformationBase::resolve(entryToUpdate);
+      MultiLabelForwardingInformationBase::resolve(entryToUpdate);
       labelFib->updateNode(entryToUpdate);
     }
   }

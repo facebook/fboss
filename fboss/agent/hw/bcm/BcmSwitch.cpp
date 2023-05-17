@@ -299,7 +299,7 @@ const unsigned int kMaxSflowSnapLen = 128;
 bool isValidLabeledNextHopSet(
     facebook::fboss::BcmPlatform* platform,
     const facebook::fboss::LabelNextHopSet& nexthops) {
-  if (!facebook::fboss::LabelForwardingInformationBase::isValidNextHopSet(
+  if (!facebook::fboss::MultiLabelForwardingInformationBase::isValidNextHopSet(
           nexthops)) {
     return false;
   }

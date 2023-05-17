@@ -181,8 +181,8 @@ ForwardingInformationBaseUpdater::createUpdatedLabelFib(
       fibRoute = ribRoute;
       updated = true;
     }
-    if (!facebook::fboss::LabelForwardingInformationBase::isValidNextHopSet(
-            ribRoute->getForwardInfo().getNextHopSet())) {
+    if (!facebook::fboss::MultiLabelForwardingInformationBase::
+            isValidNextHopSet(ribRoute->getForwardInfo().getNextHopSet())) {
       throw FbossError("invalid label next hop");
     }
     CHECK(fibRoute->isPublished());

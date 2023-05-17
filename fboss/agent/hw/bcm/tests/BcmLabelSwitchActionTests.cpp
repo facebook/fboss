@@ -213,7 +213,7 @@ class BcmLabelSwitchActionTest : public BcmTest {
   }
 
   void addMplsRoute(std::shared_ptr<LabelForwardingEntry> entry) {
-    LabelForwardingInformationBase::resolve(entry);
+    MultiLabelForwardingInformationBase::resolve(entry);
     auto updater = getHwSwitchEnsemble()->getRouteUpdater();
     MplsRoute route;
     route.topLabel() = entry->getID();

@@ -30,7 +30,7 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(
     ClientID client,
     AdminDistance distance,
     LabelNextHopSet nexthops) {
-  if (!isValidNextHopSet(nexthops)) {
+  if (!MultiLabelForwardingInformationBase::isValidNextHopSet(nexthops)) {
     throw FbossError("invalid label next hop");
   }
 
@@ -48,7 +48,7 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(
     auto newEntry =
         std::make_shared<LabelForwardingEntry>(LabelForwardingEntry::makeThrift(
             label, client, LabelNextHopEntry(std::move(nexthops), distance)));
-    resolve(newEntry);
+    MultiLabelForwardingInformationBase::resolve(newEntry);
     writableLabelFib->addNode(newEntry);
   } else {
     auto entryToUpdate = entry->clone();
@@ -131,7 +131,7 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::modify(
   return ptr;
 }
 
-bool LabelForwardingInformationBase::isValidNextHopSet(
+bool MultiLabelForwardingInformationBase::isValidNextHopSet(
     const LabelNextHopSet& nexthops) {
   for (const auto& nexthop : nexthops) {
     if (!nexthop.labelForwardingAction()) {

@@ -85,7 +85,7 @@ class InSegEntryManagerTest : public ManagerTestBase {
             ClientID(ClientID::OPENR),
             getLabelNextHopEntryWithNextHops(
                 nextHopBegin, nextHopEnd, actionType)));
-    LabelForwardingInformationBase::resolve(node);
+    MultiLabelForwardingInformationBase::resolve(node);
     fib->addNode(node);
   }
 

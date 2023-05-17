@@ -197,6 +197,6 @@ TEST(LabelForwardingActionTests, MplsNextHopThriftSet) {
       }
     }
     auto nhops = util::toRouteNextHopSet(nhops_vec);
-    EXPECT_TRUE(LabelForwardingInformationBase::isValidNextHopSet(nhops));
+    EXPECT_TRUE(MultiLabelForwardingInformationBase::isValidNextHopSet(nhops));
   }
 }
