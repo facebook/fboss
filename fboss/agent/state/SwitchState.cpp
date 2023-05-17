@@ -311,6 +311,11 @@ void SwitchState::resetBufferPoolCfgs(std::shared_ptr<BufferPoolCfgMap> cfgs) {
   resetDefaultMap<switch_state_tags::bufferPoolCfgMaps>(cfgs);
 }
 
+void SwitchState::resetBufferPoolCfgs(
+    std::shared_ptr<MultiSwitchBufferPoolCfgMap> cfgs) {
+  ref<switch_state_tags::bufferPoolCfgMaps>() = cfgs;
+}
+
 const std::shared_ptr<BufferPoolCfgMap> SwitchState::getBufferPoolCfgs() const {
   return getDefaultMap<switch_state_tags::bufferPoolCfgMaps>();
 }
