@@ -113,8 +113,8 @@ TEST(BufferPoolConfigTest, applyConfig) {
   const int kSharedBytes = 1500;
 
   cfg::SwitchConfig config;
-  EXPECT_NE(nullptr, stateV0->getBufferPoolCfgs());
-  EXPECT_EQ(0, stateV0->getBufferPoolCfgs()->size());
+  EXPECT_NE(nullptr, stateV0->getMultiSwitchBufferPoolCfgs());
+  EXPECT_EQ(0, stateV0->getMultiSwitchBufferPoolCfgs()->numNodes());
   std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
 
   auto updateBufferPoolCfg = [&](const std::string& key,
@@ -134,19 +134,21 @@ TEST(BufferPoolConfigTest, applyConfig) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
 
-  auto bufferPools = stateV1->getBufferPoolCfgs();
+  auto bufferPools = stateV1->getMultiSwitchBufferPoolCfgs();
 
   EXPECT_NE(nullptr, bufferPools);
-  EXPECT_EQ(2, (*bufferPools).size());
+  EXPECT_EQ(2, (*bufferPools).numNodes());
 
   int index = 0;
-  for (auto iter : std::as_const(*bufferPools)) {
-    auto bufferPool = iter.second;
-    std::string bufferPoolName = folly::to<std::string>("bufferPool_", index);
-    EXPECT_EQ(bufferPool->getID(), bufferPoolName);
-    EXPECT_EQ(bufferPool->getSharedBytes(), kSharedBytes);
-    EXPECT_EQ(bufferPool->getHeadroomBytes(), kHeadroomBytes);
-    index++;
+  for (auto mMapIter : std::as_const(*bufferPools)) {
+    for (auto iter : std::as_const(*mMapIter.second)) {
+      auto bufferPool = iter.second;
+      std::string bufferPoolName = folly::to<std::string>("bufferPool_", index);
+      EXPECT_EQ(bufferPool->getID(), bufferPoolName);
+      EXPECT_EQ(bufferPool->getSharedBytes(), kSharedBytes);
+      EXPECT_EQ(bufferPool->getHeadroomBytes(), kHeadroomBytes);
+      index++;
+    }
   }
 
   {
@@ -181,14 +183,14 @@ TEST(BufferPoolConfigTest, applyConfig) {
     auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
     EXPECT_NE(nullptr, stateV2);
 
-    auto bufferPoolCfgs = stateV2->getBufferPoolCfgs();
+    auto bufferPoolCfgs = stateV2->getMultiSwitchBufferPoolCfgs();
     EXPECT_NE(nullptr, bufferPoolCfgs);
-    EXPECT_EQ(bufferPoolCfgMap.size(), (*bufferPoolCfgs).size());
+    EXPECT_EQ(bufferPoolCfgMap.size(), (*bufferPoolCfgs).numNodes());
   }
 
   config.bufferPoolConfigs().reset();
   auto stateEnd = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateEnd);
-  bufferPools = stateEnd->getBufferPoolCfgs();
-  EXPECT_EQ(nullptr, bufferPools);
+  bufferPools = stateEnd->getMultiSwitchBufferPoolCfgs();
+  EXPECT_EQ(0, bufferPools->numNodes());
 }
