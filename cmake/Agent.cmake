@@ -129,6 +129,7 @@ add_library(core
   fboss/agent/FibHelpers.cpp
   fboss/agent/HwAsicTable.cpp
   fboss/agent/HwSwitch.cpp
+  fboss/agent/HwSwitchSyncer.cpp
   fboss/agent/IPHeaderV4.cpp
   fboss/agent/IPv4Handler.cpp
   fboss/agent/IPv6Handler.cpp
@@ -148,6 +149,7 @@ add_library(core
   fboss/agent/MirrorManager.cpp
   fboss/agent/MirrorManagerImpl.cpp
   fboss/agent/MPLSHandler.cpp
+  fboss/agent/MultiHwSwitchSyncer.cpp
   fboss/agent/NdpCache.cpp
   fboss/agent/NeighborUpdater.cpp
   fboss/agent/NeighborUpdaterImpl.cpp
