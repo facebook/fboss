@@ -32,6 +32,11 @@ QosPolicyMap* QosPolicyMap::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
+MultiSwitchQosPolicyMap* MultiSwitchQosPolicyMap::modify(
+    std::shared_ptr<SwitchState>* state) {
+  return SwitchState::modify<switch_state_tags::qosPolicyMaps>(state);
+}
+
 template class ThriftMapNode<QosPolicyMap, QosPolicyMapTraits>;
 
 } // namespace facebook::fboss
