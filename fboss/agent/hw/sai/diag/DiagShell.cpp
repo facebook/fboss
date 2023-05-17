@@ -471,7 +471,7 @@ std::string DiagCmdServer::diagCmd(
     // TODO: Look into how we can add timeout in future diffs
     throw FbossError("Another client connected");
   }
-  std::string inputStr = input->toStdString();
+  std::string inputStr = input.get()->c_str();
   XLOG(DBG1) << "Connected and running diagCmd: " << inputStr;
   // Flush out old output
   // These should be made in different consumeInput calls,
