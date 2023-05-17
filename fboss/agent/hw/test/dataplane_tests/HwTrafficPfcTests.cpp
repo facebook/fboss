@@ -117,6 +117,14 @@ void validateIngressPriorityGroupWatermarkCounters(
     facebook::fboss::HwSwitchEnsemble* ensemble,
     const int pri,
     const std::vector<facebook::fboss::PortID>& portIds) {
+  std::string watermarkKeys = "shared";
+  int numKeys = 1;
+  if (ensemble->getAsic()->isSupported(
+          facebook::fboss::HwAsic::Feature::
+              INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK)) {
+    watermarkKeys.append("|headroom");
+    numKeys++;
+  }
   auto ingressPriorityGroupWatermarksIncrementing =
       [&](const auto& /*newStats*/) {
         for (const auto& portId : portIds) {
@@ -127,11 +135,12 @@ void validateIngressPriorityGroupWatermarkCounters(
           std::string pg =
               ensemble->isSai() ? folly::sformat(".pg{}", pri) : "";
           auto regex = folly::sformat(
-              "buffer_watermark_pg_(shared|headroom).{}{}.p100.60",
+              "buffer_watermark_pg_({}).{}{}.p100.60",
+              watermarkKeys,
               portName,
               pg);
           auto counters = facebook::fb303::fbData->getRegexCounters(regex);
-          CHECK_EQ(counters.size(), 2);
+          CHECK_EQ(counters.size(), numKeys);
           for (const auto& ctr : counters) {
             XLOG(DBG0) << ctr.first << " : " << ctr.second;
             if (!ctr.second) {
