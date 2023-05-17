@@ -326,10 +326,12 @@ void SaiBufferManager::updateIngressPriorityGroupStats(
         ipgInfo.second.pgHandle->ingressPriorityGroup;
     ingressPriorityGroup->updateStats();
     auto counters = ingressPriorityGroup->getStats();
-    auto maxPgSharedBytes =
-        counters[SAI_INGRESS_PRIORITY_GROUP_STAT_SHARED_WATERMARK_BYTES];
-    auto maxPgHeadroomBytes =
-        counters[SAI_INGRESS_PRIORITY_GROUP_STAT_XOFF_ROOM_WATERMARK_BYTES];
+    auto iter =
+        counters.find(SAI_INGRESS_PRIORITY_GROUP_STAT_SHARED_WATERMARK_BYTES);
+    auto maxPgSharedBytes = iter != counters.end() ? iter->second : 0;
+    iter = counters.find(
+        SAI_INGRESS_PRIORITY_GROUP_STAT_XOFF_ROOM_WATERMARK_BYTES);
+    auto maxPgHeadroomBytes = iter != counters.end() ? iter->second : 0;
     publishPgWatermarks(
         portName, ipgInfo.first, maxPgHeadroomBytes, maxPgSharedBytes);
   }
