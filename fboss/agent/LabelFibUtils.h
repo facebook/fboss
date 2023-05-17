@@ -7,8 +7,10 @@
 namespace facebook::fboss {
 
 class SwitchState;
+class SwitchIdScopeResolver;
 
 std::shared_ptr<SwitchState> programLabel(
+    const SwitchIdScopeResolver& resolver,
     const std::shared_ptr<SwitchState>& state,
     Label label,
     ClientID client,
@@ -16,11 +18,13 @@ std::shared_ptr<SwitchState> programLabel(
     LabelNextHopSet nexthops);
 
 std::shared_ptr<SwitchState> unprogramLabel(
+    const SwitchIdScopeResolver& resolver,
     const std::shared_ptr<SwitchState>& state,
     Label label,
     ClientID client);
 
 std::shared_ptr<SwitchState> purgeEntriesForClient(
+    const SwitchIdScopeResolver& resolver,
     const std::shared_ptr<SwitchState>& state,
     ClientID client);
 

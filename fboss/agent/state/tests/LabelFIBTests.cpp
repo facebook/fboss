@@ -3,6 +3,7 @@
 #include <fboss/agent/state/LabelForwardingInformationBase.h>
 
 #include "fboss/agent/LabelFibUtils.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
@@ -18,12 +19,22 @@ using namespace ::testing;
 using namespace facebook::fboss;
 
 namespace {
+SwitchIdScopeResolver resolver() {
+  cfg::SwitchInfo info{};
+  info.switchType() = cfg::SwitchType::NPU;
+  info.asicType() = cfg::AsicType::ASIC_TYPE_FAKE;
+  std::map<int64_t, cfg::SwitchInfo> map{};
+  map.emplace(0, info);
+  return SwitchIdScopeResolver(map);
+}
+
 void addOrUpdateEntryWithProgramLabel(
     std::shared_ptr<SwitchState>* state,
     ClientID client,
     LabelForwardingEntry* entry) {
   auto routeNextHopEntry = entry->getEntryForClient(client);
   auto newState = facebook::fboss::programLabel(
+      resolver(),
       *state,
       entry->getID(),
       client,
@@ -36,7 +47,8 @@ void removeEntryWithUnprogramLabel(
     std::shared_ptr<SwitchState>* state,
     Label label,
     ClientID client) {
-  auto newState = facebook::fboss::unprogramLabel(*state, label, client);
+  auto newState =
+      facebook::fboss::unprogramLabel(resolver(), *state, label, client);
   *state = newState;
 }
 } // namespace
@@ -361,7 +373,7 @@ TEST(LabelFIBTests, purgeEntriesForClient) {
   EXPECT_TRUE(entryToAdd5002->isSame(entryAdded5002.get()));
   EXPECT_TRUE(entryToAdd5003->isSame(entryAdded5003.get()));
 
-  stateA = purgeEntriesForClient(stateA, ClientID::OPENR);
+  stateA = purgeEntriesForClient(resolver(), stateA, ClientID::OPENR);
 
   stateA->publish();
 
@@ -424,7 +436,7 @@ TEST(LabelFIBTests, oneLabelManyClients) {
       entryToAdd5002Openr->getForwardInfo(), entryAdded5002->getForwardInfo());
 
   // 4) purge entries open-r for now
-  stateA = purgeEntriesForClient(stateA, ClientID::OPENR);
+  stateA = purgeEntriesForClient(resolver(), stateA, ClientID::OPENR);
   stateA->publish();
 
   // 5) check that oper-r only entry is deleted

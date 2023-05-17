@@ -2438,6 +2438,7 @@ void ThriftHandler::addMplsRoutesImpl(
     }
 
     auto newState = programLabel(
+        *(sw_->getScopeResolver()),
         *state,
         topLabel,
         ClientID(clientId),
@@ -2488,7 +2489,8 @@ void ThriftHandler::deleteMplsRoutes(
       if (topLabel > mpls_constants::MAX_MPLS_LABEL_) {
         throw FbossError("invalid value for label ", topLabel);
       }
-      newState = unprogramLabel(newState, topLabel, ClientID(clientId));
+      newState = unprogramLabel(
+          *(sw_->getScopeResolver()), newState, topLabel, ClientID(clientId));
     }
     return newState;
   };
@@ -2524,7 +2526,8 @@ void ThriftHandler::syncMplsFib(
   }
   auto updateFn = [=, routes = std::move(*mplsRoutes)](
                       const std::shared_ptr<SwitchState>& state) {
-    auto newState = purgeEntriesForClient(state, ClientID(clientId));
+    auto newState = purgeEntriesForClient(
+        *(sw_->getScopeResolver()), state, ClientID(clientId));
     addMplsRoutesImpl(&newState, ClientID(clientId), routes);
     if (!sw_->isValidStateUpdate(StateDelta(state, newState))) {
       throw FbossError("Invalid MPLS routes");

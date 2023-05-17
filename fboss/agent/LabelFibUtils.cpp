@@ -2,11 +2,13 @@
 
 #include "fboss/agent/LabelFibUtils.h"
 
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
 
 std::shared_ptr<SwitchState> programLabel(
+    const SwitchIdScopeResolver& /*resolver*/,
     const std::shared_ptr<SwitchState>& state,
     Label label,
     ClientID client,
@@ -50,6 +52,7 @@ std::shared_ptr<SwitchState> programLabel(
 }
 
 std::shared_ptr<SwitchState> unprogramLabel(
+    const SwitchIdScopeResolver& /*resolver*/,
     const std::shared_ptr<SwitchState>& state,
     Label label,
     ClientID client) {
@@ -81,6 +84,7 @@ std::shared_ptr<SwitchState> unprogramLabel(
 }
 
 std::shared_ptr<SwitchState> purgeEntriesForClient(
+    const SwitchIdScopeResolver& /*resolver*/,
     const std::shared_ptr<SwitchState>& state,
     ClientID client) {
   auto newState = state->clone();
