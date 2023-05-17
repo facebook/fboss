@@ -76,6 +76,34 @@ void ForwardingInformationBaseMap::updateForwardingInformationBaseContainer(
   }
 }
 
+MultiSwitchForwardingInformationBaseMap*
+MultiSwitchForwardingInformationBaseMap::modify(
+    std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  SwitchState::modify(state);
+  auto newFibMap = clone();
+  auto* rtn = newFibMap.get();
+  (*state)->resetForwardingInformationBases(std::move(newFibMap));
+
+  return rtn;
+}
+
+void MultiSwitchForwardingInformationBaseMap::
+    updateForwardingInformationBaseContainer(
+        const std::shared_ptr<ForwardingInformationBaseContainer>& fibContainer,
+        const HwSwitchMatcher& matcher) {
+  auto node = getNodeIf(fibContainer->getID());
+  if (node) {
+    updateNode(fibContainer, matcher);
+  } else {
+    addNode(fibContainer, matcher);
+  }
+}
+
 template class ThriftMapNode<
     ForwardingInformationBaseMap,
     ForwardingInformationBaseMapTraits>;

@@ -48,11 +48,14 @@ ForwardingInformationBaseContainer* ForwardingInformationBaseContainer::modify(
     return this;
   }
 
-  auto fibMap = (*state)->getFibs()->modify(state);
+  auto fibMap = (*state)->getMultiSwitchFibs()->modify(state);
+  auto [node, scope] = fibMap->getNodeAndScope(getID());
+  DCHECK_EQ(node.get(), this);
   auto newFibContainer = clone();
 
   auto* rtn = newFibContainer.get();
-  fibMap->updateForwardingInformationBaseContainer(std::move(newFibContainer));
+  fibMap->updateForwardingInformationBaseContainer(
+      std::move(newFibContainer), scope);
 
   return rtn;
 }

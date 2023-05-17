@@ -100,6 +100,13 @@ class MultiSwitchForwardingInformationBaseMap
   MultiSwitchForwardingInformationBaseMap() {}
   virtual ~MultiSwitchForwardingInformationBaseMap() {}
 
+  void updateForwardingInformationBaseContainer(
+      const std::shared_ptr<ForwardingInformationBaseContainer>& fibContainer,
+      const HwSwitchMatcher& matcher);
+
+  MultiSwitchForwardingInformationBaseMap* modify(
+      std::shared_ptr<SwitchState>* state);
+
  private:
   // Inherit the constructors required for clone()
   using BaseT::BaseT;
