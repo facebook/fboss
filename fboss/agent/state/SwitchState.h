@@ -380,6 +380,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   }
 
   const std::shared_ptr<BufferPoolCfgMap> getBufferPoolCfgs() const;
+  const std::shared_ptr<MultiSwitchBufferPoolCfgMap>
+  getMultiSwitchBufferPoolCfgs() const;
 
   std::chrono::seconds getNdpTimeout() const {
     auto ndpTimeoutSwSettings = getSwitchSettings()->getNdpTimeout();

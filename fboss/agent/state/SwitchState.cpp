@@ -315,6 +315,11 @@ const std::shared_ptr<BufferPoolCfgMap> SwitchState::getBufferPoolCfgs() const {
   return getDefaultMap<switch_state_tags::bufferPoolCfgMaps>();
 }
 
+const std::shared_ptr<MultiSwitchBufferPoolCfgMap>
+SwitchState::getMultiSwitchBufferPoolCfgs() const {
+  return safe_cref<switch_state_tags::bufferPoolCfgMaps>();
+}
+
 const std::shared_ptr<MultiSwitchLoadBalancerMap>&
 SwitchState::getLoadBalancers() const {
   return safe_cref<switch_state_tags::loadBalancerMaps>();
