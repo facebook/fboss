@@ -154,9 +154,9 @@ TEST(ThriftySwitchState, BufferPoolCfgMap) {
   pool1->setHeadroomBytes(100);
   pool2->setHeadroomBytes(200);
 
-  auto map = std::make_shared<BufferPoolCfgMap>();
-  map->addNode(pool1);
-  map->addNode(pool2);
+  auto map = std::make_shared<MultiSwitchBufferPoolCfgMap>();
+  map->addNode(pool1, scope());
+  map->addNode(pool2, scope());
 
   auto state = SwitchState();
   state.resetBufferPoolCfgs(map);
