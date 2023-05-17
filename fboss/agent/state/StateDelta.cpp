@@ -232,12 +232,9 @@ ThriftMapDelta<TransceiverMap> StateDelta::getTransceiversDelta() const {
       old_->getTransceivers().get(), new_->getTransceivers().get());
 }
 
-ForwardingInformationBaseMapDelta StateDelta::getFibsDelta() const {
-  const auto& key = HwSwitchMatcher::defaultHwSwitchMatcher();
-  auto oldFibs = old_->cref<switch_state_tags::fibsMap>()->getMapNodeIf(key);
-  auto newFibs = new_->cref<switch_state_tags::fibsMap>()->getMapNodeIf(key);
-
-  return ForwardingInformationBaseMapDelta(oldFibs.get(), newFibs.get());
+MultiSwitchForwardingInformationBaseMapDelta StateDelta::getFibsDelta() const {
+  return MultiSwitchForwardingInformationBaseMapDelta(
+      old_->getMultiSwitchFibs().get(), new_->getMultiSwitchFibs().get());
 }
 
 DeltaValue<SwitchSettings> StateDelta::getSwitchSettingsDelta() const {

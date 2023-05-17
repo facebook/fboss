@@ -49,4 +49,15 @@ using ForwardingInformationBaseMapDelta = MapDelta<
     ForwardingInformationBaseMap,
     ForwardingInformationBaseMapDeltaTraits>;
 
+using MultiSwitchForwardingInformationBaseMapDeltaTraits = NestedMapDeltaTraits<
+    MultiSwitchForwardingInformationBaseMap, /* outer map */
+    ForwardingInformationBaseMap, /* inner map */
+    ThriftMapDelta, /* outer map delta */
+    MapDelta, /* inner map delta */
+    MapDeltaTraits, /* outer map delta traits */
+    ForwardingInformationBaseMapDeltaTraits /* inner map delta traits */>;
+
+using MultiSwitchForwardingInformationBaseMapDelta =
+    NestedMapDelta<MultiSwitchForwardingInformationBaseMapDeltaTraits>;
+
 } // namespace facebook::fboss
