@@ -1632,7 +1632,7 @@ void ThriftConfigApplier::validateUpdatePgBufferPoolName(
     }
 
     if (!portPg->getBufferPoolName().empty()) {
-      auto bufferPoolCfgMap = new_->getMultiSwitchBufferPoolCfgs();
+      auto bufferPoolCfgMap = new_->getBufferPoolCfgs();
       // bufferPool cfg is keyed on the buffer pool name
       auto bufferPoolCfg = bufferPoolCfgMap->getNodeIf(bufferPoolName);
       if (!bufferPoolCfg) {
@@ -3484,7 +3484,7 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
 shared_ptr<MultiSwitchBufferPoolCfgMap>
 ThriftConfigApplier::updateBufferPoolConfigs(bool* changed) {
   *changed = false;
-  auto origBufferPoolConfigs = orig_->getMultiSwitchBufferPoolCfgs();
+  auto origBufferPoolConfigs = orig_->getBufferPoolCfgs();
   BufferPoolCfgMap::NodeContainer newBufferPoolConfigMap;
   auto newCfgedBufferPools = cfg_->bufferPoolConfigs();
 

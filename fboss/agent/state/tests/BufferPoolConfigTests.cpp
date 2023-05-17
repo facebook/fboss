@@ -113,8 +113,8 @@ TEST(BufferPoolConfigTest, applyConfig) {
   const int kSharedBytes = 1500;
 
   cfg::SwitchConfig config;
-  EXPECT_NE(nullptr, stateV0->getMultiSwitchBufferPoolCfgs());
-  EXPECT_EQ(0, stateV0->getMultiSwitchBufferPoolCfgs()->numNodes());
+  EXPECT_NE(nullptr, stateV0->getBufferPoolCfgs());
+  EXPECT_EQ(0, stateV0->getBufferPoolCfgs()->numNodes());
   std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
 
   auto updateBufferPoolCfg = [&](const std::string& key,
@@ -134,7 +134,7 @@ TEST(BufferPoolConfigTest, applyConfig) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
 
-  auto bufferPools = stateV1->getMultiSwitchBufferPoolCfgs();
+  auto bufferPools = stateV1->getBufferPoolCfgs();
 
   EXPECT_NE(nullptr, bufferPools);
   EXPECT_EQ(2, (*bufferPools).numNodes());
@@ -183,7 +183,7 @@ TEST(BufferPoolConfigTest, applyConfig) {
     auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
     EXPECT_NE(nullptr, stateV2);
 
-    auto bufferPoolCfgs = stateV2->getMultiSwitchBufferPoolCfgs();
+    auto bufferPoolCfgs = stateV2->getBufferPoolCfgs();
     EXPECT_NE(nullptr, bufferPoolCfgs);
     EXPECT_EQ(bufferPoolCfgMap.size(), (*bufferPoolCfgs).numNodes());
   }
@@ -191,6 +191,6 @@ TEST(BufferPoolConfigTest, applyConfig) {
   config.bufferPoolConfigs().reset();
   auto stateEnd = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateEnd);
-  bufferPools = stateEnd->getMultiSwitchBufferPoolCfgs();
+  bufferPools = stateEnd->getBufferPoolCfgs();
   EXPECT_EQ(0, bufferPools->numNodes());
 }

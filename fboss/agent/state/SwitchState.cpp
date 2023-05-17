@@ -312,7 +312,7 @@ void SwitchState::resetBufferPoolCfgs(
 }
 
 const std::shared_ptr<MultiSwitchBufferPoolCfgMap>
-SwitchState::getMultiSwitchBufferPoolCfgs() const {
+SwitchState::getBufferPoolCfgs() const {
   return safe_cref<switch_state_tags::bufferPoolCfgMaps>();
 }
 
