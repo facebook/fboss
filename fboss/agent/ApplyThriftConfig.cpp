@@ -614,7 +614,9 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   } else if (rib_) {
     auto newFibs = updateForwardingInformationBaseContainers();
     if (newFibs) {
-      new_->resetForwardingInformationBases(newFibs);
+      new_->resetForwardingInformationBases(
+          toMultiSwitchMap<MultiSwitchForwardingInformationBaseMap>(
+              newFibs, scopeResolver_));
       changed = true;
     }
 
@@ -4210,7 +4212,7 @@ std::shared_ptr<Mirror> ThriftConfigApplier::updateMirror(
 
 std::shared_ptr<ForwardingInformationBaseMap>
 ThriftConfigApplier::updateForwardingInformationBaseContainers() {
-  auto origForwardingInformationBaseMap = orig_->getFibs();
+  auto origForwardingInformationBaseMap = orig_->getMultiSwitchFibs();
   ForwardingInformationBaseMap::NodeContainer newFibContainers;
   bool changed = false;
 
@@ -4222,7 +4224,7 @@ ThriftConfigApplier::updateForwardingInformationBaseContainers() {
       continue;
     }
 
-    auto origFibContainer = orig_->getFibs()->getFibContainerIf(vrf);
+    auto origFibContainer = orig_->getMultiSwitchFibs()->getNodeIf(vrf);
 
     std::shared_ptr<ForwardingInformationBaseContainer> newFibContainer{
         nullptr};
@@ -4237,8 +4239,8 @@ ThriftConfigApplier::updateForwardingInformationBaseContainers() {
     changed |= updateMap(&newFibContainers, origFibContainer, newFibContainer);
   }
 
-  if (numExistingProcessed != orig_->getFibs()->size()) {
-    CHECK_LE(numExistingProcessed, orig_->getFibs()->size());
+  if (numExistingProcessed != orig_->getMultiSwitchFibs()->numNodes()) {
+    CHECK_LE(numExistingProcessed, orig_->getMultiSwitchFibs()->numNodes());
     changed = true;
   }
 
@@ -4246,7 +4248,7 @@ ThriftConfigApplier::updateForwardingInformationBaseContainers() {
     return nullptr;
   }
 
-  return origForwardingInformationBaseMap->clone(newFibContainers);
+  return std::make_shared<ForwardingInformationBaseMap>(newFibContainers);
 }
 
 LabelNextHopEntry ThriftConfigApplier::getStaticLabelNextHopEntry(
