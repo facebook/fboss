@@ -646,7 +646,8 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
     auto dsfNodes = curDsfNodes;
     const auto& firstDsfNode = dsfNodes.begin()->second;
     CHECK(firstDsfNode.systemPortRange().has_value());
-    auto mac = getPlatform()->getLocalMac();
+    CHECK(firstDsfNode.nodeMac().has_value());
+    folly::MacAddress mac(*firstDsfNode.nodeMac());
     auto asic = HwAsic::makeAsic(
         *firstDsfNode.asicType(),
         cfg::SwitchType::VOQ,
