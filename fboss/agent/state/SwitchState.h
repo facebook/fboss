@@ -539,8 +539,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetLabelForwardingInformationBase(
       std::shared_ptr<LabelForwardingInformationBase> labelFib);
   void resetForwardingInformationBases(
-      std::shared_ptr<ForwardingInformationBaseMap> fibs);
-  void resetForwardingInformationBases(
       std::shared_ptr<MultiSwitchForwardingInformationBaseMap> fibs);
   void resetSwitchSettings(std::shared_ptr<SwitchSettings> switchSettings);
   void resetBufferPoolCfgs(std::shared_ptr<BufferPoolCfgMap> cfgs);

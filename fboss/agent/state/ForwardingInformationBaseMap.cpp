@@ -51,22 +51,6 @@ ForwardingInformationBaseMap::getFibContainer(RouterID vrf) const {
   throw FbossError("No ForwardingInformationBaseContainer found for VRF ", vrf);
 }
 
-ForwardingInformationBaseMap* ForwardingInformationBaseMap::modify(
-    std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
-  }
-
-  SwitchState::modify(state);
-
-  auto newFibMap = clone();
-  auto* rtn = newFibMap.get();
-  (*state)->resetForwardingInformationBases(std::move(newFibMap));
-
-  return rtn;
-}
-
 void ForwardingInformationBaseMap::updateForwardingInformationBaseContainer(
     const std::shared_ptr<ForwardingInformationBaseContainer>& fibContainer) {
   if (getNodeIf(fibContainer->getID())) {

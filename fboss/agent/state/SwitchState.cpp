@@ -360,11 +360,6 @@ void SwitchState::resetLabelForwardingInformationBase(
 }
 
 void SwitchState::resetForwardingInformationBases(
-    std::shared_ptr<ForwardingInformationBaseMap> fibs) {
-  resetDefaultMap<switch_state_tags::fibsMap>(fibs);
-}
-
-void SwitchState::resetForwardingInformationBases(
     std::shared_ptr<MultiSwitchForwardingInformationBaseMap> fibs) {
   ref<switch_state_tags::fibsMap>() = fibs;
 }

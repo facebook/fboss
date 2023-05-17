@@ -37,6 +37,10 @@ namespace {
 
 const AdminDistance kDefaultAdminDistance = AdminDistance::EBGP;
 
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(10)}};
+}
+
 } // namespace
 
 TEST(ForwardingInformationBaseUpdater, ModifyUnpublishedSwitchState) {
@@ -53,9 +57,9 @@ TEST(ForwardingInformationBaseUpdater, ModifyUnpublishedSwitchState) {
   fibContainer->ref<switch_state_tags::fibV4>() = v4Fib;
   fibContainer->ref<switch_state_tags::fibV6>() = v6Fib;
 
-  auto fibMap =
-      std::make_shared<facebook::fboss::ForwardingInformationBaseMap>();
-  fibMap->addNode(fibContainer);
+  auto fibMap = std::make_shared<
+      facebook::fboss::MultiSwitchForwardingInformationBaseMap>();
+  fibMap->addNode(fibContainer, scope());
 
   auto initialState = std::make_shared<facebook::fboss::SwitchState>();
   initialState->resetForwardingInformationBases(fibMap);
