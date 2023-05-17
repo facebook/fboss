@@ -653,8 +653,6 @@ void SwSwitch::init(
       false /*failHwCallsOnWarmboot*/,
       platform_->getAsic()->getSwitchType(),
       platform_->getAsic()->getSwitchId());
-  const auto& [switchID, switchInfo] =
-      *switchInfoTable_.getSwitchIdToSwitchInfo().begin();
   multiHwSwitchSyncer_ = std::make_unique<MultiHwSwitchSyncer>(
       hw_, switchInfoTable_.getSwitchIdToSwitchInfo());
   auto initialState = hwInitRet.switchState;
@@ -777,6 +775,8 @@ void SwSwitch::init(
   heartbeatWatchdog_->start();
 
   setSwitchRunState(SwitchRunState::INITIALIZED);
+  const auto& switchInfo =
+      switchInfoTable_.getSwitchIdToSwitchInfo().begin()->second;
   auto npuOrVoq =
       (*switchInfo.switchType() == cfg::SwitchType::VOQ ||
        *switchInfo.switchType() == cfg::SwitchType::NPU);
