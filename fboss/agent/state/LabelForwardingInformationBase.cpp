@@ -190,12 +190,6 @@ bool LabelForwardingInformationBase::isValidNextHopSet(
   return true;
 }
 
-std::shared_ptr<LabelForwardingEntry>
-LabelForwardingInformationBase::cloneLabelEntry(
-    std::shared_ptr<LabelForwardingEntry> entry) {
-  return entry->clone();
-}
-
 LabelForwardingEntry* LabelForwardingInformationBase::modifyLabelEntry(
     std::shared_ptr<SwitchState>* state,
     std::shared_ptr<LabelForwardingEntry> entry) {

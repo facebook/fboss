@@ -4434,7 +4434,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
       LabelForwardingInformationBase::resolve(node);
       labelFib->addNode(node);
     } else {
-      auto entryToUpdate = labelFib->cloneLabelEntry(entry);
+      auto entryToUpdate = entry->clone();
       entryToUpdate->update(
           ClientID::STATIC_ROUTE,
           getStaticLabelNextHopEntry(
@@ -4454,7 +4454,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
       LabelForwardingInformationBase::resolve(node);
       labelFib->addNode(node);
     } else {
-      auto entryToUpdate = labelFib->cloneLabelEntry(entry);
+      auto entryToUpdate = entry->clone();
       entryToUpdate->update(
           ClientID::STATIC_ROUTE,
           getStaticLabelNextHopEntry(
@@ -4474,7 +4474,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
       LabelForwardingInformationBase::resolve(node);
       labelFib->addNode(node);
     } else {
-      auto entryToUpdate = labelFib->cloneLabelEntry(entry);
+      auto entryToUpdate = entry->clone();
       entryToUpdate->update(
           ClientID::STATIC_ROUTE,
           getStaticLabelNextHopEntry(

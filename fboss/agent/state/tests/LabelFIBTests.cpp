@@ -220,7 +220,7 @@ TEST(LabelFIBTests, forEachChanged) {
   labelFib = labelFib->clone();
 
   auto newEntry = labelFib->getNode(5001);
-  newEntry = labelFib->cloneLabelEntry(newEntry);
+  newEntry = newEntry->clone();
   newEntry->update(
       ClientID::BGPD,
       util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));

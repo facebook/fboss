@@ -43,9 +43,6 @@ class LabelForwardingInformationBase
 
   virtual ~LabelForwardingInformationBase() override;
 
-  std::shared_ptr<LabelForwardingEntry> cloneLabelEntry(
-      std::shared_ptr<LabelForwardingEntry> entry);
-
   LabelForwardingInformationBase* modify(std::shared_ptr<SwitchState>* state);
 
   LabelForwardingEntry* modifyLabelEntry(
