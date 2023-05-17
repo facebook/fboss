@@ -619,7 +619,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     }
 
     rib_->reconfigure(
-        nullptr,
+        &scopeResolver_,
         intfRouteTables_,
         *cfg_->staticRoutesWithNhops(),
         *cfg_->staticRoutesToNull(),
