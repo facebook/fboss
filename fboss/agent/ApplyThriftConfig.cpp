@@ -4212,7 +4212,7 @@ std::shared_ptr<Mirror> ThriftConfigApplier::updateMirror(
 
 std::shared_ptr<ForwardingInformationBaseMap>
 ThriftConfigApplier::updateForwardingInformationBaseContainers() {
-  auto origForwardingInformationBaseMap = orig_->getMultiSwitchFibs();
+  auto origForwardingInformationBaseMap = orig_->getFibs();
   ForwardingInformationBaseMap::NodeContainer newFibContainers;
   bool changed = false;
 
@@ -4224,7 +4224,7 @@ ThriftConfigApplier::updateForwardingInformationBaseContainers() {
       continue;
     }
 
-    auto origFibContainer = orig_->getMultiSwitchFibs()->getNodeIf(vrf);
+    auto origFibContainer = orig_->getFibs()->getNodeIf(vrf);
 
     std::shared_ptr<ForwardingInformationBaseContainer> newFibContainer{
         nullptr};
@@ -4239,8 +4239,8 @@ ThriftConfigApplier::updateForwardingInformationBaseContainers() {
     changed |= updateMap(&newFibContainers, origFibContainer, newFibContainer);
   }
 
-  if (numExistingProcessed != orig_->getMultiSwitchFibs()->numNodes()) {
-    CHECK_LE(numExistingProcessed, orig_->getMultiSwitchFibs()->numNodes());
+  if (numExistingProcessed != orig_->getFibs()->numNodes()) {
+    CHECK_LE(numExistingProcessed, orig_->getFibs()->numNodes());
     changed = true;
   }
 

@@ -51,7 +51,7 @@ std::shared_ptr<SwitchState> setupMinAlpmRouteState(
   RoutePrefixV4 defaultPrefix4{folly::IPAddressV4("0.0.0.0"), 0};
   RoutePrefixV6 defaultPrefix6{folly::IPAddressV6("::"), 0};
 
-  auto newFibs = newState->getMultiSwitchFibs()->modify(&newState);
+  auto newFibs = newState->getFibs()->modify(&newState);
   auto defaultVrf = std::make_shared<ForwardingInformationBaseContainer>(rid);
   if (newFibs->getNodeIf(rid)) {
     newFibs->updateForwardingInformationBaseContainer(

@@ -48,7 +48,7 @@ ForwardingInformationBaseContainer* ForwardingInformationBaseContainer::modify(
     return this;
   }
 
-  auto fibMap = (*state)->getMultiSwitchFibs()->modify(state);
+  auto fibMap = (*state)->getFibs()->modify(state);
   auto [node, scope] = fibMap->getNodeAndScope(getID());
   DCHECK_EQ(node.get(), this);
   auto newFibContainer = clone();

@@ -2169,8 +2169,8 @@ TEST_F(RouteTest, serializeRouteTable) {
   // back to Route object
   auto deserState = SwitchState::fromThrift(obj);
   // In new rib  only FIB is part of the switch state
-  auto dyn0 = this->sw_->getState()->getMultiSwitchFibs()->toThrift();
-  auto dyn1 = deserState->getMultiSwitchFibs()->toThrift();
+  auto dyn0 = this->sw_->getState()->getFibs()->toThrift();
+  auto dyn1 = deserState->getFibs()->toThrift();
   EXPECT_EQ(dyn0, dyn1);
 }
 

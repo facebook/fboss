@@ -43,7 +43,7 @@ std::shared_ptr<Route<AddrT>> findRouteInSwitchState(
   }
   CHECK(exactMatch)
       << "Switch state api should only be called for exact match lookups";
-  auto& fib = state->getMultiSwitchFibs()->getNode(rid)->getFib<AddrT>();
+  auto& fib = state->getFibs()->getNode(rid)->getFib<AddrT>();
   return findInFib(prefix, fib);
 }
 } // namespace
@@ -68,7 +68,7 @@ std::shared_ptr<Route<AddrT>> findLongestMatchRoute(
 std::pair<uint64_t, uint64_t> getRouteCount(
     const std::shared_ptr<SwitchState>& state) {
   uint64_t v6Count{0}, v4Count{0};
-  std::tie(v4Count, v6Count) = state->getMultiSwitchFibs()->getRouteCount();
+  std::tie(v4Count, v6Count) = state->getFibs()->getRouteCount();
   return std::make_pair(v4Count, v6Count);
 }
 

@@ -177,7 +177,7 @@ TEST(ConfigApplication, InterfaceRoutes) {
   auto state = publishAndApplyConfig(emptyState, &config, platform.get(), &rib);
   ASSERT_NE(nullptr, state);
 
-  auto fibMap = state->getMultiSwitchFibs();
+  auto fibMap = state->getFibs();
   EXPECT_EQ(fibMap->numNodes(), 1);
 
   auto fibContainer = fibMap->getNode(RouterID(0));
@@ -224,7 +224,7 @@ TEST(ConfigApplication, StaticRoutesWithNextHops) {
   auto state = publishAndApplyConfig(emptyState, &config, platform.get(), &rib);
   ASSERT_NE(nullptr, state);
 
-  auto fibMap = state->getMultiSwitchFibs();
+  auto fibMap = state->getFibs();
   EXPECT_EQ(fibMap->numNodes(), 1);
 
   auto fibContainer = fibMap->getNode(RouterID(0));
@@ -271,7 +271,7 @@ TEST(ConfigApplication, StaticRoutesWithoutNextHops) {
   auto state = publishAndApplyConfig(emptyState, &config, platform.get(), &rib);
   ASSERT_NE(nullptr, state);
 
-  auto fibMap = state->getMultiSwitchFibs();
+  auto fibMap = state->getFibs();
   EXPECT_EQ(fibMap->numNodes(), 1);
 
   auto fibContainer = fibMap->getNode(RouterID(0));
@@ -330,7 +330,7 @@ TEST(ConfigApplication, MultiVrfColdBoot) {
   auto state = publishAndApplyConfig(emptyState, &config, platform.get(), &rib);
   ASSERT_NE(nullptr, state);
 
-  auto fibMap = state->getMultiSwitchFibs();
+  auto fibMap = state->getFibs();
   EXPECT_EQ(fibMap->numNodes(), 2);
 
   std::shared_ptr<ForwardingInformationBaseContainer> fibContainer{nullptr};

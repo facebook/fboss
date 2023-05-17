@@ -300,7 +300,7 @@ void RibRouteTables::updateFib(
       SCOPE_FAIL {
         XLOG(FATAL) << " RIB Rollback failed, aborting program";
       };
-      auto fib = hwUpdateError.appliedState->getMultiSwitchFibs()->getNode(vrf);
+      auto fib = hwUpdateError.appliedState->getFibs()->getNode(vrf);
       auto lockedRouteTables = synchronizedRouteTables_.wlock();
       auto& routeTable = lockedRouteTables->find(vrf)->second;
       reconstructRibFromFib<

@@ -229,7 +229,7 @@ ThriftMapDelta<TransceiverMap> StateDelta::getTransceiversDelta() const {
 
 MultiSwitchForwardingInformationBaseMapDelta StateDelta::getFibsDelta() const {
   return MultiSwitchForwardingInformationBaseMapDelta(
-      old_->getMultiSwitchFibs().get(), new_->getMultiSwitchFibs().get());
+      old_->getFibs().get(), new_->getFibs().get());
 }
 
 DeltaValue<SwitchSettings> StateDelta::getSwitchSettingsDelta() const {

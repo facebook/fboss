@@ -28,7 +28,7 @@ namespace {
 template <typename AddrType>
 std::shared_ptr<ForwardingInformationBase<AddrType>> getStandAloneFib(
     const std::shared_ptr<SwitchState>& state) {
-  auto fibContainer = state->getMultiSwitchFibs()->getNode(RouterID(0));
+  auto fibContainer = state->getFibs()->getNode(RouterID(0));
   return fibContainer->template getFib<AddrType>();
 }
 

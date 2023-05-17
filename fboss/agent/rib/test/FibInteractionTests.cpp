@@ -79,31 +79,25 @@ TEST(ForwardingInformationBaseUpdater, ModifyUnpublishedSwitchState) {
   ASSERT_EQ(updatedState, initialState);
   ASSERT_FALSE(updatedState->isPublished());
 
-  ASSERT_EQ(
-      updatedState->getMultiSwitchFibs(), initialState->getMultiSwitchFibs());
-  ASSERT_FALSE(updatedState->getMultiSwitchFibs()->isPublished());
+  ASSERT_EQ(updatedState->getFibs(), initialState->getFibs());
+  ASSERT_FALSE(updatedState->getFibs()->isPublished());
 
   ASSERT_EQ(
-      updatedState->getMultiSwitchFibs()->getNodeIf(vrfOne),
-      initialState->getMultiSwitchFibs()->getNodeIf(vrfOne));
+      updatedState->getFibs()->getNodeIf(vrfOne),
+      initialState->getFibs()->getNodeIf(vrfOne));
+  ASSERT_FALSE(updatedState->getFibs()->getNodeIf(vrfOne)->isPublished());
+
+  ASSERT_EQ(
+      updatedState->getFibs()->getNodeIf(vrfOne)->getFibV4(),
+      initialState->getFibs()->getNodeIf(vrfOne)->getFibV4());
   ASSERT_FALSE(
-      updatedState->getMultiSwitchFibs()->getNodeIf(vrfOne)->isPublished());
+      updatedState->getFibs()->getNodeIf(vrfOne)->getFibV4()->isPublished());
 
   ASSERT_EQ(
-      updatedState->getMultiSwitchFibs()->getNodeIf(vrfOne)->getFibV4(),
-      initialState->getMultiSwitchFibs()->getNodeIf(vrfOne)->getFibV4());
-  ASSERT_FALSE(updatedState->getMultiSwitchFibs()
-                   ->getNodeIf(vrfOne)
-                   ->getFibV4()
-                   ->isPublished());
-
-  ASSERT_EQ(
-      updatedState->getMultiSwitchFibs()->getNodeIf(vrfOne)->getFibV6(),
-      initialState->getMultiSwitchFibs()->getNodeIf(vrfOne)->getFibV6());
-  ASSERT_FALSE(updatedState->getMultiSwitchFibs()
-                   ->getNodeIf(vrfOne)
-                   ->getFibV6()
-                   ->isPublished());
+      updatedState->getFibs()->getNodeIf(vrfOne)->getFibV6(),
+      initialState->getFibs()->getNodeIf(vrfOne)->getFibV6());
+  ASSERT_FALSE(
+      updatedState->getFibs()->getNodeIf(vrfOne)->getFibV6()->isPublished());
 }
 
 namespace {
@@ -113,7 +107,7 @@ std::shared_ptr<facebook::fboss::Route<AddressT>> getRoute(
     facebook::fboss::RouterID vrf,
     AddressT address,
     uint8_t mask) {
-  const auto& fibs = state->getMultiSwitchFibs();
+  const auto& fibs = state->getFibs();
   const auto& fibContainer = fibs->getNode(vrf);
 
   const std::shared_ptr<facebook::fboss::ForwardingInformationBase<AddressT>>&
@@ -167,7 +161,7 @@ void EXPECT_FIB_SIZE(
     facebook::fboss::RouterID vrf,
     std::size_t v4FibSize,
     std::size_t v6FibSize) {
-  const auto& fibs = state->getMultiSwitchFibs();
+  const auto& fibs = state->getFibs();
   const auto& fibContainer = fibs->getNode(vrf);
 
   EXPECT_EQ(fibContainer->getFibV4()->size(), v4FibSize);
@@ -383,21 +377,17 @@ TEST(ForwardingInformationBaseUpdater, Deduplication) {
   // 1)
   programRoutes(sw, ClientID(0), routesToAdd, routesToDelete);
 
-  auto route = sw->getState()
-                   ->getMultiSwitchFibs()
-                   ->getNode(vrfZero)
-                   ->getFibV6()
-                   ->exactMatch(prefix);
+  auto route =
+      sw->getState()->getFibs()->getNode(vrfZero)->getFibV6()->exactMatch(
+          prefix);
   ASSERT_TRUE(route);
 
   // 3)
   programRoutes(sw, ClientID(0), routesToAdd, routesToDelete);
 
-  auto route2 = sw->getState()
-                    ->getMultiSwitchFibs()
-                    ->getNode(vrfZero)
-                    ->getFibV6()
-                    ->exactMatch(prefix);
+  auto route2 =
+      sw->getState()->getFibs()->getNode(vrfZero)->getFibV6()->exactMatch(
+          prefix);
   ASSERT_TRUE(route2);
   EXPECT_EQ(route, route2);
 
@@ -409,11 +399,9 @@ TEST(ForwardingInformationBaseUpdater, Deduplication) {
   // 2)
   programRoutes(sw, ClientID(0), routesToAdd, routesToDelete);
 
-  auto route3 = sw->getState()
-                    ->getMultiSwitchFibs()
-                    ->getNode(vrfZero)
-                    ->getFibV6()
-                    ->exactMatch(prefix);
+  auto route3 =
+      sw->getState()->getFibs()->getNode(vrfZero)->getFibV6()->exactMatch(
+          prefix);
   ASSERT_TRUE(route3);
   EXPECT_NE(route, route3);
 }
