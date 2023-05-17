@@ -72,4 +72,14 @@ struct InterfaceMapDeltaTraits {
 
 using InterfaceMapDelta = MapDelta<InterfaceMap, InterfaceMapDeltaTraits>;
 
+using MultiSwitchInterafceMapDeltaTraits = NestedMapDeltaTraits<
+    MultiSwitchInterfaceMap,
+    InterfaceMap,
+    ThriftMapDelta,
+    MapDelta,
+    MapDeltaTraits,
+    InterfaceMapDeltaTraits>;
+
+using MultiSwitchInterfaceMapDelta =
+    NestedMapDelta<MultiSwitchInterafceMapDeltaTraits>;
 } // namespace facebook::fboss

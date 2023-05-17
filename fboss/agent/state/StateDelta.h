@@ -75,7 +75,7 @@ class StateDelta {
 
   MultiSwitchMapDelta<MultiSwitchPortMap> getPortsDelta() const;
   VlanMapDelta getVlansDelta() const;
-  InterfaceMapDelta getIntfsDelta() const;
+  MultiSwitchInterfaceMapDelta getIntfsDelta() const;
   DeltaValue<QosPolicy> getDefaultDataPlaneQosPolicyDelta() const;
   AclMapDelta getAclsDelta(
       cfg::AclStage aclStage = cfg::AclStage::INGRESS,
@@ -105,7 +105,7 @@ class StateDelta {
   // Remote object deltas
   MultiSwitchMapDelta<MultiSwitchSystemPortMap> getRemoteSystemPortsDelta()
       const;
-  InterfaceMapDelta getRemoteIntfsDelta() const;
+  MultiSwitchInterfaceMapDelta getRemoteIntfsDelta() const;
   MultiSwitchMapDelta<MultiSwitchDsfNodeMap> getDsfNodesDelta() const;
 
   const fsdb::OperDelta& getOperDelta() const;

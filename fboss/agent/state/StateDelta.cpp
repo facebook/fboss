@@ -98,19 +98,14 @@ VlanMapDelta StateDelta::getVlansDelta() const {
   return VlanMapDelta(old_->getVlans().get(), new_->getVlans().get());
 }
 
-InterfaceMapDelta StateDelta::getIntfsDelta() const {
-  return getFirstMapDelta<
-      InterfaceMap,
-      MultiSwitchInterfaceMap,
-      InterfaceMapDelta>(old_->getInterfaces(), new_->getInterfaces());
+MultiSwitchInterfaceMapDelta StateDelta::getIntfsDelta() const {
+  return MultiSwitchInterfaceMapDelta(
+      old_->getInterfaces().get(), new_->getInterfaces().get());
 }
 
-InterfaceMapDelta StateDelta::getRemoteIntfsDelta() const {
-  return getFirstMapDelta<
-      InterfaceMap,
-      MultiSwitchInterfaceMap,
-      InterfaceMapDelta>(
-      old_->getRemoteInterfaces(), new_->getRemoteInterfaces());
+MultiSwitchInterfaceMapDelta StateDelta::getRemoteIntfsDelta() const {
+  return MultiSwitchInterfaceMapDelta(
+      old_->getRemoteInterfaces().get(), new_->getRemoteInterfaces().get());
 }
 
 AclMapDelta StateDelta::getAclsDelta(
