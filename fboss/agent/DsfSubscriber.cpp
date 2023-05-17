@@ -290,21 +290,15 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
                                          MultiSwitchSystemPortMapTypeClass,
                                          MultiSwitchSystemPortMapThriftType>(
                   fsdb::OperProtocol::BINARY, *change.state()->contents()));
-              newSysPorts = std::make_shared<SystemPortMap>();
-              for (const auto& [_, sysPortMap] :
-                   std::as_const(mswitchSysPorts)) {
-                for (const auto& [_, sysPort] : std::as_const(*sysPortMap)) {
-                  newSysPorts->addNode(sysPort);
-                }
-              }
+              newSysPorts = mswitchSysPorts.getAllNodes();
             } else if (change.path()->path() == getInterfacesPath()) {
               XLOG(DBG2) << " Got rif update from : " << nodeName;
-              newRifs = std::make_shared<InterfaceMap>();
-              newRifs->fromThrift(
-                  thrift_cow::
-                      deserialize<ThriftMapTypeClass, InterfaceMapThriftType>(
-                          fsdb::OperProtocol::BINARY,
-                          *change.state()->contents()));
+              MultiSwitchInterfaceMap mswitchIntfs;
+              mswitchIntfs.fromThrift(thrift_cow::deserialize<
+                                      MultiSwitchInterfaceMapTypeClass,
+                                      MultiSwitchInterfaceMapThriftType>(
+                  fsdb::OperProtocol::BINARY, *change.state()->contents()));
+              newRifs = mswitchIntfs.getAllNodes();
             } else {
               throw FbossError(
                   " Got unexpected state update for : ",
