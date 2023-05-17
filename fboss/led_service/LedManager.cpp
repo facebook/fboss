@@ -201,4 +201,31 @@ led::LedColor LedManager::getLedColorFromPortStatus(
   return currPortColor;
 }
 
+/*
+ * setLedColor
+ *
+ * Set the LED color in HW for the LED(s) on a given port. This function will
+ * find all the LED for the SW port and set their color. This function should
+ * not depend on FSDB provided values from portDisplayList_
+ */
+void LedManager::setLedColor(
+    uint32_t portId,
+    cfg::PortProfileID portProfile,
+    led::LedColor ledColor) {
+  auto ledIds = getLedIdFromSwPort(portId, portProfile);
+  if (ledIds.empty()) {
+    XLOG(ERR) << "No color set for port " << portId;
+    return;
+  }
+
+  auto tcvrId = platformMapping_->getTransceiverIdFromSwPort(PortID(portId));
+
+  for (auto& ledController : bspSystemContainer_->getLedController(tcvrId)) {
+    if (std::find(ledIds.begin(), ledIds.end(), ledController.first) !=
+        ledIds.end()) {
+      ledController.second->setColor(ledColor);
+    }
+  }
+}
+
 } // namespace facebook::fboss

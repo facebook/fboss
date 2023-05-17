@@ -79,7 +79,10 @@ class LedManager {
       bool allPortsUp,
       bool allPortsReachable);
 
-  virtual void setLedColor(uint32_t portId, led::LedColor ledColor) {}
+  virtual void setLedColor(
+      uint32_t portId,
+      cfg::PortProfileID portProfile,
+      led::LedColor ledColor);
 
   std::vector<int> getLedIdFromSwPort(
       uint32_t portId,
