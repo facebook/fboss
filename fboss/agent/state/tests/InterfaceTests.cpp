@@ -796,3 +796,13 @@ TEST(Interface, modify) {
   intfModified->setMtu(newMtu);
   EXPECT_EQ(stateV1->getInterfaces()->getNode(intf->getID())->getMtu(), newMtu);
 }
+
+TEST(Interface, getAllNodes) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto config = testConfigA();
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_EQ(
+      *stateV1->getInterfaces()->getAllNodes(),
+      *stateV1->getInterfaces()->getFirstMap());
+}
