@@ -158,9 +158,11 @@ StateDelta::getAclTableGroupsDelta() const {
       old_->getAclTableGroups().get(), new_->getAclTableGroups().get());
 }
 
-QosPolicyMapDelta StateDelta::getQosPoliciesDelta() const {
-  return QosPolicyMapDelta(
-      old_->getQosPolicies().get(), new_->getQosPolicies().get());
+MultiSwitchMapDelta<MultiSwitchQosPolicyMap> StateDelta::getQosPoliciesDelta()
+    const {
+  return MultiSwitchMapDelta<MultiSwitchQosPolicyMap>(
+      old_->getMultiSwitchQosPolicies().get(),
+      new_->getMultiSwitchQosPolicies().get());
 }
 
 ThriftMapDelta<AggregatePortMap> StateDelta::getAggregatePortsDelta() const {

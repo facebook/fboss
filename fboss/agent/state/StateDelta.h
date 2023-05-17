@@ -83,7 +83,7 @@ class StateDelta {
   ThriftMapDelta<AclTableMap> getAclTablesDelta(cfg::AclStage aclStage) const;
   MultiSwitchMapDelta<MultiSwitchAclTableGroupMap> getAclTableGroupsDelta()
       const;
-  QosPolicyMapDelta getQosPoliciesDelta() const;
+  MultiSwitchMapDelta<MultiSwitchQosPolicyMap> getQosPoliciesDelta() const;
   ThriftMapDelta<AggregatePortMap> getAggregatePortsDelta() const;
   ThriftMapDelta<SflowCollectorMap> getSflowCollectorsDelta() const;
   MultiSwitchMapDelta<MultiSwitchLoadBalancerMap> getLoadBalancersDelta() const;

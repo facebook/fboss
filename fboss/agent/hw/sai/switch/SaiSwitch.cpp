@@ -2341,7 +2341,7 @@ bool SaiSwitch::isValidStateUpdateLocked(
   }
 
   auto qosDelta = delta.getQosPoliciesDelta();
-  if (qosDelta.getNew()->size() > 0) {
+  if (qosDelta.getNew()->numNodes() > 0) {
     XLOG(ERR) << "Only default data plane qos policy is supported";
     return false;
   }
