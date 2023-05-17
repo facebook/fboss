@@ -119,4 +119,86 @@ std::vector<uint32_t> LedManager::getCommonLedSwPorts(
   return commonSwPorts;
 }
 
+/*
+ * calculateLedColor
+ *
+ * This function will return the LED color for a given port. This function will
+ * act on LedManager struct portDisplayList_ to find the color. This function
+ * expects the port oprational values (ie: portDisplayList_.operationalStateUp)
+ * is already updated with latest. This function takes care of scenario where
+ * the LED is shared by multiple SW ports
+ */
+led::LedColor LedManager::calculateLedColor(
+    uint32_t portId,
+    cfg::PortProfileID portProfile) {
+  if (portDisplayList_.find(portId) == portDisplayList_.end()) {
+    XLOG(ERR) << folly::sformat(
+        "Port {:d} LED color undetermined as the port operational info is not available",
+        portId);
+    return led::LedColor::UNKNOWN;
+  }
+
+  // Get all the SW ports which share the LED with the current port. Then find
+  // port up, reachability info for all common ports and then decide LED color
+
+  auto commonSwPorts = getCommonLedSwPorts(portId, portProfile);
+  if (commonSwPorts.empty()) {
+    XLOG(ERR) << folly::sformat("Port {:d} LED Id unavailable", portId);
+    return led::LedColor::UNKNOWN;
+  }
+
+  bool anyPortUp{false}, allPortsUp{true};
+  bool anyPortReachable{false}, allPortsReachable{true};
+
+  for (auto swPort : commonSwPorts) {
+    if (portDisplayList_.find(swPort) == portDisplayList_.end()) {
+      continue;
+    }
+
+    auto thisPortUp = portDisplayList_[swPort].operationStateUp;
+    anyPortUp = anyPortUp || thisPortUp;
+    allPortsUp = allPortsUp && thisPortUp;
+
+    auto thisPortReachable = portDisplayList_[swPort].neighborReachable;
+    anyPortReachable = anyPortReachable || thisPortReachable;
+    allPortsReachable = allPortsReachable && thisPortReachable;
+  }
+
+  XLOG(DBG2) << fmt::format(
+      "Port {:d}, anyPortUp={:s} allPortsUp={:s} anyPortReachable={:s} allPortsReachable={:s}",
+      portId,
+      (anyPortUp ? "True" : "False"),
+      (allPortsUp ? "True" : "False"),
+      (anyPortReachable ? "True" : "False"),
+      (allPortsReachable ? "True" : "False"));
+
+  return getLedColorFromPortStatus(anyPortUp, allPortsUp, allPortsReachable);
+}
+
+/*
+ * getLedColorFromPortStatus
+ *
+ * Helper function to determine the LED color based on how many ports (attached
+ * to the same LED) are Up and if all are reachable from neighbors.
+ * Default LED scheme:
+ *     All ports Up and neighbor reachable       -> Blue
+ *     Some ports down or unreachable            -> Yellow
+ *     All ports Down                            -> Off
+ */
+led::LedColor LedManager::getLedColorFromPortStatus(
+    bool anyPortUp,
+    bool allPortsUp,
+    bool allPortsReachable) {
+  led::LedColor currPortColor{led::LedColor::UNKNOWN};
+
+  if (!anyPortUp) {
+    currPortColor = led::LedColor::OFF;
+  } else if (allPortsUp && allPortsReachable) {
+    currPortColor = led::LedColor::BLUE;
+  } else {
+    currPortColor = led::LedColor::YELLOW;
+  }
+  return currPortColor;
+}
+
 } // namespace facebook::fboss
