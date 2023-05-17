@@ -538,6 +538,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetSflowCollectors(
       const std::shared_ptr<SflowCollectorMap>& collectors);
   void resetQosPolicies(const std::shared_ptr<QosPolicyMap>& qosPolicyMap);
+  void resetQosPolicies(
+      const std::shared_ptr<MultiSwitchQosPolicyMap>& qosPolicyMap);
   void resetControlPlane(std::shared_ptr<ControlPlane> cpu);
   void resetLoadBalancers(
       std::shared_ptr<MultiSwitchLoadBalancerMap> loadBalancers);

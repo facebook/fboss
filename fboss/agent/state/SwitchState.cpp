@@ -276,6 +276,11 @@ void SwitchState::resetQosPolicies(
   ref<switch_state_tags::qosPolicyMaps>() = qosPolicyMaps;
 }
 
+void SwitchState::resetQosPolicies(
+    const std::shared_ptr<MultiSwitchQosPolicyMap>& qosPolicies) {
+  ref<switch_state_tags::qosPolicyMaps>() = qosPolicies;
+}
+
 void SwitchState::resetControlPlane(
     std::shared_ptr<ControlPlane> controlPlane) {
   const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
