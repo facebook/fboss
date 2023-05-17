@@ -4,6 +4,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchInfoTable.h"
+#include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -186,5 +187,25 @@ TYPED_TEST(SwitchIdScopeResolverTest, labelFibEntry) {
     this->expectThrow(entry);
   } else {
     this->expectSwitchId(entry);
+  }
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, bufferPoolCfgScope) {
+  if (this->isFabric()) {
+    this->expectThrow(cfg::BufferPoolConfig{});
+    this->expectThrow(std::shared_ptr<BufferPoolCfg>{});
+  } else {
+    this->expectL3(cfg::BufferPoolConfig{});
+    this->expectL3(std::shared_ptr<BufferPoolCfg>());
+  }
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, aclScope) {
+  if (this->isFabric()) {
+    this->expectThrow(cfg::AclEntry{});
+    this->expectThrow(std::shared_ptr<AclEntry>{});
+  } else {
+    this->expectL3(cfg::AclEntry{});
+    this->expectL3(std::shared_ptr<AclEntry>());
   }
 }

@@ -15,6 +15,7 @@ class IpInIpTunnel;
 class AclEntry;
 class SystemPort;
 class Port;
+class BufferPoolConfig;
 } // namespace cfg
 class Mirror;
 class DsfNode;
@@ -29,6 +30,7 @@ class Interface;
 class Port;
 class AclTableGroup;
 class ForwardingInformationBaseContainer;
+class BufferPoolCfg;
 template <typename T>
 class Route;
 
@@ -94,6 +96,13 @@ class SwitchIdScopeResolver {
   HwSwitchMatcher scope(
       const std::shared_ptr<ForwardingInformationBaseContainer>& fibs) const;
   HwSwitchMatcher scope(const std::shared_ptr<Route<LabelID>>& entry) const;
+  const HwSwitchMatcher& scope(const cfg::BufferPoolConfig& /*b*/) const {
+    return l3SwitchMatcher();
+  }
+  const HwSwitchMatcher& scope(
+      const std::shared_ptr<BufferPoolCfg>& /*b*/) const {
+    return l3SwitchMatcher();
+  }
 
  private:
   void checkL3() const;
