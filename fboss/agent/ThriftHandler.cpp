@@ -17,6 +17,7 @@
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/IPv6Handler.h"
+#include "fboss/agent/LabelFibUtils.h"
 #include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/NeighborUpdater.h"
@@ -2367,8 +2368,6 @@ void ThriftHandler::addMplsRoutesImpl(
   folly::F14FastMap<std::pair<RouterID, folly::IPAddress>, InterfaceID>
       labelFibEntryNextHopAddress2Interface;
 
-  auto labelFib =
-      (*state)->getLabelForwardingInformationBase().get()->modify(state);
   for (const auto& mplsRoute : mplsRoutes) {
     auto topLabel = *mplsRoute.topLabel();
     if (topLabel > mpls_constants::MAX_MPLS_LABEL_) {
@@ -2438,13 +2437,13 @@ void ThriftHandler::addMplsRoutesImpl(
           nexthop.labelForwardingAction()));
     }
 
-    // validate top label
-    labelFib = labelFib->programLabel(
-        state,
+    auto newState = programLabel(
+        *state,
         topLabel,
         ClientID(clientId),
         adminDistance,
         std::move(nexthops));
+    *state = newState;
   }
 }
 
@@ -2485,13 +2484,11 @@ void ThriftHandler::deleteMplsRoutes(
   auto updateFn = [=, topLabels = std::move(*topLabels)](
                       const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();
-    auto labelFib = state->getLabelForwardingInformationBase().get();
     for (const auto topLabel : topLabels) {
       if (topLabel > mpls_constants::MAX_MPLS_LABEL_) {
         throw FbossError("invalid value for label ", topLabel);
       }
-      labelFib =
-          labelFib->unprogramLabel(&newState, topLabel, ClientID(clientId));
+      newState = unprogramLabel(newState, topLabel, ClientID(clientId));
     }
     return newState;
   };
@@ -2527,10 +2524,7 @@ void ThriftHandler::syncMplsFib(
   }
   auto updateFn = [=, routes = std::move(*mplsRoutes)](
                       const std::shared_ptr<SwitchState>& state) {
-    auto newState = state->clone();
-    auto labelFib = newState->getLabelForwardingInformationBase();
-
-    labelFib->purgeEntriesForClient(&newState, ClientID(clientId));
+    auto newState = purgeEntriesForClient(state, ClientID(clientId));
     addMplsRoutesImpl(&newState, ClientID(clientId), routes);
     if (!sw_->isValidStateUpdate(StateDelta(state, newState))) {
       throw FbossError("Invalid MPLS routes");

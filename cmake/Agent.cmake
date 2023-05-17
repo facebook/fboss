@@ -79,6 +79,7 @@ target_link_libraries(address_utils
 
 add_library(utils
   fboss/agent/AlpmUtils.cpp
+  fboss/agent/LabelFibUtils.cpp
   fboss/agent/Utils.cpp
   fboss/agent/oss/Utils.cpp
 )

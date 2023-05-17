@@ -45,22 +45,6 @@ class LabelForwardingInformationBase
 
   LabelForwardingInformationBase* modify(std::shared_ptr<SwitchState>* state);
 
-  LabelForwardingInformationBase* programLabel(
-      std::shared_ptr<SwitchState>* state,
-      Label label,
-      ClientID client,
-      AdminDistance distance,
-      LabelNextHopSet nexthops);
-
-  LabelForwardingInformationBase* unprogramLabel(
-      std::shared_ptr<SwitchState>* state,
-      Label label,
-      ClientID client);
-
-  LabelForwardingInformationBase* purgeEntriesForClient(
-      std::shared_ptr<SwitchState>* state,
-      ClientID client);
-
  private:
   // Inherit the constructors required for clone()
   using Base::Base;
