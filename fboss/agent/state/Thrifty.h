@@ -497,9 +497,7 @@ struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
   size_t numNodes() const {
     size_t cnt = 0;
     for (auto mnitr = this->cbegin(); mnitr != this->cend(); ++mnitr) {
-      if (mnitr->second) {
-        cnt += mnitr->second->size();
-      }
+      cnt += mnitr->second->size();
     }
     return cnt;
   }

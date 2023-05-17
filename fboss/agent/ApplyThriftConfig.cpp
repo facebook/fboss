@@ -408,7 +408,8 @@ class ThriftConfigApplier {
       const cfg::SflowCollector* config);
   shared_ptr<SwitchSettings> updateSwitchSettings();
   // bufferPool specific configs
-  shared_ptr<BufferPoolCfgMap> updateBufferPoolConfigs(bool* changed);
+  shared_ptr<MultiSwitchBufferPoolCfgMap> updateBufferPoolConfigs(
+      bool* changed);
   std::shared_ptr<BufferPoolCfg> createBufferPoolConfig(
       const std::string& id,
       const cfg::BufferPoolConfig& config);
@@ -1631,17 +1632,7 @@ void ThriftConfigApplier::validateUpdatePgBufferPoolName(
     }
 
     if (!portPg->getBufferPoolName().empty()) {
-      auto bufferPoolCfgMap = new_->getBufferPoolCfgs();
-      if (!bufferPoolCfgMap) {
-        throw FbossError(
-            "Port:",
-            port->getID(),
-            " with pg name: ",
-            portPgName,
-            " and buffer pool name: ",
-            bufferPoolName,
-            " exists but buffer pool map doesn't exist!");
-      }
+      auto bufferPoolCfgMap = new_->getMultiSwitchBufferPoolCfgs();
       // bufferPool cfg is keyed on the buffer pool name
       auto bufferPoolCfg = bufferPoolCfgMap->getNodeIf(bufferPoolName);
       if (!bufferPoolCfg) {
@@ -3490,30 +3481,29 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
   return newFlowletSwitchingConfig;
 }
 
-shared_ptr<BufferPoolCfgMap> ThriftConfigApplier::updateBufferPoolConfigs(
-    bool* changed) {
+shared_ptr<MultiSwitchBufferPoolCfgMap>
+ThriftConfigApplier::updateBufferPoolConfigs(bool* changed) {
   *changed = false;
-  auto origBufferPoolConfigs = orig_->getBufferPoolCfgs();
+  auto origBufferPoolConfigs = orig_->getMultiSwitchBufferPoolCfgs();
   BufferPoolCfgMap::NodeContainer newBufferPoolConfigMap;
   auto newCfgedBufferPools = cfg_->bufferPoolConfigs();
 
-  if (!newCfgedBufferPools && origBufferPoolConfigs->empty()) {
+  if (!newCfgedBufferPools && !origBufferPoolConfigs->numNodes()) {
     return nullptr;
   }
 
-  if (!newCfgedBufferPools && !origBufferPoolConfigs->empty()) {
+  if (!newCfgedBufferPools && origBufferPoolConfigs->numNodes()) {
     // old cfg eixists but new one doesn't
     *changed = true;
-    return nullptr;
+    return std::make_shared<MultiSwitchBufferPoolCfgMap>();
   }
 
-  if (newCfgedBufferPools && origBufferPoolConfigs->empty()) {
+  if (newCfgedBufferPools && !origBufferPoolConfigs->numNodes()) {
     *changed = true;
   }
 
   // if old/new cfgs are present, compare size
-  if (origBufferPoolConfigs &&
-      (*origBufferPoolConfigs).size() != (*newCfgedBufferPools).size()) {
+  if (origBufferPoolConfigs->numNodes() != (*newCfgedBufferPools).size()) {
     *changed = true;
   }
 
@@ -3524,25 +3514,24 @@ shared_ptr<BufferPoolCfgMap> ThriftConfigApplier::updateBufferPoolConfigs(
   for (auto& bufferPoolConfig : *newCfgedBufferPools) {
     auto newBufferPoolConfig =
         createBufferPoolConfig(bufferPoolConfig.first, bufferPoolConfig.second);
-    if (origBufferPoolConfigs) {
-      // if buffer pool cfg map exist, check if the specific buffer pool cfg
-      // exists or not
-      auto origBufferPoolConfig =
-          origBufferPoolConfigs->getNodeIf(bufferPoolConfig.first);
-      if (!origBufferPoolConfig ||
-          (*origBufferPoolConfig != *newBufferPoolConfig)) {
-        /* new entry added or existing entries do not match */
-        *changed = true;
-      }
+    // if buffer pool cfg map exist, check if the specific buffer pool cfg
+    // exists or not
+    auto origBufferPoolConfig =
+        origBufferPoolConfigs->getNodeIf(bufferPoolConfig.first);
+    if (!origBufferPoolConfig ||
+        (*origBufferPoolConfig != *newBufferPoolConfig)) {
+      /* new entry added or existing entries do not match */
+      *changed = true;
     }
     newBufferPoolConfigMap.emplace(
         std::make_pair(bufferPoolConfig.first, newBufferPoolConfig));
   }
 
   if (*changed) {
-    return origBufferPoolConfigs
-        ? origBufferPoolConfigs->clone(std::move(newBufferPoolConfigMap))
-        : std::make_shared<BufferPoolCfgMap>(std::move(newBufferPoolConfigMap));
+    auto bufferPoolConfigMap =
+        std::make_shared<BufferPoolCfgMap>(std::move(newBufferPoolConfigMap));
+    return toMultiSwitchMap<MultiSwitchBufferPoolCfgMap>(
+        bufferPoolConfigMap, scopeResolver_);
   }
   return nullptr;
 }
