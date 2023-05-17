@@ -8,7 +8,7 @@
 namespace facebook::fboss {
 
 std::shared_ptr<SwitchState> programLabel(
-    const SwitchIdScopeResolver& /*resolver*/,
+    const SwitchIdScopeResolver& resolver,
     const std::shared_ptr<SwitchState>& state,
     Label label,
     ClientID client,
@@ -20,7 +20,7 @@ std::shared_ptr<SwitchState> programLabel(
 
   auto newState = state->clone();
   auto* writableLabelFib =
-      newState->getLabelForwardingInformationBase()->modify(&newState);
+      newState->getMultiLabelForwardingInformationBase()->modify(&newState);
 
   auto entry = writableLabelFib->getNodeIf(label.value());
   auto nexthopCount = nexthops.size();
@@ -36,7 +36,7 @@ std::shared_ptr<SwitchState> programLabel(
         std::make_shared<LabelForwardingEntry>(LabelForwardingEntry::makeThrift(
             label, client, LabelNextHopEntry(std::move(nexthops), distance)));
     MultiLabelForwardingInformationBase::resolve(newEntry);
-    writableLabelFib->addNode(newEntry);
+    writableLabelFib->addNode(newEntry, resolver.scope(newEntry));
   } else {
     auto entryToUpdate = entry->clone();
     entryToUpdate->update(
@@ -46,19 +46,19 @@ std::shared_ptr<SwitchState> programLabel(
                << "nhop count:" << nexthopCount
                << " in label forwarding information base for client:"
                << static_cast<int>(client);
-    writableLabelFib->updateNode(entryToUpdate);
+    writableLabelFib->updateNode(entryToUpdate, resolver.scope(entryToUpdate));
   }
   return newState;
 }
 
 std::shared_ptr<SwitchState> unprogramLabel(
-    const SwitchIdScopeResolver& /*resolver*/,
+    const SwitchIdScopeResolver& resolver,
     const std::shared_ptr<SwitchState>& state,
     Label label,
     ClientID client) {
   auto newState = state->clone();
   auto* writableLabelFib =
-      newState->getLabelForwardingInformationBase()->modify(&newState);
+      newState->getMultiLabelForwardingInformationBase()->modify(&newState);
 
   auto entry = writableLabelFib->getNodeIf(label.value());
   if (!entry) {
@@ -78,36 +78,42 @@ std::shared_ptr<SwitchState> unprogramLabel(
     writableLabelFib->removeNode(entry);
   } else {
     entryToUpdate->setResolved(*(entryToUpdate->getBestEntry().second));
-    writableLabelFib->updateNode(std::move(entryToUpdate));
+    writableLabelFib->updateNode(entryToUpdate, resolver.scope(entryToUpdate));
   }
   return newState;
 }
 
 std::shared_ptr<SwitchState> purgeEntriesForClient(
-    const SwitchIdScopeResolver& /*resolver*/,
+    const SwitchIdScopeResolver& resolver,
     const std::shared_ptr<SwitchState>& state,
     ClientID client) {
   auto newState = state->clone();
-  auto* writableLabelFib =
-      newState->getLabelForwardingInformationBase()->modify(&newState);
+  auto* writableLabelFibs =
+      newState->getMultiLabelForwardingInformationBase()->modify(&newState);
 
-  auto iter = writableLabelFib->begin();
-  while (iter != writableLabelFib->end()) {
-    auto entry = iter->second;
-    if (entry->getEntryForClient(client)) {
-      auto entryToModify = entry->clone();
-      entryToModify->delEntryForClient(client);
-      if (entryToModify->getEntryForClients().isEmpty()) {
-        XLOG(DBG1) << "Purging empty forwarding entry for label:"
-                   << entry->getID();
-        iter = writableLabelFib->erase(iter);
-        continue;
-      } else {
-        entryToModify->setResolved(*(entryToModify->getBestEntry().second));
+  auto miter = writableLabelFibs->begin();
+  while (miter != writableLabelFibs->end()) {
+    auto writableLabelFib = miter->second;
+    auto iter = writableLabelFib->begin();
+    while (iter != writableLabelFib->end()) {
+      auto entry = iter->second;
+      if (entry->getEntryForClient(client)) {
+        auto entryToModify = entry->clone();
+        entryToModify->delEntryForClient(client);
+        if (entryToModify->getEntryForClients().isEmpty()) {
+          XLOG(DBG1) << "Purging empty forwarding entry for label:"
+                     << entry->getID();
+          iter = writableLabelFib->erase(iter);
+          continue;
+        } else {
+          entryToModify->setResolved(*(entryToModify->getBestEntry().second));
+        }
+        writableLabelFibs->updateNode(
+            entryToModify, resolver.scope(entryToModify));
       }
-      writableLabelFib->updateNode(std::move(entryToModify));
+      ++iter;
     }
-    ++iter;
+    miter++;
   }
   return newState;
 }
