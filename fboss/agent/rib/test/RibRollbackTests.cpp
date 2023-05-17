@@ -45,7 +45,7 @@ class FailSomeUpdates {
   explicit FailSomeUpdates(std::unordered_set<int> toFail)
       : toFail_(std::move(toFail)) {}
   std::shared_ptr<SwitchState> operator()(
-      const SwitchIdScopeResolver*,
+      const SwitchIdScopeResolver* resolver,
       RouterID vrf,
       const IPv4NetworkToRouteMap& v4NetworkToRoute,
       const IPv6NetworkToRouteMap& v6NetworkToRoute,
@@ -57,7 +57,7 @@ class FailSomeUpdates {
       (*curSwitchStatePtr)->publish();
       auto desiredState = *curSwitchStatePtr;
       ribToSwitchStateUpdate(
-          nullptr,
+          resolver,
           vrf,
           v4NetworkToRoute,
           v6NetworkToRoute,
@@ -66,7 +66,12 @@ class FailSomeUpdates {
       throw FbossHwUpdateError(desiredState, *curSwitchStatePtr);
     }
     return ribToSwitchStateUpdate(
-        nullptr, vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute, cookie);
+        resolver,
+        vrf,
+        v4NetworkToRoute,
+        v6NetworkToRoute,
+        labelToRoute,
+        cookie);
   }
 
  private:
@@ -83,6 +88,7 @@ class RibRollbackTest : public ::testing::Test {
     auto origSwitchState = switchState_;
     switchState_->publish();
     rib_.update(
+        nullptr,
         kRid,
         kBgpClient,
         kBgpDistance,
@@ -96,6 +102,7 @@ class RibRollbackTest : public ::testing::Test {
     EXPECT_EQ(1, switchState_->getGeneration());
     auto oldSwitchState = switchState_;
     rib_.update(
+        nullptr,
         kRid,
         kBgpClient,
         kBgpDistance,
@@ -116,6 +123,7 @@ class RibRollbackTest : public ::testing::Test {
     // mismatched from FIB). A empty update should not
     // change switchState. Assert that.
     rib_.update(
+        nullptr,
         kRid,
         kBgpClient,
         kBgpDistance,
@@ -128,6 +136,7 @@ class RibRollbackTest : public ::testing::Test {
     EXPECT_EQ(curSwitchState, switchState_);
 
     rib_.update(
+        nullptr,
         kRid,
         kBgpClient,
         kBgpDistance,
@@ -160,6 +169,7 @@ TEST_F(RibRollbackTest, rollbackFail) {
   FailSomeUpdates failUpdateAndRollback({1, 2});
   EXPECT_DEATH(
       rib_.update(
+          nullptr,
           kRid,
           kBgpClient,
           kBgpDistance,
@@ -178,6 +188,7 @@ TEST_F(RibRollbackTest, rollbackAdd) {
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
       rib_.update(
+          nullptr,
           kRid,
           kBgpClient,
           kBgpDistance,
@@ -198,6 +209,7 @@ TEST_F(RibRollbackTest, rollbackAddExisting) {
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
       rib_.update(
+          nullptr,
           kRid,
           kBgpClient,
           kBgpDistance,
@@ -218,6 +230,7 @@ TEST_F(RibRollbackTest, rollbackDel) {
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
       rib_.update(
+          nullptr,
           kRid,
           kBgpClient,
           kBgpDistance,
@@ -236,6 +249,7 @@ TEST_F(RibRollbackTest, rollbackDelNonExistent) {
   auto routeTableBeforeUpdate = rib_.getRouteTableDetails(kRid);
   // Noop update - prefix does not exist in rib
   rib_.update(
+      nullptr,
       kRid,
       kBgpClient,
       kBgpDistance,
@@ -251,6 +265,7 @@ TEST_F(RibRollbackTest, rollbackDelNonExistent) {
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
       rib_.update(
+          nullptr,
           kRid,
           kBgpClient,
           kBgpDistance,
@@ -271,6 +286,7 @@ TEST_F(RibRollbackTest, rollbackAddAndDel) {
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
       rib_.update(
+          nullptr,
           kRid,
           kBgpClient,
           kBgpDistance,
@@ -290,6 +306,7 @@ TEST_F(RibRollbackTest, rollbackDifferentClient) {
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
       rib_.update(
+          nullptr,
           kRid,
           kOpenrClient,
           kOpenrDistance,
@@ -310,6 +327,7 @@ TEST_F(RibRollbackTest, rollbackDifferentNexthops) {
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
       rib_.update(
+          nullptr,
           kRid,
           kBgpClient,
           kBgpDistance,
@@ -330,6 +348,7 @@ TEST_F(RibRollbackTest, syncFibRollbackExistingClient) {
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
       rib_.update(
+          nullptr,
           kRid,
           kBgpClient,
           kBgpDistance,
@@ -353,6 +372,7 @@ TEST_F(RibRollbackTest, syncFibRollbackNewClient) {
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
       rib_.update(
+          nullptr,
           kRid,
           kOpenrClient,
           kOpenrDistance,
@@ -376,6 +396,7 @@ TEST_F(RibRollbackTest, rollbackMpls) {
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
       rib_.update(
+          nullptr,
           kRid,
           kBgpClient,
           kBgpDistance,

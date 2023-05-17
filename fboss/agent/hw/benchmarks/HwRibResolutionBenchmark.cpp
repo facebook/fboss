@@ -46,8 +46,10 @@ BENCHMARK(RibResolutionBenchmark) {
   std::for_each(
       routeChunks.begin(),
       routeChunks.end(),
-      [&switchState, &rib](const auto& routeChunk) {
+      [&switchState, &rib, resolver = ensemble->getSw()->getScopeResolver()](
+          const auto& routeChunk) {
         rib->update(
+            resolver,
             RouterID(0),
             ClientID::BGPD,
             AdminDistance::EBGP,

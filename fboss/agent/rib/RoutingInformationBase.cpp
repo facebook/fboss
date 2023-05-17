@@ -162,6 +162,7 @@ void RibRouteTables::updateRib(RouterID vrf, const RibUpdateFn& updateRibFn) {
 }
 
 void RibRouteTables::reconfigure(
+    const SwitchIdScopeResolver* resolver,
     const RouterIDAndNetworkToInterfaceRoutes& configRouterIDToInterfaceRoutes,
     const std::vector<cfg::StaticRouteWithNextHops>& staticRoutesWithNextHops,
     const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToNull,
@@ -228,7 +229,7 @@ void RibRouteTables::reconfigure(
       // Apply config
       configApplier.apply();
     });
-    updateFib(vrf, updateFibCallback, cookie);
+    updateFib(resolver, vrf, updateFibCallback, cookie);
   };
   // Because of this sequential loop over each VRF, config application scales
   // linearly with the number of VRFs. If FBOSS is run in a multi-VRF routing
@@ -259,6 +260,7 @@ void RibRouteTables::reconfigure(
 
 template <typename RouteType, typename RouteIdType>
 void RibRouteTables::update(
+    const SwitchIdScopeResolver* resolver,
     RouterID routerID,
     ClientID clientID,
     AdminDistance adminDistanceFromClientID,
@@ -275,10 +277,11 @@ void RibRouteTables::update(
         &(routeTable.labelToRoute));
     updater.update(clientID, toAddRoutes, toDelPrefixes, resetClientsRoutes);
   });
-  updateFib(routerID, fibUpdateCallback, cookie);
+  updateFib(resolver, routerID, fibUpdateCallback, cookie);
 }
 
 void RibRouteTables::updateFib(
+    const SwitchIdScopeResolver* resolver,
     RouterID vrf,
     const FibUpdateFunction& fibUpdateCallback,
     void* cookie) {
@@ -286,7 +289,7 @@ void RibRouteTables::updateFib(
     auto lockedRouteTables = synchronizedRouteTables_.rlock();
     auto& routeTable = lockedRouteTables->find(vrf)->second;
     fibUpdateCallback(
-        nullptr, /* TODO: inject scope resolver */
+        resolver,
         vrf,
         routeTable.v4NetworkToRoute,
         routeTable.v6NetworkToRoute,
@@ -336,6 +339,7 @@ std::vector<RouterID> RibRouteTables::getVrfList() const {
 }
 
 void RibRouteTables::setClassID(
+    const SwitchIdScopeResolver* resolver,
     RouterID rid,
     const std::vector<folly::CIDRNetwork>& prefixes,
     FibUpdateFunction fibUpdateCallback,
@@ -362,7 +366,7 @@ void RibRouteTables::setClassID(
       }
     }
   });
-  updateFib(rid, fibUpdateCallback, cookie);
+  updateFib(resolver, rid, fibUpdateCallback, cookie);
 }
 
 template <typename AddressT>
@@ -438,6 +442,7 @@ void RoutingInformationBase::ensureRunning() const {
 }
 
 void RoutingInformationBase::reconfigure(
+    const SwitchIdScopeResolver* resolver,
     const RouterIDAndNetworkToInterfaceRoutes& configRouterIDToInterfaceRoutes,
     const std::vector<cfg::StaticRouteWithNextHops>& staticRoutesWithNextHops,
     const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToNull,
@@ -452,6 +457,7 @@ void RoutingInformationBase::reconfigure(
   ensureRunning();
   auto updateFn = [&] {
     ribTables_.reconfigure(
+        resolver,
         configRouterIDToInterfaceRoutes,
         staticRoutesWithNextHops,
         staticRoutesToNull,
@@ -468,6 +474,7 @@ void RoutingInformationBase::reconfigure(
 
 template <typename TraitsType>
 RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
+    const SwitchIdScopeResolver* resolver,
     RouterID routerID,
     ClientID clientID,
     AdminDistance adminDistanceFromClientID,
@@ -505,6 +512,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
           });
 
       ribTables_.update(
+          resolver,
           routerID,
           clientID,
           adminDistanceFromClientID,
@@ -527,6 +535,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
 }
 
 void RoutingInformationBase::setClassIDImpl(
+    const SwitchIdScopeResolver* resolver,
     RouterID rid,
     const std::vector<folly::CIDRNetwork>& prefixes,
     FibUpdateFunction fibUpdateCallback,
@@ -535,7 +544,8 @@ void RoutingInformationBase::setClassIDImpl(
     bool async) {
   ensureRunning();
   auto updateFn = [=]() {
-    ribTables_.setClassID(rid, prefixes, fibUpdateCallback, classId, cookie);
+    ribTables_.setClassID(
+        resolver, rid, prefixes, fibUpdateCallback, classId, cookie);
   };
   if (async) {
     ribUpdateEventBase_.runInEventBaseThread(updateFn);
@@ -684,6 +694,7 @@ std::vector<RouteDetails> RibRouteTables::getRouteTableDetails(
 }
 
 RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
+    const SwitchIdScopeResolver* resolver,
     RouterID routerID,
     ClientID clientID,
     AdminDistance adminDistanceFromClientID,
@@ -694,6 +705,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
     FibUpdateFunction fibUpdateCallback,
     void* cookie) {
   return updateImpl<RibIpRouteUpdate>(
+      resolver,
       routerID,
       clientID,
       adminDistanceFromClientID,
@@ -706,6 +718,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
 }
 
 RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
+    const SwitchIdScopeResolver* resolver,
     RouterID routerID,
     ClientID clientID,
     AdminDistance adminDistanceFromClientID,
@@ -716,6 +729,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
     FibUpdateFunction fibUpdateCallback,
     void* cookie) {
   return updateImpl<RibMplsRouteUpdate>(
+      resolver,
       routerID,
       clientID,
       adminDistanceFromClientID,

@@ -42,6 +42,7 @@ BENCHMARK(RibSyncFibBenchmark) {
       ensemble->getSw()->getRib()->toFollyDynamic(), nullptr, nullptr);
   auto switchState = ensemble->getSw()->getState();
   rib->update(
+      ensemble->getSw()->getScopeResolver(),
       RouterID(0),
       ClientID::BGPD,
       AdminDistance::EBGP,
@@ -55,6 +56,7 @@ BENCHMARK(RibSyncFibBenchmark) {
   suspender.dismiss();
   // Sync fib with the same routes
   rib->update(
+      ensemble->getSw()->getScopeResolver(),
       RouterID(0),
       ClientID::BGPD,
       AdminDistance::EBGP,

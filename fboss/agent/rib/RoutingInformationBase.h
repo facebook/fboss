@@ -48,6 +48,7 @@ class RibRouteTables {
  public:
   template <typename RouteType, typename RouteIdType>
   void update(
+      const SwitchIdScopeResolver* resolver,
       RouterID routerID,
       ClientID clientID,
       AdminDistance adminDistanceFromClientID,
@@ -59,6 +60,7 @@ class RibRouteTables {
       void* cookie);
 
   void setClassID(
+      const SwitchIdScopeResolver* resolver,
       RouterID rid,
       const std::vector<folly::CIDRNetwork>& prefixes,
       FibUpdateFunction fibUpdateCallback,
@@ -79,6 +81,7 @@ class RibRouteTables {
       boost::container::flat_map<RouterID, PrefixToInterfaceIDAndIP>;
 
   void reconfigure(
+      const SwitchIdScopeResolver* resolver,
       const RouterIDAndNetworkToInterfaceRoutes&
           configRouterIDToInterfaceRoutes,
       const std::vector<cfg::StaticRouteWithNextHops>& staticRoutesWithNextHops,
@@ -155,6 +158,7 @@ class RibRouteTables {
   };
 
   void updateFib(
+      const SwitchIdScopeResolver* resolver,
       RouterID vrf,
       const FibUpdateFunction& fibUpdateCallback,
       void* cookie);
@@ -225,6 +229,7 @@ class RoutingInformationBase {
    * per client.
    */
   UpdateStatistics update(
+      const SwitchIdScopeResolver* resolver,
       RouterID routerID,
       ClientID clientID,
       AdminDistance adminDistanceFromClientID,
@@ -236,6 +241,7 @@ class RoutingInformationBase {
       void* cookie);
 
   UpdateStatistics update(
+      const SwitchIdScopeResolver* resolver,
       RouterID routerID,
       ClientID clientID,
       AdminDistance adminDistanceFromClientID,
@@ -259,6 +265,7 @@ class RoutingInformationBase {
       RibRouteTables::RouterIDAndNetworkToInterfaceRoutes;
 
   void reconfigure(
+      const SwitchIdScopeResolver* resolver,
       const RouterIDAndNetworkToInterfaceRoutes&
           configRouterIDToInterfaceRoutes,
       const std::vector<cfg::StaticRouteWithNextHops>& staticRoutesWithNextHops,
@@ -273,21 +280,25 @@ class RoutingInformationBase {
       void* cookie);
 
   void setClassID(
+      const SwitchIdScopeResolver* resolver,
       RouterID rid,
       const std::vector<folly::CIDRNetwork>& prefixes,
       FibUpdateFunction fibUpdateCallback,
       std::optional<cfg::AclLookupClass> classId,
       void* cookie) {
-    setClassIDImpl(rid, prefixes, fibUpdateCallback, classId, cookie, false);
+    setClassIDImpl(
+        resolver, rid, prefixes, fibUpdateCallback, classId, cookie, false);
   }
 
   void setClassIDAsync(
+      const SwitchIdScopeResolver* resolver,
       RouterID rid,
       const std::vector<folly::CIDRNetwork>& prefixes,
       FibUpdateFunction fibUpdateCallback,
       std::optional<cfg::AclLookupClass> classId,
       void* cookie) {
-    setClassIDImpl(rid, prefixes, fibUpdateCallback, classId, cookie, true);
+    setClassIDImpl(
+        resolver, rid, prefixes, fibUpdateCallback, classId, cookie, true);
   }
 
   folly::dynamic toFollyDynamic() const {
@@ -346,6 +357,7 @@ class RoutingInformationBase {
  private:
   void ensureRunning() const;
   void setClassIDImpl(
+      const SwitchIdScopeResolver* resolver,
       RouterID rid,
       const std::vector<folly::CIDRNetwork>& prefixes,
       FibUpdateFunction fibUpdateCallback,
@@ -355,6 +367,7 @@ class RoutingInformationBase {
 
   template <typename TraitsType>
   UpdateStatistics updateImpl(
+      const SwitchIdScopeResolver* resolver,
       RouterID routerID,
       ClientID clientID,
       AdminDistance adminDistanceFromClientID,
