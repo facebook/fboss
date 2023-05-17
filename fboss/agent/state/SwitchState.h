@@ -368,6 +368,9 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   }
   const std::shared_ptr<QosPolicyMap>& getQosPolicies() const;
 
+  const std::shared_ptr<MultiSwitchQosPolicyMap>& getMultiSwitchQosPolicies()
+      const;
+
   const std::shared_ptr<ControlPlane>& getControlPlane() const;
 
   const std::shared_ptr<SwitchSettings>& getSwitchSettings() const;

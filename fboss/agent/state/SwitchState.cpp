@@ -340,6 +340,11 @@ const std::shared_ptr<QosPolicyMap>& SwitchState::getQosPolicies() const {
       HwSwitchMatcher::defaultHwSwitchMatcherKey());
 }
 
+const std::shared_ptr<MultiSwitchQosPolicyMap>&
+SwitchState::getMultiSwitchQosPolicies() const {
+  return safe_cref<switch_state_tags::qosPolicyMaps>();
+}
+
 const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>&
 SwitchState::getFibs() const {
   return safe_cref<switch_state_tags::fibsMap>();
