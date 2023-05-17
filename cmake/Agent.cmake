@@ -60,7 +60,16 @@ add_library(address_utils
 )
 
 add_library(switchinfo_utils
-  fboss/agent/SwitchInfoUtils.h
+  fboss/agent/SwitchInfoUtils.cpp
+)
+
+target_link_libraries(switchinfo_utils
+  Folly::folly
+  switch_config_cpp2
+  switch_state_cpp2
+  switch_asics
+  ctrl_cpp2
+  fboss_types
 )
 
 target_link_libraries(address_utils
