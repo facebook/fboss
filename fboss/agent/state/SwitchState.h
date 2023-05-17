@@ -363,11 +363,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
 
   const std::shared_ptr<SflowCollectorMap>& getSflowCollectors() const;
 
-  std::shared_ptr<QosPolicy> getQosPolicy(const std::string& name) const {
-    return getQosPolicies()->getQosPolicyIf(name);
-  }
-  const std::shared_ptr<QosPolicyMap>& getQosPolicies() const;
-
   const std::shared_ptr<MultiSwitchQosPolicyMap>& getMultiSwitchQosPolicies()
       const;
 

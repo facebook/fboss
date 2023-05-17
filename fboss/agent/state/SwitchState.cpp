@@ -340,11 +340,6 @@ const std::shared_ptr<MultiSwitchMirrorMap>& SwitchState::getMirrors() const {
   return safe_cref<switch_state_tags::mirrorMaps>();
 }
 
-const std::shared_ptr<QosPolicyMap>& SwitchState::getQosPolicies() const {
-  return cref<switch_state_tags::qosPolicyMaps>()->cref(
-      HwSwitchMatcher::defaultHwSwitchMatcherKey());
-}
-
 const std::shared_ptr<MultiSwitchQosPolicyMap>&
 SwitchState::getMultiSwitchQosPolicies() const {
   return safe_cref<switch_state_tags::qosPolicyMaps>();
@@ -636,15 +631,9 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     }
   }
   /* forward compatibility */
-  auto& qosPolicyMap = state->cref<switch_state_tags::qosPolicyMap>();
-  auto& multiQosPolicyMap = state->cref<switch_state_tags::qosPolicyMaps>();
-  if (multiQosPolicyMap->empty() || state->getQosPolicies()->empty()) {
-    // keep map for default npu
-    state->resetQosPolicies(qosPolicyMap);
-    // clear legacy mirror map
-    state->set<switch_state_tags::qosPolicyMap>(
-        std::map<std::string, state::QosPolicyFields>());
-  }
+  state->fromThrift<
+      switch_state_tags::qosPolicyMaps,
+      switch_state_tags::qosPolicyMap>(true /*emptyMnpuMapOk*/);
 
   if (state->cref<switch_state_tags::controlPlaneMap>()->empty()) {
     // keep map for default npu
