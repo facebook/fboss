@@ -46,8 +46,8 @@ class LedManager {
   // Initialize the Led Manager, get system container
   virtual void initLedManager() {}
 
-  // On getting the update from FSDB, update portDisplayList_
-  void updateLedStatus() {}
+  // On getting the update from FSDB, update portDisplayMap_
+  void updateLedStatus();
 
   folly::EventBase* getEventBase() {
     return eventBase_.get();
@@ -68,7 +68,7 @@ class LedManager {
   std::unique_ptr<PlatformMapping> platformMapping_;
 
   // Port Name to PortDisplayInfo map, no lock needed
-  std::map<uint32_t, PortDisplayInfo> portDisplayList_;
+  std::map<uint32_t, PortDisplayInfo> portDisplayMap_;
 
   virtual led::LedColor calculateLedColor(
       uint32_t portId,

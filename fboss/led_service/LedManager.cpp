@@ -106,11 +106,11 @@ std::vector<uint32_t> LedManager::getCommonLedSwPorts(
 
   for (auto swPort : allSwPortsForTcvr) {
     if (PortID(portId) == swPort ||
-        portDisplayList_.find(swPort) == portDisplayList_.end()) {
+        portDisplayMap_.find(swPort) == portDisplayMap_.end()) {
       continue;
     }
 
-    auto thisPortProfile = portDisplayList_.at(swPort).portProfileId;
+    auto thisPortProfile = portDisplayMap_.at(swPort).portProfileId;
     auto thisSwPortLedIds = getLedIdFromSwPort(swPort, thisPortProfile);
     if (anyLedMatch(currSwPortLedIds, thisSwPortLedIds)) {
       commonSwPorts.push_back(swPort);
@@ -123,15 +123,15 @@ std::vector<uint32_t> LedManager::getCommonLedSwPorts(
  * calculateLedColor
  *
  * This function will return the LED color for a given port. This function will
- * act on LedManager struct portDisplayList_ to find the color. This function
- * expects the port oprational values (ie: portDisplayList_.operationalStateUp)
+ * act on LedManager struct portDisplayMap_ to find the color. This function
+ * expects the port oprational values (ie: portDisplayMap_.operationalStateUp)
  * is already updated with latest. This function takes care of scenario where
  * the LED is shared by multiple SW ports
  */
 led::LedColor LedManager::calculateLedColor(
     uint32_t portId,
     cfg::PortProfileID portProfile) {
-  if (portDisplayList_.find(portId) == portDisplayList_.end()) {
+  if (portDisplayMap_.find(portId) == portDisplayMap_.end()) {
     XLOG(ERR) << folly::sformat(
         "Port {:d} LED color undetermined as the port operational info is not available",
         portId);
@@ -151,15 +151,15 @@ led::LedColor LedManager::calculateLedColor(
   bool anyPortReachable{false}, allPortsReachable{true};
 
   for (auto swPort : commonSwPorts) {
-    if (portDisplayList_.find(swPort) == portDisplayList_.end()) {
+    if (portDisplayMap_.find(swPort) == portDisplayMap_.end()) {
       continue;
     }
 
-    auto thisPortUp = portDisplayList_[swPort].operationStateUp;
+    auto thisPortUp = portDisplayMap_[swPort].operationStateUp;
     anyPortUp = anyPortUp || thisPortUp;
     allPortsUp = allPortsUp && thisPortUp;
 
-    auto thisPortReachable = portDisplayList_[swPort].neighborReachable;
+    auto thisPortReachable = portDisplayMap_[swPort].neighborReachable;
     anyPortReachable = anyPortReachable || thisPortReachable;
     allPortsReachable = allPortsReachable && thisPortReachable;
   }
@@ -206,7 +206,7 @@ led::LedColor LedManager::getLedColorFromPortStatus(
  *
  * Set the LED color in HW for the LED(s) on a given port. This function will
  * find all the LED for the SW port and set their color. This function should
- * not depend on FSDB provided values from portDisplayList_
+ * not depend on FSDB provided values from portDisplayMap_
  */
 void LedManager::setLedColor(
     uint32_t portId,
@@ -224,6 +224,62 @@ void LedManager::setLedColor(
     if (std::find(ledIds.begin(), ledIds.end(), ledController.first) !=
         ledIds.end()) {
       ledController.second->setColor(ledColor);
+    }
+  }
+}
+
+/*
+ * updateLedStatus
+ *
+ * This function does these two things:
+ * 1. Look into the FSDB pushed data (switch states) in
+ *    subscribedAgentSwitchStatePortData_ and updates the local structure
+ *    portDisplayMap_ as per the operational values in latest switch state
+ * 2. Compute LED colors for new state and if the color for a port is different
+ *    than existing one then set the new color on LED
+ */
+void LedManager::updateLedStatus() {
+  auto newSwitchState = *subscribedAgentSwitchStatePortData_.rlock();
+  if (newSwitchState.empty()) {
+    // No change in port info so return from here
+    return;
+  }
+
+  for (const auto& [portId, portFields] : newSwitchState) {
+    // Step 1. Update all operational info
+    auto portName = portFields.portName().value();
+    auto portProfile = portFields.portProfileID().value();
+    auto portProfileEnumVal = nameToEnum<cfg::PortProfileID>(portProfile);
+
+    if (portDisplayMap_.find(portId) == portDisplayMap_.end()) {
+      PortDisplayInfo portInfo;
+      portInfo.portName = portName;
+      portInfo.portProfileId = portProfileEnumVal;
+      portInfo.operationStateUp = portFields.portOperState().value();
+      portInfo.currentLedColor = led::LedColor::UNKNOWN;
+      portDisplayMap_[portId] = portInfo;
+    } else {
+      portDisplayMap_[portId].portName = portName;
+      portDisplayMap_[portId].portProfileId = portProfileEnumVal;
+      portDisplayMap_[portId].operationStateUp =
+          portFields.portOperState().value();
+    }
+  }
+
+  for (const auto& [portId, portFields] : newSwitchState) {
+    // Step 2. Update LED color if required
+    auto portName = portFields.portName().value();
+    auto portProfile = portFields.portProfileID().value();
+    auto portProfileEnumVal = nameToEnum<cfg::PortProfileID>(portProfile);
+
+    auto newLedColor = calculateLedColor(portId, portProfileEnumVal);
+    if (newLedColor != portDisplayMap_[portId].currentLedColor) {
+      setLedColor(portId, portProfileEnumVal, newLedColor);
+      portDisplayMap_[portId].currentLedColor = newLedColor;
+      XLOG(DBG2) << folly::sformat(
+          "Port {:s} LED color changed to {:s}",
+          portName,
+          enumToName<led::LedColor>(newLedColor));
     }
   }
 }
