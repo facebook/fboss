@@ -629,6 +629,10 @@ std::unique_ptr<UnicastRoute> makeUnicastRoute(
 
 // Test for the ThriftHandler::syncFib method
 TYPED_TEST(ThriftTestAllSwitchTypes, multipleClientSyncFib) {
+  if (this->isFabric()) {
+    // no FIB on fabric or phy
+    GTEST_SKIP();
+  }
   RouterID rid = RouterID(0);
 
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler

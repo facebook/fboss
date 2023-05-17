@@ -107,6 +107,8 @@ class MultiSwitchForwardingInformationBaseMap
   MultiSwitchForwardingInformationBaseMap* modify(
       std::shared_ptr<SwitchState>* state);
 
+  std::pair<uint64_t, uint64_t> getRouteCount() const;
+
  private:
   // Inherit the constructors required for clone()
   using BaseT::BaseT;

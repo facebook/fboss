@@ -79,28 +79,29 @@ TEST(ForwardingInformationBaseUpdater, ModifyUnpublishedSwitchState) {
   ASSERT_EQ(updatedState, initialState);
   ASSERT_FALSE(updatedState->isPublished());
 
-  ASSERT_EQ(updatedState->getFibs(), initialState->getFibs());
-  ASSERT_FALSE(updatedState->getFibs()->isPublished());
+  ASSERT_EQ(
+      updatedState->getMultiSwitchFibs(), initialState->getMultiSwitchFibs());
+  ASSERT_FALSE(updatedState->getMultiSwitchFibs()->isPublished());
 
   ASSERT_EQ(
-      updatedState->getFibs()->getFibContainerIf(vrfOne),
-      initialState->getFibs()->getFibContainerIf(vrfOne));
+      updatedState->getMultiSwitchFibs()->getNodeIf(vrfOne),
+      initialState->getMultiSwitchFibs()->getNodeIf(vrfOne));
   ASSERT_FALSE(
-      updatedState->getFibs()->getFibContainerIf(vrfOne)->isPublished());
+      updatedState->getMultiSwitchFibs()->getNodeIf(vrfOne)->isPublished());
 
   ASSERT_EQ(
-      updatedState->getFibs()->getFibContainerIf(vrfOne)->getFibV4(),
-      initialState->getFibs()->getFibContainerIf(vrfOne)->getFibV4());
-  ASSERT_FALSE(updatedState->getFibs()
-                   ->getFibContainerIf(vrfOne)
+      updatedState->getMultiSwitchFibs()->getNodeIf(vrfOne)->getFibV4(),
+      initialState->getMultiSwitchFibs()->getNodeIf(vrfOne)->getFibV4());
+  ASSERT_FALSE(updatedState->getMultiSwitchFibs()
+                   ->getNodeIf(vrfOne)
                    ->getFibV4()
                    ->isPublished());
 
   ASSERT_EQ(
-      updatedState->getFibs()->getFibContainerIf(vrfOne)->getFibV6(),
-      initialState->getFibs()->getFibContainerIf(vrfOne)->getFibV6());
-  ASSERT_FALSE(updatedState->getFibs()
-                   ->getFibContainerIf(vrfOne)
+      updatedState->getMultiSwitchFibs()->getNodeIf(vrfOne)->getFibV6(),
+      initialState->getMultiSwitchFibs()->getNodeIf(vrfOne)->getFibV6());
+  ASSERT_FALSE(updatedState->getMultiSwitchFibs()
+                   ->getNodeIf(vrfOne)
                    ->getFibV6()
                    ->isPublished());
 }
@@ -112,8 +113,8 @@ std::shared_ptr<facebook::fboss::Route<AddressT>> getRoute(
     facebook::fboss::RouterID vrf,
     AddressT address,
     uint8_t mask) {
-  const auto& fibs = state->getFibs();
-  const auto& fibContainer = fibs->getFibContainer(vrf);
+  const auto& fibs = state->getMultiSwitchFibs();
+  const auto& fibContainer = fibs->getNode(vrf);
 
   const std::shared_ptr<facebook::fboss::ForwardingInformationBase<AddressT>>&
       fib = fibContainer->template getFib<AddressT>();
@@ -166,8 +167,8 @@ void EXPECT_FIB_SIZE(
     facebook::fboss::RouterID vrf,
     std::size_t v4FibSize,
     std::size_t v6FibSize) {
-  const auto& fibs = state->getFibs();
-  const auto& fibContainer = fibs->getFibContainer(vrf);
+  const auto& fibs = state->getMultiSwitchFibs();
+  const auto& fibContainer = fibs->getNode(vrf);
 
   EXPECT_EQ(fibContainer->getFibV4()->size(), v4FibSize);
   EXPECT_EQ(fibContainer->getFibV6()->size(), v6FibSize);
@@ -383,8 +384,8 @@ TEST(ForwardingInformationBaseUpdater, Deduplication) {
   programRoutes(sw, ClientID(0), routesToAdd, routesToDelete);
 
   auto route = sw->getState()
-                   ->getFibs()
-                   ->getFibContainer(vrfZero)
+                   ->getMultiSwitchFibs()
+                   ->getNode(vrfZero)
                    ->getFibV6()
                    ->exactMatch(prefix);
   ASSERT_TRUE(route);
@@ -393,8 +394,8 @@ TEST(ForwardingInformationBaseUpdater, Deduplication) {
   programRoutes(sw, ClientID(0), routesToAdd, routesToDelete);
 
   auto route2 = sw->getState()
-                    ->getFibs()
-                    ->getFibContainer(vrfZero)
+                    ->getMultiSwitchFibs()
+                    ->getNode(vrfZero)
                     ->getFibV6()
                     ->exactMatch(prefix);
   ASSERT_TRUE(route2);
@@ -409,8 +410,8 @@ TEST(ForwardingInformationBaseUpdater, Deduplication) {
   programRoutes(sw, ClientID(0), routesToAdd, routesToDelete);
 
   auto route3 = sw->getState()
-                    ->getFibs()
-                    ->getFibContainer(vrfZero)
+                    ->getMultiSwitchFibs()
+                    ->getNode(vrfZero)
                     ->getFibV6()
                     ->exactMatch(prefix);
   ASSERT_TRUE(route3);

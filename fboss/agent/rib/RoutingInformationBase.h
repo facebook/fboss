@@ -27,7 +27,7 @@ DECLARE_bool(mpls_rib);
 
 namespace facebook::fboss {
 class SwitchState;
-class ForwardingInformationBaseMap;
+class MultiSwitchForwardingInformationBaseMap;
 class SwitchIdScopeResolver;
 
 using FibUpdateFunction = std::function<std::shared_ptr<SwitchState>(
@@ -104,12 +104,12 @@ class RibRouteTables {
    */
   static RibRouteTables fromFollyDynamic(
       const folly::dynamic& ribJson,
-      const std::shared_ptr<ForwardingInformationBaseMap>& fibs,
+      const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
       const std::shared_ptr<LabelForwardingInformationBase>& labelFib);
 
   static RibRouteTables fromThrift(
       const std::map<int32_t, state::RouteTableFields>& ribThrift,
-      const std::shared_ptr<ForwardingInformationBaseMap>& fibs,
+      const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
       const std::shared_ptr<LabelForwardingInformationBase>& labelFib);
 
   void ensureVrf(RouterID rid);
@@ -177,7 +177,7 @@ class RibRouteTables {
 
   void importFibs(
       const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,
-      const std::shared_ptr<ForwardingInformationBaseMap>& fibs,
+      const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
       const std::shared_ptr<LabelForwardingInformationBase>& labelFib);
 
   RouterIDToRouteTable constructRouteTables(
@@ -315,12 +315,12 @@ class RoutingInformationBase {
    */
   static std::unique_ptr<RoutingInformationBase> fromFollyDynamic(
       const folly::dynamic& ribJson,
-      const std::shared_ptr<ForwardingInformationBaseMap>& fibs,
+      const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
       const std::shared_ptr<LabelForwardingInformationBase>& labelFib);
 
   static std::unique_ptr<RoutingInformationBase> fromThrift(
       const std::map<int32_t, state::RouteTableFields>& ribJson,
-      const std::shared_ptr<ForwardingInformationBaseMap>& fibs,
+      const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
       const std::shared_ptr<LabelForwardingInformationBase>& labelFib);
 
   void ensureVrf(RouterID rid) {

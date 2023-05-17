@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/FbossHwUpdateError.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/rib/FibUpdateHelpers.h"
@@ -37,6 +38,21 @@ constexpr ClientID kOpenrClient = ClientID::OPENR;
 const RouterID kRid(0);
 auto kPrefix1 = IPAddress::createNetwork("1::1/64");
 auto kPrefix2 = IPAddress::createNetwork("2::2/64");
+
+std::map<int64_t, cfg::SwitchInfo> getTestSwitchInfo() {
+  std::map<int64_t, cfg::SwitchInfo> map;
+  cfg::SwitchInfo info{};
+  info.switchType() = cfg::SwitchType::NPU;
+  info.asicType() = cfg::AsicType::ASIC_TYPE_FAKE;
+  info.switchIndex() = 0;
+  map.emplace(0, info);
+  return map;
+}
+const SwitchIdScopeResolver* scopeResolver() {
+  static const SwitchIdScopeResolver kSwitchIdScopeResolver(
+      getTestSwitchInfo());
+  return &kSwitchIdScopeResolver;
+}
 
 } // namespace
 
@@ -88,7 +104,7 @@ class RibRollbackTest : public ::testing::Test {
     auto origSwitchState = switchState_;
     switchState_->publish();
     rib_.update(
-        nullptr,
+        scopeResolver(),
         kRid,
         kBgpClient,
         kBgpDistance,
@@ -102,7 +118,7 @@ class RibRollbackTest : public ::testing::Test {
     EXPECT_EQ(1, switchState_->getGeneration());
     auto oldSwitchState = switchState_;
     rib_.update(
-        nullptr,
+        scopeResolver(),
         kRid,
         kBgpClient,
         kBgpDistance,
@@ -123,7 +139,7 @@ class RibRollbackTest : public ::testing::Test {
     // mismatched from FIB). A empty update should not
     // change switchState. Assert that.
     rib_.update(
-        nullptr,
+        scopeResolver(),
         kRid,
         kBgpClient,
         kBgpDistance,
@@ -136,7 +152,7 @@ class RibRollbackTest : public ::testing::Test {
     EXPECT_EQ(curSwitchState, switchState_);
 
     rib_.update(
-        nullptr,
+        scopeResolver(),
         kRid,
         kBgpClient,
         kBgpDistance,
@@ -150,7 +166,7 @@ class RibRollbackTest : public ::testing::Test {
   }
   void assertRouteCount(int v4Expected, int v6Expected, int mplsExpected)
       const {
-    auto [numV4, numV6] = switchState_->getFibs()->getRouteCount();
+    auto [numV4, numV6] = switchState_->getMultiSwitchFibs()->getRouteCount();
     EXPECT_EQ(v6Expected, numV6);
     EXPECT_EQ(v4Expected, numV4);
     EXPECT_EQ(v6Expected + v4Expected, rib_.getRouteTableDetails(kRid).size());
@@ -169,7 +185,7 @@ TEST_F(RibRollbackTest, rollbackFail) {
   FailSomeUpdates failUpdateAndRollback({1, 2});
   EXPECT_DEATH(
       rib_.update(
-          nullptr,
+          scopeResolver(),
           kRid,
           kBgpClient,
           kBgpDistance,
@@ -188,7 +204,7 @@ TEST_F(RibRollbackTest, rollbackAdd) {
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
       rib_.update(
-          nullptr,
+          scopeResolver(),
           kRid,
           kBgpClient,
           kBgpDistance,
@@ -209,7 +225,7 @@ TEST_F(RibRollbackTest, rollbackAddExisting) {
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
       rib_.update(
-          nullptr,
+          scopeResolver(),
           kRid,
           kBgpClient,
           kBgpDistance,
@@ -230,7 +246,7 @@ TEST_F(RibRollbackTest, rollbackDel) {
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
       rib_.update(
-          nullptr,
+          scopeResolver(),
           kRid,
           kBgpClient,
           kBgpDistance,
@@ -249,7 +265,7 @@ TEST_F(RibRollbackTest, rollbackDelNonExistent) {
   auto routeTableBeforeUpdate = rib_.getRouteTableDetails(kRid);
   // Noop update - prefix does not exist in rib
   rib_.update(
-      nullptr,
+      scopeResolver(),
       kRid,
       kBgpClient,
       kBgpDistance,
@@ -265,7 +281,7 @@ TEST_F(RibRollbackTest, rollbackDelNonExistent) {
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
       rib_.update(
-          nullptr,
+          scopeResolver(),
           kRid,
           kBgpClient,
           kBgpDistance,
@@ -286,7 +302,7 @@ TEST_F(RibRollbackTest, rollbackAddAndDel) {
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
       rib_.update(
-          nullptr,
+          scopeResolver(),
           kRid,
           kBgpClient,
           kBgpDistance,
@@ -306,7 +322,7 @@ TEST_F(RibRollbackTest, rollbackDifferentClient) {
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
       rib_.update(
-          nullptr,
+          scopeResolver(),
           kRid,
           kOpenrClient,
           kOpenrDistance,
@@ -327,7 +343,7 @@ TEST_F(RibRollbackTest, rollbackDifferentNexthops) {
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
       rib_.update(
-          nullptr,
+          scopeResolver(),
           kRid,
           kBgpClient,
           kBgpDistance,
@@ -348,7 +364,7 @@ TEST_F(RibRollbackTest, syncFibRollbackExistingClient) {
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
       rib_.update(
-          nullptr,
+          scopeResolver(),
           kRid,
           kBgpClient,
           kBgpDistance,
@@ -372,7 +388,7 @@ TEST_F(RibRollbackTest, syncFibRollbackNewClient) {
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
       rib_.update(
-          nullptr,
+          scopeResolver(),
           kRid,
           kOpenrClient,
           kOpenrDistance,
@@ -396,7 +412,7 @@ TEST_F(RibRollbackTest, rollbackMpls) {
   FailSomeUpdates failFirstUpdate({1});
   EXPECT_THROW(
       rib_.update(
-          nullptr,
+          scopeResolver(),
           kRid,
           kBgpClient,
           kBgpDistance,

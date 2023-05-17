@@ -43,7 +43,7 @@ std::shared_ptr<Route<AddrT>> findRouteInSwitchState(
   }
   CHECK(exactMatch)
       << "Switch state api should only be called for exact match lookups";
-  auto& fib = state->getFibs()->getFibContainer(rid)->getFib<AddrT>();
+  auto& fib = state->getMultiSwitchFibs()->getNode(rid)->getFib<AddrT>();
   return findInFib(prefix, fib);
 }
 } // namespace

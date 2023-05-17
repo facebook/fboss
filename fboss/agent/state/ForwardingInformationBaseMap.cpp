@@ -104,6 +104,19 @@ void MultiSwitchForwardingInformationBaseMap::
   }
 }
 
+std::pair<uint64_t, uint64_t>
+MultiSwitchForwardingInformationBaseMap::getRouteCount() const {
+  uint64_t v4Count = 0;
+  uint64_t v6Count = 0;
+
+  for (const auto& [_, fibs] : std::as_const(*this)) {
+    auto [v4, v6] = fibs->getRouteCount();
+    v4Count += v4;
+    v6Count += v6;
+  }
+  return std::make_pair(v4Count, v6Count);
+}
+
 template class ThriftMapNode<
     ForwardingInformationBaseMap,
     ForwardingInformationBaseMapTraits>;

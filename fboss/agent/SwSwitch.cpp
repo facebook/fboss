@@ -777,7 +777,11 @@ void SwSwitch::init(
   heartbeatWatchdog_->start();
 
   setSwitchRunState(SwitchRunState::INITIALIZED);
-  if (getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+  auto npuOrVoq =
+      (*switchInfo.switchType() == cfg::SwitchType::VOQ ||
+       *switchInfo.switchType() == cfg::SwitchType::NPU);
+  if (npuOrVoq &&
+      getHwAsicTable()->isFeatureSupportedOnAnyAsic(
           HwAsic::Feature::ROUTE_PROGRAMMING)) {
     SwSwitchRouteUpdateWrapper(this, rib_.get()).programMinAlpmState();
   }
