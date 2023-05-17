@@ -45,6 +45,7 @@ class FailSomeUpdates {
   explicit FailSomeUpdates(std::unordered_set<int> toFail)
       : toFail_(std::move(toFail)) {}
   std::shared_ptr<SwitchState> operator()(
+      const SwitchIdScopeResolver*,
       RouterID vrf,
       const IPv4NetworkToRouteMap& v4NetworkToRoute,
       const IPv6NetworkToRouteMap& v6NetworkToRoute,
@@ -56,6 +57,7 @@ class FailSomeUpdates {
       (*curSwitchStatePtr)->publish();
       auto desiredState = *curSwitchStatePtr;
       ribToSwitchStateUpdate(
+          nullptr,
           vrf,
           v4NetworkToRoute,
           v6NetworkToRoute,
@@ -64,7 +66,7 @@ class FailSomeUpdates {
       throw FbossHwUpdateError(desiredState, *curSwitchStatePtr);
     }
     return ribToSwitchStateUpdate(
-        vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute, cookie);
+        nullptr, vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute, cookie);
   }
 
  private:

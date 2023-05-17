@@ -43,6 +43,7 @@ namespace facebook::fboss {
 class Platform;
 class SwitchState;
 class HwLinkStateToggler;
+class SwitchIdScopeResolver;
 
 class HwSwitchEnsemble : public TestEnsembleIf {
  public:

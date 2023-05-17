@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
@@ -25,11 +26,13 @@
 namespace facebook::fboss {
 
 ForwardingInformationBaseUpdater::ForwardingInformationBaseUpdater(
+    const SwitchIdScopeResolver* resolver,
     RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
     const IPv6NetworkToRouteMap& v6NetworkToRoute,
     const LabelToRouteMap& labelToRoute)
-    : vrf_(vrf),
+    : resolver_(resolver),
+      vrf_(vrf),
       v4NetworkToRoute_(v4NetworkToRoute),
       v6NetworkToRoute_(v6NetworkToRoute),
       labelToRoute_(labelToRoute) {}

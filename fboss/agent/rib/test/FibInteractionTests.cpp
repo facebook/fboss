@@ -67,7 +67,11 @@ TEST(ForwardingInformationBaseUpdater, ModifyUnpublishedSwitchState) {
   facebook::fboss::IPv6NetworkToRouteMap v6NetworkToRouteMap;
   facebook::fboss::LabelToRouteMap labelToRouteMap;
   facebook::fboss::ForwardingInformationBaseUpdater updater(
-      vrfOne, v4NetworkToRouteMap, v6NetworkToRouteMap, labelToRouteMap);
+      nullptr,
+      vrfOne,
+      v4NetworkToRouteMap,
+      v6NetworkToRouteMap,
+      labelToRouteMap);
   auto updatedState = updater(initialState);
 
   // Lastly, we check that the invocations of modify() operated on the

@@ -286,6 +286,7 @@ void RibRouteTables::updateFib(
     auto lockedRouteTables = synchronizedRouteTables_.rlock();
     auto& routeTable = lockedRouteTables->find(vrf)->second;
     fibUpdateCallback(
+        nullptr, /* TODO: inject scope resolver */
         vrf,
         routeTable.v4NetworkToRoute,
         routeTable.v6NetworkToRoute,

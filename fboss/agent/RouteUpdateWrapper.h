@@ -11,6 +11,7 @@
 #pragma once
 
 #include <folly/IPAddress.h>
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
@@ -118,10 +119,12 @@ class RouteUpdateWrapper {
 
  protected:
   RouteUpdateWrapper(
+      const SwitchIdScopeResolver* resolver,
       RoutingInformationBase* rib,
       std::optional<FibUpdateFunction> fibUpdateFn,
       void* fibUpdateCookie)
-      : rib_(rib),
+      : resolver_(resolver),
+        rib_(rib),
         fibUpdateFn_(fibUpdateFn),
         fibUpdateCookie_(fibUpdateCookie) {
     CHECK(rib_ && fibUpdateFn_ && fibUpdateCookie_);
@@ -133,6 +136,7 @@ class RouteUpdateWrapper {
       ribRoutesToAddDel_;
   std::unordered_map<std::pair<RouterID, ClientID>, AddDelMplsRoutes>
       ribMplsRoutesToAddDel_;
+  const SwitchIdScopeResolver* resolver_{};
   RoutingInformationBase* rib_{nullptr};
   std::optional<FibUpdateFunction> fibUpdateFn_;
   void* fibUpdateCookie_{nullptr};

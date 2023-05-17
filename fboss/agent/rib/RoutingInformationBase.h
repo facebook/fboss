@@ -28,8 +28,10 @@ DECLARE_bool(mpls_rib);
 namespace facebook::fboss {
 class SwitchState;
 class ForwardingInformationBaseMap;
+class SwitchIdScopeResolver;
 
 using FibUpdateFunction = std::function<std::shared_ptr<SwitchState>(
+    const SwitchIdScopeResolver* resolver,
     RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
     const IPv6NetworkToRouteMap& v6NetworkToRoute,
