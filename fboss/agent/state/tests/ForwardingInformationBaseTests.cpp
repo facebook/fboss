@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
@@ -89,6 +90,11 @@ std::shared_ptr<facebook::fboss::ForwardingInformationBaseV6> getFibV6() {
   return fibV6.clone();
 }
 
+facebook::fboss::HwSwitchMatcher scope() {
+  return facebook::fboss::HwSwitchMatcher{
+      std::unordered_set<facebook::fboss::SwitchID>{
+          facebook::fboss::SwitchID(10)}};
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -141,9 +147,9 @@ TEST(ForwardingInformationBaseContainer, Thrifty) {
   container.setFib(fibV6);
   validateNodeSerialization(container);
 
-  std::shared_ptr<ForwardingInformationBaseMap> fibs =
-      std::make_shared<ForwardingInformationBaseMap>();
-  fibs->addNode(container.clone());
+  std::shared_ptr<MultiSwitchForwardingInformationBaseMap> fibs =
+      std::make_shared<MultiSwitchForwardingInformationBaseMap>();
+  fibs->addNode(container.clone(), scope());
   validateThriftMapMapSerialization(*fibs);
 }
 

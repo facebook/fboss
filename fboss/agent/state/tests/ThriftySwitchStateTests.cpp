@@ -353,7 +353,7 @@ TEST(ThriftySwitchState, MultiMaps) {
 TEST(ThriftySwitchState, EmptyMultiMap) {
   auto state = SwitchState::fromThrift(state::SwitchState{});
   EXPECT_NO_THROW(state->getMirrors());
-  EXPECT_NO_THROW(state->getFibs());
+  EXPECT_NO_THROW(state->getMultiSwitchFibs());
 
   state::SwitchState stThr;
   state::MirrorFields mirror;
