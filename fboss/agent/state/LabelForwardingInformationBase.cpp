@@ -24,34 +24,6 @@ LabelForwardingInformationBase::LabelForwardingInformationBase() {}
 
 LabelForwardingInformationBase::~LabelForwardingInformationBase() {}
 
-const std::shared_ptr<LabelForwardingEntry>&
-LabelForwardingInformationBase::getLabelForwardingEntry(Label labelFib) const {
-  return getNode(labelFib.value());
-}
-
-std::shared_ptr<LabelForwardingEntry>
-LabelForwardingInformationBase::getLabelForwardingEntryIf(
-    Label labelFib) const {
-  return getNodeIf(labelFib.value());
-}
-
-// Save entries in old format till code to parse new format is in prod
-
-std::shared_ptr<LabelForwardingEntry>
-LabelForwardingInformationBase::labelEntryFromFollyDynamic(
-    folly::dynamic entry) {
-  std::shared_ptr<LabelForwardingEntry> labelEntry;
-  if (entry.find(kIncomingLabel) != entry.items().end()) {
-    XLOG(FATAL) << "unsupported dynamic format";
-  } else {
-    labelEntry = LabelForwardingEntry::fromFollyDynamic(entry);
-  }
-  if (FLAGS_mpls_rib) {
-    noRibToRibEntryConvertor(labelEntry);
-  }
-  return labelEntry;
-}
-
 // when rib is enabled, the client entries are stored as received
 // from producer of route. ie interfaces will not be resolved
 // unless it is a v6 link local or interface route. With no rib,
@@ -104,7 +76,7 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(
   }
 
   auto* writableLabelFib = modify(state);
-  auto entry = writableLabelFib->getLabelForwardingEntryIf(label);
+  auto entry = writableLabelFib->getNodeIf(label.value());
   auto nexthopCount = nexthops.size();
   std::string nextHopsStr{};
   toAppend(nexthops, &nextHopsStr);
@@ -137,7 +109,7 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::unprogramLabel(
     Label label,
     ClientID client) {
   auto* writableLabelFib = modify(state);
-  auto entry = writableLabelFib->getLabelForwardingEntryIf(label);
+  auto entry = writableLabelFib->getNodeIf(label.value());
   if (!entry) {
     throw FbossError(
         "request to delete a label ",

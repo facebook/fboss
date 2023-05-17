@@ -43,12 +43,6 @@ class LabelForwardingInformationBase
 
   virtual ~LabelForwardingInformationBase() override;
 
-  const std::shared_ptr<LabelForwardingEntry>& getLabelForwardingEntry(
-      Label topLabel) const;
-
-  std::shared_ptr<LabelForwardingEntry> getLabelForwardingEntryIf(
-      Label topLabel) const;
-
   std::shared_ptr<LabelForwardingEntry> cloneLabelEntry(
       std::shared_ptr<LabelForwardingEntry> entry);
 
@@ -80,10 +74,6 @@ class LabelForwardingInformationBase
   static void resolve(std::shared_ptr<LabelForwardingEntry> entry) {
     entry->setResolved(*(entry->getBestEntry().second));
   }
-
-  // For backward compatibility with old format
-  static std::shared_ptr<LabelForwardingEntry> labelEntryFromFollyDynamic(
-      folly::dynamic entry);
 
   static void noRibToRibEntryConvertor(
       std::shared_ptr<LabelForwardingEntry>& entry);
