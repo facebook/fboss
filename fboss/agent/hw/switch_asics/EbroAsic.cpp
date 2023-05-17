@@ -141,6 +141,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::QUEUE_PRIORITY_LOWER_VAL_IS_HIGH_PRI:
     case HwAsic::Feature::SWITCH_DROP_STATS:
     case HwAsic::Feature::SAI_UDF_HASH:
+    case HwAsic::Feature::INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK:
       return false;
   }
   return false;

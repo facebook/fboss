@@ -138,6 +138,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::TRAP_PRIORITY_LOWER_VAL_IS_LOWER_PRI:
     case HwAsic::Feature::ROUTE_COUNTERS:
     case HwAsic::Feature::SAI_UDF_HASH:
+    case HwAsic::Feature::INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK:
       return false;
   }
   return false;

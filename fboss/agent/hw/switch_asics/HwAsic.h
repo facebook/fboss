@@ -141,6 +141,7 @@ class HwAsic {
     SAI_CONFIGURE_SEVEN_TAP,
     SWITCH_DROP_STATS,
     SAI_UDF_HASH,
+    INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK,
   };
 
   enum class AsicMode {
