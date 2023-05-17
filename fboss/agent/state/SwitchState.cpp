@@ -355,6 +355,11 @@ const std::shared_ptr<ControlPlane>& SwitchState::getControlPlane() const {
       HwSwitchMatcher::defaultHwSwitchMatcherKey());
 }
 
+const std::shared_ptr<MultiControlPlane>&
+SwitchState::getMultiSwitchControlPlane() const {
+  return safe_cref<switch_state_tags::controlPlaneMap>();
+}
+
 const std::shared_ptr<LabelForwardingInformationBase>&
 SwitchState::getLabelForwardingInformationBase() const {
   return getDefaultMap<switch_state_tags::labelFibMap>();
