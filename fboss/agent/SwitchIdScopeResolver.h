@@ -29,6 +29,8 @@ class Interface;
 class Port;
 class AclTableGroup;
 class ForwardingInformationBaseContainer;
+template <typename T>
+class Route;
 
 class SwitchIdScopeResolver {
  public:
@@ -91,6 +93,7 @@ class SwitchIdScopeResolver {
       const std::shared_ptr<AclTableGroup>& aclTableGroup) const;
   HwSwitchMatcher scope(
       const std::shared_ptr<ForwardingInformationBaseContainer>& fibs) const;
+  HwSwitchMatcher scope(const std::shared_ptr<Route<LabelID>>& entry) const;
 
  private:
   void checkL3() const;

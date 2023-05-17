@@ -469,6 +469,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       const;
   const std::shared_ptr<LabelForwardingInformationBase>&
   getLabelForwardingInformationBase() const;
+  const std::shared_ptr<MultiLabelForwardingInformationBase>&
+  getMultiLabelForwardingInformationBase() const;
 
   const std::shared_ptr<TransceiverMap>& getTransceivers() const;
   const std::shared_ptr<MultiSwitchSystemPortMap>& getSystemPorts() const;
@@ -538,6 +540,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       std::shared_ptr<MultiSwitchLoadBalancerMap> loadBalancers);
   void resetLabelForwardingInformationBase(
       std::shared_ptr<LabelForwardingInformationBase> labelFib);
+  void resetLabelForwardingInformationBase(
+      std::shared_ptr<MultiLabelForwardingInformationBase> labelFib);
   void resetForwardingInformationBases(
       std::shared_ptr<MultiSwitchForwardingInformationBaseMap> fibs);
   void resetSwitchSettings(std::shared_ptr<SwitchSettings> switchSettings);

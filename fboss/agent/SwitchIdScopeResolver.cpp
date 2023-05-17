@@ -5,6 +5,7 @@
 #include "fboss/agent/state/AclTableGroup.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/LabelForwardingEntry.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/SystemPort.h"
@@ -201,6 +202,11 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 
 HwSwitchMatcher SwitchIdScopeResolver::scope(
     const std::shared_ptr<ForwardingInformationBaseContainer>& /*fibs*/) const {
+  return l3SwitchMatcher();
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<LabelForwardingEntry>& /*entry*/) const {
   return l3SwitchMatcher();
 }
 } // namespace facebook::fboss

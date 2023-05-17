@@ -243,11 +243,11 @@ DeltaValue<FlowletSwitchingConfig> StateDelta::getFlowletSwitchingConfigDelta()
       old_->getFlowletSwitchingConfig(), new_->getFlowletSwitchingConfig());
 }
 
-ThriftMapDelta<LabelForwardingInformationBase>
+MultiSwitchMapDelta<MultiLabelForwardingInformationBase>
 StateDelta::getLabelForwardingInformationBaseDelta() const {
-  return ThriftMapDelta<LabelForwardingInformationBase>(
-      old_->getLabelForwardingInformationBase().get(),
-      new_->getLabelForwardingInformationBase().get());
+  return MultiSwitchMapDelta<MultiLabelForwardingInformationBase>(
+      old_->getMultiLabelForwardingInformationBase().get(),
+      new_->getMultiLabelForwardingInformationBase().get());
 }
 
 DeltaValue<QosPolicy> StateDelta::getDefaultDataPlaneQosPolicyDelta() const {

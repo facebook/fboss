@@ -95,7 +95,7 @@ class StateDelta {
 
   ThriftMapDelta<TransceiverMap> getTransceiversDelta() const;
   MultiSwitchForwardingInformationBaseMapDelta getFibsDelta() const;
-  ThriftMapDelta<LabelForwardingInformationBase>
+  MultiSwitchMapDelta<MultiLabelForwardingInformationBase>
   getLabelForwardingInformationBaseDelta() const;
   DeltaValue<SwitchSettings> getSwitchSettingsDelta() const;
   DeltaValue<FlowletSwitchingConfig> getFlowletSwitchingConfigDelta() const;

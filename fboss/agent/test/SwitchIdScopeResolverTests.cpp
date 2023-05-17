@@ -179,3 +179,12 @@ TYPED_TEST(SwitchIdScopeResolverTest, fibContainerScope) {
     this->expectSwitchId(fibContainer);
   }
 }
+
+TYPED_TEST(SwitchIdScopeResolverTest, labelFibEntry) {
+  auto entry = std::make_shared<LabelForwardingEntry>();
+  if (this->isFabric()) {
+    this->expectThrow(entry);
+  } else {
+    this->expectSwitchId(entry);
+  }
+}
