@@ -152,8 +152,8 @@ struct SaiIngressPriorityGroupTraits {
   /*
    * XXX: As of now, get_ingress_priority_group_stats_ext() is unsupported
    * for Broadcom SAI platforms and hence avoid reading the watermark stats
-   * as clearOnRead counters. This needs to be fixed up once the issue
-   * tracked in CS00012282384 is addressed.
+   * as clearOnRead counters. This is addressed for DNX via CS00012282384,
+   * however, still open for rest of the SAI platforms.
    */
   static constexpr std::array<sai_stat_id_t, 0> CounterIdsToReadAndClear = {
       // SAI_INGRESS_PRIORITY_GROUP_STAT_SHARED_WATERMARK_BYTES,

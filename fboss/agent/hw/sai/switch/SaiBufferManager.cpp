@@ -321,10 +321,23 @@ void SaiBufferManager::updateIngressPriorityGroupStats(
   }
   SaiPortHandle* portHandle =
       managerTable_->portManager().getPortHandle(portId);
+  static std::vector<sai_stat_id_t> ingressPriorityGroupWatermarkStats(
+      SaiIngressPriorityGroupTraits::CounterIdsToReadAndClear.begin(),
+      SaiIngressPriorityGroupTraits::CounterIdsToReadAndClear.end());
+  // TODO: Only DNX supports watermarks as of now, this would need
+  // modifications once XGS side support is in place.
+  if (platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_JERICHO2 ||
+      platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    ingressPriorityGroupWatermarkStats.emplace_back(
+        SAI_INGRESS_PRIORITY_GROUP_STAT_SHARED_WATERMARK_BYTES);
+  }
   for (const auto& ipgInfo : portHandle->configuredIngressPriorityGroups) {
     const auto& ingressPriorityGroup =
         ipgInfo.second.pgHandle->ingressPriorityGroup;
-    ingressPriorityGroup->updateStats();
+    ingressPriorityGroup->updateStats(
+        ingressPriorityGroupWatermarkStats, SAI_STATS_MODE_READ_AND_CLEAR);
     auto counters = ingressPriorityGroup->getStats();
     auto iter =
         counters.find(SAI_INGRESS_PRIORITY_GROUP_STAT_SHARED_WATERMARK_BYTES);
