@@ -1046,6 +1046,8 @@ template MultiSwitchPortMap* SwitchState::modify<switch_state_tags::portMaps>(
     std::shared_ptr<SwitchState>*);
 template MultiLabelForwardingInformationBase* SwitchState::modify<
     switch_state_tags::labelFibMap>(std::shared_ptr<SwitchState>*);
+template MultiSwitchBufferPoolCfgMap* SwitchState::modify<
+    switch_state_tags::bufferPoolCfgMaps>(std::shared_ptr<SwitchState>*);
 
 template class ThriftStructNode<SwitchState, state::SwitchState>;
 

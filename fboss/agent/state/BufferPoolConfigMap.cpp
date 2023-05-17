@@ -11,8 +11,14 @@
 
 #include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/NodeMap-defs.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
+
+MultiSwitchBufferPoolCfgMap* MultiSwitchBufferPoolCfgMap::modify(
+    std::shared_ptr<SwitchState>* state) {
+  return SwitchState::modify<switch_state_tags::bufferPoolCfgMaps>(state);
+}
 
 template class ThriftMapNode<BufferPoolCfgMap, BufferPoolCfgMapTraits>;
 
