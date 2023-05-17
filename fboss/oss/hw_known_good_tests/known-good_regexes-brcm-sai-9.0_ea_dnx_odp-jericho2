@@ -50,7 +50,7 @@ HwSendPacketToQueueTest.*
 # PFC tests
 HwPfcTest.*:-*Watchdog*
 # PFC traffic tests
-HwTrafficPfc*:-*Watchdog*:*Zero*:*IngressPriorityGroup*
+HwTrafficPfc*:-*Watchdog*:*Zero*
 # Ingress buffer tests
 HwIngressBufferTest.*
 # Watermark tests
