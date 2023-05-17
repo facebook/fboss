@@ -197,7 +197,7 @@ void getPortInfoHelper(
     qosPolicy =
         *appliedPolicyName == state->getDefaultDataPlaneQosPolicy()->getName()
         ? state->getDefaultDataPlaneQosPolicy()
-        : state->getQosPolicy(*appliedPolicyName);
+        : state->getMultiSwitchQosPolicies()->getNodeIf(*appliedPolicyName);
     if (!qosPolicy) {
       throw std::runtime_error("qosPolicy state is null");
     }
