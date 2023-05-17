@@ -447,3 +447,14 @@ TEST(LabelFIBTests, LabelThrifty) {
   Label label(0xacacacac);
   validateNodeSerialization<Label, true>(label);
 }
+
+TEST(LabelFIBTests, MultiLabelForwardingInformationBaseModify) {
+  auto state = std::make_shared<SwitchState>();
+  state->publish();
+  auto fib = state->getMultiLabelForwardingInformationBase();
+  EXPECT_TRUE(fib->isPublished());
+  auto newFib = fib->modify(&state);
+  EXPECT_TRUE(!newFib->isPublished());
+  EXPECT_TRUE(!state->isPublished());
+  EXPECT_EQ(state->getMultiLabelForwardingInformationBase().get(), newFib);
+}

@@ -152,6 +152,12 @@ bool MultiLabelForwardingInformationBase::isValidNextHopSet(
   return true;
 }
 
+MultiLabelForwardingInformationBase*
+MultiLabelForwardingInformationBase::modify(
+    std::shared_ptr<SwitchState>* state) {
+  return SwitchState::modify<switch_state_tags::labelFibMap>(state);
+}
+
 template class ThriftMapNode<
     LabelForwardingInformationBase,
     LabelForwardingInformationBaseTraits>;
