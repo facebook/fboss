@@ -369,7 +369,7 @@ class ThriftConfigApplier {
       bool enable = true);
   // check the acl provided by config is valid
   void checkAcl(const cfg::AclEntry* config) const;
-  std::shared_ptr<QosPolicyMap> updateQosPolicies();
+  std::shared_ptr<MultiSwitchQosPolicyMap> updateQosPolicies();
   std::shared_ptr<QosPolicy> updateQosPolicy(
       cfg::QosPolicy& qosPolicy,
       int* numExistingProcessed,
@@ -2331,7 +2331,8 @@ shared_ptr<Vlan> ThriftConfigApplier::createPseudoVlan() {
   return vlan;
 }
 
-std::shared_ptr<QosPolicyMap> ThriftConfigApplier::updateQosPolicies() {
+std::shared_ptr<MultiSwitchQosPolicyMap>
+ThriftConfigApplier::updateQosPolicies() {
   QosPolicyMap::NodeContainer newQosPolicies;
   bool changed = false;
   int numExistingProcessed = 0;
@@ -2353,14 +2354,18 @@ std::shared_ptr<QosPolicyMap> ThriftConfigApplier::updateQosPolicies() {
           "\" already exists");
     }
   }
-  if (numExistingProcessed != orig_->getQosPolicies()->size()) {
+  if (numExistingProcessed != orig_->getMultiSwitchQosPolicies()->numNodes()) {
     // Some existing Qos Policies were removed.
     changed = true;
   }
   if (!changed) {
     return nullptr;
   }
-  return orig_->getQosPolicies()->clone(std::move(newQosPolicies));
+
+  auto newQosPolicyMaps =
+      std::make_shared<QosPolicyMap>(std::move(newQosPolicies));
+  return toMultiSwitchMap<MultiSwitchQosPolicyMap>(
+      newQosPolicyMaps, scopeResolver_);
 }
 
 std::shared_ptr<QosPolicy> ThriftConfigApplier::updateQosPolicy(
@@ -2368,7 +2373,7 @@ std::shared_ptr<QosPolicy> ThriftConfigApplier::updateQosPolicy(
     int* numExistingProcessed,
     bool* changed) {
   auto origQosPolicy =
-      orig_->getQosPolicies()->getQosPolicyIf(*qosPolicy.name());
+      orig_->getMultiSwitchQosPolicies()->getNodeIf(*qosPolicy.name());
   auto newQosPolicy = createQosPolicy(qosPolicy);
   if (origQosPolicy) {
     ++(*numExistingProcessed);
