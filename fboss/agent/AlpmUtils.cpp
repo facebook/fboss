@@ -16,6 +16,7 @@
 #include <folly/IPAddressV6.h>
 #include <optional>
 
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
@@ -44,16 +45,19 @@ std::shared_ptr<SwitchState> setupMinAlpmRouteState(
   // the default route and that the route table always contains a default
   // route
   auto newState = curState->clone();
+  auto resolver = SwitchIdScopeResolver(
+      newState->getSwitchSettings()->getSwitchIdToSwitchInfo());
   RouterID rid(0);
   RoutePrefixV4 defaultPrefix4{folly::IPAddressV4("0.0.0.0"), 0};
   RoutePrefixV6 defaultPrefix6{folly::IPAddressV6("::"), 0};
 
-  auto newFibs = newState->getFibs()->modify(&newState);
+  auto newFibs = newState->getMultiSwitchFibs()->modify(&newState);
   auto defaultVrf = std::make_shared<ForwardingInformationBaseContainer>(rid);
-  if (newFibs->getFibContainerIf(rid)) {
-    newFibs->updateForwardingInformationBaseContainer(defaultVrf);
+  if (newFibs->getNodeIf(rid)) {
+    newFibs->updateForwardingInformationBaseContainer(
+        defaultVrf, resolver.scope(defaultVrf));
   } else {
-    newFibs->addNode(defaultVrf);
+    newFibs->addNode(defaultVrf, resolver.scope(defaultVrf));
   }
   auto setupRoute = [](auto& route) {
     RouteNextHopEntry entry(

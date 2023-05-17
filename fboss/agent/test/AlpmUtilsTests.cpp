@@ -28,7 +28,7 @@ namespace {
 template <typename AddrType>
 std::shared_ptr<ForwardingInformationBase<AddrType>> getStandAloneFib(
     const std::shared_ptr<SwitchState>& state) {
-  auto fibContainer = state->getFibs()->getFibContainer(RouterID(0));
+  auto fibContainer = state->getMultiSwitchFibs()->getNode(RouterID(0));
   return fibContainer->template getFib<AddrType>();
 }
 
@@ -49,10 +49,22 @@ template <typename AddrType>
 size_t getFibSize(const std::shared_ptr<SwitchState>& state) {
   return getStandAloneFib<AddrType>(state)->size();
 }
+
+std::shared_ptr<SwitchState> getEmptyState() {
+  auto emptyState = std::make_shared<SwitchState>();
+  auto settings = std::make_unique<SwitchSettings>();
+  SwitchIdToSwitchInfo info{};
+  auto [iter, _] = info.emplace(SwitchID(0), cfg::SwitchInfo{});
+  iter->second.switchType() = cfg::SwitchType::NPU;
+  iter->second.asicType() = cfg::AsicType::ASIC_TYPE_FAKE;
+  settings->setSwitchIdToSwitchInfo(info);
+  emptyState->resetSwitchSettings(std::move(settings));
+  return emptyState;
+}
 } // namespace
 
 TEST(AlpmUtilsTest, DefaultNullRoutesAddedOnEmptyState) {
-  auto emptyState = std::make_shared<SwitchState>();
+  auto emptyState = getEmptyState();
   auto alpmInitState = setupMinAlpmRouteState(emptyState);
   EXPECT_NE(nullptr, alpmInitState);
   auto v4RibSize = getFibSize<folly::IPAddressV4>(alpmInitState);
@@ -76,7 +88,7 @@ TEST(AlpmUtilsTest, DefaultNullRoutesAddedOnEmptyState) {
 }
 
 TEST(AlpmUtilsTest, DefaultNullRoutesNotReAdded) {
-  auto emptyState = std::make_shared<SwitchState>();
+  auto emptyState = getEmptyState();
   auto alpmInitState = setupMinAlpmRouteState(emptyState);
   auto alpmAgainState = setupMinAlpmRouteState(alpmInitState);
 

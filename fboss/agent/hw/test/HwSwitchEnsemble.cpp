@@ -456,6 +456,10 @@ void HwSwitchEnsemble::setupEnsemble(
       platform_->getAsic()->getSwitchId());
 
   programmedState_ = hwInitResult.switchState;
+  programmedState_ = programmedState_->clone();
+  auto settings = programmedState_->getSwitchSettings()->clone();
+  settings->setSwitchIdToSwitchInfo(switchIdToSwitchInfo);
+  programmedState_->resetSwitchSettings(settings);
   routingInformationBase_ = std::move(hwInitResult.rib);
   // HwSwitch::init() returns an unpublished programmedState_.  SwSwitch is
   // normally responsible for publishing it.  Go ahead and call publish now.
