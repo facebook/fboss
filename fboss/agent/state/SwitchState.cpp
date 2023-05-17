@@ -293,6 +293,11 @@ void SwitchState::resetControlPlane(
   ref<switch_state_tags::controlPlaneMap>() = controlPlaneMap;
 }
 
+void SwitchState::resetControlPlane(
+    std::shared_ptr<MultiControlPlane> controlPlane) {
+  ref<switch_state_tags::controlPlaneMap>() = controlPlane;
+}
+
 void SwitchState::resetLoadBalancers(
     std::shared_ptr<MultiSwitchLoadBalancerMap> loadBalancers) {
   ref<switch_state_tags::loadBalancerMaps>() = loadBalancers;
