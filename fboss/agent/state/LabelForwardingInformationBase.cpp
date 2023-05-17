@@ -24,47 +24,6 @@ LabelForwardingInformationBase::LabelForwardingInformationBase() {}
 
 LabelForwardingInformationBase::~LabelForwardingInformationBase() {}
 
-// when rib is enabled, the client entries are stored as received
-// from producer of route. ie interfaces will not be resolved
-// unless it is a v6 link local or interface route. With no rib,
-// thrift handler layer will fill in interface id for all client
-// entries. This method converts a no rib entry to a rib entry
-// and is used for warmboot upgrade from no rib to rib case.
-void LabelForwardingInformationBase::noRibToRibEntryConvertor(
-    std::shared_ptr<LabelForwardingEntry>& entry) {
-  CHECK(!entry->isPublished());
-  // cache fwdinfo before modifying the route
-  const auto& fwd = entry->getForwardInfo();
-
-  if (fwd.getAction() == LabelNextHopEntry::Action::DROP ||
-      fwd.getAction() == LabelNextHopEntry::Action::TO_CPU) {
-    return;
-  }
-  auto entries = entry->cref<switch_state_tags::nexthopsmulti>()->clone();
-  // only interface routes and v6 ll routes will have interface id
-  for (auto& clientEntry : entry->getEntryForClients()) {
-    if (clientEntry.first == ClientID::INTERFACE_ROUTE) {
-      continue;
-    }
-    RouteNextHopSet nhSet;
-    const auto& rNHE = *clientEntry.second;
-    for (auto& nh : rNHE.getNextHopSet()) {
-      const auto& addr = nh.addr();
-      if (addr.isV6() && addr.isLinkLocal()) {
-        nhSet.emplace(nh);
-      } else {
-        nhSet.emplace(UnresolvedNextHop(
-            nh.addr(), nh.weight(), nh.labelForwardingAction()));
-      }
-    }
-    entries->update(
-        clientEntry.first,
-        RouteNextHopEntry(nhSet, rNHE.getAdminDistance(), rNHE.getCounterID()));
-  }
-  entry->ref<switch_state_tags::nexthopsmulti>() = entries;
-  entry->setResolved(fwd);
-}
-
 LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(
     std::shared_ptr<SwitchState>* state,
     Label label,

@@ -72,15 +72,10 @@ class LabelForwardingInformationBase
     entry->setResolved(*(entry->getBestEntry().second));
   }
 
-  static void noRibToRibEntryConvertor(
-      std::shared_ptr<LabelForwardingEntry>& entry);
-
  private:
   // Inherit the constructors required for clone()
   using Base::Base;
   friend class CloneAllocator;
-  static std::shared_ptr<LabelForwardingEntry> fromFollyDynamicOldFormat(
-      folly::dynamic entry);
 };
 
 using MultiLabelForwardingInformationBaseTypeClass =
