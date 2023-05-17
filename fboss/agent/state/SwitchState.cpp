@@ -530,7 +530,7 @@ std::shared_ptr<InterfaceMap> SwitchState::getInterfaces(
         // the same switchId
         continue;
       }
-      toRet->addInterface(interface);
+      toRet->addNode(interface);
     }
   }
   return toRet;

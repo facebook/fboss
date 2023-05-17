@@ -42,26 +42,9 @@ class InterfaceMap : public ThriftMapNode<InterfaceMap, InterfaceMapTraits> {
   using Base = ThriftMapNode<InterfaceMap, InterfaceMapTraits>;
   using Base::modify;
 
-  InterfaceMap();
-  ~InterfaceMap() override;
+  InterfaceMap() = default;
+  ~InterfaceMap() override = default;
 
-  /*
-   * Get the specified Interface.
-   *
-   * Throws an FbossError if the INTERFACE does not exist.
-   */
-  const std::shared_ptr<Interface> getInterface(InterfaceID id) const {
-    return getNode(static_cast<int32_t>(id));
-  }
-
-  /*
-   * Get the specified Interface.
-   *
-   * Returns null if the interface does not exist.
-   */
-  std::shared_ptr<Interface> getInterfaceIf(InterfaceID id) const {
-    return getNodeIf(static_cast<int32_t>(id));
-  }
   /*
    *  Get interface which has the given IPAddress. If multiple
    *  interfaces have the same address (unlikely) we return the
@@ -100,15 +83,6 @@ class InterfaceMap : public ThriftMapNode<InterfaceMap, InterfaceMapTraits> {
   const std::shared_ptr<Interface> getIntfToReach(
       RouterID router,
       const folly::IPAddress& dest) const;
-
-  /*
-   * The following functions modify the static state.
-   * These should only be called on unpublished objects which are only visible
-   * to a single thread.
-   */
-
-  void addInterface(const std::shared_ptr<Interface>& interface);
-  void updateInterface(const std::shared_ptr<Interface>& interface);
 
  private:
   // Inherit the constructors required for clone()

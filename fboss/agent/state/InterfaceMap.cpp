@@ -19,10 +19,6 @@ using std::string;
 
 namespace facebook::fboss {
 
-InterfaceMap::InterfaceMap() {}
-
-InterfaceMap::~InterfaceMap() {}
-
 std::shared_ptr<Interface> InterfaceMap::getInterfaceIf(
     RouterID router,
     const IPAddress& ip) const {
@@ -75,15 +71,6 @@ const std::shared_ptr<Interface> InterfaceMap::getIntfToReach(
     }
   }
   return nullptr;
-}
-
-void InterfaceMap::addInterface(const std::shared_ptr<Interface>& interface) {
-  addNode(interface);
-}
-
-void InterfaceMap::updateInterface(
-    const std::shared_ptr<Interface>& interface) {
-  updateNode(interface);
 }
 
 const std::shared_ptr<Interface> MultiSwitchInterfaceMap::getIntfToReach(
