@@ -156,12 +156,10 @@ void checkQosSwState(
     std::shared_ptr<SwitchState> state) {
   auto cfgQosPolicies = *config.qosPolicies();
   EXPECT_NE(nullptr, state);
-  ASSERT_EQ(
-      cfgQosPolicies.size(), state->getMultiSwitchQosPolicies()->numNodes());
+  ASSERT_EQ(cfgQosPolicies.size(), state->getQosPolicies()->numNodes());
 
   for (const auto& cfgQosPolicy : cfgQosPolicies) {
-    auto swQosPolicy =
-        state->getMultiSwitchQosPolicies()->getNodeIf(*cfgQosPolicy.name());
+    auto swQosPolicy = state->getQosPolicies()->getNodeIf(*cfgQosPolicy.name());
     checkQosPolicy(cfgQosPolicy, swQosPolicy);
   }
 }
@@ -282,7 +280,7 @@ TEST(QosPolicy, SerializePolicies) {
   config.qosPolicies()->push_back(p2);
   auto state = publishAndApplyConfig(stateV0, &config, platform.get());
 
-  auto qosPolicies = state->getMultiSwitchQosPolicies();
+  auto qosPolicies = state->getQosPolicies();
   validateThriftMapMapSerialization(*qosPolicies);
 }
 
@@ -332,7 +330,7 @@ TEST(QosPolicy, SerializePoliciesWithMap) {
   config.qosPolicies()->push_back(p2);
   auto state = publishAndApplyConfig(stateV0, &config, platform.get());
 
-  auto qosPolicies = state->getMultiSwitchQosPolicies();
+  auto qosPolicies = state->getQosPolicies();
   validateThriftMapMapSerialization(*qosPolicies);
 }
 
@@ -440,13 +438,13 @@ TEST(QosPolicy, QosPolicyDelta) {
   *p1.rules() = dscpRules({{7, {46}}});
   config.qosPolicies()->push_back(p1);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  auto qosPoliciesV1 = stateV1->getMultiSwitchQosPolicies();
+  auto qosPoliciesV1 = stateV1->getQosPolicies();
 
   /* Change 1 Policy */
   auto& p = config.qosPolicies()->back();
   *p.rules() = dscpRules({{7, {45}}});
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
-  auto qosPoliciesV2 = stateV2->getMultiSwitchQosPolicies();
+  auto qosPoliciesV2 = stateV2->getQosPolicies();
   checkDelta(qosPoliciesV1, qosPoliciesV2, {"qosPolicy_1"}, {}, {});
 
   /* Add 1 Policy */
@@ -454,14 +452,14 @@ TEST(QosPolicy, QosPolicyDelta) {
   *p2.rules() = dscpRules({{2, {36}}, {3, {34, 35}}});
   config.qosPolicies()->push_back(p2);
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
-  auto qosPoliciesV3 = stateV3->getMultiSwitchQosPolicies();
+  auto qosPoliciesV3 = stateV3->getQosPolicies();
   checkDelta(qosPoliciesV2, qosPoliciesV3, {}, {"qosPolicy_2"}, {});
 
   /* Remove 1 Policy */
   config.qosPolicies()[0] = config.qosPolicies()[1];
   config.qosPolicies()->pop_back();
   auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
-  auto qosPoliciesV4 = stateV4->getMultiSwitchQosPolicies();
+  auto qosPoliciesV4 = stateV4->getQosPolicies();
   checkDelta(qosPoliciesV3, qosPoliciesV4, {}, {}, {"qosPolicy_1"});
 }
 
@@ -475,21 +473,18 @@ TEST(QosPolicy, QosMap) {
   *policy.name() = "qosPolicy";
   policy.qosMap() = cfgQosMap();
   state = publishAndApplyConfig(state, &config, platform.get());
-  checkQosPolicy(
-      policy, state->getMultiSwitchQosPolicies()->getNodeIf("qosPolicy"));
+  checkQosPolicy(policy, state->getQosPolicies()->getNodeIf("qosPolicy"));
 
   // modiify qos map
   policy.qosMap()->dscpMaps()->pop_back();
   policy.qosMap()->expMaps()->pop_back();
   state = publishAndApplyConfig(state, &config, platform.get());
-  checkQosPolicy(
-      policy, state->getMultiSwitchQosPolicies()->getNodeIf("qosPolicy"));
+  checkQosPolicy(policy, state->getQosPolicies()->getNodeIf("qosPolicy"));
 
   // remove expMaps altogether
   policy.qosMap()->expMaps()->clear();
   state = publishAndApplyConfig(state, &config, platform.get());
-  checkQosPolicy(
-      policy, state->getMultiSwitchQosPolicies()->getNodeIf("qosPolicy"));
+  checkQosPolicy(policy, state->getQosPolicies()->getNodeIf("qosPolicy"));
 
   // allow both qos rule or maps
   *policy.rules() = dscpRules({{2, {36}}, {3, {34, 35}}});
@@ -506,8 +501,7 @@ TEST(QosPolicy, DefaultQosPolicy) {
   *policy.name() = "qosPolicy";
   policy.qosMap() = cfgQosMap();
   state = publishAndApplyConfig(state, &config, platform.get());
-  checkQosPolicy(
-      policy, state->getMultiSwitchQosPolicies()->getNodeIf("qosPolicy"));
+  checkQosPolicy(policy, state->getQosPolicies()->getNodeIf("qosPolicy"));
   // default policy is not set
   EXPECT_EQ(state->getDefaultDataPlaneQosPolicy(), nullptr);
   EXPECT_EQ(
@@ -530,8 +524,7 @@ TEST(QosPolicy, DefaultQosPolicy) {
   EXPECT_EQ(
       stateThrift.defaultDataPlaneQosPolicy(),
       stateThrift.switchSettings()->defaultDataPlaneQosPolicy());
-  EXPECT_EQ(
-      state->getMultiSwitchQosPolicies()->getNodeIf("qosPolicy"), nullptr);
+  EXPECT_EQ(state->getQosPolicies()->getNodeIf("qosPolicy"), nullptr);
 }
 
 TEST(QosPolicy, DefaultQosPolicyOnPorts) {
@@ -590,8 +583,7 @@ TEST(QosPolicy, QosPolicyPortOverride) {
   state = publishAndApplyConfig(state, &config, platform.get());
 
   checkQosPolicy(policy0, state->getDefaultDataPlaneQosPolicy());
-  checkQosPolicy(
-      policy1, state->getMultiSwitchQosPolicies()->getNodeIf("qosPolicy1"));
+  checkQosPolicy(policy1, state->getQosPolicies()->getNodeIf("qosPolicy1"));
 
   const auto port0 = state->getPort(PortID(1));
   ASSERT_EQ("qosPolicy1", port0->getQosPolicy().value());
@@ -834,8 +826,7 @@ TEST(QosPolicy, ValidatePgIdDelta) {
   auto state1 = publishAndApplyConfig(state, &config, platform.get());
   EXPECT_NE(nullptr, state1);
 
-  checkQosPolicy(
-      policy, state1->getMultiSwitchQosPolicies()->getNodeIf("qosPolicy"));
+  checkQosPolicy(policy, state1->getQosPolicies()->getNodeIf("qosPolicy"));
 
   tc2PgId.emplace(3, 3);
   qosMap.pfcPriorityToQueueId() = tc2PgId;
@@ -844,8 +835,7 @@ TEST(QosPolicy, ValidatePgIdDelta) {
   auto state2 = publishAndApplyConfig(state1, &config, platform.get());
   EXPECT_NE(nullptr, state2);
 
-  checkQosPolicy(
-      policy, state2->getMultiSwitchQosPolicies()->getNodeIf("qosPolicy"));
+  checkQosPolicy(policy, state2->getQosPolicies()->getNodeIf("qosPolicy"));
 
   qosMap.trafficClassToPgId().reset();
   policy.qosMap() = qosMap;

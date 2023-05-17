@@ -56,7 +56,7 @@ int getNumHwIngressL3QosMaps(BcmSwitch* hw) {
 void checkSwHwQosMapsMatch(
     BcmSwitch* hw,
     const std::shared_ptr<SwitchState>& state) {
-  auto qosPolicyTable = state->getMultiSwitchQosPolicies();
+  auto qosPolicyTable = state->getQosPolicies();
   auto bcmQosPolicyTable = hw->getQosPolicyTable();
   // default qos policy is mainted in sw switch state, but is maintained in same
   // qos policy map in bcm switch, need to reconcile this

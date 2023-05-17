@@ -340,8 +340,8 @@ const std::shared_ptr<MultiSwitchMirrorMap>& SwitchState::getMirrors() const {
   return safe_cref<switch_state_tags::mirrorMaps>();
 }
 
-const std::shared_ptr<MultiSwitchQosPolicyMap>&
-SwitchState::getMultiSwitchQosPolicies() const {
+const std::shared_ptr<MultiSwitchQosPolicyMap>& SwitchState::getQosPolicies()
+    const {
   return safe_cref<switch_state_tags::qosPolicyMaps>();
 }
 

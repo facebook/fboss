@@ -3785,8 +3785,8 @@ bool BcmSwitch::isValidPortQosPolicyUpdate(
     // either no policy or global default poliicy is provided
     return true;
   }
-  auto qosPolicy = newState->getMultiSwitchQosPolicies()->getNodeIf(
-      portQosPolicyName.value());
+  auto qosPolicy =
+      newState->getQosPolicies()->getNodeIf(portQosPolicyName.value());
   // qos policy for port must not have exp, since this is not supported
   return qosPolicy->getExpMap()->cref<switch_state_tags::to>()->empty() &&
       qosPolicy->getExpMap()->cref<switch_state_tags::from>()->empty();

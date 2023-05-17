@@ -2354,7 +2354,7 @@ ThriftConfigApplier::updateQosPolicies() {
           "\" already exists");
     }
   }
-  if (numExistingProcessed != orig_->getMultiSwitchQosPolicies()->numNodes()) {
+  if (numExistingProcessed != orig_->getQosPolicies()->numNodes()) {
     // Some existing Qos Policies were removed.
     changed = true;
   }
@@ -2372,8 +2372,7 @@ std::shared_ptr<QosPolicy> ThriftConfigApplier::updateQosPolicy(
     cfg::QosPolicy& qosPolicy,
     int* numExistingProcessed,
     bool* changed) {
-  auto origQosPolicy =
-      orig_->getMultiSwitchQosPolicies()->getNodeIf(*qosPolicy.name());
+  auto origQosPolicy = orig_->getQosPolicies()->getNodeIf(*qosPolicy.name());
   auto newQosPolicy = createQosPolicy(qosPolicy);
   if (origQosPolicy) {
     ++(*numExistingProcessed);
