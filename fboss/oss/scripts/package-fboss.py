@@ -111,10 +111,18 @@ class PackageFboss:
         hw_test_configs_path = os.path.join(
             self._get_git_root(__file__), "fboss/oss/hw_test_configs"
         )
+        qsfp_test_configs_path = os.path.join(
+            self._get_git_root(__file__), "fboss/oss/qsfp_test_configs"
+        )
         print(f"Copying {hw_test_configs_path} to {tmp_dir_name}")
         shutil.copytree(
             "fboss/oss/hw_test_configs",
             os.path.join(tmp_dir_name, PackageFboss.DATA, "hw_test_configs"),
+        )
+        print(f"Copying {qsfp_test_configs_path} to {tmp_dir_name}")
+        shutil.copytree(
+            "fboss/oss/qsfp_test_configs",
+            os.path.join(tmp_dir_name, PackageFboss.DATA, "qsfp_test_configs"),
         )
 
     def _copy_known_bad_tests(self, tmp_dir_name):
