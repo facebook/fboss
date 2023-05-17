@@ -330,4 +330,7 @@ add_library(switchid_scope_resolver
 
 target_link_libraries(switchid_scope_resolver
   fboss_types
+  fboss_error
+  hwswitch_matcher
+  state
 )
