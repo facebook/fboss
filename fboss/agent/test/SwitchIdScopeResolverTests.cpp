@@ -219,3 +219,11 @@ TYPED_TEST(SwitchIdScopeResolverTest, qosPolicyScope) {
     this->expectL3(std::shared_ptr<QosPolicy>());
   }
 }
+
+TYPED_TEST(SwitchIdScopeResolverTest, controlPlaneScope) {
+  if (this->isFabric()) {
+    this->expectThrow(std::shared_ptr<ControlPlane>{});
+  } else {
+    this->expectL3(std::shared_ptr<ControlPlane>());
+  }
+}

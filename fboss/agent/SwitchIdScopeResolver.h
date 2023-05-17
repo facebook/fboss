@@ -35,6 +35,7 @@ class BufferPoolCfg;
 class QosPolicy;
 template <typename T>
 class Route;
+class ControlPlane;
 
 class SwitchIdScopeResolver {
  public:
@@ -109,6 +110,10 @@ class SwitchIdScopeResolver {
     return l3SwitchMatcher();
   }
   const HwSwitchMatcher& scope(const std::shared_ptr<QosPolicy>& /*q*/) const {
+    return l3SwitchMatcher();
+  }
+  const HwSwitchMatcher& scope(
+      const std::shared_ptr<ControlPlane>& /*c*/) const {
     return l3SwitchMatcher();
   }
 
