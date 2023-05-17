@@ -438,8 +438,8 @@ TEST(AclGroup, SerializeMultiSwitchAclTableGroupMap) {
   tableGroup->setAclTableMap(tableMap);
   tableGroup->setName(kAclTableGroupName);
 
-  auto tableGroups = std::make_shared<AclTableGroupMap>();
-  tableGroups->addAclTableGroup(tableGroup);
+  auto tableGroups = std::make_shared<MultiSwitchAclTableGroupMap>();
+  tableGroups->addNode(tableGroup, scope());
 
   auto state = SwitchState();
   state.resetAclTableGroups(tableGroups);
@@ -629,8 +629,8 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   tableGroup->setName(kGroup1);
   validateNodeSerialization(*tableGroup);
 
-  auto tableGroups = make_shared<AclTableGroupMap>();
-  tableGroups->addAclTableGroup(tableGroup);
+  auto tableGroups = make_shared<MultiSwitchAclTableGroupMap>();
+  tableGroups->addNode(tableGroup, scope());
   validateThriftMapMapSerialization(*tableGroups);
 
   cfg::AclTable cfgTable1;

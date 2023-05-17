@@ -264,8 +264,8 @@ TEST(ThriftySwitchState, AclTableGroupMap) {
   tableGroup->setAclTableMap(tableMap);
   tableGroup->setName(kGroup1);
 
-  auto tableGroups = std::make_shared<AclTableGroupMap>();
-  tableGroups->addAclTableGroup(tableGroup);
+  auto tableGroups = std::make_shared<MultiSwitchAclTableGroupMap>();
+  tableGroups->addNode(tableGroup, scope());
 
   auto state = SwitchState();
   state.resetAclTableGroups(tableGroups);

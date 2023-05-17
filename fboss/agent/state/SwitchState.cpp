@@ -140,7 +140,6 @@ SwitchState::SwitchState() {
   resetBufferPoolCfgs(std::make_shared<BufferPoolCfgMap>());
   resetVlans(std::make_shared<VlanMap>());
   resetPorts(std::make_shared<PortMap>());
-  resetAclTableGroups(std::make_shared<AclTableGroupMap>());
   resetControlPlane(std::make_shared<ControlPlane>());
   resetSwitchSettings(std::make_shared<SwitchSettings>());
 }
@@ -241,11 +240,6 @@ void SwitchState::resetAcls(const std::shared_ptr<MultiSwitchAclMap>& acls) {
 
 const std::shared_ptr<MultiSwitchAclMap>& SwitchState::getAcls() const {
   return safe_cref<switch_state_tags::aclMaps>();
-}
-
-void SwitchState::resetAclTableGroups(
-    std::shared_ptr<AclTableGroupMap> aclTableGroups) {
-  resetDefaultMap<switch_state_tags::aclTableGroupMaps>(aclTableGroups);
 }
 
 void SwitchState::resetAclTableGroups(
@@ -630,7 +624,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     if (aclMap && aclMap->size()) {
       state->set<switch_state_tags::aclMap>(aclMap->toThrift());
       state->ref<switch_state_tags::aclTableGroupMap>().reset();
-      state->resetAclTableGroups(std::make_shared<AclTableGroupMap>());
     }
   }
   /* forward compatibility */
@@ -692,7 +685,7 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     // set multi map if acl table group map exists
     state->fromThrift<
         switch_state_tags::aclTableGroupMaps,
-        switch_state_tags::aclTableGroupMap>();
+        switch_state_tags::aclTableGroupMap>(true /*emptyMnpuMapOk*/);
   }
   state
       ->fromThrift<switch_state_tags::dsfNodesMap, switch_state_tags::dsfNodes>(
