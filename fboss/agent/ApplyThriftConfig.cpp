@@ -4425,8 +4425,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
           nhop.weight(),
           nhop.labelForwardingAction()));
     }
-    auto entry = labelFib->getLabelForwardingEntryIf(
-        staticMplsRouteEntry.get_ingressLabel());
+    auto entry = labelFib->getNodeIf(staticMplsRouteEntry.get_ingressLabel());
     if (!entry) {
       auto node = createLabelForwardingEntry(
           staticMplsRouteEntry.get_ingressLabel(),
@@ -4446,8 +4445,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
   }
 
   for (auto& staticMplsRouteEntry : staticMplsRoutesToNull) {
-    auto entry = labelFib->getLabelForwardingEntryIf(
-        staticMplsRouteEntry.get_ingressLabel());
+    auto entry = labelFib->getNodeIf(staticMplsRouteEntry.get_ingressLabel());
     if (!entry) {
       auto node = createLabelForwardingEntry(
           staticMplsRouteEntry.get_ingressLabel(),
@@ -4467,8 +4465,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
   }
 
   for (auto& staticMplsRouteEntry : staticMplsRoutesToCPU) {
-    auto entry = labelFib->getLabelForwardingEntryIf(
-        staticMplsRouteEntry.get_ingressLabel());
+    auto entry = labelFib->getNodeIf(staticMplsRouteEntry.get_ingressLabel());
     if (!entry) {
       auto node = createLabelForwardingEntry(
           staticMplsRouteEntry.get_ingressLabel(),

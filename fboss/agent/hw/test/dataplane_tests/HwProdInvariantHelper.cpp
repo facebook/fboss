@@ -258,9 +258,7 @@ void HwProdInvariantHelper::verifyMplsEntry(
     int label,
     LabelForwardingAction::LabelForwardingType action) {
   auto state = getProgrammedState();
-  auto entry =
-      state->getLabelForwardingInformationBase()->getLabelForwardingEntryIf(
-          label);
+  auto entry = state->getLabelForwardingInformationBase()->getNodeIf(label);
   EXPECT_NE(entry, nullptr);
   auto nhops = entry->getForwardInfo().getNextHopSet();
   EXPECT_NE(nhops.size(), 0);

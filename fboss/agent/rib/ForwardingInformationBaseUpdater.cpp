@@ -169,7 +169,7 @@ ForwardingInformationBaseUpdater::createUpdatedLabelFib(
       // DROP to be resolved.
       continue;
     }
-    auto fibRoute = fib->getLabelForwardingEntryIf(label);
+    auto fibRoute = fib->getNodeIf(label);
     if (fibRoute) {
       if (fibRoute == ribRoute || fibRoute->isSame(ribRoute.get())) {
         // Pointer or contents are same, reuse existing route
@@ -193,7 +193,7 @@ ForwardingInformationBaseUpdater::createUpdatedLabelFib(
   for (const auto& iter : std::as_const(*fib)) {
     const auto& fibEntry = iter.second;
     const auto& label = fibEntry->getID();
-    if (!newFib->getLabelForwardingEntryIf(label)) {
+    if (!newFib->getNodeIf(label)) {
       updated = true;
       break;
     }

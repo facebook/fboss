@@ -2583,9 +2583,8 @@ void ThriftHandler::getMplsRouteDetails(
     MplsLabel topLabel) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  const auto entry = sw_->getState()
-                         ->getLabelForwardingInformationBase()
-                         ->getLabelForwardingEntry(topLabel);
+  const auto entry =
+      sw_->getState()->getLabelForwardingInformationBase()->getNode(topLabel);
   mplsRouteDetail.topLabel() = entry->getID();
   mplsRouteDetail.nextHopMulti() = entry->getEntryForClients().toThriftLegacy();
   const auto& fwd = entry->getForwardInfo();

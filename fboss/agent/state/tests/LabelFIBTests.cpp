@@ -43,8 +43,8 @@ void removeEntryWithUnprogramLabel(
 
 TEST(LabelFIBTests, addLabelForwardingEntry) {
   auto lFib = std::make_shared<LabelForwardingInformationBase>();
-  auto entry = lFib->getLabelForwardingEntryIf(5001);
-  ASSERT_EQ(nullptr, lFib->getLabelForwardingEntryIf(5001));
+  auto entry = lFib->getNodeIf(5001);
+  ASSERT_EQ(nullptr, lFib->getNodeIf(5001));
 
   entry =
       std::make_shared<LabelForwardingEntry>(LabelForwardingEntry::makeThrift(
@@ -53,7 +53,7 @@ TEST(LabelFIBTests, addLabelForwardingEntry) {
           util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED)));
 
   lFib->addNode(entry);
-  EXPECT_NE(nullptr, lFib->getLabelForwardingEntryIf(5001));
+  EXPECT_NE(nullptr, lFib->getNodeIf(5001));
 }
 
 TEST(LabelFIBTests, removeLabelForwardingEntry) {
@@ -63,9 +63,9 @@ TEST(LabelFIBTests, removeLabelForwardingEntry) {
           5001,
           ClientID::OPENR,
           util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED))));
-  EXPECT_NE(nullptr, lFib->getLabelForwardingEntryIf(5001));
+  EXPECT_NE(nullptr, lFib->getNodeIf(5001));
   lFib->removeNodeIf(5001);
-  EXPECT_EQ(nullptr, lFib->getLabelForwardingEntryIf(5001));
+  EXPECT_EQ(nullptr, lFib->getNodeIf(5001));
 }
 
 TEST(LabelFIBTests, updateLabelForwardingEntry) {
@@ -77,9 +77,9 @@ TEST(LabelFIBTests, updateLabelForwardingEntry) {
           ClientID::OPENR,
           util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED))));
 
-  EXPECT_NE(nullptr, lFib->getLabelForwardingEntryIf(5001));
+  EXPECT_NE(nullptr, lFib->getNodeIf(5001));
 
-  auto entry = lFib->getLabelForwardingEntryIf(5001);
+  auto entry = lFib->getNodeIf(5001);
 
   entry->update(
       ClientID::STATIC_ROUTE,
@@ -87,7 +87,7 @@ TEST(LabelFIBTests, updateLabelForwardingEntry) {
   entry->delEntryForClient(ClientID::OPENR);
 
   lFib->updateNode(entry);
-  auto updatedEntry = lFib->getLabelForwardingEntry(5001);
+  auto updatedEntry = lFib->getNode(5001);
   for (const auto& nhop : updatedEntry->getForwardInfo().getNextHopSet()) {
     ASSERT_TRUE(nhop.labelForwardingAction());
     EXPECT_EQ(
@@ -127,8 +127,8 @@ TEST(LabelFIBTests, toAndFromFollyDynamic) {
 
   auto lFib = sw->getState()->getLabelForwardingInformationBase();
 
-  auto ribEntry1 = lFib->getLabelForwardingEntry(5001);
-  auto ribEntry2 = lFib->getLabelForwardingEntry(5002);
+  auto ribEntry1 = lFib->getNode(5001);
+  auto ribEntry2 = lFib->getNode(5002);
   validateNodeSerialization(*ribEntry1);
   validateNodeSerialization(*ribEntry2);
   validateThriftMapMapSerialization(*lFib);
@@ -219,7 +219,7 @@ TEST(LabelFIBTests, forEachChanged) {
   labelFib = oldState->getLabelForwardingInformationBase();
   labelFib = labelFib->clone();
 
-  auto newEntry = labelFib->getLabelForwardingEntry(5001);
+  auto newEntry = labelFib->getNode(5001);
   newEntry = labelFib->cloneLabelEntry(newEntry);
   newEntry->update(
       ClientID::BGPD,
@@ -257,9 +257,7 @@ TEST(LabelFIBTests, programLabel) {
 
   addOrUpdateEntryWithProgramLabel(&stateA, ClientID::OPENR, entryToAdd.get());
   stateA->publish();
-  auto entryAdded =
-      stateA->getLabelForwardingInformationBase()->getLabelForwardingEntry(
-          5001);
+  auto entryAdded = stateA->getLabelForwardingInformationBase()->getNode(5001);
   EXPECT_TRUE(entryAdded->isSame(entryToAdd.get()));
 }
 
@@ -284,8 +282,7 @@ TEST(LabelFIBTests, updateLabel) {
   addOrUpdateEntryWithProgramLabel(
       &stateA, ClientID::OPENR, entryToUpdate.get());
   auto entryUpdated =
-      stateA->getLabelForwardingInformationBase()->getLabelForwardingEntry(
-          5001);
+      stateA->getLabelForwardingInformationBase()->getNode(5001);
 
   EXPECT_EQ(
       *entryToUpdate->getEntryForClient(ClientID::OPENR),
@@ -316,14 +313,10 @@ TEST(LabelFIBTests, unprogramLabel) {
   removeEntryWithUnprogramLabel(&stateA, 5002, ClientID::OPENR);
   stateA->publish();
 
-  auto entry5001 =
-      stateA->getLabelForwardingInformationBase()->getLabelForwardingEntry(
-          5001);
+  auto entry5001 = stateA->getLabelForwardingInformationBase()->getNode(5001);
   EXPECT_TRUE(entry5001->isSame(entryToAdd5001.get()));
 
-  auto entry5002 =
-      stateA->getLabelForwardingInformationBase()->getLabelForwardingEntryIf(
-          5002);
+  auto entry5002 = stateA->getLabelForwardingInformationBase()->getNodeIf(5002);
   EXPECT_EQ(nullptr, entry5002);
 }
 
@@ -358,14 +351,11 @@ TEST(LabelFIBTests, purgeEntriesForClient) {
   stateA->publish();
 
   auto entryAdded5001 =
-      stateA->getLabelForwardingInformationBase()->getLabelForwardingEntry(
-          5001);
+      stateA->getLabelForwardingInformationBase()->getNode(5001);
   auto entryAdded5002 =
-      stateA->getLabelForwardingInformationBase()->getLabelForwardingEntry(
-          5002);
+      stateA->getLabelForwardingInformationBase()->getNode(5002);
   auto entryAdded5003 =
-      stateA->getLabelForwardingInformationBase()->getLabelForwardingEntry(
-          5003);
+      stateA->getLabelForwardingInformationBase()->getNode(5003);
 
   EXPECT_TRUE(entryToAdd5001->isSame(entryAdded5001.get()));
   EXPECT_TRUE(entryToAdd5002->isSame(entryAdded5002.get()));
@@ -377,19 +367,13 @@ TEST(LabelFIBTests, purgeEntriesForClient) {
 
   stateA->publish();
 
-  auto entry5001 =
-      stateA->getLabelForwardingInformationBase()->getLabelForwardingEntryIf(
-          5001);
+  auto entry5001 = stateA->getLabelForwardingInformationBase()->getNodeIf(5001);
   ASSERT_EQ(nullptr, entry5001);
 
-  auto entry5002 =
-      stateA->getLabelForwardingInformationBase()->getLabelForwardingEntryIf(
-          5002);
+  auto entry5002 = stateA->getLabelForwardingInformationBase()->getNodeIf(5002);
   ASSERT_EQ(nullptr, entry5002);
 
-  auto entry5003 =
-      stateA->getLabelForwardingInformationBase()->getLabelForwardingEntry(
-          5003);
+  auto entry5003 = stateA->getLabelForwardingInformationBase()->getNode(5003);
   EXPECT_TRUE(entryAdded5003->isSame(entry5003.get()));
 }
 
@@ -415,11 +399,9 @@ TEST(LabelFIBTests, oneLabelManyClients) {
   stateA->publish();
 
   auto entryAdded5001 =
-      stateA->getLabelForwardingInformationBase()->getLabelForwardingEntry(
-          5001);
+      stateA->getLabelForwardingInformationBase()->getNode(5001);
   auto entryAdded5002 =
-      stateA->getLabelForwardingInformationBase()->getLabelForwardingEntry(
-          5002);
+      stateA->getLabelForwardingInformationBase()->getNode(5002);
 
   EXPECT_TRUE(entryToAdd5001->isSame(entryAdded5001.get()));
   EXPECT_EQ(
@@ -437,9 +419,7 @@ TEST(LabelFIBTests, oneLabelManyClients) {
       &stateA, ClientID::OPENR, entryToAdd5002Openr.get());
   stateA->publish();
 
-  entryAdded5002 =
-      stateA->getLabelForwardingInformationBase()->getLabelForwardingEntry(
-          5002);
+  entryAdded5002 = stateA->getLabelForwardingInformationBase()->getNode(5002);
 
   // 3) for 5002, now directly connected next hop is preferred
   EXPECT_EQ(
@@ -452,15 +432,11 @@ TEST(LabelFIBTests, oneLabelManyClients) {
   stateA->publish();
 
   // 5) check that oper-r only entry is deleted
-  auto entry5001 =
-      stateA->getLabelForwardingInformationBase()->getLabelForwardingEntryIf(
-          5001);
+  auto entry5001 = stateA->getLabelForwardingInformationBase()->getNodeIf(5001);
   ASSERT_EQ(nullptr, entry5001);
 
   // 6) label 5002 still has next hop published by bgp
-  auto entry5002 =
-      stateA->getLabelForwardingInformationBase()->getLabelForwardingEntryIf(
-          5002);
+  auto entry5002 = stateA->getLabelForwardingInformationBase()->getNodeIf(5002);
   ASSERT_NE(nullptr, entry5002);
 
   // 7) next hop for 5002 label is now the one informed by bgp

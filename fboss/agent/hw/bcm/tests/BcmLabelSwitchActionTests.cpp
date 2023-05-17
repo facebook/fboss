@@ -105,9 +105,8 @@ class BcmLabelSwitchActionTest : public BcmTest {
   void verifyTestLabelForwardingEntry(
       const std::shared_ptr<LabelForwardingEntry>& mplsEntry) {
     auto state = getHwSwitchEnsemble()->getProgrammedState();
-    auto entry =
-        state->getLabelForwardingInformationBase()->getLabelForwardingEntryIf(
-            mplsEntry->getID());
+    auto entry = state->getLabelForwardingInformationBase()->getNodeIf(
+        mplsEntry->getID());
     bcm_mpls_tunnel_switch_t info;
     bcm_mpls_tunnel_switch_t_init(&info);
     info.label = entry->getID();

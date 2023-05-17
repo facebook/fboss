@@ -190,7 +190,7 @@ TEST(LabelForwardingEntryTests, modify) {
   newState->publish();
 
   auto publishedLfib = newState->getLabelForwardingInformationBase();
-  auto publishedEntry = publishedLfib->getLabelForwardingEntryIf(5001);
+  auto publishedEntry = publishedLfib->getNodeIf(5001);
   ASSERT_NE(nullptr, publishedEntry);
   EXPECT_EQ(true, publishedLfib->isPublished());
   EXPECT_EQ(true, publishedEntry->isPublished());
@@ -208,7 +208,7 @@ TEST(LabelForwardingEntryTests, modify) {
   EXPECT_EQ(
       modifiedEntry,
       modifiedLfib->modifyLabelEntry(
-          &newerState, modifiedLfib->getLabelForwardingEntryIf(5001)));
+          &newerState, modifiedLfib->getNodeIf(5001)));
   EXPECT_EQ(false, newerState->isPublished());
   EXPECT_EQ(false, modifiedEntry->isPublished());
   EXPECT_EQ(
@@ -216,7 +216,7 @@ TEST(LabelForwardingEntryTests, modify) {
   EXPECT_EQ(
       false,
       newerState->getLabelForwardingInformationBase()
-          ->getLabelForwardingEntryIf(5001)
+          ->getNodeIf(5001)
           ->isPublished());
 }
 
