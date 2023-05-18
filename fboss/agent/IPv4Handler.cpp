@@ -153,22 +153,6 @@ void IPv4Handler::handlePacket(
 
   // retrieve the current switch state
   auto state = sw_->getState();
-  // Need to check if the packet is for self or not. We store our IP
-  // in the ARP response table. Use that for now.
-  auto portPtr = state->getPorts()->getPortIf(port);
-  if (!portPtr) {
-    // Received packed on unknown port
-    stats->port(port)->pktDropped();
-    return;
-  }
-  auto intfID = sw_->getState()->getInterfaceIDForPort(port);
-  auto ingressInterface = state->getInterfaces()->getNodeIf(intfID);
-  if (!ingressInterface) {
-    // Received packed on unknown port / interface
-    stats->port(port)->pktDropped();
-    return;
-  }
-
   if (v4Hdr.protocol == static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP)) {
     Cursor udpCursor(cursor);
     UDPHeader udpHdr;
