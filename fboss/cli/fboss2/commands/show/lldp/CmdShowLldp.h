@@ -208,7 +208,9 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
             ? *entry.get_systemName()
             : entry.get_printableChassisId();
         lldpDetails.remotePort() = entry.get_printablePortId();
-        lldpDetails.remotePlatform() = *entry.get_systemDescription();
+        if (entry.get_systemDescription()) {
+          lldpDetails.remotePlatform() = *entry.get_systemDescription();
+        }
         lldpDetails.remotePortDescription() = portInfo.get_description();
         lldpDetails.status() =
             (operState == facebook::fboss::PortOperState::UP) ? "up" : "down";
