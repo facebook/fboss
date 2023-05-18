@@ -6,7 +6,6 @@ import glob
 import os
 import shutil
 import subprocess
-import tarfile
 import tempfile
 
 import git
@@ -114,6 +113,9 @@ class PackageFboss:
         qsfp_test_configs_path = os.path.join(
             self._get_git_root(__file__), "fboss/oss/qsfp_test_configs"
         )
+        link_test_configs_path = os.path.join(
+            self._get_git_root(__file__), "fboss/oss/link_test_configs"
+        )
         print(f"Copying {hw_test_configs_path} to {tmp_dir_name}")
         shutil.copytree(
             "fboss/oss/hw_test_configs",
@@ -123,6 +125,11 @@ class PackageFboss:
         shutil.copytree(
             "fboss/oss/qsfp_test_configs",
             os.path.join(tmp_dir_name, PackageFboss.DATA, "qsfp_test_configs"),
+        )
+        print(f"Copying {link_test_configs_path} to {tmp_dir_name}")
+        shutil.copytree(
+            "fboss/oss/link_test_configs",
+            os.path.join(tmp_dir_name, PackageFboss.DATA, "link_test_configs"),
         )
 
     def _copy_known_bad_tests(self, tmp_dir_name):
