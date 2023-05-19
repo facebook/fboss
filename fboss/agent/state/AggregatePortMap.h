@@ -58,6 +58,9 @@ class AggregatePortMap
 
   static int16_t getNodeThriftKey(const std::shared_ptr<AggregatePort>& node);
 
+  std::shared_ptr<AggregatePort> getAggregatePortForPort(PortID port) const {
+    return getAggregatePortIf(port);
+  }
   /* This method will iterate over every member port in every aggregate port,
    * so it is a quadratic operation. If it turns out to be a bottleneck, we can
    * maintain an index to speed it up.

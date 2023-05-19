@@ -157,7 +157,7 @@ bool AggregatePort::isIngressValid(
     const std::unique_ptr<RxPacket>& packet) {
   auto physicalIngressPort = packet->getSrcPort();
   auto owningAggregatePort =
-      state->getAggregatePorts()->getAggregatePortIf(physicalIngressPort);
+      state->getAggregatePorts()->getAggregatePortForPort(physicalIngressPort);
 
   if (!owningAggregatePort) {
     // case C
