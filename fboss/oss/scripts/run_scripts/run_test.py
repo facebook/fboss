@@ -124,6 +124,7 @@ OPT_ARG_FILTER = "--filter"
 OPT_ARG_FILTER_FILE = "--filter_file"
 OPT_ARG_LIST_TESTS = "--list_tests"
 OPT_ARG_CONFIG_FILE = "--config"
+OPT_ARG_QSFP_CONFIG_FILE = "--qsfp-config"
 OPT_ARG_SDK_LOGGING = "--sdk_logging"
 OPT_ARG_SKIP_KNOWN_BAD_TESTS = "--skip-known-bad-tests"
 OPT_ARG_OSS = "--oss"
@@ -135,8 +136,11 @@ OPT_ARG_SIMULATOR = "--simulator"
 OPT_ARG_SAI_LOGGING = "--sai_logging"
 SUB_CMD_BCM = "bcm"
 SUB_CMD_SAI = "sai"
+SUB_CMD_QSFP = "qsfp"
 WARMBOOT_CHECK_FILE = "/dev/shm/fboss/warm_boot/can_warm_boot_0"
-KNOWN_BAD_TESTS = "./share/hw_known_bad_tests/sai_known_bad_tests.materialized_JSON"
+SAI_HW_KNOWN_BAD_TESTS = (
+    "./share/hw_known_bad_tests/sai_known_bad_tests.materialized_JSON"
+)
 
 
 class TestRunner(abc.ABC):
@@ -157,6 +161,10 @@ class TestRunner(abc.ABC):
         pass
 
     @abc.abstractmethod
+    def _get_known_bad_tests_file(self):
+        pass
+
+    @abc.abstractmethod
     def _get_test_binary_name(self):
         pass
 
@@ -169,15 +177,18 @@ class TestRunner(abc.ABC):
         pass
 
     def _get_test_run_cmd(self, conf_file, test_to_run, flags):
+        test_binary_name = self._get_test_binary_name()
         run_cmd = [
-            self._get_test_binary_name(),
-            "--mgmt-if",
-            args.mgmt_if,
-            "--config",
-            conf_file,
+            test_binary_name,
             "--gtest_filter=" + test_to_run,
             "--fruid_filepath=" + args.fruid_path,
         ]
+        run_args = []
+        if "sai_test" in test_binary_name or test_binary_name == args.sai_bin:
+            run_args = ["--config", conf_file, "--mgmt-if", args.mgmt_if]
+        if test_binary_name == "qsfp_hw_test":
+            run_args = ["--qsfp-config", args.qsfp_config]
+        run_cmd += run_args
 
         return run_cmd + flags if flags else run_cmd
 
@@ -194,7 +205,9 @@ class TestRunner(abc.ABC):
         if not args.skip_known_bad_tests:
             return None
 
-        with open(KNOWN_BAD_TESTS) as f:
+        known_bad_tests_file = self._get_known_bad_tests_file()
+
+        with open(known_bad_tests_file) as f:
             known_bad_test_json = json.load(f)
             known_bad_test_structs = known_bad_test_json["known_bad_tests"][
                 args.skip_known_bad_tests
@@ -412,10 +425,11 @@ class TestRunner(abc.ABC):
         if args.coldboot_only is False:
             warmboot = True
 
+        test_binary_name = self._get_test_binary_name()
         conf_file = (
             args.config if (args.config is not None) else self._get_config_path()
         )
-        if not os.path.exists(conf_file):
+        if test_binary_name != "qsfp_hw_test" and not os.path.exists(conf_file):
             print("########## Conf file not found: " + conf_file)
             return []
 
@@ -517,6 +531,9 @@ class BcmTestRunner(TestRunner):
     def _get_config_path(self):
         return "/etc/coop/bcm.conf"
 
+    def _get_known_bad_tests_file(self):
+        return ""
+
     def _get_test_binary_name(self):
         return "bcm_test"
 
@@ -533,6 +550,9 @@ class SaiTestRunner(TestRunner):
     def _get_config_path(self):
         # TOOO Not available in OSS
         return ""
+
+    def _get_known_bad_tests_file(self):
+        return SAI_HW_KNOWN_BAD_TESTS
 
     def _get_test_binary_name(self):
         return args.sai_bin if args.sai_bin else "sai_test-sai_impl-1.12.0"
@@ -551,6 +571,24 @@ class SaiTestRunner(TestRunner):
 
     def _get_sai_logging_flags(self, sai_logging):
         return ["--enable_sai_log", sai_logging]
+
+
+class QsfpTestRunner(TestRunner):
+    def _get_config_path(self):
+        return ""
+
+    def _get_known_bad_tests_file(self):
+        return ""
+
+    def _get_test_binary_name(self):
+        return "qsfp_hw_test"
+
+    def _get_sdk_logging_flags(self, sdk_logging_dir, test_prefix, test_to_run):
+        return []
+
+    def _get_sai_logging_flags(self, sai_logging):
+        # N/A
+        return []
 
 
 if __name__ == "__main__":
@@ -594,6 +632,15 @@ if __name__ == "__main__":
             "run with the specified config file e.g. "
             + OPT_ARG_CONFIG_FILE
             + "=./share/bcm-configs/WEDGE100+RSW-bcm.conf"
+        ),
+    )
+    ap.add_argument(
+        OPT_ARG_QSFP_CONFIG_FILE,
+        type=str,
+        help=(
+            "run tests with specified qsfp config e.g. "
+            + OPT_ARG_QSFP_CONFIG_FILE
+            + "=./share/qsfp_test_configs/meru400bfu.materialized_JSON"
         ),
     )
     ap.add_argument(
@@ -669,6 +716,10 @@ if __name__ == "__main__":
     # Add subparser for SAI tests
     sai_test_parser = subparsers.add_parser(SUB_CMD_SAI, help="run sai tests")
     sai_test_parser.set_defaults(func=SaiTestRunner().run_test)
+
+    # Add subparser for QSFP tests
+    qsfp_test_parser = subparsers.add_parser(SUB_CMD_QSFP, help="run qsfp tests")
+    qsfp_test_parser.set_defaults(func=QsfpTestRunner().run_test)
 
     # Parse the args
     args = ap.parse_known_args()
