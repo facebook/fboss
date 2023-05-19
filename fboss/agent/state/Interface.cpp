@@ -148,7 +148,25 @@ Interface* Interface::modify(std::shared_ptr<SwitchState>* state) {
     CHECK(!(*state)->isPublished());
     return this;
   }
-  auto interfaces = (*state)->getInterfaces()->modify(state);
+  bool isLocal = false;
+  if (getType() == cfg::InterfaceType::SYSTEM_PORT) {
+    auto id(static_cast<int64_t>(getID()));
+    auto switchId2Info =
+        (*state)->getSwitchSettings()->getSwitchIdToSwitchInfo();
+    for (const auto& [_, switchInfo] : switchId2Info) {
+      if (switchInfo.systemPortRange().has_value()) {
+        auto sysPortRange = *switchInfo.systemPortRange();
+        if (id >= *sysPortRange.minimum() && id <= *sysPortRange.maximum()) {
+          isLocal = true;
+          break;
+        }
+      }
+    }
+  } else {
+    isLocal = true;
+  }
+  auto interfaces = isLocal ? (*state)->getInterfaces()->modify(state)
+                            : (*state)->getRemoteInterfaces()->modify(state);
   auto scope = interfaces->getNodeAndScope(getID()).second;
   auto newInterface = clone();
   auto* ptr = newInterface.get();
