@@ -2546,19 +2546,20 @@ void ThriftHandler::getMplsRouteTableByClient(
     int16_t clientId) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  auto labelFib = sw_->getState()->getLabelForwardingInformationBase();
+  auto labelFib = sw_->getState()->getMultiLabelForwardingInformationBase();
   for (const auto& iter : std::as_const(*labelFib)) {
-    const auto& entry = iter.second;
-    auto labelNextHopEntry = entry->getEntryForClient(ClientID(clientId));
-    if (!labelNextHopEntry) {
-      continue;
+    for (const auto& [_, entry] : std::as_const(*iter.second)) {
+      auto labelNextHopEntry = entry->getEntryForClient(ClientID(clientId));
+      if (!labelNextHopEntry) {
+        continue;
+      }
+      MplsRoute mplsRoute;
+      mplsRoute.topLabel() = entry->getID();
+      mplsRoute.adminDistance() = labelNextHopEntry->getAdminDistance();
+      mplsRoute.nextHops() =
+          util::fromRouteNextHopSet(labelNextHopEntry->getNextHopSet());
+      mplsRoutes.emplace_back(std::move(mplsRoute));
     }
-    MplsRoute mplsRoute;
-    mplsRoute.topLabel() = entry->getID();
-    mplsRoute.adminDistance() = labelNextHopEntry->getAdminDistance();
-    mplsRoute.nextHops() =
-        util::fromRouteNextHopSet(labelNextHopEntry->getNextHopSet());
-    mplsRoutes.emplace_back(std::move(mplsRoute));
   }
 }
 
@@ -2566,12 +2567,14 @@ void ThriftHandler::getAllMplsRouteDetails(
     std::vector<MplsRouteDetails>& mplsRouteDetails) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  const auto labelFib = sw_->getState()->getLabelForwardingInformationBase();
+  const auto labelFib =
+      sw_->getState()->getMultiLabelForwardingInformationBase();
   for (const auto& iter : std::as_const(*labelFib)) {
-    const auto& entry = iter.second;
-    MplsRouteDetails details;
-    getMplsRouteDetails(details, entry->getID());
-    mplsRouteDetails.push_back(details);
+    for (const auto& [_, entry] : std::as_const(*iter.second)) {
+      MplsRouteDetails details;
+      getMplsRouteDetails(details, entry->getID());
+      mplsRouteDetails.push_back(details);
+    }
   }
 }
 
@@ -2581,7 +2584,8 @@ void ThriftHandler::getMplsRouteDetails(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
   const auto entry =
-      sw_->getState()->getLabelForwardingInformationBase()->getNode(topLabel);
+      sw_->getState()->getMultiLabelForwardingInformationBase()->getNode(
+          topLabel);
   mplsRouteDetail.topLabel() = entry->getID();
   mplsRouteDetail.nextHopMulti() = entry->getEntryForClients().toThriftLegacy();
   const auto& fwd = entry->getForwardInfo();
