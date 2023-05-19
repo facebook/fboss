@@ -130,8 +130,6 @@ SwitchState::SwitchState() {
   resetRemoteIntfs(std::make_shared<MultiSwitchInterfaceMap>());
   // default multi-map (for single npu) system
   resetSflowCollectors(std::make_shared<SflowCollectorMap>());
-  resetLabelForwardingInformationBase(
-      std::make_shared<LabelForwardingInformationBase>());
   resetQosPolicies(std::make_shared<QosPolicyMap>());
   resetAggregatePorts(std::make_shared<AggregatePortMap>());
   resetTransceivers(std::make_shared<TransceiverMap>());
@@ -368,11 +366,6 @@ SwitchState::getMultiSwitchControlPlane() const {
 const std::shared_ptr<MultiLabelForwardingInformationBase>&
 SwitchState::getLabelForwardingInformationBase() const {
   return safe_cref<switch_state_tags::labelFibMap>();
-}
-
-void SwitchState::resetLabelForwardingInformationBase(
-    std::shared_ptr<LabelForwardingInformationBase> labelFib) {
-  resetDefaultMap<switch_state_tags::labelFibMap>(labelFib);
 }
 
 void SwitchState::resetLabelForwardingInformationBase(
@@ -651,9 +644,9 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
         state->cref<switch_state_tags::switchSettings>());
   }
 
-  state->fromThrift<
-      switch_state_tags::labelFibMap,
-      switch_state_tags::labelFib>();
+  state
+      ->fromThrift<switch_state_tags::labelFibMap, switch_state_tags::labelFib>(
+          true /*emptyMnpuMapOk*/);
   state->fromThrift<
       switch_state_tags::sflowCollectorMaps,
       switch_state_tags::sflowCollectorMap>();

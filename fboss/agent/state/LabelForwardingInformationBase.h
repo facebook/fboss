@@ -43,8 +43,6 @@ class LabelForwardingInformationBase
 
   virtual ~LabelForwardingInformationBase() override;
 
-  LabelForwardingInformationBase* modify(std::shared_ptr<SwitchState>* state);
-
  private:
   // Inherit the constructors required for clone()
   using Base::Base;

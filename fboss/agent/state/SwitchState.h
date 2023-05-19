@@ -538,8 +538,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetLoadBalancers(
       std::shared_ptr<MultiSwitchLoadBalancerMap> loadBalancers);
   void resetLabelForwardingInformationBase(
-      std::shared_ptr<LabelForwardingInformationBase> labelFib);
-  void resetLabelForwardingInformationBase(
       std::shared_ptr<MultiLabelForwardingInformationBase> labelFib);
   void resetForwardingInformationBases(
       std::shared_ptr<MultiSwitchForwardingInformationBaseMap> fibs);

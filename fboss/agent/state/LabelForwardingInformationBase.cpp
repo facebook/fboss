@@ -24,19 +24,6 @@ LabelForwardingInformationBase::LabelForwardingInformationBase() {}
 
 LabelForwardingInformationBase::~LabelForwardingInformationBase() {}
 
-LabelForwardingInformationBase* LabelForwardingInformationBase::modify(
-    std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
-  }
-
-  auto newFib = this->clone();
-  auto* ptr = newFib.get();
-  (*state)->resetLabelForwardingInformationBase(std::move(newFib));
-  return ptr;
-}
-
 bool MultiLabelForwardingInformationBase::isValidNextHopSet(
     const LabelNextHopSet& nexthops) {
   for (const auto& nexthop : nexthops) {
