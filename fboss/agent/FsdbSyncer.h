@@ -31,27 +31,27 @@ class FsdbSyncer : public StateObserver {
       const cfg::SwitchConfig& oldConfig,
       const cfg::SwitchConfig& newConfig);
 
+  void stop();
+
+  bool isReadyForStatePublishing() const {
+    return readyForStatePublishing_.load();
+  }
+
+  bool isReadyForStatPublishing() const {
+    return readyForStatPublishing_.load();
+  }
+
   fsdb::FsdbPubSubManager* pubSubMgr() {
     return fsdbPubSubMgr_.get();
   }
 
-  void stop();
-
+ private:
   // Paths
   static std::vector<std::string> getAgentStatePath();
   static std::vector<std::string> getAgentStatsPath();
   static std::vector<std::string> getAgentSwitchStatePath();
   static std::vector<std::string> getAgentSwitchConfigPath();
 
-  bool isReadyForStatePublishing() {
-    return readyForStatePublishing_.load();
-  }
-
-  bool isReadyForStatPublishing() {
-    return readyForStatPublishing_.load();
-  }
-
- private:
   void fsdbStatPublisherStateChanged(
       fsdb::FsdbStreamClient::State oldState,
       fsdb::FsdbStreamClient::State newState);
