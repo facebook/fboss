@@ -61,8 +61,8 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
         break;
       case PortDescriptor::PortType::AGGREGATE: {
         // pick first forwarding member port
-        auto aggPort = state->getAggregatePorts()->getAggregatePortIf(
-            entry->getPort().aggPortID());
+        auto aggPort =
+            state->getAggregatePorts()->getNodeIf(entry->getPort().aggPortID());
         if (!aggPort) {
           XLOG(ERR) << "mirror resolved to non-existing aggregate port "
                     << entry->getPort().aggPortID();

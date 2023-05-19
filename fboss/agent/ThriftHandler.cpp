@@ -1050,7 +1050,7 @@ void ThriftHandler::getAggregatePort(
   auto aggregatePortID = static_cast<AggregatePortID>(aggregatePortIDThrift);
 
   auto aggregatePort =
-      sw_->getState()->getAggregatePorts()->getAggregatePortIf(aggregatePortID);
+      sw_->getState()->getAggregatePorts()->getNodeIf(aggregatePortID);
 
   if (!aggregatePort) {
     throw FbossError(

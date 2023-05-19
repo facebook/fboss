@@ -1655,7 +1655,7 @@ void SwSwitch::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> pkt,
     AggregatePortID aggPortID,
     std::optional<uint8_t> queue) noexcept {
-  auto aggPort = getState()->getAggregatePorts()->getAggregatePortIf(aggPortID);
+  auto aggPort = getState()->getAggregatePorts()->getNodeIf(aggPortID);
   if (!aggPort) {
     XLOG(ERR) << "failed to send packet out aggregate port " << aggPortID
               << ": no aggregate port corresponding to identifier";
@@ -2220,7 +2220,7 @@ std::optional<VlanID> SwSwitch::getVlanIDForPkt(VlanID vlanID) const {
 InterfaceID SwSwitch::getInterfaceIDForAggregatePort(
     AggregatePortID aggregatePortID) const {
   auto aggregatePort =
-      getState()->getAggregatePorts()->getAggregatePortIf(aggregatePortID);
+      getState()->getAggregatePorts()->getNodeIf(aggregatePortID);
   CHECK(aggregatePort);
   // On VOQ/Fabric switches, port and interface have 1:1 relation.
   // For non VOQ/Fabric switches, in practice, a port is always part of a

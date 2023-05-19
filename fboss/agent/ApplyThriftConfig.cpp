@@ -1972,7 +1972,7 @@ shared_ptr<AggregatePortMap> ThriftConfigApplier::updateAggregatePorts() {
   size_t numExistingProcessed = 0;
   for (const auto& portCfg : *cfg_->aggregatePorts()) {
     AggregatePortID id(*portCfg.key());
-    auto origAggPort = origAggPorts->getAggregatePortIf(id);
+    auto origAggPort = origAggPorts->getNodeIf(id);
 
     shared_ptr<AggregatePort> newAggPort;
     if (origAggPort) {

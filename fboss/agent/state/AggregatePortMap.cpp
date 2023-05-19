@@ -26,7 +26,7 @@ int16_t AggregatePortMap::getNodeThriftKey(
   return node->getID();
 }
 
-std::shared_ptr<AggregatePort> AggregatePortMap::getAggregatePortIf(
+std::shared_ptr<AggregatePort> AggregatePortMap::getAggregatePortForPortImpl(
     PortID port) const {
   for (const auto& idAndAggPort : std::as_const(*this)) {
     if (idAndAggPort.second->isMemberPort(port)) {

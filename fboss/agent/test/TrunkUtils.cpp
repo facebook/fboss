@@ -90,7 +90,7 @@ std::shared_ptr<SwitchState> disableTrunkPort(
     const AggregatePortID& aggId,
     const facebook::fboss::PortID& portId) {
   auto newState{curState};
-  auto aggPortOld = newState->getAggregatePorts()->getAggregatePortIf(aggId);
+  auto aggPortOld = newState->getAggregatePorts()->getNodeIf(aggId);
   auto aggPort = aggPortOld->modify(&newState);
   aggPort->setForwardingState(portId, AggregatePort::Forwarding::DISABLED);
   return newState;

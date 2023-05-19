@@ -145,8 +145,7 @@ TEST(AggregatePort, singleTrunkWithOnePhysicalPort) {
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
-  auto aggPort =
-      endState->getAggregatePorts()->getAggregatePortIf(AggregatePortID(1));
+  auto aggPort = endState->getAggregatePorts()->getNodeIf(AggregatePortID(1));
   ASSERT_NE(nullptr, aggPort);
 
   checkAggPort(
@@ -203,8 +202,7 @@ TEST(AggregatePort, singleTrunkWithTwoPhysicalPorts) {
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
-  auto aggPort =
-      endState->getAggregatePorts()->getAggregatePortIf(AggregatePortID(1));
+  auto aggPort = endState->getAggregatePorts()->getNodeIf(AggregatePortID(1));
   ASSERT_NE(nullptr, aggPort);
   checkAggPort(
       aggPort, AggregatePortID(1), "port-channel", "double bundle", {1, 2}, 0);
@@ -324,8 +322,7 @@ TEST(AggregatePort, singleTrunkWithoutPhysicalPorts) {
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
-  auto aggPort =
-      endState->getAggregatePorts()->getAggregatePortIf(AggregatePortID(1));
+  auto aggPort = endState->getAggregatePorts()->getNodeIf(AggregatePortID(1));
   ASSERT_NE(nullptr, aggPort);
   checkAggPort(
       aggPort, AggregatePortID(1), "port-channel", "empty bundle", {}, 1);
@@ -481,7 +478,7 @@ TEST(AggregatePort, multiTrunkAdd) {
 
   // Check the settings for the newly created AggregatePort 55
   checkAggPort(
-      endAggPorts->getAggregatePortIf(AggregatePortID(55)),
+      endAggPorts->getNodeIf(AggregatePortID(55)),
       AggregatePortID(55),
       "lag55",
       "upwards facing link-bundle",
@@ -490,15 +487,15 @@ TEST(AggregatePort, multiTrunkAdd) {
 
   // Check the settings for the newly created AggregatePort 155
   checkAggPort(
-      endAggPorts->getAggregatePortIf(AggregatePortID(155)),
+      endAggPorts->getNodeIf(AggregatePortID(155)),
       AggregatePortID(155),
       "lag155",
       "downwards facing link-bundle",
       {11, 12, 13, 14, 15, 16, 17, 18, 19, 20},
       0);
 
-  // getAggregatePortIf() should return null on a non-existent AggregatePort
-  EXPECT_EQ(nullptr, endAggPorts->getAggregatePortIf(AggregatePortID(1234)));
+  // getNodeIf() should return null on a non-existent AggregatePort
+  EXPECT_EQ(nullptr, endAggPorts->getNodeIf(AggregatePortID(1234)));
 
   checkChangedAggPorts(startAggPorts, endAggPorts, {}, {55, 155}, {});
 }
@@ -535,9 +532,9 @@ TEST(AggregatePort, multiTrunkIdempotence) {
 
   auto endAggPorts = endState->getAggregatePorts();
   validateThriftStructNodeSerialization(
-      *endAggPorts->getAggregatePortIf(AggregatePortID(55)));
+      *endAggPorts->getNodeIf(AggregatePortID(55)));
   validateThriftStructNodeSerialization(
-      *endAggPorts->getAggregatePortIf(AggregatePortID(155)));
+      *endAggPorts->getNodeIf(AggregatePortID(155)));
 }
 
 TEST(AggregatePort, multiTrunkAddAndChange) {
@@ -611,7 +608,7 @@ TEST(AggregatePort, multiTrunkAddAndChange) {
 
   // Check the settings for the newly created AggregatePort 40
   checkAggPort(
-      endAggPorts->getAggregatePortIf(AggregatePortID(40)),
+      endAggPorts->getNodeIf(AggregatePortID(40)),
       AggregatePortID(40),
       "lag40",
       "up & rightwards facing link-bundle",
@@ -620,7 +617,7 @@ TEST(AggregatePort, multiTrunkAddAndChange) {
 
   // Check the settings for the newly created AggregatePort 90
   checkAggPort(
-      endAggPorts->getAggregatePortIf(AggregatePortID(90)),
+      endAggPorts->getNodeIf(AggregatePortID(90)),
       AggregatePortID(90),
       "lag90",
       "down & rightwards facing link-bundle",
@@ -629,7 +626,7 @@ TEST(AggregatePort, multiTrunkAddAndChange) {
 
   // Check the settings for the newly modified AggregatePort 55
   checkAggPort(
-      endAggPorts->getAggregatePortIf(AggregatePortID(55)),
+      endAggPorts->getNodeIf(AggregatePortID(55)),
       AggregatePortID(55),
       "lag55",
       "up & leftwards facing link-bundle",
@@ -638,7 +635,7 @@ TEST(AggregatePort, multiTrunkAddAndChange) {
 
   // Check the settings for the newly modified AggregatePort 155
   checkAggPort(
-      endAggPorts->getAggregatePortIf(AggregatePortID(155)),
+      endAggPorts->getNodeIf(AggregatePortID(155)),
       AggregatePortID(155),
       "lag155",
       "down & leftwards facing link-bundle",
@@ -708,27 +705,27 @@ TEST(AggregatePort, multiTrunkRemove) {
   checkChangedAggPorts(startAggPorts, endAggPorts, {}, {}, {55, 155});
 
   // Check AggregatePort 55 has been removed
-  EXPECT_EQ(nullptr, endAggPorts->getAggregatePortIf(AggregatePortID(55)));
+  EXPECT_EQ(nullptr, endAggPorts->getNodeIf(AggregatePortID(55)));
 
   // Check AggregatePort 155 has been removed
-  EXPECT_EQ(nullptr, endAggPorts->getAggregatePortIf(AggregatePortID(155)));
+  EXPECT_EQ(nullptr, endAggPorts->getNodeIf(AggregatePortID(155)));
 
   // Check AggregatePort 40 has not been modified
   EXPECT_EQ(
-      startAggPorts->getAggregatePortIf(AggregatePortID(40)),
-      endAggPorts->getAggregatePortIf(AggregatePortID(40)));
+      startAggPorts->getNodeIf(AggregatePortID(40)),
+      endAggPorts->getNodeIf(AggregatePortID(40)));
 
   // Check AggregatePort 90 has not been modified
   EXPECT_EQ(
-      startAggPorts->getAggregatePortIf(AggregatePortID(90)),
-      endAggPorts->getAggregatePortIf(AggregatePortID(90)));
+      startAggPorts->getNodeIf(AggregatePortID(90)),
+      endAggPorts->getNodeIf(AggregatePortID(90)));
 
   validateThriftMapMapSerialization(*startAggPorts);
   validateThriftMapMapSerialization(*endAggPorts);
   validateThriftStructNodeSerialization(
-      *startAggPorts->getAggregatePortIf(AggregatePortID(40)));
+      *startAggPorts->getNodeIf(AggregatePortID(40)));
   validateThriftStructNodeSerialization(
-      *startAggPorts->getAggregatePortIf(AggregatePortID(90)));
+      *startAggPorts->getNodeIf(AggregatePortID(90)));
 }
 
 TEST(AggregatePort, subPortSerializationInverseOfDeserialization) {
