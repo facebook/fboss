@@ -61,7 +61,8 @@ TEST_P(LabelForwardingTest, addMplsRoutes) {
   }
 
   waitForStateUpdates(this->sw);
-  auto labelFib = this->sw->getState()->getLabelForwardingInformationBase();
+  auto labelFib =
+      this->sw->getState()->getMultiLabelForwardingInformationBase();
 
   for (auto i = 0; i < 2; i++) {
     for (const auto& route : routes[i]) {
@@ -96,7 +97,8 @@ TEST_P(LabelForwardingTest, modifyMplsRoutes) {
 
   auto verifyMplsRoutes = [&]() {
     waitForStateUpdates(this->sw);
-    auto labelFib = this->sw->getState()->getLabelForwardingInformationBase();
+    auto labelFib =
+        this->sw->getState()->getMultiLabelForwardingInformationBase();
 
     for (auto i = 0; i < 2; i++) {
       for (const auto& route : routes[i]) {
@@ -172,7 +174,8 @@ TEST_F(LabelForwardingTest, addMplsRecursiveRoutes) {
   this->thriftHandler->addMplsRoutes(
       static_cast<int>(ClientID::OPENR), std::move(routes));
   waitForStateUpdates(this->sw);
-  auto labelFib = this->sw->getState()->getLabelForwardingInformationBase();
+  auto labelFib =
+      this->sw->getState()->getMultiLabelForwardingInformationBase();
   const auto& labelFibEntry = labelFib->getNode(*mplsRoute.topLabel());
   EXPECT_NE(nullptr, labelFibEntry);
   auto nexthops = labelFibEntry->getForwardInfo().getNextHopSet();
@@ -219,7 +222,8 @@ TEST_P(LabelForwardingTest, deleteMplsRoutes) {
         std::make_unique<std::vector<MplsLabel>>(routesToRemove[i]));
   }
 
-  auto labelFib = this->sw->getState()->getLabelForwardingInformationBase();
+  auto labelFib =
+      this->sw->getState()->getMultiLabelForwardingInformationBase();
 
   for (auto i = 0; i < 2; i++) {
     for (const auto& label : routesToRemove[i]) {
@@ -269,7 +273,8 @@ TEST_P(LabelForwardingTest, syncMplsFib) {
       std::begin(moreOpenrRoutes),
       std::end(moreOpenrRoutes));
 
-  auto labelFib = this->sw->getState()->getLabelForwardingInformationBase();
+  auto labelFib =
+      this->sw->getState()->getMultiLabelForwardingInformationBase();
 
   for (auto i = 0; i < 2; i++) {
     for (const auto& route : routes[i]) {
@@ -291,7 +296,7 @@ TEST_P(LabelForwardingTest, syncMplsFib) {
 
   waitForStateUpdates(this->sw);
 
-  labelFib = this->sw->getState()->getLabelForwardingInformationBase();
+  labelFib = this->sw->getState()->getMultiLabelForwardingInformationBase();
 
   for (auto i = 0; i < 8; i++) {
     if (i < 4) {
@@ -396,7 +401,8 @@ TEST_P(LabelForwardingTest, unresolvedNextHops) {
       std::make_unique<std::vector<MplsRoute>>(mplsRoutes));
 
   waitForStateUpdates(this->sw);
-  auto labelFib = this->sw->getState()->getLabelForwardingInformationBase();
+  auto labelFib =
+      this->sw->getState()->getMultiLabelForwardingInformationBase();
 
   for (auto i = 0; i < 3; i++) {
     const auto& labelFibEntry = labelFib->getNode(labels[i]);
@@ -465,7 +471,8 @@ TEST_P(LabelForwardingTest, invalidUnresolvedNextHops) {
     this->thriftHandler->addMplsRoutes(
         static_cast<int>(ClientID::OPENR), std::move(routes));
     waitForStateUpdates(this->sw);
-    auto labelFib = this->sw->getState()->getLabelForwardingInformationBase();
+    auto labelFib =
+        this->sw->getState()->getMultiLabelForwardingInformationBase();
     const auto& labelFibEntry = labelFib->getNode(*mplsRoute.topLabel());
     EXPECT_NE(nullptr, labelFibEntry);
     auto nexthops = labelFibEntry->getForwardInfo().getNextHopSet();

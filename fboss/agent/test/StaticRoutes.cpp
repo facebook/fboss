@@ -320,7 +320,8 @@ TEST_P(StaticRouteTest, MplsStaticRoutes) {
   } else {
     auto stateV1 =
         publishAndApplyConfig(stateV0, &config0, platform.get(), &rib);
-    auto entry = stateV1->getLabelForwardingInformationBase()->getNodeIf(100);
+    auto entry =
+        stateV1->getMultiLabelForwardingInformationBase()->getNodeIf(100);
     EXPECT_EQ(entry, nullptr);
   }
 
@@ -336,7 +337,8 @@ TEST_P(StaticRouteTest, MplsStaticRoutes) {
   nexthops[1].address() = toBinaryAddress(folly::IPAddress("1::10"));
   config0.staticMplsRoutesWithNhops()[0].nexthops() = nexthops;
   auto stateV1 = publishAndApplyConfig(stateV0, &config0, platform.get(), &rib);
-  auto entry = stateV1->getLabelForwardingInformationBase()->getNodeIf(100);
+  auto entry =
+      stateV1->getMultiLabelForwardingInformationBase()->getNodeIf(100);
   EXPECT_NE(entry, nullptr);
   EXPECT_EQ(entry->getForwardInfo().getNextHopSet().size(), 2);
 
@@ -348,7 +350,7 @@ TEST_P(StaticRouteTest, MplsStaticRoutes) {
   nexthops[2].address()->ifName() = *intfConfig->name();
   config0.staticMplsRoutesWithNhops()[0].nexthops() = nexthops;
   auto stateV2 = publishAndApplyConfig(stateV1, &config0, platform.get(), &rib);
-  entry = stateV2->getLabelForwardingInformationBase()->getNodeIf(100);
+  entry = stateV2->getMultiLabelForwardingInformationBase()->getNodeIf(100);
   EXPECT_NE(entry, nullptr);
   EXPECT_EQ(entry->getForwardInfo().getNextHopSet().size(), 3);
 }
