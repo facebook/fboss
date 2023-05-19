@@ -208,6 +208,13 @@ include(FBThriftCppLibrary)
 
 # Thrift libraries
 add_fbthrift_cpp_library(
+  thriftannotation_cpp2
+  thrift/annotation/cpp.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
   fb303_cpp2
   common/fb303/if/fb303.thrift
   SERVICES
@@ -247,6 +254,7 @@ add_fbthrift_cpp_library(
     common_cpp2
     fboss_common_cpp2
     mpls_cpp2
+    thriftannotation_cpp2
 )
 add_fbthrift_cpp_library(
   agent_config_cpp2
