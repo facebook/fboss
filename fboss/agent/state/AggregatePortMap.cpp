@@ -21,11 +21,6 @@ AggregatePortMap::AggregatePortMap() {}
 
 AggregatePortMap::~AggregatePortMap() {}
 
-int16_t AggregatePortMap::getNodeThriftKey(
-    const std::shared_ptr<AggregatePort>& node) {
-  return node->getID();
-}
-
 std::shared_ptr<AggregatePort> AggregatePortMap::getAggregatePortForPortImpl(
     PortID port) const {
   for (const auto& idAndAggPort : std::as_const(*this)) {
@@ -35,11 +30,6 @@ std::shared_ptr<AggregatePort> AggregatePortMap::getAggregatePortForPortImpl(
   }
 
   return nullptr;
-}
-
-void AggregatePortMap::updateAggregatePort(
-    const std::shared_ptr<AggregatePort>& aggPort) {
-  updateNode(aggPort);
 }
 
 AggregatePortMap* AggregatePortMap::modify(

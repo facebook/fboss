@@ -140,7 +140,7 @@ AggregatePort* AggregatePort::modify(std::shared_ptr<SwitchState>* state) {
   AggregatePortMap* aggPorts = (*state)->getAggregatePorts()->modify(state);
   auto newAggPort = clone();
   auto* ptr = newAggPort.get();
-  aggPorts->updateAggregatePort(std::move(newAggPort));
+  aggPorts->updateNode(std::move(newAggPort));
   return ptr;
 }
 

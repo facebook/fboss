@@ -203,7 +203,7 @@ std::shared_ptr<SwitchState> HwSwitch::fillinPortInterfaces(
     }
 
     newAggregatePort->setInterfaceIDs(intfIDs);
-    newAggregatePortMap->updateAggregatePort(newAggregatePort);
+    newAggregatePortMap->updateNode(newAggregatePort);
   }
   newState->publish();
   return newState;
