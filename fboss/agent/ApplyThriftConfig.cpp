@@ -433,7 +433,7 @@ class ThriftConfigApplier {
       LabelNextHopEntry::Action action,
       LabelNextHopSet nexthops);
 
-  std::shared_ptr<LabelForwardingInformationBase> updateStaticMplsRoutes(
+  std::shared_ptr<MultiLabelForwardingInformationBase> updateStaticMplsRoutes(
       const std::vector<cfg::StaticMplsRouteWithNextHops>&
           staticMplsRoutesWithNhops,
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
@@ -4362,7 +4362,7 @@ shared_ptr<IpTunnel> ThriftConfigApplier::createIpInIpTunnel(
   return tunnel;
 }
 
-std::shared_ptr<LabelForwardingInformationBase>
+std::shared_ptr<MultiLabelForwardingInformationBase>
 ThriftConfigApplier::updateStaticMplsRoutes(
     const std::vector<cfg::StaticMplsRouteWithNextHops>&
         staticMplsRoutesWithNhops,
@@ -4375,7 +4375,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
       staticMplsRoutesToCPU.empty()) {
     return nullptr;
   }
-  auto labelFib = new_->getLabelForwardingInformationBase()->clone();
+  auto labelFib = new_->getMultiLabelForwardingInformationBase()->clone();
   for (auto& staticMplsRouteEntry : staticMplsRoutesWithNhops) {
     RouteNextHopSet resolvedNextHops{};
     // resolve next hops if any next hop is unresolved.
@@ -4425,7 +4425,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
           LabelNextHopEntry::Action::NEXTHOPS,
           resolvedNextHops);
       MultiLabelForwardingInformationBase::resolve(node);
-      labelFib->addNode(node);
+      labelFib->addNode(node, scopeResolver_.scope(node));
     } else {
       auto entryToUpdate = entry->clone();
       entryToUpdate->update(
@@ -4433,7 +4433,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
           getStaticLabelNextHopEntry(
               LabelNextHopEntry::Action::NEXTHOPS, resolvedNextHops));
       MultiLabelForwardingInformationBase::resolve(entryToUpdate);
-      labelFib->updateNode(entryToUpdate);
+      labelFib->updateNode(entryToUpdate, scopeResolver_.scope(entryToUpdate));
     }
   }
 
@@ -4445,7 +4445,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
           LabelNextHopEntry::Action::DROP,
           LabelNextHopSet());
       MultiLabelForwardingInformationBase::resolve(node);
-      labelFib->addNode(node);
+      labelFib->addNode(node, scopeResolver_.scope(node));
     } else {
       auto entryToUpdate = entry->clone();
       entryToUpdate->update(
@@ -4453,7 +4453,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
           getStaticLabelNextHopEntry(
               LabelNextHopEntry::Action::DROP, LabelNextHopSet()));
       MultiLabelForwardingInformationBase::resolve(entryToUpdate);
-      labelFib->updateNode(entryToUpdate);
+      labelFib->updateNode(entryToUpdate, scopeResolver_.scope(entryToUpdate));
     }
   }
 
@@ -4465,7 +4465,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
           LabelNextHopEntry::Action::TO_CPU,
           LabelNextHopSet());
       MultiLabelForwardingInformationBase::resolve(node);
-      labelFib->addNode(node);
+      labelFib->addNode(node, scopeResolver_.scope(node));
     } else {
       auto entryToUpdate = entry->clone();
       entryToUpdate->update(
@@ -4473,7 +4473,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
           getStaticLabelNextHopEntry(
               LabelNextHopEntry::Action::TO_CPU, LabelNextHopSet()));
       MultiLabelForwardingInformationBase::resolve(entryToUpdate);
-      labelFib->updateNode(entryToUpdate);
+      labelFib->updateNode(entryToUpdate, scopeResolver_.scope(entryToUpdate));
     }
   }
   return labelFib;
