@@ -2,6 +2,11 @@
 
 #include "fboss/led_service/LedManager.h"
 #include "fboss/agent/EnumUtils.h"
+#include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
+#include "fboss/lib/CommonFileUtils.h"
+#include "fboss/lib/bsp/BspGenericSystemContainer.h"
+#include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 
 namespace facebook::fboss {
 
@@ -13,6 +18,19 @@ namespace facebook::fboss {
  * FsdbSwitchStateSubscriber and the updates used here
  */
 LedManager::LedManager() {
+  auto productInfo =
+      std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
+  productInfo->initialize();
+  auto mode = productInfo->getType();
+
+  if (mode == PlatformType::PLATFORM_MONTBLANC) {
+    bspSystemContainer_ =
+        BspGenericSystemContainer<MontblancBspPlatformMapping>::getInstance()
+            .get();
+
+    platformMapping_ = std::make_unique<MontblancPlatformMapping>();
+  }
+
   eventBase_ = std::make_unique<folly::EventBase>();
   auto* evb = eventBase_.get();
   ledManagerThread_ =
