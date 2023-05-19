@@ -302,6 +302,12 @@ struct SaiPortTraits {
         EnumType,
         SAI_PORT_ATTR_FABRIC_REACHABILITY,
         sai_fabric_port_reachability_t>;
+
+    struct AttributeRxLaneSquelchEnable {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using RxLaneSquelchEnable =
+        SaiExtensionAttribute<bool, AttributeRxLaneSquelchEnable>;
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -458,6 +464,7 @@ SAI_ATTRIBUTE_NAME(Port, FabricAttachedPortIndex);
 SAI_ATTRIBUTE_NAME(Port, FabricAttachedSwitchId);
 SAI_ATTRIBUTE_NAME(Port, FabricAttachedSwitchType);
 SAI_ATTRIBUTE_NAME(Port, FabricReachability);
+SAI_ATTRIBUTE_NAME(Port, RxLaneSquelchEnable);
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};

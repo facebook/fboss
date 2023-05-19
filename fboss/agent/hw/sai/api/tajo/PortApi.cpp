@@ -45,4 +45,8 @@ std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeDiagModeEnable::operator()() {
   return std::nullopt;
 }
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeRxLaneSquelchEnable::operator()() {
+  return std::nullopt;
+}
 } // namespace facebook::fboss
