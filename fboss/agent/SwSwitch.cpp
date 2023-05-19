@@ -906,6 +906,9 @@ void SwSwitch::notifyStateObservers(const StateDelta& delta) {
                   << " of update: " << folly::exceptionStr(ex);
     }
   }
+  if (fsdbSyncer_) {
+    fsdbSyncer_->stateUpdated(delta);
+  }
 }
 
 bool SwSwitch::updateState(unique_ptr<StateUpdate> update) {

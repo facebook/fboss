@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "fboss/agent/StateObserver.h"
 #include "fboss/agent/gen-cpp2/agent_stats_types.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/fsdb/client/FsdbStreamClient.h"
@@ -12,6 +11,7 @@
 namespace facebook::fboss {
 class SwSwitch;
 class AgentFsdbSyncManager;
+class StateDelta;
 
 namespace fsdb {
 class FsdbPubSubManager;
@@ -19,11 +19,11 @@ class FsdbPubSubManager;
 namespace cfg {
 class SwitchConfig;
 }
-class FsdbSyncer : public StateObserver {
+class FsdbSyncer {
  public:
   explicit FsdbSyncer(SwSwitch* sw);
-  ~FsdbSyncer() override;
-  void stateUpdated(const StateDelta& stateDelta) override;
+  ~FsdbSyncer();
+  void stateUpdated(const StateDelta& stateDelta);
   void statsUpdated(const AgentStats& stats);
 
   // TODO - change to AgentConfig once SwSwitch can pass us that
