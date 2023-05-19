@@ -29,8 +29,9 @@ void MPLSHandler::handleKnownLabel(
   auto topLabel = header.getLookupLabel();
   XLOG(WARNING) << "Received Mpls packet with known label:"
                 << topLabel.getLabelValue();
-  auto entry = sw_->getState()->getLabelForwardingInformationBase()->getNode(
-      topLabel.getLabelValue());
+  auto entry =
+      sw_->getState()->getMultiLabelForwardingInformationBase()->getNode(
+          topLabel.getLabelValue());
   const auto& fwd = entry->getForwardInfo();
 
   if (fwd.getAction() == LabelNextHopEntry::Action::TO_CPU) {
@@ -88,7 +89,7 @@ void MPLSHandler::popLabelAndLookup(
 bool MPLSHandler::isLabelProgrammed(const MPLSHdr& header) const {
   auto topLabel = header.getLookupLabel();
 
-  auto labels = sw_->getState()->getLabelForwardingInformationBase();
+  auto labels = sw_->getState()->getMultiLabelForwardingInformationBase();
   if (!labels) {
     return false;
   }
