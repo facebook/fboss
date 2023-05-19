@@ -32,3 +32,15 @@ target_link_libraries(led_core_lib
   fsdb_pub_sub
   fsdb_flags
 )
+
+add_executable(led_service
+  fboss/led_service/Main.cpp
+)
+
+target_link_libraries(led_service
+  led_core_lib
+  platform_utils
+  fb303::fb303
+)
+
+install(TARGETS led_service)
