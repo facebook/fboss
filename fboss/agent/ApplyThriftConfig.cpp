@@ -4375,7 +4375,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
       staticMplsRoutesToCPU.empty()) {
     return nullptr;
   }
-  auto labelFib = new_->getMultiLabelForwardingInformationBase()->clone();
+  auto labelFib = new_->getLabelForwardingInformationBase()->clone();
   for (auto& staticMplsRouteEntry : staticMplsRoutesWithNhops) {
     RouteNextHopSet resolvedNextHops{};
     // resolve next hops if any next hop is unresolved.

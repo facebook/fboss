@@ -366,7 +366,7 @@ SwitchState::getMultiSwitchControlPlane() const {
 }
 
 const std::shared_ptr<MultiLabelForwardingInformationBase>&
-SwitchState::getMultiLabelForwardingInformationBase() const {
+SwitchState::getLabelForwardingInformationBase() const {
   return safe_cref<switch_state_tags::labelFibMap>();
 }
 

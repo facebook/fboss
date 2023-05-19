@@ -64,7 +64,7 @@ std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
       createUpdatedFib(v6NetworkToRoute_, previousFibContainer->getFibV6());
 
   auto newLabelFib = createUpdatedLabelFib(
-      labelToRoute_, state->getMultiLabelForwardingInformationBase());
+      labelToRoute_, state->getLabelForwardingInformationBase());
 
   if (!newFibV4 && !newFibV6 && !newLabelFib) {
     // return nextState in case we modified state above to insert new VRF

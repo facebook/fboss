@@ -20,7 +20,7 @@ std::shared_ptr<SwitchState> programLabel(
 
   auto newState = state->clone();
   auto* writableLabelFib =
-      newState->getMultiLabelForwardingInformationBase()->modify(&newState);
+      newState->getLabelForwardingInformationBase()->modify(&newState);
 
   auto entry = writableLabelFib->getNodeIf(label.value());
   auto nexthopCount = nexthops.size();
@@ -58,7 +58,7 @@ std::shared_ptr<SwitchState> unprogramLabel(
     ClientID client) {
   auto newState = state->clone();
   auto* writableLabelFib =
-      newState->getMultiLabelForwardingInformationBase()->modify(&newState);
+      newState->getLabelForwardingInformationBase()->modify(&newState);
 
   auto entry = writableLabelFib->getNodeIf(label.value());
   if (!entry) {
@@ -89,7 +89,7 @@ std::shared_ptr<SwitchState> purgeEntriesForClient(
     ClientID client) {
   auto newState = state->clone();
   auto* writableLabelFibs =
-      newState->getMultiLabelForwardingInformationBase()->modify(&newState);
+      newState->getLabelForwardingInformationBase()->modify(&newState);
 
   auto miter = writableLabelFibs->begin();
   while (miter != writableLabelFibs->end()) {

@@ -321,8 +321,8 @@ void RibRouteTables::updateFib(
           ForwardingInformationBase<folly::IPAddressV6>>(
           fib->getFibV6(), &routeTable.v6NetworkToRoute);
       if (FLAGS_mpls_rib) {
-        auto labelFib = hwUpdateError.appliedState
-                            ->getMultiLabelForwardingInformationBase();
+        auto labelFib =
+            hwUpdateError.appliedState->getLabelForwardingInformationBase();
         reconstructRibFromFib<LabelID, MultiLabelForwardingInformationBase>(
             std::move(labelFib), &routeTable.labelToRoute);
       }

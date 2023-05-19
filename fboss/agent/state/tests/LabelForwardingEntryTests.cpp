@@ -192,7 +192,7 @@ TEST(LabelForwardingEntryTests, modify) {
   newState->resetLabelForwardingInformationBase(lFib);
   newState->publish();
 
-  auto publishedLfib = newState->getMultiLabelForwardingInformationBase();
+  auto publishedLfib = newState->getLabelForwardingInformationBase();
   auto publishedEntry = publishedLfib->getNodeIf(5001);
   ASSERT_NE(nullptr, publishedEntry);
   EXPECT_EQ(true, publishedLfib->isPublished());
@@ -200,22 +200,21 @@ TEST(LabelForwardingEntryTests, modify) {
 
   auto newerState = newState->clone();
   auto modifiedLfib =
-      newerState->getMultiLabelForwardingInformationBase()->modify(&newerState);
+      newerState->getLabelForwardingInformationBase()->modify(&newerState);
   auto modifiedEntry = publishedEntry->clone();
   modifiedLfib->updateNode(modifiedEntry, scope());
   EXPECT_NE(newerState.get(), newState.get());
   EXPECT_NE(
-      newerState->getMultiLabelForwardingInformationBase().get(),
+      newerState->getLabelForwardingInformationBase().get(),
       publishedLfib.get());
   EXPECT_NE(modifiedEntry.get(), publishedEntry.get());
   EXPECT_EQ(false, newerState->isPublished());
   EXPECT_EQ(false, modifiedEntry->isPublished());
   EXPECT_EQ(
-      false,
-      newerState->getMultiLabelForwardingInformationBase()->isPublished());
+      false, newerState->getLabelForwardingInformationBase()->isPublished());
   EXPECT_EQ(
       false,
-      newerState->getMultiLabelForwardingInformationBase()
+      newerState->getLabelForwardingInformationBase()
           ->getNodeIf(5001)
           ->isPublished());
 }

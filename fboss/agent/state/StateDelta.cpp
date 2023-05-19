@@ -247,8 +247,8 @@ DeltaValue<FlowletSwitchingConfig> StateDelta::getFlowletSwitchingConfigDelta()
 MultiSwitchMapDelta<MultiLabelForwardingInformationBase>
 StateDelta::getLabelForwardingInformationBaseDelta() const {
   return MultiSwitchMapDelta<MultiLabelForwardingInformationBase>(
-      old_->getMultiLabelForwardingInformationBase().get(),
-      new_->getMultiLabelForwardingInformationBase().get());
+      old_->getLabelForwardingInformationBase().get(),
+      new_->getLabelForwardingInformationBase().get());
 }
 
 DeltaValue<QosPolicy> StateDelta::getDefaultDataPlaneQosPolicyDelta() const {
