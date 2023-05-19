@@ -10,13 +10,18 @@ namespace facebook::fboss {
  *
  * LedManager constructor will create PubSub manager to subscribe to the
  * SwitchState update on FSDB. The switch state info is pushed by callback from
- * FsdbLedSubscriber and the updates used here
+ * FsdbSwitchStateSubscriber and the updates used here
  */
 LedManager::LedManager() {
   eventBase_ = std::make_unique<folly::EventBase>();
   auto* evb = eventBase_.get();
   ledManagerThread_ =
       std::make_unique<std::thread>([=] { evb->loopForever(); });
+
+  fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>("led_service");
+  fsdbSwitchStateSubscriber_ =
+      std::make_unique<FsdbSwitchStateSubscriber>(fsdbPubSubMgr_.get());
+  fsdbSwitchStateSubscriber_->subscribeToSwitchState(this);
 
   XLOG(INFO) << "Created base LED Manager and subscribed to FSDB";
 }
