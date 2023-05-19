@@ -136,9 +136,18 @@ void reconstructRibFromFib(
         }
       });
   addrToRoute->clear();
-  for (auto& iter : std::as_const(*fib)) {
-    const auto& route = iter.second;
-    addrToRoute->insert(route->prefix(), route);
+  if constexpr (!std::is_same_v<FibType, MultiLabelForwardingInformationBase>) {
+    for (auto& iter : std::as_const(*fib)) {
+      const auto& route = iter.second;
+      addrToRoute->insert(route->prefix(), route);
+    }
+  } else {
+    for (auto& miter : std::as_const(*fib)) {
+      for (const auto& iter : std::as_const(*miter.second)) {
+        const auto& route = iter.second;
+        addrToRoute->insert(route->prefix(), route);
+      }
+    }
   }
   // Copy unresolved routes
   std::for_each(
@@ -312,9 +321,9 @@ void RibRouteTables::updateFib(
           ForwardingInformationBase<folly::IPAddressV6>>(
           fib->getFibV6(), &routeTable.v6NetworkToRoute);
       if (FLAGS_mpls_rib) {
-        auto labelFib =
-            hwUpdateError.appliedState->getLabelForwardingInformationBase();
-        reconstructRibFromFib<LabelID, LabelForwardingInformationBase>(
+        auto labelFib = hwUpdateError.appliedState
+                            ->getMultiLabelForwardingInformationBase();
+        reconstructRibFromFib<LabelID, MultiLabelForwardingInformationBase>(
             std::move(labelFib), &routeTable.labelToRoute);
       }
     }
@@ -587,7 +596,7 @@ folly::dynamic RibRouteTables::toFollyDynamicImpl(const Filter& filter) const {
 RibRouteTables RibRouteTables::fromFollyDynamic(
     const folly::dynamic& ribJson,
     const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
-    const std::shared_ptr<LabelForwardingInformationBase>& labelFib) {
+    const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib) {
   RibRouteTables rib;
   auto lockedRouteTables = rib.synchronizedRouteTables_.wlock();
   for (const auto& routeTable : ribJson.items()) {
@@ -614,7 +623,7 @@ RibRouteTables RibRouteTables::fromFollyDynamic(
 RibRouteTables RibRouteTables::fromThrift(
     const std::map<int32_t, state::RouteTableFields>& ribThrift,
     const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
-    const std::shared_ptr<LabelForwardingInformationBase>& labelFib) {
+    const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib) {
   RibRouteTables rib;
   auto lockedRouteTables = rib.synchronizedRouteTables_.wlock();
 
@@ -634,7 +643,7 @@ std::unique_ptr<RoutingInformationBase>
 RoutingInformationBase::fromFollyDynamic(
     const folly::dynamic& ribJson,
     const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
-    const std::shared_ptr<LabelForwardingInformationBase>& labelFib) {
+    const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib) {
   auto rib = std::make_unique<RoutingInformationBase>();
   rib->ribTables_ = RibRouteTables::fromFollyDynamic(ribJson, fibs, labelFib);
   return rib;
@@ -643,7 +652,7 @@ RoutingInformationBase::fromFollyDynamic(
 std::unique_ptr<RoutingInformationBase> RoutingInformationBase::fromThrift(
     const std::map<int32_t, state::RouteTableFields>& ribThrift,
     const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
-    const std::shared_ptr<LabelForwardingInformationBase>& labelFib) {
+    const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib) {
   auto rib = std::make_unique<RoutingInformationBase>();
   rib->ribTables_ = RibRouteTables::fromThrift(ribThrift, fibs, labelFib);
   return rib;
@@ -815,7 +824,7 @@ void RibRouteTables::importFibs(
     const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,
     const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>&
         multiSwitchfibs,
-    const std::shared_ptr<LabelForwardingInformationBase>& labelFib) {
+    const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFibs) {
   auto importRoutes = [](const auto& fib, auto* addrToRoute) {
     for (const auto& iter : std::as_const(*fib)) {
       const auto& route = iter.second;
@@ -841,14 +850,16 @@ void RibRouteTables::importFibs(
       importRoutes(fib->getFibV6(), &routeTables.v6NetworkToRoute);
       importRoutes(fib->getFibV4(), &routeTables.v4NetworkToRoute);
       auto mplsTable = &routeTables.labelToRoute;
-      if (FLAGS_mpls_rib && labelFib) {
-        for (const auto& entry : std::as_const(*labelFib)) {
-          const auto& route = entry.second;
-          auto [itr, inserted] = mplsTable->insert(route->prefix(), route);
-          if (!inserted) {
-            itr->second = route;
+      if (FLAGS_mpls_rib && labelFibs) {
+        for (const auto& [_, labelFib] : std::as_const(*labelFibs)) {
+          for (const auto& entry : std::as_const(*labelFib)) {
+            const auto& route = entry.second;
+            auto [itr, inserted] = mplsTable->insert(route->prefix(), route);
+            if (!inserted) {
+              itr->second = route;
+            }
+            DCHECK_EQ(mplsTable->find(route->getID())->second, route);
           }
-          DCHECK_EQ(mplsTable->find(route->getID())->second, route);
         }
       }
     }

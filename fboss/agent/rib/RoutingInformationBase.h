@@ -105,12 +105,12 @@ class RibRouteTables {
   static RibRouteTables fromFollyDynamic(
       const folly::dynamic& ribJson,
       const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
-      const std::shared_ptr<LabelForwardingInformationBase>& labelFib);
+      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib);
 
   static RibRouteTables fromThrift(
       const std::map<int32_t, state::RouteTableFields>& ribThrift,
       const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
-      const std::shared_ptr<LabelForwardingInformationBase>& labelFib);
+      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib);
 
   void ensureVrf(RouterID rid);
   std::vector<RouterID> getVrfList() const;
@@ -178,7 +178,7 @@ class RibRouteTables {
   void importFibs(
       const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,
       const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
-      const std::shared_ptr<LabelForwardingInformationBase>& labelFib);
+      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFibs);
 
   RouterIDToRouteTable constructRouteTables(
       const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,
@@ -316,12 +316,12 @@ class RoutingInformationBase {
   static std::unique_ptr<RoutingInformationBase> fromFollyDynamic(
       const folly::dynamic& ribJson,
       const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
-      const std::shared_ptr<LabelForwardingInformationBase>& labelFib);
+      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib);
 
   static std::unique_ptr<RoutingInformationBase> fromThrift(
       const std::map<int32_t, state::RouteTableFields>& ribJson,
       const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
-      const std::shared_ptr<LabelForwardingInformationBase>& labelFib);
+      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib);
 
   void ensureVrf(RouterID rid) {
     ribTables_.ensureVrf(rid);

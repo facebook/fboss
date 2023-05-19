@@ -958,12 +958,12 @@ HwInitResult BcmSwitch::initImpl(
       ret.rib = RoutingInformationBase::fromThrift(
           routeTables,
           ret.switchState->getFibs(),
-          ret.switchState->getLabelForwardingInformationBase());
+          ret.switchState->getMultiLabelForwardingInformationBase());
     } else if (switchStateJson.find(kRib) != switchStateJson.items().end()) {
       ret.rib = RoutingInformationBase::fromFollyDynamic(
           switchStateJson[kRib],
           ret.switchState->getFibs(),
-          ret.switchState->getLabelForwardingInformationBase());
+          ret.switchState->getMultiLabelForwardingInformationBase());
     }
     stateChangedImplLocked(
         StateDelta(make_shared<SwitchState>(), ret.switchState), g);
