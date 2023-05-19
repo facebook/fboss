@@ -9,8 +9,7 @@ namespace facebook::fboss {
  * LedManager ctor()
  *
  * LedManager constructor will create PubSub manager to subscribe to the
- * SwitchState update on FSDB. The switch state map
- * subscribedAgentSwitchStatePortData_ is updated by callback from
+ * SwitchState update on FSDB. The switch state info is pushed by callback from
  * FsdbLedSubscriber and the updates used here
  */
 LedManager::LedManager() {
@@ -232,14 +231,14 @@ void LedManager::setLedColor(
  * updateLedStatus
  *
  * This function does these two things:
- * 1. Look into the FSDB pushed data (switch states) in
- *    subscribedAgentSwitchStatePortData_ and updates the local structure
- *    portDisplayMap_ as per the operational values in latest switch state
+ * 1. Look into the FSDB pushed data (switch states) in newSwitchState and
+ *    updates the local structure portDisplayMap_ as per the operational values
+ *    in latest switch state
  * 2. Compute LED colors for new state and if the color for a port is different
  *    than existing one then set the new color on LED
  */
-void LedManager::updateLedStatus() {
-  auto newSwitchState = *subscribedAgentSwitchStatePortData_.rlock();
+void LedManager::updateLedStatus(
+    std::map<uint16_t, fboss::state::PortFields> newSwitchState) {
   if (newSwitchState.empty()) {
     // No change in port info so return from here
     return;

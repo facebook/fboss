@@ -32,10 +32,7 @@ class FsdbSwitchStateSubscriber {
     return fsdbPubSubMgr_;
   }
 
-  void subscribeToSwitchState(
-      folly::Synchronized<std::map<uint16_t, fboss::state::PortFields>>&
-          storage,
-      LedManager* ledManager);
+  void subscribeToSwitchState(LedManager* ledManager);
 
   // FSDB path:
   //     FsdbOperStateRoot root()
@@ -48,11 +45,7 @@ class FsdbSwitchStateSubscriber {
   }
 
  private:
-  template <typename T>
-  void subscribeToState(
-      std::vector<std::string> path,
-      folly::Synchronized<T>& storage,
-      LedManager* ledManager);
+  void subscribeToState(std::vector<std::string> path, LedManager* ledManager);
 
   fsdb::FsdbPubSubManager* fsdbPubSubMgr_;
 };

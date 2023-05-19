@@ -47,7 +47,8 @@ class LedManager {
   virtual void initLedManager() {}
 
   // On getting the update from FSDB, update portDisplayMap_
-  void updateLedStatus();
+  void updateLedStatus(
+      std::map<uint16_t, fboss::state::PortFields> newSwitchState);
 
   folly::EventBase* getEventBase() {
     return eventBase_.get();
@@ -56,9 +57,6 @@ class LedManager {
   // Forbidden copy constructor and assignment operator
   LedManager(LedManager const&) = delete;
   LedManager& operator=(LedManager const&) = delete;
-
-  folly::Synchronized<std::map<uint16_t, fboss::state::PortFields>>
-      subscribedAgentSwitchStatePortData_;
 
  protected:
   // System container to get LED controller
