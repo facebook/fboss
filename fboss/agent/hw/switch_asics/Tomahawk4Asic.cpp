@@ -152,6 +152,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::QUEUE_PRIORITY_LOWER_VAL_IS_HIGH_PRI:
     case HwAsic::Feature::SAI_CONFIGURE_SEVEN_TAP:
     case HwAsic::Feature::SWITCH_DROP_STATS:
+    case HwAsic::Feature::RX_LANE_SQUELCH_ENABLE:
       return false;
   }
   return false;

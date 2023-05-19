@@ -141,6 +141,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PTP_TC:
     case HwAsic::Feature::PTP_TC_PCS:
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK:
+    case HwAsic::Feature::RX_LANE_SQUELCH_ENABLE:
       return false;
   }
   return false;
