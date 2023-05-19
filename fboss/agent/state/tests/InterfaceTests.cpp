@@ -221,22 +221,69 @@ TEST_F(InterfaceTest, getSetNdpTable) {
 
 TEST(Interface, Modify) {
   {
+    // NPU
     auto state = std::make_shared<SwitchState>();
-    auto origIntfs = state->getInterfaces();
-    EXPECT_EQ(origIntfs.get(), origIntfs->modify(&state));
-    state->publish();
-    EXPECT_NE(origIntfs.get(), origIntfs->modify(&state));
-    EXPECT_NE(origIntfs.get(), state->getInterfaces().get());
+    auto platform = createMockPlatform();
+    cfg::SwitchConfig config = testConfigA();
+    auto stateV1 = publishAndApplyConfig(state, &config, platform.get());
+    stateV1->publish();
+    auto origIntfMap = stateV1->getInterfaces()->getFirstMap();
+    auto origIntf = origIntfMap->cbegin()->second;
+    auto origIntfs = stateV1->getInterfaces();
+    auto newIntf = origIntf->modify(&stateV1);
+    EXPECT_NE(origIntf.get(), newIntf);
+    EXPECT_NE(origIntfMap, stateV1->getInterfaces()->getFirstMap());
+    EXPECT_NE(origIntfs, stateV1->getInterfaces());
   }
   {
-    // Remote sys ports modify
+    // VOQ
     auto state = std::make_shared<SwitchState>();
-    auto origRemoteIntfs = state->getRemoteInterfaces();
-    EXPECT_EQ(origRemoteIntfs.get(), origRemoteIntfs->modify(&state));
-    state->publish();
-    EXPECT_NE(origRemoteIntfs.get(), origRemoteIntfs->modify(&state));
-    EXPECT_NE(origRemoteIntfs.get(), state->getRemoteInterfaces().get());
+    auto platform = createMockPlatform();
+    cfg::SwitchConfig config = testConfigA(cfg::SwitchType::VOQ);
+    auto stateV1 = publishAndApplyConfig(state, &config, platform.get());
+    stateV1->publish();
+    auto origIntfMap = stateV1->getInterfaces()->getFirstMap();
+    auto origIntf = origIntfMap->cbegin()->second;
+    auto origIntfs = stateV1->getInterfaces();
+    auto newIntf = origIntf->modify(&stateV1);
+    EXPECT_NE(origIntf.get(), newIntf);
+    EXPECT_NE(origIntfMap, stateV1->getInterfaces()->getFirstMap());
+    EXPECT_NE(origIntfs, stateV1->getInterfaces());
   }
+}
+
+TEST(Interface, RemoteInterfaceModify) {
+  auto state = std::make_shared<SwitchState>();
+  auto platform = createMockPlatform();
+  cfg::SwitchConfig config = testConfigA(cfg::SwitchType::VOQ);
+  auto stateV1 = publishAndApplyConfig(state, &config, platform.get());
+  auto remoteSysPorts = stateV1->getRemoteSystemPorts()->modify(&stateV1);
+
+  HwSwitchMatcher scope(std::unordered_set<SwitchID>({SwitchID{1}}));
+  auto sysPort1 = makeSysPort("olympic", 1001, 100);
+  remoteSysPorts->addNode(sysPort1, scope);
+  auto remoteInterfaces = stateV1->getRemoteInterfaces()->modify(&stateV1);
+  InterfaceID kIntf(1001);
+  auto rif = std::make_shared<Interface>(
+      kIntf,
+      RouterID(0),
+      std::optional<VlanID>(std::nullopt),
+      folly::StringPiece("1001"),
+      folly::MacAddress{},
+      9000,
+      false,
+      false,
+      cfg::InterfaceType::SYSTEM_PORT);
+
+  remoteInterfaces->addNode(rif, scope);
+  stateV1->publish();
+  auto origIntfMap = stateV1->getRemoteInterfaces()->getMapNodeIf(scope);
+  auto origIntf = stateV1->getRemoteInterfaces()->getNode(kIntf);
+  auto origIntfs = stateV1->getRemoteInterfaces();
+  auto newIntf = origIntf->modify(&stateV1);
+  EXPECT_NE(origIntf.get(), newIntf);
+  EXPECT_NE(origIntfMap, stateV1->getRemoteInterfaces()->getMapNodeIf(scope));
+  EXPECT_NE(origIntfs, stateV1->getRemoteInterfaces());
 }
 
 TEST(Interface, applyConfig) {
@@ -488,6 +535,25 @@ void checkChangedIntfs(
   validateSerialization(newIntfs->getFirstMap());
 }
 
+TEST(InterfaceMap, Modify) {
+  {
+    auto state = std::make_shared<SwitchState>();
+    auto origIntfs = state->getInterfaces();
+    EXPECT_EQ(origIntfs.get(), origIntfs->modify(&state));
+    state->publish();
+    EXPECT_NE(origIntfs.get(), origIntfs->modify(&state));
+    EXPECT_NE(origIntfs.get(), state->getInterfaces().get());
+  }
+  {
+    // Remote sys ports modify
+    auto state = std::make_shared<SwitchState>();
+    auto origRemoteIntfs = state->getRemoteInterfaces();
+    EXPECT_EQ(origRemoteIntfs.get(), origRemoteIntfs->modify(&state));
+    state->publish();
+    EXPECT_NE(origRemoteIntfs.get(), origRemoteIntfs->modify(&state));
+    EXPECT_NE(origRemoteIntfs.get(), state->getRemoteInterfaces().get());
+  }
+}
 TEST(InterfaceMap, applyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
