@@ -331,8 +331,7 @@ std::optional<VlanID> BaseEcmpSetupHelper<AddrT, NextHopT>::getVlan(
         portId = port.phyPortID();
         break;
       case PortDescriptor::PortType::AGGREGATE: {
-        auto aggPort =
-            state->getAggregatePorts()->getAggregatePort(port.aggPortID());
+        auto aggPort = state->getAggregatePorts()->getNode(port.aggPortID());
         portId = aggPort->sortedSubports().begin()->portID;
       } break;
 

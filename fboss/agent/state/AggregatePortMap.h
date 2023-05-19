@@ -48,10 +48,6 @@ class AggregatePortMap
   AggregatePortMap();
   ~AggregatePortMap() override;
 
-  std::shared_ptr<AggregatePort> getAggregatePort(AggregatePortID id) const {
-    return getNode(id);
-  }
-
   static int16_t getNodeThriftKey(const std::shared_ptr<AggregatePort>& node);
 
   void updateAggregatePort(const std::shared_ptr<AggregatePort>& aggPort);
