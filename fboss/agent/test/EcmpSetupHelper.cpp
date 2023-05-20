@@ -38,9 +38,12 @@ using namespace facebook::fboss;
 std::optional<AggregatePortID> getAggPortID(
     const std::shared_ptr<SwitchState>& inputState,
     const PortID& portId) {
-  for (auto idAndAggPort : std::as_const(*inputState->getAggregatePorts())) {
-    if (idAndAggPort.second->isMemberPort(portId)) {
-      return idAndAggPort.second->getID();
+  for (const auto& [_, aggPorts] :
+       std::as_const(*inputState->getMultiSwitchAggregatePorts())) {
+    for (auto idAndAggPort : std::as_const(*aggPorts)) {
+      if (idAndAggPort.second->isMemberPort(portId)) {
+        return idAndAggPort.second->getID();
+      }
     }
   }
   return std::nullopt;
@@ -331,7 +334,8 @@ std::optional<VlanID> BaseEcmpSetupHelper<AddrT, NextHopT>::getVlan(
         portId = port.phyPortID();
         break;
       case PortDescriptor::PortType::AGGREGATE: {
-        auto aggPort = state->getAggregatePorts()->getNode(port.aggPortID());
+        auto aggPort =
+            state->getMultiSwitchAggregatePorts()->getNode(port.aggPortID());
         portId = aggPort->sortedSubports().begin()->portID;
       } break;
 

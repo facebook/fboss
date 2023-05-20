@@ -66,7 +66,7 @@ cfg::SwitchConfig createConfig(AggregatePortID id, const std::string& name) {
 }
 
 std::shared_ptr<AggregatePort> getNode(SwSwitch* sw, AggregatePortID id) {
-  return sw->getState()->getAggregatePorts()->getNode(id);
+  return sw->getState()->getMultiSwitchAggregatePorts()->getNode(id);
 }
 
 } // namespace
