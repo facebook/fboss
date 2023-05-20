@@ -75,9 +75,8 @@ ProgramForwardingAndPartnerState::ProgramForwardingAndPartnerState(
 std::shared_ptr<SwitchState> ProgramForwardingAndPartnerState::operator()(
     const std::shared_ptr<SwitchState>& state) {
   std::shared_ptr<SwitchState> nextState(state);
-  auto* aggPort = nextState->getMultiSwitchAggregatePorts()
-                      ->getNodeIf(aggregatePortID_)
-                      .get();
+  auto* aggPort =
+      nextState->getAggregatePorts()->getNodeIf(aggregatePortID_).get();
   if (!aggPort) {
     return nullptr;
   }

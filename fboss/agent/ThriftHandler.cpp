@@ -1050,8 +1050,7 @@ void ThriftHandler::getAggregatePort(
   auto aggregatePortID = static_cast<AggregatePortID>(aggregatePortIDThrift);
 
   auto aggregatePort =
-      sw_->getState()->getMultiSwitchAggregatePorts()->getNodeIf(
-          aggregatePortID);
+      sw_->getState()->getAggregatePorts()->getNodeIf(aggregatePortID);
 
   if (!aggregatePort) {
     throw FbossError(
@@ -1070,8 +1069,7 @@ void ThriftHandler::getAggregatePortTable(
   // parameter, make sure it's clear() first
   aggregatePortsThrift.clear();
 
-  const auto& aggregatePortMap =
-      sw_->getState()->getMultiSwitchAggregatePorts();
+  const auto& aggregatePortMap = sw_->getState()->getAggregatePorts();
   aggregatePortsThrift.reserve(aggregatePortMap->numNodes());
   for (const auto& [_, entry] : std::as_const(*aggregatePortMap)) {
     for (const auto& aggregatePortAndID : std::as_const(*entry)) {

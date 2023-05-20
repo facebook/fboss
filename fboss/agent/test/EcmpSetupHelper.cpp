@@ -39,7 +39,7 @@ std::optional<AggregatePortID> getAggPortID(
     const std::shared_ptr<SwitchState>& inputState,
     const PortID& portId) {
   for (const auto& [_, aggPorts] :
-       std::as_const(*inputState->getMultiSwitchAggregatePorts())) {
+       std::as_const(*inputState->getAggregatePorts())) {
     for (auto idAndAggPort : std::as_const(*aggPorts)) {
       if (idAndAggPort.second->isMemberPort(portId)) {
         return idAndAggPort.second->getID();
@@ -334,8 +334,7 @@ std::optional<VlanID> BaseEcmpSetupHelper<AddrT, NextHopT>::getVlan(
         portId = port.phyPortID();
         break;
       case PortDescriptor::PortType::AGGREGATE: {
-        auto aggPort =
-            state->getMultiSwitchAggregatePorts()->getNode(port.aggPortID());
+        auto aggPort = state->getAggregatePorts()->getNode(port.aggPortID());
         portId = aggPort->sortedSubports().begin()->portID;
       } break;
 

@@ -252,7 +252,7 @@ void SwitchState::resetAggregatePorts(
 }
 
 const std::shared_ptr<MultiSwitchAggregatePortMap>&
-SwitchState::getMultiSwitchAggregatePorts() const {
+SwitchState::getAggregatePorts() const {
   return safe_cref<switch_state_tags::aggregatePortMaps>();
 }
 

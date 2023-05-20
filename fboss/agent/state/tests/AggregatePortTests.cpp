@@ -145,8 +145,7 @@ TEST(AggregatePort, singleTrunkWithOnePhysicalPort) {
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
-  auto aggPort =
-      endState->getMultiSwitchAggregatePorts()->getNodeIf(AggregatePortID(1));
+  auto aggPort = endState->getAggregatePorts()->getNodeIf(AggregatePortID(1));
   ASSERT_NE(nullptr, aggPort);
 
   checkAggPort(
@@ -203,8 +202,7 @@ TEST(AggregatePort, singleTrunkWithTwoPhysicalPorts) {
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
-  auto aggPort =
-      endState->getMultiSwitchAggregatePorts()->getNodeIf(AggregatePortID(1));
+  auto aggPort = endState->getAggregatePorts()->getNodeIf(AggregatePortID(1));
   ASSERT_NE(nullptr, aggPort);
   checkAggPort(
       aggPort, AggregatePortID(1), "port-channel", "double bundle", {1, 2}, 0);
@@ -382,7 +380,7 @@ TEST(AggregatePort, noTrunk) {
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
-  auto allAggPorts = endState->getMultiSwitchAggregatePorts();
+  auto allAggPorts = endState->getAggregatePorts();
   EXPECT_EQ(allAggPorts->numNodes(), 0);
 }
 
@@ -449,7 +447,7 @@ TEST(AggregatePort, multiTrunkAdd) {
   auto platform = createMockPlatform();
 
   auto startState = testStateA();
-  auto startAggPorts = startState->getMultiSwitchAggregatePorts();
+  auto startAggPorts = startState->getAggregatePorts();
 
   // Construct a config that will bundle ports 1-10 into a trunk port and
   // ports 11-20 into a second trunk port. We accomplish this by modifying
@@ -472,7 +470,7 @@ TEST(AggregatePort, multiTrunkAdd) {
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
-  auto endAggPorts = endState->getMultiSwitchAggregatePorts();
+  auto endAggPorts = endState->getAggregatePorts();
   ASSERT_NE(nullptr, endAggPorts);
   EXPECT_EQ(2, endAggPorts->numNodes());
 
@@ -530,7 +528,7 @@ TEST(AggregatePort, multiTrunkIdempotence) {
   // Applying the same config again should result in no change
   EXPECT_EQ(nullptr, publishAndApplyConfig(endState, &config, platform.get()));
 
-  auto endAggPorts = endState->getMultiSwitchAggregatePorts();
+  auto endAggPorts = endState->getAggregatePorts();
   validateThriftStructNodeSerialization(
       *endAggPorts->getNodeIf(AggregatePortID(55)));
   validateThriftStructNodeSerialization(
@@ -565,7 +563,7 @@ TEST(AggregatePort, multiTrunkAddAndChange) {
   auto startState =
       publishAndApplyConfig(baseState, &baseConfig, platform.get());
   ASSERT_NE(nullptr, startState);
-  auto startAggPorts = startState->getMultiSwitchAggregatePorts();
+  auto startAggPorts = startState->getAggregatePorts();
 
   // Split each trunk port into two separate trunk ports. The "upwards facing
   // link-bundle" will now have a left and right orientation. Likewise with the
@@ -599,7 +597,7 @@ TEST(AggregatePort, multiTrunkAddAndChange) {
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
-  auto endAggPorts = endState->getMultiSwitchAggregatePorts();
+  auto endAggPorts = endState->getAggregatePorts();
   ASSERT_NE(nullptr, endAggPorts);
   EXPECT_EQ(4, endAggPorts->numNodes());
 
@@ -684,7 +682,7 @@ TEST(AggregatePort, multiTrunkRemove) {
   auto startState =
       publishAndApplyConfig(baseState, &baseConfig, platform.get());
   ASSERT_NE(nullptr, startState);
-  auto startAggPorts = startState->getMultiSwitchAggregatePorts();
+  auto startAggPorts = startState->getAggregatePorts();
   ASSERT_NE(nullptr, startAggPorts);
 
   // Remove all trunk ports with a leftwards orientation, ie. AggregatePort 55
@@ -696,7 +694,7 @@ TEST(AggregatePort, multiTrunkRemove) {
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
-  auto endAggPorts = endState->getMultiSwitchAggregatePorts();
+  auto endAggPorts = endState->getAggregatePorts();
   ASSERT_NE(nullptr, endAggPorts);
   EXPECT_EQ(2, endAggPorts->numNodes());
 

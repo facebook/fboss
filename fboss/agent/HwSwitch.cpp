@@ -180,8 +180,7 @@ std::shared_ptr<SwitchState> HwSwitch::fillinPortInterfaces(
     newPortMap->updatePort(newPort);
   }
 
-  auto newAggregatePortMap =
-      newState->getMultiSwitchAggregatePorts()->modify(&newState);
+  auto newAggregatePortMap = newState->getAggregatePorts()->modify(&newState);
   for (const auto& [_, aggregatePorts] : *newAggregatePortMap) {
     for (auto aggregatePort : *aggregatePorts) {
       auto newAggregatePort = aggregatePort.second->clone();

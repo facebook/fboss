@@ -63,7 +63,7 @@ std::shared_ptr<SwitchState> enableTrunkPorts(
     std::shared_ptr<SwitchState> curState) {
   auto newState{curState};
   for (const auto& [_, aggPorts] :
-       std::as_const(*newState->getMultiSwitchAggregatePorts())) {
+       std::as_const(*newState->getAggregatePorts())) {
     for (const auto& idAndAggPort : std::as_const(*aggPorts)) {
       auto aggPort = idAndAggPort.second->modify(&newState);
       for (auto subPort : aggPort->sortedSubports()) {
@@ -80,7 +80,7 @@ std::shared_ptr<SwitchState> setTrunkMinLinkCount(
     uint8_t minlinks) {
   auto newState{curState};
   for (const auto& [_, aggPorts] :
-       std::as_const(*newState->getMultiSwitchAggregatePorts())) {
+       std::as_const(*newState->getAggregatePorts())) {
     for (const auto& idAndAggPort : std::as_const(*aggPorts)) {
       auto aggPort = idAndAggPort.second->modify(&newState);
       aggPort->setMinimumLinkCount(minlinks);
@@ -94,7 +94,7 @@ std::shared_ptr<SwitchState> disableTrunkPort(
     const AggregatePortID& aggId,
     const facebook::fboss::PortID& portId) {
   auto newState{curState};
-  auto aggPortOld = newState->getMultiSwitchAggregatePorts()->getNodeIf(aggId);
+  auto aggPortOld = newState->getAggregatePorts()->getNodeIf(aggId);
   auto aggPort = aggPortOld->modify(&newState);
   aggPort->setForwardingState(portId, AggregatePort::Forwarding::DISABLED);
   return newState;

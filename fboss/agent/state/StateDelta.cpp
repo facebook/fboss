@@ -167,8 +167,7 @@ MultiSwitchMapDelta<MultiSwitchQosPolicyMap> StateDelta::getQosPoliciesDelta()
 MultiSwitchMapDelta<MultiSwitchAggregatePortMap>
 StateDelta::getAggregatePortsDelta() const {
   return MultiSwitchMapDelta<MultiSwitchAggregatePortMap>(
-      old_->getMultiSwitchAggregatePorts().get(),
-      new_->getMultiSwitchAggregatePorts().get());
+      old_->getAggregatePorts().get(), new_->getAggregatePorts().get());
 }
 
 ThriftMapDelta<SflowCollectorMap> StateDelta::getSflowCollectorsDelta() const {

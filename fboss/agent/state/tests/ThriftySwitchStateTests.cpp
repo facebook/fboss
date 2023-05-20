@@ -220,7 +220,7 @@ TEST(ThriftySwitchState, AggregatePortMap) {
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
-  auto aggPorts = endState->getMultiSwitchAggregatePorts();
+  auto aggPorts = endState->getAggregatePorts();
 
   auto state = SwitchState();
   state.resetAggregatePorts(aggPorts);

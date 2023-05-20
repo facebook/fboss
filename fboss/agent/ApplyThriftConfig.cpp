@@ -1966,7 +1966,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
 }
 
 shared_ptr<AggregatePortMap> ThriftConfigApplier::updateAggregatePorts() {
-  auto origAggPorts = orig_->getMultiSwitchAggregatePorts();
+  auto origAggPorts = orig_->getAggregatePorts();
   AggregatePortMap::NodeContainer newAggPorts;
   bool changed = false;
 
