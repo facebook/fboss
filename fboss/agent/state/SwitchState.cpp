@@ -252,9 +252,19 @@ void SwitchState::resetAggregatePorts(
   resetDefaultMap<switch_state_tags::aggregatePortMaps>(aggPorts);
 }
 
+void SwitchState::resetAggregatePorts(
+    std::shared_ptr<MultiSwitchAggregatePortMap> aggPorts) {
+  ref<switch_state_tags::aggregatePortMaps>() = aggPorts;
+}
+
 const std::shared_ptr<AggregatePortMap>& SwitchState::getAggregatePorts()
     const {
   return getDefaultMap<switch_state_tags::aggregatePortMaps>();
+}
+
+const std::shared_ptr<MultiSwitchAggregatePortMap>&
+SwitchState::getMultiSwitchAggregatePorts() const {
+  return safe_cref<switch_state_tags::aggregatePortMaps>();
 }
 
 void SwitchState::resetSflowCollectors(

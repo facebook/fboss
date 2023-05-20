@@ -84,7 +84,8 @@ class StateDelta {
   MultiSwitchMapDelta<MultiSwitchAclTableGroupMap> getAclTableGroupsDelta()
       const;
   MultiSwitchMapDelta<MultiSwitchQosPolicyMap> getQosPoliciesDelta() const;
-  ThriftMapDelta<AggregatePortMap> getAggregatePortsDelta() const;
+  MultiSwitchMapDelta<MultiSwitchAggregatePortMap> getAggregatePortsDelta()
+      const;
   ThriftMapDelta<SflowCollectorMap> getSflowCollectorsDelta() const;
   MultiSwitchMapDelta<MultiSwitchLoadBalancerMap> getLoadBalancersDelta() const;
   DeltaValue<ControlPlane> getControlPlaneDelta() const;
