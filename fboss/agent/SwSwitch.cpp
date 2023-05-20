@@ -57,6 +57,7 @@
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/SwitchStatsObserver.h"
 #include "fboss/agent/TeFlowNexthopHandler.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/TxPacket.h"
@@ -236,7 +237,8 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       hwAsicTable_(new HwAsicTable(getSwitchInfoFromConfig(platform_.get()))),
       scopeResolver_(
           new SwitchIdScopeResolver(getSwitchInfoFromConfig(platform_.get()))),
-      multiHwSwitchSyncer_(nullptr) {
+      multiHwSwitchSyncer_(nullptr),
+      switchStatsObserver_(new SwitchStatsObserver(this)) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());

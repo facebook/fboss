@@ -166,6 +166,7 @@ add_library(core
   fboss/agent/StaticL2ForNeighborUpdater.cpp
   fboss/agent/StaticL2ForNeighborSwSwitchUpdater.cpp
   fboss/agent/SwitchInfoTable.cpp
+  fboss/agent/SwitchStatsObserver.cpp
   fboss/agent/SwSwitch.cpp
   fboss/agent/SwSwitchRouteUpdateWrapper.cpp
   fboss/agent/TeFlowNexthopHandler.cpp
