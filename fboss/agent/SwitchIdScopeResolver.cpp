@@ -3,6 +3,7 @@
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/AclTableGroup.h"
+#include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/LabelForwardingEntry.h"
@@ -106,6 +107,18 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
   std::unordered_set<SwitchID> switchIds;
   for (const auto& subport : *aggPort.memberPorts()) {
     auto subPortSwitchIds = scope(PortID(*subport.memberPortID())).switchIds();
+    switchIds.insert(subPortSwitchIds.begin(), subPortSwitchIds.end());
+  }
+  return HwSwitchMatcher(switchIds);
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<AggregatePort>& aggPort) const {
+  checkL3();
+  std::unordered_set<SwitchID> switchIds;
+  for (const auto& subport : aggPort->sortedSubports()) {
+    auto portId = subport.portID;
+    auto subPortSwitchIds = scope(portId).switchIds();
     switchIds.insert(subPortSwitchIds.begin(), subPortSwitchIds.end());
   }
   return HwSwitchMatcher(switchIds);

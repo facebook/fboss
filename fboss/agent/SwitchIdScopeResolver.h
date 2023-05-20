@@ -36,6 +36,7 @@ class QosPolicy;
 template <typename T>
 class Route;
 class ControlPlane;
+class AggregatePort;
 
 class SwitchIdScopeResolver {
  public:
@@ -69,6 +70,7 @@ class SwitchIdScopeResolver {
   HwSwitchMatcher scope(const std::shared_ptr<Port>& port) const;
   HwSwitchMatcher scope(const cfg::Port& port) const;
   HwSwitchMatcher scope(const cfg::AggregatePort& aggPort) const;
+  HwSwitchMatcher scope(const std::shared_ptr<AggregatePort>& aggPort) const;
   const HwSwitchMatcher& scope(const cfg::IpInIpTunnel& /*m*/) const {
     return l3SwitchMatcher();
   }

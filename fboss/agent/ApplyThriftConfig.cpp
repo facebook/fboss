@@ -542,7 +542,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newAggPorts = updateAggregatePorts();
     if (newAggPorts) {
-      new_->resetAggregatePorts(std::move(newAggPorts));
+      new_->resetAggregatePorts(toMultiSwitchMap<MultiSwitchAggregatePortMap>(
+          newAggPorts, scopeResolver_));
       changed = true;
     }
   }
@@ -1965,7 +1966,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
 }
 
 shared_ptr<AggregatePortMap> ThriftConfigApplier::updateAggregatePorts() {
-  auto origAggPorts = orig_->getAggregatePorts();
+  auto origAggPorts = orig_->getMultiSwitchAggregatePorts();
   AggregatePortMap::NodeContainer newAggPorts;
   bool changed = false;
 
@@ -1985,9 +1986,9 @@ shared_ptr<AggregatePortMap> ThriftConfigApplier::updateAggregatePorts() {
     changed |= updateMap(&newAggPorts, origAggPort, newAggPort);
   }
 
-  if (numExistingProcessed != origAggPorts->size()) {
+  if (numExistingProcessed != origAggPorts->numNodes()) {
     // Some existing aggregate ports were removed.
-    CHECK_LE(numExistingProcessed, origAggPorts->size());
+    CHECK_LE(numExistingProcessed, origAggPorts->numNodes());
     changed = true;
   }
 
@@ -1995,7 +1996,7 @@ shared_ptr<AggregatePortMap> ThriftConfigApplier::updateAggregatePorts() {
     return nullptr;
   }
 
-  return origAggPorts->clone(newAggPorts);
+  return std::make_shared<AggregatePortMap>(newAggPorts);
 }
 
 shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(

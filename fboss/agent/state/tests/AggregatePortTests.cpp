@@ -322,13 +322,11 @@ TEST(AggregatePort, singleTrunkWithoutPhysicalPorts) {
   *config.aggregatePorts()[0].description() = "empty bundle";
   config.aggregatePorts()[0].memberPorts()->resize(0);
 
-  auto endState = publishAndApplyConfig(startState, &config, platform.get());
-  ASSERT_NE(nullptr, endState);
-  auto aggPort =
-      endState->getMultiSwitchAggregatePorts()->getNodeIf(AggregatePortID(1));
-  ASSERT_NE(nullptr, aggPort);
-  checkAggPort(
-      aggPort, AggregatePortID(1), "port-channel", "empty bundle", {}, 1);
+  // the scope for aggregate port depends on member port, a scope for an
+  // aggregate port without any subport can not be determined. throw an
+  // exception for such a config and is no longer valid.
+  EXPECT_THROW(
+      publishAndApplyConfig(startState, &config, platform.get()), FbossError);
 }
 
 TEST(AggregatePort, noTrunk) {
