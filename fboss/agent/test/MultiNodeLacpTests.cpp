@@ -144,7 +144,7 @@ class MultiNodeLacpTest : public MultiNodeTest {
   // Waits for Aggregate port to be up
   void waitForAggPortStatus(AggregatePortID aggId, bool portStatus) const {
     auto aggPortUp = [&](const std::shared_ptr<SwitchState>& state) {
-      const auto& aggPorts = state->getAggregatePorts();
+      const auto& aggPorts = state->getMultiSwitchAggregatePorts();
       if (aggPorts) {
         const auto aggPort = aggPorts->getNode(aggId);
         if (aggPort && aggPort->isUp() == portStatus) {
@@ -161,7 +161,7 @@ class MultiNodeLacpTest : public MultiNodeTest {
   void verifyLacpState() const {
     for (const auto& aggId : getAggPorts()) {
       const auto& aggPort =
-          sw()->getState()->getAggregatePorts()->getNode(aggId);
+          sw()->getState()->getMultiSwitchAggregatePorts()->getNode(aggId);
       EXPECT_NE(aggPort, nullptr);
       EXPECT_EQ(aggPort->forwardingSubportCount(), aggPort->subportsCount());
       for (const auto& memberAndState : aggPort->subportAndFwdState()) {
@@ -258,13 +258,15 @@ class MultiNodeLacpTest : public MultiNodeTest {
 
   std::vector<LegacyAggregatePortFields::Subport> getSubPorts(
       AggregatePortID aggId) {
-    const auto& aggPort = sw()->getState()->getAggregatePorts()->getNode(aggId);
+    const auto& aggPort =
+        sw()->getState()->getMultiSwitchAggregatePorts()->getNode(aggId);
     EXPECT_NE(aggPort, nullptr);
     return aggPort->sortedSubports();
   }
 
   ParticipantInfo::Port getRemotePortID(AggregatePortID aggId, PortID portId) {
-    const auto& aggPort = sw()->getState()->getAggregatePorts()->getNode(aggId);
+    const auto& aggPort =
+        sw()->getState()->getMultiSwitchAggregatePorts()->getNode(aggId);
     EXPECT_NE(aggPort, nullptr);
     return aggPort->getPartnerState(portId).port;
   }
@@ -384,7 +386,7 @@ TEST_F(MultiNodeLacpTest, LacpWarmBoootIsHitless) {
         ecmpSizeInSw);
     for (const auto& aggId : getAggPorts()) {
       const auto countInSw = sw()->getState()
-                                 ->getAggregatePorts()
+                                 ->getMultiSwitchAggregatePorts()
                                  ->getNode(aggId)
                                  ->subportsCount();
       EXPECT_EQ(
@@ -412,16 +414,17 @@ TEST_F(MultiNodeDisruptiveTest, LacpTimeout) {
       EXPECT_GE(subPortRange.size(), 2);
       auto lagMgr = sw()->getLagManager();
       lagMgr->stopLacpOnSubPort(subPortRange.back().portID);
-      auto remoteLacpTimeout = [this, &aggPortId](
-                                   const std::shared_ptr<SwitchState>& state) {
-        const auto& subPorts = getSubPorts(aggPortId);
-        const auto& localPort = subPorts.front().portID;
-        const auto& aggPort = state->getAggregatePorts()->getNode(aggPortId);
-        const auto& remoteState = aggPort->getPartnerState(localPort).state;
-        const auto flagsToCheck = LacpState::IN_SYNC | LacpState::COLLECTING |
-            LacpState::DISTRIBUTING;
-        return ((remoteState & flagsToCheck) == 0);
-      };
+      auto remoteLacpTimeout =
+          [this, &aggPortId](const std::shared_ptr<SwitchState>& state) {
+            const auto& subPorts = getSubPorts(aggPortId);
+            const auto& localPort = subPorts.front().portID;
+            const auto& aggPort =
+                state->getMultiSwitchAggregatePorts()->getNode(aggPortId);
+            const auto& remoteState = aggPort->getPartnerState(localPort).state;
+            const auto flagsToCheck = LacpState::IN_SYNC |
+                LacpState::COLLECTING | LacpState::DISTRIBUTING;
+            return ((remoteState & flagsToCheck) == 0);
+          };
       // Remote side LACP should timeout on second member and
       // bring down both members due to minlink violation after 3 timeouts
       EXPECT_TRUE(
