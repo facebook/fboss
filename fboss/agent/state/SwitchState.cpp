@@ -1048,6 +1048,8 @@ template MultiSwitchBufferPoolCfgMap* SwitchState::modify<
     switch_state_tags::bufferPoolCfgMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchQosPolicyMap* SwitchState::modify<
     switch_state_tags::qosPolicyMaps>(std::shared_ptr<SwitchState>*);
+template MultiSwitchAggregatePortMap* SwitchState::modify<
+    switch_state_tags::aggregatePortMaps>(std::shared_ptr<SwitchState>*);
 
 template class ThriftStructNode<SwitchState, state::SwitchState>;
 

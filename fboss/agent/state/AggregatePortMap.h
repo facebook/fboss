@@ -94,6 +94,10 @@ class MultiSwitchAggregatePortMap : public ThriftMultiSwitchMapNode<
   MultiSwitchAggregatePortMap() {}
   virtual ~MultiSwitchAggregatePortMap() {}
 
+  MultiSwitchAggregatePortMap* modify(std::shared_ptr<SwitchState>* state);
+
+  std::shared_ptr<AggregatePort> getAggregatePortForPort(PortID port) const;
+
  private:
   // Inherit the constructors required for clone()
   using BaseT::BaseT;

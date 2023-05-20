@@ -46,6 +46,21 @@ AggregatePortMap* AggregatePortMap::modify(
   return ptr;
 }
 
+MultiSwitchAggregatePortMap* MultiSwitchAggregatePortMap::modify(
+    std::shared_ptr<SwitchState>* state) {
+  return SwitchState::modify<switch_state_tags::aggregatePortMaps>(state);
+}
+
+std::shared_ptr<AggregatePort>
+MultiSwitchAggregatePortMap::getAggregatePortForPort(PortID port) const {
+  for (const auto& [_, aggPorts] : std::as_const(*this)) {
+    if (auto aggPort = aggPorts->getAggregatePortForPort(port)) {
+      return aggPort;
+    }
+  }
+  return nullptr;
+}
+
 template class ThriftMapNode<AggregatePortMap, AggregatePortMapTraits>;
 
 } // namespace facebook::fboss
