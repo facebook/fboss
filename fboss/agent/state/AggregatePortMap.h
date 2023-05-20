@@ -48,8 +48,6 @@ class AggregatePortMap
   AggregatePortMap();
   ~AggregatePortMap() override;
 
-  AggregatePortMap* modify(std::shared_ptr<SwitchState>* state);
-
   std::shared_ptr<AggregatePort> getAggregatePortForPort(PortID port) const {
     return getAggregatePortForPortImpl(port);
   }

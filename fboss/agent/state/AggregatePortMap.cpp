@@ -32,20 +32,6 @@ std::shared_ptr<AggregatePort> AggregatePortMap::getAggregatePortForPortImpl(
   return nullptr;
 }
 
-AggregatePortMap* AggregatePortMap::modify(
-    std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
-  }
-
-  SwitchState::modify(state);
-  auto newAggPorts = clone();
-  auto* ptr = newAggPorts.get();
-  (*state)->resetAggregatePorts(std::move(newAggPorts));
-  return ptr;
-}
-
 MultiSwitchAggregatePortMap* MultiSwitchAggregatePortMap::modify(
     std::shared_ptr<SwitchState>* state) {
   return SwitchState::modify<switch_state_tags::aggregatePortMaps>(state);

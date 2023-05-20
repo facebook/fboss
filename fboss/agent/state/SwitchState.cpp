@@ -131,7 +131,6 @@ SwitchState::SwitchState() {
   // default multi-map (for single npu) system
   resetSflowCollectors(std::make_shared<SflowCollectorMap>());
   resetQosPolicies(std::make_shared<QosPolicyMap>());
-  resetAggregatePorts(std::make_shared<AggregatePortMap>());
   resetTransceivers(std::make_shared<TransceiverMap>());
   resetVlans(std::make_shared<VlanMap>());
   resetPorts(std::make_shared<PortMap>());
@@ -245,11 +244,6 @@ void SwitchState::resetAclTableGroups(
 const std::shared_ptr<MultiSwitchAclTableGroupMap>&
 SwitchState::getAclTableGroups() const {
   return safe_cref<switch_state_tags::aclTableGroupMaps>();
-}
-
-void SwitchState::resetAggregatePorts(
-    std::shared_ptr<AggregatePortMap> aggPorts) {
-  resetDefaultMap<switch_state_tags::aggregatePortMaps>(aggPorts);
 }
 
 void SwitchState::resetAggregatePorts(
@@ -668,7 +662,7 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
       switch_state_tags::teFlowTable>(true /*emptyMnpuMapOk*/);
   state->fromThrift<
       switch_state_tags::aggregatePortMaps,
-      switch_state_tags::aggregatePortMap>();
+      switch_state_tags::aggregatePortMap>(true /*emptyMnpuMapOk*/);
   state->fromThrift<
       switch_state_tags::loadBalancerMaps,
       switch_state_tags::loadBalancerMap>(true /*emptyMnpuMapOk*/);

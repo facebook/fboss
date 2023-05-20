@@ -521,7 +521,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetMirrors(const std::shared_ptr<MultiSwitchMirrorMap>& mirrors);
   void resetPorts(std::shared_ptr<PortMap> ports);
   void resetPorts(std::shared_ptr<MultiSwitchPortMap> ports);
-  void resetAggregatePorts(std::shared_ptr<AggregatePortMap> aggPorts);
   void resetAggregatePorts(
       std::shared_ptr<MultiSwitchAggregatePortMap> aggPorts);
   void resetVlans(std::shared_ptr<VlanMap> vlans);
