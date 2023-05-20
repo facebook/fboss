@@ -279,7 +279,23 @@ SwSwitch::~SwSwitch() {
   }
 }
 
+bool SwSwitch::fsdbStatPublishReady() const {
+  return fsdbSyncer_.withRLock(
+      [](const auto& syncer) { return syncer->isReadyForStatPublishing(); });
+}
+
+bool SwSwitch::fsdbStatePublishReady() const {
+  return fsdbSyncer_.withRLock(
+      [](const auto& syncer) { return syncer->isReadyForStatePublishing(); });
+}
+
 void SwSwitch::stop(bool revertToMinAlpmState) {
+  // Clean up connections to FSDB before stopping
+  // packet flow.
+  runFsdbSyncFunction([](auto& syncer) {
+    syncer->stop();
+    syncer.reset();
+  });
   setSwitchRunState(SwitchRunState::EXITING);
 
   XLOG(DBG2) << "Stopping SwSwitch...";
@@ -349,9 +365,6 @@ void SwSwitch::stop(bool revertToMinAlpmState) {
 #endif
   phySnapshotManager_.reset();
 
-  if (fsdbSyncer_) {
-    fsdbSyncer_->stop();
-  }
   // stops the background and update threads.
   stopThreads();
 
@@ -361,7 +374,6 @@ void SwSwitch::stop(bool revertToMinAlpmState) {
   pcapMgr_.reset();
   pktObservers_.reset();
 
-  fsdbSyncer_.reset();
   // reset tunnel manager only after pkt thread is stopped
   // as there could be state updates in progress which will
   // access entries in tunnel manager
@@ -511,7 +523,10 @@ void SwSwitch::publishStatsToFsdb() {
   agentStats.teFlowStats() = getTeFlowStats();
   stats()->fillAgentStats(agentStats);
   agentStats.bufferPoolStats() = getBufferPoolStats();
-  fsdbSyncer_->statsUpdated(std::move(agentStats));
+
+  runFsdbSyncFunction([&agentStats](auto& syncer) {
+    syncer->statsUpdated(std::move(agentStats));
+  });
 }
 
 void SwSwitch::updateStats() {
@@ -836,9 +851,11 @@ void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
     mkaServiceManager_ = std::make_unique<MKAServiceManager>(this);
   }
 #endif
-  // Start FSDB state syncer post initial config applied. FSDB state
-  // syncer will do a full sync upon connection establishment to FSDB
-  fsdbSyncer_ = std::make_unique<FsdbSyncer>(this);
+  fsdbSyncer_.withWLock([this](auto& syncer) {
+    // Start FSDB state syncer post initial config applied. FSDB state
+    // syncer will do a full sync upon connection establishment to FSDB
+    syncer = std::make_unique<FsdbSyncer>(this);
+  });
 }
 
 void SwSwitch::logRouteUpdates(
@@ -906,9 +923,16 @@ void SwSwitch::notifyStateObservers(const StateDelta& delta) {
                   << " of update: " << folly::exceptionStr(ex);
     }
   }
-  if (fsdbSyncer_) {
-    fsdbSyncer_->stateUpdated(delta);
-  }
+  runFsdbSyncFunction([&delta](auto& syncer) { syncer->stateUpdated(delta); });
+}
+
+template <typename FsdbFunc>
+void SwSwitch::runFsdbSyncFunction(FsdbFunc&& fn) {
+  fsdbSyncer_.withWLock([&](auto& syncer) {
+    if (syncer) {
+      fn(syncer);
+    }
+  });
 }
 
 bool SwSwitch::updateState(unique_ptr<StateUpdate> update) {
@@ -1991,10 +2015,9 @@ void SwSwitch::applyConfig(
    */
 
   routeUpdater.program();
-  if (fsdbSyncer_) {
-    // TODO - figure out a way to send full agent config
-    fsdbSyncer_->cfgUpdated(oldConfig, newConfig);
-  }
+  runFsdbSyncFunction([&oldConfig, &newConfig](auto& syncer) {
+    syncer->cfgUpdated(oldConfig, newConfig);
+  });
 }
 
 void SwSwitch::updateConfigAppliedInfo() {

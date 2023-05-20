@@ -86,7 +86,7 @@ BENCHMARK(AgentTeFlowStatsPublishToFsdb) {
   // wait for FsdbSyncer to be ready to publish stats to FSDB
   auto waitForFsdbConnection = [&ensemble](int timeout) -> bool {
     for (int i = 0; i < timeout; i++) {
-      if (ensemble->getSw()->fsdbSyncer()->isReadyForStatPublishing()) {
+      if (ensemble->getSw()->fsdbStatPublishReady()) {
         return true;
       }
       // @lint-ignore CLANGTIDY

@@ -765,9 +765,6 @@ class SwSwitch : public HwSwitch::Callback {
 
   void setFibSyncTimeForClient(ClientID clientId);
 
-  FsdbSyncer* fsdbSyncer() {
-    return fsdbSyncer_.get();
-  }
   /*
    * Public use only in tests
    */
@@ -803,6 +800,8 @@ class SwSwitch : public HwSwitch::Callback {
   const HwAsicTable* getHwAsicTable() const {
     return hwAsicTable_.get();
   }
+  bool fsdbStatPublishReady() const;
+  bool fsdbStatePublishReady() const;
 
  private:
   std::optional<folly::MacAddress> getSourceMac(
@@ -898,6 +897,8 @@ class SwSwitch : public HwSwitch::Callback {
   fsdb::OperDelta stateChanged(const fsdb::OperDelta& delta, bool transaction)
       const;
 
+  template <typename FsdbFunc>
+  void runFsdbSyncFunction(FsdbFunc&& fn);
   std::string curConfigStr_;
   cfg::SwitchConfig curConfig_;
 
@@ -1038,7 +1039,7 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<PhySnapshotManager<kIphySnapshotIntervalSeconds>>
       phySnapshotManager_;
   std::unique_ptr<AclNexthopHandler> aclNexthopHandler_;
-  std::unique_ptr<FsdbSyncer> fsdbSyncer_;
+  folly::Synchronized<std::unique_ptr<FsdbSyncer>> fsdbSyncer_;
   std::unique_ptr<TeFlowNexthopHandler> teFlowNextHopHandler_;
   std::unique_ptr<DsfSubscriber> dsfSubscriber_;
   SwitchInfoTable switchInfoTable_;
