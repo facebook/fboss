@@ -15,6 +15,7 @@ class SwitchStatsObserver : public StateObserver {
   void stateUpdated(const StateDelta& delta) override;
 
  private:
+  void updateSystemPortCounters(const StateDelta& delta);
   SwSwitch* sw_;
 };
 
