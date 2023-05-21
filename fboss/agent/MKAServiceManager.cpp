@@ -64,10 +64,7 @@ uint16_t MKAServiceManager::getServerPort() const {
 }
 
 std::string MKAServiceManager::getPortName(PortID portId) const {
-  return swSwitch_->getState()
-      ->getMultiSwitchPorts()
-      ->getNode(portId)
-      ->getName();
+  return swSwitch_->getState()->getPorts()->getNode(portId)->getName();
 }
 
 void MKAServiceManager::handlePacket(std::unique_ptr<RxPacket> packet) {
@@ -119,13 +116,11 @@ void MKAServiceManager::recvPacket(TPacket&& packet) {
     try {
       port = PortID(folly::to<uint16_t>(*packet.l2Port()));
     } catch (const std::exception& e) {
-      port = swSwitch_->getState()
-                 ->getMultiSwitchPorts()
-                 ->getPort(*packet.l2Port())
-                 ->getID();
+      port =
+          swSwitch_->getState()->getPorts()->getPort(*packet.l2Port())->getID();
     }
     vlan = swSwitch_->getState()
-               ->getMultiSwitchPorts()
+               ->getPorts()
                ->getNode(port)
                ->getVlans()
                .begin()

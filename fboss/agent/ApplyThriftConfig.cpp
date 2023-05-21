@@ -518,7 +518,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       if ((newSwitchSettings->getSwitchIdToSwitchInfo() !=
            orig_->getSwitchSettings()->getSwitchIdToSwitchInfo())) {
         new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
-            updateSystemPorts(new_->getMultiSwitchPorts(), newSwitchSettings),
+            updateSystemPorts(new_->getPorts(), newSwitchSettings),
             scopeResolver_));
       }
       new_->resetSwitchSettings(std::move(newSwitchSettings));
@@ -533,8 +533,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     if (newPorts) {
       new_->resetPorts(std::move(newPorts));
       new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
-          updateSystemPorts(
-              new_->getMultiSwitchPorts(), new_->getSwitchSettings()),
+          updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()),
           scopeResolver_));
       changed = true;
     }
@@ -729,8 +728,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
           toMultiSwitchMap<MultiSwitchDsfNodeMap>(newDsfNodes, scopeResolver_));
       processUpdatedDsfNodes();
       new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
-          updateSystemPorts(
-              new_->getMultiSwitchPorts(), new_->getSwitchSettings()),
+          updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()),
           scopeResolver_));
       changed = true;
     }
@@ -1245,7 +1243,7 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
 
 shared_ptr<MultiSwitchPortMap> ThriftConfigApplier::updatePorts(
     const std::shared_ptr<TransceiverMap>& transceiverMap) {
-  const auto origPorts = orig_->getMultiSwitchPorts();
+  const auto origPorts = orig_->getPorts();
   PortMap::NodeContainer newPorts;
   bool changed = false;
 
@@ -4066,7 +4064,7 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
     changed = true;
   }
 
-  for (auto& portMap : std::as_const(*(new_->getMultiSwitchPorts()))) {
+  for (auto& portMap : std::as_const(*(new_->getPorts()))) {
     for (auto& port : std::as_const(*portMap.second)) {
       auto portInMirror = port.second->getIngressMirror();
       auto portEgMirror = port.second->getEgressMirror();
@@ -4123,7 +4121,7 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
     std::shared_ptr<Port> mirrorToPort{nullptr};
     switch (egressPort->getType()) {
       case cfg::MirrorEgressPort::Type::name:
-        for (auto& portMap : std::as_const(*(new_->getMultiSwitchPorts()))) {
+        for (auto& portMap : std::as_const(*(new_->getPorts()))) {
           for (auto& port : std::as_const(*portMap.second)) {
             if (port.second->getName() == egressPort->get_name()) {
               mirrorToPort = port.second;
@@ -4133,8 +4131,8 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
         }
         break;
       case cfg::MirrorEgressPort::Type::logicalID:
-        mirrorToPort = new_->getMultiSwitchPorts()->getNodeIf(
-            PortID(egressPort->get_logicalID()));
+        mirrorToPort =
+            new_->getPorts()->getNodeIf(PortID(egressPort->get_logicalID()));
         break;
       case cfg::MirrorEgressPort::Type::__EMPTY__:
         throw FbossError(

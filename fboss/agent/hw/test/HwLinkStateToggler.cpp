@@ -58,12 +58,12 @@ void HwLinkStateToggler::portStateChangeImpl(
   auto hwSwitchMatcher =
       HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(switchId)}));
   for (auto port : ports) {
-    if (newState->getMultiSwitchPorts()->getNodeIf(port)->getLoopbackMode() ==
+    if (newState->getPorts()->getNodeIf(port)->getLoopbackMode() ==
         desiredLoopbackMode) {
       continue;
     }
     newState = newState->clone();
-    auto newPort = newState->getMultiSwitchPorts()->getNodeIf(port)->modify(
+    auto newPort = newState->getPorts()->getNodeIf(port)->modify(
         &newState, hwSwitchMatcher);
     setPortIDAndStateToWaitFor(port, up);
     newPort->setLoopbackMode(desiredLoopbackMode);
@@ -78,7 +78,7 @@ void HwLinkStateToggler::portStateChangeImpl(
 
     /* toggle the oper state */
     newState = hwEnsemble_->getProgrammedState();
-    newPort = newState->getMultiSwitchPorts()->getNodeIf(port)->modify(
+    newPort = newState->getPorts()->getNodeIf(port)->modify(
         &newState, hwSwitchMatcher);
     newPort->setOperState(up);
     hwEnsemble_->applyNewState(newState);
@@ -137,13 +137,13 @@ HwLinkStateToggler::applyInitialConfigWithPortsDown(
     if (hwEnsemble_->getHwSwitch()->getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::LINK_TRAINING)) {
       setLinkTraining(
-          hwEnsemble_->getProgrammedState()->getMultiSwitchPorts()->getNodeIf(
+          hwEnsemble_->getProgrammedState()->getPorts()->getNodeIf(
               PortID(*port.logicalID())),
           false /* disable link training */);
     }
 
     setPortPreemphasis(
-        hwEnsemble_->getProgrammedState()->getMultiSwitchPorts()->getNodeIf(
+        hwEnsemble_->getProgrammedState()->getPorts()->getNodeIf(
             PortID(*port.logicalID())),
         0);
     *port.state() = portId2DesiredState[*port.logicalID()];

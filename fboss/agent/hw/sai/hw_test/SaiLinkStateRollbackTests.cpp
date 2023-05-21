@@ -27,8 +27,7 @@ TEST_F(SaiRollbackTest, rollbackLinkUpAndDown) {
     // Back to square 1
     rollback(origState);
     for (auto portID : masterLogicalPortIds()) {
-      const auto& port =
-          getProgrammedState()->getMultiSwitchPorts()->getNodeIf(portID);
+      const auto& port = getProgrammedState()->getPorts()->getNodeIf(portID);
       EXPECT_TRUE(port->isPortUp());
     }
   };

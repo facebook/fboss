@@ -65,7 +65,7 @@ Port* Port::modify(
     return this;
   }
 
-  MultiSwitchPortMap* ports = (*state)->getMultiSwitchPorts()->modify(state);
+  MultiSwitchPortMap* ports = (*state)->getPorts()->modify(state);
   auto newPort = clone();
   auto* ptr = newPort.get();
   ports->updateNode(std::move(newPort), matcher);

@@ -649,7 +649,7 @@ boost::container::flat_map<InterfaceID, bool> TunManager::getInterfaceStatus(
   }
 
   // Derive interface status from all ports
-  auto portMaps = state->getMultiSwitchPorts();
+  auto portMaps = state->getPorts();
   auto vlanMap = state->getVlans();
   for (const auto& portMap : std::as_const(*portMaps)) {
     for (const auto& port : std::as_const(*portMap.second)) {

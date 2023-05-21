@@ -65,7 +65,7 @@ void LookupClassUpdater::removeClassIDForPortAndMac(
   CHECK(!isNoHostRoute(removedEntry));
 
   auto portID = removedEntry->getPort().phyPortID();
-  auto port = switchState->getMultiSwitchPorts()->getNodeIf(portID);
+  auto port = switchState->getPorts()->getNodeIf(portID);
 
   bool isDropClassID = removedEntry->getClassID().has_value() &&
       removedEntry->getClassID().value() == cfg::AclLookupClass::CLASS_DROP;
@@ -154,7 +154,7 @@ void LookupClassUpdater::updateNeighborClassID(
   CHECK(newEntry->getPort().isPhysicalPort());
 
   auto portID = newEntry->getPort().phyPortID();
-  auto port = switchState->getMultiSwitchPorts()->getNodeIf(portID);
+  auto port = switchState->getPorts()->getNodeIf(portID);
   if (!port) {
     return;
   }
@@ -383,7 +383,7 @@ template <typename AddrT>
 void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
     const std::shared_ptr<SwitchState>& switchState,
     PortID portID) {
-  auto port = switchState->getMultiSwitchPorts()->getNodeIf(portID);
+  auto port = switchState->getPorts()->getNodeIf(portID);
   for (auto vlanMember : port->getVlans()) {
     auto vlanID = vlanMember.first;
     auto vlan = switchState->getVlans()->getVlanIf(vlanID);
@@ -426,7 +426,7 @@ template <typename AddrT>
 void LookupClassUpdater::repopulateClassIdsForResolvedNeighbors(
     const std::shared_ptr<SwitchState>& switchState,
     PortID portID) {
-  auto port = switchState->getMultiSwitchPorts()->getNodeIf(portID);
+  auto port = switchState->getPorts()->getNodeIf(portID);
   for (auto vlanMember : port->getVlans()) {
     auto vlanID = vlanMember.first;
     auto vlan = switchState->getVlans()->getVlanIf(vlanID);
@@ -695,7 +695,7 @@ void LookupClassUpdater::updateStateObserverLocalCache(
     const std::shared_ptr<SwitchState>& switchState) {
   CHECK(!inited_);
 
-  for (auto portMap : std::as_const(*switchState->getMultiSwitchPorts())) {
+  for (auto portMap : std::as_const(*switchState->getPorts())) {
     for (auto port : std::as_const(*portMap.second)) {
       initPort(switchState, port.second);
       // THRIFT_COPY

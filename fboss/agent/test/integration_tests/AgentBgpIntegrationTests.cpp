@@ -122,7 +122,7 @@ class BgpIntegrationTest : public AgentIntegrationTest {
     const auto scopeResolver = sw()->getScopeResolver();
     updateState(up ? "set port up" : "set port down", [&](const auto& state) {
       auto newState = state->clone();
-      auto newPort = newState->getMultiSwitchPorts()->getNodeIf(port)->modify(
+      auto newPort = newState->getPorts()->getNodeIf(port)->modify(
           &newState, scopeResolver->scope(port));
       newPort->setLoopbackMode(
           up ? cfg::PortLoopbackMode::MAC : cfg::PortLoopbackMode::NONE);

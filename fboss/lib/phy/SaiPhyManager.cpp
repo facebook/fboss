@@ -230,7 +230,7 @@ mka::MKASakHealthResponse SaiPhyManager::sakHealthCheck(
   health.active() = false;
   bool rxActive{false}, txActive{false};
   auto switchState = getPlatformInfo(portId)->getState();
-  auto port = switchState->getMultiSwitchPorts()->getNodeIf(portId);
+  auto port = switchState->getPorts()->getNodeIf(portId);
   if (port) {
     txActive = port->getTxSak() && *port->getTxSak() == sak;
     for (const auto& keyAndSak : port->getRxSaksMap()) {
@@ -284,7 +284,7 @@ bool SaiPhyManager::setupMacsecState(
     auto updatePortsFn =
         [saiPlatform, this, portId, macsecDesired, dropUnencrypted](
             std::shared_ptr<SwitchState> in) {
-          auto portObj = in->getMultiSwitchPorts()->getNodeIf(portId);
+          auto portObj = in->getPorts()->getNodeIf(portId);
           if (!portObj && !macsecDesired) {
             XLOG(DBG5) << "Port " << portId << " does not exists";
             return std::shared_ptr<SwitchState>(nullptr);
@@ -330,7 +330,7 @@ std::shared_ptr<SwitchState> SaiPhyManager::portUpdateHelper(
     const SaiHwPlatform* saiPlatform,
     const std::function<void(std::shared_ptr<Port>&)>& modify) const {
   auto newState = in->clone();
-  auto newPorts = newState->getMultiSwitchPorts()->modify(&newState);
+  auto newPorts = newState->getPorts()->modify(&newState);
   // Lookup or create SwitchState port
   auto portObj = newPorts->getNodeIf(portId);
   portObj = portObj

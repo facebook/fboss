@@ -44,7 +44,7 @@ HwInitResult SimSwitch::initImpl(
     portFields.portName() = name;
     portFields.portType() = cfg::PortType::INTERFACE_PORT;
     auto port = std::make_shared<Port>(std::move(portFields));
-    state->getMultiSwitchPorts()->addNode(
+    state->getPorts()->addNode(
         port, HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID{0}})));
   }
   bootType_ = BootType::COLD_BOOT;

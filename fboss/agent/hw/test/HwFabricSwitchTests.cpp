@@ -39,7 +39,7 @@ TEST_F(HwFabricSwitchTest, init) {
   auto setup = [this]() {};
   auto verify = [this]() {
     auto state = getProgrammedState();
-    for (auto& portMap : std::as_const(*state->getMultiSwitchPorts())) {
+    for (auto& portMap : std::as_const(*state->getPorts())) {
       for (auto& port : std::as_const(*portMap.second)) {
         EXPECT_EQ(port.second->getAdminState(), cfg::PortState::ENABLED);
         EXPECT_EQ(
@@ -52,7 +52,7 @@ TEST_F(HwFabricSwitchTest, init) {
 
 TEST_F(HwFabricSwitchTest, collectStats) {
   auto verify = [this]() {
-    EXPECT_GT(getProgrammedState()->getMultiSwitchPorts()->numNodes(), 0);
+    EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
     SwitchStats dummy;
     getHwSwitch()->updateStats(&dummy);
   };
@@ -61,7 +61,7 @@ TEST_F(HwFabricSwitchTest, collectStats) {
 
 TEST_F(HwFabricSwitchTest, checkFabricReachability) {
   auto verify = [this]() {
-    EXPECT_GT(getProgrammedState()->getMultiSwitchPorts()->numNodes(), 0);
+    EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
     SwitchStats dummy;
     getHwSwitch()->updateStats(&dummy);
     checkFabricReachability(getHwSwitch());
@@ -84,7 +84,7 @@ TEST_F(HwFabricSwitchTest, fabricIsolate) {
   };
 
   auto verify = [=]() {
-    EXPECT_GT(getProgrammedState()->getMultiSwitchPorts()->numNodes(), 0);
+    EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
     SwitchStats dummy;
     getHwSwitch()->updateStats(&dummy);
     auto fabricPortId =
@@ -104,7 +104,7 @@ TEST_F(HwFabricSwitchTest, fabricSwitchIsolate) {
   };
 
   auto verify = [=]() {
-    EXPECT_GT(getProgrammedState()->getMultiSwitchPorts()->numNodes(), 0);
+    EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
     SwitchStats dummy;
     getHwSwitch()->updateStats(&dummy);
     checkFabricReachability(getHwSwitch());

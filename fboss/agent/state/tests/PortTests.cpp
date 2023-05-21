@@ -87,7 +87,7 @@ TEST(Port, applyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   registerPort(stateV0, PortID(1), "port1", scope());
-  auto portV0 = stateV0->getMultiSwitchPorts()->getNodeIf(PortID(1));
+  auto portV0 = stateV0->getPorts()->getNodeIf(PortID(1));
   EXPECT_FALSE(portV0->isPublished());
   EXPECT_EQ(PortID(1), portV0->getID());
   EXPECT_EQ("port1", portV0->getName());
@@ -123,10 +123,10 @@ TEST(Port, applyConfig) {
   config.interfaces()[1].mac() = "00:00:00:00:00:55";
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  auto portV1 = stateV1->getMultiSwitchPorts()->getNodeIf(PortID(1));
+  auto portV1 = stateV1->getPorts()->getNodeIf(PortID(1));
   ASSERT_NE(nullptr, portV1);
   EXPECT_NE(portV0, portV1);
-  EXPECT_EQ(stateV1->getMultiSwitchPorts()->getPort("port1"), portV1);
+  EXPECT_EQ(stateV1->getPorts()->getPort("port1"), portV1);
 
   EXPECT_EQ(PortID(1), portV1->getID());
   EXPECT_EQ("port1", portV1->getName());
@@ -162,7 +162,7 @@ TEST(Port, applyConfig) {
   Port::VlanMembership expectedVlansV2;
   expectedVlansV2.insert(make_pair(VlanID(2021), Port::VlanInfo(false)));
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
-  auto portV2 = stateV2->getMultiSwitchPorts()->getNodeIf(PortID(1));
+  auto portV2 = stateV2->getPorts()->getNodeIf(PortID(1));
   ASSERT_NE(nullptr, portV2);
   EXPECT_NE(portV1, portV2);
 
@@ -185,7 +185,7 @@ TEST(Port, applyConfig) {
       cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_COPPER;
 
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
-  auto portV3 = stateV3->getMultiSwitchPorts()->getNodeIf(PortID(1));
+  auto portV3 = stateV3->getPorts()->getNodeIf(PortID(1));
   ASSERT_NE(nullptr, portV3);
   EXPECT_NE(portV2, portV3);
   EXPECT_EQ(cfg::PortSpeed::TWENTYFIVEG, portV3->getSpeed());
@@ -200,7 +200,7 @@ TEST(Port, emptyConfig) {
   auto state = make_shared<SwitchState>();
   addSwitchInfo(state);
   registerPort(state, PortID(1), "port1", scope());
-  auto port = state->getMultiSwitchPorts()->getNodeIf(portID);
+  auto port = state->getPorts()->getNodeIf(portID);
   prepareDefaultSwPort(platform.get(), port);
   // Make sure we also update the port queues to default queue so that the
   // config change won't be triggered because of empty queue cfg.
@@ -212,7 +212,7 @@ TEST(Port, emptyConfig) {
     queue->setStreamType(cfg::StreamType::UNICAST);
     queues.push_back(queue);
   }
-  state->getMultiSwitchPorts()->getNodeIf(portID)->resetPortQueues(queues);
+  state->getPorts()->getNodeIf(portID)->resetPortQueues(queues);
 
   // Applying same config should result in no change.
   cfg::SwitchConfig config;
@@ -264,7 +264,7 @@ TEST(Port, verifyPfcConfig) {
   auto state = make_shared<SwitchState>();
   registerPort(state, PortID(1), "port1", scope());
 
-  auto port = state->getMultiSwitchPorts()->getNodeIf(PortID(1));
+  auto port = state->getPorts()->getNodeIf(PortID(1));
   EXPECT_FALSE(port->getPfc().has_value());
 
   cfg::SwitchConfig config;
@@ -276,7 +276,7 @@ TEST(Port, verifyPfcConfig) {
   config.ports()[0].pfc() = pfc;
   auto newState = publishAndApplyConfig(state, &config, platform.get());
 
-  port = newState->getMultiSwitchPorts()->getNodeIf(PortID(1));
+  port = newState->getPorts()->getNodeIf(PortID(1));
   EXPECT_TRUE(port->getPfc().has_value());
   EXPECT_FALSE(*port->getPfc().value().tx());
   EXPECT_FALSE(*port->getPfc().value().rx());
@@ -304,7 +304,7 @@ TEST(Port, verifyPfcConfig) {
   config.portPgConfigs() = portPgConfigMap;
 
   auto newState2 = publishAndApplyConfig(newState, &config, platform.get());
-  port = newState2->getMultiSwitchPorts()->getNodeIf(PortID(1));
+  port = newState2->getPorts()->getNodeIf(PortID(1));
 
   EXPECT_TRUE(port->getPfc().has_value());
   EXPECT_TRUE(*port->getPfc().value().tx());
@@ -319,7 +319,7 @@ TEST(Port, verifyPfcConfig) {
       cfg::PfcWatchdogRecoveryAction::DROP, *pfcWatchdog.recoveryAction());
 
   // Modify watchdog config and make sure it gets saved
-  port = newState2->getMultiSwitchPorts()->getNodeIf(PortID(1));
+  port = newState2->getPorts()->getNodeIf(PortID(1));
   auto pfc2 = port->getPfc().value();
   cfg::PfcWatchdog watchdog2 = pfc2.watchdog().value();
   // Change the recoveryAction to NO_DROP
@@ -328,7 +328,7 @@ TEST(Port, verifyPfcConfig) {
   config.ports()[0].pfc() = pfc2;
 
   auto newState3 = publishAndApplyConfig(newState2, &config, platform.get());
-  port = newState3->getMultiSwitchPorts()->getNodeIf(PortID(1));
+  port = newState3->getPorts()->getNodeIf(PortID(1));
   EXPECT_TRUE(port->getPfc()->watchdog().has_value());
   auto pfcWatchdog2 = port->getPfc()->watchdog().value();
   EXPECT_EQ(15, *pfcWatchdog2.detectionTimeMsecs());
@@ -344,7 +344,7 @@ TEST(Port, pauseConfig) {
   addSwitchInfo(state);
   auto portID = PortID(1);
   registerPort(state, PortID(1), "port1", scope());
-  auto port = state->getMultiSwitchPorts()->getNodeIf(portID);
+  auto port = state->getPorts()->getNodeIf(portID);
   prepareDefaultSwPort(platform.get(), port);
   // Make sure we also update the port queues to default queue so that the
   // config change won't be triggered because of empty queue cfg
@@ -356,17 +356,16 @@ TEST(Port, pauseConfig) {
     queue->setStreamType(cfg::StreamType::UNICAST);
     queues.push_back(queue);
   }
-  state->getMultiSwitchPorts()->getNodeIf(PortID(1))->resetPortQueues(queues);
+  state->getPorts()->getNodeIf(PortID(1))->resetPortQueues(queues);
 
   auto verifyPause = [&state](cfg::PortPause expectPause) {
-    auto port = state->getMultiSwitchPorts()->getNodeIf(PortID(1));
+    auto port = state->getPorts()->getNodeIf(PortID(1));
     auto pause = port->getPause();
     EXPECT_EQ(expectPause, pause);
   };
 
   auto changePause = [&](cfg::PortPause newPause) {
-    auto oldPause =
-        state->getMultiSwitchPorts()->getNodeIf(PortID(1))->getPause();
+    auto oldPause = state->getPorts()->getNodeIf(PortID(1))->getPause();
     cfg::SwitchConfig config;
     config.ports()->resize(1);
     preparedMockPortConfig(
@@ -408,30 +407,30 @@ TEST(Port, loopbackModeConfig) {
   auto state = make_shared<SwitchState>();
   registerPort(state, PortID(1), "port1", scope());
   auto verifyLoopbackMode = [&state](cfg::PortLoopbackMode expectLoopbackMode) {
-    auto port = state->getMultiSwitchPorts()->getNodeIf(PortID(1));
+    auto port = state->getPorts()->getNodeIf(PortID(1));
     auto loopbackMode = port->getLoopbackMode();
     EXPECT_EQ(expectLoopbackMode, loopbackMode);
   };
 
-  auto changeAndVerifyLoopbackMode = [&](cfg::PortLoopbackMode
-                                             newLoopbackMode) {
-    auto oldLoopbackMode =
-        state->getMultiSwitchPorts()->getNodeIf(PortID(1))->getLoopbackMode();
-    cfg::SwitchConfig config;
-    config.ports()->resize(1);
-    preparedMockPortConfig(
-        config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
-    *config.ports()[0].loopbackMode() = newLoopbackMode;
-    auto newState = publishAndApplyConfig(state, &config, platform.get());
+  auto changeAndVerifyLoopbackMode =
+      [&](cfg::PortLoopbackMode newLoopbackMode) {
+        auto oldLoopbackMode =
+            state->getPorts()->getNodeIf(PortID(1))->getLoopbackMode();
+        cfg::SwitchConfig config;
+        config.ports()->resize(1);
+        preparedMockPortConfig(
+            config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
+        *config.ports()[0].loopbackMode() = newLoopbackMode;
+        auto newState = publishAndApplyConfig(state, &config, platform.get());
 
-    if (oldLoopbackMode != newLoopbackMode) {
-      EXPECT_NE(nullptr, newState);
-      state = newState;
-      verifyLoopbackMode(newLoopbackMode);
-    } else {
-      EXPECT_EQ(nullptr, newState);
-    }
-  };
+        if (oldLoopbackMode != newLoopbackMode) {
+          EXPECT_NE(nullptr, newState);
+          state = newState;
+          verifyLoopbackMode(newLoopbackMode);
+        } else {
+          EXPECT_EQ(nullptr, newState);
+        }
+      };
 
   // Verify the default loopback mode is NONE
   cfg::PortLoopbackMode expected{cfg::PortLoopbackMode::NONE};
@@ -460,9 +459,8 @@ TEST(Port, sampleDestinationConfig) {
       [](std::unique_ptr<MockPlatform>& platform,
          std::shared_ptr<SwitchState>& state,
          std::optional<cfg::SampleDestination> newDestination) {
-        auto oldDestination = state->getMultiSwitchPorts()
-                                  ->getNodeIf(PortID(1))
-                                  ->getSampleDestination();
+        auto oldDestination =
+            state->getPorts()->getNodeIf(PortID(1))->getSampleDestination();
         cfg::SwitchConfig config;
         config.ports()->resize(1);
         preparedMockPortConfig(
@@ -475,9 +473,8 @@ TEST(Port, sampleDestinationConfig) {
         if (oldDestination != newDestination) {
           EXPECT_NE(nullptr, newState);
           state = newState;
-          auto portSampleDest = state->getMultiSwitchPorts()
-                                    ->getNodeIf(PortID(1))
-                                    ->getSampleDestination();
+          auto portSampleDest =
+              state->getPorts()->getNodeIf(PortID(1))->getSampleDestination();
           EXPECT_EQ(portSampleDest, newDestination);
         } else {
           EXPECT_EQ(nullptr, newState);
@@ -487,9 +484,7 @@ TEST(Port, sampleDestinationConfig) {
   // Verify the default sample destination is NONE
   EXPECT_EQ(
       std::nullopt,
-      state->getMultiSwitchPorts()
-          ->getNodeIf(PortID(1))
-          ->getSampleDestination());
+      state->getPorts()->getNodeIf(PortID(1))->getSampleDestination());
 
   // Now change it and verify change is properly configured
   changeAndVerifySampleDestination(
@@ -530,7 +525,7 @@ void checkChangedPorts(
 TEST(PortMap, applyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  auto portsV0 = stateV0->getMultiSwitchPorts();
+  auto portsV0 = stateV0->getPorts();
   addSwitchInfo(stateV0);
   auto registerPort = [&](int i) {
     state::PortFields portFields;
@@ -576,7 +571,7 @@ TEST(PortMap, applyConfig) {
   // Enable port 2
   *config.ports()[1].state() = cfg::PortState::ENABLED;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  auto portsV1 = stateV1->getMultiSwitchPorts();
+  auto portsV1 = stateV1->getPorts();
   ASSERT_NE(nullptr, portsV1);
   EXPECT_EQ(4, portsV1->numNodes());
 
@@ -616,7 +611,7 @@ TEST(PortMap, applyConfig) {
   *config.ports()[3].state() = cfg::PortState::ENABLED;
 
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
-  auto portsV2 = stateV2->getMultiSwitchPorts();
+  auto portsV2 = stateV2->getPorts();
   ASSERT_NE(nullptr, portsV2);
 
   EXPECT_NE(port1, portsV2->getNodeIf(PortID(1)));
@@ -651,7 +646,7 @@ TEST(PortMap, applyConfig) {
       config.ports()[2], 3, "port3", cfg::PortState::DISABLED);
   preparedMockPortConfig(config.ports()[3], 4);
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
-  auto portsV3 = stateV3->getMultiSwitchPorts();
+  auto portsV3 = stateV3->getPorts();
   ASSERT_NE(nullptr, portsV3);
 
   EXPECT_EQ(4, portsV3->numNodes());
@@ -681,7 +676,7 @@ TEST(PortMap, iterateOrder) {
   registerPort(state, PortID(4), "d", scope());
   state->publish();
 
-  auto ports = state->getMultiSwitchPorts()->cbegin()->second;
+  auto ports = state->getPorts()->cbegin()->second;
 
   auto it = ports->cbegin();
   ASSERT_NE(ports->cend(), it);
@@ -717,7 +712,7 @@ TEST(Port, portFabricType) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
 
-  for (auto portMap : *stateV1->getMultiSwitchPorts()) {
+  for (auto portMap : *stateV1->getPorts()) {
     for (auto port : *portMap.second) {
       EXPECT_EQ(port.second->getPortType(), cfg::PortType::INTERFACE_PORT);
       auto newPort = port.second->clone();
@@ -738,7 +733,7 @@ TEST(Port, portDrainInterfacePort) {
       config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
   config.ports()[0].portType<cfg::PortType>() = cfg::PortType::INTERFACE_PORT;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  auto port = stateV1->getMultiSwitchPorts()->getNodeIf(PortID(1));
+  auto port = stateV1->getPorts()->getNodeIf(PortID(1));
   EXPECT_EQ(port->getPortDrainState(), cfg::PortDrainState::UNDRAINED);
 
   config.ports()[0].drainState<cfg::PortDrainState>() =
@@ -757,13 +752,13 @@ TEST(Port, portDrainFabricPort) {
       config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
   config.ports()[0].portType<cfg::PortType>() = cfg::PortType::FABRIC_PORT;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  auto port = stateV1->getMultiSwitchPorts()->getNodeIf(PortID(1));
+  auto port = stateV1->getPorts()->getNodeIf(PortID(1));
   EXPECT_EQ(port->getPortDrainState(), cfg::PortDrainState::UNDRAINED);
 
   config.ports()[0].drainState<cfg::PortDrainState>() =
       cfg::PortDrainState::DRAINED;
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
-  port = stateV2->getMultiSwitchPorts()->getNodeIf(PortID(1));
+  port = stateV2->getPorts()->getNodeIf(PortID(1));
   EXPECT_EQ(port->getPortDrainState(), cfg::PortDrainState::DRAINED);
 }
 
@@ -781,12 +776,11 @@ TEST(Port, portFabricTypeApplyConfig) {
   }
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   ASSERT_NE(nullptr, stateV2);
-  for (auto portMap : *stateV2->getMultiSwitchPorts()) {
+  for (auto portMap : *stateV2->getPorts()) {
     for (auto port : *portMap.second) {
       EXPECT_EQ(port.second->getPortType(), cfg::PortType::FABRIC_PORT);
       EXPECT_NE(
-          *port.second,
-          *stateV1->getMultiSwitchPorts()->getNodeIf(port.second->getID()));
+          *port.second, *stateV1->getPorts()->getNodeIf(port.second->getID()));
     }
   }
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV2, &config, platform.get()));
@@ -796,12 +790,11 @@ TEST(Port, portFabricTypeApplyConfig) {
   }
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   ASSERT_NE(nullptr, stateV3);
-  for (auto portMap : std::as_const(*stateV3->getMultiSwitchPorts())) {
+  for (auto portMap : std::as_const(*stateV3->getPorts())) {
     for (auto port : *portMap.second) {
       EXPECT_EQ(port.second->getPortType(), cfg::PortType::INTERFACE_PORT);
       EXPECT_NE(
-          *port.second,
-          *stateV2->getMultiSwitchPorts()->getNodeIf(port.second->getID()));
+          *port.second, *stateV2->getPorts()->getNodeIf(port.second->getID()));
     }
   }
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV3, &config, platform.get()));
@@ -923,7 +916,7 @@ TEST(Port, verifyInterfaceIDsForNonVoqSwitches) {
 
   auto expectedPort2Interface = getExpectedPort2Interface(config);
 
-  for (const auto& portMap : std::as_const(*(stateV1->getMultiSwitchPorts()))) {
+  for (const auto& portMap : std::as_const(*(stateV1->getPorts()))) {
     for (auto port : *portMap.second) {
       auto portID = port.second->getID();
       auto expectedIntfID = InterfaceID(expectedPort2Interface[portID]);
@@ -940,7 +933,7 @@ TEST(Port, verifyInterfaceIDsForVoqSwitches) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
 
-  for (const auto& portMap : std::as_const(*(stateV1->getMultiSwitchPorts()))) {
+  for (const auto& portMap : std::as_const(*(stateV1->getPorts()))) {
     for (auto port : *portMap.second) {
       auto portID = port.second->getID();
       auto expectedIntfID = InterfaceID(
@@ -959,7 +952,7 @@ TEST(Port, verifySysPortRangeForNonVoqSwitches) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
 
-  for (const auto& portMap : std::as_const(*(stateV1->getMultiSwitchPorts()))) {
+  for (const auto& portMap : std::as_const(*(stateV1->getPorts()))) {
     for (auto port : *portMap.second) {
       auto portID = port.second->getID();
       EXPECT_FALSE(stateV1->getAssociatedSystemPortRangeIf(portID).has_value());
@@ -975,7 +968,7 @@ TEST(Port, verifySwitchIdForVoqSwitches) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
 
-  for (const auto& portMap : std::as_const(*(stateV1->getMultiSwitchPorts()))) {
+  for (const auto& portMap : std::as_const(*(stateV1->getPorts()))) {
     for (auto port : *portMap.second) {
       auto portID = port.second->getID();
       EXPECT_EQ(stateV1->getAssociatedSwitchID(portID), SwitchID(1));
@@ -991,7 +984,7 @@ TEST(Port, verifySwitchIdForNonVoqSwitches) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
 
-  for (const auto& portMap : std::as_const(*(stateV1->getMultiSwitchPorts()))) {
+  for (const auto& portMap : std::as_const(*(stateV1->getPorts()))) {
     for (auto port : *portMap.second) {
       auto portID = port.second->getID();
       EXPECT_THROW(stateV1->getAssociatedSwitchID(portID), FbossError);
@@ -1007,7 +1000,7 @@ TEST(Port, verifySysPortRangeForVoqSwitches) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
 
-  for (const auto& portMap : std::as_const(*(stateV1->getMultiSwitchPorts()))) {
+  for (const auto& portMap : std::as_const(*(stateV1->getPorts()))) {
     for (auto port : *portMap.second) {
       auto portID = port.second->getID();
       EXPECT_TRUE(stateV1->getAssociatedSystemPortRangeIf(portID).has_value());
@@ -1027,7 +1020,7 @@ TEST(Port, verifyNeighborReachability) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
 
-  for (const auto& nbrIter : *(stateV1->getMultiSwitchPorts()
+  for (const auto& nbrIter : *(stateV1->getPorts()
                                    ->getNodeIf(PortID(1))
                                    ->getExpectedNeighborValues())) {
     EXPECT_EQ(
@@ -1046,7 +1039,7 @@ TEST(Port, portDrainState) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
 
-  for (auto portMap : *stateV1->getMultiSwitchPorts()) {
+  for (auto portMap : *stateV1->getPorts()) {
     for (auto port : *portMap.second) {
       EXPECT_EQ(
           port.second->getPortDrainState(), cfg::PortDrainState::UNDRAINED);
@@ -1064,7 +1057,7 @@ TEST(Port, portModifyUnpublished) {
   portFields.portId() = PortID(42);
   portFields.portName() = "test_port";
   auto port = std::make_shared<Port>(std::move(portFields));
-  state->getMultiSwitchPorts()->addNode(port, scope());
+  state->getPorts()->addNode(port, scope());
   EXPECT_EQ(port.get(), port->modify(&state, scope()));
 }
 
@@ -1074,7 +1067,7 @@ TEST(Port, portModifyPublished) {
   portFields.portId() = PortID(42);
   portFields.portName() = "test_port";
   auto port = std::make_shared<Port>(std::move(portFields));
-  state->getMultiSwitchPorts()->addNode(port, scope());
+  state->getPorts()->addNode(port, scope());
   state->publish();
   EXPECT_NE(port.get(), port->modify(&state, scope()));
 }

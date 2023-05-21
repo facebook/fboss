@@ -54,7 +54,7 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
     auto setup = [=]() {
       if (enableRxPause) {
         auto newState = getProgrammedState()->clone();
-        auto portMap = newState->getMultiSwitchPorts()->modify(&newState);
+        auto portMap = newState->getPorts()->modify(&newState);
         auto port =
             portMap->getNodeIf(PortID(masterLogicalInterfacePortIds()[0]))
                 ->clone();

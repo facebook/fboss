@@ -377,7 +377,7 @@ class LookupClassUpdaterTest : public ::testing::Test {
     this->updateState(
         "Reset lookupclasses", [=](const std::shared_ptr<SwitchState>& state) {
           auto newState = state->clone();
-          auto newPortMaps = newState->getMultiSwitchPorts()->modify(&newState);
+          auto newPortMaps = newState->getPorts()->modify(&newState);
 
           for (auto portMap : std::as_const(*newPortMaps)) {
             for (auto port : std::as_const(*portMap.second)) {

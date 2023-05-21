@@ -49,7 +49,7 @@ class EncapIndexAllocatorTest : public ::testing::Test {
     nbr.ipaddress() = ip.str();
     nbr.portId() = PortDescriptor(getSw()
                                       ->getState()
-                                      ->getMultiSwitchPorts()
+                                      ->getPorts()
                                       ->getFirstMap()
                                       ->cbegin()
                                       ->second->getID())
@@ -74,7 +74,7 @@ class EncapIndexAllocatorTest : public ::testing::Test {
     nbr.ipaddress() = ip.str();
     nbr.portId() = PortDescriptor(getSw()
                                       ->getState()
-                                      ->getMultiSwitchPorts()
+                                      ->getPorts()
                                       ->getFirstMap()
                                       ->cbegin()
                                       ->second->getID())

@@ -105,8 +105,7 @@ TEST(SystemPort, sysPortApplyConfig) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
   EXPECT_EQ(
-      stateV1->getSystemPorts()->numNodes(),
-      stateV1->getMultiSwitchPorts()->numNodes());
+      stateV1->getSystemPorts()->numNodes(), stateV1->getPorts()->numNodes());
   // Flip one port to fabric port type and see that sys ports are updated
   config.ports()->begin()->portType() = cfg::PortType::FABRIC_PORT;
   // Prune the interface corresponding to now changed port type
@@ -126,7 +125,7 @@ TEST(SystemPort, sysPortApplyConfig) {
   ASSERT_NE(nullptr, stateV2);
   EXPECT_EQ(
       stateV2->getSystemPorts()->numNodes(),
-      stateV2->getMultiSwitchPorts()->numNodes() - 1);
+      stateV2->getPorts()->numNodes() - 1);
 }
 
 TEST(SystemPort, sysPortNameApplyConfig) {
@@ -136,10 +135,9 @@ TEST(SystemPort, sysPortNameApplyConfig) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
   EXPECT_EQ(
-      stateV1->getSystemPorts()->numNodes(),
-      stateV1->getMultiSwitchPorts()->numNodes());
+      stateV1->getSystemPorts()->numNodes(), stateV1->getPorts()->numNodes());
   auto nodeName = *config.dsfNodes()->find(SwitchID(1))->second.name();
-  for (auto portMap : std::as_const(*stateV1->getMultiSwitchPorts())) {
+  for (auto portMap : std::as_const(*stateV1->getPorts())) {
     for (auto port : std::as_const(*portMap.second)) {
       auto sysPortName =
           folly::sformat("{}:{}", nodeName, port.second->getName());

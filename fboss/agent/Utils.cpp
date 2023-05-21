@@ -361,7 +361,7 @@ bool isAnyInterfacePortInLoopbackMode(
   // want to flood grat arp when we are in loopback resulting in these pkts
   // getting looped back forever
   for (auto portId : getPortsForInterface(interface->getID(), swState)) {
-    auto port = swState->getMultiSwitchPorts()->getNodeIf(portId);
+    auto port = swState->getPorts()->getNodeIf(portId);
     if (port && port->getLoopbackMode() != cfg::PortLoopbackMode::NONE) {
       XLOG(DBG2) << "Port: " << port->getName()
                  << " in interface: " << interface->getID()

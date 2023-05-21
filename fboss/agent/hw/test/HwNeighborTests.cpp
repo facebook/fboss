@@ -113,7 +113,7 @@ class HwNeighborTest : public HwLinkStateDependentTest {
       CHECK(!programToTrunk) << " Trunks not supported yet on VOQ switches";
       auto portId = this->portDescriptor().phyPortID();
       return InterfaceID((*getProgrammedState()
-                               ->getMultiSwitchPorts()
+                               ->getPorts()
                                ->getNodeIf(portId)
                                ->getInterfaceIDs()
                                .begin()));
@@ -261,14 +261,14 @@ class HwNeighborOnMultiplePortsTest : public HwLinkStateDependentTest {
     auto switchType = getSwitchType();
     if (switchType == cfg::SwitchType::NPU) {
       return InterfaceID(static_cast<int>((*getProgrammedState()
-                                                ->getMultiSwitchPorts()
+                                                ->getPorts()
                                                 ->getNodeIf(portId)
                                                 ->getVlans()
                                                 .begin())
                                               .first));
     } else if (switchType == cfg::SwitchType::VOQ) {
       return InterfaceID(*getProgrammedState()
-                              ->getMultiSwitchPorts()
+                              ->getPorts()
                               ->getNodeIf(portId)
                               ->getInterfaceIDs()
                               .begin());

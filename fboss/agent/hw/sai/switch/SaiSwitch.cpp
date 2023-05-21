@@ -1803,7 +1803,7 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
     auto sysPorts = std::make_shared<MultiSwitchSystemPortMap>();
     sysPorts->addMapNode(
         managerTable_->systemPortManager().constructSystemPorts(
-            state->getMultiSwitchPorts(),
+            state->getPorts(),
             getSwitchId().value(),
             platform_->getAsic()->getSystemPortRange()),
         HwSwitchMatcher(
@@ -2427,8 +2427,7 @@ bool SaiSwitch::isValidStateUpdateLocked(
   // TODO - Add support for per port watchdog recovery action
   std::shared_ptr<Port> firstPort;
   std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction{};
-  for (const auto& portMap :
-       std::as_const(*delta.newState()->getMultiSwitchPorts())) {
+  for (const auto& portMap : std::as_const(*delta.newState()->getPorts())) {
     for (const auto& port : std::as_const(*portMap.second)) {
       if (port.second->getPfc().has_value() &&
           port.second->getPfc()->watchdog().has_value()) {

@@ -110,8 +110,7 @@ void LldpManager::handlePacket(
              << " name=" << neighbor->getSystemName();
 
   auto plport = sw_->getPlatform()->getPlatformPort(pkt->getSrcPort());
-  auto port =
-      sw_->getState()->getMultiSwitchPorts()->getNodeIf(pkt->getSrcPort());
+  auto port = sw_->getState()->getPorts()->getNodeIf(pkt->getSrcPort());
   PortID pid = pkt->getSrcPort();
 
   XLOG(DBG4) << "Port " << pid << ", local name: " << port->getName()
@@ -154,7 +153,7 @@ void LldpManager::timeoutExpired() noexcept {
 void LldpManager::sendLldpOnAllPorts() {
   // send lldp frames through all the ports here.
   std::shared_ptr<SwitchState> state = sw_->getState();
-  for (const auto& portMap : std::as_const(*state->getMultiSwitchPorts())) {
+  for (const auto& portMap : std::as_const(*state->getPorts())) {
     for (const auto& port : std::as_const(*portMap.second)) {
       if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT &&
           port.second->isPortUp()) {

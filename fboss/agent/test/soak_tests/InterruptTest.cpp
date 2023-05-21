@@ -23,11 +23,8 @@ namespace facebook::fboss {
 
 void InterruptTest::setUpPorts() {
   SwSwitch* swSwitch = sw();
-  PortID firstPortID = PortID(swSwitch->getState()
-                                  ->getMultiSwitchPorts()
-                                  ->getFirstMap()
-                                  ->cbegin()
-                                  ->first);
+  PortID firstPortID =
+      PortID(swSwitch->getState()->getPorts()->getFirstMap()->cbegin()->first);
   XLOG(DBG2) << " Enable mac loopback on the first port " << firstPortID;
   setPortLoopbackMode(firstPortID, cfg::PortLoopbackMode::MAC);
   frontPanelPortToLoopTraffic_ = firstPortID;

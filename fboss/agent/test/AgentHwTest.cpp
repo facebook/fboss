@@ -53,7 +53,7 @@ void AgentHwTest::SetUp() {
     auto scopeResolver = sw()->getScopeResolver();
     sw()->updateStateBlocking("set port preemphasis 0", [&](const auto& state) {
       std::shared_ptr<SwitchState> newState{state};
-      for (auto& portMap : std::as_const(*newState->getMultiSwitchPorts())) {
+      for (auto& portMap : std::as_const(*newState->getPorts())) {
         for (auto& port : std::as_const(*portMap.second)) {
           auto newPort =
               port.second->modify(&newState, scopeResolver->scope(port.second));

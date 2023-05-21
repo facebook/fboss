@@ -91,7 +91,7 @@ StateDelta::~StateDelta() {}
 
 MultiSwitchMapDelta<MultiSwitchPortMap> StateDelta::getPortsDelta() const {
   return MultiSwitchMapDelta<MultiSwitchPortMap>(
-      old_->getMultiSwitchPorts().get(), new_->getMultiSwitchPorts().get());
+      old_->getPorts().get(), new_->getPorts().get());
 }
 
 VlanMapDelta StateDelta::getVlansDelta() const {

@@ -391,7 +391,7 @@ std::map<PortID, HwPortStats> HwSwitchEnsemble::getLatestPortStats(
   auto swState = getProgrammedState();
   auto stats = getHwSwitch()->getPortStats();
   for (auto [portName, stats] : stats) {
-    auto portId = swState->getMultiSwitchPorts()->getPort(portName)->getID();
+    auto portId = swState->getPorts()->getPort(portName)->getID();
     if (std::find(ports.begin(), ports.end(), (PortID)portId) == ports.end()) {
       continue;
     }
@@ -493,7 +493,7 @@ void HwSwitchEnsemble::setupEnsemble(
   }
   // Set ConfigFactory port to default profile id map
   utility::setPortToDefaultProfileIDMap(
-      getProgrammedState()->getMultiSwitchPorts(), getPlatform());
+      getProgrammedState()->getPorts(), getPlatform());
 }
 
 void HwSwitchEnsemble::switchRunStateChanged(SwitchRunState switchState) {
@@ -569,9 +569,8 @@ bool HwSwitchEnsemble::waitForRateOnPort(
   }
 
   const auto portSpeedBps =
-      static_cast<uint64_t>(programmedState_->getMultiSwitchPorts()
-                                ->getNodeIf(port)
-                                ->getSpeed()) *
+      static_cast<uint64_t>(
+          programmedState_->getPorts()->getNodeIf(port)->getSpeed()) *
       1000 * 1000;
   if (desiredBps > portSpeedBps) {
     // Cannot achieve higher than line rate
@@ -613,9 +612,8 @@ bool HwSwitchEnsemble::waitForRateOnPort(
 
 void HwSwitchEnsemble::waitForLineRateOnPort(PortID port) {
   const auto portSpeedBps =
-      static_cast<uint64_t>(programmedState_->getMultiSwitchPorts()
-                                ->getNodeIf(port)
-                                ->getSpeed()) *
+      static_cast<uint64_t>(
+          programmedState_->getPorts()->getNodeIf(port)->getSpeed()) *
       1000 * 1000;
   if (waitForRateOnPort(port, portSpeedBps)) {
     // Traffic on port reached line rate!
@@ -650,8 +648,7 @@ void HwSwitchEnsemble::ensureThrift() {
 }
 
 size_t HwSwitchEnsemble::getMinPktsForLineRate(const PortID& port) {
-  auto portSpeed =
-      programmedState_->getMultiSwitchPorts()->getNodeIf(port)->getSpeed();
+  auto portSpeed = programmedState_->getPorts()->getNodeIf(port)->getSpeed();
   return (portSpeed > cfg::PortSpeed::HUNDREDG ? 1000 : 100);
 }
 

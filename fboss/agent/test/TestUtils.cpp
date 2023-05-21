@@ -101,7 +101,7 @@ shared_ptr<SwitchState> setAllPortState(
     const shared_ptr<SwitchState>& in,
     bool up) {
   auto newState = in->clone();
-  auto newPortMaps = newState->getMultiSwitchPorts()->modify(&newState);
+  auto newPortMaps = newState->getPorts()->modify(&newState);
   auto scopeResolver = SwitchIdScopeResolver(
       newState->getSwitchSettings()->getSwitchIdToSwitchInfo());
   for (auto portMap : *newPortMaps) {
@@ -580,7 +580,7 @@ shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
         folly::to<string>("port", idx),
         HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID{switchId}})));
     vlan1->addPort(PortID(idx), false);
-    auto port = state->getMultiSwitchPorts()->getNodeIf(PortID(idx));
+    auto port = state->getPorts()->getNodeIf(PortID(idx));
     port->addVlan(vlan1->getID(), false);
     port->setInterfaceIDs({1});
   }
@@ -594,7 +594,7 @@ shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
         folly::to<string>("port", idx),
         HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID{switchId}})));
     vlan55->addPort(PortID(idx), false);
-    auto port = state->getMultiSwitchPorts()->getNodeIf(PortID(idx));
+    auto port = state->getPorts()->getNodeIf(PortID(idx));
     port->addVlan(vlan55->getID(), false);
     port->setInterfaceIDs({55});
   }
@@ -648,7 +648,7 @@ shared_ptr<SwitchState> testStateAWithPortsUp() {
 
 shared_ptr<SwitchState> testStateAWithLookupClasses() {
   auto newState = testStateAWithPortsUp()->clone();
-  auto newPortMaps = newState->getMultiSwitchPorts()->modify(&newState);
+  auto newPortMaps = newState->getPorts()->modify(&newState);
   auto scopeResolver = SwitchIdScopeResolver(
       newState->getSwitchSettings()->getSwitchIdToSwitchInfo());
   for (auto portMap : *newPortMaps) {
@@ -904,7 +904,7 @@ void updateMacAddrsToBlock(
 std::vector<std::shared_ptr<Port>> getPortsInLoopbackMode(
     const std::shared_ptr<SwitchState>& state) {
   std::vector<std::shared_ptr<Port>> lbPorts;
-  for (auto portMap : std::as_const(*state->getMultiSwitchPorts())) {
+  for (auto portMap : std::as_const(*state->getPorts())) {
     for (auto port : std::as_const(*portMap.second)) {
       if (port.second->getLoopbackMode() != cfg::PortLoopbackMode::NONE) {
         lbPorts.push_back(port.second);
@@ -1031,6 +1031,6 @@ void registerPort(
     cfg::PortType portType) {
   auto port = std::make_shared<Port>(id, name);
   port->setPortType(portType);
-  state->getMultiSwitchPorts()->addNode(std::move(port), scope);
+  state->getPorts()->addNode(std::move(port), scope);
 }
 } // namespace facebook::fboss

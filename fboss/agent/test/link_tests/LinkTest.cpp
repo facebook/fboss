@@ -298,7 +298,7 @@ bool LinkTest::checkReachabilityOnAllCabledPorts() const {
 }
 
 PortID LinkTest::getPortID(const std::string& portName) const {
-  for (auto portMap : std::as_const(*sw()->getState()->getMultiSwitchPorts())) {
+  for (auto portMap : std::as_const(*sw()->getState()->getPorts())) {
     for (auto port : std::as_const(*portMap.second)) {
       if (port.second->getName() == portName) {
         return port.second->getID();
@@ -309,7 +309,7 @@ PortID LinkTest::getPortID(const std::string& portName) const {
 }
 
 std::string LinkTest::getPortName(PortID portId) const {
-  for (auto portMap : std::as_const(*sw()->getState()->getMultiSwitchPorts())) {
+  for (auto portMap : std::as_const(*sw()->getState()->getPorts())) {
     for (auto port : std::as_const(*portMap.second)) {
       if (port.second->getID() == portId) {
         return port.second->getName();

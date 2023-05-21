@@ -92,7 +92,7 @@ class ColdBootPacketHandlingFixture : public ::testing::Test {
     auto vlan = make_shared<Vlan>(VlanID(1), std::string("InitVlan"));
     Vlan::MemberPorts memberPorts;
     for (const auto& port : ports) {
-      coldBootState->getMultiSwitchPorts()->addNode(
+      coldBootState->getPorts()->addNode(
           port, HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID{0}})));
       memberPorts.insert(make_pair(port->getID(), false));
     }

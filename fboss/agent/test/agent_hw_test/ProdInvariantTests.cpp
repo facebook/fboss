@@ -163,8 +163,7 @@ std::map<PortID, HwPortStats> ProdInvariantTest::getLatestPortStats(
   std::map<PortID, HwPortStats> portIdStatsMap;
   auto portNameStatsMap = sw()->getHw()->getPortStats();
   for (auto [portName, stats] : portNameStatsMap) {
-    auto portId =
-        sw()->getState()->getMultiSwitchPorts()->getPort(portName)->getID();
+    auto portId = sw()->getState()->getPorts()->getPort(portName)->getID();
     if (std::find(ports.begin(), ports.end(), (PortID)portId) == ports.end()) {
       continue;
     }

@@ -412,7 +412,7 @@ TEST_F(BcmPortTest, AssertL3Enabled) {
         std::make_tuple("bcmPortControlIP4", bcmPortControlIP4),
         std::make_tuple("bcmPortControlIP6", bcmPortControlIP6)};
     for (const auto& portMap :
-         std::as_const(*getProgrammedState()->getMultiSwitchPorts())) {
+         std::as_const(*getProgrammedState()->getPorts())) {
       for (const auto& port : std::as_const(*portMap.second)) {
         if (!port.second->isEnabled()) {
           continue;
@@ -474,7 +474,7 @@ TEST_F(BcmPortTest, SetInterPacketGapBits) {
   };
   auto verify = [this]() {
     for (const auto& portMap :
-         std::as_const(*getProgrammedState()->getMultiSwitchPorts())) {
+         std::as_const(*getProgrammedState()->getPorts())) {
       for (const auto& port : std::as_const(*portMap.second)) {
         if (!port.second->isEnabled()) {
           continue;

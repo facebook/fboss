@@ -53,9 +53,9 @@ TEST(ThriftySwitchState, PortMap) {
   auto port2 = std::make_shared<Port>(std::move(portFields2));
 
   auto state = SwitchState();
-  state.getMultiSwitchPorts()->addNode(port1, scope());
-  state.getMultiSwitchPorts()->addNode(port2, scope());
-  auto portMap = state.getMultiSwitchPorts()->begin()->second;
+  state.getPorts()->addNode(port1, scope());
+  state.getPorts()->addNode(port2, scope());
+  auto portMap = state.getPorts()->begin()->second;
   validateThriftMapMapSerialization(*portMap);
 
   verifySwitchStateSerialization(state);

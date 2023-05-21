@@ -107,10 +107,8 @@ class HwEcmpTest : public HwLinkStateDependentTest {
           *vlanId, &state);
     } else {
       auto portId = port.phyPortID();
-      InterfaceID intfId(*state->getMultiSwitchPorts()
-                              ->getNode(portId)
-                              ->getInterfaceIDs()
-                              .begin());
+      InterfaceID intfId(
+          *state->getPorts()->getNode(portId)->getInterfaceIDs().begin());
       return state->getInterfaces()->getNode(intfId)->getNdpTable()->modify(
           intfId, &state);
     }

@@ -1258,7 +1258,7 @@ PortStats* SwSwitch::portStats(PortID portID) {
   if (portStats) {
     return portStats;
   }
-  auto portIf = getState()->getMultiSwitchPorts()->getNodeIf(portID);
+  auto portIf = getState()->getPorts()->getNodeIf(portID);
   if (portIf) {
     // get portName from current state
     return stats()->createPortStats(
@@ -1291,8 +1291,7 @@ InterfaceStats* SwSwitch::interfaceStats(InterfaceID intfID) {
 
 map<int32_t, PortStatus> SwSwitch::getPortStatus() {
   map<int32_t, PortStatus> statusMap;
-  std::shared_ptr<MultiSwitchPortMap> portMaps =
-      getState()->getMultiSwitchPorts();
+  std::shared_ptr<MultiSwitchPortMap> portMaps = getState()->getPorts();
   for (const auto& portMap : std::as_const(*portMaps)) {
     for (const auto& p : std::as_const(*portMap.second)) {
       statusMap[p.second->getID()] = fillInPortStatus(*p.second, this);
@@ -1490,7 +1489,7 @@ void SwSwitch::linkStateChanged(
   // Schedule an update for port's operational status
   auto updateOperStateFn = [=](const std::shared_ptr<SwitchState>& state) {
     std::shared_ptr<SwitchState> newState(state);
-    auto* port = newState->getMultiSwitchPorts()->getNodeIf(portId).get();
+    auto* port = newState->getPorts()->getNodeIf(portId).get();
 
     if (port) {
       if (port->isUp() != up) {
@@ -1654,7 +1653,7 @@ void SwSwitch::sendPacketOutOfPortAsync(
     PortID portID,
     std::optional<uint8_t> queue) noexcept {
   auto state = getState();
-  if (!state->getMultiSwitchPorts()->getNodeIf(portID)) {
+  if (!state->getPorts()->getNodeIf(portID)) {
     XLOG(ERR) << "SendPacketOutOfPortAsync: dropping packet to unexpected port "
               << portID;
     stats()->pktDropped();

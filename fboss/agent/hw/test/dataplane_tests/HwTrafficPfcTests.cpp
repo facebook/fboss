@@ -129,7 +129,7 @@ void validateIngressPriorityGroupWatermarkCounters(
       [&](const auto& /*newStats*/) {
         for (const auto& portId : portIds) {
           const auto& portName = ensemble->getProgrammedState()
-                                     ->getMultiSwitchPorts()
+                                     ->getPorts()
                                      ->getNodeIf(portId)
                                      ->getName();
           std::string pg =

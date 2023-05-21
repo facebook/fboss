@@ -291,7 +291,7 @@ TurboFSWRouteScaleGenerator::TurboFSWRouteScaleGenerator(
       v4PrefixLabelDistributionSpec_(
           {{26, {11, 1, 500}}, {32, {3761, 376, 600}}}) {
   std::set<PortDescriptor> allPorts;
-  for (auto portMap : std::as_const(*startingState->getMultiSwitchPorts())) {
+  for (auto portMap : std::as_const(*startingState->getPorts())) {
     for (auto port : std::as_const(*portMap.second)) {
       if (!port.second->isEnabled()) {
         continue;

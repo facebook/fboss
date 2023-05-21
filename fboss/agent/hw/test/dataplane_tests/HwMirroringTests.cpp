@@ -159,8 +159,7 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
 
   void mirrorPort(const std::string& mirrorName) {
     auto state = this->getProgrammedState()->clone();
-    auto ports =
-        this->getProgrammedState()->getMultiSwitchPorts()->modify(&state);
+    auto ports = this->getProgrammedState()->getPorts()->modify(&state);
     auto port = ports->getNodeIf(trafficPort_)->clone();
     port->setIngressMirror(mirrorName);
     if (getHwSwitch()->getPlatform()->getAsic()->isSupported(

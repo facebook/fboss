@@ -90,10 +90,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
       bool isVoq) {
     std::string portName;
     if (!isVoq) {
-      portName = getProgrammedState()
-                     ->getMultiSwitchPorts()
-                     ->getNodeIf(portId)
-                     ->getName();
+      portName = getProgrammedState()->getPorts()->getNodeIf(portId)->getName();
 
     } else {
       auto systemPortId = getSystemPortID(portId, getProgrammedState());
@@ -129,7 +126,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
       bool isVoq) {
     std::map<int16_t, int64_t> queueWaterMarks;
     auto portName =
-        getProgrammedState()->getMultiSwitchPorts()->getNodeIf(port)->getName();
+        getProgrammedState()->getPorts()->getNodeIf(port)->getName();
 
     auto queueTypeStr = isVoq ? " voq queueId: " : " queueId: ";
     auto watermarkStatsCheck = [&]() {

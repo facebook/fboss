@@ -346,7 +346,7 @@ TEST_F(MirrorTest, PortMirror) {
   publishWithStateUpdate();
   configurePortMirror("mirror0", PortID(3));
   publishWithStateUpdate();
-  auto port = state_->getMultiSwitchPorts()->getNodeIf(PortID(3));
+  auto port = state_->getPorts()->getNodeIf(PortID(3));
   EXPECT_NE(port, nullptr);
   auto inMirror = port->getIngressMirror();
   EXPECT_EQ(inMirror.has_value(), true);
@@ -449,7 +449,7 @@ TEST_F(MirrorTest, AddAclAndPortToMirror) {
     EXPECT_TRUE(aclEgMirror.has_value());
     EXPECT_EQ(aclEgMirror->cref(), "mirror0");
 
-    auto port = state_->getMultiSwitchPorts()->getNodeIf(ports[i]);
+    auto port = state_->getPorts()->getNodeIf(ports[i]);
     EXPECT_NE(port, nullptr);
     auto portInMirror = port->getIngressMirror();
     EXPECT_EQ(portInMirror.has_value(), true);
@@ -486,7 +486,7 @@ TEST_F(MirrorTest, DeleleteAclAndPortToMirror) {
     auto entry = state_->getAcls()->getNodeIf(acls[i]);
     if (i) {
       EXPECT_EQ(entry, nullptr);
-      auto port = state_->getMultiSwitchPorts()->getNodeIf(ports[i]);
+      auto port = state_->getPorts()->getNodeIf(ports[i]);
       EXPECT_NE(port, nullptr);
       auto portInMirror = port->getIngressMirror();
       EXPECT_EQ(portInMirror.has_value(), false);
@@ -503,7 +503,7 @@ TEST_F(MirrorTest, DeleleteAclAndPortToMirror) {
       EXPECT_TRUE(aclEgMirror.has_value());
       EXPECT_EQ(aclEgMirror->cref(), "mirror0");
 
-      auto port = state_->getMultiSwitchPorts()->getNodeIf(ports[i]);
+      auto port = state_->getPorts()->getNodeIf(ports[i]);
       EXPECT_NE(port, nullptr);
       auto portInMirror = port->getIngressMirror();
       EXPECT_EQ(portInMirror.has_value(), true);

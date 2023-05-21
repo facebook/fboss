@@ -82,8 +82,7 @@ std::shared_ptr<SwitchState> ProgramForwardingAndPartnerState::operator()(
   }
 
   XLOG(DBG2) << "Updating " << aggPort->getName() << ": ForwardingState["
-             << nextState->getMultiSwitchPorts()->getNodeIf(portID_)->getName()
-             << "] --> "
+             << nextState->getPorts()->getNodeIf(portID_)->getName() << "] --> "
              << (forwardingState_ == AggregatePort::Forwarding::ENABLED
                      ? "ENABLED"
                      : "DISABLED")
@@ -333,7 +332,7 @@ bool LinkAggregationManager::transmit(LACPDU lacpdu, PortID portID) {
   MacAddress cpuMac =
       sw_->getHwAsicTable()->getHwAsicIf(switchId)->getAsicMac();
 
-  auto port = sw_->getState()->getMultiSwitchPorts()->getNodeIf(portID);
+  auto port = sw_->getState()->getPorts()->getNodeIf(portID);
   CHECK(port);
 
   TxPacket::writeEthHeader(

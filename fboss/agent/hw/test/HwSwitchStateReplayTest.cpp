@@ -67,7 +67,7 @@ class HwSwitchStateReplayTest : public HwTest {
   void runTest() {
     auto setup = [=]() {
       auto wbState = getWarmBootState();
-      for (auto portMap : std::as_const(*wbState->getMultiSwitchPorts())) {
+      for (auto portMap : std::as_const(*wbState->getPorts())) {
         for (auto port : std::as_const(*portMap.second)) {
           if (port.second->isUp()) {
             port.second->setLoopbackMode(getAsic()->desiredLoopbackMode());

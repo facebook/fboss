@@ -148,7 +148,7 @@ std::map<PortID, PortID> MultiNodeTest::localToRemotePort() const {
       getRemoteThriftClient()->sync_getLldpNeighbors(remoteLldpNeighbors);
       for (const auto& nbr : remoteLldpNeighbors) {
         auto localPort = sw()->getState()
-                             ->getMultiSwitchPorts()
+                             ->getPorts()
                              ->getPort(*nbr.printablePortId())
                              ->getID();
         if (std::find(localPorts.begin(), localPorts.end(), localPort) !=

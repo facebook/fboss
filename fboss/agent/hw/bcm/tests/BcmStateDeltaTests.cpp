@@ -97,7 +97,7 @@ void setDataPlaneTrafficPolicyForPort(
 namespace facebook::fboss {
 
 TEST_F(BcmTest, addPortFails) {
-  const auto& portMap = getProgrammedState()->getMultiSwitchPorts();
+  const auto& portMap = getProgrammedState()->getPorts();
   auto highestPortIdPort = *std::max_element(
       portMap->cbegin()->second->cbegin(),
       portMap->cbegin()->second->cend(),
@@ -105,7 +105,7 @@ TEST_F(BcmTest, addPortFails) {
         return lport.second->getID() < rport.second->getID();
       });
   auto newState = getProgrammedState()->clone();
-  auto newPortMap = newState->getMultiSwitchPorts()->modify(&newState);
+  auto newPortMap = newState->getPorts()->modify(&newState);
   state::PortFields portFields;
   portFields.portId() = PortID(highestPortIdPort.second->getID() + 1);
   portFields.portName() = "foo";
@@ -116,10 +116,10 @@ TEST_F(BcmTest, addPortFails) {
 }
 
 TEST_F(BcmTest, removePortFails) {
-  const auto& portMap = getProgrammedState()->getMultiSwitchPorts();
+  const auto& portMap = getProgrammedState()->getPorts();
   auto firstPort = *portMap->cbegin()->second->cbegin();
   auto newState = getProgrammedState()->clone();
-  auto newPortMap = newState->getMultiSwitchPorts()->modify(&newState);
+  auto newPortMap = newState->getPorts()->modify(&newState);
   newPortMap->removeNode(firstPort.second->getID());
   EXPECT_THROW(applyNewState(newState), FbossError);
 }

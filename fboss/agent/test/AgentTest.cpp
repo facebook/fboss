@@ -66,8 +66,7 @@ void AgentTest::resolveNeighbor(
     folly::MacAddress mac) {
   // TODO support agg ports as well.
   CHECK(portDesc.isPhysicalPort());
-  auto port =
-      sw()->getState()->getMultiSwitchPorts()->getNodeIf(portDesc.phyPortID());
+  auto port = sw()->getState()->getPorts()->getNodeIf(portDesc.phyPortID());
   auto vlan = port->getVlans().begin()->first;
   if (ip.isV4()) {
     resolveNeighbor(portDesc, ip.asV4(), vlan, mac);
@@ -125,7 +124,7 @@ bool AgentTest::waitForSwitchStateCondition(
 void AgentTest::setPortStatus(PortID portId, bool up) {
   auto configFnLinkDown = [=](const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();
-    auto ports = newState->getMultiSwitchPorts()->modify(&newState);
+    auto ports = newState->getPorts()->modify(&newState);
     auto port = ports->getNodeIf(portId)->clone();
     port->setAdminState(
         up ? cfg::PortState::ENABLED : cfg::PortState::DISABLED);
@@ -138,7 +137,7 @@ void AgentTest::setPortStatus(PortID portId, bool up) {
 void AgentTest::setPortLoopbackMode(PortID portId, cfg::PortLoopbackMode mode) {
   auto setLbMode = [=](const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();
-    auto ports = newState->getMultiSwitchPorts()->modify(&newState);
+    auto ports = newState->getPorts()->modify(&newState);
     auto port = ports->getNodeIf(portId)->clone();
     port->setLoopbackMode(mode);
     return newState;
@@ -150,11 +149,7 @@ void AgentTest::setPortLoopbackMode(PortID portId, cfg::PortLoopbackMode mode) {
 std::vector<std::string> AgentTest::getPortNames(
     const std::vector<PortID>& ports) const {
   return folly::gen::from(ports) | folly::gen::map([&](PortID port) {
-           return sw()
-               ->getState()
-               ->getMultiSwitchPorts()
-               ->getNodeIf(port)
-               ->getName();
+           return sw()->getState()->getPorts()->getNodeIf(port)->getName();
          }) |
       folly::gen::as<std::vector<std::string>>();
 }

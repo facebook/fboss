@@ -44,7 +44,7 @@ class PortUpdateHandlerTest : public ::testing::Test {
     deltaRemove = std::make_shared<StateDelta>(addState, initState);
 
     // rename all port name fron portX to eth1/X/1
-    initPorts = initState->getMultiSwitchPorts();
+    initPorts = initState->getPorts();
     newPorts = std::make_shared<MultiSwitchPortMap>();
     for (const auto& origPortMap : std::as_const(*initPorts)) {
       for (const auto& origPort : std::as_const(*origPortMap.second)) {

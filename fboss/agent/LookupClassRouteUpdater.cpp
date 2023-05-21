@@ -55,7 +55,7 @@ bool LookupClassRouteUpdater::vlanHasOtherPortsWithClassIDs(
   for (auto& [id, portInfo] : vlan->getPorts()) {
     auto portID = PortID(id);
     std::ignore = portInfo;
-    auto port = switchState->getMultiSwitchPorts()->getNodeIf(portID);
+    auto port = switchState->getPorts()->getNodeIf(portID);
 
     if (portID != removedPort->getID() &&
         port->getLookupClassesToDistributeTrafficOn().size() != 0) {
@@ -346,7 +346,7 @@ void LookupClassRouteUpdater::processInterfaceAdded(
   for (auto& [id, portInfo] : vlan->getPorts()) {
     PortID portID(id);
     std::ignore = portInfo;
-    auto port = switchState->getMultiSwitchPorts()->getNodeIf(portID);
+    auto port = switchState->getPorts()->getNodeIf(portID);
     // routes are re-added once outside the for loop
     processPortAdded(stateDelta, port, false /* don't re-add all routes */);
   }
@@ -449,7 +449,7 @@ void LookupClassRouteUpdater::processInterfaceRemoved(
   for (auto& [id, portInfo] : vlan->getPorts()) {
     PortID portID(id);
     std::ignore = portInfo;
-    auto port = switchState->getMultiSwitchPorts()->getNodeIf(portID);
+    auto port = switchState->getPorts()->getNodeIf(portID);
     /*
      * Subnets for an interface could be cached in following cases:
      *   - port has non-empty lookup class list,
@@ -1207,8 +1207,7 @@ bool LookupClassRouteUpdater::isSubnetCachedByLookupClasses(
   }
 
   bool searchInterfaceAddresses = false;
-  for (const auto& portMap :
-       std::as_const(*switchState->getMultiSwitchPorts())) {
+  for (const auto& portMap : std::as_const(*switchState->getPorts())) {
     for (const auto& port : std::as_const(*portMap.second)) {
       if (port.second->getLookupClassesToDistributeTrafficOn().size() == 0) {
         continue;

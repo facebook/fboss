@@ -574,8 +574,7 @@ TYPED_TEST(HwRouteTest, AddHostRouteAndNeighbor) {
     auto ip = this->kGetRoutePrefix3().network();
     // add neighbor
     auto state = this->getProgrammedState();
-    auto [portId, port] =
-        *(state->getMultiSwitchPorts()->getFirstMap()->cbegin());
+    auto [portId, port] = *(state->getPorts()->getFirstMap()->cbegin());
     auto vlan = state->getVlans()->getNode(port->getIngressVlan());
     auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
         vlan->getID(), &state);

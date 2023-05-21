@@ -92,7 +92,7 @@ TEST_F(FabricReachabilityManagerTest, validateRemoteOffset) {
   std::shared_ptr<Port> swPort = makePort(1);
   swPort->setExpectedNeighborReachability(
       createPortNeighbor("fab1/9/2", "rdswA"));
-  newState->getMultiSwitchPorts()->addNode(swPort, getScope(swPort));
+  newState->getPorts()->addNode(swPort, getScope(swPort));
 
   std::map<PortID, FabricEndpoint> hwReachabilityMap;
   FabricEndpoint endpoint;
@@ -136,7 +136,7 @@ TEST_F(FabricReachabilityManagerTest, validateProcessReachabilityInfo) {
   std::shared_ptr<Port> swPort = makePort(1);
   swPort->setExpectedNeighborReachability(
       createPortNeighbor("fab1/2/4", "fdswA"));
-  newState->getMultiSwitchPorts()->addNode(swPort, getScope(swPort));
+  newState->getPorts()->addNode(swPort, getScope(swPort));
 
   std::map<PortID, FabricEndpoint> hwReachabilityMap;
   FabricEndpoint endpoint;
@@ -179,7 +179,7 @@ TEST_F(FabricReachabilityManagerTest, validateUnattachedEndpoint) {
   std::shared_ptr<Port> swPort = makePort(1);
   swPort->setExpectedNeighborReachability(
       createPortNeighbor("fab1/2/4", "fdswA"));
-  newState->getMultiSwitchPorts()->addNode(swPort, getScope(swPort));
+  newState->getPorts()->addNode(swPort, getScope(swPort));
 
   auto dsfNode = makeDsfNode(10, "fdswA");
   auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
@@ -222,7 +222,7 @@ TEST_F(FabricReachabilityManagerTest, validateUnexpectedNeighbors) {
   std::shared_ptr<Port> swPort = makePort(1);
   swPort->setExpectedNeighborReachability(
       createPortNeighbor("fab1/2/3", "fdswA"));
-  newState->getMultiSwitchPorts()->addNode(swPort, getScope(swPort));
+  newState->getPorts()->addNode(swPort, getScope(swPort));
 
   std::map<PortID, FabricEndpoint> hwReachabilityMap;
   FabricEndpoint endpoint;

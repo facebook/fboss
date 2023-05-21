@@ -689,7 +689,7 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
       auto queues = bcmPort->getCurrentQueueSettings();
       swPort->resetPortQueues(queues);
     }
-    bootState->getMultiSwitchPorts()->addNode(swPort, scopeMatcher);
+    bootState->getPorts()->addNode(swPort, scopeMatcher);
 
     memberPorts.insert(make_pair(portID, false));
   }
@@ -2062,7 +2062,7 @@ bool BcmSwitch::isValidStateUpdate(const StateDelta& delta) const {
 
   std::shared_ptr<Port> firstPort;
   std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction{};
-  for (const auto& portMap : std::as_const(*newState->getMultiSwitchPorts())) {
+  for (const auto& portMap : std::as_const(*newState->getPorts())) {
     for (const auto& port : std::as_const(*portMap.second)) {
       if (port.second->getPfc().has_value() &&
           port.second->getPfc()->watchdog().has_value()) {

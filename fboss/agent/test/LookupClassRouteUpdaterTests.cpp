@@ -301,7 +301,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     this->updateState(
         "Remove lookupclasses", [=](const std::shared_ptr<SwitchState>& state) {
           auto newState = state->clone();
-          auto newPortMaps = newState->getMultiSwitchPorts()->modify(&newState);
+          auto newPortMaps = newState->getPorts()->modify(&newState);
 
           for (auto portMap : *newPortMaps) {
             for (auto port : *portMap.second) {
