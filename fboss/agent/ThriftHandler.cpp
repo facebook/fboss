@@ -505,7 +505,8 @@ LinkNeighborThrift thriftLinkNeighbor(
   if (!n->getPortDescription().empty()) {
     tn.portDescription() = n->getPortDescription();
   }
-  const auto port = sw.getState()->getPorts()->getPortIf(n->getLocalPort());
+  const auto port =
+      sw.getState()->getMultiSwitchPorts()->getNodeIf(n->getLocalPort());
   if (port) {
     tn.localPortName() = port->getName();
   }
@@ -1085,7 +1086,8 @@ void ThriftHandler::getPortInfo(PortInfoThrift& portInfo, int32_t portId) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
 
-  const auto port = sw_->getState()->getPorts()->getPortIf(PortID(portId));
+  const auto port =
+      sw_->getState()->getMultiSwitchPorts()->getNodeIf(PortID(portId));
   if (!port) {
     throw FbossError("no such port ", portId);
   }
@@ -1100,10 +1102,12 @@ void ThriftHandler::getAllPortInfo(map<int32_t, PortInfoThrift>& portInfoMap) {
   // NOTE: important to take pointer to switch state before iterating over
   // list of ports
   std::shared_ptr<SwitchState> swState = sw_->getState();
-  for (const auto& port : std::as_const(*(swState->getPorts()))) {
-    auto portId = port.second->getID();
-    auto& portInfo = portInfoMap[portId];
-    getPortInfoHelper(*sw_, portInfo, port.second);
+  for (const auto& portMap : std::as_const(*(swState->getMultiSwitchPorts()))) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      auto portId = port.second->getID();
+      auto& portInfo = portInfoMap[portId];
+      getPortInfoHelper(*sw_, portInfo, port.second);
+    }
   }
 }
 
@@ -1183,7 +1187,8 @@ void ThriftHandler::clearPortStats(unique_ptr<vector<int32_t>> ports) {
 
   auto statsMap = facebook::fb303::fbData->getStatMap();
   for (const auto& portId : *ports) {
-    const auto port = sw_->getState()->getPorts()->getPortIf(PortID(portId));
+    const auto port =
+        sw_->getState()->getMultiSwitchPorts()->getNodeIf(PortID(portId));
     std::vector<std::string> portKeys;
     getPortCounterKeys(portKeys, "out_", port);
     getPortCounterKeys(portKeys, "in_", port);
@@ -1215,8 +1220,10 @@ void ThriftHandler::clearAllPortStats() {
   ensureConfigured(__func__);
   auto allPorts = std::make_unique<std::vector<int32_t>>();
   std::shared_ptr<SwitchState> swState = sw_->getState();
-  for (const auto& port : std::as_const(*(swState->getPorts()))) {
-    allPorts->push_back(port.second->getID());
+  for (const auto& portMap : std::as_const(*(swState->getMultiSwitchPorts()))) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      allPorts->push_back(port.second->getID());
+    }
   }
   clearPortStats(std::move(allPorts));
 }
@@ -1430,7 +1437,7 @@ void ThriftHandler::setPortPrbs(
   auto log = LOG_THRIFT_CALL(DBG1, portNum, enable);
   ensureConfigured(__func__);
   PortID portId = PortID(portNum);
-  const auto port = sw_->getState()->getPorts()->getPortIf(portId);
+  const auto port = sw_->getState()->getMultiSwitchPorts()->getNodeIf(portId);
   if (!port) {
     throw FbossError("no such port ", portNum);
   }
@@ -1451,7 +1458,8 @@ void ThriftHandler::setPortPrbs(
   if (component == phy::PortComponent::ASIC) {
     auto updateFn = [=](const shared_ptr<SwitchState>& state) {
       shared_ptr<SwitchState> newState{state};
-      auto newPort = port->modify(&newState);
+      auto newPort =
+          port->modify(&newState, sw_->getScopeResolver()->scope(port));
       newPort->setAsicPrbs(newPrbsState);
       return newState;
     };
@@ -1459,7 +1467,8 @@ void ThriftHandler::setPortPrbs(
   } else if (component == phy::PortComponent::GB_SYSTEM) {
     auto updateFn = [=](const shared_ptr<SwitchState>& state) {
       shared_ptr<SwitchState> newState{state};
-      auto newPort = port->modify(&newState);
+      auto newPort =
+          port->modify(&newState, sw_->getScopeResolver()->scope(port));
       newPort->setGbSystemPrbs(newPrbsState);
       return newState;
     };
@@ -1467,7 +1476,8 @@ void ThriftHandler::setPortPrbs(
   } else if (component == phy::PortComponent::GB_LINE) {
     auto updateFn = [=](const shared_ptr<SwitchState>& state) {
       shared_ptr<SwitchState> newState{state};
-      auto newPort = port->modify(&newState);
+      auto newPort =
+          port->modify(&newState, sw_->getScopeResolver()->scope(port));
       newPort->setGbLinePrbs(newPrbsState);
       return newState;
     };
@@ -1482,7 +1492,7 @@ void ThriftHandler::setPortState(int32_t portNum, bool enable) {
   auto log = LOG_THRIFT_CALL(DBG1, portNum, enable);
   ensureConfigured(__func__);
   PortID portId = PortID(portNum);
-  const auto port = sw_->getState()->getPorts()->getPortIf(portId);
+  const auto port = sw_->getState()->getMultiSwitchPorts()->getNodeIf(portId);
   if (!port) {
     throw FbossError("no such port ", portNum);
   }
@@ -1496,10 +1506,12 @@ void ThriftHandler::setPortState(int32_t portNum, bool enable) {
     return;
   }
 
-  auto updateFn = [portId, newPortState](const shared_ptr<SwitchState>& state) {
-    const auto oldPort = state->getPorts()->getPortIf(portId);
+  auto scopeResolver = sw_->getScopeResolver();
+  auto updateFn = [portId, newPortState, &scopeResolver](
+                      const shared_ptr<SwitchState>& state) {
+    const auto oldPort = state->getMultiSwitchPorts()->getNodeIf(portId);
     shared_ptr<SwitchState> newState{state};
-    auto newPort = oldPort->modify(&newState);
+    auto newPort = oldPort->modify(&newState, scopeResolver->scope(oldPort));
     newPort->setAdminState(newPortState);
     return newState;
   };
@@ -1510,7 +1522,7 @@ void ThriftHandler::setPortDrainState(int32_t portNum, bool drain) {
   auto log = LOG_THRIFT_CALL(DBG1, portNum, drain);
   ensureConfigured(__func__);
   PortID portId = PortID(portNum);
-  const auto port = sw_->getState()->getPorts()->getPortIf(portId);
+  const auto port = sw_->getState()->getMultiSwitchPorts()->getNodeIf(portId);
   if (!port) {
     throw FbossError("no such port ", portNum);
   }
@@ -1522,17 +1534,18 @@ void ThriftHandler::setPortDrainState(int32_t portNum, bool drain) {
   cfg::PortDrainState newPortDrainState =
       drain ? cfg::PortDrainState::DRAINED : cfg::PortDrainState::UNDRAINED;
 
+  auto scopeResolver = sw_->getScopeResolver();
   auto updateFn =
-      [portId, newPortDrainState, drain](
+      [portId, newPortDrainState, drain, &scopeResolver](
           const shared_ptr<SwitchState>& state) -> shared_ptr<SwitchState> {
-    const auto oldPort = state->getPorts()->getPortIf(portId);
+    const auto oldPort = state->getMultiSwitchPorts()->getNodeIf(portId);
     if (oldPort->getPortDrainState() == newPortDrainState) {
       XLOG(DBG2) << "setPortDrainState: port already in state "
                  << (drain ? "DRAINED" : "UNDRAINED");
       return nullptr;
     }
     shared_ptr<SwitchState> newState{state};
-    auto newPort = oldPort->modify(&newState);
+    auto newPort = oldPort->modify(&newState, scopeResolver->scope(oldPort));
     newPort->setPortDrainState(newPortDrainState);
     return newState;
   };
@@ -1545,7 +1558,7 @@ void ThriftHandler::setPortLoopbackMode(
   auto log = LOG_THRIFT_CALL(DBG1, portNum, mode);
   ensureConfigured(__func__);
   PortID portId = PortID(portNum);
-  const auto port = sw_->getState()->getPorts()->getPortIf(portId);
+  const auto port = sw_->getState()->getMultiSwitchPorts()->getNodeIf(portId);
   if (!port) {
     throw FbossError("no such port ", portNum);
   }
@@ -1558,11 +1571,12 @@ void ThriftHandler::setPortLoopbackMode(
     return;
   }
 
-  auto updateFn = [portId,
-                   newLoopbackMode](const shared_ptr<SwitchState>& state) {
-    const auto oldPort = state->getPorts()->getPortIf(portId);
+  auto scopeResolver = sw_->getScopeResolver();
+  auto updateFn = [portId, newLoopbackMode, &scopeResolver](
+                      const shared_ptr<SwitchState>& state) {
+    const auto oldPort = state->getMultiSwitchPorts()->getNodeIf(portId);
     shared_ptr<SwitchState> newState{state};
-    auto newPort = oldPort->modify(&newState);
+    auto newPort = oldPort->modify(&newState, scopeResolver->scope(oldPort));
     newPort->setLoopbackMode(newLoopbackMode);
     return newState;
   };
@@ -1573,9 +1587,11 @@ void ThriftHandler::getAllPortLoopbackMode(
     std::map<int32_t, PortLoopbackMode>& port2LbMode) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  for (auto& port : std::as_const(*sw_->getState()->getPorts())) {
-    port2LbMode[port.second->getID()] =
-        toThriftLoopbackMode(port.second->getLoopbackMode());
+  for (auto& portMap : std::as_const(*sw_->getState()->getMultiSwitchPorts())) {
+    for (auto& port : std::as_const(*portMap.second)) {
+      port2LbMode[port.second->getID()] =
+          toThriftLoopbackMode(port.second->getLoopbackMode());
+    }
   }
 }
 
@@ -1617,6 +1633,7 @@ void ThriftHandler::programInternalPhyPorts(
     XLOG(DBG2) << "programInternalPhyPorts for present Transceiver:" << tcvrID
                << " matches current SwitchState. Skip re-programming";
   } else {
+    auto scopeResolver = sw_->getScopeResolver();
     auto updateFn = [&, tcvrID](const shared_ptr<SwitchState>& state) {
       auto newState = state->clone();
       auto newTransceiverMap = newState->getTransceivers()->modify(&newState);
@@ -1637,8 +1654,8 @@ void ThriftHandler::programInternalPhyPorts(
       sw_->getPlatformMapping()->customizePlatformPortConfigOverrideFactor(
           factor);
       for (const auto& platformPort : platformPorts) {
-        const auto oldPort =
-            state->getPorts()->getPortIf(PortID(*platformPort.mapping()->id()));
+        const auto oldPort = state->getMultiSwitchPorts()->getNodeIf(
+            PortID(*platformPort.mapping()->id()));
         if (!oldPort) {
           continue;
         }
@@ -1663,7 +1680,8 @@ void ThriftHandler::programInternalPhyPorts(
         const auto& newPinConfigs =
             sw_->getPlatformMapping()->getPortIphyPinConfigs(matcher);
 
-        auto newPort = oldPort->modify(&newState);
+        auto newPort =
+            oldPort->modify(&newState, scopeResolver->scope(oldPort));
         newPort->setProfileConfig(*newProfileConfigRef);
         newPort->resetPinConfigs(newPinConfigs);
       }
@@ -1676,7 +1694,7 @@ void ThriftHandler::programInternalPhyPorts(
 
   // fetch the programmed profiles
   for (const auto& platformPort : platformPorts) {
-    const auto port = sw_->getState()->getPorts()->getPortIf(
+    const auto port = sw_->getState()->getMultiSwitchPorts()->getNodeIf(
         PortID(*platformPort.mapping()->id()));
     if (port && port->isEnabled()) {
       // Only return ports actually exist and are enabled
@@ -2864,7 +2882,7 @@ void ThriftHandler::getFabricReachability(
   auto state = sw_->getState();
 
   for (auto [portId, fabricEndpoint] : portId2FabricEndpoint) {
-    auto portName = state->getPorts()->getPort(portId)->getName();
+    auto portName = state->getMultiSwitchPorts()->getNodeIf(portId)->getName();
     reachability.insert({portName, fabricEndpoint});
   }
 }
@@ -2888,8 +2906,10 @@ void ThriftHandler::getSwitchReachability(
         std::vector<std::string> reachablePorts;
         for (const auto& port :
              sw_->getHw()->getSwitchReachability(node->getSwitchId())) {
-          reachablePorts.push_back(
-              sw_->getState()->getPorts()->getPort(port)->getName());
+          reachablePorts.push_back(sw_->getState()
+                                       ->getMultiSwitchPorts()
+                                       ->getNodeIf(port)
+                                       ->getName());
         }
         reachabilityMatrix.insert({node->getName(), std::move(reachablePorts)});
       }
