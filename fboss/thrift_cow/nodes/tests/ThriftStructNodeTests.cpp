@@ -478,9 +478,7 @@ TEST(ThriftStructNodeTests, UnsignedInteger) {
   ThriftStructFields<TestStruct> fields;
   using UnderlyingType = folly::remove_cvref_t<
       decltype(*fields.get<k::unsigned_int64>())>::ThriftType;
-#ifndef IS_OSS
   static_assert(std::is_same_v<UnderlyingType, uint64_t>);
-#endif
 }
 
 TEST(ThriftStructNodeTests, ReferenceWrapper) {
