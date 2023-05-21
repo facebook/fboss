@@ -137,7 +137,8 @@ OPT_ARG_SAI_LOGGING = "--sai_logging"
 SUB_CMD_BCM = "bcm"
 SUB_CMD_SAI = "sai"
 SUB_CMD_QSFP = "qsfp"
-WARMBOOT_CHECK_FILE = "/dev/shm/fboss/warm_boot/can_warm_boot_0"
+AGENT_WARMBOOT_CHECK_FILE = "/dev/shm/fboss/warm_boot/can_warm_boot_0"
+QSFP_WARMBOOT_CHECK_FILE = "/dev/shm/fboss/qsfp_service/can_warm_boot"
 SAI_HW_KNOWN_BAD_TESTS = (
     "./share/hw_known_bad_tests/sai_known_bad_tests.materialized_JSON"
 )
@@ -174,6 +175,10 @@ class TestRunner(abc.ABC):
 
     @abc.abstractmethod
     def _get_sai_logging_flags(self):
+        pass
+
+    @abc.abstractmethod
+    def _get_warmboot_check_file(self):
         pass
 
     def _get_test_run_cmd(self, conf_file, test_to_run, flags):
@@ -456,7 +461,7 @@ class TestRunner(abc.ABC):
             test_outputs.append(test_output)
 
             # Run the test again for warmboot verification if the test supports it
-            if warmboot and os.path.isfile(WARMBOOT_CHECK_FILE):
+            if warmboot and os.path.isfile(self._get_warmboot_check_file()):
                 print(
                     "########## Verifying test with warmboot: " + test_to_run,
                     flush=True,
@@ -545,6 +550,9 @@ class BcmTestRunner(TestRunner):
         # N/A
         return []
 
+    def _get_warmboot_check_file(self):
+        return AGENT_WARMBOOT_CHECK_FILE
+
 
 class SaiTestRunner(TestRunner):
     def _get_config_path(self):
@@ -572,6 +580,9 @@ class SaiTestRunner(TestRunner):
     def _get_sai_logging_flags(self, sai_logging):
         return ["--enable_sai_log", sai_logging]
 
+    def _get_warmboot_check_file(self):
+        return AGENT_WARMBOOT_CHECK_FILE
+
 
 class QsfpTestRunner(TestRunner):
     def _get_config_path(self):
@@ -589,6 +600,9 @@ class QsfpTestRunner(TestRunner):
     def _get_sai_logging_flags(self, sai_logging):
         # N/A
         return []
+
+    def _get_warmboot_check_file(self):
+        return QSFP_WARMBOOT_CHECK_FILE
 
 
 if __name__ == "__main__":
