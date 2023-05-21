@@ -34,9 +34,15 @@ using std::shared_ptr;
 using std::string;
 using testing::Return;
 
+namespace {
 static const string kVlan1234("Vlan1234");
 static const string kVlan99("Vlan99");
 static const string kVlan1299("Vlan1299");
+
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+} // namespace
 
 template <typename Entry>
 void validateRespEntry(
@@ -54,8 +60,8 @@ TEST(Vlan, applyConfig) {
   auto vlanV0 = make_shared<Vlan>(VlanID(1234), kVlan1234);
 
   stateV0->addVlan(vlanV0);
-  stateV0->registerPort(PortID(1), "port1");
-  stateV0->registerPort(PortID(2), "port2");
+  registerPort(stateV0, PortID(1), "port1", scope());
+  registerPort(stateV0, PortID(2), "port2", scope());
 
   NodeID nodeID = vlanV0->getNodeID();
   EXPECT_EQ(0, vlanV0->getGeneration());
@@ -311,7 +317,9 @@ TEST(VlanMap, applyConfig) {
   config.ports()->resize(ports.size());
   for (int i = 0; i < ports.size(); i++) {
     int port = ports[i];
-    stateV0->registerPort(PortID(port), folly::format("port{}", port).str());
+    registerPort(
+        stateV0, PortID(port), folly::format("port{}", port).str(), scope());
+
     preparedMockPortConfig(
         config.ports()[i],
         port,

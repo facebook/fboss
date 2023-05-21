@@ -24,6 +24,10 @@ using std::shared_ptr;
 
 namespace {
 
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+
 cfg::Range getRange(uint32_t minimum, uint32_t maximum) {
   cfg::Range range;
   range.minimum() = minimum;
@@ -162,7 +166,8 @@ PortQueue* generateDefaultPortQueue() {
 constexpr int kStateTestNumPortQueues = 4;
 std::shared_ptr<SwitchState> applyInitConfig() {
   auto stateV0 = make_shared<SwitchState>();
-  stateV0->registerPort(PortID(1), "port1");
+  registerPort(stateV0, PortID(1), "port1", scope());
+
   auto port0 = stateV0->getPort(PortID(1));
   QueueConfig initialQueues;
   for (uint8_t i = 0; i < kStateTestNumPortQueues; i++) {

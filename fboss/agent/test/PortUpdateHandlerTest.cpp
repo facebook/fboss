@@ -25,6 +25,10 @@ using std::string;
 
 namespace {
 
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+
 class PortUpdateHandlerTest : public ::testing::Test {
  public:
   void SetUp() override {
@@ -34,7 +38,7 @@ class PortUpdateHandlerTest : public ::testing::Test {
 
     addState = testStateA();
     // add port 21 which uses VLAN 1
-    addState->registerPort(PortID(21), "port21");
+    registerPort(addState, PortID(21), "port21", scope());
     addState->getVlans()->getVlanIf(VlanID(1))->addPort(PortID(21), false);
     deltaAdd = std::make_shared<StateDelta>(initState, addState);
     deltaRemove = std::make_shared<StateDelta>(addState, initState);

@@ -50,7 +50,7 @@ TEST(Acl, applyConfig) {
   EXPECT_EQ(0, aclV0->getGeneration());
   EXPECT_FALSE(aclV0->isPublished());
   EXPECT_EQ(0, aclV0->getPriority());
-  stateV0->registerPort(PortID(1), "port1");
+  registerPort(stateV0, PortID(1), "port1", scope());
 
   aclV0->publish();
   EXPECT_TRUE(aclV0->isPublished());
@@ -371,8 +371,8 @@ TEST(Acl, AclGeneration) {
   FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  stateV0->registerPort(PortID(1), "port1");
-  stateV0->registerPort(PortID(2), "port2");
+  registerPort(stateV0, PortID(1), "port1", scope());
+  registerPort(stateV0, PortID(2), "port2", scope());
 
   cfg::SwitchConfig config;
   config.ports()->resize(2);

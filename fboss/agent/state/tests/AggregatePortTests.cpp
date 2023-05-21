@@ -28,6 +28,12 @@ using namespace facebook::fboss;
 using std::make_shared;
 using std::shared_ptr;
 
+namespace {
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+} // namespace
+
 /* Some tests below are structured as follows:
  * baseState --[apply "baseConfig"]--> startState --[apply "config"]--> endState
  * In these tests, what's being tested is the transition from startState and
@@ -109,7 +115,7 @@ void checkAggPort(
 TEST(AggregatePort, singleTrunkWithOnePhysicalPort) {
   auto platform = createMockPlatform();
   auto startState = make_shared<SwitchState>();
-  startState->registerPort(PortID(1), "port1");
+  registerPort(startState, PortID(1), "port1", scope());
 
   // This config has an aggregate port comprised of a single physical port
   cfg::SwitchConfig config;
@@ -155,8 +161,8 @@ TEST(AggregatePort, singleTrunkWithOnePhysicalPort) {
 TEST(AggregatePort, singleTrunkWithTwoPhysicalPorts) {
   auto platform = createMockPlatform();
   auto baseState = make_shared<SwitchState>();
-  baseState->registerPort(PortID(1), "port1");
-  baseState->registerPort(PortID(2), "port2");
+  registerPort(baseState, PortID(1), "port1", scope());
+  registerPort(baseState, PortID(2), "port2", scope());
 
   cfg::SwitchConfig baseConfig;
   baseConfig.switchSettings()->switchIdToSwitchInfo() = {
@@ -211,8 +217,8 @@ TEST(AggregatePort, singleTrunkWithTwoPhysicalPorts) {
 TEST(AggregatePort, singleTrunkIdempotence) {
   auto platform = createMockPlatform();
   auto baseState = make_shared<SwitchState>();
-  baseState->registerPort(PortID(1), "port1");
-  baseState->registerPort(PortID(2), "port2");
+  registerPort(baseState, PortID(1), "port1", scope());
+  registerPort(baseState, PortID(2), "port2", scope());
 
   // This config has an aggregate port comprised of two physical ports
   cfg::SwitchConfig baseConfig;
@@ -270,8 +276,8 @@ TEST(AggregatePort, singleTrunkIdempotence) {
 TEST(AggregatePort, singleTrunkWithoutPhysicalPorts) {
   auto platform = createMockPlatform();
   auto baseState = make_shared<SwitchState>();
-  baseState->registerPort(PortID(1), "port1");
-  baseState->registerPort(PortID(2), "port2");
+  registerPort(baseState, PortID(1), "port1", scope());
+  registerPort(baseState, PortID(2), "port2", scope());
 
   // This config has an aggregate port comprised of two physical ports
   cfg::SwitchConfig baseConfig;
@@ -330,8 +336,8 @@ TEST(AggregatePort, singleTrunkWithoutPhysicalPorts) {
 TEST(AggregatePort, noTrunk) {
   auto platform = createMockPlatform();
   auto baseState = make_shared<SwitchState>();
-  baseState->registerPort(PortID(1), "port1");
-  baseState->registerPort(PortID(2), "port2");
+  registerPort(baseState, PortID(1), "port1", scope());
+  registerPort(baseState, PortID(2), "port2", scope());
 
   // This config has an aggregate port comprised of two physical ports
   cfg::SwitchConfig baseConfig;

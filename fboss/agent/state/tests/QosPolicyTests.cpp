@@ -233,6 +233,10 @@ cfg::QosMap cfgQosMap() {
   return qosMap;
 }
 
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+
 } // namespace
 
 TEST(QosPolicy, AddSinglePolicy) {
@@ -383,8 +387,8 @@ TEST(QosPolicy, PortDefaultQosPolicy) {
   cfg::SwitchConfig config;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  stateV0->registerPort(PortID(1), "port1");
-  stateV0->registerPort(PortID(2), "port2");
+  registerPort(stateV0, PortID(1), "port1", scope());
+  registerPort(stateV0, PortID(2), "port2", scope());
 
   config.ports()->resize(2);
   preparedMockPortConfig(config.ports()[0], 1);
@@ -407,8 +411,8 @@ TEST(QosPolicy, PortQosPolicyOverride) {
   cfg::SwitchConfig config;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  stateV0->registerPort(PortID(1), "port1");
-  stateV0->registerPort(PortID(2), "port2");
+  registerPort(stateV0, PortID(1), "port1", scope());
+  registerPort(stateV0, PortID(2), "port2", scope());
 
   config.ports()->resize(2);
   preparedMockPortConfig(config.ports()[0], 1);
@@ -531,8 +535,8 @@ TEST(QosPolicy, DefaultQosPolicyOnPorts) {
   cfg::SwitchConfig config;
   auto platform = createMockPlatform();
   auto state = make_shared<SwitchState>();
-  state->registerPort(PortID(1), "port1");
-  state->registerPort(PortID(2), "port2");
+  registerPort(state, PortID(1), "port1", scope());
+  registerPort(state, PortID(2), "port2", scope());
 
   config.ports()->resize(2);
   preparedMockPortConfig(config.ports()[0], 1);
@@ -558,8 +562,8 @@ TEST(QosPolicy, QosPolicyPortOverride) {
   cfg::SwitchConfig config;
   auto platform = createMockPlatform();
   auto state = make_shared<SwitchState>();
-  state->registerPort(PortID(1), "port1");
-  state->registerPort(PortID(2), "port2");
+  registerPort(state, PortID(1), "port1", scope());
+  registerPort(state, PortID(2), "port2", scope());
 
   config.ports()->resize(2);
   preparedMockPortConfig(config.ports()[0], 1);
@@ -647,7 +651,7 @@ TEST(QosPolicy, InvalidPortQosPolicy) {
   cfg::SwitchConfig config0;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  stateV0->registerPort(PortID(1), "port1");
+  registerPort(stateV0, PortID(1), "port1", scope());
 
   config0.ports()->resize(1);
   preparedMockPortConfig(config0.ports()[0], 1);
@@ -660,7 +664,7 @@ TEST(QosPolicy, InvalidPortQosPolicy) {
 
   cfg::SwitchConfig config1;
   auto stateV1 = make_shared<SwitchState>();
-  stateV1->registerPort(PortID(1), "port1");
+  registerPort(stateV1, PortID(1), "port1", scope());
 
   config1.ports()->resize(1);
   preparedMockPortConfig(config1.ports()[0], 1);
@@ -672,7 +676,7 @@ TEST(QosPolicy, InvalidPortQosPolicy) {
 
   cfg::SwitchConfig config2;
   auto stateV2 = make_shared<SwitchState>();
-  stateV2->registerPort(PortID(1), "port1");
+  registerPort(stateV2, PortID(1), "port1", scope());
 
   cfg::TrafficPolicyConfig cpuPolicy;
   cpuPolicy.defaultQosPolicy() = "qp1";

@@ -462,11 +462,6 @@ unique_ptr<HwTestHandle> createTestHandle(
   initialState = make_shared<SwitchState>();
   SwitchIdToSwitchInfo switchIdToSwitchInfo;
   if (config) {
-    for (const auto& port : *config->ports()) {
-      auto id = *port.logicalID();
-      initialState->registerPort(
-          PortID(id), folly::to<string>("port", id), *port.portType());
-    }
     if (config->switchSettings()->switchIdToSwitchInfo()->size()) {
       switchIdToSwitchInfo = *config->switchSettings()->switchIdToSwitchInfo();
 
@@ -477,6 +472,19 @@ unique_ptr<HwTestHandle> createTestHandle(
   } else {
     switchIdToSwitchInfo.emplace(
         std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU)));
+  }
+
+  if (config) {
+    auto switchId = switchIdToSwitchInfo.begin()->first;
+    for (const auto& port : *config->ports()) {
+      auto id = *port.logicalID();
+      registerPort(
+          initialState,
+          PortID(id),
+          folly::to<string>("port", id),
+          HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID{switchId}})),
+          *port.portType());
+    }
   }
 
   initialState->getSwitchSettings()->setSwitchIdToSwitchInfo(
@@ -560,8 +568,13 @@ shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
   // Add VLAN 1, and ports 1-10 which belong to it.
   auto vlan1 = make_shared<Vlan>(VlanID(1), std::string("Vlan1"));
   state->addVlan(vlan1);
+  auto switchId = switchIdToSwitchInfo.begin()->first;
   for (int idx = 1; idx <= 10; ++idx) {
-    state->registerPort(PortID(idx), folly::to<string>("port", idx));
+    registerPort(
+        state,
+        PortID(idx),
+        folly::to<string>("port", idx),
+        HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID{switchId}})));
     vlan1->addPort(PortID(idx), false);
     auto port = state->getPorts()->getPortIf(PortID(idx));
     port->addVlan(vlan1->getID(), false);
@@ -571,7 +584,11 @@ shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
   auto vlan55 = make_shared<Vlan>(VlanID(55), std::string("Vlan55"));
   state->addVlan(vlan55);
   for (int idx = 11; idx <= 20; ++idx) {
-    state->registerPort(PortID(idx), folly::to<string>("port", idx));
+    registerPort(
+        state,
+        PortID(idx),
+        folly::to<string>("port", idx),
+        HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID{switchId}})));
     vlan55->addPort(PortID(idx), false);
     auto port = state->getPorts()->getPortIf(PortID(idx));
     port->addVlan(vlan55->getID(), false);

@@ -36,6 +36,12 @@ using std::shared_ptr;
 using std::string;
 using std::tuple;
 
+namespace {
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+} // namespace
+
 #define PP(node) NN(folly::toPrettyJson(node->toFollyDynamic()))
 
 template <typename NTableT>
@@ -98,7 +104,7 @@ void registerPortsAndPopulateConfig(
   for (const auto& portAndVlan : port2Vlan) {
     auto port = portAndVlan.first;
     auto vlan = portAndVlan.second;
-    state->registerPort(port, folly::to<string>("port", int(port)));
+    registerPort(state, port, folly::to<string>("port", int(port)), scope());
     vlans.insert(vlan);
   }
   config.ports()->resize(port2Vlan.size());

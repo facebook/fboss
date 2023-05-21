@@ -202,7 +202,7 @@ TEST(Port, emptyConfig) {
   PortID portID(1);
   auto state = make_shared<SwitchState>();
   addSwitchInfo(state);
-  state->registerPort(portID, "port1");
+  registerPort(state, PortID(1), "port1", scope());
   auto port = state->getMultiSwitchPorts()->getNodeIf(portID);
   prepareDefaultSwPort(platform.get(), port);
   // Make sure we also update the port queues to default queue so that the
@@ -242,7 +242,7 @@ TEST(Port, emptyConfig) {
 TEST(Port, verifyPfcWithPauseConfig) {
   auto platform = createMockPlatform();
   auto state = make_shared<SwitchState>();
-  state->registerPort(PortID(1), "port1");
+  registerPort(state, PortID(1), "port1", scope());
 
   cfg::SwitchConfig config;
   cfg::PortPfc pfc;
@@ -265,7 +265,7 @@ TEST(Port, verifyPfcWithPauseConfig) {
 TEST(Port, verifyPfcConfig) {
   auto platform = createMockPlatform();
   auto state = make_shared<SwitchState>();
-  state->registerPort(PortID(1), "port1");
+  registerPort(state, PortID(1), "port1", scope());
 
   auto port = state->getMultiSwitchPorts()->getNodeIf(PortID(1));
   EXPECT_FALSE(port->getPfc().has_value());
@@ -346,7 +346,7 @@ TEST(Port, pauseConfig) {
   auto state = make_shared<SwitchState>();
   addSwitchInfo(state);
   auto portID = PortID(1);
-  state->registerPort(portID, "port1");
+  registerPort(state, PortID(1), "port1", scope());
   auto port = state->getMultiSwitchPorts()->getNodeIf(portID);
   prepareDefaultSwPort(platform.get(), port);
   // Make sure we also update the port queues to default queue so that the
@@ -409,7 +409,7 @@ TEST(Port, pauseConfig) {
 TEST(Port, loopbackModeConfig) {
   auto platform = createMockPlatform();
   auto state = make_shared<SwitchState>();
-  state->registerPort(PortID(1), "port1");
+  registerPort(state, PortID(1), "port1", scope());
   auto verifyLoopbackMode = [&state](cfg::PortLoopbackMode expectLoopbackMode) {
     auto port = state->getMultiSwitchPorts()->getNodeIf(PortID(1));
     auto loopbackMode = port->getLoopbackMode();
@@ -458,7 +458,7 @@ TEST(Port, loopbackModeConfig) {
 TEST(Port, sampleDestinationConfig) {
   auto platform = createMockPlatform();
   auto state = make_shared<SwitchState>();
-  state->registerPort(PortID(1), "port1");
+  registerPort(state, PortID(1), "port1", scope());
   auto changeAndVerifySampleDestination =
       [](std::unique_ptr<MockPlatform>& platform,
          std::shared_ptr<SwitchState>& state,
@@ -500,54 +500,6 @@ TEST(Port, sampleDestinationConfig) {
   changeAndVerifySampleDestination(
       platform, state, cfg::SampleDestination::CPU);
   changeAndVerifySampleDestination(platform, state, std::nullopt);
-}
-
-TEST(PortMap, registerPorts) {
-  auto ports = make_shared<PortMap>();
-  EXPECT_EQ(0, ports->getGeneration());
-  EXPECT_FALSE(ports->isPublished());
-  EXPECT_EQ(0, ports->numPorts());
-
-  ports->registerPort(PortID(1), "port1");
-  ports->registerPort(PortID(2), "port2");
-  ports->registerPort(PortID(3), "port3");
-  ports->registerPort(PortID(4), "port4");
-  EXPECT_EQ(4, ports->numPorts());
-
-  auto port1 = ports->getNodeIf(PortID(1));
-  auto port2 = ports->getNodeIf(PortID(2));
-  auto port3 = ports->getNodeIf(PortID(3));
-  auto port4 = ports->getNodeIf(PortID(4));
-  EXPECT_EQ(PortID(1), port1->getID());
-  EXPECT_EQ("port1", port1->getName());
-  EXPECT_EQ(PortID(4), port4->getID());
-  EXPECT_EQ("port4", port4->getName());
-
-  // Attempting to register a duplicate port ID should fail
-  EXPECT_THROW(ports->registerPort(PortID(2), "anotherPort2"), FbossError);
-
-  // Registering non-sequential IDs should work
-  ports->registerPort(PortID(10), "port10");
-  EXPECT_EQ(5, ports->numPorts());
-  auto port10 = ports->getNodeIf(PortID(10));
-  EXPECT_EQ(PortID(10), port10->getID());
-  EXPECT_EQ("port10", port10->getName());
-
-  // Getting non-existent ports should fail
-  EXPECT_EQ(nullptr, ports->getNodeIf(PortID(0)));
-  EXPECT_EQ(nullptr, ports->getNodeIf(PortID(7)));
-  EXPECT_EQ(nullptr, ports->getNodeIf(PortID(300)));
-
-  // Publishing the PortMap should also mark all ports as published
-  ports->publish();
-  EXPECT_TRUE(ports->isPublished());
-  EXPECT_TRUE(port1->isPublished());
-  EXPECT_TRUE(port2->isPublished());
-  EXPECT_TRUE(port3->isPublished());
-  EXPECT_TRUE(port4->isPublished());
-  EXPECT_TRUE(port10->isPublished());
-
-  validateThriftMapMapSerialization(*ports);
 }
 
 /*
@@ -729,12 +681,14 @@ TEST(PortMap, iterateOrder) {
   // Add a test to ensure that this always remains true.  (If we ever change
   // the underlying map data structure used for PortMap, we will need to update
   // the StateDelta code.)
-  auto ports = make_shared<PortMap>();
-  ports->registerPort(PortID(99), "a");
-  ports->registerPort(PortID(37), "b");
-  ports->registerPort(PortID(88), "c");
-  ports->registerPort(PortID(4), "d");
-  ports->publish();
+  auto state = make_shared<SwitchState>();
+  registerPort(state, PortID(99), "a", scope());
+  registerPort(state, PortID(37), "b", scope());
+  registerPort(state, PortID(88), "c", scope());
+  registerPort(state, PortID(4), "d", scope());
+  state->publish();
+
+  auto ports = state->getMultiSwitchPorts()->cbegin()->second;
 
   auto it = ports->cbegin();
   ASSERT_NE(ports->cend(), it);
