@@ -212,14 +212,14 @@ TEST_F(QosMapManagerTest, changAddsPortQos) {
   portFields.portName() = "eth1/1/1";
   auto port = std::make_shared<Port>(std::move(portFields));
   port->setQosPolicy("qos");
-  auto ports = std::make_shared<PortMap>();
-  ports->addPort(port);
+  auto ports = std::make_shared<MultiSwitchPortMap>();
+  ports->addNode(port, scopeResolver().scope(port));
   oldState->resetPorts(ports);
   oldState->publish();
   EXPECT_TRUE(saiPlatform->getHwSwitch()->isValidStateUpdate(
       StateDelta(std::make_shared<SwitchState>(), oldState)));
   auto newState = oldState->clone();
-  auto newPort = port->modify(&newState);
+  auto newPort = port->modify(&newState, scopeResolver().scope(port));
   auto qosPolicies = std::make_shared<QosPolicyMap>();
   qosPolicies->addNode(makeQosPolicy("qos", testQosPolicy));
   newState->resetQosPolicies(qosPolicies);

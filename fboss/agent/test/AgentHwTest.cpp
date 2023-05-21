@@ -2,6 +2,7 @@
 
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -49,11 +50,13 @@ void AgentHwTest::SetUp() {
     // Set preempahsis to 0, so ports state can be manipulated by just setting
     // loopback mode (lopbackMode::NONE == down), loopbackMode::{MAC, PHY} ==
     // up)
+    auto scopeResolver = sw()->getScopeResolver();
     sw()->updateStateBlocking("set port preemphasis 0", [&](const auto& state) {
       std::shared_ptr<SwitchState> newState{state};
       for (auto& portMap : std::as_const(*newState->getMultiSwitchPorts())) {
         for (auto& port : std::as_const(*portMap.second)) {
-          auto newPort = port.second->modify(&newState);
+          auto newPort =
+              port.second->modify(&newState, scopeResolver->scope(port.second));
           auto pinConfigs = newPort->getPinConfigs();
           for (auto& pin : pinConfigs) {
             pin.tx() = phy::TxSettings();

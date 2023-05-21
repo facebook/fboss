@@ -1775,18 +1775,24 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
   // Temporarily skip resetPorts for ASIC_TYPE_ELBERT_8DD
   if (platform_->getAsic()->getAsicType() !=
       cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
+    auto switchId = platform_->getAsic()->getSwitchId()
+        ? *platform_->getAsic()->getSwitchId()
+        : 0;
+    HwSwitchMatcher matcher(std::unordered_set<SwitchID>({SwitchID(switchId)}));
     // reconstruct ports
-    auto portMap =
-        managerTable_->portManager().reconstructPortsFromStore(switchType_);
-    auto ports = std::make_shared<PortMap>();
+    auto portMaps = managerTable_->portManager().reconstructPortsFromStore(
+        switchType_, matcher);
+    auto ports = std::make_shared<MultiSwitchPortMap>();
     if (FLAGS_hide_fabric_ports) {
-      for (auto [id, port] : *portMap) {
-        if (port->getPortType() != cfg::PortType::FABRIC_PORT) {
-          ports->addPort(port);
+      for (const auto& portMap : std::as_const(*portMaps)) {
+        for (const auto& [id, port] : std::as_const(*portMap.second)) {
+          if (port->getPortType() != cfg::PortType::FABRIC_PORT) {
+            ports->addNode(port, matcher);
+          }
         }
       }
     } else {
-      ports = std::move(portMap);
+      ports = std::move(portMaps);
     }
     state->resetPorts(ports);
   }

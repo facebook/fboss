@@ -13,6 +13,7 @@
 #include <memory>
 #include "configerator/structs/neteng/fboss/bgp/if/gen-cpp2/bgp_attr_types.h"
 #include "fboss/agent/IPv6Handler.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -118,10 +119,11 @@ class BgpIntegrationTest : public AgentIntegrationTest {
   }
 
   void setPortState(PortID port, bool up) {
+    const auto scopeResolver = sw()->getScopeResolver();
     updateState(up ? "set port up" : "set port down", [&](const auto& state) {
       auto newState = state->clone();
-      auto newPort =
-          newState->getMultiSwitchPorts()->getNodeIf(port)->modify(&newState);
+      auto newPort = newState->getMultiSwitchPorts()->getNodeIf(port)->modify(
+          &newState, scopeResolver->scope(port));
       newPort->setLoopbackMode(
           up ? cfg::PortLoopbackMode::MAC : cfg::PortLoopbackMode::NONE);
       newPort->setAdminState(

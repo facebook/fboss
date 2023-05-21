@@ -15,6 +15,7 @@
 #include "common/network/NetworkUtil.h"
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -44,7 +45,7 @@ void MultiNodeTest::setupConfigFlag() {
   const auto& baseConfig = platform()->config();
 
   // Fill in PortMap from baseConfig
-  auto pMap = std::make_shared<PortMap>();
+  auto pMap = std::make_shared<MultiSwitchPortMap>();
   const auto& swConfig = *baseConfig->thrift.sw();
   for (const auto& portCfg : *swConfig.ports()) {
     state::PortFields portFields;
@@ -53,7 +54,7 @@ void MultiNodeTest::setupConfigFlag() {
     auto port = std::make_shared<Port>(portFields);
     port->setSpeed(*portCfg.speed());
     port->setProfileId(*portCfg.profileID());
-    pMap->addPort(port);
+    pMap->addNode(port, sw()->getScopeResolver()->scope(port));
   }
   utility::setPortToDefaultProfileIDMap(pMap, platform());
   parseTestPorts(FLAGS_multiNodeTestPorts);

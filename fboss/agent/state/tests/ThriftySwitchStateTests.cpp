@@ -52,13 +52,12 @@ TEST(ThriftySwitchState, PortMap) {
   portFields2.portName() = "eth2/2/1";
   auto port2 = std::make_shared<Port>(std::move(portFields2));
 
-  auto portMap = std::make_shared<PortMap>();
-  portMap->addPort(port1);
-  portMap->addPort(port2);
+  auto state = SwitchState();
+  state.getMultiSwitchPorts()->addNode(port1, scope());
+  state.getMultiSwitchPorts()->addNode(port2, scope());
+  auto portMap = state.getMultiSwitchPorts()->begin()->second;
   validateThriftMapMapSerialization(*portMap);
 
-  auto state = SwitchState();
-  state.resetPorts(portMap);
   verifySwitchStateSerialization(state);
 }
 

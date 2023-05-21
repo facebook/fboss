@@ -34,6 +34,10 @@ class FabricReachabilityManagerTest : public ::testing::Test {
     return handle_->getSw()->getScopeResolver()->scope(node);
   }
 
+  HwSwitchMatcher getScope(const std::shared_ptr<Port>& port) const {
+    return handle_->getSw()->getScopeResolver()->scope(port);
+  }
+
   cfg::DsfNode makeDsfNodeCfg(int64_t switchId, std::string name) {
     cfg::DsfNode dsfNodeCfg;
     dsfNodeCfg.switchId() = switchId;
@@ -88,7 +92,7 @@ TEST_F(FabricReachabilityManagerTest, validateRemoteOffset) {
   std::shared_ptr<Port> swPort = makePort(1);
   swPort->setExpectedNeighborReachability(
       createPortNeighbor("fab1/9/2", "rdswA"));
-  newState->getPorts()->addPort(swPort);
+  newState->getMultiSwitchPorts()->addNode(swPort, getScope(swPort));
 
   std::map<PortID, FabricEndpoint> hwReachabilityMap;
   FabricEndpoint endpoint;
@@ -132,7 +136,7 @@ TEST_F(FabricReachabilityManagerTest, validateProcessReachabilityInfo) {
   std::shared_ptr<Port> swPort = makePort(1);
   swPort->setExpectedNeighborReachability(
       createPortNeighbor("fab1/2/4", "fdswA"));
-  newState->getPorts()->addPort(swPort);
+  newState->getMultiSwitchPorts()->addNode(swPort, getScope(swPort));
 
   std::map<PortID, FabricEndpoint> hwReachabilityMap;
   FabricEndpoint endpoint;
@@ -175,7 +179,7 @@ TEST_F(FabricReachabilityManagerTest, validateUnattachedEndpoint) {
   std::shared_ptr<Port> swPort = makePort(1);
   swPort->setExpectedNeighborReachability(
       createPortNeighbor("fab1/2/4", "fdswA"));
-  newState->getPorts()->addPort(swPort);
+  newState->getMultiSwitchPorts()->addNode(swPort, getScope(swPort));
 
   auto dsfNode = makeDsfNode(10, "fdswA");
   auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
@@ -218,7 +222,7 @@ TEST_F(FabricReachabilityManagerTest, validateUnexpectedNeighbors) {
   std::shared_ptr<Port> swPort = makePort(1);
   swPort->setExpectedNeighborReachability(
       createPortNeighbor("fab1/2/3", "fdswA"));
-  newState->getPorts()->addPort(swPort);
+  newState->getMultiSwitchPorts()->addNode(swPort, getScope(swPort));
 
   std::map<PortID, FabricEndpoint> hwReachabilityMap;
   FabricEndpoint endpoint;
