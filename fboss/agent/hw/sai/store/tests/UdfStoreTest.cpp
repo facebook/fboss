@@ -190,7 +190,11 @@ TEST_F(UdfStoreTest, udfMatchCtor) {
 }
 
 TEST_F(UdfStoreTest, udfMatchCreateCtor) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   SaiUdfMatchTraits::CreateAttributes c{kL2Type(), kL3Type(), kL4DstPort()};
+#else
+  SaiUdfMatchTraits::CreateAttributes c{kL2Type(), kL3Type()};
+#endif
   auto k = udfMatchAdapterHostKey(kL2Type(), kL3Type(), kL4DstPort());
   auto obj = createObj<SaiUdfMatchTraits>(k, c, 0);
   EXPECT_EQ(

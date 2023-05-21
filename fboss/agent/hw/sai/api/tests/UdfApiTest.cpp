@@ -34,10 +34,14 @@ class UdfApiTest : public ::testing::Test {
   UdfMatchSaiId createUdfMatch() {
     SaiUdfMatchTraits::Attributes::L2Type l2Type{AclEntryFieldU16(kL2Type())};
     SaiUdfMatchTraits::Attributes::L3Type l3Type{AclEntryFieldU8(kL3Type())};
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
     SaiUdfMatchTraits::Attributes::L4DstPortType l4DstPortType{
         AclEntryFieldU16(kL4DstPort())};
     return udfApi->create<SaiUdfMatchTraits>(
         {l2Type, l3Type, l4DstPortType}, 0);
+#else
+    return udfApi->create<SaiUdfMatchTraits>({l2Type, l3Type}, 0);
+#endif
   }
 
   UdfSaiId createUdf(UdfMatchSaiId udfMatchId, UdfGroupSaiId udfGroupId) {
@@ -118,7 +122,8 @@ TEST_F(UdfApiTest, setUdfGroupAttributes) {
   EXPECT_THROW(
       udfApi->setAttribute(
           udfGroupId,
-          SaiUdfGroupTraits::Attributes::Length{kUdfGroupLength() + 1}),
+          SaiUdfGroupTraits::Attributes::Length{
+              (uint16_t)(kUdfGroupLength() + 1)}),
       SaiApiError);
 }
 
@@ -133,10 +138,12 @@ TEST_F(UdfApiTest, createUdfMatch) {
   EXPECT_EQ(
       udfApi->getAttribute(udfMatchId, SaiUdfMatchTraits::Attributes::L3Type{}),
       AclEntryFieldU8(kL3Type()));
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   EXPECT_EQ(
       udfApi->getAttribute(
           udfMatchId, SaiUdfMatchTraits::Attributes::L4DstPortType{}),
       AclEntryFieldU16(kL4DstPort()));
+#endif
 }
 
 TEST_F(UdfApiTest, removeUdfMatch) {
@@ -161,12 +168,14 @@ TEST_F(UdfApiTest, setUdfMatch) {
           udfMatchId,
           SaiUdfMatchTraits::Attributes::L3Type{AclEntryFieldU8(kL3Type2())}),
       SaiApiError);
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   EXPECT_THROW(
       udfApi->setAttribute(
           udfMatchId,
           SaiUdfMatchTraits::Attributes::L4DstPortType{
               AclEntryFieldU16(kL4DstPort2())}),
       SaiApiError);
+#endif
 }
 
 TEST_F(UdfApiTest, createUdf) {
