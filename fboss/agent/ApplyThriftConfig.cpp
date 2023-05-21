@@ -267,10 +267,10 @@ class ThriftConfigApplier {
 
   void processVlanPorts();
   void updateVlanInterfaces(const Interface* intf);
-  std::shared_ptr<PortMap> updatePorts(
+  std::shared_ptr<MultiSwitchPortMap> updatePorts(
       const std::shared_ptr<TransceiverMap>& transceiverMap);
   std::shared_ptr<SystemPortMap> updateSystemPorts(
-      const std::shared_ptr<PortMap>& ports,
+      const std::shared_ptr<MultiSwitchPortMap>& ports,
       const std::shared_ptr<SwitchSettings>& switchSettings);
   std::shared_ptr<Port> updatePort(
       const std::shared_ptr<Port>& orig,
@@ -518,7 +518,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       if ((newSwitchSettings->getSwitchIdToSwitchInfo() !=
            orig_->getSwitchSettings()->getSwitchIdToSwitchInfo())) {
         new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
-            updateSystemPorts(new_->getPorts(), newSwitchSettings),
+            updateSystemPorts(new_->getMultiSwitchPorts(), newSwitchSettings),
             scopeResolver_));
       }
       new_->resetSwitchSettings(std::move(newSwitchSettings));
@@ -533,7 +533,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     if (newPorts) {
       new_->resetPorts(std::move(newPorts));
       new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
-          updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()),
+          updateSystemPorts(
+              new_->getMultiSwitchPorts(), new_->getSwitchSettings()),
           scopeResolver_));
       changed = true;
     }
@@ -728,7 +729,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
           toMultiSwitchMap<MultiSwitchDsfNodeMap>(newDsfNodes, scopeResolver_));
       processUpdatedDsfNodes();
       new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
-          updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()),
+          updateSystemPorts(
+              new_->getMultiSwitchPorts(), new_->getSwitchSettings()),
           scopeResolver_));
       changed = true;
     }
@@ -1184,7 +1186,7 @@ void ThriftConfigApplier::updateVlanInterfaces(const Interface* intf) {
 }
 
 shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
-    const std::shared_ptr<PortMap>& ports,
+    const std::shared_ptr<MultiSwitchPortMap>& ports,
     const std::shared_ptr<SwitchSettings>& switchSettings) {
   const auto kNumVoqs = 8;
 
@@ -1211,37 +1213,39 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
     CHECK(dsfNode.systemPortRange());
     auto systemPortRange = *dsfNode.systemPortRange();
 
-    for (const auto& port : std::as_const(*ports)) {
-      if (kCreateSysPortsFor.find(port.second->getPortType()) ==
-          kCreateSysPortsFor.end()) {
-        continue;
+    for (const auto& portMap : std::as_const(*ports)) {
+      for (const auto& port : std::as_const(*portMap.second)) {
+        if (kCreateSysPortsFor.find(port.second->getPortType()) ==
+            kCreateSysPortsFor.end()) {
+          continue;
+        }
+        auto sysPort = std::make_shared<SystemPort>(
+            SystemPortID{*systemPortRange.minimum() + port.second->getID()});
+        sysPort->setSwitchId(SwitchID(switchId));
+        sysPort->setPortName(
+            folly::sformat("{}:{}", nodeName, port.second->getName()));
+        auto platformPort =
+            platformMapping_->getPlatformPort(port.second->getID());
+        CHECK(platformPort.mapping()->attachedCoreId().has_value());
+        CHECK(platformPort.mapping()->attachedCorePortIndex().has_value());
+        sysPort->setCoreIndex(platformPort.mapping()->attachedCoreId().value());
+        sysPort->setCorePortIndex(
+            platformPort.mapping()->attachedCorePortIndex().value());
+        sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
+        sysPort->setNumVoqs(kNumVoqs);
+        sysPort->setEnabled(port.second->isEnabled());
+        sysPort->setQosPolicy(port.second->getQosPolicy());
+        sysPort->resetPortQueues(systemPortQueues);
+        sysPorts->addSystemPort(std::move(sysPort));
       }
-      auto sysPort = std::make_shared<SystemPort>(
-          SystemPortID{*systemPortRange.minimum() + port.second->getID()});
-      sysPort->setSwitchId(SwitchID(switchId));
-      sysPort->setPortName(
-          folly::sformat("{}:{}", nodeName, port.second->getName()));
-      auto platformPort =
-          platformMapping_->getPlatformPort(port.second->getID());
-      CHECK(platformPort.mapping()->attachedCoreId().has_value());
-      CHECK(platformPort.mapping()->attachedCorePortIndex().has_value());
-      sysPort->setCoreIndex(platformPort.mapping()->attachedCoreId().value());
-      sysPort->setCorePortIndex(
-          platformPort.mapping()->attachedCorePortIndex().value());
-      sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
-      sysPort->setNumVoqs(kNumVoqs);
-      sysPort->setEnabled(port.second->isEnabled());
-      sysPort->setQosPolicy(port.second->getQosPolicy());
-      sysPort->resetPortQueues(systemPortQueues);
-      sysPorts->addSystemPort(std::move(sysPort));
     }
   }
   return sysPorts;
 }
 
-shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
+shared_ptr<MultiSwitchPortMap> ThriftConfigApplier::updatePorts(
     const std::shared_ptr<TransceiverMap>& transceiverMap) {
-  const auto origPorts = orig_->getPorts();
+  const auto origPorts = orig_->getMultiSwitchPorts();
   PortMap::NodeContainer newPorts;
   bool changed = false;
 
@@ -1250,7 +1254,7 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
   // Process all supplied port configs
   for (const auto& portCfg : *cfg_->ports()) {
     PortID id(*portCfg.logicalID());
-    auto origPort = origPorts->getPortIf(id);
+    auto origPort = origPorts->getNodeIf(id);
     std::shared_ptr<Port> newPort;
     // Find present Transceiver if it exists in TransceiverMap
     std::shared_ptr<TransceiverSpec> transceiver;
@@ -1271,22 +1275,24 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
     changed |= updateMap(&newPorts, origPort, newPort);
   }
 
-  for (const auto& origPort : std::as_const(*origPorts)) {
-    // This port was listed in the config, and has already been configured
-    if (newPorts.find(origPort.second->getID()) != newPorts.end()) {
-      continue;
-    }
+  for (const auto& origPortMap : std::as_const(*origPorts)) {
+    for (const auto& origPort : std::as_const(*origPortMap.second)) {
+      // This port was listed in the config, and has already been configured
+      if (newPorts.find(origPort.second->getID()) != newPorts.end()) {
+        continue;
+      }
 
-    // For platforms that support add/removing ports, we should leave the ports
-    // without configs out of the switch state. For BCM tests + hardware that
-    // doesn't allow add/remove, we need to leave the ports in the switch state
-    // with a default (disabled) config.
-    if (platform_->supportsAddRemovePort()) {
-      changed = true;
-    } else {
-      throw FbossError(
-          "New config is missing configuration for port ",
-          origPort.second->getID());
+      // For platforms that support add/removing ports, we should leave the
+      // ports without configs out of the switch state. For BCM tests + hardware
+      // that doesn't allow add/remove, we need to leave the ports in the switch
+      // state with a default (disabled) config.
+      if (platform_->supportsAddRemovePort()) {
+        changed = true;
+      } else {
+        throw FbossError(
+            "New config is missing configuration for port ",
+            origPort.second->getID());
+      }
     }
   }
 
@@ -1294,7 +1300,8 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
     return nullptr;
   }
 
-  return origPorts->clone(newPorts);
+  auto ports = std::make_shared<PortMap>(std::move(newPorts));
+  return toMultiSwitchMap<MultiSwitchPortMap>(ports, scopeResolver_);
 }
 
 void ThriftConfigApplier::checkPortQueueAQMValid(
@@ -4059,31 +4066,33 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
     changed = true;
   }
 
-  for (auto& port : std::as_const(*(new_->getPorts()))) {
-    auto portInMirror = port.second->getIngressMirror();
-    auto portEgMirror = port.second->getEgressMirror();
-    if (portInMirror.has_value()) {
-      auto inMirrorMapEntry = newMirrors->find(portInMirror.value());
-      if (inMirrorMapEntry == newMirrors->end()) {
-        throw FbossError(
-            "Mirror ", portInMirror.value(), " for port is not found");
+  for (auto& portMap : std::as_const(*(new_->getMultiSwitchPorts()))) {
+    for (auto& port : std::as_const(*portMap.second)) {
+      auto portInMirror = port.second->getIngressMirror();
+      auto portEgMirror = port.second->getEgressMirror();
+      if (portInMirror.has_value()) {
+        auto inMirrorMapEntry = newMirrors->find(portInMirror.value());
+        if (inMirrorMapEntry == newMirrors->end()) {
+          throw FbossError(
+              "Mirror ", portInMirror.value(), " for port is not found");
+        }
+        if (port.second->getSampleDestination() &&
+            port.second->getSampleDestination().value() ==
+                cfg::SampleDestination::MIRROR &&
+            inMirrorMapEntry->second->type() != Mirror::Type::SFLOW) {
+          throw FbossError(
+              "Ingress mirror ",
+              portInMirror.value(),
+              " for sampled port ",
+              port.second->getID(),
+              " not sflow");
+        }
       }
-      if (port.second->getSampleDestination() &&
-          port.second->getSampleDestination().value() ==
-              cfg::SampleDestination::MIRROR &&
-          inMirrorMapEntry->second->type() != Mirror::Type::SFLOW) {
+      if (portEgMirror.has_value() &&
+          newMirrors->find(portEgMirror.value()) == newMirrors->end()) {
         throw FbossError(
-            "Ingress mirror ",
-            portInMirror.value(),
-            " for sampled port ",
-            port.second->getID(),
-            " not sflow");
+            "Mirror ", portEgMirror.value(), " for port is not found");
       }
-    }
-    if (portEgMirror.has_value() &&
-        newMirrors->find(portEgMirror.value()) == newMirrors->end()) {
-      throw FbossError(
-          "Mirror ", portEgMirror.value(), " for port is not found");
     }
   }
 
@@ -4114,16 +4123,18 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
     std::shared_ptr<Port> mirrorToPort{nullptr};
     switch (egressPort->getType()) {
       case cfg::MirrorEgressPort::Type::name:
-        for (auto& port : std::as_const(*(new_->getPorts()))) {
-          if (port.second->getName() == egressPort->get_name()) {
-            mirrorToPort = port.second;
-            break;
+        for (auto& portMap : std::as_const(*(new_->getMultiSwitchPorts()))) {
+          for (auto& port : std::as_const(*portMap.second)) {
+            if (port.second->getName() == egressPort->get_name()) {
+              mirrorToPort = port.second;
+              break;
+            }
           }
         }
         break;
       case cfg::MirrorEgressPort::Type::logicalID:
-        mirrorToPort =
-            new_->getPorts()->getPortIf(PortID(egressPort->get_logicalID()));
+        mirrorToPort = new_->getMultiSwitchPorts()->getNodeIf(
+            PortID(egressPort->get_logicalID()));
         break;
       case cfg::MirrorEgressPort::Type::__EMPTY__:
         throw FbossError(

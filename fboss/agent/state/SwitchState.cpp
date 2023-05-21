@@ -148,7 +148,7 @@ void SwitchState::modify(std::shared_ptr<SwitchState>* state) {
 }
 
 std::shared_ptr<Port> SwitchState::getPort(PortID id) const {
-  return getPorts()->getPort(id);
+  return getMultiSwitchPorts()->getNode(id);
 }
 
 void SwitchState::registerPort(
@@ -710,7 +710,7 @@ VlanID SwitchState::getDefaultVlan() const {
 }
 
 SwitchID SwitchState::getAssociatedSwitchID(PortID portID) const {
-  auto port = getPort(portID);
+  auto port = getMultiSwitchPorts()->getNode(portID);
   if (port->getInterfaceIDs().size() != 1) {
     throw FbossError(
         "Unexpected number of interfaces associated with port: ",
@@ -743,7 +743,7 @@ std::optional<cfg::Range64> SwitchState::getAssociatedSystemPortRangeIf(
 
 std::optional<cfg::Range64> SwitchState::getAssociatedSystemPortRangeIf(
     PortID portID) const {
-  auto port = getPorts()->getPortIf(portID);
+  auto port = getMultiSwitchPorts()->getNodeIf(portID);
   if (!port || port->getInterfaceIDs().size() != 1) {
     return std::nullopt;
   }
@@ -751,7 +751,7 @@ std::optional<cfg::Range64> SwitchState::getAssociatedSystemPortRangeIf(
 }
 
 InterfaceID SwitchState::getInterfaceIDForPort(PortID portID) const {
-  auto port = getPorts()->getPort(portID);
+  auto port = getMultiSwitchPorts()->getNode(portID);
   // On VOQ/Fabric switches, port and interface have 1:1 relation.
   // For non VOQ/Fabric switches, in practice, a port is always part of a
   // single VLAN (and thus single interface).
@@ -987,12 +987,14 @@ SwitchState::getPfcWatchdogRecoveryAction() const {
   std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction{};
   // TODO - support per port recovery action. Return first ports
   // recovery action till then
-  for (const auto& port : std::as_const(*getPorts())) {
-    if (port.second->getPfc().has_value() &&
-        port.second->getPfc()->watchdog().has_value()) {
-      auto pfcWd = port.second->getPfc()->watchdog().value();
-      if (!recoveryAction.has_value()) {
-        return *pfcWd.recoveryAction();
+  for (const auto& portMap : std::as_const(*getMultiSwitchPorts())) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      if (port.second->getPfc().has_value() &&
+          port.second->getPfc()->watchdog().has_value()) {
+        auto pfcWd = port.second->getPfc()->watchdog().value();
+        if (!recoveryAction.has_value()) {
+          return *pfcWd.recoveryAction();
+        }
       }
     }
   }
