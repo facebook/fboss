@@ -954,7 +954,7 @@ void ThriftHandler::addRemoteNeighbors(
     for (const auto& idAndRif : std::as_const(*rifMap)) {
       const auto& rif = idAndRif.second;
       const auto& nbrTable =
-          std::as_const(*rif->getNeighborEntryTable<AddressT>());
+          std::as_const(*rif->template getNeighborEntryTable<AddressT>());
       for (const auto& ipAndEntry : nbrTable) {
         const auto& entry = ipAndEntry.second;
         NeighborThriftT nbrThrift;
