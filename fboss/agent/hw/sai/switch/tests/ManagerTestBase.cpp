@@ -102,11 +102,11 @@ void ManagerTestBase::setupSaiPlatform() {
 
   HwSwitchMatcher scope(std::unordered_set<SwitchID>({SwitchID(0)}));
   if (setupStage & SetupStage::PORT) {
-    auto* ports = setupState->getPorts()->modify(&setupState);
+    auto* ports = setupState->getMultiSwitchPorts()->modify(&setupState);
     for (const auto& testInterface : testInterfaces) {
       for (const auto& remoteHost : testInterface.remoteHosts) {
         auto swPort = makePort(remoteHost.port);
-        ports->addPort(swPort);
+        ports->addNode(swPort, scopeResolver().scope(swPort));
       }
     }
   }

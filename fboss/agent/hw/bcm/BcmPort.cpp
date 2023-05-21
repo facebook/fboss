@@ -1118,7 +1118,7 @@ std::shared_ptr<Port> BcmPort::getSwitchStatePort(
 
 std::shared_ptr<Port> BcmPort::getSwitchStatePortIf(
     const std::shared_ptr<SwitchState>& state) const {
-  return state->getPorts()->getPortIf(getPortID());
+  return state->getMultiSwitchPorts()->getNodeIf(getPortID());
 }
 
 void BcmPort::registerInPortGroup(BcmPortGroup* portGroup) {

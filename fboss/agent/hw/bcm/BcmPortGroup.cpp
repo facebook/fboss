@@ -235,7 +235,8 @@ std::vector<std::shared_ptr<Port>> BcmPortGroup::getSwPorts(
     const auto& portList = utility::getPlatformPortsByControllingPort(
         platformPorts, controllingPort_->getPortID());
     for (const auto& port : portList) {
-      auto swPort = state->getPorts()->getPortIf(PortID(*port.mapping()->id()));
+      auto swPort = state->getMultiSwitchPorts()->getNodeIf(
+          PortID(*port.mapping()->id()));
       // Platform port doesn't exist in sw config, no need to program
       if (swPort) {
         ports.push_back(swPort);
