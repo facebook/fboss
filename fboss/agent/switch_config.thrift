@@ -12,10 +12,8 @@ namespace php fboss_switch_config
 include "fboss/agent/if/common.thrift"
 include "fboss/agent/if/mpls.thrift"
 include "fboss/lib/if/fboss_common.thrift"
-include "thrift/annotation/cpp.thrift"
 
-@cpp.Type{name = "uint64_t"}
-typedef i64 u64
+typedef i64 (cpp.type = "uint64_t") u64
 
 enum PortDescriptorType {
   Physical = 0,

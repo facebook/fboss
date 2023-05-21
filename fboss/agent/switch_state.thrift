@@ -416,7 +416,7 @@ struct InterfaceFields {
   3: optional i32 vlanId;
   4: string name;
   // network byte order
-  5: i64 mac;
+  5: i64 mac (cpp2.type = "std::uint64_t");
   // ip -> prefix length
   6: map<string, i16> addresses;
   7: switch_config.NdpConfig ndpConfig;
@@ -465,7 +465,7 @@ struct AggregatePortFields {
   3: string description;
   4: i32 systemPriority;
   // network byte order
-  5: i64 systemID;
+  5: i64 systemID (cpp2.type = "std::uint64_t");
   6: i16 minimumLinkCount;
   7: list<Subport> ports;
   // portId to forwarding {ture -> enabled; false -> disabled};
