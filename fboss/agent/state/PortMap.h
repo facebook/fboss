@@ -41,34 +41,6 @@ class PortMap : public ThriftMapNode<PortMap, PortMapTraits> {
   PortMap();
   ~PortMap() override;
 
-  const std::shared_ptr<Port>& getPort(PortID id) const {
-    return getNode(id);
-  }
-  std::shared_ptr<Port> getPortIf(PortID id) const {
-    return getNodeIf(id);
-  }
-
-  size_t numPorts() const {
-    return size();
-  }
-
-  /*
-   * The following functions modify the static state.
-   * These should only be called on unpublished objects which are only visible
-   * to a single thread.
-   */
-
-  void registerPort(
-      PortID id,
-      const std::string& name,
-      cfg::PortType portType = cfg::PortType::INTERFACE_PORT);
-
-  void addPort(const std::shared_ptr<Port>& port);
-
-  void updatePort(const std::shared_ptr<Port>& port);
-
-  PortMap* modify(std::shared_ptr<SwitchState>* state);
-
  private:
   // Inherit the constructors required for clone()
   using Base::Base;

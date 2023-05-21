@@ -306,7 +306,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       const std::shared_ptr<TeFlowEntry>& oldFlowEntry,
       std::shared_ptr<SwitchState>* appliedState);
 
-  const std::shared_ptr<PortMap>& getPorts() const;
   const std::shared_ptr<MultiSwitchPortMap>& getMultiSwitchPorts() const;
   std::shared_ptr<Port> getPort(PortID id) const;
 
@@ -512,13 +511,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
    * state.
    */
 
-  void registerPort(
-      PortID id,
-      const std::string& name,
-      cfg::PortType portType = cfg::PortType::INTERFACE_PORT);
-  void addPort(const std::shared_ptr<Port>& port);
   void resetMirrors(const std::shared_ptr<MultiSwitchMirrorMap>& mirrors);
-  void resetPorts(std::shared_ptr<PortMap> ports);
   void resetPorts(std::shared_ptr<MultiSwitchPortMap> ports);
   void resetAggregatePorts(
       std::shared_ptr<MultiSwitchAggregatePortMap> aggPorts);

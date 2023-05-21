@@ -62,7 +62,7 @@ void AgentEnsemble::setupEnsemble(
   initializer->createSwitch(argc, argv, hwFeaturesDesired, initPlatform);
 
   utility::setPortToDefaultProfileIDMap(
-      std::make_shared<PortMap>(), getPlatform());
+      std::make_shared<MultiSwitchPortMap>(), getPlatform());
   auto portsByControllingPort =
       utility::getSubsidiaryPortIDs(getPlatform()->getPlatformPorts());
 

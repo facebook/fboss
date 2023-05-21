@@ -19,36 +19,6 @@ PortMap::PortMap() {}
 
 PortMap::~PortMap() {}
 
-void PortMap::registerPort(
-    PortID id,
-    const std::string& name,
-    cfg::PortType portType) {
-  auto port = std::make_shared<Port>(id, name);
-  port->setPortType(portType);
-  addNode(std::move(port));
-}
-
-void PortMap::addPort(const std::shared_ptr<Port>& port) {
-  addNode(port);
-}
-
-void PortMap::updatePort(const std::shared_ptr<Port>& port) {
-  updateNode(port);
-}
-
-PortMap* PortMap::modify(std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
-  }
-
-  SwitchState::modify(state);
-  auto newPorts = clone();
-  auto* ptr = newPorts.get();
-  (*state)->resetPorts(std::move(newPorts));
-  return ptr;
-}
-
 std::shared_ptr<Port> MultiSwitchPortMap::getPort(
     const std::string& name) const {
   auto port = getPortIf(name);

@@ -133,7 +133,6 @@ SwitchState::SwitchState() {
   resetQosPolicies(std::make_shared<QosPolicyMap>());
   resetTransceivers(std::make_shared<TransceiverMap>());
   resetVlans(std::make_shared<VlanMap>());
-  resetPorts(std::make_shared<PortMap>());
   resetControlPlane(std::make_shared<ControlPlane>());
   resetSwitchSettings(std::make_shared<SwitchSettings>());
 }
@@ -151,28 +150,8 @@ std::shared_ptr<Port> SwitchState::getPort(PortID id) const {
   return getMultiSwitchPorts()->getNode(id);
 }
 
-void SwitchState::registerPort(
-    PortID id,
-    const std::string& name,
-    cfg::PortType portType) {
-  getDefaultMap<switch_state_tags::portMaps>()->registerPort(
-      id, name, portType);
-}
-
-void SwitchState::addPort(const std::shared_ptr<Port>& port) {
-  getDefaultMap<switch_state_tags::portMaps>()->addPort(port);
-}
-
-void SwitchState::resetPorts(std::shared_ptr<PortMap> ports) {
-  resetDefaultMap<switch_state_tags::portMaps>(ports);
-}
-
 void SwitchState::resetPorts(std::shared_ptr<MultiSwitchPortMap> ports) {
   ref<switch_state_tags::portMaps>() = ports;
-}
-
-const std::shared_ptr<PortMap>& SwitchState::getPorts() const {
-  return getDefaultMap<switch_state_tags::portMaps>();
 }
 
 const std::shared_ptr<MultiSwitchPortMap>& SwitchState::getMultiSwitchPorts()
@@ -673,7 +652,8 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
       switch_state_tags::bufferPoolCfgMaps,
       switch_state_tags::bufferPoolCfgMap>(true /*emptyMnpuMapOk*/);
   state->fromThrift<switch_state_tags::vlanMaps, switch_state_tags::vlanMap>();
-  state->fromThrift<switch_state_tags::portMaps, switch_state_tags::portMap>();
+  state->fromThrift<switch_state_tags::portMaps, switch_state_tags::portMap>(
+      true /*emptyMnpuMapOk*/);
   state->fromThrift<
       switch_state_tags::interfaceMaps,
       switch_state_tags::interfaceMap>(true /*emptyMnpuMapOk*/);

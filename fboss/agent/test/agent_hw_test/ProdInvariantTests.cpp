@@ -123,7 +123,7 @@ cfg::SwitchConfig ProdInvariantTest::initialConfig() {
 void ProdInvariantTest::setupConfigFlag() {
   cfg::AgentConfig testConfig;
   utility::setPortToDefaultProfileIDMap(
-      std::make_shared<PortMap>(), platform());
+      std::make_shared<MultiSwitchPortMap>(), platform());
   testConfig.sw() = initialConfig();
   const auto& baseConfig = platform()->config();
   testConfig.defaultCommandLineArgs() =

@@ -57,19 +57,6 @@ PortFields::VlanInfo PortFields::VlanInfo::fromThrift(
   return VlanInfo(*vlanThrift.tagged());
 }
 
-Port* Port::modify(std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
-  }
-
-  PortMap* ports = (*state)->getPorts()->modify(state);
-  auto newPort = clone();
-  auto* ptr = newPort.get();
-  ports->updatePort(std::move(newPort));
-  return ptr;
-}
-
 Port* Port::modify(
     std::shared_ptr<SwitchState>* state,
     const HwSwitchMatcher& matcher) {
