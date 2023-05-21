@@ -391,7 +391,7 @@ std::map<PortID, HwPortStats> HwSwitchEnsemble::getLatestPortStats(
   auto swState = getProgrammedState();
   auto stats = getHwSwitch()->getPortStats();
   for (auto [portName, stats] : stats) {
-    auto portId = swState->getPorts()->getPort(portName)->getID();
+    auto portId = swState->getMultiSwitchPorts()->getPort(portName)->getID();
     if (std::find(ports.begin(), ports.end(), (PortID)portId) == ports.end()) {
       continue;
     }

@@ -116,8 +116,10 @@ void MKAServiceManager::recvPacket(TPacket&& packet) {
     try {
       port = PortID(folly::to<uint16_t>(*packet.l2Port()));
     } catch (const std::exception& e) {
-      port =
-          swSwitch_->getState()->getPorts()->getPort(*packet.l2Port())->getID();
+      port = swSwitch_->getState()
+                 ->getMultiSwitchPorts()
+                 ->getPort(*packet.l2Port())
+                 ->getID();
     }
     vlan = swSwitch_->getState()
                ->getPorts()

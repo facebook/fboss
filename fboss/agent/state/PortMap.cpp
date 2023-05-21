@@ -49,7 +49,8 @@ PortMap* PortMap::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
-std::shared_ptr<Port> PortMap::getPort(const std::string& name) const {
+std::shared_ptr<Port> MultiSwitchPortMap::getPort(
+    const std::string& name) const {
   auto port = getPortIf(name);
   if (!port) {
     throw FbossError("Port with name: ", name, " not found");
@@ -57,10 +58,13 @@ std::shared_ptr<Port> PortMap::getPort(const std::string& name) const {
   return port;
 }
 
-std::shared_ptr<Port> PortMap::getPortIf(const std::string& name) const {
-  for (auto port : *this) {
-    if (name == port.second->getName()) {
-      return port.second;
+std::shared_ptr<Port> MultiSwitchPortMap::getPortIf(
+    const std::string& name) const {
+  for (auto portMap : std::as_const(*this)) {
+    for (auto port : std::as_const(*portMap.second)) {
+      if (name == port.second->getName()) {
+        return port.second;
+      }
     }
   }
   return nullptr;

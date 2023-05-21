@@ -47,8 +47,6 @@ class PortMap : public ThriftMapNode<PortMap, PortMapTraits> {
   std::shared_ptr<Port> getPortIf(PortID id) const {
     return getNodeIf(id);
   }
-  std::shared_ptr<Port> getPort(const std::string& name) const;
-  std::shared_ptr<Port> getPortIf(const std::string& name) const;
 
   size_t numPorts() const {
     return size();
@@ -101,6 +99,8 @@ class MultiSwitchPortMap : public ThriftMultiSwitchMapNode<
   using BaseT::modify;
 
   MultiSwitchPortMap* modify(std::shared_ptr<SwitchState>* state);
+  std::shared_ptr<Port> getPort(const std::string& name) const;
+  std::shared_ptr<Port> getPortIf(const std::string& name) const;
 
   MultiSwitchPortMap() {}
   virtual ~MultiSwitchPortMap() {}
