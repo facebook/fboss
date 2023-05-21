@@ -120,7 +120,8 @@ class BgpIntegrationTest : public AgentIntegrationTest {
   void setPortState(PortID port, bool up) {
     updateState(up ? "set port up" : "set port down", [&](const auto& state) {
       auto newState = state->clone();
-      auto newPort = newState->getPorts()->getPort(port)->modify(&newState);
+      auto newPort =
+          newState->getMultiSwitchPorts()->getNodeIf(port)->modify(&newState);
       newPort->setLoopbackMode(
           up ? cfg::PortLoopbackMode::MAC : cfg::PortLoopbackMode::NONE);
       newPort->setAdminState(

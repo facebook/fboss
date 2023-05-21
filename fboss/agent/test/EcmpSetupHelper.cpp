@@ -92,10 +92,13 @@ flat_map<PortDescriptor, InterfaceID>
 BaseEcmpSetupHelper<AddrT, NextHopT>::computePortDesc2Interface(
     const std::shared_ptr<SwitchState>& inputState) const {
   boost::container::flat_map<PortDescriptor, InterfaceID> portDesc2Interface;
-  flat_set<PortID> portIds;
-  for (const auto& port : std::as_const(*inputState->getPorts())) {
-    if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
-      portIds.insert(port.second->getID());
+  std::set<PortID> portIds;
+  for (const auto& portMap :
+       std::as_const(*inputState->getMultiSwitchPorts())) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
+        portIds.insert(port.second->getID());
+      }
     }
   }
   for (const auto& portId : portIds) {
@@ -344,7 +347,7 @@ std::optional<VlanID> BaseEcmpSetupHelper<AddrT, NextHopT>::getVlan(
     return portId;
   };
   if (auto phyPortId = getPhysicalPortId()) {
-    auto phyPort = state->getPorts()->getPort(*phyPortId);
+    auto phyPort = state->getMultiSwitchPorts()->getNodeIf(*phyPortId);
     for (const auto& vlanMember : phyPort->getVlans()) {
       return vlanMember.first;
     }

@@ -298,18 +298,22 @@ bool LinkTest::checkReachabilityOnAllCabledPorts() const {
 }
 
 PortID LinkTest::getPortID(const std::string& portName) const {
-  for (auto port : std::as_const(*sw()->getState()->getPorts())) {
-    if (port.second->getName() == portName) {
-      return port.second->getID();
+  for (auto portMap : std::as_const(*sw()->getState()->getMultiSwitchPorts())) {
+    for (auto port : std::as_const(*portMap.second)) {
+      if (port.second->getName() == portName) {
+        return port.second->getID();
+      }
     }
   }
   throw FbossError("No port named: ", portName);
 }
 
 std::string LinkTest::getPortName(PortID portId) const {
-  for (auto port : std::as_const(*sw()->getState()->getPorts())) {
-    if (port.second->getID() == portId) {
-      return port.second->getName();
+  for (auto portMap : std::as_const(*sw()->getState()->getMultiSwitchPorts())) {
+    for (auto port : std::as_const(*portMap.second)) {
+      if (port.second->getID() == portId) {
+        return port.second->getName();
+      }
     }
   }
   throw FbossError("No port with ID: ", portId);

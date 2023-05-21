@@ -47,10 +47,13 @@ class EncapIndexAllocatorTest : public ::testing::Test {
     nbr.mac() = "02:00:00:00:00:01";
     nbr.interfaceId() = static_cast<int>(firstVlan->getInterfaceID());
     nbr.ipaddress() = ip.str();
-    nbr.portId() =
-        PortDescriptor(
-            (*getSw()->getState()->getPorts()->cbegin()).second->getID())
-            .toThrift();
+    nbr.portId() = PortDescriptor(getSw()
+                                      ->getState()
+                                      ->getMultiSwitchPorts()
+                                      ->getFirstMap()
+                                      ->cbegin()
+                                      ->second->getID())
+                       .toThrift();
     nbr.state() = state::NeighborState::Reachable;
     nbr.encapIndex() = encapIdx;
     auto nbrTable =
@@ -69,10 +72,13 @@ class EncapIndexAllocatorTest : public ::testing::Test {
     nbr.mac() = "02:00:00:00:00:01";
     nbr.interfaceId() = static_cast<int>(firstIntf->getID());
     nbr.ipaddress() = ip.str();
-    nbr.portId() =
-        PortDescriptor(
-            (*getSw()->getState()->getPorts()->cbegin()).second->getID())
-            .toThrift();
+    nbr.portId() = PortDescriptor(getSw()
+                                      ->getState()
+                                      ->getMultiSwitchPorts()
+                                      ->getFirstMap()
+                                      ->cbegin()
+                                      ->second->getID())
+                       .toThrift();
     nbr.state() = state::NeighborState::Reachable;
     nbr.encapIndex() = encapIdx;
     auto nbrTable = firstIntf->getNdpTable()->toThrift();

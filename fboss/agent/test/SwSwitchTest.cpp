@@ -199,7 +199,7 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
 
   // PortQueue with valid WRED probability
   auto stateV3 = stateV0->clone();
-  auto portMap0 = stateV3->getPorts()->modify(&stateV3);
+  auto portMap0 = stateV3->getMultiSwitchPorts()->modify(&stateV3);
   state::PortFields portFields0;
   portFields0.portId() = PortID(0);
   portFields0.portName() = "port0";
@@ -215,7 +215,7 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
   portQueue0->resetAqms({aqm0});
   std::vector<std::shared_ptr<PortQueue>> portQueues = {portQueue0};
   port0->resetPortQueues(portQueues);
-  portMap0->addPort(port0);
+  portMap0->addNode(port0, scope());
 
   stateV3->publish();
 
@@ -223,7 +223,7 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
 
   // PortQueue with invalid ECN probability
   auto stateV4 = stateV0->clone();
-  auto portMap1 = stateV4->getPorts()->modify(&stateV4);
+  auto portMap1 = stateV4->getMultiSwitchPorts()->modify(&stateV4);
   state::PortFields portFields1;
   portFields1.portId() = PortID(1);
   portFields1.portName() = "port1";
@@ -239,7 +239,7 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
   portQueue1->resetAqms({aqm1});
   portQueues = {portQueue1};
   port1->resetPortQueues(portQueues);
-  portMap1->addPort(port1);
+  portMap1->addNode(port1, scope());
 
   stateV4->publish();
 
@@ -270,16 +270,16 @@ TEST_F(SwSwitchTest, overlappingUpdatesWithExit) {
   });
   std::thread blockingUpdates([this, &done] {
     while (!done) {
-      auto updateOperStateFn =
-          [this](const std::shared_ptr<SwitchState>& state) {
-            const PortID kPort2{2};
-            std::shared_ptr<SwitchState> newState(state);
-            auto* port = newState->getPorts()->getPortIf(kPort2).get();
-            port = port->modify(&newState);
-            // Transition up<->down
-            port->setOperState(!port->isUp());
-            return newState;
-          };
+      auto updateOperStateFn = [this](
+                                   const std::shared_ptr<SwitchState>& state) {
+        const PortID kPort2{2};
+        std::shared_ptr<SwitchState> newState(state);
+        auto* port = newState->getMultiSwitchPorts()->getNodeIf(kPort2).get();
+        port = port->modify(&newState, scope());
+        // Transition up<->down
+        port->setOperState(!port->isUp());
+        return newState;
+      };
       sw->updateStateBlocking("Flap port 2", updateOperStateFn);
     }
   });

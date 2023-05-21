@@ -301,12 +301,15 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     this->updateState(
         "Remove lookupclasses", [=](const std::shared_ptr<SwitchState>& state) {
           auto newState = state->clone();
-          auto newPortMap = newState->getPorts()->modify(&newState);
+          auto newPortMaps = newState->getMultiSwitchPorts()->modify(&newState);
 
-          for (auto port : *newPortMap) {
-            auto newPort = port.second->clone();
-            newPort->setLookupClassesToDistributeTrafficOn(lookupClasses);
-            newPortMap->updatePort(newPort);
+          for (auto portMap : *newPortMaps) {
+            for (auto port : *portMap.second) {
+              auto newPort = port.second->clone();
+              newPort->setLookupClassesToDistributeTrafficOn(lookupClasses);
+              newPortMaps->updateNode(
+                  newPort, this->sw_->getScopeResolver()->scope(newPort));
+            }
           }
           return newState;
         });

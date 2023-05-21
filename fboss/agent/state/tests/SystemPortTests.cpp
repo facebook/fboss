@@ -104,7 +104,9 @@ TEST(SystemPort, sysPortApplyConfig) {
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
-  EXPECT_EQ(stateV1->getSystemPorts()->numNodes(), stateV1->getPorts()->size());
+  EXPECT_EQ(
+      stateV1->getSystemPorts()->numNodes(),
+      stateV1->getMultiSwitchPorts()->numNodes());
   // Flip one port to fabric port type and see that sys ports are updated
   config.ports()->begin()->portType() = cfg::PortType::FABRIC_PORT;
   // Prune the interface corresponding to now changed port type
@@ -123,7 +125,8 @@ TEST(SystemPort, sysPortApplyConfig) {
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   ASSERT_NE(nullptr, stateV2);
   EXPECT_EQ(
-      stateV2->getSystemPorts()->numNodes(), stateV2->getPorts()->size() - 1);
+      stateV2->getSystemPorts()->numNodes(),
+      stateV2->getMultiSwitchPorts()->numNodes() - 1);
 }
 
 TEST(SystemPort, sysPortNameApplyConfig) {
@@ -132,13 +135,18 @@ TEST(SystemPort, sysPortNameApplyConfig) {
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
-  EXPECT_EQ(stateV1->getSystemPorts()->numNodes(), stateV1->getPorts()->size());
+  EXPECT_EQ(
+      stateV1->getSystemPorts()->numNodes(),
+      stateV1->getMultiSwitchPorts()->numNodes());
   auto nodeName = *config.dsfNodes()->find(SwitchID(1))->second.name();
-  for (auto port : std::as_const(*stateV1->getPorts())) {
-    auto sysPortName =
-        folly::sformat("{}:{}", nodeName, port.second->getName());
-    XLOG(DBG2) << " Looking for sys port : " << sysPortName;
-    EXPECT_NE(nullptr, stateV1->getSystemPorts()->getSystemPortIf(sysPortName));
+  for (auto portMap : std::as_const(*stateV1->getMultiSwitchPorts())) {
+    for (auto port : std::as_const(*portMap.second)) {
+      auto sysPortName =
+          folly::sformat("{}:{}", nodeName, port.second->getName());
+      XLOG(DBG2) << " Looking for sys port : " << sysPortName;
+      EXPECT_NE(
+          nullptr, stateV1->getSystemPorts()->getSystemPortIf(sysPortName));
+    }
   }
 }
 TEST(SystemPort, GetLocalSwitchPortsBySwitchId) {

@@ -88,7 +88,6 @@ TEST(Port, applyConfig) {
   auto stateV0 = make_shared<SwitchState>();
   registerPort(stateV0, PortID(1), "port1", scope());
   auto portV0 = stateV0->getMultiSwitchPorts()->getNodeIf(PortID(1));
-  EXPECT_EQ(0, portV0->getGeneration());
   EXPECT_FALSE(portV0->isPublished());
   EXPECT_EQ(PortID(1), portV0->getID());
   EXPECT_EQ("port1", portV0->getName());
@@ -131,7 +130,6 @@ TEST(Port, applyConfig) {
 
   EXPECT_EQ(PortID(1), portV1->getID());
   EXPECT_EQ("port1", portV1->getName());
-  EXPECT_EQ(1, portV1->getGeneration());
   EXPECT_EQ(cfg::PortState::ENABLED, portV1->getAdminState());
   EXPECT_EQ(cfg::PortSpeed::XG, portV1->getSpeed());
   EXPECT_EQ(
@@ -170,7 +168,6 @@ TEST(Port, applyConfig) {
 
   EXPECT_EQ(PortID(1), portV2->getID());
   EXPECT_EQ("port1", portV2->getName());
-  EXPECT_EQ(2, portV2->getGeneration());
   EXPECT_EQ(cfg::PortState::ENABLED, portV2->getAdminState());
   EXPECT_EQ(cfg::PortSpeed::XG, portV2->getSpeed());
   EXPECT_EQ(
@@ -559,7 +556,6 @@ TEST(PortMap, applyConfig) {
 
   validateThriftMapMapSerialization(*portsV0);
 
-  EXPECT_EQ(1, portsV0->getGeneration());
   auto port1 = portsV0->getNodeIf(PortID(1));
   auto port2 = portsV0->getNodeIf(PortID(2));
   auto port3 = portsV0->getNodeIf(PortID(3));
@@ -582,7 +578,6 @@ TEST(PortMap, applyConfig) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   auto portsV1 = stateV1->getMultiSwitchPorts();
   ASSERT_NE(nullptr, portsV1);
-  EXPECT_EQ(2, portsV1->getGeneration());
   EXPECT_EQ(4, portsV1->numNodes());
 
   // Only port 2 should have changed
@@ -623,7 +618,6 @@ TEST(PortMap, applyConfig) {
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   auto portsV2 = stateV2->getMultiSwitchPorts();
   ASSERT_NE(nullptr, portsV2);
-  EXPECT_EQ(3, portsV2->getGeneration());
 
   EXPECT_NE(port1, portsV2->getNodeIf(PortID(1)));
   EXPECT_EQ(newPort2, portsV2->getNodeIf(PortID(2)));
@@ -659,7 +653,6 @@ TEST(PortMap, applyConfig) {
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   auto portsV3 = stateV3->getMultiSwitchPorts();
   ASSERT_NE(nullptr, portsV3);
-  EXPECT_EQ(4, portsV3->getGeneration());
 
   EXPECT_EQ(4, portsV3->numNodes());
   EXPECT_EQ(

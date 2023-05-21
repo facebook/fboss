@@ -101,13 +101,17 @@ shared_ptr<SwitchState> setAllPortState(
     const shared_ptr<SwitchState>& in,
     bool up) {
   auto newState = in->clone();
-  auto newPortMap = newState->getPorts()->modify(&newState);
-  for (auto port : *newPortMap) {
-    auto newPort = port.second->clone();
-    newPort->setOperState(up);
-    newPort->setAdminState(
-        up ? cfg::PortState::ENABLED : cfg::PortState::DISABLED);
-    newPortMap->updatePort(newPort);
+  auto newPortMaps = newState->getMultiSwitchPorts()->modify(&newState);
+  auto scopeResolver = SwitchIdScopeResolver(
+      newState->getSwitchSettings()->getSwitchIdToSwitchInfo());
+  for (auto portMap : *newPortMaps) {
+    for (auto port : *portMap.second) {
+      auto newPort = port.second->clone();
+      newPort->setOperState(up);
+      newPort->setAdminState(
+          up ? cfg::PortState::ENABLED : cfg::PortState::DISABLED);
+      newPortMaps->updateNode(newPort, scopeResolver.scope(newPort));
+    }
   }
   return newState;
 }
@@ -576,7 +580,7 @@ shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
         folly::to<string>("port", idx),
         HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID{switchId}})));
     vlan1->addPort(PortID(idx), false);
-    auto port = state->getPorts()->getPortIf(PortID(idx));
+    auto port = state->getMultiSwitchPorts()->getNodeIf(PortID(idx));
     port->addVlan(vlan1->getID(), false);
     port->setInterfaceIDs({1});
   }
@@ -590,7 +594,7 @@ shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
         folly::to<string>("port", idx),
         HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID{switchId}})));
     vlan55->addPort(PortID(idx), false);
-    auto port = state->getPorts()->getPortIf(PortID(idx));
+    auto port = state->getMultiSwitchPorts()->getNodeIf(PortID(idx));
     port->addVlan(vlan55->getID(), false);
     port->setInterfaceIDs({55});
   }
@@ -644,17 +648,21 @@ shared_ptr<SwitchState> testStateAWithPortsUp() {
 
 shared_ptr<SwitchState> testStateAWithLookupClasses() {
   auto newState = testStateAWithPortsUp()->clone();
-  auto newPortMap = newState->getPorts()->modify(&newState);
-  for (auto port : *newPortMap) {
-    auto newPort = port.second->clone();
-    newPort->setLookupClassesToDistributeTrafficOn({
-        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
-        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1,
-        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2,
-        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3,
-        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4,
-    });
-    newPortMap->updatePort(newPort);
+  auto newPortMaps = newState->getMultiSwitchPorts()->modify(&newState);
+  auto scopeResolver = SwitchIdScopeResolver(
+      newState->getSwitchSettings()->getSwitchIdToSwitchInfo());
+  for (auto portMap : *newPortMaps) {
+    for (auto port : *portMap.second) {
+      auto newPort = port.second->clone();
+      newPort->setLookupClassesToDistributeTrafficOn({
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1,
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2,
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3,
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4,
+      });
+      newPortMaps->updateNode(newPort, scopeResolver.scope(newPort));
+    }
   }
 
   return newState;
@@ -896,9 +904,11 @@ void updateMacAddrsToBlock(
 std::vector<std::shared_ptr<Port>> getPortsInLoopbackMode(
     const std::shared_ptr<SwitchState>& state) {
   std::vector<std::shared_ptr<Port>> lbPorts;
-  for (auto port : std::as_const(*state->getPorts())) {
-    if (port.second->getLoopbackMode() != cfg::PortLoopbackMode::NONE) {
-      lbPorts.push_back(port.second);
+  for (auto portMap : std::as_const(*state->getMultiSwitchPorts())) {
+    for (auto port : std::as_const(*portMap.second)) {
+      if (port.second->getLoopbackMode() != cfg::PortLoopbackMode::NONE) {
+        lbPorts.push_back(port.second);
+      }
     }
   }
   return lbPorts;

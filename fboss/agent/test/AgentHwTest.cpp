@@ -51,13 +51,15 @@ void AgentHwTest::SetUp() {
     // up)
     sw()->updateStateBlocking("set port preemphasis 0", [&](const auto& state) {
       std::shared_ptr<SwitchState> newState{state};
-      for (auto& port : std::as_const(*newState->getPorts())) {
-        auto newPort = port.second->modify(&newState);
-        auto pinConfigs = newPort->getPinConfigs();
-        for (auto& pin : pinConfigs) {
-          pin.tx() = phy::TxSettings();
+      for (auto& portMap : std::as_const(*newState->getMultiSwitchPorts())) {
+        for (auto& port : std::as_const(*portMap.second)) {
+          auto newPort = port.second->modify(&newState);
+          auto pinConfigs = newPort->getPinConfigs();
+          for (auto& pin : pinConfigs) {
+            pin.tx() = phy::TxSettings();
+          }
+          newPort->resetPinConfigs(pinConfigs);
         }
-        newPort->resetPinConfigs(pinConfigs);
       }
       return newState;
     });

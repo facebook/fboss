@@ -328,7 +328,7 @@ TYPED_TEST(ThriftTestAllSwitchTypes, setPortState) {
   this->sw_->linkStateChanged(port5, true);
   waitForStateUpdates(this->sw_);
 
-  auto port = this->sw_->getState()->getPorts()->getPortIf(port5);
+  auto port = this->sw_->getState()->getMultiSwitchPorts()->getNodeIf(port5);
   EXPECT_TRUE(port->isUp());
   EXPECT_TRUE(port->isEnabled());
 
@@ -336,26 +336,26 @@ TYPED_TEST(ThriftTestAllSwitchTypes, setPortState) {
   handler.setPortState(port5, false);
   waitForStateUpdates(this->sw_);
 
-  port = this->sw_->getState()->getPorts()->getPortIf(port5);
+  port = this->sw_->getState()->getMultiSwitchPorts()->getNodeIf(port5);
   EXPECT_FALSE(port->isUp());
   EXPECT_FALSE(port->isEnabled());
 }
 
 TYPED_TEST(ThriftTestAllSwitchTypes, setPortDrainState) {
   const PortID port5{5};
-  auto port = this->sw_->getState()->getPorts()->getPortIf(port5);
+  auto port = this->sw_->getState()->getMultiSwitchPorts()->getNodeIf(port5);
   EXPECT_FALSE(port->isDrained());
 
   ThriftHandler handler(this->sw_);
   if (this->isFabric()) {
     handler.setPortDrainState(port5, true);
     waitForStateUpdates(this->sw_);
-    port = this->sw_->getState()->getPorts()->getPortIf(port5);
+    port = this->sw_->getState()->getMultiSwitchPorts()->getNodeIf(port5);
     EXPECT_TRUE(port->isDrained());
 
     handler.setPortDrainState(port5, false);
     waitForStateUpdates(this->sw_);
-    port = this->sw_->getState()->getPorts()->getPortIf(port5);
+    port = this->sw_->getState()->getMultiSwitchPorts()->getNodeIf(port5);
     EXPECT_FALSE(port->isDrained());
   } else {
     EXPECT_THROW(handler.setPortDrainState(port5, true), FbossError);
@@ -365,7 +365,7 @@ TYPED_TEST(ThriftTestAllSwitchTypes, setPortDrainState) {
 
 TYPED_TEST(ThriftTestAllSwitchTypes, getPortStatus) {
   const PortID port5{5};
-  auto port = this->sw_->getState()->getPorts()->getPortIf(port5);
+  auto port = this->sw_->getState()->getMultiSwitchPorts()->getNodeIf(port5);
   ThriftHandler handler(this->sw_);
 
   std::map<int32_t, PortStatus> statusMap;
@@ -2147,7 +2147,9 @@ TEST_F(ThriftTest, getLoopbackMode) {
   ThriftHandler handler(sw_);
   std::map<int32_t, PortLoopbackMode> port2LoopbackMode;
   handler.getAllPortLoopbackMode(port2LoopbackMode);
-  EXPECT_EQ(port2LoopbackMode.size(), sw_->getState()->getPorts()->size());
+  EXPECT_EQ(
+      port2LoopbackMode.size(),
+      sw_->getState()->getMultiSwitchPorts()->numNodes());
   std::for_each(
       port2LoopbackMode.begin(),
       port2LoopbackMode.end(),
@@ -2159,11 +2161,19 @@ TEST_F(ThriftTest, getLoopbackMode) {
 TEST_F(ThriftTest, setLoopbackMode) {
   ThriftHandler handler(sw_);
   std::map<int32_t, PortLoopbackMode> port2LoopbackMode;
-  auto firstPort = (*sw_->getState()->getPorts()->cbegin()).second->getID();
+  auto firstPort = sw_->getState()
+                       ->getMultiSwitchPorts()
+                       ->cbegin()
+                       ->second->cbegin()
+                       ->second->getID();
   auto otherPortsUnchanged = [firstPort, this]() {
-    for (auto& port : std::as_const(*sw_->getState()->getPorts())) {
-      if (port.second->getID() != firstPort) {
-        EXPECT_EQ(port.second->getLoopbackMode(), cfg::PortLoopbackMode::NONE);
+    for (auto& portMap :
+         std::as_const(*sw_->getState()->getMultiSwitchPorts())) {
+      for (auto& port : std::as_const(*portMap.second)) {
+        if (port.second->getID() != firstPort) {
+          EXPECT_EQ(
+              port.second->getLoopbackMode(), cfg::PortLoopbackMode::NONE);
+        }
       }
     }
   };
@@ -2176,7 +2186,9 @@ TEST_F(ThriftTest, setLoopbackMode) {
     // MAC
     handler.setPortLoopbackMode(firstPort, lbMode);
     handler.getAllPortLoopbackMode(port2LoopbackMode);
-    EXPECT_EQ(port2LoopbackMode.size(), sw_->getState()->getPorts()->size());
+    EXPECT_EQ(
+        port2LoopbackMode.size(),
+        sw_->getState()->getMultiSwitchPorts()->numNodes());
     EXPECT_EQ(port2LoopbackMode.find(firstPort)->second, lbMode);
     otherPortsUnchanged();
   }
@@ -2217,41 +2229,40 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
   };
 
   // Only enabled ports should be return
-  auto checkProgrammedPorts =
-      [&](const std::map<int32_t, cfg::PortProfileID>& programmedPorts) {
-        EXPECT_EQ(programmedPorts.size(), 1);
-        EXPECT_TRUE(
-            programmedPorts.find(kEnabledPort) != programmedPorts.end());
-        // Controlling port should be 100G
-        EXPECT_EQ(
-            programmedPorts.find(kEnabledPort)->second,
-            cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER);
+  auto checkProgrammedPorts = [&](const std::map<int32_t, cfg::PortProfileID>&
+                                      programmedPorts) {
+    EXPECT_EQ(programmedPorts.size(), 1);
+    EXPECT_TRUE(programmedPorts.find(kEnabledPort) != programmedPorts.end());
+    // Controlling port should be 100G
+    EXPECT_EQ(
+        programmedPorts.find(kEnabledPort)->second,
+        cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER);
 
-        // Make sure the enabled ports using the new profile config/pin configs
-        auto platform = sw_->getPlatform();
-        auto tcvr = sw_->getState()->getTransceivers()->getTransceiverIf(id);
-        std::optional<cfg::PlatformPortConfigOverrideFactor> factor;
-        if (tcvr != nullptr) {
-          factor = tcvr->toPlatformPortConfigOverrideFactor();
-        }
-        platform->getPlatformMapping()
-            ->customizePlatformPortConfigOverrideFactor(factor);
-        // Port must exist in the SwitchState
-        const auto port =
-            sw_->getState()->getPorts()->getPort(PortID(kEnabledPort));
-        EXPECT_TRUE(port->isEnabled());
-        PlatformPortProfileConfigMatcher matcher{
-            port->getProfileID(), port->getID(), factor};
-        auto portProfileCfg = platform->getPortProfileConfig(matcher);
-        CHECK(portProfileCfg) << "No port profile config found with matcher:"
-                              << matcher.toString();
-        auto expectedProfileConfig = *portProfileCfg->iphy();
-        const auto& expectedPinConfigs =
-            platform->getPlatformMapping()->getPortIphyPinConfigs(matcher);
+    // Make sure the enabled ports using the new profile config/pin configs
+    auto platform = sw_->getPlatform();
+    auto tcvr = sw_->getState()->getTransceivers()->getTransceiverIf(id);
+    std::optional<cfg::PlatformPortConfigOverrideFactor> factor;
+    if (tcvr != nullptr) {
+      factor = tcvr->toPlatformPortConfigOverrideFactor();
+    }
+    platform->getPlatformMapping()->customizePlatformPortConfigOverrideFactor(
+        factor);
+    // Port must exist in the SwitchState
+    const auto port =
+        sw_->getState()->getMultiSwitchPorts()->getNodeIf(PortID(kEnabledPort));
+    EXPECT_TRUE(port->isEnabled());
+    PlatformPortProfileConfigMatcher matcher{
+        port->getProfileID(), port->getID(), factor};
+    auto portProfileCfg = platform->getPortProfileConfig(matcher);
+    CHECK(portProfileCfg) << "No port profile config found with matcher:"
+                          << matcher.toString();
+    auto expectedProfileConfig = *portProfileCfg->iphy();
+    const auto& expectedPinConfigs =
+        platform->getPlatformMapping()->getPortIphyPinConfigs(matcher);
 
-        EXPECT_TRUE(expectedProfileConfig == port->getProfileConfig());
-        EXPECT_TRUE(expectedPinConfigs == port->getPinConfigs());
-      };
+    EXPECT_TRUE(expectedProfileConfig == port->getProfileConfig());
+    EXPECT_TRUE(expectedPinConfigs == port->getPinConfigs());
+  };
 
   std::map<int32_t, cfg::PortProfileID> programmedPorts;
   handler.programInternalPhyPorts(
@@ -2266,7 +2277,7 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
 
   // Now change the cable length
   const auto oldPort =
-      sw_->getState()->getPorts()->getPort(PortID(kEnabledPort));
+      sw_->getState()->getMultiSwitchPorts()->getNodeIf(PortID(kEnabledPort));
   constexpr auto kCableLength2 = 1;
   std::map<int32_t, cfg::PortProfileID> programmedPorts2;
   handler.programInternalPhyPorts(
@@ -2279,7 +2290,7 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
   EXPECT_EQ(*tcvr->getMediaInterface(), kMediaInterface);
   EXPECT_EQ(*tcvr->getManagementInterface(), kManagementInterface);
   const auto newPort =
-      sw_->getState()->getPorts()->getPort(PortID(kEnabledPort));
+      sw_->getState()->getMultiSwitchPorts()->getNodeIf(PortID(kEnabledPort));
   // Because we're using Wedge100PlatformMapping here, we should see pinConfig
   // change due to the cable length change
   EXPECT_TRUE(oldPort->getProfileConfig() == newPort->getProfileConfig());

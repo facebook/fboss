@@ -87,9 +87,12 @@ class MKAServiceManagerTest : public testing::Test {
     handle_ = setupTestHandle(enableMacsec);
     sw_ = handle_->getSw();
     sw_->initialConfigApplied(steady_clock::now());
-    for (const auto& port : std::as_const(*(sw_->getState()->getPorts()))) {
-      activePort_ = port.second->getID();
-      break;
+    for (const auto& portMap :
+         std::as_const(*(sw_->getState()->getMultiSwitchPorts()))) {
+      for (const auto& port : std::as_const(*portMap.second)) {
+        activePort_ = port.second->getID();
+        break;
+      }
     }
     if (enableMacsec) {
       MKAServiceManager* manager = sw_->getMKAServiceMgr();
@@ -257,7 +260,8 @@ TEST_F(MKAServiceManagerTest, MkPduLate) {
   sendPktToMka();
   EXPECT_TRUE(baton_->try_wait_for(std::chrono::milliseconds(200)));
 
-  auto portName = sw_->getState()->getPorts()->getPort(activePort_)->getName();
+  auto portName =
+      sw_->getState()->getMultiSwitchPorts()->getNodeIf(activePort_)->getName();
   auto counterName = portName + ".mkpdu.interval.ms.p100";
   WITH_RETRIES({
     SCOPED_TRACE(counterName);
