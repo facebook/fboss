@@ -13,6 +13,7 @@ add_fbthrift_cpp_library(
 
 add_library(led_core_lib
   fboss/led_service/FsdbSwitchStateSubscriber.cpp
+  fboss/led_service/oss/FsdbSwitchStateSubscriber.cpp
   fboss/led_service/LedManager.cpp
   fboss/led_service/LedService.cpp
   fboss/led_service/LedServiceHandler.cpp

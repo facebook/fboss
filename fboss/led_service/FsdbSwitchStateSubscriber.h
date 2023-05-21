@@ -5,7 +5,6 @@
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/fsdb/client/FsdbStreamClient.h"
-#include "fboss/fsdb/if/facebook/gen-cpp2-thriftpath/fsdb_model.h" // @manual=//fboss/fsdb/if/facebook:fsdb_model-cpp2-thriftpath
 
 #include <memory>
 
@@ -34,15 +33,7 @@ class FsdbSwitchStateSubscriber {
 
   void subscribeToSwitchState(LedManager* ledManager);
 
-  // FSDB path:
-  //     FsdbOperStateRoot root()
-  //     .. AgentData agent()
-  //        .. switch_state.SwitchState() switchState()
-  //           .. map<i16, PortFields> portMap()
-  static std::vector<std::string> getSwitchStatePath() {
-    thriftpath::RootThriftPath<fsdb::FsdbOperStateRoot> rootPath_;
-    return rootPath_.agent().switchState().portMaps().tokens();
-  }
+  static std::vector<std::string> getSwitchStatePath();
 
  private:
   void subscribeToState(std::vector<std::string> path, LedManager* ledManager);
