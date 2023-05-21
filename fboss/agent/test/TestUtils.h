@@ -600,4 +600,11 @@ cfg::SwitchInfo createSwitchInfo(
     std::optional<int64_t> sysPortMax = std::nullopt,
     std::optional<std::string> mac = std::nullopt,
     std::optional<std::string> connectionHandle = std::nullopt);
+
+void registerPort(
+    std::shared_ptr<SwitchState> state,
+    PortID id,
+    const std::string& name,
+    HwSwitchMatcher scope,
+    cfg::PortType portType = cfg::PortType::INTERFACE_PORT);
 } // namespace facebook::fboss

@@ -995,4 +995,15 @@ cfg::SwitchInfo createSwitchInfo(
   }
   return switchInfo;
 }
+
+void registerPort(
+    std::shared_ptr<SwitchState> state,
+    PortID id,
+    const std::string& name,
+    HwSwitchMatcher scope,
+    cfg::PortType portType) {
+  auto port = std::make_shared<Port>(id, name);
+  port->setPortType(portType);
+  state->getMultiSwitchPorts()->addNode(std::move(port), scope);
+}
 } // namespace facebook::fboss
