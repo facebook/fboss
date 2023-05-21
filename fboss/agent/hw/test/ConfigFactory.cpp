@@ -460,6 +460,35 @@ void setPortToDefaultProfileIDMap(
              << getPortToDefaultProfileIDMap().size() << " ports";
 }
 
+void setPortToDefaultProfileIDMap(
+    const std::shared_ptr<MultiSwitchPortMap>& ports,
+    const Platform* platform) {
+  // Most of the platforms will have default ports created when the HW is
+  // initialized. But for those who don't have any default port, we'll fall
+  // back to use PlatformPort and the safe PortProfileID
+  if (ports->numNodes() > 0) {
+    for (const auto& portMap : std::as_const(*ports)) {
+      for (const auto& port : std::as_const(*portMap.second)) {
+        auto profileID = port.second->getProfileID();
+        // In case the profileID learnt from HW is using default, then use speed
+        // to get the real profileID
+        if (profileID == cfg::PortProfileID::PROFILE_DEFAULT) {
+          auto platformPort = platform->getPlatformPort(port.second->getID());
+          profileID =
+              platformPort->getProfileIDBySpeed(port.second->getSpeed());
+        }
+        getPortToDefaultProfileIDMap().emplace(port.second->getID(), profileID);
+      }
+    }
+  } else {
+    const auto& safeProfileIDs = getSafeProfileIDs(
+        platform, getSubsidiaryPortIDs(platform->getPlatformPorts()));
+    getPortToDefaultProfileIDMap().insert(
+        safeProfileIDs.begin(), safeProfileIDs.end());
+  }
+  XLOG(DBG2) << "PortToDefaultProfileIDMap has "
+             << getPortToDefaultProfileIDMap().size() << " ports";
+}
 folly::MacAddress kLocalCpuMac() {
   static const folly::MacAddress kLocalMac(
       FLAGS_nodeZ ? "02:00:00:00:00:02" : "02:00:00:00:00:01");

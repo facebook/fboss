@@ -398,10 +398,12 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, init) {
 
   auto verify = [this]() {
     auto state = getProgrammedState();
-    for (auto& port : std::as_const(*state->getPorts())) {
-      if (port.second->isEnabled()) {
-        EXPECT_EQ(
-            port.second->getLoopbackMode(), getAsic()->desiredLoopbackMode());
+    for (auto& portMap : std::as_const(*state->getMultiSwitchPorts())) {
+      for (auto& port : std::as_const(*portMap.second)) {
+        if (port.second->isEnabled()) {
+          EXPECT_EQ(
+              port.second->getLoopbackMode(), getAsic()->desiredLoopbackMode());
+        }
       }
     }
   };
@@ -410,7 +412,7 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, init) {
 
 TEST_F(HwVoqSwitchWithFabricPortsTest, collectStats) {
   auto verify = [this]() {
-    EXPECT_GT(getProgrammedState()->getPorts()->size(), 0);
+    EXPECT_GT(getProgrammedState()->getMultiSwitchPorts()->numNodes(), 0);
     SwitchStats dummy;
     getHwSwitch()->updateStats(&dummy);
   };
@@ -430,15 +432,15 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, fabricIsolate) {
   auto setup = [=]() { applyNewConfig(initialConfig()); };
 
   auto verify = [=]() {
-    EXPECT_GT(getProgrammedState()->getPorts()->size(), 0);
+    EXPECT_GT(getProgrammedState()->getMultiSwitchPorts()->numNodes(), 0);
     SwitchStats dummy;
     getHwSwitch()->updateStats(&dummy);
     auto fabricPortId =
         PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
     checkPortFabricReachability(getHwSwitch(), fabricPortId);
     auto newState = getProgrammedState();
-    auto port = newState->getPorts()->getPort(fabricPortId);
-    auto newPort = port->modify(&newState);
+    auto port = newState->getMultiSwitchPorts()->getNodeIf(fabricPortId);
+    auto newPort = port->modify(&newState, scopeResolver().scope(port));
     newPort->setPortDrainState(cfg::PortDrainState::DRAINED);
     applyNewState(newState);
     getHwSwitch()->updateStats(&dummy);
@@ -463,8 +465,8 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricPortSprayWithIsolate) {
     auto fabricPortId =
         PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
     auto newState = getProgrammedState();
-    auto port = newState->getPorts()->getPort(fabricPortId);
-    auto newPort = port->modify(&newState);
+    auto port = newState->getMultiSwitchPorts()->getNodeIf(fabricPortId);
+    auto newPort = port->modify(&newState, scopeResolver().scope(port));
     newPort->setPortDrainState(cfg::PortDrainState::DRAINED);
     applyNewState(newState);
 

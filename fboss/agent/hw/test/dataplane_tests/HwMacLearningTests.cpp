@@ -593,8 +593,8 @@ class HwMacLearningAndMyStationInteractionTest : public HwMacLearningTest {
         for (const auto& port : masterLogicalPortIds()) {
           l2LearningObserver_.reset();
           auto vlanID = getProgrammedState()
-                            ->getPorts()
-                            ->getPort(port)
+                            ->getMultiSwitchPorts()
+                            ->getNodeIf(port)
                             ->getVlans()
                             .begin()
                             ->first;

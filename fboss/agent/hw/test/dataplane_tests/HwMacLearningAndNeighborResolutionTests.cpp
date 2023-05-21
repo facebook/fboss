@@ -189,8 +189,11 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
 
   void triggerMacLearning(PortDescriptor port) {
     auto phyPort = *physicalPortsFor(port).begin();
-    auto vlanID =
-        getProgrammedState()->getPorts()->getPort(phyPort)->getIngressVlan();
+    auto vlanID = getProgrammedState()
+                      ->getMultiSwitchPorts()
+                      ->getNodeIf(phyPort)
+                      ->getIngressVlan();
+
     auto txPacket = utility::makeEthTxPacket(
         getHwSwitch(),
         vlanID,

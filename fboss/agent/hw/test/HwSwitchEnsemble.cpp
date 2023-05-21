@@ -493,7 +493,7 @@ void HwSwitchEnsemble::setupEnsemble(
   }
   // Set ConfigFactory port to default profile id map
   utility::setPortToDefaultProfileIDMap(
-      getProgrammedState()->getPorts(), getPlatform());
+      getProgrammedState()->getMultiSwitchPorts(), getPlatform());
 }
 
 void HwSwitchEnsemble::switchRunStateChanged(SwitchRunState switchState) {
@@ -569,7 +569,9 @@ bool HwSwitchEnsemble::waitForRateOnPort(
   }
 
   const auto portSpeedBps =
-      static_cast<uint64_t>(programmedState_->getPort(port)->getSpeed()) *
+      static_cast<uint64_t>(programmedState_->getMultiSwitchPorts()
+                                ->getNodeIf(port)
+                                ->getSpeed()) *
       1000 * 1000;
   if (desiredBps > portSpeedBps) {
     // Cannot achieve higher than line rate
@@ -611,7 +613,9 @@ bool HwSwitchEnsemble::waitForRateOnPort(
 
 void HwSwitchEnsemble::waitForLineRateOnPort(PortID port) {
   const auto portSpeedBps =
-      static_cast<uint64_t>(programmedState_->getPort(port)->getSpeed()) *
+      static_cast<uint64_t>(programmedState_->getMultiSwitchPorts()
+                                ->getNodeIf(port)
+                                ->getSpeed()) *
       1000 * 1000;
   if (waitForRateOnPort(port, portSpeedBps)) {
     // Traffic on port reached line rate!
@@ -646,7 +650,8 @@ void HwSwitchEnsemble::ensureThrift() {
 }
 
 size_t HwSwitchEnsemble::getMinPktsForLineRate(const PortID& port) {
-  auto portSpeed = programmedState_->getPort(port)->getSpeed();
+  auto portSpeed =
+      programmedState_->getMultiSwitchPorts()->getNodeIf(port)->getSpeed();
   return (portSpeed > cfg::PortSpeed::HUNDREDG ? 1000 : 100);
 }
 

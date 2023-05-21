@@ -27,7 +27,7 @@ class HwPortProfileTest : public HwTest {
   void verifyPort(PortID portID) {
     auto platformPort = getPlatform()->getPlatformPort(portID);
     EXPECT_EQ(portID, platformPort->getPortID());
-    auto port = getProgrammedState()->getPorts()->getPort(portID);
+    auto port = getProgrammedState()->getMultiSwitchPorts()->getNodeIf(portID);
     // verify interface mode
     utility::verifyInterfaceMode(
         port->getID(),
@@ -66,7 +66,7 @@ class HwPortProfileTest : public HwTest {
             cfg::AsicType::ASIC_TYPE_MOCK) {
       return;
     }
-    auto port = getProgrammedState()->getPorts()->getPort(portID);
+    auto port = getProgrammedState()->getMultiSwitchPorts()->getNodeIf(portID);
     auto expectedNumPmdLanes = port->getPinConfigs().size();
 
     // Start with the expectation that PMD diagnostics are available if

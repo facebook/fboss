@@ -54,13 +54,14 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
     auto setup = [=]() {
       if (enableRxPause) {
         auto newState = getProgrammedState()->clone();
-        auto portMap = newState->getPorts()->modify(&newState);
-        auto port = portMap->getPort(PortID(masterLogicalInterfacePortIds()[0]))
-                        ->clone();
+        auto portMap = newState->getMultiSwitchPorts()->modify(&newState);
+        auto port =
+            portMap->getNodeIf(PortID(masterLogicalInterfacePortIds()[0]))
+                ->clone();
         cfg::PortPause pauseCfg;
         *pauseCfg.rx() = true;
         port->setPause(pauseCfg);
-        portMap->updatePort(port);
+        portMap->updateNode(port, scopeResolver().scope(port));
         applyNewState(newState);
       }
     };

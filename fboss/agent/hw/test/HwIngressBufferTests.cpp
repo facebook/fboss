@@ -158,7 +158,7 @@ TEST_F(HwIngressBufferTest, validateConfig) {
   auto verify = [&]() {
     utility::checkSwHwPgCfgMatch(
         getHwSwitch(),
-        getProgrammedState()->getPort(
+        getProgrammedState()->getMultiSwitchPorts()->getNodeIf(
             PortID(masterLogicalInterfacePortIds()[0])),
         true /*pfcEnable*/);
   };
@@ -186,7 +186,7 @@ TEST_F(HwIngressBufferTest, validateIngressPoolParamChange) {
   auto verify = [&]() {
     utility::checkSwHwPgCfgMatch(
         getHwSwitch(),
-        getProgrammedState()->getPort(
+        getProgrammedState()->getMultiSwitchPorts()->getNodeIf(
             PortID(masterLogicalInterfacePortIds()[0])),
         true /*pfcEnable*/);
   };
@@ -210,7 +210,7 @@ TEST_F(HwIngressBufferTest, validatePGParamChange) {
   auto verify = [&]() {
     utility::checkSwHwPgCfgMatch(
         getHwSwitch(),
-        getProgrammedState()->getPort(
+        getProgrammedState()->getMultiSwitchPorts()->getNodeIf(
             PortID(masterLogicalInterfacePortIds()[0])),
         true /*pfcEnable*/);
   };
@@ -228,7 +228,7 @@ TEST_F(HwIngressBufferTest, validatePgNoPfc) {
   auto verify = [&]() {
     utility::checkSwHwPgCfgMatch(
         getHwSwitch(),
-        getProgrammedState()->getPort(
+        getProgrammedState()->getMultiSwitchPorts()->getNodeIf(
             PortID(masterLogicalInterfacePortIds()[0])),
         false /*pfcEnable*/);
   };
@@ -246,7 +246,7 @@ TEST_F(HwIngressBufferTest, validateHighBufferValues) {
   auto verify = [&]() {
     utility::checkSwHwPgCfgMatch(
         getHwSwitch(),
-        getProgrammedState()->getPort(
+        getProgrammedState()->getMultiSwitchPorts()->getNodeIf(
             PortID(masterLogicalInterfacePortIds()[0])),
         true /*pfcEnable*/);
   };
@@ -264,7 +264,7 @@ TEST_F(HwIngressBufferTest, validateLossyMode) {
   auto verify = [&]() {
     utility::checkSwHwPgCfgMatch(
         getHwSwitch(),
-        getProgrammedState()->getPort(
+        getProgrammedState()->getMultiSwitchPorts()->getNodeIf(
             PortID(masterLogicalInterfacePortIds()[0])),
         false /* pfcEnable */);
   };

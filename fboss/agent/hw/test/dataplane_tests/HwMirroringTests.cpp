@@ -158,16 +158,16 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
   }
 
   void mirrorPort(const std::string& mirrorName) {
-    auto ports = this->getProgrammedState()->getPorts()->clone();
-    auto port = ports->getPort(trafficPort_)->clone();
+    auto state = this->getProgrammedState()->clone();
+    auto ports =
+        this->getProgrammedState()->getMultiSwitchPorts()->modify(&state);
+    auto port = ports->getNodeIf(trafficPort_)->clone();
     port->setIngressMirror(mirrorName);
     if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::EGRESS_MIRRORING)) {
       port->setEgressMirror(mirrorName);
     }
-    ports->updateNode(port);
-    auto state = this->getProgrammedState()->clone();
-    state->resetPorts(ports);
+    ports->updateNode(port, scopeResolver().scope(port));
     this->applyNewState(state);
   }
 

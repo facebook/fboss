@@ -39,10 +39,12 @@ TEST_F(HwFabricSwitchTest, init) {
   auto setup = [this]() {};
   auto verify = [this]() {
     auto state = getProgrammedState();
-    for (auto& port : std::as_const(*state->getPorts())) {
-      EXPECT_EQ(port.second->getAdminState(), cfg::PortState::ENABLED);
-      EXPECT_EQ(
-          port.second->getLoopbackMode(), getAsic()->desiredLoopbackMode());
+    for (auto& portMap : std::as_const(*state->getMultiSwitchPorts())) {
+      for (auto& port : std::as_const(*portMap.second)) {
+        EXPECT_EQ(port.second->getAdminState(), cfg::PortState::ENABLED);
+        EXPECT_EQ(
+            port.second->getLoopbackMode(), getAsic()->desiredLoopbackMode());
+      }
     }
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -50,7 +52,7 @@ TEST_F(HwFabricSwitchTest, init) {
 
 TEST_F(HwFabricSwitchTest, collectStats) {
   auto verify = [this]() {
-    EXPECT_GT(getProgrammedState()->getPorts()->size(), 0);
+    EXPECT_GT(getProgrammedState()->getMultiSwitchPorts()->numNodes(), 0);
     SwitchStats dummy;
     getHwSwitch()->updateStats(&dummy);
   };
@@ -59,7 +61,7 @@ TEST_F(HwFabricSwitchTest, collectStats) {
 
 TEST_F(HwFabricSwitchTest, checkFabricReachability) {
   auto verify = [this]() {
-    EXPECT_GT(getProgrammedState()->getPorts()->size(), 0);
+    EXPECT_GT(getProgrammedState()->getMultiSwitchPorts()->numNodes(), 0);
     SwitchStats dummy;
     getHwSwitch()->updateStats(&dummy);
     checkFabricReachability(getHwSwitch());
@@ -82,7 +84,7 @@ TEST_F(HwFabricSwitchTest, fabricIsolate) {
   };
 
   auto verify = [=]() {
-    EXPECT_GT(getProgrammedState()->getPorts()->size(), 0);
+    EXPECT_GT(getProgrammedState()->getMultiSwitchPorts()->numNodes(), 0);
     SwitchStats dummy;
     getHwSwitch()->updateStats(&dummy);
     auto fabricPortId =
@@ -102,7 +104,7 @@ TEST_F(HwFabricSwitchTest, fabricSwitchIsolate) {
   };
 
   auto verify = [=]() {
-    EXPECT_GT(getProgrammedState()->getPorts()->size(), 0);
+    EXPECT_GT(getProgrammedState()->getMultiSwitchPorts()->numNodes(), 0);
     SwitchStats dummy;
     getHwSwitch()->updateStats(&dummy);
     checkFabricReachability(getHwSwitch());

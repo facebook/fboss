@@ -129,8 +129,8 @@ void validateIngressPriorityGroupWatermarkCounters(
       [&](const auto& /*newStats*/) {
         for (const auto& portId : portIds) {
           const auto& portName = ensemble->getProgrammedState()
-                                     ->getPorts()
-                                     ->getPort(portId)
+                                     ->getMultiSwitchPorts()
+                                     ->getNodeIf(portId)
                                      ->getName();
           std::string pg =
               ensemble->isSai() ? folly::sformat(".pg{}", pri) : "";

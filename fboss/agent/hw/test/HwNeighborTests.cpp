@@ -112,8 +112,11 @@ class HwNeighborTest : public HwLinkStateDependentTest {
     } else if (switchType == cfg::SwitchType::VOQ) {
       CHECK(!programToTrunk) << " Trunks not supported yet on VOQ switches";
       auto portId = this->portDescriptor().phyPortID();
-      return InterfaceID(
-          (*getProgrammedState()->getPort(portId)->getInterfaceIDs().begin()));
+      return InterfaceID((*getProgrammedState()
+                               ->getMultiSwitchPorts()
+                               ->getNodeIf(portId)
+                               ->getInterfaceIDs()
+                               .begin()));
     }
     XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);
   }
@@ -258,15 +261,15 @@ class HwNeighborOnMultiplePortsTest : public HwLinkStateDependentTest {
     auto switchType = getSwitchType();
     if (switchType == cfg::SwitchType::NPU) {
       return InterfaceID(static_cast<int>((*getProgrammedState()
-                                                ->getPorts()
-                                                ->getPort(portId)
+                                                ->getMultiSwitchPorts()
+                                                ->getNodeIf(portId)
                                                 ->getVlans()
                                                 .begin())
                                               .first));
     } else if (switchType == cfg::SwitchType::VOQ) {
       return InterfaceID(*getProgrammedState()
-                              ->getPorts()
-                              ->getPort(portId)
+                              ->getMultiSwitchPorts()
+                              ->getNodeIf(portId)
                               ->getInterfaceIDs()
                               .begin());
     }
