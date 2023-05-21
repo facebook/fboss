@@ -164,20 +164,22 @@ std::shared_ptr<SwitchState> HwSwitch::fillinPortInterfaces(
 
   // Populate newly added InterfaceIDs for port
   auto newState = oldState->clone();
-  auto newPortMap = newState->getPorts()->modify(&newState);
-  for (auto port : *newPortMap) {
-    auto newPort = port.second->clone();
+  auto newPortMaps = newState->getMultiSwitchPorts()->modify(&newState);
+  for (auto portMap : *newPortMaps) {
+    for (auto port : *portMap.second) {
+      auto newPort = port.second->clone();
 
-    if (newPort->getInterfaceIDs().size() != 0) {
-      continue;
-    }
+      if (newPort->getInterfaceIDs().size() != 0) {
+        continue;
+      }
 
-    std::vector<int32_t> interfaceIDs;
-    for (const auto& vlanMember : port.second->getVlans()) {
-      interfaceIDs.push_back(vlanMember.first);
+      std::vector<int32_t> interfaceIDs;
+      for (const auto& vlanMember : port.second->getVlans()) {
+        interfaceIDs.push_back(vlanMember.first);
+      }
+      newPort->setInterfaceIDs(interfaceIDs);
+      newPortMaps->updateNode(newPort, HwSwitchMatcher(portMap.first));
     }
-    newPort->setInterfaceIDs(interfaceIDs);
-    newPortMap->updatePort(newPort);
   }
 
   auto newAggregatePortMap = newState->getAggregatePorts()->modify(&newState);
@@ -198,8 +200,9 @@ std::shared_ptr<SwitchState> HwSwitch::fillinPortInterfaces(
       auto portID = subports.front().portID;
 
       std::vector<int32_t> intfIDs;
-      for (auto intfID :
-           newState->getPorts()->getPort(portID)->getInterfaceIDs()) {
+      for (auto intfID : newState->getMultiSwitchPorts()
+                             ->getNode(portID)
+                             ->getInterfaceIDs()) {
         intfIDs.push_back(intfID);
       }
 

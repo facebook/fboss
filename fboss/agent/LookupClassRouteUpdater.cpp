@@ -55,7 +55,7 @@ bool LookupClassRouteUpdater::vlanHasOtherPortsWithClassIDs(
   for (auto& [id, portInfo] : vlan->getPorts()) {
     auto portID = PortID(id);
     std::ignore = portInfo;
-    auto port = switchState->getPorts()->getPortIf(portID);
+    auto port = switchState->getMultiSwitchPorts()->getNodeIf(portID);
 
     if (portID != removedPort->getID() &&
         port->getLookupClassesToDistributeTrafficOn().size() != 0) {
@@ -346,7 +346,7 @@ void LookupClassRouteUpdater::processInterfaceAdded(
   for (auto& [id, portInfo] : vlan->getPorts()) {
     PortID portID(id);
     std::ignore = portInfo;
-    auto port = switchState->getPorts()->getPortIf(portID);
+    auto port = switchState->getMultiSwitchPorts()->getNodeIf(portID);
     // routes are re-added once outside the for loop
     processPortAdded(stateDelta, port, false /* don't re-add all routes */);
   }
@@ -449,7 +449,7 @@ void LookupClassRouteUpdater::processInterfaceRemoved(
   for (auto& [id, portInfo] : vlan->getPorts()) {
     PortID portID(id);
     std::ignore = portInfo;
-    auto port = switchState->getPorts()->getPortIf(portID);
+    auto port = switchState->getMultiSwitchPorts()->getNodeIf(portID);
     /*
      * Subnets for an interface could be cached in following cases:
      *   - port has non-empty lookup class list,
@@ -1207,23 +1207,26 @@ bool LookupClassRouteUpdater::isSubnetCachedByLookupClasses(
   }
 
   bool searchInterfaceAddresses = false;
-  for (const auto& port : std::as_const(*switchState->getPorts())) {
-    if (port.second->getLookupClassesToDistributeTrafficOn().size() == 0) {
-      continue;
-    }
+  for (const auto& portMap :
+       std::as_const(*switchState->getMultiSwitchPorts())) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      if (port.second->getLookupClassesToDistributeTrafficOn().size() == 0) {
+        continue;
+      }
 
-    // port is member of vlan for addressToSearch i.e. blocked IP
-    auto it = port.second->getVlans().find(vlanID);
-    if (it == port.second->getVlans().end()) {
-      continue;
-    }
+      // port is member of vlan for addressToSearch i.e. blocked IP
+      auto it = port.second->getVlans().find(vlanID);
+      if (it == port.second->getVlans().end()) {
+        continue;
+      }
 
-    /*
-     * There is a port with non-empty lookupClasses && that port is member of
-     * vlan for addressToearch i.e. blocked IP.
-     */
-    searchInterfaceAddresses = true;
-    break;
+      /*
+       * There is a port with non-empty lookupClasses && that port is member of
+       * vlan for addressToearch i.e. blocked IP.
+       */
+      searchInterfaceAddresses = true;
+      break;
+    }
   }
 
   if (searchInterfaceAddresses) {
