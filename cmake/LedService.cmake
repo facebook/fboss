@@ -21,6 +21,7 @@ add_library(led_core_lib
 
 target_link_libraries(led_core_lib
   bsp_platform_mapping_cpp2
+  qsfp_bsp_core
   ledIO
   led_structs_types_cpp2
   log_thrift_call
