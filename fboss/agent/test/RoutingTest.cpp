@@ -197,8 +197,8 @@ class RoutingFixture : public ::testing::Test {
     // as well.
     auto updateFn = [=](const std::shared_ptr<SwitchState>& state) {
       std::shared_ptr<SwitchState> newState{state};
-      auto* vlan1 = newState->getVlans()->getVlanIf(VlanID(1)).get();
-      auto* vlan2 = newState->getVlans()->getVlanIf(VlanID(2)).get();
+      auto* vlan1 = newState->getMultiSwitchVlans()->getNodeIf(VlanID(1)).get();
+      auto* vlan2 = newState->getMultiSwitchVlans()->getNodeIf(VlanID(2)).get();
       auto* arpTable1 = vlan1->getArpTable().get()->modify(&vlan1, &newState);
       auto* ndpTable1 = vlan1->getNdpTable().get()->modify(&vlan1, &newState);
       auto* arpTable2 = vlan2->getArpTable().get()->modify(&vlan2, &newState);

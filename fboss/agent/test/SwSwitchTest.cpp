@@ -119,8 +119,10 @@ TEST_F(SwSwitchTest, TestStateNonCoalescing) {
       }
       return reachableCnt;
     };
-    auto arpTable = sw->getState()->getVlans()->getVlan(kVlan1)->getArpTable();
-    auto ndpTable = sw->getState()->getVlans()->getVlan(kVlan1)->getNdpTable();
+    auto arpTable =
+        sw->getState()->getMultiSwitchVlans()->getNode(kVlan1)->getArpTable();
+    auto ndpTable =
+        sw->getState()->getMultiSwitchVlans()->getNode(kVlan1)->getNdpTable();
     auto reachableCnt =
         getReachableCount(arpTable) + getReachableCount(ndpTable);
     EXPECT_EQ(expectedReachableNbrCnt, reachableCnt);
@@ -270,16 +272,15 @@ TEST_F(SwSwitchTest, overlappingUpdatesWithExit) {
   });
   std::thread blockingUpdates([this, &done] {
     while (!done) {
-      auto updateOperStateFn =
-          [this](const std::shared_ptr<SwitchState>& state) {
-            const PortID kPort2{2};
-            std::shared_ptr<SwitchState> newState(state);
-            auto* port = newState->getPorts()->getNodeIf(kPort2).get();
-            port = port->modify(&newState, scope());
-            // Transition up<->down
-            port->setOperState(!port->isUp());
-            return newState;
-          };
+      auto updateOperStateFn = [](const std::shared_ptr<SwitchState>& state) {
+        const PortID kPort2{2};
+        std::shared_ptr<SwitchState> newState(state);
+        auto* port = newState->getPorts()->getNodeIf(kPort2).get();
+        port = port->modify(&newState, scope());
+        // Transition up<->down
+        port->setOperState(!port->isUp());
+        return newState;
+      };
       sw->updateStateBlocking("Flap port 2", updateOperStateFn);
     }
   });

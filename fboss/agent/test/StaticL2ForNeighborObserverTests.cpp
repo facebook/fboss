@@ -206,7 +206,7 @@ class StaticL2ForNeighorObserverTest : public ::testing::Test {
 
  private:
   auto getMacEntry() const {
-    auto vlan = sw_->getState()->getVlans()->getVlan(kVlan());
+    auto vlan = sw_->getState()->getMultiSwitchVlans()->getNode(kVlan());
     return vlan->getMacTable()->getMacIf(kMacAddress());
   }
   void runInUpdateEventBaseAndWait(Func func) {

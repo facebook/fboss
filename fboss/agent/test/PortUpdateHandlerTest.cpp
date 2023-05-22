@@ -39,7 +39,8 @@ class PortUpdateHandlerTest : public ::testing::Test {
     addState = testStateA();
     // add port 21 which uses VLAN 1
     registerPort(addState, PortID(21), "port21", scope());
-    addState->getVlans()->getVlanIf(VlanID(1))->addPort(PortID(21), false);
+    addState->getMultiSwitchVlans()->getNodeIf(VlanID(1))->addPort(
+        PortID(21), false);
     deltaAdd = std::make_shared<StateDelta>(initState, addState);
     deltaRemove = std::make_shared<StateDelta>(addState, initState);
 

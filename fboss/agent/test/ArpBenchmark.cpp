@@ -81,7 +81,8 @@ unique_ptr<SwSwitch> setupSwitch() {
         IPAddressV4("192.168.0.1"),
         MacAddress("00:02:00:00:00:02"),
         InterfaceID(4));
-    state->getVlans()->getVlan(VlanID(1))->setArpResponseTable(respTable1);
+    state->getMultiSwitchVlans()->getNode(VlanID(1))->setArpResponseTable(
+        respTable1);
     return state;
   };
 
