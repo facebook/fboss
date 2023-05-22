@@ -59,7 +59,7 @@ TEST(Vlan, applyConfig) {
   auto stateV0 = make_shared<SwitchState>();
   auto vlanV0 = make_shared<Vlan>(VlanID(1234), kVlan1234);
 
-  stateV0->addVlan(vlanV0);
+  stateV0->getMultiSwitchVlans()->addNode(vlanV0, scope());
   registerPort(stateV0, PortID(1), "port1", scope());
   registerPort(stateV0, PortID(2), "port2", scope());
 
@@ -103,7 +103,7 @@ TEST(Vlan, applyConfig) {
   expectedPorts.insert(std::make_pair(2, true));
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  auto vlanV1 = stateV1->getVlans()->getVlan(VlanID(1234));
+  auto vlanV1 = stateV1->getMultiSwitchVlans()->getNode(VlanID(1234));
   ASSERT_NE(nullptr, vlanV1);
   auto vlanV1_byName = stateV1->getMultiSwitchVlans()->getVlanSlow(kVlan1234);
   EXPECT_EQ(vlanV1, vlanV1_byName);
@@ -143,7 +143,7 @@ TEST(Vlan, applyConfig) {
   config.vlans()[1].intfID() = 1;
 
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
-  auto vlanV2 = stateV2->getVlans()->getVlan(VlanID(1));
+  auto vlanV2 = stateV2->getMultiSwitchVlans()->getNode(VlanID(1));
   EXPECT_EQ(0, vlanV2->getGeneration());
   EXPECT_FALSE(vlanV2->isPublished());
   EXPECT_EQ(VlanID(1), vlanV2->getID());
@@ -187,7 +187,7 @@ TEST(Vlan, applyConfig) {
   MacAddress intf2Mac("02:01:02:ab:cd:78");
   config.interfaces()[2].mac() = intf2Mac.toString();
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
-  auto vlanV3 = stateV3->getVlans()->getVlan(VlanID(1299));
+  auto vlanV3 = stateV3->getMultiSwitchVlans()->getNode(VlanID(1299));
   EXPECT_EQ(0, vlanV3->getGeneration());
   EXPECT_FALSE(vlanV3->isPublished());
   EXPECT_EQ(VlanID(1299), vlanV3->getID());
@@ -231,8 +231,8 @@ TEST(Vlan, applyConfig) {
   auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
   ASSERT_NE(nullptr, stateV4);
   // VLAN 1 should be unchanged
-  EXPECT_EQ(vlanV2, stateV4->getVlans()->getVlan(VlanID(1)));
-  auto vlan99 = stateV4->getVlans()->getVlan(VlanID(99));
+  EXPECT_EQ(vlanV2, stateV4->getMultiSwitchVlans()->getNode(VlanID(1)));
+  auto vlan99 = stateV4->getMultiSwitchVlans()->getNode(VlanID(99));
   auto vlan99_byName = stateV4->getMultiSwitchVlans()->getVlanSlow(kVlan99);
   ASSERT_NE(nullptr, vlan99);
   EXPECT_EQ(vlan99, vlan99_byName);
@@ -262,7 +262,7 @@ TEST(Vlan, applyConfig) {
   config.interfaces()[4].ipAddresses()[1] = "10.50.0.3/9";
   auto stateV5 = publishAndApplyConfig(stateV4, &config, platform.get());
   ASSERT_NE(nullptr, stateV5);
-  auto vlan100 = stateV5->getVlans()->getVlan(VlanID(100));
+  auto vlan100 = stateV5->getMultiSwitchVlans()->getNode(VlanID(100));
   EXPECT_EQ(InterfaceID(100), vlan100->getInterfaceID());
 }
 
@@ -271,8 +271,8 @@ TEST(Vlan, applyConfig) {
  * callback for the specified list of changed VLANs.
  */
 void checkChangedVlans(
-    const shared_ptr<VlanMap>& oldVlans,
-    const shared_ptr<VlanMap>& newVlans,
+    const shared_ptr<MultiSwitchVlanMap>& oldVlans,
+    const shared_ptr<MultiSwitchVlanMap>& newVlans,
     const std::set<uint16_t> changedIDs,
     const std::set<uint16_t> addedIDs,
     const std::set<uint16_t> removedIDs) {
@@ -327,7 +327,7 @@ TEST(VlanMap, applyConfig) {
         cfg::PortState::DISABLED);
   }
 
-  auto vlansV0 = stateV0->getVlans();
+  auto vlansV0 = stateV0->getMultiSwitchVlans();
 
   // Apply new config settings
   config.vlans()->resize(2);
@@ -360,13 +360,12 @@ TEST(VlanMap, applyConfig) {
   *config.interfaces()[1].routerID() = 0;
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  auto vlansV1 = stateV1->getVlans();
+  auto vlansV1 = stateV1->getMultiSwitchVlans();
   ASSERT_NE(nullptr, vlansV1);
-  EXPECT_EQ(1, vlansV1->getGeneration());
-  EXPECT_EQ(2, vlansV1->size());
+  EXPECT_EQ(2, vlansV1->numNodes());
 
   // Check the new settings for VLAN 1234
-  auto vlan1234v0 = vlansV1->getVlan(VlanID(1234));
+  auto vlan1234v0 = vlansV1->getNode(VlanID(1234));
   auto vlan1234v0_byName =
       stateV1->getMultiSwitchVlans()->getVlanSlow(kVlan1234);
   ASSERT_NE(nullptr, vlan1234v0);
@@ -383,7 +382,7 @@ TEST(VlanMap, applyConfig) {
   EXPECT_EQ(ports1234v0, vlan1234v0->getPorts());
 
   // Check the new settings for VLAN 99
-  auto vlan99v0 = vlansV1->getVlan(VlanID(99));
+  auto vlan99v0 = vlansV1->getNode(VlanID(99));
   ASSERT_NE(nullptr, vlan99v0);
   auto vlan99v0_byName = stateV1->getMultiSwitchVlans()->getVlanSlow(kVlan99);
   EXPECT_EQ(vlan99v0, vlan99v0_byName);
@@ -399,9 +398,9 @@ TEST(VlanMap, applyConfig) {
   EXPECT_EQ(ports99v1, vlan99v0->getPorts());
 
   // getVlan() should throw on a non-existent VLAN
-  EXPECT_THROW(vlansV1->getVlan(VlanID(1)), FbossError);
+  EXPECT_THROW(vlansV1->getNode(VlanID(1)), FbossError);
   // getVlanIf() should return null on a non-existent VLAN
-  EXPECT_EQ(nullptr, vlansV1->getVlanIf(VlanID(1233)));
+  EXPECT_EQ(nullptr, vlansV1->getNodeIf(VlanID(1233)));
 
   checkChangedVlans(vlansV0, vlansV1, {}, {99, 1234}, {});
 
@@ -412,13 +411,12 @@ TEST(VlanMap, applyConfig) {
   config.vlanPorts()[0] = config.vlanPorts()[6];
   config.vlanPorts()->resize(6);
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
-  auto vlansV2 = stateV2->getVlans();
+  auto vlansV2 = stateV2->getMultiSwitchVlans();
   ASSERT_NE(nullptr, vlansV2);
-  EXPECT_EQ(2, vlansV2->getGeneration());
-  EXPECT_EQ(2, vlansV2->size());
+  EXPECT_EQ(2, vlansV2->numNodes());
 
   // VLAN 1234 should have changed
-  auto vlan1234v1 = vlansV2->getVlan(VlanID(1234));
+  auto vlan1234v1 = vlansV2->getNode(VlanID(1234));
   EXPECT_NE(vlan1234v0, vlan1234v1);
   EXPECT_EQ(1, vlan1234v1->getGeneration());
   Vlan::MemberPorts ports1234v1;
@@ -428,11 +426,11 @@ TEST(VlanMap, applyConfig) {
   EXPECT_EQ(ports1234v1, vlan1234v1->getPorts());
 
   // VLAN 99 should not have changed
-  EXPECT_EQ(vlan99v0, vlansV2->getVlan(VlanID(99)));
+  EXPECT_EQ(vlan99v0, vlansV2->getNode(VlanID(99)));
 
   checkChangedVlans(vlansV1, vlansV2, {1234}, {}, {});
-  EXPECT_EQ(id1234, vlansV2->getVlan(VlanID(1234))->getNodeID());
-  EXPECT_EQ(id99, vlansV2->getVlan(VlanID(99))->getNodeID());
+  EXPECT_EQ(id1234, vlansV2->getNode(VlanID(1234))->getNodeID());
+  EXPECT_EQ(id99, vlansV2->getNode(VlanID(99))->getNodeID());
 
   // Remove VLAN 99
   config.vlans()->resize(1);
@@ -448,15 +446,14 @@ TEST(VlanMap, applyConfig) {
   *config.interfaces()[0].intfID() = 1234;
 
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
-  auto vlansV3 = stateV3->getVlans();
+  auto vlansV3 = stateV3->getMultiSwitchVlans();
   ASSERT_NE(nullptr, vlansV3);
-  EXPECT_EQ(3, vlansV3->getGeneration());
-  EXPECT_EQ(1, vlansV3->size());
+  EXPECT_EQ(1, vlansV3->numNodes());
 
   // VLAN 1234 should not have changed
-  EXPECT_EQ(vlan1234v1, vlansV3->getVlan(VlanID(1234)));
+  EXPECT_EQ(vlan1234v1, vlansV3->getNode(VlanID(1234)));
   // VLAN 99 should no longer exist
-  EXPECT_EQ(nullptr, vlansV3->getVlanIf(VlanID(99)));
+  EXPECT_EQ(nullptr, vlansV3->getNodeIf(VlanID(99)));
 
   checkChangedVlans(vlansV2, vlansV3, {}, {}, {99});
 }
