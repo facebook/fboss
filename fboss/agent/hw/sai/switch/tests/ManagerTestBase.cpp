@@ -119,10 +119,10 @@ void ManagerTestBase::setupSaiPlatform() {
     }
   }
   if (setupStage & SetupStage::VLAN) {
-    auto* vlans = setupState->getVlans()->modify(&setupState);
+    auto* vlans = setupState->getMultiSwitchVlans()->modify(&setupState);
     for (const auto& testInterface : testInterfaces) {
       auto swVlan = makeVlan(testInterface);
-      vlans->addVlan(swVlan);
+      vlans->addNode(swVlan, scopeResolver().scope(swVlan));
     }
   }
   if (setupStage & SetupStage::INTERFACE) {
@@ -141,8 +141,8 @@ void ManagerTestBase::setupSaiPlatform() {
     for (const auto& testInterface : testInterfaces) {
       for (const auto& remoteHost : testInterface.remoteHosts) {
         auto swNeighbor = makeArpEntry(testInterface.id, remoteHost);
-        auto* vlan = setupState->getVlans()
-                         ->getVlan(VlanID(testInterface.id))
+        auto* vlan = setupState->getMultiSwitchVlans()
+                         ->getNode(VlanID(testInterface.id))
                          ->modify(&setupState);
         auto arpTable = vlan->getArpTable()->modify(&vlan, &setupState);
         PortDescriptor portDesc(PortID(remoteHost.port.id));
