@@ -63,6 +63,7 @@ class PortApiTest : public ::testing::Test {
           std::nullopt, // Inter frame gap
 #endif
           std::nullopt, // Link Training Enable
+          std::nullopt, // Rx Lane Squelch Enable
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }

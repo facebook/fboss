@@ -70,6 +70,13 @@ class HwLinkStateToggler {
   virtual void setLinkTraining(
       const std::shared_ptr<Port>& port,
       bool enable) = 0;
+  virtual void setRxLaneSquelchImpl(
+      const std::shared_ptr<Port>& /* port */,
+      bool /* enable */) {}
+  void setRxLaneSquelch(
+      PortID /* portID */,
+      cfg::PortType /* portType */,
+      bool /* enable */);
 
   void setPortIDAndStateToWaitFor(PortID port, bool waitForUp);
   mutable std::mutex linkEventMutex_;

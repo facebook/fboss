@@ -355,7 +355,8 @@ struct SaiPortTraits {
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       std::optional<Attributes::InterFrameGap>,
 #endif
-      std::optional<Attributes::LinkTrainingEnable>>;
+      std::optional<Attributes::LinkTrainingEnable>,
+      std::optional<Attributes::RxLaneSquelchEnable>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,

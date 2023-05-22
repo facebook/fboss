@@ -66,6 +66,7 @@ sai_status_t create_port_fn(
   std::optional<sai_uint32_t> interFrameGap;
 #endif
   std::optional<bool> linkTrainingEnable;
+  std::optional<bool> rxLaneSquelchEnable;
 
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
@@ -210,6 +211,9 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_LINK_TRAINING_ENABLE:
         linkTrainingEnable = attr_list[i].value.booldata;
         break;
+      case SAI_PORT_ATTR_RX_LANE_SQUELCH_ENABLE:
+        rxLaneSquelchEnable = attr_list[i].value.booldata;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -326,6 +330,9 @@ sai_status_t create_port_fn(
 #endif
   if (linkTrainingEnable.has_value()) {
     port.linkTrainingEnable = linkTrainingEnable.value();
+  }
+  if (rxLaneSquelchEnable.has_value()) {
+    port.rxLaneSquelchEnable = rxLaneSquelchEnable.value();
   }
 
   return SAI_STATUS_SUCCESS;
@@ -587,6 +594,9 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_LINK_TRAINING_ENABLE:
       port.linkTrainingEnable = attr->value.booldata;
       break;
+    case SAI_PORT_ATTR_RX_LANE_SQUELCH_ENABLE:
+      port.rxLaneSquelchEnable = attr->value.booldata;
+      break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
     case SAI_PORT_ATTR_FABRIC_ISOLATE:
       port.fabricIsolate = attr->value.booldata;
@@ -836,6 +846,9 @@ sai_status_t get_port_attribute_fn(
 #endif
       case SAI_PORT_ATTR_LINK_TRAINING_ENABLE:
         attr->value.booldata = port.linkTrainingEnable;
+        break;
+      case SAI_PORT_ATTR_RX_LANE_SQUELCH_ENABLE:
+        attr->value.booldata = port.rxLaneSquelchEnable;
         break;
       case SAI_PORT_ATTR_FABRIC_REACHABILITY:
         attr->value.reachability.reachable = true;

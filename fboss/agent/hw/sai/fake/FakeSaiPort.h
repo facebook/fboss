@@ -84,6 +84,7 @@ struct FakePort {
   sai_uint32_t interFrameGap{96};
 #endif
   bool linkTrainingEnable{false};
+  bool rxLaneSquelchEnable{false};
 };
 
 struct FakePortSerdes {
