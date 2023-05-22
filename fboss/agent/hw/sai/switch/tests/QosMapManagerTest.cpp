@@ -218,7 +218,7 @@ TEST_F(QosMapManagerTest, changAddsPortQos) {
   EXPECT_TRUE(saiPlatform->getHwSwitch()->isValidStateUpdate(
       StateDelta(std::make_shared<SwitchState>(), oldState)));
   auto newState = oldState->clone();
-  auto newPort = port->modify(&newState, scopeResolver().scope(port));
+  auto newPort = port->modify(&newState);
   auto qosPolicies = std::make_shared<QosPolicyMap>();
   qosPolicies->addNode(makeQosPolicy("qos", testQosPolicy));
   newState->resetQosPolicies(qosPolicies);

@@ -1058,7 +1058,7 @@ TEST(Port, portModifyUnpublished) {
   portFields.portName() = "test_port";
   auto port = std::make_shared<Port>(std::move(portFields));
   state->getPorts()->addNode(port, scope());
-  EXPECT_EQ(port.get(), port->modify(&state, scope()));
+  EXPECT_EQ(port.get(), port->modify(&state));
 }
 
 TEST(Port, portModifyPublished) {
@@ -1069,5 +1069,5 @@ TEST(Port, portModifyPublished) {
   auto port = std::make_shared<Port>(std::move(portFields));
   state->getPorts()->addNode(port, scope());
   state->publish();
-  EXPECT_NE(port.get(), port->modify(&state, scope()));
+  EXPECT_NE(port.get(), port->modify(&state));
 }

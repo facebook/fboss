@@ -440,7 +440,7 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, fabricIsolate) {
     checkPortFabricReachability(getHwSwitch(), fabricPortId);
     auto newState = getProgrammedState();
     auto port = newState->getPorts()->getNodeIf(fabricPortId);
-    auto newPort = port->modify(&newState, scopeResolver().scope(port));
+    auto newPort = port->modify(&newState);
     newPort->setPortDrainState(cfg::PortDrainState::DRAINED);
     applyNewState(newState);
     getHwSwitch()->updateStats(&dummy);
@@ -466,7 +466,7 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricPortSprayWithIsolate) {
         PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
     auto newState = getProgrammedState();
     auto port = newState->getPorts()->getNodeIf(fabricPortId);
-    auto newPort = port->modify(&newState, scopeResolver().scope(port));
+    auto newPort = port->modify(&newState);
     newPort->setPortDrainState(cfg::PortDrainState::DRAINED);
     applyNewState(newState);
 

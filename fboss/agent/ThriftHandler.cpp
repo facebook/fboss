@@ -1455,8 +1455,7 @@ void ThriftHandler::setPortPrbs(
   if (component == phy::PortComponent::ASIC) {
     auto updateFn = [=](const shared_ptr<SwitchState>& state) {
       shared_ptr<SwitchState> newState{state};
-      auto newPort =
-          port->modify(&newState, sw_->getScopeResolver()->scope(port));
+      auto newPort = port->modify(&newState);
       newPort->setAsicPrbs(newPrbsState);
       return newState;
     };
@@ -1464,8 +1463,7 @@ void ThriftHandler::setPortPrbs(
   } else if (component == phy::PortComponent::GB_SYSTEM) {
     auto updateFn = [=](const shared_ptr<SwitchState>& state) {
       shared_ptr<SwitchState> newState{state};
-      auto newPort =
-          port->modify(&newState, sw_->getScopeResolver()->scope(port));
+      auto newPort = port->modify(&newState);
       newPort->setGbSystemPrbs(newPrbsState);
       return newState;
     };
@@ -1473,8 +1471,7 @@ void ThriftHandler::setPortPrbs(
   } else if (component == phy::PortComponent::GB_LINE) {
     auto updateFn = [=](const shared_ptr<SwitchState>& state) {
       shared_ptr<SwitchState> newState{state};
-      auto newPort =
-          port->modify(&newState, sw_->getScopeResolver()->scope(port));
+      auto newPort = port->modify(&newState);
       newPort->setGbLinePrbs(newPrbsState);
       return newState;
     };
@@ -1508,7 +1505,7 @@ void ThriftHandler::setPortState(int32_t portNum, bool enable) {
                       const shared_ptr<SwitchState>& state) {
     const auto oldPort = state->getPorts()->getNodeIf(portId);
     shared_ptr<SwitchState> newState{state};
-    auto newPort = oldPort->modify(&newState, scopeResolver->scope(oldPort));
+    auto newPort = oldPort->modify(&newState);
     newPort->setAdminState(newPortState);
     return newState;
   };
@@ -1542,7 +1539,7 @@ void ThriftHandler::setPortDrainState(int32_t portNum, bool drain) {
       return nullptr;
     }
     shared_ptr<SwitchState> newState{state};
-    auto newPort = oldPort->modify(&newState, scopeResolver->scope(oldPort));
+    auto newPort = oldPort->modify(&newState);
     newPort->setPortDrainState(newPortDrainState);
     return newState;
   };
@@ -1573,7 +1570,7 @@ void ThriftHandler::setPortLoopbackMode(
                       const shared_ptr<SwitchState>& state) {
     const auto oldPort = state->getPorts()->getNodeIf(portId);
     shared_ptr<SwitchState> newState{state};
-    auto newPort = oldPort->modify(&newState, scopeResolver->scope(oldPort));
+    auto newPort = oldPort->modify(&newState);
     newPort->setLoopbackMode(newLoopbackMode);
     return newState;
   };
@@ -1630,7 +1627,6 @@ void ThriftHandler::programInternalPhyPorts(
     XLOG(DBG2) << "programInternalPhyPorts for present Transceiver:" << tcvrID
                << " matches current SwitchState. Skip re-programming";
   } else {
-    auto scopeResolver = sw_->getScopeResolver();
     auto updateFn = [&, tcvrID](const shared_ptr<SwitchState>& state) {
       auto newState = state->clone();
       auto newTransceiverMap = newState->getTransceivers()->modify(&newState);
@@ -1677,8 +1673,7 @@ void ThriftHandler::programInternalPhyPorts(
         const auto& newPinConfigs =
             sw_->getPlatformMapping()->getPortIphyPinConfigs(matcher);
 
-        auto newPort =
-            oldPort->modify(&newState, scopeResolver->scope(oldPort));
+        auto newPort = oldPort->modify(&newState);
         newPort->setProfileConfig(*newProfileConfigRef);
         newPort->resetPinConfigs(newPinConfigs);
       }

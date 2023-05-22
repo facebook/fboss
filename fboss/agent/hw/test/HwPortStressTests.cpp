@@ -39,7 +39,7 @@ TEST_F(HwPortStressTest, adminStateToggle) {
     for (auto i = 0; i < 500; ++i) {
       auto newState = getProgrammedState();
       auto port = newState->getPorts()->getNodeIf(firstPortId);
-      auto newPort = port->modify(&newState, scopeResolver().scope(port));
+      auto newPort = port->modify(&newState);
       auto newAdminState = newPort->isEnabled() ? cfg::PortState::DISABLED
                                                 : cfg::PortState::ENABLED;
       newPort->setAdminState(newAdminState);

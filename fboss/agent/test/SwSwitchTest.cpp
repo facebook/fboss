@@ -274,7 +274,7 @@ TEST_F(SwSwitchTest, overlappingUpdatesWithExit) {
         const PortID kPort2{2};
         std::shared_ptr<SwitchState> newState(state);
         auto* port = newState->getPorts()->getNodeIf(kPort2).get();
-        port = port->modify(&newState, scope());
+        port = port->modify(&newState);
         // Transition up<->down
         port->setOperState(!port->isUp());
         return newState;

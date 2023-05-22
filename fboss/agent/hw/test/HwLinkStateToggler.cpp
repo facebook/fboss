@@ -50,21 +50,14 @@ void HwLinkStateToggler::portStateChangeImpl(
   auto newState = switchState;
   auto desiredLoopbackMode =
       up ? desiredLoopbackMode_ : cfg::PortLoopbackMode::NONE;
-  auto switchId =
-      hwEnsemble_->getHwSwitch()->getPlatform()->getAsic()->getSwitchId()
-      ? *hwEnsemble_->getHwSwitch()->getPlatform()->getAsic()->getSwitchId()
-      : 0;
 
-  auto hwSwitchMatcher =
-      HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(switchId)}));
   for (auto port : ports) {
     if (newState->getPorts()->getNodeIf(port)->getLoopbackMode() ==
         desiredLoopbackMode) {
       continue;
     }
     newState = newState->clone();
-    auto newPort = newState->getPorts()->getNodeIf(port)->modify(
-        &newState, hwSwitchMatcher);
+    auto newPort = newState->getPorts()->getNodeIf(port)->modify(&newState);
     setPortIDAndStateToWaitFor(port, up);
     newPort->setLoopbackMode(desiredLoopbackMode);
     hwEnsemble_->applyNewState(newState);
@@ -78,8 +71,7 @@ void HwLinkStateToggler::portStateChangeImpl(
 
     /* toggle the oper state */
     newState = hwEnsemble_->getProgrammedState();
-    newPort = newState->getPorts()->getNodeIf(port)->modify(
-        &newState, hwSwitchMatcher);
+    newPort = newState->getPorts()->getNodeIf(port)->modify(&newState);
     newPort->setOperState(up);
     hwEnsemble_->applyNewState(newState);
   }

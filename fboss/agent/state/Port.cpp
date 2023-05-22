@@ -57,18 +57,17 @@ PortFields::VlanInfo PortFields::VlanInfo::fromThrift(
   return VlanInfo(*vlanThrift.tagged());
 }
 
-Port* Port::modify(
-    std::shared_ptr<SwitchState>* state,
-    const HwSwitchMatcher& matcher) {
+Port* Port::modify(std::shared_ptr<SwitchState>* state) {
   if (!isPublished()) {
     CHECK(!(*state)->isPublished());
     return this;
   }
 
   MultiSwitchPortMap* ports = (*state)->getPorts()->modify(state);
+  const auto scope = ports->getNodeAndScope(getID()).second;
   auto newPort = clone();
   auto* ptr = newPort.get();
-  ports->updateNode(std::move(newPort), matcher);
+  ports->updateNode(std::move(newPort), scope);
   return ptr;
 }
 

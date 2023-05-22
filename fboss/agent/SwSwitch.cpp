@@ -1496,7 +1496,7 @@ void SwSwitch::linkStateChanged(
         XLOG(DBG2) << "SW Link state changed: " << port->getName() << " ["
                    << (port->isUp() ? "UP" : "DOWN") << "->"
                    << (up ? "UP" : "DOWN") << "]";
-        port = port->modify(&newState, getScopeResolver()->scope(portId));
+        port = port->modify(&newState);
         port->setOperState(up);
         if (iPhyFaultStatus) {
           port->setIPhyLinkFaultStatus(*iPhyFaultStatus);
