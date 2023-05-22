@@ -94,6 +94,21 @@ Vlan* Vlan::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
+Vlan* Vlan::modify(
+    std::shared_ptr<SwitchState>* state,
+    const HwSwitchMatcher& matcher) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  MultiSwitchVlanMap* vlans = (*state)->getMultiSwitchVlans()->modify(state);
+  auto newVlan = clone();
+  auto* ptr = newVlan.get();
+  vlans->updateNode(std::move(newVlan), matcher);
+  return ptr;
+}
+
 void Vlan::addPort(PortID id, bool tagged) {
   ref<switch_state_tags::ports>()->emplace(id, tagged);
 }

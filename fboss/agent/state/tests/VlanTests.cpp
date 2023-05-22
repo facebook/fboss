@@ -459,3 +459,18 @@ TEST(VlanMap, applyConfig) {
 
   checkChangedVlans(vlansV2, vlansV3, {}, {}, {99});
 }
+
+TEST(Vlan, vlanModifyUnpublished) {
+  auto state = make_shared<SwitchState>();
+  auto vlan = make_shared<Vlan>(VlanID(1234), kVlan1234);
+  state->getMultiSwitchVlans()->addNode(vlan, scope());
+  EXPECT_EQ(vlan.get(), vlan->modify(&state, scope()));
+}
+
+TEST(Vlan, vlanModifyPublished) {
+  auto state = make_shared<SwitchState>();
+  auto vlan = make_shared<Vlan>(VlanID(1234), kVlan1234);
+  state->getMultiSwitchVlans()->addNode(vlan, scope());
+  state->publish();
+  EXPECT_NE(vlan.get(), vlan->modify(&state, scope()));
+}

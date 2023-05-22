@@ -92,6 +92,9 @@ class Vlan : public ThriftStructNode<Vlan, state::VlanFields> {
   }
 
   Vlan* modify(std::shared_ptr<SwitchState>* state);
+  Vlan* modify(
+      std::shared_ptr<SwitchState>* state,
+      const HwSwitchMatcher& matcher);
 
   void addPort(PortID id, bool tagged);
 
