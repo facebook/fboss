@@ -174,8 +174,7 @@ StateDelta::getAggregatePortsDelta() const {
 MultiSwitchMapDelta<MultiSwitchSflowCollectorMap>
 StateDelta::getSflowCollectorsDelta() const {
   return MultiSwitchMapDelta<MultiSwitchSflowCollectorMap>(
-      old_->getMultiSwitchSflowCollectors().get(),
-      new_->getMultiSwitchSflowCollectors().get());
+      old_->getSflowCollectors().get(), new_->getSflowCollectors().get());
 }
 
 MultiSwitchMapDelta<MultiSwitchLoadBalancerMap>

@@ -305,7 +305,7 @@ void SwitchState::resetMirrors(
 }
 
 const std::shared_ptr<MultiSwitchSflowCollectorMap>&
-SwitchState::getMultiSwitchSflowCollectors() const {
+SwitchState::getSflowCollectors() const {
   return safe_cref<switch_state_tags::sflowCollectorMaps>();
 }
 

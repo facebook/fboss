@@ -3369,7 +3369,7 @@ bool ThriftConfigApplier::updateNeighborResponseTablesForIntfs(
 }
 
 shared_ptr<SflowCollectorMap> ThriftConfigApplier::updateSflowCollectors() {
-  auto origCollectors = orig_->getMultiSwitchSflowCollectors();
+  auto origCollectors = orig_->getSflowCollectors();
   auto newCollectors = std::make_shared<SflowCollectorMap>();
   bool changed = false;
 
