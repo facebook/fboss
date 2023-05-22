@@ -96,7 +96,8 @@ void ArpHandler::handlePacket(
 
   // Look up the Vlan state.
   auto state = sw_->getState();
-  auto vlan = state->getVlans()->getVlanIf(sw_->getVlanIDHelper(vlanID));
+  auto vlan =
+      state->getMultiSwitchVlans()->getNodeIf(sw_->getVlanIDHelper(vlanID));
   if (!vlan) {
     // Hmm, we don't actually have this VLAN configured.
     // Perhaps the state has changed since we received the packet.

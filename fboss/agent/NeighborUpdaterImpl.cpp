@@ -294,8 +294,8 @@ uint32_t NeighborUpdaterImpl::flushEntryForIntf(
 void NeighborUpdaterImpl::vlanAdded(
     VlanID vlanID,
     std::shared_ptr<SwitchState> state) {
-  auto vlans = state->getVlans();
-  auto vlan = vlans->getVlan(vlanID);
+  auto vlans = state->getMultiSwitchVlans();
+  auto vlan = vlans->getNode(vlanID);
   caches_.emplace(vlanID, createCaches(state.get(), vlan.get()));
 }
 

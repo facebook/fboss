@@ -29,13 +29,15 @@ int64_t EncapIndexAllocator::getNextAvailableEncapIdx(
       }
     }
   };
-  std::for_each(
-      state->getVlans()->cbegin(),
-      state->getVlans()->cend(),
-      [&](const auto& idAndVlan) {
-        extractIndices(idAndVlan.second->getArpTable());
-        extractIndices(idAndVlan.second->getNdpTable());
-      });
+  for (const auto& vlanTable : std::as_const(*state->getMultiSwitchVlans())) {
+    std::for_each(
+        vlanTable.second->cbegin(),
+        vlanTable.second->cend(),
+        [&](const auto& idAndVlan) {
+          extractIndices(idAndVlan.second->getArpTable());
+          extractIndices(idAndVlan.second->getNdpTable());
+        });
+  }
   for (const auto& [_, intfMap] : std::as_const(*state->getInterfaces())) {
     std::for_each(
         intfMap->cbegin(), intfMap->cend(), [&](const auto& idAndIntf) {

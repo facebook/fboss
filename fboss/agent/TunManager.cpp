@@ -650,12 +650,12 @@ boost::container::flat_map<InterfaceID, bool> TunManager::getInterfaceStatus(
 
   // Derive interface status from all ports
   auto portMaps = state->getPorts();
-  auto vlanMap = state->getVlans();
+  auto vlanMap = state->getMultiSwitchVlans();
   for (const auto& portMap : std::as_const(*portMaps)) {
     for (const auto& port : std::as_const(*portMap.second)) {
       bool isPortUp = port.second->isPortUp();
       for (const auto& vlanIDToInfo : port.second->getVlans()) {
-        auto vlan = vlanMap->getVlanIf(vlanIDToInfo.first);
+        auto vlan = vlanMap->getNodeIf(vlanIDToInfo.first);
         if (!vlan) {
           XLOG(ERR) << "Vlan " << vlanIDToInfo.first << " not found in state.";
           continue;

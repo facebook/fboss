@@ -218,7 +218,8 @@ void DHCPv4Handler::processRequest(
   auto vlanIDStr = vlanID.has_value()
       ? folly::to<std::string>(static_cast<int>(vlanID.value()))
       : "None";
-  auto vlan = state->getVlans()->getVlanIf(sw->getVlanIDHelper(vlanID));
+  auto vlan =
+      state->getMultiSwitchVlans()->getNodeIf(sw->getVlanIDHelper(vlanID));
   if (!vlan) {
     sw->stats()->dhcpV4DropPkt();
     XLOG(DBG4) << " VLAN  " << vlanIDStr << " is no longer present "

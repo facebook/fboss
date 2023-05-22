@@ -174,7 +174,8 @@ void DHCPv6Handler::processDHCPv6Packet(
       ? folly::to<std::string>(static_cast<int>(vlanId.value()))
       : "None";
   auto states = sw->getState();
-  auto vlan = states->getVlans()->getVlanIf(sw->getVlanIDHelper(vlanId));
+  auto vlan =
+      states->getMultiSwitchVlans()->getNodeIf(sw->getVlanIDHelper(vlanId));
   if (!vlan) {
     sw->stats()->dhcpV6DropPkt();
     XLOG(DBG2) << "VLAN " << vlanIdStr << " is no longer present"

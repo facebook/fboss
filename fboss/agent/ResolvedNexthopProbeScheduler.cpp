@@ -54,7 +54,7 @@ void ResolvedNexthopProbeScheduler::schedule() {
   for (const auto& entry : resolvedNextHop2UseCount_) {
     auto intf = state->getInterfaces()->getNode(entry.first.intfID().value());
     auto vlanId = sw_->getVlanIDHelper(intf->getVlanIDIf());
-    auto vlan = state->getVlans()->getVlan(vlanId);
+    auto vlan = state->getMultiSwitchVlans()->getNode(vlanId);
     auto startProbe = entry.first.addr().isV4()
         ? shouldProbe(entry.first.addr().asV4(), vlan.get())
         : shouldProbe(entry.first.addr().asV6(), vlan.get());

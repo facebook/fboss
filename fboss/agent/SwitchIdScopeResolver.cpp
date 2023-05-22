@@ -178,8 +178,8 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
     case cfg::InterfaceType::SYSTEM_PORT:
       return scope(SystemPortID(static_cast<int64_t>(intf->getID())));
     case cfg::InterfaceType::VLAN:
-      return scope(
-          state->getVlans()->getNode(VlanID(static_cast<int>(intf->getID()))));
+      return scope(state->getMultiSwitchVlans()->getNode(
+          VlanID(static_cast<int>(intf->getID()))));
   }
   throw FbossError(
       "Unexpected interface type: ", static_cast<int>(intf->getType()));

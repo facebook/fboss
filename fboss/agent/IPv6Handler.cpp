@@ -326,7 +326,8 @@ void IPv6Handler::handleRouterSolicitation(
   cursor.skip(4); // 4 reserved bytes
 
   auto state = sw_->getState();
-  auto vlan = state->getVlans()->getVlanIf(sw_->getVlanIDHelper(vlanID));
+  auto vlan =
+      state->getMultiSwitchVlans()->getNodeIf(sw_->getVlanIDHelper(vlanID));
   if (!vlan) {
     sw_->portStats(pkt)->pktDropped();
     return;
@@ -420,7 +421,8 @@ void IPv6Handler::handleNeighborSolicitation(
   XLOG(DBG4) << "got neighbor solicitation for " << targetIP.str();
 
   auto state = sw_->getState();
-  auto vlan = state->getVlans()->getVlanIf(sw_->getVlanIDHelper(vlanID));
+  auto vlan =
+      state->getMultiSwitchVlans()->getNodeIf(sw_->getVlanIDHelper(vlanID));
   if (!vlan) {
     // Hmm, we don't actually have this VLAN configured.
     // Perhaps the state has changed since we received the packet.
@@ -544,7 +546,8 @@ void IPv6Handler::handleNeighborAdvertisement(
   }
 
   auto state = sw_->getState();
-  auto vlan = state->getVlans()->getVlanIf(sw_->getVlanIDHelper(vlanID));
+  auto vlan =
+      state->getMultiSwitchVlans()->getNodeIf(sw_->getVlanIDHelper(vlanID));
   if (!vlan) {
     // Hmm, we don't actually have this VLAN configured.
     // Perhaps the state has changed since we received the packet.
