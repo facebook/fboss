@@ -147,34 +147,6 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
         noNeighbors || !publishState);
   };
 
-  auto makeNbrs = []() {
-    state::NeighborEntries ndpTable, arpTable;
-    std::map<std::string, int> ip2Rif = {
-        {"fc00::1", kSysPortRangeMin + 1},
-        {"fc01::1", kSysPortRangeMin + 2},
-        {"10.0.1.1", kSysPortRangeMin + 1},
-        {"10.0.2.1", kSysPortRangeMin + 2},
-    };
-    for (const auto& [ip, rif] : ip2Rif) {
-      state::NeighborEntryFields nbr;
-      nbr.ipaddress() = ip;
-      nbr.mac() = "01:02:03:04:05:06";
-      cfg::PortDescriptor port;
-      port.portId() = rif;
-      port.portType() = cfg::PortDescriptorType::SystemPort;
-      nbr.portId() = port;
-      nbr.interfaceId() = rif;
-      nbr.isLocal() = true;
-      folly::IPAddress ipAddr(ip);
-      if (ipAddr.isV6()) {
-        ndpTable.insert({ip, nbr});
-      } else {
-        arpTable.insert({ip, nbr});
-      }
-    }
-    return std::make_pair(ndpTable, arpTable);
-  };
-
   auto verifySetupNeighbors = [&](bool publishState) {
     {
       // No neighbors

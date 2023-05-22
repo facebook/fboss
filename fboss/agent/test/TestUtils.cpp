@@ -62,6 +62,8 @@ using namespace facebook::fboss;
 
 namespace {
 
+constexpr auto kSysPortRangeMin = 1000;
+
 void initSwSwitchWithFlags(SwSwitch* sw, SwitchFlags flags) {
   if (flags & SwitchFlags::ENABLE_TUN) {
     // TODO(aeckert): I don't think this should be a first class
@@ -325,6 +327,34 @@ std::shared_ptr<SystemPort> makeSysPort(
   sysPort->setEnabled(true);
   sysPort->setQosPolicy(qosPolicy);
   return sysPort;
+}
+
+std::tuple<state::NeighborEntries, state::NeighborEntries> makeNbrs() {
+  state::NeighborEntries ndpTable, arpTable;
+  std::map<std::string, int> ip2Rif = {
+      {"fc00::1", kSysPortRangeMin + 1},
+      {"fc01::1", kSysPortRangeMin + 2},
+      {"10.0.1.1", kSysPortRangeMin + 1},
+      {"10.0.2.1", kSysPortRangeMin + 2},
+  };
+  for (const auto& [ip, rif] : ip2Rif) {
+    state::NeighborEntryFields nbr;
+    nbr.ipaddress() = ip;
+    nbr.mac() = "01:02:03:04:05:06";
+    cfg::PortDescriptor port;
+    port.portId() = rif;
+    port.portType() = cfg::PortDescriptorType::SystemPort;
+    nbr.portId() = port;
+    nbr.interfaceId() = rif;
+    nbr.isLocal() = true;
+    folly::IPAddress ipAddr(ip);
+    if (ipAddr.isV6()) {
+      ndpTable.insert({ip, nbr});
+    } else {
+      arpTable.insert({ip, nbr});
+    }
+  }
+  return std::make_pair(ndpTable, arpTable);
 }
 
 cfg::DsfNode makeDsfNodeCfg(int64_t switchId, cfg::DsfNodeType type) {
