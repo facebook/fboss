@@ -39,15 +39,15 @@ class MultiNodeTest : public AgentTest {
     auto vlan = state->getInterfaces()->getNodeIf(intfID)->getVlanID();
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
       auto entry = sw()->getState()
-                       ->getVlans()
-                       ->getVlanIf(vlan)
+                       ->getMultiSwitchVlans()
+                       ->getNodeIf(vlan)
                        ->getNdpTable()
                        ->getEntryIf(addr);
       return {entry->getMac(), entry->getPort()};
     } else {
       auto entry = sw()->getState()
-                       ->getVlans()
-                       ->getVlanIf(vlan)
+                       ->getMultiSwitchVlans()
+                       ->getNodeIf(vlan)
                        ->getArpTable()
                        ->getEntryIf(addr);
       return {entry->getMac(), entry->getPort()};
