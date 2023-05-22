@@ -92,8 +92,7 @@ std::shared_ptr<SwitchState> getMinAlpmRouteState(
 
   for (const auto& vlanTable : std::as_const(*noRoutesState->getVlans())) {
     for (const auto& idAndVlan : std::as_const(*vlanTable.second)) {
-      auto vlan = idAndVlan.second->modify(
-          &noRoutesState, HwSwitchMatcher(vlanTable.first));
+      auto vlan = idAndVlan.second->modify(&noRoutesState);
       vlan->setArpTable(std::make_shared<ArpTable>());
       vlan->setNdpTable(std::make_shared<NdpTable>());
     }

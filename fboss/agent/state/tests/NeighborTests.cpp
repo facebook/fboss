@@ -128,17 +128,17 @@ TEST(NeighborResponseTableTest, modify) {
   state->getVlans()->addNode(vlan, scope());
 
   // modify unpublished state
-  EXPECT_EQ(vlan.get(), vlan->modify(&state, scope()));
+  EXPECT_EQ(vlan.get(), vlan->modify(&state));
 
   arpResponseTable = std::make_shared<ArpResponseTable>();
   arpResponseTable->setEntry(ip2, mac2, InterfaceID(1));
   vlan->setArpResponseTable(arpResponseTable);
 
   // modify unpublished state
-  EXPECT_EQ(vlan.get(), vlan->modify(&state, scope()));
+  EXPECT_EQ(vlan.get(), vlan->modify(&state));
 
   vlan->publish();
-  auto modifiedVlan = vlan->modify(&state, scope());
+  auto modifiedVlan = vlan->modify(&state);
 
   arpResponseTable = std::make_shared<ArpResponseTable>();
   arpResponseTable->setEntry(ip1, mac1, InterfaceID(0));

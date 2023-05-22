@@ -143,8 +143,7 @@ void ManagerTestBase::setupSaiPlatform() {
         auto swNeighbor = makeArpEntry(testInterface.id, remoteHost);
         auto existingVlanEntry =
             setupState->getVlans()->getNode(VlanID(testInterface.id));
-        auto* vlan = existingVlanEntry->modify(
-            &setupState, scopeResolver().scope(existingVlanEntry));
+        auto* vlan = existingVlanEntry->modify(&setupState);
         auto arpTable = vlan->getArpTable()->modify(&vlan, &setupState);
         PortDescriptor portDesc(PortID(remoteHost.port.id));
         arpTable->addEntry(

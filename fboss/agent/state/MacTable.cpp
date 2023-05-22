@@ -24,9 +24,7 @@ MacTable* MacTable::modify(Vlan** vlan, std::shared_ptr<SwitchState>* state) {
     return this;
   }
 
-  auto vlans = (*state)->getVlans()->modify(state);
-  auto [node, matcher] = vlans->getNodeAndScope((*vlan)->getID());
-  *vlan = (*vlan)->modify(state, matcher);
+  *vlan = (*vlan)->modify(state);
   auto newMacTable = clone();
   auto* ptr = newMacTable.get();
   (*vlan)->setMacTable(std::move(newMacTable));

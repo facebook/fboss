@@ -182,7 +182,7 @@ void addNeighborEntry(
   if (!oldNeighborTable) {
     // There is no old arp table
     auto vlanPtr = (*state)->getVlans()->getNode(*vlan).get();
-    vlanPtr = vlanPtr->modify(state, scope());
+    vlanPtr = vlanPtr->modify(state);
     vlanPtr->setNeighborTable(std::move(newNeighborTable));
   }
 }
@@ -438,8 +438,7 @@ TEST(SwitchStatePruningTests, ModifyState) {
   freshArpTable->addEntry(host1ip, host1mac, host1port, host1intf);
   shared_ptr<Vlan> vlan1 = state1->getVlans()->getNode(host1vlan);
   ASSERT_TRUE(state1 == state2); // point to same state
-  auto vlanPtr =
-      state1->getVlans()->getNode(host1vlan)->modify(&state2, scope());
+  auto vlanPtr = state1->getVlans()->getNode(host1vlan)->modify(&state2);
   vlanPtr->setArpTable(std::move(freshArpTable));
   ASSERT_TRUE(vlan1.get() != vlanPtr);
   shared_ptr<Vlan> vlan2 = state2->getVlans()->getNode(host1vlan);

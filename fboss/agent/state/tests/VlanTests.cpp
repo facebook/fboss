@@ -461,7 +461,7 @@ TEST(Vlan, vlanModifyUnpublished) {
   auto state = make_shared<SwitchState>();
   auto vlan = make_shared<Vlan>(VlanID(1234), kVlan1234);
   state->getVlans()->addNode(vlan, scope());
-  EXPECT_EQ(vlan.get(), vlan->modify(&state, scope()));
+  EXPECT_EQ(vlan.get(), vlan->modify(&state));
 }
 
 TEST(Vlan, vlanModifyPublished) {
@@ -469,5 +469,5 @@ TEST(Vlan, vlanModifyPublished) {
   auto vlan = make_shared<Vlan>(VlanID(1234), kVlan1234);
   state->getVlans()->addNode(vlan, scope());
   state->publish();
-  EXPECT_NE(vlan.get(), vlan->modify(&state, scope()));
+  EXPECT_NE(vlan.get(), vlan->modify(&state));
 }
