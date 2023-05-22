@@ -72,17 +72,17 @@ const IPAddressV4 kDhcpV4ReplySrc("10.0.55.1");
 
 shared_ptr<SwitchState> testState() {
   auto state = testStateA();
-  const auto& vlans = state->getVlans();
+  const auto& vlans = state->getMultiSwitchVlans();
   // Set up an arp response entry for VLAN 1, 10.0.0.1,
   // so that we can detect the packet to 10.0.0.1 is for myself
   auto respTable1 = make_shared<ArpResponseTable>();
   respTable1->setEntry(
       kVlanInterfaceIP, MockPlatform::getMockLocalMac(), InterfaceID(1));
-  vlans->getVlan(VlanID(1))->setArpResponseTable(respTable1);
-  vlans->getVlan(VlanID(1))->setDhcpV4Relay(kDhcpV4Relay);
+  vlans->getNode(VlanID(1))->setArpResponseTable(respTable1);
+  vlans->getNode(VlanID(1))->setDhcpV4Relay(kDhcpV4Relay);
   DhcpV4OverrideMap overrides;
   overrides[kClientMacOverride] = kDhcpOverride;
-  vlans->getVlan(VlanID(1))->setDhcpV4RelayOverrides(overrides);
+  vlans->getNode(VlanID(1))->setDhcpV4RelayOverrides(overrides);
   addSwitchInfo(
       state,
       cfg::SwitchType::NPU,

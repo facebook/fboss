@@ -94,12 +94,12 @@ const IPAddressV6 kDhcpV6ReplySrc("2401:db00:2110:3055:0000:0000:0000:0001");
 // Function to setup SwState required for the tests
 shared_ptr<SwitchState> testState() {
   auto state = testStateA();
-  const auto& vlans = state->getVlans();
+  const auto& vlans = state->getMultiSwitchVlans();
   // Configure DHCPV6 relay settings for the test VLAN
-  vlans->getVlan(VlanID(1))->setDhcpV6Relay(kDhcpV6Relay);
+  vlans->getNode(VlanID(1))->setDhcpV6Relay(kDhcpV6Relay);
   DhcpV6OverrideMap overrides;
   overrides[kClientMacOverride] = kDhcpV6RelayOverride;
-  vlans->getVlan(VlanID(1))->setDhcpV6RelayOverrides(overrides);
+  vlans->getNode(VlanID(1))->setDhcpV6RelayOverrides(overrides);
   addSwitchInfo(
       state,
       cfg::SwitchType::NPU,

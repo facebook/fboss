@@ -50,13 +50,13 @@ namespace {
 
 unique_ptr<HwTestHandle> setupTestHandle() {
   auto state = testStateA();
-  const auto& vlans = state->getVlans();
+  const auto& vlans = state->getMultiSwitchVlans();
   // Set up an arp response entry for VLAN 1, 10.0.0.1,
   // so that we can detect the packet to 10.0.0.1 is for myself
   auto respTable1 = make_shared<ArpResponseTable>();
   respTable1->setEntry(
       IPAddressV4("10.0.0.1"), MacAddress("00:02:00:00:00:01"), InterfaceID(1));
-  vlans->getVlan(VlanID(1))->setArpResponseTable(respTable1);
+  vlans->getNode(VlanID(1))->setArpResponseTable(respTable1);
 
   return createTestHandle(state);
 }
