@@ -322,8 +322,8 @@ class ThriftConfigApplier {
       const std::vector<AggregatePort::Subport>& subports);
   std::pair<folly::MacAddress, uint16_t> getSystemLacpConfig();
   uint8_t computeMinimumLinkCount(const cfg::AggregatePort& cfg);
-  std::shared_ptr<VlanMap> updateVlans();
-  std::shared_ptr<VlanMap> updatePseudoVlans();
+  std::shared_ptr<MultiSwitchVlanMap> updateVlans();
+  std::shared_ptr<MultiSwitchVlanMap> updatePseudoVlans();
   shared_ptr<Vlan> createPseudoVlan();
   shared_ptr<Vlan> updatePseudoVlan(const shared_ptr<Vlan>& orig);
   std::shared_ptr<Vlan> createVlan(const cfg::Vlan* config);
@@ -651,17 +651,17 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     changed = true;
   }
 
-  auto newVlans = new_->getVlans();
+  auto newVlans = new_->getMultiSwitchVlans();
   VlanID dfltVlan(*cfg_->defaultVlan());
   if (orig_->getDefaultVlan() != dfltVlan) {
-    if (newVlans->getVlanIf(dfltVlan) == nullptr) {
+    if (newVlans->getNodeIf(dfltVlan) == nullptr) {
       throw FbossError("Default VLAN ", dfltVlan, " does not exist");
     }
   }
 
   // Make sure all interfaces refer to valid VLANs.
   for (const auto& vlanInfo : vlanInterfaces_) {
-    if (newVlans->getVlanIf(vlanInfo.first) == nullptr) {
+    if (newVlans->getNodeIf(vlanInfo.first) == nullptr) {
       throw FbossError(
           "Interface ",
           *(vlanInfo.second.interfaces.begin()),
@@ -2176,7 +2176,7 @@ uint8_t ThriftConfigApplier::computeMinimumLinkCount(
   return minLinkCount;
 }
 
-shared_ptr<VlanMap> ThriftConfigApplier::updateVlans() {
+shared_ptr<MultiSwitchVlanMap> ThriftConfigApplier::updateVlans() {
   // TODO(skhare)
   // VOQ/Fabric switches require that the packets are not tagged with any
   // VLAN. We are gradually enhancing wedge_agent to handle tagged as well as
@@ -2193,7 +2193,7 @@ shared_ptr<VlanMap> ThriftConfigApplier::updateVlans() {
     return nullptr;
   }
 
-  auto origVlans = orig_->getVlans();
+  auto origVlans = orig_->getMultiSwitchVlans();
   VlanMap::NodeContainer newVlans;
   bool changed = false;
 
@@ -2201,7 +2201,7 @@ shared_ptr<VlanMap> ThriftConfigApplier::updateVlans() {
   size_t numExistingProcessed = 0;
   for (const auto& vlanCfg : *cfg_->vlans()) {
     VlanID id(*vlanCfg.id());
-    auto origVlan = origVlans->getVlanIf(id);
+    auto origVlan = origVlans->getNodeIf(id);
     shared_ptr<Vlan> newVlan;
     if (origVlan) {
       newVlan = updateVlan(origVlan, &vlanCfg);
@@ -2212,9 +2212,9 @@ shared_ptr<VlanMap> ThriftConfigApplier::updateVlans() {
     changed |= updateMap(&newVlans, origVlan, newVlan);
   }
 
-  if (numExistingProcessed != origVlans->size()) {
+  if (numExistingProcessed != origVlans->numNodes()) {
     // Some existing VLANs were removed.
-    CHECK_LT(numExistingProcessed, origVlans->size());
+    CHECK_LT(numExistingProcessed, origVlans->numNodes());
     changed = true;
   }
 
@@ -2222,7 +2222,8 @@ shared_ptr<VlanMap> ThriftConfigApplier::updateVlans() {
     return nullptr;
   }
 
-  return origVlans->clone(std::move(newVlans));
+  auto vlans = std::make_shared<VlanMap>(std::move(newVlans));
+  return toMultiSwitchMap<MultiSwitchVlanMap>(vlans, scopeResolver_);
 }
 
 shared_ptr<Vlan> ThriftConfigApplier::createVlan(const cfg::Vlan* config) {
@@ -2291,12 +2292,12 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(
   return newVlan;
 }
 
-shared_ptr<VlanMap> ThriftConfigApplier::updatePseudoVlans() {
+shared_ptr<MultiSwitchVlanMap> ThriftConfigApplier::updatePseudoVlans() {
   // Pseudo vlan only case of non vlan supporting configs
   CHECK(!new_->getSwitchSettings()->vlansSupported());
 
-  auto origVlans = orig_->getVlans();
-  auto origVlan = origVlans->getVlanIf(kPseudoVlanID);
+  auto origVlans = orig_->getMultiSwitchVlans();
+  auto origVlan = origVlans->getNodeIf(kPseudoVlanID);
   VlanMap::NodeContainer newVlans;
   bool changed = false;
 
@@ -2314,7 +2315,8 @@ shared_ptr<VlanMap> ThriftConfigApplier::updatePseudoVlans() {
     return nullptr;
   }
 
-  return origVlans->clone(std::move(newVlans));
+  auto vlans = std::make_shared<VlanMap>(std::move(newVlans));
+  return toMultiSwitchMap<MultiSwitchVlanMap>(vlans, scopeResolver_);
 }
 
 shared_ptr<Vlan> ThriftConfigApplier::updatePseudoVlan(

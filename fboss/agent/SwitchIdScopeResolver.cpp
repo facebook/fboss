@@ -147,11 +147,13 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 
 const HwSwitchMatcher SwitchIdScopeResolver::scope(
     const std::shared_ptr<Vlan>& vlan) const {
-  checkL3();
+  // TODO - restrict vlan scope to L3 switches
+  // Currently we create psuedo vlans on fabric switches
   if (vlan->getPorts().empty()) {
     // VLANs corresponding to loopback intfs have no ports
-    // associated with them.
-    return *l3SwitchMatcher_;
+    // associated with them. Also Psuedo vlans created
+    // on fabric switches don't have ports associated with them.
+    return *allSwitchMatcher_;
   }
   std::unordered_set<SwitchID> switchIds;
   for (const auto& port : vlan->getPorts()) {
