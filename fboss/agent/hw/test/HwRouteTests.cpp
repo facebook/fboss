@@ -575,7 +575,7 @@ TYPED_TEST(HwRouteTest, AddHostRouteAndNeighbor) {
     // add neighbor
     auto state = this->getProgrammedState();
     auto [portId, port] = *(state->getPorts()->getFirstMap()->cbegin());
-    auto vlan = state->getVlans()->getNode(port->getIngressVlan());
+    auto vlan = state->getMultiSwitchVlans()->getNode(port->getIngressVlan());
     auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
         vlan->getID(), &state);
     folly::MacAddress neighborMac = folly::MacAddress("06:00:00:01:02:03");

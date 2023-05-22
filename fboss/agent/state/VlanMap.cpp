@@ -30,27 +30,6 @@ VlanMap::VlanMap() {}
 
 VlanMap::~VlanMap() {}
 
-VlanMap* VlanMap::modify(std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
-  }
-
-  SwitchState::modify(state);
-  auto newVlans = clone();
-  auto* ptr = newVlans.get();
-  (*state)->resetVlans(std::move(newVlans));
-  return ptr;
-}
-
-void VlanMap::addVlan(const std::shared_ptr<Vlan>& vlan) {
-  addNode(vlan);
-}
-
-void VlanMap::updateVlan(const std::shared_ptr<Vlan>& vlan) {
-  updateNode(vlan);
-}
-
 const shared_ptr<Vlan>& MultiSwitchVlanMap::getVlanSlow(
     const string& name) const {
   for (auto& iterMap : std::as_const(*this)) {

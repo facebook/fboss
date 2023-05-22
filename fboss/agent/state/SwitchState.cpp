@@ -132,7 +132,6 @@ SwitchState::SwitchState() {
   resetSflowCollectors(std::make_shared<SflowCollectorMap>());
   resetQosPolicies(std::make_shared<QosPolicyMap>());
   resetTransceivers(std::make_shared<TransceiverMap>());
-  resetVlans(std::make_shared<VlanMap>());
   resetControlPlane(std::make_shared<ControlPlane>());
   resetSwitchSettings(std::make_shared<SwitchSettings>());
 }
@@ -158,32 +157,13 @@ const std::shared_ptr<MultiSwitchPortMap>& SwitchState::getPorts() const {
   return safe_cref<switch_state_tags::portMaps>();
 }
 
-void SwitchState::resetVlans(std::shared_ptr<VlanMap> vlans) {
-  resetDefaultMap<switch_state_tags::vlanMaps>(vlans);
-}
-
 void SwitchState::resetVlans(std::shared_ptr<MultiSwitchVlanMap> vlans) {
   ref<switch_state_tags::vlanMaps>() = vlans;
-}
-
-const std::shared_ptr<VlanMap>& SwitchState::getVlans() const {
-  return getDefaultMap<switch_state_tags::vlanMaps>();
 }
 
 const std::shared_ptr<MultiSwitchVlanMap>& SwitchState::getMultiSwitchVlans()
     const {
   return safe_cref<switch_state_tags::vlanMaps>();
-}
-
-void SwitchState::addVlan(const std::shared_ptr<Vlan>& vlan) {
-  if (getVlans()->isPublished()) {
-    // For ease-of-use, automatically clone the VlanMap if we are still
-    // pointing to a published map.
-    auto vlans = getVlans()->clone();
-
-    resetVlans(vlans);
-  }
-  getDefaultMap<switch_state_tags::vlanMaps>()->addVlan(vlan);
 }
 
 void SwitchState::resetIntfs(
@@ -659,7 +639,8 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   state->fromThrift<
       switch_state_tags::bufferPoolCfgMaps,
       switch_state_tags::bufferPoolCfgMap>(true /*emptyMnpuMapOk*/);
-  state->fromThrift<switch_state_tags::vlanMaps, switch_state_tags::vlanMap>();
+  state->fromThrift<switch_state_tags::vlanMaps, switch_state_tags::vlanMap>(
+      true /*emptyMnpuMapOk*/);
   state->fromThrift<switch_state_tags::portMaps, switch_state_tags::portMap>(
       true /*emptyMnpuMapOk*/);
   state->fromThrift<

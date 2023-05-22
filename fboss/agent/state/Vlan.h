@@ -91,7 +91,6 @@ class Vlan : public ThriftStructNode<Vlan, state::VlanFields> {
     set<switch_state_tags::ports>(std::move(ports));
   }
 
-  Vlan* modify(std::shared_ptr<SwitchState>* state);
   Vlan* modify(
       std::shared_ptr<SwitchState>* state,
       const HwSwitchMatcher& matcher);

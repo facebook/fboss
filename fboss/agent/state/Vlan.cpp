@@ -81,19 +81,6 @@ Vlan::Vlan(const cfg::Vlan* config, MemberPorts ports) {
   setDhcpV6RelayOverrides(map6);
 }
 
-Vlan* Vlan::modify(std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
-  }
-
-  VlanMap* vlans = (*state)->getVlans()->modify(state);
-  auto newVlan = clone();
-  auto* ptr = newVlan.get();
-  vlans->updateVlan(std::move(newVlan));
-  return ptr;
-}
-
 Vlan* Vlan::modify(
     std::shared_ptr<SwitchState>* state,
     const HwSwitchMatcher& matcher) {

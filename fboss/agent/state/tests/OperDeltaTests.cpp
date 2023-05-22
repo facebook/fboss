@@ -36,8 +36,8 @@ TEST(OperDeltaTests, OperDeltaCompute) {
   ASSERT_NE(nullptr, stateV1);
 
   auto delta1 = StateDelta(stateV0, stateV1);
-  // 1 port map, 2 vlans, 1 intf map change
-  EXPECT_EQ(delta1.getOperDelta().changes()->size(), 4);
+  // 1 port map, 1 vlan map, 1 intf map change
+  EXPECT_EQ(delta1.getOperDelta().changes()->size(), 3);
 
   auto stateV2 = stateV1->clone();
   auto mnpuMirrors = stateV1->getMirrors()->modify(&stateV2);
