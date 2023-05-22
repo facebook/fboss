@@ -105,7 +105,7 @@ TEST(Vlan, applyConfig) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   auto vlanV1 = stateV1->getVlans()->getVlan(VlanID(1234));
   ASSERT_NE(nullptr, vlanV1);
-  auto vlanV1_byName = stateV1->getVlans()->getVlanSlow(kVlan1234);
+  auto vlanV1_byName = stateV1->getMultiSwitchVlans()->getVlanSlow(kVlan1234);
   EXPECT_EQ(vlanV1, vlanV1_byName);
   EXPECT_EQ(nodeID, vlanV1->getNodeID());
   EXPECT_EQ(1, vlanV1->getGeneration());
@@ -233,7 +233,7 @@ TEST(Vlan, applyConfig) {
   // VLAN 1 should be unchanged
   EXPECT_EQ(vlanV2, stateV4->getVlans()->getVlan(VlanID(1)));
   auto vlan99 = stateV4->getVlans()->getVlan(VlanID(99));
-  auto vlan99_byName = stateV4->getVlans()->getVlanSlow(kVlan99);
+  auto vlan99_byName = stateV4->getMultiSwitchVlans()->getVlanSlow(kVlan99);
   ASSERT_NE(nullptr, vlan99);
   EXPECT_EQ(vlan99, vlan99_byName);
   EXPECT_EQ(0, vlan99->getGeneration());
@@ -367,7 +367,8 @@ TEST(VlanMap, applyConfig) {
 
   // Check the new settings for VLAN 1234
   auto vlan1234v0 = vlansV1->getVlan(VlanID(1234));
-  auto vlan1234v0_byName = vlansV1->getVlanSlow(kVlan1234);
+  auto vlan1234v0_byName =
+      stateV1->getMultiSwitchVlans()->getVlanSlow(kVlan1234);
   ASSERT_NE(nullptr, vlan1234v0);
   EXPECT_EQ(vlan1234v0, vlan1234v0_byName);
   NodeID id1234 = vlan1234v0->getNodeID();
@@ -384,7 +385,7 @@ TEST(VlanMap, applyConfig) {
   // Check the new settings for VLAN 99
   auto vlan99v0 = vlansV1->getVlan(VlanID(99));
   ASSERT_NE(nullptr, vlan99v0);
-  auto vlan99v0_byName = vlansV1->getVlanSlow(kVlan99);
+  auto vlan99v0_byName = stateV1->getMultiSwitchVlans()->getVlanSlow(kVlan99);
   EXPECT_EQ(vlan99v0, vlan99v0_byName);
   NodeID id99 = vlan99v0->getNodeID();
   EXPECT_NE(id1234, id99);

@@ -53,17 +53,6 @@ class VlanMap : public ThriftMapNode<VlanMap, VlanMapTraits> {
   }
 
   /*
-   * Get the specified Vlan by name. Throw FbossError if Vlan
-   * does not exist.
-   * Note that this requires a linear traversal of all Vlans
-   *
-   * TODO: Maintain a second index by name. Typically we have only a
-   * handful of Vlans, so this traversal should be fairly cheap. We
-   * may optimize it further in the future though.
-   */
-  const std::shared_ptr<Vlan>& getVlanSlow(const std::string& name) const;
-
-  /*
    * Get the specified Vlan.
    *
    * Returns null if the VLAN does not exist.
@@ -71,17 +60,6 @@ class VlanMap : public ThriftMapNode<VlanMap, VlanMapTraits> {
   std::shared_ptr<Vlan> getVlanIf(VlanID id) const {
     return getNodeIf(id);
   }
-
-  /*
-   * Get the specified Vlan by name. Returns null if Vlan
-   * does not exist.
-   * Note that this requires a linear traversal of all Vlans
-   *
-   * TODO: Maintain a second index by name. Typically we have only a
-   * handful of Vlans, so this traversal should be fairly cheap. We
-   * may optimize it further in the future though.
-   */
-  std::shared_ptr<Vlan> getVlanSlowIf(const std::string& name) const;
 
   /*
    * The following functions modify the static state.
@@ -125,6 +103,28 @@ class MultiSwitchVlanMap : public ThriftMultiSwitchMapNode<
   using BaseT::modify;
 
   MultiSwitchVlanMap* modify(std::shared_ptr<SwitchState>* state);
+
+  /*
+   * Get the specified Vlan by name. Throw FbossError if Vlan
+   * does not exist.
+   * Note that this requires a linear traversal of all Vlans
+   *
+   * TODO: Maintain a second index by name. Typically we have only a
+   * handful of Vlans, so this traversal should be fairly cheap. We
+   * may optimize it further in the future though.
+   */
+  const std::shared_ptr<Vlan>& getVlanSlow(const std::string& name) const;
+
+  /*
+   * Get the specified Vlan by name. Returns null if Vlan
+   * does not exist.
+   * Note that this requires a linear traversal of all Vlans
+   *
+   * TODO: Maintain a second index by name. Typically we have only a
+   * handful of Vlans, so this traversal should be fairly cheap. We
+   * may optimize it further in the future though.
+   */
+  std::shared_ptr<Vlan> getVlanSlowIf(const std::string& name) const;
 
   MultiSwitchVlanMap() {}
   virtual ~MultiSwitchVlanMap() {}

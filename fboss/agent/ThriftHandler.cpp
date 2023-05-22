@@ -2129,7 +2129,7 @@ Vlan* ThriftHandler::getVlan(int32_t vlanId) {
 
 Vlan* ThriftHandler::getVlan(const std::string& vlanName) {
   ensureConfigured(__func__);
-  return sw_->getState()->getVlans()->getVlanSlow(vlanName).get();
+  return sw_->getState()->getMultiSwitchVlans()->getVlanSlow(vlanName).get();
 }
 
 int32_t ThriftHandler::flushNeighborEntry(

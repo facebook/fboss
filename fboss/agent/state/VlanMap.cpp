@@ -43,26 +43,6 @@ VlanMap* VlanMap::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
-const shared_ptr<Vlan>& VlanMap::getVlanSlow(const string& name) const {
-  for (auto& iter : std::as_const(*this)) {
-    const auto& vlan = iter.second;
-    if (vlan->getName() == name) {
-      return vlan;
-    }
-  }
-  throw FbossError("Cannot find Vlan : ", name);
-}
-
-shared_ptr<Vlan> VlanMap::getVlanSlowIf(const string& name) const {
-  for (auto iter : std::as_const(*this)) {
-    const auto& vlan = iter.second;
-    if (vlan->getName() == name) {
-      return vlan;
-    }
-  }
-  return nullptr;
-}
-
 void VlanMap::addVlan(const std::shared_ptr<Vlan>& vlan) {
   addNode(vlan);
 }
@@ -73,6 +53,31 @@ void VlanMap::updateVlan(const std::shared_ptr<Vlan>& vlan) {
 
 VlanID VlanMap::getFirstVlanID() const {
   return cbegin()->second->getID();
+}
+
+const shared_ptr<Vlan>& MultiSwitchVlanMap::getVlanSlow(
+    const string& name) const {
+  for (auto& iterMap : std::as_const(*this)) {
+    for (auto& iter : std::as_const(*iterMap.second)) {
+      const auto& vlan = iter.second;
+      if (vlan->getName() == name) {
+        return vlan;
+      }
+    }
+  }
+  throw FbossError("Cannot find Vlan : ", name);
+}
+
+shared_ptr<Vlan> MultiSwitchVlanMap::getVlanSlowIf(const string& name) const {
+  for (auto& iterMap : std::as_const(*this)) {
+    for (auto& iter : std::as_const(*iterMap.second)) {
+      const auto& vlan = iter.second;
+      if (vlan->getName() == name) {
+        return vlan;
+      }
+    }
+  }
+  return nullptr;
 }
 
 MultiSwitchVlanMap* MultiSwitchVlanMap::modify(
