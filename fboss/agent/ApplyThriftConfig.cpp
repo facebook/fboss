@@ -4308,9 +4308,9 @@ std::shared_ptr<IpTunnelMap> ThriftConfigApplier::updateIpInIpTunnels() {
     changed |= updateThriftMapNode(newTunnels.get(), origTunnel, newTunnel);
   }
 
-  if (numExistingProcessed != origTunnels->size()) {
+  if (numExistingProcessed != origTunnels->numNodes()) {
     // Some existing Tunnels were removed.
-    CHECK_LT(numExistingProcessed, origTunnels->size());
+    CHECK_LT(numExistingProcessed, origTunnels->numNodes());
     changed = true;
   }
 
