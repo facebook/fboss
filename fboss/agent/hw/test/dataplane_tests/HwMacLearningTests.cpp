@@ -374,7 +374,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
   bool wasMacLearntInSwitchState(bool shouldExist, MacAddress mac) const {
     auto vlanID = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto state = getProgrammedState();
-    auto vlan = state->getVlans()->getVlanIf(vlanID);
+    auto vlan = state->getMultiSwitchVlans()->getNodeIf(vlanID);
     auto* macTable = vlan->getMacTable().get();
     return (shouldExist == (macTable->getMacIf(mac) != nullptr));
   }
@@ -500,7 +500,7 @@ class HwMacLearningStaticEntriesTest : public HwMacLearningTest {
  protected:
   void addOrUpdateMacEntry(MacEntryType type) {
     auto newState = getProgrammedState()->clone();
-    auto vlan = newState->getVlans()->getVlanIf(kVlanID()).get();
+    auto vlan = newState->getMultiSwitchVlans()->getNodeIf(kVlanID()).get();
     auto macTable = vlan->getMacTable().get();
     macTable = macTable->modify(&vlan, &newState);
     if (macTable->getMacIf(kSourceMac())) {
@@ -790,8 +790,8 @@ TEST_F(HwMacSwLearningModeTest, VerifyCallbacksOnMacEntryChange) {
       auto assertClassID =
           [this](std::optional<cfg::AclLookupClass> lookupClass) {
             auto macTable = getProgrammedState()
-                                ->getVlans()
-                                ->getVlanIf(kVlanID())
+                                ->getMultiSwitchVlans()
+                                ->getNodeIf(kVlanID())
                                 ->getMacTable();
             auto macEntry = macTable->getMacIf(kSourceMac());
             EXPECT_EQ(macEntry->getClassID(), lookupClass);

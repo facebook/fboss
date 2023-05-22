@@ -133,7 +133,7 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
   }
   void updateMacEntry(std::optional<cfg::AclLookupClass> lookupClass) {
     auto newState = getProgrammedState()->clone();
-    auto vlan = newState->getVlans()->getVlanIf(kVlanID).get();
+    auto vlan = newState->getMultiSwitchVlans()->getNodeIf(kVlanID).get();
     auto macTable = vlan->getMacTable().get();
     macTable = macTable->modify(&vlan, &newState);
     auto macEntry = macTable->getNode(kNeighborMac.toString());
@@ -202,15 +202,16 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
         std::move(txPacket), phyPort));
   }
   void verifySentPacket(const folly::IPAddress& dstIp) {
-    auto firstVlan = getProgrammedState()->getVlans()->cbegin()->second;
-    auto intfMac =
-        utility::getInterfaceMac(getProgrammedState(), firstVlan->getID());
+    auto firstVlanID =
+        getProgrammedState()->getMultiSwitchVlans()->getFirstVlanID();
+
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), firstVlanID);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto srcIp =
         dstIp.isV6() ? folly::IPAddress("1::3") : folly::IPAddress("1.1.1.3");
     auto txPacket = utility::makeUDPTxPacket(
         getHwSwitch(),
-        firstVlan->getID(),
+        firstVlanID,
         srcMac, // src mac
         intfMac, // dst mac
         srcIp,
@@ -227,8 +228,8 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
       const AddrT& addr,
       std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
     auto state = getProgrammedState()->clone();
-    auto neighborTable = state->getVlans()
-                             ->getVlan(kVlanID)
+    auto neighborTable = state->getMultiSwitchVlans()
+                             ->getNode(kVlanID)
                              ->template getNeighborEntryTable<AddrT>()
                              ->modify(kVlanID, &state);
     if (neighborTable->getEntryIf(addr)) {
@@ -255,8 +256,8 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
   template <typename AddrT>
   void removeNeighbor(const AddrT& ip) {
     auto newState{getProgrammedState()->clone()};
-    auto neighborTable = newState->getVlans()
-                             ->getVlan(kVlanID)
+    auto neighborTable = newState->getMultiSwitchVlans()
+                             ->getNode(kVlanID)
                              ->template getNeighborEntryTable<AddrT>()
                              ->modify(kVlanID, &newState);
 
