@@ -71,8 +71,6 @@ class VlanMap : public ThriftMapNode<VlanMap, VlanMapTraits> {
 
   void updateVlan(const std::shared_ptr<Vlan>& vlan);
 
-  VlanID getFirstVlanID() const;
-
  private:
   // Inherit the constructors required for clone()
   using Base::Base;
@@ -125,6 +123,8 @@ class MultiSwitchVlanMap : public ThriftMultiSwitchMapNode<
    * may optimize it further in the future though.
    */
   std::shared_ptr<Vlan> getVlanSlowIf(const std::string& name) const;
+
+  VlanID getFirstVlanID() const;
 
   MultiSwitchVlanMap() {}
   virtual ~MultiSwitchVlanMap() {}

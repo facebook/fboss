@@ -51,10 +51,6 @@ void VlanMap::updateVlan(const std::shared_ptr<Vlan>& vlan) {
   updateNode(vlan);
 }
 
-VlanID VlanMap::getFirstVlanID() const {
-  return cbegin()->second->getID();
-}
-
 const shared_ptr<Vlan>& MultiSwitchVlanMap::getVlanSlow(
     const string& name) const {
   for (auto& iterMap : std::as_const(*this)) {
@@ -83,6 +79,15 @@ shared_ptr<Vlan> MultiSwitchVlanMap::getVlanSlowIf(const string& name) const {
 MultiSwitchVlanMap* MultiSwitchVlanMap::modify(
     std::shared_ptr<SwitchState>* state) {
   return SwitchState::modify<switch_state_tags::vlanMaps>(state);
+}
+
+VlanID MultiSwitchVlanMap::getFirstVlanID() const {
+  for (const auto& iter : std::as_const(*this)) {
+    if (iter.second->size()) {
+      return iter.second->cbegin()->second->getID();
+    }
+  }
+  throw FbossError("No Vlans in MultiSwitchVlanMap");
 }
 
 template class ThriftMapNode<VlanMap, VlanMapTraits>;
