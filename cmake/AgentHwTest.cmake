@@ -231,14 +231,6 @@ add_library(hw_switch_test
   fboss/agent/hw/test/HwPtpTcTests.cpp
   fboss/agent/hw/test/HwTeFlowTestUtils.cpp
   fboss/agent/hw/test/HwTeFlowTests.cpp
-  fboss/agent/hw/test/HwHashPolarizationTestUtils.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTomahawk.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTrident2.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk3.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk4.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForTrident2.cpp
-  fboss/agent/hw/test/dataplane_tests/HwHashPolarizationTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwAclCounterTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwConfigSetupTest.cpp
   fboss/agent/hw/test/dataplane_tests/HwConfigVerifyQosTests.cpp
@@ -321,6 +313,28 @@ target_link_libraries(hw_switch_test
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
+
+if (NOT BUILD_SAI_FAKE)
+
+# Hash polarization packet utilities consume significant amount of
+# memory and causes on-diff to fail. Skip including Hash
+# polarization tests for fake as we do not run these hw tests on fake.
+
+add_library(hw_switch_hash_polarization_test
+  fboss/agent/hw/test/HwHashPolarizationTestUtils.cpp
+  fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTomahawk.cpp
+  fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTrident2.cpp
+  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk.cpp
+  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk3.cpp
+  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk4.cpp
+  fboss/agent/hw/test/HwTestFullHashedPacketsForTrident2.cpp
+  fboss/agent/hw/test/dataplane_tests/HwHashPolarizationTests.cpp
+)
+
+target_link_libraries(hw_switch_test
+  hw_switch_hash_polarization_test
+)
+endif()
 
 add_library(hw_pfc_utils
   fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.cpp
