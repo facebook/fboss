@@ -517,6 +517,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetAggregatePorts(
       std::shared_ptr<MultiSwitchAggregatePortMap> aggPorts);
   void resetVlans(std::shared_ptr<VlanMap> vlans);
+  void resetVlans(std::shared_ptr<MultiSwitchVlanMap> vlans);
   void addVlan(const std::shared_ptr<Vlan>& vlan);
   void resetIntfs(const std::shared_ptr<MultiSwitchInterfaceMap>& intfs);
   void addAclTable(const std::shared_ptr<AclTable>& aclTable);
