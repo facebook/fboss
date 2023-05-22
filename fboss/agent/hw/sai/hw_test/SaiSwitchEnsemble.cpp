@@ -81,11 +81,7 @@ std::unique_ptr<std::thread> SaiSwitchEnsemble::createThriftThread(
     folly::EventBase* eventBase = new folly::EventBase();
     auto handler = std::make_shared<SaiTestHandler>(hwSwitch);
     auto server = setupThriftServer(
-        *eventBase,
-        handler,
-        {FLAGS_thrift_port},
-        false /* isDuplex */,
-        true /* setupSSL*/);
+        *eventBase, handler, {FLAGS_thrift_port}, true /* setupSSL*/);
     SignalHandler signalHandler(eventBase);
     server->serve();
   });

@@ -103,10 +103,6 @@ using facebook::network::toIPAddress;
 
 using namespace facebook::fboss;
 
-// TODO: can remove this flag and all corresponding code once emulation
-// environment has migrated away from duplex
-DEFINE_bool(disable_duplex, false, "Disable thrift duplex");
-
 DEFINE_bool(
     enable_running_config_mutations,
     false,
@@ -667,21 +663,7 @@ class RouteUpdateStats {
   std::chrono::time_point<std::chrono::steady_clock> start_;
 };
 
-ThriftHandler::ThriftHandler(SwSwitch* sw) : FacebookBase2("FBOSS"), sw_(sw) {
-  if (sw && !FLAGS_disable_duplex) {
-    sw->registerNeighborListener([=](const std::vector<std::string>& added,
-                                     const std::vector<std::string>& deleted) {
-      for (auto& listener : listeners_.accessAllThreads()) {
-        XLOG(DBG2) << "Sending notification to bgpD";
-        auto listenerPtr = &listener;
-        listener.eventBase->runInEventBaseThread([=] {
-          XLOG(DBG2) << "firing off notification";
-          invokeNeighborListeners(listenerPtr, added, deleted);
-        });
-      }
-    });
-  }
-}
+ThriftHandler::ThriftHandler(SwSwitch* sw) : FacebookBase2("FBOSS"), sw_(sw) {}
 
 fb_status ThriftHandler::getStatus() {
   if (sw_->isExiting()) {
@@ -1887,51 +1869,9 @@ void ThriftHandler::getLldpNeighbors(vector<LinkNeighborThrift>& results) {
   }
 }
 
-void ThriftHandler::invokeNeighborListeners(
-    ThreadLocalListener* listener,
-    std::vector<std::string> added,
-    std::vector<std::string> removed) {
-  if (FLAGS_disable_duplex) {
-    return;
-  }
-  // Collect the iterators to avoid erasing and potentially reordering
-  // the iterators in the list.
-  for (const auto& ctx : brokenClients_) {
-    listener->clients.erase(ctx);
-  }
-  brokenClients_.clear();
-  for (auto& client : listener->clients) {
-    auto clientDone = [&](ClientReceiveState&& state) {
-      try {
-        NeighborListenerClientAsyncClient::recv_neighborsChanged(state);
-      } catch (const std::exception& ex) {
-        XLOG(ERR) << "Exception in neighbor listener: " << ex.what();
-        brokenClients_.push_back(client.first);
-      }
-    };
-    client.second->neighborsChanged(clientDone, added, removed);
-  }
-}
-
 void ThriftHandler::async_eb_registerForNeighborChanged(
     ThriftCallback<void> cb) {
-  if (FLAGS_disable_duplex) {
-    throw FbossError("ThriftDuplex Neighbor Listener is no longer supported");
-  }
-  auto ctx = cb->getRequestContext()->getConnectionContext();
-  auto client = ctx->getDuplexClient<NeighborListenerClientAsyncClient>();
-  auto info = listeners_.get();
-  CHECK(cb->getEventBase()->isInEventBaseThread());
-  if (!info) {
-    info = new ThreadLocalListener(cb->getEventBase());
-    listeners_.reset(info);
-  }
-  DCHECK_EQ(info->eventBase, cb->getEventBase());
-  if (!info->eventBase) {
-    info->eventBase = cb->getEventBase();
-  }
-  info->clients.emplace(ctx, client);
-  cb->done();
+  throw FbossError("ThriftDuplex Neighbor Listener is no longer supported");
 }
 
 void ThriftHandler::startPktCapture(unique_ptr<CaptureInfo> info) {
@@ -2238,19 +2178,6 @@ void ThriftHandler::ensureVoqOrFabric(StringPiece function) const {
                  << " only supported on Voq or Fabric Switch type: ";
     }
     throw FbossError(function, " only supported on Voq or Fabric Switch type");
-  }
-}
-
-// If this is a premature client disconnect from a duplex connection, we need to
-// clean up state.  Failure to do so may allow the server's duplex clients to
-// use the destroyed context => segfaults.
-void ThriftHandler::connectionDestroyed(TConnectionContext* ctx) {
-  if (FLAGS_disable_duplex) {
-    return;
-  }
-  // Port status notifications
-  if (listeners_) {
-    listeners_->clients.erase(ctx);
   }
 }
 

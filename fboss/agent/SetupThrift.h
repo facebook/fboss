@@ -16,7 +16,6 @@
 #include <gflags/gflags.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 
-DECLARE_bool(disable_duplex);
 DECLARE_int32(thrift_idle_timeout);
 DECLARE_int32(thrift_task_expire_timeout);
 
@@ -31,7 +30,6 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
     folly::EventBase& eventBase,
     std::shared_ptr<THRIFT_HANDLER>& handler,
     std::vector<int> ports,
-    bool isDuplex,
     bool setupSSL) {
   // Start the thrift server
   auto server = std::make_unique<apache::thrift::ThriftServer>();
@@ -43,9 +41,6 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
   // set queue timeouts
   server->setQueueTimeout(std::chrono::milliseconds(0));
   server->setSocketQueueTimeout(std::chrono::milliseconds(0));
-  if (isDuplex && !FLAGS_disable_duplex) {
-    server->setDuplex(true);
-  }
 
   if (setupSSL) {
     serverSSLSetup(*server);
@@ -53,9 +48,6 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
 
   setupThriftModules();
 
-  // When a thrift connection closes, we need to clean up the associated
-  // callbacks.
-  server->setServerEventHandler(handler);
   std::vector<folly::SocketAddress> addresses;
   for (auto port : ports) {
     folly::SocketAddress address;

@@ -288,7 +288,6 @@ int AgentInitializer::initAgent(HwSwitch::Callback* callback) {
       *eventBase_,
       handler,
       {FLAGS_port, FLAGS_migrated_port},
-      true /*isDuplex*/,
       true /*setupSSL*/);
 
   handler->setSSLPolicy(server_->getSSLPolicy());
