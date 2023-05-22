@@ -72,15 +72,18 @@ std::shared_ptr<SwitchState> MirrorManager::resolveMirrors(
 }
 
 bool MirrorManager::hasMirrorChanges(const StateDelta& delta) {
-  return (sw_->getState()->getMirrors()->numNodes() > 0) &&
-      (!isEmpty(delta.getMirrorsDelta()) || !isEmpty(delta.getFibsDelta()) ||
-       std::any_of(
-           std::begin(delta.getVlansDelta()),
-           std::end(delta.getVlansDelta()),
-           [](const VlanDelta& vlanDelta) {
-             return !isEmpty(vlanDelta.getArpDelta()) ||
-                 !isEmpty(vlanDelta.getNdpDelta());
-           }));
+  if (!sw_->getState()->getMirrors()->numNodes()) {
+    return false;
+  }
+  if (!isEmpty(delta.getMirrorsDelta()) || !isEmpty(delta.getFibsDelta())) {
+    return true;
+  }
+  for (const auto& entry : delta.getVlansDelta()) {
+    if (!isEmpty(entry.getArpDelta()) || !isEmpty(entry.getNdpDelta())) {
+      return true;
+    }
+  }
+  return false;
 }
 
 } // namespace facebook::fboss

@@ -74,7 +74,7 @@ class StateDelta {
   }
 
   MultiSwitchMapDelta<MultiSwitchPortMap> getPortsDelta() const;
-  VlanMapDelta getVlansDelta() const;
+  MultiSwitchMapDelta<MultiSwitchVlanMap> getVlansDelta() const;
   MultiSwitchInterfaceMapDelta getIntfsDelta() const;
   DeltaValue<QosPolicy> getDefaultDataPlaneQosPolicyDelta() const;
   AclMapDelta getAclsDelta(
