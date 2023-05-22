@@ -282,7 +282,8 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
           VlanID vlanId = newState->getInterfaces()
                               ->getNode(this->kInterfaceID())
                               ->getVlanID();
-          Vlan* vlan = newState->getVlans()->getVlanIf(VlanID(vlanId)).get();
+          Vlan* vlan =
+              newState->getMultiSwitchVlans()->getNodeIf(VlanID(vlanId)).get();
           auto* neighborTable =
               vlan->template getNeighborEntryTable<AddrT>().get()->modify(
                   &vlan, &newState);
