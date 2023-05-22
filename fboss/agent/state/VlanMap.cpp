@@ -75,6 +75,11 @@ VlanID VlanMap::getFirstVlanID() const {
   return cbegin()->second->getID();
 }
 
+MultiSwitchVlanMap* MultiSwitchVlanMap::modify(
+    std::shared_ptr<SwitchState>* state) {
+  return SwitchState::modify<switch_state_tags::vlanMaps>(state);
+}
+
 template class ThriftMapNode<VlanMap, VlanMapTraits>;
 
 } // namespace facebook::fboss

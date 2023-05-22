@@ -124,6 +124,8 @@ class MultiSwitchVlanMap : public ThriftMultiSwitchMapNode<
       ThriftMultiSwitchMapNode<MultiSwitchVlanMap, MultiSwitchVlanMapTraits>;
   using BaseT::modify;
 
+  MultiSwitchVlanMap* modify(std::shared_ptr<SwitchState>* state);
+
   MultiSwitchVlanMap() {}
   virtual ~MultiSwitchVlanMap() {}
 

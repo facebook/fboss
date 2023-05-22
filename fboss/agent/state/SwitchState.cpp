@@ -1029,6 +1029,8 @@ template MultiSwitchQosPolicyMap* SwitchState::modify<
     switch_state_tags::qosPolicyMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchAggregatePortMap* SwitchState::modify<
     switch_state_tags::aggregatePortMaps>(std::shared_ptr<SwitchState>*);
+template MultiSwitchVlanMap* SwitchState::modify<switch_state_tags::vlanMaps>(
+    std::shared_ptr<SwitchState>*);
 
 template class ThriftStructNode<SwitchState, state::SwitchState>;
 
