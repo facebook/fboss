@@ -304,6 +304,7 @@ add_fbthrift_cpp_library(
     reflection
   DEPENDS
     transceiver_cpp2
+    switch_config_cpp2
 )
 add_fbthrift_cpp_library(
   qsfp_state_cpp2
