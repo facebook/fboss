@@ -91,13 +91,13 @@ class ColdBootPacketHandlingFixture : public ::testing::Test {
     // On cold boot all ports are in Vlan 1
     auto vlan = make_shared<Vlan>(VlanID(1), std::string("InitVlan"));
     Vlan::MemberPorts memberPorts;
+    auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID{0}}));
     for (const auto& port : ports) {
-      coldBootState->getPorts()->addNode(
-          port, HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID{0}})));
+      coldBootState->getPorts()->addNode(port, matcher);
       memberPorts.insert(make_pair(port->getID(), false));
     }
     vlan->setPorts(memberPorts);
-    coldBootState->addVlan(vlan);
+    coldBootState->getMultiSwitchVlans()->addNode(vlan, matcher);
     return coldBootState;
   }
   std::unique_ptr<HwTestHandle> handle_{nullptr};

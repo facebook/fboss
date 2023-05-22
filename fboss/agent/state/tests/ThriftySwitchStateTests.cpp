@@ -110,9 +110,9 @@ TEST(ThriftySwitchState, VlanMap) {
       {{MacAddress("02:00:00:00:00:03"),
         IPAddressV6("2401:db00:21:70cb:face:0:96:0")}});
 
-  auto vlanMap = std::make_shared<VlanMap>();
-  vlanMap->addVlan(vlan1);
-  vlanMap->addVlan(vlan2);
+  auto vlanMap = std::make_shared<MultiSwitchVlanMap>();
+  vlanMap->addNode(vlan1, scope());
+  vlanMap->addNode(vlan2, scope());
 
   auto state = SwitchState();
   state.resetVlans(vlanMap);
