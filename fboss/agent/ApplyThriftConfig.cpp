@@ -688,7 +688,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newCollectors = updateSflowCollectors();
     if (newCollectors) {
-      new_->resetSflowCollectors(std::move(newCollectors));
+      new_->resetSflowCollectors(toMultiSwitchMap<MultiSwitchSflowCollectorMap>(
+          newCollectors, scopeResolver_));
       changed = true;
     }
   }
@@ -3368,8 +3369,8 @@ bool ThriftConfigApplier::updateNeighborResponseTablesForIntfs(
 }
 
 shared_ptr<SflowCollectorMap> ThriftConfigApplier::updateSflowCollectors() {
-  auto origCollectors = orig_->getSflowCollectors();
-  SflowCollectorMap::NodeContainer newCollectors;
+  auto origCollectors = orig_->getMultiSwitchSflowCollectors();
+  auto newCollectors = std::make_shared<SflowCollectorMap>();
   bool changed = false;
 
   // Process all supplied collectors
@@ -3387,12 +3388,13 @@ shared_ptr<SflowCollectorMap> ThriftConfigApplier::updateSflowCollectors() {
     } else {
       newCollector = createSflowCollector(&collector);
     }
-    changed |= updateMap(&newCollectors, origCollector, newCollector);
+    changed |=
+        updateThriftMapNode(newCollectors.get(), origCollector, newCollector);
   }
 
-  if (numExistingProcessed != origCollectors->size()) {
+  if (numExistingProcessed != origCollectors->numNodes()) {
     // Some existing SflowCollectors were removed.
-    CHECK_LT(numExistingProcessed, origCollectors->size());
+    CHECK_LT(numExistingProcessed, origCollectors->numNodes());
     changed = true;
   }
 
@@ -3400,7 +3402,7 @@ shared_ptr<SflowCollectorMap> ThriftConfigApplier::updateSflowCollectors() {
     return nullptr;
   }
 
-  return origCollectors->clone(std::move(newCollectors));
+  return newCollectors;
 }
 
 shared_ptr<SflowCollector> ThriftConfigApplier::createSflowCollector(
