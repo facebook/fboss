@@ -75,10 +75,12 @@ namespace facebook::fboss::utility {
 boost::container::flat_set<PortDescriptor> getPortsWithExclusiveVlanMembership(
     const std::shared_ptr<SwitchState>& state) {
   boost::container::flat_set<PortDescriptor> ports;
-  for (auto [id, vlan] : std::as_const(*state->getVlans())) {
-    auto memberPorts = vlan->getPorts();
-    if (memberPorts.size() == 1) {
-      ports.insert(PortDescriptor{PortID(memberPorts.begin()->first)});
+  for (const auto& vlanTable : std::as_const(*state->getMultiSwitchVlans())) {
+    for (auto [id, vlan] : std::as_const(*vlanTable.second)) {
+      auto memberPorts = vlan->getPorts();
+      if (memberPorts.size() == 1) {
+        ports.insert(PortDescriptor{PortID(memberPorts.begin()->first)});
+      }
     }
   }
   return ports;
@@ -162,7 +164,7 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolveVlanRifNextHop(
     const std::shared_ptr<Interface>& intf,
     bool useLinkLocal) const {
   auto outputState{inputState->clone()};
-  auto vlan = outputState->getVlans()->getVlan(intf->getVlanID());
+  auto vlan = outputState->getMultiSwitchVlans()->getNode(intf->getVlanID());
   auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
       vlan->getID(), &outputState);
   auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
@@ -214,7 +216,7 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::unresolveVlanRifNextHop(
     const std::shared_ptr<Interface>& intf,
     bool useLinkLocal) const {
   auto outputState{inputState->clone()};
-  auto vlan = outputState->getVlans()->getVlan(intf->getVlanID());
+  auto vlan = outputState->getMultiSwitchVlans()->getNode(intf->getVlanID());
   auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
       vlan->getID(), &outputState);
   auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
