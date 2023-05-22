@@ -181,6 +181,10 @@ class TestRunner(abc.ABC):
     def _get_warmboot_check_file(self):
         pass
 
+    @abc.abstractmethod
+    def _setup_test(self):
+        pass
+
     def _get_test_run_cmd(self, conf_file, test_to_run, flags):
         test_binary_name = self._get_test_binary_name()
         run_cmd = [
@@ -442,6 +446,7 @@ class TestRunner(abc.ABC):
         num_tests = len(tests_to_run)
         for idx, test_to_run in enumerate(tests_to_run):
             # Run the test for coldboot verification
+            self._setup_test()
             print("########## Running test: " + test_to_run, flush=True)
             if args.simulator:
                 self._restart_bcmsim(args.simulator)
@@ -553,6 +558,9 @@ class BcmTestRunner(TestRunner):
     def _get_warmboot_check_file(self):
         return AGENT_WARMBOOT_CHECK_FILE
 
+    def _setup_test(self):
+        return
+
 
 class SaiTestRunner(TestRunner):
     def _get_config_path(self):
@@ -583,6 +591,9 @@ class SaiTestRunner(TestRunner):
     def _get_warmboot_check_file(self):
         return AGENT_WARMBOOT_CHECK_FILE
 
+    def _setup_test(self):
+        return
+
 
 class QsfpTestRunner(TestRunner):
     def _get_config_path(self):
@@ -603,6 +614,12 @@ class QsfpTestRunner(TestRunner):
 
     def _get_warmboot_check_file(self):
         return QSFP_WARMBOOT_CHECK_FILE
+
+    def _setup_test(self):
+        subprocess.Popen(
+            # Clean up left over flags
+            ["rm", "-rf", "/dev/shm/fboss/qsfp_service"]
+        )
 
 
 if __name__ == "__main__":
