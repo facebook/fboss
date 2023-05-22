@@ -200,43 +200,58 @@ void SaiBufferManager::setupIngressBufferPool(
       store.setObject(SAI_BUFFER_POOL_TYPE_INGRESS, c);
 }
 
-void SaiBufferManager::setupIngressEgressBufferPool(
-    const std::optional<state::BufferPoolFields> bufferPoolCfg) {
+void SaiBufferManager::createOrUpdateIngressEgressBufferPool(
+    uint64_t poolSize,
+    std::optional<int32_t> newXoffSize) {
   std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize;
-  if (!ingressEgressBufferPoolHandle_) {
-    auto availableBuffer = getSwitchEgressPoolAvailableSize(platform_);
-    uint64_t poolSize;
-    if (FLAGS_ingress_egress_buffer_pool_size) {
-      // An option for test to override the buffer pool size to be used.
-      poolSize = FLAGS_ingress_egress_buffer_pool_size *
-          platform_->getAsic()->getNumMemoryBuffers();
-    } else {
-      poolSize = availableBuffer * platform_->getAsic()->getNumMemoryBuffers();
-    }
-
-    ingressEgressBufferPoolHandle_ = std::make_unique<SaiBufferPoolHandle>();
-    SaiBufferPoolTraits::CreateAttributes c{
-        SAI_BUFFER_POOL_TYPE_BOTH,
-        poolSize,
-        SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC,
-        xoffSize};
-
-    auto& store = saiStore_->get<SaiBufferPoolTraits>();
-    ingressEgressBufferPoolHandle_->bufferPool =
-        store.setObject(SAI_BUFFER_POOL_TYPE_BOTH, c);
+  if (newXoffSize.has_value()) {
+    xoffSize = *newXoffSize;
   }
-  // XoffSize is set separately as it is part of ingress config alone
+  XLOG(DBG2) << "Pool size: " << poolSize
+             << ", Xoff size: " << (newXoffSize.has_value() ? *newXoffSize : 0);
+  SaiBufferPoolTraits::CreateAttributes c{
+      SAI_BUFFER_POOL_TYPE_BOTH,
+      poolSize,
+      SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC,
+      xoffSize};
+
+  auto& store = saiStore_->get<SaiBufferPoolTraits>();
+  if (!ingressEgressBufferPoolHandle_) {
+    ingressEgressBufferPoolHandle_ = std::make_unique<SaiBufferPoolHandle>();
+  }
+  ingressEgressBufferPoolHandle_->bufferPool =
+      store.setObject(SAI_BUFFER_POOL_TYPE_BOTH, c);
+}
+
+void SaiBufferManager::setupIngressEgressBufferPool(
+    const std::optional<state::BufferPoolFields>& bufferPoolCfg) {
+  uint64_t poolSize{0};
+  if (FLAGS_ingress_egress_buffer_pool_size) {
+    // An option for test to override the buffer pool size to be used.
+    poolSize = FLAGS_ingress_egress_buffer_pool_size *
+        platform_->getAsic()->getNumMemoryBuffers();
+  } else {
+    poolSize = getSwitchEgressPoolAvailableSize(platform_) *
+        platform_->getAsic()->getNumMemoryBuffers();
+  }
+  std::optional<int32_t> newXoffSize;
   if (bufferPoolCfg &&
       platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
-#if defined(TAJO_SDK) || defined(SAI_VERSION_8_2_0_0_ODP) ||                   \
-    defined(SAI_VERSION_8_2_0_0_DNX_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
-    defined(SAI_VERSION_9_0_EA_DNX_ODP)
-    SaiBufferPoolTraits::Attributes::XoffSize xoffSize =
-        *(*bufferPoolCfg).headroomBytes() *
+    newXoffSize = *(*bufferPoolCfg).headroomBytes() *
         platform_->getAsic()->getNumMemoryBuffers();
-    SaiApiTable::getInstance()->bufferApi().setAttribute(
-        ingressEgressBufferPoolHandle_->bufferPool->adapterKey(), xoffSize);
-#endif
+  }
+  if (!ingressEgressBufferPoolHandle_) {
+    createOrUpdateIngressEgressBufferPool(poolSize, newXoffSize);
+  } else if (newXoffSize.has_value()) {
+    // XoffSize might have to be set separately as it is part of
+    // ingress config alone
+    auto oldXoffSize =
+        std::get<std::optional<SaiBufferPoolTraits::Attributes::XoffSize>>(
+            ingressEgressBufferPoolHandle_->bufferPool->attributes());
+    if (!oldXoffSize.has_value() ||
+        (oldXoffSize.value() != newXoffSize.value())) {
+      createOrUpdateIngressEgressBufferPool(poolSize, newXoffSize);
+    }
   }
 }
 

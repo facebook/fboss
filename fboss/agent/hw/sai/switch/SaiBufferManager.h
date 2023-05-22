@@ -103,7 +103,10 @@ class SaiBufferManager {
   void setupEgressBufferPool();
   void setupIngressBufferPool(const state::BufferPoolFields& bufferPoolCfg);
   void setupIngressEgressBufferPool(
-      const std::optional<state::BufferPoolFields> ingressPgCfg);
+      const std::optional<state::BufferPoolFields>& ingressPgCfg);
+  void createOrUpdateIngressEgressBufferPool(
+      uint64_t poolSize,
+      std::optional<int32_t> newXoffSize);
   SaiBufferPoolHandle* getEgressBufferPoolHandle() const;
 
   SaiStore* saiStore_;
