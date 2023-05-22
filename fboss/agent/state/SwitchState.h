@@ -360,7 +360,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   std::shared_ptr<const AclTableMap> getAclTablesForStage(
       cfg::AclStage aclStage) const;
 
-  const std::shared_ptr<SflowCollectorMap>& getSflowCollectors() const;
   const std::shared_ptr<MultiSwitchSflowCollectorMap>&
   getMultiSwitchSflowCollectors() const;
 
