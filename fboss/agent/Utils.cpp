@@ -339,7 +339,7 @@ std::vector<PortID> getPortsForInterface(
   switch (intf->getType()) {
     case cfg::InterfaceType::VLAN: {
       auto vlanId = intf->getVlanID();
-      auto vlan = state->getVlans()->getVlanIf(vlanId);
+      auto vlan = state->getMultiSwitchVlans()->getNodeIf(vlanId);
       if (vlan) {
         for (const auto& memberPort : vlan->getPorts()) {
           ports.push_back(PortID(memberPort.first));
@@ -445,7 +445,7 @@ std::shared_ptr<NeighborEntryT> getNeighborEntryForIP(
   switch (intf->getType()) {
     case cfg::InterfaceType::VLAN: {
       auto vlanID = intf->getVlanID();
-      auto vlan = state->getVlans()->getVlanIf(vlanID);
+      auto vlan = state->getMultiSwitchVlans()->getNodeIf(vlanID);
       if (vlan) {
         if constexpr (std::is_same_v<NeighborEntryT, ArpEntry>) {
           entry = vlan->getArpTable()->getEntryIf(ipAddr.asV4());

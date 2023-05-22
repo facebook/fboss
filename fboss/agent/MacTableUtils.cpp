@@ -28,7 +28,7 @@ std::shared_ptr<SwitchState> modifyClassIDForEntry(
 
   auto mac = macEntry->getMac();
   auto portDescr = macEntry->getPort();
-  auto vlan = state->getVlans()->getVlanIf(vlanID).get();
+  auto vlan = state->getMultiSwitchVlans()->getNodeIf(vlanID).get();
   std::shared_ptr<SwitchState> newState{state};
   auto* macTable = vlan->getMacTable().get();
   auto node = macTable->getMacIf(mac);
@@ -53,7 +53,7 @@ std::shared_ptr<SwitchState> modifyClassIDForEntry(
 std::shared_ptr<MacTable> getMacTable(
     const std::shared_ptr<SwitchState>& state,
     VlanID vlanId) {
-  return state->getVlans()->getVlan(vlanId)->getMacTable();
+  return state->getMultiSwitchVlans()->getNode(vlanId)->getMacTable();
 }
 std::shared_ptr<MacEntry> getMacEntry(
     const std::shared_ptr<SwitchState>& state,
@@ -73,7 +73,7 @@ std::shared_ptr<SwitchState> MacTableUtils::updateMacTable(
   auto vlanID = l2Entry.getVlanID();
   auto mac = l2Entry.getMac();
   auto portDescr = l2Entry.getPort();
-  auto vlan = state->getVlans()->getVlanIf(vlanID).get();
+  auto vlan = state->getMultiSwitchVlans()->getNodeIf(vlanID).get();
   std::shared_ptr<SwitchState> newState{state};
   auto* macTable = vlan->getMacTable().get();
   auto node = macTable->getMacIf(mac);
@@ -144,7 +144,7 @@ std::shared_ptr<SwitchState> MacTableUtils::updateOrAddStaticEntry(
   }
   auto newState = state->clone();
   auto macTable = getMacTable(state, vlanId).get();
-  auto vlan = state->getVlans()->getVlan(vlanId).get();
+  auto vlan = state->getMultiSwitchVlans()->getNode(vlanId).get();
   macTable = macTable->modify(&vlan, &newState);
   if (existingMacEntry) {
     macTable->updateEntry(
@@ -171,7 +171,7 @@ std::shared_ptr<SwitchState> MacTableUtils::removeEntry(
   }
   auto newState = state->clone();
   auto macTable = getMacTable(state, vlanId).get();
-  auto vlan = state->getVlans()->getVlan(vlanId).get();
+  auto vlan = state->getMultiSwitchVlans()->getNode(vlanId).get();
   macTable = macTable->modify(&vlan, &newState);
   macTable->removeEntry(mac);
   return newState;
@@ -188,7 +188,7 @@ std::shared_ptr<SwitchState> MacTableUtils::updateOrAddStaticEntryIfNbrExists(
           return nbrEntry->isReachable() && nbrEntry->getMac() == mac;
         });
   };
-  auto vlan = state->getVlans()->getVlan(vlanId).get();
+  auto vlan = state->getMultiSwitchVlans()->getNode(vlanId).get();
   const auto& arpTable = *vlan->getArpTable();
   const auto& ndpTable = *vlan->getNdpTable();
   auto arpItr = findNeighbor(arpTable);
