@@ -27,12 +27,6 @@ class BcmTestElbertPort : public BcmTestPort {
     return true;
   }
 
-  folly::Future<TransmitterTechnology> getTransmitterTech(
-      folly::EventBase* /*evb*/) const override {
-    return folly::makeFuture<TransmitterTechnology>(
-        TransmitterTechnology::BACKPLANE);
-  }
-
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestElbertPort(BcmTestElbertPort const&) = delete;

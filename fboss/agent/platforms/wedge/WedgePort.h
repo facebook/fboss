@@ -63,9 +63,6 @@ class WedgePort : public BcmPlatformPort {
 
   TransceiverIdxThrift getTransceiverMapping() const;
 
-  folly::Future<TransmitterTechnology> getTransmitterTech(
-      folly::EventBase* evb) const override;
-
   bool shouldUsePortResourceAPIs() const override {
     return false;
   }
