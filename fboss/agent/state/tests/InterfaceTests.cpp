@@ -325,7 +325,7 @@ TEST(Interface, applyConfig) {
   EXPECT_EQ(MacAddress("00:02:00:11:22:33"), interface->getMac());
   EXPECT_EQ(1, interface->getAddresses()->size()); // 1 ipv6 link local address
   EXPECT_EQ(0, interface->routerAdvertisementSeconds());
-  auto vlan1 = state->getVlans()->getVlanIf(VlanID(1));
+  auto vlan1 = state->getMultiSwitchVlans()->getNodeIf(VlanID(1));
   EXPECT_EQ(InterfaceID(1), vlan1->getInterfaceID());
   // same configuration cause nothing changed
   EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, platform.get()));
@@ -350,8 +350,8 @@ TEST(Interface, applyConfig) {
   EXPECT_EQ(RouterID(0), interface->getRouterID());
   EXPECT_EQ(oldInterface->getName(), interface->getName());
   EXPECT_EQ(intf2Mac, interface->getMac());
-  auto vlan2 = state->getVlans()->getVlanIf(VlanID(2));
-  auto newvlan1 = state->getVlans()->getVlanIf(VlanID(1));
+  auto vlan2 = state->getMultiSwitchVlans()->getNodeIf(VlanID(2));
+  auto newvlan1 = state->getMultiSwitchVlans()->getNodeIf(VlanID(1));
   EXPECT_EQ(InterfaceID(2), vlan2->getInterfaceID());
   EXPECT_EQ(InterfaceID(1), newvlan1->getInterfaceID());
 
@@ -581,7 +581,7 @@ TEST(InterfaceMap, applyConfig) {
 
   // verify interface intfID==1
   auto intf1 = intfsV1->getNode(InterfaceID(1));
-  auto vlan1 = stateV1->getVlans()->getVlanIf(intf1->getVlanID());
+  auto vlan1 = stateV1->getMultiSwitchVlans()->getNodeIf(intf1->getVlanID());
   ASSERT_NE(nullptr, intf1);
   EXPECT_EQ(VlanID(1), intf1->getVlanID());
   EXPECT_EQ("00:00:00:00:00:11", intf1->getMac().toString());
@@ -631,9 +631,9 @@ TEST(InterfaceMap, applyConfig) {
   EXPECT_EQ(
       config.interfaces()[2].mac().value_or({}), intf3->getMac().toString());
   // intf 1 should not be there anymroe
-  auto vlan3 = stateV3->getVlans()->getVlanIf(intf3->getVlanID());
+  auto vlan3 = stateV3->getMultiSwitchVlans()->getNodeIf(intf3->getVlanID());
   EXPECT_EQ(vlan3->getInterfaceID(), intf3->getID());
-  auto newvlan1 = stateV3->getVlans()->getVlanIf(VlanID(1));
+  auto newvlan1 = stateV3->getMultiSwitchVlans()->getNodeIf(VlanID(1));
 
   checkChangedIntfs(intfsV2, intfsV3, {1}, {3}, {});
 
@@ -780,8 +780,8 @@ TEST(Interface, verifyPseudoVlanProcessing) {
         auto expectedIntfID = interfaceCfg.intfID();
 
         if (ipAddr.isV4()) {
-          auto arpResponseEntry = state->getVlans()
-                                      ->getVlan(VlanID(0))
+          auto arpResponseEntry = state->getMultiSwitchVlans()
+                                      ->getNode(VlanID(0))
                                       ->getArpResponseTable()
                                       ->getEntry(ipAddr.asV4());
           EXPECT_TRUE(arpResponseEntry != nullptr);
@@ -792,8 +792,8 @@ TEST(Interface, verifyPseudoVlanProcessing) {
           EXPECT_EQ(
               InterfaceID(*expectedIntfID), arpResponseEntry->getInterfaceID());
         } else {
-          auto ndpResponseEntry = state->getVlans()
-                                      ->getVlan(VlanID(0))
+          auto ndpResponseEntry = state->getMultiSwitchVlans()
+                                      ->getNode(VlanID(0))
                                       ->getNdpResponseTable()
                                       ->getEntry(ipAddr.asV6());
           EXPECT_TRUE(ndpResponseEntry != nullptr);
