@@ -516,7 +516,7 @@ unique_ptr<HwTestHandle> createTestHandle(
           initialState,
           PortID(id),
           folly::to<string>("port", id),
-          HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID{switchId}})),
+          HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(switchId)})),
           *port.portType());
     }
   }
