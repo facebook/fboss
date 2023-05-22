@@ -227,6 +227,11 @@ void SwitchState::resetSflowCollectors(
   resetDefaultMap<switch_state_tags::sflowCollectorMaps>(sflowCollectors);
 }
 
+void SwitchState::resetSflowCollectors(
+    const std::shared_ptr<MultiSwitchSflowCollectorMap>& collectors) {
+  ref<switch_state_tags::sflowCollectorMaps>() = collectors;
+}
+
 void SwitchState::resetQosPolicies(
     const std::shared_ptr<QosPolicyMap>& qosPolicies) {
   const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcher();
@@ -302,6 +307,11 @@ void SwitchState::resetMirrors(
 const std::shared_ptr<SflowCollectorMap>& SwitchState::getSflowCollectors()
     const {
   return getDefaultMap<switch_state_tags::sflowCollectorMaps>();
+}
+
+const std::shared_ptr<MultiSwitchSflowCollectorMap>&
+SwitchState::getMultiSwitchSflowCollectors() const {
+  return safe_cref<switch_state_tags::sflowCollectorMaps>();
 }
 
 const std::shared_ptr<MultiSwitchMirrorMap>& SwitchState::getMirrors() const {
@@ -1011,6 +1021,8 @@ template MultiSwitchAggregatePortMap* SwitchState::modify<
     switch_state_tags::aggregatePortMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchVlanMap* SwitchState::modify<switch_state_tags::vlanMaps>(
     std::shared_ptr<SwitchState>*);
+template MultiSwitchSflowCollectorMap* SwitchState::modify<
+    switch_state_tags::sflowCollectorMaps>(std::shared_ptr<SwitchState>*);
 
 template class ThriftStructNode<SwitchState, state::SwitchState>;
 

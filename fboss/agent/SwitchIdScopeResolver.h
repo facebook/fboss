@@ -17,6 +17,7 @@ class SystemPort;
 class Port;
 class BufferPoolConfig;
 class QosPolicy;
+class SflowCollector;
 } // namespace cfg
 class Mirror;
 class DsfNode;
@@ -37,6 +38,7 @@ template <typename T>
 class Route;
 class ControlPlane;
 class AggregatePort;
+class SflowCollector;
 
 class SwitchIdScopeResolver {
  public:
@@ -118,6 +120,9 @@ class SwitchIdScopeResolver {
       const std::shared_ptr<ControlPlane>& /*c*/) const {
     return l3SwitchMatcher();
   }
+  const HwSwitchMatcher& scope(
+      const std::shared_ptr<SflowCollector>& collector) const;
+  const HwSwitchMatcher& scope(const cfg::SflowCollector& collector) const;
 
  private:
   void checkL3() const;

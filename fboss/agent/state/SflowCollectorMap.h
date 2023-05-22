@@ -74,6 +74,7 @@ class MultiSwitchSflowCollectorMap : public ThriftMultiSwitchMapNode<
 
   MultiSwitchSflowCollectorMap() {}
   virtual ~MultiSwitchSflowCollectorMap() {}
+  MultiSwitchSflowCollectorMap* modify(std::shared_ptr<SwitchState>* state);
 
  private:
   // Inherit the constructors required for clone()

@@ -8,6 +8,7 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/LabelForwardingEntry.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/SflowCollector.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/SystemPort.h"
 #include "fboss/agent/state/Vlan.h"
@@ -224,4 +225,15 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
     const std::shared_ptr<LabelForwardingEntry>& /*entry*/) const {
   return l3SwitchMatcher();
 }
+
+const HwSwitchMatcher& SwitchIdScopeResolver::scope(
+    const std::shared_ptr<SflowCollector>& /*entry*/) const {
+  return l3SwitchMatcher();
+}
+
+const HwSwitchMatcher& SwitchIdScopeResolver::scope(
+    const cfg::SflowCollector& /*entry*/) const {
+  return l3SwitchMatcher();
+}
+
 } // namespace facebook::fboss

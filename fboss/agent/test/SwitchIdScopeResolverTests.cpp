@@ -225,3 +225,13 @@ TYPED_TEST(SwitchIdScopeResolverTest, controlPlaneScope) {
     this->expectL3(std::shared_ptr<ControlPlane>());
   }
 }
+
+TYPED_TEST(SwitchIdScopeResolverTest, sflowCollectors) {
+  if (this->isFabric()) {
+    this->expectThrow(cfg::SflowCollector{});
+    this->expectThrow(std::shared_ptr<SflowCollector>{});
+  } else {
+    this->expectL3(cfg::SflowCollector{});
+    this->expectL3(std::shared_ptr<SflowCollector>());
+  }
+}
