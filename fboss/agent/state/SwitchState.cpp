@@ -166,6 +166,11 @@ const std::shared_ptr<VlanMap>& SwitchState::getVlans() const {
   return getDefaultMap<switch_state_tags::vlanMaps>();
 }
 
+const std::shared_ptr<MultiSwitchVlanMap>& SwitchState::getMultiSwitchVlans()
+    const {
+  return safe_cref<switch_state_tags::vlanMaps>();
+}
+
 void SwitchState::addVlan(const std::shared_ptr<Vlan>& vlan) {
   if (getVlans()->isPublished()) {
     // For ease-of-use, automatically clone the VlanMap if we are still

@@ -312,6 +312,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<MultiSwitchAggregatePortMap>& getAggregatePorts() const;
 
   const std::shared_ptr<VlanMap>& getVlans() const;
+  const std::shared_ptr<MultiSwitchVlanMap>& getMultiSwitchVlans() const;
 
   VlanID getDefaultVlan() const;
 
