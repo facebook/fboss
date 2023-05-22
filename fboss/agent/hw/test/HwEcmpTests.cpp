@@ -103,8 +103,10 @@ class HwEcmpTest : public HwLinkStateDependentTest {
   auto getNdpTable(PortDescriptor port, std::shared_ptr<SwitchState>& state) {
     if (getSwitchType() == cfg::SwitchType::NPU) {
       auto vlanId = ecmpHelper_->getVlan(port, getProgrammedState());
-      return state->getVlans()->getVlan(*vlanId)->getNdpTable()->modify(
-          *vlanId, &state);
+      return state->getMultiSwitchVlans()
+          ->getNode(*vlanId)
+          ->getNdpTable()
+          ->modify(*vlanId, &state);
     } else {
       auto portId = port.phyPortID();
       InterfaceID intfId(

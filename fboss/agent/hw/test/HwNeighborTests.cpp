@@ -131,8 +131,8 @@ class HwNeighborTest : public HwLinkStateDependentTest {
   auto getNeighborTable(std::shared_ptr<SwitchState> state) {
     auto switchType = getSwitchType();
     if (switchType == cfg::SwitchType::NPU) {
-      return state->getVlans()
-          ->getVlan(kVlanID())
+      return state->getMultiSwitchVlans()
+          ->getNode(kVlanID())
           ->template getNeighborTable<NTable>()
           ->modify(kVlanID(), &state);
     } else if (switchType == cfg::SwitchType::VOQ) {

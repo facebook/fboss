@@ -238,8 +238,8 @@ class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
     auto vlanID = ecmpHelper->getVlan(port, getProgrammedState());
     EXPECT_TRUE(vlanID.has_value());
     auto intfID = getProgrammedState()
-                      ->getVlans()
-                      ->getVlan(vlanID.value())
+                      ->getMultiSwitchVlans()
+                      ->getNode(vlanID.value())
                       ->getInterfaceID();
     PrefixT dstPrefx{dstAddr, mask};
     utility::verifyProgrammedStack<AddrT>(
