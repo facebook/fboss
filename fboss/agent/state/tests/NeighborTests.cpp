@@ -128,17 +128,17 @@ TEST(NeighborResponseTableTest, modify) {
   state->getMultiSwitchVlans()->addNode(vlan, scope());
 
   // modify unpublished state
-  EXPECT_EQ(vlan.get(), vlan->modify(&state));
+  EXPECT_EQ(vlan.get(), vlan->modify(&state, scope()));
 
   arpResponseTable = std::make_shared<ArpResponseTable>();
   arpResponseTable->setEntry(ip2, mac2, InterfaceID(1));
   vlan->setArpResponseTable(arpResponseTable);
 
   // modify unpublished state
-  EXPECT_EQ(vlan.get(), vlan->modify(&state));
+  EXPECT_EQ(vlan.get(), vlan->modify(&state, scope()));
 
   vlan->publish();
-  auto modifiedVlan = vlan->modify(&state);
+  auto modifiedVlan = vlan->modify(&state, scope());
 
   arpResponseTable = std::make_shared<ArpResponseTable>();
   arpResponseTable->setEntry(ip1, mac1, InterfaceID(0));
