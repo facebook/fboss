@@ -182,9 +182,9 @@ TEST(ThriftySwitchState, SflowCollectorMap) {
   auto sflowCollector2 = std::make_shared<SflowCollector>(
       std::string("2::3"), static_cast<uint16_t>(9090));
 
-  auto map = std::make_shared<SflowCollectorMap>();
-  map->addNode(sflowCollector1);
-  map->addNode(sflowCollector2);
+  auto map = std::make_shared<MultiSwitchSflowCollectorMap>();
+  map->addNode(sflowCollector1, scope());
+  map->addNode(sflowCollector2, scope());
 
   auto state = SwitchState();
   state.resetSflowCollectors(map);

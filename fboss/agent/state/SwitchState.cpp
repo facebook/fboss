@@ -129,7 +129,6 @@ SwitchState::SwitchState() {
   resetIntfs(std::make_shared<MultiSwitchInterfaceMap>());
   resetRemoteIntfs(std::make_shared<MultiSwitchInterfaceMap>());
   // default multi-map (for single npu) system
-  resetSflowCollectors(std::make_shared<SflowCollectorMap>());
   resetQosPolicies(std::make_shared<QosPolicyMap>());
   resetTransceivers(std::make_shared<TransceiverMap>());
   resetControlPlane(std::make_shared<ControlPlane>());
@@ -220,11 +219,6 @@ void SwitchState::resetAggregatePorts(
 const std::shared_ptr<MultiSwitchAggregatePortMap>&
 SwitchState::getAggregatePorts() const {
   return safe_cref<switch_state_tags::aggregatePortMaps>();
-}
-
-void SwitchState::resetSflowCollectors(
-    const std::shared_ptr<SflowCollectorMap>& sflowCollectors) {
-  resetDefaultMap<switch_state_tags::sflowCollectorMaps>(sflowCollectors);
 }
 
 void SwitchState::resetSflowCollectors(
@@ -619,7 +613,7 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
           true /*emptyMnpuMapOk*/);
   state->fromThrift<
       switch_state_tags::sflowCollectorMaps,
-      switch_state_tags::sflowCollectorMap>();
+      switch_state_tags::sflowCollectorMap>(true /*emptyMnpuMapOk*/);
   state
       ->fromThrift<switch_state_tags::mirrorMaps, switch_state_tags::mirrorMap>(
           true /*emptyMnpuMapOk*/);
