@@ -133,7 +133,7 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
   }
   void updateMacEntry(std::optional<cfg::AclLookupClass> lookupClass) {
     auto newState = getProgrammedState()->clone();
-    auto vlan = newState->getMultiSwitchVlans()->getNodeIf(kVlanID).get();
+    auto vlan = newState->getVlans()->getNodeIf(kVlanID).get();
     auto macTable = vlan->getMacTable().get();
     macTable = macTable->modify(&vlan, &newState);
     auto macEntry = macTable->getNode(kNeighborMac.toString());
@@ -202,8 +202,7 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
         std::move(txPacket), phyPort));
   }
   void verifySentPacket(const folly::IPAddress& dstIp) {
-    auto firstVlanID =
-        getProgrammedState()->getMultiSwitchVlans()->getFirstVlanID();
+    auto firstVlanID = getProgrammedState()->getVlans()->getFirstVlanID();
 
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), firstVlanID);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -228,7 +227,7 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
       const AddrT& addr,
       std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
     auto state = getProgrammedState()->clone();
-    auto neighborTable = state->getMultiSwitchVlans()
+    auto neighborTable = state->getVlans()
                              ->getNode(kVlanID)
                              ->template getNeighborEntryTable<AddrT>()
                              ->modify(kVlanID, &state);
@@ -256,7 +255,7 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
   template <typename AddrT>
   void removeNeighbor(const AddrT& ip) {
     auto newState{getProgrammedState()->clone()};
-    auto neighborTable = newState->getMultiSwitchVlans()
+    auto neighborTable = newState->getVlans()
                              ->getNode(kVlanID)
                              ->template getNeighborEntryTable<AddrT>()
                              ->modify(kVlanID, &newState);

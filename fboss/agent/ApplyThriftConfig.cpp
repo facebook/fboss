@@ -651,7 +651,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     changed = true;
   }
 
-  auto newVlans = new_->getMultiSwitchVlans();
+  auto newVlans = new_->getVlans();
   VlanID dfltVlan(*cfg_->defaultVlan());
   if (orig_->getDefaultVlan() != dfltVlan) {
     if (newVlans->getNodeIf(dfltVlan) == nullptr) {
@@ -2193,7 +2193,7 @@ shared_ptr<MultiSwitchVlanMap> ThriftConfigApplier::updateVlans() {
     return nullptr;
   }
 
-  auto origVlans = orig_->getMultiSwitchVlans();
+  auto origVlans = orig_->getVlans();
   VlanMap::NodeContainer newVlans;
   bool changed = false;
 
@@ -2296,7 +2296,7 @@ shared_ptr<MultiSwitchVlanMap> ThriftConfigApplier::updatePseudoVlans() {
   // Pseudo vlan only case of non vlan supporting configs
   CHECK(!new_->getSwitchSettings()->vlansSupported());
 
-  auto origVlans = orig_->getMultiSwitchVlans();
+  auto origVlans = orig_->getVlans();
   auto origVlan = origVlans->getNodeIf(kPseudoVlanID);
   VlanMap::NodeContainer newVlans;
   bool changed = false;

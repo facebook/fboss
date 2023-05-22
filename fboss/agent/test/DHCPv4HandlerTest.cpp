@@ -72,7 +72,7 @@ const IPAddressV4 kDhcpV4ReplySrc("10.0.55.1");
 
 shared_ptr<SwitchState> testState() {
   auto state = testStateA();
-  const auto& vlans = state->getMultiSwitchVlans();
+  const auto& vlans = state->getVlans();
   // Set up an arp response entry for VLAN 1, 10.0.0.1,
   // so that we can detect the packet to 10.0.0.1 is for myself
   auto respTable1 = make_shared<ArpResponseTable>();

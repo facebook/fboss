@@ -123,7 +123,7 @@ void BcmQcmCollector::exportProfileCreate() {
 
 bool BcmQcmCollector::getCollectorVlan(
     const std::shared_ptr<SwitchState>& swState) {
-  const auto vlans = swState->getMultiSwitchVlans();
+  const auto vlans = swState->getVlans();
   for (const auto& vlanMap : std::as_const(*vlans)) {
     for (const auto& [id, vlan] : std::as_const(*vlanMap.second)) {
       // pick up any arbitrary vlan which is programmed

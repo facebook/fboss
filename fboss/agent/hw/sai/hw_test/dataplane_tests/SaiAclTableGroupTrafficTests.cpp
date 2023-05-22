@@ -132,7 +132,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
 
     for (const auto& ipToMacAndClassID : getIpToMacAndClassID<AddrT>()) {
       auto ip = ipToMacAndClassID.first;
-      auto neighborTable = outState->getMultiSwitchVlans()
+      auto neighborTable = outState->getVlans()
                                ->getNode(kVlanID)
                                ->template getNeighborTable<NeighborTableT>()
                                ->modify(kVlanID, &outState);
@@ -158,7 +158,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
       auto macAndClassID = ipToMacAndClassID.second;
       auto neighborMac = macAndClassID.first;
       auto classID = macAndClassID.second;
-      auto neighborTable = outState->getMultiSwitchVlans()
+      auto neighborTable = outState->getVlans()
                                ->getNode(kVlanID)
                                ->template getNeighborTable<NeighborTableT>()
                                ->modify(kVlanID, &outState);

@@ -29,7 +29,7 @@ int64_t EncapIndexAllocator::getNextAvailableEncapIdx(
       }
     }
   };
-  for (const auto& vlanTable : std::as_const(*state->getMultiSwitchVlans())) {
+  for (const auto& vlanTable : std::as_const(*state->getVlans())) {
     std::for_each(
         vlanTable.second->cbegin(),
         vlanTable.second->cend(),

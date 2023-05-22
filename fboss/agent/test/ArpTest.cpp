@@ -223,7 +223,7 @@ TxMatchFn checkArpRequest(
 const std::shared_ptr<ArpEntry>
 getArpEntry(SwSwitch* sw, IPAddressV4 ip, VlanID vlanID = VlanID(1)) {
   return sw->getState()
-      ->getMultiSwitchVlans()
+      ->getVlans()
       ->getNodeIf(vlanID)
       ->getArpTable()
       ->getEntryIf(ip);
@@ -237,7 +237,7 @@ void testSendArpRequest(
     IPAddressV4 senderIP,
     IPAddressV4 targetIP) {
   auto state = sw->getState();
-  auto vlan = state->getMultiSwitchVlans()->getNodeIf(vlanID);
+  auto vlan = state->getVlans()->getNodeIf(vlanID);
   EXPECT_NE(vlan, nullptr);
   auto intf = state->getInterfaces()->getInterfaceIf(RouterID(0), senderIP);
   EXPECT_NE(intf, nullptr);
@@ -288,7 +288,7 @@ TEST(ArpTest, BasicSendRequest) {
   CounterCache counters(sw);
 
   auto state = sw->getState();
-  auto vlan = state->getMultiSwitchVlans()->getNodeIf(vlanID);
+  auto vlan = state->getVlans()->getNodeIf(vlanID);
   EXPECT_NE(vlan, nullptr);
   auto intf = state->getInterfaces()->getInterfaceIf(RouterID(0), senderIP);
   EXPECT_NE(intf, nullptr);
@@ -363,8 +363,7 @@ TEST(ArpTest, TableUpdates) {
   sw->getNeighborUpdater()->waitForPendingUpdates();
 
   // Check the new ArpTable does not have any entry
-  auto arpTable =
-      sw->getState()->getMultiSwitchVlans()->getNode(vlanID)->getArpTable();
+  auto arpTable = sw->getState()->getVlans()->getNode(vlanID)->getArpTable();
   EXPECT_EQ(0, arpTable->size());
 
   // Create an ARP request for 10.0.0.1
@@ -412,8 +411,7 @@ TEST(ArpTest, TableUpdates) {
   waitForStateUpdates(sw);
 
   // Check the new ArpTable contents
-  arpTable =
-      sw->getState()->getMultiSwitchVlans()->getNode(vlanID)->getArpTable();
+  arpTable = sw->getState()->getVlans()->getNode(vlanID)->getArpTable();
   EXPECT_EQ(1, arpTable->size());
   auto entry = arpTable->getEntry(IPAddressV4("10.0.0.15"));
   EXPECT_EQ(MacAddress("00:02:00:01:02:03"), entry->getMac());
@@ -535,8 +533,7 @@ TEST(ArpTest, TableUpdates) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.error.sum", 0);
 
-  arpTable =
-      sw->getState()->getMultiSwitchVlans()->getNode(vlanID)->getArpTable();
+  arpTable = sw->getState()->getVlans()->getNode(vlanID)->getArpTable();
   EXPECT_EQ(1, arpTable->size());
   entry = arpTable->getEntry(IPAddressV4("10.0.0.15"));
   EXPECT_EQ(MacAddress("00:02:00:01:02:08"), entry->getMac());
@@ -591,8 +588,7 @@ TEST(ArpTest, TableUpdates) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 0);
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.error.sum", 0);
 
-  arpTable =
-      sw->getState()->getMultiSwitchVlans()->getNode(vlanID)->getArpTable();
+  arpTable = sw->getState()->getVlans()->getNode(vlanID)->getArpTable();
   EXPECT_EQ(2, arpTable->size());
   entry = arpTable->getEntry(IPAddressV4("10.0.0.15"));
   EXPECT_EQ(MacAddress("00:02:00:01:02:08"), entry->getMac());
@@ -651,8 +647,7 @@ TEST(ArpTest, TableUpdates) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 0);
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.error.sum", 0);
 
-  arpTable =
-      sw->getState()->getMultiSwitchVlans()->getNode(vlanID)->getArpTable();
+  arpTable = sw->getState()->getVlans()->getNode(vlanID)->getArpTable();
   EXPECT_EQ(3, arpTable->size());
   entry = arpTable->getEntry(IPAddressV4("10.0.0.15"));
   EXPECT_EQ(MacAddress("00:02:00:01:02:08"), entry->getMac());
@@ -1016,7 +1011,7 @@ TEST(ArpTest, ArpTableSerialization) {
   IPAddressV4 senderIP = IPAddressV4("10.0.0.1");
   IPAddressV4 targetIP = IPAddressV4("10.0.0.2");
 
-  auto vlan = sw->getState()->getMultiSwitchVlans()->getNodeIf(vlanID);
+  auto vlan = sw->getState()->getVlans()->getNodeIf(vlanID);
   EXPECT_NE(vlan, nullptr);
   auto arpTable = vlan->getArpTable();
   EXPECT_NE(arpTable, nullptr);
@@ -1026,7 +1021,7 @@ TEST(ArpTest, ArpTableSerialization) {
   testSendArpRequest(sw, vlanID, senderIP, targetIP);
 
   EXPECT_STATE_UPDATE_TIMES(sw, 0);
-  vlan = sw->getState()->getMultiSwitchVlans()->getNodeIf(vlanID);
+  vlan = sw->getState()->getVlans()->getNodeIf(vlanID);
   EXPECT_NE(vlan, nullptr);
   arpTable = vlan->getArpTable();
   EXPECT_NE(arpTable, nullptr);

@@ -1028,10 +1028,8 @@ TEST_F(BcmRouteTest, UnresolveResolveNextHop) {
     for (auto port : ports) {
       auto ecmpNextHop = helper.nhop(port);
       auto vlanId = helper.getVlan(port, getProgrammedState());
-      auto ntable = state0->getMultiSwitchVlans()
-                        ->getNode(*vlanId)
-                        ->getNdpTable()
-                        ->modify(*vlanId, &state0);
+      auto ntable = state0->getVlans()->getNode(*vlanId)->getNdpTable()->modify(
+          *vlanId, &state0);
       auto entry = ntable->getEntry(ecmpNextHop.ip);
       auto intfId = entry->getIntfID();
       ntable->removeEntry(ecmpNextHop.ip);
@@ -1044,10 +1042,8 @@ TEST_F(BcmRouteTest, UnresolveResolveNextHop) {
     auto state1 = getProgrammedState();
     for (auto port : ports) {
       auto vlanId = helper.getVlan(port, getProgrammedState());
-      auto ntable = state1->getMultiSwitchVlans()
-                        ->getNode(*vlanId)
-                        ->getNdpTable()
-                        ->modify(*vlanId, &state1);
+      auto ntable = state1->getVlans()->getNode(*vlanId)->getNdpTable()->modify(
+          *vlanId, &state1);
       auto entry = entries[port];
       ntable->updateEntry(NeighborEntryFields<folly::IPAddressV6>::fromThrift(
           entry->toThrift()));

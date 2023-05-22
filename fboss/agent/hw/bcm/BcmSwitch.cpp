@@ -694,7 +694,7 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
     memberPorts.insert(make_pair(portID, false));
   }
   vlan->setPorts(memberPorts);
-  bootState->getMultiSwitchVlans()->addNode(vlan, scopeMatcher);
+  bootState->getVlans()->addNode(vlan, scopeMatcher);
   bootState->publish();
   return bootState;
 }

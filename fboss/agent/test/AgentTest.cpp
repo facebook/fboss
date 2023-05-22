@@ -83,7 +83,7 @@ void AgentTest::resolveNeighbor(
     folly::MacAddress mac) {
   auto resolveNeighborFn = [=](const std::shared_ptr<SwitchState>& state) {
     auto outputState{state->clone()};
-    auto vlan = outputState->getMultiSwitchVlans()->getNode(vlanId);
+    auto vlan = outputState->getVlans()->getNode(vlanId);
     auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
         vlanId, &outputState);
     if (nbrTable->getEntryIf(ip)) {

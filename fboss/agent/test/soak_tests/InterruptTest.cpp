@@ -70,7 +70,7 @@ bool InterruptTest::RunOneLoop(SoakLoopArgs* args) {
       swSwitch->getHw(),
       platform->getLocalMac(),
       swSwitch->getState()
-          ->getMultiSwitchVlans()
+          ->getVlans()
           ->getFirstMap()
           ->cbegin()
           ->second->getID(),

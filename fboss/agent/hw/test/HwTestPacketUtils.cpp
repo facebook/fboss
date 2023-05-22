@@ -113,9 +113,8 @@ std::optional<VlanID> firstVlanID(const cfg::SwitchConfig& cfg) {
 
 std::optional<VlanID> firstVlanID(const std::shared_ptr<SwitchState>& state) {
   std::optional<VlanID> firstVlanId;
-  if (state->getMultiSwitchVlans()->numNodes()) {
-    firstVlanId = (*state->getMultiSwitchVlans()->getFirstMap()->cbegin())
-                      .second->getID();
+  if (state->getVlans()->numNodes()) {
+    firstVlanId = (*state->getVlans()->getFirstMap()->cbegin()).second->getID();
   }
   return firstVlanId;
 }

@@ -110,7 +110,7 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
 
     for (const auto& ipToMacAndClassID : getIpToMacAndClassID()) {
       auto ip = ipToMacAndClassID.first;
-      auto neighborTable = outState->getMultiSwitchVlans()
+      auto neighborTable = outState->getVlans()
                                ->getNode(kVlanID)
                                ->template getNeighborTable<NeighborTableT>()
                                ->modify(kVlanID, &outState);
@@ -132,7 +132,7 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
       auto neighborMac = macAndClassID.first;
       auto classID = blockNeighbor ? cfg::AclLookupClass::CLASS_DROP
                                    : macAndClassID.second;
-      auto neighborTable = outState->getMultiSwitchVlans()
+      auto neighborTable = outState->getVlans()
                                ->getNode(kVlanID)
                                ->template getNeighborTable<NeighborTableT>()
                                ->modify(kVlanID, &outState);

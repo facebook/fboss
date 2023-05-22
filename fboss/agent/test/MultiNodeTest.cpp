@@ -102,13 +102,13 @@ void MultiNodeTest::checkNeighborResolved(
   };
   if (ip.isV4()) {
     checkNeighbor(sw()->getState()
-                      ->getMultiSwitchVlans()
+                      ->getVlans()
                       ->getNodeIf(vlanId)
                       ->getArpTable()
                       ->getEntryIf(ip.asV4()));
   } else {
     checkNeighbor(sw()->getState()
-                      ->getMultiSwitchVlans()
+                      ->getVlans()
                       ->getNodeIf(vlanId)
                       ->getNdpTable()
                       ->getEntryIf(ip.asV6()));

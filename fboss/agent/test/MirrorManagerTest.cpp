@@ -152,8 +152,7 @@ class MirrorManagerTest : public ::testing::Test {
     auto newState = state->isPublished() ? state->clone() : state;
     VlanID vlanId =
         newState->getInterfaces()->getNode(interfaceId)->getVlanID();
-    Vlan* vlan =
-        newState->getMultiSwitchVlans()->getNodeIf(VlanID(vlanId)).get();
+    Vlan* vlan = newState->getVlans()->getNodeIf(VlanID(vlanId)).get();
     auto* neighborTable =
         vlan->template getNeighborEntryTable<AddrT>().get()->modify(
             &vlan, &newState);
@@ -168,7 +167,7 @@ class MirrorManagerTest : public ::testing::Test {
     auto newState = state->isPublished() ? state->clone() : state;
     VlanID vlanId =
         newState->getInterfaces()->getNode(interfaceId)->getVlanID();
-    Vlan* vlan = newState->getMultiSwitchVlans()->getNodeIf(VlanID(vlanId)).get();
+    Vlan* vlan = newState->getVlans()->getNodeIf(VlanID(vlanId)).get();
     auto* neighborTable =
         vlan->template getNeighborEntryTable<AddrT>().get()->modify(
             &vlan, &newState);

@@ -119,7 +119,7 @@ void ManagerTestBase::setupSaiPlatform() {
     }
   }
   if (setupStage & SetupStage::VLAN) {
-    auto* vlans = setupState->getMultiSwitchVlans()->modify(&setupState);
+    auto* vlans = setupState->getVlans()->modify(&setupState);
     for (const auto& testInterface : testInterfaces) {
       auto swVlan = makeVlan(testInterface);
       vlans->addNode(swVlan, scopeResolver().scope(swVlan));
@@ -141,8 +141,8 @@ void ManagerTestBase::setupSaiPlatform() {
     for (const auto& testInterface : testInterfaces) {
       for (const auto& remoteHost : testInterface.remoteHosts) {
         auto swNeighbor = makeArpEntry(testInterface.id, remoteHost);
-        auto existingVlanEntry = setupState->getMultiSwitchVlans()->getNode(
-            VlanID(testInterface.id));
+        auto existingVlanEntry =
+            setupState->getVlans()->getNode(VlanID(testInterface.id));
         auto* vlan = existingVlanEntry->modify(
             &setupState, scopeResolver().scope(existingVlanEntry));
         auto arpTable = vlan->getArpTable()->modify(&vlan, &setupState);

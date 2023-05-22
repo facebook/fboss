@@ -94,7 +94,7 @@ const IPAddressV6 kDhcpV6ReplySrc("2401:db00:2110:3055:0000:0000:0000:0001");
 // Function to setup SwState required for the tests
 shared_ptr<SwitchState> testState() {
   auto state = testStateA();
-  const auto& vlans = state->getMultiSwitchVlans();
+  const auto& vlans = state->getVlans();
   // Configure DHCPV6 relay settings for the test VLAN
   vlans->getNode(VlanID(1))->setDhcpV6Relay(kDhcpV6Relay);
   DhcpV6OverrideMap overrides;

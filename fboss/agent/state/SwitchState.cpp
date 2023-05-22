@@ -161,8 +161,7 @@ void SwitchState::resetVlans(std::shared_ptr<MultiSwitchVlanMap> vlans) {
   ref<switch_state_tags::vlanMaps>() = vlans;
 }
 
-const std::shared_ptr<MultiSwitchVlanMap>& SwitchState::getMultiSwitchVlans()
-    const {
+const std::shared_ptr<MultiSwitchVlanMap>& SwitchState::getVlans() const {
   return safe_cref<switch_state_tags::vlanMaps>();
 }
 

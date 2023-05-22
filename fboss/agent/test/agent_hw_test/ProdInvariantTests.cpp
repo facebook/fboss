@@ -141,13 +141,12 @@ void ProdInvariantTest::setupConfigFlag() {
 
 void ProdInvariantTest::sendTraffic() {
   auto mac = utility::getInterfaceMac(
-      sw()->getState(),
-      sw()->getState()->getMultiSwitchVlans()->getFirstVlanID());
+      sw()->getState(), sw()->getState()->getVlans()->getFirstVlanID());
   utility::pumpTraffic(
       true,
       sw()->getHw(),
       mac,
-      sw()->getState()->getMultiSwitchVlans()->getFirstVlanID(),
+      sw()->getState()->getVlans()->getFirstVlanID(),
       getDownlinkPort());
 }
 

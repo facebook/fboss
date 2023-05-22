@@ -89,7 +89,7 @@ Vlan* Vlan::modify(
     return this;
   }
 
-  MultiSwitchVlanMap* vlans = (*state)->getMultiSwitchVlans()->modify(state);
+  MultiSwitchVlanMap* vlans = (*state)->getVlans()->modify(state);
   auto newVlan = clone();
   auto* ptr = newVlan.get();
   vlans->updateNode(std::move(newVlan), matcher);

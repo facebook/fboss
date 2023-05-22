@@ -25,7 +25,7 @@ void SwitchState::revertNewNeighborEntry(
   VlanID vlanId = static_cast<VlanID>(newEntry->getIntfID());
 
   auto neighborTablePtr = (*appliedState)
-                              ->getMultiSwitchVlans()
+                              ->getVlans()
                               ->getNode(vlanId)
                               ->template getNeighborTable<NTableT>()
                               .get();

@@ -72,7 +72,7 @@ void StaticL2ForNeighborSwSwitchUpdater::pruneMacEntry(
       // Check if another neighbor still points to this MAC
       newState = MacTableUtils::updateOrAddStaticEntryIfNbrExists(
           newState, vlanId, mac);
-      auto vlan = newState->getMultiSwitchVlans()->getNodeIf(vlanId);
+      auto vlan = newState->getVlans()->getNodeIf(vlanId);
       macPruned = vlan->getMacTable()->getMacIf(mac) == nullptr;
     }
     return macPruned ? newState : nullptr;

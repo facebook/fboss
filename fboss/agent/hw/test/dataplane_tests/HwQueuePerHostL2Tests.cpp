@@ -189,7 +189,7 @@ class HwQueuePerHostL2Test : public HwLinkStateDependentTest {
       std::optional<cfg::AclLookupClass> classID,
       MacEntryType type) {
     auto newState = getProgrammedState()->clone();
-    auto vlan = newState->getMultiSwitchVlans()->getNodeIf(kVlanID()).get();
+    auto vlan = newState->getVlans()->getNodeIf(kVlanID()).get();
     auto macTable = vlan->getMacTable().get();
     macTable = macTable->modify(&vlan, &newState);
     if (macTable->getMacIf(macAddr)) {

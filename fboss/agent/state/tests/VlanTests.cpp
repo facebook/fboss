@@ -59,7 +59,7 @@ TEST(Vlan, applyConfig) {
   auto stateV0 = make_shared<SwitchState>();
   auto vlanV0 = make_shared<Vlan>(VlanID(1234), kVlan1234);
 
-  stateV0->getMultiSwitchVlans()->addNode(vlanV0, scope());
+  stateV0->getVlans()->addNode(vlanV0, scope());
   registerPort(stateV0, PortID(1), "port1", scope());
   registerPort(stateV0, PortID(2), "port2", scope());
 
@@ -103,9 +103,9 @@ TEST(Vlan, applyConfig) {
   expectedPorts.insert(std::make_pair(2, true));
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  auto vlanV1 = stateV1->getMultiSwitchVlans()->getNode(VlanID(1234));
+  auto vlanV1 = stateV1->getVlans()->getNode(VlanID(1234));
   ASSERT_NE(nullptr, vlanV1);
-  auto vlanV1_byName = stateV1->getMultiSwitchVlans()->getVlanSlow(kVlan1234);
+  auto vlanV1_byName = stateV1->getVlans()->getVlanSlow(kVlan1234);
   EXPECT_EQ(vlanV1, vlanV1_byName);
   EXPECT_EQ(nodeID, vlanV1->getNodeID());
   EXPECT_EQ(1, vlanV1->getGeneration());
@@ -143,7 +143,7 @@ TEST(Vlan, applyConfig) {
   config.vlans()[1].intfID() = 1;
 
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
-  auto vlanV2 = stateV2->getMultiSwitchVlans()->getNode(VlanID(1));
+  auto vlanV2 = stateV2->getVlans()->getNode(VlanID(1));
   EXPECT_EQ(0, vlanV2->getGeneration());
   EXPECT_FALSE(vlanV2->isPublished());
   EXPECT_EQ(VlanID(1), vlanV2->getID());
@@ -187,7 +187,7 @@ TEST(Vlan, applyConfig) {
   MacAddress intf2Mac("02:01:02:ab:cd:78");
   config.interfaces()[2].mac() = intf2Mac.toString();
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
-  auto vlanV3 = stateV3->getMultiSwitchVlans()->getNode(VlanID(1299));
+  auto vlanV3 = stateV3->getVlans()->getNode(VlanID(1299));
   EXPECT_EQ(0, vlanV3->getGeneration());
   EXPECT_FALSE(vlanV3->isPublished());
   EXPECT_EQ(VlanID(1299), vlanV3->getID());
@@ -231,9 +231,9 @@ TEST(Vlan, applyConfig) {
   auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
   ASSERT_NE(nullptr, stateV4);
   // VLAN 1 should be unchanged
-  EXPECT_EQ(vlanV2, stateV4->getMultiSwitchVlans()->getNode(VlanID(1)));
-  auto vlan99 = stateV4->getMultiSwitchVlans()->getNode(VlanID(99));
-  auto vlan99_byName = stateV4->getMultiSwitchVlans()->getVlanSlow(kVlan99);
+  EXPECT_EQ(vlanV2, stateV4->getVlans()->getNode(VlanID(1)));
+  auto vlan99 = stateV4->getVlans()->getNode(VlanID(99));
+  auto vlan99_byName = stateV4->getVlans()->getVlanSlow(kVlan99);
   ASSERT_NE(nullptr, vlan99);
   EXPECT_EQ(vlan99, vlan99_byName);
   EXPECT_EQ(0, vlan99->getGeneration());
@@ -262,7 +262,7 @@ TEST(Vlan, applyConfig) {
   config.interfaces()[4].ipAddresses()[1] = "10.50.0.3/9";
   auto stateV5 = publishAndApplyConfig(stateV4, &config, platform.get());
   ASSERT_NE(nullptr, stateV5);
-  auto vlan100 = stateV5->getMultiSwitchVlans()->getNode(VlanID(100));
+  auto vlan100 = stateV5->getVlans()->getNode(VlanID(100));
   EXPECT_EQ(InterfaceID(100), vlan100->getInterfaceID());
 }
 
@@ -327,7 +327,7 @@ TEST(VlanMap, applyConfig) {
         cfg::PortState::DISABLED);
   }
 
-  auto vlansV0 = stateV0->getMultiSwitchVlans();
+  auto vlansV0 = stateV0->getVlans();
 
   // Apply new config settings
   config.vlans()->resize(2);
@@ -360,14 +360,13 @@ TEST(VlanMap, applyConfig) {
   *config.interfaces()[1].routerID() = 0;
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  auto vlansV1 = stateV1->getMultiSwitchVlans();
+  auto vlansV1 = stateV1->getVlans();
   ASSERT_NE(nullptr, vlansV1);
   EXPECT_EQ(2, vlansV1->numNodes());
 
   // Check the new settings for VLAN 1234
   auto vlan1234v0 = vlansV1->getNode(VlanID(1234));
-  auto vlan1234v0_byName =
-      stateV1->getMultiSwitchVlans()->getVlanSlow(kVlan1234);
+  auto vlan1234v0_byName = stateV1->getVlans()->getVlanSlow(kVlan1234);
   ASSERT_NE(nullptr, vlan1234v0);
   EXPECT_EQ(vlan1234v0, vlan1234v0_byName);
   NodeID id1234 = vlan1234v0->getNodeID();
@@ -384,7 +383,7 @@ TEST(VlanMap, applyConfig) {
   // Check the new settings for VLAN 99
   auto vlan99v0 = vlansV1->getNode(VlanID(99));
   ASSERT_NE(nullptr, vlan99v0);
-  auto vlan99v0_byName = stateV1->getMultiSwitchVlans()->getVlanSlow(kVlan99);
+  auto vlan99v0_byName = stateV1->getVlans()->getVlanSlow(kVlan99);
   EXPECT_EQ(vlan99v0, vlan99v0_byName);
   NodeID id99 = vlan99v0->getNodeID();
   EXPECT_NE(id1234, id99);
@@ -411,7 +410,7 @@ TEST(VlanMap, applyConfig) {
   config.vlanPorts()[0] = config.vlanPorts()[6];
   config.vlanPorts()->resize(6);
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
-  auto vlansV2 = stateV2->getMultiSwitchVlans();
+  auto vlansV2 = stateV2->getVlans();
   ASSERT_NE(nullptr, vlansV2);
   EXPECT_EQ(2, vlansV2->numNodes());
 
@@ -446,7 +445,7 @@ TEST(VlanMap, applyConfig) {
   *config.interfaces()[0].intfID() = 1234;
 
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
-  auto vlansV3 = stateV3->getMultiSwitchVlans();
+  auto vlansV3 = stateV3->getVlans();
   ASSERT_NE(nullptr, vlansV3);
   EXPECT_EQ(1, vlansV3->numNodes());
 
@@ -461,14 +460,14 @@ TEST(VlanMap, applyConfig) {
 TEST(Vlan, vlanModifyUnpublished) {
   auto state = make_shared<SwitchState>();
   auto vlan = make_shared<Vlan>(VlanID(1234), kVlan1234);
-  state->getMultiSwitchVlans()->addNode(vlan, scope());
+  state->getVlans()->addNode(vlan, scope());
   EXPECT_EQ(vlan.get(), vlan->modify(&state, scope()));
 }
 
 TEST(Vlan, vlanModifyPublished) {
   auto state = make_shared<SwitchState>();
   auto vlan = make_shared<Vlan>(VlanID(1234), kVlan1234);
-  state->getMultiSwitchVlans()->addNode(vlan, scope());
+  state->getVlans()->addNode(vlan, scope());
   state->publish();
   EXPECT_NE(vlan.get(), vlan->modify(&state, scope()));
 }

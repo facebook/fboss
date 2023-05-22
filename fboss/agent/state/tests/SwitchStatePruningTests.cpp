@@ -164,10 +164,8 @@ void addNeighborEntry(
   CHECK(vlan);
   shared_ptr<NTable> newNeighborTable = make_shared<NTable>();
   NTable* newNeighborTablePtr = newNeighborTable.get();
-  auto oldNeighborTable = (*state)
-                              ->getMultiSwitchVlans()
-                              ->getNode(*vlan)
-                              ->template getNeighborTable<NTable>();
+  auto oldNeighborTable =
+      (*state)->getVlans()->getNode(*vlan)->template getNeighborTable<NTable>();
   if (oldNeighborTable) {
     // This call changes state too
     newNeighborTablePtr = oldNeighborTable->modify(*vlan, state);
@@ -183,7 +181,7 @@ void addNeighborEntry(
 
   if (!oldNeighborTable) {
     // There is no old arp table
-    auto vlanPtr = (*state)->getMultiSwitchVlans()->getNode(*vlan).get();
+    auto vlanPtr = (*state)->getVlans()->getNode(*vlan).get();
     vlanPtr = vlanPtr->modify(state, scope());
     vlanPtr->setNeighborTable(std::move(newNeighborTable));
   }
@@ -263,10 +261,8 @@ TEST(SwitchStatePruningTests, AddNeighborEntry) {
 
   set<pair<VlanID, IPAddressV4>> removedV4;
   // Remove host3 from the arp table
-  auto h3entry = state3->getMultiSwitchVlans()
-                     ->getNode(host3vlan)
-                     ->getArpTable()
-                     ->getEntry(host3ip);
+  auto h3entry =
+      state3->getVlans()->getNode(host3vlan)->getArpTable()->getEntry(host3ip);
 
   SwitchState::revertNewNeighborEntry<ArpEntry, ArpTable>(
       h3entry, nullptr, &state4);
@@ -280,10 +276,8 @@ TEST(SwitchStatePruningTests, AddNeighborEntry) {
   //  ... prune host2 from vlan21 (ipv6 example)
   // state5
   set<pair<VlanID, IPAddressV6>> removedV6;
-  auto v6entry = state4->getMultiSwitchVlans()
-                     ->getNode(host2vlan)
-                     ->getNdpTable()
-                     ->getEntry(host2ip);
+  auto v6entry =
+      state4->getVlans()->getNode(host2vlan)->getNdpTable()->getEntry(host2ip);
   SwitchState::revertNewNeighborEntry<NdpEntry, NdpTable>(
       v6entry, nullptr, &state5);
   removedV6.insert(make_pair(host2vlan, host2ip));
@@ -340,18 +334,12 @@ TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
 
   state2->publish();
 
-  auto entry1old = state2->getMultiSwitchVlans()
-                       ->getNode(host1vlan)
-                       ->getArpTable()
-                       ->getEntry(host1ip);
-  auto entry2old = state2->getMultiSwitchVlans()
-                       ->getNode(host2vlan)
-                       ->getArpTable()
-                       ->getEntry(host2ip);
-  auto entry3old = state2->getMultiSwitchVlans()
-                       ->getNode(host3vlan)
-                       ->getNdpTable()
-                       ->getEntry(host3ip);
+  auto entry1old =
+      state2->getVlans()->getNode(host1vlan)->getArpTable()->getEntry(host1ip);
+  auto entry2old =
+      state2->getVlans()->getNode(host2vlan)->getArpTable()->getEntry(host2ip);
+  auto entry3old =
+      state2->getVlans()->getNode(host3vlan)->getNdpTable()->getEntry(host3ip);
 
   auto state3 = state2;
   // state2
@@ -364,7 +352,7 @@ TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
   auto host2interface = InterfaceID(21);
 
   auto arpTable21 =
-      state3->getMultiSwitchVlans()->getNode(host2vlan)->getArpTable()->modify(
+      state3->getVlans()->getNode(host2vlan)->getArpTable()->modify(
           host2vlan, &state3);
   arpTable21->updateEntry(
       host2ip, host2mac, host2port, host2interface, NeighborState::REACHABLE);
@@ -374,25 +362,19 @@ TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
   auto host3interface = InterfaceID(22);
 
   auto ndpTable22 =
-      state3->getMultiSwitchVlans()->getNode(host3vlan)->getNdpTable()->modify(
+      state3->getVlans()->getNode(host3vlan)->getNdpTable()->modify(
           host3vlan, &state3);
   ndpTable22->updateEntry(
       host3ip, host3mac, host3port, host3interface, NeighborState::REACHABLE);
 
   state3->publish();
 
-  auto entry1new = state3->getMultiSwitchVlans()
-                       ->getNode(host1vlan)
-                       ->getArpTable()
-                       ->getEntry(host1ip);
-  auto entry2new = state3->getMultiSwitchVlans()
-                       ->getNode(host2vlan)
-                       ->getArpTable()
-                       ->getEntry(host2ip);
-  auto entry3new = state3->getMultiSwitchVlans()
-                       ->getNode(host3vlan)
-                       ->getNdpTable()
-                       ->getEntry(host3ip);
+  auto entry1new =
+      state3->getVlans()->getNode(host1vlan)->getArpTable()->getEntry(host1ip);
+  auto entry2new =
+      state3->getVlans()->getNode(host2vlan)->getArpTable()->getEntry(host2ip);
+  auto entry3new =
+      state3->getVlans()->getNode(host3vlan)->getNdpTable()->getEntry(host3ip);
 
   shared_ptr<SwitchState> state4{state3};
   // state3
@@ -454,13 +436,13 @@ TEST(SwitchStatePruningTests, ModifyState) {
   auto host1vlan = VlanID(21);
   // Add host1 (resolved) for vlan21
   freshArpTable->addEntry(host1ip, host1mac, host1port, host1intf);
-  shared_ptr<Vlan> vlan1 = state1->getMultiSwitchVlans()->getNode(host1vlan);
+  shared_ptr<Vlan> vlan1 = state1->getVlans()->getNode(host1vlan);
   ASSERT_TRUE(state1 == state2); // point to same state
-  auto vlanPtr = state1->getMultiSwitchVlans()->getNode(host1vlan)->modify(
-      &state2, scope());
+  auto vlanPtr =
+      state1->getVlans()->getNode(host1vlan)->modify(&state2, scope());
   vlanPtr->setArpTable(std::move(freshArpTable));
   ASSERT_TRUE(vlan1.get() != vlanPtr);
-  shared_ptr<Vlan> vlan2 = state2->getMultiSwitchVlans()->getNode(host1vlan);
+  shared_ptr<Vlan> vlan2 = state2->getVlans()->getNode(host1vlan);
   ASSERT_TRUE(vlan1 != vlan2);
 }
 
@@ -498,15 +480,15 @@ TEST(SwitchStatePruningTests, ModifyEmptyArpTable) {
   auto host1intf = InterfaceID(21);
   auto host1vlan = VlanID(21);
   // Old arp table
-  auto arp1 = state1->getMultiSwitchVlans()->getNode(host1vlan)->getArpTable();
+  auto arp1 = state1->getVlans()->getNode(host1vlan)->getArpTable();
   ASSERT_TRUE(state2->isPublished());
   auto arp1modified =
-      state1->getMultiSwitchVlans()->getNode(host1vlan)->getArpTable()->modify(
+      state1->getVlans()->getNode(host1vlan)->getArpTable()->modify(
           host1vlan, &state2);
   ASSERT_TRUE(!state2->isPublished());
   arp1modified->addEntry(host1ip, host1mac, host1port, host1intf);
 
-  auto arp2 = state2->getMultiSwitchVlans()->getNode(host1vlan)->getArpTable();
+  auto arp2 = state2->getVlans()->getNode(host1vlan)->getArpTable();
   ASSERT_TRUE(arp1 != arp2);
   ASSERT_TRUE(!arp2->isPublished());
   ASSERT_TRUE(arp2->getGeneration() == arp1->getGeneration() + 1);
@@ -554,22 +536,22 @@ TEST(SwitchStatePruningTests, ModifyArpTableMultipleTimes) {
   auto host1port = PortDescriptor(PortID(1));
   auto host1intf = InterfaceID(21);
   auto host1vlan = VlanID(21);
-  auto arp1 = state1->getMultiSwitchVlans()->getNode(host1vlan)->getArpTable();
+  auto arp1 = state1->getVlans()->getNode(host1vlan)->getArpTable();
   ASSERT_EQ(state1, state2);
   ASSERT_TRUE(state2->isPublished());
   // Make sure that the modify function on ArpTable modifies the SwitchState
   // and VlanMap and Vlan and the mofified new state is unpublished.
   auto arp1modified =
-      state1->getMultiSwitchVlans()->getNode(host1vlan)->getArpTable()->modify(
+      state1->getVlans()->getNode(host1vlan)->getArpTable()->modify(
           host1vlan, &state2);
   ASSERT_NE(state1, state2);
-  ASSERT_NE(state1->getMultiSwitchVlans(), state2->getMultiSwitchVlans());
+  ASSERT_NE(state1->getVlans(), state2->getVlans());
   ASSERT_NE(
-      state1->getMultiSwitchVlans()->getNode(host1vlan),
-      state2->getMultiSwitchVlans()->getNode(host1vlan));
+      state1->getVlans()->getNode(host1vlan),
+      state2->getVlans()->getNode(host1vlan));
   ASSERT_NE(
-      state1->getMultiSwitchVlans()->getNode(host1vlan)->getArpTable(),
-      state2->getMultiSwitchVlans()->getNode(host1vlan)->getArpTable());
+      state1->getVlans()->getNode(host1vlan)->getArpTable(),
+      state2->getVlans()->getNode(host1vlan)->getArpTable());
   ASSERT_NE(arp1.get(), arp1modified);
   ASSERT_TRUE(!state2->isPublished());
 
@@ -586,12 +568,12 @@ TEST(SwitchStatePruningTests, ModifyArpTableMultipleTimes) {
   // Make sure the modify function does not change the SwitchState and VlanMap
   // if the state is unpublished.
   auto arpTable22Ptr =
-      state2->getMultiSwitchVlans()->getNode(host4vlan)->getArpTable()->modify(
+      state2->getVlans()->getNode(host4vlan)->getArpTable()->modify(
           host4vlan, &state3);
   ASSERT_EQ(state2, state3);
-  ASSERT_EQ(state2->getMultiSwitchVlans(), state3->getMultiSwitchVlans());
+  ASSERT_EQ(state2->getVlans(), state3->getVlans());
   arpTable22Ptr->addEntry(host4ip, host4mac, host4port, host4intf);
   state3->publish();
   ASSERT_EQ(state2, state3);
-  ASSERT_EQ(state2->getMultiSwitchVlans(), state3->getMultiSwitchVlans());
+  ASSERT_EQ(state2->getVlans(), state3->getVlans());
 }

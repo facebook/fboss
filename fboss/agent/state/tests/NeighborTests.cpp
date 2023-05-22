@@ -125,7 +125,7 @@ TEST(NeighborResponseTableTest, modify) {
   auto arpResponseTable = std::make_shared<ArpResponseTable>();
   arpResponseTable->setEntry(ip1, mac1, InterfaceID(0));
   vlan->setArpResponseTable(arpResponseTable);
-  state->getMultiSwitchVlans()->addNode(vlan, scope());
+  state->getVlans()->addNode(vlan, scope());
 
   // modify unpublished state
   EXPECT_EQ(vlan.get(), vlan->modify(&state, scope()));

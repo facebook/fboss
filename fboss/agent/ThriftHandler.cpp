@@ -2124,12 +2124,12 @@ void ThriftHandler::txPktL3(unique_ptr<fbstring> payload) {
 
 Vlan* ThriftHandler::getVlan(int32_t vlanId) {
   ensureConfigured(__func__);
-  return sw_->getState()->getMultiSwitchVlans()->getNode(VlanID(vlanId)).get();
+  return sw_->getState()->getVlans()->getNode(VlanID(vlanId)).get();
 }
 
 Vlan* ThriftHandler::getVlan(const std::string& vlanName) {
   ensureConfigured(__func__);
-  return sw_->getState()->getMultiSwitchVlans()->getVlanSlow(vlanName).get();
+  return sw_->getState()->getVlans()->getVlanSlow(vlanName).get();
 }
 
 int32_t ThriftHandler::flushNeighborEntry(

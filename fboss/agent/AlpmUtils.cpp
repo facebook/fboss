@@ -90,8 +90,7 @@ std::shared_ptr<SwitchState> getMinAlpmRouteState(
   // addresses.
   auto noRoutesState{oldState->clone()};
 
-  for (const auto& vlanTable :
-       std::as_const(*noRoutesState->getMultiSwitchVlans())) {
+  for (const auto& vlanTable : std::as_const(*noRoutesState->getVlans())) {
     for (const auto& idAndVlan : std::as_const(*vlanTable.second)) {
       auto vlan = idAndVlan.second->modify(
           &noRoutesState, HwSwitchMatcher(vlanTable.first));

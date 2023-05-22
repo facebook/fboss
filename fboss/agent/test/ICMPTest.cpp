@@ -64,7 +64,7 @@ unique_ptr<HwTestHandle> setupTestHandle(bool noIpv4VlanIntf = false) {
   // Setup a default state object
   auto state =
       noIpv4VlanIntf ? testStateAWithoutIpv4VlanIntf(VlanID(1)) : testStateA();
-  const auto& vlans = state->getMultiSwitchVlans();
+  const auto& vlans = state->getVlans();
   // Set up an arp response entry for VLAN 1, 10.0.0.1,
   // so that we can detect the packet to 10.0.0.1 is for myself
   auto respTable1 = make_shared<ArpResponseTable>();

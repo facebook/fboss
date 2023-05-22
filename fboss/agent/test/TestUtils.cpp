@@ -571,7 +571,7 @@ shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
 
   // Add VLAN 1, and ports 1-10 which belong to it.
   auto vlan1 = make_shared<Vlan>(VlanID(1), std::string("Vlan1"));
-  state->getMultiSwitchVlans()->addNode(vlan1, matcher);
+  state->getVlans()->addNode(vlan1, matcher);
   for (int idx = 1; idx <= 10; ++idx) {
     registerPort(state, PortID(idx), folly::to<string>("port", idx), matcher);
     vlan1->addPort(PortID(idx), false);
@@ -581,7 +581,7 @@ shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
   }
   // Add VLAN 55, and ports 11-20 which belong to it.
   auto vlan55 = make_shared<Vlan>(VlanID(55), std::string("Vlan55"));
-  state->getMultiSwitchVlans()->addNode(vlan55, matcher);
+  state->getVlans()->addNode(vlan55, matcher);
   for (int idx = 11; idx <= 20; ++idx) {
     registerPort(state, PortID(idx), folly::to<string>("port", idx), matcher);
     vlan55->addPort(PortID(idx), false);

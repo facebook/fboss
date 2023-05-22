@@ -25,7 +25,7 @@ std::optional<folly::MacAddress> TeFlowEntry::getNeighborMac(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& interface,
     AddrT ip) {
-  auto vlan = state->getMultiSwitchVlans()->getNodeIf(interface->getVlanID());
+  auto vlan = state->getVlans()->getNodeIf(interface->getVlanID());
   auto neighbor = vlan->getNeighborEntryTable<AddrT>()->getNodeIf(ip.str());
   if (!neighbor) {
     return std::nullopt;

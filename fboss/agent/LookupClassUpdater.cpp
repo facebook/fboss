@@ -386,7 +386,7 @@ void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
   auto port = switchState->getPorts()->getNodeIf(portID);
   for (auto vlanMember : port->getVlans()) {
     auto vlanID = vlanMember.first;
-    auto vlan = switchState->getMultiSwitchVlans()->getNodeIf(vlanID);
+    auto vlan = switchState->getVlans()->getNodeIf(vlanID);
     if (!vlan) {
       continue;
     }
@@ -429,7 +429,7 @@ void LookupClassUpdater::repopulateClassIdsForResolvedNeighbors(
   auto port = switchState->getPorts()->getNodeIf(portID);
   for (auto vlanMember : port->getVlans()) {
     auto vlanID = vlanMember.first;
-    auto vlan = switchState->getMultiSwitchVlans()->getNodeIf(vlanID);
+    auto vlan = switchState->getVlans()->getNodeIf(vlanID);
     if (!vlan) {
       continue;
     }
@@ -500,7 +500,7 @@ void LookupClassUpdater::processPortRemoved(
    */
   for (auto vlanMember : removedPort->getVlans()) {
     auto vlanID = vlanMember.first;
-    auto vlan = switchState->getMultiSwitchVlans()->getNodeIf(vlanID);
+    auto vlan = switchState->getVlans()->getNodeIf(vlanID);
     if (!vlan) {
       continue;
     }
@@ -701,7 +701,7 @@ void LookupClassUpdater::updateStateObserverLocalCache(
       // THRIFT_COPY
       for (auto vlanMember : port.second->getVlans()) {
         auto vlanID = vlanMember.first;
-        auto vlan = switchState->getMultiSwitchVlans()->getNodeIf(vlanID);
+        auto vlan = switchState->getVlans()->getNodeIf(vlanID);
         if (!vlan) {
           continue;
         }
@@ -824,7 +824,7 @@ void LookupClassUpdater::processBlockNeighborUpdates(
 
   blockedNeighbors_ = newBlockedNeighbors;
   for (const auto& [vlanID, ipAddress] : toBeUpdatedBlockNeighbors) {
-    auto vlan = newState->getMultiSwitchVlans()->getNodeIf(vlanID);
+    auto vlan = newState->getVlans()->getNodeIf(vlanID);
     if (!vlan) {
       continue;
     }
@@ -924,7 +924,7 @@ void LookupClassUpdater::processMacAddrsToBlockUpdates(
 
   macAddrsToBlock_ = newMacAddrsToBlock;
   for (const auto& [vlanID, macAddress] : toBeUpdatedMacAddrsToBlock) {
-    auto vlan = newState->getMultiSwitchVlans()->getNodeIf(vlanID);
+    auto vlan = newState->getVlans()->getNodeIf(vlanID);
     XLOG(DBG2) << "Starting to Processing mac address "
                << macAddress.toString();
     if (!vlan) {

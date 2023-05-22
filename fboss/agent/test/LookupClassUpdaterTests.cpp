@@ -187,7 +187,7 @@ class LookupClassUpdaterTest : public ::testing::Test {
         NdpTable>;
 
     auto state = sw_->getState();
-    auto vlan = state->getMultiSwitchVlans()->getNode(kVlan());
+    auto vlan = state->getVlans()->getNode(kVlan());
     auto neighborTable = vlan->template getNeighborTable<NeighborTableT>();
 
     auto verifyNeighbor =
@@ -266,8 +266,7 @@ class LookupClassUpdaterTest : public ::testing::Test {
   }
 
   auto getMacEntry(folly::MacAddress mac) const {
-    auto vlan =
-        sw_->getState()->getMultiSwitchVlans()->getNodeIf(this->kVlan());
+    auto vlan = sw_->getState()->getVlans()->getNodeIf(this->kVlan());
     return vlan->getMacTable()->getMacIf(mac);
   }
 
@@ -532,8 +531,7 @@ TYPED_TEST(LookupClassUpdaterTest, MacMove) {
       "Trigger MAC Move", [=](const std::shared_ptr<SwitchState>& state) {
         std::shared_ptr<SwitchState> newState{state};
 
-        auto vlan =
-            state->getMultiSwitchVlans()->getNodeIf(this->kVlan()).get();
+        auto vlan = state->getVlans()->getNodeIf(this->kVlan()).get();
         auto* macTable = vlan->getMacTable().get();
         auto node = macTable->getMacIf(this->kMacAddress());
 
@@ -556,7 +554,7 @@ TYPED_TEST(LookupClassUpdaterTest, MacMove) {
 
   auto state = this->sw_->getState();
 
-  auto vlan = state->getMultiSwitchVlans()->getNodeIf(this->kVlan());
+  auto vlan = state->getVlans()->getNodeIf(this->kVlan());
   auto* macTable = vlan->getMacTable().get();
   auto node = macTable->getMacIf(this->kMacAddress());
 
@@ -692,7 +690,7 @@ TYPED_TEST(
   this->unresolveNeighbor(this->getNonMacLinkLocalIpAddress());
 
   auto state = this->sw_->getState();
-  auto vlan = state->getMultiSwitchVlans()->getNode(this->kVlan());
+  auto vlan = state->getVlans()->getNode(this->kVlan());
   auto neighborTable = vlan->template getNeighborTable<NeighborTableT>();
 
   if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
@@ -879,7 +877,7 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, ResolveUnresolveResolve) {
         NdpTable>;
 
     auto state = this->sw_->getState();
-    auto vlan = state->getMultiSwitchVlans()->getNode(this->kVlan());
+    auto vlan = state->getVlans()->getNode(this->kVlan());
     auto neighborTable = vlan->template getNeighborTable<NeighborTableT>();
 
     if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
@@ -1376,7 +1374,7 @@ class LookupClassUpdaterWarmbootTest : public LookupClassUpdaterTest<AddrT> {
     auto newState = testStateAWithLookupClasses();
 
     auto vlanID = VlanID(1);
-    auto vlan = newState->getMultiSwitchVlans()->getNodeIf(vlanID);
+    auto vlan = newState->getVlans()->getNodeIf(vlanID);
     auto neighborTable = vlan->template getNeighborTable<NeighborTableT>();
 
     neighborTable->addEntry(NeighborEntryFields(

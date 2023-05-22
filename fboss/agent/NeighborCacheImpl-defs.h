@@ -43,7 +43,7 @@ bool checkVlanAndIntf(
     const typename NeighborCacheEntry<NTable>::EntryFields& fields,
     VlanID vlanID) {
   // Make sure vlan exists
-  auto* vlan = state->getMultiSwitchVlans()->getNodeIf(vlanID).get();
+  auto* vlan = state->getVlans()->getNodeIf(vlanID).get();
   if (!vlan) {
     // This VLAN no longer exists.  Just ignore the entry update.
     XLOG(DBG3) << "VLAN " << vlanID << " deleted before entry " << fields.ip
@@ -102,7 +102,7 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForNpu(Entry* entry) {
       return nullptr;
     }
 
-    auto vlan = state->getMultiSwitchVlans()->getNodeIf(vlanID).get();
+    auto vlan = state->getVlans()->getNodeIf(vlanID).get();
     std::shared_ptr<SwitchState> newState{state};
     auto* table = vlan->template getNeighborTable<NTable>().get();
     auto node = table->getNodeIf(fields.ip.str());
@@ -267,7 +267,7 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntryForNpu(
       return nullptr;
     }
 
-    auto vlan = state->getMultiSwitchVlans()->getNodeIf(vlanID).get();
+    auto vlan = state->getVlans()->getNodeIf(vlanID).get();
     std::shared_ptr<SwitchState> newState{state};
     auto* table = vlan->template getNeighborTable<NTable>().get();
     auto node = table->getNodeIf(fields.ip.str());
@@ -432,7 +432,7 @@ void NeighborCacheImpl<NTable>::updateEntryClassID(
 
     auto updateClassIDFn =
         [this, ip, classID](const std::shared_ptr<SwitchState>& state) {
-          auto vlan = state->getMultiSwitchVlans()->getNodeIf(vlanID_).get();
+          auto vlan = state->getVlans()->getNodeIf(vlanID_).get();
           std::shared_ptr<SwitchState> newState{state};
           auto* table = vlan->template getNeighborTable<NTable>().get();
           auto node = table->getNodeIf(ip.str());
@@ -550,7 +550,7 @@ template <typename NTable>
 bool NeighborCacheImpl<NTable>::flushEntryFromSwitchState(
     std::shared_ptr<SwitchState>* state,
     AddressType ip) {
-  auto* vlan = (*state)->getMultiSwitchVlans()->getNode(vlanID_).get();
+  auto* vlan = (*state)->getVlans()->getNode(vlanID_).get();
   auto* table = vlan->template getNeighborTable<NTable>().get();
   const auto& entry = table->getNodeIf(ip.str());
   if (!entry) {

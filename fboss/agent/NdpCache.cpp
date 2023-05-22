@@ -130,7 +130,7 @@ inline void NdpCache::checkReachability(
     folly::MacAddress targetMac,
     PortDescriptor port) const {
   const auto state = getSw()->getState();
-  auto vlan = state->getMultiSwitchVlans()->getNodeIf(getVlanID());
+  auto vlan = state->getVlans()->getNodeIf(getVlanID());
   if (!vlan) {
     XLOG(DBG2) << "Vlan " << getVlanID() << " not found. Skip sending probe";
     return;

@@ -97,7 +97,7 @@ class ColdBootPacketHandlingFixture : public ::testing::Test {
       memberPorts.insert(make_pair(port->getID(), false));
     }
     vlan->setPorts(memberPorts);
-    coldBootState->getMultiSwitchVlans()->addNode(vlan, matcher);
+    coldBootState->getVlans()->addNode(vlan, matcher);
     return coldBootState;
   }
   std::unique_ptr<HwTestHandle> handle_{nullptr};

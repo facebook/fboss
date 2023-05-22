@@ -119,10 +119,8 @@ TEST_F(SwSwitchTest, TestStateNonCoalescing) {
       }
       return reachableCnt;
     };
-    auto arpTable =
-        sw->getState()->getMultiSwitchVlans()->getNode(kVlan1)->getArpTable();
-    auto ndpTable =
-        sw->getState()->getMultiSwitchVlans()->getNode(kVlan1)->getNdpTable();
+    auto arpTable = sw->getState()->getVlans()->getNode(kVlan1)->getArpTable();
+    auto ndpTable = sw->getState()->getVlans()->getNode(kVlan1)->getNdpTable();
     auto reachableCnt =
         getReachableCount(arpTable) + getReachableCount(ndpTable);
     EXPECT_EQ(expectedReachableNbrCnt, reachableCnt);
