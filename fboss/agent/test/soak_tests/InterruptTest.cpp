@@ -69,7 +69,11 @@ bool InterruptTest::RunOneLoop(SoakLoopArgs* args) {
       true, // is IPv6
       swSwitch->getHw(),
       platform->getLocalMac(),
-      swSwitch->getState()->getVlans()->cbegin()->second->getID(),
+      swSwitch->getState()
+          ->getMultiSwitchVlans()
+          ->getFirstMap()
+          ->cbegin()
+          ->second->getID(),
       frontPanelPortToLoopTraffic_);
 
   uint64_t intrTimeoutCountEnd = platform->getIntrTimeoutCount();

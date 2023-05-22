@@ -268,7 +268,11 @@ void LinkTest::createL3DataplaneFlood(
       sw()->getState(), sw()->getPlatform()->getLocalMac());
   programDefaultRoute(ecmpPorts, ecmp6);
   disableTTLDecrements(ecmpPorts);
-  auto vlanID = sw()->getState()->getVlans()->cbegin()->second->getID();
+  auto vlanID = sw()->getState()
+                    ->getMultiSwitchVlans()
+                    ->getFirstMap()
+                    ->cbegin()
+                    ->second->getID();
   utility::pumpTraffic(
       true, sw()->getHw(), sw()->getPlatform()->getLocalMac(), vlanID);
   // TODO: Assert that traffic reached a certain rate

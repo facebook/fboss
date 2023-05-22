@@ -55,7 +55,7 @@ class MacLearningTest : public LinkTest {
 
   void verifyL2EntryLearned(MacAddress macAddr, VlanID vlanId) {
     auto l2EntryLearned = [&](const std::shared_ptr<SwitchState>& state) {
-      auto vlan = state->getVlans()->getVlan(vlanId);
+      auto vlan = state->getMultiSwitchVlans()->getNode(vlanId);
       auto* macTable = vlan->getMacTable().get();
       auto node = macTable->getMacIf(macAddr);
       XLOG(DBG2) << "found l2 entry node for " << macAddr << " and vlan "
