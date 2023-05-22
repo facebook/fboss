@@ -47,7 +47,6 @@ class SaiPlatformPort : public PlatformPort {
   virtual std::vector<uint32_t> getHwPortLanes(
       cfg::PortProfileID profileID) const;
   virtual std::vector<PortID> getSubsumedPorts(cfg::PortSpeed speed) const;
-  virtual TransmitterTechnology getTransmitterTech();
   virtual uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
       const = 0;
   bool checkSupportsTransceiver() const;
@@ -70,8 +69,6 @@ class SaiPlatformPort : public PlatformPort {
   virtual uint32_t getCurrentLedState() const = 0;
 
  private:
-  folly::Future<TransmitterTechnology> getTransmitterTechInternal(
-      folly::EventBase* evb);
   cfg::PortProfileID profile_{};
 };
 
