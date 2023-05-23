@@ -21,6 +21,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/agent/test/integration_tests/AgentIntegrationTest.h"
+#include "fboss/fsdb/common/Flags.h"
 #include "fboss/lib/CommonUtils.h"
 #include "neteng/fboss/bgp/cpp/BgpServiceUtil.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
@@ -45,6 +46,11 @@ using StateUpdateFn = facebook::fboss::SwSwitch::StateUpdateFn;
 namespace facebook::fboss {
 class BgpIntegrationTest : public AgentIntegrationTest {
  protected:
+  void setCmdLineFlagOverrides() const override {
+    FLAGS_publish_stats_to_fsdb = true;
+    FLAGS_publish_state_to_fsdb = true;
+    AgentIntegrationTest::setCmdLineFlagOverrides();
+  }
   uint64_t bgpAliveSince() {
     uint64_t aliveSince{0};
     auto clientParams = servicerouter::ClientParams();
