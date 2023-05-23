@@ -43,5 +43,9 @@ void setPortTxEnable(const HwSwitch* hw, PortID port, bool enable) {
   bcmCheckError(rv, "failed to disable TX");
 }
 
+int getLoopbackMode(cfg::PortLoopbackMode lbMode) {
+  return fbToBcmLoopbackMode(lbMode);
+}
+
 void enableTransceiverProgramming(bool /*enable*/) {}
 } // namespace facebook::fboss::utility

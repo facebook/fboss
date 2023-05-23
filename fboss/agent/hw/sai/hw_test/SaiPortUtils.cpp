@@ -79,6 +79,13 @@ void assertPortsLoopbackMode(
   }
 }
 
+int getLoopbackMode(cfg::PortLoopbackMode loopbackMode) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  return (int)getSaiPortLoopbackMode(loopbackMode);
+#endif
+  return (int)getSaiPortInternalLoopbackMode(loopbackMode);
+}
+
 void assertPortSampleDestination(
     const HwSwitch* /*hw*/,
     PortID /*port*/,

@@ -16,6 +16,11 @@
 #endif
 #include "fboss/agent/FbossError.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
+#if defined(SAI_VERSION_9_0_EA_SIM_ODP) || \
+    defined(SAI_VERSION_9_0_EA_DNX_ODP) || \
+    defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP)
+#include <experimental/saiportextensions.h>
+#endif
 
 namespace facebook::fboss::utility {
 
