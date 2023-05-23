@@ -31,6 +31,7 @@ static constexpr auto kPgHeadroomBytes{293624};
 static constexpr auto kLosslessTrafficClass{2};
 static constexpr auto kLosslessPriority{2};
 static const std::vector<int> kLosslessPgIds{2, 3};
+static const std::vector<int> kLossyPgIds{0};
 
 struct PfcBufferParams {
   int globalShared = kGlobalSharedBytes;
@@ -300,6 +301,22 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       pgConfig.minLimitBytes() = pgLimit;
       // set large enough headroom to avoid drop
       pgConfig.headroomLimitBytes() = pgHeadroom;
+      // set scaling factor
+      if (scalingFactor) {
+        pgConfig.scalingFactor() = *scalingFactor;
+      }
+      portPgConfigs.emplace_back(pgConfig);
+    }
+
+    // create lossy pgs
+    for (auto pgId : kLossyPgIds) {
+      cfg::PortPgConfig pgConfig;
+      pgConfig.id() = pgId;
+      pgConfig.bufferPoolName() = "bufferNew";
+      // provide atleast 1 cell worth of minLimit
+      pgConfig.minLimitBytes() = pgLimit;
+      // headroom set 0 identifies lossy pgs
+      pgConfig.headroomLimitBytes() = 0;
       // set scaling factor
       if (scalingFactor) {
         pgConfig.scalingFactor() = *scalingFactor;
