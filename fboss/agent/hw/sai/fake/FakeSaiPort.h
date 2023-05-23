@@ -33,9 +33,13 @@ struct FakePort {
   bool useExtendedFec{false};
   sai_port_fec_mode_extended_t extendedFecMode{SAI_PORT_FEC_MODE_EXTENDED_NONE};
 #endif
-  bool fabricIsolate{false};
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  sai_port_loopback_mode_t loopbackMode{SAI_PORT_LOOPBACK_MODE_NONE};
+#endif
   sai_port_internal_loopback_mode_t internalLoopbackMode{
       SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE};
+  bool fabricIsolate{false};
   sai_port_flow_control_mode_t globalFlowControlMode{
       SAI_PORT_FLOW_CONTROL_MODE_DISABLE};
   sai_port_media_type_t mediaType{SAI_PORT_MEDIA_TYPE_NOT_PRESENT};

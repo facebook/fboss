@@ -32,8 +32,12 @@ sai_status_t create_port_fn(
   std::optional<bool> useExtendedFec;
   std::optional<sai_port_fec_mode_extended_t> extendedFecMode;
 #endif
-  std::optional<bool> fabricIsolate;
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  std::optional<sai_port_loopback_mode_t> loopbackMode;
+#endif
   std::optional<sai_port_internal_loopback_mode_t> internalLoopbackMode;
+  std::optional<bool> fabricIsolate;
   std::optional<sai_port_flow_control_mode_t> flowControlMode;
   std::optional<sai_port_media_type_t> mediaType;
   std::optional<sai_vlan_id_t> vlanId;
@@ -96,6 +100,12 @@ sai_status_t create_port_fn(
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
       case SAI_PORT_ATTR_FABRIC_ISOLATE:
         fabricIsolate = attr_list[i].value.booldata;
+        break;
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      case SAI_PORT_ATTR_LOOPBACK_MODE:
+        loopbackMode =
+            static_cast<sai_port_loopback_mode_t>(attr_list[i].value.u32);
         break;
 #endif
       case SAI_PORT_ATTR_INTERNAL_LOOPBACK_MODE:
@@ -237,11 +247,16 @@ sai_status_t create_port_fn(
     port.extendedFecMode = extendedFecMode.value();
   }
 #endif
-  if (fabricIsolate) {
-    port.fabricIsolate = fabricIsolate.value();
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  if (loopbackMode.has_value()) {
+    port.loopbackMode = loopbackMode.value();
   }
+#endif
   if (internalLoopbackMode.has_value()) {
     port.internalLoopbackMode = internalLoopbackMode.value();
+  }
+  if (fabricIsolate) {
+    port.fabricIsolate = fabricIsolate.value();
   }
   if (vlanId.has_value()) {
     port.vlanId = vlanId.value();
@@ -385,6 +400,12 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_FEC_MODE_EXTENDED:
       port.extendedFecMode =
           static_cast<sai_port_fec_mode_extended_t>(attr->value.u32);
+      break;
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    case SAI_PORT_ATTR_LOOPBACK_MODE:
+      port.loopbackMode =
+          static_cast<sai_port_loopback_mode_t>(attr->value.s32);
       break;
 #endif
     case SAI_PORT_ATTR_INTERNAL_LOOPBACK_MODE:
@@ -654,6 +675,11 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_FEC_MODE_EXTENDED:
         attr[i].value.u32 = static_cast<uint32_t>(port.extendedFecMode);
+        break;
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      case SAI_PORT_ATTR_LOOPBACK_MODE:
+        attr[i].value.s32 = static_cast<int32_t>(port.loopbackMode);
         break;
 #endif
       case SAI_PORT_ATTR_INTERNAL_LOOPBACK_MODE:

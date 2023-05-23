@@ -38,10 +38,17 @@ void setPortLoopbackMode(
     }
   }
   CHECK(portItr != portMapping.end());
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  SaiPortTraits::Attributes::PortLoopbackMode portLoopbackMode{
+      utility::getSaiPortLoopbackMode(lbMode)};
+  auto& portApi = SaiApiTable::getInstance()->portApi();
+  portApi.setAttribute(portItr->first, portLoopbackMode);
+#else
   SaiPortTraits::Attributes::InternalLoopbackMode internalLbMode{
       utility::getSaiPortInternalLoopbackMode(lbMode)};
   auto& portApi = SaiApiTable::getInstance()->portApi();
   portApi.setAttribute(portItr->first, internalLbMode);
+#endif
 }
 
 void setPortTxEnable(const HwSwitch* hw, PortID port, bool enable) {

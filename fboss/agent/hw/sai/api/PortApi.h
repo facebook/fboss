@@ -324,7 +324,11 @@ struct SaiPortTraits {
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
       std::optional<Attributes::FabricIsolate>,
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      std::optional<Attributes::PortLoopbackMode>,
+#else
       std::optional<Attributes::InternalLoopbackMode>,
+#endif
       std::optional<Attributes::MediaType>,
       std::optional<Attributes::GlobalFlowControlMode>,
       std::optional<Attributes::PortVlanId>,

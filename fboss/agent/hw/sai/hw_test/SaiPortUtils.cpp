@@ -97,9 +97,15 @@ void assertPortLoopbackMode(
     PortID port,
     int expectedLoopbackMode) {
   auto key = getPortAdapterKey(hw, port);
-  SaiPortTraits::Attributes::InternalLoopbackMode loopbackMode;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  SaiPortTraits::Attributes::PortLoopbackMode loopbackMode;
   SaiApiTable::getInstance()->portApi().getAttribute(key, loopbackMode);
   CHECK_EQ(expectedLoopbackMode, loopbackMode.value());
+#else
+  SaiPortTraits::Attributes::InternalLoopbackMode internalLoopbackMode;
+  SaiApiTable::getInstance()->portApi().getAttribute(key, internalLoopbackMode);
+  CHECK_EQ(expectedLoopbackMode, internalLoopbackMode.value());
+#endif
 }
 
 void cleanPortConfig(

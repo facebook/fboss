@@ -49,7 +49,11 @@ class PortManagerTest : public ManagerTestBase {
     SaiPortTraits::Attributes::HwLaneList hwLaneListAttribute;
     SaiPortTraits::Attributes::Speed speedAttribute;
     SaiPortTraits::Attributes::FecMode fecMode;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    SaiPortTraits::Attributes::PortLoopbackMode lbMode;
+#else
     SaiPortTraits::Attributes::InternalLoopbackMode ilbMode;
+#endif
     SaiPortTraits::Attributes::Mtu mtuAttribute;
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
     SaiPortTraits::Attributes::FabricIsolate fabricIsolateAttribute;
@@ -63,9 +67,14 @@ class PortManagerTest : public ManagerTestBase {
     EXPECT_EQ(25000, gotSpeed);
     auto gotFecMode = portApi.getAttribute(saiId, fecMode);
     EXPECT_EQ(static_cast<int32_t>(SAI_PORT_FEC_MODE_NONE), gotFecMode);
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    auto gotlbMode = portApi.getAttribute(saiId, lbMode);
+    EXPECT_EQ(static_cast<int32_t>(SAI_PORT_LOOPBACK_MODE_NONE), gotlbMode);
+#else
     auto gotIlbMode = portApi.getAttribute(saiId, ilbMode);
     EXPECT_EQ(
         static_cast<int32_t>(SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE), gotIlbMode);
+#endif
     auto gotMtu = portApi.getAttribute(saiId, mtuAttribute);
     EXPECT_EQ(mtu, gotMtu);
     ASSERT_NE(handle->serdes.get(), nullptr);
