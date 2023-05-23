@@ -439,16 +439,6 @@ void checkChangedAggPorts(
   validateThriftMapMapSerialization(*newAggPorts);
 }
 
-void setAggregatePortMemberIDs(
-    std::vector<cfg::AggregatePortMember>& members,
-    std::vector<int32_t> portIDs) {
-  members.resize(portIDs.size());
-
-  for (const auto& it : folly::enumerate(portIDs)) {
-    members[it.index].memberPortID() = *it;
-  }
-}
-
 TEST(AggregatePort, multiTrunkAdd) {
   auto platform = createMockPlatform();
 

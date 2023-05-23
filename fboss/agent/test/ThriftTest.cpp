@@ -858,6 +858,44 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getInterfaceDetail) {
   }
 }
 
+TYPED_TEST(ThriftTestAllSwitchTypes, getAggregatePorts) {
+  if (this->isFabric()) {
+    // no agg ports on fabric
+    GTEST_SKIP();
+  }
+  auto switchIdAndType = this->getSwitchIdAndType();
+  ThriftHandler handler(this->sw_);
+  auto startState = this->sw_->getState();
+
+  auto config = testConfigA(switchIdAndType.second);
+  config.aggregatePorts()->resize(2);
+  *config.aggregatePorts()[0].key() = 55;
+  *config.aggregatePorts()[0].name() = "lag55";
+  *config.aggregatePorts()[0].description() = "upwards facing link-bundle";
+  setAggregatePortMemberIDs(
+      *config.aggregatePorts()[0].memberPorts(),
+      {1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
+  *config.aggregatePorts()[1].key() = 155;
+  *config.aggregatePorts()[1].name() = "lag155";
+  *config.aggregatePorts()[1].description() = "downwards facing link-bundle";
+  config.aggregatePorts()[1].memberPorts()->resize(10);
+  setAggregatePortMemberIDs(
+      *config.aggregatePorts()[1].memberPorts(),
+      {11, 12, 13, 14, 15, 16, 17, 18, 19, 20});
+  this->sw_->applyConfig("add agg ports", config);
+  std::vector<AggregatePortThrift> aggPorts;
+  handler.getAggregatePortTable(aggPorts);
+  EXPECT_EQ(aggPorts.size(), 2);
+  EXPECT_EQ(*aggPorts[0].key(), 55);
+  EXPECT_EQ(*aggPorts[1].key(), 155);
+  EXPECT_EQ(
+      getAggregatePortMemberIDs(*aggPorts[0].memberPorts()),
+      getAggregatePortMemberIDs(*config.aggregatePorts()[0].memberPorts()));
+  EXPECT_EQ(
+      getAggregatePortMemberIDs(*aggPorts[1].memberPorts()),
+      getAggregatePortMemberIDs(*config.aggregatePorts()[1].memberPorts()));
+}
+
 TEST_F(ThriftTest, getAndSetMacAddrsToBlock) {
   ThriftHandler handler(sw_);
 

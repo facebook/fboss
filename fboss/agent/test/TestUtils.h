@@ -609,4 +609,12 @@ void registerPort(
     const std::string& name,
     HwSwitchMatcher scope,
     cfg::PortType portType = cfg::PortType::INTERFACE_PORT);
+
+void setAggregatePortMemberIDs(
+    std::vector<cfg::AggregatePortMember>& members,
+    const std::vector<int32_t>& portIDs);
+
+template <typename T>
+std::vector<int32_t> getAggregatePortMemberIDs(const std::vector<T>& members);
+
 } // namespace facebook::fboss

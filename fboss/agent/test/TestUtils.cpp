@@ -35,6 +35,7 @@
 #include "fboss/agent/rib/RoutingInformationBase.h"
 
 #include <folly/Memory.h>
+#include <folly/container/Enumerate.h>
 #include <folly/json.h>
 #include <folly/logging/Init.h>
 #include <chrono>
@@ -1054,4 +1055,29 @@ void registerPort(
   port->setPortType(portType);
   state->getPorts()->addNode(std::move(port), scope);
 }
+
+void setAggregatePortMemberIDs(
+    std::vector<cfg::AggregatePortMember>& members,
+    const std::vector<int32_t>& portIDs) {
+  members.resize(portIDs.size());
+
+  for (const auto& it : folly::enumerate(portIDs)) {
+    members[it.index].memberPortID() = *it;
+  }
+}
+
+template <typename T>
+std::vector<int32_t> getAggregatePortMemberIDs(const std::vector<T>& members) {
+  std::vector<int32_t> ports;
+  ports.resize(members.size());
+  for (const auto& it : folly::enumerate(members)) {
+    ports[it.index] = *it->memberPortID();
+  }
+  return ports;
+}
+
+template std::vector<int32_t> getAggregatePortMemberIDs<
+    cfg::AggregatePortMember>(const std::vector<cfg::AggregatePortMember>&);
+template std::vector<int32_t> getAggregatePortMemberIDs<
+    AggregatePortMemberThrift>(const std::vector<AggregatePortMemberThrift>&);
 } // namespace facebook::fboss
