@@ -108,6 +108,7 @@ struct PortFields {
   41: list<i32> interfaceIDs;
   42: list<switch_config.PortNeighbor> expectedNeighborReachability;
   43: switch_config.PortDrainState drainState = switch_config.PortDrainState.UNDRAINED;
+  44: optional string flowletConfigName;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -275,6 +276,13 @@ struct ControlPlaneFields {
   1: list<ctrl.PortQueueFields> queues;
   2: list<switch_config.PacketRxReasonToQueue> rxReasonToQueue;
   3: optional string defaultQosPolicy;
+}
+
+struct PortFlowletFields {
+  1: string id;
+  2: i16 scalingFactor;
+  3: i16 loadWeight;
+  4: i16 queueWeight;
 }
 
 struct BlockedNeighbor {
@@ -593,6 +601,7 @@ struct SwitchState {
   > aclTableGroupMaps;
   118: map<SwitchIdList, map<i32, InterfaceFields>> interfaceMaps;
   119: map<SwitchIdList, map<i64, switch_config.DsfNode>> dsfNodesMap;
+  120: map<SwitchIdList, map<string, PortFlowletFields>> portFlowletCfgMaps;
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;
