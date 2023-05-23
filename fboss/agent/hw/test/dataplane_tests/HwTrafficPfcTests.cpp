@@ -30,6 +30,7 @@ static constexpr auto kPgLimitBytes{2200};
 static constexpr auto kPgHeadroomBytes{293624};
 static constexpr auto kLosslessTrafficClass{2};
 static constexpr auto kLosslessPriority{2};
+static constexpr auto kNumberOfPortsToEnablePfcOn{2};
 static const std::vector<int> kLosslessPgIds{2, 3};
 static const std::vector<int> kLossyPgIds{0};
 
@@ -45,6 +46,7 @@ struct PfcBufferParams {
 struct TrafficTestParams {
   PfcBufferParams buffer = PfcBufferParams{};
   bool expectDrop = false;
+  bool scale = false;
 };
 
 std::tuple<int, int, int> getPfcTxRxXonHwPortStats(
@@ -327,12 +329,16 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     portPgConfigMap["foo"] = portPgConfigs;
   }
 
-  void setupBuffers(PfcBufferParams buffer = PfcBufferParams{}) {
+  void setupBuffers(
+      PfcBufferParams buffer = PfcBufferParams{},
+      bool scaleConfig = false) {
     auto newCfg{initialConfig()};
-    setupPfc(
-        newCfg,
-        {masterLogicalInterfacePortIds()[0],
-         masterLogicalInterfacePortIds()[1]});
+    int numberOfPorts = scaleConfig ? masterLogicalInterfacePortIds().size()
+                                    : kNumberOfPortsToEnablePfcOn;
+    auto allPorts = masterLogicalInterfacePortIds();
+    std::vector<PortID> ports(
+        allPorts.begin(), allPorts.begin() + numberOfPorts);
+    setupPfc(newCfg, ports);
 
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
     setupPortPgConfig(
@@ -400,7 +406,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
           const std::vector<PortID>& portIds)> validateCounterFn =
           validatePfcCounters) {
     auto setup = [&]() {
-      setupBuffers(testParams.buffer);
+      setupBuffers(testParams.buffer, testParams.scale);
       setupEcmpTraffic();
       validateInitPfcCounters(
           {masterLogicalInterfacePortIds()[0],
@@ -591,6 +597,12 @@ INSTANTIATE_TEST_SUITE_P(
         TrafficTestParams{},
         TrafficTestParams{
             .buffer =
+                PfcBufferParams{
+                    .globalShared = kGlobalSharedBytes * 5,
+                    .pgLimit = kPgLimitBytes / 3},
+            .scale = true},
+        TrafficTestParams{
+            .buffer =
                 PfcBufferParams{.pgHeadroom = 0, .scalingFactor = std::nullopt},
             .expectDrop = true},
         TrafficTestParams{
@@ -605,6 +617,8 @@ INSTANTIATE_TEST_SUITE_P(
         return "WithZeroPgHeadRoomCfg";
       } else if (testParams.buffer.globalHeadroom == 0) {
         return "WithZeroGlobalHeadRoomCfg";
+      } else if (testParams.scale) {
+        return "WithScaleCfg";
       } else {
         return "WithDefaultCfg";
       }
