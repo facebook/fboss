@@ -176,8 +176,8 @@ TEST(Udf, addUpdateRemove) {
 
 TEST(Udf, serDesUdfGroup) {
   auto udfEntry = createStateUdfGroup(kUdfGroupCfgName1.str());
-  auto serialized = udfEntry->toFollyDynamic();
-  auto deserialized = UdfGroup::fromFollyDynamic(serialized);
+  auto serialized = udfEntry->toThrift();
+  auto deserialized = std::make_shared<UdfGroup>(serialized);
   EXPECT_TRUE(*udfEntry == *deserialized);
 }
 
@@ -191,8 +191,8 @@ TEST(Udf, serDesUdfPacketMatcher) {
       std::make_shared<UdfPacketMatcher>(pktMatcherCfgName);
   udfStatePacketmatcherEntry->fromThrift(udfPacketmatcherEntry);
 
-  auto serialized = udfStatePacketmatcherEntry->toFollyDynamic();
-  auto deserialized = UdfPacketMatcher::fromFollyDynamic(serialized);
+  auto serialized = udfStatePacketmatcherEntry->toThrift();
+  auto deserialized = std::make_shared<UdfPacketMatcher>(serialized);
 
   EXPECT_TRUE(*udfStatePacketmatcherEntry == *deserialized);
 }

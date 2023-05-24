@@ -328,11 +328,6 @@ class Route : public ThriftStructNode<Route<AddrT>, ThriftFieldsT<AddrT>> {
     return fields.toThrift();
   }
 
-  static std::shared_ptr<Route<AddrT>> fromFollyDynamic(
-      const folly::dynamic& json);
-
-  folly::dynamic toFollyDynamic() const override;
-
   // THRIFT_COPY
   RouteDetails toRouteDetails(bool normalizedNhopWeights = false) const {
     RouteFields<AddrT> fields{this->toThrift()};

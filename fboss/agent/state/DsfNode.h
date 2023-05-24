@@ -41,8 +41,6 @@ class DsfNode : public ThriftStructNode<DsfNode, cfg::DsfNode> {
   std::optional<folly::MacAddress> getMac() const;
   PlatformType getPlatformType() const;
 
-  static std::shared_ptr<DsfNode> fromFollyDynamic(const folly::dynamic& entry);
-
  private:
   // Inherit the constructors required for clone()
   using BaseT::BaseT;

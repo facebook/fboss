@@ -17,8 +17,6 @@ using facebook::network::toBinaryAddress;
 
 namespace {
 void testFromAndTo(const LabelForwardingAction& action) {
-  EXPECT_EQ(
-      action, LabelForwardingAction::fromFollyDynamic(action.toFollyDynamic()));
   EXPECT_EQ(action, LabelForwardingAction::fromThrift(action.toThrift()));
 }
 

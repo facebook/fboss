@@ -38,8 +38,6 @@ class UdfPacketMatcher
   void setUdfl3PktType(cfg::UdfMatchL3Type type);
   void setUdfl4PktType(cfg::UdfMatchL4Type type);
   void setUdfL4DstPort(std::optional<int> port);
-  static std::shared_ptr<UdfPacketMatcher> fromFollyDynamic(
-      const folly::dynamic& entry);
 
  private:
   // Inherit the constructors required for clone()

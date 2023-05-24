@@ -181,15 +181,4 @@ void RouteNextHopsMulti::delEntryForClient(
         RouteNextHopsMulti::findLowestAdminDistance(nexthopsmulti);
   }
 }
-
-std::shared_ptr<RouteNextHopsMulti> RouteNextHopsMulti::fromFollyDynamic(
-    const folly::dynamic& json) {
-  auto legacy = LegacyRouteNextHopsMulti::fromFollyDynamic(json);
-  return std::make_shared<RouteNextHopsMulti>(legacy.toThrift());
-}
-
-folly::dynamic RouteNextHopsMulti::toFollyDynamic() const {
-  LegacyRouteNextHopsMulti legacy(this->toThrift());
-  return legacy.toFollyDynamic();
-}
 } // namespace facebook::fboss

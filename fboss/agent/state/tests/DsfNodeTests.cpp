@@ -51,8 +51,8 @@ std::vector<int64_t> getStaticNbrTimestamps(
 
 TEST(DsfNode, SerDeserDsfNode) {
   auto dsfNode = makeDsfNode();
-  auto serialized = dsfNode->toFollyDynamic();
-  auto dsfNodeBack = DsfNode::fromFollyDynamic(serialized);
+  auto serialized = dsfNode->toThrift();
+  auto dsfNodeBack = std::make_shared<DsfNode>(serialized);
   EXPECT_TRUE(*dsfNode == *dsfNodeBack);
 }
 

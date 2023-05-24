@@ -123,17 +123,6 @@ class RouteNextHopEntry
 
   std::string str() const;
 
-  static std::shared_ptr<RouteNextHopEntry> fromFollyDynamic(
-      const folly::dynamic& entryJson) {
-    auto legacyFields = LegacyRouteNextHopEntry::fromFollyDynamic(entryJson);
-    return std::make_shared<RouteNextHopEntry>(legacyFields.toThrift());
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    auto legacyFields = LegacyRouteNextHopEntry(toThrift());
-    return legacyFields.toFollyDynamic();
-  }
-
   // Methods to manipulate this object
   bool isDrop() const {
     return getAction() == Action::DROP;

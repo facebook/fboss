@@ -87,11 +87,6 @@ class RouteNextHopsMulti
   using Base = thrift_cow::ThriftStructNode<state::RouteNextHopsMulti>;
   using Base::Base;
 
-  static std::shared_ptr<RouteNextHopsMulti> fromFollyDynamic(
-      const folly::dynamic& json);
-
-  folly::dynamic toFollyDynamic() const override;
-
   std::vector<ClientAndNextHops> toThriftLegacy() const;
 
   std::string strLegacy() const;

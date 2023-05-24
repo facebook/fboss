@@ -229,19 +229,6 @@ TEST(Route, serializeRoute) {
       Route<IPAddressV4>::makeThrift(makePrefixV4("1.2.3.4/32")));
   rt.update(clientId, RouteNextHopEntry(nxtHops, DISTANCE));
   validateNodeSerialization(rt);
-
-  // to folly dynamic
-  folly::dynamic obj = rt.toFollyDynamic();
-  // to string
-  folly::json::serialization_opts serOpts;
-  serOpts.allow_non_string_keys = true;
-  std::string json = folly::json::serialize(obj, serOpts);
-  // back to folly dynamic
-  folly::dynamic obj2 = folly::parseJson(json, serOpts);
-  // back to Route object
-  auto rt2 = Route<IPAddressV4>::fromFollyDynamic(obj2);
-  ASSERT_TRUE(rt2->has(clientId, RouteNextHopEntry(nxtHops, DISTANCE)));
-  validateNodeSerialization(*rt2);
 }
 
 TEST(Route, serializeMplsRoute) {
@@ -252,20 +239,6 @@ TEST(Route, serializeMplsRoute) {
   Route<LabelID> rt(Route<LabelID>::makeThrift(LabelID(100)));
   rt.update(clientId, RouteNextHopEntry(nxtHops, DISTANCE));
   validateThriftStructNodeSerialization(rt);
-
-  // to folly dynamic
-  folly::dynamic obj = rt.toFollyDynamic();
-  // to string
-  folly::json::serialization_opts serOpts;
-  serOpts.allow_non_string_keys = true;
-  std::string json = folly::json::serialize(obj, serOpts);
-  // back to folly dynamic
-  folly::dynamic obj2 = folly::parseJson(json, serOpts);
-  // back to Route object
-  auto rt2 = Route<LabelID>::fromFollyDynamic(obj2);
-  ASSERT_TRUE(rt2->has(clientId, RouteNextHopEntry(nxtHops, DISTANCE)));
-  EXPECT_EQ(int32_t(rt2->getID()), 100);
-  validateThriftStructNodeSerialization(*rt2);
 }
 
 // Serialization/deseralization of Routes with counterID
@@ -279,20 +252,6 @@ TEST(Route, serializeRouteCounterID) {
       RouteNextHopEntry(nxtHops, DISTANCE, counterID)));
   rt.setResolved(RouteNextHopEntry(nxtHops, DISTANCE, counterID));
   validateThriftStructNodeSerialization(rt);
-
-  // to folly dynamic
-  folly::dynamic obj = rt.toFollyDynamic();
-  // to string
-  folly::json::serialization_opts serOpts;
-  serOpts.allow_non_string_keys = true;
-  std::string json = folly::json::serialize(obj, serOpts);
-  // back to folly dynamic
-  folly::dynamic obj2 = folly::parseJson(json, serOpts);
-  // back to Route object
-  auto rt2 = Route<IPAddressV4>::fromFollyDynamic(obj2);
-  EXPECT_EQ(*(rt2->getEntryForClient(clientId)->getCounterID()), counterID);
-  EXPECT_EQ(rt2->getForwardInfo().getCounterID(), counterID);
-  validateNodeSerialization(*rt2);
 }
 
 // Serialization/deseralization of Routes with counterID
@@ -309,20 +268,6 @@ TEST(Route, serializeRouteClassID) {
   rt.setResolved(RouteNextHopEntry(
       nxtHops, DISTANCE, std::optional<RouteCounterID>(), classID));
   validateNodeSerialization(rt);
-
-  // to folly dynamic
-  folly::dynamic obj = rt.toFollyDynamic();
-  // to string
-  folly::json::serialization_opts serOpts;
-  serOpts.allow_non_string_keys = true;
-  std::string json = folly::json::serialize(obj, serOpts);
-  // back to folly dynamic
-  folly::dynamic obj2 = folly::parseJson(json, serOpts);
-  // back to Route object
-  auto rt2 = Route<IPAddressV4>::fromFollyDynamic(obj2);
-  EXPECT_EQ(*(rt2->getEntryForClient(clientId)->getClassID()), classID);
-  EXPECT_EQ(rt2->getForwardInfo().getClassID(), classID);
-  validateNodeSerialization(*rt2);
 }
 
 // Test utility functions for converting RouteNextHopSet to thrift and back
@@ -449,9 +394,6 @@ TEST(Route, nexthopFromThriftAndDynamic) {
   *action.action() = MplsActionCode::PUSH;
   action.pushLabels() = MplsLabelStack{501, 502, 503};
   EXPECT_EQ(util::fromThrift(nexthop).toThrift(), nexthop);
-  EXPECT_EQ(
-      util::nextHopFromFollyDynamic(util::fromThrift(nexthop).toFollyDynamic()),
-      util::fromThrift(nexthop));
 }
 
 TEST(RoutePrefix, Thrift) {

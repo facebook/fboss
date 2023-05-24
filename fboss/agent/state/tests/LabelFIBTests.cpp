@@ -114,7 +114,7 @@ TEST(LabelFIBTests, updateLabelForwardingEntry) {
   }
 }
 
-TEST(LabelFIBTests, toAndFromFollyDynamic) {
+TEST(LabelFIBTests, toAndFromThrift) {
   auto stateA = testStateA();
   auto handle = createTestHandle(stateA);
   auto sw = handle->getSw();
