@@ -391,7 +391,7 @@ void portLaneLatchStatusListAttr(
           prefix,
           "list[",
           j,
-          "].",
+          "].value.",
           "current_status=",
           attr_list[i]
               .value.portlanelatchstatuslist.list[j]
@@ -400,7 +400,7 @@ void portLaneLatchStatusListAttr(
           prefix,
           "list[",
           j,
-          "].",
+          "].value.",
           "changed=",
           attr_list[i].value.portlanelatchstatuslist.list[j].value.changed));
     }
