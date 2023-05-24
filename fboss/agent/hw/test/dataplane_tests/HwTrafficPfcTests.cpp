@@ -27,6 +27,7 @@ namespace {
 static constexpr auto kGlobalSharedBytes{20000};
 static constexpr auto kGlobalHeadroomBytes{4771136};
 static constexpr auto kPgLimitBytes{2200};
+static constexpr auto kPgResumeOffsetBytes{1800};
 static constexpr auto kPgHeadroomBytes{293624};
 static constexpr auto kLosslessTrafficClass{2};
 static constexpr auto kLosslessPriority{2};
@@ -41,6 +42,7 @@ struct PfcBufferParams {
   int pgHeadroom = kPgHeadroomBytes;
   std::optional<facebook::fboss::cfg::MMUScalingFactor> scalingFactor =
       facebook::fboss::cfg::MMUScalingFactor::ONE_128TH;
+  int resumeOffset = kPgResumeOffsetBytes;
 };
 
 struct TrafficTestParams {
@@ -292,7 +294,8 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       std::map<std::string, std::vector<cfg::PortPgConfig>>& portPgConfigMap,
       int pgLimit,
       int pgHeadroom,
-      std::optional<cfg::MMUScalingFactor> scalingFactor) {
+      std::optional<cfg::MMUScalingFactor> scalingFactor,
+      int resumeOffset) {
     std::vector<cfg::PortPgConfig> portPgConfigs;
     // create 2 pgs
     for (auto pgId : kLosslessPgIds) {
@@ -303,6 +306,8 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       pgConfig.minLimitBytes() = pgLimit;
       // set large enough headroom to avoid drop
       pgConfig.headroomLimitBytes() = pgHeadroom;
+      // resume offset
+      pgConfig.resumeOffsetBytes() = resumeOffset;
       // set scaling factor
       if (scalingFactor) {
         pgConfig.scalingFactor() = *scalingFactor;
@@ -319,6 +324,8 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       pgConfig.minLimitBytes() = pgLimit;
       // headroom set 0 identifies lossy pgs
       pgConfig.headroomLimitBytes() = 0;
+      // resume offset
+      pgConfig.resumeOffsetBytes() = resumeOffset;
       // set scaling factor
       if (scalingFactor) {
         pgConfig.scalingFactor() = *scalingFactor;
@@ -345,7 +352,8 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
         portPgConfigMap,
         buffer.pgLimit,
         buffer.pgHeadroom,
-        buffer.scalingFactor);
+        buffer.scalingFactor,
+        buffer.resumeOffset);
     newCfg.portPgConfigs() = portPgConfigMap;
 
     // create buffer pool
@@ -599,7 +607,8 @@ INSTANTIATE_TEST_SUITE_P(
             .buffer =
                 PfcBufferParams{
                     .globalShared = kGlobalSharedBytes * 5,
-                    .pgLimit = kPgLimitBytes / 3},
+                    .pgLimit = kPgLimitBytes / 3,
+                    .resumeOffset = kPgResumeOffsetBytes / 3},
             .scale = true},
         TrafficTestParams{
             .buffer =
