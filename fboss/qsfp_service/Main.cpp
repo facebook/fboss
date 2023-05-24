@@ -26,7 +26,7 @@ DEFINE_int32(
     "if we need to change or fetch data for transceivers");
 DEFINE_int32(
     xphy_stats_loop_interval,
-    60,
+    10,
     "Interval (in seconds) to run the loop that updates all xphy ports stats");
 
 DECLARE_int32(port);
