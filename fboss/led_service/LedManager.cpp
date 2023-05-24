@@ -2,6 +2,7 @@
 
 #include "fboss/led_service/LedManager.h"
 #include "fboss/agent/EnumUtils.h"
+#include "fboss/agent/platforms/common/fuji/FujiPlatformMapping.h"
 #include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
@@ -29,6 +30,8 @@ LedManager::LedManager() {
             .get();
 
     platformMapping_ = std::make_unique<MontblancPlatformMapping>();
+  } else if (mode == PlatformType::PLATFORM_FUJI) {
+    platformMapping_ = std::make_unique<FujiPlatformMapping>("");
   }
 
   eventBase_ = std::make_unique<folly::EventBase>();

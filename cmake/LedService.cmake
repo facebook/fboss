@@ -26,6 +26,7 @@ target_link_libraries(led_core_lib
   led_structs_types_cpp2
   log_thrift_call
   montblanc_bsp
+  fuji_platform_mapping
   montblanc_platform_mapping
   product_info
   Folly::folly
