@@ -225,28 +225,6 @@ class ThriftyFields {
 
   virtual ~ThriftyFields() = default;
 
-  static FieldsT fromFollyDynamic(folly::dynamic const& dyn) {
-    if (ThriftyUtils::nodeNeedsMigration(dyn)) {
-      XLOG(FATAL) << "incomptaible schema detected";
-    } else {
-      // Schema is up to date meaning there is no migration required
-      return fromJson(folly::toJson(dyn));
-    }
-  }
-
-  folly::dynamic toFollyDynamic() const {
-    auto dyn = folly::parseJson(this->str());
-    return dyn;
-  }
-
-  static FieldsT fromJson(const folly::fbstring& jsonStr) {
-    auto inBuf =
-        folly::IOBuf::wrapBufferAsValue(jsonStr.data(), jsonStr.size());
-    auto obj = apache::thrift::SimpleJSONSerializer::deserialize<ThriftT>(
-        folly::io::Cursor{&inBuf});
-    return FieldsT::fromThrift(obj);
-  }
-
   std::string str() const {
     auto obj = toThrift();
     std::string jsonStr;
