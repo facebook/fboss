@@ -66,23 +66,6 @@ AclTtl AclTtl::fromThrift(state::AclTtl const& ttl) {
   return AclTtl(ttl.get_value(), ttl.get_mask());
 }
 
-folly::dynamic AclTtl::toFollyDynamic() const {
-  folly::dynamic ttl = folly::dynamic::object;
-  ttl[kTtlValue] = static_cast<uint16_t>(value_);
-  ttl[kTtlMask] = static_cast<uint16_t>(mask_);
-  return ttl;
-}
-
-AclTtl AclTtl::fromFollyDynamic(const folly::dynamic& ttlJson) {
-  if (ttlJson.find(kTtlValue) == ttlJson.items().end()) {
-    throw FbossError("ttl should have a value set");
-  }
-  if (ttlJson.find(kTtlMask) == ttlJson.items().end()) {
-    throw FbossError("ttl should have a mask set");
-  }
-  return AclTtl(ttlJson[kTtlValue].asInt(), ttlJson[kTtlMask].asInt());
-}
-
 std::set<cfg::AclTableQualifier> AclEntry::getRequiredAclTableQualifiers()
     const {
   std::set<cfg::AclTableQualifier> qualifiers{};

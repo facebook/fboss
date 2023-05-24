@@ -75,9 +75,6 @@ class AclTtl {
   state::AclTtl toThrift() const;
   static AclTtl fromThrift(state::AclTtl const& entry);
 
-  folly::dynamic toFollyDynamic() const;
-  static AclTtl fromFollyDynamic(const folly::dynamic& ttlJson);
-
  private:
   uint16_t value_;
   uint16_t mask_;

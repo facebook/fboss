@@ -130,10 +130,6 @@ struct MirrorTunnel {
         folly::MacAddress(*tunnel.dstMac()),
         *tunnel.ttl());
   }
-
-  folly::dynamic toFollyDynamic() const;
-
-  static MirrorTunnel fromFollyDynamic(const folly::dynamic& json);
 };
 
 USE_THRIFT_COW(Mirror);

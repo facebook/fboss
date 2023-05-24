@@ -42,8 +42,6 @@ HwSwitchMatcher scope() {
 }
 } // namespace
 
-#define PP(node) NN(folly::toPrettyJson(node->toFollyDynamic()))
-
 template <typename NTableT>
 void checkChangedNeighborEntries(
     const shared_ptr<SwitchState>& state,
