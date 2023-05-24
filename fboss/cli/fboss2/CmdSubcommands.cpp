@@ -33,6 +33,7 @@ const std::map<std::string, std::string>& kSupportedVerbs() {
       {"start", "Start event"},
       {"stop", "Stop event"},
       {"get", "Get object"},
+      {"reload", "Reload object"},
   };
 
   return supportedVerbs;
