@@ -459,8 +459,6 @@ std::tuple<folly::dynamic, state::WarmbootState> SwSwitch::gracefulExitState()
     // For RIB we employ a optmization to serialize only unresolved routes
     // and recover others from FIB
     thriftSwitchState.routeTables() = rib_->warmBootState();
-    // TODO(pshaikh): delete rib's folly dynamic
-    follySwitchState[kRib] = rib_->unresolvedRoutesFollyDynamic();
   }
   *thriftSwitchState.swSwitchState() = getAppliedState()->toThrift();
   return std::make_tuple(follySwitchState, thriftSwitchState);

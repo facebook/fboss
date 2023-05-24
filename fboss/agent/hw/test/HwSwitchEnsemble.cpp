@@ -522,8 +522,6 @@ HwSwitchEnsemble::gracefulExitState() const {
   if (routingInformationBase_) {
     // For RIB we employ a optmization to serialize only unresolved routes
     // and recover others from FIB
-    follySwitchState[kRib] =
-        routingInformationBase_->unresolvedRoutesFollyDynamic();
     thriftSwitchState.routeTables() = routingInformationBase_->warmBootState();
   }
   *thriftSwitchState.swSwitchState() = getProgrammedState()->toThrift();

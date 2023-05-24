@@ -1877,12 +1877,6 @@ HwInitResult SaiSwitch::initLocked(
           routeTables,
           ret.switchState->getFibs(),
           ret.switchState->getLabelForwardingInformationBase());
-
-    } else if (switchStateJson.find(kRib) != switchStateJson.items().end()) {
-      ret.rib = RoutingInformationBase::fromFollyDynamic(
-          switchStateJson[kRib],
-          ret.switchState->getFibs(),
-          ret.switchState->getLabelForwardingInformationBase());
     }
   }
   initStoreAndManagersLocked(
