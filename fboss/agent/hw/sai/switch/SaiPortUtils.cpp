@@ -12,15 +12,14 @@
 #if defined(SAI_VERSION_9_0_EA_SIM_ODP) || \
     defined(SAI_VERSION_9_0_EA_DNX_ODP) || \
     defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP)
+#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiportextensions.h>
+#else
+#include <saiportextensions.h>
+#endif
 #endif
 #include "fboss/agent/FbossError.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
-#if defined(SAI_VERSION_9_0_EA_SIM_ODP) || \
-    defined(SAI_VERSION_9_0_EA_DNX_ODP) || \
-    defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP)
-#include <experimental/saiportextensions.h>
-#endif
 
 namespace facebook::fboss::utility {
 
