@@ -26,9 +26,9 @@ from datetime import datetime
 #     ./run_test.py sai --config fuji.agent.materialized_JSON --skip-known-bad-tests "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk4"
 #
 #  2. Run entire SAI DNX regression for Jericho2 and SDK:
-#   ./run_test.py sai --config $confFile --coldboot_only --filter_file=$filter-file
+#   ./run_test.py sai --config $confFile --coldboot_only --skip-known-bad-tests $test-config
 #      Example to run HW Tests on Meru Jericho2 Platform and runs only the known good test listed for Jericho2 asic.
-#     ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter_file=known-good_regexes-brcm-sai-9.0_ea_dnx_odp-jericho2
+#     ./run_test.py sai --config meru400biu.agent.materialized_JSON --skip-known-bad-tests "brcm/9.0_ea_dnx_odp/9.0_ea_dnx_odp/jericho2"
 #
 # Sample invocation for HW Tests:
 #
@@ -97,12 +97,6 @@ from datetime import datetime
 #
 # TERMS & DEFINITIONS:
 # ---------------------
-#
-# Known good tests:
-# We maintain a list of known good tests per SDK per platform to run the HW tests
-# Known good tests are listed under fboss.git/fboss/oss/hw_known_good_tests/
-# This list can be provided to run_test.py as an argument --filter_file which
-# will run only those tests that are listed in the file
 #
 # Skip known bad tests:
 # We maintain a list of known bad tests per SDK per platform to skip running them
