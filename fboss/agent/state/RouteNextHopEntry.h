@@ -24,22 +24,6 @@ DECLARE_bool(optimized_ucmp);
 
 namespace facebook::fboss {
 
-struct LegacyRouteNextHopEntry
-    : ThriftyFields<LegacyRouteNextHopEntry, state::RouteNextHopEntry> {
-  using BaseT =
-      ThriftyFields<LegacyRouteNextHopEntry, state::RouteNextHopEntry>;
-  using BaseT::BaseT;
-  // used only for folly dynamic methods
-  state::RouteNextHopEntry toThrift() const override {
-    return data();
-  }
-
-  static LegacyRouteNextHopEntry fromThrift(
-      const state::RouteNextHopEntry& data) {
-    return LegacyRouteNextHopEntry(data);
-  }
-};
-
 USE_THRIFT_COW(RouteNextHopEntry);
 
 template <>

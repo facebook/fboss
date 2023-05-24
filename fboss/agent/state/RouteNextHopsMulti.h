@@ -50,22 +50,6 @@ struct thrift_cow::ThriftStructResolver<state::RouteNextHopsMulti> {
   using type = RouteNextHopsMulti;
 };
 
-struct LegacyRouteNextHopsMulti : public ThriftyFields<
-                                      LegacyRouteNextHopsMulti,
-                                      state::RouteNextHopsMulti> {
-  using Base =
-      ThriftyFields<LegacyRouteNextHopsMulti, state::RouteNextHopsMulti>;
-  using Base::Base;
-  state::RouteNextHopsMulti toThrift() const override {
-    return data();
-  }
-
-  static LegacyRouteNextHopsMulti fromThrift(
-      const state::RouteNextHopsMulti& m) {
-    return LegacyRouteNextHopsMulti(m);
-  }
-};
-
 /**
  * Map form clientId -> RouteNextHopEntry
  */
