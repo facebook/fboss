@@ -94,19 +94,12 @@ class RibRouteTables {
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
       FibUpdateFunction fibUpdateCallback,
       void* cookie);
-  folly::dynamic toFollyDynamic() const;
-  folly::dynamic unresolvedRoutesFollyDynamic() const;
   /*
-   * FIB assisted fromFollyDynamicB. With shared data structure of routes
+   * FIB assisted fromThrift. With shared data structure of routes
    * all except the unresolved routes are shared b/w rib and FIB, so
    * we can simply reconstruct RIB by ser/deser unresolved routes
    * and importing FIB
    */
-  static RibRouteTables fromFollyDynamic(
-      const folly::dynamic& ribJson,
-      const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
-      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib);
-
   static RibRouteTables fromThrift(
       const std::map<int32_t, state::RouteTableFields>& ribThrift,
       const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
@@ -128,8 +121,6 @@ class RibRouteTables {
   std::map<int32_t, state::RouteTableFields> warmBootState() const;
 
  private:
-  template <typename Filter>
-  folly::dynamic toFollyDynamicImpl(const Filter& filter) const;
   struct RouteTable {
     IPv4NetworkToRouteMap v4NetworkToRoute;
     IPv6NetworkToRouteMap v6NetworkToRoute;
@@ -301,23 +292,12 @@ class RoutingInformationBase {
         resolver, rid, prefixes, fibUpdateCallback, classId, cookie, true);
   }
 
-  folly::dynamic toFollyDynamic() const {
-    return ribTables_.toFollyDynamic();
-  }
-  folly::dynamic unresolvedRoutesFollyDynamic() const {
-    return ribTables_.unresolvedRoutesFollyDynamic();
-  }
   /*
-   * FIB assisted fromFollyDynamicB. With shared data structure of routes
+   * FIB assisted fromThrift. With shared data structure of routes
    * all except the unresolved routes are shared b/w rib and FIB, so
    * we can simply reconstruct RIB by ser/deser unresolved routes
    * and importing FIB
    */
-  static std::unique_ptr<RoutingInformationBase> fromFollyDynamic(
-      const folly::dynamic& ribJson,
-      const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
-      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib);
-
   static std::unique_ptr<RoutingInformationBase> fromThrift(
       const std::map<int32_t, state::RouteTableFields>& ribJson,
       const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,

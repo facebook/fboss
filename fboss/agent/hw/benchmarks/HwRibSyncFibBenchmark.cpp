@@ -38,8 +38,8 @@ BENCHMARK(RibSyncFibBenchmark) {
   CHECK_EQ(1, routeChunks.size());
   // Create a dummy rib since we don't want to go through
   // AgentSwitchEnsemble and write to HW
-  auto rib = RoutingInformationBase::fromFollyDynamic(
-      ensemble->getSw()->getRib()->toFollyDynamic(), nullptr, nullptr);
+  auto rib = RoutingInformationBase::fromThrift(
+      ensemble->getSw()->getRib()->toThrift(), nullptr, nullptr);
   auto switchState = ensemble->getSw()->getState();
   rib->update(
       ensemble->getSw()->getScopeResolver(),

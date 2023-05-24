@@ -563,63 +563,6 @@ void RoutingInformationBase::setClassIDImpl(
   }
 }
 
-folly::dynamic RibRouteTables::toFollyDynamic() const {
-  return toFollyDynamicImpl([](const auto& /*route*/) { return true; });
-}
-
-folly::dynamic RibRouteTables::unresolvedRoutesFollyDynamic() const {
-  return toFollyDynamicImpl(
-      [](const auto& route) { return !route->isResolved(); });
-}
-
-template <typename Filter>
-folly::dynamic RibRouteTables::toFollyDynamicImpl(const Filter& filter) const {
-  folly::dynamic rib = folly::dynamic::object;
-
-  auto lockedRouteTables = synchronizedRouteTables_.rlock();
-  for (const auto& routeTable : *lockedRouteTables) {
-    auto routerIdStr =
-        folly::to<std::string>(static_cast<uint32_t>(routeTable.first));
-    rib[routerIdStr] = folly::dynamic::object;
-    rib[routerIdStr][kRouterId] = static_cast<uint32_t>(routeTable.first);
-    rib[routerIdStr][kRibV4] =
-        routeTable.second.v4NetworkToRoute.toFollyDynamic(filter);
-    rib[routerIdStr][kRibV6] =
-        routeTable.second.v6NetworkToRoute.toFollyDynamic(filter);
-    rib[routerIdStr][kRibMpls] =
-        routeTable.second.labelToRoute.toFollyDynamic(filter);
-  }
-
-  return rib;
-}
-
-RibRouteTables RibRouteTables::fromFollyDynamic(
-    const folly::dynamic& ribJson,
-    const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
-    const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib) {
-  RibRouteTables rib;
-  auto lockedRouteTables = rib.synchronizedRouteTables_.wlock();
-  for (const auto& routeTable : ribJson.items()) {
-    auto vrf = RouterID(routeTable.first.asInt());
-    NetworkToRouteMap<LabelID> mplsTable;
-    if (routeTable.second.find(kRibMpls) != routeTable.second.items().end()) {
-      mplsTable =
-          LabelToRouteMap::fromFollyDynamic(routeTable.second[kRibMpls]);
-    }
-    lockedRouteTables->insert(std::make_pair(
-        vrf,
-        RouteTable{
-            IPv4NetworkToRouteMap::fromFollyDynamic(routeTable.second[kRibV4]),
-            IPv6NetworkToRouteMap::fromFollyDynamic(routeTable.second[kRibV6]),
-            std::move(mplsTable)}));
-  }
-
-  if (fibs) {
-    rib.importFibs(lockedRouteTables, fibs, labelFib);
-  }
-  return rib;
-}
-
 RibRouteTables RibRouteTables::fromThrift(
     const std::map<int32_t, state::RouteTableFields>& ribThrift,
     const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
@@ -636,16 +579,6 @@ RibRouteTables RibRouteTables::fromThrift(
   if (fibs) {
     rib.importFibs(lockedRouteTables, fibs, labelFib);
   }
-  return rib;
-}
-
-std::unique_ptr<RoutingInformationBase>
-RoutingInformationBase::fromFollyDynamic(
-    const folly::dynamic& ribJson,
-    const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
-    const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib) {
-  auto rib = std::make_unique<RoutingInformationBase>();
-  rib->ribTables_ = RibRouteTables::fromFollyDynamic(ribJson, fibs, labelFib);
   return rib;
 }
 
