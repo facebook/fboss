@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/test/MultiNodeTest.h"
@@ -121,7 +122,7 @@ class MultiNodeLoadBalancerTest : public MultiNodeTest {
 TEST_F(MultiNodeLoadBalancerTest, verifyFullHashLoadBalance) {
   auto verify = [this]() {
     auto state = sw()->getState();
-    auto vlan = state->getVlans()->getFirstMap()->cbegin()->second->getID();
+    auto vlan = util::getFirstMap(state->getVlans())->cbegin()->second->getID();
     auto localMac = state->getInterfaces()->getInterfaceInVlan(vlan)->getMac();
     for (auto isV6 : {true, false}) {
       facebook::fboss::utility::pumpTraffic(

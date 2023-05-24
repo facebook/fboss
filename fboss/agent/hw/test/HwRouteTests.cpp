@@ -19,6 +19,7 @@
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -574,7 +575,7 @@ TYPED_TEST(HwRouteTest, AddHostRouteAndNeighbor) {
     auto ip = this->kGetRoutePrefix3().network();
     // add neighbor
     auto state = this->getProgrammedState();
-    auto [portId, port] = *(state->getPorts()->getFirstMap()->cbegin());
+    auto [portId, port] = *util::getFirstMap(state->getPorts())->cbegin();
     auto vlan = state->getVlans()->getNode(port->getIngressVlan());
     auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
         vlan->getID(), &state);

@@ -106,7 +106,7 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
     waitForStateUpdates(sw_);
     EXPECT_EQ(
         sysPorts->toThrift(),
-        sw_->getState()->getRemoteSystemPorts()->getFirstMap()->toThrift());
+        sw_->getState()->getRemoteSystemPorts()->getAllNodes()->toThrift());
 
     for (const auto& [_, intfMap] :
          std::as_const(*sw_->getState()->getRemoteInterfaces())) {
@@ -134,7 +134,7 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
     }
     EXPECT_EQ(
         expectedRifs.toThrift(),
-        sw_->getState()->getRemoteInterfaces()->getFirstMap()->toThrift());
+        sw_->getState()->getRemoteInterfaces()->getAllNodes()->toThrift());
 
     // neighbor entries are modified to set isLocal=false
     // Thus, if neighbor table is non-empty, programmed vs. actually
@@ -143,7 +143,7 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
     // programmed vs actually programmed state would be equal.
     EXPECT_TRUE(
         rifs->toThrift() !=
-            sw_->getState()->getRemoteInterfaces()->getFirstMap()->toThrift() ||
+            sw_->getState()->getRemoteInterfaces()->getAllNodes()->toThrift() ||
         noNeighbors || !publishState);
   };
 

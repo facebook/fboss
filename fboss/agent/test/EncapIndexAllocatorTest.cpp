@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/switch_asics/MockAsic.h"
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
 #include "fboss/agent/state/NeighborEntry.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -42,18 +43,16 @@ class EncapIndexAllocatorTest : public ::testing::Test {
       std::shared_ptr<SwitchState> state,
       const folly::IPAddressV6& ip,
       int64_t encapIdx) const {
-    auto firstVlan = state->getVlans()->getFirstMap()->cbegin()->second;
+    auto firstVlan = util::getFirstMap(state->getVlans())->cbegin()->second;
     state::NeighborEntryFields nbr;
     nbr.mac() = "02:00:00:00:00:01";
     nbr.interfaceId() = static_cast<int>(firstVlan->getInterfaceID());
     nbr.ipaddress() = ip.str();
-    nbr.portId() = PortDescriptor(getSw()
-                                      ->getState()
-                                      ->getPorts()
-                                      ->getFirstMap()
-                                      ->cbegin()
-                                      ->second->getID())
-                       .toThrift();
+    nbr.portId() =
+        PortDescriptor(util::getFirstMap(getSw()->getState()->getPorts())
+                           ->cbegin()
+                           ->second->getID())
+            .toThrift();
     nbr.state() = state::NeighborState::Reachable;
     nbr.encapIndex() = encapIdx;
     auto nbrTable =
@@ -72,13 +71,11 @@ class EncapIndexAllocatorTest : public ::testing::Test {
     nbr.mac() = "02:00:00:00:00:01";
     nbr.interfaceId() = static_cast<int>(firstIntf->getID());
     nbr.ipaddress() = ip.str();
-    nbr.portId() = PortDescriptor(getSw()
-                                      ->getState()
-                                      ->getPorts()
-                                      ->getFirstMap()
-                                      ->cbegin()
-                                      ->second->getID())
-                       .toThrift();
+    nbr.portId() =
+        PortDescriptor(util::getFirstMap(getSw()->getState()->getPorts())
+                           ->cbegin()
+                           ->second->getID())
+            .toThrift();
     nbr.state() = state::NeighborState::Reachable;
     nbr.encapIndex() = encapIdx;
     auto nbrTable = firstIntf->getNdpTable()->toThrift();

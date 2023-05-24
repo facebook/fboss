@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/CounterCache.h"
 
@@ -23,8 +24,8 @@ namespace facebook::fboss {
 
 void InterruptTest::setUpPorts() {
   SwSwitch* swSwitch = sw();
-  PortID firstPortID =
-      PortID(swSwitch->getState()->getPorts()->getFirstMap()->cbegin()->first);
+  PortID firstPortID = PortID(
+      util::getFirstMap(swSwitch->getState()->getPorts())->cbegin()->first);
   XLOG(DBG2) << " Enable mac loopback on the first port " << firstPortID;
   setPortLoopbackMode(firstPortID, cfg::PortLoopbackMode::MAC);
   frontPanelPortToLoopTraffic_ = firstPortID;
@@ -69,9 +70,7 @@ bool InterruptTest::RunOneLoop(SoakLoopArgs* args) {
       true, // is IPv6
       swSwitch->getHw(),
       platform->getLocalMac(),
-      swSwitch->getState()
-          ->getVlans()
-          ->getFirstMap()
+      util::getFirstMap(swSwitch->getState()->getVlans())
           ->cbegin()
           ->second->getID(),
       frontPanelPortToLoopTraffic_);

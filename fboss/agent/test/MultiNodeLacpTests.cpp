@@ -23,6 +23,7 @@
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortDescriptor.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/MultiNodeTest.h"
@@ -274,7 +275,8 @@ class MultiNodeLacpTest : public MultiNodeTest {
     disableTTLDecrementsForRoute<folly::IPAddressV4>({folly::IPAddressV4(), 0});
     if (isDUT()) {
       auto state = sw()->getState();
-      auto vlan = state->getVlans()->getFirstMap()->cbegin()->second->getID();
+      auto vlan =
+          util::getFirstMap(state->getVlans())->cbegin()->second->getID();
       auto srcMac = state->getInterfaces()->getInterfaceInVlan(vlan)->getMac();
       auto destMac =
           getNeighborEntry(
@@ -455,7 +457,7 @@ class MultiNodeRoutingLoop : public MultiNodeLacpTest {
     XLOG(INFO) << "creating data plane flood";
     disableTTLDecrementsForRoute<folly::IPAddressV6>(prefix_);
     auto state = sw()->getState();
-    auto vlan = state->getVlans()->getFirstMap()->cbegin()->second->getID();
+    auto vlan = util::getFirstMap(state->getVlans())->cbegin()->second->getID();
     auto srcMac = state->getInterfaces()->getInterfaceInVlan(vlan)->getMac();
     auto destMac =
         getNeighborEntry(

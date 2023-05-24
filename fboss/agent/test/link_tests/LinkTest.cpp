@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
@@ -268,8 +269,9 @@ void LinkTest::createL3DataplaneFlood(
       sw()->getState(), sw()->getPlatform()->getLocalMac());
   programDefaultRoute(ecmpPorts, ecmp6);
   disableTTLDecrements(ecmpPorts);
-  auto vlanID =
-      sw()->getState()->getVlans()->getFirstMap()->cbegin()->second->getID();
+  auto vlanID = util::getFirstMap(sw()->getState()->getVlans())
+                    ->cbegin()
+                    ->second->getID();
   utility::pumpTraffic(
       true, sw()->getHw(), sw()->getPlatform()->getLocalMac(), vlanID);
   // TODO: Assert that traffic reached a certain rate

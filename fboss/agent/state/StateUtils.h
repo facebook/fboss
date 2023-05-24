@@ -24,6 +24,11 @@ std::string createTunIntfName(InterfaceID ifID);
 bool isTunIntfName(const std::string& ifName);
 InterfaceID getIDFromTunIntfName(const std::string& ifName);
 
+template <typename MswitchMapT>
+auto getFirstMap(const std::shared_ptr<MswitchMapT>& map) {
+  return map->size() ? map->cbegin()->second : nullptr;
+}
+
 } // namespace util
 
 } // namespace facebook::fboss

@@ -16,6 +16,7 @@
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 
@@ -227,12 +228,12 @@ TEST(Interface, Modify) {
     cfg::SwitchConfig config = testConfigA();
     auto stateV1 = publishAndApplyConfig(state, &config, platform.get());
     stateV1->publish();
-    auto origIntfMap = stateV1->getInterfaces()->getFirstMap();
+    auto origIntfMap = util::getFirstMap(stateV1->getInterfaces());
     auto origIntf = origIntfMap->cbegin()->second;
     auto origIntfs = stateV1->getInterfaces();
     auto newIntf = origIntf->modify(&stateV1);
     EXPECT_NE(origIntf.get(), newIntf);
-    EXPECT_NE(origIntfMap, stateV1->getInterfaces()->getFirstMap());
+    EXPECT_NE(origIntfMap, util::getFirstMap(stateV1->getInterfaces()));
     EXPECT_NE(origIntfs, stateV1->getInterfaces());
   }
   {
@@ -242,12 +243,12 @@ TEST(Interface, Modify) {
     cfg::SwitchConfig config = testConfigA(cfg::SwitchType::VOQ);
     auto stateV1 = publishAndApplyConfig(state, &config, platform.get());
     stateV1->publish();
-    auto origIntfMap = stateV1->getInterfaces()->getFirstMap();
+    auto origIntfMap = util::getFirstMap(stateV1->getInterfaces());
     auto origIntf = origIntfMap->cbegin()->second;
     auto origIntfs = stateV1->getInterfaces();
     auto newIntf = origIntf->modify(&stateV1);
     EXPECT_NE(origIntf.get(), newIntf);
-    EXPECT_NE(origIntfMap, stateV1->getInterfaces()->getFirstMap());
+    EXPECT_NE(origIntfMap, util::getFirstMap(stateV1->getInterfaces()));
     EXPECT_NE(origIntfs, stateV1->getInterfaces());
   }
 }
@@ -531,8 +532,8 @@ void checkChangedIntfs(
   EXPECT_EQ(addedIDs, foundAdded);
   EXPECT_EQ(removedIDs, foundRemoved);
 
-  validateSerialization(oldIntfs->getFirstMap());
-  validateSerialization(newIntfs->getFirstMap());
+  validateSerialization(util::getFirstMap(oldIntfs));
+  validateSerialization(util::getFirstMap(newIntfs));
 }
 
 TEST(InterfaceMap, Modify) {
@@ -870,5 +871,5 @@ TEST(Interface, getAllNodes) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_EQ(
       *stateV1->getInterfaces()->getAllNodes(),
-      *stateV1->getInterfaces()->getFirstMap());
+      *util::getFirstMap(stateV1->getInterfaces()));
 }

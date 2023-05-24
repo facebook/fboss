@@ -27,10 +27,12 @@
 #include "fboss/agent/packet/TCPHeader.h"
 #include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/TestUtils.h"
 
 using namespace facebook::fboss;
 using folly::MacAddress;
@@ -114,7 +116,8 @@ std::optional<VlanID> firstVlanID(const cfg::SwitchConfig& cfg) {
 std::optional<VlanID> firstVlanID(const std::shared_ptr<SwitchState>& state) {
   std::optional<VlanID> firstVlanId;
   if (state->getVlans()->numNodes()) {
-    firstVlanId = (*state->getVlans()->getFirstMap()->cbegin()).second->getID();
+    firstVlanId =
+        util::getFirstMap(state->getVlans())->cbegin()->second->getID();
   }
   return firstVlanId;
 }
