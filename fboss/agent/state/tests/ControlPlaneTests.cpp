@@ -197,7 +197,7 @@ TEST(ControlPlane, serialize) {
 
 TEST(ControlPlane, modify) {
   auto state = make_shared<SwitchState>();
-  auto controlPlane = state->getMultiSwitchControlPlane();
+  auto controlPlane = state->getControlPlane();
   // modify unpublished state
   EXPECT_EQ(controlPlane.get(), controlPlane->modify(&state));
 
@@ -224,8 +224,7 @@ TEST(ControlPlane, applyDefaultConfig) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
 
-  for (const auto& entry :
-       std::as_const(*stateV1->getMultiSwitchControlPlane())) {
+  for (const auto& entry : std::as_const(*stateV1->getControlPlane())) {
     auto newQueues = entry.second->getQueues();
     // it should always generate all queues
     EXPECT_EQ(newQueues->size(), kNumCPUQueues);
@@ -242,7 +241,7 @@ TEST(ControlPlane, applyDefaultConfig) {
       }
     }
   }
-  validateThriftMapMapSerialization(*stateV1->getMultiSwitchControlPlane());
+  validateThriftMapMapSerialization(*stateV1->getControlPlane());
 }
 
 TEST(ControlPlane, applySameConfig) {
@@ -255,7 +254,7 @@ TEST(ControlPlane, applySameConfig) {
   *config.cpuQueues() = cfgCpuQueues;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
-  validateThriftMapMapSerialization(*stateV1->getMultiSwitchControlPlane());
+  validateThriftMapMapSerialization(*stateV1->getControlPlane());
 
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_EQ(nullptr, stateV2);
@@ -271,7 +270,7 @@ TEST(ControlPlane, resetLowPrioQueue) {
   *config.cpuQueues() = cfgCpuQueues;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
-  validateThriftMapMapSerialization(*stateV1->getMultiSwitchControlPlane());
+  validateThriftMapMapSerialization(*stateV1->getControlPlane());
 
   auto newCfgCpuQueues = getConfigCPUQueues();
   newCfgCpuQueues.erase(newCfgCpuQueues.begin() + 3);
@@ -279,10 +278,9 @@ TEST(ControlPlane, resetLowPrioQueue) {
   *newConfig.cpuQueues() = newCfgCpuQueues;
   auto stateV2 = publishAndApplyConfig(stateV1, &newConfig, platform.get());
   EXPECT_NE(nullptr, stateV2);
-  validateThriftMapMapSerialization(*stateV2->getMultiSwitchControlPlane());
+  validateThriftMapMapSerialization(*stateV2->getControlPlane());
 
-  for (const auto& entry :
-       std::as_const(*stateV2->getMultiSwitchControlPlane())) {
+  for (const auto& entry : std::as_const(*stateV2->getControlPlane())) {
     auto newQueues = entry.second->getQueues();
     // it should always generate all queues
     EXPECT_EQ(newQueues->size(), kNumCPUQueues);
@@ -314,7 +312,7 @@ TEST(ControlPlane, changeLowPrioQueue) {
   *config.cpuQueues() = cfgCpuQueues;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
-  validateThriftMapMapSerialization(*stateV1->getMultiSwitchControlPlane());
+  validateThriftMapMapSerialization(*stateV1->getControlPlane());
 
   auto newCfgCpuQueues = getConfigCPUQueues();
   // change low queue pps from 100 to 1000. the last one is low queue
@@ -326,10 +324,9 @@ TEST(ControlPlane, changeLowPrioQueue) {
   *newConfig.cpuQueues() = newCfgCpuQueues;
   auto stateV2 = publishAndApplyConfig(stateV1, &newConfig, platform.get());
   EXPECT_NE(nullptr, stateV2);
-  validateThriftMapMapSerialization(*stateV2->getMultiSwitchControlPlane());
+  validateThriftMapMapSerialization(*stateV2->getControlPlane());
 
-  for (const auto& entry :
-       std::as_const(*stateV2->getMultiSwitchControlPlane())) {
+  for (const auto& entry : std::as_const(*stateV2->getControlPlane())) {
     auto newQueues = entry.second->getQueues();
     // it should always generate all queues
     EXPECT_EQ(newQueues->size(), kNumCPUQueues);
@@ -373,10 +370,9 @@ TEST(ControlPlane, testRxReasonToQueueBackwardsCompat) {
       {cfg::PacketRxReason::ARP, 9}};
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(stateV1, nullptr);
-  validateThriftMapMapSerialization(*stateV1->getMultiSwitchControlPlane());
+  validateThriftMapMapSerialization(*stateV1->getControlPlane());
 
-  for (const auto& entry :
-       std::as_const(*stateV1->getMultiSwitchControlPlane())) {
+  for (const auto& entry : std::as_const(*stateV1->getControlPlane())) {
     const auto& reasonToQueue1 = entry.second->getRxReasonToQueue();
     EXPECT_EQ(reasonToQueue1->size(), 1);
     const auto& entry1 = reasonToQueue1->ref(0);

@@ -305,8 +305,7 @@ SwitchState::getFibs() const {
   return safe_cref<switch_state_tags::fibsMap>();
 }
 
-const std::shared_ptr<MultiControlPlane>&
-SwitchState::getMultiSwitchControlPlane() const {
+const std::shared_ptr<MultiControlPlane>& SwitchState::getControlPlane() const {
   return safe_cref<switch_state_tags::controlPlaneMap>();
 }
 

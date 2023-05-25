@@ -3859,7 +3859,7 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
     }
     return nullptr;
   }
-  auto multiSwitchControlPlane = orig_->getMultiSwitchControlPlane();
+  auto multiSwitchControlPlane = orig_->getControlPlane();
   CHECK_LE(multiSwitchControlPlane->size(), 1);
   auto origCPU = multiSwitchControlPlane->size()
       ? multiSwitchControlPlane->cbegin()->second
