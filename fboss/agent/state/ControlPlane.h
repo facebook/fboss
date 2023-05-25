@@ -80,8 +80,6 @@ class ControlPlane
     return queues->impl();
   }
 
-  ControlPlane* modify(std::shared_ptr<SwitchState>* state);
-
   static cfg::PacketRxReasonToQueue makeRxReasonToQueueEntry(
       cfg::PacketRxReason reason,
       uint16_t queueId);

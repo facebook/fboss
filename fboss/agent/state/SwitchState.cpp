@@ -129,9 +129,9 @@ SwitchState::SwitchState() {
   resetIntfs(std::make_shared<MultiSwitchInterfaceMap>());
   resetRemoteIntfs(std::make_shared<MultiSwitchInterfaceMap>());
   resetTransceivers(std::make_shared<MultiSwitchTransceiverMap>());
+  resetControlPlane(std::make_shared<MultiControlPlane>());
   // default multi-map (for single npu) system
   resetQosPolicies(std::make_shared<QosPolicyMap>());
-  resetControlPlane(std::make_shared<ControlPlane>());
   resetSwitchSettings(std::make_shared<SwitchSettings>());
 }
 
@@ -244,18 +244,6 @@ void SwitchState::resetQosPolicies(
 }
 
 void SwitchState::resetControlPlane(
-    std::shared_ptr<ControlPlane> controlPlane) {
-  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
-  auto controlPlaneMap = cref<switch_state_tags::controlPlaneMap>()->clone();
-  if (!controlPlaneMap->getNodeIf(matcher)) {
-    controlPlaneMap->addNode(matcher, controlPlane);
-  } else {
-    controlPlaneMap->updateNode(matcher, controlPlane);
-  }
-  ref<switch_state_tags::controlPlaneMap>() = controlPlaneMap;
-}
-
-void SwitchState::resetControlPlane(
     std::shared_ptr<MultiControlPlane> controlPlane) {
   ref<switch_state_tags::controlPlaneMap>() = controlPlane;
 }
@@ -315,11 +303,6 @@ const std::shared_ptr<MultiSwitchQosPolicyMap>& SwitchState::getQosPolicies()
 const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>&
 SwitchState::getFibs() const {
   return safe_cref<switch_state_tags::fibsMap>();
-}
-
-const std::shared_ptr<ControlPlane>& SwitchState::getControlPlane() const {
-  return cref<switch_state_tags::controlPlaneMap>()->cref(
-      HwSwitchMatcher::defaultHwSwitchMatcherKey());
 }
 
 const std::shared_ptr<MultiControlPlane>&
@@ -546,11 +529,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   state->fromThrift<
       switch_state_tags::qosPolicyMaps,
       switch_state_tags::qosPolicyMap>(true /*emptyMnpuMapOk*/);
-
-  if (state->cref<switch_state_tags::controlPlaneMap>()->empty()) {
-    // keep map for default npu
-    state->resetControlPlane(state->cref<switch_state_tags::controlPlane>());
-  }
 
   if (state->cref<switch_state_tags::switchSettingsMap>()->empty()) {
     // keep map for default npu

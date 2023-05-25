@@ -359,7 +359,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
 
   const std::shared_ptr<MultiSwitchQosPolicyMap>& getQosPolicies() const;
 
-  const std::shared_ptr<ControlPlane>& getControlPlane() const;
   const std::shared_ptr<MultiControlPlane>& getMultiSwitchControlPlane() const;
 
   const std::shared_ptr<SwitchSettings>& getSwitchSettings() const;
@@ -521,7 +520,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetQosPolicies(const std::shared_ptr<QosPolicyMap>& qosPolicyMap);
   void resetQosPolicies(
       const std::shared_ptr<MultiSwitchQosPolicyMap>& qosPolicyMap);
-  void resetControlPlane(std::shared_ptr<ControlPlane> cpu);
   void resetControlPlane(std::shared_ptr<MultiControlPlane> cpu);
   void resetLoadBalancers(
       std::shared_ptr<MultiSwitchLoadBalancerMap> loadBalancers);
