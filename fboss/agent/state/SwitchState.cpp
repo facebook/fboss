@@ -359,6 +359,11 @@ void SwitchState::resetTransceivers(
   resetDefaultMap<switch_state_tags::transceiverMaps>(transceivers);
 }
 
+void SwitchState::resetTransceivers(
+    std::shared_ptr<MultiSwitchTransceiverMap> transceivers) {
+  ref<switch_state_tags::transceiverMaps>() = transceivers;
+}
+
 const std::shared_ptr<TransceiverMap>& SwitchState::getTransceivers() const {
   return getDefaultMap<switch_state_tags::transceiverMaps>();
 }
