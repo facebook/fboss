@@ -2260,48 +2260,47 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
   };
 
   // Only enabled ports should be return
-  auto checkProgrammedPorts =
-      [&](const std::map<int32_t, cfg::PortProfileID>& programmedPorts) {
-        EXPECT_EQ(programmedPorts.size(), 1);
-        EXPECT_TRUE(
-            programmedPorts.find(kEnabledPort) != programmedPorts.end());
-        // Controlling port should be 100G
-        EXPECT_EQ(
-            programmedPorts.find(kEnabledPort)->second,
-            cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER);
+  auto checkProgrammedPorts = [&](const std::map<int32_t, cfg::PortProfileID>&
+                                      programmedPorts) {
+    EXPECT_EQ(programmedPorts.size(), 1);
+    EXPECT_TRUE(programmedPorts.find(kEnabledPort) != programmedPorts.end());
+    // Controlling port should be 100G
+    EXPECT_EQ(
+        programmedPorts.find(kEnabledPort)->second,
+        cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER);
 
-        // Make sure the enabled ports using the new profile config/pin configs
-        auto platform = sw_->getPlatform();
-        auto tcvr = sw_->getState()->getTransceivers()->getTransceiverIf(id);
-        std::optional<cfg::PlatformPortConfigOverrideFactor> factor;
-        if (tcvr != nullptr) {
-          factor = tcvr->toPlatformPortConfigOverrideFactor();
-        }
-        platform->getPlatformMapping()
-            ->customizePlatformPortConfigOverrideFactor(factor);
-        // Port must exist in the SwitchState
-        const auto port =
-            sw_->getState()->getPorts()->getNodeIf(PortID(kEnabledPort));
-        EXPECT_TRUE(port->isEnabled());
-        PlatformPortProfileConfigMatcher matcher{
-            port->getProfileID(), port->getID(), factor};
-        auto portProfileCfg = platform->getPortProfileConfig(matcher);
-        CHECK(portProfileCfg) << "No port profile config found with matcher:"
-                              << matcher.toString();
-        auto expectedProfileConfig = *portProfileCfg->iphy();
-        const auto& expectedPinConfigs =
-            platform->getPlatformMapping()->getPortIphyPinConfigs(matcher);
+    // Make sure the enabled ports using the new profile config/pin configs
+    auto platform = sw_->getPlatform();
+    auto tcvr = sw_->getState()->getMultiSwitchTransceivers()->getNodeIf(id);
+    std::optional<cfg::PlatformPortConfigOverrideFactor> factor;
+    if (tcvr != nullptr) {
+      factor = tcvr->toPlatformPortConfigOverrideFactor();
+    }
+    platform->getPlatformMapping()->customizePlatformPortConfigOverrideFactor(
+        factor);
+    // Port must exist in the SwitchState
+    const auto port =
+        sw_->getState()->getPorts()->getNodeIf(PortID(kEnabledPort));
+    EXPECT_TRUE(port->isEnabled());
+    PlatformPortProfileConfigMatcher matcher{
+        port->getProfileID(), port->getID(), factor};
+    auto portProfileCfg = platform->getPortProfileConfig(matcher);
+    CHECK(portProfileCfg) << "No port profile config found with matcher:"
+                          << matcher.toString();
+    auto expectedProfileConfig = *portProfileCfg->iphy();
+    const auto& expectedPinConfigs =
+        platform->getPlatformMapping()->getPortIphyPinConfigs(matcher);
 
-        EXPECT_TRUE(expectedProfileConfig == port->getProfileConfig());
-        EXPECT_TRUE(expectedPinConfigs == port->getPinConfigs());
-      };
+    EXPECT_TRUE(expectedProfileConfig == port->getProfileConfig());
+    EXPECT_TRUE(expectedPinConfigs == port->getPinConfigs());
+  };
 
   std::map<int32_t, cfg::PortProfileID> programmedPorts;
   handler.programInternalPhyPorts(
       programmedPorts, preparedTcvrInfo(kCableLength), false);
 
   checkProgrammedPorts(programmedPorts);
-  auto tcvr = sw_->getState()->getTransceivers()->getTransceiver(id);
+  auto tcvr = sw_->getState()->getMultiSwitchTransceivers()->getNode(id);
   EXPECT_EQ(tcvr->getID(), id);
   EXPECT_EQ(*tcvr->getCableLength(), kCableLength);
   EXPECT_EQ(*tcvr->getMediaInterface(), kMediaInterface);
@@ -2316,7 +2315,7 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
       programmedPorts2, preparedTcvrInfo(kCableLength2), false);
 
   checkProgrammedPorts(programmedPorts2);
-  tcvr = sw_->getState()->getTransceivers()->getTransceiver(id);
+  tcvr = sw_->getState()->getMultiSwitchTransceivers()->getNode(id);
   EXPECT_EQ(tcvr->getID(), id);
   EXPECT_EQ(*tcvr->getCableLength(), kCableLength2);
   EXPECT_EQ(*tcvr->getMediaInterface(), kMediaInterface);
@@ -2346,7 +2345,7 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
 
   // Still return programmed ports even though no transceiver there
   checkProgrammedPorts(programmedPorts3);
-  tcvr = sw_->getState()->getTransceivers()->getTransceiverIf(id);
+  tcvr = sw_->getState()->getMultiSwitchTransceivers()->getNodeIf(id);
   EXPECT_TRUE(tcvr == nullptr);
 
   // Remove the same Transceiver again, and make sure no new state created.
@@ -2359,7 +2358,7 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
       programmedPorts3, std::move(unpresentTcvr), false);
   // Still return programmed ports even though no transceiver there
   checkProgrammedPorts(programmedPorts3);
-  tcvr = sw_->getState()->getTransceivers()->getTransceiverIf(id);
+  tcvr = sw_->getState()->getMultiSwitchTransceivers()->getNodeIf(id);
   EXPECT_TRUE(tcvr == nullptr);
   EXPECT_EQ(beforeGen, sw_->getState()->getGeneration());
 }
