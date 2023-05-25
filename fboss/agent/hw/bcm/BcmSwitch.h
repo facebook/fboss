@@ -1067,6 +1067,14 @@ class BcmSwitch : public BcmSwitchIf {
       std::optional<state::BufferPoolFields> oldBufferPoolCfgPtr,
       std::optional<state::BufferPoolFields> newBufferPoolCfgPtr);
 
+  void processControlPlaneEntryChanged(
+      const std::shared_ptr<ControlPlane>& oldCPU,
+      const std::shared_ptr<ControlPlane>& newCPU);
+  void processControlPlaneEntryAdded(
+      const std::shared_ptr<ControlPlane>& newCPU);
+  void processControlPlaneEntryRemoved(
+      const std::shared_ptr<ControlPlane>& oldCPU);
+
   /*
    * Member variables
    */

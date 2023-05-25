@@ -76,7 +76,7 @@ class SaiHostifManager {
       HostifTrapGroupSaiId trapGroupId,
       uint16_t priority,
       const SaiPlatform* platform);
-  void processHostifDelta(const DeltaValue<ControlPlane>& delta);
+  void processHostifDelta(const ThriftMapDelta<MultiControlPlane>& delta);
   SaiQueueHandle* getQueueHandle(const SaiQueueConfig& saiQueueConfig);
   const SaiQueueHandle* getQueueHandle(
       const SaiQueueConfig& saiQueueConfig) const;
@@ -112,6 +112,7 @@ class SaiHostifManager {
   SaiHostifTrapHandle* getHostifTrapHandleImpl(
       cfg::PacketRxReason rxReason) const;
   void publishCpuQueueWatermark(int cosq, uint64_t peakBytes) const;
+  void processHostifEntryDelta(const DeltaValue<ControlPlane>& delta);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

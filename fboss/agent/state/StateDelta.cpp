@@ -216,9 +216,10 @@ MultiSwitchMapDelta<MultiSwitchDsfNodeMap> StateDelta::getDsfNodesDelta()
       old_->getDsfNodes().get(), new_->getDsfNodes().get());
 }
 
-DeltaValue<ControlPlane> StateDelta::getControlPlaneDelta() const {
-  return DeltaValue<ControlPlane>(
-      old_->getControlPlane(), new_->getControlPlane());
+ThriftMapDelta<MultiControlPlane> StateDelta::getControlPlaneDelta() const {
+  return ThriftMapDelta<MultiControlPlane>(
+      old_->getMultiSwitchControlPlane().get(),
+      new_->getMultiSwitchControlPlane().get());
 }
 
 MultiSwitchMapDelta<MultiSwitchMirrorMap> StateDelta::getMirrorsDelta() const {

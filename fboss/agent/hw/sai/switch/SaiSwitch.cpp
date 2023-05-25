@@ -743,11 +743,10 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
         routerID, routeDelta.getFibDelta<folly::IPAddressV6>());
   }
   {
-    auto controlPlaneDelta = delta.getControlPlaneDelta();
-    if (*controlPlaneDelta.getOld() != *controlPlaneDelta.getNew()) {
-      [[maybe_unused]] const auto& lock = lockPolicy.lock();
-      managerTable_->hostifManager().processHostifDelta(controlPlaneDelta);
-    }
+    auto multiSwitchControlPlaneDelta = delta.getControlPlaneDelta();
+    [[maybe_unused]] const auto& lock = lockPolicy.lock();
+    managerTable_->hostifManager().processHostifDelta(
+        multiSwitchControlPlaneDelta);
   }
 
   if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_MPLS_INSEGMENT)) {

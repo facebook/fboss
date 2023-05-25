@@ -357,14 +357,41 @@ void SaiHostifManager::processQueueDelta(
 }
 
 void SaiHostifManager::processHostifDelta(
+    const ThriftMapDelta<MultiControlPlane>& multiSwitchControlPlaneDelta) {
+  DeltaFunctions::forEachChanged(
+      multiSwitchControlPlaneDelta,
+      [&](const std::shared_ptr<ControlPlane>& oldCPU,
+          const std::shared_ptr<ControlPlane>& newCPU) {
+        auto controlPlaneDelta = DeltaValue<ControlPlane>(oldCPU, newCPU);
+        processHostifEntryDelta(controlPlaneDelta);
+      });
+  DeltaFunctions::forEachAdded(
+      multiSwitchControlPlaneDelta,
+      [&](const std::shared_ptr<ControlPlane>& newCPU) {
+        auto controlPlaneDelta =
+            DeltaValue<ControlPlane>(std::make_shared<ControlPlane>(), newCPU);
+        processHostifEntryDelta(controlPlaneDelta);
+      });
+  DeltaFunctions::forEachRemoved(
+      multiSwitchControlPlaneDelta,
+      [&](const std::shared_ptr<ControlPlane>& oldCPU) {
+        auto controlPlaneDelta =
+            DeltaValue<ControlPlane>(oldCPU, std::make_shared<ControlPlane>());
+        processHostifEntryDelta(controlPlaneDelta);
+      });
+}
+
+void SaiHostifManager::processHostifEntryDelta(
     const DeltaValue<ControlPlane>& controlPlaneDelta) {
+  if (*controlPlaneDelta.getOld() == *controlPlaneDelta.getNew()) {
+    return;
+  }
   // TODO: Can we have reason code to a queue mapping that does not have
   // corresponding sai queue oid for cpu port ?
   processRxReasonToQueueDelta(controlPlaneDelta);
   processQueueDelta(controlPlaneDelta);
   processQosDelta(controlPlaneDelta);
 }
-
 SaiQueueHandle* SaiHostifManager::getQueueHandleImpl(
     const SaiQueueConfig& saiQueueConfig) const {
   auto itr = cpuPortHandle_->queues.find(saiQueueConfig);

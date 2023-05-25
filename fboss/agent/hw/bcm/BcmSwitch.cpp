@@ -3688,11 +3688,19 @@ bool BcmSwitch::isValidLabelForwardingEntry(const Route<LabelID>* entry) const {
   return true;
 }
 
-void BcmSwitch::processControlPlaneChanges(const StateDelta& delta) {
-  const auto controlPlaneDelta = delta.getControlPlaneDelta();
-  const auto& oldCPU = controlPlaneDelta.getOld();
-  const auto& newCPU = controlPlaneDelta.getNew();
+void BcmSwitch::processControlPlaneEntryAdded(
+    const std::shared_ptr<ControlPlane>& newCPU) {
+  processControlPlaneEntryChanged(std::make_shared<ControlPlane>(), newCPU);
+}
 
+void BcmSwitch::processControlPlaneEntryRemoved(
+    const std::shared_ptr<ControlPlane>& oldCPU) {
+  processControlPlaneEntryChanged(oldCPU, std::make_shared<ControlPlane>());
+}
+
+void BcmSwitch::processControlPlaneEntryChanged(
+    const std::shared_ptr<ControlPlane>& oldCPU,
+    const std::shared_ptr<ControlPlane>& newCPU) {
   processChangedControlPlaneQueues(oldCPU, newCPU);
   if (oldCPU->getQosPolicy() != newCPU->getQosPolicy()) {
     if (const auto& policy = newCPU->getQosPolicy()) {
@@ -3702,6 +3710,16 @@ void BcmSwitch::processControlPlaneChanges(const StateDelta& delta) {
     }
   }
   processChangedRxReasonToQueueEntries(oldCPU, newCPU);
+}
+
+void BcmSwitch::processControlPlaneChanges(const StateDelta& delta) {
+  const auto controlPlaneDelta = delta.getControlPlaneDelta();
+  forEachAdded(
+      controlPlaneDelta, &BcmSwitch::processControlPlaneEntryAdded, this);
+  forEachChanged(
+      controlPlaneDelta, &BcmSwitch::processControlPlaneEntryChanged, this);
+  forEachRemoved(
+      controlPlaneDelta, &BcmSwitch::processControlPlaneEntryRemoved, this);
 
   // COPP ACL will be handled just as regular ACL in processAclChanges()
 }
