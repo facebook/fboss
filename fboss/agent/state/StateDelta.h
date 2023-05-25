@@ -95,7 +95,7 @@ class StateDelta {
 
   MultiSwitchMapDelta<MultiSwitchMirrorMap> getMirrorsDelta() const;
 
-  ThriftMapDelta<TransceiverMap> getTransceiversDelta() const;
+  MultiSwitchMapDelta<MultiSwitchTransceiverMap> getTransceiversDelta() const;
   MultiSwitchForwardingInformationBaseMapDelta getFibsDelta() const;
   MultiSwitchMapDelta<MultiLabelForwardingInformationBase>
   getLabelForwardingInformationBaseDelta() const;

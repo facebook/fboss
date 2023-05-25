@@ -226,9 +226,11 @@ MultiSwitchMapDelta<MultiSwitchMirrorMap> StateDelta::getMirrorsDelta() const {
       old_->getMirrors().get(), new_->getMirrors().get());
 }
 
-ThriftMapDelta<TransceiverMap> StateDelta::getTransceiversDelta() const {
-  return ThriftMapDelta<TransceiverMap>(
-      old_->getTransceivers().get(), new_->getTransceivers().get());
+MultiSwitchMapDelta<MultiSwitchTransceiverMap>
+StateDelta::getTransceiversDelta() const {
+  return MultiSwitchMapDelta<MultiSwitchTransceiverMap>(
+      old_->getMultiSwitchTransceivers().get(),
+      new_->getMultiSwitchTransceivers().get());
 }
 
 MultiSwitchForwardingInformationBaseMapDelta StateDelta::getFibsDelta() const {
