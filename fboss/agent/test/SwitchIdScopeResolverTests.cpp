@@ -107,6 +107,10 @@ TYPED_TEST(SwitchIdScopeResolverTest, portScope) {
   this->expectSwitchId(PortID(6));
 }
 
+TYPED_TEST(SwitchIdScopeResolverTest, portsScope) {
+  this->expectSwitchId(std::vector<PortID>({PortID(6), PortID(8)}));
+}
+
 TYPED_TEST(SwitchIdScopeResolverTest, portObjScope) {
   state::PortFields portFields;
   portFields.portId() = PortID(1);

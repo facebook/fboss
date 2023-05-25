@@ -71,6 +71,7 @@ class SwitchIdScopeResolver {
   HwSwitchMatcher scope(PortID portId) const;
   HwSwitchMatcher scope(const std::shared_ptr<Port>& port) const;
   HwSwitchMatcher scope(const cfg::Port& port) const;
+  HwSwitchMatcher scope(const std::vector<PortID>& portIds) const;
   HwSwitchMatcher scope(const cfg::AggregatePort& aggPort) const;
   HwSwitchMatcher scope(const std::shared_ptr<AggregatePort>& aggPort) const;
   const HwSwitchMatcher& scope(const cfg::IpInIpTunnel& /*m*/) const {

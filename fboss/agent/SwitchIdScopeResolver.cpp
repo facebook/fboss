@@ -94,6 +94,16 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(PortID portId) const {
 }
 
 HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::vector<PortID>& portIds) const {
+  std::unordered_set<SwitchID> switchIds;
+  for (const auto& portId : portIds) {
+    auto portSwitchIds = scope(portId).switchIds();
+    switchIds.insert(portSwitchIds.begin(), portSwitchIds.end());
+  }
+  return HwSwitchMatcher(switchIds);
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
     const std::shared_ptr<Port>& port) const {
   return scope(port->getID());
 }
