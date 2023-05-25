@@ -1596,7 +1596,7 @@ void ThriftHandler::programInternalPhyPorts(
   auto newTransceiver = TransceiverSpec::createPresentTransceiver(*transceiver);
 
   const auto tcvr =
-      sw_->getState()->getTransceivers()->getTransceiverIf(tcvrID);
+      sw_->getState()->getMultiSwitchTransceivers()->getNodeIf(tcvrID);
   const auto& platformPorts = utility::getPlatformPortsByChip(
       sw_->getPlatformMapping()->getPlatformPorts(), *tcvrChip);
   // Check whether the current Transceiver in the SwitchState matches the
@@ -1611,13 +1611,24 @@ void ThriftHandler::programInternalPhyPorts(
   } else {
     auto updateFn = [&, tcvrID](const shared_ptr<SwitchState>& state) {
       auto newState = state->clone();
-      auto newTransceiverMap = newState->getTransceivers()->modify(&newState);
+      auto newTransceiverMap =
+          newState->getMultiSwitchTransceivers()->modify(&newState);
+      std::vector<PortID> portIds;
+      for (const auto& platformPort : platformPorts) {
+        const auto port =
+            state->getPorts()->getNodeIf(PortID(*platformPort.mapping()->id()));
+        if (port) {
+          portIds.emplace_back(port->getID());
+        }
+      }
       if (!newTransceiver) {
-        newTransceiverMap->removeTransceiver(tcvrID);
-      } else if (newTransceiverMap->getTransceiverIf(tcvrID)) {
-        newTransceiverMap->updateTransceiver(newTransceiver);
+        newTransceiverMap->removeNode(tcvrID);
+      } else if (newTransceiverMap->getNodeIf(tcvrID)) {
+        newTransceiverMap->updateNode(
+            newTransceiver, sw_->getScopeResolver()->scope(portIds));
       } else {
-        newTransceiverMap->addTransceiver(newTransceiver);
+        newTransceiverMap->addNode(
+            newTransceiver, sw_->getScopeResolver()->scope(portIds));
       }
 
       // Now we also need to update the port profile config and pin configs
