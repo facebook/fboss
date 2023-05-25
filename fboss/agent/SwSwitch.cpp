@@ -2277,7 +2277,7 @@ std::shared_ptr<SwitchState> SwSwitch::modifyTransceivers(
     const std::unordered_map<TransceiverID, TransceiverInfo>& currentTcvrs,
     const PlatformMapping* platformMapping,
     const SwitchIdScopeResolver* scopeResolver) {
-  auto origTcvrs = state->getMultiSwitchTransceivers();
+  auto origTcvrs = state->getTransceivers();
   TransceiverMap::NodeContainer newTcvrs;
   bool changed = false;
   for (const auto& tcvrInfo : currentTcvrs) {

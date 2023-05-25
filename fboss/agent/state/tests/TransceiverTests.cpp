@@ -62,8 +62,8 @@ TEST(TransceiverSpec, SerializeSwitchState) {
   // Check all transceivers should be there
   for (auto tcvrID : {TransceiverID(1), TransceiverID(2)}) {
     EXPECT_TRUE(
-        *state->getMultiSwitchTransceivers()->getNode(tcvrID) ==
-        *stateBack->getMultiSwitchTransceivers()->getNode(tcvrID));
+        *state->getTransceivers()->getNode(tcvrID) ==
+        *stateBack->getTransceivers()->getNode(tcvrID));
   }
 
   validateNodeSerialization(*tcvr1);

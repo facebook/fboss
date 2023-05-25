@@ -529,7 +529,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   processInterfaceForPort();
 
   {
-    auto newPorts = updatePorts(new_->getMultiSwitchTransceivers());
+    auto newPorts = updatePorts(new_->getTransceivers());
     if (newPorts) {
       new_->resetPorts(std::move(newPorts));
       new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(

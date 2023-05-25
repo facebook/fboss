@@ -1595,8 +1595,7 @@ void ThriftHandler::programInternalPhyPorts(
   TransceiverID tcvrID = TransceiverID(id);
   auto newTransceiver = TransceiverSpec::createPresentTransceiver(*transceiver);
 
-  const auto tcvr =
-      sw_->getState()->getMultiSwitchTransceivers()->getNodeIf(tcvrID);
+  const auto tcvr = sw_->getState()->getTransceivers()->getNodeIf(tcvrID);
   const auto& platformPorts = utility::getPlatformPortsByChip(
       sw_->getPlatformMapping()->getPlatformPorts(), *tcvrChip);
   // Check whether the current Transceiver in the SwitchState matches the
@@ -1611,8 +1610,7 @@ void ThriftHandler::programInternalPhyPorts(
   } else {
     auto updateFn = [&, tcvrID](const shared_ptr<SwitchState>& state) {
       auto newState = state->clone();
-      auto newTransceiverMap =
-          newState->getMultiSwitchTransceivers()->modify(&newState);
+      auto newTransceiverMap = newState->getTransceivers()->modify(&newState);
       std::vector<PortID> portIds;
       for (const auto& platformPort : platformPorts) {
         const auto port =
