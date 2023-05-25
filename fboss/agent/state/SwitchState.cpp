@@ -128,9 +128,9 @@ SwitchState::SwitchState() {
       std::map<cfg::AclStage, state::AclTableGroupFields>{});
   resetIntfs(std::make_shared<MultiSwitchInterfaceMap>());
   resetRemoteIntfs(std::make_shared<MultiSwitchInterfaceMap>());
+  resetTransceivers(std::make_shared<MultiSwitchTransceiverMap>());
   // default multi-map (for single npu) system
   resetQosPolicies(std::make_shared<QosPolicyMap>());
-  resetTransceivers(std::make_shared<TransceiverMap>());
   resetControlPlane(std::make_shared<ControlPlane>());
   resetSwitchSettings(std::make_shared<SwitchSettings>());
 }
@@ -342,30 +342,9 @@ void SwitchState::resetForwardingInformationBases(
   ref<switch_state_tags::fibsMap>() = fibs;
 }
 
-void SwitchState::addTransceiver(
-    const std::shared_ptr<TransceiverSpec>& transceiver) {
-  // For ease-of-use, automatically clone the TransceiverMap if we are still
-  // pointing to a published map.
-  if (getTransceivers()->isPublished()) {
-    auto xcvrs = getTransceivers()->clone();
-    resetTransceivers(xcvrs);
-  }
-  getDefaultMap<switch_state_tags::transceiverMaps>()->addTransceiver(
-      transceiver);
-}
-
-void SwitchState::resetTransceivers(
-    std::shared_ptr<TransceiverMap> transceivers) {
-  resetDefaultMap<switch_state_tags::transceiverMaps>(transceivers);
-}
-
 void SwitchState::resetTransceivers(
     std::shared_ptr<MultiSwitchTransceiverMap> transceivers) {
   ref<switch_state_tags::transceiverMaps>() = transceivers;
-}
-
-const std::shared_ptr<TransceiverMap>& SwitchState::getTransceivers() const {
-  return getDefaultMap<switch_state_tags::transceiverMaps>();
 }
 
 const std::shared_ptr<MultiSwitchTransceiverMap>&
@@ -604,7 +583,7 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
       switch_state_tags::loadBalancerMap>(true /*emptyMnpuMapOk*/);
   state->fromThrift<
       switch_state_tags::transceiverMaps,
-      switch_state_tags::transceiverMap>();
+      switch_state_tags::transceiverMap>(true /*emptyMnpuMapOk*/);
   state->fromThrift<
       switch_state_tags::bufferPoolCfgMaps,
       switch_state_tags::bufferPoolCfgMap>(true /*emptyMnpuMapOk*/);

@@ -56,12 +56,6 @@ class TransceiverMap
     return getNodeIf(static_cast<int16_t>(id));
   }
 
-  void addTransceiver(const std::shared_ptr<TransceiverSpec>& tcvr);
-  void updateTransceiver(const std::shared_ptr<TransceiverSpec>& tcvr);
-  void removeTransceiver(TransceiverID id);
-
-  TransceiverMap* modify(std::shared_ptr<SwitchState>* state);
-
  private:
   // Inherit the constructors required for clone()
   using Base::Base;
