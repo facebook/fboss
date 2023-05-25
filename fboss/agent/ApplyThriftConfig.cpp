@@ -268,7 +268,7 @@ class ThriftConfigApplier {
   void processVlanPorts();
   void updateVlanInterfaces(const Interface* intf);
   std::shared_ptr<MultiSwitchPortMap> updatePorts(
-      const std::shared_ptr<TransceiverMap>& transceiverMap);
+      const std::shared_ptr<MultiSwitchTransceiverMap>& transceiverMap);
   std::shared_ptr<SystemPortMap> updateSystemPorts(
       const std::shared_ptr<MultiSwitchPortMap>& ports,
       const std::shared_ptr<SwitchSettings>& switchSettings);
@@ -529,7 +529,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   processInterfaceForPort();
 
   {
-    auto newPorts = updatePorts(new_->getTransceivers());
+    auto newPorts = updatePorts(new_->getMultiSwitchTransceivers());
     if (newPorts) {
       new_->resetPorts(std::move(newPorts));
       new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
@@ -1243,7 +1243,7 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
 }
 
 shared_ptr<MultiSwitchPortMap> ThriftConfigApplier::updatePorts(
-    const std::shared_ptr<TransceiverMap>& transceiverMap) {
+    const std::shared_ptr<MultiSwitchTransceiverMap>& transceiverMap) {
   const auto origPorts = orig_->getPorts();
   PortMap::NodeContainer newPorts;
   bool changed = false;
@@ -1260,7 +1260,7 @@ shared_ptr<MultiSwitchPortMap> ThriftConfigApplier::updatePorts(
     auto platformPort = platformMapping_->getPlatformPort(id);
     const auto& chips = platformMapping_->getChips();
     if (auto tcvrID = utility::getTransceiverId(platformPort, chips)) {
-      transceiver = transceiverMap->getTransceiverIf(*tcvrID);
+      transceiver = transceiverMap->getNodeIf(*tcvrID);
     }
     if (!origPort) {
       state::PortFields portFields;
