@@ -415,7 +415,7 @@ class ThriftConfigApplier {
       const cfg::BufferPoolConfig& config);
   shared_ptr<QcmCfg> updateQcmCfg(bool* changed);
   shared_ptr<QcmCfg> createQcmCfg(const cfg::QcmConfig& config);
-  shared_ptr<ControlPlane> updateControlPlane();
+  shared_ptr<MultiControlPlane> updateControlPlane();
   std::shared_ptr<MirrorMap> updateMirrors();
   std::shared_ptr<Mirror> createMirror(const cfg::Mirror* config);
   std::shared_ptr<Mirror> updateMirror(
@@ -3849,7 +3849,7 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
   return switchSettingsChange ? newSwitchSettings : nullptr;
 }
 
-shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
+shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
   if (!hwAsicTable_->isFeatureSupportedOnAnyAsic(HwAsic::Feature::CPU_PORT)) {
     if (cfg_->cpuTrafficPolicy()) {
       throw FbossError(
@@ -3859,7 +3859,11 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
     }
     return nullptr;
   }
-  auto origCPU = orig_->getControlPlane();
+  auto multiSwitchControlPlane = orig_->getMultiSwitchControlPlane();
+  CHECK_LE(multiSwitchControlPlane->size(), 1);
+  auto origCPU = multiSwitchControlPlane->size()
+      ? multiSwitchControlPlane->cbegin()->second
+      : std::make_shared<ControlPlane>();
   std::optional<std::string> qosPolicy;
   ControlPlane::RxReasonToQueue newRxReasonToQueue;
   bool rxReasonToQueueUnchanged = true;
@@ -3953,7 +3957,10 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
   newCPU->resetQueues(newQueues);
   newCPU->resetQosPolicy(qosPolicy);
   newCPU->resetRxReasonToQueue(newRxReasonToQueue);
-  return newCPU;
+  auto newMultiSwitchControlPlane = std::make_shared<MultiControlPlane>();
+  newMultiSwitchControlPlane->addNode(
+      scopeResolver_.scope(origCPU).matcherString(), newCPU);
+  return newMultiSwitchControlPlane;
 }
 
 std::string ThriftConfigApplier::getInterfaceName(
