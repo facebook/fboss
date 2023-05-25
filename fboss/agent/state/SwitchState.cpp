@@ -363,6 +363,11 @@ const std::shared_ptr<TransceiverMap>& SwitchState::getTransceivers() const {
   return getDefaultMap<switch_state_tags::transceiverMaps>();
 }
 
+const std::shared_ptr<MultiSwitchTransceiverMap>&
+SwitchState::getMultiSwitchTransceivers() const {
+  return safe_cref<switch_state_tags::transceiverMaps>();
+}
+
 void SwitchState::resetSystemPorts(
     const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts) {
   ref<switch_state_tags::systemPortMaps>() = systemPorts;
