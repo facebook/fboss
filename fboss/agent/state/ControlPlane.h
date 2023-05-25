@@ -120,6 +120,8 @@ class MultiControlPlane
 
   std::shared_ptr<ControlPlane> getControlPlane() const;
 
+  MultiControlPlane* modify(std::shared_ptr<SwitchState>* state);
+
  private:
   // Inherit the constructors required for clone()
   using BaseT::BaseT;

@@ -60,6 +60,19 @@ std::shared_ptr<ControlPlane> MultiControlPlane::getControlPlane() const {
   return iter->second;
 }
 
+MultiControlPlane* MultiControlPlane::modify(
+    std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  auto newMultiControlPlane = this->clone();
+  auto* ptr = newMultiControlPlane.get();
+  (*state)->resetControlPlane(std::move(newMultiControlPlane));
+  return ptr;
+}
+
 template class ThriftStructNode<ControlPlane, state::ControlPlaneFields>;
 
 } // namespace facebook::fboss
