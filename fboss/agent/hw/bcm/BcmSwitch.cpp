@@ -650,18 +650,21 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   switchSettings->setDefaultVlan(VlanID(defaultVlan));
   bootState->resetSwitchSettings(switchSettings);
 
+  HwSwitchMatcher scopeMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
+
   // get cpu queue settings
   auto cpu = make_shared<ControlPlane>();
   auto cpuQueues = controlPlane_->getMulticastQueueSettings();
   auto rxReasonToQueue = controlPlane_->getRxReasonToQueue();
   cpu->resetQueues(cpuQueues);
   cpu->resetRxReasonToQueue(rxReasonToQueue);
-  bootState->resetControlPlane(cpu);
+  auto multiSwitchControlPlane = std::make_shared<MultiControlPlane>();
+  multiSwitchControlPlane->addNode(scopeMatcher.matcherString(), cpu);
+  bootState->resetControlPlane(multiSwitchControlPlane);
 
   // On cold boot all ports are in Vlan 1
   auto vlan = make_shared<Vlan>(VlanID(1), std::string("InitVlan"));
   Vlan::MemberPorts memberPorts;
-  HwSwitchMatcher scopeMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
   for (const auto& kv : std::as_const(*portTable_)) {
     PortID portID = kv.first;
     BcmPort* bcmPort = kv.second;

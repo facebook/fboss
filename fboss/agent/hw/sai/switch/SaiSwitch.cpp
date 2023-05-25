@@ -1748,12 +1748,19 @@ SaiManagerTable* SaiSwitch::managerTable() {
 std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
   auto state = std::make_shared<SwitchState>();
 
+  auto switchId = platform_->getAsic()->getSwitchId()
+      ? *platform_->getAsic()->getSwitchId()
+      : 0;
+  auto matcher =
+      HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(switchId)}));
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
     // get cpu queue settings
     auto cpu = std::make_shared<ControlPlane>();
     auto cpuQueues = managerTable_->hostifManager().getQueueSettings();
     cpu->resetQueues(cpuQueues);
-    state->resetControlPlane(cpu);
+    auto multiSwitchControlPlane = std::make_shared<MultiControlPlane>();
+    multiSwitchControlPlane->addNode(matcher.matcherString(), cpu);
+    state->resetControlPlane(multiSwitchControlPlane);
   }
   if (platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORTS)) {
     if (switchType_ == cfg::SwitchType::FABRIC ||
@@ -1805,8 +1812,7 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
             state->getPorts(),
             getSwitchId().value(),
             platform_->getAsic()->getSystemPortRange()),
-        HwSwitchMatcher(
-            std::unordered_set<SwitchID>({SwitchID(getSwitchId().value())})));
+        matcher);
     state->resetSystemPorts(sysPorts);
   }
 
