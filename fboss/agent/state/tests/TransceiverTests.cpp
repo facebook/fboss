@@ -18,6 +18,12 @@
 
 using namespace facebook::fboss;
 
+namespace {
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+} // namespace
+
 TEST(TransceiverSpec, SerializeTransceiver) {
   auto tcvr = std::make_unique<TransceiverSpec>(TransceiverID(1));
   tcvr->setCableLength(3.5);
@@ -45,8 +51,10 @@ TEST(TransceiverSpec, SerializeSwitchState) {
   tcvr2->setMediaInterface(MediaInterfaceCode::CWDM4_100G);
   tcvr2->setManagementInterface(TransceiverManagementInterface::CMIS);
 
-  state->addTransceiver(tcvr1);
-  state->addTransceiver(tcvr2);
+  auto transceivers = std::make_shared<MultiSwitchTransceiverMap>();
+  transceivers->addNode(tcvr1, scope());
+  transceivers->addNode(tcvr2, scope());
+  state->resetTransceivers(transceivers);
 
   auto serialized = state->toThrift();
   auto stateBack = SwitchState::fromThrift(serialized);
@@ -54,45 +62,47 @@ TEST(TransceiverSpec, SerializeSwitchState) {
   // Check all transceivers should be there
   for (auto tcvrID : {TransceiverID(1), TransceiverID(2)}) {
     EXPECT_TRUE(
-        *state->getTransceivers()->getTransceiver(tcvrID) ==
-        *stateBack->getTransceivers()->getTransceiver(tcvrID));
+        *state->getMultiSwitchTransceivers()->getNode(tcvrID) ==
+        *stateBack->getMultiSwitchTransceivers()->getNode(tcvrID));
   }
 
   validateNodeSerialization(*tcvr1);
   validateNodeSerialization(*tcvr2);
+  validateThriftMapMapSerialization(*transceivers);
 }
 
 TEST(TransceiverMap, addTransceiver) {
-  auto transceiverMap = std::make_shared<TransceiverMap>();
+  auto transceiverMap = std::make_shared<MultiSwitchTransceiverMap>();
   EXPECT_EQ(0, transceiverMap->getGeneration());
   EXPECT_FALSE(transceiverMap->isPublished());
 
   auto transceiver1 = std::make_shared<TransceiverSpec>(TransceiverID(1));
   auto transceiver2 = std::make_shared<TransceiverSpec>(TransceiverID(2));
 
-  transceiverMap->addTransceiver(transceiver1);
-  transceiverMap->addTransceiver(transceiver2);
+  transceiverMap->addNode(transceiver1, scope());
+  transceiverMap->addNode(transceiver2, scope());
 
-  auto gotTransceiver1 = transceiverMap->getTransceiver(TransceiverID(1));
-  auto gotTransceiver2 = transceiverMap->getTransceiver(TransceiverID(2));
+  auto gotTransceiver1 = transceiverMap->getNode(TransceiverID(1));
+  auto gotTransceiver2 = transceiverMap->getNode(TransceiverID(2));
   EXPECT_EQ(TransceiverID(1), gotTransceiver1->getID());
   EXPECT_EQ(TransceiverID(2), gotTransceiver2->getID());
 
   auto anotherTransceiver2 =
       std::make_shared<TransceiverSpec>(TransceiverID(2));
   // Attempting to register a duplicate transceiver ID should fail
-  EXPECT_THROW(transceiverMap->addTransceiver(anotherTransceiver2), FbossError);
+  EXPECT_THROW(
+      transceiverMap->addNode(anotherTransceiver2, scope()), FbossError);
 
   // Registering non-sequential IDs should work
   auto transceiver10 = std::make_shared<TransceiverSpec>(TransceiverID(10));
-  transceiverMap->addTransceiver(transceiver10);
-  auto gotTransceiver10 = transceiverMap->getTransceiver(TransceiverID(10));
+  transceiverMap->addNode(transceiver10, scope());
+  auto gotTransceiver10 = transceiverMap->getNode(TransceiverID(10));
   EXPECT_EQ(TransceiverID(10), gotTransceiver10->getID());
 
   // Getting non-existent transceiver should fail
-  EXPECT_THROW(transceiverMap->getTransceiver(TransceiverID(0)), FbossError);
-  EXPECT_THROW(transceiverMap->getTransceiver(TransceiverID(5)), FbossError);
-  EXPECT_THROW(transceiverMap->getTransceiver(TransceiverID(200)), FbossError);
+  EXPECT_THROW(transceiverMap->getNode(TransceiverID(0)), FbossError);
+  EXPECT_THROW(transceiverMap->getNode(TransceiverID(5)), FbossError);
+  EXPECT_THROW(transceiverMap->getNode(TransceiverID(200)), FbossError);
 
   // Publishing the TransceiverMap should also mark all transceivers as
   // published
