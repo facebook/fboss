@@ -96,6 +96,8 @@ class MultiSwitchTransceiverMap : public ThriftMultiSwitchMapNode<
   MultiSwitchTransceiverMap() {}
   virtual ~MultiSwitchTransceiverMap() {}
 
+  MultiSwitchTransceiverMap* modify(std::shared_ptr<SwitchState>* state);
+
  private:
   // Inherit the constructors required for clone()
   using BaseT::BaseT;

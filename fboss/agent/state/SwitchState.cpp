@@ -1022,6 +1022,8 @@ template MultiSwitchVlanMap* SwitchState::modify<switch_state_tags::vlanMaps>(
     std::shared_ptr<SwitchState>*);
 template MultiSwitchSflowCollectorMap* SwitchState::modify<
     switch_state_tags::sflowCollectorMaps>(std::shared_ptr<SwitchState>*);
+template MultiSwitchTransceiverMap* SwitchState::modify<
+    switch_state_tags::transceiverMaps>(std::shared_ptr<SwitchState>*);
 
 template class ThriftStructNode<SwitchState, state::SwitchState>;
 

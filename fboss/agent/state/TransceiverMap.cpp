@@ -46,6 +46,11 @@ TransceiverMap* TransceiverMap::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
+MultiSwitchTransceiverMap* MultiSwitchTransceiverMap::modify(
+    std::shared_ptr<SwitchState>* state) {
+  return SwitchState::modify<switch_state_tags::transceiverMaps>(state);
+}
+
 template class ThriftMapNode<TransceiverMap, TransceiverMapTraits>;
 
 } // namespace facebook::fboss
