@@ -282,12 +282,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
 
   static void modify(std::shared_ptr<SwitchState>* state);
 
-  // Helper function to clone a new SwitchState to modify the original
-  // TransceiverMap if there's a change.
-  static std::shared_ptr<SwitchState> modifyTransceivers(
-      const std::shared_ptr<SwitchState>& state,
-      const std::unordered_map<TransceiverID, TransceiverInfo>& currentTcvrs);
-
   template <typename EntryClassT, typename NTableT>
   static void revertNewNeighborEntry(
       const std::shared_ptr<EntryClassT>& newEntry,

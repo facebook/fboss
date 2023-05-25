@@ -79,6 +79,7 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/StateUpdateHelpers.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
@@ -1951,7 +1952,8 @@ void SwSwitch::applyConfig(
         auto qsfpCache = getPlatform()->getQsfpCache();
         if (qsfpCache) {
           const auto& currentTcvrs = qsfpCache->getAllTransceivers();
-          auto tempState = SwitchState::modifyTransceivers(state, currentTcvrs);
+          auto tempState = modifyTransceivers(
+              state, currentTcvrs, getPlatformMapping(), getScopeResolver());
           if (tempState) {
             originalState = tempState;
           }
@@ -2269,4 +2271,75 @@ fsdb::OperDelta SwSwitch::stateChanged(
   return transaction ? hw_->stateChangedTransaction(delta)
                      : hw_->stateChanged(delta);
 }
+
+std::shared_ptr<SwitchState> SwSwitch::modifyTransceivers(
+    const std::shared_ptr<SwitchState>& state,
+    const std::unordered_map<TransceiverID, TransceiverInfo>& currentTcvrs,
+    const PlatformMapping* platformMapping,
+    const SwitchIdScopeResolver* scopeResolver) {
+  auto origTcvrs = state->getMultiSwitchTransceivers();
+  TransceiverMap::NodeContainer newTcvrs;
+  bool changed = false;
+  for (const auto& tcvrInfo : currentTcvrs) {
+    auto origTcvr = origTcvrs->getNodeIf(tcvrInfo.first);
+    auto newTcvr = TransceiverSpec::createPresentTransceiver(tcvrInfo.second);
+    if (!newTcvr) {
+      // If the transceiver used to be present but now was removed
+      changed |= (origTcvr != nullptr);
+      continue;
+    } else {
+      if (origTcvr && *origTcvr == *newTcvr) {
+        newTcvrs.emplace(origTcvr->getID(), origTcvr);
+      } else {
+        changed = true;
+        newTcvrs.emplace(newTcvr->getID(), newTcvr);
+      }
+    }
+  }
+
+  if (changed) {
+    XLOG(DBG2) << "New TransceiverMap has " << newTcvrs.size()
+               << " present transceivers, original map has "
+               << origTcvrs->size();
+    auto newState = state->clone();
+    std::unordered_map<PortID, TransceiverID> portIdToTransceiverID;
+    const auto& platformPorts = platformMapping->getPlatformPorts();
+    for (const auto& [portId, platformPort] : platformPorts) {
+      auto transceiverId =
+          utility::getTransceiverId(platformPort, platformMapping->getChips());
+      if (transceiverId) {
+        portIdToTransceiverID.emplace(PortID(portId), *transceiverId);
+      }
+    }
+    auto getPortIdsForTransceiver = [&portIdToTransceiverID](
+                                        const TransceiverID& id) {
+      std::vector<PortID> portIds;
+      for (const auto& [portId, transceiverId] : portIdToTransceiverID) {
+        if (id == transceiverId) {
+          portIds.emplace_back(portId);
+        }
+      }
+      CHECK_NE(portIds.size(), 0) << "No portId found for transceiver " << id;
+      return portIds;
+    };
+    auto transceiverMap = std::make_shared<TransceiverMap>(std::move(newTcvrs));
+    auto multiSwitchTransceiverMap =
+        std::make_shared<MultiSwitchTransceiverMap>();
+    for (const auto& entry : std::as_const(*transceiverMap)) {
+      multiSwitchTransceiverMap->addNode(
+          entry.second,
+          scopeResolver->scope(
+              getPortIdsForTransceiver(TransceiverID(entry.first))));
+    }
+    newState->resetTransceivers(multiSwitchTransceiverMap);
+    return newState;
+  } else {
+    XLOG(DBG2)
+        << "Current transceivers from QsfpCache has the same transceiver size:"
+        << origTcvrs->size()
+        << ", no need to reset TransceiverMap in current SwitchState";
+    return nullptr;
+  }
+}
+
 } // namespace facebook::fboss

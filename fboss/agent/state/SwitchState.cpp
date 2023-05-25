@@ -432,45 +432,6 @@ std::shared_ptr<const AclMap> SwitchState::getAclsForTable(
   return nullptr;
 }
 
-std::shared_ptr<SwitchState> SwitchState::modifyTransceivers(
-    const std::shared_ptr<SwitchState>& state,
-    const std::unordered_map<TransceiverID, TransceiverInfo>& currentTcvrs) {
-  auto origTcvrs = state->getTransceivers();
-  TransceiverMap::NodeContainer newTcvrs;
-  bool changed = false;
-  for (const auto& tcvrInfo : currentTcvrs) {
-    auto origTcvr = origTcvrs->getTransceiverIf(tcvrInfo.first);
-    auto newTcvr = TransceiverSpec::createPresentTransceiver(tcvrInfo.second);
-    if (!newTcvr) {
-      // If the transceiver used to be present but now was removed
-      changed |= (origTcvr != nullptr);
-      continue;
-    } else {
-      if (origTcvr && *origTcvr == *newTcvr) {
-        newTcvrs.emplace(origTcvr->getID(), origTcvr);
-      } else {
-        changed = true;
-        newTcvrs.emplace(newTcvr->getID(), newTcvr);
-      }
-    }
-  }
-
-  if (changed) {
-    XLOG(DBG2) << "New TransceiverMap has " << newTcvrs.size()
-               << " present transceivers, original map has "
-               << origTcvrs->size();
-    auto newState = state->clone();
-    newState->resetTransceivers(origTcvrs->clone(newTcvrs));
-    return newState;
-  } else {
-    XLOG(DBG2)
-        << "Current transceivers from QsfpCache has the same transceiver size:"
-        << origTcvrs->size()
-        << ", no need to reset TransceiverMap in current SwitchState";
-    return nullptr;
-  }
-}
-
 bool SwitchState::isLocalSwitchId(SwitchID switchId) const {
   auto localSwitchIds = getSwitchSettings()->getSwitchIds();
   return localSwitchIds.find(switchId) != localSwitchIds.end();

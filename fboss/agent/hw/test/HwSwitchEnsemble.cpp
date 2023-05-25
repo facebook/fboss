@@ -19,6 +19,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -134,8 +135,11 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewConfig(
     const auto& currentTcvrs = overrideTcvrInfos
         ? *overrideTcvrInfos
         : qsfpCache->getAllTransceivers();
-    auto tempState =
-        SwitchState::modifyTransceivers(getProgrammedState(), currentTcvrs);
+    auto tempState = SwSwitch::modifyTransceivers(
+        getProgrammedState(),
+        currentTcvrs,
+        getPlatform()->getPlatformMapping(),
+        scopeResolver_.get());
     if (tempState) {
       originalState = tempState;
     }
