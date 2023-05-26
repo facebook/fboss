@@ -155,7 +155,7 @@ std::vector<uint32_t> LedManager::getCommonLedSwPorts(
  */
 led::LedColor LedManager::calculateLedColor(
     uint32_t portId,
-    cfg::PortProfileID portProfile) {
+    cfg::PortProfileID portProfile) const {
   if (portDisplayMap_.find(portId) == portDisplayMap_.end()) {
     XLOG(ERR) << folly::sformat(
         "Port {:d} LED color undetermined as the port operational info is not available",
@@ -180,11 +180,11 @@ led::LedColor LedManager::calculateLedColor(
       continue;
     }
 
-    auto thisPortUp = portDisplayMap_[swPort].operationStateUp;
+    auto thisPortUp = portDisplayMap_.at(swPort).operationStateUp;
     anyPortUp = anyPortUp || thisPortUp;
     allPortsUp = allPortsUp && thisPortUp;
 
-    auto thisPortReachable = portDisplayMap_[swPort].neighborReachable;
+    auto thisPortReachable = portDisplayMap_.at(swPort).neighborReachable;
     anyPortReachable = anyPortReachable || thisPortReachable;
     allPortsReachable = allPortsReachable && thisPortReachable;
   }
@@ -213,7 +213,7 @@ led::LedColor LedManager::calculateLedColor(
 led::LedColor LedManager::getLedColorFromPortStatus(
     bool anyPortUp,
     bool allPortsUp,
-    bool allPortsReachable) {
+    bool allPortsReachable) const {
   led::LedColor currPortColor{led::LedColor::UNKNOWN};
 
   if (!anyPortUp) {
