@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/test/HwTeFlowTestUtils.h"
 #include <folly/IPAddress.h>
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -33,9 +34,10 @@ void setExactMatchCfg(std::shared_ptr<SwitchState>* state, int prefixLength) {
   if (newState->isPublished()) {
     newState = newState->clone();
   }
-  auto newSwitchSettings = newState->getSwitchSettings()->clone();
+  auto switchSettings =
+      getFirstNodeIf(newState->getMultiSwitchSwitchSettings());
+  auto newSwitchSettings = switchSettings->modify(&newState);
   newSwitchSettings->setExactMatchTableConfig({exactMatchTableConfigs});
-  newState->resetSwitchSettings(newSwitchSettings);
   *state = newState;
 }
 

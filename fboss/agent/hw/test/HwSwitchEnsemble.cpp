@@ -32,6 +32,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
 #include <folly/experimental/FunctionScheduler.h>
@@ -461,9 +462,10 @@ void HwSwitchEnsemble::setupEnsemble(
 
   programmedState_ = hwInitResult.switchState;
   programmedState_ = programmedState_->clone();
-  auto settings = programmedState_->getSwitchSettings()->clone();
-  settings->setSwitchIdToSwitchInfo(switchIdToSwitchInfo);
-  programmedState_->resetSwitchSettings(settings);
+  auto settings =
+      getFirstNodeIf(programmedState_->getMultiSwitchSwitchSettings());
+  auto newSettings = settings->modify(&programmedState_);
+  newSettings->setSwitchIdToSwitchInfo(switchIdToSwitchInfo);
   routingInformationBase_ = std::move(hwInitResult.rib);
   // HwSwitch::init() returns an unpublished programmedState_.  SwSwitch is
   // normally responsible for publishing it.  Go ahead and call publish now.
