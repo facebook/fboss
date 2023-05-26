@@ -195,9 +195,10 @@ TEST_F(QosMapManagerTest, expMap) {
 
 TEST_F(QosMapManagerTest, addPortQos) {
   auto switchState = std::make_shared<SwitchState>();
-  auto qosPolicies = std::make_shared<QosPolicyMap>();
+  auto qosPolicies = std::make_shared<MultiSwitchQosPolicyMap>();
   TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
-  qosPolicies->addNode(makeQosPolicy("qos", testQosPolicy));
+  auto qosPolicy = makeQosPolicy("qos", testQosPolicy);
+  qosPolicies->addNode(qosPolicy, scopeResolver().scope(qosPolicy));
   switchState->resetQosPolicies(qosPolicies);
   state::PortFields portFields;
   portFields.portId() = PortID(1);
@@ -225,8 +226,9 @@ TEST_F(QosMapManagerTest, changAddsPortQos) {
       StateDelta(std::make_shared<SwitchState>(), oldState)));
   auto newState = oldState->clone();
   auto newPort = port->modify(&newState);
-  auto qosPolicies = std::make_shared<QosPolicyMap>();
-  qosPolicies->addNode(makeQosPolicy("qos", testQosPolicy));
+  auto qosPolicies = std::make_shared<MultiSwitchQosPolicyMap>();
+  auto qosPolicy = makeQosPolicy("qos", testQosPolicy);
+  qosPolicies->addNode(qosPolicy, scopeResolver().scope(qosPolicy));
   newState->resetQosPolicies(qosPolicies);
   auto switchSettings = util::getFirstNodeIf(newState->getSwitchSettings());
   auto newSwitchSettings = switchSettings->modify(&newState);

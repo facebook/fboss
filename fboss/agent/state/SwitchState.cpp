@@ -131,8 +131,6 @@ SwitchState::SwitchState() {
   resetTransceivers(std::make_shared<MultiSwitchTransceiverMap>());
   resetControlPlane(std::make_shared<MultiControlPlane>());
   resetSwitchSettings(std::make_shared<MultiSwitchSettings>());
-  // default multi-map (for single npu) system
-  resetQosPolicies(std::make_shared<QosPolicyMap>());
 }
 
 SwitchState::~SwitchState() {}
@@ -224,18 +222,6 @@ SwitchState::getAggregatePorts() const {
 void SwitchState::resetSflowCollectors(
     const std::shared_ptr<MultiSwitchSflowCollectorMap>& collectors) {
   ref<switch_state_tags::sflowCollectorMaps>() = collectors;
-}
-
-void SwitchState::resetQosPolicies(
-    const std::shared_ptr<QosPolicyMap>& qosPolicies) {
-  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcher();
-  auto qosPolicyMaps = cref<switch_state_tags::qosPolicyMaps>()->clone();
-  if (!qosPolicyMaps->getMapNodeIf(matcher)) {
-    qosPolicyMaps->addMapNode(qosPolicies, matcher);
-  } else {
-    qosPolicyMaps->updateMapNode(qosPolicies, matcher);
-  }
-  ref<switch_state_tags::qosPolicyMaps>() = qosPolicyMaps;
 }
 
 void SwitchState::resetQosPolicies(

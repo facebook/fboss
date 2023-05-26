@@ -167,9 +167,9 @@ TEST(ThriftySwitchState, QosPolicyMap) {
   auto qosPolicy1 = std::make_shared<QosPolicy>(kQosPolicy1Name, DscpMap());
   auto qosPolicy2 = std::make_shared<QosPolicy>(kQosPolicy2Name, DscpMap());
 
-  auto map = std::make_shared<QosPolicyMap>();
-  map->addNode(qosPolicy1);
-  map->addNode(qosPolicy2);
+  auto map = std::make_shared<MultiSwitchQosPolicyMap>();
+  map->addNode(qosPolicy1, scope());
+  map->addNode(qosPolicy2, scope());
 
   auto state = SwitchState();
   state.resetQosPolicies(map);

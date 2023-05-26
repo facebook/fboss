@@ -556,7 +556,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       std::shared_ptr<MultiSwitchAclTableGroupMap> multiAclTableGroups);
   void resetSflowCollectors(
       const std::shared_ptr<MultiSwitchSflowCollectorMap>& collectors);
-  void resetQosPolicies(const std::shared_ptr<QosPolicyMap>& qosPolicyMap);
   void resetQosPolicies(
       const std::shared_ptr<MultiSwitchQosPolicyMap>& qosPolicyMap);
   void resetControlPlane(std::shared_ptr<MultiControlPlane> cpu);

@@ -45,8 +45,6 @@ class QosPolicyMap : public ThriftMapNode<QosPolicyMap, QosPolicyMapTraits> {
     return getNodeIf(name);
   }
 
-  QosPolicyMap* modify(std::shared_ptr<SwitchState>* state);
-
  private:
   // Inherit the constructors required for clone()
   using BaseT::BaseT;
