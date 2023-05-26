@@ -15,7 +15,13 @@
 
 #include <gtest/gtest.h>
 
-namespace {} // namespace
+namespace {
+facebook::fboss::HwSwitchMatcher scope() {
+  return facebook::fboss::HwSwitchMatcher{
+      std::unordered_set<facebook::fboss::SwitchID>{
+          facebook::fboss::SwitchID(0)}};
+}
+} // namespace
 
 using namespace facebook::fboss;
 
@@ -30,7 +36,9 @@ TEST(FlowletSwitching, addUpdate) {
   // update the state with flowletCfg
   auto switchSettings = std::make_shared<SwitchSettings>();
   switchSettings->setFlowletSwitchingConfig(flowletSwitchingConfig);
-  state->resetSwitchSettings(switchSettings);
+  auto multiSwitchSwitchSettings = std::make_shared<MultiSwitchSettings>();
+  multiSwitchSwitchSettings->addNode(scope().matcherString(), switchSettings);
+  state->resetSwitchSettings(multiSwitchSwitchSettings);
   auto flowletCfg1 = state->getFlowletSwitchingConfig();
   EXPECT_TRUE(flowletCfg1);
   EXPECT_FALSE(flowletCfg1->isPublished());
@@ -53,7 +61,9 @@ TEST(FlowletSwitching, addUpdate) {
   flowletSwitchingConfig->fromThrift(flowletCfg);
   switchSettings = std::make_shared<SwitchSettings>();
   switchSettings->setFlowletSwitchingConfig(flowletSwitchingConfig);
-  state->resetSwitchSettings(switchSettings);
+  multiSwitchSwitchSettings = std::make_shared<MultiSwitchSettings>();
+  multiSwitchSwitchSettings->addNode(scope().matcherString(), switchSettings);
+  state->resetSwitchSettings(multiSwitchSwitchSettings);
   auto flowletCfg2 = state->getFlowletSwitchingConfig();
   EXPECT_TRUE(flowletCfg2);
   EXPECT_FALSE(flowletCfg2->isPublished());
@@ -78,7 +88,9 @@ TEST(FlowletSwitching, publish) {
   flowletSwitchingConfig->fromThrift(flowletCfg);
   auto switchSettings = std::make_shared<SwitchSettings>();
   switchSettings->setFlowletSwitchingConfig(flowletSwitchingConfig);
-  state->resetSwitchSettings(switchSettings);
+  auto multiSwitchSwitchSettings = std::make_shared<MultiSwitchSettings>();
+  multiSwitchSwitchSettings->addNode(scope().matcherString(), switchSettings);
+  state->resetSwitchSettings(multiSwitchSwitchSettings);
   // update the state with flowletCfg
   state->publish();
   EXPECT_TRUE(state->getFlowletSwitchingConfig()->isPublished());
@@ -106,7 +118,9 @@ TEST(FlowletSwitching, serDeserSwitchState) {
   // update the state with flowletCfg
   auto switchSettings = std::make_shared<SwitchSettings>();
   switchSettings->setFlowletSwitchingConfig(flowletSwitchingConfig);
-  state->resetSwitchSettings(switchSettings);
+  auto multiSwitchSwitchSettings = std::make_shared<MultiSwitchSettings>();
+  multiSwitchSwitchSettings->addNode(scope().matcherString(), switchSettings);
+  state->resetSwitchSettings(multiSwitchSwitchSettings);
 
   auto serialized = state->toThrift();
   auto stateBack = SwitchState::fromThrift(serialized);
@@ -171,7 +185,8 @@ TEST(FlowletSwitching, applyConfig) {
   // backward/forward compatibility
   EXPECT_EQ(
       stateV2->getFlowletSwitchingConfig(),
-      stateV2->getSwitchSettings()->getFlowletSwitchingConfig());
+      getFirstNodeIf(stateV2->getMultiSwitchSwitchSettings())
+          ->getFlowletSwitchingConfig());
   const auto& stateThrift = stateV2->toThrift();
   EXPECT_EQ(
       stateThrift.flowletSwitchingConfig(),
