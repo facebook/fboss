@@ -91,8 +91,10 @@ unique_ptr<HwTestHandle> setupTestHandle(
   updater.program();
 
   handle->getSw()->initialConfigApplied(std::chrono::steady_clock::now());
+  auto scopeResolver = handle->getSw()->getScopeResolver();
   handle->getSw()->updateState(
-      " set timers", [arpTimeout, maxProbes, staleTimeout](auto inState) {
+      " set timers",
+      [arpTimeout, maxProbes, staleTimeout, &scopeResolver](auto inState) {
         inState = inState->clone();
         auto switchSettings = make_shared<SwitchSettings>();
         if (arpTimeout.count() > 0) {
@@ -100,7 +102,11 @@ unique_ptr<HwTestHandle> setupTestHandle(
           switchSettings->setStaleEntryInterval(staleTimeout);
         }
         switchSettings->setMaxNeighborProbes(maxProbes);
-        inState->resetSwitchSettings(switchSettings);
+        auto multiSwitchSwitchSettings = make_shared<MultiSwitchSettings>();
+        multiSwitchSwitchSettings->addNode(
+            scopeResolver->scope(switchSettings).matcherString(),
+            switchSettings);
+        inState->resetSwitchSettings(multiSwitchSwitchSettings);
         inState->publish();
         return inState;
       });

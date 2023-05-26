@@ -52,13 +52,18 @@ size_t getFibSize(const std::shared_ptr<SwitchState>& state) {
 
 std::shared_ptr<SwitchState> getEmptyState() {
   auto emptyState = std::make_shared<SwitchState>();
-  auto settings = std::make_unique<SwitchSettings>();
+  auto settings = std::make_shared<SwitchSettings>();
   SwitchIdToSwitchInfo info{};
   auto [iter, _] = info.emplace(SwitchID(0), cfg::SwitchInfo{});
   iter->second.switchType() = cfg::SwitchType::NPU;
   iter->second.asicType() = cfg::AsicType::ASIC_TYPE_FAKE;
   settings->setSwitchIdToSwitchInfo(info);
-  emptyState->resetSwitchSettings(std::move(settings));
+  auto multiSwitchSwitchSettings = std::make_shared<MultiSwitchSettings>();
+  multiSwitchSwitchSettings->addNode(
+      HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(0)})
+          .matcherString(),
+      settings);
+  emptyState->resetSwitchSettings(multiSwitchSwitchSettings);
   return emptyState;
 }
 } // namespace

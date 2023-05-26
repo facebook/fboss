@@ -102,7 +102,12 @@ shared_ptr<SwitchState> testStateNAT() {
   auto switchSettings = std::make_shared<SwitchSettings>();
   switchSettings->setDhcpV4RelaySrc(kDhcpV4RelaySrc);
   switchSettings->setDhcpV4ReplySrc(kDhcpV4ReplySrc);
-  state->resetSwitchSettings(switchSettings);
+  auto multiSwitchSwitchSettings = std::make_shared<MultiSwitchSettings>();
+  multiSwitchSwitchSettings->addNode(
+      HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(0)})
+          .matcherString(),
+      switchSettings);
+  state->resetSwitchSettings(multiSwitchSwitchSettings);
   addSwitchInfo(
       state,
       cfg::SwitchType::NPU,
