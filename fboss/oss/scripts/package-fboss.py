@@ -133,23 +133,21 @@ class PackageFboss:
         )
 
     def _copy_known_bad_tests(self, tmp_dir_name):
-        known_bad_tests_path = os.path.join(
+        hw_known_bad_tests_path = os.path.join(
             self._get_git_root(__file__), "fboss/oss/hw_known_bad_tests"
         )
-        print(f"Copying {known_bad_tests_path} to {tmp_dir_name}")
+        qsfp_known_bad_tests_path = os.path.join(
+            self._get_git_root(__file__), "fboss/oss/qsfp_known_bad_tests"
+        )
+        print(f"Copying {hw_known_bad_tests_path} to {tmp_dir_name}")
+        print(f"Copying {qsfp_known_bad_tests_path} to {tmp_dir_name}")
         shutil.copytree(
             "fboss/oss/hw_known_bad_tests",
             os.path.join(tmp_dir_name, PackageFboss.DATA, "hw_known_bad_tests"),
         )
-
-    def _copy_known_good_tests(self, tmp_dir_name):
-        known_good_tests_path = os.path.join(
-            self._get_git_root(__file__), "fboss/oss/hw_known_good_tests"
-        )
-        print(f"Copying {known_good_tests_path} to {tmp_dir_name}")
         shutil.copytree(
-            "fboss/oss/hw_known_good_tests",
-            os.path.join(tmp_dir_name, PackageFboss.DATA, "hw_known_good_tests"),
+            "fboss/oss/qsfp_known_bad_tests",
+            os.path.join(tmp_dir_name, PackageFboss.DATA, "qsfp_known_bad_tests"),
         )
 
     def _copy_binaries(self, tmp_dir_name):
@@ -180,7 +178,6 @@ class PackageFboss:
         self._copy_run_configs(tmp_dir_name)
         self._copy_configs(tmp_dir_name)
         self._copy_known_bad_tests(tmp_dir_name)
-        self._copy_known_good_tests(tmp_dir_name)
 
     def _compress_binaries(self):
         print(f"Compressing FBOSS Binaries...")
