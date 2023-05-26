@@ -804,13 +804,15 @@ void LookupClassUpdater::processBlockNeighborUpdates(
    */
 
   std::set<std::pair<VlanID, folly::IPAddress>> newBlockedNeighbors;
-  for (const auto& iter :
-       *(newState->getSwitchSettings()->getBlockNeighbors())) {
-    auto vlanID = VlanID(
-        iter->cref<switch_state_tags::blockNeighborVlanID>()->toThrift());
-    auto ipAddress = network::toIPAddress(
-        iter->cref<switch_state_tags::blockNeighborIP>()->toThrift());
-    newBlockedNeighbors.insert(std::make_pair(vlanID, ipAddress));
+  for ([[maybe_unused]] const auto& [_, switchSettings] :
+       std::as_const(*newState->getMultiSwitchSwitchSettings())) {
+    for (const auto& iter : *(switchSettings->getBlockNeighbors())) {
+      auto vlanID = VlanID(
+          iter->cref<switch_state_tags::blockNeighborVlanID>()->toThrift());
+      auto ipAddress = network::toIPAddress(
+          iter->cref<switch_state_tags::blockNeighborIP>()->toThrift());
+      newBlockedNeighbors.insert(std::make_pair(vlanID, ipAddress));
+    }
   }
 
   std::vector<std::pair<VlanID, folly::IPAddress>> toBeUpdatedBlockNeighbors;
@@ -901,16 +903,18 @@ void LookupClassUpdater::processMacAddrsToBlockUpdates(
    */
 
   std::set<std::pair<VlanID, folly::MacAddress>> newMacAddrsToBlock;
-  for (const auto& iter :
-       *(newState->getSwitchSettings()->getMacAddrsToBlock())) {
-    auto macStr =
-        iter->cref<switch_state_tags::macAddrToBlockAddr>()->toThrift();
-    auto vlanID = VlanID(
-        iter->cref<switch_state_tags::macAddrToBlockVlanID>()->toThrift());
-    auto macAddress = folly::MacAddress(macStr);
+  for ([[maybe_unused]] const auto& [_, switchSettings] :
+       std::as_const(*newState->getMultiSwitchSwitchSettings())) {
+    for (const auto& iter : *(switchSettings->getMacAddrsToBlock())) {
+      auto macStr =
+          iter->cref<switch_state_tags::macAddrToBlockAddr>()->toThrift();
+      auto vlanID = VlanID(
+          iter->cref<switch_state_tags::macAddrToBlockVlanID>()->toThrift());
+      auto macAddress = folly::MacAddress(macStr);
 
-    newMacAddrsToBlock.insert(std::make_pair(vlanID, macAddress));
-    XLOG(DBG2) << "New blocked mac address " << macStr;
+      newMacAddrsToBlock.insert(std::make_pair(vlanID, macAddress));
+      XLOG(DBG2) << "New blocked mac address " << macStr;
+    }
   }
 
   std::vector<std::pair<VlanID, folly::MacAddress>> toBeUpdatedMacAddrsToBlock;
