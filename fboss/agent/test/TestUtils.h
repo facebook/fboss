@@ -617,4 +617,8 @@ void setAggregatePortMemberIDs(
 template <typename T>
 std::vector<int32_t> getAggregatePortMemberIDs(const std::vector<T>& members);
 
+template <typename MultiSwitchMapT>
+auto getFirstNodeIf(const std::shared_ptr<MultiSwitchMapT>& map) {
+  return map->size() ? map->cbegin()->second : nullptr;
+}
 } // namespace facebook::fboss
