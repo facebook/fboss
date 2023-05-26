@@ -26,10 +26,22 @@ SwitchSettings* SwitchSettings::modify(std::shared_ptr<SwitchState>* state) {
   }
 
   SwitchState::modify(state);
+  auto newMultiSwitchSwitchSettings =
+      (*state)->getMultiSwitchSwitchSettings()->clone();
   auto newSwitchSettings = clone();
   auto* ptr = newSwitchSettings.get();
-  (*state)->resetSwitchSettings(std::move(newSwitchSettings));
-  return ptr;
+  for (auto& switchSettings : *newMultiSwitchSwitchSettings) {
+    if (switchSettings.second.get() == this) {
+      switchSettings.second = newSwitchSettings;
+      (*state)->resetSwitchSettings(std::move(newMultiSwitchSwitchSettings));
+      return ptr;
+    }
+  }
+  std::string entryJson;
+  apache::thrift::SimpleJSONSerializer::serialize(toThrift(), &entryJson);
+  throw FbossError(
+      "Cannot find SwitchSettings entry in MultiSwitchSwitchSettings ",
+      entryJson);
 }
 
 std::unordered_set<SwitchID> SwitchSettings::getSwitchIds() const {

@@ -8,12 +8,19 @@
  *
  */
 #include <fboss/agent/gen-cpp2/switch_config_types.h>
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 
 using namespace facebook::fboss;
 using std::make_shared;
+
+namespace {
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+} // namespace
 
 TEST(SwitchSettingsTest, applyL2LearningConfig) {
   auto platform = createMockPlatform();
@@ -603,4 +610,20 @@ TEST(SwitchSettingsTest, applyDhcpConfig) {
   EXPECT_EQ(
       thriftState0.switchSettings()->dhcpV6ReplySrc(),
       facebook::network::toBinaryAddress(kDhcpV6ReplySrc));
+}
+
+TEST(SwitchSettingsTest, modify) {
+  auto stateV0 = make_shared<SwitchState>();
+  auto multiSwitchSwitchSettingsV0 = make_shared<MultiSwitchSettings>();
+  auto switchSettingsV0 = make_shared<SwitchSettings>();
+  multiSwitchSwitchSettingsV0->addNode(
+      scope().matcherString(), switchSettingsV0);
+  stateV0->resetSwitchSettings(multiSwitchSwitchSettingsV0);
+  EXPECT_EQ(switchSettingsV0.get(), switchSettingsV0->modify(&stateV0));
+  stateV0->publish();
+  auto newSwitchSettingsV0 = switchSettingsV0->modify(&stateV0);
+  EXPECT_NE(newSwitchSettingsV0, switchSettingsV0.get());
+  EXPECT_NE(
+      stateV0->getMultiSwitchSwitchSettings().get(),
+      multiSwitchSwitchSettingsV0.get());
 }
