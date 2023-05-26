@@ -2,9 +2,12 @@
 
 #include "fboss/agent/test/AgentTest.h"
 #include <folly/gen/Base.h>
+#include <optional>
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/Main.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
@@ -13,6 +16,7 @@ namespace {
 int argCount{0};
 char** argVec{nullptr};
 facebook::fboss::PlatformInitFn initPlatform{nullptr};
+std::optional<facebook::fboss::cfg::StreamType> streamTypeOpt{std::nullopt};
 } // unnamed namespace
 
 DEFINE_bool(setup_for_warmboot, false, "Set up test for warmboot");
@@ -30,6 +34,13 @@ void AgentTest::setupAgent() {
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED),
       initPlatform);
+  if (streamTypeOpt.has_value()) {
+    HwAsic* hwAsicTableEntry = sw()->getHwAsicTable()->getHwAsicIf(
+        sw()->getPlatform()->getAsic()->getSwitchId()
+            ? SwitchID(*sw()->getPlatform()->getAsic()->getSwitchId())
+            : SwitchID(0));
+    hwAsicTableEntry->setDefaultStreamType(streamTypeOpt.value());
+  }
   FLAGS_verify_apply_oper_delta = true;
   utilCreateDir(getAgentTestDir());
   setupConfigFlag();
@@ -255,10 +266,15 @@ void AgentTest::reloadConfig(std::string reason) const {
 
 AgentTest::~AgentTest() {}
 
-void initAgentTest(int argc, char** argv, PlatformInitFn initPlatformFn) {
+void initAgentTest(
+    int argc,
+    char** argv,
+    PlatformInitFn initPlatformFn,
+    std::optional<cfg::StreamType> streamType) {
   argCount = argc;
   argVec = argv;
   initPlatform = initPlatformFn;
+  streamTypeOpt = streamType;
 }
 
 } // namespace facebook::fboss

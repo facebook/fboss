@@ -474,9 +474,13 @@ void LinkTest::setLinkState(bool enable, std::vector<PortID>& portIds) {
       waitForLinkStatus(portIds, enable, 60, std::chrono::milliseconds(1000)););
 }
 
-int linkTestMain(int argc, char** argv, PlatformInitFn initPlatformFn) {
+int linkTestMain(
+    int argc,
+    char** argv,
+    PlatformInitFn initPlatformFn,
+    std::optional<cfg::StreamType> streamType) {
   ::testing::InitGoogleTest(&argc, argv);
-  initAgentTest(argc, argv, initPlatformFn);
+  initAgentTest(argc, argv, initPlatformFn, streamType);
   return RUN_ALL_TESTS();
 }
 

@@ -4,6 +4,10 @@
 #include "fboss/agent/test/link_tests/LinkTest.h"
 
 int main(int argc, char* argv[]) {
+  std::optional<facebook::fboss::cfg::StreamType> streamType = std::nullopt;
+#if defined(TAJO_SDK_VERSION_1_62_0)
+  streamType = facebook::fboss::cfg::StreamType::UNICAST;
+#endif
   return facebook::fboss::linkTestMain(
-      argc, argv, facebook::fboss::initSaiPlatform);
+      argc, argv, facebook::fboss::initSaiPlatform, streamType);
 }

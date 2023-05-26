@@ -798,7 +798,7 @@ class SwSwitch : public HwSwitch::Callback {
     return switchInfoTable_;
   }
 
-  const HwAsicTable* getHwAsicTable() const {
+  HwAsicTable* getHwAsicTable() const {
     return hwAsicTable_.get();
   }
   bool fsdbStatPublishReady() const;

@@ -129,5 +129,9 @@ class LinkTest : public AgentTest {
   std::vector<PortID> cabledPorts_;
   std::set<TransceiverID> cabledTransceivers_;
 };
-int linkTestMain(int argc, char** argv, PlatformInitFn initPlatformFn);
+int linkTestMain(
+    int argc,
+    char** argv,
+    PlatformInitFn initPlatformFn,
+    std::optional<cfg::StreamType> streamType = std::nullopt);
 } // namespace facebook::fboss

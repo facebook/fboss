@@ -128,5 +128,9 @@ class AgentTest : public ::testing::Test, public AgentInitializer {
   std::unique_ptr<std::thread> asyncInitThread_{nullptr};
 };
 
-void initAgentTest(int argc, char** argv, PlatformInitFn initPlatformFn);
+void initAgentTest(
+    int argc,
+    char** argv,
+    PlatformInitFn initPlatformFn,
+    std::optional<cfg::StreamType> streamType = std::nullopt);
 } // namespace facebook::fboss
