@@ -45,8 +45,10 @@ std::shared_ptr<SwitchState> setupMinAlpmRouteState(
   // the default route and that the route table always contains a default
   // route
   auto newState = curState->clone();
+  auto multiSwitchSwitchSettings = newState->getMultiSwitchSwitchSettings();
+  CHECK(multiSwitchSwitchSettings->size());
   auto resolver = SwitchIdScopeResolver(
-      newState->getSwitchSettings()->getSwitchIdToSwitchInfo());
+      multiSwitchSwitchSettings->cbegin()->second->getSwitchIdToSwitchInfo());
   RouterID rid(0);
   RoutePrefixV4 defaultPrefix4{folly::IPAddressV4("0.0.0.0"), 0};
   RoutePrefixV6 defaultPrefix6{folly::IPAddressV6("::"), 0};
