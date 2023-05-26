@@ -90,7 +90,8 @@ unique_ptr<SwSwitch> createMockSw(
     cfg::SwitchConfig* config) {
   std::unique_ptr<MockPlatform> platform;
   if (state) {
-    const auto& switchSettings = state->getSwitchSettings();
+    const auto& switchSettings =
+        getFirstNodeIf(state->getMultiSwitchSwitchSettings());
     auto switchId = switchSettings->getSwitchIdToSwitchInfo().begin()->first;
     platform =
         createMockPlatform(switchSettings->getSwitchType(switchId), switchId);
@@ -106,7 +107,8 @@ shared_ptr<SwitchState> setAllPortState(
   auto newState = in->clone();
   auto newPortMaps = newState->getPorts()->modify(&newState);
   auto scopeResolver = SwitchIdScopeResolver(
-      newState->getSwitchSettings()->getSwitchIdToSwitchInfo());
+      getFirstNodeIf(newState->getMultiSwitchSwitchSettings())
+          ->getSwitchIdToSwitchInfo());
   for (auto portMap : *newPortMaps) {
     for (auto port : *portMap.second) {
       auto newPort = port.second->clone();
@@ -443,9 +445,13 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
     config = &emptyConfig;
   }
   if (config->switchSettings()->switchIdToSwitchInfo()->empty()) {
-    if (state && state->getSwitchSettings()->getSwitchIdToSwitchInfo().size()) {
+    if (state &&
+        getFirstNodeIf(state->getMultiSwitchSwitchSettings())
+            ->getSwitchIdToSwitchInfo()
+            .size()) {
       config->switchSettings()->switchIdToSwitchInfo() =
-          state->getSwitchSettings()->getSwitchIdToSwitchInfo();
+          getFirstNodeIf(state->getMultiSwitchSwitchSettings())
+              ->getSwitchIdToSwitchInfo();
     } else {
       config->switchSettings()->switchIdToSwitchInfo() = {
           std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU))};
@@ -522,8 +528,10 @@ unique_ptr<HwTestHandle> createTestHandle(
     }
   }
 
-  initialState->getSwitchSettings()->setSwitchIdToSwitchInfo(
-      switchIdToSwitchInfo);
+  auto switchSettings =
+      getFirstNodeIf(initialState->getMultiSwitchSwitchSettings());
+  auto newSwitchSettings = switchSettings->modify(&initialState);
+  newSwitchSettings->setSwitchIdToSwitchInfo(switchIdToSwitchInfo);
   auto handle = createTestHandle(initialState, flags, config);
   auto sw = handle->getSw();
 
@@ -596,7 +604,9 @@ shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
     switchIdToSwitchInfo.insert(
         std::make_pair(0, createSwitchInfo(switchType)));
   }
-  state->getSwitchSettings()->setSwitchIdToSwitchInfo(switchIdToSwitchInfo);
+  auto switchSettings = getFirstNodeIf(state->getMultiSwitchSwitchSettings());
+  auto newSwitchSettings = switchSettings->modify(&state);
+  newSwitchSettings->setSwitchIdToSwitchInfo(switchIdToSwitchInfo);
   HwSwitchMatcher matcher{std::unordered_set<SwitchID>(
       {SwitchID(switchIdToSwitchInfo.begin()->first)})};
 
@@ -672,7 +682,8 @@ shared_ptr<SwitchState> testStateAWithLookupClasses() {
   auto newState = testStateAWithPortsUp()->clone();
   auto newPortMaps = newState->getPorts()->modify(&newState);
   auto scopeResolver = SwitchIdScopeResolver(
-      newState->getSwitchSettings()->getSwitchIdToSwitchInfo());
+      getFirstNodeIf(newState->getMultiSwitchSwitchSettings())
+          ->getSwitchIdToSwitchInfo());
   for (auto portMap : *newPortMaps) {
     for (auto port : *portMap.second) {
       auto newPort = port.second->clone();
@@ -893,7 +904,9 @@ void updateBlockedNeighbor(
       [=](const std::shared_ptr<SwitchState>& state) {
         std::shared_ptr<SwitchState> newState{state};
 
-        auto newSwitchSettings = state->getSwitchSettings()->modify(&newState);
+        auto switchSettings =
+            getFirstNodeIf(state->getMultiSwitchSwitchSettings());
+        auto newSwitchSettings = switchSettings->modify(&newState);
         newSwitchSettings->setBlockNeighbors(blockNeighbors);
         return newState;
       });
@@ -912,7 +925,9 @@ void updateMacAddrsToBlock(
       [=](const std::shared_ptr<SwitchState>& state) {
         std::shared_ptr<SwitchState> newState{state};
 
-        auto newSwitchSettings = state->getSwitchSettings()->modify(&newState);
+        auto switchSettings =
+            getFirstNodeIf(state->getMultiSwitchSwitchSettings());
+        auto newSwitchSettings = switchSettings->modify(&newState);
         newSwitchSettings->setMacAddrsToBlock(macAddrsToBlock);
         return newState;
       });
@@ -998,7 +1013,9 @@ void addSwitchInfo(
     std::optional<int64_t> sysPortMax,
     std::optional<std::string> mac,
     std::optional<std::string> connectionHandle) {
-  state->getSwitchSettings()->setSwitchIdToSwitchInfo({std::make_pair(
+  auto switchSettings = getFirstNodeIf(state->getMultiSwitchSwitchSettings());
+  auto newSwitchSettings = switchSettings->modify(&state);
+  newSwitchSettings->setSwitchIdToSwitchInfo({std::make_pair(
       switchId,
       createSwitchInfo(
           switchType,
