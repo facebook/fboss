@@ -30,6 +30,7 @@
 #include "fboss/agent/LookupClassUpdater.h"
 #include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #if FOLLY_HAS_COROUTINES
 #include "fboss/agent/MKAServiceManager.h"
@@ -1149,7 +1150,10 @@ void SwSwitch::handlePendingUpdates() {
 void SwSwitch::updatePtpTcCounter() {
   // update fb303 counter to reflect current state of PTP
   // should be invoked post update
-  auto switchSettings = getState()->getSwitchSettings();
+  auto switchSettings =
+      util::getFirstNodeIf(getState()->getMultiSwitchSwitchSettings())
+      ? util::getFirstNodeIf(getState()->getMultiSwitchSwitchSettings())
+      : std::make_shared<SwitchSettings>();
   fb303::fbData->setCounter(
       SwitchStats::kCounterPrefix + "ptp_tc_enabled",
       switchSettings->isPtpTcEnable() ? 1 : 0);
