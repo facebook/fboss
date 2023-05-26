@@ -12,6 +12,7 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchSettings.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include "fboss/agent/types.h"
 
@@ -21,18 +22,20 @@ using namespace facebook::fboss;
 
 TEST_F(ManagerTestBase, checkQcmSupport) {
   auto newState = std::make_shared<SwitchState>();
-  auto newSwitchSettings = newState->getSwitchSettings()->clone();
+  auto switchSettings =
+      getFirstNodeIf(newState->getMultiSwitchSwitchSettings());
+  auto newSwitchSettings = switchSettings->modify(&newState);
   newSwitchSettings->setQcmEnable(true);
-  newState->resetSwitchSettings(newSwitchSettings);
   EXPECT_THROW(applyNewState(newState), FbossError);
 }
 
 TEST_F(ManagerTestBase, checkInvalidL2LearningModeTransition) {
   saiPlatform->getHwSwitch()->switchRunStateChanged(SwitchRunState::CONFIGURED);
   auto newState = std::make_shared<SwitchState>();
-  auto newSwitchSettings = newState->getSwitchSettings()->clone();
+  auto switchSettings =
+      getFirstNodeIf(newState->getMultiSwitchSwitchSettings());
+  auto newSwitchSettings = switchSettings->modify(&newState);
   newSwitchSettings->setL2LearningMode(cfg::L2LearningMode::SOFTWARE);
-  newState->resetSwitchSettings(newSwitchSettings);
   EXPECT_THROW(applyNewState(newState), FbossError);
 }
 

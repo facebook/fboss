@@ -14,6 +14,7 @@
 #include "fboss/agent/state/QosPolicy.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include "fboss/agent/types.h"
 
@@ -71,10 +72,10 @@ class QosMapManagerTest : public ManagerTestBase {
       std::shared_ptr<SwitchState> in = std::make_shared<SwitchState>()) {
     in->publish();
     auto newState = in->clone();
-    auto switchSettings = newState->getSwitchSettings();
-    switchSettings = switchSettings->clone();
-    switchSettings->setDefaultDataPlaneQosPolicy(policy);
-    newState->resetSwitchSettings(switchSettings);
+    auto switchSettings =
+        getFirstNodeIf(newState->getMultiSwitchSwitchSettings());
+    auto newSwitchSettings = switchSettings->modify(&newState);
+    newSwitchSettings->setDefaultDataPlaneQosPolicy(policy);
     return newState;
   }
 };
@@ -222,10 +223,10 @@ TEST_F(QosMapManagerTest, changAddsPortQos) {
   auto qosPolicies = std::make_shared<QosPolicyMap>();
   qosPolicies->addNode(makeQosPolicy("qos", testQosPolicy));
   newState->resetQosPolicies(qosPolicies);
-  auto switchSettings = newState->getSwitchSettings();
-  switchSettings = switchSettings->clone();
-  switchSettings->setDefaultDataPlaneQosPolicy(nullptr);
-  newState->resetSwitchSettings(switchSettings);
+  auto switchSettings =
+      getFirstNodeIf(newState->getMultiSwitchSwitchSettings());
+  auto newSwitchSettings = switchSettings->modify(&newState);
+  newSwitchSettings->setDefaultDataPlaneQosPolicy(nullptr);
   newPort->setQosPolicy("qos");
   EXPECT_FALSE(saiPlatform->getHwSwitch()->isValidStateUpdate(
       StateDelta(oldState, newState)));

@@ -32,6 +32,7 @@ add_executable(switch_test
 )
 
 target_link_libraries(switch_test
+    agent_test_utils
     switchid_scope_resolver
     sai_platform
     sai_store
