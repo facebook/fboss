@@ -14,6 +14,7 @@
 #include "fboss/agent/state/QosPolicy.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include "fboss/agent/types.h"
 
@@ -73,8 +74,14 @@ class QosMapManagerTest : public ManagerTestBase {
     auto newState = in->clone();
     auto switchSettings =
         util::getFirstNodeIf(newState->getMultiSwitchSwitchSettings());
-    auto newSwitchSettings = switchSettings->modify(&newState);
-    newSwitchSettings->setDefaultDataPlaneQosPolicy(policy);
+    if (switchSettings) {
+      auto newSwitchSettings = switchSettings->modify(&newState);
+      newSwitchSettings->setDefaultDataPlaneQosPolicy(policy);
+    } else {
+      auto newSwitchSettings = std::make_shared<SwitchSettings>();
+      newSwitchSettings->setDefaultDataPlaneQosPolicy(policy);
+      addSwitchSettingsToState(newState, newSwitchSettings);
+    }
     return newState;
   }
 };

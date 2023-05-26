@@ -166,6 +166,7 @@ TEST(SwitchSettingsTest, applyPtpTcEnable) {
 TEST(SwitchSettingsTest, applyL2AgeTimerSeconds) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchSettingsToState(stateV0);
 
   // Check default value
   auto l2AgeTimerSeconds = 300;
@@ -191,6 +192,7 @@ TEST(SwitchSettingsTest, applyL2AgeTimerSeconds) {
 TEST(SwitchSettingsTest, applyMaxRouteCounterIDs) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchSettingsToState(stateV0);
 
   // Check default value
   auto maxRouteCounterIDs = 0;
@@ -216,6 +218,7 @@ TEST(SwitchSettingsTest, applyMaxRouteCounterIDs) {
 TEST(SwitchSettingsTest, applyBlockNeighbors) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchSettingsToState(stateV0);
 
   // Check default value
   auto switchSettingsV0 =
@@ -257,6 +260,7 @@ TEST(SwitchSettingsTest, applyBlockNeighbors) {
 TEST(SwitchSettingsTest, applyMacAddrsToBlock) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchSettingsToState(stateV0);
 
   // Check default value
   auto switchSettingsV0 =
@@ -335,6 +339,8 @@ TEST(SwitchSettingsTest, ThrifyMigration) {
 TEST(SwitchSettingsTest, applyVoqSwitch) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchSettingsToState(
+      stateV0, make_shared<SwitchSettings>(), 1 /*switchId*/);
 
   // Check default value
   auto switchSettingsV0 =
@@ -416,6 +422,7 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
 TEST(SwitchSettingsTest, applyExactMatchTableConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchSettingsToState(stateV0);
 
   // Check default value
   auto switchSettingsV0 =
@@ -478,6 +485,7 @@ TEST(SwitchSettingsTest, applyExactMatchTableConfig) {
 TEST(SwitchSettingsTest, applyDefaultVlanConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchSettingsToState(stateV0);
 
   // Check default value
   auto switchSettingsV0 =
@@ -505,6 +513,7 @@ TEST(SwitchSettingsTest, applyDefaultVlanConfig) {
 TEST(SwitchSettingsTest, applyArpNdpTimeoutConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchSettingsToState(stateV0);
 
   // Check default value
   auto switchSettingsV0 =
@@ -552,6 +561,7 @@ TEST(SwitchSettingsTest, applyArpNdpTimeoutConfig) {
 TEST(SwitchSettingsTest, applyDhcpConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchSettingsToState(stateV0);
 
   const folly::IPAddressV6 kDhcpV6RelaySrc("100::1");
   const folly::IPAddressV6 kDhcpV6ReplySrc("101::1");

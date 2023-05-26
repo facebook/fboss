@@ -130,9 +130,9 @@ SwitchState::SwitchState() {
   resetRemoteIntfs(std::make_shared<MultiSwitchInterfaceMap>());
   resetTransceivers(std::make_shared<MultiSwitchTransceiverMap>());
   resetControlPlane(std::make_shared<MultiControlPlane>());
+  resetSwitchSettings(std::make_shared<MultiSwitchSettings>());
   // default multi-map (for single npu) system
   resetQosPolicies(std::make_shared<QosPolicyMap>());
-  resetSwitchSettings(std::make_shared<SwitchSettings>());
 }
 
 SwitchState::~SwitchState() {}
@@ -251,19 +251,6 @@ void SwitchState::resetControlPlane(
 void SwitchState::resetLoadBalancers(
     std::shared_ptr<MultiSwitchLoadBalancerMap> loadBalancers) {
   ref<switch_state_tags::loadBalancerMaps>() = loadBalancers;
-}
-
-void SwitchState::resetSwitchSettings(
-    std::shared_ptr<SwitchSettings> switchSettings) {
-  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
-  auto switchSettingsMap =
-      cref<switch_state_tags::switchSettingsMap>()->clone();
-  if (!switchSettingsMap->getNodeIf(matcher)) {
-    switchSettingsMap->addNode(matcher, switchSettings);
-  } else {
-    switchSettingsMap->updateNode(matcher, switchSettings);
-  }
-  ref<switch_state_tags::switchSettingsMap>() = switchSettingsMap;
 }
 
 void SwitchState::resetSwitchSettings(
@@ -445,11 +432,6 @@ std::shared_ptr<InterfaceMap> SwitchState::getInterfaces(
   return toRet;
 }
 
-const std::shared_ptr<SwitchSettings>& SwitchState::getSwitchSettings() const {
-  return cref<switch_state_tags::switchSettingsMap>()->cref(
-      HwSwitchMatcher::defaultHwSwitchMatcherKey());
-}
-
 const std::shared_ptr<MultiSwitchSettings>&
 SwitchState::getMultiSwitchSwitchSettings() const {
   return safe_cref<switch_state_tags::switchSettingsMap>();
@@ -544,12 +526,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   state->fromThrift<
       switch_state_tags::qosPolicyMaps,
       switch_state_tags::qosPolicyMap>(true /*emptyMnpuMapOk*/);
-
-  if (state->cref<switch_state_tags::switchSettingsMap>()->empty()) {
-    // keep map for default npu
-    state->resetSwitchSettings(
-        state->cref<switch_state_tags::switchSettings>());
-  }
 
   state
       ->fromThrift<switch_state_tags::labelFibMap, switch_state_tags::labelFib>(
@@ -724,9 +700,10 @@ state::SwitchState SwitchState::toThrift() const {
 
   // SwitchSettings need to restored before the transition logic
   // for new SwitchSettings members is executed
-  if (auto switchSettings =
-          cref<switch_state_tags::switchSettingsMap>()->getSwitchSettings()) {
-    data.switchSettings() = switchSettings->toThrift();
+  auto multiSwitchSwitchSettings = cref<switch_state_tags::switchSettingsMap>();
+  if (!multiSwitchSwitchSettings->empty()) {
+    data.switchSettings() =
+        multiSwitchSwitchSettings->cbegin()->second->toThrift();
   }
 
   // Write defaultVlan to switchSettings and old fields for transition

@@ -119,13 +119,9 @@ TEST(Udf, addUpdateRemove) {
   udfConfig->fromThrift(udf);
 
   // update the state
-  auto switchSettings =
-      util::getFirstNodeIf(state->getMultiSwitchSwitchSettings());
-  switchSettings = switchSettings->clone();
+  auto switchSettings = std::make_shared<SwitchSettings>();
   switchSettings->setUdfConfig(udfConfig);
-  auto multiSwitchSwitchSettings = std::make_shared<MultiSwitchSettings>();
-  multiSwitchSwitchSettings->addNode(scope().matcherString(), switchSettings);
-  state->resetSwitchSettings(multiSwitchSwitchSettings);
+  addSwitchSettingsToState(state, switchSettings);
 
   // both entries should be present
   EXPECT_EQ(state->getUdfConfig()->getUdfGroupMap()->size(), 2);

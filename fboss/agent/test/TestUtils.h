@@ -616,4 +616,11 @@ void setAggregatePortMemberIDs(
 
 template <typename T>
 std::vector<int32_t> getAggregatePortMemberIDs(const std::vector<T>& members);
+
+void addSwitchSettingsToState(
+    std::shared_ptr<SwitchState>& state,
+    std::shared_ptr<SwitchSettings> switchSettings =
+        std::make_shared<SwitchSettings>(),
+    int64_t switchId = 0);
+
 } // namespace facebook::fboss

@@ -39,6 +39,7 @@
 #include <folly/json.h>
 #include <folly/logging/Init.h>
 #include <chrono>
+#include <memory>
 #include <optional>
 
 using folly::ByteRange;
@@ -528,10 +529,10 @@ unique_ptr<HwTestHandle> createTestHandle(
     }
   }
 
-  auto switchSettings =
-      util::getFirstNodeIf(initialState->getMultiSwitchSwitchSettings());
-  auto newSwitchSettings = switchSettings->modify(&initialState);
-  newSwitchSettings->setSwitchIdToSwitchInfo(switchIdToSwitchInfo);
+  auto switchSettings = std::make_shared<SwitchSettings>();
+  switchSettings->setSwitchIdToSwitchInfo(switchIdToSwitchInfo);
+  addSwitchSettingsToState(
+      initialState, switchSettings, switchIdToSwitchInfo.begin()->first);
   auto handle = createTestHandle(initialState, flags, config);
   auto sw = handle->getSw();
 
@@ -604,10 +605,10 @@ shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
     switchIdToSwitchInfo.insert(
         std::make_pair(0, createSwitchInfo(switchType)));
   }
-  auto switchSettings =
-      util::getFirstNodeIf(state->getMultiSwitchSwitchSettings());
-  auto newSwitchSettings = switchSettings->modify(&state);
-  newSwitchSettings->setSwitchIdToSwitchInfo(switchIdToSwitchInfo);
+  auto switchSettings = std::make_shared<SwitchSettings>();
+  switchSettings->setSwitchIdToSwitchInfo(switchIdToSwitchInfo);
+  addSwitchSettingsToState(
+      state, switchSettings, switchIdToSwitchInfo.begin()->first);
   HwSwitchMatcher matcher{std::unordered_set<SwitchID>(
       {SwitchID(switchIdToSwitchInfo.begin()->first)})};
 
@@ -1014,21 +1015,28 @@ void addSwitchInfo(
     std::optional<int64_t> sysPortMax,
     std::optional<std::string> mac,
     std::optional<std::string> connectionHandle) {
+  auto switchInfo = createSwitchInfo(
+      switchType,
+      asicType,
+      portIdMin,
+      portIdMax,
+      switchIndex,
+      sysPortMin,
+      sysPortMax,
+      mac,
+      connectionHandle);
   auto switchSettings =
       util::getFirstNodeIf(state->getMultiSwitchSwitchSettings());
-  auto newSwitchSettings = switchSettings->modify(&state);
-  newSwitchSettings->setSwitchIdToSwitchInfo({std::make_pair(
-      switchId,
-      createSwitchInfo(
-          switchType,
-          asicType,
-          portIdMin,
-          portIdMax,
-          switchIndex,
-          sysPortMin,
-          sysPortMax,
-          mac,
-          connectionHandle))});
+  if (switchSettings) {
+    auto newSwitchSettings = switchSettings->modify(&state);
+    newSwitchSettings->setSwitchIdToSwitchInfo(
+        {std::make_pair(switchId, switchInfo)});
+  } else {
+    auto newSwitchSettings = std::make_shared<SwitchSettings>();
+    newSwitchSettings->setSwitchIdToSwitchInfo(
+        {std::make_pair(switchId, switchInfo)});
+    addSwitchSettingsToState(state, newSwitchSettings, switchId);
+  }
 }
 
 cfg::SwitchInfo createSwitchInfo(
@@ -1099,4 +1107,17 @@ template std::vector<int32_t> getAggregatePortMemberIDs<
     cfg::AggregatePortMember>(const std::vector<cfg::AggregatePortMember>&);
 template std::vector<int32_t> getAggregatePortMemberIDs<
     AggregatePortMemberThrift>(const std::vector<AggregatePortMemberThrift>&);
+
+void addSwitchSettingsToState(
+    std::shared_ptr<SwitchState>& state,
+    std::shared_ptr<SwitchSettings> switchSettings,
+    int64_t switchId) {
+  auto multiSwitchSwitchSettings = std::make_unique<MultiSwitchSettings>();
+  multiSwitchSwitchSettings->addNode(
+      HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(switchId)}))
+          .matcherString(),
+      switchSettings);
+  state->resetSwitchSettings(std::move(multiSwitchSwitchSettings));
+}
+
 } // namespace facebook::fboss

@@ -426,8 +426,6 @@ class MultiSwitchSettings
   MultiSwitchSettings() {}
   virtual ~MultiSwitchSettings() {}
 
-  std::shared_ptr<SwitchSettings> getSwitchSettings() const;
-
  private:
   // Inherit the constructors required for clone()
   using BaseT::BaseT;
