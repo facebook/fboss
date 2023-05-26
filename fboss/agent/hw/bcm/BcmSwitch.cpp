@@ -14,6 +14,7 @@
 #include <fstream>
 #include <map>
 #include <optional>
+#include <unordered_set>
 #include <utility>
 
 #include <folly/Conv.h>
@@ -645,10 +646,15 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   auto rv = bcm_vlan_default_get(getUnit(), &defaultVlan);
   bcmCheckError(rv, "Unable to get default VLAN");
 
+  auto multiSwitchSwitchSettings = make_shared<MultiSwitchSettings>();
   auto switchSettings = make_shared<SwitchSettings>();
   switchSettings->setL2LearningMode(l2LearningMode);
   switchSettings->setDefaultVlan(VlanID(defaultVlan));
-  bootState->resetSwitchSettings(switchSettings);
+  multiSwitchSwitchSettings->addNode(
+      HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}))
+          .matcherString(),
+      switchSettings);
+  bootState->resetSwitchSettings(multiSwitchSwitchSettings);
 
   HwSwitchMatcher scopeMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
 
@@ -982,8 +988,10 @@ HwInitResult BcmSwitch::initImpl(
     }
   } else {
     ret.switchState = getColdBootSwitchState();
-    setMacAging(std::chrono::seconds(
-        ret.switchState->getSwitchSettings()->getL2AgeTimerSeconds()));
+    CHECK(ret.switchState->getMultiSwitchSwitchSettings()->size());
+    auto switchSettings =
+        ret.switchState->getMultiSwitchSwitchSettings()->cbegin()->second;
+    setMacAging(std::chrono::seconds(switchSettings->getL2AgeTimerSeconds()));
   }
 
   macTable_ = std::make_unique<BcmMacTable>(this);

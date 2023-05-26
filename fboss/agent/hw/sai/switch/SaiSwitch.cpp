@@ -1835,6 +1835,10 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
     state->resetSystemPorts(sysPorts);
   }
 
+  auto multiSwitchSwitchSettings = std::make_shared<MultiSwitchSettings>();
+  multiSwitchSwitchSettings->addNode(
+      matcher.matcherString(), std::make_shared<SwitchSettings>());
+  state->resetSwitchSettings(multiSwitchSwitchSettings);
   return state;
 }
 
@@ -1910,15 +1914,21 @@ HwInitResult SaiSwitch::initLocked(
       adapterKeys2AdapterHostKeysJson.get());
   if (bootType_ != BootType::WARM_BOOT) {
     ret.switchState = getColdBootSwitchState();
+    CHECK(ret.switchState->getMultiSwitchSwitchSettings()->size());
     if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::MAC_AGING)) {
       managerTable_->switchManager().setMacAgingSeconds(
-          ret.switchState->getSwitchSettings()->getL2AgeTimerSeconds());
+          ret.switchState->getMultiSwitchSwitchSettings()
+              ->cbegin()
+              ->second->getL2AgeTimerSeconds());
     }
   }
   if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::L2_LEARNING)) {
     // for both cold and warm boot, recover l2 learning mode
+    CHECK(ret.switchState->getMultiSwitchSwitchSettings()->size());
     managerTable_->bridgeManager().setL2LearningMode(
-        ret.switchState->getSwitchSettings()->getL2LearningMode());
+        ret.switchState->getMultiSwitchSwitchSettings()
+            ->cbegin()
+            ->second->getL2LearningMode());
   }
 
   ret.switchState->publish();
