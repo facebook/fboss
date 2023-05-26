@@ -241,9 +241,5 @@ TYPED_TEST(SwitchIdScopeResolverTest, sflowCollectors) {
 }
 
 TYPED_TEST(SwitchIdScopeResolverTest, switchSettingsScope) {
-  if (this->isFabric()) {
-    this->expectThrow(std::shared_ptr<SwitchSettings>{});
-  } else {
-    this->expectL3(std::shared_ptr<SwitchSettings>());
-  }
+  this->expectAll(std::shared_ptr<SwitchSettings>());
 }

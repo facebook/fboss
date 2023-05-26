@@ -127,7 +127,7 @@ class SwitchIdScopeResolver {
   const HwSwitchMatcher& scope(const cfg::SflowCollector& collector) const;
   const HwSwitchMatcher& scope(
       const std::shared_ptr<SwitchSettings>& /*s*/) const {
-    return l3SwitchMatcher();
+    return allSwitchMatcher();
   }
 
  private:
