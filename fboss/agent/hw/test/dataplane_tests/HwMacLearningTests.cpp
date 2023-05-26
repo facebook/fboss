@@ -127,7 +127,8 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
      * @return true if the desired condition occurs before timeout, else false
      */
     auto l2LearningMode =
-        getFirstNodeIf(getProgrammedState()->getMultiSwitchSwitchSettings())
+        util::getFirstNodeIf(
+            getProgrammedState()->getMultiSwitchSwitchSettings())
             ->getL2LearningMode();
 
     /*
@@ -175,13 +176,14 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     EXPECT_EQ(l2EntryUpdateType, expectedL2EntryUpdateType);
   }
   void setL2LearningMode(cfg::L2LearningMode l2LearningMode) {
-    if (getFirstNodeIf(getProgrammedState()->getMultiSwitchSwitchSettings())
+    if (util::getFirstNodeIf(
+            getProgrammedState()->getMultiSwitchSwitchSettings())
             ->getL2LearningMode() == l2LearningMode) {
       return;
     }
     auto newState = getProgrammedState()->clone();
     auto switchSettings =
-        getFirstNodeIf(newState->getMultiSwitchSwitchSettings());
+        util::getFirstNodeIf(newState->getMultiSwitchSwitchSettings());
     auto newSwitchSettings = switchSettings->modify(&newState);
     newSwitchSettings->setL2LearningMode(l2LearningMode);
     applyNewState(newState);

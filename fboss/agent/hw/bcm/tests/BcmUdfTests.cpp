@@ -35,7 +35,8 @@ class BcmUdfTest : public BcmTest {
 
     auto state = getProgrammedState();
     state->modify(&state);
-    auto switchSettings = getFirstNodeIf(state->getMultiSwitchSwitchSettings());
+    auto switchSettings =
+        util::getFirstNodeIf(state->getMultiSwitchSwitchSettings());
     auto newSwitchSettings = switchSettings->modify(&state);
     newSwitchSettings->setUdfConfig(udfConfigState);
     return state;

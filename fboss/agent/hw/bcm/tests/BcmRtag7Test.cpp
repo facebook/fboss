@@ -16,7 +16,6 @@
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/LoadBalancerMap.h"
-#include "fboss/agent/test/TestUtils.h"
 
 #include <memory>
 
@@ -104,7 +103,8 @@ class BcmRtag7Test : public BcmTest {
     auto udfConfig = utility::addUdfConfig();
     udfConfigState->fromThrift(udfConfig);
 
-    auto switchSettings = getFirstNodeIf(state->getMultiSwitchSwitchSettings());
+    auto switchSettings =
+        util::getFirstNodeIf(state->getMultiSwitchSwitchSettings());
     auto newSwitchSettings = switchSettings->modify(&state);
     newSwitchSettings->setUdfConfig(udfConfigState);
     return state;

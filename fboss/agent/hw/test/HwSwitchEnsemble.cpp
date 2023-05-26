@@ -32,7 +32,6 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/test/TestUtils.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
 #include <folly/experimental/FunctionScheduler.h>
@@ -463,7 +462,7 @@ void HwSwitchEnsemble::setupEnsemble(
   programmedState_ = hwInitResult.switchState;
   programmedState_ = programmedState_->clone();
   auto settings =
-      getFirstNodeIf(programmedState_->getMultiSwitchSwitchSettings());
+      util::getFirstNodeIf(programmedState_->getMultiSwitchSwitchSettings());
   auto newSettings = settings->modify(&programmedState_);
   newSettings->setSwitchIdToSwitchInfo(switchIdToSwitchInfo);
   routingInformationBase_ = std::move(hwInitResult.rib);

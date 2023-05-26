@@ -29,6 +29,11 @@ auto getFirstMap(const std::shared_ptr<MswitchMapT>& map) {
   return map->size() ? map->cbegin()->second : nullptr;
 }
 
+template <typename MultiSwitchMapT>
+auto getFirstNodeIf(const std::shared_ptr<MultiSwitchMapT>& map) {
+  return map->size() ? map->cbegin()->second : nullptr;
+}
+
 } // namespace util
 
 } // namespace facebook::fboss

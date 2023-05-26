@@ -185,7 +185,7 @@ TEST(FlowletSwitching, applyConfig) {
   // backward/forward compatibility
   EXPECT_EQ(
       stateV2->getFlowletSwitchingConfig(),
-      getFirstNodeIf(stateV2->getMultiSwitchSwitchSettings())
+      util::getFirstNodeIf(stateV2->getMultiSwitchSwitchSettings())
           ->getFlowletSwitchingConfig());
   const auto& stateThrift = stateV2->toThrift();
   EXPECT_EQ(

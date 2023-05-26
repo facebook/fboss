@@ -509,7 +509,7 @@ TEST(QosPolicy, DefaultQosPolicy) {
   // default policy is not set
   EXPECT_EQ(state->getDefaultDataPlaneQosPolicy(), nullptr);
   EXPECT_EQ(
-      getFirstNodeIf(state->getMultiSwitchSwitchSettings())
+      util::getFirstNodeIf(state->getMultiSwitchSwitchSettings())
           ->getDefaultDataPlaneQosPolicy(),
       nullptr);
 
@@ -521,13 +521,13 @@ TEST(QosPolicy, DefaultQosPolicy) {
 
   EXPECT_NE(state->getDefaultDataPlaneQosPolicy(), nullptr);
   EXPECT_NE(
-      getFirstNodeIf(state->getMultiSwitchSwitchSettings())
+      util::getFirstNodeIf(state->getMultiSwitchSwitchSettings())
           ->getDefaultDataPlaneQosPolicy(),
       nullptr);
   checkQosPolicy(policy, state->getDefaultDataPlaneQosPolicy());
   EXPECT_EQ(
       state->getDefaultDataPlaneQosPolicy(),
-      getFirstNodeIf(state->getMultiSwitchSwitchSettings())
+      util::getFirstNodeIf(state->getMultiSwitchSwitchSettings())
           ->getDefaultDataPlaneQosPolicy());
   const auto& stateThrift = state->toThrift();
   EXPECT_EQ(

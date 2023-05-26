@@ -10,7 +10,6 @@
 #include "fboss/agent/packet/PTPHeader.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -158,7 +157,7 @@ class PtpTests : public LinkTest {
     sw()->updateStateBlocking(updateMsg, [=](auto state) {
       auto newState = state->clone();
       auto switchSettings =
-          getFirstNodeIf(newState->getMultiSwitchSwitchSettings())
+          util::getFirstNodeIf(newState->getMultiSwitchSwitchSettings())
               ->modify(&newState);
       switchSettings->setPtpTcEnable(enable);
       return newState;

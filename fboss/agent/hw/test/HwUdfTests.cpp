@@ -11,7 +11,6 @@
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/hw/test/HwTestUdfUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
-#include "fboss/agent/test/TestUtils.h"
 
 namespace facebook::fboss {
 
@@ -27,7 +26,8 @@ class HwUdfTest : public HwTest {
 
     auto state = getProgrammedState();
     state->modify(&state);
-    auto switchSettings = getFirstNodeIf(state->getMultiSwitchSwitchSettings());
+    auto switchSettings =
+        util::getFirstNodeIf(state->getMultiSwitchSwitchSettings());
     auto newSwitchSettings = switchSettings->modify(&state);
     newSwitchSettings->setUdfConfig(udfConfigState);
     return state;

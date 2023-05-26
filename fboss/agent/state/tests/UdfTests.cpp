@@ -119,7 +119,8 @@ TEST(Udf, addUpdateRemove) {
   udfConfig->fromThrift(udf);
 
   // update the state
-  auto switchSettings = getFirstNodeIf(state->getMultiSwitchSwitchSettings());
+  auto switchSettings =
+      util::getFirstNodeIf(state->getMultiSwitchSwitchSettings());
   switchSettings = switchSettings->clone();
   switchSettings->setUdfConfig(udfConfig);
   auto multiSwitchSwitchSettings = std::make_shared<MultiSwitchSettings>();
@@ -288,7 +289,7 @@ TEST(Udf, applyConfig) {
   // one entry has been added <matchCfg_1>
   EXPECT_EQ(stateV2->getUdfConfig()->getUdfPacketMatcherMap()->size(), 1);
   auto switchSettingsV2 =
-      getFirstNodeIf(stateV2->getMultiSwitchSwitchSettings());
+      util::getFirstNodeIf(stateV2->getMultiSwitchSwitchSettings());
   EXPECT_EQ(stateV2->getUdfConfig(), switchSettingsV2->getUdfConfig());
   const auto stateThrift = stateV2->toThrift();
   // make sure we are writing the global and switchSettings entry for

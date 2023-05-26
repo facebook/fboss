@@ -36,7 +36,7 @@ class MacLearningTest : public LinkTest {
     sw()->updateStateBlocking("update L2 aging", [ageout](auto state) {
       auto newState = state->clone();
       auto switchSettings =
-          getFirstNodeIf(newState->getMultiSwitchSwitchSettings())
+          util::getFirstNodeIf(newState->getMultiSwitchSwitchSettings())
               ->modify(&newState);
       switchSettings->setL2AgeTimerSeconds(ageout);
       return newState;

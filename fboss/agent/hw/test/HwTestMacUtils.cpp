@@ -3,7 +3,6 @@
 #include "fboss/agent/hw/test/HwTestMacUtils.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/test/TestUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -12,7 +11,7 @@ void setMacAgeTimerSeconds(
     uint32_t seconds) {
   auto newState = hwSwitchEnsemble->getProgrammedState()->clone();
   auto switchSettings =
-      getFirstNodeIf(newState->getMultiSwitchSwitchSettings());
+      util::getFirstNodeIf(newState->getMultiSwitchSwitchSettings());
   auto newSwitchSettings = switchSettings->modify(&newState);
   newSwitchSettings->setL2AgeTimerSeconds(seconds);
   hwSwitchEnsemble->applyNewState(newState);
