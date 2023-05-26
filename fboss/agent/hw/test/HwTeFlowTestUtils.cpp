@@ -33,8 +33,7 @@ void setExactMatchCfg(std::shared_ptr<SwitchState>* state, int prefixLength) {
   if (newState->isPublished()) {
     newState = newState->clone();
   }
-  auto switchSettings =
-      util::getFirstNodeIf(newState->getMultiSwitchSwitchSettings());
+  auto switchSettings = util::getFirstNodeIf(newState->getSwitchSettings());
   auto newSwitchSettings = switchSettings->modify(&newState);
   newSwitchSettings->setExactMatchTableConfig({exactMatchTableConfigs});
   *state = newState;

@@ -45,7 +45,7 @@ std::shared_ptr<SwitchState> setupMinAlpmRouteState(
   // the default route and that the route table always contains a default
   // route
   auto newState = curState->clone();
-  auto multiSwitchSwitchSettings = newState->getMultiSwitchSwitchSettings();
+  auto multiSwitchSwitchSettings = newState->getSwitchSettings();
   CHECK(multiSwitchSwitchSettings->size());
   auto resolver = SwitchIdScopeResolver(
       multiSwitchSwitchSettings->cbegin()->second->getSwitchIdToSwitchInfo());

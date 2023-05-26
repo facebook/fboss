@@ -72,8 +72,7 @@ class QosMapManagerTest : public ManagerTestBase {
       std::shared_ptr<SwitchState> in = std::make_shared<SwitchState>()) {
     in->publish();
     auto newState = in->clone();
-    auto switchSettings =
-        util::getFirstNodeIf(newState->getMultiSwitchSwitchSettings());
+    auto switchSettings = util::getFirstNodeIf(newState->getSwitchSettings());
     if (switchSettings) {
       auto newSwitchSettings = switchSettings->modify(&newState);
       newSwitchSettings->setDefaultDataPlaneQosPolicy(policy);
@@ -229,8 +228,7 @@ TEST_F(QosMapManagerTest, changAddsPortQos) {
   auto qosPolicies = std::make_shared<QosPolicyMap>();
   qosPolicies->addNode(makeQosPolicy("qos", testQosPolicy));
   newState->resetQosPolicies(qosPolicies);
-  auto switchSettings =
-      util::getFirstNodeIf(newState->getMultiSwitchSwitchSettings());
+  auto switchSettings = util::getFirstNodeIf(newState->getSwitchSettings());
   auto newSwitchSettings = switchSettings->modify(&newState);
   newSwitchSettings->setDefaultDataPlaneQosPolicy(nullptr);
   newPort->setQosPolicy("qos");

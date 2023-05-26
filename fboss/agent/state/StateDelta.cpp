@@ -239,8 +239,7 @@ MultiSwitchForwardingInformationBaseMapDelta StateDelta::getFibsDelta() const {
 
 ThriftMapDelta<MultiSwitchSettings> StateDelta::getSwitchSettingsDelta() const {
   return ThriftMapDelta<MultiSwitchSettings>(
-      old_->getMultiSwitchSwitchSettings().get(),
-      new_->getMultiSwitchSwitchSettings().get());
+      old_->getSwitchSettings().get(), new_->getSwitchSettings().get());
 }
 
 DeltaValue<FlowletSwitchingConfig> StateDelta::getFlowletSwitchingConfigDelta()

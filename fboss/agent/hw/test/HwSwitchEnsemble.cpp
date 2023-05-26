@@ -461,8 +461,7 @@ void HwSwitchEnsemble::setupEnsemble(
 
   programmedState_ = hwInitResult.switchState;
   programmedState_ = programmedState_->clone();
-  auto settings =
-      util::getFirstNodeIf(programmedState_->getMultiSwitchSwitchSettings());
+  auto settings = util::getFirstNodeIf(programmedState_->getSwitchSettings());
   auto newSettings = settings->modify(&programmedState_);
   newSettings->setSwitchIdToSwitchInfo(switchIdToSwitchInfo);
   routingInformationBase_ = std::move(hwInitResult.rib);

@@ -1914,19 +1914,19 @@ HwInitResult SaiSwitch::initLocked(
       adapterKeys2AdapterHostKeysJson.get());
   if (bootType_ != BootType::WARM_BOOT) {
     ret.switchState = getColdBootSwitchState();
-    CHECK(ret.switchState->getMultiSwitchSwitchSettings()->size());
+    CHECK(ret.switchState->getSwitchSettings()->size());
     if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::MAC_AGING)) {
       managerTable_->switchManager().setMacAgingSeconds(
-          ret.switchState->getMultiSwitchSwitchSettings()
+          ret.switchState->getSwitchSettings()
               ->cbegin()
               ->second->getL2AgeTimerSeconds());
     }
   }
   if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::L2_LEARNING)) {
     // for both cold and warm boot, recover l2 learning mode
-    CHECK(ret.switchState->getMultiSwitchSwitchSettings()->size());
+    CHECK(ret.switchState->getSwitchSettings()->size());
     managerTable_->bridgeManager().setL2LearningMode(
-        ret.switchState->getMultiSwitchSwitchSettings()
+        ret.switchState->getSwitchSettings()
             ->cbegin()
             ->second->getL2LearningMode());
   }
@@ -2380,8 +2380,8 @@ bool SaiSwitch::isValidStateUpdateLocked(
     return false;
   }
 
-  if (delta.oldState()->getMultiSwitchSwitchSettings()->size() &&
-      delta.newState()->getMultiSwitchSwitchSettings()->empty()) {
+  if (delta.oldState()->getSwitchSettings()->size() &&
+      delta.newState()->getSwitchSettings()->empty()) {
     throw FbossError("Switch settings cannot be removed from SwitchState");
   }
 

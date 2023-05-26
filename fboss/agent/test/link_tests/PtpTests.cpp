@@ -156,9 +156,8 @@ class PtpTests : public LinkTest {
     std::string updateMsg = enable ? "PTP enable" : "PTP disable";
     sw()->updateStateBlocking(updateMsg, [=](auto state) {
       auto newState = state->clone();
-      auto switchSettings =
-          util::getFirstNodeIf(newState->getMultiSwitchSwitchSettings())
-              ->modify(&newState);
+      auto switchSettings = util::getFirstNodeIf(newState->getSwitchSettings())
+                                ->modify(&newState);
       switchSettings->setPtpTcEnable(enable);
       return newState;
     });

@@ -358,7 +358,7 @@ void LookupClassRouteUpdater::processInterfaceAdded(
    * Thus, when an interface is added, process blocked neighbor list again.
    */
   for ([[maybe_unused]] const auto& [_, switchSettings] :
-       std::as_const(*switchState->getMultiSwitchSwitchSettings())) {
+       std::as_const(*switchState->getSwitchSettings())) {
     for (const auto& settingsIter : *(switchSettings->getBlockNeighbors())) {
       auto blockedVlanID =
           VlanID(settingsIter->cref<switch_state_tags::blockNeighborVlanID>()
@@ -386,7 +386,7 @@ void LookupClassRouteUpdater::processInterfaceAdded(
    * Thus, when an interface is added, process blocked mac address list again.
    */
   for ([[maybe_unused]] const auto& [_, switchSettings] :
-       std::as_const(*switchState->getMultiSwitchSwitchSettings())) {
+       std::as_const(*switchState->getSwitchSettings())) {
     for (const auto& settingsIter : *(switchSettings->getMacAddrsToBlock())) {
       auto blockedVlanID =
           VlanID(settingsIter->cref<switch_state_tags::macAddrToBlockVlanID>()
@@ -1179,7 +1179,7 @@ bool LookupClassRouteUpdater::isSubnetCachedByBlockedNeighborIP(
     VlanID vlanID,
     const folly::CIDRNetwork& addressToSearch) const {
   for ([[maybe_unused]] const auto& [_, switchSettings] :
-       std::as_const(*switchState->getMultiSwitchSwitchSettings())) {
+       std::as_const(*switchState->getSwitchSettings())) {
     for (const auto& iter : *(switchSettings->getBlockNeighbors())) {
       auto blockedVlanID = VlanID(
           iter->cref<switch_state_tags::blockNeighborVlanID>()->toThrift());
@@ -1311,11 +1311,11 @@ void LookupClassRouteUpdater::processBlockNeighborUpdates(
   auto oldState = stateDelta.oldState();
   auto newState = stateDelta.newState();
 
-  auto oldSwitchSettings = oldState->getMultiSwitchSwitchSettings()->size()
-      ? oldState->getMultiSwitchSwitchSettings()->cbegin()->second
+  auto oldSwitchSettings = oldState->getSwitchSettings()->size()
+      ? oldState->getSwitchSettings()->cbegin()->second
       : std::make_shared<SwitchSettings>();
-  auto newSwitchSettings = newState->getMultiSwitchSwitchSettings()->size()
-      ? newState->getMultiSwitchSwitchSettings()->cbegin()->second
+  auto newSwitchSettings = newState->getSwitchSettings()->size()
+      ? newState->getSwitchSettings()->cbegin()->second
       : std::make_shared<SwitchSettings>();
 
   auto oldBlockedNeighbors{oldSwitchSettings->getBlockNeighbors_DEPRECATED()};
@@ -1462,11 +1462,11 @@ void LookupClassRouteUpdater::processMacAddrsToBlockUpdates(
   auto oldState = stateDelta.oldState();
   auto newState = stateDelta.newState();
 
-  auto oldSwitchSettings = oldState->getMultiSwitchSwitchSettings()->size()
-      ? oldState->getMultiSwitchSwitchSettings()->cbegin()->second
+  auto oldSwitchSettings = oldState->getSwitchSettings()->size()
+      ? oldState->getSwitchSettings()->cbegin()->second
       : std::make_shared<SwitchSettings>();
-  auto newSwitchSettings = newState->getMultiSwitchSwitchSettings()->size()
-      ? newState->getMultiSwitchSwitchSettings()->cbegin()->second
+  auto newSwitchSettings = newState->getSwitchSettings()->size()
+      ? newState->getSwitchSettings()->cbegin()->second
       : std::make_shared<SwitchSettings>();
 
   std::vector<std::pair<VlanID, folly::MacAddress>> oldMacAddrsToBlock(

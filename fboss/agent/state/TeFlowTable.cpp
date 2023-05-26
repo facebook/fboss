@@ -50,8 +50,8 @@ std::string getTeFlowStr(const TeFlow& flow) {
 
 int TeFlowSyncer::getDstIpPrefixLength(
     const std::shared_ptr<SwitchState>& state) {
-  auto switchSettings = state->getMultiSwitchSwitchSettings()->size()
-      ? state->getMultiSwitchSwitchSettings()->cbegin()->second
+  auto switchSettings = state->getSwitchSettings()->size()
+      ? state->getSwitchSettings()->cbegin()->second
       : std::make_shared<SwitchSettings>();
 
   auto exactMatchTableConfigs = switchSettings->getExactMatchTableConfig();

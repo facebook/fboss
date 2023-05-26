@@ -150,8 +150,8 @@ Interface* Interface::modify(std::shared_ptr<SwitchState>* state) {
   }
   bool isLocal = false;
 
-  auto switchSettings = (*state)->getMultiSwitchSwitchSettings()->size()
-      ? (*state)->getMultiSwitchSwitchSettings()->cbegin()->second
+  auto switchSettings = (*state)->getSwitchSettings()->size()
+      ? (*state)->getSwitchSettings()->cbegin()->second
       : std::make_shared<SwitchSettings>();
 
   if (getType() == cfg::InterfaceType::SYSTEM_PORT) {

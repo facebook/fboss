@@ -522,8 +522,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     auto newSwitchSettings = updateSwitchSettings();
     if (newSwitchSettings) {
       const auto& origSwitchSettings =
-          util::getFirstNodeIf(orig_->getMultiSwitchSwitchSettings())
-          ? util::getFirstNodeIf(orig_->getMultiSwitchSwitchSettings())
+          util::getFirstNodeIf(orig_->getSwitchSettings())
+          ? util::getFirstNodeIf(orig_->getSwitchSettings())
           : make_shared<SwitchSettings>();
       if ((newSwitchSettings->getSwitchIdToSwitchInfo() !=
            origSwitchSettings->getSwitchIdToSwitchInfo())) {
@@ -546,7 +546,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
           updateSystemPorts(
               new_->getPorts(),
-              util::getFirstNodeIf(new_->getMultiSwitchSwitchSettings())),
+              util::getFirstNodeIf(new_->getSwitchSettings())),
           scopeResolver_));
       changed = true;
     }
@@ -744,7 +744,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
           updateSystemPorts(
               new_->getPorts(),
-              util::getFirstNodeIf(new_->getMultiSwitchSwitchSettings())),
+              util::getFirstNodeIf(new_->getSwitchSettings())),
           scopeResolver_));
       changed = true;
     }
@@ -757,8 +757,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     // "pseudoVlan" to populate SwitchState/Neighbor cache etc. data structures.
     // Once the wedge_agent changes are complete, we will no longer need
     // pseudoVlan notion.
-    if (!util::getFirstNodeIf(new_->getMultiSwitchSwitchSettings())
-             ->vlansSupported()) {
+    if (!util::getFirstNodeIf(new_->getSwitchSettings())->vlansSupported()) {
       auto pseudoVlans = updatePseudoVlans();
       if (pseudoVlans) {
         new_->resetVlans(std::move(pseudoVlans));
@@ -774,8 +773,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
 }
 
 void ThriftConfigApplier::processUpdatedDsfNodes() {
-  const auto& switchSettings =
-      util::getFirstNodeIf(new_->getMultiSwitchSwitchSettings());
+  const auto& switchSettings = util::getFirstNodeIf(new_->getSwitchSettings());
   auto localSwitchIds = switchSettings->getSwitchIds();
   for (auto localSwitchId : localSwitchIds) {
     auto origDsfNode = orig_->getDsfNodes()->getNodeIf(localSwitchId);
@@ -1104,8 +1102,7 @@ void ThriftConfigApplier::processInterfaceForPortForNonVoqSwitches(
 }
 
 void ThriftConfigApplier::processInterfaceForPort() {
-  const auto& switchSettings =
-      util::getFirstNodeIf(new_->getMultiSwitchSwitchSettings());
+  const auto& switchSettings = util::getFirstNodeIf(new_->getSwitchSettings());
   // Build Port -> interface mappings in port2InterfaceId_
   for (const auto& switchIdAndInfo :
        switchSettings->getSwitchIdToSwitchInfo()) {
@@ -1739,8 +1736,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     }
   }
 
-  const auto& switchSettings =
-      util::getFirstNodeIf(new_->getMultiSwitchSwitchSettings());
+  const auto& switchSettings = util::getFirstNodeIf(new_->getSwitchSettings());
   // For now, we only support update unicast port queues for ports
   auto switchIds =
       SwitchIdScopeResolver(switchSettings->getSwitchIdToSwitchInfo())
@@ -2198,8 +2194,7 @@ uint8_t ThriftConfigApplier::computeMinimumLinkCount(
 }
 
 shared_ptr<MultiSwitchVlanMap> ThriftConfigApplier::updateVlans() {
-  const auto& switchSettings =
-      util::getFirstNodeIf(new_->getMultiSwitchSwitchSettings());
+  const auto& switchSettings = util::getFirstNodeIf(new_->getSwitchSettings());
   // TODO(skhare)
   // VOQ/Fabric switches require that the packets are not tagged with any
   // VLAN. We are gradually enhancing wedge_agent to handle tagged as well as
@@ -2316,8 +2311,7 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(
 }
 
 shared_ptr<MultiSwitchVlanMap> ThriftConfigApplier::updatePseudoVlans() {
-  const auto& switchSettings =
-      util::getFirstNodeIf(new_->getMultiSwitchSwitchSettings());
+  const auto& switchSettings = util::getFirstNodeIf(new_->getSwitchSettings());
   // Pseudo vlan only case of non vlan supporting configs
   CHECK(!switchSettings->vlansSupported());
 
@@ -3621,8 +3615,7 @@ ThriftConfigApplier::updateFlowletSwitchingConfig(bool* changed) {
 }
 
 shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
-  auto origSwitchSettings =
-      util::getFirstNodeIf(orig_->getMultiSwitchSwitchSettings());
+  auto origSwitchSettings = util::getFirstNodeIf(orig_->getSwitchSettings());
   bool switchSettingsChange = false;
   auto newSwitchSettings = origSwitchSettings
       ? origSwitchSettings->clone()

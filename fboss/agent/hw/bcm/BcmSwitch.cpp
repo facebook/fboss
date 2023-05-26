@@ -988,9 +988,9 @@ HwInitResult BcmSwitch::initImpl(
     }
   } else {
     ret.switchState = getColdBootSwitchState();
-    CHECK(ret.switchState->getMultiSwitchSwitchSettings()->size());
+    CHECK(ret.switchState->getSwitchSettings()->size());
     auto switchSettings =
-        ret.switchState->getMultiSwitchSwitchSettings()->cbegin()->second;
+        ret.switchState->getSwitchSettings()->cbegin()->second;
     setMacAging(std::chrono::seconds(switchSettings->getL2AgeTimerSeconds()));
   }
 

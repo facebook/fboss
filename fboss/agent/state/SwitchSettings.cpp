@@ -26,8 +26,7 @@ SwitchSettings* SwitchSettings::modify(std::shared_ptr<SwitchState>* state) {
   }
 
   SwitchState::modify(state);
-  auto newMultiSwitchSwitchSettings =
-      (*state)->getMultiSwitchSwitchSettings()->clone();
+  auto newMultiSwitchSwitchSettings = (*state)->getSwitchSettings()->clone();
   auto newSwitchSettings = clone();
   auto* ptr = newSwitchSettings.get();
   for (auto& switchSettings : *newMultiSwitchSwitchSettings) {

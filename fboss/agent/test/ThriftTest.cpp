@@ -388,8 +388,7 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getSetSwitchDrainState) {
   auto switchDrainFn =
       [this](const shared_ptr<SwitchState>& state) -> shared_ptr<SwitchState> {
     shared_ptr<SwitchState> newState{state};
-    auto oldSwitchSettings =
-        util::getFirstNodeIf(state->getMultiSwitchSwitchSettings());
+    auto oldSwitchSettings = util::getFirstNodeIf(state->getSwitchSettings());
     auto newSwitchSettings = oldSwitchSettings->modify(&newState);
     newSwitchSettings->setSwitchDrainState(cfg::SwitchDrainState::DRAINED);
     return newState;
@@ -429,7 +428,7 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getAndSetNeighborsToBlock) {
 
         auto gotBlockedNeighbors =
             util::getFirstNodeIf(
-                handler.getSw()->getState()->getMultiSwitchSwitchSettings())
+                handler.getSw()->getState()->getSwitchSettings())
                 ->getBlockNeighbors_DEPRECATED();
 
         std::vector<cfg::Neighbor> gotBlockedNeighborsViaThrift;
@@ -471,8 +470,7 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getAndSetNeighborsToBlock) {
   setNeighborsToBlock({});
   EXPECT_EQ(
       0,
-      util::getFirstNodeIf(
-          this->sw_->getState()->getMultiSwitchSwitchSettings())
+      util::getFirstNodeIf(this->sw_->getState()->getSwitchSettings())
           ->getBlockNeighbors_DEPRECATED()
           .size());
   handler.getBlockedNeighbors(blockedNeighbors);
@@ -482,8 +480,7 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getAndSetNeighborsToBlock) {
   setNeighborsToBlock(std::move(neighborsToBlock));
   EXPECT_EQ(
       0,
-      util::getFirstNodeIf(
-          this->sw_->getState()->getMultiSwitchSwitchSettings())
+      util::getFirstNodeIf(this->sw_->getState()->getSwitchSettings())
           ->getBlockNeighbors_DEPRECATED()
           .size());
   handler.getBlockedNeighbors(blockedNeighbors);
@@ -918,7 +915,7 @@ TEST_F(ThriftTest, getAndSetMacAddrsToBlock) {
 
         auto gotMacAddrsToBlock =
             util::getFirstNodeIf(
-                handler.getSw()->getState()->getMultiSwitchSwitchSettings())
+                handler.getSw()->getState()->getSwitchSettings())
                 ->getMacAddrsToBlock_DEPRECATED();
         EXPECT_EQ(macAddrsToBlock, gotMacAddrsToBlock);
 
@@ -944,7 +941,7 @@ TEST_F(ThriftTest, getAndSetMacAddrsToBlock) {
   waitForStateUpdates(sw_);
   EXPECT_EQ(
       0,
-      util::getFirstNodeIf(sw_->getState()->getMultiSwitchSwitchSettings())
+      util::getFirstNodeIf(sw_->getState()->getSwitchSettings())
           ->getMacAddrsToBlock_DEPRECATED()
           .size());
   handler.getMacAddrsToBlock(macAddrsToBlock);
@@ -956,7 +953,7 @@ TEST_F(ThriftTest, getAndSetMacAddrsToBlock) {
   waitForStateUpdates(sw_);
   EXPECT_EQ(
       0,
-      util::getFirstNodeIf(sw_->getState()->getMultiSwitchSwitchSettings())
+      util::getFirstNodeIf(sw_->getState()->getSwitchSettings())
           ->getMacAddrsToBlock_DEPRECATED()
           .size());
   handler.getMacAddrsToBlock(macAddrsToBlock);

@@ -805,7 +805,7 @@ void LookupClassUpdater::processBlockNeighborUpdates(
 
   std::set<std::pair<VlanID, folly::IPAddress>> newBlockedNeighbors;
   for ([[maybe_unused]] const auto& [_, switchSettings] :
-       std::as_const(*newState->getMultiSwitchSwitchSettings())) {
+       std::as_const(*newState->getSwitchSettings())) {
     for (const auto& iter : *(switchSettings->getBlockNeighbors())) {
       auto vlanID = VlanID(
           iter->cref<switch_state_tags::blockNeighborVlanID>()->toThrift());
@@ -904,7 +904,7 @@ void LookupClassUpdater::processMacAddrsToBlockUpdates(
 
   std::set<std::pair<VlanID, folly::MacAddress>> newMacAddrsToBlock;
   for ([[maybe_unused]] const auto& [_, switchSettings] :
-       std::as_const(*newState->getMultiSwitchSwitchSettings())) {
+       std::as_const(*newState->getSwitchSettings())) {
     for (const auto& iter : *(switchSettings->getMacAddrsToBlock())) {
       auto macStr =
           iter->cref<switch_state_tags::macAddrToBlockAddr>()->toThrift();

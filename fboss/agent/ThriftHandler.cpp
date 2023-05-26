@@ -605,9 +605,9 @@ template <typename AddressT, typename NeighborThriftT>
 void addRecylePortRifNeighbors(
     const std::shared_ptr<SwitchState> state,
     std::vector<NeighborThriftT>& nbrs) {
-  CHECK(!state->getMultiSwitchSwitchSettings()->empty());
+  CHECK(!state->getSwitchSettings()->empty());
   for (const auto& switchIdAndInfo :
-       util::getFirstNodeIf(state->getMultiSwitchSwitchSettings())
+       util::getFirstNodeIf(state->getSwitchSettings())
            ->getSwitchIdToSwitchInfo()) {
     if (switchIdAndInfo.second.switchType() != cfg::SwitchType::VOQ) {
       continue;
@@ -2567,9 +2567,9 @@ void ThriftHandler::getBlockedNeighbors(
     std::vector<cfg::Neighbor>& blockedNeighbors) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  CHECK(!sw_->getState()->getMultiSwitchSwitchSettings()->empty());
+  CHECK(!sw_->getState()->getSwitchSettings()->empty());
   const auto& switchSettings =
-      util::getFirstNodeIf(sw_->getState()->getMultiSwitchSwitchSettings());
+      util::getFirstNodeIf(sw_->getState()->getSwitchSettings());
   for (const auto& iter : *(switchSettings->getBlockNeighbors())) {
     cfg::Neighbor blockedNeighbor;
     blockedNeighbor.vlanID() =
@@ -2591,7 +2591,7 @@ void ThriftHandler::setNeighborsToBlock(
   std::vector<std::pair<VlanID, folly::IPAddress>> blockNeighbors;
 
   auto switchSettings =
-      util::getFirstNodeIf(sw_->getState()->getMultiSwitchSwitchSettings());
+      util::getFirstNodeIf(sw_->getState()->getSwitchSettings());
   if (neighborsToBlock) {
     if ((*neighborsToBlock).size() != 0 &&
         switchSettings->getMacAddrsToBlock()->size() != 0) {
@@ -2623,8 +2623,7 @@ void ThriftHandler::setNeighborsToBlock(
       [blockNeighbors](const std::shared_ptr<SwitchState>& state) {
         std::shared_ptr<SwitchState> newState{state};
         auto newSwitchSettings =
-            util::getFirstNodeIf(state->getMultiSwitchSwitchSettings())
-                ->modify(&newState);
+            util::getFirstNodeIf(state->getSwitchSettings())->modify(&newState);
         newSwitchSettings->setBlockNeighbors(blockNeighbors);
         return newState;
       });
@@ -2636,7 +2635,7 @@ void ThriftHandler::getMacAddrsToBlock(
   ensureConfigured(__func__);
 
   for (const auto& iter :
-       *(util::getFirstNodeIf(sw_->getState()->getMultiSwitchSwitchSettings())
+       *(util::getFirstNodeIf(sw_->getState()->getSwitchSettings())
              ->getMacAddrsToBlock())) {
     auto vlanID = VlanID(
         iter->cref<switch_state_tags::macAddrToBlockVlanID>()->toThrift());
@@ -2657,7 +2656,7 @@ void ThriftHandler::setMacAddrsToBlock(
 
   if (macAddrsToBlock) {
     if ((*macAddrsToBlock).size() != 0 &&
-        util::getFirstNodeIf(sw_->getState()->getMultiSwitchSwitchSettings())
+        util::getFirstNodeIf(sw_->getState()->getSwitchSettings())
                 ->getBlockNeighbors()
                 ->size() != 0) {
       throw FbossError(
@@ -2690,8 +2689,7 @@ void ThriftHandler::setMacAddrsToBlock(
       [blockMacAddrs](const std::shared_ptr<SwitchState>& state) {
         std::shared_ptr<SwitchState> newState{state};
         auto newSwitchSettings =
-            util::getFirstNodeIf(state->getMultiSwitchSwitchSettings())
-                ->modify(&newState);
+            util::getFirstNodeIf(state->getSwitchSettings())->modify(&newState);
         newSwitchSettings->setMacAddrsToBlock(blockMacAddrs);
         return newState;
       });
@@ -2723,9 +2721,8 @@ void ThriftHandler::getInterfacePhyInfo(
 
 bool ThriftHandler::isSwitchDrained() {
   ensureConfigured(__func__);
-  CHECK(!sw_->getState()->getMultiSwitchSwitchSettings()->empty());
-  auto switchSettings =
-      sw_->getState()->getMultiSwitchSwitchSettings()->cbegin()->second;
+  CHECK(!sw_->getState()->getSwitchSettings()->empty());
+  auto switchSettings = sw_->getState()->getSwitchSettings()->cbegin()->second;
   return switchSettings->getSwitchDrainState() ==
       cfg::SwitchDrainState::DRAINED;
 }
