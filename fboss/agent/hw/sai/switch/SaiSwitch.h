@@ -357,6 +357,11 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock,
       const StateDelta& delta);
 
+  void processSwitchSettingsChangedEntryLocked(
+      const std::lock_guard<std::mutex>& lock,
+      const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
+      const std::shared_ptr<SwitchSettings>& newSwitchSettings);
+
   template <typename LockPolicyT>
   void processDefaultDataPlanePolicyDelta(
       const StateDelta& delta,

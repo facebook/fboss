@@ -107,6 +107,8 @@ class UnsupportedFeatureManager;
 class BcmUdfManager;
 class UdfPacketMatcher;
 class UdfGroup;
+class MultiSwitchSettings;
+class SwitchSettings;
 
 /*
  * Virtual interface to BcmSwitch, primarily for mocking/testing
@@ -815,6 +817,10 @@ class BcmSwitch : public BcmSwitchIf {
   bool isValidLabelForwardingEntry(const Route<LabelID>* entry) const;
 
   void processSwitchSettingsChanged(const StateDelta& delta);
+  void processSwitchSettingsEntryChanged(
+      const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
+      const std::shared_ptr<SwitchSettings>& newSwitchSettings,
+      const StateDelta& delta);
 
   void processFlowletSwitchingConfigChanges(const StateDelta& delta);
 

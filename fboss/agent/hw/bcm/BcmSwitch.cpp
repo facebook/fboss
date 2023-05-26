@@ -1065,10 +1065,27 @@ void BcmSwitch::setupPacketRx() {
 }
 
 void BcmSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
-  const auto switchSettingsDelta = delta.getSwitchSettingsDelta();
-  const auto& oldSwitchSettings = switchSettingsDelta.getOld();
-  const auto& newSwitchSettings = switchSettingsDelta.getNew();
+  const auto switchSettingDelta = delta.getSwitchSettingsDelta();
+  forEachAdded(switchSettingDelta, [&](const auto& newSwitchSettings) {
+    processSwitchSettingsEntryChanged(
+        std::make_shared<SwitchSettings>(), newSwitchSettings, delta);
+  });
+  forEachChanged(
+      switchSettingDelta,
+      [&](const auto& oldSwitchSettings, const auto& newSwitchSettings) {
+        processSwitchSettingsEntryChanged(
+            oldSwitchSettings, newSwitchSettings, delta);
+      });
+  forEachRemoved(switchSettingDelta, [&](const auto& oldSwitchSettings) {
+    processSwitchSettingsEntryChanged(
+        oldSwitchSettings, std::make_shared<SwitchSettings>(), delta);
+  });
+}
 
+void BcmSwitch::processSwitchSettingsEntryChanged(
+    const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
+    const std::shared_ptr<SwitchSettings>& newSwitchSettings,
+    const StateDelta& delta) {
   /*
    * SwitchSettings are mandatory and can thus only be modified.
    * Every field in SwitchSettings must always be set in new SwitchState.

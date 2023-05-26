@@ -967,12 +967,31 @@ void SaiSwitch::updateResourceUsage(const LockPolicyT& lockPolicy) {
 }
 
 void SaiSwitch::processSwitchSettingsChangedLocked(
-    const std::lock_guard<std::mutex>& /*lock*/,
+    const std::lock_guard<std::mutex>& lock,
     const StateDelta& delta) {
-  const auto switchSettingsDelta = delta.getSwitchSettingsDelta();
-  const auto& oldSwitchSettings = switchSettingsDelta.getOld();
-  const auto& newSwitchSettings = switchSettingsDelta.getNew();
+  const auto switchSettingDelta = delta.getSwitchSettingsDelta();
+  DeltaFunctions::forEachAdded(
+      switchSettingDelta, [&](const auto& newSwitchSettings) {
+        processSwitchSettingsChangedEntryLocked(
+            lock, std::make_shared<SwitchSettings>(), newSwitchSettings);
+      });
+  DeltaFunctions::forEachChanged(
+      switchSettingDelta,
+      [&](const auto& oldSwitchSettings, const auto& newSwitchSettings) {
+        processSwitchSettingsChangedEntryLocked(
+            lock, oldSwitchSettings, newSwitchSettings);
+      });
+  DeltaFunctions::forEachRemoved(
+      switchSettingDelta, [&](const auto& oldSwitchSettings) {
+        processSwitchSettingsChangedEntryLocked(
+            lock, oldSwitchSettings, std::make_shared<SwitchSettings>());
+      });
+}
 
+void SaiSwitch::processSwitchSettingsChangedEntryLocked(
+    const std::lock_guard<std::mutex>& /*lock*/,
+    const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
+    const std::shared_ptr<SwitchSettings>& newSwitchSettings) {
   if (oldSwitchSettings->getL2LearningMode() !=
       newSwitchSettings->getL2LearningMode()) {
     XLOG(DBG3) << "Configuring L2LearningMode old: "
@@ -2350,31 +2369,30 @@ bool SaiSwitch::isValidStateUpdateLocked(
     XLOG(ERR) << "Only default data plane qos policy is supported";
     return false;
   }
-  const auto switchSettingsDelta = delta.getSwitchSettingsDelta();
-  const auto& oldSwitchSettings = switchSettingsDelta.getOld();
-  const auto& newSwitchSettings = switchSettingsDelta.getNew();
 
-  /*
-   * SwitchSettings are mandatory and can thus only be modified.
-   * Every field in SwitchSettings must always be set in new SwitchState.
-   */
-  if (!oldSwitchSettings || !newSwitchSettings) {
-    throw FbossError("Switch settings must be present in SwitchState");
+  if (delta.oldState()->getMultiSwitchSwitchSettings()->size() &&
+      delta.newState()->getMultiSwitchSwitchSettings()->empty()) {
+    throw FbossError("Switch settings cannot be removed from SwitchState");
   }
 
-  if (oldSwitchSettings != newSwitchSettings) {
-    if (oldSwitchSettings->getL2LearningMode() !=
-        newSwitchSettings->getL2LearningMode()) {
-      if (l2LearningModeChangeProhibited()) {
-        throw FbossError(
-            "Chaging L2 learning mode after initial config "
-            "application is not permitted");
-      }
-    }
-  }
-  if (newSwitchSettings->isQcmEnable()) {
-    throw FbossError("QCM is not supported on SAI");
-  }
+  DeltaFunctions::forEachChanged(
+      delta.getSwitchSettingsDelta(),
+      [&](const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
+          const std::shared_ptr<SwitchSettings>& newSwitchSettings) {
+        if (*oldSwitchSettings != *newSwitchSettings) {
+          if (oldSwitchSettings->getL2LearningMode() !=
+              newSwitchSettings->getL2LearningMode()) {
+            if (l2LearningModeChangeProhibited()) {
+              throw FbossError(
+                  "Chaging L2 learning mode after initial config "
+                  "application is not permitted");
+            }
+          }
+        }
+        if (newSwitchSettings->isQcmEnable()) {
+          throw FbossError("QCM is not supported on SAI");
+        }
+      });
 
   if (delta.newState()->getMirrors()->numNodes() >
       getPlatform()->getAsic()->getMaxMirrors()) {

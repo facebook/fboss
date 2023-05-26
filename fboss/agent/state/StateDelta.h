@@ -100,7 +100,7 @@ class StateDelta {
   MultiSwitchForwardingInformationBaseMapDelta getFibsDelta() const;
   MultiSwitchMapDelta<MultiLabelForwardingInformationBase>
   getLabelForwardingInformationBaseDelta() const;
-  DeltaValue<SwitchSettings> getSwitchSettingsDelta() const;
+  ThriftMapDelta<MultiSwitchSettings> getSwitchSettingsDelta() const;
   DeltaValue<FlowletSwitchingConfig> getFlowletSwitchingConfigDelta() const;
   MultiSwitchMapDelta<MultiSwitchSystemPortMap> getSystemPortsDelta() const;
   ThriftMapDelta<IpTunnelMap> getIpTunnelsDelta() const;
