@@ -235,10 +235,9 @@ TEST_F(ProdInvariantTest, verifyInvariants) {
   auto setup = [&]() {};
   auto verify = [&]() {
     verifyAcl();
-    // TODO: Uncomment once tests are more stable.
     verifyCopp();
     verifyLoadBalancing();
-    // verifyDscpToQueueMapping();
+    verifyDscpToQueueMapping();
     verifySafeDiagCommands();
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -326,8 +325,6 @@ void ProdInvariantTest::verifyDscpToQueueMapping() {
   auto uplinkDownlinkPorts = utility::getAllUplinkDownlinkPorts(
       platform()->getHwSwitch(), initialConfig(), kEcmpWidth, false);
 
-  // pick the first one
-  auto downlinkPortId = uplinkDownlinkPorts.second[0];
   // gather all uplink + downlink ports
   std::vector<PortID> portIds = uplinkDownlinkPorts.first;
   for (auto it = uplinkDownlinkPorts.second.begin();
@@ -341,13 +338,15 @@ void ProdInvariantTest::verifyDscpToQueueMapping() {
   };
 
   auto q2dscpMap = utility::getOlympicQosMaps(initialConfig());
+  // To account for switches that take longer to update port stats, bump sleep
+  // time to 100ms.
   EXPECT_TRUE(utility::verifyQueueMappingsInvariantHelper(
       q2dscpMap,
       sw()->getHw(),
       sw()->getState(),
       getPortStatsFn,
       getEcmpPortIds(),
-      downlinkPortId));
+      100 /* sleep in ms */));
 
   XLOG(DBG2) << "Verify DSCP to Queue mapping done";
 }

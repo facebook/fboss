@@ -9,21 +9,16 @@
  */
 
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
-
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
-
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/logging/xlog.h>
 
-#include <chrono>
+#include <gtest/gtest.h>
 #include <thread>
 
-#include <gtest/gtest.h>
-
-using namespace std::chrono_literals;
 using namespace facebook::fboss;
 
 namespace facebook::fboss::utility {
@@ -32,7 +27,8 @@ bool verifyQueueMappings(
     const HwPortStats& portStatsBefore,
     const std::map<int, std::vector<uint8_t>>& q2dscps,
     std::function<std::map<PortID, HwPortStats>()> getAllHwPortStats,
-    const PortID portId) {
+    const PortID portId,
+    uint32_t sleep = 20) {
   auto retries = 10;
   bool statsMatch;
   do {
@@ -53,7 +49,7 @@ bool verifyQueueMappings(
       }
     }
     if (!statsMatch) {
-      std::this_thread::sleep_for(20ms);
+      std::this_thread::sleep_for(std::chrono::milliseconds(sleep));
     } else {
       break;
     }
@@ -68,23 +64,25 @@ bool verifyQueueMappingsInvariantHelper(
     std::shared_ptr<SwitchState> swState,
     std::function<std::map<PortID, HwPortStats>()> getAllHwPortStats,
     const std::vector<PortID>& ecmpPorts,
-    PortID portId) {
+    uint32_t sleep) {
   auto portStatsBefore = getAllHwPortStats();
   auto vlanId = utility::firstVlanID(swState);
   auto intfMac = utility::getFirstInterfaceMac(swState);
+  auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
 
   for (const auto& q2dscps : q2dscpMap) {
     for (auto dscp : q2dscps.second) {
-      utility::sendTcpPkts(
+      auto pkt = makeTCPTxPacket(
           hwSwitch,
-          1 /*numPktsToSend*/,
           vlanId,
+          srcMac,
           intfMac,
-          folly::IPAddressV6("2620:0:1cfe:face:b00c::4"), // dst ip
+          folly::IPAddressV6("1::10"),
+          folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
           8000,
           8001,
-          portId,
-          dscp);
+          dscp << 2);
+      hwSwitch->sendPacketSwitchedSync(std::move(pkt));
     }
   }
 
@@ -94,12 +92,17 @@ bool verifyQueueMappingsInvariantHelper(
     // iterate over all ports in ecmp group to find one which satisfies
     // dscp to queue mapping.
     if (mappingVerified) {
+      XLOG(DBG2) << "Mapping verified!";
       break;
     }
-    XLOG(DBG2) << "Mapping verified for : " << (int)ecmpPort;
 
+    XLOG(DBG2) << "Verifying mapping for ecmp port: " << (int)ecmpPort;
     mappingVerified = verifyQueueMappings(
-        portStatsBefore[ecmpPort], q2dscpMap, getAllHwPortStats, ecmpPort);
+        portStatsBefore[ecmpPort],
+        q2dscpMap,
+        getAllHwPortStats,
+        ecmpPort,
+        sleep);
   }
   return mappingVerified;
 }

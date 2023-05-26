@@ -146,7 +146,6 @@ void HwProdInvariantHelper::verifyDscpToQueueMapping() {
   if (!ensemble_->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
-  auto portId = getDownlinkPort();
   // lambda that returns HwPortStats for the given port
   auto getPortStats = [this]() {
     return ensemble_->getLatestPortStats(ensemble_->masterLogicalPortIds());
@@ -158,8 +157,7 @@ void HwProdInvariantHelper::verifyDscpToQueueMapping() {
       ensemble_->getHwSwitch(),
       getProgrammedState(),
       getPortStats,
-      getEcmpPortIds(),
-      portId));
+      getEcmpPortIds()));
 }
 
 void HwProdInvariantHelper::verifySafeDiagCmds() {
