@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/packet/IPProto.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <memory>
 
@@ -34,10 +35,9 @@ class BcmUdfTest : public BcmTest {
 
     auto state = getProgrammedState();
     state->modify(&state);
-    auto switchSettings = state->getSwitchSettings();
-    switchSettings = switchSettings->clone();
-    switchSettings->setUdfConfig(udfConfigState);
-    state->resetSwitchSettings(switchSettings);
+    auto switchSettings = getFirstNodeIf(state->getMultiSwitchSwitchSettings());
+    auto newSwitchSettings = switchSettings->modify(&state);
+    newSwitchSettings->setUdfConfig(udfConfigState);
     return state;
   }
 };
