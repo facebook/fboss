@@ -399,8 +399,14 @@ std::shared_ptr<const AclMap> SwitchState::getAclsForTable(
 }
 
 bool SwitchState::isLocalSwitchId(SwitchID switchId) const {
-  auto localSwitchIds = getSwitchSettings()->getSwitchIds();
-  return localSwitchIds.find(switchId) != localSwitchIds.end();
+  for ([[maybe_unused]] const auto& [_, switchSettings] :
+       std::as_const(*getMultiSwitchSwitchSettings())) {
+    auto localSwitchIds = switchSettings->getSwitchIds();
+    if (localSwitchIds.find(switchId) != localSwitchIds.end()) {
+      return true;
+    }
+  }
+  return false;
 }
 
 std::shared_ptr<SystemPortMap> SwitchState::getSystemPorts(
@@ -606,7 +612,10 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
 }
 
 VlanID SwitchState::getDefaultVlan() const {
-  auto defaultVlan = getSwitchSettings()->getDefaultVlan();
+  auto switchSettings = getMultiSwitchSwitchSettings()->size()
+      ? getMultiSwitchSwitchSettings()->cbegin()->second
+      : std::make_shared<SwitchSettings>();
+  auto defaultVlan = switchSettings->getDefaultVlan();
   if (defaultVlan.has_value()) {
     return VlanID(defaultVlan.value());
   }
