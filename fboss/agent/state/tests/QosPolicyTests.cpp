@@ -509,7 +509,9 @@ TEST(QosPolicy, DefaultQosPolicy) {
   // default policy is not set
   EXPECT_EQ(state->getDefaultDataPlaneQosPolicy(), nullptr);
   EXPECT_EQ(
-      state->getSwitchSettings()->getDefaultDataPlaneQosPolicy(), nullptr);
+      getFirstNodeIf(state->getMultiSwitchSwitchSettings())
+          ->getDefaultDataPlaneQosPolicy(),
+      nullptr);
 
   // set default policy
   cfg::TrafficPolicyConfig defaultQosPolicy;
@@ -519,11 +521,14 @@ TEST(QosPolicy, DefaultQosPolicy) {
 
   EXPECT_NE(state->getDefaultDataPlaneQosPolicy(), nullptr);
   EXPECT_NE(
-      state->getSwitchSettings()->getDefaultDataPlaneQosPolicy(), nullptr);
+      getFirstNodeIf(state->getMultiSwitchSwitchSettings())
+          ->getDefaultDataPlaneQosPolicy(),
+      nullptr);
   checkQosPolicy(policy, state->getDefaultDataPlaneQosPolicy());
   EXPECT_EQ(
       state->getDefaultDataPlaneQosPolicy(),
-      state->getSwitchSettings()->getDefaultDataPlaneQosPolicy());
+      getFirstNodeIf(state->getMultiSwitchSwitchSettings())
+          ->getDefaultDataPlaneQosPolicy());
   const auto& stateThrift = state->toThrift();
   EXPECT_EQ(
       stateThrift.defaultDataPlaneQosPolicy(),

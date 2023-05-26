@@ -29,7 +29,9 @@ TEST(QcmConfigTest, applyConfig) {
   *policy.name() = "qosPolicy";
   auto state0 = publishAndApplyConfig(state, &config, platform.get());
   EXPECT_EQ(state0->getQcmCfg(), nullptr);
-  EXPECT_EQ(state0->getSwitchSettings()->getQcmCfg(), nullptr);
+  EXPECT_EQ(
+      getFirstNodeIf(state0->getMultiSwitchSwitchSettings())->getQcmCfg(),
+      nullptr);
 
   cfg::QcmConfig qcmCfg;
   *qcmCfg.numFlowsClear() = 22;
@@ -44,7 +46,9 @@ TEST(QcmConfigTest, applyConfig) {
   auto qcmConfig1 = state1->getQcmCfg();
   EXPECT_TRUE(qcmConfig1);
   EXPECT_FALSE(qcmConfig1->isPublished());
-  EXPECT_EQ(qcmConfig1, state1->getSwitchSettings()->getQcmCfg());
+  EXPECT_EQ(
+      qcmConfig1,
+      getFirstNodeIf(state1->getMultiSwitchSwitchSettings())->getQcmCfg());
   EXPECT_EQ(qcmConfig1->getNumFlowsClear(), 22);
   EXPECT_EQ(qcmConfig1->getFlowWeightMap()->toThrift(), map);
   // default should kick in
@@ -96,7 +100,9 @@ TEST(QcmConfigTest, applyConfig) {
   EXPECT_NE(nullptr, state2);
   auto qcmConfig2 = state2->getQcmCfg();
   EXPECT_FALSE(qcmConfig2->isPublished());
-  EXPECT_EQ(qcmConfig2, state2->getSwitchSettings()->getQcmCfg());
+  EXPECT_EQ(
+      qcmConfig2,
+      getFirstNodeIf(state2->getMultiSwitchSwitchSettings())->getQcmCfg());
   EXPECT_EQ(qcmConfig2->getNumFlowsClear(), 22);
   EXPECT_EQ(qcmConfig2->getNumFlowSamplesPerView(), 11);
   EXPECT_EQ(qcmConfig2->getFlowWeightMap()->toThrift(), map);
@@ -126,7 +132,8 @@ TEST(QcmConfigTest, applyConfig) {
   auto state3 = publishAndApplyConfig(state2, &config, platform.get());
   EXPECT_NE(nullptr, state3);
   EXPECT_FALSE(state3->getQcmCfg());
-  EXPECT_FALSE(state3->getSwitchSettings()->getQcmCfg());
+  EXPECT_FALSE(
+      getFirstNodeIf(state3->getMultiSwitchSwitchSettings())->getQcmCfg());
 }
 
 // Intent of this test is to enable QCM, modify an
@@ -158,6 +165,8 @@ TEST(QcmConfigTest, verifyQcmWithSwitchSettingsChange) {
   // verify that QCM configs are preserved
   auto qcmConfig1 = state1->getQcmCfg();
   EXPECT_NE(nullptr, qcmConfig1);
-  EXPECT_EQ(qcmConfig1, state1->getSwitchSettings()->getQcmCfg());
+  EXPECT_EQ(
+      qcmConfig1,
+      getFirstNodeIf(state1->getMultiSwitchSwitchSettings())->getQcmCfg());
   EXPECT_EQ(qcmConfig1->getNumFlowsClear(), 22);
 }
