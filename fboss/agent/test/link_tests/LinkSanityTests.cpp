@@ -6,6 +6,7 @@
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/test/HwTestEcmpUtils.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
@@ -122,7 +123,9 @@ TEST_F(LinkTest, ptpEnableIsHitless) {
   // disable PTP as by default we'll  have it enabled now
   sw()->updateStateBlocking("ptp disable", [](auto state) {
     auto newState = state->clone();
-    auto switchSettings = newState->getSwitchSettings()->modify(&newState);
+    auto switchSettings =
+        getFirstNodeIf(newState->getMultiSwitchSwitchSettings())
+            ->modify(&newState);
     switchSettings->setPtpTcEnable(false);
     return newState;
   });
@@ -132,7 +135,9 @@ TEST_F(LinkTest, ptpEnableIsHitless) {
 
   sw()->updateStateBlocking("ptp enable", [](auto state) {
     auto newState = state->clone();
-    auto switchSettings = newState->getSwitchSettings()->modify(&newState);
+    auto switchSettings =
+        getFirstNodeIf(newState->getMultiSwitchSwitchSettings())
+            ->modify(&newState);
     EXPECT_FALSE(switchSettings->isPtpTcEnable());
     switchSettings->setPtpTcEnable(true);
     return newState;
