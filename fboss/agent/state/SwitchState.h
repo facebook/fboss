@@ -530,6 +530,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetForwardingInformationBases(
       std::shared_ptr<MultiSwitchForwardingInformationBaseMap> fibs);
   void resetSwitchSettings(std::shared_ptr<SwitchSettings> switchSettings);
+  void resetSwitchSettings(std::shared_ptr<MultiSwitchSettings> switchSettings);
   void resetBufferPoolCfgs(std::shared_ptr<MultiSwitchBufferPoolCfgMap> cfgs);
   void resetTransceivers(
       std::shared_ptr<MultiSwitchTransceiverMap> transceivers);

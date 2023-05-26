@@ -266,6 +266,11 @@ void SwitchState::resetSwitchSettings(
   ref<switch_state_tags::switchSettingsMap>() = switchSettingsMap;
 }
 
+void SwitchState::resetSwitchSettings(
+    std::shared_ptr<MultiSwitchSettings> switchSettings) {
+  ref<switch_state_tags::switchSettingsMap>() = switchSettings;
+}
+
 void SwitchState::resetBufferPoolCfgs(
     std::shared_ptr<MultiSwitchBufferPoolCfgMap> cfgs) {
   ref<switch_state_tags::bufferPoolCfgMaps>() = cfgs;
