@@ -149,10 +149,14 @@ Interface* Interface::modify(std::shared_ptr<SwitchState>* state) {
     return this;
   }
   bool isLocal = false;
+
+  auto switchSettings = (*state)->getMultiSwitchSwitchSettings()->size()
+      ? (*state)->getMultiSwitchSwitchSettings()->cbegin()->second
+      : std::make_shared<SwitchSettings>();
+
   if (getType() == cfg::InterfaceType::SYSTEM_PORT) {
     auto id(static_cast<int64_t>(getID()));
-    auto switchId2Info =
-        (*state)->getSwitchSettings()->getSwitchIdToSwitchInfo();
+    auto switchId2Info = switchSettings->getSwitchIdToSwitchInfo();
     for (const auto& [_, switchInfo] : switchId2Info) {
       if (switchInfo.systemPortRange().has_value()) {
         auto sysPortRange = *switchInfo.systemPortRange();
