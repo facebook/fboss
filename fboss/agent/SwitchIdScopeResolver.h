@@ -39,6 +39,7 @@ class Route;
 class ControlPlane;
 class AggregatePort;
 class SflowCollector;
+class SwitchSettings;
 
 class SwitchIdScopeResolver {
  public:
@@ -124,6 +125,10 @@ class SwitchIdScopeResolver {
   const HwSwitchMatcher& scope(
       const std::shared_ptr<SflowCollector>& collector) const;
   const HwSwitchMatcher& scope(const cfg::SflowCollector& collector) const;
+  const HwSwitchMatcher& scope(
+      const std::shared_ptr<SwitchSettings>& /*s*/) const {
+    return l3SwitchMatcher();
+  }
 
  private:
   void checkL3() const;
