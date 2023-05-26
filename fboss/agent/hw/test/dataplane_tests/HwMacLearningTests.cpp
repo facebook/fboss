@@ -18,6 +18,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 
 #include "fboss/agent/MacTableUtils.h"
@@ -126,7 +127,8 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
      * @return true if the desired condition occurs before timeout, else false
      */
     auto l2LearningMode =
-        getProgrammedState()->getSwitchSettings()->getL2LearningMode();
+        getFirstNodeIf(getProgrammedState()->getMultiSwitchSwitchSettings())
+            ->getL2LearningMode();
 
     /*
      * For HwMacLearningTest.VerifyHwAgingForPort:
@@ -173,14 +175,15 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     EXPECT_EQ(l2EntryUpdateType, expectedL2EntryUpdateType);
   }
   void setL2LearningMode(cfg::L2LearningMode l2LearningMode) {
-    if (getProgrammedState()->getSwitchSettings()->getL2LearningMode() ==
-        l2LearningMode) {
+    if (getFirstNodeIf(getProgrammedState()->getMultiSwitchSwitchSettings())
+            ->getL2LearningMode() == l2LearningMode) {
       return;
     }
     auto newState = getProgrammedState()->clone();
-    auto newSwitchSettings = newState->getSwitchSettings()->clone();
+    auto switchSettings =
+        getFirstNodeIf(newState->getMultiSwitchSwitchSettings());
+    auto newSwitchSettings = switchSettings->modify(&newState);
     newSwitchSettings->setL2LearningMode(l2LearningMode);
-    newState->resetSwitchSettings(newSwitchSettings);
     applyNewState(newState);
   }
   void setupHelper(
