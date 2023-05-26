@@ -273,7 +273,7 @@ class ThriftConfigApplier {
 
   void processVlanPorts();
   void updateVlanInterfaces(const Interface* intf);
-  std::shared_ptr<MultiSwitchPortMap> updatePorts(
+  std::shared_ptr<PortMap> updatePorts(
       const std::shared_ptr<MultiSwitchTransceiverMap>& transceiverMap);
   std::shared_ptr<SystemPortMap> updateSystemPorts(
       const std::shared_ptr<MultiSwitchPortMap>& ports,
@@ -328,8 +328,8 @@ class ThriftConfigApplier {
       const std::vector<AggregatePort::Subport>& subports);
   std::pair<folly::MacAddress, uint16_t> getSystemLacpConfig();
   uint8_t computeMinimumLinkCount(const cfg::AggregatePort& cfg);
-  std::shared_ptr<MultiSwitchVlanMap> updateVlans();
-  std::shared_ptr<MultiSwitchVlanMap> updatePseudoVlans();
+  std::shared_ptr<VlanMap> updateVlans();
+  std::shared_ptr<VlanMap> updatePseudoVlans();
   shared_ptr<Vlan> createPseudoVlan();
   shared_ptr<Vlan> updatePseudoVlan(const shared_ptr<Vlan>& orig);
   std::shared_ptr<Vlan> createVlan(const cfg::Vlan* config);
@@ -352,7 +352,7 @@ class ThriftConfigApplier {
       cfg::AclStage aclStage,
       std::vector<cfg::AclEntry> configEntries,
       std::optional<std::string> tableName = std::nullopt);
-  std::shared_ptr<MultiSwitchAclMap> updateAcls(
+  std::shared_ptr<AclMap> updateAcls(
       cfg::AclStage aclStage,
       std::vector<cfg::AclEntry> configEntries);
   std::shared_ptr<AclMap> updateAclsForTable(
@@ -375,7 +375,7 @@ class ThriftConfigApplier {
       bool enable = true);
   // check the acl provided by config is valid
   void checkAcl(const cfg::AclEntry* config) const;
-  std::shared_ptr<MultiSwitchQosPolicyMap> updateQosPolicies();
+  std::shared_ptr<QosPolicyMap> updateQosPolicies();
   std::shared_ptr<QosPolicy> updateQosPolicy(
       cfg::QosPolicy& qosPolicy,
       int* numExistingProcessed,
@@ -542,7 +542,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newPorts = updatePorts(new_->getTransceivers());
     if (newPorts) {
-      new_->resetPorts(std::move(newPorts));
+      new_->resetPorts(
+          toMultiSwitchMap<MultiSwitchPortMap>(newPorts, scopeResolver_));
       new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
           updateSystemPorts(
               new_->getPorts(),
@@ -583,7 +584,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     } else {
       auto newAcls = updateAcls(cfg::AclStage::INGRESS, *cfg_->acls());
       if (newAcls) {
-        new_->resetAcls(std::move(newAcls));
+        new_->resetAcls(toMultiSwitchMap<MultiSwitchAclMap>(
+            std::move(newAcls), scopeResolver_));
         changed = true;
       }
     }
@@ -592,7 +594,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newQosPolicies = updateQosPolicies();
     if (newQosPolicies) {
-      new_->resetQosPolicies(std::move(newQosPolicies));
+      new_->resetQosPolicies(toMultiSwitchMap<MultiSwitchQosPolicyMap>(
+          newQosPolicies, scopeResolver_));
       changed = true;
     }
   }
@@ -611,7 +614,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newVlans = updateVlans();
     if (newVlans) {
-      new_->resetVlans(std::move(newVlans));
+      new_->resetVlans(
+          toMultiSwitchMap<MultiSwitchVlanMap>(newVlans, scopeResolver_));
       changed = true;
     }
   }
@@ -760,7 +764,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     if (!util::getFirstNodeIf(new_->getSwitchSettings())->vlansSupported()) {
       auto pseudoVlans = updatePseudoVlans();
       if (pseudoVlans) {
-        new_->resetVlans(std::move(pseudoVlans));
+        new_->resetVlans(
+            toMultiSwitchMap<MultiSwitchVlanMap>(pseudoVlans, scopeResolver_));
         changed = true;
       }
     }
@@ -1257,7 +1262,7 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
   return sysPorts;
 }
 
-shared_ptr<MultiSwitchPortMap> ThriftConfigApplier::updatePorts(
+shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
     const std::shared_ptr<MultiSwitchTransceiverMap>& transceiverMap) {
   const auto origPorts = orig_->getPorts();
   PortMap::NodeContainer newPorts;
@@ -1315,7 +1320,7 @@ shared_ptr<MultiSwitchPortMap> ThriftConfigApplier::updatePorts(
   }
 
   auto ports = std::make_shared<PortMap>(std::move(newPorts));
-  return toMultiSwitchMap<MultiSwitchPortMap>(ports, scopeResolver_);
+  return ports;
 }
 
 void ThriftConfigApplier::checkPortQueueAQMValid(
@@ -2193,7 +2198,7 @@ uint8_t ThriftConfigApplier::computeMinimumLinkCount(
   return minLinkCount;
 }
 
-shared_ptr<MultiSwitchVlanMap> ThriftConfigApplier::updateVlans() {
+shared_ptr<VlanMap> ThriftConfigApplier::updateVlans() {
   const auto& switchSettings = util::getFirstNodeIf(new_->getSwitchSettings());
   // TODO(skhare)
   // VOQ/Fabric switches require that the packets are not tagged with any
@@ -2241,7 +2246,7 @@ shared_ptr<MultiSwitchVlanMap> ThriftConfigApplier::updateVlans() {
   }
 
   auto vlans = std::make_shared<VlanMap>(std::move(newVlans));
-  return toMultiSwitchMap<MultiSwitchVlanMap>(vlans, scopeResolver_);
+  return vlans;
 }
 
 shared_ptr<Vlan> ThriftConfigApplier::createVlan(const cfg::Vlan* config) {
@@ -2310,7 +2315,7 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(
   return newVlan;
 }
 
-shared_ptr<MultiSwitchVlanMap> ThriftConfigApplier::updatePseudoVlans() {
+shared_ptr<VlanMap> ThriftConfigApplier::updatePseudoVlans() {
   const auto& switchSettings = util::getFirstNodeIf(new_->getSwitchSettings());
   // Pseudo vlan only case of non vlan supporting configs
   CHECK(!switchSettings->vlansSupported());
@@ -2335,7 +2340,7 @@ shared_ptr<MultiSwitchVlanMap> ThriftConfigApplier::updatePseudoVlans() {
   }
 
   auto vlans = std::make_shared<VlanMap>(std::move(newVlans));
-  return toMultiSwitchMap<MultiSwitchVlanMap>(vlans, scopeResolver_);
+  return vlans;
 }
 
 shared_ptr<Vlan> ThriftConfigApplier::updatePseudoVlan(
@@ -2358,8 +2363,7 @@ shared_ptr<Vlan> ThriftConfigApplier::createPseudoVlan() {
   return vlan;
 }
 
-std::shared_ptr<MultiSwitchQosPolicyMap>
-ThriftConfigApplier::updateQosPolicies() {
+std::shared_ptr<QosPolicyMap> ThriftConfigApplier::updateQosPolicies() {
   QosPolicyMap::NodeContainer newQosPolicies;
   bool changed = false;
   int numExistingProcessed = 0;
@@ -2389,10 +2393,7 @@ ThriftConfigApplier::updateQosPolicies() {
     return nullptr;
   }
 
-  auto newQosPolicyMaps =
-      std::make_shared<QosPolicyMap>(std::move(newQosPolicies));
-  return toMultiSwitchMap<MultiSwitchQosPolicyMap>(
-      newQosPolicyMaps, scopeResolver_);
+  return std::make_shared<QosPolicyMap>(std::move(newQosPolicies));
 }
 
 std::shared_ptr<QosPolicy> ThriftConfigApplier::updateQosPolicy(
@@ -2704,14 +2705,14 @@ std::shared_ptr<AclTable> ThriftConfigApplier::updateAclTable(
   return newTable;
 }
 
-std::shared_ptr<MultiSwitchAclMap> ThriftConfigApplier::updateAcls(
+std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls(
     cfg::AclStage aclStage,
     std::vector<cfg::AclEntry> configEntries) {
   auto acls = updateAclsImpl(aclStage, configEntries);
   if (!acls) {
     return nullptr;
   }
-  return toMultiSwitchMap<MultiSwitchAclMap>(acls, scopeResolver_);
+  return acls;
 }
 
 std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsForTable(
