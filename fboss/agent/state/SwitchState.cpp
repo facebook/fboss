@@ -439,6 +439,11 @@ const std::shared_ptr<SwitchSettings>& SwitchState::getSwitchSettings() const {
       HwSwitchMatcher::defaultHwSwitchMatcherKey());
 }
 
+const std::shared_ptr<MultiSwitchSettings>&
+SwitchState::getMultiSwitchSwitchSettings() const {
+  return safe_cref<switch_state_tags::switchSettingsMap>();
+}
+
 void SwitchState::revertNewTeFlowEntry(
     const std::shared_ptr<TeFlowEntry>& newTeFlowEntry,
     const std::shared_ptr<TeFlowEntry>& oldTeFlowEntry,

@@ -362,6 +362,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<MultiControlPlane>& getControlPlane() const;
 
   const std::shared_ptr<SwitchSettings>& getSwitchSettings() const;
+  const std::shared_ptr<MultiSwitchSettings>& getMultiSwitchSwitchSettings()
+      const;
 
   const std::shared_ptr<QcmCfg> getQcmCfg() const {
     if (auto qcmCfg = getSwitchSettings()->getQcmCfg()) {
