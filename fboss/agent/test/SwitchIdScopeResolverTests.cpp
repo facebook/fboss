@@ -5,6 +5,7 @@
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchInfoTable.h"
 #include "fboss/agent/state/BufferPoolConfig.h"
+#include "fboss/agent/state/PortFlowletConfig.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -242,4 +243,14 @@ TYPED_TEST(SwitchIdScopeResolverTest, sflowCollectors) {
 
 TYPED_TEST(SwitchIdScopeResolverTest, switchSettingsScope) {
   this->expectAll(std::shared_ptr<SwitchSettings>());
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, portFlowletCfgScope) {
+  if (this->isFabric()) {
+    this->expectThrow(cfg::PortFlowletConfig{});
+    this->expectThrow(std::shared_ptr<PortFlowletCfg>{});
+  } else {
+    this->expectL3(cfg::PortFlowletConfig{});
+    this->expectL3(std::shared_ptr<PortFlowletCfg>());
+  }
 }

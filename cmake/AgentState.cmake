@@ -61,6 +61,8 @@ add_library(state
   fboss/agent/state/NdpTable.cpp
   fboss/agent/state/Port.cpp
   fboss/agent/state/PortMap.cpp
+  fboss/agent/state/PortFlowletConfig.cpp
+  fboss/agent/state/PortFlowletConfigMap.cpp
   fboss/agent/state/PortQueue.cpp
   fboss/agent/state/BufferPoolConfig.cpp
   fboss/agent/state/BufferPoolConfigMap.cpp

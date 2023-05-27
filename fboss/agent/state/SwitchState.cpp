@@ -254,6 +254,16 @@ SwitchState::getBufferPoolCfgs() const {
   return safe_cref<switch_state_tags::bufferPoolCfgMaps>();
 }
 
+void SwitchState::resetPortFlowletCfgs(
+    std::shared_ptr<MultiSwitchPortFlowletCfgMap> cfgs) {
+  ref<switch_state_tags::portFlowletCfgMaps>() = cfgs;
+}
+
+const std::shared_ptr<MultiSwitchPortFlowletCfgMap>
+SwitchState::getPortFlowletCfgs() const {
+  return safe_cref<switch_state_tags::portFlowletCfgMaps>();
+}
+
 const std::shared_ptr<MultiSwitchLoadBalancerMap>&
 SwitchState::getLoadBalancers() const {
   return safe_cref<switch_state_tags::loadBalancerMaps>();
@@ -923,6 +933,8 @@ template MultiSwitchSflowCollectorMap* SwitchState::modify<
     switch_state_tags::sflowCollectorMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchTransceiverMap* SwitchState::modify<
     switch_state_tags::transceiverMaps>(std::shared_ptr<SwitchState>*);
+template MultiSwitchPortFlowletCfgMap* SwitchState::modify<
+    switch_state_tags::portFlowletCfgMaps>(std::shared_ptr<SwitchState>*);
 
 template class ThriftStructNode<SwitchState, state::SwitchState>;
 

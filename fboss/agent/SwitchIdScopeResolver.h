@@ -16,6 +16,7 @@ class AclEntry;
 class SystemPort;
 class Port;
 class BufferPoolConfig;
+class PortFlowletConfig;
 class QosPolicy;
 class SflowCollector;
 } // namespace cfg
@@ -33,6 +34,7 @@ class Port;
 class AclTableGroup;
 class ForwardingInformationBaseContainer;
 class BufferPoolCfg;
+class PortFlowletCfg;
 class QosPolicy;
 template <typename T>
 class Route;
@@ -128,6 +130,13 @@ class SwitchIdScopeResolver {
   const HwSwitchMatcher& scope(
       const std::shared_ptr<SwitchSettings>& /*s*/) const {
     return allSwitchMatcher();
+  }
+  const HwSwitchMatcher& scope(const cfg::PortFlowletConfig& /*p*/) const {
+    return l3SwitchMatcher();
+  }
+  const HwSwitchMatcher& scope(
+      const std::shared_ptr<PortFlowletCfg>& /*p*/) const {
+    return l3SwitchMatcher();
   }
 
  private:

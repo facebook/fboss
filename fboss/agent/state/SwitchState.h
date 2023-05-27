@@ -36,6 +36,8 @@
 #include "fboss/agent/state/LoadBalancerMap.h"
 #include "fboss/agent/state/MirrorMap.h"
 #include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/PortFlowletConfig.h"
+#include "fboss/agent/state/PortFlowletConfigMap.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/QcmConfig.h"
 #include "fboss/agent/state/QosPolicyMap.h"
@@ -64,6 +66,8 @@ class QcmCfg;
 class BufferPoolCfg;
 class BufferPoolCfgMap;
 class FlowletSwitchingConfig;
+class PortFlowletCfg;
+class PortFlowletCfgMap;
 
 USE_THRIFT_COW(SwitchState);
 RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::portMap, PortMap);
@@ -233,6 +237,10 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::aclMaps,
     MultiSwitchAclMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::portFlowletCfgMaps,
+    MultiSwitchPortFlowletCfgMap);
 /*
  * SwitchState stores the current switch configuration.
  *
@@ -380,6 +388,9 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   }
 
   const std::shared_ptr<MultiSwitchBufferPoolCfgMap> getBufferPoolCfgs() const;
+
+  const std::shared_ptr<MultiSwitchPortFlowletCfgMap> getPortFlowletCfgs()
+      const;
 
   std::chrono::seconds getNdpTimeout() const {
     const auto switchSettings = util::getFirstNodeIf(getSwitchSettings())
@@ -569,6 +580,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetBufferPoolCfgs(std::shared_ptr<MultiSwitchBufferPoolCfgMap> cfgs);
   void resetTransceivers(
       std::shared_ptr<MultiSwitchTransceiverMap> transceivers);
+  void resetPortFlowletCfgs(std::shared_ptr<MultiSwitchPortFlowletCfgMap> cfgs);
   void resetSystemPorts(
       const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts);
 
