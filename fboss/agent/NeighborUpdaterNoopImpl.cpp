@@ -57,6 +57,26 @@ void NeighborUpdaterNoopImpl::receivedNdpNotMine(
     ICMPv6Type /*type*/,
     uint32_t /*flags*/) {}
 
+void NeighborUpdaterNoopImpl::sentNeighborSolicitationForIntf(
+    InterfaceID /*intfID*/,
+    IPAddressV6 /*ip*/) {}
+
+void NeighborUpdaterNoopImpl::receivedNdpMineForIntf(
+    InterfaceID /*intfID*/,
+    IPAddressV6 /*ip*/,
+    MacAddress /*mac*/,
+    PortDescriptor /*port*/,
+    ICMPv6Type /*type*/,
+    uint32_t /*flags*/) {}
+
+void NeighborUpdaterNoopImpl::receivedNdpNotMineForIntf(
+    InterfaceID /*intfID*/,
+    IPAddressV6 /*ip*/,
+    MacAddress /*mac*/,
+    PortDescriptor /*port*/,
+    ICMPv6Type /*type*/,
+    uint32_t /*flags*/) {}
+
 void NeighborUpdaterNoopImpl::sentArpRequest(
     VlanID /*vlan*/,
     IPAddressV4 /*ip*/) {}

@@ -192,6 +192,35 @@ void NeighborUpdaterImpl::receivedNdpNotMine(
   cache->receivedNdpNotMine(ip, mac, port, type, flags);
 }
 
+void NeighborUpdaterImpl::sentNeighborSolicitationForIntf(
+    InterfaceID intfID,
+    IPAddressV6 ip) {
+  auto cache = getNdpCacheForIntf(intfID);
+  cache->sentNeighborSolicitation(ip);
+}
+
+void NeighborUpdaterImpl::receivedNdpMineForIntf(
+    InterfaceID intfID,
+    IPAddressV6 ip,
+    MacAddress mac,
+    PortDescriptor port,
+    ICMPv6Type type,
+    uint32_t flags) {
+  auto cache = getNdpCacheForIntf(intfID);
+  cache->receivedNdpMine(ip, mac, port, type, flags);
+}
+
+void NeighborUpdaterImpl::receivedNdpNotMineForIntf(
+    InterfaceID intfID,
+    IPAddressV6 ip,
+    MacAddress mac,
+    PortDescriptor port,
+    ICMPv6Type type,
+    uint32_t flags) {
+  auto cache = getNdpCacheForIntf(intfID);
+  cache->receivedNdpNotMine(ip, mac, port, type, flags);
+}
+
 void NeighborUpdaterImpl::sentArpRequest(VlanID vlan, IPAddressV4 ip) {
   auto cache = getArpCacheFor(vlan);
   cache->sentArpRequest(ip);
