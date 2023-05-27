@@ -1386,7 +1386,7 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImplLocked(
 
   // Any neighbor removals, and modify appliedState if some changes fail to
   // apply
-  processNeighborDelta(delta, &appliedState, REMOVED);
+  processNeighborDelta(delta.getVlansDelta(), &appliedState, REMOVED);
 
   // delete all interface not existing anymore. that should stop
   // all traffic on that interface now
@@ -1433,8 +1433,8 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImplLocked(
 
   // Any neighbor additions/changes, and modify appliedState if some changes
   // fail to apply
-  processNeighborDelta(delta, &appliedState, ADDED);
-  processNeighborDelta(delta, &appliedState, CHANGED);
+  processNeighborDelta(delta.getVlansDelta(), &appliedState, ADDED);
+  processNeighborDelta(delta.getVlansDelta(), &appliedState, CHANGED);
 
   // process label forwarding changes after neighbor entries are updated
   processChangedLabelForwardingInformationBase(delta);
@@ -2541,17 +2541,20 @@ void BcmSwitch::processRemovedNeighborEntry(
       });
 }
 
+template <typename MapDeltaT>
 void BcmSwitch::processNeighborDelta(
-    const StateDelta& delta,
+    const MapDeltaT& delta,
     std::shared_ptr<SwitchState>* appliedState,
     DeltaType optype) {
-  processNeighborTableDelta<folly::IPAddressV4>(delta, appliedState, optype);
-  processNeighborTableDelta<folly::IPAddressV6>(delta, appliedState, optype);
+  processNeighborTableDelta<MapDeltaT, folly::IPAddressV4>(
+      delta, appliedState, optype);
+  processNeighborTableDelta<MapDeltaT, folly::IPAddressV6>(
+      delta, appliedState, optype);
 }
 
-template <typename AddrT>
+template <typename MapDeltaT, typename AddrT>
 void BcmSwitch::processNeighborTableDelta(
-    const StateDelta& stateDelta,
+    const MapDeltaT& mapDelta,
     std::shared_ptr<SwitchState>* appliedState,
     DeltaType optype) {
   using NeighborTableT = std::conditional_t<
@@ -2562,9 +2565,8 @@ void BcmSwitch::processNeighborTableDelta(
   using NeighborEntryDeltaT = typename ThriftMapDelta<NeighborTableT>::VALUE;
   std::vector<NeighborEntryDeltaT> discardedNeighborEntryDelta;
 
-  for (const auto& vlanDelta : stateDelta.getVlansDelta()) {
-    for (const auto& delta :
-         vlanDelta.template getNeighborDelta<NeighborTableT>()) {
+  for (const auto& d : mapDelta) {
+    for (const auto& delta : d.template getNeighborDelta<NeighborTableT>()) {
       try {
         const auto* oldEntry = delta.getOld().get();
         const auto* newEntry = delta.getNew().get();

@@ -675,13 +675,14 @@ class BcmSwitch : public BcmSwitchIf {
   void processAddedIntf(const std::shared_ptr<Interface>& intf);
   void processRemovedIntf(const std::shared_ptr<Interface>& intf);
 
+  template <typename MapDeltaT>
   void processNeighborDelta(
-      const StateDelta& delta,
+      const MapDeltaT& mapDelta,
       std::shared_ptr<SwitchState>* appliedState,
       DeltaType optype);
-  template <typename AddrT>
+  template <typename MapDeltaT, typename AddrT>
   void processNeighborTableDelta(
-      const StateDelta& stateDelta,
+      const MapDeltaT& mapDelta,
       std::shared_ptr<SwitchState>* appliedState,
       DeltaType optype);
 
