@@ -29,6 +29,16 @@ std::list<NdpEntryThrift> NeighborUpdaterNoopImpl::getNdpCacheData() {
   return entries;
 }
 
+std::list<ArpEntryThrift> NeighborUpdaterNoopImpl::getArpCacheDataForIntf() {
+  std::list<ArpEntryThrift> entries{};
+  return entries;
+}
+
+std::list<NdpEntryThrift> NeighborUpdaterNoopImpl::getNdpCacheDataForIntf() {
+  std::list<NdpEntryThrift> entries{};
+  return entries;
+}
+
 void NeighborUpdaterNoopImpl::portChanged(
     const std::shared_ptr<Port>& /*oldPort*/,
     const std::shared_ptr<Port>& /*newPort*/) {}
