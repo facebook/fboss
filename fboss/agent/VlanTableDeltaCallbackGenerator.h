@@ -31,9 +31,18 @@ class VlanTableDeltaCallbackGenerator {
  public:
   template <typename Callback>
   static void genCallbacks(const StateDelta& stateDelta, Callback& cb) {
-    genTableCallbacks<folly::MacAddress>(stateDelta, cb);
-    genTableCallbacks<folly::IPAddressV6>(stateDelta, cb);
-    genTableCallbacks<folly::IPAddressV4>(stateDelta, cb);
+    genTableCallbacks<
+        folly::MacAddress,
+        MultiSwitchMapDelta<MultiSwitchVlanMap>>(
+        stateDelta, stateDelta.getVlansDelta(), cb);
+    genTableCallbacks<
+        folly::IPAddressV6,
+        MultiSwitchMapDelta<MultiSwitchVlanMap>>(
+        stateDelta, stateDelta.getVlansDelta(), cb);
+    genTableCallbacks<
+        folly::IPAddressV4,
+        MultiSwitchMapDelta<MultiSwitchVlanMap>>(
+        stateDelta, stateDelta.getVlansDelta(), cb);
   }
 
   template <typename AddrT>
@@ -59,25 +68,28 @@ class VlanTableDeltaCallbackGenerator {
   }
 
  private:
-  template <typename AddrT, typename Callback>
-  static void genTableCallbacks(const StateDelta& stateDelta, Callback& cb) {
-    for (const auto& vlanDelta : stateDelta.getVlansDelta()) {
-      auto newVlan = vlanDelta.getNew();
-      if (!newVlan) {
+  template <typename AddrT, typename MapDeltaT, typename Callback>
+  static void genTableCallbacks(
+      const StateDelta& stateDelta,
+      const MapDeltaT& mapDelta,
+      Callback& cb) {
+    for (const auto& entryDelta : mapDelta) {
+      auto newEntry = entryDelta.getNew();
+      if (!newEntry) {
         continue;
       }
-      auto vlan = newVlan->getID();
+      auto vlanID = newEntry->getID();
 
-      for (const auto& delta : getTableDelta<AddrT>(vlanDelta)) {
-        auto oldEntry = delta.getOld();
-        auto newEntry = delta.getNew();
+      for (const auto& delta : getTableDelta<AddrT>(entryDelta)) {
+        auto oldNbrEntry = delta.getOld();
+        auto newNbrEntry = delta.getNew();
 
-        if (!oldEntry) {
-          cb.processAdded(stateDelta.newState(), vlan, newEntry);
-        } else if (!newEntry) {
-          cb.processRemoved(stateDelta.oldState(), vlan, oldEntry);
+        if (!oldNbrEntry) {
+          cb.processAdded(stateDelta.newState(), vlanID, newNbrEntry);
+        } else if (!newNbrEntry) {
+          cb.processRemoved(stateDelta.oldState(), vlanID, oldNbrEntry);
         } else {
-          cb.processChanged(stateDelta, vlan, oldEntry, newEntry);
+          cb.processChanged(stateDelta, vlanID, oldNbrEntry, newNbrEntry);
         }
       }
     }
