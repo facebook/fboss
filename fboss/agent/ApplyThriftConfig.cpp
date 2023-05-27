@@ -53,6 +53,8 @@
 #include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/state/NdpResponseTable.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/PortFlowletConfig.h"
+#include "fboss/agent/state/PortFlowletConfigMap.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/PortPgConfig.h"
 #include "fboss/agent/state/PortQueue.h"
@@ -464,6 +466,12 @@ class ThriftConfigApplier {
   shared_ptr<FlowletSwitchingConfig> createFlowletSwitchingConfig(
       const cfg::FlowletSwitchingConfig& config);
 
+  shared_ptr<MultiSwitchPortFlowletCfgMap> updatePortFlowletConfigs(
+      bool* changed);
+  std::shared_ptr<PortFlowletCfg> createPortFlowletConfig(
+      const std::string& id,
+      const cfg::PortFlowletConfig& config);
+
   std::shared_ptr<SwitchState> orig_;
   std::shared_ptr<SwitchState> new_;
   const cfg::SwitchConfig* cfg_{nullptr};
@@ -514,6 +522,16 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     auto newBufferPoolCfg = updateBufferPoolConfigs(&bufferPoolConfigChanged);
     if (bufferPoolConfigChanged) {
       new_->resetBufferPoolCfgs(newBufferPoolCfg);
+      changed = true;
+    }
+  }
+
+  {
+    bool portFlowletConfigChanged = false;
+    auto newPortFlowletCfg =
+        updatePortFlowletConfigs(&portFlowletConfigChanged);
+    if (portFlowletConfigChanged) {
+      new_->resetPortFlowletCfgs(newPortFlowletCfg);
       changed = true;
     }
   }
@@ -3512,6 +3530,71 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
     newFlowletSwitchingConfig->setPortQueueWeight(*portQueueWeight);
   }
   return newFlowletSwitchingConfig;
+}
+
+shared_ptr<MultiSwitchPortFlowletCfgMap>
+ThriftConfigApplier::updatePortFlowletConfigs(bool* changed) {
+  *changed = false;
+  auto origPortFlowletConfigs = orig_->getPortFlowletCfgs();
+  PortFlowletCfgMap::NodeContainer newPortFlowletConfigMap;
+  auto newCfgedPortFlowlets = cfg_->portFlowletConfigs();
+
+  if (!newCfgedPortFlowlets && !origPortFlowletConfigs->numNodes()) {
+    return nullptr;
+  }
+
+  if (!newCfgedPortFlowlets && origPortFlowletConfigs->numNodes()) {
+    // old cfg eixists but new one doesn't
+    *changed = true;
+    return std::make_shared<MultiSwitchPortFlowletCfgMap>();
+  }
+
+  if (newCfgedPortFlowlets && !origPortFlowletConfigs->numNodes()) {
+    *changed = true;
+  }
+
+  // if old/new cfgs are present, compare size
+  if (origPortFlowletConfigs->numNodes() != (*newCfgedPortFlowlets).size()) {
+    *changed = true;
+  }
+
+  // origPortFlowletConfigs, newPortFlowletConfigs both are configured
+  // and with with same size
+  // check if there is any upate on it when compared
+  // with last one
+  for (auto& portFlowletConfig : *newCfgedPortFlowlets) {
+    auto newPortFlowletConfig = createPortFlowletConfig(
+        portFlowletConfig.first, portFlowletConfig.second);
+    // if port flowlet cfg map exist, check if the specific port flowlet cfg
+    // exists or not
+    auto origPortFlowletConfig =
+        origPortFlowletConfigs->getNodeIf(portFlowletConfig.first);
+    if (!origPortFlowletConfig ||
+        (*origPortFlowletConfig != *newPortFlowletConfig)) {
+      /* new entry added or existing entries do not match */
+      *changed = true;
+    }
+    newPortFlowletConfigMap.emplace(
+        std::make_pair(portFlowletConfig.first, newPortFlowletConfig));
+  }
+
+  if (*changed) {
+    auto portFlowletConfigMap =
+        std::make_shared<PortFlowletCfgMap>(std::move(newPortFlowletConfigMap));
+    return toMultiSwitchMap<MultiSwitchPortFlowletCfgMap>(
+        portFlowletConfigMap, scopeResolver_);
+  }
+  return nullptr;
+}
+
+std::shared_ptr<PortFlowletCfg> ThriftConfigApplier::createPortFlowletConfig(
+    const std::string& id,
+    const cfg::PortFlowletConfig& portFlowletConfig) {
+  auto portFlowletCfg = std::make_shared<PortFlowletCfg>(id);
+  portFlowletCfg->setScalingFactor(*portFlowletConfig.scalingFactor());
+  portFlowletCfg->setLoadWeight(*portFlowletConfig.loadWeight());
+  portFlowletCfg->setQueueWeight(*portFlowletConfig.queueWeight());
+  return portFlowletCfg;
 }
 
 shared_ptr<MultiSwitchBufferPoolCfgMap>
