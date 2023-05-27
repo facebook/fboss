@@ -78,7 +78,14 @@ class VlanTableDeltaCallbackGenerator {
       if (!newEntry) {
         continue;
       }
-      auto vlanID = newEntry->getID();
+
+      VlanID vlanID;
+      if constexpr (std::is_same_v<MapDeltaT, MultiSwitchInterfaceMapDelta>) {
+        // Lookup VLAN corresponding to the interface
+        vlanID = newEntry->getVlanID();
+      } else {
+        vlanID = newEntry->getID();
+      }
 
       for (const auto& delta : getTableDelta<AddrT>(entryDelta)) {
         auto oldNbrEntry = delta.getOld();
