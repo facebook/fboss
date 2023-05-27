@@ -42,6 +42,9 @@ class InterfaceDelta : public DeltaValue<Interface> {
         getNew() ? getNew()->getNdpTable().get() : nullptr);
   }
 
+  template <typename NTableT>
+  ThriftMapDelta<NTableT> getNeighborDelta() const;
+
  private:
   auto* getArpEntries(const std::shared_ptr<Interface>& intf) const {
     return intf ? intf->getArpTable().get() : nullptr;
@@ -58,6 +61,16 @@ class InterfaceDelta : public DeltaValue<Interface> {
     return ThriftMapDelta(getNdpEntries(getOld()), getNdpEntries(getNew()));
   }
 };
+
+template <>
+inline ThriftMapDelta<ArpTable> InterfaceDelta::getNeighborDelta() const {
+  return getArpDelta();
+}
+
+template <>
+inline ThriftMapDelta<NdpTable> InterfaceDelta::getNeighborDelta() const {
+  return getNdpDelta();
+}
 
 template <typename IGNORED>
 struct InterfaceMapDeltaTraits {
