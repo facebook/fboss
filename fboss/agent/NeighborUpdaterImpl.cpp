@@ -246,6 +246,33 @@ void NeighborUpdaterImpl::receivedArpNotMine(
   cache->receivedArpNotMine(ip, mac, port, op);
 }
 
+void NeighborUpdaterImpl::sentArpRequestForIntf(
+    InterfaceID intfID,
+    IPAddressV4 ip) {
+  auto cache = getArpCacheForIntf(intfID);
+  cache->sentArpRequest(ip);
+}
+
+void NeighborUpdaterImpl::receivedArpMineForIntf(
+    InterfaceID intfID,
+    IPAddressV4 ip,
+    MacAddress mac,
+    PortDescriptor port,
+    ArpOpCode op) {
+  auto cache = getArpCacheForIntf(intfID);
+  cache->receivedArpMine(ip, mac, port, op);
+}
+
+void NeighborUpdaterImpl::receivedArpNotMineForIntf(
+    InterfaceID intfID,
+    IPAddressV4 ip,
+    MacAddress mac,
+    PortDescriptor port,
+    ArpOpCode op) {
+  auto cache = getArpCacheForIntf(intfID);
+  cache->receivedArpNotMine(ip, mac, port, op);
+}
+
 void NeighborUpdaterImpl::portDown(PortDescriptor port) {
   for (auto vlanCaches : caches_) {
     auto arpCache = vlanCaches.second->arpCache;

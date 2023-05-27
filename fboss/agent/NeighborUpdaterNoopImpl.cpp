@@ -95,6 +95,24 @@ void NeighborUpdaterNoopImpl::receivedArpNotMine(
     PortDescriptor /*port*/,
     ArpOpCode /*op*/) {}
 
+void NeighborUpdaterNoopImpl::sentArpRequestForIntf(
+    InterfaceID /*intfID*/,
+    IPAddressV4 /*ip*/) {}
+
+void NeighborUpdaterNoopImpl::receivedArpMineForIntf(
+    InterfaceID /*intfID*/,
+    IPAddressV4 /*ip*/,
+    MacAddress /*mac*/,
+    PortDescriptor /*port*/,
+    ArpOpCode /*op*/) {}
+
+void NeighborUpdaterNoopImpl::receivedArpNotMineForIntf(
+    InterfaceID /*intfID*/,
+    IPAddressV4 /*ip*/,
+    MacAddress /*mac*/,
+    PortDescriptor /*port*/,
+    ArpOpCode /*op*/) {}
+
 void NeighborUpdaterNoopImpl::portDown(PortDescriptor /*port*/) {}
 
 void NeighborUpdaterNoopImpl::portFlushEntries(PortDescriptor /*port*/) {}

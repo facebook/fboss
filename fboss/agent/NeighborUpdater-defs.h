@@ -46,9 +46,14 @@ NEIGHBOR_UPDATER_METHOD(public, receivedNdpMineForIntf, void, InterfaceID, intfI
 NEIGHBOR_UPDATER_METHOD(public, receivedNdpNotMineForIntf, void, InterfaceID, intfID, folly::IPAddressV6, ip, folly::MacAddress, mac, PortDescriptor, port, ICMPv6Type, type, uint32_t, flags)
 
 // Arp events
+// TODO(skhare) Remove after completely migrating to intfCaches_
 NEIGHBOR_UPDATER_METHOD(public, sentArpRequest, void, VlanID, vlan, folly::IPAddressV4, ip)
 NEIGHBOR_UPDATER_METHOD(public, receivedArpMine, void, VlanID, vlan, folly::IPAddressV4, ip, folly::MacAddress, mac, PortDescriptor, port, ArpOpCode, op)
 NEIGHBOR_UPDATER_METHOD(public, receivedArpNotMine, void, VlanID, vlan, folly::IPAddressV4, ip, folly::MacAddress, mac, PortDescriptor, port, ArpOpCode, op)
+
+NEIGHBOR_UPDATER_METHOD(public, sentArpRequestForIntf, void, InterfaceID, intfID, folly::IPAddressV4, ip)
+NEIGHBOR_UPDATER_METHOD(public, receivedArpMineForIntf, void, InterfaceID, intfID, folly::IPAddressV4, ip, folly::MacAddress, mac, PortDescriptor, port, ArpOpCode, op)
+NEIGHBOR_UPDATER_METHOD(public, receivedArpNotMineForIntf, void, InterfaceID, intfID, folly::IPAddressV4, ip, folly::MacAddress, mac, PortDescriptor, port, ArpOpCode, op)
 
 NEIGHBOR_UPDATER_METHOD(public, portDown, void, PortDescriptor, port)
 NEIGHBOR_UPDATER_METHOD(public, portFlushEntries, void, PortDescriptor, port)
