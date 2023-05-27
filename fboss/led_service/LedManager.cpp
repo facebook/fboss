@@ -5,6 +5,7 @@
 #include "fboss/agent/platforms/common/fuji/FujiPlatformMapping.h"
 #include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
 #include "fboss/lib/CommonFileUtils.h"
+#include "fboss/lib/CommonPortUtils.h"
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
