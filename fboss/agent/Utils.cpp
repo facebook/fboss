@@ -436,6 +436,25 @@ template std::shared_ptr<NdpEntry> getNeighborEntryForIP<NdpEntry>(
     const folly::IPAddress& ipAddr);
 
 template <typename NeighborEntryT>
+std::shared_ptr<NeighborEntryT> getNeighborEntryForIPAndIntf(
+    const std::shared_ptr<Interface>& intf,
+    const folly::IPAddress& ipAddr) {
+  std::shared_ptr<NeighborEntryT> entry{nullptr};
+
+  if constexpr (std::is_same_v<NeighborEntryT, ArpEntry>) {
+    const auto& arpTable = intf->getArpTable();
+    entry = arpTable->getEntryIf(ipAddr.asV4());
+  } else {
+    const auto& nbrTable = intf->getNdpTable();
+    entry = nbrTable->getEntryIf(ipAddr.asV6());
+  }
+  return entry;
+}
+
+// TODO(skhare) Replace all callsites for getNeighborEntryForIP with
+// getNeighborEntryForIPAndIntf as part of migrating to consuming neighbor
+// tables from interfaces
+template <typename NeighborEntryT>
 std::shared_ptr<NeighborEntryT> getNeighborEntryForIP(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& intf,
@@ -456,13 +475,7 @@ std::shared_ptr<NeighborEntryT> getNeighborEntryForIP(
       break;
     }
     case cfg::InterfaceType::SYSTEM_PORT: {
-      if constexpr (std::is_same_v<NeighborEntryT, ArpEntry>) {
-        const auto& arpTable = intf->getArpTable();
-        entry = arpTable->getEntryIf(ipAddr.asV4());
-      } else {
-        const auto& nbrTable = intf->getNdpTable();
-        entry = nbrTable->getEntryIf(ipAddr.asV6());
-      }
+      entry = getNeighborEntryForIPAndIntf<NeighborEntryT>(intf, ipAddr);
       break;
     }
   }

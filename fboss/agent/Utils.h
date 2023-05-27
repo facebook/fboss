@@ -280,6 +280,11 @@ std::shared_ptr<NeighborEntryT> getNeighborEntryForIP(
     const std::shared_ptr<Interface>& intf,
     const folly::IPAddress& ipAddr);
 
+template <typename NeighborEntryT>
+std::shared_ptr<NeighborEntryT> getNeighborEntryForIPAndIntf(
+    const std::shared_ptr<Interface>& intf,
+    const folly::IPAddress& ipAddr);
+
 class OperDeltaFilter {
  public:
   explicit OperDeltaFilter(SwitchID switchId);
