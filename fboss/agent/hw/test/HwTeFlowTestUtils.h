@@ -23,7 +23,7 @@ void setExactMatchCfg(HwSwitchEnsemble* hwSwitchEnsemble, int prefixLength);
 
 void setExactMatchCfg(std::shared_ptr<SwitchState>* state, int prefixLength);
 
-TeFlow makeFlowKey(std::string dstIp, uint16_t srcPort);
+TeFlow makeFlowKey(std::string dstIp, uint16_t srcPort, int prefixLength = 56);
 
 FlowEntry makeFlow(
     const std::string& dstIp,

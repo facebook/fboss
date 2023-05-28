@@ -21,6 +21,10 @@
 
 namespace facebook::fboss {
 
+void AgentIntegrationTest::SetUp() {
+  AgentHwTest::SetUp();
+}
+
 cfg::SwitchConfig AgentIntegrationTest::initialConfig() const {
   cfg::SwitchConfig cfg;
   std::vector<PortID> ports;
@@ -44,6 +48,10 @@ int agentIntegrationTestMain(
     char** argv,
     facebook::fboss::PlatformInitFn initPlatformFn) {
   ::testing::InitGoogleTest(&argc, argv);
+
+  // to ensure FLAGS_config is set, as this is used in case platform config is
+  // overridden by the tests
+  gflags::ParseCommandLineFlags(&argc, &argv, false);
 
   initAgentTest(argc, argv, initPlatformFn);
 

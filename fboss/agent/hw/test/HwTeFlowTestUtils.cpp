@@ -46,10 +46,10 @@ IpPrefix ipPrefix(StringPiece ip, int length) {
   return result;
 }
 
-TeFlow makeFlowKey(std::string dstIp, uint16_t srcPort) {
+TeFlow makeFlowKey(std::string dstIp, uint16_t srcPort, int prefixLength) {
   TeFlow flow;
   flow.srcPort() = srcPort;
-  flow.dstPrefix() = ipPrefix(dstIp, 56);
+  flow.dstPrefix() = ipPrefix(dstIp, prefixLength);
   return flow;
 }
 
