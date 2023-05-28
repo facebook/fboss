@@ -112,4 +112,9 @@ uint32_t RamonAsic::getStaticQueueLimitBytes() const {
 uint32_t RamonAsic::getNumMemoryBuffers() const {
   throw FbossError("Ramon doesn't support MMU feature");
 }
+
+std::map<cfg::PortType, cfg::PortLoopbackMode> RamonAsic::desiredLoopbackModes()
+    const {
+  return {{cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC}};
+}
 }; // namespace facebook::fboss

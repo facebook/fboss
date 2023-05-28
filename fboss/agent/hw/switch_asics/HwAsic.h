@@ -299,6 +299,10 @@ class HwAsic {
   };
 
   virtual RecyclePortInfo getRecyclePortInfo() const;
+  virtual std::map<cfg::PortType, cfg::PortLoopbackMode> desiredLoopbackModes()
+      const;
+  cfg::PortLoopbackMode getDesiredLoopbackMode(
+      cfg::PortType portType = cfg::PortType::INTERFACE_PORT) const;
 
  protected:
   static cfg::Range64 makeRange(int64_t min, int64_t max);

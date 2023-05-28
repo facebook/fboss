@@ -78,6 +78,14 @@ class Trident2Asic : public BroadcomXgsAsic {
   uint32_t getNumMemoryBuffers() const override {
     return 1;
   }
+  std::map<cfg::PortType, cfg::PortLoopbackMode> desiredLoopbackModes()
+      const override {
+    // Changing loopback mode to MAC on a 40G port on trident2 changes
+    // the speed to 10G unexpectedly.
+    //
+    // Broadcom case: CS8832244
+    return {{cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::PHY}};
+  }
 };
 
 } // namespace facebook::fboss

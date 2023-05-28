@@ -207,4 +207,24 @@ cfg::Range64 EbroAsic::getReservedEncapIndexRange() const {
   }
   return HwAsic::getReservedEncapIndexRange();
 }
+
+std::map<cfg::PortType, cfg::PortLoopbackMode> EbroAsic::desiredLoopbackModes()
+    const {
+  switch (getSwitchType()) {
+    case cfg::SwitchType::NPU:
+      return {
+          {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC},
+      };
+    case cfg::SwitchType::VOQ:
+      return {
+          {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC},
+          {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC}};
+    case cfg::SwitchType::FABRIC:
+      return {{cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC}};
+    case cfg::SwitchType::PHY:
+      /* unsupported */
+      break;
+  }
+  throw FbossError("Unsupported switchType for Ebro: ", getSwitchType());
+}
 } // namespace facebook::fboss

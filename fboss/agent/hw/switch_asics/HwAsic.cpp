@@ -163,4 +163,19 @@ cfg::Range64 HwAsic::makeRange(int64_t min, int64_t max) {
 std::string HwAsic::getAsicTypeStr() const {
   return apache::thrift::util::enumNameSafe(getAsicType());
 }
+
+std::map<cfg::PortType, cfg::PortLoopbackMode> HwAsic::desiredLoopbackModes()
+    const {
+  return {{cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC}};
+}
+
+cfg::PortLoopbackMode HwAsic::getDesiredLoopbackMode(
+    cfg::PortType portType) const {
+  const auto loopbackModeMap = desiredLoopbackModes();
+  auto itr = loopbackModeMap.find(portType);
+  if (itr != loopbackModeMap.end()) {
+    return itr->second;
+  }
+  throw FbossError("Unable to find the portType ", portType);
+}
 } // namespace facebook::fboss

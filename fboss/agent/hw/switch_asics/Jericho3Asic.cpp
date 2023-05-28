@@ -198,4 +198,12 @@ HwAsic::RecyclePortInfo Jericho3Asic::getRecyclePortInfo() const {
       .speedMbps = 10000 // 10G
   };
 }
+
+std::map<cfg::PortType, cfg::PortLoopbackMode>
+Jericho3Asic::desiredLoopbackModes() const {
+  return {
+      {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::NIF},
+      {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC},
+      {cfg::PortType::RECYCLE_PORT, cfg::PortLoopbackMode::MAC}};
+}
 } // namespace facebook::fboss
