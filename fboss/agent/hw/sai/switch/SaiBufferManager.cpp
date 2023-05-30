@@ -231,6 +231,13 @@ void SaiBufferManager::setupIngressEgressBufferPool(
     poolSize = FLAGS_ingress_egress_buffer_pool_size *
         platform_->getAsic()->getNumMemoryBuffers();
   } else {
+    // For Jericho ASIC family, there is a single ingress/egress buffer
+    // pool and hence the usage getSwitchEgressPoolAvailableSize() might
+    // be a bit confusing. Using this attribute to avoid a new attribute
+    // to get buffers size for these ASICs. Also, the size returned is
+    // the combined SRAM/DRAM size. From DRAM however, the whole size is
+    // not available for use, a note on the same from Broadcom is captured
+    // in CS00012297372.
     poolSize = getSwitchEgressPoolAvailableSize(platform_) *
         platform_->getAsic()->getNumMemoryBuffers();
   }
