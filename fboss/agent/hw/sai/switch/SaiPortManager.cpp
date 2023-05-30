@@ -95,9 +95,12 @@ uint16_t getPriorityFromPfcPktCounterId(sai_stat_id_t counterId) {
 void fillHwPortStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     const SaiDebugCounterManager& debugCounterManager,
-    HwPortStats& hwPortStats) {
+    HwPortStats& hwPortStats,
+    const SaiPlatform* platform) {
   // TODO fill these in when we have debug counter support in SAI
   hwPortStats.inDstNullDiscards_() = 0;
+  bool isEtherStatsSupported =
+      platform->getAsic()->isSupported(HwAsic::Feature::SAI_PORT_ETHER_STATS);
   for (auto counterIdAndValue : counterId2Value) {
     auto [counterId, value] = counterIdAndValue;
     switch (counterId) {
@@ -105,7 +108,17 @@ void fillHwPortStats(
         hwPortStats.inBytes_() = value;
         break;
       case SAI_PORT_STAT_IF_IN_UCAST_PKTS:
-        hwPortStats.inUnicastPkts_() = value;
+        if (!isEtherStatsSupported) {
+          // when ether stats is supported, skip updating as ether counterpart
+          // will populate these stats
+          hwPortStats.inUnicastPkts_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_ETHER_STATS_RX_NO_ERRORS:
+        if (isEtherStatsSupported) {
+          // when ether stats is supported, update
+          hwPortStats.inUnicastPkts_() = value;
+        }
         break;
       case SAI_PORT_STAT_IF_IN_MULTICAST_PKTS:
         hwPortStats.inMulticastPkts_() = value;
@@ -129,7 +142,17 @@ void fillHwPortStats(
         hwPortStats.outBytes_() = value;
         break;
       case SAI_PORT_STAT_IF_OUT_UCAST_PKTS:
-        hwPortStats.outUnicastPkts_() = value;
+        if (!isEtherStatsSupported) {
+          // when port ether stats is supported, skip updating as ether
+          // counterpart stats will populate them
+          hwPortStats.outUnicastPkts_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_ETHER_STATS_TX_NO_ERRORS:
+        if (isEtherStatsSupported) {
+          // when port ether stats is supported, update
+          hwPortStats.outUnicastPkts_() = value;
+        }
         break;
       case SAI_PORT_STAT_IF_OUT_MULTICAST_PKTS:
         hwPortStats.outMulticastPkts_() = value;
@@ -1247,7 +1270,8 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
         SAI_STATS_MODE_READ_AND_CLEAR);
   }
   const auto& counters = handle->port->getStats();
-  fillHwPortStats(counters, managerTable_->debugCounterManager(), curPortStats);
+  fillHwPortStats(
+      counters, managerTable_->debugCounterManager(), curPortStats, platform_);
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
       {*prevPortStats.inDstNullDiscards_(),
        *curPortStats.inDstNullDiscards_()}};

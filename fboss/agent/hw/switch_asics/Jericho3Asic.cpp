@@ -80,10 +80,13 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PFC:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
 
+    case HwAsic::Feature::SAI_PORT_ETHER_STATS:
+      // supported only on the SIM
+      return getAsicMode() == AsicMode::ASIC_MODE_SIM;
+
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
     case HwAsic::Feature::SAI_LAG_HASH:
-
     case HwAsic::Feature::QOS_MAP_GLOBAL:
     case HwAsic::Feature::QCM:
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
