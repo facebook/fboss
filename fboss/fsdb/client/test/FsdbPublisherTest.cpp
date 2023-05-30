@@ -47,8 +47,8 @@ class TestFsdbStreamPublisher : public FsdbPublisher<OperDelta> {
     co_return;
   }
 #endif
-  void markConnected() {
-    setState(State::CONNECTED);
+  void markConnecting() {
+    setState(State::CONNECTING);
   }
   void startGenerator() {
     generatorStart_.post();
@@ -84,10 +84,11 @@ TEST_F(StreamPublisherTest, overflowQueue) {
   EXPECT_EQ(counterPrefix, "fsdbDeltaStatePublisher_agent");
   EXPECT_EQ(
       fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 0);
-  streamPublisher_->markConnected();
+  streamPublisher_->markConnecting();
+  WITH_RETRIES(
+      { EXPECT_EVENTUALLY_TRUE(streamPublisher_->isConnectedToServer()); });
   EXPECT_EQ(
       fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 1);
-  EXPECT_TRUE(streamPublisher_->isConnectedToServer());
 
   for (auto i = 0; i < streamPublisher_->queueCapacity(); ++i) {
     streamPublisher_->write(OperDelta{});
