@@ -6,6 +6,7 @@ namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.transceiver
 
 include "fboss/lib/phy/prbs.thrift"
+include "thrift/annotation/cpp.thrift"
 
 struct Vendor {
   1: string name;
@@ -485,7 +486,8 @@ struct TransceiverInfo {
   30: TcvrStats tcvrStats;
 }
 
-typedef binary (cpp2.type = "folly::IOBuf") IOBuf
+@cpp.Type{name = "folly::IOBuf"}
+typedef binary IOBuf
 
 struct RawDOMData {
   // The SFF DOM exposes at most 256 bytes at a time and is divided in

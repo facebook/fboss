@@ -1,6 +1,7 @@
 namespace cpp2 facebook.fboss
 
 include "fboss/agent/switch_config.thrift"
+include "thrift/annotation/cpp.thrift"
 
 enum TestEnum {
   FIRST = 1,
@@ -52,7 +53,8 @@ struct TestStruct {
   20: set<string> setOfString;
   21: TestUnion inlineVariant;
   22: optional string optionalString;
-  23: i64 (cpp.type = "uint64_t") unsigned_int64;
+  @cpp.Type{name = "uint64_t"}
+  23: i64 unsigned_int64;
   24: map<string, TestStruct> mapA;
   25: map<string, TestStruct> mapB;
 }
