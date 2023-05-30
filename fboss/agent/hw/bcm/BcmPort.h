@@ -261,6 +261,9 @@ class BcmPort {
       folly::Synchronized<std::optional<BcmPortStats>>::WLockedPtr;
 
   void updateWredStats(std::chrono::seconds now, int64_t* portStatVal);
+  void updateInCongestionDiscardStats(
+      std::chrono::seconds now,
+      uint64_t* portStatVal);
   uint32_t getCL91FECStatus() const;
   bool isCL91FECApplicable() const;
   // no copy or assignment
@@ -353,6 +356,7 @@ class BcmPort {
       const std::vector<phy::PinConfig>& iphyPinConfigs);
 
   bool isMmuLossy() const;
+  bool isMmuLossless() const;
 
   void applyMirrorAction(
       MirrorAction action,

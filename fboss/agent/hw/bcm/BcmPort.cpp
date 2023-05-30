@@ -383,6 +383,7 @@ void BcmPort::reinitPortStatsLocked(
   reinitPortStat(kWredDroppedPackets(), portName);
   reinitPortStat(kFecCorrectable(), portName);
   reinitPortStat(kFecUncorrectable(), portName);
+  reinitPortStat(kInCongestionDiscards(), portName);
 
   if (swPort->getPfc().has_value()) {
     // Init port PFC stats only if PFC is enabled on the port!
@@ -1415,6 +1416,14 @@ void BcmPort::updateStats() {
       &(*curPortStats.inDstNullDiscards_()));
 
   auto settings = getProgrammedSettings();
+  uint64_t inCongestionDiscards = 0;
+  if (isMmuLossless()) {
+    // although this stat can be derived in the lossy world as well, but use
+    // case is only for mmu lossless
+    updateInCongestionDiscardStats(now, &inCongestionDiscards);
+    *curPortStats.inCongestionDiscards_() = inCongestionDiscards;
+  }
+
   // InDiscards will be read along with PFC if PFC is enabled
   if (settings && settings->getPfc().has_value()) {
     auto pfcPriorities = settings->getPfcPriorities();
@@ -1721,6 +1730,24 @@ void BcmPort::updateStat(
   *statVal = value;
 }
 
+void BcmPort::updateInCongestionDiscardStats(
+    std::chrono::seconds now,
+    uint64_t* portStatVal) {
+  *portStatVal = 0;
+  auto rv = bcm_cosq_stat_get(
+      hw_->getUnit(),
+      getBcmGport(),
+      -1,
+      bcmCosqStatSourcePortDroppedPackets,
+      portStatVal);
+  if (BCM_FAILURE(rv)) {
+    XLOG(ERR) << "Failed to get ingress congestion discard stat "
+              << " for port " << port_ << " :" << bcm_errmsg(rv);
+  }
+  auto stat = getPortCounterIf(kInCongestionDiscards());
+  stat->updateValue(now, *portStatVal);
+}
+
 void BcmPort::updateWredStats(std::chrono::seconds now, int64_t* portStatVal) {
   auto getWredDroppedPackets = [this](auto statId) {
     uint64_t count{0};
@@ -1742,6 +1769,15 @@ void BcmPort::updateWredStats(std::chrono::seconds now, int64_t* portStatVal) {
 
 bool BcmPort::isMmuLossy() const {
   return hw_->getMmuState() == BcmMmuState::MMU_LOSSY;
+}
+
+bool BcmPort::isMmuLossless() const {
+  const auto mmuState = hw_->getMmuState();
+  if ((mmuState == BcmMmuState::MMU_LOSSLESS) ||
+      (mmuState == BcmMmuState::MMU_LOSSY_AND_LOSSLESS)) {
+    return true;
+  }
+  return false;
 }
 
 void BcmPort::updatePktLenHist(

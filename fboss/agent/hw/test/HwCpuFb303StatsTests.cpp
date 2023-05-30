@@ -67,7 +67,8 @@ HwPortStats getInitedStats() {
       "test", // portName
       {}, // macsec stats,
       0, // inLabelMissDiscards_
-      {} // queueWatermarkLevel
+      {}, // queueWatermarkLevel
+      0 // inCongestionDiscards
   };
 }
 
