@@ -18,6 +18,8 @@
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 
+DECLARE_bool(intf_nbr_tables);
+
 namespace facebook::fboss {
 /*
  * Aabstraction that processes vlan delta and then
@@ -52,9 +54,23 @@ class VlanTableDeltaCallbackGenerator {
     if constexpr (std::is_same_v<AddrT, folly::MacAddress>) {
       return vlan->getMacTable();
     } else if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
-      return vlan->getArpTable();
+      if (FLAGS_intf_nbr_tables) {
+        auto interface =
+            switchState->getInterfaces()->getNode(vlan->getInterfaceID());
+        CHECK(interface);
+        return interface->getArpTable();
+      } else {
+        return vlan->getArpTable();
+      }
     } else {
-      return vlan->getNdpTable();
+      if (FLAGS_intf_nbr_tables) {
+        auto interface =
+            switchState->getInterfaces()->getNode(vlan->getInterfaceID());
+        CHECK(interface);
+        return interface->getNdpTable();
+      } else {
+        return vlan->getNdpTable();
+      }
     }
   }
 
