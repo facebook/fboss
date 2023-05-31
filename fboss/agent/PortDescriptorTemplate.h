@@ -55,13 +55,25 @@ class PortDescriptorTemplate {
     CHECK(isPhysicalPort());
     return physicalPortID_;
   }
+  std::optional<PortIdType> phyPortIDIf() const {
+    return isPhysicalPort() ? std::optional<PortIdType>(physicalPortID_)
+                            : std::nullopt;
+  }
   TrunkIdType aggPortID() const {
     CHECK(isAggregatePort());
     return aggregatePortID_;
   }
+  std::optional<TrunkIdType> aggPortIDIf() const {
+    return isAggregatePort() ? std::optional<TrunkIdType>(aggregatePortID_)
+                             : std::nullopt;
+  }
   SystemPortIdType sysPortID() const {
     CHECK(isSystemPort());
     return systemPortID_;
+  }
+  std::optional<SystemPortIdType> sysPortIDIf() const {
+    return isSystemPort() ? std::optional<SystemPortIdType>(systemPortID_)
+                          : std::nullopt;
   }
 
   uint64_t intID() const {

@@ -54,3 +54,27 @@ TEST(PortDescriptor, TestPhysicalNotEqualAggregate) {
   EXPECT_NE(pd1, pd2);
   EXPECT_LT(pd1, pd2);
 }
+
+TEST(PortDescriptor, TestGetters) {
+  facebook::fboss::PortID pp(42);
+  facebook::fboss::AggregatePortID ap(42);
+  facebook::fboss::SystemPortID sp(42);
+  facebook::fboss::PortDescriptor ppd(pp);
+  facebook::fboss::PortDescriptor apd(ap);
+  facebook::fboss::PortDescriptor spd(sp);
+  // Physical port
+  EXPECT_EQ(pp, ppd.phyPortID());
+  EXPECT_EQ(pp, *ppd.phyPortIDIf());
+  EXPECT_EQ(std::nullopt, ppd.aggPortIDIf());
+  EXPECT_EQ(std::nullopt, ppd.sysPortIDIf());
+  // Agg port
+  EXPECT_EQ(ap, apd.aggPortID());
+  EXPECT_EQ(ap, *apd.aggPortIDIf());
+  EXPECT_EQ(std::nullopt, apd.phyPortIDIf());
+  EXPECT_EQ(std::nullopt, apd.sysPortIDIf());
+  // System port
+  EXPECT_EQ(sp, spd.sysPortID());
+  EXPECT_EQ(sp, *spd.sysPortIDIf());
+  EXPECT_EQ(std::nullopt, spd.phyPortIDIf());
+  EXPECT_EQ(std::nullopt, spd.aggPortIDIf());
+}
