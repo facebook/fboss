@@ -13,9 +13,9 @@
 #include "fboss/agent/LookupClassRouteUpdater.h"
 
 #include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/NeighborTableDeltaCallbackGenerator.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwitchStats.h"
-#include "fboss/agent/VlanTableDeltaCallbackGenerator.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -399,18 +399,18 @@ void LookupClassRouteUpdater::processInterfaceAdded(
       }
 
       std::vector<folly::IPAddress> neighborIPAddr;
-      for (auto iter : std::as_const(
-               *VlanTableDeltaCallbackGenerator::getTable<folly::IPAddressV4>(
-                   switchState, vlan))) {
+      for (auto iter :
+           std::as_const(*NeighborTableDeltaCallbackGenerator::getTable<
+                         folly::IPAddressV4>(switchState, vlan))) {
         auto neighborEntry = iter.second;
         if (neighborEntry->getMac() == blockedNeighborMac) {
           neighborIPAddr.push_back(neighborEntry->getIP());
         }
       }
 
-      for (auto iter : std::as_const(
-               *VlanTableDeltaCallbackGenerator::getTable<folly::IPAddressV6>(
-                   switchState, vlan))) {
+      for (auto iter :
+           std::as_const(*NeighborTableDeltaCallbackGenerator::getTable<
+                         folly::IPAddressV6>(switchState, vlan))) {
         auto neighborEntry = iter.second;
         if (neighborEntry->getMac() == blockedNeighborMac &&
             !isNoHostRoute(neighborEntry)) {
@@ -512,7 +512,7 @@ bool LookupClassRouteUpdater::isNeighborReachable(
   }
 
   auto linkLocalEntry =
-      VlanTableDeltaCallbackGenerator::getTable<folly::IPAddressV6>(
+      NeighborTableDeltaCallbackGenerator::getTable<folly::IPAddressV6>(
           switchState, vlan)
           ->getEntryIf(neighborIP);
 
@@ -728,7 +728,7 @@ void LookupClassRouteUpdater::processNeighborUpdates(
       auto oldVlan = vlanDelta.getOld();
 
       for (auto iter :
-           std::as_const(*VlanTableDeltaCallbackGenerator::getTable<AddrT>(
+           std::as_const(*NeighborTableDeltaCallbackGenerator::getTable<AddrT>(
                stateDelta.oldState(), oldVlan))) {
         auto entry = iter.second;
         processNeighborRemoved(stateDelta, oldVlan->getID(), entry);
@@ -739,7 +739,7 @@ void LookupClassRouteUpdater::processNeighborUpdates(
     auto vlan = newVlan->getID();
 
     for (const auto& delta :
-         VlanTableDeltaCallbackGenerator::getTableDelta<AddrT>(vlanDelta)) {
+         NeighborTableDeltaCallbackGenerator::getTableDelta<AddrT>(vlanDelta)) {
       auto oldNeighbor = delta.getOld();
       auto newNeighbor = delta.getNew();
 
@@ -1357,8 +1357,9 @@ bool LookupClassRouteUpdater::addBlockedNeighborIPtoSubnetCache(
     const std::shared_ptr<SwitchState>& newState) {
   bool subnetCacheUpdated = false;
   auto vlan = newState->getVlans()->getNodeIf(vlanID);
-  for (auto iter : std::as_const(
-           *VlanTableDeltaCallbackGenerator::getTable<AddrT>(newState, vlan))) {
+  for (auto iter :
+       std::as_const(*NeighborTableDeltaCallbackGenerator::getTable<AddrT>(
+           newState, vlan))) {
     auto neighborEntry = iter.second;
     if (neighborEntry->getMac() != blockedNeighborMac ||
         isNoHostRoute(neighborEntry)) {
@@ -1383,8 +1384,9 @@ void LookupClassRouteUpdater::removeBlockedNeighborIPfromSubnetCache(
     const StateDelta& stateDelta) {
   auto newState = stateDelta.newState();
   auto vlan = newState->getVlans()->getNodeIf(vlanID);
-  for (auto iter : std::as_const(
-           *VlanTableDeltaCallbackGenerator::getTable<AddrT>(newState, vlan))) {
+  for (auto iter :
+       std::as_const(*NeighborTableDeltaCallbackGenerator::getTable<AddrT>(
+           newState, vlan))) {
     auto neighborEntry = iter.second;
     if (neighborEntry->getMac() != blockedNeighborMac ||
         isNoHostRoute(neighborEntry)) {

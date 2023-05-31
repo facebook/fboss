@@ -12,7 +12,7 @@
 
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/MacTableUtils.h"
-#include "fboss/agent/VlanTableDeltaCallbackGenerator.h"
+#include "fboss/agent/NeighborTableDeltaCallbackGenerator.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/NdpEntry.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -32,7 +32,7 @@ void StaticL2ForNeighborUpdater::stateUpdated(const StateDelta& stateDelta) {
   if (!hw_->needL2EntryForNeighbor()) {
     return;
   }
-  VlanTableDeltaCallbackGenerator::genCallbacks(stateDelta, *this);
+  NeighborTableDeltaCallbackGenerator::genCallbacks(stateDelta, *this);
 }
 
 template <typename NeighborEntryT>

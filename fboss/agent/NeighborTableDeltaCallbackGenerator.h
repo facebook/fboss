@@ -29,7 +29,7 @@ namespace facebook::fboss {
  * code dup.
  */
 
-class VlanTableDeltaCallbackGenerator {
+class NeighborTableDeltaCallbackGenerator {
  public:
   template <typename Callback>
   static void genCallbacks(const StateDelta& stateDelta, Callback& cb) {

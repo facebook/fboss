@@ -270,7 +270,7 @@ class LookupClassUpdater : public StateObserver {
    */
   std::set<std::pair<VlanID, folly::MacAddress>> macAddrsToBlock_;
 
-  friend class VlanTableDeltaCallbackGenerator;
+  friend class NeighborTableDeltaCallbackGenerator;
   bool inited_{false};
 };
 
