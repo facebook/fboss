@@ -37,14 +37,22 @@ class VlanTableDeltaCallbackGenerator {
         folly::MacAddress,
         MultiSwitchMapDelta<MultiSwitchVlanMap>>(
         stateDelta, stateDelta.getVlansDelta(), cb);
-    genTableCallbacks<
-        folly::IPAddressV6,
-        MultiSwitchMapDelta<MultiSwitchVlanMap>>(
-        stateDelta, stateDelta.getVlansDelta(), cb);
-    genTableCallbacks<
-        folly::IPAddressV4,
-        MultiSwitchMapDelta<MultiSwitchVlanMap>>(
-        stateDelta, stateDelta.getVlansDelta(), cb);
+
+    if (FLAGS_intf_nbr_tables) {
+      genTableCallbacks<folly::IPAddressV6, MultiSwitchInterfaceMapDelta>(
+          stateDelta, stateDelta.getIntfsDelta(), cb);
+      genTableCallbacks<folly::IPAddressV4, MultiSwitchInterfaceMapDelta>(
+          stateDelta, stateDelta.getIntfsDelta(), cb);
+    } else {
+      genTableCallbacks<
+          folly::IPAddressV6,
+          MultiSwitchMapDelta<MultiSwitchVlanMap>>(
+          stateDelta, stateDelta.getVlansDelta(), cb);
+      genTableCallbacks<
+          folly::IPAddressV4,
+          MultiSwitchMapDelta<MultiSwitchVlanMap>>(
+          stateDelta, stateDelta.getVlansDelta(), cb);
+    }
   }
 
   template <typename AddrT>
