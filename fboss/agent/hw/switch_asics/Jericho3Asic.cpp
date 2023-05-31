@@ -41,7 +41,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::VRF:
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
-    case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::ROUTE_COUNTERS:
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
@@ -78,6 +77,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::PFC:
+    case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
 
     case HwAsic::Feature::SAI_PORT_ETHER_STATS:
