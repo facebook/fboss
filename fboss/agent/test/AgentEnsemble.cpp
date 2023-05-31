@@ -219,7 +219,8 @@ void AgentEnsemble::setupLinkStateToggler() {
   if (linkToggler_) {
     return;
   }
-  linkToggler_ = createHwLinkStateToggler(this, mode_);
+  linkToggler_ =
+      createHwLinkStateToggler(this, {{cfg::PortType::INTERFACE_PORT, mode_}});
 }
 
 std::string AgentEnsemble::getInputConfigFile() {

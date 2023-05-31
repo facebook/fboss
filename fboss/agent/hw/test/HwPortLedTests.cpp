@@ -11,7 +11,7 @@ namespace facebook::fboss {
 class HwPortLedTest : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    auto lbMode = getPlatform()->getAsic()->desiredLoopbackMode();
+    auto lbMode = getPlatform()->getAsic()->desiredLoopbackModes();
     return utility::onePortPerInterfaceConfig(
         getHwSwitch(), {masterLogicalPortIds()[0]}, lbMode);
   }

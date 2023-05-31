@@ -70,7 +70,8 @@ class HwSwitchStateReplayTest : public HwTest {
       for (auto portMap : std::as_const(*wbState->getPorts())) {
         for (auto port : std::as_const(*portMap.second)) {
           if (port.second->isUp()) {
-            port.second->setLoopbackMode(getAsic()->desiredLoopbackMode());
+            port.second->setLoopbackMode(
+                getAsic()->getDesiredLoopbackMode(port.second->getPortType()));
             XLOG(DBG2) << " Setting loopback mode for : "
                        << port.second->getID();
           }

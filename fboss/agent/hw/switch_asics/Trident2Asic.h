@@ -31,13 +31,14 @@ class Trident2Asic : public BroadcomXgsAsic {
   uint32_t getMMUCellSize() const {
     return 208;
   }
-  cfg::PortLoopbackMode desiredLoopbackMode() const override {
+  std::map<cfg::PortType, cfg::PortLoopbackMode> desiredLoopbackModes()
+      const override {
     // Changing loopback mode to MAC on a 40G port on trident2 changes
     // the speed to 10G unexpectedly.
     //
     // Broadcom case: CS8832244
     //
-    return cfg::PortLoopbackMode::PHY;
+    return {{cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::PHY}};
   }
   uint64_t getDefaultReservedBytes(cfg::StreamType /*streamType*/, bool cpu)
       const override {
@@ -77,14 +78,6 @@ class Trident2Asic : public BroadcomXgsAsic {
   }
   uint32_t getNumMemoryBuffers() const override {
     return 1;
-  }
-  std::map<cfg::PortType, cfg::PortLoopbackMode> desiredLoopbackModes()
-      const override {
-    // Changing loopback mode to MAC on a 40G port on trident2 changes
-    // the speed to 10G unexpectedly.
-    //
-    // Broadcom case: CS8832244
-    return {{cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::PHY}};
   }
 };
 

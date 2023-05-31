@@ -63,7 +63,7 @@ class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
       ports.push_back(masterLogicalPortIds()[i]);
     }
     return utility::onePortPerInterfaceConfig(
-        getHwSwitch(), ports, getAsic()->desiredLoopbackMode());
+        getHwSwitch(), ports, getAsic()->desiredLoopbackModes());
   }
 
   TestParameters<AddrT> testParams(int i) {

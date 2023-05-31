@@ -405,7 +405,9 @@ TEST_F(BcmPortTest, AssertL3Enabled) {
   // Enable all master ports
   auto setup = [this]() {
     applyNewConfig(utility::oneL3IntfNPortConfig(
-        getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC));
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        {{cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC}}));
   };
   auto verify = [this]() {
     std::array<std::tuple<std::string, bcm_port_control_t>, 2> l3Options = {
@@ -470,7 +472,9 @@ TEST_F(BcmPortTest, SetInterPacketGapBits) {
     getPlatform()->setOverridePortInterPacketGapBits(
         expectedInterPacketGapBits);
     applyNewConfig(utility::oneL3IntfNPortConfig(
-        getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC));
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        {{cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC}}));
   };
   auto verify = [this]() {
     for (const auto& portMap :

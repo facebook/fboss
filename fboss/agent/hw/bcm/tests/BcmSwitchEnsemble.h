@@ -75,7 +75,8 @@ class BcmSwitchEnsemble : public HwSwitchEnsemble {
   }
   std::unique_ptr<HwLinkStateToggler> createLinkToggler(
       HwSwitch* hwSwitch,
-      cfg::PortLoopbackMode desiredLoopbackMode);
+      const std::map<cfg::PortType, cfg::PortLoopbackMode>&
+          desiredLoopbackModes);
   std::unique_ptr<std::thread> createThriftThread(const BcmSwitch* hwSwitch);
 };
 

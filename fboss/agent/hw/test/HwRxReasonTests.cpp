@@ -20,7 +20,7 @@ class HwRxReasonTests : public HwLinkStateDependentTest {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode(),
+        getAsic()->desiredLoopbackModes(),
         true /*interfaceHasSubnet*/);
 
     utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());

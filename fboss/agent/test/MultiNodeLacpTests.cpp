@@ -73,7 +73,7 @@ class MultiNodeLacpTest : public MultiNodeTest {
     auto config = utility::multiplePortsPerIntfConfig(
         platform()->getHwSwitch(),
         testPorts(),
-        cfg::PortLoopbackMode::NONE,
+        {{cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::NONE}},
         true, /* interfaceHasSubnet */
         false, /* setInterfaceMac */
         kBaseVlanId,

@@ -26,7 +26,7 @@ class HwSwitchStatsTxCounterTest : public HwTest {
     return utility::oneL3IntfConfig(
         getHwSwitch(),
         masterLogicalPortIds()[0],
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
   }
   void checkTxCounters();
 };

@@ -74,11 +74,11 @@ class HwNeighborTest : public HwLinkStateDependentTest {
                                     getHwSwitch(),
                                     masterLogicalPortIds()[0],
                                     masterLogicalPortIds()[1],
-                                    getAsic()->desiredLoopbackMode())
+                                    getAsic()->desiredLoopbackModes())
                               : utility::onePortPerInterfaceConfig(
                                     getHwSwitch(),
                                     masterLogicalPortIds(),
-                                    getAsic()->desiredLoopbackMode());
+                                    getAsic()->desiredLoopbackModes());
     if (programToTrunk) {
       // Keep member size to be less than/equal to HW limitation, but first add
       // the two ports for testing.
@@ -221,7 +221,7 @@ class HwNeighborOnMultiplePortsTest : public HwLinkStateDependentTest {
     return utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
   }
 
   void oneNeighborPerPortSetup(const std::vector<PortID>& portIds) {

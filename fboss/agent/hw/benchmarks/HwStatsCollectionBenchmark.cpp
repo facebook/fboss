@@ -61,7 +61,9 @@ BENCHMARK(HwStatsCollection) {
         portsNew.resize(std::min((int)ports.size(), numPortsToCollectStats));
 
         auto config = utility::onePortPerInterfaceConfig(
-            hwSwitch, portsNew, cfg::PortLoopbackMode::MAC);
+            hwSwitch,
+            portsNew,
+            {{cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC}});
         config.switchSettings()->maxRouteCounterIDs() = numRouteCounters;
         return config;
       };

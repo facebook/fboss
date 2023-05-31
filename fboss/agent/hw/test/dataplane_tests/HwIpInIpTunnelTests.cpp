@@ -44,7 +44,7 @@ class HwIpInIpTunnelTest : public HwLinkStateDependentTest {
         getHwSwitch(),
         masterLogicalPortIds()[0],
         masterLogicalPortIds()[1],
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
   }
 
   cfg::IpInIpTunnel makeTunnelConfig(std::string name, std::string dstIp) {

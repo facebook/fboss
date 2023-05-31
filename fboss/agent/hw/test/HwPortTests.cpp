@@ -38,14 +38,14 @@ TEST_F(HwPortTest, PortLoopbackMode) {
     auto newCfg = initialConfig();
     auto portId = masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0];
     auto portCfg = utility::findCfgPort(newCfg, portId);
-    portCfg->loopbackMode() = getAsic()->desiredLoopbackMode();
+    portCfg->loopbackMode() = getAsic()->getDesiredLoopbackMode();
     applyNewConfig(newCfg);
   };
 
   auto verify = [this]() {
     std::map<PortID, int> port2LoopbackMode = {
         {PortID(masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
-         utility::getLoopbackMode(getAsic()->desiredLoopbackMode())}};
+         utility::getLoopbackMode(getAsic()->getDesiredLoopbackMode())}};
     utility::assertPortsLoopbackMode(getHwSwitch(), port2LoopbackMode);
   };
 

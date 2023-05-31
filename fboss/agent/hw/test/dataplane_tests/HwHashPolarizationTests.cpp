@@ -42,7 +42,7 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     return cfg;
   }
   void packetReceived(RxPacket* pkt) noexcept override {
@@ -519,7 +519,7 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     return cfg;
   }
 

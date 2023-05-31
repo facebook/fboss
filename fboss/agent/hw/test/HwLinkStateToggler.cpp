@@ -48,16 +48,20 @@ void HwLinkStateToggler::portStateChangeImpl(
     const std::vector<PortID>& ports,
     bool up) {
   auto newState = switchState;
-  auto desiredLoopbackMode =
-      up ? desiredLoopbackMode_ : cfg::PortLoopbackMode::NONE;
-
   for (auto port : ports) {
-    if (newState->getPorts()->getNodeIf(port)->getLoopbackMode() ==
-        desiredLoopbackMode) {
+    auto currPort = newState->getPorts()->getNodeIf(port);
+    auto iter = desiredLoopbackModes_.find(currPort->getPortType());
+    if (iter == desiredLoopbackModes_.end()) {
+      throw FbossError(
+          "Unable to find the desired looped back mode for port : ",
+          currPort->getPortType());
+    }
+    auto desiredLoopbackMode = up ? iter->second : cfg::PortLoopbackMode::NONE;
+    if (currPort->getLoopbackMode() == desiredLoopbackMode) {
       continue;
     }
     newState = newState->clone();
-    auto newPort = newState->getPorts()->getNodeIf(port)->modify(&newState);
+    auto newPort = currPort->modify(&newState);
     setPortIDAndStateToWaitFor(port, up);
     newPort->setLoopbackMode(desiredLoopbackMode);
     // On DNX platforms, especially on fabric ports which link up on just a good

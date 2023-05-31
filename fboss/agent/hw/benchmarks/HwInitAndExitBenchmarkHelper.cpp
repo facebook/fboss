@@ -178,7 +178,7 @@ void initandExitBenchmarkHelper(
             numUplinks.value(),
             uplinkSpeed,
             downlinkSpeed,
-            hwSwitch->getPlatform()->getAsic()->desiredLoopbackMode());
+            hwSwitch->getPlatform()->getAsic()->desiredLoopbackModes());
         utility::addProdFeaturesToConfig(config, hwSwitch);
         return config;
       };

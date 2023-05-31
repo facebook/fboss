@@ -146,7 +146,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
     auto config = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     return config;
   }
 

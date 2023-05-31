@@ -27,7 +27,7 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(),
         masterLogicalPortIds()[0],
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
 
     if (isSupported(HwAsic::Feature::L3_QOS)) {
       auto streamType =
@@ -251,8 +251,8 @@ void HwPortBandwidthTest::verifyRate(
 
     // Put port in non-loopback mode to drain the traffic.
     // New SDK expects buffer to be empty during teardown.
-    auto newCfg = utility::oneL3IntfConfig(
-        getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::NONE);
+    auto newCfg =
+        utility::oneL3IntfConfig(getHwSwitch(), masterLogicalPortIds()[0]);
     applyNewConfig(newCfg);
   };
 

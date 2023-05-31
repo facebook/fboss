@@ -4,6 +4,7 @@
 #include <fboss/lib/phy/gen-cpp2/phy_types.h>
 #include <folly/MacAddress.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/types.h"
 
 namespace facebook::fboss {
 
@@ -189,9 +190,8 @@ class HwAsic {
   virtual cfg::MMUScalingFactor getDefaultScalingFactor(
       cfg::StreamType streamType,
       bool cpu) const = 0;
-  virtual cfg::PortLoopbackMode desiredLoopbackMode() const {
-    return cfg::PortLoopbackMode::MAC;
-  }
+  virtual std::map<cfg::PortType, cfg::PortLoopbackMode> desiredLoopbackModes()
+      const;
   virtual bool mmuQgroupsEnabled() const {
     return false;
   }
@@ -300,8 +300,6 @@ class HwAsic {
   };
 
   virtual RecyclePortInfo getRecyclePortInfo() const;
-  virtual std::map<cfg::PortType, cfg::PortLoopbackMode> desiredLoopbackModes()
-      const;
   cfg::PortLoopbackMode getDesiredLoopbackMode(
       cfg::PortType portType = cfg::PortType::INTERFACE_PORT) const;
 

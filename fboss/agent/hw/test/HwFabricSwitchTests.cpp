@@ -15,7 +15,7 @@ class HwFabricSwitchTest : public HwLinkStateDependentTest {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode(),
+        getAsic()->desiredLoopbackModes(),
         false /*interfaceHasSubnet*/,
         false, /*setInterfaceMac*/
         utility::kBaseVlanId,
@@ -43,7 +43,8 @@ TEST_F(HwFabricSwitchTest, init) {
       for (auto& port : std::as_const(*portMap.second)) {
         EXPECT_EQ(port.second->getAdminState(), cfg::PortState::ENABLED);
         EXPECT_EQ(
-            port.second->getLoopbackMode(), getAsic()->desiredLoopbackMode());
+            port.second->getLoopbackMode(),
+            getAsic()->getDesiredLoopbackMode(port.second->getPortType()));
       }
     }
   };

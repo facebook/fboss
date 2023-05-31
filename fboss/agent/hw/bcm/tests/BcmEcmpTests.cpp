@@ -66,7 +66,9 @@ class BcmEcmpTest : public BcmLinkStateDependentTests {
   }
   cfg::SwitchConfig initialConfig() const override {
     return utility::onePortPerInterfaceConfig(
-        getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        {{cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC}});
   }
 
   void programRouteWithUnresolvedNhops();

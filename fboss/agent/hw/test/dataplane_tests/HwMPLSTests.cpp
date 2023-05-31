@@ -117,7 +117,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     auto config = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         std::move(ports),
-        getAsic()->desiredLoopbackMode(),
+        getAsic()->desiredLoopbackModes(),
         true);
 
     if constexpr (std::is_same_v<PortType, AggregatePortID>) {

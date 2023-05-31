@@ -39,7 +39,7 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode(),
+        getAsic()->desiredLoopbackModes(),
         true /*interfaceHasSubnet*/);
     addCpuTrafficPolicy(cfg);
     utility::addCpuQueueConfig(cfg, getAsic());
@@ -377,7 +377,7 @@ class HwVoqSwitchWithFabricPortsTest : public HwVoqSwitchTest {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode(),
+        getAsic()->desiredLoopbackModes(),
         true, /*interfaceHasSubnet*/
         false, /*setInterfaceMac*/
         utility::kBaseVlanId,
@@ -402,7 +402,8 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, init) {
       for (auto& port : std::as_const(*portMap.second)) {
         if (port.second->isEnabled()) {
           EXPECT_EQ(
-              port.second->getLoopbackMode(), getAsic()->desiredLoopbackMode());
+              port.second->getLoopbackMode(),
+              getAsic()->getDesiredLoopbackMode(port.second->getPortType()));
         }
       }
     }

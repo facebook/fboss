@@ -113,5 +113,4 @@ namespace cfg {
 std::ostream& operator<<(std::ostream& out, LoadBalancerID id);
 
 } // namespace cfg
-
 } // namespace facebook::fboss

@@ -55,7 +55,7 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
         masterLogicalPortIds()[1],
     };
     auto cfg = utility::onePortPerInterfaceConfig(
-        getHwSwitch(), std::move(ports), getAsic()->desiredLoopbackMode());
+        getHwSwitch(), std::move(ports), getAsic()->desiredLoopbackModes());
     return cfg;
   }
 
