@@ -113,8 +113,10 @@ uint32_t RamonAsic::getNumMemoryBuffers() const {
   throw FbossError("Ramon doesn't support MMU feature");
 }
 
-std::map<cfg::PortType, cfg::PortLoopbackMode> RamonAsic::desiredLoopbackModes()
-    const {
-  return {{cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC}};
+const std::map<cfg::PortType, cfg::PortLoopbackMode>&
+RamonAsic::desiredLoopbackModes() const {
+  static const std::map<cfg::PortType, cfg::PortLoopbackMode> kLoopbackMode = {
+      {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC}};
+  return kLoopbackMode;
 }
 }; // namespace facebook::fboss

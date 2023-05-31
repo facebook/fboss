@@ -198,11 +198,12 @@ HwAsic::RecyclePortInfo Jericho2Asic::getRecyclePortInfo() const {
   };
 }
 
-std::map<cfg::PortType, cfg::PortLoopbackMode>
+const std::map<cfg::PortType, cfg::PortLoopbackMode>&
 Jericho2Asic::desiredLoopbackModes() const {
-  return {
+  static const std::map<cfg::PortType, cfg::PortLoopbackMode> kLoopbackMode = {
       {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC},
       {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC},
       {cfg::PortType::RECYCLE_PORT, cfg::PortLoopbackMode::MAC}};
+  return kLoopbackMode;
 }
 } // namespace facebook::fboss

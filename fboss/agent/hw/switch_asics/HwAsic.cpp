@@ -164,9 +164,11 @@ std::string HwAsic::getAsicTypeStr() const {
   return apache::thrift::util::enumNameSafe(getAsicType());
 }
 
-std::map<cfg::PortType, cfg::PortLoopbackMode> HwAsic::desiredLoopbackModes()
-    const {
-  return {{cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC}};
+const std::map<cfg::PortType, cfg::PortLoopbackMode>&
+HwAsic::desiredLoopbackModes() const {
+  static const std::map<cfg::PortType, cfg::PortLoopbackMode> kLoopbackMode = {
+      {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC}};
+  return kLoopbackMode;
 }
 
 cfg::PortLoopbackMode HwAsic::getDesiredLoopbackMode(

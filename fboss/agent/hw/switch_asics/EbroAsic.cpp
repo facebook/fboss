@@ -209,19 +209,28 @@ cfg::Range64 EbroAsic::getReservedEncapIndexRange() const {
   return HwAsic::getReservedEncapIndexRange();
 }
 
-std::map<cfg::PortType, cfg::PortLoopbackMode> EbroAsic::desiredLoopbackModes()
-    const {
+const std::map<cfg::PortType, cfg::PortLoopbackMode>&
+EbroAsic::desiredLoopbackModes() const {
   switch (getSwitchType()) {
-    case cfg::SwitchType::NPU:
-      return {
-          {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC},
-      };
-    case cfg::SwitchType::VOQ:
-      return {
-          {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC},
-          {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC}};
-    case cfg::SwitchType::FABRIC:
-      return {{cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC}};
+    case cfg::SwitchType::NPU: {
+      static const std::map<cfg::PortType, cfg::PortLoopbackMode>
+          kDefaultLoopbackMode = {
+              {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC}};
+      return kDefaultLoopbackMode;
+    } break;
+    case cfg::SwitchType::VOQ: {
+      static const std::map<cfg::PortType, cfg::PortLoopbackMode>
+          kDefaultLoopbackMode = {
+              {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC},
+              {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC}};
+      return kDefaultLoopbackMode;
+    } break;
+    case cfg::SwitchType::FABRIC: {
+      static const std::map<cfg::PortType, cfg::PortLoopbackMode>
+          kDefaultLoopbackMode = {
+              {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC}};
+      return kDefaultLoopbackMode;
+    } break;
     case cfg::SwitchType::PHY:
       /* unsupported */
       break;

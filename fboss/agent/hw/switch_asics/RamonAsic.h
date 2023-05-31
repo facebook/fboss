@@ -20,7 +20,7 @@ class RamonAsic : public BroadcomAsic {
             mac,
             {cfg::SwitchType::FABRIC}) {}
   bool isSupported(Feature feature) const override;
-  std::map<cfg::PortType, cfg::PortLoopbackMode> desiredLoopbackModes()
+  const std::map<cfg::PortType, cfg::PortLoopbackMode>& desiredLoopbackModes()
       const override;
   cfg::AsicType getAsicType() const override {
     return cfg::AsicType::ASIC_TYPE_RAMON;

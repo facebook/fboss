@@ -27,7 +27,7 @@ class EbroAsic : public TajoAsic {
         ? isSupportedNonFabric(feature)
         : isSupportedFabric(feature);
   }
-  std::map<cfg::PortType, cfg::PortLoopbackMode> desiredLoopbackModes()
+  const std::map<cfg::PortType, cfg::PortLoopbackMode>& desiredLoopbackModes()
       const override;
   cfg::AsicType getAsicType() const override {
     return cfg::AsicType::ASIC_TYPE_EBRO;

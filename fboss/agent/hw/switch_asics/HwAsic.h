@@ -190,8 +190,8 @@ class HwAsic {
   virtual cfg::MMUScalingFactor getDefaultScalingFactor(
       cfg::StreamType streamType,
       bool cpu) const = 0;
-  virtual std::map<cfg::PortType, cfg::PortLoopbackMode> desiredLoopbackModes()
-      const;
+  virtual const std::map<cfg::PortType, cfg::PortLoopbackMode>&
+  desiredLoopbackModes() const;
   virtual bool mmuQgroupsEnabled() const {
     return false;
   }
