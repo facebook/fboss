@@ -11,6 +11,7 @@
 #include <gflags/gflags.h>
 
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
@@ -39,7 +40,7 @@ cfg::SwitchConfig AgentIntegrationTest::initialConfig() const {
   cfg = utility::onePortPerInterfaceConfig(
       platform()->getHwSwitch(),
       ports,
-      {{cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC}},
+      platform()->getAsic()->desiredLoopbackModes(),
       true,
       true);
 

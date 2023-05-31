@@ -46,6 +46,7 @@ auto constexpr kDownlinkBaseVlanId = 2000;
 auto constexpr kUplinkBaseVlanId = 4000;
 
 const std::map<cfg::PortType, cfg::PortLoopbackMode>& kDefaultLoopbackMap();
+
 folly::MacAddress kLocalCpuMac();
 
 std::vector<std::string> getLoopbackIps(SwitchID switchId);
@@ -55,24 +56,24 @@ cfg::DsfNode dsfNodeConfig(const HwAsic& myAsic, int64_t otherSwitchId = 4);
 cfg::SwitchConfig oneL3IntfConfig(
     const HwSwitch* hwSwitch,
     PortID port,
-    std::map<cfg::PortType, cfg::PortLoopbackMode> lbModeMap =
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
         kDefaultLoopbackMap(),
     int baseVlanId = kBaseVlanId);
 cfg::SwitchConfig oneL3IntfNoIPAddrConfig(
     const HwSwitch* hwSwitch,
     PortID port,
-    std::map<cfg::PortType, cfg::PortLoopbackMode> lbModeMap =
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
         kDefaultLoopbackMap());
 cfg::SwitchConfig oneL3IntfTwoPortConfig(
     const HwSwitch* hwSwitch,
     PortID port1,
     PortID port2,
-    std::map<cfg::PortType, cfg::PortLoopbackMode> lbModeMap =
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
         kDefaultLoopbackMap());
 cfg::SwitchConfig oneL3IntfNPortConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,
-    std::map<cfg::PortType, cfg::PortLoopbackMode> lbModeMap =
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
         kDefaultLoopbackMap(),
     bool interfaceHasSubnet = true,
     int baseVlanId = kBaseVlanId,
@@ -81,7 +82,7 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
 cfg::SwitchConfig onePortPerInterfaceConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,
-    std::map<cfg::PortType, cfg::PortLoopbackMode> lbModeMap =
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
         kDefaultLoopbackMap(),
     bool interfaceHasSubnet = true,
     bool setInterfaceMac = true,
@@ -90,7 +91,7 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
 cfg::SwitchConfig multiplePortsPerIntfConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,
-    std::map<cfg::PortType, cfg::PortLoopbackMode> lbModeMap =
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
         kDefaultLoopbackMap(),
     bool interfaceHasSubnet = true,
     bool setInterfaceMac = true,
@@ -102,7 +103,7 @@ cfg::SwitchConfig twoL3IntfConfig(
     const HwSwitch* hwSwitch,
     PortID port1,
     PortID port2,
-    std::map<cfg::PortType, cfg::PortLoopbackMode> lbModeMap =
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
         kDefaultLoopbackMap());
 void updatePortSpeed(
     const HwSwitch& hwSwitch,
@@ -147,7 +148,7 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
     uint16_t uplinksCount,
     cfg::PortSpeed uplinkPortSpeed,
     cfg::PortSpeed downlinkPortSpeed,
-    std::map<cfg::PortType, cfg::PortLoopbackMode> lbModeMap =
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
         kDefaultLoopbackMap(),
     bool interfaceHasSubnet = true);
 
@@ -156,7 +157,7 @@ cfg::SwitchConfig createRtswUplinkDownlinkConfig(
     HwSwitchEnsemble* ensemble,
     const std::vector<PortID>& masterLogicalPortIds,
     cfg::PortSpeed portSpeed,
-    std::map<cfg::PortType, cfg::PortLoopbackMode> lbModeMap,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
     std::vector<PortID>& uplinks,
     std::vector<PortID>& downlinks);
 

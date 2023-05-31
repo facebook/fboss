@@ -68,7 +68,7 @@ class BcmEcmpTest : public BcmLinkStateDependentTests {
     return utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        {{cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC}});
+        getHwSwitch()->getPlatform()->getAsic()->desiredLoopbackModes());
   }
 
   void programRouteWithUnresolvedNhops();

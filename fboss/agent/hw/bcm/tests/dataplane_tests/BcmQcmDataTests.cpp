@@ -85,7 +85,7 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
     auto config = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         std::move(ports),
-        {{cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC}},
+        getAsic()->desiredLoopbackModes(),
         true);
     return config;
   }

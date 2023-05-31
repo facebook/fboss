@@ -323,7 +323,7 @@ cfg::SwitchConfig genPortVlanCfg(
     const std::vector<PortID>& ports,
     const std::map<PortID, VlanID>& port2vlan,
     const std::vector<VlanID>& vlans,
-    std::map<cfg::PortType, cfg::PortLoopbackMode> lbModeMap,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode> lbModeMap,
     bool optimizePortProfile = true,
     bool enableFabricPorts = false) {
   cfg::SwitchConfig config;
@@ -494,7 +494,7 @@ std::vector<std::string> getLoopbackIps(SwitchID switchId) {
 cfg::SwitchConfig oneL3IntfConfig(
     const HwSwitch* hwSwitch,
     PortID port,
-    std::map<cfg::PortType, cfg::PortLoopbackMode> lbModeMap,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
     int baseVlanId) {
   std::vector<PortID> ports{port};
   return oneL3IntfNPortConfig(hwSwitch, ports, lbModeMap, true, baseVlanId);
@@ -503,7 +503,7 @@ cfg::SwitchConfig oneL3IntfConfig(
 cfg::SwitchConfig oneL3IntfNoIPAddrConfig(
     const HwSwitch* hwSwitch,
     PortID port,
-    std::map<cfg::PortType, cfg::PortLoopbackMode> lbModeMap) {
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap) {
   std::vector<PortID> ports{port};
   return oneL3IntfNPortConfig(
       hwSwitch, ports, lbModeMap, false /*interfaceHasSubnet*/);
@@ -513,7 +513,7 @@ cfg::SwitchConfig oneL3IntfTwoPortConfig(
     const HwSwitch* hwSwitch,
     PortID port1,
     PortID port2,
-    std::map<cfg::PortType, cfg::PortLoopbackMode> lbModeMap) {
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap) {
   std::vector<PortID> ports{port1, port2};
   return oneL3IntfNPortConfig(hwSwitch, ports, lbModeMap);
 }
@@ -521,7 +521,7 @@ cfg::SwitchConfig oneL3IntfTwoPortConfig(
 cfg::SwitchConfig oneL3IntfNPortConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,
-    std::map<cfg::PortType, cfg::PortLoopbackMode> lbModeMap,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
     bool interfaceHasSubnet,
     int baseVlanId,
     bool optimizePortProfile,
@@ -558,7 +558,7 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
 cfg::SwitchConfig onePortPerInterfaceConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,
-    std::map<cfg::PortType, cfg::PortLoopbackMode> lbModeMap,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
     bool interfaceHasSubnet,
     bool setInterfaceMac,
     int baseIntfId,
@@ -577,7 +577,7 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
 cfg::SwitchConfig multiplePortsPerIntfConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,
-    std::map<cfg::PortType, cfg::PortLoopbackMode> lbModeMap,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
     bool interfaceHasSubnet,
     bool setInterfaceMac,
     const int baseVlanId,
@@ -697,7 +697,7 @@ cfg::SwitchConfig twoL3IntfConfig(
     const HwSwitch* hwSwitch,
     PortID port1,
     PortID port2,
-    std::map<cfg::PortType, cfg::PortLoopbackMode> lbModeMap) {
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap) {
   std::map<PortID, VlanID> port2vlan;
   std::vector<PortID> ports{port1, port2};
   std::vector<VlanID> vlans;
@@ -932,7 +932,7 @@ cfg::SwitchConfig createRtswUplinkDownlinkConfig(
     HwSwitchEnsemble* ensemble,
     const std::vector<PortID>& masterLogicalPortIds,
     cfg::PortSpeed portSpeed,
-    std::map<cfg::PortType, cfg::PortLoopbackMode> lbModeMap,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
     std::vector<PortID>& uplinks,
     std::vector<PortID>& downlinks) {
   const int kTotalLinkCount = 32;
@@ -967,7 +967,7 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
     uint16_t uplinksCount,
     cfg::PortSpeed uplinkPortSpeed,
     cfg::PortSpeed downlinkPortSpeed,
-    std::map<cfg::PortType, cfg::PortLoopbackMode> lbModeMap,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
     bool interfaceHasSubnet) {
   auto platform = hwSwitch->getPlatform();
   /*

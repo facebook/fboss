@@ -110,7 +110,7 @@ class MultiNodeLoadBalancerTest : public MultiNodeTest {
     auto config = utility::onePortPerInterfaceConfig(
         platform()->getHwSwitch(),
         testPorts(),
-        {{cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::NONE}},
+        utility::kDefaultLoopbackMap(),
         true /*interfaceHasSubnet*/,
         false /*setInterfaceMac*/);
     config.loadBalancers()->push_back(

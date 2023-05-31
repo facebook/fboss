@@ -219,8 +219,9 @@ void AgentEnsemble::setupLinkStateToggler() {
   if (linkToggler_) {
     return;
   }
-  linkToggler_ =
-      createHwLinkStateToggler(this, {{cfg::PortType::INTERFACE_PORT, mode_}});
+  const std::map<cfg::PortType, cfg::PortLoopbackMode> kLoopbackMode = {
+      {cfg::PortType::INTERFACE_PORT, mode_}};
+  linkToggler_ = createHwLinkStateToggler(this, kLoopbackMode);
 }
 
 std::string AgentEnsemble::getInputConfigFile() {

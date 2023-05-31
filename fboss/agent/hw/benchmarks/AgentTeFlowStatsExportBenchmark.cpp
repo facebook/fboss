@@ -17,6 +17,7 @@
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include <folly/Benchmark.h>
 #include <folly/IPAddress.h>
@@ -44,7 +45,7 @@ BENCHMARK(AgentTeFlowStatsPublishToFsdb) {
         return utility::onePortPerInterfaceConfig(
             hwSwitch,
             {ports[0], ports[1]},
-            {{cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC}});
+            hwSwitch->getPlatform()->getAsic()->desiredLoopbackModes());
       };
 
   AgentEnsemblePlatformConfigFn platformConfigFn =

@@ -46,7 +46,7 @@ void teFlowAddDelEntriesBenchmarkHelper(bool measureAdd) {
         return utility::onePortPerInterfaceConfig(
             hwSwitch,
             {ports[0], ports[1]},
-            {{cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC}});
+            hwSwitch->getPlatform()->getAsic()->desiredLoopbackModes());
       };
   AgentEnsemblePlatformConfigFn platformConfigFn =
       [](cfg::PlatformConfig& config) {

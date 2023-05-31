@@ -63,7 +63,7 @@ BENCHMARK(HwStatsCollection) {
         auto config = utility::onePortPerInterfaceConfig(
             hwSwitch,
             portsNew,
-            {{cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC}});
+            hwSwitch->getPlatform()->getAsic()->desiredLoopbackModes());
         config.switchSettings()->maxRouteCounterIDs() = numRouteCounters;
         return config;
       };

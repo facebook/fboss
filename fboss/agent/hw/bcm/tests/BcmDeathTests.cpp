@@ -27,10 +27,7 @@ class BcmDeathTest : public BcmTest {
         masterLogicalPortIds()[1],
         masterLogicalPortIds()[2],
     };
-    return utility::onePortPerInterfaceConfig(
-        getHwSwitch(),
-        ports,
-        {{cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::NONE}});
+    return utility::onePortPerInterfaceConfig(getHwSwitch(), ports);
   }
 
   template <typename AddrT>

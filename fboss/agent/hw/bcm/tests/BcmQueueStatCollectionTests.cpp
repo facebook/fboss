@@ -23,7 +23,7 @@ TEST_F(BcmTest, onlyExpectedQueueStatsSeen) {
     applyNewConfig(utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        {{cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC}}));
+        getHwSwitch()->getPlatform()->getAsic()->desiredLoopbackModes()));
   };
   auto verify = [this] {
     for (auto i = 0; i < 10; ++i) {
