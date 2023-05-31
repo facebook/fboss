@@ -2,6 +2,8 @@
 
 namespace cpp2 facebook.fboss.platform.platform_manager
 
+include "fboss/platform/platform_manager/platform_manager_presence.thrift"
+
 // +-+-+-+ +-+-+-+ +-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+
 // |I|2|C| |B|u|s| |N|a|m|i|n|g| |C|o|n|v|e|n|t|i|o|n|
 // +-+-+-+ +-+-+-+ +-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+
@@ -121,8 +123,8 @@ struct SlotTypeConfig {
 //
 // `slotType`: Type of the slot.
 //
-// `pathToPoll`: The sysfs path to poll to detect the presence of FRU in the
-// slot.
+// `presenceDetection`: Logic to determine whether a FRU has been plugged in
+// this slot.
 //
 // TODO: Enhance device presence logic based on SimpleIoDevice definition
 // in fbdevd.thrift
@@ -131,7 +133,7 @@ struct SlotTypeConfig {
 // which are going out in the slot.  Refer to Bus Naming Convention above.
 struct SlotConfig {
   SlotType slotType;
-  string pathToPoll;
+  platform_manager_presence.PresenceDetection presenceDetection;
   list<string> outgoingI2cBusNames;
 }
 
