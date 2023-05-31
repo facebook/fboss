@@ -416,19 +416,30 @@ TEST_F(RoutingFixture, SwitchToHostLinkLocalUnicast) {
   // Cache the current stats
   CounterCache counters(sw);
 
-  // v4 packet destined to intf2 link-local address from any address but from
-  // same VLAN as of intf2
-  {
+  auto verifyV4LLUcastPkt = [&](PortID portID) {
     auto pkt = createV4UnicastPacket(kllIPv4NbhAddr2, kllIPv4IntfAddr2);
 
     EXPECT_TUN_PKT(tunMgr, "V4 llUcastPkt", ifID2, matchRxPacket(pkt)).Times(1);
 
-    handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(2), VlanID(2));
+    handle->rxPacket(std::make_unique<IOBuf>(pkt), portID, VlanID(2));
 
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 1);
     counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 0);
-  }
+  };
+
+  // v4 packet destined to intf2 link-local address from any address but from
+  // same VLAN as of intf2
+  verifyV4LLUcastPkt(PortID(2));
+
+  // v4 packet destined to intf2 link-local address from any address
+  // originating from CPU port but from same VLAN as of intf2
+  //
+  // CPU originated LL V4 packets are sent to the ASIC. If the ARP is not
+  // resolved, the packets will be punted back to the CPU with the ingress port
+  // set to the CPU port. Mimic that by setting PortID in the pkt metadata to
+  // CPU port (0).
+  verifyV4LLUcastPkt(PortID(0));
 
   // v4 link local packet destined to non-interface address should be dropped.
   {
