@@ -93,6 +93,6 @@ class HwLinkStateToggler {
 
 std::unique_ptr<HwLinkStateToggler> createHwLinkStateToggler(
     TestEnsembleIf* ensemble,
-    std::map<cfg::PortType, cfg::PortLoopbackMode> desiredLoopbackModes);
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& desiredLoopbackModes);
 
 } // namespace facebook::fboss
