@@ -427,16 +427,20 @@ void NeighborUpdaterImpl::timeoutsChanged(
     std::chrono::seconds ndpTimeout,
     std::chrono::seconds staleEntryInterval,
     uint32_t maxNeighborProbes) {
-  for (auto& vlanAndCaches : caches_) {
-    auto& arpCache = vlanAndCaches.second->arpCache;
-    auto& ndpCache = vlanAndCaches.second->ndpCache;
-    arpCache->setTimeout(arpTimeout);
-    arpCache->setMaxNeighborProbes(maxNeighborProbes);
-    arpCache->setStaleEntryInterval(staleEntryInterval);
-    ndpCache->setTimeout(ndpTimeout);
-    ndpCache->setMaxNeighborProbes(maxNeighborProbes);
-    ndpCache->setStaleEntryInterval(staleEntryInterval);
-  }
+  auto timeOutChangedHelper = [&](auto& caches) {
+    for (auto& id2NbrCaches : caches) {
+      auto& arpCache = id2NbrCaches.second->arpCache;
+      auto& ndpCache = id2NbrCaches.second->ndpCache;
+      arpCache->setTimeout(arpTimeout);
+      arpCache->setMaxNeighborProbes(maxNeighborProbes);
+      arpCache->setStaleEntryInterval(staleEntryInterval);
+      ndpCache->setTimeout(ndpTimeout);
+      ndpCache->setMaxNeighborProbes(maxNeighborProbes);
+      ndpCache->setStaleEntryInterval(staleEntryInterval);
+    }
+  };
+
+  timeOutChangedHelper(caches_);
 }
 
 void NeighborUpdaterImpl::updateArpEntryClassID(
