@@ -304,7 +304,11 @@ void NeighborUpdaterImpl::portFlushEntries(PortDescriptor port) {
     }
   };
 
-  portFlushEntriesHelper(caches_);
+  if (FLAGS_intf_nbr_tables) {
+    portFlushEntriesHelper(intfCaches_);
+  } else {
+    portFlushEntriesHelper(caches_);
+  }
 }
 
 bool NeighborUpdaterImpl::flushEntryImpl(VlanID vlan, IPAddress ip) {
