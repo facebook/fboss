@@ -14,6 +14,8 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 
+DECLARE_bool(intf_nbr_tables);
+
 template <typename AddrT>
 using NeighborEntryT =
     typename facebook::fboss::MirrorManagerImpl<AddrT>::NeighborEntryT;
@@ -27,8 +29,12 @@ template <typename AddrT>
 auto getNeighborEntryTableHelper(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& interface) {
-  auto vlan = state->getVlans()->getNodeIf(interface->getVlanID());
-  return vlan->template getNeighborEntryTable<AddrT>();
+  if (FLAGS_intf_nbr_tables) {
+    return interface->template getNeighborEntryTable<AddrT>();
+  } else {
+    auto vlan = state->getVlans()->getNodeIf(interface->getVlanID());
+    return vlan->template getNeighborEntryTable<AddrT>();
+  }
 }
 
 } // namespace
