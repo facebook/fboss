@@ -99,9 +99,8 @@ void NeighborUpdater::processInterfaceUpdates(const StateDelta& stateDelta) {
   }
 }
 
-void NeighborUpdater::stateUpdated(const StateDelta& delta) {
-  CHECK(sw_->getUpdateEvb()->inRunningEventBaseThread());
-  for (const auto& entry : delta.getVlansDelta()) {
+void NeighborUpdater::processVlanUpdates(const StateDelta& stateDelta) {
+  for (const auto& entry : stateDelta.getVlansDelta()) {
     sendNeighborUpdates(entry);
     auto oldEntry = entry.getOld();
     auto newEntry = entry.getNew();
@@ -109,7 +108,7 @@ void NeighborUpdater::stateUpdated(const StateDelta& delta) {
     if (!newEntry) {
       vlanDeleted(oldEntry->getID());
     } else if (!oldEntry) {
-      vlanAdded(newEntry->getID(), delta.newState());
+      vlanAdded(newEntry->getID(), stateDelta.newState());
     } else {
       if (newEntry->getInterfaceID() != oldEntry->getInterfaceID() ||
           newEntry->getName() != oldEntry->getName()) {
@@ -119,6 +118,12 @@ void NeighborUpdater::stateUpdated(const StateDelta& delta) {
       }
     }
   }
+}
+
+void NeighborUpdater::stateUpdated(const StateDelta& delta) {
+  CHECK(sw_->getUpdateEvb()->inRunningEventBaseThread());
+
+  processVlanUpdates(delta);
 
   const auto& oldState = delta.oldState();
   const auto& newState = delta.newState();
