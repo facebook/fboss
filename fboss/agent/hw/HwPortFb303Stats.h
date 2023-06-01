@@ -25,8 +25,9 @@ class HwPortFb303Stats : public HwBasePortFb303Stats {
  public:
   explicit HwPortFb303Stats(
       const std::string& portName,
-      QueueId2Name queueId2Name = {})
-      : HwBasePortFb303Stats(portName, queueId2Name) {
+      QueueId2Name queueId2Name = {},
+      const std::vector<PfcPriority>& enabledPfcPriorities = {})
+      : HwBasePortFb303Stats(portName, queueId2Name, enabledPfcPriorities) {
     portStats_.portName_() = portName;
     reinitStats(std::nullopt);
   }
@@ -54,6 +55,7 @@ class HwPortFb303Stats : public HwBasePortFb303Stats {
   const std::vector<folly::StringPiece>& kInMacsecPortStatKeys() const override;
   const std::vector<folly::StringPiece>& kOutMacsecPortStatKeys()
       const override;
+  const std::vector<folly::StringPiece>& kPfcStatKeys() const override;
 
  private:
   HwPortStats portStats_;

@@ -237,9 +237,7 @@ std::vector<cfg::AsicType> HwTest::getOtherAsicTypes() const {
   return asicList;
 }
 
-SwitchIdScopeResolver HwTest::scopeResolver() const {
-  CHECK(getProgrammedState());
-  return SwitchIdScopeResolver(
-      getProgrammedState()->getSwitchSettings()->getSwitchIdToSwitchInfo());
+const SwitchIdScopeResolver& HwTest::scopeResolver() const {
+  return getHwSwitchEnsemble()->scopeResolver();
 }
 } // namespace facebook::fboss

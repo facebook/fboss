@@ -27,6 +27,8 @@ using namespace facebook::fboss;
 namespace {
 cfg::SwitchConfig createConfig(AggregatePortID id, const std::string& name) {
   cfg::SwitchConfig config;
+  config.switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU))};
   config.ports()->resize(2);
   preparedMockPortConfig(config.ports()[0], 1);
   preparedMockPortConfig(config.ports()[1], 2);
@@ -63,10 +65,8 @@ cfg::SwitchConfig createConfig(AggregatePortID id, const std::string& name) {
   return config;
 }
 
-std::shared_ptr<AggregatePort> getAggregatePort(
-    SwSwitch* sw,
-    AggregatePortID id) {
-  return sw->getState()->getAggregatePorts()->getAggregatePort(id);
+std::shared_ptr<AggregatePort> getNode(SwSwitch* sw, AggregatePortID id) {
+  return sw->getState()->getAggregatePorts()->getNode(id);
 }
 
 } // namespace
@@ -83,7 +83,7 @@ TEST(AggregatePortStats, FlapOnce) {
 
   CounterCache counters(sw);
 
-  auto oldAggPort = getAggregatePort(sw, aggregatePortID);
+  auto oldAggPort = getNode(sw, aggregatePortID);
 
   ProgramForwardingAndPartnerState addPort1ToAggregatePort(
       PortID(1), aggregatePortID, AggregatePort::Forwarding::ENABLED, pState);
@@ -96,7 +96,7 @@ TEST(AggregatePortStats, FlapOnce) {
       "Adding second port tn AggrgatePort", addPort2ToAggregatePort);
 
   waitForStateUpdates(sw);
-  auto newAggPort = getAggregatePort(sw, aggregatePortID);
+  auto newAggPort = getNode(sw, aggregatePortID);
   LinkAggregationManager::recordStatistics(sw, oldAggPort, newAggPort);
 
   counters.update();
@@ -116,7 +116,7 @@ TEST(AggregatePortStats, FlapTwice) {
 
   CounterCache counters(sw);
 
-  auto baseAggPort = getAggregatePort(sw, aggregatePortID);
+  auto baseAggPort = getNode(sw, aggregatePortID);
 
   ProgramForwardingAndPartnerState addPort1ToAggregatePort(
       PortID(1), aggregatePortID, AggregatePort::Forwarding::ENABLED, pState);
@@ -129,7 +129,7 @@ TEST(AggregatePortStats, FlapTwice) {
       "Adding second port to AggrgatePort", addPort2ToAggregatePort);
 
   waitForStateUpdates(sw);
-  auto initialAggPort = getAggregatePort(sw, aggregatePortID);
+  auto initialAggPort = getNode(sw, aggregatePortID);
   LinkAggregationManager::recordStatistics(sw, baseAggPort, initialAggPort);
 
   ProgramForwardingAndPartnerState removePort2FromAggregatePort(
@@ -138,7 +138,7 @@ TEST(AggregatePortStats, FlapTwice) {
       "Removing second port from AggregatePort", removePort2FromAggregatePort);
 
   waitForStateUpdates(sw);
-  auto finalAggPort = getAggregatePort(sw, aggregatePortID);
+  auto finalAggPort = getNode(sw, aggregatePortID);
   LinkAggregationManager::recordStatistics(sw, initialAggPort, finalAggPort);
 
   counters.update();
@@ -162,7 +162,7 @@ TEST(AggregatePortStats, UpdateAggregatePortName) {
   auto config = createConfig(aggregatePortID, initialAggregatePortName);
   auto handle = createTestHandle(&config);
   sw = handle->getSw();
-  baseAggPort = getAggregatePort(sw, aggregatePortID);
+  baseAggPort = getNode(sw, aggregatePortID);
 
   CounterCache counters(sw);
 
@@ -178,7 +178,7 @@ TEST(AggregatePortStats, UpdateAggregatePortName) {
       "Adding second port tn AggregatePort", addPort2ToAggregatePort);
 
   waitForStateUpdates(sw);
-  initialAggPort = getAggregatePort(sw, aggregatePortID);
+  initialAggPort = getNode(sw, aggregatePortID);
 
   LinkAggregationManager::recordStatistics(sw, baseAggPort, initialAggPort);
   counters.update();
@@ -195,7 +195,7 @@ TEST(AggregatePortStats, UpdateAggregatePortName) {
       "Removing second port from AggregatePort", removePort2FromAggregatePort);
 
   waitForStateUpdates(sw);
-  updatedAggPort = getAggregatePort(sw, aggregatePortID);
+  updatedAggPort = getNode(sw, aggregatePortID);
 
   LinkAggregationManager::recordStatistics(sw, initialAggPort, updatedAggPort);
   counters.update();

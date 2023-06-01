@@ -14,6 +14,7 @@
 #include <fstream>
 #include <map>
 #include <optional>
+#include <unordered_set>
 #include <utility>
 
 #include <folly/Conv.h>
@@ -299,7 +300,7 @@ const unsigned int kMaxSflowSnapLen = 128;
 bool isValidLabeledNextHopSet(
     facebook::fboss::BcmPlatform* platform,
     const facebook::fboss::LabelNextHopSet& nexthops) {
-  if (!facebook::fboss::LabelForwardingInformationBase::isValidNextHopSet(
+  if (!facebook::fboss::MultiLabelForwardingInformationBase::isValidNextHopSet(
           nexthops)) {
     return false;
   }
@@ -645,10 +646,17 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   auto rv = bcm_vlan_default_get(getUnit(), &defaultVlan);
   bcmCheckError(rv, "Unable to get default VLAN");
 
+  auto multiSwitchSwitchSettings = make_shared<MultiSwitchSettings>();
   auto switchSettings = make_shared<SwitchSettings>();
   switchSettings->setL2LearningMode(l2LearningMode);
   switchSettings->setDefaultVlan(VlanID(defaultVlan));
-  bootState->resetSwitchSettings(switchSettings);
+  multiSwitchSwitchSettings->addNode(
+      HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}))
+          .matcherString(),
+      switchSettings);
+  bootState->resetSwitchSettings(multiSwitchSwitchSettings);
+
+  HwSwitchMatcher scopeMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
 
   // get cpu queue settings
   auto cpu = make_shared<ControlPlane>();
@@ -656,7 +664,9 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   auto rxReasonToQueue = controlPlane_->getRxReasonToQueue();
   cpu->resetQueues(cpuQueues);
   cpu->resetRxReasonToQueue(rxReasonToQueue);
-  bootState->resetControlPlane(cpu);
+  auto multiSwitchControlPlane = std::make_shared<MultiControlPlane>();
+  multiSwitchControlPlane->addNode(scopeMatcher.matcherString(), cpu);
+  bootState->resetControlPlane(multiSwitchControlPlane);
 
   // On cold boot all ports are in Vlan 1
   auto vlan = make_shared<Vlan>(VlanID(1), std::string("InitVlan"));
@@ -688,12 +698,12 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
       auto queues = bcmPort->getCurrentQueueSettings();
       swPort->resetPortQueues(queues);
     }
-    bootState->addPort(swPort);
+    bootState->getPorts()->addNode(swPort, scopeMatcher);
 
     memberPorts.insert(make_pair(portID, false));
   }
   vlan->setPorts(memberPorts);
-  bootState->addVlan(vlan);
+  bootState->getVlans()->addNode(vlan, scopeMatcher);
   bootState->publish();
   return bootState;
 }
@@ -959,11 +969,6 @@ HwInitResult BcmSwitch::initImpl(
           routeTables,
           ret.switchState->getFibs(),
           ret.switchState->getLabelForwardingInformationBase());
-    } else if (switchStateJson.find(kRib) != switchStateJson.items().end()) {
-      ret.rib = RoutingInformationBase::fromFollyDynamic(
-          switchStateJson[kRib],
-          ret.switchState->getFibs(),
-          ret.switchState->getLabelForwardingInformationBase());
     }
     stateChangedImplLocked(
         StateDelta(make_shared<SwitchState>(), ret.switchState), g);
@@ -983,8 +988,10 @@ HwInitResult BcmSwitch::initImpl(
     }
   } else {
     ret.switchState = getColdBootSwitchState();
-    setMacAging(std::chrono::seconds(
-        ret.switchState->getSwitchSettings()->getL2AgeTimerSeconds()));
+    CHECK(ret.switchState->getSwitchSettings()->size());
+    auto switchSettings =
+        ret.switchState->getSwitchSettings()->cbegin()->second;
+    setMacAging(std::chrono::seconds(switchSettings->getL2AgeTimerSeconds()));
   }
 
   macTable_ = std::make_unique<BcmMacTable>(this);
@@ -1066,10 +1073,27 @@ void BcmSwitch::setupPacketRx() {
 }
 
 void BcmSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
-  const auto switchSettingsDelta = delta.getSwitchSettingsDelta();
-  const auto& oldSwitchSettings = switchSettingsDelta.getOld();
-  const auto& newSwitchSettings = switchSettingsDelta.getNew();
+  const auto switchSettingDelta = delta.getSwitchSettingsDelta();
+  forEachAdded(switchSettingDelta, [&](const auto& newSwitchSettings) {
+    processSwitchSettingsEntryChanged(
+        std::make_shared<SwitchSettings>(), newSwitchSettings, delta);
+  });
+  forEachChanged(
+      switchSettingDelta,
+      [&](const auto& oldSwitchSettings, const auto& newSwitchSettings) {
+        processSwitchSettingsEntryChanged(
+            oldSwitchSettings, newSwitchSettings, delta);
+      });
+  forEachRemoved(switchSettingDelta, [&](const auto& oldSwitchSettings) {
+    processSwitchSettingsEntryChanged(
+        oldSwitchSettings, std::make_shared<SwitchSettings>(), delta);
+  });
+}
 
+void BcmSwitch::processSwitchSettingsEntryChanged(
+    const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
+    const std::shared_ptr<SwitchSettings>& newSwitchSettings,
+    const StateDelta& delta) {
   /*
    * SwitchSettings are mandatory and can thus only be modified.
    * Every field in SwitchSettings must always be set in new SwitchState.
@@ -1362,7 +1386,7 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImplLocked(
 
   // Any neighbor removals, and modify appliedState if some changes fail to
   // apply
-  processNeighborDelta(delta, &appliedState, REMOVED);
+  processNeighborDelta(delta.getVlansDelta(), &appliedState, REMOVED);
 
   // delete all interface not existing anymore. that should stop
   // all traffic on that interface now
@@ -1409,8 +1433,8 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImplLocked(
 
   // Any neighbor additions/changes, and modify appliedState if some changes
   // fail to apply
-  processNeighborDelta(delta, &appliedState, ADDED);
-  processNeighborDelta(delta, &appliedState, CHANGED);
+  processNeighborDelta(delta.getVlansDelta(), &appliedState, ADDED);
+  processNeighborDelta(delta.getVlansDelta(), &appliedState, CHANGED);
 
   // process label forwarding changes after neighbor entries are updated
   processChangedLabelForwardingInformationBase(delta);
@@ -2061,19 +2085,21 @@ bool BcmSwitch::isValidStateUpdate(const StateDelta& delta) const {
 
   std::shared_ptr<Port> firstPort;
   std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction{};
-  for (const auto& port : std::as_const(*newState->getPorts())) {
-    if (port.second->getPfc().has_value() &&
-        port.second->getPfc()->watchdog().has_value()) {
-      auto pfcWd = port.second->getPfc()->watchdog().value();
-      if (!recoveryAction.has_value()) {
-        recoveryAction = *pfcWd.recoveryAction();
-        firstPort = port.second;
-      } else if (*recoveryAction != *pfcWd.recoveryAction()) {
-        // Error: All ports should have the same recovery action configured
-        XLOG(ERR) << "PFC watchdog deadlock recovery action on "
-                  << port.second->getName() << " conflicting with "
-                  << firstPort->getName();
-        isValid = false;
+  for (const auto& portMap : std::as_const(*newState->getPorts())) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      if (port.second->getPfc().has_value() &&
+          port.second->getPfc()->watchdog().has_value()) {
+        auto pfcWd = port.second->getPfc()->watchdog().value();
+        if (!recoveryAction.has_value()) {
+          recoveryAction = *pfcWd.recoveryAction();
+          firstPort = port.second;
+        } else if (*recoveryAction != *pfcWd.recoveryAction()) {
+          // Error: All ports should have the same recovery action configured
+          XLOG(ERR) << "PFC watchdog deadlock recovery action on "
+                    << port.second->getName() << " conflicting with "
+                    << firstPort->getName();
+          isValid = false;
+        }
       }
     }
   }
@@ -2315,8 +2341,8 @@ void BcmSwitch::processTeFlowChanges(
     auto newFlowTable = delta.newState()->getTeFlowTable();
     auto oldFlowTable = delta.oldState()->getTeFlowTable();
     for (const auto& flow : discardedFlows) {
-      auto oldEntry = oldFlowTable->getTeFlowIf(flow);
-      auto newEntry = newFlowTable->getTeFlowIf(flow);
+      auto oldEntry = oldFlowTable->getNodeIf(getTeFlowStr(flow));
+      auto newEntry = newFlowTable->getNodeIf(getTeFlowStr(flow));
       SwitchState::revertNewTeFlowEntry(newEntry, oldEntry, appliedState);
     }
   }
@@ -2515,17 +2541,20 @@ void BcmSwitch::processRemovedNeighborEntry(
       });
 }
 
+template <typename MapDeltaT>
 void BcmSwitch::processNeighborDelta(
-    const StateDelta& delta,
+    const MapDeltaT& delta,
     std::shared_ptr<SwitchState>* appliedState,
     DeltaType optype) {
-  processNeighborTableDelta<folly::IPAddressV4>(delta, appliedState, optype);
-  processNeighborTableDelta<folly::IPAddressV6>(delta, appliedState, optype);
+  processNeighborTableDelta<MapDeltaT, folly::IPAddressV4>(
+      delta, appliedState, optype);
+  processNeighborTableDelta<MapDeltaT, folly::IPAddressV6>(
+      delta, appliedState, optype);
 }
 
-template <typename AddrT>
+template <typename MapDeltaT, typename AddrT>
 void BcmSwitch::processNeighborTableDelta(
-    const StateDelta& stateDelta,
+    const MapDeltaT& mapDelta,
     std::shared_ptr<SwitchState>* appliedState,
     DeltaType optype) {
   using NeighborTableT = std::conditional_t<
@@ -2533,13 +2562,11 @@ void BcmSwitch::processNeighborTableDelta(
       ArpTable,
       NdpTable>;
   using NeighborEntryT = typename NeighborTableT::Entry;
-  using NeighborEntryDeltaT =
-      typename thrift_cow::ThriftMapDelta<NeighborTableT>::VALUE;
+  using NeighborEntryDeltaT = typename ThriftMapDelta<NeighborTableT>::VALUE;
   std::vector<NeighborEntryDeltaT> discardedNeighborEntryDelta;
 
-  for (const auto& vlanDelta : stateDelta.getVlansDelta()) {
-    for (const auto& delta :
-         vlanDelta.template getNeighborDelta<NeighborTableT>()) {
+  for (const auto& d : mapDelta) {
+    for (const auto& delta : d.template getNeighborDelta<NeighborTableT>()) {
       try {
         const auto* oldEntry = delta.getOld().get();
         const auto* newEntry = delta.getNew().get();
@@ -3691,11 +3718,19 @@ bool BcmSwitch::isValidLabelForwardingEntry(const Route<LabelID>* entry) const {
   return true;
 }
 
-void BcmSwitch::processControlPlaneChanges(const StateDelta& delta) {
-  const auto controlPlaneDelta = delta.getControlPlaneDelta();
-  const auto& oldCPU = controlPlaneDelta.getOld();
-  const auto& newCPU = controlPlaneDelta.getNew();
+void BcmSwitch::processControlPlaneEntryAdded(
+    const std::shared_ptr<ControlPlane>& newCPU) {
+  processControlPlaneEntryChanged(std::make_shared<ControlPlane>(), newCPU);
+}
 
+void BcmSwitch::processControlPlaneEntryRemoved(
+    const std::shared_ptr<ControlPlane>& oldCPU) {
+  processControlPlaneEntryChanged(oldCPU, std::make_shared<ControlPlane>());
+}
+
+void BcmSwitch::processControlPlaneEntryChanged(
+    const std::shared_ptr<ControlPlane>& oldCPU,
+    const std::shared_ptr<ControlPlane>& newCPU) {
   processChangedControlPlaneQueues(oldCPU, newCPU);
   if (oldCPU->getQosPolicy() != newCPU->getQosPolicy()) {
     if (const auto& policy = newCPU->getQosPolicy()) {
@@ -3705,6 +3740,16 @@ void BcmSwitch::processControlPlaneChanges(const StateDelta& delta) {
     }
   }
   processChangedRxReasonToQueueEntries(oldCPU, newCPU);
+}
+
+void BcmSwitch::processControlPlaneChanges(const StateDelta& delta) {
+  const auto controlPlaneDelta = delta.getControlPlaneDelta();
+  forEachAdded(
+      controlPlaneDelta, &BcmSwitch::processControlPlaneEntryAdded, this);
+  forEachChanged(
+      controlPlaneDelta, &BcmSwitch::processControlPlaneEntryChanged, this);
+  forEachRemoved(
+      controlPlaneDelta, &BcmSwitch::processControlPlaneEntryRemoved, this);
 
   // COPP ACL will be handled just as regular ACL in processAclChanges()
 }
@@ -3786,7 +3831,8 @@ bool BcmSwitch::isValidPortQosPolicyUpdate(
     // either no policy or global default poliicy is provided
     return true;
   }
-  auto qosPolicy = newState->getQosPolicy(portQosPolicyName.value());
+  auto qosPolicy =
+      newState->getQosPolicies()->getNodeIf(portQosPolicyName.value());
   // qos policy for port must not have exp, since this is not supported
   return qosPolicy->getExpMap()->cref<switch_state_tags::to>()->empty() &&
       qosPolicy->getExpMap()->cref<switch_state_tags::from>()->empty();

@@ -48,27 +48,17 @@ class AggregatePortMap
   AggregatePortMap();
   ~AggregatePortMap() override;
 
-  std::shared_ptr<AggregatePort> getAggregatePortIf(AggregatePortID id) const {
-    return getNodeIf(id);
+  std::shared_ptr<AggregatePort> getAggregatePortForPort(PortID port) const {
+    return getAggregatePortForPortImpl(port);
   }
 
-  std::shared_ptr<AggregatePort> getAggregatePort(AggregatePortID id) const {
-    return getNode(id);
-  }
-
-  static int16_t getNodeThriftKey(const std::shared_ptr<AggregatePort>& node);
-
+ private:
   /* This method will iterate over every member port in every aggregate port,
    * so it is a quadratic operation. If it turns out to be a bottleneck, we can
    * maintain an index to speed it up.
    */
-  std::shared_ptr<AggregatePort> getAggregatePortIf(PortID port) const;
+  std::shared_ptr<AggregatePort> getAggregatePortForPortImpl(PortID port) const;
 
-  void updateAggregatePort(const std::shared_ptr<AggregatePort>& aggPort);
-
-  AggregatePortMap* modify(std::shared_ptr<SwitchState>* state);
-
- private:
   // Inherit the constructors required for clone()
   using Base::Base;
   friend class CloneAllocator;
@@ -101,6 +91,10 @@ class MultiSwitchAggregatePortMap : public ThriftMultiSwitchMapNode<
 
   MultiSwitchAggregatePortMap() {}
   virtual ~MultiSwitchAggregatePortMap() {}
+
+  MultiSwitchAggregatePortMap* modify(std::shared_ptr<SwitchState>* state);
+
+  std::shared_ptr<AggregatePort> getAggregatePortForPort(PortID port) const;
 
  private:
   // Inherit the constructors required for clone()

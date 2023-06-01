@@ -20,19 +20,6 @@ AclMap::AclMap() {}
 
 AclMap::~AclMap() {}
 
-AclMap* AclMap::modify(std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
-  }
-
-  SwitchState::modify(state);
-  auto newAcls = clone();
-  auto* ptr = newAcls.get();
-  (*state)->resetAcls(std::move(newAcls));
-  return ptr;
-}
-
 std::set<cfg::AclTableQualifier> PrioAclMap::requiredQualifiers() const {
   std::set<cfg::AclTableQualifier> qualifiers{};
   for (const auto& entry : *this) {
@@ -49,6 +36,23 @@ std::shared_ptr<AclMap> MultiSwitchAclMap::getAclMap() const {
     return nullptr;
   }
   return iter->second;
+}
+
+MultiSwitchAclMap* MultiSwitchAclMap::modify(
+    std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  SwitchState::modify(state);
+  auto newMultiSwitchMap = clone();
+  for (auto mnitr = cbegin(); mnitr != cend(); ++mnitr) {
+    (*newMultiSwitchMap)[mnitr->first] = mnitr->second->clone();
+  }
+  auto* ptr = newMultiSwitchMap.get();
+  (*state)->resetAcls(std::move(newMultiSwitchMap));
+  return ptr;
 }
 
 template class ThriftMapNode<AclMap, AclMapTraits>;

@@ -257,7 +257,6 @@ uint8_t FbFpgaI2cController::readByte(
     uint8_t channel,
     uint8_t offset,
     uint8_t i2cAddress) {
-  uint8_t buf;
   XLOG(DBG5) << folly::sformat(
       "FbFpgaI2cController::readByte pim {:d} rtc {:d} chan {:d} offset {:d}",
       pim_,

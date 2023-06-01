@@ -63,7 +63,7 @@ class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
       ports.push_back(masterLogicalPortIds()[i]);
     }
     return utility::onePortPerInterfaceConfig(
-        getHwSwitch(), ports, getAsic()->desiredLoopbackMode());
+        getHwSwitch(), ports, getAsic()->desiredLoopbackModes());
   }
 
   TestParameters<AddrT> testParams(int i) {
@@ -239,7 +239,7 @@ class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
     EXPECT_TRUE(vlanID.has_value());
     auto intfID = getProgrammedState()
                       ->getVlans()
-                      ->getVlan(vlanID.value())
+                      ->getNode(vlanID.value())
                       ->getInterfaceID();
     PrefixT dstPrefx{dstAddr, mask};
     utility::verifyProgrammedStack<AddrT>(

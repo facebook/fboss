@@ -60,7 +60,7 @@ class FdbManagerTest : public ManagerTestBase {
   void removeMacEntry() {
     auto newState = programmedState->clone();
     auto newMacTable = newState->getVlans()
-                           ->getVlan(VlanID(intf0.id))
+                           ->getNode(VlanID(intf0.id))
                            ->getMacTable()
                            ->modify(VlanID(intf0.id), &newState);
     newMacTable->removeEntry(kMac());
@@ -93,7 +93,7 @@ class FdbManagerTest : public ManagerTestBase {
     auto macEntry = makeMacEntry(mac, classId);
     auto newState = programmedState->clone();
     auto newMacTable = newState->getVlans()
-                           ->getVlan(VlanID(intf0.id))
+                           ->getNode(VlanID(intf0.id))
                            ->getMacTable()
                            ->modify(VlanID(intf0.id), &newState);
     if (update) {

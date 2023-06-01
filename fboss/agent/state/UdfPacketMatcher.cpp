@@ -22,13 +22,6 @@ std::string UdfPacketMatcher::getName() const {
   return get<switch_config_tags::name>()->cref();
 }
 
-std::shared_ptr<UdfPacketMatcher> UdfPacketMatcher::fromFollyDynamic(
-    const folly::dynamic& entry) {
-  auto node = std::make_shared<UdfPacketMatcher>();
-  static_cast<std::shared_ptr<BaseT>>(node)->fromFollyDynamic(entry);
-  return node;
-}
-
 cfg::UdfMatchL2Type UdfPacketMatcher::getUdfl2PktType() const {
   return get<switch_config_tags::l2PktType>()->cref();
 }

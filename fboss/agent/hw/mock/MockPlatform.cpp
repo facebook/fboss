@@ -75,8 +75,10 @@ MockPlatform::~MockPlatform() {}
 void MockPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    std::optional<cfg::Range64> systemPortRange) {
-  asic_ = std::make_unique<MockAsic>(switchType, switchId, systemPortRange);
+    std::optional<cfg::Range64> systemPortRange,
+    folly::MacAddress& mac) {
+  asic_ =
+      std::make_unique<MockAsic>(switchType, switchId, systemPortRange, mac);
 }
 HwSwitch* MockPlatform::getHwSwitch() const {
   return hw_.get();

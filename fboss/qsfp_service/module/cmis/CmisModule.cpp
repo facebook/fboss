@@ -2247,27 +2247,24 @@ void CmisModule::configureModule(uint8_t startHostLane) {
 }
 
 MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
-  // Go over all module capabilities and return the one with max speed
-  auto maxSpeed = cfg::PortSpeed::DEFAULT;
+  // Return the MediaInterfaceCode based on the first application
   auto moduleMediaInterface = MediaInterfaceCode::UNKNOWN;
   auto mediaTypeEncoding = getMediaTypeEncoding();
-  for (const auto& moduleCapIter : moduleCapabilities_) {
-    if (mediaTypeEncoding == MediaTypeEncodings::OPTICAL_SMF) {
-      auto smfCode = static_cast<SMFMediaInterfaceCode>(
-          moduleCapIter.moduleMediaInterface);
-      if (mediaInterfaceToPortSpeedMapping.find(smfCode) !=
-              mediaInterfaceToPortSpeedMapping.end() &&
-          mediaInterfaceMapping.find(smfCode) != mediaInterfaceMapping.end()) {
-        auto speed = mediaInterfaceToPortSpeedMapping[smfCode];
-        if (speed > maxSpeed) {
-          maxSpeed = speed;
-          moduleMediaInterface = mediaInterfaceMapping[smfCode];
-        }
-      }
-    } else if (mediaTypeEncoding == MediaTypeEncodings::PASSIVE_CU) {
-      // FIXME: Remove CR8_400G hardcoding and derive this from number of
-      // lanes/host electrical interface instead
-      moduleMediaInterface = MediaInterfaceCode::CR8_400G;
+  if (mediaTypeEncoding == MediaTypeEncodings::PASSIVE_CU) {
+    // FIXME: Remove CR8_400G hardcoding and derive this from number of
+    // lanes/host electrical interface instead
+    moduleMediaInterface = MediaInterfaceCode::CR8_400G;
+  } else if (
+      mediaTypeEncoding == MediaTypeEncodings::OPTICAL_SMF &&
+      moduleCapabilities_.size() > 0) {
+    auto firstModuleCapability = moduleCapabilities_.begin();
+    auto smfCode = static_cast<SMFMediaInterfaceCode>(
+        firstModuleCapability->moduleMediaInterface);
+    if (smfCode == SMFMediaInterfaceCode::FR4_400G &&
+        firstModuleCapability->hostStartLanes.size() == 2) {
+      moduleMediaInterface = MediaInterfaceCode::FR4_2x400G;
+    } else {
+      moduleMediaInterface = mediaInterfaceMapping[smfCode];
     }
   }
 

@@ -15,9 +15,11 @@
 #include <folly/logging/xlog.h>
 #include <string>
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
@@ -172,7 +174,7 @@ void DHCPv6Handler::processDHCPv6Packet(
       ? folly::to<std::string>(static_cast<int>(vlanId.value()))
       : "None";
   auto states = sw->getState();
-  auto vlan = states->getVlans()->getVlanIf(sw->getVlanIDHelper(vlanId));
+  auto vlan = states->getVlans()->getNodeIf(sw->getVlanIDHelper(vlanId));
   if (!vlan) {
     sw->stats()->dhcpV6DropPkt();
     XLOG(DBG2) << "VLAN " << vlanIdStr << " is no longer present"
@@ -226,7 +228,8 @@ void DHCPv6Handler::processDHCPv6Packet(
 
   // create the dhcpv6 packet
   // vlanIp -> ip src, ipHdr.dst -> ip dst, srcMac -> mac src, dstMac -> mac dst
-  MacAddress cpuMac = sw->getPlatform()->getLocalMac();
+  auto switchId = sw->getScopeResolver()->scope(vlan).switchId();
+  MacAddress cpuMac = sw->getHwAsicTable()->getHwAsicIf(switchId)->getAsicMac();
   auto serializeBody = [&](RWPrivateCursor* sendCursor) {
     relayFwdPkt.write(sendCursor);
   };
@@ -267,7 +270,8 @@ void DHCPv6Handler::processDHCPv6RelayForward(
   auto serializeBody = [&](RWPrivateCursor* sendCursor) {
     dhcpPacket.write(sendCursor);
   };
-  MacAddress cpuMac = sw->getPlatform()->getLocalMac();
+  auto switchId = sw->getScopeResolver()->scope(pkt->getSrcPort()).switchId();
+  MacAddress cpuMac = sw->getHwAsicTable()->getHwAsicIf(switchId)->getAsicMac();
   sendDHCPv6Packet(
       sw,
       dstMac,
@@ -333,7 +337,10 @@ void DHCPv6Handler::processDHCPv6RelayReply(
    * switch ip -> ip src, peerAddr -> ip dst,
    * relay message option -> send dhcp packet,
    */
-  MacAddress cpuMac = sw->getPlatform()->getLocalMac();
+  auto switchIds = sw->getScopeResolver()->scope(pkt->getSrcPort()).switchIds();
+  CHECK_EQ(switchIds.size(), 1);
+  MacAddress cpuMac =
+      sw->getHwAsicTable()->getHwAsicIf(*switchIds.begin())->getAsicMac();
   // send dhcp packet
   auto serializeBody = [&](RWPrivateCursor* sendCursor) {
     sendCursor->push(relayData, relayLen);

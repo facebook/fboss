@@ -54,7 +54,8 @@ class Wedge40Platform : public WedgePlatform {
   void setupAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
-      std::optional<cfg::Range64> systemPortRange) override;
+      std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac) override;
   Wedge40Platform(Wedge40Platform const&) = delete;
   Wedge40Platform& operator=(Wedge40Platform const&) = delete;
   std::unique_ptr<Trident2Asic> asic_;

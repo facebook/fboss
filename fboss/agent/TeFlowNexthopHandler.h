@@ -18,8 +18,8 @@ class TeFlowNexthopHandler : public StateObserver {
  private:
   std::shared_ptr<SwitchState> handleUpdate(
       const std::shared_ptr<SwitchState>& state);
-  std::shared_ptr<TeFlowTable> updateTeFlowEntries(
-      std::shared_ptr<SwitchState>& newState);
+  std::shared_ptr<SwitchState> updateTeFlowEntries(
+      const std::shared_ptr<SwitchState>& newState);
   bool updateTeFlowEntry(
       const std::shared_ptr<TeFlowEntry>& origTeFlowEntry,
       std::shared_ptr<SwitchState>& newState);

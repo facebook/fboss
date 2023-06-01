@@ -39,15 +39,17 @@ BENCHMARK(RibResolutionBenchmark) {
   const auto& routeChunks = gen.getThriftRoutes();
   // Create a dummy rib since we don't want to go through
   // HwSwitchEnsemble and write to HW
-  auto rib = RoutingInformationBase::fromFollyDynamic(
-      ensemble->getSw()->getRib()->toFollyDynamic(), nullptr, nullptr);
+  auto rib = RoutingInformationBase::fromThrift(
+      ensemble->getSw()->getRib()->toThrift(), nullptr, nullptr);
   auto switchState = ensemble->getProgrammedState();
   suspender.dismiss();
   std::for_each(
       routeChunks.begin(),
       routeChunks.end(),
-      [&switchState, &rib](const auto& routeChunk) {
+      [&switchState, &rib, resolver = ensemble->getSw()->getScopeResolver()](
+          const auto& routeChunk) {
         rib->update(
+            resolver,
             RouterID(0),
             ClientID::BGPD,
             AdminDistance::EBGP,

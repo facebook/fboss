@@ -8,11 +8,11 @@ cpp_include "folly/container/F14Map.h"
 cpp_include "folly/FBString.h"
 
 include "fboss/agent/hw/hardware_stats.thrift"
+include "thrift/annotation/cpp.thrift"
 
 struct AgentStats {
-  1: map<string, hardware_stats.HwPortStats> (
-    cpp.template = 'folly::F14FastMap',
-  ) hwPortStats;
+  @cpp.Type{template = "folly::F14FastMap"}
+  1: map<string, hardware_stats.HwPortStats> hwPortStats;
   2: map<string, hardware_stats.HwTrunkStats> hwTrunkStats;
   3: hardware_stats.HwResourceStats hwResourceStats;
   4: hardware_stats.HwAsicErrors hwAsicErrors;

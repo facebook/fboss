@@ -14,9 +14,30 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 
+DECLARE_bool(intf_nbr_tables);
+
 template <typename AddrT>
 using NeighborEntryT =
     typename facebook::fboss::MirrorManagerImpl<AddrT>::NeighborEntryT;
+
+namespace {
+
+using facebook::fboss::Interface;
+using facebook::fboss::SwitchState;
+
+template <typename AddrT>
+auto getNeighborEntryTableHelper(
+    const std::shared_ptr<SwitchState>& state,
+    const std::shared_ptr<Interface>& interface) {
+  if (FLAGS_intf_nbr_tables) {
+    return interface->template getNeighborEntryTable<AddrT>();
+  } else {
+    auto vlan = state->getVlans()->getNodeIf(interface->getVlanID());
+    return vlan->template getNeighborEntryTable<AddrT>();
+  }
+}
+
+} // namespace
 
 namespace facebook::fboss {
 
@@ -61,8 +82,8 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
         break;
       case PortDescriptor::PortType::AGGREGATE: {
         // pick first forwarding member port
-        auto aggPort = state->getAggregatePorts()->getAggregatePortIf(
-            entry->getPort().aggPortID());
+        auto aggPort =
+            state->getAggregatePorts()->getNodeIf(entry->getPort().aggPortID());
         if (!aggPort) {
           XLOG(ERR) << "mirror resolved to non-existing aggregate port "
                     << entry->getPort().aggPortID();
@@ -134,17 +155,16 @@ MirrorManagerImpl<AddrT>::resolveMirrorNextHopNeighbor(
   AddrT mirrorNextHopIp = getIPAddress<AddrT>(nexthop.addr());
   InterfaceID mirrorEgressInterface = nexthop.intf();
 
-  auto interface =
-      state->getInterfaces()->getInterfaceIf(mirrorEgressInterface);
-  auto vlan = state->getVlans()->getVlanIf(interface->getVlanID());
+  auto interface = state->getInterfaces()->getNodeIf(mirrorEgressInterface);
+  auto vlan = state->getVlans()->getNodeIf(interface->getVlanID());
 
   if (interface->hasAddress(mirrorNextHopIp)) {
     /* if mirror destination is directly connected */
-    neighbor = vlan->template getNeighborEntryTable<AddrT>()->getEntryIf(
-        destinationIp);
+    neighbor = getNeighborEntryTableHelper<AddrT>(state, interface)
+                   ->getEntryIf(destinationIp);
   } else {
-    neighbor = vlan->template getNeighborEntryTable<AddrT>()->getEntryIf(
-        mirrorNextHopIp);
+    neighbor = getNeighborEntryTableHelper<AddrT>(state, interface)
+                   ->getEntryIf(mirrorNextHopIp);
   }
   return neighbor;
 }
@@ -157,7 +177,7 @@ MirrorTunnel MirrorManagerImpl<AddrT>::resolveMirrorTunnel(
     const NextHop& nextHop,
     const std::shared_ptr<NeighborEntryT>& neighbor,
     const std::optional<TunnelUdpPorts>& udpPorts) {
-  const auto interface = state->getInterfaces()->getInterfaceIf(nextHop.intf());
+  const auto interface = state->getInterfaces()->getNodeIf(nextHop.intf());
   const auto iter = interface->getAddressToReach(neighbor->getIP());
 
   if (udpPorts.has_value()) {

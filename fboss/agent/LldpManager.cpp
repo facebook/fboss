@@ -16,8 +16,10 @@
 #include <folly/io/Cursor.h>
 #include <folly/logging/xlog.h>
 #include <unistd.h>
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -108,7 +110,7 @@ void LldpManager::handlePacket(
              << " name=" << neighbor->getSystemName();
 
   auto plport = sw_->getPlatform()->getPlatformPort(pkt->getSrcPort());
-  auto port = sw_->getState()->getPorts()->getPortIf(pkt->getSrcPort());
+  auto port = sw_->getState()->getPorts()->getNodeIf(pkt->getSrcPort());
   PortID pid = pkt->getSrcPort();
 
   XLOG(DBG4) << "Port " << pid << ", local name: " << port->getName()
@@ -151,12 +153,14 @@ void LldpManager::timeoutExpired() noexcept {
 void LldpManager::sendLldpOnAllPorts() {
   // send lldp frames through all the ports here.
   std::shared_ptr<SwitchState> state = sw_->getState();
-  for (const auto& port : std::as_const(*state->getPorts())) {
-    if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT &&
-        port.second->isPortUp()) {
-      sendLldpInfo(port.second);
-    } else {
-      XLOG(DBG5) << "Skipping LLDP send on port: " << port.second->getID();
+  for (const auto& portMap : std::as_const(*state->getPorts())) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT &&
+          port.second->isPortUp()) {
+        sendLldpInfo(port.second);
+      } else {
+        XLOG(DBG5) << "Skipping LLDP send on port: " << port.second->getID();
+      }
     }
   }
 }
@@ -334,8 +338,10 @@ std::unique_ptr<TxPacket> LldpManager::createLldpPkt(
 }
 
 void LldpManager::sendLldpInfo(const std::shared_ptr<Port>& port) {
-  MacAddress cpuMac = sw_->getPlatform()->getLocalMac();
   PortID thisPortID = port->getID();
+  auto switchId = sw_->getScopeResolver()->scope(thisPortID).switchId();
+  MacAddress cpuMac =
+      sw_->getHwAsicTable()->getHwAsicIf(switchId)->getAsicMac();
 
   const size_t kMaxLen = 64;
   std::array<char, kMaxLen> hostname;

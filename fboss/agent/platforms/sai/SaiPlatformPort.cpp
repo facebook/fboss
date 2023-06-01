@@ -97,34 +97,6 @@ std::vector<PortID> SaiPlatformPort::getSubsumedPorts(
   return subsumedPortList;
 }
 
-folly::Future<TransmitterTechnology>
-SaiPlatformPort::getTransmitterTechInternal(folly::EventBase* evb) {
-  if (!checkSupportsTransceiver()) {
-    return folly::makeFuture<TransmitterTechnology>(
-        TransmitterTechnology::COPPER);
-  }
-  int32_t transID = static_cast<int32_t>(getTransceiverID().value());
-  auto getTech = [](TransceiverInfo info) {
-    if (auto cable = info.cable()) {
-      return *cable->transmitterTech();
-    }
-    return TransmitterTechnology::UNKNOWN;
-  };
-  auto handleError = [transID](const folly::exception_wrapper& e) {
-    XLOG(ERR) << "Error retrieving info for transceiver " << transID
-              << " Exception: " << folly::exceptionStr(e);
-    return TransmitterTechnology::UNKNOWN;
-  };
-  folly::Future<TransceiverInfo> transceiverInfo = getFutureTransceiverInfo();
-  return transceiverInfo.via(evb).thenValueInline(getTech).thenError(
-      std::move(handleError));
-}
-
-TransmitterTechnology SaiPlatformPort::getTransmitterTech() {
-  folly::EventBase evb;
-  return getTransmitterTechInternal(&evb).getVia(&evb);
-}
-
 TransceiverIdxThrift SaiPlatformPort::getTransceiverMapping(
     cfg::PortSpeed speed) {
   if (!checkSupportsTransceiver()) {

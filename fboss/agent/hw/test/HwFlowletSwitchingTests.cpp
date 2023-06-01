@@ -38,7 +38,7 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
 
     auto flowletCfg = getFlowletSwitchingConfig();
     cfg.flowletSwitchingConfig() = flowletCfg;

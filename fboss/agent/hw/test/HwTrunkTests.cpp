@@ -20,7 +20,7 @@ class HwTrunkTest : public HwLinkStateDependentTest {
         getHwSwitch(),
         masterLogicalPortIds()[0],
         masterLogicalPortIds()[1],
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
   }
 
   void applyConfigAndEnableTrunks(const cfg::SwitchConfig& switchCfg) {

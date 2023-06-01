@@ -25,6 +25,10 @@ using std::string;
 
 namespace {
 
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+
 class PortUpdateHandlerTest : public ::testing::Test {
  public:
   void SetUp() override {
@@ -34,20 +38,22 @@ class PortUpdateHandlerTest : public ::testing::Test {
 
     addState = testStateA();
     // add port 21 which uses VLAN 1
-    addState->registerPort(PortID(21), "port21");
-    addState->getVlans()->getVlanIf(VlanID(1))->addPort(PortID(21), false);
+    registerPort(addState, PortID(21), "port21", scope());
+    addState->getVlans()->getNodeIf(VlanID(1))->addPort(PortID(21), false);
     deltaAdd = std::make_shared<StateDelta>(initState, addState);
     deltaRemove = std::make_shared<StateDelta>(addState, initState);
 
     // rename all port name fron portX to eth1/X/1
     initPorts = initState->getPorts();
-    newPorts = std::make_shared<PortMap>();
-    for (const auto& origPort : std::as_const(*initPorts)) {
-      auto newPort = origPort.second->clone();
-      newPort->setName(
-          folly::to<string>("eth1/", origPort.second->getID(), "/1"));
-      newPort->setOperState(true);
-      newPorts->addPort(newPort);
+    newPorts = std::make_shared<MultiSwitchPortMap>();
+    for (const auto& origPortMap : std::as_const(*initPorts)) {
+      for (const auto& origPort : std::as_const(*origPortMap.second)) {
+        auto newPort = origPort.second->clone();
+        newPort->setName(
+            folly::to<string>("eth1/", origPort.second->getID(), "/1"));
+        newPort->setOperState(true);
+        newPorts->addNode(newPort, sw->getScopeResolver()->scope(newPort));
+      }
     }
     auto changedState = initState->clone();
     changedState->resetPorts(newPorts);
@@ -58,19 +64,24 @@ class PortUpdateHandlerTest : public ::testing::Test {
 
   void expectPortCounterExist(
       CounterCache& counters,
-      std::shared_ptr<PortMap> ports) {
-    for (const auto& port : std::as_const(*ports)) {
-      EXPECT_TRUE(counters.checkExist(port.second->getName() + ".up"));
-      EXPECT_EQ(
-          counters.value(port.second->getName() + ".up"), port.second->isUp());
+      std::shared_ptr<MultiSwitchPortMap> ports) {
+    for (const auto& portMap : std::as_const(*ports)) {
+      for (const auto& port : std::as_const(*portMap.second)) {
+        EXPECT_TRUE(counters.checkExist(port.second->getName() + ".up"));
+        EXPECT_EQ(
+            counters.value(port.second->getName() + ".up"),
+            port.second->isUp());
+      }
     }
   }
 
   void expectPortCounterNotExist(
       CounterCache& counters,
-      std::shared_ptr<PortMap> ports) {
-    for (const auto& port : std::as_const(*ports)) {
-      EXPECT_FALSE(counters.checkExist(port.second->getName() + ".up"));
+      std::shared_ptr<MultiSwitchPortMap> ports) {
+    for (const auto& portMap : std::as_const(*ports)) {
+      for (const auto& port : std::as_const(*portMap.second)) {
+        EXPECT_FALSE(counters.checkExist(port.second->getName() + ".up"));
+      }
     }
   }
 
@@ -82,8 +93,8 @@ class PortUpdateHandlerTest : public ::testing::Test {
   std::unique_ptr<HwTestHandle> handle{nullptr};
   std::shared_ptr<SwitchState> initState;
   std::shared_ptr<SwitchState> addState;
-  std::shared_ptr<PortMap> initPorts;
-  std::shared_ptr<PortMap> newPorts;
+  std::shared_ptr<MultiSwitchPortMap> initPorts;
+  std::shared_ptr<MultiSwitchPortMap> newPorts;
   std::shared_ptr<StateDelta> deltaAdd;
   std::shared_ptr<StateDelta> deltaRemove;
   std::shared_ptr<StateDelta> deltaChange;

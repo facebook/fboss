@@ -19,6 +19,7 @@
 
 namespace facebook::fboss {
 class PortMap;
+class MultiSwitchPortMap;
 class HwSwitchEnsemble;
 } // namespace facebook::fboss
 
@@ -44,6 +45,8 @@ auto constexpr kDefaultVlanId = 4094;
 auto constexpr kDownlinkBaseVlanId = 2000;
 auto constexpr kUplinkBaseVlanId = 4000;
 
+const std::map<cfg::PortType, cfg::PortLoopbackMode>& kDefaultLoopbackMap();
+
 folly::MacAddress kLocalCpuMac();
 
 std::vector<std::string> getLoopbackIps(SwitchID switchId);
@@ -53,21 +56,25 @@ cfg::DsfNode dsfNodeConfig(const HwAsic& myAsic, int64_t otherSwitchId = 4);
 cfg::SwitchConfig oneL3IntfConfig(
     const HwSwitch* hwSwitch,
     PortID port,
-    cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
+        kDefaultLoopbackMap(),
     int baseVlanId = kBaseVlanId);
 cfg::SwitchConfig oneL3IntfNoIPAddrConfig(
     const HwSwitch* hwSwitch,
     PortID port,
-    cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE);
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
+        kDefaultLoopbackMap());
 cfg::SwitchConfig oneL3IntfTwoPortConfig(
     const HwSwitch* hwSwitch,
     PortID port1,
     PortID port2,
-    cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE);
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
+        kDefaultLoopbackMap());
 cfg::SwitchConfig oneL3IntfNPortConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,
-    cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
+        kDefaultLoopbackMap(),
     bool interfaceHasSubnet = true,
     int baseVlanId = kBaseVlanId,
     bool optimizePortProfile = true,
@@ -75,7 +82,8 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
 cfg::SwitchConfig onePortPerInterfaceConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,
-    cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
+        kDefaultLoopbackMap(),
     bool interfaceHasSubnet = true,
     bool setInterfaceMac = true,
     int baseVlanId = kBaseVlanId,
@@ -83,7 +91,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
 cfg::SwitchConfig multiplePortsPerIntfConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,
-    cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
+        kDefaultLoopbackMap(),
     bool interfaceHasSubnet = true,
     bool setInterfaceMac = true,
     const int baseVlanId = kBaseVlanId,
@@ -94,7 +103,8 @@ cfg::SwitchConfig twoL3IntfConfig(
     const HwSwitch* hwSwitch,
     PortID port1,
     PortID port2,
-    cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE);
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
+        kDefaultLoopbackMap());
 void updatePortSpeed(
     const HwSwitch& hwSwitch,
     cfg::SwitchConfig& cfg,
@@ -138,7 +148,8 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
     uint16_t uplinksCount,
     cfg::PortSpeed uplinkPortSpeed,
     cfg::PortSpeed downlinkPortSpeed,
-    cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
+        kDefaultLoopbackMap(),
     bool interfaceHasSubnet = true);
 
 cfg::SwitchConfig createRtswUplinkDownlinkConfig(
@@ -146,7 +157,7 @@ cfg::SwitchConfig createRtswUplinkDownlinkConfig(
     HwSwitchEnsemble* ensemble,
     const std::vector<PortID>& masterLogicalPortIds,
     cfg::PortSpeed portSpeed,
-    cfg::PortLoopbackMode lbMode,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
     std::vector<PortID>& uplinks,
     std::vector<PortID>& downlinks);
 
@@ -166,7 +177,7 @@ cfg::SwitchConfig createRtswUplinkDownlinkConfig(
 std::unordered_map<PortID, cfg::PortProfileID>& getPortToDefaultProfileIDMap();
 
 void setPortToDefaultProfileIDMap(
-    const std::shared_ptr<PortMap>& ports,
+    const std::shared_ptr<MultiSwitchPortMap>& ports,
     const Platform* platform);
 
 std::map<int, std::vector<uint8_t>> getOlympicQosMaps(

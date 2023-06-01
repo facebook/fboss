@@ -30,8 +30,10 @@ SaiLassenPlatform::SaiLassenPlatform(
 void SaiLassenPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    std::optional<cfg::Range64> systemPortRange) {
-  asic_ = std::make_unique<EbroAsic>(switchType, switchId, systemPortRange);
+    std::optional<cfg::Range64> systemPortRange,
+    folly::MacAddress& mac) {
+  asic_ =
+      std::make_unique<EbroAsic>(switchType, switchId, systemPortRange, mac);
 #if defined(TAJO_SDK_VERSION_1_62_0)
   asic_->setDefaultStreamType(cfg::StreamType::UNICAST);
 #endif

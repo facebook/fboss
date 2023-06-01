@@ -80,7 +80,7 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
     return utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode(),
+        getAsic()->desiredLoopbackModes(),
         true);
   }
 
@@ -158,16 +158,15 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
   }
 
   void mirrorPort(const std::string& mirrorName) {
-    auto ports = this->getProgrammedState()->getPorts()->clone();
-    auto port = ports->getPort(trafficPort_)->clone();
+    auto state = this->getProgrammedState()->clone();
+    auto ports = this->getProgrammedState()->getPorts()->modify(&state);
+    auto port = ports->getNodeIf(trafficPort_)->clone();
     port->setIngressMirror(mirrorName);
     if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::EGRESS_MIRRORING)) {
       port->setEgressMirror(mirrorName);
     }
-    ports->updateNode(port);
-    auto state = this->getProgrammedState()->clone();
-    state->resetPorts(ports);
+    ports->updateNode(port, scopeResolver().scope(port));
     this->applyNewState(state);
   }
 
@@ -221,7 +220,7 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
 
     auto state = this->getProgrammedState()->clone();
     auto acls = state->getAcls()->modify(&state);
-    acls->addNode(acl);
+    acls->addNode(acl, scopeResolver().scope(acl));
     this->applyNewState(state);
   }
 

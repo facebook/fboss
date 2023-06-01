@@ -160,59 +160,32 @@ std::vector<TransceiverID> getTransceiverIds(
   return transceivers;
 }
 
-PortStatus getPortStatus(PortID portId, const HwQsfpEnsemble* ensemble) {
-  auto transceiverId = getTranscieverIdx(portId, ensemble);
-  EXPECT_TRUE(transceiverId);
-  auto config = *ensemble->getWedgeManager()->getAgentConfig()->thrift.sw();
-  std::optional<cfg::Port> portCfg;
-  for (auto& port : *config.ports()) {
-    if (*port.logicalID() == static_cast<uint16_t>(portId)) {
-      portCfg = port;
-      break;
-    }
-  }
-  CHECK(portCfg);
-  PortStatus status;
-  status.enabled() = *portCfg->state() == cfg::PortState::ENABLED;
-  TransceiverIdxThrift idx;
-  idx.transceiverId() = *transceiverId;
-  status.transceiverIdx() = idx;
-  // Mark port down to force transceiver programming
-  status.up() = false;
-  status.speedMbps() = static_cast<int64_t>(*portCfg->speed());
-  return status;
-}
-
-IphyAndXphyPorts findAvailablePorts(
+// This only returns cabled ports
+IphyAndXphyPorts findAvailableCabledPorts(
     HwQsfpEnsemble* hwQsfpEnsemble,
-    std::optional<cfg::PortProfileID> profile,
-    bool onlyCabled) {
+    std::optional<cfg::PortProfileID> profile) {
   std::set<PortID> xPhyPorts;
   const auto& platformPorts =
       hwQsfpEnsemble->getPlatformMapping()->getPlatformPorts();
   const auto& chips = hwQsfpEnsemble->getPlatformMapping()->getChips();
   IphyAndXphyPorts ports;
-  auto agentConfig = hwQsfpEnsemble->getWedgeManager()->getAgentConfig();
-  auto cabledPorts = getCabledPorts(*agentConfig);
-  auto& swConfig = *agentConfig->thrift.sw();
-  auto isPortCabled = [&cabledPorts](PortID port) -> bool {
-    return cabledPorts.find(port) != cabledPorts.end();
-  };
-  for (auto& port : *swConfig.ports()) {
-    if (onlyCabled && !isPortCabled(PortID(*port.logicalID()))) {
+  auto cabledPorts = getCabledPortsAndProfiles(hwQsfpEnsemble);
+  for (auto& platformPort : platformPorts) {
+    auto cabled = cabledPorts.find(PortID(platformPort.first));
+    // If not a cabled port, don't include this port
+    if (cabled == cabledPorts.end()) {
       continue;
     }
-    if (*port.state() != cfg::PortState::ENABLED) {
-      continue;
-    }
-    if (profile && *port.profileID() != *profile) {
+    // If profile is passed in, check if it matches the cabled port
+    if (profile.has_value() && cabled->second != profile.value()) {
       continue;
     }
 
+    cfg::PortProfileID profileToUse = cabled->second;
     auto portIDAndProfile =
-        std::make_pair(*port.logicalID(), *port.profileID());
+        std::make_pair(PortID(platformPort.first), profileToUse);
     const auto& xphy = utility::getDataPlanePhyChips(
-        platformPorts.find(*port.logicalID())->second,
+        platformPorts.find(platformPort.first)->second,
         chips,
         phy::DataPlanePhyChipType::XPHY);
     if (!xphy.empty()) {
@@ -224,24 +197,56 @@ IphyAndXphyPorts findAvailablePorts(
   return ports;
 }
 
-std::set<PortID> getCabledPorts(const AgentConfig& config) {
-  std::set<PortID> cabledPorts;
-  auto& swConfig = *config.thrift.sw();
-  for (auto& port : *swConfig.ports()) {
-    if (!(*port.expectedLLDPValues()).empty()) {
-      cabledPorts.insert(PortID(*port.logicalID()));
-    }
+std::map<PortID, cfg::PortProfileID> getCabledPortsAndProfiles(
+    const HwQsfpEnsemble* ensemble) {
+  std::map<PortID, cfg::PortProfileID> cabledPorts;
+  auto wedgeManager = ensemble->getWedgeManager();
+  auto qsfpTestConfig = wedgeManager->getQsfpConfig()->thrift.qsfpTestConfig();
+  CHECK(qsfpTestConfig.has_value());
+  for (const auto& cabledPairs : *qsfpTestConfig->cabledPortPairs()) {
+    auto& aPortName = *cabledPairs.aPortName();
+    auto& zPortName = *cabledPairs.zPortName();
+    auto aPortId = wedgeManager->getPortIDByPortName(aPortName);
+    auto zPortId = wedgeManager->getPortIDByPortName(zPortName);
+    CHECK(aPortId.has_value());
+    CHECK(zPortId.has_value());
+    cabledPorts[*aPortId] = *cabledPairs.profileID();
+    cabledPorts[*zPortId] = *cabledPairs.profileID();
   }
   return cabledPorts;
 }
 
+std::set<PortID> getCabledPorts(const HwQsfpEnsemble* ensemble) {
+  std::set<PortID> cabledPorts;
+  auto portsAndProfiles = getCabledPortsAndProfiles(ensemble);
+  std::transform(
+      portsAndProfiles.begin(),
+      portsAndProfiles.end(),
+      std::inserter(cabledPorts, cabledPorts.end()),
+      [](auto pair) { return pair.first; });
+  return cabledPorts;
+}
+
+std::vector<std::pair<std::string, std::string>> getCabledPairs(
+    const HwQsfpEnsemble* ensemble) {
+  std::vector<std::pair<std::string, std::string>> cabledPairs;
+  auto wedgeManager = ensemble->getWedgeManager();
+  auto qsfpTestConfig = wedgeManager->getQsfpConfig()->thrift.qsfpTestConfig();
+  CHECK(qsfpTestConfig.has_value());
+  for (const auto& cabledTestPairs : *qsfpTestConfig->cabledPortPairs()) {
+    auto& aPortName = *cabledTestPairs.aPortName();
+    auto& zPortName = *cabledTestPairs.zPortName();
+    cabledPairs.push_back({aPortName, zPortName});
+  }
+  return cabledPairs;
+}
+
 std::vector<TransceiverID> getCabledPortTranceivers(
-    const AgentConfig& config,
     const HwQsfpEnsemble* ensemble) {
   std::unordered_set<TransceiverID> transceivers;
   // There could be multiple ports in a single transceiver. Therefore use a set
   // to get unique cabled transceivers
-  for (auto port : getCabledPorts(config)) {
+  for (auto port : getCabledPorts(ensemble)) {
     transceivers.insert(*getTranscieverIdx(port, ensemble));
   }
   return std::vector<TransceiverID>(transceivers.begin(), transceivers.end());

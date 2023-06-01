@@ -394,8 +394,14 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     set<switch_state_tags::pfc>(pfc.value());
   }
 
-  PfcPriorityList getPfcPriorities() const {
-    return safe_cref<switch_state_tags::pfcPriorities>();
+  std::vector<PfcPriority> getPfcPriorities() const {
+    std::vector<PfcPriority> pfcPriorities{};
+    if (safe_cref<switch_state_tags::pfcPriorities>()) {
+      for (auto pri : *safe_cref<switch_state_tags::pfcPriorities>()) {
+        pfcPriorities.emplace_back(static_cast<PfcPriority>(pri->cref()));
+      }
+    }
+    return pfcPriorities;
   }
   void setPfcPriorities(std::optional<std::vector<int16_t>>& pri) {
     if (!pri) {

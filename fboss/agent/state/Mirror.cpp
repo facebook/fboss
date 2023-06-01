@@ -14,54 +14,6 @@
 
 namespace facebook::fboss {
 
-namespace {
-constexpr auto kSrcIp = "srcIp";
-constexpr auto kDstIp = "dstIp";
-constexpr auto kSrcMac = "srcMac";
-constexpr auto kDstMac = "dstMac";
-constexpr auto kName = "name";
-constexpr auto kEgressPort = "egressPort";
-constexpr auto kDestinationIp = "destinationIp";
-constexpr auto kTunnel = "tunnel";
-constexpr auto kConfigHasEgressPort = "configHasEgressPort";
-constexpr auto kIsResolved = "isResolved";
-constexpr auto kDscp = "dscp";
-constexpr auto kUdpSrcPort = "udpSrcPort";
-constexpr auto kUdpDstPort = "udpDstPort";
-constexpr auto kTruncate = "truncate";
-constexpr auto kTtl = "ttl";
-} // namespace
-
-folly::dynamic MirrorTunnel::toFollyDynamic() const {
-  folly::dynamic tunnel = folly::dynamic::object;
-  tunnel[kSrcIp] = srcIp.str();
-  tunnel[kDstIp] = dstIp.str();
-  tunnel[kSrcMac] = srcMac.toString();
-  tunnel[kDstMac] = dstMac.toString();
-  if (udpPorts.has_value()) {
-    tunnel[kUdpSrcPort] = udpPorts.value().udpSrcPort;
-    tunnel[kUdpDstPort] = udpPorts.value().udpDstPort;
-  }
-  tunnel[kTtl] = ttl;
-  return tunnel;
-}
-
-MirrorTunnel MirrorTunnel::fromFollyDynamic(const folly::dynamic& json) {
-  auto tunnel = MirrorTunnel(
-      folly::IPAddress(json[kSrcIp].asString()),
-      folly::IPAddress(json[kDstIp].asString()),
-      folly::MacAddress(json[kSrcMac].asString()),
-      folly::MacAddress(json[kDstMac].asString()));
-
-  if (json.find(kUdpSrcPort) != json.items().end()) {
-    tunnel.udpPorts =
-        TunnelUdpPorts(json[kUdpSrcPort].asInt(), json[kUdpDstPort].asInt());
-    tunnel.greProtocol = 0;
-  }
-  tunnel.ttl = json.getDefault(kTtl, MirrorTunnel::kTTL).asInt();
-  return tunnel;
-}
-
 Mirror::Mirror(
     std::string name,
     std::optional<PortID> egressPort,

@@ -65,7 +65,8 @@ class MockPlatform : public Platform {
   void setupAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
-      std::optional<cfg::Range64> systemPortRange) override;
+      std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac) override;
   void createTmpDir();
   void cleanupTmpDir();
 

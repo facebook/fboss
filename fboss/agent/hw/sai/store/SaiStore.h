@@ -50,7 +50,10 @@ struct AdapterHostKeyWarmbootRecoverable<SaiAclTableTraits> : std::false_type {
 #if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
     defined(SAI_VERSION_8_2_0_0_DNX_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
     defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
-    defined(SAI_VERSION_9_0_EA_SIM_ODP) || defined(SAI_VERSION_9_0_EA_DNX_ODP)
+    defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP) ||                                 \
+    defined(SAI_VERSION_9_0_EA_SIM_ODP) ||                                     \
+    defined(SAI_VERSION_9_0_EA_DNX_ODP) ||                                     \
+    defined(SAI_VERSION_10_0_EA_DNX_ODP)
 
 template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiWredTraits> : std::false_type {};
@@ -100,6 +103,7 @@ class SaiObjectStore {
       bool addToWarmbootHandles = false) {
     auto object = reloadObject(adapterKey, addToWarmbootHandles);
     object->setOwnedByAdapter(true);
+    XLOGF(DBG5, "SaiStore reload by adapter {}", *object.get());
     return object;
   }
 
@@ -439,7 +443,8 @@ class SaiObjectStore {
         }
 #if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
     defined(SAI_VERSION_8_2_0_0_DNX_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
-    defined(SAI_VERSION_9_0_EA_DNX_ODP)
+    defined(SAI_VERSION_9_0_EA_DNX_ODP) ||                                     \
+    defined(SAI_VERSION_10_0_EA_DNX_ODP)
         if constexpr (std::is_same_v<ObjectTraits, SaiWredTraits>) {
           // Allow warm boot from version which doesn't save ahk
           // TODO(zecheng): Remove after device warmbooted to 8.2
@@ -644,14 +649,14 @@ namespace fmt {
 template <typename SaiObjectTraits>
 struct formatter<facebook::fboss::SaiObjectStore<SaiObjectTraits>> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
   auto format(
       const facebook::fboss::SaiObjectStore<SaiObjectTraits>& store,
-      FormatContext& ctx) {
+      FormatContext& ctx) const {
     std::stringstream ss;
     ss << "Object type: "
        << facebook::fboss::saiObjectTypeToString(SaiObjectTraits::ObjectType)

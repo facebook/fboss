@@ -29,7 +29,7 @@ class HwLoadBalancerTestV6RoCE
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     cfg::UdfConfig udfCfg = utility::addUdfConfig();
     cfg.udfConfig() = udfCfg;
     return cfg;
@@ -49,7 +49,7 @@ class HwLoadBalancerNegativeTestV6RoCE
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     cfg::UdfConfig udfCfg;
     cfg.udfConfig() = udfCfg;
     return cfg;
@@ -72,7 +72,7 @@ class HwLoadBalancerNegativeProtocolMatchTestV6RoCE
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     cfg::UdfConfig udfCfg = utility::addUdfConfig();
     cfg.udfConfig() = udfCfg;
     return cfg;

@@ -263,4 +263,8 @@ inline folly::StringPiece constexpr kOutMacsecTooLongDroppedPkts() {
 inline folly::StringPiece constexpr kOutMacsecCurrentXpn() {
   return "out_macsec_sa_current_xpn";
 }
+
+inline folly::StringPiece constexpr kInCongestionDiscards() {
+  return "in_congestion_discards";
+}
 } // namespace facebook::fboss

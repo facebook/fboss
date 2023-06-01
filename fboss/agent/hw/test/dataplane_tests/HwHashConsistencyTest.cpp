@@ -71,7 +71,7 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
     return utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
   }
 
   void resolveNhops(const std::vector<PortID>& ports) {
@@ -209,8 +209,8 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
     for (auto& hash : hashes) {
       setLoadBalancerSeed(hash);
     }
-    applyNewState(
-        utility::addLoadBalancers(getPlatform(), getProgrammedState(), hashes));
+    applyNewState(utility::addLoadBalancers(
+        getPlatform(), getProgrammedState(), hashes, scopeResolver()));
     programRoute();
   }
 

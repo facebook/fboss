@@ -42,7 +42,7 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     return cfg;
   }
   void packetReceived(RxPacket* pkt) noexcept override {
@@ -123,7 +123,7 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
               ecmpPorts.begin(), ecmpPorts.begin() + kEcmpWidth / 2});
       // Set first hash
       applyNewState(utility::addLoadBalancers(
-          getPlatform(), getProgrammedState(), firstHashes));
+          getPlatform(), getProgrammedState(), firstHashes, scopeResolver()));
 
       for (auto isV6 : {true, false}) {
         utility::pumpTraffic(
@@ -153,7 +153,7 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
 
     // Set second hash
     applyNewState(utility::addLoadBalancers(
-        getPlatform(), getProgrammedState(), secondHashes));
+        getPlatform(), getProgrammedState(), secondHashes, scopeResolver()));
     auto makeTxPacket = [=](folly::MacAddress srcMac, const auto& ipPayload) {
       return utility::makeUDPTxPacket(
           getHwSwitch(),
@@ -484,6 +484,34 @@ TEST_F(HwHashPolarizationTestSAITH4, With_TH4) {
   runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK4, false);
 }
 
+struct HwHashPolarizationTestSAITH5
+    : HwHashPolarizationTestForAsic<cfg::AsicType::ASIC_TYPE_TOMAHAWK5, true> {
+};
+
+TEST_F(HwHashPolarizationTestSAITH5, With_TH) {
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK, false);
+}
+
+TEST_F(HwHashPolarizationTestSAITH5, With_SAI_TH) {
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK, true);
+}
+
+TEST_F(HwHashPolarizationTestSAITH5, With_SAI_TD2) {
+  runTest(cfg::AsicType::ASIC_TYPE_TRIDENT2, true);
+}
+
+TEST_F(HwHashPolarizationTestSAITH5, With_TD2) {
+  runTest(cfg::AsicType::ASIC_TYPE_TRIDENT2, false);
+}
+
+TEST_F(HwHashPolarizationTestSAITH5, With_TH3) {
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK3, false);
+}
+
+TEST_F(HwHashPolarizationTestSAITH5, With_TH4) {
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK4, false);
+}
+
 template <int kNumAggregatePorts, int kAggregatePortWidth>
 class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
  private:
@@ -491,7 +519,7 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     return cfg;
   }
 
@@ -571,7 +599,7 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
           getHwSwitch(), std::set<PortID>{ports.begin(), ports.end()});
       // Set first hash
       applyNewState(utility::addLoadBalancers(
-          getPlatform(), getProgrammedState(), hashes));
+          getPlatform(), getProgrammedState(), hashes, scopeResolver()));
 
       auto logicalPorts = masterLogicalPortIds();
       auto portIter = logicalPorts.end() - 1;
@@ -599,7 +627,7 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
 
     // Set second hash
     applyNewState(utility::addLoadBalancers(
-        getPlatform(), getProgrammedState(), secondHashes));
+        getPlatform(), getProgrammedState(), secondHashes, scopeResolver()));
     auto makeTxPacket = [=](folly::MacAddress srcMac, const auto& ipPayload) {
       return utility::makeUDPTxPacket(
           getHwSwitch(),

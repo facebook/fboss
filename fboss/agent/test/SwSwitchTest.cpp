@@ -40,6 +40,12 @@ using ::testing::ByRef;
 using ::testing::Eq;
 using ::testing::Return;
 
+namespace {
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+} // namespace
+
 class SwSwitchTest : public ::testing::Test {
  public:
   void SetUp() override {
@@ -113,8 +119,8 @@ TEST_F(SwSwitchTest, TestStateNonCoalescing) {
       }
       return reachableCnt;
     };
-    auto arpTable = sw->getState()->getVlans()->getVlan(kVlan1)->getArpTable();
-    auto ndpTable = sw->getState()->getVlans()->getVlan(kVlan1)->getNdpTable();
+    auto arpTable = sw->getState()->getVlans()->getNode(kVlan1)->getArpTable();
+    auto ndpTable = sw->getState()->getVlans()->getNode(kVlan1)->getNdpTable();
     auto reachableCnt =
         getReachableCount(arpTable) + getReachableCount(ndpTable);
     EXPECT_EQ(expectedReachableNbrCnt, reachableCnt);
@@ -170,11 +176,11 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
   stateV0->publish();
 
   auto stateV1 = stateV0->clone();
-  auto aclMap1 = stateV1->getAcls()->modify(&stateV1);
+  auto acls = stateV1->getAcls()->modify(&stateV1);
 
   auto aclEntry0 = std::make_shared<AclEntry>(0, std::string("acl0"));
   aclEntry0->setDscp(0x24);
-  aclMap1->addNode(aclEntry0);
+  acls->addNode(aclEntry0, scope());
 
   stateV1->publish();
 
@@ -182,10 +188,10 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
 
   // ACL without any qualifier should fail validation
   auto stateV2 = stateV0->clone();
-  auto aclMap2 = stateV2->getAcls()->modify(&stateV2);
+  auto acls2 = stateV2->getAcls()->modify(&stateV2);
 
   auto aclEntry1 = std::make_shared<AclEntry>(0, std::string("acl1"));
-  aclMap2->addNode(aclEntry1);
+  acls2->addNode(aclEntry1, scope());
 
   stateV2->publish();
 
@@ -209,7 +215,7 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
   portQueue0->resetAqms({aqm0});
   std::vector<std::shared_ptr<PortQueue>> portQueues = {portQueue0};
   port0->resetPortQueues(portQueues);
-  portMap0->addPort(port0);
+  portMap0->addNode(port0, scope());
 
   stateV3->publish();
 
@@ -233,7 +239,7 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
   portQueue1->resetAqms({aqm1});
   portQueues = {portQueue1};
   port1->resetPortQueues(portQueues);
-  portMap1->addPort(port1);
+  portMap1->addNode(port1, scope());
 
   stateV4->publish();
 
@@ -264,16 +270,15 @@ TEST_F(SwSwitchTest, overlappingUpdatesWithExit) {
   });
   std::thread blockingUpdates([this, &done] {
     while (!done) {
-      auto updateOperStateFn =
-          [this](const std::shared_ptr<SwitchState>& state) {
-            const PortID kPort2{2};
-            std::shared_ptr<SwitchState> newState(state);
-            auto* port = newState->getPorts()->getPortIf(kPort2).get();
-            port = port->modify(&newState);
-            // Transition up<->down
-            port->setOperState(!port->isUp());
-            return newState;
-          };
+      auto updateOperStateFn = [](const std::shared_ptr<SwitchState>& state) {
+        const PortID kPort2{2};
+        std::shared_ptr<SwitchState> newState(state);
+        auto* port = newState->getPorts()->getNodeIf(kPort2).get();
+        port = port->modify(&newState);
+        // Transition up<->down
+        port->setOperState(!port->isUp());
+        return newState;
+      };
       sw->updateStateBlocking("Flap port 2", updateOperStateFn);
     }
   });

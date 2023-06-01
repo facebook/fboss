@@ -37,8 +37,9 @@ TEST(SystemPort, SerDeserSwitchState) {
   auto sysPort1 = makeSysPort("olympic", 1);
   auto sysPort2 = makeSysPort("olympic", 2);
 
-  state->addSystemPort(sysPort1);
-  state->addSystemPort(sysPort2);
+  HwSwitchMatcher scope{std::unordered_set<SwitchID>{SwitchID(0)}};
+  state->getSystemPorts()->addNode(sysPort1, scope);
+  state->getSystemPorts()->addNode(sysPort2, scope);
 
   auto serialized = state->toThrift();
   auto stateBack = SwitchState::fromThrift(serialized);
@@ -46,8 +47,8 @@ TEST(SystemPort, SerDeserSwitchState) {
   // Check all systemPorts should be there
   for (auto sysPortID : {SystemPortID(1), SystemPortID(2)}) {
     EXPECT_TRUE(
-        *state->getSystemPorts()->getSystemPort(sysPortID) ==
-        *stateBack->getSystemPorts()->getSystemPort(sysPortID));
+        *state->getSystemPorts()->getNodeIf(sysPortID) ==
+        *stateBack->getSystemPorts()->getNodeIf(sysPortID));
   }
 }
 
@@ -57,11 +58,24 @@ TEST(SystemPort, AddRemove) {
   auto sysPort1 = makeSysPort("olympic", 1);
   auto sysPort2 = makeSysPort("olympic", 2);
 
-  state->addSystemPort(sysPort1);
-  state->addSystemPort(sysPort2);
-  state->getSystemPorts()->removeSystemPort(SystemPortID(1));
-  EXPECT_EQ(state->getSystemPorts()->getSystemPortIf(SystemPortID(1)), nullptr);
-  EXPECT_NE(state->getSystemPorts()->getSystemPortIf(SystemPortID(2)), nullptr);
+  HwSwitchMatcher scope{std::unordered_set<SwitchID>{SwitchID(0)}};
+  state->getSystemPorts()->addNode(sysPort1, scope);
+  state->getSystemPorts()->addNode(sysPort2, scope);
+  state->getSystemPorts()->removeNode(SystemPortID(1));
+  EXPECT_EQ(state->getSystemPorts()->getNodeIf(SystemPortID(1)), nullptr);
+  EXPECT_NE(state->getSystemPorts()->getNodeIf(SystemPortID(2)), nullptr);
+}
+
+TEST(SystemPort, GetScope) {
+  auto state = std::make_shared<SwitchState>();
+
+  auto sysPort1 = makeSysPort("olympic", 1);
+
+  HwSwitchMatcher scope{std::unordered_set<SwitchID>{SwitchID(0)}};
+  state->getSystemPorts()->addNode(sysPort1, scope);
+  EXPECT_EQ(
+      state->getSystemPorts()->getNodeAndScope(sysPort1->getID()).second,
+      scope);
 }
 
 TEST(SystemPort, Modify) {
@@ -90,7 +104,8 @@ TEST(SystemPort, sysPortApplyConfig) {
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
-  EXPECT_EQ(stateV1->getSystemPorts()->size(), stateV1->getPorts()->size());
+  EXPECT_EQ(
+      stateV1->getSystemPorts()->numNodes(), stateV1->getPorts()->numNodes());
   // Flip one port to fabric port type and see that sys ports are updated
   config.ports()->begin()->portType() = cfg::PortType::FABRIC_PORT;
   // Prune the interface corresponding to now changed port type
@@ -108,7 +123,9 @@ TEST(SystemPort, sysPortApplyConfig) {
 
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   ASSERT_NE(nullptr, stateV2);
-  EXPECT_EQ(stateV2->getSystemPorts()->size(), stateV2->getPorts()->size() - 1);
+  EXPECT_EQ(
+      stateV2->getSystemPorts()->numNodes(),
+      stateV2->getPorts()->numNodes() - 1);
 }
 
 TEST(SystemPort, sysPortNameApplyConfig) {
@@ -117,13 +134,17 @@ TEST(SystemPort, sysPortNameApplyConfig) {
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
-  EXPECT_EQ(stateV1->getSystemPorts()->size(), stateV1->getPorts()->size());
+  EXPECT_EQ(
+      stateV1->getSystemPorts()->numNodes(), stateV1->getPorts()->numNodes());
   auto nodeName = *config.dsfNodes()->find(SwitchID(1))->second.name();
-  for (auto port : std::as_const(*stateV1->getPorts())) {
-    auto sysPortName =
-        folly::sformat("{}:{}", nodeName, port.second->getName());
-    XLOG(DBG2) << " Looking for sys port : " << sysPortName;
-    EXPECT_NE(nullptr, stateV1->getSystemPorts()->getSystemPortIf(sysPortName));
+  for (auto portMap : std::as_const(*stateV1->getPorts())) {
+    for (auto port : std::as_const(*portMap.second)) {
+      auto sysPortName =
+          folly::sformat("{}:{}", nodeName, port.second->getName());
+      XLOG(DBG2) << " Looking for sys port : " << sysPortName;
+      EXPECT_NE(
+          nullptr, stateV1->getSystemPorts()->getSystemPortIf(sysPortName));
+    }
   }
 }
 TEST(SystemPort, GetLocalSwitchPortsBySwitchId) {
@@ -134,7 +155,7 @@ TEST(SystemPort, GetLocalSwitchPortsBySwitchId) {
   ASSERT_NE(nullptr, stateV1);
   auto localSwitchId = 1;
   auto mySysPorts = stateV1->getSystemPorts(SwitchID(localSwitchId));
-  EXPECT_EQ(mySysPorts->size(), stateV1->getSystemPorts()->size());
+  EXPECT_EQ(mySysPorts->size(), stateV1->getSystemPorts()->numNodes());
   // No remote sys ports
   EXPECT_EQ(stateV1->getSystemPorts(SwitchID(localSwitchId + 1))->size(), 0);
 }
@@ -145,11 +166,12 @@ TEST(SystemPort, GetRemoteSwitchPortsBySwitchId) {
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   int64_t remoteSwitchId = 100;
+  HwSwitchMatcher scope{std::unordered_set<SwitchID>{SwitchID(1)}};
   auto sysPort1 = makeSysPort("olympic", 1, remoteSwitchId);
   auto sysPort2 = makeSysPort("olympic", 2, remoteSwitchId);
   auto stateV2 = stateV1->clone();
   auto remoteSysPorts = stateV2->getRemoteSystemPorts()->modify(&stateV2);
-  remoteSysPorts->addSystemPort(sysPort1);
-  remoteSysPorts->addSystemPort(sysPort2);
+  remoteSysPorts->addNode(sysPort1, scope);
+  remoteSysPorts->addNode(sysPort2, scope);
   EXPECT_EQ(stateV2->getSystemPorts(SwitchID(remoteSwitchId))->size(), 2);
 }

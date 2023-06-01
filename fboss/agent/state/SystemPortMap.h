@@ -44,19 +44,10 @@ class SystemPortMap : public ThriftMapNode<SystemPortMap, SystemPortMapTraits> {
   SystemPortMap();
   ~SystemPortMap() override;
 
-  const std::shared_ptr<SystemPort> getSystemPort(SystemPortID id) const {
-    return getNode(id);
-  }
-  std::shared_ptr<SystemPort> getSystemPortIf(SystemPortID id) const {
-    return getNodeIf(id);
-  }
   std::shared_ptr<SystemPort> getSystemPort(const std::string& name) const;
   std::shared_ptr<SystemPort> getSystemPortIf(const std::string& name) const;
 
   void addSystemPort(const std::shared_ptr<SystemPort>& systemPort);
-  void updateSystemPort(const std::shared_ptr<SystemPort>& systemPort);
-  void removeSystemPort(SystemPortID id);
-  SystemPortMap* modify(std::shared_ptr<SwitchState>* state);
 
  private:
   // Inherit the constructors required for clone()
@@ -65,32 +56,37 @@ class SystemPortMap : public ThriftMapNode<SystemPortMap, SystemPortMapTraits> {
   bool isRemote_;
 };
 
-using MultiSystemPortMapTypeClass = apache::thrift::type_class::
+using MultiSwitchSystemPortMapTypeClass = apache::thrift::type_class::
     map<apache::thrift::type_class::string, SystemPortMapTypeClass>;
-using MultiSystemPortMapThriftType =
+using MultiSwitchSystemPortMapThriftType =
     std::map<std::string, SystemPortMapThriftType>;
 
-class MultiSystemPortMap;
+class MultiSwitchSystemPortMap;
 
-using MultiSystemPortMapTraits = ThriftMultiSwitchMapNodeTraits<
-    MultiSystemPortMap,
-    MultiSystemPortMapTypeClass,
-    MultiSystemPortMapThriftType,
+using MultiSwitchSystemPortMapTraits = ThriftMultiSwitchMapNodeTraits<
+    MultiSwitchSystemPortMap,
+    MultiSwitchSystemPortMapTypeClass,
+    MultiSwitchSystemPortMapThriftType,
     SystemPortMap>;
 
 class HwSwitchMatcher;
 
-class MultiSystemPortMap : public ThriftMultiSwitchMapNode<
-                               MultiSystemPortMap,
-                               MultiSystemPortMapTraits> {
+class MultiSwitchSystemPortMap : public ThriftMultiSwitchMapNode<
+                                     MultiSwitchSystemPortMap,
+                                     MultiSwitchSystemPortMapTraits> {
  public:
-  using Traits = MultiSystemPortMapTraits;
-  using BaseT =
-      ThriftMultiSwitchMapNode<MultiSystemPortMap, MultiSystemPortMapTraits>;
+  using Traits = MultiSwitchSystemPortMapTraits;
+  using BaseT = ThriftMultiSwitchMapNode<
+      MultiSwitchSystemPortMap,
+      MultiSwitchSystemPortMapTraits>;
   using BaseT::modify;
 
-  MultiSystemPortMap() {}
-  virtual ~MultiSystemPortMap() {}
+  MultiSwitchSystemPortMap() = default;
+  virtual ~MultiSwitchSystemPortMap() = default;
+
+  std::shared_ptr<SystemPort> getSystemPort(const std::string& name) const;
+  std::shared_ptr<SystemPort> getSystemPortIf(const std::string& name) const;
+  MultiSwitchSystemPortMap* modify(std::shared_ptr<SwitchState>* state);
 
  private:
   // Inherit the constructors required for clone()

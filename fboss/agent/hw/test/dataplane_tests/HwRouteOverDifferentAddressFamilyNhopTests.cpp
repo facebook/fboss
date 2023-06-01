@@ -25,7 +25,7 @@ class HwRouteOverDifferentAddressFamilyNhopTest
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     return cfg;
   }
   folly::IPAddressV6 kIpv6(bool ecmp) const {

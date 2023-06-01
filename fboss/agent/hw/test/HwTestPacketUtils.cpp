@@ -27,10 +27,12 @@
 #include "fboss/agent/packet/TCPHeader.h"
 #include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/TestUtils.h"
 
 using namespace facebook::fboss;
 using folly::MacAddress;
@@ -83,7 +85,7 @@ folly::MacAddress getInterfaceMac(
 folly::MacAddress getInterfaceMac(
     const std::shared_ptr<SwitchState>& state,
     InterfaceID intf) {
-  return state->getInterfaces()->getInterface(intf)->getMac();
+  return state->getInterfaces()->getNode(intf)->getMac();
 }
 
 folly::MacAddress getFirstInterfaceMac(const cfg::SwitchConfig& cfg) {
@@ -98,7 +100,8 @@ folly::MacAddress getFirstInterfaceMac(const cfg::SwitchConfig& cfg) {
 }
 
 folly::MacAddress getFirstInterfaceMac(std::shared_ptr<SwitchState> state) {
-  auto intf = std::as_const(*state->getInterfaces()->cbegin()).second;
+  const auto& intfMap = state->getInterfaces()->cbegin()->second;
+  const auto& intf = std::as_const(*intfMap->cbegin()).second;
   return intf->getMac();
 }
 
@@ -112,8 +115,9 @@ std::optional<VlanID> firstVlanID(const cfg::SwitchConfig& cfg) {
 
 std::optional<VlanID> firstVlanID(const std::shared_ptr<SwitchState>& state) {
   std::optional<VlanID> firstVlanId;
-  if (state->getVlans()->size()) {
-    firstVlanId = (*state->getVlans()->cbegin()).second->getID();
+  if (state->getVlans()->numNodes()) {
+    firstVlanId =
+        util::getFirstMap(state->getVlans())->cbegin()->second->getID();
   }
   return firstVlanId;
 }

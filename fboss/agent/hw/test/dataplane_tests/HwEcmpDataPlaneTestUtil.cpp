@@ -265,14 +265,14 @@ void HwMplsEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
   /* pump MPLS traffic */
   auto* ensemble = BaseT::getEnsemble();
   auto programmedState = ensemble->getProgrammedState();
-  auto firstVlan = programmedState->getVlans()->cbegin()->second;
-  auto mac = utility::getInterfaceMac(programmedState, firstVlan->getID());
+  auto firstVlanID = programmedState->getVlans()->getFirstVlanID();
+  auto mac = utility::getInterfaceMac(programmedState, firstVlanID);
   pumpMplsTraffic(
       std::is_same_v<AddrT, folly::IPAddressV6>,
       ensemble->getHwSwitch(),
       label_.getLabelValue(),
       mac,
-      firstVlan->getID(),
+      firstVlanID,
       port);
 }
 

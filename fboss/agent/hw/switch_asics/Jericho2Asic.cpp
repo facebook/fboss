@@ -77,6 +77,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CPU_TX_VIA_RECYCLE_PORT:
     case HwAsic::Feature::QUEUE_PRIORITY_LOWER_VAL_IS_HIGH_PRI:
     case HwAsic::Feature::SWITCH_DROP_STATS:
+    case HwAsic::Feature::RX_LANE_SQUELCH_ENABLE:
       return true;
 
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
@@ -138,6 +139,8 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::TRAP_PRIORITY_LOWER_VAL_IS_LOWER_PRI:
     case HwAsic::Feature::ROUTE_COUNTERS:
     case HwAsic::Feature::SAI_UDF_HASH:
+    case HwAsic::Feature::INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK:
+    case HwAsic::Feature::SAI_PORT_ETHER_STATS:
       return false;
   }
   return false;
@@ -193,5 +196,14 @@ HwAsic::RecyclePortInfo Jericho2Asic::getRecyclePortInfo() const {
       .corePortIndex = 1,
       .speedMbps = 10000 // 10G
   };
+}
+
+const std::map<cfg::PortType, cfg::PortLoopbackMode>&
+Jericho2Asic::desiredLoopbackModes() const {
+  static const std::map<cfg::PortType, cfg::PortLoopbackMode> kLoopbackMode = {
+      {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC},
+      {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC},
+      {cfg::PortType::RECYCLE_PORT, cfg::PortLoopbackMode::MAC}};
+  return kLoopbackMode;
 }
 } // namespace facebook::fboss

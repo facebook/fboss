@@ -12,6 +12,7 @@
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/NodeMap-defs.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
 
@@ -27,6 +28,23 @@ void LoadBalancerMap::addLoadBalancer(
 void LoadBalancerMap::updateLoadBalancer(
     std::shared_ptr<LoadBalancer> loadBalancer) {
   updateNode(loadBalancer);
+}
+
+MultiSwitchLoadBalancerMap* MultiSwitchLoadBalancerMap::modify(
+    std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  SwitchState::modify(state);
+  auto map = clone();
+  for (auto mnitr = cbegin(); mnitr != cend(); ++mnitr) {
+    (*map)[mnitr->first] = mnitr->second->clone();
+  }
+  auto* ptr = map.get();
+  (*state)->resetLoadBalancers(std::move(map));
+  return ptr;
 }
 
 template class ThriftMapNode<LoadBalancerMap, LoadBalancerMapTraits>;

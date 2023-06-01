@@ -2,7 +2,9 @@
 
 #pragma once
 #include <fboss/lib/phy/gen-cpp2/phy_types.h>
+#include <folly/MacAddress.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/types.h"
 
 namespace facebook::fboss {
 
@@ -12,6 +14,7 @@ class HwAsic {
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
       std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac,
       std::unordered_set<cfg::SwitchType> supportedModes = {
           cfg::SwitchType::NPU});
   enum class Feature {
@@ -139,6 +142,9 @@ class HwAsic {
     SAI_CONFIGURE_SEVEN_TAP,
     SWITCH_DROP_STATS,
     SAI_UDF_HASH,
+    INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK,
+    RX_LANE_SQUELCH_ENABLE,
+    SAI_PORT_ETHER_STATS,
   };
 
   enum class AsicMode {
@@ -159,7 +165,8 @@ class HwAsic {
       cfg::AsicType asicType,
       cfg::SwitchType switchType,
       std::optional<int64_t> switchID,
-      std::optional<cfg::Range64> systemPortRange);
+      std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac);
   virtual bool isSupported(Feature) const = 0;
   virtual cfg::AsicType getAsicType() const = 0;
   std::string getAsicTypeStr() const;
@@ -183,9 +190,8 @@ class HwAsic {
   virtual cfg::MMUScalingFactor getDefaultScalingFactor(
       cfg::StreamType streamType,
       bool cpu) const = 0;
-  virtual cfg::PortLoopbackMode desiredLoopbackMode() const {
-    return cfg::PortLoopbackMode::MAC;
-  }
+  virtual const std::map<cfg::PortType, cfg::PortLoopbackMode>&
+  desiredLoopbackModes() const;
   virtual bool mmuQgroupsEnabled() const {
     return false;
   }
@@ -282,6 +288,11 @@ class HwAsic {
   void setDefaultStreamType(cfg::StreamType streamType) {
     defaultStreamType_ = streamType;
   }
+
+  const folly::MacAddress& getAsicMac() const {
+    return asicMac_;
+  }
+
   struct RecyclePortInfo {
     uint32_t coreId;
     uint32_t corePortIndex;
@@ -289,6 +300,8 @@ class HwAsic {
   };
 
   virtual RecyclePortInfo getRecyclePortInfo() const;
+  cfg::PortLoopbackMode getDesiredLoopbackMode(
+      cfg::PortType portType = cfg::PortType::INTERFACE_PORT) const;
 
  protected:
   static cfg::Range64 makeRange(int64_t min, int64_t max);
@@ -298,6 +311,7 @@ class HwAsic {
   std::optional<int64_t> switchId_;
   std::optional<cfg::Range64> systemPortRange_;
   cfg::StreamType defaultStreamType_{cfg::StreamType::ALL};
+  folly::MacAddress asicMac_;
 };
 
 } // namespace facebook::fboss

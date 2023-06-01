@@ -42,12 +42,16 @@ void ProdInvariantTest::setupAgentTestEcmp(
     ports.insert(ecmpPort);
   });
 
+  // When prod config is used, use uplink's subnet IP with last bit flipped as
+  // the next hop IP.
+  auto forProdConfig =
+      useProdConfig_.has_value() ? useProdConfig_.value() : false;
+  utility::EcmpSetupTargetedPorts6 ecmp6(sw()->getState(), forProdConfig);
+
   sw()->updateStateBlocking("Resolve nhops", [&](auto state) {
-    utility::EcmpSetupTargetedPorts6 ecmp6(state);
     return ecmp6.resolveNextHops(state, ports);
   });
 
-  utility::EcmpSetupTargetedPorts6 ecmp6(sw()->getState());
   ecmp6.programRoutes(
       std::make_unique<SwSwitchRouteUpdateWrapper>(sw()->getRouteUpdater()),
       ports);
@@ -90,6 +94,11 @@ cfg::SwitchConfig ProdInvariantTest::getConfigFromFlag() {
   for (auto& port : *config.ports()) {
     port.loopbackMode() = cfg::PortLoopbackMode::MAC;
   }
+  for (auto& intf : *config.interfaces()) {
+    if (intf.ndp()) {
+      intf.ndp()->routerAdvertisementSeconds() = 0;
+    }
+  }
   return config;
 }
 
@@ -114,19 +123,18 @@ cfg::SwitchConfig ProdInvariantTest::initialConfig() {
 void ProdInvariantTest::setupConfigFlag() {
   cfg::AgentConfig testConfig;
   utility::setPortToDefaultProfileIDMap(
-      std::make_shared<PortMap>(), platform());
-  if (checkBaseConfigPortsEmpty()) {
-    testConfig.sw() = initialConfig();
-    const auto& baseConfig = platform()->config();
-    testConfig.platform() = *baseConfig->thrift.platform();
-    auto newcfg = AgentConfig(
-        testConfig,
-        apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-            testConfig));
-    auto newCfgFile = getTestConfigPath();
-    newcfg.dumpConfig(newCfgFile);
-    FLAGS_config = newCfgFile;
-  }
+      std::make_shared<MultiSwitchPortMap>(), platform());
+  testConfig.sw() = initialConfig();
+  const auto& baseConfig = platform()->config();
+  testConfig.defaultCommandLineArgs() =
+      *baseConfig->thrift.defaultCommandLineArgs();
+  testConfig.platform() = *baseConfig->thrift.platform();
+  auto newCfg = AgentConfig(
+      testConfig,
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(testConfig));
+  auto newCfgFile = getTestConfigPath();
+  newCfg.dumpConfig(newCfgFile);
+  FLAGS_config = newCfgFile;
   // reload config so that test config is loaded
   platform()->reloadConfig();
 }
@@ -174,6 +182,21 @@ std::vector<PortID> ProdInvariantTest::getEcmpPortIds() {
   return ecmpPortIds;
 }
 
+void ProdInvariantTest::verifyAcl() {
+  auto isEnabled = utility::verifyAclEnabled(sw()->getHw());
+  EXPECT_TRUE(isEnabled);
+  XLOG(DBG2) << "Verify ACL Done";
+}
+
+void ProdInvariantTest::verifyCopp() {
+  utility::verifyCoppInvariantHelper(
+      sw()->getHw(),
+      sw()->getPlatform()->getAsic(),
+      sw()->getState(),
+      getDownlinkPort());
+  XLOG(DBG2) << "Verify COPP Done";
+}
+
 void ProdInvariantTest::verifyLoadBalancing() {
   auto getPortStatsFn =
       [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
@@ -197,43 +220,77 @@ void ProdInvariantTest::verifyLoadBalancing() {
             25);
       });
   EXPECT_TRUE(loadBalanced);
-  XLOG(DBG2) << "Verify loadbalancing done";
+  XLOG(DBG2) << "Verify Load Balancing Done";
 }
 
-void ProdInvariantTest::verifyAcl() {
-  auto isEnabled = utility::verifyAclEnabled(sw()->getHw());
-  EXPECT_TRUE(isEnabled);
-}
+void ProdInvariantTest::verifyDscpToQueueMapping() {
+  if (!sw()->getPlatform()->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
+    return;
+  }
 
-void ProdInvariantTest::verifyCopp() {
-  utility::verifyCoppInvariantHelper(
-      sw()->getHw(),
-      sw()->getPlatform()->getAsic(),
-      sw()->getState(),
-      getDownlinkPort());
-  XLOG(DBG2) << "Verify COPP done";
-}
+  auto uplinkDownlinkPorts = utility::getAllUplinkDownlinkPorts(
+      platform()->getHwSwitch(), initialConfig(), kEcmpWidth, false);
 
-int ProdInvariantTestMain(
-    int argc,
-    char** argv,
-    PlatformInitFn initPlatformFn) {
-  ::testing::InitGoogleTest(&argc, argv);
-  initAgentTest(argc, argv, initPlatformFn);
-  return RUN_ALL_TESTS();
-}
+  // gather all uplink + downlink ports
+  std::vector<PortID> portIds = uplinkDownlinkPorts.first;
+  for (auto it = uplinkDownlinkPorts.second.begin();
+       it != uplinkDownlinkPorts.second.end();
+       ++it) {
+    portIds.push_back(*it);
+  }
 
-TEST_F(ProdInvariantTest, verifyInvariants) {
-  auto setup = [&]() {};
-  auto verify = [&]() {
-    verifyAcl();
-    // TODO: Uncomment once tests are more stable.
-    // verifyCopp();
-    // verifyLoadBalancing();
-    // verifyDscpToQueueMapping();
-    verifySafeDiagCommands();
+  auto getPortStatsFn = [&]() -> std::map<PortID, HwPortStats> {
+    return getLatestPortStats(portIds);
   };
-  verifyAcrossWarmBoots(setup, verify);
+
+  auto q2dscpMap = utility::getOlympicQosMaps(initialConfig());
+  // To account for switches that take longer to update port stats, bump sleep
+  // time to 100ms.
+  EXPECT_TRUE(utility::verifyQueueMappingsInvariantHelper(
+      q2dscpMap,
+      sw()->getHw(),
+      sw()->getState(),
+      getPortStatsFn,
+      getEcmpPortIds(),
+      100 /* sleep in ms */));
+  XLOG(DBG2) << "Verify DSCP to Queue Mapping Done";
+}
+
+void ProdInvariantTest::verifyQueuePerHostMapping(bool dscpMarkingTest) {
+  auto vlanId = utility::firstVlanID(sw()->getState());
+  auto intfMac = utility::getFirstInterfaceMac(sw()->getState());
+  auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO());
+
+  // if DscpMarkingTest is set, send unmarked packet matching DSCP marking ACL,
+  // but expect queue-per-host to be honored, as the DSCP Marking ACL is listed
+  // AFTER queue-per-host ACL by design.
+  std::optional<uint16_t> l4SrcPort = std::nullopt;
+  std::optional<uint8_t> dscp = std::nullopt;
+  if (dscpMarkingTest) {
+    l4SrcPort = utility::kUdpPorts().front();
+    dscp = 0;
+  }
+  auto getHwPortStatsFn =
+      [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
+    return getLatestPortStats(portIds);
+  };
+
+  utility::verifyQueuePerHostMapping(
+      platform()->getHwSwitch(),
+      sw()->getState(),
+      getEcmpPortIds(),
+      vlanId,
+      srcMac,
+      intfMac,
+      folly::IPAddressV4("1.0.0.1"),
+      folly::IPAddressV4("10.10.1.2"),
+      true /* useFrontPanel */,
+      false /* blockNeighbor */,
+      getHwPortStatsFn,
+      l4SrcPort,
+      std::nullopt, /* l4DstPort */
+      dscp);
+  XLOG(DBG2) << "Verify Queue per Host Mapping Done";
 }
 
 void ProdInvariantTest::verifySafeDiagCommands() {
@@ -274,74 +331,28 @@ void ProdInvariantTest::verifySafeDiagCommands() {
     std::string out;
     platform()->getHwSwitch()->printDiagCmd("quit\n");
   }
+  XLOG(DBG2) << "Verify Safe Diagnostic Commands Done";
 }
-void ProdInvariantTest::verifyQueuePerHostMapping(bool dscpMarkingTest) {
-  auto vlanId = utility::firstVlanID(sw()->getState());
-  auto intfMac = utility::getFirstInterfaceMac(sw()->getState());
-  auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO());
 
-  // if DscpMarkingTest is set, send unmarked packet matching DSCP marking ACL,
-  // but expect queue-per-host to be honored, as the DSCP Marking ACL is listed
-  // AFTER queue-per-host ACL by design.
-  std::optional<uint16_t> l4SrcPort = std::nullopt;
-  std::optional<uint8_t> dscp = std::nullopt;
-  if (dscpMarkingTest) {
-    l4SrcPort = utility::kUdpPorts().front();
-    dscp = 0;
-  }
-  auto getHwPortStatsFn =
-      [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
-    return getLatestPortStats(portIds);
-  };
-
-  utility::verifyQueuePerHostMapping(
-      platform()->getHwSwitch(),
-      sw()->getState(),
-      getEcmpPortIds(),
-      vlanId,
-      srcMac,
-      intfMac,
-      folly::IPAddressV4("1.0.0.1"),
-      folly::IPAddressV4("10.10.1.2"),
-      true /* useFrontPanel */,
-      false /* blockNeighbor */,
-      getHwPortStatsFn,
-      l4SrcPort,
-      std::nullopt, /* l4DstPort */
-      dscp);
+int ProdInvariantTestMain(
+    int argc,
+    char** argv,
+    PlatformInitFn initPlatformFn) {
+  ::testing::InitGoogleTest(&argc, argv);
+  initAgentTest(argc, argv, initPlatformFn);
+  return RUN_ALL_TESTS();
 }
-void ProdInvariantTest::verifyDscpToQueueMapping() {
-  if (!sw()->getPlatform()->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
-    return;
-  }
 
-  auto uplinkDownlinkPorts = utility::getAllUplinkDownlinkPorts(
-      platform()->getHwSwitch(), initialConfig(), kEcmpWidth, false);
-
-  // pick the first one
-  auto downlinkPortId = uplinkDownlinkPorts.second[0];
-  // gather all uplink + downlink ports
-  std::vector<PortID> portIds = uplinkDownlinkPorts.first;
-  for (auto it = uplinkDownlinkPorts.second.begin();
-       it != uplinkDownlinkPorts.second.end();
-       ++it) {
-    portIds.push_back(*it);
-  }
-
-  auto getPortStatsFn = [&]() -> std::map<PortID, HwPortStats> {
-    return getLatestPortStats(portIds);
+TEST_F(ProdInvariantTest, verifyInvariants) {
+  auto setup = [&]() {};
+  auto verify = [&]() {
+    verifyAcl();
+    verifyCopp();
+    verifyLoadBalancing();
+    verifyDscpToQueueMapping();
+    verifySafeDiagCommands();
   };
-
-  auto q2dscpMap = utility::getOlympicQosMaps(initialConfig());
-  EXPECT_TRUE(utility::verifyQueueMappingsInvariantHelper(
-      q2dscpMap,
-      sw()->getHw(),
-      sw()->getState(),
-      getPortStatsFn,
-      getEcmpPortIds(),
-      downlinkPortId));
-
-  XLOG(DBG2) << "Verify DSCP to Queue mapping done";
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 class ProdInvariantRswMhnicTest : public ProdInvariantTest {

@@ -73,7 +73,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode(),
+        getAsic()->desiredLoopbackModes(),
         true /*interfaceHasSubnet*/);
     utility::addOlympicQosMaps(cfg, getAsic());
     utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
@@ -86,7 +86,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
         getHwSwitch(),
         masterLogicalPortIds()[0],
         masterLogicalPortIds()[1],
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     utility::setDefaultCpuTrafficPolicyConfig(cfg, this->getAsic());
     utility::addCpuQueueConfig(cfg, this->getAsic());
     utility::addAggPort(
@@ -526,7 +526,7 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
         getHwSwitch(),
         masterLogicalInterfacePortIds()[0],
         masterLogicalInterfacePortIds()[1],
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
     std::vector<cfg::PacketRxReasonToQueue> rxReasons;
     // Exclude TTL_1 trap since on some devices we disable it

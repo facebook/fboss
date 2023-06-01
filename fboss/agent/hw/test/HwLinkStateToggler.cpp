@@ -48,17 +48,28 @@ void HwLinkStateToggler::portStateChangeImpl(
     const std::vector<PortID>& ports,
     bool up) {
   auto newState = switchState;
-  auto desiredLoopbackMode =
-      up ? desiredLoopbackMode_ : cfg::PortLoopbackMode::NONE;
   for (auto port : ports) {
-    if (newState->getPorts()->getPort(port)->getLoopbackMode() ==
-        desiredLoopbackMode) {
+    auto currPort = newState->getPorts()->getNodeIf(port);
+    auto iter = desiredLoopbackModes_.find(currPort->getPortType());
+    if (iter == desiredLoopbackModes_.end()) {
+      throw FbossError(
+          "Unable to find the desired looped back mode for port : ",
+          currPort->getPortType());
+    }
+    auto desiredLoopbackMode = up ? iter->second : cfg::PortLoopbackMode::NONE;
+    if (currPort->getLoopbackMode() == desiredLoopbackMode) {
       continue;
     }
     newState = newState->clone();
-    auto newPort = newState->getPorts()->getPort(port)->modify(&newState);
+    auto newPort = currPort->modify(&newState);
     setPortIDAndStateToWaitFor(port, up);
     newPort->setLoopbackMode(desiredLoopbackMode);
+    // On DNX platforms, especially on fabric ports which link up on just a good
+    // RX, need to enable Squelch to force the link down
+    if (!up) {
+      setRxLaneSquelch(
+          port, newState->getPorts()->getNodeIf(port)->getPortType(), true);
+    }
     hwEnsemble_->applyNewState(newState);
     invokeLinkScanIfNeeded(port, up);
     XLOG(DBG2) << " Wait for port " << (up ? "up" : "down")
@@ -70,7 +81,7 @@ void HwLinkStateToggler::portStateChangeImpl(
 
     /* toggle the oper state */
     newState = hwEnsemble_->getProgrammedState();
-    newPort = newState->getPorts()->getPort(port)->modify(&newState);
+    newPort = newState->getPorts()->getNodeIf(port)->modify(&newState);
     newPort->setOperState(up);
     hwEnsemble_->applyNewState(newState);
   }
@@ -128,15 +139,17 @@ HwLinkStateToggler::applyInitialConfigWithPortsDown(
     if (hwEnsemble_->getHwSwitch()->getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::LINK_TRAINING)) {
       setLinkTraining(
-          hwEnsemble_->getProgrammedState()->getPorts()->getPort(
+          hwEnsemble_->getProgrammedState()->getPorts()->getNodeIf(
               PortID(*port.logicalID())),
           false /* disable link training */);
     }
 
     setPortPreemphasis(
-        hwEnsemble_->getProgrammedState()->getPorts()->getPort(
+        hwEnsemble_->getProgrammedState()->getPorts()->getNodeIf(
             PortID(*port.logicalID())),
         0);
+
+    setRxLaneSquelch(PortID(*port.logicalID()), *port.portType(), true);
     *port.state() = portId2DesiredState[*port.logicalID()];
   }
   hwEnsemble_->applyNewConfig(cfg);
@@ -155,6 +168,25 @@ void HwLinkStateToggler::bringUpPorts(
     return PortID(*port.logicalID());
   }) | folly::gen::appendTo(portsToBringUp);
   bringUpPorts(newState, portsToBringUp);
+}
+
+void HwLinkStateToggler::setRxLaneSquelch(
+    PortID portID,
+    cfg::PortType portType,
+    bool enable) {
+  // On DNX platforms, fabric ports come up when the RX alone is UP. In these
+  // platforms, setting preemphasis to 0 doesn't bring the port down when
+  // there is an active remote partner. If the RX_LANE_SQUELCH_ENABLE is
+  // supported, set that true which will cutoff any signal coming from the
+  // remote side and bring down the local link
+  if ((portType == cfg::PortType::FABRIC_PORT ||
+       portType == cfg::PortType::INTERFACE_PORT) &&
+      hwEnsemble_->getHwSwitch()->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::RX_LANE_SQUELCH_ENABLE)) {
+    setRxLaneSquelchImpl(
+        hwEnsemble_->getProgrammedState()->getPorts()->getNodeIf(portID),
+        enable);
+  }
 }
 
 } // namespace facebook::fboss

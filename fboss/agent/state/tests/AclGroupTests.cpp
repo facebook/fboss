@@ -123,6 +123,27 @@ void verifyAclHelper(
     EXPECT_EQ(map->getEntryIf(entry3->getID())->getDscp(), kDscpVal3);
   }
 }
+
+void verifyAclHelper(
+    std::shared_ptr<const MultiSwitchAclMap> map,
+    std::shared_ptr<AclEntry> entry1,
+    std::shared_ptr<AclEntry> entry2,
+    std::shared_ptr<AclEntry> entry3 = nullptr) {
+  EXPECT_EQ(map->getNodeIf(entry1->getID())->getID(), kDscp1);
+  EXPECT_EQ(map->getNodeIf(entry2->getID())->getID(), kDscp2);
+  EXPECT_EQ(map->getNodeIf(entry1->getID())->getDscp(), kDscpVal1);
+  EXPECT_EQ(map->getNodeIf(entry2->getID())->getDscp(), kDscpVal2);
+
+  if (entry3 != nullptr) {
+    EXPECT_EQ(map->getNodeIf(entry3->getID())->getID(), kDscp3);
+    EXPECT_EQ(map->getNodeIf(entry3->getID())->getDscp(), kDscpVal3);
+  }
+}
+
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+
 } // namespace
 
 TEST(AclGroup, TestEquality) {
@@ -221,19 +242,19 @@ TEST(AclGroup, SerializeAclMap) {
   entry1->setDscp(kDscpVal1);
   entry2->setDscp(kDscpVal2);
 
-  auto map = std::make_shared<AclMap>();
-  map->addEntry(entry1);
-  map->addEntry(entry2);
+  auto map = std::make_shared<MultiSwitchAclMap>();
+  map->addNode(entry1, scope());
+  map->addNode(entry2, scope());
 
   auto serialized = map->toThrift();
-  auto mapBack = std::make_shared<AclMap>(serialized);
+  auto mapBack = std::make_shared<MultiSwitchAclMap>(serialized);
 
-  EXPECT_EQ(*map, *mapBack);
+  EXPECT_EQ(map->toThrift(), mapBack->toThrift());
   verifyAclHelper(mapBack, entry1, entry2);
-  EXPECT_EQ(mapBack->getEntryIf(entry1->getID())->getID(), kDscp1);
-  EXPECT_EQ(mapBack->getEntryIf(entry2->getID())->getID(), kDscp2);
-  EXPECT_EQ(mapBack->getEntryIf(entry1->getID())->getDscp(), kDscpVal1);
-  EXPECT_EQ(mapBack->getEntryIf(entry2->getID())->getDscp(), kDscpVal2);
+  EXPECT_EQ(mapBack->getNodeIf(entry1->getID())->getID(), kDscp1);
+  EXPECT_EQ(mapBack->getNodeIf(entry2->getID())->getID(), kDscp2);
+  EXPECT_EQ(mapBack->getNodeIf(entry1->getID())->getDscp(), kDscpVal1);
+  EXPECT_EQ(mapBack->getNodeIf(entry2->getID())->getDscp(), kDscpVal2);
 
   auto state = SwitchState();
   state.resetAcls(map);
@@ -244,16 +265,16 @@ TEST(AclGroup, SerializeAclMap) {
   verifyAclHelper(thriftConvertedMap, entry1, entry2);
 
   // remove an entry
-  map->removeEntry(entry1);
-  EXPECT_FALSE(map->getEntryIf(entry1->getID()));
+  map->removeNode(entry1);
+  EXPECT_FALSE(map->getNodeIf(entry1->getID()));
 
   serialized = map->toThrift();
-  mapBack = std::make_shared<AclMap>(serialized);
+  mapBack = std::make_shared<MultiSwitchAclMap>(serialized);
 
-  EXPECT_EQ(*map, *mapBack);
-  EXPECT_FALSE(mapBack->getEntryIf(entry1->getID()));
-  EXPECT_TRUE(mapBack->getEntryIf(entry2->getID()));
-  EXPECT_EQ(mapBack->getEntryIf(entry2->getID())->getDscp(), kDscpVal2);
+  EXPECT_EQ(map->toThrift(), mapBack->toThrift());
+  EXPECT_FALSE(mapBack->getNodeIf(entry1->getID()));
+  EXPECT_TRUE(mapBack->getNodeIf(entry2->getID()));
+  EXPECT_EQ(mapBack->getNodeIf(entry2->getID())->getDscp(), kDscpVal2);
 }
 
 TEST(AclGroup, SerializeAclTable) {
@@ -417,16 +438,17 @@ TEST(AclGroup, SerializeMultiSwitchAclTableGroupMap) {
   tableGroup->setAclTableMap(tableMap);
   tableGroup->setName(kAclTableGroupName);
 
-  auto tableGroups = std::make_shared<AclTableGroupMap>();
-  tableGroups->addAclTableGroup(tableGroup);
+  auto tableGroups = std::make_shared<MultiSwitchAclTableGroupMap>();
+  tableGroups->addNode(tableGroup, scope());
 
   auto state = SwitchState();
   state.resetAclTableGroups(tableGroups);
   verifyMultiAclSerialization(state, true);
 
   auto thriftConvertedState = thriftMultiAclSerializeDeserialize(state, true);
-  auto thriftConvertedMap = thriftConvertedState->getAcls();
-  verifyAclHelper(thriftConvertedMap, entry1, entry2, entry3);
+  auto thriftConvertedAcls = thriftConvertedState->getAcls();
+  CHECK_NE(thriftConvertedAcls->numNodes(), 0);
+  verifyAclHelper(thriftConvertedAcls, entry1, entry2, entry3);
 }
 
 TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
@@ -493,31 +515,29 @@ TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
 
   EXPECT_NE(nullptr, stateV1);
   EXPECT_TRUE(stateV1->getAclTableGroups()
-                  ->getAclTableGroup(kAclStage1)
+                  ->getNodeIf(kAclStage1)
                   ->getAclTableMap()
                   ->getTableIf(table1->getID()));
   EXPECT_EQ(
       *(stateV1->getAclTableGroups()
-            ->getAclTableGroup(kAclStage1)
+            ->getNodeIf(kAclStage1)
             ->getAclTableMap()
             ->getTableIf(table1->getID())),
       *table1);
   EXPECT_EQ(
-      stateV1->getAclTableGroups()->getAclTableGroup(kAclStage1)->getName(),
-      kGroup1);
+      stateV1->getAclTableGroups()->getNodeIf(kAclStage1)->getName(), kGroup1);
   EXPECT_EQ(
-      *(stateV1->getAclTableGroups()->getAclTableGroup(kAclStage1)),
-      *tableGroup);
+      *(stateV1->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup);
   EXPECT_EQ(
       stateV1->getAclTableGroups()
-          ->getAclTableGroup(kAclStage1)
+          ->getNodeIf(kAclStage1)
           ->getAclTableMap()
           ->getTableIf(table1->getID())
           ->getActionTypes(),
       kActionTypes);
   EXPECT_EQ(
       stateV1->getAclTableGroups()
-          ->getAclTableGroup(kAclStage1)
+          ->getNodeIf(kAclStage1)
           ->getAclTableMap()
           ->getTableIf(table1->getID())
           ->getQualifiers(),
@@ -549,28 +569,27 @@ TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
 
   EXPECT_NE(nullptr, stateV2);
   EXPECT_TRUE(stateV2->getAclTableGroups()
-                  ->getAclTableGroup(kAclStage1)
+                  ->getNodeIf(kAclStage1)
                   ->getAclTableMap()
                   ->getTableIf(table1->getID()));
   EXPECT_EQ(
       *(stateV2->getAclTableGroups()
-            ->getAclTableGroup(kAclStage1)
+            ->getNodeIf(kAclStage1)
             ->getAclTableMap()
             ->getTableIf(table1->getID())),
       *table1);
   EXPECT_TRUE(stateV2->getAclTableGroups()
-                  ->getAclTableGroup(kAclStage1)
+                  ->getNodeIf(kAclStage1)
                   ->getAclTableMap()
                   ->getTableIf(table2->getID()));
   EXPECT_EQ(
       *(stateV2->getAclTableGroups()
-            ->getAclTableGroup(kAclStage1)
+            ->getNodeIf(kAclStage1)
             ->getAclTableMap()
             ->getTableIf(table2->getID())),
       *table2);
   EXPECT_EQ(
-      *(stateV2->getAclTableGroups()->getAclTableGroup(kAclStage1)),
-      *tableGroup);
+      *(stateV2->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup);
 }
 
 TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
@@ -610,8 +629,8 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   tableGroup->setName(kGroup1);
   validateNodeSerialization(*tableGroup);
 
-  auto tableGroups = make_shared<AclTableGroupMap>();
-  tableGroups->addAclTableGroup(tableGroup);
+  auto tableGroups = make_shared<MultiSwitchAclTableGroupMap>();
+  tableGroups->addNode(tableGroup, scope());
   validateThriftMapMapSerialization(*tableGroups);
 
   cfg::AclTable cfgTable1;
@@ -660,8 +679,7 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   auto stateV2 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
   EXPECT_NE(
-      *(stateV2->getAclTableGroups())->getAclTableGroup(kAclStage1),
-      *tableGroup);
+      *(stateV2->getAclTableGroups())->getNodeIf(kAclStage1), *tableGroup);
 
   auto entry3a = make_shared<AclEntry>(priority3++, kAcl3a);
   entry3a->setActionType(cfg::AclActionType::DENY);
@@ -683,8 +701,7 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   validateNodeSerialization(*table3);
 
   EXPECT_EQ(
-      *(stateV2->getAclTableGroups()->getAclTableGroup(kAclStage1)),
-      *tableGroup1);
+      *(stateV2->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup1);
 
   // Remove a table
   config.aclTableGroup_ref()->aclTables_ref()->resize(2);
@@ -692,16 +709,14 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   EXPECT_NE(nullptr, stateV3);
   EXPECT_NE(
-      *(stateV3->getAclTableGroups()->getAclTableGroup(kAclStage1)),
-      *tableGroup1);
+      *(stateV3->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup1);
 
   auto tableMap2 = tableGroup1->getAclTableMap()->clone();
   tableMap2->removeTable(table3->getID());
   tableGroup1->setAclTableMap(tableMap2);
 
   EXPECT_EQ(
-      *(stateV3->getAclTableGroups()->getAclTableGroup(kAclStage1)),
-      *tableGroup1);
+      *(stateV3->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup1);
 
   // Change the priority of a table
   config.aclTableGroup_ref()->aclTables_ref()[1].priority_ref() = 5;
@@ -709,8 +724,7 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
   EXPECT_NE(nullptr, stateV4);
   EXPECT_NE(
-      *(stateV4->getAclTableGroups()->getAclTableGroup(kAclStage1)),
-      *tableGroup1);
+      *(stateV4->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup1);
 
   auto tableMap3 = tableGroup1->getAclTableMap()->clone();
   tableMap3->updateNode(tableMap3->getTable(table2->getID())->clone());
@@ -718,8 +732,7 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   tableGroup1->setAclTableMap(tableMap3);
 
   EXPECT_EQ(
-      *(stateV4->getAclTableGroups()->getAclTableGroup(kAclStage1)),
-      *tableGroup1);
+      *(stateV4->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup1);
 
   // Add an entry to a table
   config.aclTableGroup_ref()->aclTables_ref()[1].aclEntries_ref()->resize(2);
@@ -735,8 +748,7 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   auto stateV5 = publishAndApplyConfig(stateV4, &config, platform.get());
   EXPECT_NE(nullptr, stateV5);
   EXPECT_NE(
-      *(stateV5->getAclTableGroups()->getAclTableGroup(kAclStage1)),
-      *tableGroup1);
+      *(stateV5->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup1);
 
   auto entry2b = make_shared<AclEntry>(priority2++, kAcl2b);
   entry2b->setActionType(cfg::AclActionType::DENY);
@@ -755,13 +767,12 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   tableGroup1 = tableGroup1->clone();
   tableGroup1->setAclTableMap(tableMap4);
   auto groups = stateV5->getAclTableGroups()->clone();
-  groups->updateNode(tableGroup1);
+  groups->updateNode(tableGroup1, scope());
   stateV5 = stateV5->clone();
   stateV5->resetAclTableGroups(groups);
 
   EXPECT_EQ(
-      *(stateV5->getAclTableGroups()->getAclTableGroup(kAclStage1)),
-      *tableGroup1);
+      *(stateV5->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup1);
 
   // Remove an entry from a table
   config.aclTableGroup_ref()->aclTables_ref()[0].aclEntries_ref()->resize(1);
@@ -769,8 +780,7 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   auto stateV6 = publishAndApplyConfig(stateV5, &config, platform.get());
   EXPECT_NE(nullptr, stateV6);
   EXPECT_NE(
-      *(stateV6->getAclTableGroups()->getAclTableGroup(kAclStage1)),
-      *tableGroup1);
+      *(stateV6->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup1);
 
   auto map1Version2 = table1->getAclMap()->clone();
   map1Version2->removeEntry(entry1b);
@@ -780,13 +790,12 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   tableGroup1 = tableGroup1->clone();
   tableGroup1->setAclTableMap(tableMap5);
   groups = stateV6->getAclTableGroups()->clone();
-  groups->updateNode(tableGroup1);
+  groups->updateNode(tableGroup1, scope());
   stateV6 = stateV6->clone();
   stateV6->resetAclTableGroups(groups);
 
   EXPECT_EQ(
-      *(stateV6->getAclTableGroups()->getAclTableGroup(kAclStage1)),
-      *tableGroup1);
+      *(stateV6->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup1);
 
   // Change an entry in a table
   auto proto = 6;
@@ -798,8 +807,7 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   auto stateV7 = publishAndApplyConfig(stateV6, &config, platform.get());
   EXPECT_NE(nullptr, stateV7);
   EXPECT_NE(
-      *(stateV7->getAclTableGroups()->getAclTableGroup(kAclStage1)),
-      *tableGroup1);
+      *(stateV7->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup1);
 
   auto map2Version3 = table2->getAclMap()->clone();
   auto entry2a2 = entry2a->clone();
@@ -811,12 +819,11 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   tableGroup1 = tableGroup1->clone();
   tableGroup1->setAclTableMap(tableMap6);
   groups = stateV7->getAclTableGroups()->clone();
-  groups->updateNode(tableGroup1);
+  groups->updateNode(tableGroup1, scope());
   stateV7 = stateV7->clone();
   stateV7->resetAclTableGroups(groups);
   EXPECT_EQ(
-      *(stateV7->getAclTableGroups()->getAclTableGroup(kAclStage1)),
-      *tableGroup1);
+      *(stateV7->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup1);
 
   // Move an entry between tables
   config.aclTableGroup_ref()->aclTables_ref()[1].aclEntries_ref()->resize(
@@ -834,8 +841,7 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   auto stateV8 = publishAndApplyConfig(stateV7, &config, platform.get());
   EXPECT_NE(nullptr, stateV8);
   EXPECT_NE(
-      *(stateV8->getAclTableGroups()->getAclTableGroup(kAclStage1)),
-      *tableGroup1);
+      *(stateV8->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup1);
 
   auto map2Version4 = table2->getAclMap()->clone();
   map2Version4->removeEntry(entry2b->getID());
@@ -849,11 +855,10 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
       tableMap7); // 2b will be the second entry in table1, so priority
                   // unchanged (originally second entry in table2)
   groups = stateV8->getAclTableGroups()->clone();
-  groups->updateNode(tableGroup1);
+  groups->updateNode(tableGroup1, scope());
   stateV8 = stateV8->clone();
   stateV8->resetAclTableGroups(groups);
 
   EXPECT_EQ(
-      *(stateV8->getAclTableGroups()->getAclTableGroup(kAclStage1)),
-      *tableGroup1);
+      *(stateV8->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup1);
 }

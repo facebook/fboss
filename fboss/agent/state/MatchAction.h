@@ -168,9 +168,6 @@ class MatchAction {
   state::MatchAction toThrift() const;
   static MatchAction fromThrift(state::MatchAction const& ma);
 
-  folly::dynamic toFollyDynamic() const;
-  static MatchAction fromFollyDynamic(const folly::dynamic& actionJson);
-
  private:
   std::optional<SendToQueue> sendToQueue_{std::nullopt};
   std::optional<cfg::TrafficCounter> trafficCounter_{std::nullopt};

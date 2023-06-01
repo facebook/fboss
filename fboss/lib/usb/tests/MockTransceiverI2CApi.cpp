@@ -90,6 +90,10 @@ void MockTransceiverI2CApi::overrideMgmtInterface(
       overridenTransceivers_[id] =
           std::make_unique<MiniphotonOBOTransceiver>(id);
       break;
+    case uint8_t(TransceiverModuleIdentifier::OSFP):
+      overridenTransceivers_[id] =
+          std::make_unique<Cmis2x400GFr4Transceiver>(id);
+      break;
     default:
       overridenTransceivers_.erase(id);
       XLOG(ERR) << "Unknown transceiver module identifier " << mgmt

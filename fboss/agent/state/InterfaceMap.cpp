@@ -19,10 +19,6 @@ using std::string;
 
 namespace facebook::fboss {
 
-InterfaceMap::InterfaceMap() {}
-
-InterfaceMap::~InterfaceMap() {}
-
 std::shared_ptr<Interface> InterfaceMap::getInterfaceIf(
     RouterID router,
     const IPAddress& ip) const {
@@ -38,11 +34,9 @@ std::shared_ptr<Interface> InterfaceMap::getInterfaceIf(
 const std::shared_ptr<Interface> InterfaceMap::getInterface(
     RouterID router,
     const IPAddress& ip) const {
-  for (auto itr = begin(); itr != end(); ++itr) {
-    auto intf = itr->second;
-    if (intf->getRouterID() == router && intf->hasAddress(ip)) {
-      return intf;
-    }
+  auto intf = getInterfaceIf(router, ip);
+  if (intf) {
+    return intf;
   }
   throw FbossError("No interface with ip : ", ip);
 }
@@ -79,33 +73,69 @@ const std::shared_ptr<Interface> InterfaceMap::getIntfToReach(
   return nullptr;
 }
 
-void InterfaceMap::addInterface(const std::shared_ptr<Interface>& interface) {
-  addNode(interface);
-}
-
-void InterfaceMap::updateInterface(
-    const std::shared_ptr<Interface>& interface) {
-  updateNode(interface);
-}
-
-InterfaceMap* InterfaceMap::modify(std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
+const std::shared_ptr<Interface> MultiSwitchInterfaceMap::getIntfToReach(
+    RouterID router,
+    const folly::IPAddress& dest) const {
+  for (const auto& [_, intfMap] : std::as_const(*this)) {
+    auto intf = intfMap->getIntfToReach(router, dest);
+    if (intf) {
+      return intf;
+    }
   }
+  return nullptr;
+}
 
+MultiSwitchInterfaceMap* MultiSwitchInterfaceMap::modify(
+    std::shared_ptr<SwitchState>* state) {
   bool isRemote = (this == (*state)->getRemoteInterfaces().get());
-  SwitchState::modify(state);
-  auto newInterfaces = clone();
-  auto* ptr = newInterfaces.get();
   if (isRemote) {
-    (*state)->resetRemoteIntfs(std::move(newInterfaces));
+    return SwitchState::modify<switch_state_tags::remoteInterfaceMaps>(state);
   } else {
-    (*state)->resetIntfs(std::move(newInterfaces));
+    return SwitchState::modify<switch_state_tags::interfaceMaps>(state);
   }
-  return ptr;
 }
 
+std::shared_ptr<Interface> MultiSwitchInterfaceMap::getInterfaceInVlanIf(
+    VlanID vlan) const {
+  for (const auto& [_, intfMap] : *this) {
+    auto intf = intfMap->getInterfaceInVlan(vlan);
+    if (intf) {
+      return intf;
+    }
+  }
+  return nullptr;
+}
+
+const std::shared_ptr<Interface> MultiSwitchInterfaceMap::getInterfaceInVlan(
+    VlanID vlan) const {
+  auto interface = getInterfaceInVlanIf(vlan);
+  if (!interface) {
+    throw FbossError("No interface in vlan : ", vlan);
+  }
+  return interface;
+}
+
+std::shared_ptr<Interface> MultiSwitchInterfaceMap::getInterfaceIf(
+    RouterID router,
+    const IPAddress& ip) const {
+  for (const auto& [_, intfMap] : *this) {
+    auto intf = intfMap->getInterfaceIf(router, ip);
+    if (intf) {
+      return intf;
+    }
+  }
+  return nullptr;
+}
+
+const std::shared_ptr<Interface> MultiSwitchInterfaceMap::getInterface(
+    RouterID router,
+    const IPAddress& ip) const {
+  auto intf = getInterfaceIf(router, ip);
+  if (intf) {
+    return intf;
+  }
+  throw FbossError("No interface with ip : ", ip);
+}
 template class ThriftMapNode<InterfaceMap, InterfaceMapTraits>;
 
 } // namespace facebook::fboss

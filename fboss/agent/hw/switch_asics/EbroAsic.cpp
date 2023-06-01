@@ -141,6 +141,9 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::QUEUE_PRIORITY_LOWER_VAL_IS_HIGH_PRI:
     case HwAsic::Feature::SWITCH_DROP_STATS:
     case HwAsic::Feature::SAI_UDF_HASH:
+    case HwAsic::Feature::INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK:
+    case HwAsic::Feature::RX_LANE_SQUELCH_ENABLE:
+    case HwAsic::Feature::SAI_PORT_ETHER_STATS:
       return false;
   }
   return false;
@@ -204,5 +207,34 @@ cfg::Range64 EbroAsic::getReservedEncapIndexRange() const {
     return makeRange(100, 4093);
   }
   return HwAsic::getReservedEncapIndexRange();
+}
+
+const std::map<cfg::PortType, cfg::PortLoopbackMode>&
+EbroAsic::desiredLoopbackModes() const {
+  switch (getSwitchType()) {
+    case cfg::SwitchType::NPU: {
+      static const std::map<cfg::PortType, cfg::PortLoopbackMode>
+          kDefaultLoopbackMode = {
+              {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC}};
+      return kDefaultLoopbackMode;
+    } break;
+    case cfg::SwitchType::VOQ: {
+      static const std::map<cfg::PortType, cfg::PortLoopbackMode>
+          kDefaultLoopbackMode = {
+              {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC},
+              {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC}};
+      return kDefaultLoopbackMode;
+    } break;
+    case cfg::SwitchType::FABRIC: {
+      static const std::map<cfg::PortType, cfg::PortLoopbackMode>
+          kDefaultLoopbackMode = {
+              {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC}};
+      return kDefaultLoopbackMode;
+    } break;
+    case cfg::SwitchType::PHY:
+      /* unsupported */
+      break;
+  }
+  throw FbossError("Unsupported switchType for Ebro: ", getSwitchType());
 }
 } // namespace facebook::fboss

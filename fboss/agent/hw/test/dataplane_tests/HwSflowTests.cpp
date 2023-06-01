@@ -23,7 +23,7 @@ class HwSflowTest : public HwLinkStateDependentTest {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(),
         masterLogicalPortIds()[0],
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
     utility::addCpuQueueConfig(cfg, this->getAsic());
     return cfg;

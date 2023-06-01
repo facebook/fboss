@@ -146,6 +146,8 @@ class SaiPortManager {
   const HwPortFb303Stats* getLastPortStat(PortID port) const;
 
   std::map<PortID, FabricEndpoint> getFabricReachability() const;
+  std::vector<PortID> getFabricReachabilityForSwitch(
+      const SwitchID& switchId) const;
   const Stats& getLastPortStats() const {
     return portStats_;
   }
@@ -162,8 +164,9 @@ class SaiPortManager {
   void setQosPolicy();
   void clearQosPolicy();
 
-  std::shared_ptr<PortMap> reconstructPortsFromStore(
-      cfg::SwitchType switchType) const;
+  std::shared_ptr<MultiSwitchPortMap> reconstructPortsFromStore(
+      cfg::SwitchType switchType,
+      const HwSwitchMatcher& matcher) const;
 
   std::shared_ptr<Port> swPortFromAttributes(
       SaiPortTraits::CreateAttributes attributees,

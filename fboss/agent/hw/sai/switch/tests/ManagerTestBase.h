@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
@@ -256,6 +257,10 @@ class ManagerTestBase : public ::testing::Test {
   std::shared_ptr<SwitchState> programmedState;
 
   static constexpr int kSysPortOffset = 100;
+
+  const SwitchIdScopeResolver& scopeResolver() const;
+
+  std::unique_ptr<SwitchIdScopeResolver> resolver{};
 
  private:
   static constexpr uint8_t kPortQueueMax = 8;

@@ -1,0 +1,5 @@
+publish(
+    wiki_root_path = "FBOSS_Platform/Optics_Phy/qsfp_service",
+    folder = "./",
+    oncall = "fboss_optics_phy",
+)

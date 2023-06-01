@@ -63,13 +63,6 @@ std::optional<folly::MacAddress> DsfNode::getMac() const {
   return mac;
 }
 
-std::shared_ptr<DsfNode> DsfNode::fromFollyDynamic(
-    const folly::dynamic& entry) {
-  auto node = std::make_shared<DsfNode>();
-  static_cast<std::shared_ptr<BaseT>>(node)->fromFollyDynamic(entry);
-  return node;
-}
-
 std::set<folly::CIDRNetwork> DsfNode::getLoopbackIpsSorted() const {
   std::set<folly::CIDRNetwork> subnets;
   const auto& loopbackIps = *getLoopbackIps();

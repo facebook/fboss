@@ -17,6 +17,7 @@
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include <folly/Benchmark.h>
 #include <folly/IPAddress.h>
@@ -42,7 +43,9 @@ BENCHMARK(AgentTeFlowStatsPublishToFsdb) {
       [](HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
         CHECK_GT(ports.size(), 0);
         return utility::onePortPerInterfaceConfig(
-            hwSwitch, {ports[0], ports[1]}, cfg::PortLoopbackMode::MAC);
+            hwSwitch,
+            {ports[0], ports[1]},
+            hwSwitch->getPlatform()->getAsic()->desiredLoopbackModes());
       };
 
   AgentEnsemblePlatformConfigFn platformConfigFn =
@@ -76,7 +79,7 @@ BENCHMARK(AgentTeFlowStatsPublishToFsdb) {
       dstIpStart, nextHopAddr, ifName, ports[0], numEntries);
   auto flowEntries = generator->generateFlowEntries();
   state = ensemble->getSw()->getState();
-  utility::addFlowEntries(&state, flowEntries);
+  utility::addFlowEntries(&state, flowEntries, ensemble->scopeResolver());
   ensemble->applyNewState(state, true /* rollback on fail */);
   // verify TeFlowStats size
   auto teFlowStats = ensemble->getSw()->getTeFlowStats();
@@ -86,7 +89,7 @@ BENCHMARK(AgentTeFlowStatsPublishToFsdb) {
   // wait for FsdbSyncer to be ready to publish stats to FSDB
   auto waitForFsdbConnection = [&ensemble](int timeout) -> bool {
     for (int i = 0; i < timeout; i++) {
-      if (ensemble->getSw()->fsdbSyncer()->isReadyForStatPublishing()) {
+      if (ensemble->getSw()->fsdbStatPublishReady()) {
         return true;
       }
       // @lint-ignore CLANGTIDY

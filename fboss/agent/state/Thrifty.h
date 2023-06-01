@@ -225,28 +225,6 @@ class ThriftyFields {
 
   virtual ~ThriftyFields() = default;
 
-  static FieldsT fromFollyDynamic(folly::dynamic const& dyn) {
-    if (ThriftyUtils::nodeNeedsMigration(dyn)) {
-      XLOG(FATAL) << "incomptaible schema detected";
-    } else {
-      // Schema is up to date meaning there is no migration required
-      return fromJson(folly::toJson(dyn));
-    }
-  }
-
-  folly::dynamic toFollyDynamic() const {
-    auto dyn = folly::parseJson(this->str());
-    return dyn;
-  }
-
-  static FieldsT fromJson(const folly::fbstring& jsonStr) {
-    auto inBuf =
-        folly::IOBuf::wrapBufferAsValue(jsonStr.data(), jsonStr.size());
-    auto obj = apache::thrift::SimpleJSONSerializer::deserialize<ThriftT>(
-        folly::io::Cursor{&inBuf});
-    return FieldsT::fromThrift(obj);
-  }
-
   std::string str() const {
     auto obj = toThrift();
     std::string jsonStr;
@@ -474,6 +452,26 @@ struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
     return nullptr;
   }
 
+  std::shared_ptr<InnerNode> getNode(
+      const typename InnerMap::Traits::KeyType& key) const {
+    auto node = getNodeIf(key);
+    if (!node) {
+      throw FbossError("node not found: ", key);
+    }
+    return node;
+  }
+
+  std::pair<std::shared_ptr<InnerNode>, HwSwitchMatcher> getNodeAndScope(
+      const typename InnerMap::Traits::KeyType& key) const {
+    for (auto mnitr = this->cbegin(); mnitr != this->cend(); ++mnitr) {
+      auto nitr = mnitr->second->find(key);
+      if (nitr != mnitr->second->cend()) {
+        return std::make_pair(nitr->second, HwSwitchMatcher(mnitr->first));
+      }
+    }
+    throw FbossError("node not found: ", key);
+  }
+
   size_t numNodes() const {
     size_t cnt = 0;
     for (auto mnitr = this->cbegin(); mnitr != this->cend(); ++mnitr) {
@@ -496,6 +494,28 @@ struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
       std::shared_ptr<InnerMap> node,
       const HwSwitchMatcher& matcher) {
     Base::updateNode(matcher.matcherString(), node);
+  }
+
+  std::shared_ptr<MAP> clone() const {
+    auto cloned = Base::clone();
+    for (auto mnitr = cloned->cbegin(); mnitr != cloned->cend(); ++mnitr) {
+      if (!mnitr->second->isPublished()) {
+        continue;
+      }
+      auto newMap = mnitr->second->clone();
+      cloned->ref(mnitr->first) = newMap;
+    }
+    return cloned;
+  }
+
+  std::shared_ptr<InnerMap> getAllNodes() const {
+    auto nodes = std::make_shared<InnerMap>();
+    for (const auto& [_, innerMap] : std::as_const(*this)) {
+      for (const auto& [_, node] : std::as_const(*innerMap)) {
+        nodes->addNode(node);
+      }
+    }
+    return nodes;
   }
 };
 

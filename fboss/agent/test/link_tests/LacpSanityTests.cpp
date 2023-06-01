@@ -77,8 +77,7 @@ class LacpTest : public LinkTest {
 
   std::vector<LegacyAggregatePortFields::Subport> getSubPorts(
       AggregatePortID aggId) {
-    const auto& aggPort =
-        sw()->getState()->getAggregatePorts()->getAggregatePort(aggId);
+    const auto& aggPort = sw()->getState()->getAggregatePorts()->getNode(aggId);
     EXPECT_NE(aggPort, nullptr);
     return aggPort->sortedSubports();
   }
@@ -87,8 +86,8 @@ class LacpTest : public LinkTest {
   void waitForAggPortStatus(AggregatePortID aggId, bool portStatus) const {
     auto aggPortUp = [&](const std::shared_ptr<SwitchState>& state) {
       const auto& aggPorts = state->getAggregatePorts();
-      if (aggPorts && aggPorts->getAggregatePort(aggId) &&
-          aggPorts->getAggregatePort(aggId)->isUp() == portStatus) {
+      if (aggPorts && aggPorts->getNode(aggId) &&
+          aggPorts->getNode(aggId)->isUp() == portStatus) {
         return true;
       }
       return false;
@@ -100,8 +99,7 @@ class LacpTest : public LinkTest {
   void waitForLacpState() const {
     auto lacpStateEnabled = [&](const std::shared_ptr<SwitchState>& state) {
       for (const auto& aggId : getAggPorts()) {
-        const auto& aggPort =
-            state->getAggregatePorts()->getAggregatePort(aggId);
+        const auto& aggPort = state->getAggregatePorts()->getNode(aggId);
         if (aggPort == nullptr ||
             aggPort->forwardingSubportCount() != aggPort->subportsCount()) {
           return false;

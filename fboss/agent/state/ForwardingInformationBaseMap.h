@@ -57,8 +57,6 @@ class ForwardingInformationBaseMap : public ThriftMapNode<
   std::shared_ptr<ForwardingInformationBaseContainer> getFibContainer(
       RouterID vrf) const;
 
-  ForwardingInformationBaseMap* modify(std::shared_ptr<SwitchState>* state);
-
   void updateForwardingInformationBaseContainer(
       const std::shared_ptr<ForwardingInformationBaseContainer>& fibContainer);
 
@@ -99,6 +97,15 @@ class MultiSwitchForwardingInformationBaseMap
 
   MultiSwitchForwardingInformationBaseMap() {}
   virtual ~MultiSwitchForwardingInformationBaseMap() {}
+
+  void updateForwardingInformationBaseContainer(
+      const std::shared_ptr<ForwardingInformationBaseContainer>& fibContainer,
+      const HwSwitchMatcher& matcher);
+
+  MultiSwitchForwardingInformationBaseMap* modify(
+      std::shared_ptr<SwitchState>* state);
+
+  std::pair<uint64_t, uint64_t> getRouteCount() const;
 
  private:
   // Inherit the constructors required for clone()

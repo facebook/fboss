@@ -16,4 +16,13 @@ std::string getFbdevdConfig(
 std::string getFanServiceConfig(
     const std::optional<std::string>& platformName = std::nullopt);
 
+std::string getPlatformManagerConfig(
+    const std::optional<std::string>& platformName = std::nullopt);
+
+std::string getWeutilConfig(
+    const std::optional<std::string>& platformName = std::nullopt);
+
+std::string getFirmwareConfig(
+    const std::optional<std::string>& platformName = std::nullopt);
+
 } // namespace facebook::fboss::platform::config_lib

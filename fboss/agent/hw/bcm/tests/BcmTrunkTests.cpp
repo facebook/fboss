@@ -62,7 +62,7 @@ class BcmTrunkTest : public BcmLinkStateDependentTests {
         getHwSwitch(),
         masterLogicalPortIds()[0],
         masterLogicalPortIds()[1],
-        cfg::PortLoopbackMode::MAC);
+        getHwSwitch()->getPlatform()->getAsic()->desiredLoopbackModes());
   }
 
   void applyConfigAndEnableTrunks(const cfg::SwitchConfig& switchCfg) {

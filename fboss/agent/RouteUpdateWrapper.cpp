@@ -149,6 +149,7 @@ void RouteUpdateWrapper::printMplsStats(const UpdateStatistics& stats) const {
 void RouteUpdateWrapper::programStandAloneRib(const SyncFibFor& syncFibFor) {
   if (configRoutes_) {
     getRib()->reconfigure(
+        resolver_,
         configRoutes_->configRouterIDToInterfaceRoutes,
         configRoutes_->staticRoutesWithNextHops,
         configRoutes_->staticRoutesToNull,
@@ -162,6 +163,7 @@ void RouteUpdateWrapper::programStandAloneRib(const SyncFibFor& syncFibFor) {
   }
   for (auto [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {
     auto stats = getRib()->update(
+        resolver_,
         ridClientId.first,
         ridClientId.second,
         clientIdToAdminDistance(ridClientId.second),
@@ -177,6 +179,7 @@ void RouteUpdateWrapper::programStandAloneRib(const SyncFibFor& syncFibFor) {
   // update MPLS routes
   for (auto& [ridClientId, addDelRoutes] : ribMplsRoutesToAddDel_) {
     auto stats = getRib()->update(
+        resolver_,
         ridClientId.first,
         ridClientId.second,
         clientIdToAdminDistance(ridClientId.second),
@@ -197,10 +200,10 @@ void RouteUpdateWrapper::programClassID(
     bool async) {
   if (async) {
     getRib()->setClassIDAsync(
-        rid, prefixes, *fibUpdateFn_, classId, fibUpdateCookie_);
+        resolver_, rid, prefixes, *fibUpdateFn_, classId, fibUpdateCookie_);
   } else {
     getRib()->setClassID(
-        rid, prefixes, *fibUpdateFn_, classId, fibUpdateCookie_);
+        resolver_, rid, prefixes, *fibUpdateFn_, classId, fibUpdateCookie_);
   }
 }
 

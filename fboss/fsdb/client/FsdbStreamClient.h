@@ -34,7 +34,12 @@ class FsdbService;
 
 class FsdbStreamClient {
  public:
-  enum class State : uint16_t { DISCONNECTED, CONNECTED, CANCELLED };
+  enum class State : uint16_t {
+    DISCONNECTED,
+    CONNECTING,
+    CONNECTED,
+    CANCELLED
+  };
   enum class Priority : uint8_t { NORMAL, CRITICAL };
 
   struct ServerOptions {

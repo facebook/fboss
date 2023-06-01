@@ -296,7 +296,7 @@ int TunManager::getTableIdForVoq(InterfaceID ifID) const {
 }
 
 int TunManager::getInterfaceMtu(InterfaceID ifID) const {
-  auto interface = sw_->getState()->getInterfaces()->getInterfaceIf(ifID);
+  auto interface = sw_->getState()->getInterfaces()->getNodeIf(ifID);
   return interface ? interface->getMtu() : kDefaultMtu;
 }
 
@@ -639,29 +639,33 @@ boost::container::flat_map<InterfaceID, bool> TunManager::getInterfaceStatus(
   boost::container::flat_map<InterfaceID, bool> statusMap;
 
   // Declare all virtual or state_sync disabled interfaces as up
-  for (auto iter : std::as_const(*state->getInterfaces())) {
-    const auto& intf = iter.second;
-    if (intf->isVirtual() || intf->isStateSyncDisabled()) {
-      statusMap.emplace(intf->getID(), true);
+  for (const auto& [_, intfMap] : std::as_const(*state->getInterfaces())) {
+    for (auto iter : std::as_const(*intfMap)) {
+      const auto& intf = iter.second;
+      if (intf->isVirtual() || intf->isStateSyncDisabled()) {
+        statusMap.emplace(intf->getID(), true);
+      }
     }
   }
 
   // Derive interface status from all ports
-  auto portMap = state->getPorts();
+  auto portMaps = state->getPorts();
   auto vlanMap = state->getVlans();
-  for (const auto& port : std::as_const(*portMap)) {
-    bool isPortUp = port.second->isPortUp();
-    for (const auto& vlanIDToInfo : port.second->getVlans()) {
-      auto vlan = vlanMap->getVlanIf(vlanIDToInfo.first);
-      if (!vlan) {
-        XLOG(ERR) << "Vlan " << vlanIDToInfo.first << " not found in state.";
-        continue;
-      }
+  for (const auto& portMap : std::as_const(*portMaps)) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      bool isPortUp = port.second->isPortUp();
+      for (const auto& vlanIDToInfo : port.second->getVlans()) {
+        auto vlan = vlanMap->getNodeIf(vlanIDToInfo.first);
+        if (!vlan) {
+          XLOG(ERR) << "Vlan " << vlanIDToInfo.first << " not found in state.";
+          continue;
+        }
 
-      auto intfID = vlan->getInterfaceID();
-      statusMap[intfID] |= isPortUp; // NOTE: We are applying `OR` operator
-    } // for vlanIDToInfo
-  } // for portIDToObj
+        auto intfID = vlan->getInterfaceID();
+        statusMap[intfID] |= isPortUp; // NOTE: We are applying `OR` operator
+      } // for vlanIDToInfo
+    } // for portIDToObj
+  }
 
   return statusMap;
 }
@@ -690,18 +694,20 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
 
   // prepare new addresses
   IntfToAddrsMap newIntfToInfo;
-  auto intfMap = state->getInterfaces();
-  for (auto iter : std::as_const(*intfMap)) {
-    const auto& intf = iter.second;
-    auto addrs = intf->getAddressesCopy();
+  for (const auto& [_, intfMap] : std::as_const(*state->getInterfaces())) {
+    for (auto iter : std::as_const(*intfMap)) {
+      const auto& intf = iter.second;
+      auto addrs = intf->getAddressesCopy();
 
-    // Ideally all interfaces should be present in intfStatusMap as either
-    // interface will be virtual or will have atleast one port. Keeping default
-    // status of interface to be DOWN incase if interface is not virtual and is
-    // not assocaited with any physical port
-    const auto status = folly::get_default(intfStatusMap, intf->getID(), false);
+      // Ideally all interfaces should be present in intfStatusMap as either
+      // interface will be virtual or will have atleast one port. Keeping
+      // default status of interface to be DOWN incase if interface is not
+      // virtual and is not assocaited with any physical port
+      const auto status =
+          folly::get_default(intfStatusMap, intf->getID(), false);
 
-    newIntfToInfo[intf->getID()] = {status, addrs};
+      newIntfToInfo[intf->getID()] = {status, addrs};
+    }
   }
 
   // Hold mutex while changing interfaces
@@ -718,7 +724,7 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
     oldIntfToInfo[intf.first] = {status, addrs};
 
     // Change MTU if it has altered
-    auto interface = intfMap->getInterfaceIf(intf.first);
+    auto interface = state->getInterfaces()->getNodeIf(intf.first);
     if (interface && interface->getMtu() != intf.second->getMtu()) {
       intf.second->setMtu(interface->getMtu());
     }

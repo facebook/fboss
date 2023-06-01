@@ -30,6 +30,10 @@ static VlanID kVlanA(1);
 static VlanID kVlanB(55);
 static PortID kPortIDA(1);
 static PortID kPortIDB(11);
+
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
 } // namespace
 
 class TeFlowTest : public ::testing::Test {
@@ -148,13 +152,13 @@ TEST_F(TeFlowTest, serDeserSwitchState) {
   auto flowId1 = makeFlowKey("100::");
   auto teFlowEntry1 = TeFlowEntry::createTeFlowEntry(flowEntry1);
   teFlowEntry1->resolve(state);
-  flowTable->addTeFlowEntry(teFlowEntry1);
+  flowTable->addNode(teFlowEntry1, scope());
   auto flowEntry2 = makeFlow("101::");
   auto flowId2 = makeFlowKey("101::");
   auto teFlowEntry2 = TeFlowEntry::createTeFlowEntry(flowEntry2);
   teFlowEntry2->resolve(state);
-  flowTable->addTeFlowEntry(teFlowEntry2);
-  EXPECT_EQ(state->getTeFlowTable()->size(), 2);
+  flowTable->addNode(teFlowEntry2, scope());
+  EXPECT_EQ(state->getTeFlowTable()->numNodes(), 2);
   auto serialized = state->toThrift();
   auto stateBack = SwitchState::fromThrift(serialized);
   EXPECT_EQ(state->toThrift(), stateBack->toThrift());
@@ -170,13 +174,13 @@ TEST_F(TeFlowTest, AddDeleteTeFlow) {
   auto flowEntry = makeFlow("100::", kNhopAddrA, "fboss55");
   auto teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
   EXPECT_THROW(teFlowEntry->resolve(state), FbossError);
-  flowTable->addTeFlowEntry(teFlowEntry);
+  flowTable->addNode(teFlowEntry, scope());
 
   // Valid nexthop should not throw
   flowEntry = makeFlow("100::");
   teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
   EXPECT_NO_THROW(teFlowEntry->resolve(state));
-  flowTable->changeTeFlowEntry(teFlowEntry);
+  flowTable->updateNode(teFlowEntry, scope());
   verifyFlowEntry(teFlowEntry);
 
   // change flow entry
@@ -185,11 +189,11 @@ TEST_F(TeFlowTest, AddDeleteTeFlow) {
   flowEntry.counterID() = "counter1";
   teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
   teFlowEntry->resolve(state);
-  EXPECT_NO_THROW(flowTable->changeTeFlowEntry(teFlowEntry));
+  EXPECT_NO_THROW(flowTable->updateNode(teFlowEntry, scope()));
   verifyFlowEntry(teFlowEntry, kNhopAddrB, "counter1", "fboss55");
   // delete the entry
-  flowTable->removeTeFlowEntry(flowId);
-  EXPECT_EQ(flowTable->getTeFlowIf(flowId), nullptr);
+  flowTable->removeNode(getTeFlowStr(flowId));
+  EXPECT_EQ(flowTable->getNodeIf(getTeFlowStr(flowId)), nullptr);
 }
 
 TEST_F(TeFlowTest, NextHopResolution) {
@@ -199,14 +203,14 @@ TEST_F(TeFlowTest, NextHopResolution) {
 
   updateState("add te flow", [&](const auto& state) {
     auto newState = state->clone();
-    auto flowTable = std::make_shared<TeFlowTable>();
+    auto flowTable = newState->getTeFlowTable()->modify(&newState);
     auto teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
     teFlowEntry->resolve(newState);
-    flowTable->addTeFlowEntry(teFlowEntry);
-    newState->resetTeFlowTable(flowTable);
+    flowTable->addNode(teFlowEntry, scope());
     return newState;
   });
-  auto tableEntry = sw_->getState()->getTeFlowTable()->getTeFlowIf(flowId);
+  auto tableEntry =
+      sw_->getState()->getTeFlowTable()->getNodeIf(getTeFlowStr(flowId));
   verifyFlowEntry(tableEntry);
 
   // test neighbor removal
@@ -214,7 +218,8 @@ TEST_F(TeFlowTest, NextHopResolution) {
   sw_->getNeighborUpdater()->waitForPendingUpdates();
   waitForBackgroundThread(sw_);
   waitForStateUpdates(sw_);
-  tableEntry = sw_->getState()->getTeFlowTable()->getTeFlowIf(flowId);
+  tableEntry =
+      sw_->getState()->getTeFlowTable()->getNodeIf(getTeFlowStr(flowId));
   EXPECT_EQ(tableEntry->getEnabled(), false);
   EXPECT_EQ(tableEntry->getResolvedNextHops()->size(), 0);
 
@@ -229,7 +234,8 @@ TEST_F(TeFlowTest, NextHopResolution) {
   sw_->getNeighborUpdater()->waitForPendingUpdates();
   waitForBackgroundThread(sw_);
   waitForStateUpdates(sw_);
-  tableEntry = sw_->getState()->getTeFlowTable()->getTeFlowIf(flowId);
+  tableEntry =
+      sw_->getState()->getTeFlowTable()->getNodeIf(getTeFlowStr(flowId));
   EXPECT_EQ(tableEntry->getEnabled(), true);
   verifyFlowEntry(tableEntry);
 }
@@ -247,13 +253,12 @@ TEST_F(TeFlowTest, TeFlowStats) {
 
   updateState("add te flow", [&](const auto& state) {
     auto newState = state->clone();
-    auto flowTable = std::make_shared<TeFlowTable>();
+    auto flowTable = newState->getTeFlowTable()->modify(&newState);
     for (const auto& flowEntry : flowEntries) {
       auto teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
       teFlowEntry->resolve(newState);
-      flowTable->addTeFlowEntry(teFlowEntry);
+      flowTable->addNode(teFlowEntry, scope());
     }
-    newState->resetTeFlowTable(flowTable);
     return newState;
   });
 
@@ -288,16 +293,16 @@ TEST_F(TeFlowTest, TeFlowCounter) {
 
   updateState("add te flows", [&](const auto& state) {
     auto newState = state->clone();
-    auto flowTable = std::make_shared<TeFlowTable>();
+    auto flowTable = newState->getTeFlowTable()->modify(&newState);
     for (const auto& flowEntry : flowEntries) {
       auto teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
       teFlowEntry->resolve(newState);
-      flowTable->addTeFlowEntry(teFlowEntry);
+      flowTable->addNode(teFlowEntry, scope());
     }
-    newState->resetTeFlowTable(flowTable);
     return newState;
   });
 
+  EXPECT_EQ(sw_->getState()->getTeFlowTable()->numNodes(), 3);
   int testByteCounterValue = 64;
   auto updateCounter = [&testByteCounterValue](auto counterID) {
     auto counter = std::make_unique<facebook::stats::MonotonicCounter>(
@@ -329,8 +334,8 @@ TEST_F(TeFlowTest, addRemoveTeFlow) {
   auto flowEntry = makeFlow("100::1");
   teFlowEntries->emplace_back(flowEntry);
   updateState("add te flow", [&](const auto& state) {
-    auto newState =
-        teFlowSyncer.programFlowEntries(state, *teFlowEntries, {}, false);
+    auto newState = teFlowSyncer.programFlowEntries(
+        scope(), state, *teFlowEntries, {}, false);
     return newState;
   });
   state = sw_->getState();
@@ -340,8 +345,8 @@ TEST_F(TeFlowTest, addRemoveTeFlow) {
                          const auto& nhop,
                          const auto& counter,
                          const auto& intf) {
-    EXPECT_EQ(teFlowTable->size(), 1);
-    auto tableEntry = teFlowTable->getTeFlowIf(flow);
+    EXPECT_EQ(teFlowTable->numNodes(), 1);
+    auto tableEntry = teFlowTable->getNodeIf(getTeFlowStr(flow));
     EXPECT_NE(tableEntry, nullptr);
     EXPECT_EQ(*tableEntry->getCounterID(), counter);
     EXPECT_EQ(tableEntry->getNextHops()->size(), 1);
@@ -361,8 +366,8 @@ TEST_F(TeFlowTest, addRemoveTeFlow) {
   auto newFlowEntries = std::make_unique<std::vector<FlowEntry>>();
   newFlowEntries->emplace_back(flowEntry2);
   updateState("modify te flow", [&](const auto& state) {
-    auto newState =
-        teFlowSyncer.programFlowEntries(state, *newFlowEntries, {}, false);
+    auto newState = teFlowSyncer.programFlowEntries(
+        scope(), state, *newFlowEntries, {}, false);
     return newState;
   });
   state = sw_->getState();
@@ -372,12 +377,13 @@ TEST_F(TeFlowTest, addRemoveTeFlow) {
   auto teFlows = std::make_unique<std::vector<TeFlow>>();
   teFlows->emplace_back(*flowEntry.flow());
   updateState("delete te flow", [&](const auto& state) {
-    auto newState = teFlowSyncer.programFlowEntries(state, {}, *teFlows, false);
+    auto newState =
+        teFlowSyncer.programFlowEntries(scope(), state, {}, *teFlows, false);
     return newState;
   });
   state = sw_->getState();
   teFlowTable = state->getTeFlowTable();
-  auto tableEntry = teFlowTable->getTeFlowIf(*flowEntry.flow());
+  auto tableEntry = teFlowTable->getNodeIf(getTeFlowStr(*flowEntry.flow()));
   EXPECT_EQ(tableEntry, nullptr);
 
   // add flows in bulk
@@ -387,13 +393,13 @@ TEST_F(TeFlowTest, addRemoveTeFlow) {
     bulkEntries->emplace_back(makeFlow(prefix));
   }
   updateState("bulk add te flow", [&](const auto& state) {
-    auto newState =
-        teFlowSyncer.programFlowEntries(state, *bulkEntries, {}, false);
+    auto newState = teFlowSyncer.programFlowEntries(
+        scope(), state, *bulkEntries, {}, false);
     return newState;
   });
   state = sw_->getState();
   teFlowTable = state->getTeFlowTable();
-  EXPECT_EQ(teFlowTable->size(), 4);
+  EXPECT_EQ(teFlowTable->numNodes(), 4);
 
   // bulk delete
   auto flowsToDelete = {"100::1", "101::1"};
@@ -405,18 +411,18 @@ TEST_F(TeFlowTest, addRemoveTeFlow) {
     deletionFlows->emplace_back(flow);
   }
   updateState("bulk delete te flow", [&](const auto& state) {
-    auto newState =
-        teFlowSyncer.programFlowEntries(state, {}, *deletionFlows, false);
+    auto newState = teFlowSyncer.programFlowEntries(
+        scope(), state, {}, *deletionFlows, false);
     return newState;
   });
   state = sw_->getState();
   teFlowTable = state->getTeFlowTable();
-  EXPECT_EQ(teFlowTable->size(), 2);
+  EXPECT_EQ(teFlowTable->numNodes(), 2);
   for (const auto& prefix : flowsToDelete) {
     TeFlow flow;
     flow.dstPrefix() = ipPrefix(prefix, 64);
     flow.srcPort() = 100;
-    EXPECT_EQ(teFlowTable->getTeFlowIf(flow), nullptr);
+    EXPECT_EQ(teFlowTable->getNodeIf(getTeFlowStr(flow)), nullptr);
   }
 }
 
@@ -432,33 +438,32 @@ TEST_F(TeFlowTest, syncTeFlows) {
 
   updateState("add te flows", [&](const auto& state) {
     auto newState = state->clone();
-    auto flowTable = std::make_shared<TeFlowTable>();
+    auto flowTable = newState->getTeFlowTable()->modify(&newState);
     for (const auto& flowEntry : *flowEntries) {
       auto teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
       teFlowEntry->resolve(newState);
-      flowTable->addTeFlowEntry(teFlowEntry);
+      flowTable->addNode(teFlowEntry, scope());
     }
-    newState->resetTeFlowTable(flowTable);
     return newState;
   });
 
   state = sw_->getState();
   auto teFlowTable = state->getTeFlowTable();
-  EXPECT_EQ(teFlowTable->size(), 4);
+  EXPECT_EQ(teFlowTable->numNodes(), 4);
 
   // Ensure that all entries are created
   for (const auto& prefix : initalPrefixes) {
     TeFlow flow;
     flow.dstPrefix() = ipPrefix(prefix, 64);
     flow.srcPort() = 100;
-    auto tableEntry = teFlowTable->getTeFlowIf(flow);
+    auto tableEntry = teFlowTable->getNodeIf(getTeFlowStr(flow));
     EXPECT_NE(tableEntry, nullptr);
   }
 
   TeFlow teFlow;
   teFlow.dstPrefix() = ipPrefix("100::1", 64);
   teFlow.srcPort() = 100;
-  auto teflowEntryBeforeSync = teFlowTable->getTeFlowIf(teFlow);
+  auto teflowEntryBeforeSync = teFlowTable->getNodeIf(getTeFlowStr(teFlow));
   auto syncPrefixes = {"100::1", "101::1", "104::1"};
   auto syncFlowEntries = std::make_unique<std::vector<FlowEntry>>();
   for (const auto& prefix : syncPrefixes) {
@@ -467,20 +472,20 @@ TEST_F(TeFlowTest, syncTeFlows) {
   }
   // sync teflow
   updateState("sync te flow", [&](const auto& state) {
-    auto newState =
-        teFlowSyncer.programFlowEntries(state, *syncFlowEntries, {}, true);
+    auto newState = teFlowSyncer.programFlowEntries(
+        scope(), state, *syncFlowEntries, {}, true);
     return newState;
   });
 
   state = sw_->getState();
   teFlowTable = state->getTeFlowTable();
-  EXPECT_EQ(teFlowTable->size(), 3);
+  EXPECT_EQ(teFlowTable->numNodes(), 3);
   // Ensure that newly added entries are present
   for (const auto& prefix : syncPrefixes) {
     TeFlow flow;
     flow.dstPrefix() = ipPrefix(prefix, 64);
     flow.srcPort() = 100;
-    auto tableEntry = teFlowTable->getTeFlowIf(flow);
+    auto tableEntry = teFlowTable->getNodeIf(getTeFlowStr(flow));
     EXPECT_NE(tableEntry, nullptr);
   }
   // Ensure that missing entries are removed
@@ -488,11 +493,11 @@ TEST_F(TeFlowTest, syncTeFlows) {
     TeFlow flow;
     flow.dstPrefix() = ipPrefix(prefix, 64);
     flow.srcPort() = 100;
-    auto tableEntry = teFlowTable->getTeFlowIf(flow);
+    auto tableEntry = teFlowTable->getNodeIf(getTeFlowStr(flow));
     EXPECT_EQ(tableEntry, nullptr);
   }
   // Ensure that pointer to entries and contents are same
-  auto teflowEntryAfterSync = teFlowTable->getTeFlowIf(teFlow);
+  auto teflowEntryAfterSync = teFlowTable->getNodeIf(getTeFlowStr(teFlow));
   EXPECT_EQ(teflowEntryBeforeSync, teflowEntryAfterSync);
   EXPECT_EQ(*teflowEntryBeforeSync, *teflowEntryAfterSync);
   // Sync with no change in entries and verify table is same
@@ -502,8 +507,8 @@ TEST_F(TeFlowTest, syncTeFlows) {
     syncFlowEntries2->emplace_back(flowEntry);
   }
   updateState("sync same te flow", [&](const auto& state) {
-    auto newState =
-        teFlowSyncer.programFlowEntries(state, *syncFlowEntries2, {}, true);
+    auto newState = teFlowSyncer.programFlowEntries(
+        scope(), state, *syncFlowEntries2, {}, true);
     return newState;
   });
   state = sw_->getState();
@@ -514,31 +519,31 @@ TEST_F(TeFlowTest, syncTeFlows) {
   // Update an entry and check the pointer and content changed
   teFlow.dstPrefix() = ipPrefix("104::1", 64);
   teFlow.srcPort() = 100;
-  teflowEntryBeforeSync = teFlowTable->getTeFlowIf(teFlow);
+  teflowEntryBeforeSync = teFlowTable->getNodeIf(getTeFlowStr(teFlow));
   auto updateEntries = std::make_unique<std::vector<FlowEntry>>();
   auto flowEntry1 = makeFlow("100::1");
   auto flowEntry2 = makeFlow("104::1", kNhopAddrA, "fboss1", "counter1");
   updateEntries->emplace_back(flowEntry1);
   updateEntries->emplace_back(flowEntry2);
   updateState("sync te flow for update", [&](const auto& state) {
-    auto newState =
-        teFlowSyncer.programFlowEntries(state, *updateEntries, {}, true);
+    auto newState = teFlowSyncer.programFlowEntries(
+        scope(), state, *updateEntries, {}, true);
     return newState;
   });
   state = sw_->getState();
   teFlowTable = state->getTeFlowTable();
-  teflowEntryAfterSync = teFlowTable->getTeFlowIf(teFlow);
+  teflowEntryAfterSync = teFlowTable->getNodeIf(getTeFlowStr(teFlow));
   // Ensure that pointer to entries and contents are different
   EXPECT_NE(teflowEntryBeforeSync, teflowEntryAfterSync);
   EXPECT_NE(*teflowEntryBeforeSync, *teflowEntryAfterSync);
   // sync flows with no entries
   auto nullFlowEntries = std::make_unique<std::vector<FlowEntry>>();
   updateState("sync null flow", [&](const auto& state) {
-    auto newState =
-        teFlowSyncer.programFlowEntries(state, *nullFlowEntries, {}, true);
+    auto newState = teFlowSyncer.programFlowEntries(
+        scope(), state, *nullFlowEntries, {}, true);
     return newState;
   });
   state = sw_->getState();
   teFlowTable = state->getTeFlowTable();
-  EXPECT_EQ(teFlowTable->size(), 0);
+  EXPECT_EQ(teFlowTable->numNodes(), 0);
 }

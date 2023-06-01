@@ -27,9 +27,11 @@ DECLARE_bool(mpls_rib);
 
 namespace facebook::fboss {
 class SwitchState;
-class ForwardingInformationBaseMap;
+class MultiSwitchForwardingInformationBaseMap;
+class SwitchIdScopeResolver;
 
 using FibUpdateFunction = std::function<std::shared_ptr<SwitchState>(
+    const SwitchIdScopeResolver* resolver,
     RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
     const IPv6NetworkToRouteMap& v6NetworkToRoute,
@@ -46,6 +48,7 @@ class RibRouteTables {
  public:
   template <typename RouteType, typename RouteIdType>
   void update(
+      const SwitchIdScopeResolver* resolver,
       RouterID routerID,
       ClientID clientID,
       AdminDistance adminDistanceFromClientID,
@@ -57,6 +60,7 @@ class RibRouteTables {
       void* cookie);
 
   void setClassID(
+      const SwitchIdScopeResolver* resolver,
       RouterID rid,
       const std::vector<folly::CIDRNetwork>& prefixes,
       FibUpdateFunction fibUpdateCallback,
@@ -77,6 +81,7 @@ class RibRouteTables {
       boost::container::flat_map<RouterID, PrefixToInterfaceIDAndIP>;
 
   void reconfigure(
+      const SwitchIdScopeResolver* resolver,
       const RouterIDAndNetworkToInterfaceRoutes&
           configRouterIDToInterfaceRoutes,
       const std::vector<cfg::StaticRouteWithNextHops>& staticRoutesWithNextHops,
@@ -89,23 +94,16 @@ class RibRouteTables {
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
       FibUpdateFunction fibUpdateCallback,
       void* cookie);
-  folly::dynamic toFollyDynamic() const;
-  folly::dynamic unresolvedRoutesFollyDynamic() const;
   /*
-   * FIB assisted fromFollyDynamicB. With shared data structure of routes
+   * FIB assisted fromThrift. With shared data structure of routes
    * all except the unresolved routes are shared b/w rib and FIB, so
    * we can simply reconstruct RIB by ser/deser unresolved routes
    * and importing FIB
    */
-  static RibRouteTables fromFollyDynamic(
-      const folly::dynamic& ribJson,
-      const std::shared_ptr<ForwardingInformationBaseMap>& fibs,
-      const std::shared_ptr<LabelForwardingInformationBase>& labelFib);
-
   static RibRouteTables fromThrift(
       const std::map<int32_t, state::RouteTableFields>& ribThrift,
-      const std::shared_ptr<ForwardingInformationBaseMap>& fibs,
-      const std::shared_ptr<LabelForwardingInformationBase>& labelFib);
+      const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
+      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib);
 
   void ensureVrf(RouterID rid);
   std::vector<RouterID> getVrfList() const;
@@ -123,8 +121,6 @@ class RibRouteTables {
   std::map<int32_t, state::RouteTableFields> warmBootState() const;
 
  private:
-  template <typename Filter>
-  folly::dynamic toFollyDynamicImpl(const Filter& filter) const;
   struct RouteTable {
     IPv4NetworkToRouteMap v4NetworkToRoute;
     IPv6NetworkToRouteMap v6NetworkToRoute;
@@ -153,6 +149,7 @@ class RibRouteTables {
   };
 
   void updateFib(
+      const SwitchIdScopeResolver* resolver,
       RouterID vrf,
       const FibUpdateFunction& fibUpdateCallback,
       void* cookie);
@@ -171,8 +168,8 @@ class RibRouteTables {
 
   void importFibs(
       const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,
-      const std::shared_ptr<ForwardingInformationBaseMap>& fibs,
-      const std::shared_ptr<LabelForwardingInformationBase>& labelFib);
+      const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
+      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFibs);
 
   RouterIDToRouteTable constructRouteTables(
       const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,
@@ -223,6 +220,7 @@ class RoutingInformationBase {
    * per client.
    */
   UpdateStatistics update(
+      const SwitchIdScopeResolver* resolver,
       RouterID routerID,
       ClientID clientID,
       AdminDistance adminDistanceFromClientID,
@@ -234,6 +232,7 @@ class RoutingInformationBase {
       void* cookie);
 
   UpdateStatistics update(
+      const SwitchIdScopeResolver* resolver,
       RouterID routerID,
       ClientID clientID,
       AdminDistance adminDistanceFromClientID,
@@ -257,6 +256,7 @@ class RoutingInformationBase {
       RibRouteTables::RouterIDAndNetworkToInterfaceRoutes;
 
   void reconfigure(
+      const SwitchIdScopeResolver* resolver,
       const RouterIDAndNetworkToInterfaceRoutes&
           configRouterIDToInterfaceRoutes,
       const std::vector<cfg::StaticRouteWithNextHops>& staticRoutesWithNextHops,
@@ -271,44 +271,37 @@ class RoutingInformationBase {
       void* cookie);
 
   void setClassID(
+      const SwitchIdScopeResolver* resolver,
       RouterID rid,
       const std::vector<folly::CIDRNetwork>& prefixes,
       FibUpdateFunction fibUpdateCallback,
       std::optional<cfg::AclLookupClass> classId,
       void* cookie) {
-    setClassIDImpl(rid, prefixes, fibUpdateCallback, classId, cookie, false);
+    setClassIDImpl(
+        resolver, rid, prefixes, fibUpdateCallback, classId, cookie, false);
   }
 
   void setClassIDAsync(
+      const SwitchIdScopeResolver* resolver,
       RouterID rid,
       const std::vector<folly::CIDRNetwork>& prefixes,
       FibUpdateFunction fibUpdateCallback,
       std::optional<cfg::AclLookupClass> classId,
       void* cookie) {
-    setClassIDImpl(rid, prefixes, fibUpdateCallback, classId, cookie, true);
+    setClassIDImpl(
+        resolver, rid, prefixes, fibUpdateCallback, classId, cookie, true);
   }
 
-  folly::dynamic toFollyDynamic() const {
-    return ribTables_.toFollyDynamic();
-  }
-  folly::dynamic unresolvedRoutesFollyDynamic() const {
-    return ribTables_.unresolvedRoutesFollyDynamic();
-  }
   /*
-   * FIB assisted fromFollyDynamicB. With shared data structure of routes
+   * FIB assisted fromThrift. With shared data structure of routes
    * all except the unresolved routes are shared b/w rib and FIB, so
    * we can simply reconstruct RIB by ser/deser unresolved routes
    * and importing FIB
    */
-  static std::unique_ptr<RoutingInformationBase> fromFollyDynamic(
-      const folly::dynamic& ribJson,
-      const std::shared_ptr<ForwardingInformationBaseMap>& fibs,
-      const std::shared_ptr<LabelForwardingInformationBase>& labelFib);
-
   static std::unique_ptr<RoutingInformationBase> fromThrift(
       const std::map<int32_t, state::RouteTableFields>& ribJson,
-      const std::shared_ptr<ForwardingInformationBaseMap>& fibs,
-      const std::shared_ptr<LabelForwardingInformationBase>& labelFib);
+      const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
+      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib);
 
   void ensureVrf(RouterID rid) {
     ribTables_.ensureVrf(rid);
@@ -344,6 +337,7 @@ class RoutingInformationBase {
  private:
   void ensureRunning() const;
   void setClassIDImpl(
+      const SwitchIdScopeResolver* resolver,
       RouterID rid,
       const std::vector<folly::CIDRNetwork>& prefixes,
       FibUpdateFunction fibUpdateCallback,
@@ -353,6 +347,7 @@ class RoutingInformationBase {
 
   template <typename TraitsType>
   UpdateStatistics updateImpl(
+      const SwitchIdScopeResolver* resolver,
       RouterID routerID,
       ClientID clientID,
       AdminDistance adminDistanceFromClientID,

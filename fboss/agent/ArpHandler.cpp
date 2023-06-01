@@ -96,7 +96,7 @@ void ArpHandler::handlePacket(
 
   // Look up the Vlan state.
   auto state = sw_->getState();
-  auto vlan = state->getVlans()->getVlanIf(sw_->getVlanIDHelper(vlanID));
+  auto vlan = state->getVlans()->getNodeIf(sw_->getVlanIDHelper(vlanID));
   if (!vlan) {
     // Hmm, we don't actually have this VLAN configured.
     // Perhaps the state has changed since we received the packet.
@@ -220,31 +220,34 @@ static void sendArp(
 }
 
 void ArpHandler::floodGratuituousArp() {
-  for (auto iter : std::as_const(*sw_->getState()->getInterfaces())) {
-    const auto& intf = iter.second;
-    // mostly for agent tests where we dont want to flood arp
-    // causing loop, when ports are in loopback
-    if (isAnyInterfacePortInLoopbackMode(sw_->getState(), intf)) {
-      XLOG(DBG2) << "Do not flood gratuituous arp on interface: "
-                 << intf->getName();
-      continue;
-    }
-    for (auto iter : std::as_const(*intf->getAddresses())) {
-      auto addrEntry = folly::IPAddress(iter.first);
-      if (!addrEntry.isV4()) {
+  for (const auto& [_, intfMap] :
+       std::as_const(*sw_->getState()->getInterfaces())) {
+    for (auto iiter : std::as_const(*intfMap)) {
+      const auto& intf = iiter.second;
+      // mostly for agent tests where we dont want to flood arp
+      // causing loop, when ports are in loopback
+      if (isAnyInterfacePortInLoopbackMode(sw_->getState(), intf)) {
+        XLOG(DBG2) << "Do not flood gratuituous arp on interface: "
+                   << intf->getName();
         continue;
       }
-      auto v4Addr = addrEntry.asV4();
-      // Gratuitous arps have both source and destination IPs set to
-      // originator's address
-      sendArp(
-          sw_,
-          intf->getVlanIDIf(),
-          ARP_OP_REQUEST,
-          intf->getMac(),
-          v4Addr,
-          MacAddress::BROADCAST,
-          v4Addr);
+      for (auto iter : std::as_const(*intf->getAddresses())) {
+        auto addrEntry = folly::IPAddress(iter.first);
+        if (!addrEntry.isV4()) {
+          continue;
+        }
+        auto v4Addr = addrEntry.asV4();
+        // Gratuitous arps have both source and destination IPs set to
+        // originator's address
+        sendArp(
+            sw_,
+            intf->getVlanIDIf(),
+            ARP_OP_REQUEST,
+            intf->getMac(),
+            v4Addr,
+            MacAddress::BROADCAST,
+            v4Addr);
+      }
     }
   }
 }
@@ -274,7 +277,7 @@ void ArpHandler::sendArpReply(
 
 void ArpHandler::sendArpRequest(
     SwSwitch* sw,
-    VlanID vlanID,
+    std::optional<VlanID> vlanID,
     const MacAddress& srcMac,
     const IPAddressV4& senderIP,
     const IPAddressV4& targetIP) {
@@ -293,25 +296,23 @@ void ArpHandler::sendArpRequest(
 
 void ArpHandler::sendArpRequest(
     SwSwitch* sw,
-    const shared_ptr<Vlan>& vlan,
-    const IPAddressV4& targetIP) {
-  auto state = sw->getState();
-  auto intfID = vlan->getInterfaceID();
+    const folly::IPAddressV4& targetIP) {
+  auto intf =
+      sw->getState()->getInterfaces()->getIntfToReach(RouterID(0), targetIP);
 
-  if (!Interface::isIpAttached(targetIP, intfID, state)) {
-    XLOG(DBG0) << "Cannot reach " << targetIP << " on interface " << intfID;
-    return;
-  }
-
-  auto intf = state->getInterfaces()->getInterfaceIf(intfID);
   if (!intf) {
-    XLOG(DBG0) << "Cannot find interface " << intfID;
+    XLOG(DBG0) << "Cannot find interface for " << targetIP;
     return;
   }
+
   auto addrToReach = intf->getAddressToReach(targetIP);
 
   sendArpRequest(
-      sw, vlan->getID(), intf->getMac(), addrToReach->first.asV4(), targetIP);
+      sw,
+      intf->getVlanIDIf(),
+      intf->getMac(),
+      addrToReach->first.asV4(),
+      targetIP);
 }
 
 } // namespace facebook::fboss

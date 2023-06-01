@@ -98,6 +98,8 @@ class HwTest : public ::testing::Test,
 
   std::vector<PortID> getAllPortsInGroup(PortID portID) const;
 
+  const SwitchIdScopeResolver& scopeResolver() const;
+
  protected:
   /*
    * Most tests don't want packet RX or link scan enabled while running. Other
@@ -108,7 +110,6 @@ class HwTest : public ::testing::Test,
   virtual HwSwitchEnsemble::Features featuresDesired() const {
     return {};
   }
-  SwitchIdScopeResolver scopeResolver() const;
 
   std::unique_ptr<HwSwitchEnsembleRouteUpdateWrapper> getRouteUpdater();
 

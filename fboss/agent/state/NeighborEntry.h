@@ -253,6 +253,23 @@ class NeighborEntry
     this->template set<switch_state_tags::type>(type);
   }
 
+  std::optional<int64_t> getResolvedSince() const {
+    if (auto resolvedSince =
+            this->template get<switch_state_tags::resolvedSince>()) {
+      return resolvedSince->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setResolvedSince(std::optional<int64_t> resolvedSince) {
+    if (resolvedSince.has_value()) {
+      this->template set<switch_state_tags::resolvedSince>(
+          resolvedSince.value());
+    } else {
+      this->template ref<switch_state_tags::resolvedSince>().reset();
+    }
+  }
+
   std::string str() const;
 
  private:

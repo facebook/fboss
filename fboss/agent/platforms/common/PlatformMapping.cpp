@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <folly/logging/xlog.h>
 #include <re2/re2.h>
@@ -407,6 +408,51 @@ std::set<uint8_t> PlatformMapping::getTransceiverHostLanes(
     tcvrHostLanes.insert(lane);
   }
   return tcvrHostLanes;
+}
+
+int PlatformMapping::getTransceiverIdFromSwPort(PortID swPort) const {
+  const auto& platformPorts = getPlatformPorts();
+  const auto& chips = getChips();
+
+  auto platformPortItr = platformPorts.find(static_cast<int32_t>(swPort));
+  if (platformPortItr == platformPorts.end()) {
+    throw FbossError("Can't find Platform Port for portId ", swPort);
+  }
+
+  auto tcvrID = utility::getTransceiverId(platformPortItr->second, chips);
+  if (tcvrID.has_value()) {
+    throw FbossError("Can't find Tcvr ID for portId ", swPort);
+  }
+
+  return tcvrID.value();
+}
+
+std::vector<PortID> PlatformMapping::getSwPortListFromTransceiverId(
+    int tcvrId) const {
+  std::optional<phy::DataPlanePhyChip> tcvrChip;
+  for (const auto& chip : getChips()) {
+    if (*chip.second.type() == phy::DataPlanePhyChipType::TRANSCEIVER &&
+        *chip.second.physicalID() == tcvrId) {
+      tcvrChip = chip.second;
+      break;
+    }
+  }
+  if (!tcvrChip) {
+    throw FbossError(
+        "Can't find transceiver: ", tcvrId, " from PlatformMapping");
+  }
+
+  const auto& platformPorts =
+      utility::getPlatformPortsByChip(getPlatformPorts(), *tcvrChip);
+  if (platformPorts.empty()) {
+    throw FbossError("Can't find platformPorts for transceiver: ", tcvrId);
+  }
+
+  std::vector<PortID> swPorts;
+  for (auto platformPort : platformPorts) {
+    swPorts.push_back(PortID(*platformPort.mapping()->id()));
+  }
+  return swPorts;
 }
 
 std::vector<phy::PinConfig> PlatformMapping::getPortXphySidePinConfigs(

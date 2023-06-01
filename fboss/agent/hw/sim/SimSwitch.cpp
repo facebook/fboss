@@ -39,7 +39,13 @@ HwInitResult SimSwitch::initImpl(
   auto state = make_shared<SwitchState>();
   for (uint32_t idx = 1; idx <= numPorts_; ++idx) {
     auto name = folly::to<string>("Port", idx);
-    state->registerPort(PortID(idx), name);
+    state::PortFields portFields;
+    portFields.portId() = PortID(idx);
+    portFields.portName() = name;
+    portFields.portType() = cfg::PortType::INTERFACE_PORT;
+    auto port = std::make_shared<Port>(std::move(portFields));
+    state->getPorts()->addNode(
+        port, HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID{0}})));
   }
   bootType_ = BootType::COLD_BOOT;
   ret.bootType = bootType_;

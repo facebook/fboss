@@ -102,7 +102,28 @@
       "switchId": 0,
       "exactMatchTableConfigs": [
 
-      ]
+      ],
+      "switchIdToSwitchType": {
+
+      },
+      "switchDrainState": 0,
+      "switchIdToSwitchInfo": {
+        "0": {
+            "switchType": 2,
+            "asicType": 11,
+            "switchIndex": 0,
+            "portIdRange": {
+              "minimum": 0,
+              "maximum": 1023
+            },
+            "systemPortRange": {
+              "minimum": 100,
+              "maximum": 120
+            },
+            "switchMac": "02:00:00:00:00:01",
+            "connectionHandle": "68:00"
+        }
+      }
     },
     "dsfNodes": {
       "0": {

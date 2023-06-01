@@ -9,6 +9,16 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
+#if defined(SAI_VERSION_9_0_EA_SIM_ODP) ||     \
+    defined(SAI_VERSION_9_0_EA_DNX_ODP) ||     \
+    defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP) || \
+    defined(SAI_VERSION_10_0_EA_DNX_ODP)
+#ifndef IS_OSS_BRCM_SAI
+#include <experimental/saiportextensions.h>
+#else
+#include <saiportextensions.h>
+#endif
+#endif
 #include "fboss/agent/FbossError.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
@@ -26,6 +36,50 @@ sai_port_flow_control_mode_t getSaiPortPauseMode(cfg::PortPause pause) {
   }
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+sai_port_loopback_mode_t getSaiPortLoopbackMode(
+    cfg::PortLoopbackMode loopbackMode) {
+  switch (loopbackMode) {
+    case cfg::PortLoopbackMode::NONE:
+      return SAI_PORT_LOOPBACK_MODE_NONE;
+    case cfg::PortLoopbackMode::PHY:
+      return SAI_PORT_LOOPBACK_MODE_PHY;
+    case cfg::PortLoopbackMode::MAC:
+      return SAI_PORT_LOOPBACK_MODE_MAC;
+    case cfg::PortLoopbackMode::NIF:
+#if defined(SAI_VERSION_9_0_EA_SIM_ODP) ||     \
+    defined(SAI_VERSION_9_0_EA_DNX_ODP) ||     \
+    defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP) || \
+    defined(SAI_VERSION_10_0_EA_DNX_ODP)
+      // since this one is not an enum for now
+      return static_cast<sai_port_loopback_mode_t>(SAI_PORT_LOOPBACK_MODE_NIF);
+#else
+      break;
+#endif
+  }
+  throw FbossError("Bad loopback mode: ", (int)loopbackMode);
+}
+
+cfg::PortLoopbackMode getCfgPortLoopbackMode(sai_port_loopback_mode_t mode) {
+  switch (static_cast<int>(mode)) {
+    case SAI_PORT_LOOPBACK_MODE_NONE:
+      return cfg::PortLoopbackMode::NONE;
+    case SAI_PORT_LOOPBACK_MODE_PHY:
+      return cfg::PortLoopbackMode::PHY;
+    case SAI_PORT_LOOPBACK_MODE_MAC:
+      return cfg::PortLoopbackMode::MAC;
+#if defined(SAI_VERSION_9_0_EA_SIM_ODP) ||     \
+    defined(SAI_VERSION_9_0_EA_DNX_ODP) ||     \
+    defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP) || \
+    defined(SAI_VERSION_10_0_EA_DNX_ODP)
+    case SAI_PORT_LOOPBACK_MODE_NIF:
+      return cfg::PortLoopbackMode::NIF;
+#endif
+  }
+  throw FbossError("Bad sai_port_loopback mode: ", (int)mode);
+}
+
+#endif
 sai_port_internal_loopback_mode_t getSaiPortInternalLoopbackMode(
     cfg::PortLoopbackMode loopbackMode) {
   switch (loopbackMode) {

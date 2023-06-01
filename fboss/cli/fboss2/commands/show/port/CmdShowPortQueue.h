@@ -73,7 +73,7 @@ class CmdShowPortQueue
           "Mode",
           "Weight",
           "ReservedBytes",
-          "SharedBytes");
+          "ScalingFactor");
       std::cout << std::string(90, '-') << std::endl;
 
       for (auto const& queue : portInfo.get_portQueues()) {

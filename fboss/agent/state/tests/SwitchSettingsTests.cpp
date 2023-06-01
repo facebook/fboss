@@ -8,12 +8,19 @@
  *
  */
 #include <fboss/agent/gen-cpp2/switch_config_types.h>
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 
 using namespace facebook::fboss;
 using std::make_shared;
+
+namespace {
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+} // namespace
 
 TEST(SwitchSettingsTest, applyL2LearningConfig) {
   auto platform = createMockPlatform();
@@ -24,7 +31,7 @@ TEST(SwitchSettingsTest, applyL2LearningConfig) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
 
-  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  auto switchSettingsV1 = util::getFirstNodeIf(stateV1->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV1);
   EXPECT_FALSE(switchSettingsV1->isPublished());
   EXPECT_EQ(
@@ -38,7 +45,7 @@ TEST(SwitchSettingsTest, applyL2LearningConfig) {
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
 
-  auto switchSettingsV2 = stateV2->getSwitchSettings();
+  auto switchSettingsV2 = util::getFirstNodeIf(stateV2->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV2);
   EXPECT_FALSE(switchSettingsV2->isPublished());
   EXPECT_EQ(
@@ -57,7 +64,7 @@ TEST(SwitchSettingsTest, applySwitchDrainState) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
 
-  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  auto switchSettingsV1 = util::getFirstNodeIf(stateV1->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV1);
   EXPECT_FALSE(switchSettingsV1->isPublished());
   EXPECT_EQ(
@@ -69,7 +76,7 @@ TEST(SwitchSettingsTest, applySwitchDrainState) {
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
 
-  auto switchSettingsV2 = stateV2->getSwitchSettings();
+  auto switchSettingsV2 = util::getFirstNodeIf(stateV2->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV2);
   EXPECT_FALSE(switchSettingsV2->isPublished());
   EXPECT_EQ(
@@ -104,7 +111,7 @@ TEST(SwitchSettingsTest, applyQcmConfig) {
   *config.switchSettings()->qcmEnable() = true;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
-  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  auto switchSettingsV1 = util::getFirstNodeIf(stateV1->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV1);
   EXPECT_FALSE(switchSettingsV1->isPublished());
   EXPECT_TRUE(switchSettingsV1->isQcmEnable());
@@ -116,7 +123,7 @@ TEST(SwitchSettingsTest, applyQcmConfig) {
   *config.switchSettings()->qcmEnable() = false;
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
-  auto switchSettingsV2 = stateV2->getSwitchSettings();
+  auto switchSettingsV2 = util::getFirstNodeIf(stateV2->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV2);
   EXPECT_FALSE(switchSettingsV2->isPublished());
   EXPECT_FALSE(switchSettingsV2->isQcmEnable());
@@ -133,7 +140,7 @@ TEST(SwitchSettingsTest, applyPtpTcEnable) {
   config.switchSettings()->ptpTcEnable() = true;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
-  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  auto switchSettingsV1 = util::getFirstNodeIf(stateV1->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV1);
   EXPECT_FALSE(switchSettingsV1->isPublished());
   EXPECT_TRUE(switchSettingsV1->isPtpTcEnable());
@@ -141,7 +148,7 @@ TEST(SwitchSettingsTest, applyPtpTcEnable) {
   config.switchSettings()->ptpTcEnable() = false;
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
-  auto switchSettingsV2 = stateV2->getSwitchSettings();
+  auto switchSettingsV2 = util::getFirstNodeIf(stateV2->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV2);
   EXPECT_FALSE(switchSettingsV2->isPublished());
   EXPECT_FALSE(switchSettingsV2->isPtpTcEnable());
@@ -151,10 +158,11 @@ TEST(SwitchSettingsTest, applyPtpTcEnable) {
 TEST(SwitchSettingsTest, applyL2AgeTimerSeconds) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchSettingsToState(stateV0);
 
   // Check default value
   auto l2AgeTimerSeconds = 300;
-  auto switchSettingsV0 = stateV0->getSwitchSettings();
+  auto switchSettingsV0 = util::getFirstNodeIf(stateV0->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV0);
   EXPECT_FALSE(switchSettingsV0->isPublished());
   EXPECT_EQ(l2AgeTimerSeconds, switchSettingsV0->getL2AgeTimerSeconds());
@@ -165,7 +173,7 @@ TEST(SwitchSettingsTest, applyL2AgeTimerSeconds) {
   config.switchSettings()->l2AgeTimerSeconds() = l2AgeTimerSeconds;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
-  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  auto switchSettingsV1 = util::getFirstNodeIf(stateV1->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV1);
   EXPECT_FALSE(switchSettingsV1->isPublished());
   EXPECT_EQ(l2AgeTimerSeconds, switchSettingsV1->getL2AgeTimerSeconds());
@@ -174,10 +182,11 @@ TEST(SwitchSettingsTest, applyL2AgeTimerSeconds) {
 TEST(SwitchSettingsTest, applyMaxRouteCounterIDs) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchSettingsToState(stateV0);
 
   // Check default value
   auto maxRouteCounterIDs = 0;
-  auto switchSettingsV0 = stateV0->getSwitchSettings();
+  auto switchSettingsV0 = util::getFirstNodeIf(stateV0->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV0);
   EXPECT_FALSE(switchSettingsV0->isPublished());
   EXPECT_EQ(maxRouteCounterIDs, switchSettingsV0->getMaxRouteCounterIDs());
@@ -188,7 +197,7 @@ TEST(SwitchSettingsTest, applyMaxRouteCounterIDs) {
   config.switchSettings()->maxRouteCounterIDs() = maxRouteCounterIDs;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
-  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  auto switchSettingsV1 = util::getFirstNodeIf(stateV1->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV1);
   EXPECT_FALSE(switchSettingsV1->isPublished());
   EXPECT_EQ(maxRouteCounterIDs, switchSettingsV1->getMaxRouteCounterIDs());
@@ -197,9 +206,10 @@ TEST(SwitchSettingsTest, applyMaxRouteCounterIDs) {
 TEST(SwitchSettingsTest, applyBlockNeighbors) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchSettingsToState(stateV0);
 
   // Check default value
-  auto switchSettingsV0 = stateV0->getSwitchSettings();
+  auto switchSettingsV0 = util::getFirstNodeIf(stateV0->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV0);
   EXPECT_EQ(switchSettingsV0->getBlockNeighbors()->size(), 0);
 
@@ -213,7 +223,7 @@ TEST(SwitchSettingsTest, applyBlockNeighbors) {
   config.switchSettings()->blockNeighbors() = {blockNeighbor};
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
-  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  auto switchSettingsV1 = util::getFirstNodeIf(stateV1->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV1);
   EXPECT_FALSE(switchSettingsV1->isPublished());
   EXPECT_EQ(switchSettingsV1->getBlockNeighbors()->size(), 1);
@@ -236,9 +246,10 @@ TEST(SwitchSettingsTest, applyBlockNeighbors) {
 TEST(SwitchSettingsTest, applyMacAddrsToBlock) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchSettingsToState(stateV0);
 
   // Check default value
-  auto switchSettingsV0 = stateV0->getSwitchSettings();
+  auto switchSettingsV0 = util::getFirstNodeIf(stateV0->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV0);
   EXPECT_EQ(switchSettingsV0->getMacAddrsToBlock()->size(), 0);
 
@@ -252,7 +263,7 @@ TEST(SwitchSettingsTest, applyMacAddrsToBlock) {
   config.switchSettings()->macAddrsToBlock() = {macAddrToBlock};
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
-  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  auto switchSettingsV1 = util::getFirstNodeIf(stateV1->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV1);
   EXPECT_FALSE(switchSettingsV1->isPublished());
   EXPECT_EQ(switchSettingsV1->getMacAddrsToBlock()->size(), 1);
@@ -302,18 +313,20 @@ TEST(SwitchSettingsTest, ThrifyMigration) {
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
-  EXPECT_EQ(
-      *stateV1->getSwitchSettings()->l3SwitchType(), cfg::SwitchType::NPU);
-  EXPECT_TRUE(stateV1->getSwitchSettings()->vlansSupported());
-  validateNodeSerialization(*stateV1->getSwitchSettings());
+  auto switchSettingsV1 = util::getFirstNodeIf(stateV1->getSwitchSettings());
+  EXPECT_EQ(*switchSettingsV1->l3SwitchType(), cfg::SwitchType::NPU);
+  EXPECT_TRUE(switchSettingsV1->vlansSupported());
+  validateThriftMapMapSerialization(*stateV1->getSwitchSettings());
 }
 
 TEST(SwitchSettingsTest, applyVoqSwitch) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchSettingsToState(
+      stateV0, make_shared<SwitchSettings>(), 1 /*switchId*/);
 
   // Check default value
-  auto switchSettingsV0 = stateV0->getSwitchSettings();
+  auto switchSettingsV0 = util::getFirstNodeIf(stateV0->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV0);
   EXPECT_EQ(switchSettingsV0->getBlockNeighbors()->size(), 0);
 
@@ -321,7 +334,7 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   cfg::SwitchConfig config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
-  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  auto switchSettingsV1 = util::getFirstNodeIf(stateV1->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV1);
   EXPECT_FALSE(switchSettingsV1->isPublished());
   EXPECT_EQ(switchSettingsV1->getSwitchIds().size(), 1);
@@ -330,26 +343,29 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   auto switchInfo = switchSettingsV1->getSwitchIdToSwitchInfo().at(1);
   EXPECT_EQ(switchInfo.switchType(), cfg::SwitchType::VOQ);
   EXPECT_EQ(switchInfo.switchIndex(), 0);
-  EXPECT_EQ(switchInfo.portIdRange()->minimum(), 0);
-  EXPECT_EQ(switchInfo.portIdRange()->maximum(), 1023);
   EXPECT_EQ(
-      *stateV1->getSwitchSettings()->l3SwitchType(), cfg::SwitchType::VOQ);
+      switchInfo.portIdRange()->minimum(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN());
   EXPECT_EQ(
-      stateV1->getSwitchSettings()
-          ->getSwitchIdsOfType(cfg::SwitchType::VOQ)
-          .size(),
-      1);
+      switchInfo.portIdRange()->maximum(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX());
+  EXPECT_EQ(*switchSettingsV1->l3SwitchType(), cfg::SwitchType::VOQ);
   EXPECT_EQ(
-      stateV1->getSwitchSettings()
-          ->getSwitchIdsOfType(cfg::SwitchType::NPU)
-          .size(),
-      0);
-  EXPECT_FALSE(stateV1->getSwitchSettings()->vlansSupported());
+      switchSettingsV1->getSwitchIdsOfType(cfg::SwitchType::VOQ).size(), 1);
+  EXPECT_EQ(
+      switchSettingsV1->getSwitchIdsOfType(cfg::SwitchType::NPU).size(), 0);
+  EXPECT_FALSE(switchSettingsV1->vlansSupported());
   EXPECT_EQ(switchInfo.asicType(), cfg::AsicType::ASIC_TYPE_MOCK);
   EXPECT_THROW(switchSettingsV1->getSwitchType(0), FbossError);
   cfg::SwitchInfo switchInfo2;
   switchInfo2.switchType() = cfg::SwitchType::FABRIC;
   switchInfo2.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
+  cfg::Range64 portIdRange;
+  portIdRange.minimum() =
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN();
+  portIdRange.maximum() =
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
+  switchInfo2.portIdRange() = portIdRange;
   config.switchSettings()->switchIdToSwitchInfo() = {
       std::make_pair(2, switchInfo2)};
   EXPECT_THROW(
@@ -357,28 +373,39 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   // Should allow range and switchIndex changes
   // TODO - block this after config is rolled out everywhere
   switchInfo2.switchType() = cfg::SwitchType::VOQ;
-  cfg::Range64 portIdRange;
-  portIdRange.minimum() = 1024;
-  portIdRange.maximum() = 2047;
-  switchInfo2.portIdRange() = portIdRange;
+  cfg::Range64 portIdRange2;
+  portIdRange2.minimum() =
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN();
+  portIdRange2.maximum() =
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX() + 1;
+  switchInfo2.portIdRange() = portIdRange2;
+  cfg::Range64 sysPortRange;
+  sysPortRange.minimum() = 100;
+  sysPortRange.maximum() = 200;
+  switchInfo2.systemPortRange() = sysPortRange;
   config.switchSettings()->switchIdToSwitchInfo() = {
       std::make_pair(1, switchInfo2)};
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
-  auto switchSettingsV2 = stateV2->getSwitchSettings();
+  auto switchSettingsV2 = util::getFirstNodeIf(stateV2->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV2);
   auto switchInfo3 = switchSettingsV2->getSwitchIdToSwitchInfo().at(1);
-  EXPECT_EQ(switchInfo3.portIdRange()->minimum(), 1024);
-  EXPECT_EQ(switchInfo3.portIdRange()->maximum(), 2047);
+  EXPECT_EQ(
+      switchInfo3.portIdRange()->minimum(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN());
+  EXPECT_EQ(
+      switchInfo3.portIdRange()->maximum(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX() + 1);
   validateNodeSerialization(*switchSettingsV1);
 }
 
 TEST(SwitchSettingsTest, applyExactMatchTableConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchSettingsToState(stateV0);
 
   // Check default value
-  auto switchSettingsV0 = stateV0->getSwitchSettings();
+  auto switchSettingsV0 = util::getFirstNodeIf(stateV0->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV0);
   EXPECT_EQ(switchSettingsV0->getExactMatchTableConfig()->size(), 0);
 
@@ -392,7 +419,7 @@ TEST(SwitchSettingsTest, applyExactMatchTableConfig) {
   config.switchSettings()->exactMatchTableConfigs() = {tableConfig};
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
-  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  auto switchSettingsV1 = util::getFirstNodeIf(stateV1->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV1);
   EXPECT_FALSE(switchSettingsV1->isPublished());
   EXPECT_EQ(switchSettingsV1->getExactMatchTableConfig()->size(), 1);
@@ -415,7 +442,7 @@ TEST(SwitchSettingsTest, applyExactMatchTableConfig) {
       51;
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_EQ(
-      stateV2->getSwitchSettings()
+      util::getFirstNodeIf(stateV2->getSwitchSettings())
           ->getExactMatchTableConfig()
           ->at(0)
           ->cref<switch_config_tags::dstPrefixLength>()
@@ -427,15 +454,19 @@ TEST(SwitchSettingsTest, applyExactMatchTableConfig) {
   auto stateV3 = publishAndApplyConfig(stateV2, &emptyConfig, platform.get());
   EXPECT_NE(nullptr, stateV3);
   EXPECT_EQ(
-      stateV3->getSwitchSettings()->getExactMatchTableConfig()->size(), 0);
+      util::getFirstNodeIf(stateV3->getSwitchSettings())
+          ->getExactMatchTableConfig()
+          ->size(),
+      0);
 }
 
 TEST(SwitchSettingsTest, applyDefaultVlanConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchSettingsToState(stateV0);
 
   // Check default value
-  auto switchSettingsV0 = stateV0->getSwitchSettings();
+  auto switchSettingsV0 = util::getFirstNodeIf(stateV0->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV0);
   EXPECT_EQ(switchSettingsV0->getDefaultVlan(), std::nullopt);
 
@@ -445,7 +476,7 @@ TEST(SwitchSettingsTest, applyDefaultVlanConfig) {
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
-  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  auto switchSettingsV1 = util::getFirstNodeIf(stateV1->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV1);
   EXPECT_FALSE(switchSettingsV1->isPublished());
   EXPECT_EQ(switchSettingsV1->getDefaultVlan(), 1);
@@ -458,9 +489,10 @@ TEST(SwitchSettingsTest, applyDefaultVlanConfig) {
 TEST(SwitchSettingsTest, applyArpNdpTimeoutConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchSettingsToState(stateV0);
 
   // Check default value
-  auto switchSettingsV0 = stateV0->getSwitchSettings();
+  auto switchSettingsV0 = util::getFirstNodeIf(stateV0->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV0);
   EXPECT_EQ(switchSettingsV0->getArpTimeout(), std::nullopt);
   EXPECT_EQ(switchSettingsV0->getNdpTimeout(), std::nullopt);
@@ -477,7 +509,7 @@ TEST(SwitchSettingsTest, applyArpNdpTimeoutConfig) {
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
-  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  auto switchSettingsV1 = util::getFirstNodeIf(stateV1->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV1);
   EXPECT_FALSE(switchSettingsV1->isPublished());
   EXPECT_EQ(switchSettingsV1->getArpTimeout(), std::chrono::seconds(300));
@@ -503,6 +535,7 @@ TEST(SwitchSettingsTest, applyArpNdpTimeoutConfig) {
 TEST(SwitchSettingsTest, applyDhcpConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchSettingsToState(stateV0);
 
   const folly::IPAddressV6 kDhcpV6RelaySrc("100::1");
   const folly::IPAddressV6 kDhcpV6ReplySrc("101::1");
@@ -510,7 +543,7 @@ TEST(SwitchSettingsTest, applyDhcpConfig) {
   const folly::IPAddressV4 kDhcpV4ReplySrc("101.0.0.1");
 
   // Check default value
-  auto switchSettingsV0 = stateV0->getSwitchSettings();
+  auto switchSettingsV0 = util::getFirstNodeIf(stateV0->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV0);
   EXPECT_EQ(switchSettingsV0->getDhcpV4RelaySrc(), std::nullopt);
   EXPECT_EQ(switchSettingsV0->getDhcpV6RelaySrc(), std::nullopt);
@@ -526,7 +559,7 @@ TEST(SwitchSettingsTest, applyDhcpConfig) {
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
-  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  auto switchSettingsV1 = util::getFirstNodeIf(stateV1->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV1);
   EXPECT_FALSE(switchSettingsV1->isPublished());
   EXPECT_EQ(switchSettingsV1->getDhcpV4RelaySrc(), kDhcpV4RelaySrc);
@@ -559,4 +592,19 @@ TEST(SwitchSettingsTest, applyDhcpConfig) {
   EXPECT_EQ(
       thriftState0.switchSettings()->dhcpV6ReplySrc(),
       facebook::network::toBinaryAddress(kDhcpV6ReplySrc));
+}
+
+TEST(SwitchSettingsTest, modify) {
+  auto stateV0 = make_shared<SwitchState>();
+  auto multiSwitchSwitchSettingsV0 = make_shared<MultiSwitchSettings>();
+  auto switchSettingsV0 = make_shared<SwitchSettings>();
+  multiSwitchSwitchSettingsV0->addNode(
+      scope().matcherString(), switchSettingsV0);
+  stateV0->resetSwitchSettings(multiSwitchSwitchSettingsV0);
+  EXPECT_EQ(switchSettingsV0.get(), switchSettingsV0->modify(&stateV0));
+  stateV0->publish();
+  auto newSwitchSettingsV0 = switchSettingsV0->modify(&stateV0);
+  EXPECT_NE(newSwitchSettingsV0, switchSettingsV0.get());
+  EXPECT_NE(
+      stateV0->getSwitchSettings().get(), multiSwitchSwitchSettingsV0.get());
 }

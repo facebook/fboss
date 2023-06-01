@@ -57,6 +57,7 @@ class PortStoreTest : public SaiStoreTest {
           std::nullopt, // Inter Frame Gap
 #endif
           std::nullopt, // Link Training Enable
+          std::nullopt, // Rx Lane Squelch Enable
     };
   }
 

@@ -60,6 +60,9 @@ class NeighborUpdater : public StateObserver {
 
   void stateUpdated(const StateDelta& delta) override;
 
+  void processInterfaceUpdates(const StateDelta& stateDelta);
+  void processVlanUpdates(const StateDelta& stateDelta);
+
   // Zero-cost forwarders. See comment in NeighborUpdater-defs.h.
 #define ARG_TEMPLATE_PARAMETER(TYPE, NAME) typename T_##NAME
 #define ARG_RVALUE_REF_TYPE(TYPE, NAME) T_##NAME&& NAME
@@ -109,7 +112,11 @@ class NeighborUpdater : public StateObserver {
   void aggregatePortChanged(
       const std::shared_ptr<AggregatePort>& oldAggPort,
       const std::shared_ptr<AggregatePort>& newAggPort);
+
+  // TODO(skhare) Remove after completely migrating to intfCaches_
   void sendNeighborUpdates(const VlanDelta& delta);
+
+  void sendNeighborUpdatesForIntf(const InterfaceDelta& delta);
 
   // Forbidden copy constructor and assignment operator
   NeighborUpdater(NeighborUpdater const&) = delete;

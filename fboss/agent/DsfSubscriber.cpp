@@ -4,11 +4,13 @@
 #include <fb303/ServiceData.h>
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/state/DsfNode.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/SystemPortMap.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
@@ -26,7 +28,6 @@ namespace facebook::fboss {
 using ThriftMapTypeClass = apache::thrift::type_class::map<
     apache::thrift::type_class::integral,
     apache::thrift::type_class::structure>;
-using SysPortMapThriftType = std::map<int64_t, state::SystemPortFields>;
 
 DsfSubscriber::DsfSubscriber(SwSwitch* sw) : sw_(sw) {
   sw_->registerStateObserver(this, "DSFSubscriber");
@@ -85,9 +86,42 @@ void DsfSubscriber::scheduleUpdate(
           return false;
         };
 
+        auto updateResolvedTimestamp = [&](const auto& oldTable,
+                                           const auto& nbrEntryIter) {
+          // If dynamic neighbor entry got added the first time, update
+          // the resolved timestamp.
+          if (nbrEntryIter->second->getType() ==
+                  state::NeighborEntryType::DYNAMIC_ENTRY &&
+              (!oldTable ||
+               (std::as_const(*oldTable).find(nbrEntryIter->second->getID())) ==
+                   oldTable->cend())) {
+            nbrEntryIter->second->setResolvedSince(
+                static_cast<int64_t>(std::time(nullptr)));
+          } else {
+            // Retain the resolved timestamp from the old entry.
+            nbrEntryIter->second->setResolvedSince(
+                oldTable->at(nbrEntryIter->second->getID())
+                    ->getResolvedSince());
+          }
+        };
+
+        auto updateNeighborEntry = [&](const auto& oldTable,
+                                       const auto& clonedTable) {
+          auto nbrEntryIter = clonedTable->begin();
+          while (nbrEntryIter != clonedTable->end()) {
+            if (skipProgramming(nbrEntryIter)) {
+              nbrEntryIter = clonedTable->erase(nbrEntryIter);
+            } else {
+              nbrEntryIter->second->setIsLocal(false);
+              updateResolvedTimestamp(oldTable, nbrEntryIter);
+              ++nbrEntryIter;
+            }
+          }
+        };
+
         auto makeRemoteSysPort = [&](const auto& /*oldNode*/,
                                      const auto& newNode) { return newNode; };
-        auto makeRemoteRif = [&](const auto& /*oldNode*/, const auto& newNode) {
+        auto makeRemoteRif = [&](const auto& oldNode, const auto& newNode) {
           auto clonedNode = newNode->clone();
 
           if (newNode->isPublished()) {
@@ -95,59 +129,64 @@ void DsfSubscriber::scheduleUpdate(
             clonedNode->setNdpTable(newNode->getNdpTable()->toThrift());
           }
 
-          auto arpEntryIter = (*clonedNode->getArpTable()).begin();
-          while (arpEntryIter != (*clonedNode->getArpTable()).end()) {
-            if (skipProgramming(arpEntryIter)) {
-              arpEntryIter = (*clonedNode->getArpTable()).erase(arpEntryIter);
-            } else {
-              arpEntryIter->second->setIsLocal(false);
-              ++arpEntryIter;
-            }
-          }
-
-          auto ndpEntryIter = (*clonedNode->getNdpTable()).begin();
-          while (ndpEntryIter != (*clonedNode->getNdpTable()).end()) {
-            if (skipProgramming(ndpEntryIter)) {
-              ndpEntryIter = (*clonedNode->getNdpTable()).erase(ndpEntryIter);
-            } else {
-              ndpEntryIter->second->setIsLocal(false);
-              ++ndpEntryIter;
-            }
-          }
+          updateNeighborEntry(
+              oldNode ? oldNode->getArpTable() : nullptr,
+              clonedNode->getArpTable());
+          updateNeighborEntry(
+              oldNode ? oldNode->getNdpTable() : nullptr,
+              clonedNode->getNdpTable());
 
           return clonedNode;
         };
 
-        auto processDelta =
-            [&](auto& delta, auto& mapToUpdate, auto& makeRemote) {
-              DeltaFunctions::forEachChanged(
-                  delta,
-                  [&](const auto& oldNode, const auto& newNode) {
-                    if (*oldNode != *newNode) {
-                      // Compare contents as we reconstructed
-                      // map from deserialized FSDB
-                      // subscriptions. So can't just rely on
-                      // pointer comparison here.
-                      auto clonedNode = makeRemote(oldNode, newNode);
-                      mapToUpdate->updateNode(clonedNode);
-                      changed = true;
-                    }
-                  },
-                  [&](const auto& newNode) {
-                    auto clonedNode = makeRemote(
-                        std::decay_t<decltype(newNode)>{nullptr}, newNode);
-                    mapToUpdate->addNode(clonedNode);
-                    changed = true;
-                  },
-                  [&](const auto& rmNode) {
-                    mapToUpdate->removeNode(rmNode);
-                    changed = true;
-                  });
-            };
+        auto processDelta = [&]<typename MapT>(
+                                auto& delta,
+                                MapT* mapToUpdate,
+                                auto& makeRemote) {
+          const auto& scopeResolver = sw_->getScopeResolver();
+          DeltaFunctions::forEachChanged(
+              delta,
+              [&](const auto& oldNode, const auto& newNode) {
+                if (*oldNode != *newNode) {
+                  // Compare contents as we reconstructed
+                  // map from deserialized FSDB
+                  // subscriptions. So can't just rely on
+                  // pointer comparison here.
+                  auto clonedNode = makeRemote(oldNode, newNode);
+                  if constexpr (std::
+                                    is_same_v<MapT, MultiSwitchSystemPortMap>) {
+                    mapToUpdate->updateNode(
+                        clonedNode, scopeResolver->scope(clonedNode));
+                  } else {
+                    mapToUpdate->updateNode(
+                        clonedNode,
+                        scopeResolver->scope(clonedNode, sw_->getState()));
+                  }
+                  changed = true;
+                }
+              },
+              [&](const auto& newNode) {
+                auto clonedNode = makeRemote(
+                    std::decay_t<decltype(newNode)>{nullptr}, newNode);
+                if constexpr (std::is_same_v<MapT, MultiSwitchSystemPortMap>) {
+                  mapToUpdate->addNode(
+                      clonedNode, scopeResolver->scope(clonedNode));
+                } else {
+                  mapToUpdate->addNode(
+                      clonedNode,
+                      scopeResolver->scope(clonedNode, sw_->getState()));
+                }
+                changed = true;
+              },
+              [&](const auto& rmNode) {
+                mapToUpdate->removeNode(rmNode);
+                changed = true;
+              });
+        };
 
         if (newSysPorts) {
           auto origSysPorts = out->getSystemPorts(nodeSwitchId);
-          thrift_cow::ThriftMapDelta<SystemPortMap> delta(
+          ThriftMapDelta<SystemPortMap> delta(
               origSysPorts.get(), newSysPorts.get());
           auto remoteSysPorts = out->getRemoteSystemPorts()->modify(&out);
           processDelta(delta, remoteSysPorts, makeRemoteSysPort);
@@ -215,10 +254,12 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     //  dstIP = inband IP of that DSF node
     //  dstPort = FSDB port
     //  srcIP = self inband IP
+    //  priority = CRITICAL
     auto serverOptions = fsdb::FsdbStreamClient::ServerOptions(
         getLoopbackIp(node),
         FLAGS_fsdbPort,
-        (*localDsfNode->getLoopbackIpsSorted().begin()).first.str());
+        (*localDsfNode->getLoopbackIpsSorted().begin()).first.str(),
+        fsdb::FsdbStreamClient::Priority::CRITICAL);
 
     return serverOptions;
   };
@@ -246,20 +287,20 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
           for (const auto& change : *operStateUnit.changes()) {
             if (change.path()->path() == getSystemPortsPath()) {
               XLOG(DBG2) << " Got sys port update from : " << nodeName;
-              newSysPorts = std::make_shared<SystemPortMap>();
-              newSysPorts->fromThrift(
-                  thrift_cow::
-                      deserialize<ThriftMapTypeClass, SysPortMapThriftType>(
-                          fsdb::OperProtocol::BINARY,
-                          *change.state()->contents()));
+              MultiSwitchSystemPortMap mswitchSysPorts;
+              mswitchSysPorts.fromThrift(thrift_cow::deserialize<
+                                         MultiSwitchSystemPortMapTypeClass,
+                                         MultiSwitchSystemPortMapThriftType>(
+                  fsdb::OperProtocol::BINARY, *change.state()->contents()));
+              newSysPorts = mswitchSysPorts.getAllNodes();
             } else if (change.path()->path() == getInterfacesPath()) {
               XLOG(DBG2) << " Got rif update from : " << nodeName;
-              newRifs = std::make_shared<InterfaceMap>();
-              newRifs->fromThrift(
-                  thrift_cow::
-                      deserialize<ThriftMapTypeClass, InterfaceMapThriftType>(
-                          fsdb::OperProtocol::BINARY,
-                          *change.state()->contents()));
+              MultiSwitchInterfaceMap mswitchIntfs;
+              mswitchIntfs.fromThrift(thrift_cow::deserialize<
+                                      MultiSwitchInterfaceMapTypeClass,
+                                      MultiSwitchInterfaceMapThriftType>(
+                  fsdb::OperProtocol::BINARY, *change.state()->contents()));
+              newRifs = mswitchIntfs.getAllNodes();
             } else {
               throw FbossError(
                   " Got unexpected state update for : ",

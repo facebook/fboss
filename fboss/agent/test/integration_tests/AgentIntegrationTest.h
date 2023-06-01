@@ -16,6 +16,7 @@ DECLARE_string(config);
 namespace facebook::fboss {
 class AgentIntegrationTest : public AgentHwTest {
  protected:
+  void SetUp() override;
   cfg::SwitchConfig initialConfig() const override;
 };
 

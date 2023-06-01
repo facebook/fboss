@@ -32,7 +32,6 @@ SUBCLASS* NeighborTable<IPADDR, ENTRY, SUBCLASS>::modify(
     CHECK(!(*state)->isPublished());
     return boost::polymorphic_downcast<SUBCLASS*>(this);
   }
-
   *vlan = (*vlan)->modify(state);
   auto newTable = this->clone();
   auto* ptr = newTable.get();
@@ -52,7 +51,7 @@ SUBCLASS* NeighborTable<IPADDR, ENTRY, SUBCLASS>::modify(
   auto newTable = this->clone();
   auto* newTablePtr = newTable.get();
   // Make clone of vlan
-  auto vlanPtr = (*state)->getVlans()->getVlan(vlanId).get();
+  auto vlanPtr = (*state)->getVlans()->getNode(vlanId).get();
   vlanPtr = vlanPtr->modify(state);
   vlanPtr->setNeighborTable(std::move(newTable));
   return newTablePtr;
@@ -84,8 +83,7 @@ SUBCLASS* NeighborTable<IPADDR, ENTRY, SUBCLASS>::modify(
   // Make clone of table
   auto newTable = this->clone();
   // Make clone of interface
-  auto interfacePtr =
-      (*state)->getInterfaces()->getInterface(interfaceId).get();
+  auto interfacePtr = (*state)->getInterfaces()->getNode(interfaceId).get();
   interfacePtr = interfacePtr->modify(state);
   interfacePtr->setNeighborEntryTable<IPADDR>(newTable->toThrift());
   return interfacePtr->getNeighborEntryTable<IPADDR>().get();

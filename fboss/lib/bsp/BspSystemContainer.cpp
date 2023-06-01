@@ -94,10 +94,17 @@ const I2cControllerStats BspSystemContainer::getI2cControllerStats(
   return getPimContainerFromTcvrID(tcvrID)->getI2cControllerStats(tcvrID);
 }
 
-LedIO* BspSystemContainer::getLedController(int tcvrID) const {
-  return getPimContainerFromTcvrID(tcvrID)
-      ->getLedContainer(tcvrID)
-      ->getLedController();
+std::map<uint32_t, LedIO*> BspSystemContainer::getLedController(
+    int tcvrID) const {
+  std::map<uint32_t, LedIO*> ledControllers;
+
+  auto ledContainers =
+      getPimContainerFromTcvrID(tcvrID)->getLedContainer(tcvrID);
+  for (auto& ledContainer : ledContainers) {
+    ledControllers[ledContainer.first] =
+        ledContainer.second->getLedController();
+  }
+  return ledControllers;
 }
 
 BspDeviceMdioController* BspSystemContainer::getMdioController(

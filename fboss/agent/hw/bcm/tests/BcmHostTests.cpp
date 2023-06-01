@@ -247,8 +247,7 @@ TEST_F(BcmHostTest, CreateV4AndV6L3Host) {
   auto setup = [=]() { applyNewConfig(initialConfig()); };
   auto verify = [=]() {
     InterfaceID intfID = InterfaceID(utility::kBaseVlanId);
-    const auto& swIntf =
-        getProgrammedState()->getInterfaces()->getInterface(intfID);
+    const auto& swIntf = getProgrammedState()->getInterfaces()->getNode(intfID);
     int expectedHostNum{0};
     for (auto iter : std::as_const(*swIntf->getAddresses())) {
       auto addr = folly::IPAddress(iter.first);

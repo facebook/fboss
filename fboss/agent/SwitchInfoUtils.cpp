@@ -12,6 +12,7 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 namespace facebook::fboss {
@@ -26,8 +27,10 @@ const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig(
       if (*switchInfo.portIdRange()->minimum() ==
               *switchInfo.portIdRange()->maximum() &&
           *switchInfo.portIdRange()->maximum() == 0) {
-        switchInfo.portIdRange()->minimum() = 0;
-        switchInfo.portIdRange()->maximum() = 1023;
+        switchInfo.portIdRange()->minimum() =
+            cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN();
+        switchInfo.portIdRange()->maximum() =
+            cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
       }
       switchInfoMap.emplace(entry.first, switchInfo);
       if (switchInfo.switchType() == cfg::SwitchType::VOQ &&
@@ -40,6 +43,12 @@ const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig(
           switchInfo.systemPortRange() = *localNode.systemPortRange();
         }
       }
+
+      if ((switchInfo.switchType() == cfg::SwitchType::VOQ ||
+           switchInfo.switchType() == cfg::SwitchType::FABRIC) &&
+          !switchInfo.switchMac()) {
+        switchInfo.switchMac() = platform->getLocalMac().toString();
+      }
       switchInfoMap.emplace(entry.first, switchInfo);
     }
   } else {
@@ -49,8 +58,10 @@ const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig(
         ? *platform->getAsic()->getSwitchId()
         : 0;
     facebook::fboss::cfg::Range64 portIdRange;
-    portIdRange.minimum() = 0;
-    portIdRange.maximum() = 1023;
+    portIdRange.minimum() =
+        cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN();
+    portIdRange.maximum() =
+        cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
     switchInfo.switchIndex() = 0;
     switchInfo.portIdRange() = portIdRange;
     switchInfo.switchType() = platform->getAsic()->getSwitchType();

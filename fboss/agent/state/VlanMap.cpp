@@ -30,49 +30,43 @@ VlanMap::VlanMap() {}
 
 VlanMap::~VlanMap() {}
 
-VlanMap* VlanMap::modify(std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
-  }
-
-  SwitchState::modify(state);
-  auto newVlans = clone();
-  auto* ptr = newVlans.get();
-  (*state)->resetVlans(std::move(newVlans));
-  return ptr;
-}
-
-const shared_ptr<Vlan>& VlanMap::getVlanSlow(const string& name) const {
-  for (auto& iter : std::as_const(*this)) {
-    const auto& vlan = iter.second;
-    if (vlan->getName() == name) {
-      return vlan;
+const shared_ptr<Vlan>& MultiSwitchVlanMap::getVlanSlow(
+    const string& name) const {
+  for (auto& iterMap : std::as_const(*this)) {
+    for (auto& iter : std::as_const(*iterMap.second)) {
+      const auto& vlan = iter.second;
+      if (vlan->getName() == name) {
+        return vlan;
+      }
     }
   }
   throw FbossError("Cannot find Vlan : ", name);
 }
 
-shared_ptr<Vlan> VlanMap::getVlanSlowIf(const string& name) const {
-  for (auto iter : std::as_const(*this)) {
-    const auto& vlan = iter.second;
-    if (vlan->getName() == name) {
-      return vlan;
+shared_ptr<Vlan> MultiSwitchVlanMap::getVlanSlowIf(const string& name) const {
+  for (auto& iterMap : std::as_const(*this)) {
+    for (auto& iter : std::as_const(*iterMap.second)) {
+      const auto& vlan = iter.second;
+      if (vlan->getName() == name) {
+        return vlan;
+      }
     }
   }
   return nullptr;
 }
 
-void VlanMap::addVlan(const std::shared_ptr<Vlan>& vlan) {
-  addNode(vlan);
+MultiSwitchVlanMap* MultiSwitchVlanMap::modify(
+    std::shared_ptr<SwitchState>* state) {
+  return SwitchState::modify<switch_state_tags::vlanMaps>(state);
 }
 
-void VlanMap::updateVlan(const std::shared_ptr<Vlan>& vlan) {
-  updateNode(vlan);
-}
-
-VlanID VlanMap::getFirstVlanID() const {
-  return cbegin()->second->getID();
+VlanID MultiSwitchVlanMap::getFirstVlanID() const {
+  for (const auto& iter : std::as_const(*this)) {
+    if (iter.second->size()) {
+      return iter.second->cbegin()->second->getID();
+    }
+  }
+  throw FbossError("No Vlans in MultiSwitchVlanMap");
 }
 
 template class ThriftMapNode<VlanMap, VlanMapTraits>;

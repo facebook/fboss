@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/HwFb303Stats.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/types.h"
 
 #include "folly/container/F14Map.h"
 
@@ -25,8 +26,11 @@ class HwBasePortFb303Stats {
   using QueueId2Name = folly::F14FastMap<int, std::string>;
   explicit HwBasePortFb303Stats(
       const std::string& portName,
-      QueueId2Name queueId2Name = {})
-      : portName_(portName), queueId2Name_(queueId2Name) {}
+      QueueId2Name queueId2Name = {},
+      std::vector<PfcPriority> enabledPfcPriorities = {})
+      : portName_(portName),
+        queueId2Name_(queueId2Name),
+        enabledPfcPriorities_(enabledPfcPriorities) {}
 
   virtual ~HwBasePortFb303Stats() = default;
 
@@ -41,6 +45,7 @@ class HwBasePortFb303Stats {
   }
   void queueChanged(int queueId, const std::string& queueName);
   void queueRemoved(int queueId);
+  void pfcPriorityChanged(std::vector<PfcPriority> enabledPriorities);
 
   /*
    * Port stat name
@@ -58,6 +63,14 @@ class HwBasePortFb303Stats {
       int queueId,
       folly::StringPiece queueName);
 
+  /*
+   * Port PFC stat name
+   */
+  static std::string statName(
+      folly::StringPiece statName,
+      folly::StringPiece portName,
+      PfcPriority priority);
+
   int64_t getCounterLastIncrement(folly::StringPiece statKey) const;
 
   virtual const std::vector<folly::StringPiece>& kPortStatKeys() const = 0;
@@ -66,6 +79,7 @@ class HwBasePortFb303Stats {
       const = 0;
   virtual const std::vector<folly::StringPiece>& kOutMacsecPortStatKeys()
       const = 0;
+  virtual const std::vector<folly::StringPiece>& kPfcStatKeys() const = 0;
 
  protected:
   void reinitStats(std::optional<std::string> oldPortName);
@@ -85,6 +99,14 @@ class HwBasePortFb303Stats {
       folly::StringPiece statKey,
       int queueId,
       int64_t val);
+  /*
+   * update port PFC stat
+   */
+  void updateStat(
+      const std::chrono::seconds& now,
+      folly::StringPiece statKey,
+      PfcPriority priority,
+      int64_t val);
 
   void updateQueueWatermarkStats(
       const std::map<int16_t, int64_t>& queueWatermarkBytes) const;
@@ -94,6 +116,9 @@ class HwBasePortFb303Stats {
   }
   const QueueId2Name& queueId2Name() const {
     return queueId2Name_;
+  }
+  const std::vector<PfcPriority> getEnabledPfcPriorities() const {
+    return enabledPfcPriorities_;
   }
 
  private:
@@ -116,6 +141,7 @@ class HwBasePortFb303Stats {
   HwFb303Stats portCounters_;
   QueueId2Name queueId2Name_;
   bool macsecStatsInited_{false};
+  std::vector<PfcPriority> enabledPfcPriorities_{};
 };
 
 } // namespace facebook::fboss

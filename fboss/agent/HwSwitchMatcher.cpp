@@ -54,4 +54,12 @@ const std::string& HwSwitchMatcher::defaultHwSwitchMatcherKey() {
   return kDefaultHwSwitchMatcherKey;
 }
 
+SwitchID HwSwitchMatcher::switchId() const {
+  if (switchIds_.size() != 1) {
+    throw FbossError(
+        "HwSwitchMatcher::switchId api must be called only when there is a single switchId");
+  }
+  return *switchIds_.begin();
+}
+
 } // namespace facebook::fboss

@@ -57,7 +57,6 @@ class TeFlowEntry
     set<switch_state_tags::enabled>(enable);
   }
 
-  TeFlowEntry* modify(std::shared_ptr<SwitchState>* state);
   std::string str() const;
 
   TeFlowDetails toDetails() const;

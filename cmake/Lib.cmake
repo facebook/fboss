@@ -107,6 +107,14 @@ target_link_libraries(common_file_utils
   fboss_error
 )
 
+add_library(common_port_utils
+  fboss/lib/CommonPortUtils.cpp
+)
+
+target_link_libraries(common_port_utils
+  fboss_error
+)
+
 add_library(common_utils
   fboss/lib/CommonUtils.h
 )

@@ -123,7 +123,7 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     return cfg;
   }
 
@@ -138,7 +138,7 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
       const std::vector<NextHopWeight>& weights) {
     getEcmpSetupHelper()->programRoutes(ecmpWidth, weights);
     applyNewState(utility::setLoadBalancer(
-        getPlatform(), getProgrammedState(), loadBalancer));
+        getPlatform(), getProgrammedState(), loadBalancer, scopeResolver()));
   }
 
   virtual std::unique_ptr<EcmpTestHelperT> getECMPHelper() = 0;

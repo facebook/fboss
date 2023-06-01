@@ -91,11 +91,13 @@ class UdfManagerTest : public ManagerTestBase {
         udfApi.getAttribute(
             saiUdfMatchId, SaiUdfMatchTraits::Attributes::L3Type{}),
         AclEntryFieldU8(std::make_pair(kUdpType(), SaiUdfManager::kMaskAny)));
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
     EXPECT_EQ(
         udfApi.getAttribute(
             saiUdfMatchId, SaiUdfMatchTraits::Attributes::L4DstPortType{}),
         AclEntryFieldU16(
             std::make_pair(kUdpPort(), SaiUdfManager::kL4PortMask)));
+#endif
   }
 
   void validateUdfGroup(UdfGroupSaiId saiUdfGroupId) {

@@ -91,6 +91,8 @@ class QsfpModule : public Transceiver {
   virtual void refresh() override;
   folly::Future<folly::Unit> futureRefresh() override;
 
+  void removeTransceiver() override;
+
   /*
    * Customize QSPF fields as necessary
    *
@@ -564,6 +566,8 @@ class QsfpModule : public Transceiver {
 
   void refreshLocked();
   virtual void updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus);
+
+  void removeTransceiverLocked();
 
   TransceiverPresenceDetectionStatus detectPresenceLocked();
 

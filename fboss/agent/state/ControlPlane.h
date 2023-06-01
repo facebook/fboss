@@ -80,8 +80,6 @@ class ControlPlane
     return queues->impl();
   }
 
-  ControlPlane* modify(std::shared_ptr<SwitchState>* state);
-
   static cfg::PacketRxReasonToQueue makeRxReasonToQueueEntry(
       cfg::PacketRxReason reason,
       uint16_t queueId);
@@ -119,6 +117,8 @@ class MultiControlPlane
   virtual ~MultiControlPlane() {}
 
   std::shared_ptr<ControlPlane> getControlPlane() const;
+
+  MultiControlPlane* modify(std::shared_ptr<SwitchState>* state);
 
  private:
   // Inherit the constructors required for clone()

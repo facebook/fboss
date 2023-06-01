@@ -87,10 +87,11 @@ Vlan* Vlan::modify(std::shared_ptr<SwitchState>* state) {
     return this;
   }
 
-  VlanMap* vlans = (*state)->getVlans()->modify(state);
+  MultiSwitchVlanMap* vlans = (*state)->getVlans()->modify(state);
+  const auto scope = vlans->getNodeAndScope(getID()).second;
   auto newVlan = clone();
   auto* ptr = newVlan.get();
-  vlans->updateVlan(std::move(newVlan));
+  vlans->updateNode(std::move(newVlan), scope);
   return ptr;
 }
 

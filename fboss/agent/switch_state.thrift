@@ -108,6 +108,7 @@ struct PortFields {
   41: list<i32> interfaceIDs;
   42: list<switch_config.PortNeighbor> expectedNeighborReachability;
   43: switch_config.PortDrainState drainState = switch_config.PortDrainState.UNDRAINED;
+  44: optional string flowletConfigName;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -197,6 +198,7 @@ struct NeighborEntryFields {
   7: optional i64 encapIndex;
   8: bool isLocal = true;
   9: NeighborEntryType type = NeighborEntryType.DYNAMIC_ENTRY;
+  10: optional i64 resolvedSince;
 }
 
 typedef map<string, NeighborEntryFields> NeighborEntries
@@ -274,6 +276,13 @@ struct ControlPlaneFields {
   1: list<ctrl.PortQueueFields> queues;
   2: list<switch_config.PacketRxReasonToQueue> rxReasonToQueue;
   3: optional string defaultQosPolicy;
+}
+
+struct PortFlowletFields {
+  1: string id;
+  2: i16 scalingFactor;
+  3: i16 loadWeight;
+  4: i16 queueWeight;
 }
 
 struct BlockedNeighbor {
@@ -415,7 +424,7 @@ struct InterfaceFields {
   3: optional i32 vlanId;
   4: string name;
   // network byte order
-  5: i64 mac (cpp2.type = "std::uint64_t");
+  5: i64 mac;
   // ip -> prefix length
   6: map<string, i16> addresses;
   7: switch_config.NdpConfig ndpConfig;
@@ -425,6 +434,8 @@ struct InterfaceFields {
   11: switch_config.InterfaceType type = switch_config.InterfaceType.VLAN;
   12: NeighborEntries arpTable;
   13: NeighborEntries ndpTable;
+  14: map<string, NeighborResponseEntryFields> arpResponseTable;
+  15: map<string, NeighborResponseEntryFields> ndpResponseTable;
 }
 
 enum LacpState {
@@ -462,7 +473,7 @@ struct AggregatePortFields {
   3: string description;
   4: i32 systemPriority;
   // network byte order
-  5: i64 systemID (cpp2.type = "std::uint64_t");
+  5: i64 systemID;
   6: i16 minimumLinkCount;
   7: list<Subport> ports;
   // portId to forwarding {ture -> enabled; false -> disabled};
@@ -590,6 +601,7 @@ struct SwitchState {
   > aclTableGroupMaps;
   118: map<SwitchIdList, map<i32, InterfaceFields>> interfaceMaps;
   119: map<SwitchIdList, map<i64, switch_config.DsfNode>> dsfNodesMap;
+  120: map<SwitchIdList, map<string, PortFlowletFields>> portFlowletCfgMaps;
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;

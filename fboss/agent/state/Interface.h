@@ -17,6 +17,8 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/state/ArpResponseTable.h"
+#include "fboss/agent/state/NdpResponseTable.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
@@ -36,6 +38,14 @@ class SwitchState;
 class Interface;
 RESOLVE_STRUCT_MEMBER(Interface, switch_state_tags::arpTable, ArpTable)
 RESOLVE_STRUCT_MEMBER(Interface, switch_state_tags::ndpTable, NdpTable)
+RESOLVE_STRUCT_MEMBER(
+    Interface,
+    switch_state_tags::arpResponseTable,
+    ArpResponseTable)
+RESOLVE_STRUCT_MEMBER(
+    Interface,
+    switch_state_tags::ndpResponseTable,
+    NdpResponseTable)
 
 /*
  * Interface stores a routing domain on the switch
@@ -179,6 +189,9 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
     return getNdpTable();
   }
 
+  template <typename NTable>
+  inline const std::shared_ptr<NTable> getNeighborTable() const;
+
   void setArpTable(state::NeighborEntries arpTable) {
     set<switch_state_tags::arpTable>(std::move(arpTable));
   }
@@ -191,6 +204,20 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
       return setArpTable(std::move(nbrTable));
     }
     return setNdpTable(std::move(nbrTable));
+  }
+
+  const std::shared_ptr<ArpResponseTable> getArpResponseTable() const {
+    return get<switch_state_tags::arpResponseTable>();
+  }
+  void setArpResponseTable(std::shared_ptr<ArpResponseTable> table) {
+    ref<switch_state_tags::arpResponseTable>() = std::move(table);
+  }
+
+  const std::shared_ptr<NdpResponseTable> getNdpResponseTable() const {
+    return get<switch_state_tags::ndpResponseTable>();
+  }
+  void setNdpResponseTable(std::shared_ptr<NdpResponseTable> table) {
+    ref<switch_state_tags::ndpResponseTable>() = std::move(table);
   }
 
   auto getAddresses() const {
@@ -206,6 +233,14 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
   bool hasAddress(folly::IPAddress ip) const {
     auto& addresses = std::as_const(*getAddresses());
     return (addresses.find(ip.str()) != addresses.end());
+  }
+
+  template <typename NTable>
+  void setNeighborTable(state::NeighborEntries nbrTable) {
+    if constexpr (std::is_same_v<NTable, ArpTable>) {
+      return setArpTable(std::move(nbrTable));
+    }
+    return setNdpTable(std::move(nbrTable));
   }
 
   /**
@@ -307,5 +342,10 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
   using Base::Base;
   friend class CloneAllocator;
 };
+
+template <typename NTable>
+inline const std::shared_ptr<NTable> Interface::getNeighborTable() const {
+  return this->template getNeighborEntryTable<typename NTable::AddressType>();
+}
 
 } // namespace facebook::fboss

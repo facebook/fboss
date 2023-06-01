@@ -24,13 +24,14 @@
 namespace facebook::fboss {
 
 std::shared_ptr<SwitchState> hwSwitchEnsembleFibUpdate(
+    const SwitchIdScopeResolver* resolver,
     facebook::fboss::RouterID vrf,
     const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
     const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
     const facebook::fboss::LabelToRouteMap& labelToRoute,
     void* cookie) {
   facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
-      vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute);
+      resolver, vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute);
 
   auto hwEnsemble = static_cast<facebook::fboss::HwSwitchEnsemble*>(cookie);
   hwEnsemble->getHwSwitch()->transactionsSupported()
@@ -44,6 +45,7 @@ HwSwitchEnsembleRouteUpdateWrapper::HwSwitchEnsembleRouteUpdateWrapper(
     HwSwitchEnsemble* hwEnsemble,
     RoutingInformationBase* rib)
     : RouteUpdateWrapper(
+          &(hwEnsemble->scopeResolver()),
           rib,
           rib ? hwSwitchEnsembleFibUpdate : std::optional<FibUpdateFunction>(),
           rib ? hwEnsemble : nullptr),

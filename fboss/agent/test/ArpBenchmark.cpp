@@ -42,13 +42,13 @@ unique_ptr<SwSwitch> setupSwitch() {
   MacAddress localMac("02:00:01:00:00:01");
   auto sw = make_unique<SwSwitch>(make_unique<SimPlatform>(localMac, 10));
   sw->init(nullptr /* No custom TunManager */);
-
+  auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
   auto updateFn = [&](const shared_ptr<SwitchState>& oldState) {
     auto state = oldState->clone();
 
     // Add VLAN 1, and ports 1-9 which belong to it.
     auto vlan1 = make_shared<Vlan>(VlanID(1), std::string("Vlan1"));
-    state->addVlan(vlan1);
+    state->getVlans()->addNode(vlan1, matcher);
     for (int idx = 1; idx < 10; ++idx) {
       vlan1->addPort(PortID(idx), false);
     }
@@ -66,7 +66,8 @@ unique_ptr<SwSwitch> setupSwitch() {
     addrs1.emplace(IPAddress("10.0.0.1"), 24);
     addrs1.emplace(IPAddress("192.168.0.1"), 24);
     intf1->setAddresses(addrs1);
-    state->addIntf(intf1);
+    auto allIntfs = state->getInterfaces()->modify(&state);
+    allIntfs->addNode(intf1, matcher);
 
     // Set up an arp response table for VLAN 1 with entries for
     // 10.0.0.1 and 192.168.0.1
@@ -79,7 +80,7 @@ unique_ptr<SwSwitch> setupSwitch() {
         IPAddressV4("192.168.0.1"),
         MacAddress("00:02:00:00:00:02"),
         InterfaceID(4));
-    state->getVlans()->getVlan(VlanID(1))->setArpResponseTable(respTable1);
+    state->getVlans()->getNode(VlanID(1))->setArpResponseTable(respTable1);
     return state;
   };
 

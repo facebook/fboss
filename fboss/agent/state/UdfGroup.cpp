@@ -22,13 +22,6 @@ std::string UdfGroup::getName() const {
   return get<switch_config_tags::name>()->cref();
 }
 
-std::shared_ptr<UdfGroup> UdfGroup::fromFollyDynamic(
-    const folly::dynamic& entry) {
-  auto node = std::make_shared<UdfGroup>();
-  static_cast<std::shared_ptr<BaseT>>(node)->fromFollyDynamic(entry);
-  return node;
-}
-
 // THRIFT_COPY: avoid returning std::vector
 std::vector<std::string> UdfGroup::getUdfPacketMatcherIds() const {
   return get<switch_config_tags::udfPacketMatcherIds>()->toThrift();

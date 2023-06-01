@@ -10,7 +10,6 @@
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/test/hw_test/HwTest.h"
 
-#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
@@ -56,33 +55,32 @@ class HwPortProfileTest : public HwTest {
   }
 
   void verifyTransceiverSettings(
-      const std::map<int32_t, TransceiverInfo>& transceivers) {
+      const std::map<std::string, TransceiverInfo>& transceivers) {
     XLOG(INFO) << " Will verify transceiver settings for : "
                << transceivers.size() << " ports.";
     for (auto idAndTransceiver : transceivers) {
       utility::HwTransceiverUtils::verifyTransceiverSettings(
-          *idAndTransceiver.second.tcvrState(), Profile);
+          *idAndTransceiver.second.tcvrState(),
+          idAndTransceiver.first,
+          Profile);
     }
   }
 
  protected:
   void runTest() {
     const auto& ports =
-        utility::findAvailablePorts(getHwQsfpEnsemble(), Profile, true);
+        utility::findAvailableCabledPorts(getHwQsfpEnsemble(), Profile);
     EXPECT_TRUE(!(ports.xphyPorts.empty() && ports.iphyPorts.empty()));
-    WedgeManager::PortMap portMap;
     std::vector<PortID> matchingPorts;
     // Program xphy
     for (auto& [port, _] : ports.xphyPorts) {
-      portMap.emplace(port, utility::getPortStatus(port, getHwQsfpEnsemble()));
       matchingPorts.push_back(port);
     }
     for (auto& [port, _] : ports.iphyPorts) {
-      portMap.emplace(port, utility::getPortStatus(port, getHwQsfpEnsemble()));
       matchingPorts.push_back(port);
     }
 
-    auto setup = [this, &ports, &portMap]() {
+    auto setup = [this, &ports]() {
       // New port programming will use state machine to program xphy ports and
       // transceivers automatically, no need to call program xphy port again
       for (auto& [port, profile] : ports.xphyPorts) {
@@ -110,7 +108,17 @@ class HwPortProfileTest : public HwTest {
       // there.
       // Assert that refresh caused transceiver info to be pulled
       // from HW
-      verifyTransceiverSettings(transceivers);
+      std::map<std::string, TransceiverInfo> portToTransceiverInfoMap;
+      for (auto port : matchingPorts) {
+        auto transceiverId =
+            getHwQsfpEnsemble()->getWedgeManager()->getTransceiverID(port);
+        CHECK(transceiverId.has_value());
+        auto portName =
+            getHwQsfpEnsemble()->getWedgeManager()->getPortNameByPortId(port);
+        CHECK(portName.has_value());
+        portToTransceiverInfoMap[*portName] = transceivers[*transceiverId];
+      }
+      verifyTransceiverSettings(portToTransceiverInfoMap);
       utility::HwTransceiverUtils::verifyPortNameToLaneMap(
           matchingPorts,
           Profile,

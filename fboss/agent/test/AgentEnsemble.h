@@ -153,6 +153,11 @@ class AgentEnsemble : public TestEnsembleIf {
     mode_ = mode;
   }
 
+  const SwitchIdScopeResolver& scopeResolver() const override {
+    CHECK(getSw()->getScopeResolver());
+    return *(getSw()->getScopeResolver());
+  }
+
  private:
   void writeConfig(const cfg::SwitchConfig& config);
   void writeConfig(const cfg::AgentConfig& config);

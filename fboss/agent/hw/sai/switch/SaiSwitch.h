@@ -203,6 +203,7 @@ class SaiSwitch : public HwSwitch {
 
   phy::FecMode getPortFECMode(PortID port) const override;
   std::map<PortID, FabricEndpoint> getFabricReachability() const override;
+  std::vector<PortID> getSwitchReachability(SwitchID switchId) const override;
 
   void rollbackInTest(const std::shared_ptr<SwitchState>& knownGoodState);
 
@@ -272,6 +273,8 @@ class SaiSwitch : public HwSwitch {
       std::vector<L2EntryThrift>* l2Table) const;
 
   std::map<PortID, FabricEndpoint> getFabricReachabilityLocked() const;
+
+  std::vector<PortID> getSwitchReachabilityLocked(SwitchID switchId) const;
 
   void gracefulExitLocked(
       const std::lock_guard<std::mutex>& lock,
@@ -353,6 +356,11 @@ class SaiSwitch : public HwSwitch {
   void processSwitchSettingsChangedLocked(
       const std::lock_guard<std::mutex>& lock,
       const StateDelta& delta);
+
+  void processSwitchSettingsChangedEntryLocked(
+      const std::lock_guard<std::mutex>& lock,
+      const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
+      const std::shared_ptr<SwitchSettings>& newSwitchSettings);
 
   template <typename LockPolicyT>
   void processDefaultDataPlanePolicyDelta(
@@ -464,6 +472,12 @@ class SaiSwitch : public HwSwitch {
       phy::DataPlanePhyChipType chipType) const;
 
   void checkAndSetSdkDowngradeVersion() const;
+
+  template <typename LockPolicyT>
+  void processAclTableGroupDelta(
+      const StateDelta& delta,
+      const AclTableGroupMap& aclTableGroupMap,
+      const LockPolicyT& lockPolicy);
 
   /*
    * SaiSwitch must support a few varieties of concurrent access:

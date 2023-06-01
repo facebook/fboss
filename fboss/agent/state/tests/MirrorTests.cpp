@@ -328,7 +328,7 @@ TEST_F(MirrorTest, AclMirror) {
   configureAcl("acl0");
   configureAclMirror("acl0", "mirror0");
   publishWithStateUpdate();
-  auto entry = state_->getAcls()->getEntryIf("acl0");
+  auto entry = state_->getAcls()->getNodeIf("acl0");
   EXPECT_NE(entry, nullptr);
   auto action = entry->getAclAction();
   ASSERT_EQ(action != nullptr, true);
@@ -346,7 +346,7 @@ TEST_F(MirrorTest, PortMirror) {
   publishWithStateUpdate();
   configurePortMirror("mirror0", PortID(3));
   publishWithStateUpdate();
-  auto port = state_->getPorts()->getPortIf(PortID(3));
+  auto port = state_->getPorts()->getNodeIf(PortID(3));
   EXPECT_NE(port, nullptr);
   auto inMirror = port->getIngressMirror();
   EXPECT_EQ(inMirror.has_value(), true);
@@ -438,7 +438,7 @@ TEST_F(MirrorTest, AddAclAndPortToMirror) {
   }
 
   for (int i = 0; i < 2; i++) {
-    auto entry = state_->getAcls()->getEntryIf(acls[i]);
+    auto entry = state_->getAcls()->getNodeIf(acls[i]);
     EXPECT_NE(entry, nullptr);
     auto action = entry->getAclAction();
     ASSERT_EQ(action != nullptr, true);
@@ -449,7 +449,7 @@ TEST_F(MirrorTest, AddAclAndPortToMirror) {
     EXPECT_TRUE(aclEgMirror.has_value());
     EXPECT_EQ(aclEgMirror->cref(), "mirror0");
 
-    auto port = state_->getPorts()->getPortIf(ports[i]);
+    auto port = state_->getPorts()->getNodeIf(ports[i]);
     EXPECT_NE(port, nullptr);
     auto portInMirror = port->getIngressMirror();
     EXPECT_EQ(portInMirror.has_value(), true);
@@ -483,10 +483,10 @@ TEST_F(MirrorTest, DeleleteAclAndPortToMirror) {
   publishWithStateUpdate();
 
   for (int i = 0; i < 2; i++) {
-    auto entry = state_->getAcls()->getEntryIf(acls[i]);
+    auto entry = state_->getAcls()->getNodeIf(acls[i]);
     if (i) {
       EXPECT_EQ(entry, nullptr);
-      auto port = state_->getPorts()->getPortIf(ports[i]);
+      auto port = state_->getPorts()->getNodeIf(ports[i]);
       EXPECT_NE(port, nullptr);
       auto portInMirror = port->getIngressMirror();
       EXPECT_EQ(portInMirror.has_value(), false);
@@ -503,7 +503,7 @@ TEST_F(MirrorTest, DeleleteAclAndPortToMirror) {
       EXPECT_TRUE(aclEgMirror.has_value());
       EXPECT_EQ(aclEgMirror->cref(), "mirror0");
 
-      auto port = state_->getPorts()->getPortIf(ports[i]);
+      auto port = state_->getPorts()->getNodeIf(ports[i]);
       EXPECT_NE(port, nullptr);
       auto portInMirror = port->getIngressMirror();
       EXPECT_EQ(portInMirror.has_value(), true);
@@ -691,5 +691,52 @@ TEST_F(MirrorTest, NumMirrors) {
   config_.mirrors()->pop_back();
   publishWithStateUpdate();
   EXPECT_EQ(state_->getMirrors()->numNodes(), 2);
+}
+
+TEST_F(MirrorTest, MirrorMapModify) {
+  config_.mirrors()->push_back(
+      utility::getSPANMirror("mirror0", MirrorTest::egressPort));
+  config_.mirrors()->push_back(
+      utility::getGREMirror("mirror1", MirrorTest::tunnelDestination));
+  config_.mirrors()->push_back(utility::getSFlowMirror(
+      "mirror2",
+      8998,
+      9889,
+      MirrorTest::tunnelDestination,
+      folly::IPAddress("10.0.0.1"),
+      MirrorTest::dscp,
+      true));
+  publishWithStateUpdate();
+  state_->publish();
+  auto oldStatePtr = state_.get();
+  auto mirrors = state_->getMirrors();
+  auto newMirrors = mirrors->modify(&state_);
+  auto newStatePtr = state_.get();
+  ASSERT_TRUE(!state_->isPublished());
+  EXPECT_NE(oldStatePtr, newStatePtr);
+  EXPECT_NE(mirrors.get(), newMirrors);
+  // do not publish state and mirror map
+  auto newMirrors2 = newMirrors->modify(&state_);
+  EXPECT_EQ(state_.get(), newStatePtr);
+  // no change
+  EXPECT_EQ(newMirrors2, newMirrors);
+}
+
+TEST_F(MirrorTest, MultiMapClone) {
+  config_.mirrors()->push_back(
+      utility::getSPANMirror("mirror0", MirrorTest::egressPortName));
+  publishWithStateUpdate();
+  auto mirrors = state_->getMirrors();
+  mirrors->publish();
+  EXPECT_TRUE(mirrors->isPublished());
+  for (auto iter = mirrors->cbegin(); iter != mirrors->cend(); ++iter) {
+    EXPECT_TRUE(iter->second->isPublished());
+  }
+
+  auto newMirrors = mirrors->clone();
+  EXPECT_TRUE(!newMirrors->isPublished());
+  for (auto iter = newMirrors->cbegin(); iter != newMirrors->cend(); ++iter) {
+    EXPECT_TRUE(!iter->second->isPublished());
+  }
 }
 } // namespace facebook::fboss

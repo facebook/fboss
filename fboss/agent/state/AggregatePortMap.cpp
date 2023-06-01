@@ -21,12 +21,7 @@ AggregatePortMap::AggregatePortMap() {}
 
 AggregatePortMap::~AggregatePortMap() {}
 
-int16_t AggregatePortMap::getNodeThriftKey(
-    const std::shared_ptr<AggregatePort>& node) {
-  return node->getID();
-}
-
-std::shared_ptr<AggregatePort> AggregatePortMap::getAggregatePortIf(
+std::shared_ptr<AggregatePort> AggregatePortMap::getAggregatePortForPortImpl(
     PortID port) const {
   for (const auto& idAndAggPort : std::as_const(*this)) {
     if (idAndAggPort.second->isMemberPort(port)) {
@@ -37,23 +32,19 @@ std::shared_ptr<AggregatePort> AggregatePortMap::getAggregatePortIf(
   return nullptr;
 }
 
-void AggregatePortMap::updateAggregatePort(
-    const std::shared_ptr<AggregatePort>& aggPort) {
-  updateNode(aggPort);
+MultiSwitchAggregatePortMap* MultiSwitchAggregatePortMap::modify(
+    std::shared_ptr<SwitchState>* state) {
+  return SwitchState::modify<switch_state_tags::aggregatePortMaps>(state);
 }
 
-AggregatePortMap* AggregatePortMap::modify(
-    std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
+std::shared_ptr<AggregatePort>
+MultiSwitchAggregatePortMap::getAggregatePortForPort(PortID port) const {
+  for (const auto& [_, aggPorts] : std::as_const(*this)) {
+    if (auto aggPort = aggPorts->getAggregatePortForPort(port)) {
+      return aggPort;
+    }
   }
-
-  SwitchState::modify(state);
-  auto newAggPorts = clone();
-  auto* ptr = newAggPorts.get();
-  (*state)->resetAggregatePorts(std::move(newAggPorts));
-  return ptr;
+  return nullptr;
 }
 
 template class ThriftMapNode<AggregatePortMap, AggregatePortMapTraits>;

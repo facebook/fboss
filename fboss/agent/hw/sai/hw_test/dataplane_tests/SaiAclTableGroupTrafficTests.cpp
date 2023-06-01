@@ -36,7 +36,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
 
     utility::addAclTableGroup(
         &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
@@ -133,7 +133,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
     for (const auto& ipToMacAndClassID : getIpToMacAndClassID<AddrT>()) {
       auto ip = ipToMacAndClassID.first;
       auto neighborTable = outState->getVlans()
-                               ->getVlan(kVlanID)
+                               ->getNode(kVlanID)
                                ->template getNeighborTable<NeighborTableT>()
                                ->modify(kVlanID, &outState);
       neighborTable->addPendingEntry(ip, kIntfID);
@@ -159,7 +159,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
       auto neighborMac = macAndClassID.first;
       auto classID = macAndClassID.second;
       auto neighborTable = outState->getVlans()
-                               ->getVlan(kVlanID)
+                               ->getNode(kVlanID)
                                ->template getNeighborTable<NeighborTableT>()
                                ->modify(kVlanID, &outState);
       if (setClassIDs) {

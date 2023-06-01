@@ -16,6 +16,7 @@
 #include <folly/IPAddressV6.h>
 #include <optional>
 
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
@@ -44,16 +45,21 @@ std::shared_ptr<SwitchState> setupMinAlpmRouteState(
   // the default route and that the route table always contains a default
   // route
   auto newState = curState->clone();
+  auto multiSwitchSwitchSettings = newState->getSwitchSettings();
+  CHECK(multiSwitchSwitchSettings->size());
+  auto resolver = SwitchIdScopeResolver(
+      multiSwitchSwitchSettings->cbegin()->second->getSwitchIdToSwitchInfo());
   RouterID rid(0);
   RoutePrefixV4 defaultPrefix4{folly::IPAddressV4("0.0.0.0"), 0};
   RoutePrefixV6 defaultPrefix6{folly::IPAddressV6("::"), 0};
 
   auto newFibs = newState->getFibs()->modify(&newState);
   auto defaultVrf = std::make_shared<ForwardingInformationBaseContainer>(rid);
-  if (newFibs->getFibContainerIf(rid)) {
-    newFibs->updateForwardingInformationBaseContainer(defaultVrf);
+  if (newFibs->getNodeIf(rid)) {
+    newFibs->updateForwardingInformationBaseContainer(
+        defaultVrf, resolver.scope(defaultVrf));
   } else {
-    newFibs->addNode(defaultVrf);
+    newFibs->addNode(defaultVrf, resolver.scope(defaultVrf));
   }
   auto setupRoute = [](auto& route) {
     RouteNextHopEntry entry(
@@ -86,22 +92,22 @@ std::shared_ptr<SwitchState> getMinAlpmRouteState(
   // addresses.
   auto noRoutesState{oldState->clone()};
 
-  for (const auto& idAndVlan : std::as_const(*noRoutesState->getVlans())) {
-    auto vlan = idAndVlan.second->modify(&noRoutesState);
-    vlan->setArpTable(std::make_shared<ArpTable>());
-    vlan->setNdpTable(std::make_shared<NdpTable>());
+  for (const auto& vlanTable : std::as_const(*noRoutesState->getVlans())) {
+    for (const auto& idAndVlan : std::as_const(*vlanTable.second)) {
+      auto vlan = idAndVlan.second->modify(&noRoutesState);
+      vlan->setArpTable(std::make_shared<ArpTable>());
+      vlan->setNdpTable(std::make_shared<NdpTable>());
+    }
   }
 
-  auto newIntfMap = noRoutesState->getInterfaces()->clone();
-  for (const auto& [intfID, interface] :
-       std::as_const(*noRoutesState->getInterfaces())) {
-    std::ignore = intfID;
-    CHECK(interface->isPublished());
-    auto newIntf = interface->clone();
-    newIntf->setAddresses(Interface::Addresses{});
-    newIntfMap->updateNode(newIntf);
+  auto allIntfs = noRoutesState->getInterfaces();
+  for (const auto& [_, intfMap] : std::as_const(*allIntfs)) {
+    for (const auto& [_, interface] : std::as_const(*intfMap)) {
+      CHECK(interface->isPublished());
+      auto newIntf = interface->modify(&noRoutesState);
+      newIntf->setAddresses(Interface::Addresses{});
+    }
   }
-  noRoutesState->resetIntfs(newIntfMap);
   return setupMinAlpmRouteState(noRoutesState);
 }
 

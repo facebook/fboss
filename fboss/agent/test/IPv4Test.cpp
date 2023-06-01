@@ -56,7 +56,7 @@ unique_ptr<HwTestHandle> setupTestHandle() {
   auto respTable1 = make_shared<ArpResponseTable>();
   respTable1->setEntry(
       IPAddressV4("10.0.0.1"), MacAddress("00:02:00:00:00:01"), InterfaceID(1));
-  vlans->getVlan(VlanID(1))->setArpResponseTable(respTable1);
+  vlans->getNode(VlanID(1))->setArpResponseTable(respTable1);
 
   return createTestHandle(state);
 }

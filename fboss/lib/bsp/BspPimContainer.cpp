@@ -63,8 +63,27 @@ const BspPhyContainer* BspPimContainer::getPhyContainerFromMdioID(
       *bspPimMapping_.pimID()));
 }
 
-const BspLedContainer* BspPimContainer::getLedContainer(int tcvrID) const {
-  return ledContainers_.at(tcvrID).get();
+const std::map<uint32_t, const BspLedContainer*>
+BspPimContainer::getLedContainer(int tcvrID) const {
+  std::map<uint32_t, const BspLedContainer*> ledContainers;
+
+  if (bspPimMapping_.tcvrMapping().value().find(tcvrID) ==
+      bspPimMapping_.tcvrMapping().value().end()) {
+    XLOG(ERR) << "Transceiver mapping could not be found for " << tcvrID;
+    return {};
+  }
+
+  for (auto tcvrLaneToLed : bspPimMapping_.tcvrMapping()
+                                .value()
+                                .at(tcvrID)
+                                .tcvrLaneToLedId()
+                                .value()) {
+    uint32_t ledId = tcvrLaneToLed.second;
+    if (ledContainers.find(ledId) == ledContainers.end()) {
+      ledContainers[ledId] = ledContainers_.at(ledId).get();
+    }
+  }
+  return ledContainers;
 }
 
 void BspPimContainer::initAllTransceivers() const {

@@ -13,11 +13,13 @@ class MockAsic : public HwAsic {
   MockAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
-      std::optional<cfg::Range64> systemPortRange)
+      std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac)
       : HwAsic(
             switchType,
             switchId,
             systemPortRange,
+            mac,
             {cfg::SwitchType::NPU,
              cfg::SwitchType::VOQ,
              cfg::SwitchType::FABRIC}) {}
@@ -35,6 +37,8 @@ class MockAsic : public HwAsic {
       case Feature::WIDE_ECMP:
       case HwAsic::Feature::LINK_TRAINING:
         return false;
+      case Feature::CPU_PORT:
+        return getSwitchType() != cfg::SwitchType::FABRIC;
 
       default:
         return true;

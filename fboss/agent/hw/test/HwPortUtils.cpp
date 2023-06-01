@@ -82,6 +82,30 @@ void updateFlexConfig(
   }
 }
 
+cfg::PortSpeed getDefaultInterfaceSpeed(const cfg::AsicType& asicType) {
+  switch (asicType) {
+    case cfg::AsicType::ASIC_TYPE_JERICHO2:
+      return cfg::PortSpeed::HUNDREDG;
+    case cfg::AsicType::ASIC_TYPE_JERICHO3:
+      return cfg::PortSpeed::TWOHUNDREDG;
+    default:
+      throw FbossError(
+          "Unsupported interface speed for asic type: ", (int)asicType);
+  }
+}
+
+cfg::PortSpeed getDefaultFabricSpeed(const cfg::AsicType& asicType) {
+  switch (asicType) {
+    case cfg::AsicType::ASIC_TYPE_JERICHO2:
+      return cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG;
+    case cfg::AsicType::ASIC_TYPE_JERICHO3:
+      return cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG;
+    default:
+      throw FbossError(
+          "Unsupported fabric speed for asic type: ", (int)asicType);
+  }
+}
+
 cfg::PortSpeed getSpeed(cfg::PortProfileID profile) {
   switch (profile) {
     case cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC:

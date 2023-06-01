@@ -75,6 +75,8 @@ class MultiSwitchBufferPoolCfgMap : public ThriftMultiSwitchMapNode<
   MultiSwitchBufferPoolCfgMap() {}
   virtual ~MultiSwitchBufferPoolCfgMap() {}
 
+  MultiSwitchBufferPoolCfgMap* modify(std::shared_ptr<SwitchState>* state);
+
  private:
   // Inherit the constructors required for clone()
   using BaseT::BaseT;

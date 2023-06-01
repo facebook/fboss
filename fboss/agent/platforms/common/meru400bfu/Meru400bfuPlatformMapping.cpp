@@ -46,6 +46,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/12",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -55,6 +63,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC0",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/12",
                       "lane": 0
                     }
                   }
@@ -94,6 +110,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/12",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -103,6 +127,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC0",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/12",
                       "lane": 1
                     }
                   }
@@ -142,6 +174,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/12",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -151,6 +191,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC0",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/12",
                       "lane": 2
                     }
                   }
@@ -190,6 +238,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/12",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -199,6 +255,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC0",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/12",
                       "lane": 3
                     }
                   }
@@ -238,6 +302,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/11",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -247,6 +319,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC1",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/11",
                       "lane": 0
                     }
                   }
@@ -286,6 +366,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/11",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -295,6 +383,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC1",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/11",
                       "lane": 1
                     }
                   }
@@ -334,6 +430,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/11",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -343,6 +447,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC1",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/11",
                       "lane": 2
                     }
                   }
@@ -382,6 +494,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/11",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -391,6 +511,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC1",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/11",
                       "lane": 3
                     }
                   }
@@ -430,6 +558,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/9",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -439,6 +575,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC2",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/9",
                       "lane": 0
                     }
                   }
@@ -478,6 +622,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/9",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -487,6 +639,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC2",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/9",
                       "lane": 1
                     }
                   }
@@ -526,6 +686,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/9",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -535,6 +703,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC2",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/9",
                       "lane": 2
                     }
                   }
@@ -574,6 +750,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/9",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -583,6 +767,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC2",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/9",
                       "lane": 3
                     }
                   }
@@ -622,6 +814,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/10",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -631,6 +831,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC3",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/10",
                       "lane": 0
                     }
                   }
@@ -670,6 +878,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/10",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -679,6 +895,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC3",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/10",
                       "lane": 1
                     }
                   }
@@ -718,6 +942,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/10",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -727,6 +959,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC3",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/10",
                       "lane": 2
                     }
                   }
@@ -766,6 +1006,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/10",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -775,6 +1023,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC3",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/10",
                       "lane": 3
                     }
                   }
@@ -814,6 +1070,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/7",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -823,6 +1087,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC4",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/7",
                       "lane": 0
                     }
                   }
@@ -862,6 +1134,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/7",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -871,6 +1151,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC4",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/7",
                       "lane": 1
                     }
                   }
@@ -910,6 +1198,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/7",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -919,6 +1215,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC4",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/7",
                       "lane": 2
                     }
                   }
@@ -958,6 +1262,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/7",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -967,6 +1279,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC4",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/7",
                       "lane": 3
                     }
                   }
@@ -1006,6 +1326,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/8",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -1015,6 +1343,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC5",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/8",
                       "lane": 0
                     }
                   }
@@ -1054,6 +1390,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/8",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -1063,6 +1407,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC5",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/8",
                       "lane": 1
                     }
                   }
@@ -1102,6 +1454,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/8",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -1111,6 +1471,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC5",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/8",
                       "lane": 2
                     }
                   }
@@ -1150,6 +1518,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/8",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -1159,6 +1535,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC5",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/8",
                       "lane": 3
                     }
                   }
@@ -1198,6 +1582,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/6",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -1207,6 +1599,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC6",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/6",
                       "lane": 0
                     }
                   }
@@ -1246,6 +1646,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/6",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -1255,6 +1663,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC6",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/6",
                       "lane": 1
                     }
                   }
@@ -1294,6 +1710,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/6",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -1303,6 +1727,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC6",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/6",
                       "lane": 2
                     }
                   }
@@ -1342,6 +1774,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/6",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -1351,6 +1791,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC6",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/6",
                       "lane": 3
                     }
                   }
@@ -1390,6 +1838,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/5",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -1399,6 +1855,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC7",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/5",
                       "lane": 0
                     }
                   }
@@ -1438,6 +1902,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/5",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -1447,6 +1919,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC7",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/5",
                       "lane": 1
                     }
                   }
@@ -1486,6 +1966,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/5",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -1495,6 +1983,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC7",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/5",
                       "lane": 2
                     }
                   }
@@ -1534,6 +2030,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/5",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -1543,6 +2047,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC7",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/5",
                       "lane": 3
                     }
                   }
@@ -1582,6 +2094,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/36",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -1592,6 +2112,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC8",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/36",
+                      "lane": 4
                     }
                   }
                 ]
@@ -1630,6 +2158,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/36",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -1640,6 +2176,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC8",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/36",
+                      "lane": 5
                     }
                   }
                 ]
@@ -1678,6 +2222,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/36",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -1688,6 +2240,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC8",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/36",
+                      "lane": 6
                     }
                   }
                 ]
@@ -1726,6 +2286,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/36",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -1736,6 +2304,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC8",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/36",
+                      "lane": 7
                     }
                   }
                 ]
@@ -1774,6 +2350,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/4",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -1783,6 +2367,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC9",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/4",
                       "lane": 0
                     }
                   }
@@ -1822,6 +2414,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/4",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -1831,6 +2431,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC9",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/4",
                       "lane": 1
                     }
                   }
@@ -1870,6 +2478,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/4",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -1879,6 +2495,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC9",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/4",
                       "lane": 2
                     }
                   }
@@ -1918,6 +2542,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/4",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -1927,6 +2559,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC9",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/4",
                       "lane": 3
                     }
                   }
@@ -1966,6 +2606,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/35",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -1976,6 +2624,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC10",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/35",
+                      "lane": 4
                     }
                   }
                 ]
@@ -2014,6 +2670,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/35",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -2024,6 +2688,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC10",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/35",
+                      "lane": 5
                     }
                   }
                 ]
@@ -2062,6 +2734,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/35",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -2072,6 +2752,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC10",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/35",
+                      "lane": 6
                     }
                   }
                 ]
@@ -2110,6 +2798,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/35",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -2120,6 +2816,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC10",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/35",
+                      "lane": 7
                     }
                   }
                 ]
@@ -2158,6 +2862,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/34",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -2168,6 +2880,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC11",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/34",
+                      "lane": 4
                     }
                   }
                 ]
@@ -2206,6 +2926,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/34",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -2216,6 +2944,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC11",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/34",
+                      "lane": 5
                     }
                   }
                 ]
@@ -2254,6 +2990,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/34",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -2264,6 +3008,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC11",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/34",
+                      "lane": 6
                     }
                   }
                 ]
@@ -2302,6 +3054,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/34",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -2312,6 +3072,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC11",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/34",
+                      "lane": 7
                     }
                   }
                 ]
@@ -2350,6 +3118,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/25",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -2360,6 +3136,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC12",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/25",
+                      "lane": 4
                     }
                   }
                 ]
@@ -2398,6 +3182,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/25",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -2408,6 +3200,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC12",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/25",
+                      "lane": 5
                     }
                   }
                 ]
@@ -2446,6 +3246,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/25",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -2456,6 +3264,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC12",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/25",
+                      "lane": 6
                     }
                   }
                 ]
@@ -2494,6 +3310,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/25",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -2504,6 +3328,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC12",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/25",
+                      "lane": 7
                     }
                   }
                 ]
@@ -2542,6 +3374,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/26",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -2552,6 +3392,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC13",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/26",
+                      "lane": 4
                     }
                   }
                 ]
@@ -2590,6 +3438,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/26",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -2600,6 +3456,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC13",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/26",
+                      "lane": 5
                     }
                   }
                 ]
@@ -2638,6 +3502,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/26",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -2648,6 +3520,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC13",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/26",
+                      "lane": 6
                     }
                   }
                 ]
@@ -2686,6 +3566,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/26",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -2696,6 +3584,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC13",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/26",
+                      "lane": 7
                     }
                   }
                 ]
@@ -2734,6 +3630,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/28",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -2744,6 +3648,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC14",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/28",
+                      "lane": 4
                     }
                   }
                 ]
@@ -2782,6 +3694,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/28",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -2792,6 +3712,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC14",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/28",
+                      "lane": 5
                     }
                   }
                 ]
@@ -2830,6 +3758,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/28",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -2840,6 +3776,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC14",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/28",
+                      "lane": 6
                     }
                   }
                 ]
@@ -2878,6 +3822,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/28",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -2888,6 +3840,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC14",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/28",
+                      "lane": 7
                     }
                   }
                 ]
@@ -2926,6 +3886,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/27",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -2936,6 +3904,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC15",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/27",
+                      "lane": 4
                     }
                   }
                 ]
@@ -2974,6 +3950,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/27",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -2984,6 +3968,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC15",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/27",
+                      "lane": 5
                     }
                   }
                 ]
@@ -3022,6 +4014,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/27",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -3032,6 +4032,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC15",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/27",
+                      "lane": 6
                     }
                   }
                 ]
@@ -3070,6 +4078,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/27",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -3080,6 +4096,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC15",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/27",
+                      "lane": 7
                     }
                   }
                 ]
@@ -3118,6 +4142,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/30",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -3128,6 +4160,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC16",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/30",
+                      "lane": 4
                     }
                   }
                 ]
@@ -3166,6 +4206,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/30",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -3176,6 +4224,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC16",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/30",
+                      "lane": 5
                     }
                   }
                 ]
@@ -3214,6 +4270,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/30",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -3224,6 +4288,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC16",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/30",
+                      "lane": 6
                     }
                   }
                 ]
@@ -3262,6 +4334,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/30",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -3272,6 +4352,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC16",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/30",
+                      "lane": 7
                     }
                   }
                 ]
@@ -3310,6 +4398,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/29",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -3320,6 +4416,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC17",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/29",
+                      "lane": 4
                     }
                   }
                 ]
@@ -3358,6 +4462,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/29",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -3368,6 +4480,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC17",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/29",
+                      "lane": 5
                     }
                   }
                 ]
@@ -3406,6 +4526,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/29",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -3416,6 +4544,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC17",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/29",
+                      "lane": 6
                     }
                   }
                 ]
@@ -3454,6 +4590,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/29",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -3464,6 +4608,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC17",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/29",
+                      "lane": 7
                     }
                   }
                 ]
@@ -3502,6 +4654,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/1",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -3511,6 +4671,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC18",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/1",
                       "lane": 0
                     }
                   }
@@ -3550,6 +4718,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/1",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -3559,6 +4735,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC18",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/1",
                       "lane": 1
                     }
                   }
@@ -3598,6 +4782,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/1",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -3607,6 +4799,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC18",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/1",
                       "lane": 2
                     }
                   }
@@ -3646,6 +4846,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/1",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -3655,6 +4863,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC18",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/1",
                       "lane": 3
                     }
                   }
@@ -3694,6 +4910,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/2",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -3703,6 +4927,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC19",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/2",
                       "lane": 0
                     }
                   }
@@ -3742,6 +4974,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/2",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -3751,6 +4991,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC19",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/2",
                       "lane": 1
                     }
                   }
@@ -3790,6 +5038,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/2",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -3799,6 +5055,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC19",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/2",
                       "lane": 2
                     }
                   }
@@ -3838,6 +5102,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/2",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -3847,6 +5119,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC19",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/2",
                       "lane": 3
                     }
                   }
@@ -3886,6 +5166,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/31",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -3896,6 +5184,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC20",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/31",
+                      "lane": 4
                     }
                   }
                 ]
@@ -3934,6 +5230,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/31",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -3944,6 +5248,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC20",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/31",
+                      "lane": 5
                     }
                   }
                 ]
@@ -3982,6 +5294,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/31",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -3992,6 +5312,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC20",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/31",
+                      "lane": 6
                     }
                   }
                 ]
@@ -4030,6 +5358,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/31",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -4040,6 +5376,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC20",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/31",
+                      "lane": 7
                     }
                   }
                 ]
@@ -4078,6 +5422,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/3",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -4087,6 +5439,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC21",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/3",
                       "lane": 0
                     }
                   }
@@ -4126,6 +5486,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/3",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -4135,6 +5503,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC21",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/3",
                       "lane": 1
                     }
                   }
@@ -4174,6 +5550,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/3",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -4183,6 +5567,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC21",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/3",
                       "lane": 2
                     }
                   }
@@ -4222,6 +5614,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/3",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -4231,6 +5631,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC21",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/3",
                       "lane": 3
                     }
                   }
@@ -4270,6 +5678,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/32",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -4280,6 +5696,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC22",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/32",
+                      "lane": 4
                     }
                   }
                 ]
@@ -4318,6 +5742,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/32",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -4328,6 +5760,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC22",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/32",
+                      "lane": 5
                     }
                   }
                 ]
@@ -4366,6 +5806,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/32",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -4376,6 +5824,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC22",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/32",
+                      "lane": 6
                     }
                   }
                 ]
@@ -4414,6 +5870,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/32",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -4424,6 +5888,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC22",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/32",
+                      "lane": 7
                     }
                   }
                 ]
@@ -4462,6 +5934,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/33",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -4472,6 +5952,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC23",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/33",
+                      "lane": 4
                     }
                   }
                 ]
@@ -4510,6 +5998,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/33",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -4520,6 +6016,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC23",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/33",
+                      "lane": 5
                     }
                   }
                 ]
@@ -4558,6 +6062,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/33",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -4568,6 +6080,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC23",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/33",
+                      "lane": 6
                     }
                   }
                 ]
@@ -4606,6 +6126,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/33",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -4616,6 +6144,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC23",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/33",
+                      "lane": 7
                     }
                   }
                 ]
@@ -4654,6 +6190,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/48",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -4664,6 +6208,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC24",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/48",
+                      "lane": 4
                     }
                   }
                 ]
@@ -4702,6 +6254,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/48",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -4712,6 +6272,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC24",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/48",
+                      "lane": 5
                     }
                   }
                 ]
@@ -4750,6 +6318,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/48",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -4760,6 +6336,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC24",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/48",
+                      "lane": 6
                     }
                   }
                 ]
@@ -4798,6 +6382,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/48",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -4808,6 +6400,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC24",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/48",
+                      "lane": 7
                     }
                   }
                 ]
@@ -4846,6 +6446,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/47",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -4856,6 +6464,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC25",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/47",
+                      "lane": 4
                     }
                   }
                 ]
@@ -4894,6 +6510,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/47",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -4904,6 +6528,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC25",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/47",
+                      "lane": 5
                     }
                   }
                 ]
@@ -4942,6 +6574,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/47",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -4952,6 +6592,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC25",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/47",
+                      "lane": 6
                     }
                   }
                 ]
@@ -4990,6 +6638,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/47",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -5000,6 +6656,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC25",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/47",
+                      "lane": 7
                     }
                   }
                 ]
@@ -5038,6 +6702,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/45",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -5048,6 +6720,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC26",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/45",
+                      "lane": 4
                     }
                   }
                 ]
@@ -5086,6 +6766,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/45",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -5096,6 +6784,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC26",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/45",
+                      "lane": 5
                     }
                   }
                 ]
@@ -5134,6 +6830,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/45",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -5144,6 +6848,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC26",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/45",
+                      "lane": 6
                     }
                   }
                 ]
@@ -5182,6 +6894,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/45",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -5192,6 +6912,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC26",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/45",
+                      "lane": 7
                     }
                   }
                 ]
@@ -5230,6 +6958,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/46",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -5240,6 +6976,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC27",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/46",
+                      "lane": 4
                     }
                   }
                 ]
@@ -5278,6 +7022,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/46",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -5288,6 +7040,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC27",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/46",
+                      "lane": 5
                     }
                   }
                 ]
@@ -5326,6 +7086,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/46",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -5336,6 +7104,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC27",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/46",
+                      "lane": 6
                     }
                   }
                 ]
@@ -5374,6 +7150,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/46",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -5384,6 +7168,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC27",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/46",
+                      "lane": 7
                     }
                   }
                 ]
@@ -5422,6 +7214,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/43",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -5432,6 +7232,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC28",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/43",
+                      "lane": 4
                     }
                   }
                 ]
@@ -5470,6 +7278,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/43",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -5480,6 +7296,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC28",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/43",
+                      "lane": 5
                     }
                   }
                 ]
@@ -5518,6 +7342,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/43",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -5528,6 +7360,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC28",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/43",
+                      "lane": 6
                     }
                   }
                 ]
@@ -5566,6 +7406,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/43",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -5576,6 +7424,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC28",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/43",
+                      "lane": 7
                     }
                   }
                 ]
@@ -5614,6 +7470,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/44",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -5624,6 +7488,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC29",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/44",
+                      "lane": 4
                     }
                   }
                 ]
@@ -5662,6 +7534,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/44",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -5672,6 +7552,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC29",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/44",
+                      "lane": 5
                     }
                   }
                 ]
@@ -5710,6 +7598,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/44",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -5720,6 +7616,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC29",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/44",
+                      "lane": 6
                     }
                   }
                 ]
@@ -5758,6 +7662,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/44",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -5768,6 +7680,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC29",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/44",
+                      "lane": 7
                     }
                   }
                 ]
@@ -5806,6 +7726,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/23",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -5815,6 +7743,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC30",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/23",
                       "lane": 0
                     }
                   }
@@ -5854,6 +7790,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/23",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -5863,6 +7807,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC30",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/23",
                       "lane": 1
                     }
                   }
@@ -5902,6 +7854,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/23",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -5911,6 +7871,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC30",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/23",
                       "lane": 2
                     }
                   }
@@ -5950,6 +7918,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/23",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -5959,6 +7935,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC30",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/23",
                       "lane": 3
                     }
                   }
@@ -5998,6 +7982,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/24",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -6007,6 +7999,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC31",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/24",
                       "lane": 0
                     }
                   }
@@ -6046,6 +8046,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/24",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -6055,6 +8063,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC31",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/24",
                       "lane": 1
                     }
                   }
@@ -6094,6 +8110,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/24",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -6103,6 +8127,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC31",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/24",
                       "lane": 2
                     }
                   }
@@ -6142,6 +8174,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/24",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -6151,6 +8191,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC31",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/24",
                       "lane": 3
                     }
                   }
@@ -6190,6 +8238,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/42",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -6200,6 +8256,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC32",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/42",
+                      "lane": 4
                     }
                   }
                 ]
@@ -6238,6 +8302,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/42",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -6248,6 +8320,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC32",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/42",
+                      "lane": 5
                     }
                   }
                 ]
@@ -6286,6 +8366,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/42",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -6296,6 +8384,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC32",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/42",
+                      "lane": 6
                     }
                   }
                 ]
@@ -6334,6 +8430,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/42",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -6344,6 +8448,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC32",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/42",
+                      "lane": 7
                     }
                   }
                 ]
@@ -6382,6 +8494,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/21",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -6391,6 +8511,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC33",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/21",
                       "lane": 0
                     }
                   }
@@ -6430,6 +8558,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/21",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -6439,6 +8575,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC33",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/21",
                       "lane": 1
                     }
                   }
@@ -6478,6 +8622,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/21",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -6487,6 +8639,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC33",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/21",
                       "lane": 2
                     }
                   }
@@ -6526,6 +8686,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/21",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -6535,6 +8703,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC33",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/21",
                       "lane": 3
                     }
                   }
@@ -6574,6 +8750,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/41",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -6584,6 +8768,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC34",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/41",
+                      "lane": 4
                     }
                   }
                 ]
@@ -6622,6 +8814,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/41",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -6632,6 +8832,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC34",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/41",
+                      "lane": 5
                     }
                   }
                 ]
@@ -6670,6 +8878,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/41",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -6680,6 +8896,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC34",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/41",
+                      "lane": 6
                     }
                   }
                 ]
@@ -6718,6 +8942,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/41",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -6728,6 +8960,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC34",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/41",
+                      "lane": 7
                     }
                   }
                 ]
@@ -6766,6 +9006,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/40",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -6776,6 +9024,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC35",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/40",
+                      "lane": 4
                     }
                   }
                 ]
@@ -6814,6 +9070,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/40",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -6824,6 +9088,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC35",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/40",
+                      "lane": 5
                     }
                   }
                 ]
@@ -6862,6 +9134,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/40",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -6872,6 +9152,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC35",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/40",
+                      "lane": 6
                     }
                   }
                 ]
@@ -6910,6 +9198,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/40",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -6920,6 +9216,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC35",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/40",
+                      "lane": 7
                     }
                   }
                 ]
@@ -6958,6 +9262,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/14",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -6967,6 +9279,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC36",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/14",
                       "lane": 0
                     }
                   }
@@ -7006,6 +9326,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/14",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -7015,6 +9343,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC36",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/14",
                       "lane": 1
                     }
                   }
@@ -7054,6 +9390,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/14",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -7063,6 +9407,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC36",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/14",
                       "lane": 2
                     }
                   }
@@ -7102,6 +9454,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/14",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -7111,6 +9471,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC36",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/14",
                       "lane": 3
                     }
                   }
@@ -7150,6 +9518,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/13",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -7159,6 +9535,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC37",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/13",
                       "lane": 0
                     }
                   }
@@ -7198,6 +9582,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/13",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -7207,6 +9599,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC37",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/13",
                       "lane": 1
                     }
                   }
@@ -7246,6 +9646,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/13",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -7255,6 +9663,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC37",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/13",
                       "lane": 2
                     }
                   }
@@ -7294,6 +9710,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/13",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -7303,6 +9727,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC37",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/13",
                       "lane": 3
                     }
                   }
@@ -7342,6 +9774,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/15",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -7351,6 +9791,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC38",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/15",
                       "lane": 0
                     }
                   }
@@ -7390,6 +9838,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/15",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -7399,6 +9855,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC38",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/15",
                       "lane": 1
                     }
                   }
@@ -7438,6 +9902,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/15",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -7447,6 +9919,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC38",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/15",
                       "lane": 2
                     }
                   }
@@ -7486,6 +9966,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/15",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -7495,6 +9983,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC38",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/15",
                       "lane": 3
                     }
                   }
@@ -7534,6 +10030,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/16",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -7543,6 +10047,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC39",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/16",
                       "lane": 0
                     }
                   }
@@ -7582,6 +10094,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/16",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -7591,6 +10111,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC39",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/16",
                       "lane": 1
                     }
                   }
@@ -7630,6 +10158,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/16",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -7639,6 +10175,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC39",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/16",
                       "lane": 2
                     }
                   }
@@ -7678,6 +10222,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/16",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -7687,6 +10239,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC39",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/16",
                       "lane": 3
                     }
                   }
@@ -7726,6 +10286,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/17",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -7735,6 +10303,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC40",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/17",
                       "lane": 0
                     }
                   }
@@ -7774,6 +10350,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/17",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -7783,6 +10367,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC40",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/17",
                       "lane": 1
                     }
                   }
@@ -7822,6 +10414,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/17",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -7831,6 +10431,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC40",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/17",
                       "lane": 2
                     }
                   }
@@ -7870,6 +10478,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/17",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -7879,6 +10495,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC40",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/17",
                       "lane": 3
                     }
                   }
@@ -7918,6 +10542,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/18",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -7927,6 +10559,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC41",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/18",
                       "lane": 0
                     }
                   }
@@ -7966,6 +10606,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/18",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -7975,6 +10623,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC41",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/18",
                       "lane": 1
                     }
                   }
@@ -8014,6 +10670,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/18",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -8023,6 +10687,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC41",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/18",
                       "lane": 2
                     }
                   }
@@ -8062,6 +10734,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/18",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -8071,6 +10751,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC41",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/18",
                       "lane": 3
                     }
                   }
@@ -8110,6 +10798,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/20",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -8119,6 +10815,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC42",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/20",
                       "lane": 0
                     }
                   }
@@ -8158,6 +10862,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/20",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -8167,6 +10879,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC42",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/20",
                       "lane": 1
                     }
                   }
@@ -8206,6 +10926,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/20",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -8215,6 +10943,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC42",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/20",
                       "lane": 2
                     }
                   }
@@ -8254,6 +10990,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/20",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -8263,6 +11007,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC42",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/20",
                       "lane": 3
                     }
                   }
@@ -8302,6 +11054,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/19",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -8311,6 +11071,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC43",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/19",
                       "lane": 0
                     }
                   }
@@ -8350,6 +11118,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/19",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -8359,6 +11135,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC43",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/19",
                       "lane": 1
                     }
                   }
@@ -8398,6 +11182,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/19",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -8407,6 +11199,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC43",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/19",
                       "lane": 2
                     }
                   }
@@ -8446,6 +11246,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/19",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -8455,6 +11263,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC43",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/19",
                       "lane": 3
                     }
                   }
@@ -8494,6 +11310,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/37",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -8504,6 +11328,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC44",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/37",
+                      "lane": 4
                     }
                   }
                 ]
@@ -8542,6 +11374,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/37",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -8552,6 +11392,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC44",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/37",
+                      "lane": 5
                     }
                   }
                 ]
@@ -8590,6 +11438,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/37",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -8600,6 +11456,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC44",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/37",
+                      "lane": 6
                     }
                   }
                 ]
@@ -8638,6 +11502,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/37",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -8648,6 +11520,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC44",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/37",
+                      "lane": 7
                     }
                   }
                 ]
@@ -8686,6 +11566,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/22",
+                      "lane": 0
+                    }
+                  }
                 ]
               }
           },
@@ -8695,6 +11583,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC45",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/22",
                       "lane": 0
                     }
                   }
@@ -8734,6 +11630,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/22",
+                      "lane": 1
+                    }
+                  }
                 ]
               }
           },
@@ -8743,6 +11647,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC45",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/22",
                       "lane": 1
                     }
                   }
@@ -8782,6 +11694,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/22",
+                      "lane": 2
+                    }
+                  }
                 ]
               }
           },
@@ -8791,6 +11711,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC45",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/22",
                       "lane": 2
                     }
                   }
@@ -8830,6 +11758,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/22",
+                      "lane": 3
+                    }
+                  }
                 ]
               }
           },
@@ -8839,6 +11775,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "BC45",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/22",
                       "lane": 3
                     }
                   }
@@ -8878,6 +11822,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/38",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -8888,6 +11840,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC46",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/38",
+                      "lane": 4
                     }
                   }
                 ]
@@ -8926,6 +11886,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/38",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -8936,6 +11904,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC46",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/38",
+                      "lane": 5
                     }
                   }
                 ]
@@ -8974,6 +11950,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/38",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -8984,6 +11968,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC46",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/38",
+                      "lane": 6
                     }
                   }
                 ]
@@ -9022,6 +12014,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/38",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -9032,6 +12032,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC46",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/38",
+                      "lane": 7
                     }
                   }
                 ]
@@ -9070,6 +12078,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/39",
+                      "lane": 4
+                    }
+                  }
                 ]
               }
           },
@@ -9080,6 +12096,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC47",
                       "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/39",
+                      "lane": 4
                     }
                   }
                 ]
@@ -9118,6 +12142,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/39",
+                      "lane": 5
+                    }
+                  }
                 ]
               }
           },
@@ -9128,6 +12160,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC47",
                       "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/39",
+                      "lane": 5
                     }
                   }
                 ]
@@ -9166,6 +12206,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/39",
+                      "lane": 6
+                    }
+                  }
                 ]
               }
           },
@@ -9176,6 +12224,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC47",
                       "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/39",
+                      "lane": 6
                     }
                   }
                 ]
@@ -9214,6 +12270,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/39",
+                      "lane": 7
+                    }
+                  }
                 ]
               }
           },
@@ -9224,6 +12288,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC47",
                       "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "fab1/39",
+                      "lane": 7
                     }
                   }
                 ]

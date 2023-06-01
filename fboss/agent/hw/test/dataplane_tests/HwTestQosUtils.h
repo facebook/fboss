@@ -19,6 +19,7 @@
 
 #include <folly/IPAddress.h>
 
+#include <chrono>
 #include <map>
 #include <vector>
 
@@ -43,7 +44,7 @@ bool verifyQueueMappingsInvariantHelper(
     std::shared_ptr<SwitchState> swState,
     std::function<std::map<PortID, HwPortStats>()> getAllHwPortStats,
     const std::vector<PortID>& ecmpPorts,
-    PortID downlinkPort);
+    uint32_t sleep = 20);
 
 void disableTTLDecrements(
     HwSwitch* hw,

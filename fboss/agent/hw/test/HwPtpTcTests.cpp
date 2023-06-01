@@ -30,7 +30,7 @@ class HwPtpTcTest : public HwLinkStateDependentTest {
     return utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
   }
 
   void setupHelper() {

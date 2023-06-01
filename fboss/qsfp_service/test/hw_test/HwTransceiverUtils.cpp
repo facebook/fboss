@@ -25,6 +25,13 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
     cfg::PortProfileID profile,
     const PlatformMapping* platformMapping,
     std::map<int32_t, TransceiverInfo>& tcvrInfos) {
+  if (profile == cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER ||
+      profile == cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL) {
+    // We use these profiles on Meru400biu and Meru400bfu with 200G optics in a
+    // hacky configuration which invalidates the verification of media/host
+    // lanes in this function.
+    return;
+  }
   const auto& platformPorts = platformMapping->getPlatformPorts();
   const auto& chips = platformMapping->getChips();
   for (auto portID : portIDs) {
@@ -71,6 +78,7 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
       case MediaInterfaceCode::FR4_200G:
       case MediaInterfaceCode::FR4_400G:
       case MediaInterfaceCode::LR4_400G_10KM:
+      case MediaInterfaceCode::FR4_2x400G: // FIXME
         expectedMediaLanes = {0, 1, 2, 3};
         break;
       case MediaInterfaceCode::FR1_100G:
@@ -103,6 +111,7 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
 
 void HwTransceiverUtils::verifyTransceiverSettings(
     const TcvrState& tcvrState,
+    const std::string& portName,
     cfg::PortProfileID profile) {
   auto id = *tcvrState.port();
   if (!*tcvrState.present()) {
@@ -110,7 +119,7 @@ void HwTransceiverUtils::verifyTransceiverSettings(
     return;
   }
 
-  XLOG(INFO) << " Verifying: " << id;
+  XLOG(INFO) << " Verifying: " << id << ", portName = " << portName;
   // Only testing QSFP and SFP transceivers right now
   EXPECT_TRUE(
       *tcvrState.transceiver() == TransceiverType::QSFP ||
@@ -120,22 +129,51 @@ void HwTransceiverUtils::verifyTransceiverSettings(
       *(tcvrState.cable().value_or({}).transmitterTech())) {
     XLOG(INFO) << " Skip verifying optics settings: " << *tcvrState.port()
                << ", for copper cable";
-  } else {
-    verifyOpticsSettings(tcvrState, profile);
+  } else if (
+      profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER &&
+      profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL) {
+    // We use these profiles on Meru400biu and Meru400bfu with 200G optics in a
+    // hacky configuration which invalidates the verification of optics settings
+    // in this function.
+    verifyOpticsSettings(tcvrState, portName, profile);
   }
 
   verifyMediaInterfaceCompliance(tcvrState, profile);
 
-  verifyDataPathEnabled(tcvrState);
+  if (profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER &&
+      profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL) {
+    // We use these profiles on Meru400biu and Meru400bfu with 200G optics in a
+    // hacky configuration which invalidates the verification of datapath in
+    // this function.
+    verifyDataPathEnabled(tcvrState, portName);
+  }
 }
 
 void HwTransceiverUtils::verifyOpticsSettings(
     const TcvrState& tcvrState,
+    const std::string& portName,
     cfg::PortProfileID profile) {
   auto settings = apache::thrift::can_throw(*tcvrState.settings());
+  const auto& portToMediaMap = *tcvrState.portNameToMediaLanes();
+  const auto& portToHostMap = *tcvrState.portNameToHostLanes();
+
+  CHECK(portToMediaMap.find(portName) != portToMediaMap.end());
+  CHECK(portToHostMap.find(portName) != portToHostMap.end());
+
+  const auto& relevantMediaLanes = portToMediaMap.at(portName);
+  const auto& relevantHostLanes = portToHostMap.at(portName);
+
+  EXPECT_GT(relevantMediaLanes.size(), 0);
+  EXPECT_GT(relevantHostLanes.size(), 0);
 
   for (auto& mediaLane :
        apache::thrift::can_throw(*settings.mediaLaneSettings())) {
+    if (std::find(
+            relevantMediaLanes.begin(),
+            relevantMediaLanes.end(),
+            *mediaLane.lane()) == relevantMediaLanes.end()) {
+      continue;
+    }
     EXPECT_FALSE(*mediaLane.txDisable())
         << "Transceiver:" << *tcvrState.port() << ", Lane=" << *mediaLane.lane()
         << " txDisable doesn't match expected";
@@ -160,6 +198,12 @@ void HwTransceiverUtils::verifyOpticsSettings(
 
     for (auto& hostLane :
          apache::thrift::can_throw(*settings.hostLaneSettings())) {
+      if (std::find(
+              relevantHostLanes.begin(),
+              relevantHostLanes.end(),
+              *hostLane.lane()) == relevantHostLanes.end()) {
+        continue;
+      }
       EXPECT_EQ(
           *hostLane.rxSquelch(),
           profile ==
@@ -329,8 +373,16 @@ void HwTransceiverUtils::verifyCopper53gProfile(
   }
 }
 
-void HwTransceiverUtils::verifyDataPathEnabled(const TcvrState& tcvrState) {
+void HwTransceiverUtils::verifyDataPathEnabled(
+    const TcvrState& tcvrState,
+    const std::string& portName) {
   auto mgmtInterface = tcvrState.transceiverManagementInterface();
+
+  const auto& portToHostMap = *tcvrState.portNameToHostLanes();
+  CHECK(portToHostMap.find(portName) != portToHostMap.end());
+  const auto& relevantHostLanes = portToHostMap.at(portName);
+  EXPECT_GT(relevantHostLanes.size(), 0);
+
   if (!mgmtInterface) {
     throw FbossError(
         "Transceiver:",
@@ -342,6 +394,12 @@ void HwTransceiverUtils::verifyDataPathEnabled(const TcvrState& tcvrState) {
     // All lanes should have `false` Deinit
     if (auto hostLaneSignals = tcvrState.hostLaneSignals()) {
       for (const auto& laneSignals : *hostLaneSignals) {
+        if (std::find(
+                relevantHostLanes.begin(),
+                relevantHostLanes.end(),
+                *laneSignals.lane()) == relevantHostLanes.end()) {
+          continue;
+        }
         EXPECT_TRUE(laneSignals.dataPathDeInit().has_value())
             << "Transceiver:" << *tcvrState.port()
             << ", Lane=" << *laneSignals.lane()
@@ -382,6 +440,11 @@ void HwTransceiverUtils::verifyDiagsCapability(
 
   switch (*mgmtInterface) {
     case TransceiverManagementInterface::CMIS:
+      if (TransmitterTechnology::COPPER ==
+          *(tcvrState.cable().value_or({}).transmitterTech())) {
+        // FlatMem modules don't support diagsCapability
+        return;
+      }
       EXPECT_TRUE(diagsCapability.has_value());
       if (!skipCheckingIndividualCapability) {
         EXPECT_TRUE(*diagsCapability->diagnostics());
@@ -389,7 +452,8 @@ void HwTransceiverUtils::verifyDiagsCapability(
         EXPECT_EQ(
             *diagsCapability->vdm(),
             (*mediaIntfCode == MediaInterfaceCode::FR4_400G ||
-             *mediaIntfCode == MediaInterfaceCode::LR4_400G_10KM));
+             *mediaIntfCode == MediaInterfaceCode::LR4_400G_10KM ||
+             *mediaIntfCode == MediaInterfaceCode::FR4_2x400G));
         EXPECT_TRUE(*diagsCapability->cdb());
         EXPECT_TRUE(*diagsCapability->prbsLine());
         EXPECT_TRUE(*diagsCapability->prbsSystem());

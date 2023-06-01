@@ -19,14 +19,21 @@ using folly::IPAddress;
 using folly::IPAddressV6;
 using std::string;
 
+DEFINE_bool(
+    skip_stop_pfc_test_traffic,
+    false,
+    "Skip stopping traffic after traffic test!");
 namespace {
 static constexpr auto kGlobalSharedBytes{20000};
 static constexpr auto kGlobalHeadroomBytes{4771136};
 static constexpr auto kPgLimitBytes{2200};
+static constexpr auto kPgResumeOffsetBytes{1800};
 static constexpr auto kPgHeadroomBytes{293624};
 static constexpr auto kLosslessTrafficClass{2};
 static constexpr auto kLosslessPriority{2};
+static constexpr auto kNumberOfPortsToEnablePfcOn{2};
 static const std::vector<int> kLosslessPgIds{2, 3};
+static const std::vector<int> kLossyPgIds{0};
 
 struct PfcBufferParams {
   int globalShared = kGlobalSharedBytes;
@@ -35,11 +42,13 @@ struct PfcBufferParams {
   int pgHeadroom = kPgHeadroomBytes;
   std::optional<facebook::fboss::cfg::MMUScalingFactor> scalingFactor =
       facebook::fboss::cfg::MMUScalingFactor::ONE_128TH;
+  int resumeOffset = kPgResumeOffsetBytes;
 };
 
 struct TrafficTestParams {
   PfcBufferParams buffer = PfcBufferParams{};
   bool expectDrop = false;
+  bool scale = false;
 };
 
 std::tuple<int, int, int> getPfcTxRxXonHwPortStats(
@@ -113,21 +122,30 @@ void validateIngressPriorityGroupWatermarkCounters(
     facebook::fboss::HwSwitchEnsemble* ensemble,
     const int pri,
     const std::vector<facebook::fboss::PortID>& portIds) {
+  std::string watermarkKeys = "shared";
+  int numKeys = 1;
+  if (ensemble->getAsic()->isSupported(
+          facebook::fboss::HwAsic::Feature::
+              INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK)) {
+    watermarkKeys.append("|headroom");
+    numKeys++;
+  }
   auto ingressPriorityGroupWatermarksIncrementing =
       [&](const auto& /*newStats*/) {
         for (const auto& portId : portIds) {
           const auto& portName = ensemble->getProgrammedState()
                                      ->getPorts()
-                                     ->getPort(portId)
+                                     ->getNodeIf(portId)
                                      ->getName();
           std::string pg =
               ensemble->isSai() ? folly::sformat(".pg{}", pri) : "";
           auto regex = folly::sformat(
-              "buffer_watermark_pg_(shared|headroom).{}{}.p100.60",
+              "buffer_watermark_pg_({}).{}{}.p100.60",
+              watermarkKeys,
               portName,
               pg);
           auto counters = facebook::fb303::fbData->getRegexCounters(regex);
-          CHECK_EQ(counters.size(), 2);
+          CHECK_EQ(counters.size(), numKeys);
           for (const auto& ctr : counters) {
             XLOG(DBG0) << ctr.first << " : " << ctr.second;
             if (!ctr.second) {
@@ -165,7 +183,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     return cfg;
   }
   folly::IPAddressV6 kDestIp1() const {
@@ -276,7 +294,8 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       std::map<std::string, std::vector<cfg::PortPgConfig>>& portPgConfigMap,
       int pgLimit,
       int pgHeadroom,
-      std::optional<cfg::MMUScalingFactor> scalingFactor) {
+      std::optional<cfg::MMUScalingFactor> scalingFactor,
+      int resumeOffset) {
     std::vector<cfg::PortPgConfig> portPgConfigs;
     // create 2 pgs
     for (auto pgId : kLosslessPgIds) {
@@ -287,6 +306,26 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       pgConfig.minLimitBytes() = pgLimit;
       // set large enough headroom to avoid drop
       pgConfig.headroomLimitBytes() = pgHeadroom;
+      // resume offset
+      pgConfig.resumeOffsetBytes() = resumeOffset;
+      // set scaling factor
+      if (scalingFactor) {
+        pgConfig.scalingFactor() = *scalingFactor;
+      }
+      portPgConfigs.emplace_back(pgConfig);
+    }
+
+    // create lossy pgs
+    for (auto pgId : kLossyPgIds) {
+      cfg::PortPgConfig pgConfig;
+      pgConfig.id() = pgId;
+      pgConfig.bufferPoolName() = "bufferNew";
+      // provide atleast 1 cell worth of minLimit
+      pgConfig.minLimitBytes() = pgLimit;
+      // headroom set 0 identifies lossy pgs
+      pgConfig.headroomLimitBytes() = 0;
+      // resume offset
+      pgConfig.resumeOffsetBytes() = resumeOffset;
       // set scaling factor
       if (scalingFactor) {
         pgConfig.scalingFactor() = *scalingFactor;
@@ -297,19 +336,24 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     portPgConfigMap["foo"] = portPgConfigs;
   }
 
-  void setupBuffers(PfcBufferParams buffer = PfcBufferParams{}) {
+  void setupBuffers(
+      PfcBufferParams buffer = PfcBufferParams{},
+      bool scaleConfig = false) {
     auto newCfg{initialConfig()};
-    setupPfc(
-        newCfg,
-        {masterLogicalInterfacePortIds()[0],
-         masterLogicalInterfacePortIds()[1]});
+    int numberOfPorts = scaleConfig ? masterLogicalInterfacePortIds().size()
+                                    : kNumberOfPortsToEnablePfcOn;
+    auto allPorts = masterLogicalInterfacePortIds();
+    std::vector<PortID> ports(
+        allPorts.begin(), allPorts.begin() + numberOfPorts);
+    setupPfc(newCfg, ports);
 
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
     setupPortPgConfig(
         portPgConfigMap,
         buffer.pgLimit,
         buffer.pgHeadroom,
-        buffer.scalingFactor);
+        buffer.scalingFactor,
+        buffer.resumeOffset);
     newCfg.portPgConfigs() = portPgConfigMap;
 
     // create buffer pool
@@ -370,7 +414,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
           const std::vector<PortID>& portIds)> validateCounterFn =
           validatePfcCounters) {
     auto setup = [&]() {
-      setupBuffers(testParams.buffer);
+      setupBuffers(testParams.buffer, testParams.scale);
       setupEcmpTraffic();
       validateInitPfcCounters(
           {masterLogicalInterfacePortIds()[0],
@@ -391,10 +435,12 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
             {masterLogicalInterfacePortIds()[0],
              masterLogicalInterfacePortIds()[1]});
       }
-      // stop traffic so that unconfiguration can happen without issues
-      stopTraffic(
-          {masterLogicalInterfacePortIds()[0],
-           masterLogicalInterfacePortIds()[1]});
+      if (!FLAGS_skip_stop_pfc_test_traffic) {
+        // stop traffic so that unconfiguration can happen without issues
+        stopTraffic(
+            {masterLogicalInterfacePortIds()[0],
+             masterLogicalInterfacePortIds()[1]});
+      }
     };
     verifyAcrossWarmBoots(setup, verify);
   }
@@ -544,6 +590,10 @@ class HwTrafficPfcGenTest
      */
     FLAGS_ingress_egress_buffer_pool_size =
         testParams.buffer.globalShared + testParams.buffer.globalHeadroom;
+    if (testParams.buffer.pgHeadroom == 0) {
+      // Force headroom 0 for lossless PG
+      FLAGS_allow_zero_headroom_for_lossless_pg = true;
+    }
     HwLinkStateDependentTest::SetUp();
   }
 };
@@ -553,6 +603,13 @@ INSTANTIATE_TEST_SUITE_P(
     HwTrafficPfcGenTest,
     testing::Values(
         TrafficTestParams{},
+        TrafficTestParams{
+            .buffer =
+                PfcBufferParams{
+                    .globalShared = kGlobalSharedBytes * 5,
+                    .pgLimit = kPgLimitBytes / 3,
+                    .resumeOffset = kPgResumeOffsetBytes / 3},
+            .scale = true},
         TrafficTestParams{
             .buffer =
                 PfcBufferParams{.pgHeadroom = 0, .scalingFactor = std::nullopt},
@@ -569,6 +626,8 @@ INSTANTIATE_TEST_SUITE_P(
         return "WithZeroPgHeadRoomCfg";
       } else if (testParams.buffer.globalHeadroom == 0) {
         return "WithZeroGlobalHeadRoomCfg";
+      } else if (testParams.scale) {
+        return "WithScaleCfg";
       } else {
         return "WithDefaultCfg";
       }

@@ -153,22 +153,6 @@ void IPv4Handler::handlePacket(
 
   // retrieve the current switch state
   auto state = sw_->getState();
-  // Need to check if the packet is for self or not. We store our IP
-  // in the ARP response table. Use that for now.
-  auto portPtr = state->getPorts()->getPortIf(port);
-  if (!portPtr) {
-    // Received packed on unknown port
-    stats->port(port)->pktDropped();
-    return;
-  }
-  auto intfID = sw_->getState()->getInterfaceIDForPort(port);
-  auto ingressInterface = state->getInterfaces()->getInterfaceIf(intfID);
-  if (!ingressInterface) {
-    // Received packed on unknown port / interface
-    stats->port(port)->pktDropped();
-    return;
-  }
-
   if (v4Hdr.protocol == static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP)) {
     Cursor udpCursor(cursor);
     UDPHeader udpHdr;
@@ -198,7 +182,7 @@ void IPv4Handler::handlePacket(
     }
     // Forward multicast packet directly to corresponding host interface
     auto intfID = sw_->getState()->getInterfaceIDForPort(port);
-    intf = state->getInterfaces()->getInterfaceIf(intfID);
+    intf = state->getInterfaces()->getNodeIf(intfID);
   } else if (v4Hdr.dstAddr.isLinkLocal()) {
     // XXX: Ideally we should scope the limit to Link only. However we are
     // using v4 link locals in a special way on Galaxy/6pack which needs because
@@ -207,7 +191,7 @@ void IPv4Handler::handlePacket(
     // Forward link-local packet directly to corresponding host interface
     // provided desAddr is assigned to that interface.
     // auto intfID = sw_->getState()->getInterfaceIDForPort(port);
-    // intf = state->getInterfaces()->getInterfaceIf(intfID);
+    // intf = state->getInterfaces()->getNodeIf(intfID);
     // if (not intf->hasAddress(v4Hdr.dstAddr)) {
     //   intf = nullptr;
     // }
@@ -239,8 +223,10 @@ void IPv4Handler::handlePacket(
     XLOG(DBG4) << "Rx IPv4 Packet with TTL expired";
     stats->port(port)->pktDropped();
     stats->port(port)->ipv4TtlExceeded();
-    // Look up cpu mac from platform
-    MacAddress cpuMac = sw_->getPlatform()->getLocalMac();
+    // Look up cpu mac from switchInfo
+    auto switchId = sw_->getScopeResolver()->scope(port).switchId();
+    MacAddress cpuMac =
+        sw_->getHwAsicTable()->getHwAsicIf(switchId)->getAsicMac();
     sendICMPTimeExceeded(port, vlanID, cpuMac, cpuMac, v4Hdr, cursor);
     return;
   }
@@ -277,20 +263,8 @@ bool IPv4Handler::resolveMac(
   // need to find out our own IP and MAC addresses so that we can send the
   // ARP request out. Since the request will be broadcast, there is no need to
   // worry about which port to send the packet out.
+  auto route = sw_->longestMatch(state, dest, RouterID(0));
 
-  auto port = state->getPorts()->getPortIf(ingressPort);
-  if (!port) {
-    // Received packed on unknown port
-    return false;
-  }
-  auto intfID = sw_->getState()->getInterfaceIDForPort(ingressPort);
-  auto ingressInterface = state->getInterfaces()->getInterfaceIf(intfID);
-  if (!ingressInterface) {
-    // Received packed on unknown port / interface
-    return false;
-  }
-
-  auto route = sw_->longestMatch(state, dest, ingressInterface->getRouterID());
   if (!route || !route->isResolved()) {
     sw_->portStats(ingressPort)->ipv4DstLookupFailure();
     // No way to reach dest
@@ -301,7 +275,7 @@ bool IPv4Handler::resolveMac(
   auto nhs = route->getForwardInfo().getNextHopSet();
   auto sent = false;
   for (auto nh : nhs) {
-    auto intf = intfs->getInterfaceIf(nh.intf());
+    auto intf = intfs->getNodeIf(nh.intf());
     if (intf) {
       if (nh.addr().isV4()) {
         auto source = intf->getAddressToReach(nh.addr())->first.asV4();

@@ -33,7 +33,7 @@ class HwQueuePerHostL2Test : public HwLinkStateDependentTest {
         getHwSwitch(),
         masterLogicalPortIds()[0],
         masterLogicalPortIds()[1],
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     cfg.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
 
     if (isSupported(HwAsic::Feature::L3_QOS)) {
@@ -189,7 +189,7 @@ class HwQueuePerHostL2Test : public HwLinkStateDependentTest {
       std::optional<cfg::AclLookupClass> classID,
       MacEntryType type) {
     auto newState = getProgrammedState()->clone();
-    auto vlan = newState->getVlans()->getVlanIf(kVlanID()).get();
+    auto vlan = newState->getVlans()->getNodeIf(kVlanID()).get();
     auto macTable = vlan->getMacTable().get();
     macTable = macTable->modify(&vlan, &newState);
     if (macTable->getMacIf(macAddr)) {

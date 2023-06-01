@@ -47,7 +47,9 @@ class BcmAddDelEcmpTest : public BcmTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::onePortPerInterfaceConfig(
-        getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getHwSwitch()->getPlatform()->getAsic()->desiredLoopbackModes());
     return cfg;
   }
   template <typename AddrT>

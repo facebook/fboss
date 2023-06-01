@@ -56,7 +56,8 @@ class SimPlatform : public Platform {
   void setupAsic(
       cfg::SwitchType /*switchType*/,
       std::optional<int64_t> /*switchId*/,
-      std::optional<cfg::Range64> /*systemPortRange*/) override {
+      std::optional<cfg::Range64> /*systemPortRange*/,
+      folly::MacAddress& /*mac*/) override {
     // noop - no asic implemented
   }
   // Forbidden copy constructor and assignment operator

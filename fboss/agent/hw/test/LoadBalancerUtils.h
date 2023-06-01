@@ -26,6 +26,7 @@ class Platform;
 class SwitchState;
 class LoadBalancer;
 class HwSwitchEnsemble;
+class SwitchIdScopeResolver;
 
 } // namespace facebook::fboss
 
@@ -51,12 +52,14 @@ std::vector<cfg::LoadBalancer> getEcmpFullTrunkFullHashConfig(
 std::shared_ptr<SwitchState> setLoadBalancer(
     const Platform* platform,
     const std::shared_ptr<SwitchState>& inputState,
-    const cfg::LoadBalancer& loadBalancer);
+    const cfg::LoadBalancer& loadBalancer,
+    const SwitchIdScopeResolver& resolver);
 
 std::shared_ptr<SwitchState> addLoadBalancers(
     const Platform* platform,
     const std::shared_ptr<SwitchState>& inputState,
-    const std::vector<cfg::LoadBalancer>& loadBalancers);
+    const std::vector<cfg::LoadBalancer>& loadBalancers,
+    const SwitchIdScopeResolver& resolver);
 
 void pumpTraffic(
     bool isV6,

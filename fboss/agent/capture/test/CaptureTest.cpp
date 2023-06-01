@@ -39,6 +39,8 @@ namespace {
 unique_ptr<HwTestHandle> setupTestHandle() {
   // Setup the initial state object
   cfg::SwitchConfig thriftCfg;
+  thriftCfg.switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU))};
 
   // Add VLAN 1, and ports 1-39 which belong to it.
   cfg::Vlan thriftVlan;

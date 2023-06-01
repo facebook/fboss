@@ -19,7 +19,8 @@ class AclNexthopHandler : public StateObserver {
  private:
   std::shared_ptr<SwitchState> handleUpdate(
       const std::shared_ptr<SwitchState>& state);
-  std::shared_ptr<AclMap> updateAcls(std::shared_ptr<SwitchState>& newState);
+  std::shared_ptr<MultiSwitchAclMap> updateAcls(
+      std::shared_ptr<SwitchState>& newState);
   AclEntry* FOLLY_NULLABLE updateAcl(
       const std::shared_ptr<AclEntry>& origAclEntry,
       std::shared_ptr<SwitchState>& newState);

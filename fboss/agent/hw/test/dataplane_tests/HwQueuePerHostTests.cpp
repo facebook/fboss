@@ -37,7 +37,7 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     return cfg;
   }
 
@@ -111,7 +111,7 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
     for (const auto& ipToMacAndClassID : getIpToMacAndClassID()) {
       auto ip = ipToMacAndClassID.first;
       auto neighborTable = outState->getVlans()
-                               ->getVlan(kVlanID)
+                               ->getNode(kVlanID)
                                ->template getNeighborTable<NeighborTableT>()
                                ->modify(kVlanID, &outState);
       neighborTable->addPendingEntry(ip, kIntfID);
@@ -133,7 +133,7 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
       auto classID = blockNeighbor ? cfg::AclLookupClass::CLASS_DROP
                                    : macAndClassID.second;
       auto neighborTable = outState->getVlans()
-                               ->getVlan(kVlanID)
+                               ->getNode(kVlanID)
                                ->template getNeighborTable<NeighborTableT>()
                                ->modify(kVlanID, &outState);
       if (setClassIDs) {

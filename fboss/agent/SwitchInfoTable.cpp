@@ -78,6 +78,10 @@ bool SwitchInfoTable::haveNpuSwitches() const {
   return getSwitchIdsOfType(cfg::SwitchType::NPU).size() > 0;
 }
 
+bool SwitchInfoTable::haveFabricSwitches() const {
+  return getSwitchIdsOfType(cfg::SwitchType::FABRIC).size() > 0;
+}
+
 bool SwitchInfoTable::haveL3Switches() const {
   return haveVoqSwitches() || haveNpuSwitches();
 }

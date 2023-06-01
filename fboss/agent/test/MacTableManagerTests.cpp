@@ -67,7 +67,7 @@ class MacTableManagerTest : public ::testing::Test {
 
   void verifyMacIsAdded() {
     verifyStateUpdate([=]() {
-      auto vlan = sw_->getState()->getVlans()->getVlan(kVlan());
+      auto vlan = sw_->getState()->getVlans()->getNode(kVlan());
       auto* macTable = vlan->getMacTable().get();
       auto node = macTable->getMacIf(kMacAddress());
 
@@ -79,7 +79,7 @@ class MacTableManagerTest : public ::testing::Test {
 
   void verifyMacIsDeleted() {
     verifyStateUpdate([=]() {
-      auto vlan = sw_->getState()->getVlans()->getVlan(kVlan());
+      auto vlan = sw_->getState()->getVlans()->getNode(kVlan());
       auto* macTable = vlan->getMacTable().get();
       auto node = macTable->getMacIf(kMacAddress());
 

@@ -76,6 +76,8 @@ class HwPfcTest : public HwTest {
       pgConfig.bufferPoolName() = "bufferNew";
       // provide atleast 1 cell worth of minLimit
       pgConfig.minLimitBytes() = 300;
+      // Non zero headroom to specify this is a no-drop class
+      pgConfig.headroomLimitBytes() = 1000;
       portPgConfigs.emplace_back(pgConfig);
     }
 
@@ -83,6 +85,7 @@ class HwPfcTest : public HwTest {
     std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
     cfg::BufferPoolConfig poolConfig;
     poolConfig.sharedBytes() = 10000;
+    poolConfig.headroomBytes() = 2000;
     bufferPoolCfgMap.insert(std::make_pair("bufferNew", poolConfig));
     currentConfig.bufferPoolConfigs() = bufferPoolCfgMap;
 

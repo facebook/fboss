@@ -405,32 +405,37 @@ TEST_F(BcmPortTest, AssertL3Enabled) {
   // Enable all master ports
   auto setup = [this]() {
     applyNewConfig(utility::oneL3IntfNPortConfig(
-        getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC));
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getPlatform()->getAsic()->desiredLoopbackModes()));
   };
   auto verify = [this]() {
     std::array<std::tuple<std::string, bcm_port_control_t>, 2> l3Options = {
         std::make_tuple("bcmPortControlIP4", bcmPortControlIP4),
         std::make_tuple("bcmPortControlIP6", bcmPortControlIP6)};
-    for (const auto& port : std::as_const(*getProgrammedState()->getPorts())) {
-      if (!port.second->isEnabled()) {
-        continue;
-      }
-      for (auto l3Option : l3Options) {
-        int currVal{0};
-        auto rv = bcm_port_control_get(
-            getUnit(),
-            static_cast<int>(port.second->getID()),
-            std::get<1>(l3Option),
-            &currVal);
-        bcmCheckError(
-            rv,
-            folly::sformat(
-                "Failed to get {} for port {} : {}",
-                std::get<0>(l3Option),
-                static_cast<int>(port.second->getID()),
-                bcm_errmsg(rv)));
-        // Any enabled port should enable IP4 and IP6
-        EXPECT_EQ(currVal, 1);
+    for (const auto& portMap :
+         std::as_const(*getProgrammedState()->getPorts())) {
+      for (const auto& port : std::as_const(*portMap.second)) {
+        if (!port.second->isEnabled()) {
+          continue;
+        }
+        for (auto l3Option : l3Options) {
+          int currVal{0};
+          auto rv = bcm_port_control_get(
+              getUnit(),
+              static_cast<int>(port.second->getID()),
+              std::get<1>(l3Option),
+              &currVal);
+          bcmCheckError(
+              rv,
+              folly::sformat(
+                  "Failed to get {} for port {} : {}",
+                  std::get<0>(l3Option),
+                  static_cast<int>(port.second->getID()),
+                  bcm_errmsg(rv)));
+          // Any enabled port should enable IP4 and IP6
+          EXPECT_EQ(currVal, 1);
+        }
       }
     }
   };
@@ -467,24 +472,29 @@ TEST_F(BcmPortTest, SetInterPacketGapBits) {
     getPlatform()->setOverridePortInterPacketGapBits(
         expectedInterPacketGapBits);
     applyNewConfig(utility::oneL3IntfNPortConfig(
-        getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC));
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getPlatform()->getAsic()->desiredLoopbackModes()));
   };
   auto verify = [this]() {
-    for (const auto& port : std::as_const(*getProgrammedState()->getPorts())) {
-      if (!port.second->isEnabled()) {
-        continue;
-      }
-      // Due to the override port IPG is set, so the profileConfig should have
-      // the override value
-      EXPECT_TRUE(port.second->getProfileConfig().interPacketGapBits());
-      EXPECT_EQ(
-          *port.second->getProfileConfig().interPacketGapBits(),
-          expectedInterPacketGapBits);
+    for (const auto& portMap :
+         std::as_const(*getProgrammedState()->getPorts())) {
+      for (const auto& port : std::as_const(*portMap.second)) {
+        if (!port.second->isEnabled()) {
+          continue;
+        }
+        // Due to the override port IPG is set, so the profileConfig should have
+        // the override value
+        EXPECT_TRUE(port.second->getProfileConfig().interPacketGapBits());
+        EXPECT_EQ(
+            *port.second->getProfileConfig().interPacketGapBits(),
+            expectedInterPacketGapBits);
 
-      // Check BcmPort is also programmed to use the override IGP
-      auto bcmPort =
-          getHwSwitch()->getPortTable()->getBcmPort(port.second->getID());
-      EXPECT_EQ(bcmPort->getInterPacketGapBits(), expectedInterPacketGapBits);
+        // Check BcmPort is also programmed to use the override IGP
+        auto bcmPort =
+            getHwSwitch()->getPortTable()->getBcmPort(port.second->getID());
+        EXPECT_EQ(bcmPort->getInterPacketGapBits(), expectedInterPacketGapBits);
+      }
     }
   };
   verifyAcrossWarmBoots(setup, verify);

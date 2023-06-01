@@ -31,7 +31,7 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     return cfg;
   }
   void pumpTraffic() {
@@ -55,12 +55,13 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
       if (enableRxPause) {
         auto newState = getProgrammedState()->clone();
         auto portMap = newState->getPorts()->modify(&newState);
-        auto port = portMap->getPort(PortID(masterLogicalInterfacePortIds()[0]))
-                        ->clone();
+        auto port =
+            portMap->getNodeIf(PortID(masterLogicalInterfacePortIds()[0]))
+                ->clone();
         cfg::PortPause pauseCfg;
         *pauseCfg.rx() = true;
         port->setPause(pauseCfg);
-        portMap->updatePort(port);
+        portMap->updateNode(port, scopeResolver().scope(port));
         applyNewState(newState);
       }
     };

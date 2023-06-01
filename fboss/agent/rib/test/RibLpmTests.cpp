@@ -49,6 +49,7 @@ void addRoute(
 
 void addRoute(RoutingInformationBase& rib, const UnicastRoute& route) {
   rib.update(
+      nullptr,
       kRid0,
       ClientID::BGPD,
       AdminDistance::EBGP,

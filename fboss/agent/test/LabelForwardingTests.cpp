@@ -65,8 +65,7 @@ TEST_P(LabelForwardingTest, addMplsRoutes) {
 
   for (auto i = 0; i < 2; i++) {
     for (const auto& route : routes[i]) {
-      const auto& labelFibEntry =
-          labelFib->getLabelForwardingEntry(*route.topLabel());
+      const auto& labelFibEntry = labelFib->getNode(*route.topLabel());
       auto labelFibEntryForClient =
           labelFibEntry->getEntryForClient(clients[i]);
 
@@ -101,8 +100,7 @@ TEST_P(LabelForwardingTest, modifyMplsRoutes) {
 
     for (auto i = 0; i < 2; i++) {
       for (const auto& route : routes[i]) {
-        const auto& labelFibEntry =
-            labelFib->getLabelForwardingEntry(*route.topLabel());
+        const auto& labelFibEntry = labelFib->getNode(*route.topLabel());
         const auto labelFibEntryForClient =
             labelFibEntry->getEntryForClient(clients[i]);
 
@@ -175,8 +173,7 @@ TEST_F(LabelForwardingTest, addMplsRecursiveRoutes) {
       static_cast<int>(ClientID::OPENR), std::move(routes));
   waitForStateUpdates(this->sw);
   auto labelFib = this->sw->getState()->getLabelForwardingInformationBase();
-  const auto& labelFibEntry =
-      labelFib->getLabelForwardingEntry(*mplsRoute.topLabel());
+  const auto& labelFibEntry = labelFib->getNode(*mplsRoute.topLabel());
   EXPECT_NE(nullptr, labelFibEntry);
   auto nexthops = labelFibEntry->getForwardInfo().getNextHopSet();
   EXPECT_EQ(nexthops.size(), 2);
@@ -226,12 +223,11 @@ TEST_P(LabelForwardingTest, deleteMplsRoutes) {
 
   for (auto i = 0; i < 2; i++) {
     for (const auto& label : routesToRemove[i]) {
-      const auto labelFibEntry = labelFib->getLabelForwardingEntryIf(label);
+      const auto labelFibEntry = labelFib->getNodeIf(label);
       EXPECT_EQ(nullptr, labelFibEntry);
     }
     for (const auto& route : routesToRetain[i]) {
-      const auto& labelFibEntry =
-          labelFib->getLabelForwardingEntry(*route.topLabel());
+      const auto& labelFibEntry = labelFib->getNode(*route.topLabel());
       const auto labelFibEntryForClient =
           labelFibEntry->getEntryForClient(clients[i]);
       EXPECT_NE(nullptr, labelFibEntryForClient);
@@ -277,8 +273,7 @@ TEST_P(LabelForwardingTest, syncMplsFib) {
 
   for (auto i = 0; i < 2; i++) {
     for (const auto& route : routes[i]) {
-      const auto& labelFibEntry =
-          labelFib->getLabelForwardingEntry(*route.topLabel());
+      const auto& labelFibEntry = labelFib->getNode(*route.topLabel());
       const auto labelFibEntryForClient =
           labelFibEntry->getEntryForClient(clients[i]);
 
@@ -300,8 +295,7 @@ TEST_P(LabelForwardingTest, syncMplsFib) {
 
   for (auto i = 0; i < 8; i++) {
     if (i < 4) {
-      const auto& labelFibEntry =
-          labelFib->getLabelForwardingEntry(*routes[0][i].topLabel());
+      const auto& labelFibEntry = labelFib->getNode(*routes[0][i].topLabel());
       const auto labelFibEntryForClient =
           labelFibEntry->getEntryForClient(clients[0]);
 
@@ -310,8 +304,7 @@ TEST_P(LabelForwardingTest, syncMplsFib) {
           util::toRouteNextHopSet(*routes[0][i].nextHops()),
           labelFibEntryForClient->getNextHopSet());
     } else {
-      auto labelFibEntry =
-          labelFib->getLabelForwardingEntryIf(*routes[0][i].topLabel());
+      auto labelFibEntry = labelFib->getNodeIf(*routes[0][i].topLabel());
       EXPECT_EQ(nullptr, labelFibEntry);
     }
   }
@@ -406,7 +399,7 @@ TEST_P(LabelForwardingTest, unresolvedNextHops) {
   auto labelFib = this->sw->getState()->getLabelForwardingInformationBase();
 
   for (auto i = 0; i < 3; i++) {
-    const auto& labelFibEntry = labelFib->getLabelForwardingEntry(labels[i]);
+    const auto& labelFibEntry = labelFib->getNode(labels[i]);
     const auto labelFibEntryForClient =
         labelFibEntry->getEntryForClient(ClientID::OPENR);
 
@@ -473,8 +466,7 @@ TEST_P(LabelForwardingTest, invalidUnresolvedNextHops) {
         static_cast<int>(ClientID::OPENR), std::move(routes));
     waitForStateUpdates(this->sw);
     auto labelFib = this->sw->getState()->getLabelForwardingInformationBase();
-    const auto& labelFibEntry =
-        labelFib->getLabelForwardingEntry(*mplsRoute.topLabel());
+    const auto& labelFibEntry = labelFib->getNode(*mplsRoute.topLabel());
     EXPECT_NE(nullptr, labelFibEntry);
     auto nexthops = labelFibEntry->getForwardInfo().getNextHopSet();
     EXPECT_EQ(nexthops.size(), 2);

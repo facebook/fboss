@@ -28,5 +28,7 @@ TransceiverInfo getTransceiverInfo(cfg::PortProfileID profileID);
 void setPortTxEnable(const HwSwitch* hw, PortID port, bool enable);
 
 void enableTransceiverProgramming(bool enable);
+int getLoopbackMode(cfg::PortLoopbackMode loopbackMode);
+
 } // namespace utility
 } // namespace facebook::fboss

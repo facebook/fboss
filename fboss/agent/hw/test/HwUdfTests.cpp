@@ -26,10 +26,9 @@ class HwUdfTest : public HwTest {
 
     auto state = getProgrammedState();
     state->modify(&state);
-    auto switchSettings = state->getSwitchSettings();
-    switchSettings = switchSettings->clone();
-    switchSettings->setUdfConfig(udfConfigState);
-    state->resetSwitchSettings(switchSettings);
+    auto switchSettings = util::getFirstNodeIf(state->getSwitchSettings());
+    auto newSwitchSettings = switchSettings->modify(&state);
+    newSwitchSettings->setUdfConfig(udfConfigState);
     return state;
   }
 };

@@ -28,6 +28,12 @@ using namespace facebook::fboss;
 using std::make_shared;
 using std::shared_ptr;
 
+namespace {
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+} // namespace
+
 /* Some tests below are structured as follows:
  * baseState --[apply "baseConfig"]--> startState --[apply "config"]--> endState
  * In these tests, what's being tested is the transition from startState and
@@ -109,10 +115,12 @@ void checkAggPort(
 TEST(AggregatePort, singleTrunkWithOnePhysicalPort) {
   auto platform = createMockPlatform();
   auto startState = make_shared<SwitchState>();
-  startState->registerPort(PortID(1), "port1");
+  registerPort(startState, PortID(1), "port1", scope());
 
   // This config has an aggregate port comprised of a single physical port
   cfg::SwitchConfig config;
+  config.switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU))};
   config.ports()->resize(1);
   preparedMockPortConfig(config.ports()[0], 1);
 
@@ -143,8 +151,7 @@ TEST(AggregatePort, singleTrunkWithOnePhysicalPort) {
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
-  auto aggPort =
-      endState->getAggregatePorts()->getAggregatePortIf(AggregatePortID(1));
+  auto aggPort = endState->getAggregatePorts()->getNodeIf(AggregatePortID(1));
   ASSERT_NE(nullptr, aggPort);
 
   checkAggPort(
@@ -154,10 +161,12 @@ TEST(AggregatePort, singleTrunkWithOnePhysicalPort) {
 TEST(AggregatePort, singleTrunkWithTwoPhysicalPorts) {
   auto platform = createMockPlatform();
   auto baseState = make_shared<SwitchState>();
-  baseState->registerPort(PortID(1), "port1");
-  baseState->registerPort(PortID(2), "port2");
+  registerPort(baseState, PortID(1), "port1", scope());
+  registerPort(baseState, PortID(2), "port2", scope());
 
   cfg::SwitchConfig baseConfig;
+  baseConfig.switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU))};
   baseConfig.ports()->resize(2);
   preparedMockPortConfig(baseConfig.ports()[0], 1);
   preparedMockPortConfig(baseConfig.ports()[1], 2);
@@ -199,8 +208,7 @@ TEST(AggregatePort, singleTrunkWithTwoPhysicalPorts) {
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
-  auto aggPort =
-      endState->getAggregatePorts()->getAggregatePortIf(AggregatePortID(1));
+  auto aggPort = endState->getAggregatePorts()->getNodeIf(AggregatePortID(1));
   ASSERT_NE(nullptr, aggPort);
   checkAggPort(
       aggPort, AggregatePortID(1), "port-channel", "double bundle", {1, 2}, 0);
@@ -209,11 +217,13 @@ TEST(AggregatePort, singleTrunkWithTwoPhysicalPorts) {
 TEST(AggregatePort, singleTrunkIdempotence) {
   auto platform = createMockPlatform();
   auto baseState = make_shared<SwitchState>();
-  baseState->registerPort(PortID(1), "port1");
-  baseState->registerPort(PortID(2), "port2");
+  registerPort(baseState, PortID(1), "port1", scope());
+  registerPort(baseState, PortID(2), "port2", scope());
 
   // This config has an aggregate port comprised of two physical ports
   cfg::SwitchConfig baseConfig;
+  baseConfig.switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU))};
   baseConfig.ports()->resize(2);
   preparedMockPortConfig(baseConfig.ports()[0], 1);
   preparedMockPortConfig(baseConfig.ports()[1], 2);
@@ -266,11 +276,13 @@ TEST(AggregatePort, singleTrunkIdempotence) {
 TEST(AggregatePort, singleTrunkWithoutPhysicalPorts) {
   auto platform = createMockPlatform();
   auto baseState = make_shared<SwitchState>();
-  baseState->registerPort(PortID(1), "port1");
-  baseState->registerPort(PortID(2), "port2");
+  registerPort(baseState, PortID(1), "port1", scope());
+  registerPort(baseState, PortID(2), "port2", scope());
 
   // This config has an aggregate port comprised of two physical ports
   cfg::SwitchConfig baseConfig;
+  baseConfig.switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU))};
   baseConfig.ports()->resize(2);
   preparedMockPortConfig(baseConfig.ports()[0], 1);
   preparedMockPortConfig(baseConfig.ports()[1], 2);
@@ -314,23 +326,23 @@ TEST(AggregatePort, singleTrunkWithoutPhysicalPorts) {
   *config.aggregatePorts()[0].description() = "empty bundle";
   config.aggregatePorts()[0].memberPorts()->resize(0);
 
-  auto endState = publishAndApplyConfig(startState, &config, platform.get());
-  ASSERT_NE(nullptr, endState);
-  auto aggPort =
-      endState->getAggregatePorts()->getAggregatePortIf(AggregatePortID(1));
-  ASSERT_NE(nullptr, aggPort);
-  checkAggPort(
-      aggPort, AggregatePortID(1), "port-channel", "empty bundle", {}, 1);
+  // the scope for aggregate port depends on member port, a scope for an
+  // aggregate port without any subport can not be determined. throw an
+  // exception for such a config and is no longer valid.
+  EXPECT_THROW(
+      publishAndApplyConfig(startState, &config, platform.get()), FbossError);
 }
 
 TEST(AggregatePort, noTrunk) {
   auto platform = createMockPlatform();
   auto baseState = make_shared<SwitchState>();
-  baseState->registerPort(PortID(1), "port1");
-  baseState->registerPort(PortID(2), "port2");
+  registerPort(baseState, PortID(1), "port1", scope());
+  registerPort(baseState, PortID(2), "port2", scope());
 
   // This config has an aggregate port comprised of two physical ports
   cfg::SwitchConfig baseConfig;
+  baseConfig.switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU))};
   baseConfig.ports()->resize(2);
   preparedMockPortConfig(baseConfig.ports()[0], 1);
   preparedMockPortConfig(baseConfig.ports()[1], 2);
@@ -375,7 +387,7 @@ TEST(AggregatePort, noTrunk) {
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
   auto allAggPorts = endState->getAggregatePorts();
-  EXPECT_EQ(allAggPorts->begin(), allAggPorts->end());
+  EXPECT_EQ(allAggPorts->numNodes(), 0);
 }
 
 // TODO(samank): factor out into TestUtils
@@ -384,8 +396,8 @@ TEST(AggregatePort, noTrunk) {
  * the callback for the specified list of changed AggregatePorts.
  */
 void checkChangedAggPorts(
-    const shared_ptr<AggregatePortMap>& oldAggPorts,
-    const shared_ptr<AggregatePortMap>& newAggPorts,
+    const shared_ptr<MultiSwitchAggregatePortMap>& oldAggPorts,
+    const shared_ptr<MultiSwitchAggregatePortMap>& newAggPorts,
     const std::set<uint16_t> changedIDs,
     const std::set<uint16_t> addedIDs,
     const std::set<uint16_t> removedIDs) {
@@ -427,16 +439,6 @@ void checkChangedAggPorts(
   validateThriftMapMapSerialization(*newAggPorts);
 }
 
-void setAggregatePortMemberIDs(
-    std::vector<cfg::AggregatePortMember>& members,
-    std::vector<int32_t> portIDs) {
-  members.resize(portIDs.size());
-
-  for (const auto& it : folly::enumerate(portIDs)) {
-    members[it.index].memberPortID() = *it;
-  }
-}
-
 TEST(AggregatePort, multiTrunkAdd) {
   auto platform = createMockPlatform();
 
@@ -466,12 +468,11 @@ TEST(AggregatePort, multiTrunkAdd) {
   ASSERT_NE(nullptr, endState);
   auto endAggPorts = endState->getAggregatePorts();
   ASSERT_NE(nullptr, endAggPorts);
-  EXPECT_EQ(1, endAggPorts->getGeneration());
-  EXPECT_EQ(2, endAggPorts->size());
+  EXPECT_EQ(2, endAggPorts->numNodes());
 
   // Check the settings for the newly created AggregatePort 55
   checkAggPort(
-      endAggPorts->getAggregatePortIf(AggregatePortID(55)),
+      endAggPorts->getNodeIf(AggregatePortID(55)),
       AggregatePortID(55),
       "lag55",
       "upwards facing link-bundle",
@@ -480,15 +481,15 @@ TEST(AggregatePort, multiTrunkAdd) {
 
   // Check the settings for the newly created AggregatePort 155
   checkAggPort(
-      endAggPorts->getAggregatePortIf(AggregatePortID(155)),
+      endAggPorts->getNodeIf(AggregatePortID(155)),
       AggregatePortID(155),
       "lag155",
       "downwards facing link-bundle",
       {11, 12, 13, 14, 15, 16, 17, 18, 19, 20},
       0);
 
-  // getAggregatePortIf() should return null on a non-existent AggregatePort
-  EXPECT_EQ(nullptr, endAggPorts->getAggregatePortIf(AggregatePortID(1234)));
+  // getNodeIf() should return null on a non-existent AggregatePort
+  EXPECT_EQ(nullptr, endAggPorts->getNodeIf(AggregatePortID(1234)));
 
   checkChangedAggPorts(startAggPorts, endAggPorts, {}, {55, 155}, {});
 }
@@ -525,9 +526,9 @@ TEST(AggregatePort, multiTrunkIdempotence) {
 
   auto endAggPorts = endState->getAggregatePorts();
   validateThriftStructNodeSerialization(
-      *endAggPorts->getAggregatePortIf(AggregatePortID(55)));
+      *endAggPorts->getNodeIf(AggregatePortID(55)));
   validateThriftStructNodeSerialization(
-      *endAggPorts->getAggregatePortIf(AggregatePortID(155)));
+      *endAggPorts->getNodeIf(AggregatePortID(155)));
 }
 
 TEST(AggregatePort, multiTrunkAddAndChange) {
@@ -594,14 +595,13 @@ TEST(AggregatePort, multiTrunkAddAndChange) {
   ASSERT_NE(nullptr, endState);
   auto endAggPorts = endState->getAggregatePorts();
   ASSERT_NE(nullptr, endAggPorts);
-  EXPECT_EQ(2, endAggPorts->getGeneration());
-  EXPECT_EQ(4, endAggPorts->size());
+  EXPECT_EQ(4, endAggPorts->numNodes());
 
   checkChangedAggPorts(startAggPorts, endAggPorts, {55, 155}, {40, 90}, {});
 
   // Check the settings for the newly created AggregatePort 40
   checkAggPort(
-      endAggPorts->getAggregatePortIf(AggregatePortID(40)),
+      endAggPorts->getNodeIf(AggregatePortID(40)),
       AggregatePortID(40),
       "lag40",
       "up & rightwards facing link-bundle",
@@ -610,7 +610,7 @@ TEST(AggregatePort, multiTrunkAddAndChange) {
 
   // Check the settings for the newly created AggregatePort 90
   checkAggPort(
-      endAggPorts->getAggregatePortIf(AggregatePortID(90)),
+      endAggPorts->getNodeIf(AggregatePortID(90)),
       AggregatePortID(90),
       "lag90",
       "down & rightwards facing link-bundle",
@@ -619,7 +619,7 @@ TEST(AggregatePort, multiTrunkAddAndChange) {
 
   // Check the settings for the newly modified AggregatePort 55
   checkAggPort(
-      endAggPorts->getAggregatePortIf(AggregatePortID(55)),
+      endAggPorts->getNodeIf(AggregatePortID(55)),
       AggregatePortID(55),
       "lag55",
       "up & leftwards facing link-bundle",
@@ -628,7 +628,7 @@ TEST(AggregatePort, multiTrunkAddAndChange) {
 
   // Check the settings for the newly modified AggregatePort 155
   checkAggPort(
-      endAggPorts->getAggregatePortIf(AggregatePortID(155)),
+      endAggPorts->getNodeIf(AggregatePortID(155)),
       AggregatePortID(155),
       "lag155",
       "down & leftwards facing link-bundle",
@@ -692,33 +692,32 @@ TEST(AggregatePort, multiTrunkRemove) {
   ASSERT_NE(nullptr, endState);
   auto endAggPorts = endState->getAggregatePorts();
   ASSERT_NE(nullptr, endAggPorts);
-  EXPECT_EQ(2, endAggPorts->getGeneration());
-  EXPECT_EQ(2, endAggPorts->size());
+  EXPECT_EQ(2, endAggPorts->numNodes());
 
   checkChangedAggPorts(startAggPorts, endAggPorts, {}, {}, {55, 155});
 
   // Check AggregatePort 55 has been removed
-  EXPECT_EQ(nullptr, endAggPorts->getAggregatePortIf(AggregatePortID(55)));
+  EXPECT_EQ(nullptr, endAggPorts->getNodeIf(AggregatePortID(55)));
 
   // Check AggregatePort 155 has been removed
-  EXPECT_EQ(nullptr, endAggPorts->getAggregatePortIf(AggregatePortID(155)));
+  EXPECT_EQ(nullptr, endAggPorts->getNodeIf(AggregatePortID(155)));
 
   // Check AggregatePort 40 has not been modified
   EXPECT_EQ(
-      startAggPorts->getAggregatePortIf(AggregatePortID(40)),
-      endAggPorts->getAggregatePortIf(AggregatePortID(40)));
+      startAggPorts->getNodeIf(AggregatePortID(40)),
+      endAggPorts->getNodeIf(AggregatePortID(40)));
 
   // Check AggregatePort 90 has not been modified
   EXPECT_EQ(
-      startAggPorts->getAggregatePortIf(AggregatePortID(90)),
-      endAggPorts->getAggregatePortIf(AggregatePortID(90)));
+      startAggPorts->getNodeIf(AggregatePortID(90)),
+      endAggPorts->getNodeIf(AggregatePortID(90)));
 
   validateThriftMapMapSerialization(*startAggPorts);
   validateThriftMapMapSerialization(*endAggPorts);
   validateThriftStructNodeSerialization(
-      *startAggPorts->getAggregatePortIf(AggregatePortID(40)));
+      *startAggPorts->getNodeIf(AggregatePortID(40)));
   validateThriftStructNodeSerialization(
-      *startAggPorts->getAggregatePortIf(AggregatePortID(90)));
+      *startAggPorts->getNodeIf(AggregatePortID(90)));
 }
 
 TEST(AggregatePort, subPortSerializationInverseOfDeserialization) {

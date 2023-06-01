@@ -19,6 +19,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -35,6 +36,7 @@
 
 #include <folly/experimental/FunctionScheduler.h>
 #include <folly/gen/Base.h>
+#include <utility>
 
 DEFINE_bool(
     setup_thrift,
@@ -133,8 +135,11 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewConfig(
     const auto& currentTcvrs = overrideTcvrInfos
         ? *overrideTcvrInfos
         : qsfpCache->getAllTransceivers();
-    auto tempState =
-        SwitchState::modifyTransceivers(getProgrammedState(), currentTcvrs);
+    auto tempState = SwSwitch::modifyTransceivers(
+        getProgrammedState(),
+        currentTcvrs,
+        getPlatform()->getPlatformMapping(),
+        scopeResolver_.get());
     if (tempState) {
       originalState = tempState;
     }
@@ -149,9 +154,9 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewConfig(
         originalState,
         &config,
         getPlatform(),
-        &routeUpdater,
-        nullptr,
-        getPlatform()->getPlatformMapping()));
+        getPlatform()->getPlatformMapping(),
+        hwAsicTable_.get(),
+        &routeUpdater));
     routeUpdater.program();
     return getProgrammedState();
   }
@@ -159,9 +164,8 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewConfig(
       originalState,
       &config,
       getPlatform(),
-      (RoutingInformationBase*)nullptr,
-      nullptr,
-      getPlatform()->getPlatformMapping()));
+      getPlatform()->getPlatformMapping(),
+      hwAsicTable_.get()));
 }
 
 std::shared_ptr<SwitchState> HwSwitchEnsemble::updateEncapIndices(
@@ -435,6 +439,19 @@ void HwSwitchEnsemble::setupEnsemble(
     const HwSwitchEnsembleInitInfo& initInfo) {
   platform_ = std::move(platform);
   linkToggler_ = std::move(linkToggler);
+  auto asic = platform_->getAsic();
+  cfg::SwitchInfo switchInfo;
+  switchInfo.switchType() = asic->getSwitchType();
+  switchInfo.asicType() = asic->getAsicType();
+  cfg::Range64 portIdRange;
+  portIdRange.minimum() =
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN();
+  portIdRange.maximum() =
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
+  switchInfo.portIdRange() = portIdRange;
+  auto switchIdToSwitchInfo = std::map<int64_t, cfg::SwitchInfo>(
+      {{asic->getSwitchId() ? *asic->getSwitchId() : 0, switchInfo}});
+  hwAsicTable_ = std::make_unique<HwAsicTable>(switchIdToSwitchInfo);
 
   auto hwInitResult = getHwSwitch()->init(
       this,
@@ -443,12 +460,18 @@ void HwSwitchEnsemble::setupEnsemble(
       platform_->getAsic()->getSwitchId());
 
   programmedState_ = hwInitResult.switchState;
+  programmedState_ = programmedState_->clone();
+  auto settings = util::getFirstNodeIf(programmedState_->getSwitchSettings());
+  auto newSettings = settings->modify(&programmedState_);
+  newSettings->setSwitchIdToSwitchInfo(switchIdToSwitchInfo);
   routingInformationBase_ = std::move(hwInitResult.rib);
   // HwSwitch::init() returns an unpublished programmedState_.  SwSwitch is
   // normally responsible for publishing it.  Go ahead and call publish now.
   // This will catch errors if test cases accidentally try to modify this
   // programmedState_ without first cloning it.
   programmedState_->publish();
+  scopeResolver_ =
+      std::make_unique<SwitchIdScopeResolver>(switchIdToSwitchInfo);
   StaticL2ForNeighborHwSwitchUpdater updater(this);
   updater.stateUpdated(
       StateDelta(std::make_shared<SwitchState>(), programmedState_));
@@ -503,8 +526,6 @@ HwSwitchEnsemble::gracefulExitState() const {
   if (routingInformationBase_) {
     // For RIB we employ a optmization to serialize only unresolved routes
     // and recover others from FIB
-    follySwitchState[kRib] =
-        routingInformationBase_->unresolvedRoutesFollyDynamic();
     thriftSwitchState.routeTables() = routingInformationBase_->warmBootState();
   }
   *thriftSwitchState.swSwitchState() = getProgrammedState()->toThrift();
@@ -550,7 +571,8 @@ bool HwSwitchEnsemble::waitForRateOnPort(
   }
 
   const auto portSpeedBps =
-      static_cast<uint64_t>(programmedState_->getPort(port)->getSpeed()) *
+      static_cast<uint64_t>(
+          programmedState_->getPorts()->getNodeIf(port)->getSpeed()) *
       1000 * 1000;
   if (desiredBps > portSpeedBps) {
     // Cannot achieve higher than line rate
@@ -592,7 +614,8 @@ bool HwSwitchEnsemble::waitForRateOnPort(
 
 void HwSwitchEnsemble::waitForLineRateOnPort(PortID port) {
   const auto portSpeedBps =
-      static_cast<uint64_t>(programmedState_->getPort(port)->getSpeed()) *
+      static_cast<uint64_t>(
+          programmedState_->getPorts()->getNodeIf(port)->getSpeed()) *
       1000 * 1000;
   if (waitForRateOnPort(port, portSpeedBps)) {
     // Traffic on port reached line rate!
@@ -627,7 +650,7 @@ void HwSwitchEnsemble::ensureThrift() {
 }
 
 size_t HwSwitchEnsemble::getMinPktsForLineRate(const PortID& port) {
-  auto portSpeed = programmedState_->getPort(port)->getSpeed();
+  auto portSpeed = programmedState_->getPorts()->getNodeIf(port)->getSpeed();
   return (portSpeed > cfg::PortSpeed::HUNDREDG ? 1000 : 100);
 }
 
@@ -689,4 +712,8 @@ void HwSwitchEnsemble::clearPfcWatchdogCounter(
   }
 }
 
+const SwitchIdScopeResolver& HwSwitchEnsemble::scopeResolver() const {
+  CHECK(scopeResolver_);
+  return *scopeResolver_;
+}
 } // namespace facebook::fboss

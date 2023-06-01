@@ -63,10 +63,11 @@ Port* Port::modify(std::shared_ptr<SwitchState>* state) {
     return this;
   }
 
-  PortMap* ports = (*state)->getPorts()->modify(state);
+  MultiSwitchPortMap* ports = (*state)->getPorts()->modify(state);
+  const auto scope = ports->getNodeAndScope(getID()).second;
   auto newPort = clone();
   auto* ptr = newPort.get();
-  ports->updatePort(std::move(newPort));
+  ports->updateNode(std::move(newPort), scope);
   return ptr;
 }
 

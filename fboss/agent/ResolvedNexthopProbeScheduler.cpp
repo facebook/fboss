@@ -52,10 +52,9 @@ void ResolvedNexthopProbeScheduler::processChangedResolvedNexthops(
 void ResolvedNexthopProbeScheduler::schedule() {
   auto state = sw_->getState();
   for (const auto& entry : resolvedNextHop2UseCount_) {
-    auto intf =
-        state->getInterfaces()->getInterface(entry.first.intfID().value());
+    auto intf = state->getInterfaces()->getNode(entry.first.intfID().value());
     auto vlanId = sw_->getVlanIDHelper(intf->getVlanIDIf());
-    auto vlan = state->getVlans()->getVlan(vlanId);
+    auto vlan = state->getVlans()->getNode(vlanId);
     auto startProbe = entry.first.addr().isV4()
         ? shouldProbe(entry.first.addr().asV4(), vlan.get())
         : shouldProbe(entry.first.addr().asV6(), vlan.get());

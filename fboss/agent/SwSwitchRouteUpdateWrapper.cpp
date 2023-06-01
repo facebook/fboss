@@ -11,6 +11,7 @@
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
@@ -22,13 +23,14 @@
 namespace facebook::fboss {
 
 std::shared_ptr<SwitchState> swSwitchFibUpdate(
+    const facebook::fboss::SwitchIdScopeResolver* resolver,
     facebook::fboss::RouterID vrf,
     const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
     const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
     const facebook::fboss::LabelToRouteMap& labelToRoute,
     void* cookie) {
   facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
-      vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute);
+      resolver, vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute);
 
   auto sw = static_cast<facebook::fboss::SwSwitch*>(cookie);
   sw->updateStateWithHwFailureProtection("update fib", std::move(fibUpdater));
@@ -39,6 +41,7 @@ SwSwitchRouteUpdateWrapper::SwSwitchRouteUpdateWrapper(
     SwSwitch* sw,
     RoutingInformationBase* rib)
     : RouteUpdateWrapper(
+          sw->getScopeResolver(),
           rib,
           rib ? swSwitchFibUpdate : std::optional<FibUpdateFunction>(),
           rib ? sw : nullptr),

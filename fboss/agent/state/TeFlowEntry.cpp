@@ -16,19 +16,6 @@ std::shared_ptr<TeFlowEntry> TeFlowEntry::createTeFlowEntry(
   return teFlowEntry;
 }
 
-TeFlowEntry* TeFlowEntry::modify(std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
-  }
-
-  TeFlowTable* table = (*state)->getTeFlowTable()->modify(state);
-  auto newEntry = clone();
-  auto* ptr = newEntry.get();
-  table->updateNode(std::move(newEntry));
-  return ptr;
-}
-
 std::string TeFlowEntry::getID() const {
   return getTeFlowStr(getFlow()->toThrift());
 }
@@ -38,7 +25,7 @@ std::optional<folly::MacAddress> TeFlowEntry::getNeighborMac(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& interface,
     AddrT ip) {
-  auto vlan = state->getVlans()->getVlanIf(interface->getVlanID());
+  auto vlan = state->getVlans()->getNodeIf(interface->getVlanID());
   auto neighbor = vlan->getNeighborEntryTable<AddrT>()->getNodeIf(ip.str());
   if (!neighbor) {
     return std::nullopt;
@@ -54,8 +41,7 @@ bool TeFlowEntry::isNexthopResolved(
     XLOG(WARNING) << "Unresolved nexthop for TE flow " << nhop;
     return false;
   }
-  auto interface =
-      state->getInterfaces()->getInterfaceIf(nhop.intfID().value());
+  auto interface = state->getInterfaces()->getNodeIf(nhop.intfID().value());
   std::optional<folly::MacAddress> dstMac;
   if (nhop.addr().isV6()) {
     dstMac = getNeighborMac<folly::IPAddressV6>(

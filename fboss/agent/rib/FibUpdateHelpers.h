@@ -17,8 +17,10 @@
 namespace facebook::fboss {
 
 class SwitchState;
+class SwitchIdScopeResolver;
 
 std::shared_ptr<SwitchState> ribToSwitchStateUpdate(
+    const SwitchIdScopeResolver* resolver,
     RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
     const IPv6NetworkToRouteMap& v6NetworkToRoute,
@@ -26,6 +28,7 @@ std::shared_ptr<SwitchState> ribToSwitchStateUpdate(
     void* cookie);
 
 std::shared_ptr<SwitchState> noopFibUpdate(
+    const SwitchIdScopeResolver* resolver,
     RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
     const IPv6NetworkToRouteMap& v6NetworkToRoute,

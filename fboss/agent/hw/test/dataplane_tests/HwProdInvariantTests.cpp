@@ -58,7 +58,8 @@ class HwProdInvariantsTest : public HwLinkStateDependentTest {
     // If we're passed a config, there's a high probability that it's a prod
     // config and the ports are not in loopback mode.
     for (auto& port : *config.ports()) {
-      port.loopbackMode() = getAsic()->desiredLoopbackMode();
+      port.loopbackMode() =
+          getAsic()->getDesiredLoopbackMode(port.get_portType());
     }
 
     return config;

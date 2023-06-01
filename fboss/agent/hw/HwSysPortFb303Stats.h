@@ -54,6 +54,7 @@ class HwSysPortFb303Stats : public HwBasePortFb303Stats {
   const std::vector<folly::StringPiece>& kInMacsecPortStatKeys() const override;
   const std::vector<folly::StringPiece>& kOutMacsecPortStatKeys()
       const override;
+  const std::vector<folly::StringPiece>& kPfcStatKeys() const override;
 
  private:
   std::chrono::seconds timeRetrieved_{0};

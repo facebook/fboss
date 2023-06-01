@@ -22,19 +22,7 @@ std::shared_ptr<MirrorMap> MirrorMap::fromThrift(
 
 MultiSwitchMirrorMap* MultiSwitchMirrorMap::modify(
     std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
-  }
-
-  SwitchState::modify(state);
-  auto newMnpuMirrors = clone();
-  for (auto mnitr = cbegin(); mnitr != cend(); ++mnitr) {
-    (*newMnpuMirrors)[mnitr->first] = mnitr->second->clone();
-  }
-  auto* ptr = newMnpuMirrors.get();
-  (*state)->resetMirrors(std::move(newMnpuMirrors));
-  return ptr;
+  return SwitchState::modify<switch_state_tags::mirrorMaps>(state);
 }
 
 std::shared_ptr<MultiSwitchMirrorMap> MultiSwitchMirrorMap::fromThrift(

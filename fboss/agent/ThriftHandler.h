@@ -18,7 +18,6 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
-#include "fboss/agent/if/gen-cpp2/NeighborListenerClient.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
@@ -28,8 +27,6 @@
 #include <thrift/lib/cpp/server/TServerEventHandler.h>
 #include <thrift/lib/cpp2/async/DuplexChannel.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
-
-DECLARE_bool(disable_duplex);
 
 namespace facebook::fboss {
 
@@ -42,8 +39,7 @@ class AclEntry;
 struct LinkNeighbor;
 
 class ThriftHandler : virtual public FbossCtrlSvIf,
-                      public fb303::FacebookBase2,
-                      public apache::thrift::server::TServerEventHandler {
+                      public fb303::FacebookBase2 {
  public:
   template <typename T>
   using ThriftCallback = std::unique_ptr<apache::thrift::HandlerCallback<T>>;
@@ -133,18 +129,14 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
     return sw_;
   }
 
-  void sendPkt(
-      int32_t port,
-      int32_t vlan,
-      std::unique_ptr<folly::fbstring> data) override;
-  void sendPktHex(
-      int32_t port,
-      int32_t vlan,
-      std::unique_ptr<folly::fbstring> hex) override;
+  void sendPkt(int32_t port, int32_t vlan, std::unique_ptr<fbstring> data)
+      override;
+  void sendPktHex(int32_t port, int32_t vlan, std::unique_ptr<fbstring> hex)
+      override;
 
-  void txPkt(int32_t port, std::unique_ptr<folly::fbstring> data) override;
-  void txPktL2(std::unique_ptr<folly::fbstring> data) override;
-  void txPktL3(std::unique_ptr<folly::fbstring> payload) override;
+  void txPkt(int32_t port, std::unique_ptr<fbstring> data) override;
+  void txPktL2(std::unique_ptr<fbstring> data) override;
+  void txPktL3(std::unique_ptr<fbstring> payload) override;
 
   int32_t flushNeighborEntry(std::unique_ptr<BinaryAddress> ip, int32_t vlan)
       override;
@@ -283,22 +275,15 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getTeFlowTableDetails(std::vector<TeFlowDetails>& flowTable) override;
   void getFabricReachability(
       std::map<std::string, FabricEndpoint>& reachability) override;
+  void getSwitchReachability(
+      std::map<std::string, std::vector<std::string>>& reachabilityMatrix,
+      std::unique_ptr<std::vector<std::string>> switchNames) override;
   void getDsfNodes(std::map<int64_t, cfg::DsfNode>& dsfNodes) override;
   void getSystemPorts(std::map<int64_t, SystemPortThrift>& sysPorts) override;
   void getSysPortStats(
       std::map<std::string, HwSysPortStats>& hwSysPortStats) override;
   void getCpuPortStats(CpuPortStats& hwCpuPortStats) override;
   void getHwPortStats(std::map<std::string, HwPortStats>& hwPortStats) override;
-  /*
-   * Event handler for when a connection is destroyed.  When there is an ongoing
-   * duplex connection, there may be other threads that depend on the connection
-   * state.
-   *
-   * @param[in]   ctx   A pointer to the connection context that is being
-   *                    destroyed.
-   */
-  void connectionDestroyed(
-      apache::thrift::server::TConnectionContext* ctx) override;
 
   /*
    * Thrift handler for keepalive messages.  It's a no-op, but prevents the
@@ -430,20 +415,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
  private:
   void ensureNPU(folly::StringPiece function) const;
   void ensureNotFabric(folly::StringPiece function) const;
-  struct ThreadLocalListener {
-    EventBase* eventBase;
-    std::unordered_map<
-        const apache::thrift::server::TConnectionContext*,
-        std::shared_ptr<NeighborListenerClientAsyncClient>>
-        clients;
-
-    explicit ThreadLocalListener(EventBase* eb) : eventBase(eb){};
-  };
-  folly::ThreadLocalPtr<ThreadLocalListener, int> listeners_;
-  void invokeNeighborListeners(
-      ThreadLocalListener* info,
-      std::vector<std::string> added,
-      std::vector<std::string> deleted);
+  void ensureVoqOrFabric(folly::StringPiece function) const;
   void updateUnicastRoutesImpl(
       int32_t vrf,
       int16_t client,

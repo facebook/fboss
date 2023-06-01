@@ -337,7 +337,7 @@ TEST_F(ResolvedNexthopMonitorTest, RouteSharingProbeOneUpdate) {
 
 TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredV4) {
   auto arpTable =
-      sw_->getState()->getVlans()->getVlan(VlanID(1))->getArpTable();
+      sw_->getState()->getVlans()->getNode(VlanID(1))->getArpTable();
   EXPECT_EQ(arpTable->getEntryIf(folly::IPAddressV4("10.0.0.22")), nullptr);
 
   EXPECT_SWITCHED_PKT(sw_, "ARP request", [](const TxPacket* pkt) {
@@ -372,7 +372,7 @@ TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredV4) {
   waitForBackgroundAndNeighborCacheThreads();
   schedulePendingStateUpdates();
   // pending entry must be created
-  arpTable = sw_->getState()->getVlans()->getVlan(VlanID(1))->getArpTable();
+  arpTable = sw_->getState()->getVlans()->getNode(VlanID(1))->getArpTable();
   auto entry = arpTable->getEntryIf(folly::IPAddressV4("10.0.0.22"));
   ASSERT_NE(entry, nullptr);
   EXPECT_EQ(entry->isPending(), true);
@@ -381,7 +381,7 @@ TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredV4) {
 TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
   updateState("add neighbor", [](const std::shared_ptr<SwitchState> state) {
     auto newState = state->clone();
-    auto vlan = state->getVlans()->getVlan(VlanID(1));
+    auto vlan = state->getVlans()->getNode(VlanID(1));
     auto arpTable = vlan->getArpTable()->modify(VlanID(1), &newState);
     arpTable->addEntry(
         folly::IPAddressV4("10.0.0.22"),
@@ -394,7 +394,7 @@ TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
 
   auto entry = sw_->getState()
                    ->getVlans()
-                   ->getVlan(VlanID(1))
+                   ->getNode(VlanID(1))
                    ->getArpTable()
                    ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
   ASSERT_NE(entry, nullptr);
@@ -404,7 +404,7 @@ TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
 
   entry = sw_->getState()
               ->getVlans()
-              ->getVlan(VlanID(1))
+              ->getNode(VlanID(1))
               ->getArpTable()
               ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
   ASSERT_NE(entry, nullptr);
@@ -439,7 +439,7 @@ TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
 
   updateState("remove neighbor", [](const std::shared_ptr<SwitchState> state) {
     auto newState = state->clone();
-    auto vlan = state->getVlans()->getVlan(VlanID(1));
+    auto vlan = state->getVlans()->getNode(VlanID(1));
     auto arpTable = vlan->getArpTable()->modify(VlanID(1), &newState);
     arpTable->removeEntry(folly::IPAddressV4("10.0.0.22"));
     return newState;
@@ -451,7 +451,7 @@ TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
   // pending entry must be created
   entry = sw_->getState()
               ->getVlans()
-              ->getVlan(VlanID(1))
+              ->getNode(VlanID(1))
               ->getArpTable()
               ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
   ASSERT_NE(entry, nullptr);
@@ -460,7 +460,7 @@ TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
 
 TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredV6) {
   auto ndpTable =
-      sw_->getState()->getVlans()->getVlan(VlanID(1))->getNdpTable();
+      sw_->getState()->getVlans()->getNode(VlanID(1))->getNdpTable();
   EXPECT_EQ(
       ndpTable->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22")),
       nullptr);
@@ -511,7 +511,7 @@ TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredV6) {
   waitForBackgroundAndNeighborCacheThreads();
   schedulePendingStateUpdates();
   // pending entry must be created
-  ndpTable = sw_->getState()->getVlans()->getVlan(VlanID(1))->getNdpTable();
+  ndpTable = sw_->getState()->getVlans()->getNode(VlanID(1))->getNdpTable();
   auto entry =
       ndpTable->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
   ASSERT_NE(entry, nullptr);
@@ -521,7 +521,7 @@ TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredV6) {
 TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV6) {
   updateState("add neighbor", [](const std::shared_ptr<SwitchState> state) {
     auto newState = state->clone();
-    auto vlan = state->getVlans()->getVlan(VlanID(1));
+    auto vlan = state->getVlans()->getNode(VlanID(1));
     auto ndpTable = vlan->getNdpTable()->modify(VlanID(1), &newState);
     ndpTable->addEntry(
         folly::IPAddressV6("2401:db00:2110:3001::22"),
@@ -534,7 +534,7 @@ TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV6) {
 
   auto entry = sw_->getState()
                    ->getVlans()
-                   ->getVlan(VlanID(1))
+                   ->getNode(VlanID(1))
                    ->getNdpTable()
                    ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
   ASSERT_NE(entry, nullptr);
@@ -545,7 +545,7 @@ TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV6) {
 
   entry = sw_->getState()
               ->getVlans()
-              ->getVlan(VlanID(1))
+              ->getNode(VlanID(1))
               ->getNdpTable()
               ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
   ASSERT_NE(entry, nullptr);
@@ -592,7 +592,7 @@ TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV6) {
 
   updateState("remove neighbor", [](const std::shared_ptr<SwitchState> state) {
     auto newState = state->clone();
-    auto vlan = state->getVlans()->getVlan(VlanID(1));
+    auto vlan = state->getVlans()->getNode(VlanID(1));
     auto ndpTable = vlan->getNdpTable()->modify(VlanID(1), &newState);
     ndpTable->removeEntry(folly::IPAddressV6("2401:db00:2110:3001::22"));
     return newState;
@@ -604,7 +604,7 @@ TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV6) {
   // pending entry must be created
   entry = sw_->getState()
               ->getVlans()
-              ->getVlan(VlanID(1))
+              ->getNode(VlanID(1))
               ->getNdpTable()
               ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
   ASSERT_NE(entry, nullptr);

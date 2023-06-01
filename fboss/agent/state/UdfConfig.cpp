@@ -13,12 +13,5 @@
 
 namespace facebook::fboss {
 
-std::shared_ptr<UdfConfig> UdfConfig::fromFollyDynamic(
-    const folly::dynamic& entry) {
-  auto node = std::make_shared<UdfConfig>();
-  static_cast<std::shared_ptr<BaseT>>(node)->fromFollyDynamic(entry);
-  return node;
-}
-
 template class ThriftStructNode<UdfConfig, cfg::UdfConfig>;
 } // namespace facebook::fboss

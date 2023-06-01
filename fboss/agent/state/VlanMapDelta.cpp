@@ -11,9 +11,9 @@
 
 namespace facebook::fboss {
 
-template class thrift_cow::ThriftMapDelta<ArpTable>;
-template class thrift_cow::ThriftMapDelta<NdpTable>;
-template class thrift_cow::ThriftMapDelta<MacTable>;
-template class thrift_cow::ThriftMapDelta<VlanMap>;
+template struct ThriftMapDelta<ArpTable>;
+template struct ThriftMapDelta<NdpTable>;
+template struct ThriftMapDelta<MacTable>;
+template struct ThriftMapDelta<VlanMap>;
 
 } // namespace facebook::fboss

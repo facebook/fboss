@@ -70,8 +70,8 @@ TEST_F(HwAclPriorityTest, CheckAclPriorityOrder) {
     for (auto acl : {"A", "B"}) {
       checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), acl);
     }
-    int aPrio = getProgrammedState()->getAcl("A")->getPriority();
-    int bPrio = getProgrammedState()->getAcl("B")->getPriority();
+    int aPrio = getProgrammedState()->getAcls()->getNodeIf("A")->getPriority();
+    int bPrio = getProgrammedState()->getAcls()->getNodeIf("B")->getPriority();
     EXPECT_EQ(aPrio + 1, bPrio);
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -93,9 +93,9 @@ TEST_F(HwAclPriorityTest, CheckAclPriortyOrderInsertMiddle) {
     for (auto acl : {"A", "B", "C"}) {
       checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), acl);
     }
-    int aPrio = getProgrammedState()->getAcl("A")->getPriority();
-    int bPrio = getProgrammedState()->getAcl("B")->getPriority();
-    int cPrio = getProgrammedState()->getAcl("C")->getPriority();
+    int aPrio = getProgrammedState()->getAcls()->getNodeIf("A")->getPriority();
+    int bPrio = getProgrammedState()->getAcls()->getNodeIf("B")->getPriority();
+    int cPrio = getProgrammedState()->getAcls()->getNodeIf("C")->getPriority();
     // Order should be A, C, B now
     EXPECT_EQ(aPrio + 1, cPrio);
     EXPECT_EQ(aPrio + 2, bPrio);
@@ -118,8 +118,8 @@ TEST_F(HwAclPriorityTest, AclNameChange) {
 
   auto verify = [&]() {
     // check s/w acl matches h/w
-    ASSERT_EQ(nullptr, getProgrammedState()->getAcl("A"));
-    ASSERT_NE(nullptr, getProgrammedState()->getAcl("AA"));
+    ASSERT_EQ(nullptr, getProgrammedState()->getAcls()->getNodeIf("A"));
+    ASSERT_NE(nullptr, getProgrammedState()->getAcls()->getNodeIf("AA"));
     checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "AA");
   };
   verifyAcrossWarmBoots(setup, verify);

@@ -26,9 +26,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::OBM_COUNTERS:
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
     case HwAsic::Feature::SFLOW_SAMPLING:
-    case HwAsic::Feature::PTP_TC:
-    case HwAsic::Feature::PTP_TC_PCS:
-    case HwAsic::Feature::PFC:
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
     case HwAsic::Feature::WIDE_ECMP:
     case HwAsic::Feature::ALPM_ROUTE_PROJECTION:
@@ -44,7 +41,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::VRF:
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
-    case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::ROUTE_COUNTERS:
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
@@ -68,8 +64,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::MEDIA_TYPE:
-    case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
-    case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::PORT_FABRIC_ISOLATE:
@@ -80,10 +74,19 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_DROP_STATS:
       return true;
 
+    case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
+    case HwAsic::Feature::BUFFER_POOL:
+    case HwAsic::Feature::PFC:
+    case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
+      return getAsicMode() != AsicMode::ASIC_MODE_SIM;
+
+    case HwAsic::Feature::SAI_PORT_ETHER_STATS:
+      // supported only on the SIM
+      return getAsicMode() == AsicMode::ASIC_MODE_SIM;
+
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
     case HwAsic::Feature::SAI_LAG_HASH:
-
     case HwAsic::Feature::QOS_MAP_GLOBAL:
     case HwAsic::Feature::QCM:
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
@@ -138,6 +141,10 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_SAMPLEPACKET_TRAP:
     case HwAsic::Feature::TRAP_PRIORITY_LOWER_VAL_IS_LOWER_PRI:
     case HwAsic::Feature::SAI_UDF_HASH:
+    case HwAsic::Feature::PTP_TC:
+    case HwAsic::Feature::PTP_TC_PCS:
+    case HwAsic::Feature::INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK:
+    case HwAsic::Feature::RX_LANE_SQUELCH_ENABLE:
       return false;
   }
   return false;
@@ -193,5 +200,14 @@ HwAsic::RecyclePortInfo Jericho3Asic::getRecyclePortInfo() const {
       .corePortIndex = 1,
       .speedMbps = 10000 // 10G
   };
+}
+
+const std::map<cfg::PortType, cfg::PortLoopbackMode>&
+Jericho3Asic::desiredLoopbackModes() const {
+  static const std::map<cfg::PortType, cfg::PortLoopbackMode> kLoopbackMode = {
+      {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::NIF},
+      {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC},
+      {cfg::PortType::RECYCLE_PORT, cfg::PortLoopbackMode::MAC}};
+  return kLoopbackMode;
 }
 } // namespace facebook::fboss

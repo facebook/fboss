@@ -26,7 +26,7 @@ void SwitchState::revertNewNeighborEntry(
 
   auto neighborTablePtr = (*appliedState)
                               ->getVlans()
-                              ->getVlan(vlanId)
+                              ->getNode(vlanId)
                               ->template getNeighborTable<NTableT>()
                               .get();
   // Check that the entry exists
@@ -49,7 +49,7 @@ void SwitchState::revertNewRouteEntry(
     std::shared_ptr<SwitchState>* appliedState) {
   auto clonedFib = (*appliedState)
                        ->getFibs()
-                       ->getFibContainer(id)
+                       ->getNode(id)
                        ->template getFib<AddressT>()
                        ->modify(id, appliedState);
   if (oldRoute) {

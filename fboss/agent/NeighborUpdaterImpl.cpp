@@ -38,6 +38,8 @@ using folly::IPAddressV6;
 using folly::MacAddress;
 using std::shared_ptr;
 
+DECLARE_bool(intf_nbr_tables);
+
 namespace facebook::fboss {
 
 using facebook::fboss::DeltaFunctions::forEachChanged;
@@ -56,6 +58,26 @@ auto NeighborUpdaterImpl::createCaches(
   // After this, we no longer process Arp or Ndp deltas for this vlan.
   caches->arpCache->repopulate(vlan->getArpTable());
   caches->ndpCache->repopulate(vlan->getNdpTable());
+
+  return caches;
+}
+
+auto NeighborUpdaterImpl::createCachesForIntf(
+    const SwitchState* state,
+    const Interface* intf) -> std::shared_ptr<NeighborCaches> {
+  // TODO(skhare) Remove after completely migrating to intfCaches_
+  // at the moment, NeighborCacheImpl has vlanID, vlanName
+  // fields so pass some values. These fields will be removed as we migrate to
+  // intfCaches_
+  const auto kPseudoVlanID = VlanID(0);
+  const auto kPseudoVlanName = std::string("pseudoVlan");
+  auto caches = std::make_shared<NeighborCaches>(
+      sw_, state, kPseudoVlanID, kPseudoVlanName, intf->getID());
+
+  // We need to populate the caches from the SwitchState when a vlan is added
+  // After this, we no longer process Arp or Ndp deltas for this vlan.
+  caches->arpCache->repopulate(intf->getArpTable());
+  caches->ndpCache->repopulate(intf->getNdpTable());
 
   return caches;
 }
@@ -84,6 +106,22 @@ std::list<NdpEntryThrift> NeighborUpdaterImpl::getNdpCacheData() {
   return entries;
 }
 
+std::list<ArpEntryThrift> NeighborUpdaterImpl::getArpCacheDataForIntf() {
+  std::list<ArpEntryThrift> entries;
+  for (auto it = intfCaches_.begin(); it != intfCaches_.end(); ++it) {
+    entries.splice(entries.end(), it->second->arpCache->getArpCacheData());
+  }
+  return entries;
+}
+
+std::list<NdpEntryThrift> NeighborUpdaterImpl::getNdpCacheDataForIntf() {
+  std::list<NdpEntryThrift> entries;
+  for (auto it = intfCaches_.begin(); it != intfCaches_.end(); ++it) {
+    entries.splice(entries.end(), it->second->ndpCache->getNdpCacheData());
+  }
+  return entries;
+}
+
 shared_ptr<ArpCache> NeighborUpdaterImpl::getArpCacheInternal(VlanID vlan) {
   auto res = caches_.find(vlan);
   if (res == caches_.end()) {
@@ -95,6 +133,34 @@ shared_ptr<NdpCache> NeighborUpdaterImpl::getNdpCacheInternal(VlanID vlan) {
   auto res = caches_.find(vlan);
   if (res == caches_.end()) {
     throw FbossError("Tried to get Ndp cache non-existent vlan ", vlan);
+  }
+  return res->second->ndpCache;
+}
+
+shared_ptr<ArpCache> NeighborUpdaterImpl::getArpCacheForIntf(
+    InterfaceID intfID) {
+  return getArpCacheInternalForIntf(intfID);
+}
+
+shared_ptr<ArpCache> NeighborUpdaterImpl::getArpCacheInternalForIntf(
+    InterfaceID intfID) {
+  auto res = intfCaches_.find(intfID);
+  if (res == intfCaches_.end()) {
+    throw FbossError("Tried to get ARP cache non-existent interface ", intfID);
+  }
+  return res->second->arpCache;
+}
+
+shared_ptr<NdpCache> NeighborUpdaterImpl::getNdpCacheForIntf(
+    InterfaceID intfID) {
+  return getNdpCacheInternalForIntf(intfID);
+}
+
+shared_ptr<NdpCache> NeighborUpdaterImpl::getNdpCacheInternalForIntf(
+    InterfaceID intfID) {
+  auto res = intfCaches_.find(intfID);
+  if (res == intfCaches_.end()) {
+    throw FbossError("Tried to get Ndp cache non-existent interface ", intfID);
   }
   return res->second->ndpCache;
 }
@@ -128,6 +194,35 @@ void NeighborUpdaterImpl::receivedNdpNotMine(
   cache->receivedNdpNotMine(ip, mac, port, type, flags);
 }
 
+void NeighborUpdaterImpl::sentNeighborSolicitationForIntf(
+    InterfaceID intfID,
+    IPAddressV6 ip) {
+  auto cache = getNdpCacheForIntf(intfID);
+  cache->sentNeighborSolicitation(ip);
+}
+
+void NeighborUpdaterImpl::receivedNdpMineForIntf(
+    InterfaceID intfID,
+    IPAddressV6 ip,
+    MacAddress mac,
+    PortDescriptor port,
+    ICMPv6Type type,
+    uint32_t flags) {
+  auto cache = getNdpCacheForIntf(intfID);
+  cache->receivedNdpMine(ip, mac, port, type, flags);
+}
+
+void NeighborUpdaterImpl::receivedNdpNotMineForIntf(
+    InterfaceID intfID,
+    IPAddressV6 ip,
+    MacAddress mac,
+    PortDescriptor port,
+    ICMPv6Type type,
+    uint32_t flags) {
+  auto cache = getNdpCacheForIntf(intfID);
+  cache->receivedNdpNotMine(ip, mac, port, type, flags);
+}
+
 void NeighborUpdaterImpl::sentArpRequest(VlanID vlan, IPAddressV4 ip) {
   auto cache = getArpCacheFor(vlan);
   cache->sentArpRequest(ip);
@@ -153,23 +248,66 @@ void NeighborUpdaterImpl::receivedArpNotMine(
   cache->receivedArpNotMine(ip, mac, port, op);
 }
 
-void NeighborUpdaterImpl::portDown(PortDescriptor port) {
-  for (auto vlanCaches : caches_) {
-    auto arpCache = vlanCaches.second->arpCache;
-    arpCache->portDown(port);
+void NeighborUpdaterImpl::sentArpRequestForIntf(
+    InterfaceID intfID,
+    IPAddressV4 ip) {
+  auto cache = getArpCacheForIntf(intfID);
+  cache->sentArpRequest(ip);
+}
 
-    auto ndpCache = vlanCaches.second->ndpCache;
-    ndpCache->portDown(port);
+void NeighborUpdaterImpl::receivedArpMineForIntf(
+    InterfaceID intfID,
+    IPAddressV4 ip,
+    MacAddress mac,
+    PortDescriptor port,
+    ArpOpCode op) {
+  auto cache = getArpCacheForIntf(intfID);
+  cache->receivedArpMine(ip, mac, port, op);
+}
+
+void NeighborUpdaterImpl::receivedArpNotMineForIntf(
+    InterfaceID intfID,
+    IPAddressV4 ip,
+    MacAddress mac,
+    PortDescriptor port,
+    ArpOpCode op) {
+  auto cache = getArpCacheForIntf(intfID);
+  cache->receivedArpNotMine(ip, mac, port, op);
+}
+
+void NeighborUpdaterImpl::portDown(PortDescriptor port) {
+  auto portDownHelper = [port](auto& caches) {
+    for (auto id2NbrCaches : caches) {
+      auto arpCache = id2NbrCaches.second->arpCache;
+      arpCache->portDown(port);
+
+      auto ndpCache = id2NbrCaches.second->ndpCache;
+      ndpCache->portDown(port);
+    }
+  };
+
+  if (FLAGS_intf_nbr_tables) {
+    portDownHelper(intfCaches_);
+  } else {
+    portDownHelper(caches_);
   }
 }
 
 void NeighborUpdaterImpl::portFlushEntries(PortDescriptor port) {
-  for (auto vlanCaches : caches_) {
-    auto arpCache = vlanCaches.second->arpCache;
-    arpCache->portFlushEntries(port);
+  auto portFlushEntriesHelper = [port](auto& caches) {
+    for (auto id2NbrCaches : caches) {
+      auto arpCache = id2NbrCaches.second->arpCache;
+      arpCache->portFlushEntries(port);
 
-    auto ndpCache = vlanCaches.second->ndpCache;
-    ndpCache->portFlushEntries(port);
+      auto ndpCache = id2NbrCaches.second->ndpCache;
+      ndpCache->portFlushEntries(port);
+    }
+  };
+
+  if (FLAGS_intf_nbr_tables) {
+    portFlushEntriesHelper(intfCaches_);
+  } else {
+    portFlushEntriesHelper(caches_);
   }
 }
 
@@ -198,11 +336,40 @@ uint32_t NeighborUpdaterImpl::flushEntry(VlanID vlan, IPAddress ip) {
   return count;
 }
 
+bool NeighborUpdaterImpl::flushEntryImplForIntf(
+    InterfaceID intfID,
+    IPAddress ip) {
+  if (ip.isV4()) {
+    auto cache = getArpCacheInternalForIntf(intfID);
+    return cache->flushEntryBlocking(ip.asV4());
+  }
+  auto cache = getNdpCacheInternalForIntf(intfID);
+  return cache->flushEntryBlocking(ip.asV6());
+}
+
+uint32_t NeighborUpdaterImpl::flushEntryForIntf(
+    InterfaceID intfID,
+    IPAddress ip) {
+  uint32_t count{0};
+  if (intfID == InterfaceID(0)) {
+    for (auto it = intfCaches_.begin(); it != intfCaches_.end(); ++it) {
+      if (flushEntryImplForIntf(it->first, ip)) {
+        ++count;
+      }
+    }
+  } else {
+    if (flushEntryImplForIntf(intfID, ip)) {
+      ++count;
+    }
+  }
+  return count;
+}
+
 void NeighborUpdaterImpl::vlanAdded(
     VlanID vlanID,
     std::shared_ptr<SwitchState> state) {
   auto vlans = state->getVlans();
-  auto vlan = vlans->getVlan(vlanID);
+  auto vlan = vlans->getNode(vlanID);
   caches_.emplace(vlanID, createCaches(state.get(), vlan.get()));
 }
 
@@ -236,20 +403,47 @@ void NeighborUpdaterImpl::vlanChanged(
   }
 }
 
+void NeighborUpdaterImpl::interfaceAdded(
+    InterfaceID intfID,
+    std::shared_ptr<SwitchState> state) {
+  auto intf = state->getInterfaces()->getNode(intfID);
+  intfCaches_.emplace(intfID, createCachesForIntf(state.get(), intf.get()));
+}
+
+void NeighborUpdaterImpl::interfaceRemoved(InterfaceID intfID) {
+  auto iter = intfCaches_.find(intfID);
+  if (iter != intfCaches_.end()) {
+    intfCaches_.erase(iter);
+  } else {
+    // TODO(aeckert): May want to fatal here when a cache doesn't exist for a
+    // specific vlan. Need to make sure that caches are correctly created for
+    // the initial SwitchState to avoid false positives
+    XLOG(DBG0) << "Deleted Vlan with no corresponding NeighborCaches";
+  }
+}
+
 void NeighborUpdaterImpl::timeoutsChanged(
     std::chrono::seconds arpTimeout,
     std::chrono::seconds ndpTimeout,
     std::chrono::seconds staleEntryInterval,
     uint32_t maxNeighborProbes) {
-  for (auto& vlanAndCaches : caches_) {
-    auto& arpCache = vlanAndCaches.second->arpCache;
-    auto& ndpCache = vlanAndCaches.second->ndpCache;
-    arpCache->setTimeout(arpTimeout);
-    arpCache->setMaxNeighborProbes(maxNeighborProbes);
-    arpCache->setStaleEntryInterval(staleEntryInterval);
-    ndpCache->setTimeout(ndpTimeout);
-    ndpCache->setMaxNeighborProbes(maxNeighborProbes);
-    ndpCache->setStaleEntryInterval(staleEntryInterval);
+  auto timeOutChangedHelper = [&](auto& caches) {
+    for (auto& id2NbrCaches : caches) {
+      auto& arpCache = id2NbrCaches.second->arpCache;
+      auto& ndpCache = id2NbrCaches.second->ndpCache;
+      arpCache->setTimeout(arpTimeout);
+      arpCache->setMaxNeighborProbes(maxNeighborProbes);
+      arpCache->setStaleEntryInterval(staleEntryInterval);
+      ndpCache->setTimeout(ndpTimeout);
+      ndpCache->setMaxNeighborProbes(maxNeighborProbes);
+      ndpCache->setStaleEntryInterval(staleEntryInterval);
+    }
+  };
+
+  if (FLAGS_intf_nbr_tables) {
+    timeOutChangedHelper(intfCaches_);
+  } else {
+    timeOutChangedHelper(caches_);
   }
 }
 
@@ -266,6 +460,22 @@ void NeighborUpdaterImpl::updateNdpEntryClassID(
     folly::IPAddressV6 ip,
     std::optional<cfg::AclLookupClass> classID = std::nullopt) {
   auto cache = getNdpCacheFor(vlan);
+  cache->updateEntryClassID(ip, classID);
+}
+
+void NeighborUpdaterImpl::updateArpEntryClassIDForIntf(
+    InterfaceID intfID,
+    folly::IPAddressV4 ip,
+    std::optional<cfg::AclLookupClass> classID = std::nullopt) {
+  auto cache = getArpCacheForIntf(intfID);
+  cache->updateEntryClassID(ip, classID);
+}
+
+void NeighborUpdaterImpl::updateNdpEntryClassIDForIntf(
+    InterfaceID intfID,
+    folly::IPAddressV6 ip,
+    std::optional<cfg::AclLookupClass> classID = std::nullopt) {
+  auto cache = getNdpCacheForIntf(intfID);
   cache->updateEntryClassID(ip, classID);
 }
 

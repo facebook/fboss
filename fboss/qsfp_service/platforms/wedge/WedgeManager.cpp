@@ -69,12 +69,11 @@ WedgeManager::~WedgeManager() {
 }
 
 void WedgeManager::loadConfig() {
-  agentConfig_ = AgentConfig::fromDefaultFile();
-
-  // Process agent config info here.
-  for (const auto& port : *agentConfig_->thrift.sw()->ports()) {
+  const auto& platformPorts = platformMapping_->getPlatformPorts();
+  for (const auto& it : platformPorts) {
+    auto port = it.second;
     // Get the transceiver id based on the port info from config.
-    auto portId = *port.logicalID();
+    auto portId = *port.mapping()->id();
     auto transceiverId = getTransceiverID(PortID(portId));
     if (!transceiverId) {
       XLOG(ERR) << "Did not find transceiver id for port id " << portId;
@@ -83,15 +82,13 @@ void WedgeManager::loadConfig() {
     // Add the port to the transceiver indexed port group.
     auto portGroupIt = portGroupMap_.find(transceiverId.value());
     if (portGroupIt == portGroupMap_.end()) {
-      portGroupMap_[transceiverId.value()] = std::set<cfg::Port>{port};
+      portGroupMap_[transceiverId.value()] =
+          std::set<cfg::PlatformPortEntry>{port};
     } else {
       portGroupIt->second.insert(port);
     }
-    std::string portName = "";
-    if (auto name = port.name()) {
-      portName = *name;
-      portNameToModule_[portName] = transceiverId.value();
-    }
+    std::string portName = *port.mapping()->name();
+    portNameToModule_[portName] = transceiverId.value();
     XLOG(INFO) << "Added port " << portName << " with portId " << portId
                << " to transceiver " << transceiverId.value();
   }
@@ -438,19 +435,25 @@ void WedgeManager::clearAllTransceiverReset() {
 }
 
 void WedgeManager::triggerQsfpHardReset(int idx) {
-  auto lockedTransceivers = transceivers_.wlock();
-  triggerQsfpHardResetLocked(idx, lockedTransceivers);
-}
-
-void WedgeManager::triggerQsfpHardResetLocked(
-    int idx,
-    LockedTransceiversPtr& lockedTransceivers) {
   // This api accepts 1 based module id however the module id in
   // WedgeManager is 0 based.
+  XLOG(INFO) << "triggerQsfpHardReset called for " << idx;
   qsfpPlatApi_->triggerQsfpHardReset(idx + 1);
+  bool removeTransceiver = false;
+  {
+    // Read Lock to trigger all state machine changes
+    auto lockedTransceivers = transceivers_.rlock();
+    if (auto it = lockedTransceivers->find(TransceiverID(idx));
+        it != lockedTransceivers->end()) {
+      it->second->removeTransceiver();
+      removeTransceiver = true;
+    }
+  }
 
-  if (auto it = lockedTransceivers->find(TransceiverID(idx));
-      it != lockedTransceivers->end()) {
+  if (removeTransceiver) {
+    // Write lock to remove the transceiver
+    auto lockedTransceivers = transceivers_.wlock();
+    auto it = lockedTransceivers->find(TransceiverID(idx));
     lockedTransceivers->erase(it);
   }
 }
@@ -468,91 +471,113 @@ void WedgeManager::updateTransceiverMap() {
         qsfpImpls[idx]->futureGetTransceiverManagementInterface());
   }
   folly::collectAllUnsafe(futInterfaces.begin(), futInterfaces.end()).wait();
-  // After we have collected all transceivers, get the write lock on
-  // transceivers_ before updating it
-  auto lockedTransceivers = transceivers_.wlock();
-  for (int idx = 0; idx < qsfpImpls.size(); idx++) {
-    if (!futInterfaces[idx].isReady()) {
-      XLOG(ERR)
-          << "Failed getting TransceiverManagementInterface for TransceiverID="
-          << idx;
-      continue;
-    }
-    // Check whether all ports are down before the rest logic tries to erase
-    // the old QsfpModule. So even after we erase this QsfpModule, we can still
-    // try to hard reset to remediate it as long as all the ports are down.
-    bool safeToReset = areAllPortsDown(TransceiverID(idx)).first;
-    auto it = lockedTransceivers->find(TransceiverID(idx));
-    if (it != lockedTransceivers->end()) {
-      // In the case where we already have a transceiver recorded, try to check
-      // whether they match the transceiver type.
-      if (it->second->managementInterface() == futInterfaces[idx].value()) {
-        // The management interface matches. Nothing needs to be done.
+
+  std::unordered_set<int> tcvrsToCreate;
+  std::unordered_set<int> tcvrsToDelete;
+  std::unordered_set<int> tcvrsToHardReset;
+
+  {
+    auto lockedTransceiversRPtr = transceivers_.rlock();
+    for (int idx = 0; idx < qsfpImpls.size(); idx++) {
+      if (!futInterfaces[idx].isReady()) {
+        XLOG(ERR)
+            << "Failed getting TransceiverManagementInterface for TransceiverID="
+            << idx;
         continue;
-      } else {
-        // The management changes. Need to Delete the old module to make place
-        // for the new one.
-        lockedTransceivers->erase(it);
       }
+      auto it = lockedTransceiversRPtr->find(TransceiverID(idx));
+      if (it != lockedTransceiversRPtr->end()) {
+        // In the case where we already have a transceiver recorded, try to
+        // check whether they match the transceiver type.
+        if (it->second->managementInterface() == futInterfaces[idx].value()) {
+          // The management interface matches. Nothing needs to be done.
+          continue;
+        } else {
+          // The management changes. Need to Delete the old module to make place
+          // for the new one.
+          it->second->removeTransceiver();
+          tcvrsToDelete.insert(idx);
+        }
+      }
+
+      // Either we don't have a transceiver here before or we had a new one
+      // since the management interface changed, we want to create a new module
+      // here.
+      tcvrsToCreate.insert(idx);
+    }
+  } // end of scope for transceivers_.rlock
+
+  {
+    auto lockedTransceiversWPtr = transceivers_.wlock();
+    // Delete the transceivers first before potentially creating them later
+    for (auto idx : tcvrsToDelete) {
+      auto it = lockedTransceiversWPtr->find(TransceiverID(idx));
+      lockedTransceiversWPtr->erase(it);
     }
 
-    // Either we don't have a transceiver here before or we had a new one since
-    // the management interface changed, we want to create a new module here.
-    if (futInterfaces[idx].value() == TransceiverManagementInterface::CMIS) {
-      XLOG(INFO) << "Making CMIS QSFP for TransceiverID=" << idx;
-      lockedTransceivers->emplace(
-          TransceiverID(idx),
-          std::make_unique<CmisModule>(this, std::move(qsfpImpls[idx])));
-    } else if (
-        futInterfaces[idx].value() == TransceiverManagementInterface::SFF) {
-      XLOG(INFO) << "Making Sff QSFP for TransceiverID=" << idx;
-      lockedTransceivers->emplace(
-          TransceiverID(idx),
-          std::make_unique<SffModule>(this, std::move(qsfpImpls[idx])));
-    } else if (
-        futInterfaces[idx].value() == TransceiverManagementInterface::SFF8472) {
-      XLOG(INFO) << "Making Sff8472 module for TransceiverID=" << idx;
-      lockedTransceivers->emplace(
-          TransceiverID(idx),
-          std::make_unique<Sff8472Module>(this, std::move(qsfpImpls[idx])));
-    } else {
-      XLOG(ERR) << "Unknown Transceiver interface: "
-                << static_cast<int>(futInterfaces[idx].value())
-                << " for TransceiverID=" << idx;
+    for (auto idx : tcvrsToCreate) {
+      if (futInterfaces[idx].value() == TransceiverManagementInterface::CMIS) {
+        XLOG(INFO) << "Making CMIS QSFP for TransceiverID=" << idx;
+        lockedTransceiversWPtr->emplace(
+            TransceiverID(idx),
+            std::make_unique<CmisModule>(this, std::move(qsfpImpls[idx])));
+      } else if (
+          futInterfaces[idx].value() == TransceiverManagementInterface::SFF) {
+        XLOG(INFO) << "Making Sff QSFP for TransceiverID=" << idx;
+        lockedTransceiversWPtr->emplace(
+            TransceiverID(idx),
+            std::make_unique<SffModule>(this, std::move(qsfpImpls[idx])));
+      } else if (
+          futInterfaces[idx].value() ==
+          TransceiverManagementInterface::SFF8472) {
+        XLOG(INFO) << "Making Sff8472 module for TransceiverID=" << idx;
+        lockedTransceiversWPtr->emplace(
+            TransceiverID(idx),
+            std::make_unique<Sff8472Module>(this, std::move(qsfpImpls[idx])));
+      } else {
+        XLOG(ERR) << "Unknown Transceiver interface: "
+                  << static_cast<int>(futInterfaces[idx].value())
+                  << " for TransceiverID=" << idx;
 
-      try {
-        if (!qsfpImpls[idx]->detectTransceiver()) {
-          XLOG(DBG3) << "Transceiver is not present. TransceiverID=" << idx;
+        try {
+          if (!qsfpImpls[idx]->detectTransceiver()) {
+            XLOG(DBG3) << "Transceiver is not present. TransceiverID=" << idx;
+            continue;
+          }
+        } catch (const std::exception& ex) {
+          XLOG(ERR) << "Failed to detect transceiver. TransceiverID=" << idx
+                    << ": " << ex.what();
           continue;
         }
-      } catch (const std::exception& ex) {
-        XLOG(ERR) << "Failed to detect transceiver. TransceiverID=" << idx
-                  << ": " << ex.what();
-        continue;
-      }
 
-      // There are times when a module cannot be read however it's present.
-      // Try to reset here since that may be able to bring it back.
-      // Check if we have expected ports info synced over and if all of
-      // the ports are down. If any of them is not down then we will not
-      // perform the reset.
-      if (std::time(nullptr) <= pauseRemediationUntil_) {
-        XLOG(WARN) << "Remediation is paused, won't hard reset a present "
-                   << "transceiver with unknown interface. TransceiverID="
-                   << idx;
-      } else if (safeToReset) {
-        XLOG(INFO) << "Try hard reset a present transceiver with unknown "
-                   << "interface. TransceiverID=" << idx;
-        try {
-          triggerQsfpHardResetLocked(idx, lockedTransceivers);
-        } catch (const std::exception& ex) {
-          XLOG(ERR) << "Failed to triggerQsfpHardReset for TransceiverID="
-                    << idx << ": " << ex.what();
+        // There are times when a module cannot be read however it's present.
+        // Try to reset here since that may be able to bring it back.
+        // Check if we have expected ports info synced over and if all of
+        // the ports are down. If any of them is not down then we will not
+        // perform the reset.
+        bool safeToReset = areAllPortsDown(TransceiverID(idx)).first;
+        if (std::time(nullptr) <= pauseRemediationUntil_) {
+          XLOG(WARN) << "Remediation is paused, won't hard reset a present "
+                     << "transceiver with unknown interface. TransceiverID="
+                     << idx;
+        } else if (safeToReset) {
+          tcvrsToHardReset.insert(idx);
+        } else {
+          XLOG(ERR) << "Unknown interface of transceiver with ports up at "
+                    << idx;
         }
-      } else {
-        XLOG(ERR) << "Unknown interface of transceiver with ports up at "
-                  << idx;
       }
+    } // end of scope for transceivers_.wlock
+  }
+
+  for (auto idx : tcvrsToHardReset) {
+    try {
+      XLOG(INFO) << "Try hard reset a present transceiver with unknown "
+                 << "interface. TransceiverID=" << idx;
+      triggerQsfpHardReset(idx);
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Failed to triggerQsfpHardReset for TransceiverID=" << idx
+                << ": " << ex.what();
     }
   }
 }
@@ -662,8 +687,8 @@ void WedgeManager::getAndClearTransceiversMediaSignals(
 /*
  * triggerVdmStatsCapture
  *
- * This function triggers the next VDM data capture for the list of transceiver
- * Id's to be displayed in ODS
+ * This function triggers the next VDM data capture for the list of
+ * transceiver Id's to be displayed in ODS
  */
 void WedgeManager::triggerVdmStatsCapture(std::vector<int32_t>& ids) {
   XLOG(DBG2) << "triggerVdmStatsCapture, with ids: "
@@ -856,18 +881,23 @@ void WedgeManager::setOverrideTcvrToPortAndProfileForTesting(
       auto tcvrID = TransceiverID(*chip.second.physicalID());
       overrideTcvrToPortAndProfileForTest_[tcvrID] = {};
     }
-    // Use Agent config to get the iphy port and profile
-    const auto& swConfig = agentConfig_->thrift.sw();
-    for (const auto& port : *swConfig->ports()) {
-      // Only need ENABLED ports
-      if (*port.state() != cfg::PortState::ENABLED) {
-        continue;
-      }
+    // Use QSFP config to get the iphy port and profile
+    auto qsfpTestConfig = qsfpConfig_->thrift.qsfpTestConfig();
+    CHECK(qsfpTestConfig.has_value());
+    for (const auto& portPairs : *qsfpTestConfig->cabledPortPairs()) {
+      auto aPortID = getPortIDByPortName(*portPairs.aPortName());
+      auto zPortID = getPortIDByPortName(*portPairs.zPortName());
+      CHECK(aPortID.has_value());
+      CHECK(zPortID.has_value());
       // If the SW port has transceiver id, add it to
       // overrideTcvrToPortAndProfile
-      if (auto tcvrID = getTransceiverID(PortID(*port.logicalID()))) {
+      if (auto tcvrID = getTransceiverID(PortID(*aPortID))) {
         overrideTcvrToPortAndProfileForTest_[*tcvrID].emplace(
-            *port.logicalID(), *port.profileID());
+            *aPortID, *portPairs.profileID());
+      }
+      if (auto tcvrID = getTransceiverID(PortID(*zPortID))) {
+        overrideTcvrToPortAndProfileForTest_[*tcvrID].emplace(
+            *zPortID, *portPairs.profileID());
       }
     }
   }

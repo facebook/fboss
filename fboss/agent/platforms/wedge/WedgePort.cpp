@@ -55,32 +55,6 @@ folly::Future<TransceiverInfo> WedgePort::getFutureTransceiverInfo() const {
   return qsfpCache->futureGet(getTransceiverID().value());
 }
 
-folly::Future<TransmitterTechnology> WedgePort::getTransmitterTech(
-    folly::EventBase* evb) const {
-  DCHECK(evb);
-
-  // If there's no transceiver this is a backplane port.
-  // However, we know these are using copper, so pass that along
-  if (!supportsTransceiver()) {
-    return folly::makeFuture<TransmitterTechnology>(
-        TransmitterTechnology::COPPER);
-  }
-  int32_t transID = static_cast<int32_t>(getTransceiverID().value());
-  auto getTech = [](TransceiverInfo info) {
-    if (auto cable = info.cable()) {
-      return *cable->transmitterTech();
-    }
-    return TransmitterTechnology::UNKNOWN;
-  };
-  auto handleError = [transID](const folly::exception_wrapper& e) {
-    XLOG(ERR) << "Error retrieving info for transceiver " << transID
-              << " Exception: " << folly::exceptionStr(e);
-    return TransmitterTechnology::UNKNOWN;
-  };
-  return getFutureTransceiverInfo().via(evb).thenValueInline(getTech).thenError(
-      std::move(handleError));
-}
-
 void WedgePort::statusIndication(
     bool enabled,
     bool link,

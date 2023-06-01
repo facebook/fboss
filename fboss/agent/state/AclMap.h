@@ -36,7 +36,6 @@ class AclMap : public ThriftMapNode<AclMap, AclMapTraits> {
  public:
   using Base = ThriftMapNode<AclMap, AclMapTraits>;
   using Traits = AclMapTraits;
-  using Base::modify;
 
   AclMap();
   ~AclMap() override;
@@ -69,8 +68,6 @@ class AclMap : public ThriftMapNode<AclMap, AclMapTraits> {
   size_t numEntries() const {
     return size();
   }
-
-  AclMap* modify(std::shared_ptr<SwitchState>* state);
 
   /*
    * The following functions modify the static state.
@@ -170,6 +167,12 @@ class MultiSwitchAclMap : public ThriftMultiSwitchMapNode<
   using Traits = MultiSwitchAclMapTraits;
   using BaseT =
       ThriftMultiSwitchMapNode<MultiSwitchAclMap, MultiSwitchAclMapTraits>;
+  using BaseT::modify;
+
+  MultiSwitchAclMap() = default;
+  virtual ~MultiSwitchAclMap() = default;
+
+  MultiSwitchAclMap* modify(std::shared_ptr<SwitchState>* state);
 
   std::shared_ptr<AclMap> getAclMap() const;
 

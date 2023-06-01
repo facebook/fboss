@@ -367,6 +367,31 @@ class SwitchStats : public boost::noncopyable {
     threadHeartbeatMissCount_.addValue(1);
   }
 
+  void localSystemPort(int value) {
+    localSystemPort_.incrementValue(value);
+  }
+  void remoteSystemPort(int value) {
+    remoteSystemPort_.incrementValue(value);
+  }
+  void localRifs(int value) {
+    localRifs_.incrementValue(value);
+  }
+  void remoteRifs(int value) {
+    remoteRifs_.incrementValue(value);
+  }
+  void localResolvedNdp(int value) {
+    localResolvedNdp_.incrementValue(value);
+  }
+  void remoteResolvedNdp(int value) {
+    remoteResolvedNdp_.incrementValue(value);
+  }
+  void localResolvedArp(int value) {
+    localResolvedArp_.incrementValue(value);
+  }
+  void remoteResolvedArp(int value) {
+    remoteResolvedArp_.incrementValue(value);
+  }
+
   typedef fb303::ThreadCachedServiceData::ThreadLocalStatsMap
       ThreadLocalStatsMap;
   typedef fb303::ThreadCachedServiceData::TLTimeseries TLTimeseries;
@@ -583,6 +608,23 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries pfcDeadlockRecoveryCount_;
   // Number of thread heartbeat misses
   TLTimeseries threadHeartbeatMissCount_;
+
+  // Number of system ports in switch state
+  TLCounter localSystemPort_;
+  // Number of remote system port in switch state
+  TLCounter remoteSystemPort_;
+  // Number of local Rifs
+  TLCounter localRifs_;
+  // Number of remote Rifs
+  TLCounter remoteRifs_;
+  // Number of local resolved NDP
+  TLCounter localResolvedNdp_;
+  // Number of remote resolved NDP
+  TLCounter remoteResolvedNdp_;
+  // Number of local resolved ARP
+  TLCounter localResolvedArp_;
+  // Number of remote resolved ARP
+  TLCounter remoteResolvedArp_;
 };
 
 } // namespace facebook::fboss

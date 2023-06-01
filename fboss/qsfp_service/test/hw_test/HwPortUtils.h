@@ -54,20 +54,20 @@ std::vector<TransceiverID> getTransceiverIds(
     const std::vector<PortID>& ports,
     const HwQsfpEnsemble* ensemble,
     bool ignoreNotFound = false);
-PortStatus getPortStatus(PortID portId, const HwQsfpEnsemble* ensemble);
 
 // Find the available iphy ports and xphy ports from agent config.
 // If profile is set, we will also filter the ports based on profile
-// Otherwise, we're only looking for ENABLED ports from the config
-// We can also filter the cabled ports
-IphyAndXphyPorts findAvailablePorts(
+// Otherwise, we're only looking for cabled ports from the config
+IphyAndXphyPorts findAvailableCabledPorts(
     HwQsfpEnsemble* qsfpEnsemble,
-    std::optional<cfg::PortProfileID> profile = std::nullopt,
-    bool onlyCabled = false);
+    std::optional<cfg::PortProfileID> profile = std::nullopt);
 
-std::set<PortID> getCabledPorts(const AgentConfig& conf);
+std::map<PortID, cfg::PortProfileID> getCabledPortsAndProfiles(
+    const HwQsfpEnsemble* ensemble);
+std::set<PortID> getCabledPorts(const HwQsfpEnsemble* ensemble);
+std::vector<std::pair<std::string, std::string>> getCabledPairs(
+    const HwQsfpEnsemble* ensemble);
 std::vector<TransceiverID> getCabledPortTranceivers(
-    const AgentConfig& conf,
     const HwQsfpEnsemble* ensemble);
 bool match(std::vector<TransceiverID> l, std::vector<TransceiverID> r);
 bool containsSubset(

@@ -1,0 +1,191 @@
+{
+    "___COMMENT___": "See the associated pastes to get a pictorial representation of this config",
+    "platformName": "sample_platform",
+    "chassisFruConfig": {
+        "pluggedInSlotType": "CHASSIS",
+        "i2cDeviceConfigs": [
+            {
+                "busName": "INCOMING@7",
+                "addr": 54,
+                "kernelDeviceName": "lm75",
+                "fruScopedName": "inlet_sensor"
+            },
+            {
+                "busName": "INCOMING@7",
+                "addr": 55,
+                "kernelDeviceName": "lm75",
+                "fruScopedName": "outlet_sensor"
+            },
+            {
+                "busName": "INCOMING@6",
+                "addr": 54,
+                "kernelDeviceName": "lm75",
+                "fruScopedName": "asic_sensor"
+            }
+        ],
+        "outgoingSlotConfigs": {
+            "yoloSlotOnChassis": {
+                "slotType": "YOLO",
+                "pathToPoll": "...",
+                "outgoingI2cBusNames": [
+                    "INCOMING@3",
+                    "INCOMING@4",
+                    "INCOMING@5"
+                ]
+            }
+        }
+    },
+    "chassisSlotConfig": {
+        "slotType": "CHASSIS",
+        "pathToPoll": "...",
+        "outgoingI2cBusNames": [
+            "KERNEL@0",
+            "KERNEL@1",
+            "KERNEL@2",
+            "KERNEL@3",
+            "KERNEL@4",
+            "KERNEL@5",
+            "KERNEL@6",
+            "KERNEL@7"
+        ]
+    },
+    "slotTypeConfigs": {
+        "CHASSIS": {
+            "numOutgoingI2cBuses": 8,
+            "fruEeprom": {
+                "incomingBusIndex": 0,
+                "address": 11,
+                "kernelDeviceName": "24c02"
+            }
+        },
+        "PIM": {
+            "numOutgoingI2cBuses": 1,
+            "fruEeprom": {
+                "incomingBusIndex": 0,
+                "address": 14,
+                "kernelDeviceName": "24c02"
+            }
+        },
+        "PSU": {
+            "numOutgoingI2cBuses": 2,
+            "fruEeprom": {
+                "incomingBusIndex": 0,
+                "address": 12,
+                "kernelDeviceName": "24c64"
+            }
+        },
+        "YOLO": {
+            "numOutgoingI2cBuses": 3,
+            "fruEeprom": {
+                "incomingBusIndex": 0,
+                "address": 5,
+                "kernelDeviceName": "24c64"
+            }
+        }
+    },
+    "platformFrus": {
+        "yolo_max": {
+            "pluggedInSlotType": "YOLO",
+            "i2cDeviceConfigs": [
+                {
+                    "busName": "INCOMING@0",
+                    "addr": 54,
+                    "kernelDeviceName": "pca9x42",
+                    "fruScopedName": "yolo_mux1",
+                    "numOutgoingChannels": 2
+                },
+                {
+                    "busName": "INCOMING@1",
+                    "addr": 55,
+                    "kernelDeviceName": "pca9x44",
+                    "fruScopedName": "yolo_mux2",
+                    "numOutgoingChannels": 4
+                },
+                {
+                    "busName": "yolo_mux1@0",
+                    "addr": 12,
+                    "kernelDeviceName": "lm75",
+                    "fruScopedName": "yolo_sensor1"
+                },
+                {
+                    "busName": "INCOMING@2",
+                    "addr": 12,
+                    "kernelDeviceName": "lm75",
+                    "fruScopedName": "yolo_sensor2"
+                }
+            ],
+            "outgoingSlotConfigs": {
+                "psuSlot1onYolo": {
+                    "slotType": "PIM",
+                    "pathToPoll": "...",
+                    "outgoingI2cBusNames": [
+                        "yolo_mux1@0"
+                    ]
+                },
+                "psuSlot2onYolo": {
+                    "slotType": "PIM",
+                    "pathToPoll": "...",
+                    "outgoingI2cBusNames": [
+                        "yolo_mux1@1"
+                    ]
+                },
+                "pimSlot1onYolo": {
+                    "slotType": "PSU",
+                    "pathToPoll": "...",
+                    "outgoingI2cBusNames": [
+                        "yolo_mux2@0",
+                        "yolo_mux2@1"
+                    ]
+                },
+                "pimSlot2onYolo": {
+                    "slotType": "PSU",
+                    "pathToPoll": "...",
+                    "outgoingI2cBusNames": [
+                        "yolo_mux2@2",
+                        "INCOMING@3"
+                    ]
+                }
+            }
+        },
+        "pim_16q": {
+            "pluggedInSlotType": "PIM",
+            "i2cDeviceConfigs": [
+                {
+                    "busName": "INCOMING@0",
+                    "addr": 15,
+                    "kernelDeviceName": "pca9x42",
+                    "fruScopedName": "pim_mux",
+                    "numOutgoingChannels": 2
+                }
+            ],
+            "outgoingSlotConfigs": {}
+        },
+        "pim_8dd": {
+            "pluggedInSlotType": "PIM",
+            "outgoingSlotConfigs": {}
+        },
+        "psu_2gh": {
+            "pluggedInSlotType": "PSU",
+            "i2cDeviceConfigs": [
+                {
+                    "busName": "INCOMING@1",
+                    "addr": 12,
+                    "kernelDeviceName": "lm75",
+                    "fruScopedName": "psu_2gh_sensor"
+                }
+            ],
+            "outgoingSlotConfigs": {}
+        }
+    },
+    "i2cBussesFromMainBoard": [
+        "KERNEL@0",
+        "KERNEL@1",
+        "KERNEL@2",
+        "KERNEL@3",
+        "KERNEL@4",
+        "KERNEL@5",
+        "KERNEL@6",
+        "KERNEL@7"
+    ],
+    "i2cPathToHumanFriendlyName": {}
+}

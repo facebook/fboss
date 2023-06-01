@@ -74,11 +74,11 @@ class HwNeighborTest : public HwLinkStateDependentTest {
                                     getHwSwitch(),
                                     masterLogicalPortIds()[0],
                                     masterLogicalPortIds()[1],
-                                    getAsic()->desiredLoopbackMode())
+                                    getAsic()->desiredLoopbackModes())
                               : utility::onePortPerInterfaceConfig(
                                     getHwSwitch(),
                                     masterLogicalPortIds(),
-                                    getAsic()->desiredLoopbackMode());
+                                    getAsic()->desiredLoopbackModes());
     if (programToTrunk) {
       // Keep member size to be less than/equal to HW limitation, but first add
       // the two ports for testing.
@@ -112,8 +112,11 @@ class HwNeighborTest : public HwLinkStateDependentTest {
     } else if (switchType == cfg::SwitchType::VOQ) {
       CHECK(!programToTrunk) << " Trunks not supported yet on VOQ switches";
       auto portId = this->portDescriptor().phyPortID();
-      return InterfaceID(
-          (*getProgrammedState()->getPort(portId)->getInterfaceIDs().begin()));
+      return InterfaceID((*getProgrammedState()
+                               ->getPorts()
+                               ->getNodeIf(portId)
+                               ->getInterfaceIDs()
+                               .begin()));
     }
     XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);
   }
@@ -129,12 +132,12 @@ class HwNeighborTest : public HwLinkStateDependentTest {
     auto switchType = getSwitchType();
     if (switchType == cfg::SwitchType::NPU) {
       return state->getVlans()
-          ->getVlan(kVlanID())
+          ->getNode(kVlanID())
           ->template getNeighborTable<NTable>()
           ->modify(kVlanID(), &state);
     } else if (switchType == cfg::SwitchType::VOQ) {
       return state->getInterfaces()
-          ->getInterface(kIntfID())
+          ->getNode(kIntfID())
           ->template getNeighborEntryTable<IPAddrT>()
           ->modify(kIntfID(), &state);
     }
@@ -218,7 +221,7 @@ class HwNeighborOnMultiplePortsTest : public HwLinkStateDependentTest {
     return utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
   }
 
   void oneNeighborPerPortSetup(const std::vector<PortID>& portIds) {
@@ -259,14 +262,14 @@ class HwNeighborOnMultiplePortsTest : public HwLinkStateDependentTest {
     if (switchType == cfg::SwitchType::NPU) {
       return InterfaceID(static_cast<int>((*getProgrammedState()
                                                 ->getPorts()
-                                                ->getPort(portId)
+                                                ->getNodeIf(portId)
                                                 ->getVlans()
                                                 .begin())
                                               .first));
     } else if (switchType == cfg::SwitchType::VOQ) {
       return InterfaceID(*getProgrammedState()
                               ->getPorts()
-                              ->getPort(portId)
+                              ->getNodeIf(portId)
                               ->getInterfaceIDs()
                               .begin());
     }

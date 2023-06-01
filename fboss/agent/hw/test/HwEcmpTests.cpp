@@ -58,7 +58,7 @@ class HwEcmpTest : public HwLinkStateDependentTest {
     return utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
   }
 
   void resolveNhops(int numNhops) {
@@ -103,16 +103,14 @@ class HwEcmpTest : public HwLinkStateDependentTest {
   auto getNdpTable(PortDescriptor port, std::shared_ptr<SwitchState>& state) {
     if (getSwitchType() == cfg::SwitchType::NPU) {
       auto vlanId = ecmpHelper_->getVlan(port, getProgrammedState());
-      return state->getVlans()->getVlan(*vlanId)->getNdpTable()->modify(
+      return state->getVlans()->getNode(*vlanId)->getNdpTable()->modify(
           *vlanId, &state);
     } else {
       auto portId = port.phyPortID();
       InterfaceID intfId(
-          *state->getPorts()->getPort(portId)->getInterfaceIDs().begin());
-      return state->getInterfaces()
-          ->getInterface(intfId)
-          ->getNdpTable()
-          ->modify(intfId, &state);
+          *state->getPorts()->getNode(portId)->getInterfaceIDs().begin());
+      return state->getInterfaces()->getNode(intfId)->getNdpTable()->modify(
+          intfId, &state);
     }
   }
 };

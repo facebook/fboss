@@ -150,28 +150,6 @@ TEST(Route, serializeRouteTable) {
       {},
       false);
 
-  folly::json::serialization_opts serOpts;
-  serOpts.allow_non_string_keys = true;
-
-  auto origV4Routes = &v4Routes;
-  folly::dynamic serializedAsObjectV4 = origV4Routes->toFollyDynamic();
-  std::string serializedAsJsonV4 =
-      folly::json::serialize(serializedAsObjectV4, serOpts);
-  folly::dynamic deserializedAsObjectV4 =
-      folly::parseJson(serializedAsJsonV4, serOpts);
-  auto newV4Routes = NetworkToRouteMap<folly::IPAddressV4>::fromFollyDynamic(
-      deserializedAsObjectV4);
-  EXPECT_ROUTES_MATCH(origV4Routes, &newV4Routes);
-
-  auto origV6Routes = &v6Routes;
-  auto serializedAsObjectV6 = origV6Routes->toFollyDynamic();
-  auto serializedAsJsonV6 =
-      folly::json::serialize(serializedAsObjectV6, serOpts);
-  auto deserializedAsObjectV6 = folly::parseJson(serializedAsJsonV6, serOpts);
-  auto newV6Routes = NetworkToRouteMap<folly::IPAddressV6>::fromFollyDynamic(
-      deserializedAsObjectV6);
-  EXPECT_ROUTES_MATCH(origV6Routes, &newV6Routes);
-
   RouteNextHopSet mplsNhop1 = makeNextHops(
       {"1.1.1.10"},
       LabelForwardingAction(LabelForwardingAction::LabelForwardingType::PHP));
@@ -186,16 +164,6 @@ TEST(Route, serializeRouteTable) {
       },
       {},
       false);
-
-  auto origMplsRoutes = &mplsRoutes;
-  auto serializedAsObjectMpls = origMplsRoutes->toFollyDynamic();
-  auto serializedAsJsonMpls =
-      folly::json::serialize(serializedAsObjectMpls, serOpts);
-  auto deserializedAsObjectMpls =
-      folly::parseJson(serializedAsJsonMpls, serOpts);
-  auto newMplsRoutes =
-      NetworkToRouteMap<LabelID>::fromFollyDynamic(deserializedAsObjectMpls);
-  EXPECT_MPLS_ROUTES_MATCH(origMplsRoutes, &newMplsRoutes);
 }
 
 } // namespace facebook::fboss

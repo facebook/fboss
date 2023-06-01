@@ -112,7 +112,9 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
 
   cfg::SwitchConfig initialConfig() const override {
     return utility::onePortPerInterfaceConfig(
-        getHwSwitch(), getPortsForSampling(), getAsic()->desiredLoopbackMode());
+        getHwSwitch(),
+        getPortsForSampling(),
+        getAsic()->desiredLoopbackModes());
   }
 
   HwSwitchEnsemble::Features featuresDesired() const override {

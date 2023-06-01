@@ -20,6 +20,7 @@ class HwTransceiverUtils {
  public:
   static void verifyTransceiverSettings(
       const TcvrState& tcvrState,
+      const std::string& portName,
       cfg::PortProfileID profile);
 
   // T114627923 Because some old firmware might not enable all capabilities
@@ -39,6 +40,7 @@ class HwTransceiverUtils {
  private:
   static void verifyOpticsSettings(
       const TcvrState& tcvrState,
+      const std::string& portName,
       cfg::PortProfileID profile);
   static void verifyMediaInterfaceCompliance(
       const TcvrState& tcvrState,
@@ -66,7 +68,9 @@ class HwTransceiverUtils {
       const TcvrState& tcvrState,
       const std::vector<MediaInterfaceId>& mediaInterfaces);
 
-  static void verifyDataPathEnabled(const TcvrState& tcvrState);
+  static void verifyDataPathEnabled(
+      const TcvrState& tcvrState,
+      const std::string& portName);
 };
 
 } // namespace facebook::fboss::utility

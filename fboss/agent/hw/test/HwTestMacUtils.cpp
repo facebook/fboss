@@ -10,9 +10,9 @@ void setMacAgeTimerSeconds(
     facebook::fboss::HwSwitchEnsemble* hwSwitchEnsemble,
     uint32_t seconds) {
   auto newState = hwSwitchEnsemble->getProgrammedState()->clone();
-  auto newSwitchSettings = newState->getSwitchSettings()->clone();
+  auto switchSettings = util::getFirstNodeIf(newState->getSwitchSettings());
+  auto newSwitchSettings = switchSettings->modify(&newState);
   newSwitchSettings->setL2AgeTimerSeconds(seconds);
-  newState->resetSwitchSettings(newSwitchSettings);
   hwSwitchEnsemble->applyNewState(newState);
 }
 

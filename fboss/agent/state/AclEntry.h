@@ -75,9 +75,6 @@ class AclTtl {
   state::AclTtl toThrift() const;
   static AclTtl fromThrift(state::AclTtl const& entry);
 
-  folly::dynamic toFollyDynamic() const;
-  static AclTtl fromFollyDynamic(const folly::dynamic& ttlJson);
-
  private:
   uint16_t value_;
   uint16_t mask_;
@@ -395,7 +392,9 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
 
   std::set<cfg::AclTableQualifier> getRequiredAclTableQualifiers() const;
 
-  AclEntry* modify(std::shared_ptr<SwitchState>* state);
+  AclEntry* modify(
+      std::shared_ptr<SwitchState>* state,
+      const HwSwitchMatcher& matcher);
 
  private:
   // Inherit the constructors required for clone()

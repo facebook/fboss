@@ -102,20 +102,13 @@ class RibSerializationTest : public ::testing::Test {
 };
 
 TEST_F(RibSerializationTest, fullRibSerDeser) {
-  auto deserializedRib = RoutingInformationBase::fromFollyDynamic(
-      rib.toFollyDynamic(), nullptr, nullptr);
+  auto deserializedRib =
+      RoutingInformationBase::fromThrift(rib.toThrift(), nullptr, nullptr);
 
   EXPECT_TRUE(ribEqual(rib, *deserializedRib));
 }
 
 TEST_F(RibSerializationTest, serializeOnlyUnresolvedRoutes) {
-  auto deserializedRib = RoutingInformationBase::fromFollyDynamic(
-      rib.unresolvedRoutesFollyDynamic(),
-      curState->getFibs(),
-      curState->getLabelForwardingInformationBase());
-
-  EXPECT_TRUE(ribEqual(rib, *deserializedRib));
-
   auto deserializedRibThrift = RoutingInformationBase::fromThrift(
       rib.warmBootState(),
       curState->getFibs(),
@@ -124,42 +117,25 @@ TEST_F(RibSerializationTest, serializeOnlyUnresolvedRoutes) {
 }
 
 TEST_F(RibSerializationTest, deserializeOnlyUnresolvedRoutes) {
-  auto deserializedRibEmptyFib = RoutingInformationBase::fromFollyDynamic(
-      rib.unresolvedRoutesFollyDynamic(),
-      std::make_shared<ForwardingInformationBaseMap>(),
-      std::make_shared<LabelForwardingInformationBase>());
-
   auto deserializedRibEmptyFibThrift = RoutingInformationBase::fromThrift(
       rib.warmBootState(),
-      std::make_shared<ForwardingInformationBaseMap>(),
-      std::make_shared<LabelForwardingInformationBase>());
-
-  auto deserializedRibNoFib = RoutingInformationBase::fromFollyDynamic(
-      rib.unresolvedRoutesFollyDynamic(), nullptr, nullptr);
+      std::make_shared<MultiSwitchForwardingInformationBaseMap>(),
+      std::make_shared<MultiLabelForwardingInformationBase>());
 
   auto deserializedRibNoFibThrift =
       RoutingInformationBase::fromThrift(rib.warmBootState(), nullptr, nullptr);
 
-  EXPECT_FALSE(ribEqual(rib, *deserializedRibEmptyFib));
   EXPECT_FALSE(ribEqual(rib, *deserializedRibEmptyFibThrift));
 
-  EXPECT_FALSE(ribEqual(rib, *deserializedRibNoFib));
   EXPECT_FALSE(ribEqual(rib, *deserializedRibNoFibThrift));
 
-  EXPECT_TRUE(ribEqual(*deserializedRibEmptyFib, *deserializedRibNoFib));
   EXPECT_TRUE(
       ribEqual(*deserializedRibEmptyFibThrift, *deserializedRibNoFibThrift));
 
-  EXPECT_EQ(2, deserializedRibEmptyFib->getRouteTableDetails(kRid0).size());
-  EXPECT_EQ(1, deserializedRibEmptyFib->getMplsRouteTableDetails().size());
-
-  auto deserializedRibWithFib = RoutingInformationBase::fromFollyDynamic(
-      rib.unresolvedRoutesFollyDynamic(),
-      curState->getFibs(),
-      curState->getLabelForwardingInformationBase());
-  EXPECT_TRUE(ribEqual(rib, *deserializedRibWithFib));
-  EXPECT_EQ(8, deserializedRibWithFib->getRouteTableDetails(kRid0).size());
-  EXPECT_EQ(2, deserializedRibWithFib->getMplsRouteTableDetails().size());
+  EXPECT_EQ(
+      2, deserializedRibEmptyFibThrift->getRouteTableDetails(kRid0).size());
+  EXPECT_EQ(
+      1, deserializedRibEmptyFibThrift->getMplsRouteTableDetails().size());
 
   auto deserializedRibWithFibThrift = RoutingInformationBase::fromThrift(
       rib.warmBootState(),

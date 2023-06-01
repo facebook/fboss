@@ -77,6 +77,11 @@ std::optional<SpeedAndProfile> SpeedChangeTest::getSecondarySpeedAndProfile(
     return SpeedAndProfile(
         cfg::PortSpeed::HUNDREDG,
         cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL);
+  } else if (
+      profileID == cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL) {
+    return SpeedAndProfile(
+        cfg::PortSpeed::TWOHUNDREDG,
+        cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL);
   }
   return std::nullopt;
 }

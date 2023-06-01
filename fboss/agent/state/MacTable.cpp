@@ -38,7 +38,7 @@ MacTable* MacTable::modify(VlanID vlanID, std::shared_ptr<SwitchState>* state) {
     return this;
   }
 
-  auto vlanPtr = (*state)->getVlans()->getVlan(vlanID).get();
+  auto vlanPtr = (*state)->getVlans()->getNode(vlanID).get();
   return modify(&vlanPtr, state);
 }
 

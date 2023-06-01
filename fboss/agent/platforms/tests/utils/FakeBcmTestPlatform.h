@@ -63,7 +63,8 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
   void setupAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
-      std::optional<cfg::Range64> systemPortRange) override;
+      std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac) override;
   // Forbidden copy constructor and assignment operator
   FakeBcmTestPlatform(FakeBcmTestPlatform const&) = delete;
   FakeBcmTestPlatform& operator=(FakeBcmTestPlatform const&) = delete;

@@ -17,8 +17,6 @@ using facebook::network::toBinaryAddress;
 
 namespace {
 void testFromAndTo(const LabelForwardingAction& action) {
-  EXPECT_EQ(
-      action, LabelForwardingAction::fromFollyDynamic(action.toFollyDynamic()));
   EXPECT_EQ(action, LabelForwardingAction::fromThrift(action.toThrift()));
 }
 
@@ -197,6 +195,6 @@ TEST(LabelForwardingActionTests, MplsNextHopThriftSet) {
       }
     }
     auto nhops = util::toRouteNextHopSet(nhops_vec);
-    EXPECT_TRUE(LabelForwardingInformationBase::isValidNextHopSet(nhops));
+    EXPECT_TRUE(MultiLabelForwardingInformationBase::isValidNextHopSet(nhops));
   }
 }
