@@ -274,13 +274,17 @@ void NeighborUpdaterImpl::receivedArpNotMineForIntf(
 }
 
 void NeighborUpdaterImpl::portDown(PortDescriptor port) {
-  for (auto vlanCaches : caches_) {
-    auto arpCache = vlanCaches.second->arpCache;
-    arpCache->portDown(port);
+  auto portDownHelper = [port](auto& caches) {
+    for (auto id2NbrCaches : caches) {
+      auto arpCache = id2NbrCaches.second->arpCache;
+      arpCache->portDown(port);
 
-    auto ndpCache = vlanCaches.second->ndpCache;
-    ndpCache->portDown(port);
-  }
+      auto ndpCache = id2NbrCaches.second->ndpCache;
+      ndpCache->portDown(port);
+    }
+  };
+
+  portDownHelper(caches_);
 }
 
 void NeighborUpdaterImpl::portFlushEntries(PortDescriptor port) {
