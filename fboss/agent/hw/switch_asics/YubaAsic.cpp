@@ -15,25 +15,19 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SPAN:
     case HwAsic::Feature::ERSPANv4:
     case HwAsic::Feature::SFLOWv4:
-    case HwAsic::Feature::MPLS:
-    case HwAsic::Feature::MPLS_ECMP:
     case HwAsic::Feature::ERSPANv6:
     case HwAsic::Feature::SFLOWv6:
 
     case HwAsic::Feature::ECN:
-    case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::QOS_MAP_GLOBAL:
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
-    case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
-    case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
     case HwAsic::Feature::SFLOW_SAMPLING:
     case HwAsic::Feature::SAI_ECN_WRED:
-    case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::DEBUG_COUNTER:
     case HwAsic::Feature::PENDING_L2_ENTRY:
     case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
@@ -42,14 +36,12 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
     case HwAsic::Feature::DEFAULT_VLAN:
     case HwAsic::Feature::L2_LEARNING:
-    case HwAsic::Feature::TRAFFIC_HASHING:
-    case HwAsic::Feature::ACL_TABLE_GROUP:
     case HwAsic::Feature::CPU_PORT:
+    case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::VRF:
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::PTP_TC:
     case HwAsic::Feature::PTP_TC_PCS:
-    case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::ROUTE_PROGRAMMING:
     case HwAsic::Feature::ECMP_HASH_V4:
     case HwAsic::Feature::ECMP_HASH_V6:
@@ -62,18 +54,13 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::ROUTE_METADATA:
     case HwAsic::Feature::P4_WARMBOOT:
-    case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
-    case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::FEC_AM_LOCK_STATUS:
     case HwAsic::Feature::PCS_RX_LINK_STATUS:
     case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
-    case HwAsic::Feature::SAI_MPLS_QOS:
-    case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
     case HwAsic::Feature::ROUTE_COUNTERS:
-    case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
     case HwAsic::Feature::SAI_SAMPLEPACKET_TRAP:
     case HwAsic::Feature::QUEUE_ECN_COUNTER:
@@ -140,6 +127,23 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::CPU_TX_VIA_RECYCLE_PORT:
     case HwAsic::Feature::QUEUE_PRIORITY_LOWER_VAL_IS_HIGH_PRI:
     case HwAsic::Feature::SWITCH_DROP_STATS:
+    case HwAsic::Feature::SAI_UDF_HASH:
+    case HwAsic::Feature::TRAFFIC_HASHING:
+    case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
+    case HwAsic::Feature::MULTIPLE_ACL_TABLES:
+    case HwAsic::Feature::ACL_TABLE_GROUP:
+    case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
+    case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
+    case HwAsic::Feature::RESOURCE_USAGE_STATS:
+    case HwAsic::Feature::SAI_MPLS_QOS:
+    case HwAsic::Feature::L3_QOS:
+    case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
+    case HwAsic::Feature::SAI_FEC_COUNTERS:
+    case HwAsic::Feature::MPLS:
+    case HwAsic::Feature::MPLS_ECMP:
+    case HwAsic::Feature::INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK:
+    case HwAsic::Feature::SAI_PORT_ETHER_STATS:
+    case HwAsic::Feature::RX_LANE_SQUELCH_ENABLE:
       return false;
   }
   return false;
