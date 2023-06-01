@@ -39,6 +39,8 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 
+DECLARE_bool(intf_nbr_tables);
+
 using folly::IPAddressV6;
 using folly::MacAddress;
 using folly::io::Cursor;
@@ -889,8 +891,13 @@ void IPv6Handler::resolveDestAndHandlePacket(
           sendMulticastNeighborSolicitation(
               sw_, target, intf->getMac(), intf->getVlanIDIf());
           // Notify the updater that we sent a solicitation out
-          sw_->getNeighborUpdater()->sentNeighborSolicitation(
-              sw_->getVlanIDHelper(vlanID), target);
+          if (FLAGS_intf_nbr_tables) {
+            sw_->getNeighborUpdater()->sentNeighborSolicitationForIntf(
+                intf->getID(), target);
+          } else {
+            sw_->getNeighborUpdater()->sentNeighborSolicitation(
+                sw_->getVlanIDHelper(vlanID), target);
+          }
         } else {
           XLOG(DBG5) << "not sending neighbor solicitation for " << target.str()
                      << ", " << ((entry->isPending()) ? "pending" : "")
