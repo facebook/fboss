@@ -440,7 +440,11 @@ void NeighborUpdaterImpl::timeoutsChanged(
     }
   };
 
-  timeOutChangedHelper(caches_);
+  if (FLAGS_intf_nbr_tables) {
+    timeOutChangedHelper(intfCaches_);
+  } else {
+    timeOutChangedHelper(caches_);
+  }
 }
 
 void NeighborUpdaterImpl::updateArpEntryClassID(
