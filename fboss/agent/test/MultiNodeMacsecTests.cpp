@@ -62,7 +62,8 @@ class MultiNodeMacsecTest : public MultiNodeTest {
         true /*interfaceHasSubnet*/,
         false /*setInterfaceMac*/);
     config.loadBalancers()->push_back(
-        facebook::fboss::utility::getEcmpFullHashConfig(sw()->getPlatform()));
+        facebook::fboss::utility::getEcmpFullHashConfig(
+            sw()->getPlatform_DEPRECATED()));
     return config;
   }
 
@@ -72,7 +73,7 @@ class MultiNodeMacsecTest : public MultiNodeTest {
   }
 
   folly::MacAddress getLocalMac() {
-    return sw()->getPlatform()->getLocalMac();
+    return sw()->getPlatform_DEPRECATED()->getLocalMac();
   }
 
   void setupMkaClient() {

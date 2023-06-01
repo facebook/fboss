@@ -86,7 +86,7 @@ class AgentInitializer {
     return sw_.get();
   }
   Platform* platform() const {
-    return sw_->getPlatform();
+    return sw_->getPlatform_DEPRECATED();
   }
   Initializer* initializer() const {
     return initializer_.get();

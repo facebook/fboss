@@ -336,7 +336,7 @@ TEST_F(BgpIntegrationTest, bgpRestart) {
 }
 
 TEST_F(BgpIntegrationTest, routeScaleTest) {
-  Platform* platform = sw()->getPlatform();
+  Platform* platform = sw()->getPlatform_DEPRECATED();
   auto hw = platform->getAsic();
   auto npu = hw->getAsicType();
   switch (npu) {

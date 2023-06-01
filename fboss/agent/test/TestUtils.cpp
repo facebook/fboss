@@ -489,7 +489,7 @@ unique_ptr<HwTestHandle> createTestHandle(
     SwitchFlags flags,
     cfg::SwitchConfig* config) {
   auto sw = createMockSw(state, flags, config);
-  auto platform = static_cast<MockPlatform*>(sw->getPlatform());
+  auto platform = static_cast<MockPlatform*>(sw->getPlatform_DEPRECATED());
   auto handle = platform->createTestHandle(std::move(sw));
   handle->prepareForTesting();
   return handle;
@@ -548,7 +548,8 @@ MockHwSwitch* getMockHw(SwSwitch* sw) {
 }
 
 MockPlatform* getMockPlatform(SwSwitch* sw) {
-  return boost::polymorphic_downcast<MockPlatform*>(sw->getPlatform());
+  return boost::polymorphic_downcast<MockPlatform*>(
+      sw->getPlatform_DEPRECATED());
 }
 
 MockHwSwitch* getMockHw(std::unique_ptr<SwSwitch>& sw) {
@@ -556,7 +557,8 @@ MockHwSwitch* getMockHw(std::unique_ptr<SwSwitch>& sw) {
 }
 
 MockPlatform* getMockPlatform(std::unique_ptr<SwSwitch>& sw) {
-  return boost::polymorphic_downcast<MockPlatform*>(sw->getPlatform());
+  return boost::polymorphic_downcast<MockPlatform*>(
+      sw->getPlatform_DEPRECATED());
 }
 
 std::shared_ptr<SwitchState> waitForStateUpdates(SwSwitch* sw) {

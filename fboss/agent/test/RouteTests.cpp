@@ -1032,7 +1032,6 @@ TEST_F(RouteTest, applyNewConfig) {
   config.interfaces()[5].ipAddresses()[0] = "5.1.1.1/24";
   config.interfaces()[5].ipAddresses()[1] = "::1/48";
 
-  auto platform = this->sw_->getPlatform();
   auto rib = this->sw_->getRib();
   auto stateV0 = this->sw_->getState();
   this->sw_->applyConfig("Apply config1", config);

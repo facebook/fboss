@@ -181,7 +181,8 @@ void getPortInfoHelper(
   for (auto entry : port->getVlans()) {
     portInfo.vlans()->push_back(entry.first);
   }
-  auto platformPort = sw.getPlatform()->getPlatformPort(port->getID());
+  auto platformPort =
+      sw.getPlatform_DEPRECATED()->getPlatformPort(port->getID());
   if (platformPort->getHwLogicalPortId().has_value()) {
     portInfo.hwLogicalPortId() = platformPort->getHwLogicalPortId().value();
   }
@@ -334,15 +335,15 @@ void getPortInfoHelper(
   *portInfo.profileID() = apache::thrift::util::enumName(port->getProfileID());
 
   if (port->isEnabled()) {
-    const auto platformPort = sw.getPlatform()->getPlatformPort(port->getID());
+    const auto pPort =
+        sw.getPlatform_DEPRECATED()->getPlatformPort(port->getID());
     PortHardwareDetails hw;
     hw.profile() = port->getProfileID();
-    hw.profileConfig() =
-        platformPort->getPortProfileConfigFromCache(*hw.profile());
-    hw.pinConfig() = platformPort->getPortPinConfigs(*hw.profile());
+    hw.profileConfig() = pPort->getPortProfileConfigFromCache(*hw.profile());
+    hw.pinConfig() = pPort->getPortPinConfigs(*hw.profile());
     // Use SW Port pinConfig directly
     hw.pinConfig()->iphy() = port->getPinConfigs();
-    hw.chips() = platformPort->getPortDataplaneChips(*hw.profile());
+    hw.chips() = pPort->getPortDataplaneChips(*hw.profile());
     portInfo.hw() = hw;
 
     auto fec = hw.profileConfig()->iphy()->fec().value();
@@ -363,8 +364,8 @@ void getPortInfoHelper(
     portInfo.pfc() = pc;
   }
   try {
-    portInfo.transceiverIdx() =
-        sw.getPlatform()->getPortMapping(port->getID(), port->getSpeed());
+    portInfo.transceiverIdx() = sw.getPlatform_DEPRECATED()->getPortMapping(
+        port->getID(), port->getSpeed());
   } catch (const facebook::fboss::FbossError& err) {
     // No problem, we just don't set the other info
   }
@@ -2297,7 +2298,7 @@ void ThriftHandler::setExternalLedState(
   ensureConfigured(__func__);
   PortID portId = PortID(portNum);
 
-  const auto plport = sw_->getPlatform()->getPlatformPort(portId);
+  const auto plport = sw_->getPlatform_DEPRECATED()->getPlatformPort(portId);
 
   if (!plport) {
     throw FbossError("No such port ", portNum);

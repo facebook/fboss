@@ -195,8 +195,8 @@ facebook::fboss::PortStatus fillInPortStatus(
   *status.drained() = port.isDrained();
 
   try {
-    status.transceiverIdx() =
-        sw->getPlatform()->getPortMapping(port.getID(), port.getSpeed());
+    status.transceiverIdx() = sw->getPlatform_DEPRECATED()->getPortMapping(
+        port.getID(), port.getSpeed());
   } catch (const facebook::fboss::FbossError& err) {
     // No problem, we just don't set the other info
   }
@@ -1955,7 +1955,7 @@ void SwSwitch::applyConfig(
         // wedge_agent use TrransceiverMap to build Port::profileConfig and
         // pinConfigs. To do so, we need to manually build this TransceiverMap
         // by using QsfpCache to fetch all transceiver infos.
-        auto qsfpCache = getPlatform()->getQsfpCache();
+        auto qsfpCache = getPlatform_DEPRECATED()->getQsfpCache();
         if (qsfpCache) {
           const auto& currentTcvrs = qsfpCache->getAllTransceivers();
           auto tempState = modifyTransceivers(
@@ -1970,7 +1970,7 @@ void SwSwitch::applyConfig(
         auto newState = rib_ ? applyThriftConfig(
                                    originalState,
                                    &newConfig,
-                                   getPlatform(),
+                                   getPlatform_DEPRECATED(),
                                    platformMapping_.get(),
                                    hwAsicTable_.get(),
                                    &routeUpdater,
@@ -1978,7 +1978,7 @@ void SwSwitch::applyConfig(
                              : applyThriftConfig(
                                    originalState,
                                    &newConfig,
-                                   getPlatform(),
+                                   getPlatform_DEPRECATED(),
                                    platformMapping_.get(),
                                    hwAsicTable_.get(),
                                    (RoutingInformationBase*)nullptr,

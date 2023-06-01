@@ -70,7 +70,8 @@ class MacLearningTest : public LinkTest {
     // send packets whose src mac matches L2 entry and verify no drops,
     // if L2 entry is in pending state, these packets would be dropped
     auto ecmpPorts = getVlanOwningCabledPorts();
-    programDefaultRoute(ecmpPorts, sw()->getPlatform()->getLocalMac());
+    programDefaultRoute(
+        ecmpPorts, sw()->getPlatform_DEPRECATED()->getLocalMac());
     disableTTLDecrements(ecmpPorts);
     // wait long enough for all L2 entries learned/validated, port stats updated
     // sleep override
@@ -91,7 +92,7 @@ class MacLearningTest : public LinkTest {
     utility::pumpTraffic(
         true,
         sw()->getHw(),
-        sw()->getPlatform()->getLocalMac(),
+        sw()->getPlatform_DEPRECATED()->getLocalMac(),
         sw()->getState()->getVlans()->getFirstVlanID(),
         txPort,
         255,
