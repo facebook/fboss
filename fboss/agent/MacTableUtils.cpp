@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/MacTableUtils.h"
 
+DECLARE_bool(intf_nbr_tables);
+
 namespace {
 
 using facebook::fboss::ArpTable;
@@ -66,12 +68,28 @@ std::shared_ptr<MacEntry> getMacEntry(
   return macTable->getMacIf(mac);
 }
 
-std::shared_ptr<ArpTable> getArpTableHelper(const Vlan* vlan) {
-  return vlan->getArpTable();
+std::shared_ptr<ArpTable> getArpTableHelper(
+    const std::shared_ptr<SwitchState>& state,
+    const Vlan* vlan) {
+  if (FLAGS_intf_nbr_tables) {
+    return state->getInterfaces()
+        ->getNode(vlan->getInterfaceID())
+        ->getArpTable();
+  } else {
+    return vlan->getArpTable();
+  }
 }
 
-std::shared_ptr<NdpTable> getNdpTableHelper(const Vlan* vlan) {
-  return vlan->getNdpTable();
+std::shared_ptr<NdpTable> getNdpTableHelper(
+    const std::shared_ptr<SwitchState>& state,
+    const Vlan* vlan) {
+  if (FLAGS_intf_nbr_tables) {
+    return state->getInterfaces()
+        ->getNode(vlan->getInterfaceID())
+        ->getNdpTable();
+  } else {
+    return vlan->getNdpTable();
+  }
 }
 
 } // namespace
@@ -201,8 +219,8 @@ std::shared_ptr<SwitchState> MacTableUtils::updateOrAddStaticEntryIfNbrExists(
         });
   };
   auto vlan = state->getVlans()->getNode(vlanId).get();
-  const auto& arpTable = *getArpTableHelper(vlan);
-  const auto& ndpTable = *getNdpTableHelper(vlan);
+  const auto& arpTable = *getArpTableHelper(state, vlan);
+  const auto& ndpTable = *getNdpTableHelper(state, vlan);
   auto arpItr = findNeighbor(arpTable);
   auto ndpItr = findNeighbor(ndpTable);
   if (arpItr != arpTable.end() || ndpItr != ndpTable.end()) {
