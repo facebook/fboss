@@ -74,7 +74,7 @@ void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
       updateFn = getUpdateFnToProgramEntryForNpu(entry);
       break;
     case cfg::SwitchType::VOQ:
-      updateFn = getUpdateFnToProgramEntryForVoq(entry);
+      updateFn = getUpdateFnToProgramEntry(entry, cfg::SwitchType::VOQ);
       break;
     case cfg::SwitchType::FABRIC:
     case cfg::SwitchType::PHY:
@@ -147,8 +147,9 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForNpu(Entry* entry) {
 }
 
 template <typename NTable>
-SwSwitch::StateUpdateFn
-NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForVoq(Entry* entry) {
+SwSwitch::StateUpdateFn NeighborCacheImpl<NTable>::getUpdateFnToProgramEntry(
+    Entry* entry,
+    cfg::SwitchType switchType) {
   CHECK(!entry->isPending());
 
   auto fields = entry->getFields();
@@ -236,7 +237,8 @@ void NeighborCacheImpl<NTable>::programPendingEntry(
       updateFn = getUpdateFnToProgramPendingEntryForNpu(entry, port, force);
       break;
     case cfg::SwitchType::VOQ:
-      updateFn = getUpdateFnToProgramPendingEntryForVoq(entry, port, force);
+      updateFn = getUpdateFnToProgramPendingEntry(
+          entry, port, force, cfg::SwitchType::VOQ);
       break;
     case cfg::SwitchType::FABRIC:
     case cfg::SwitchType::PHY:
@@ -293,10 +295,11 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntryForNpu(
 
 template <typename NTable>
 SwSwitch::StateUpdateFn
-NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntryForVoq(
+NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
     Entry* entry,
     PortDescriptor port,
-    bool force) {
+    bool force,
+    cfg::SwitchType switchType) {
   auto fields = entry->getFields();
   auto updateFn =
       [this, fields, port, force](const std::shared_ptr<SwitchState>& state)

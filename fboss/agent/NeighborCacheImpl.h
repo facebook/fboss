@@ -133,16 +133,19 @@ class NeighborCacheImpl {
   programPendingEntry(Entry* entry, PortDescriptor port, bool force = false);
 
   SwSwitch::StateUpdateFn getUpdateFnToProgramEntryForNpu(Entry* entry);
-  SwSwitch::StateUpdateFn getUpdateFnToProgramEntryForVoq(Entry* entry);
+  SwSwitch::StateUpdateFn getUpdateFnToProgramEntry(
+      Entry* entry,
+      cfg::SwitchType switchType);
 
   SwSwitch::StateUpdateFn getUpdateFnToProgramPendingEntryForNpu(
       Entry* entry,
       PortDescriptor port,
       bool force);
-  SwSwitch::StateUpdateFn getUpdateFnToProgramPendingEntryForVoq(
+  SwSwitch::StateUpdateFn getUpdateFnToProgramPendingEntry(
       Entry* entry,
       PortDescriptor port,
-      bool force);
+      bool force,
+      cfg::SwitchType switchType);
 
   void processEntry(AddressType ip);
 
