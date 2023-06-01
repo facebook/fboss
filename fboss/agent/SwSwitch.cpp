@@ -158,25 +158,7 @@ DEFINE_int32(
     10,
     "Update phy info interval in seconds");
 
-/*
- * VOQ switches require that the packets are not tagged with VLAN.
- * We are gradually enhancing the wedge_agent to handle tagged as well as
- * untagged packets.
- * As part of these changes, neighbor tables will move to Interfaces instead of
- * VLANs. This allows for the same neighbor table implementation for VOQ as
- * well as non-VOQ switches.
- *
- * When this flag is TRUE: use neighbor tables from Interfaces.
- * When this flag is FALSE: use neighbor tables from VLANs.
- *
- * Once we have completely migrated to using neighbor tables from Interfaces,
- * this flag will be removed.
- */
-
-DEFINE_bool(
-    intf_nbr_tables,
-    false,
-    "Use Neighbor Tables from Interfaces instead of VLANs");
+DECLARE_bool(intf_nbr_tables);
 
 namespace {
 
