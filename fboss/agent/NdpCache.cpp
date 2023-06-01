@@ -130,11 +130,6 @@ inline void NdpCache::checkReachability(
     folly::MacAddress targetMac,
     PortDescriptor port) const {
   const auto state = getSw()->getState();
-  auto vlan = state->getVlans()->getNodeIf(getVlanID());
-  if (!vlan) {
-    XLOG(DBG2) << "Vlan " << getVlanID() << " not found. Skip sending probe";
-    return;
-  }
 
   InterfaceID intfID;
   std::shared_ptr<Interface> srcIntf;
@@ -156,8 +151,7 @@ inline void NdpCache::checkReachability(
 
   if (!srcIntf) {
     // srcIntf must/can never be nullptr
-    XLOG(DBG2) << "No interface found for vlan " << getVlanID()
-               << ". Skip sending probe";
+    XLOG(DBG2) << "No interface found " << intfID << ". Skip sending probe";
     return;
   }
 
@@ -173,7 +167,7 @@ inline void NdpCache::checkReachability(
       targetMac,
       srcIP,
       srcMac,
-      getSw()->getVlanIDForPkt(vlan->getID()),
+      srcIntf->getVlanIDIf(),
       port);
 }
 
