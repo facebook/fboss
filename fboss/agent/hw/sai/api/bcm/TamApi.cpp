@@ -8,7 +8,8 @@
     !defined(SAI_VERSION_9_0_EA_ODP) &&                                       \
     !defined(SAI_VERSION_9_0_EA_DNX_ODP) &&                                   \
     !defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP) &&                               \
-    !defined(SAI_VERSION_9_0_EA_SIM_ODP)
+    !defined(SAI_VERSION_9_0_EA_SIM_ODP) &&                                   \
+    !defined(SAI_VERSION_10_0_EA_DNX_ODP)
 
 extern "C" {
 #ifndef IS_OSS_BRCM_SAI
@@ -29,7 +30,8 @@ SaiTamEventTraits::Attributes::AttributeSwitchEventType::operator()() {
     !defined(SAI_VERSION_9_0_EA_ODP) &&                                       \
     !defined(SAI_VERSION_9_0_EA_DNX_ODP) &&                                   \
     !defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP) &&                               \
-    !defined(SAI_VERSION_9_0_EA_SIM_ODP)
+    !defined(SAI_VERSION_9_0_EA_SIM_ODP) &&                                   \
+    !defined(SAI_VERSION_10_0_EA_DNX_ODP)
   return SAI_TAM_EVENT_ATTR_SWITCH_EVENT_TYPE;
 #else
   return std::nullopt;
@@ -44,7 +46,8 @@ SaiTamEventTraits::Attributes::AttributeEventId::operator()() {
     !defined(SAI_VERSION_9_0_EA_ODP) &&                                       \
     !defined(SAI_VERSION_9_0_EA_DNX_ODP) &&                                   \
     !defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP) &&                               \
-    !defined(SAI_VERSION_9_0_EA_SIM_ODP)
+    !defined(SAI_VERSION_9_0_EA_SIM_ODP) &&                                   \
+    !defined(SAI_VERSION_10_0_EA_DNX_ODP)
   return SAI_TAM_EVENT_ATTR_EVENT_ID;
 #else
   return std::nullopt;

@@ -257,7 +257,8 @@ HwInitResult SaiSwitch::initImpl(
     defined(SAI_VERSION_8_2_0_0_DNX_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
     defined(SAI_VERSION_9_0_EA_SIM_ODP) ||                                     \
     defined(SAI_VERSION_9_0_EA_DNX_ODP) ||                                     \
-    defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP)
+    defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP) ||                                 \
+    defined(SAI_VERSION_10_0_EA_DNX_ODP)
     // TODO(zecheng): Remove after devices warmbooted to 8.2.
     managerTable_->wredManager().removeUnclaimedWredProfile();
 #endif
@@ -2343,7 +2344,8 @@ void SaiSwitch::unregisterCallbacksLocked(
     defined(SAI_VERSION_8_2_0_0_DNX_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
     defined(SAI_VERSION_9_0_EA_SIM_ODP) ||                                     \
     defined(SAI_VERSION_9_0_EA_DNX_ODP) ||                                     \
-    defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP)
+    defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP) ||                                 \
+    defined(SAI_VERSION_10_0_EA_DNX_ODP)
     switchApi.unregisterParityErrorSwitchEventCallback(switchId_);
 #else
     switchApi.unregisterTamEventCallback(switchId_);
@@ -2645,7 +2647,8 @@ void SaiSwitch::switchRunStateChangedImplLocked(
     defined(SAI_VERSION_8_2_0_0_DNX_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
     defined(SAI_VERSION_9_0_EA_SIM_ODP) ||                                     \
     defined(SAI_VERSION_9_0_EA_DNX_ODP) ||                                     \
-    defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP)
+    defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP) ||                                 \
+    defined(SAI_VERSION_10_0_EA_DNX_ODP)
         switchApi.registerParityErrorSwitchEventCallback(
             switchId_, (void*)__gParityErrorSwitchEventCallback);
 #else
