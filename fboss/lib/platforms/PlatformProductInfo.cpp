@@ -147,6 +147,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_MONTBLANC;
     } else if (modelName.find("Meru800bia") == 0) {
       type_ = PlatformType::PLATFORM_MERU800BIA;
+    } else if (modelName.find("MORGAN800CC") == 0) {
+      type_ = PlatformType::PLATFORM_MORGAN800CC;
     } else {
       throw std::runtime_error("invalid model name " + modelName);
     }

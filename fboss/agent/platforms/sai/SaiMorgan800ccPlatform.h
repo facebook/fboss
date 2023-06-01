@@ -24,12 +24,15 @@ class SaiMorgan800ccPlatform : public SaiTajoPlatform {
   ~SaiMorgan800ccPlatform() override;
   std::string getHwConfig() override;
   HwAsic* getAsic() const override;
-
+bool isSerdesApiSupported() const override {
+    return false;
+}
  private:
   void setupAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
-      std::optional<cfg::Range64> systemPortRange) override;
+      std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac) override;
   std::unique_ptr<YubaAsic> asic_;
 };
 

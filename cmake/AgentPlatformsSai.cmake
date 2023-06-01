@@ -24,6 +24,8 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiHwPlatform.cpp
   fboss/agent/platforms/sai/SaiLassenPlatform.cpp
   fboss/agent/platforms/sai/SaiLassenPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiMorgan800ccPlatform.cpp
+  fboss/agent/platforms/sai/SaiMorgan800ccPlatformPort.cpp
   fboss/agent/platforms/sai/SaiPlatformPort.cpp
   fboss/agent/platforms/sai/SaiPlatformInit.cpp
   fboss/agent/platforms/sai/SaiSandiaPlatform.cpp

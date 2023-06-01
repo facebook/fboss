@@ -172,7 +172,7 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
     case PlatformType::PLATFORM_MORGAN800CC:
       return platformMappingStr.empty()
           ? std::make_unique<Morgan800ccPlatformMapping>()
-          : std::make_unique<Morgan800ccPlatformMapping>(platformMappingStr);    
+          : std::make_unique<Morgan800ccPlatformMapping>(platformMappingStr);
   }
   return nullptr;
 }
