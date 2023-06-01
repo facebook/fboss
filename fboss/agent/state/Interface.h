@@ -235,6 +235,14 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
     return (addresses.find(ip.str()) != addresses.end());
   }
 
+  template <typename NTable>
+  void setNeighborTable(state::NeighborEntries nbrTable) {
+    if constexpr (std::is_same_v<NTable, ArpTable>) {
+      return setArpTable(std::move(nbrTable));
+    }
+    return setNdpTable(std::move(nbrTable));
+  }
+
   /**
    * Find the interface IP address to reach the given destination
    */
