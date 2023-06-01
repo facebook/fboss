@@ -38,6 +38,8 @@ using folly::IPAddressV6;
 using folly::MacAddress;
 using std::shared_ptr;
 
+DECLARE_bool(intf_nbr_tables);
+
 namespace facebook::fboss {
 
 using facebook::fboss::DeltaFunctions::forEachChanged;
@@ -284,7 +286,11 @@ void NeighborUpdaterImpl::portDown(PortDescriptor port) {
     }
   };
 
-  portDownHelper(caches_);
+  if (FLAGS_intf_nbr_tables) {
+    portDownHelper(intfCaches_);
+  } else {
+    portDownHelper(caches_);
+  }
 }
 
 void NeighborUpdaterImpl::portFlushEntries(PortDescriptor port) {
