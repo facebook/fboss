@@ -66,9 +66,6 @@ class BuildHelper:
         self._libsai_manifest_path = os.path.join(
             self._working_tree_dir, "build/fbcode_builder/manifests/libsai"
         )
-        self._opennsa_manifest_path = os.path.join(
-            self._working_tree_dir, "build/fbcode_builder/manifests/OpenNSA"
-        )
         self._libsai_impl_path = args.libsai_impl_path
         self._experiments_path = args.experiments_path
         self._output_path = args.output_path

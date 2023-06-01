@@ -36,19 +36,6 @@ void TeFlowTable::removeTeFlowEntry(const TeFlow& flowId) {
   XLOG(DBG3) << "Deleting TeFlow " << oldFlowEntry->str();
 }
 
-TeFlowTable* TeFlowTable::modify(std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
-  }
-
-  SwitchState::modify(state);
-  auto newTable = clone();
-  auto* ptr = newTable.get();
-  (*state)->resetTeFlowTable(std::move(newTable));
-  return ptr;
-}
-
 void toAppend(const TeFlow& flow, std::string* result) {
   std::string flowJson;
   apache::thrift::SimpleJSONSerializer::serialize(flow, &flowJson);
@@ -63,8 +50,11 @@ std::string getTeFlowStr(const TeFlow& flow) {
 
 int TeFlowSyncer::getDstIpPrefixLength(
     const std::shared_ptr<SwitchState>& state) {
-  auto exactMatchTableConfigs =
-      state->getSwitchSettings()->getExactMatchTableConfig();
+  auto switchSettings = state->getSwitchSettings()->size()
+      ? state->getSwitchSettings()->cbegin()->second
+      : std::make_shared<SwitchSettings>();
+
+  auto exactMatchTableConfigs = switchSettings->getExactMatchTableConfig();
   std::string teFlowTableName(cfg::switch_config_constants::TeFlowTableName());
   auto dstIpPrefixLength = 0;
   for (const auto& tableConfig : *exactMatchTableConfigs) {
@@ -102,6 +92,7 @@ void TeFlowSyncer::validateFlowEntry(
 }
 
 std::shared_ptr<SwitchState> TeFlowSyncer::addDelTeFlows(
+    const HwSwitchMatcher& matcher,
     const std::shared_ptr<SwitchState>& state,
     const std::vector<FlowEntry>& entriesToAdd,
     const std::vector<TeFlow>& entriesToDel) {
@@ -117,32 +108,34 @@ std::shared_ptr<SwitchState> TeFlowSyncer::addDelTeFlows(
   // Add TeFlows
   for (const auto& flowEntry : entriesToAdd) {
     validateFlowEntry(flowEntry, dstIpPrefixLength);
-    auto oldTeFlowEntry = teFlowTable->getTeFlowIf(*flowEntry.flow());
+    auto oldTeFlowEntry =
+        teFlowTable->getNodeIf(getTeFlowStr(*flowEntry.flow()));
     auto newTeFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
     newTeFlowEntry->resolve(newState);
     if (!oldTeFlowEntry) {
-      teFlowTable->addTeFlowEntry(newTeFlowEntry);
+      teFlowTable->addNode(newTeFlowEntry, matcher);
     } else {
-      teFlowTable->changeTeFlowEntry(newTeFlowEntry);
+      teFlowTable->updateNode(newTeFlowEntry, matcher);
     }
   }
   XLOG(DBG2) << "addTeFlows Added : " << numAddFlows;
 
   // Delete TeFlows
   for (const auto& flow : entriesToDel) {
-    teFlowTable->removeTeFlowEntry(flow);
+    teFlowTable->removeNode(getTeFlowStr(flow));
   }
   XLOG(DBG2) << "deleteTeFlows Deleted : " << numDelFlows;
   return newState;
 }
 
 std::shared_ptr<SwitchState> TeFlowSyncer::syncTeFlows(
+    const HwSwitchMatcher& matcher,
     const std::shared_ptr<SwitchState>& state,
     const std::vector<FlowEntry>& flowEntries) {
   auto numFlows = flowEntries.size();
-  auto oldNumFlows = state->getTeFlowTable()->size();
+  auto oldNumFlows = state->getTeFlowTable()->numNodes();
   auto newState = state->clone();
-  auto newTeFlowTable = std::make_shared<TeFlowTable>();
+  auto newTeFlowTable = std::make_shared<MultiTeFlowTable>();
   newState->resetTeFlowTable(newTeFlowTable);
   auto teFlowTable = state->getTeFlowTable();
   auto dstIpPrefixLength = getDstIpPrefixLength(state);
@@ -151,20 +144,20 @@ std::shared_ptr<SwitchState> TeFlowSyncer::syncTeFlows(
   for (const auto& flowEntry : flowEntries) {
     validateFlowEntry(flowEntry, dstIpPrefixLength);
     TeFlow flow = *flowEntry.flow();
-    auto oldTeFlowEntry = teFlowTable->getTeFlowIf(flow);
+    auto oldTeFlowEntry = teFlowTable->getNodeIf(getTeFlowStr(flow));
     auto newTeFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
     newTeFlowEntry->resolve(newState);
     // new entry add it
     if (!oldTeFlowEntry) {
-      newTeFlowTable->addTeFlowEntry(newTeFlowEntry);
+      newTeFlowTable->addNode(newTeFlowEntry, matcher);
       tableChanged = true;
     } else {
       // if entries are same add the old entry to the new table
       // else add the new entry to the new table
       if (*oldTeFlowEntry == *newTeFlowEntry) {
-        newTeFlowTable->addNode(oldTeFlowEntry);
+        newTeFlowTable->addNode(oldTeFlowEntry, matcher);
       } else {
-        newTeFlowTable->addNode(newTeFlowEntry);
+        newTeFlowTable->addNode(newTeFlowEntry, matcher);
         tableChanged = true;
       }
     }
@@ -182,16 +175,34 @@ std::shared_ptr<SwitchState> TeFlowSyncer::syncTeFlows(
 }
 
 std::shared_ptr<SwitchState> TeFlowSyncer::programFlowEntries(
+    const HwSwitchMatcher& matcher,
     const std::shared_ptr<SwitchState>& state,
     const std::vector<FlowEntry>& addTeFlows,
     const std::vector<TeFlow>& delTeFlows,
     bool isSync) {
   if (isSync) {
     XLOG(DBG3) << "Sync TeFlows";
-    return syncTeFlows(state, addTeFlows);
+    return syncTeFlows(matcher, state, addTeFlows);
   }
   XLOG(DBG3) << "Add or delete TeFlows";
-  return addDelTeFlows(state, addTeFlows, delTeFlows);
+  return addDelTeFlows(matcher, state, addTeFlows, delTeFlows);
+}
+
+MultiTeFlowTable* MultiTeFlowTable::modify(
+    std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  SwitchState::modify(state);
+  auto map = clone();
+  for (auto mnitr = cbegin(); mnitr != cend(); ++mnitr) {
+    (*map)[mnitr->first] = mnitr->second->clone();
+  }
+  auto* ptr = map.get();
+  (*state)->resetTeFlowTable(std::move(map));
+  return ptr;
 }
 
 template class ThriftMapNode<TeFlowTable, TeFlowTableThriftTraits>;

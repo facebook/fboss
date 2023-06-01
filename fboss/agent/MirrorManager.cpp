@@ -40,43 +40,50 @@ void MirrorManager::stateUpdated(const StateDelta& delta) {
 
 std::shared_ptr<SwitchState> MirrorManager::resolveMirrors(
     const std::shared_ptr<SwitchState>& state) {
-  auto mirrors = state->getMirrors()->clone();
+  auto updatedState = state->clone();
+  auto mnpuMirrors = state->getMirrors()->modify(&updatedState);
   bool mirrorsUpdated = false;
 
-  for (auto iter : std::as_const(*state->getMirrors())) {
-    auto mirror = iter.second;
-    if (!mirror->getDestinationIp()) {
-      /* SPAN mirror does not require resolving */
-      continue;
-    }
-    const auto destinationIp = mirror->getDestinationIp().value();
-    std::shared_ptr<Mirror> updatedMirror = destinationIp.isV4()
-        ? v4Manager_->updateMirror(mirror)
-        : v6Manager_->updateMirror(mirror);
-    if (updatedMirror) {
-      XLOG(DBG2) << "Mirror: " << updatedMirror->getID() << " updated.";
-      mirrors->updateNode(updatedMirror);
-      mirrorsUpdated = true;
+  for (auto mniter = mnpuMirrors->cbegin(); mniter != mnpuMirrors->cend();
+       ++mniter) {
+    HwSwitchMatcher matcher(mniter->first);
+    auto& mirrors = std::as_const(mniter->second);
+    for (auto iter = mirrors->cbegin(); iter != mirrors->cend(); ++iter) {
+      auto mirror = iter->second;
+      if (!mirror->getDestinationIp()) {
+        /* SPAN mirror does not require resolving */
+        continue;
+      }
+      const auto destinationIp = mirror->getDestinationIp().value();
+      std::shared_ptr<Mirror> updatedMirror = destinationIp.isV4()
+          ? v4Manager_->updateMirror(mirror)
+          : v6Manager_->updateMirror(mirror);
+      if (updatedMirror) {
+        XLOG(DBG2) << "Mirror: " << updatedMirror->getID() << " updated.";
+        mirrors->updateNode(updatedMirror);
+        mirrorsUpdated = true;
+      }
     }
   }
   if (!mirrorsUpdated) {
     return std::shared_ptr<SwitchState>(nullptr);
   }
-  auto updatedState = state->clone();
-  updatedState->resetMirrors(mirrors);
   return updatedState;
 }
 
 bool MirrorManager::hasMirrorChanges(const StateDelta& delta) {
-  return (sw_->getState()->getMirrors()->size() > 0) &&
-      (!isEmpty(delta.getMirrorsDelta()) || !isEmpty(delta.getFibsDelta()) ||
-       std::any_of(
-           std::begin(delta.getVlansDelta()),
-           std::end(delta.getVlansDelta()),
-           [](const VlanDelta& vlanDelta) {
-             return !isEmpty(vlanDelta.getArpDelta()) ||
-                 !isEmpty(vlanDelta.getNdpDelta());
-           }));
+  if (!sw_->getState()->getMirrors()->numNodes()) {
+    return false;
+  }
+  if (!isEmpty(delta.getMirrorsDelta()) || !isEmpty(delta.getFibsDelta())) {
+    return true;
+  }
+  for (const auto& entry : delta.getVlansDelta()) {
+    if (!isEmpty(entry.getArpDelta()) || !isEmpty(entry.getNdpDelta())) {
+      return true;
+    }
+  }
+  return false;
 }
 
 } // namespace facebook::fboss

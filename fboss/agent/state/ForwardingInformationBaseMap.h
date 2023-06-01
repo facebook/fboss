@@ -57,8 +57,6 @@ class ForwardingInformationBaseMap : public ThriftMapNode<
   std::shared_ptr<ForwardingInformationBaseContainer> getFibContainer(
       RouterID vrf) const;
 
-  ForwardingInformationBaseMap* modify(std::shared_ptr<SwitchState>* state);
-
   void updateForwardingInformationBaseContainer(
       const std::shared_ptr<ForwardingInformationBaseContainer>& fibContainer);
 
@@ -68,34 +66,46 @@ class ForwardingInformationBaseMap : public ThriftMapNode<
   friend class CloneAllocator;
 };
 
-using MultiForwardingInformationBaseMapTypeClass = apache::thrift::type_class::
-    map<apache::thrift::type_class::string, ForwardingInformationBaseMapClass>;
-using MultiForwardingInformationBaseMapThriftType =
+using MultiSwitchForwardingInformationBaseMapTypeClass =
+    apache::thrift::type_class::map<
+        apache::thrift::type_class::string,
+        ForwardingInformationBaseMapClass>;
+using MultiSwitchForwardingInformationBaseMapThriftType =
     std::map<std::string, ForwardingInformationBaseMapThriftType>;
 
-class MultiForwardingInformationBaseMap;
+class MultiSwitchForwardingInformationBaseMap;
 
-using MultiForwardingInformationBaseMapTraits = ThriftMultiMapNodeTraits<
-    MultiForwardingInformationBaseMap,
-    MultiForwardingInformationBaseMapTypeClass,
-    MultiForwardingInformationBaseMapThriftType,
-    ForwardingInformationBaseMap>;
+using MultiSwitchForwardingInformationBaseMapTraits =
+    ThriftMultiSwitchMapNodeTraits<
+        MultiSwitchForwardingInformationBaseMap,
+        MultiSwitchForwardingInformationBaseMapTypeClass,
+        MultiSwitchForwardingInformationBaseMapThriftType,
+        ForwardingInformationBaseMap>;
 
 class HwSwitchMatcher;
 
-class MultiForwardingInformationBaseMap
-    : public ThriftMapNode<
-          MultiForwardingInformationBaseMap,
-          MultiForwardingInformationBaseMapTraits> {
+class MultiSwitchForwardingInformationBaseMap
+    : public ThriftMultiSwitchMapNode<
+          MultiSwitchForwardingInformationBaseMap,
+          MultiSwitchForwardingInformationBaseMapTraits> {
  public:
-  using Traits = MultiForwardingInformationBaseMapTraits;
-  using BaseT = ThriftMapNode<
-      MultiForwardingInformationBaseMap,
-      MultiForwardingInformationBaseMapTraits>;
+  using Traits = MultiSwitchForwardingInformationBaseMapTraits;
+  using BaseT = ThriftMultiSwitchMapNode<
+      MultiSwitchForwardingInformationBaseMap,
+      MultiSwitchForwardingInformationBaseMapTraits>;
   using BaseT::modify;
 
-  MultiForwardingInformationBaseMap() {}
-  virtual ~MultiForwardingInformationBaseMap() {}
+  MultiSwitchForwardingInformationBaseMap() {}
+  virtual ~MultiSwitchForwardingInformationBaseMap() {}
+
+  void updateForwardingInformationBaseContainer(
+      const std::shared_ptr<ForwardingInformationBaseContainer>& fibContainer,
+      const HwSwitchMatcher& matcher);
+
+  MultiSwitchForwardingInformationBaseMap* modify(
+      std::shared_ptr<SwitchState>* state);
+
+  std::pair<uint64_t, uint64_t> getRouteCount() const;
 
  private:
   // Inherit the constructors required for clone()

@@ -8,13 +8,19 @@
 
 namespace facebook::fboss {
 
-std::set<PortID> getEnabledPorts(const AgentConfig& config) {
+std::set<PortID> getEnabledPorts(const WedgeManager* wedgeManager) {
   std::set<PortID> enabledPorts;
-  auto& swConfig = *config.thrift.sw();
-  for (auto& port : *swConfig.ports()) {
-    if (port.state() == cfg::PortState::ENABLED) {
-      enabledPorts.insert(PortID(*port.logicalID()));
-    }
+  auto qsfpTestConfig = wedgeManager->getQsfpConfig()->thrift.qsfpTestConfig();
+  CHECK(qsfpTestConfig.has_value());
+  for (const auto& cabledPairs : *qsfpTestConfig->cabledPortPairs()) {
+    auto& aPortName = *cabledPairs.aPortName();
+    auto& zPortName = *cabledPairs.zPortName();
+    auto aPortId = wedgeManager->getPortIDByPortName(aPortName);
+    auto zPortId = wedgeManager->getPortIDByPortName(zPortName);
+    CHECK(aPortId.has_value());
+    CHECK(zPortId.has_value());
+    enabledPorts.insert(*aPortId);
+    enabledPorts.insert(*zPortId);
   }
   return enabledPorts;
 }
@@ -30,9 +36,8 @@ size_t updateXphyStats() {
   wedgeMgr->init();
 
   // Filter out enabled ports on the config that have XPHY in the datapath
-  auto agentConfig = wedgeMgr->getAgentConfig();
   auto xphyPorts = wedgeMgr->getPhyManager()->getXphyPorts();
-  auto enabledPorts = getEnabledPorts(*agentConfig);
+  auto enabledPorts = getEnabledPorts(wedgeMgr.get());
   std::vector<PortID> enabledXphyPorts;
   for (auto port : xphyPorts) {
     if (enabledPorts.find(port) != enabledPorts.end()) {

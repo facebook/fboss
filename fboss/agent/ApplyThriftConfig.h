@@ -24,6 +24,8 @@ class Platform;
 class SwitchState;
 class RouteUpdateWrapper;
 class AclNexthopHandler;
+class PlatformMapping;
+class HwAsicTable;
 
 /*
  * Apply a thrift config structure to a SwitchState object.
@@ -35,6 +37,8 @@ std::shared_ptr<SwitchState> applyThriftConfig(
     const std::shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
     const Platform* platform,
+    const PlatformMapping* platformMapping,
+    const HwAsicTable* hwAsicTable,
     RoutingInformationBase* rib = nullptr,
     AclNexthopHandler* aclNexthopHandler = nullptr);
 
@@ -42,6 +46,8 @@ std::shared_ptr<SwitchState> applyThriftConfig(
     const std::shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
     const Platform* platform,
+    const PlatformMapping* platformMapping,
+    const HwAsicTable* hwAsicTable,
     RouteUpdateWrapper* routeUpdater,
     AclNexthopHandler* aclNexthopHandler = nullptr);
 } // namespace facebook::fboss

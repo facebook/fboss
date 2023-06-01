@@ -11,6 +11,7 @@
 #pragma once
 
 #include <boost/bimap.hpp>
+#include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
@@ -38,7 +39,7 @@ DECLARE_bool(can_qsfp_service_warm_boot);
 namespace facebook::fboss {
 class TransceiverManager {
   using PortNameMap = std::map<std::string, int32_t>;
-  using PortGroups = std::map<int32_t, std::set<cfg::Port>>;
+  using PortGroups = std::map<int32_t, std::set<cfg::PlatformPortEntry>>;
   using PortNameIdMap = boost::bimap<std::string, PortID>;
 
  public:
@@ -338,7 +339,7 @@ class TransceiverManager {
   TransceiverInfo getTransceiverInfo(TransceiverID id);
 
   // Function to convert port name string to software port id
-  std::optional<PortID> getPortIDByPortName(const std::string& portName);
+  std::optional<PortID> getPortIDByPortName(const std::string& portName) const;
 
   // Function to convert port id to port name
   std::optional<std::string> getPortNameByPortId(PortID portId) const;
@@ -412,6 +413,8 @@ class TransceiverManager {
       std::string&& /* portName */,
       phy::PhyStats&& /* stat */) const {}
 
+  std::optional<TransceiverID> getTransceiverID(PortID id);
+
  protected:
   /*
    * Check to see if we can attempt a warm boot.
@@ -451,8 +454,6 @@ class TransceiverManager {
       const std::map<int32_t, PortStatus>& portStatus) noexcept;
 
   void publishLinkSnapshots(PortID portID);
-
-  std::optional<TransceiverID> getTransceiverID(PortID id);
 
   // Restore phy state from the last cached warm boot qsfp_service state
   // Called this after initializing all the xphys during warm boot

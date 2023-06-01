@@ -18,6 +18,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 
 #include "fboss/agent/MacTableUtils.h"
@@ -93,7 +94,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
         getHwSwitch(),
         masterLogicalPortIds()[0],
         masterLogicalPortIds()[1],
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
   }
 
   static MacAddress kSourceMac() {
@@ -126,7 +127,8 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
      * @return true if the desired condition occurs before timeout, else false
      */
     auto l2LearningMode =
-        getProgrammedState()->getSwitchSettings()->getL2LearningMode();
+        util::getFirstNodeIf(getProgrammedState()->getSwitchSettings())
+            ->getL2LearningMode();
 
     /*
      * For HwMacLearningTest.VerifyHwAgingForPort:
@@ -173,14 +175,14 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     EXPECT_EQ(l2EntryUpdateType, expectedL2EntryUpdateType);
   }
   void setL2LearningMode(cfg::L2LearningMode l2LearningMode) {
-    if (getProgrammedState()->getSwitchSettings()->getL2LearningMode() ==
-        l2LearningMode) {
+    if (util::getFirstNodeIf(getProgrammedState()->getSwitchSettings())
+            ->getL2LearningMode() == l2LearningMode) {
       return;
     }
     auto newState = getProgrammedState()->clone();
-    auto newSwitchSettings = newState->getSwitchSettings()->clone();
+    auto switchSettings = util::getFirstNodeIf(newState->getSwitchSettings());
+    auto newSwitchSettings = switchSettings->modify(&newState);
     newSwitchSettings->setL2LearningMode(l2LearningMode);
-    newState->resetSwitchSettings(newSwitchSettings);
     applyNewState(newState);
   }
   void setupHelper(
@@ -374,7 +376,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
   bool wasMacLearntInSwitchState(bool shouldExist, MacAddress mac) const {
     auto vlanID = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto state = getProgrammedState();
-    auto vlan = state->getVlans()->getVlanIf(vlanID);
+    auto vlan = state->getVlans()->getNodeIf(vlanID);
     auto* macTable = vlan->getMacTable().get();
     return (shouldExist == (macTable->getMacIf(mac) != nullptr));
   }
@@ -396,7 +398,7 @@ class HwMacSwLearningModeTest : public HwMacLearningTest {
         getHwSwitch(),
         masterLogicalPortIds()[0],
         masterLogicalPortIds()[1],
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     cfg.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
     return cfg;
   }
@@ -500,7 +502,7 @@ class HwMacLearningStaticEntriesTest : public HwMacLearningTest {
  protected:
   void addOrUpdateMacEntry(MacEntryType type) {
     auto newState = getProgrammedState()->clone();
-    auto vlan = newState->getVlans()->getVlanIf(kVlanID()).get();
+    auto vlan = newState->getVlans()->getNodeIf(kVlanID()).get();
     auto macTable = vlan->getMacTable().get();
     macTable = macTable->modify(&vlan, &newState);
     if (macTable->getMacIf(kSourceMac())) {
@@ -594,7 +596,7 @@ class HwMacLearningAndMyStationInteractionTest : public HwMacLearningTest {
           l2LearningObserver_.reset();
           auto vlanID = getProgrammedState()
                             ->getPorts()
-                            ->getPort(port)
+                            ->getNodeIf(port)
                             ->getVlans()
                             .begin()
                             ->first;
@@ -791,7 +793,7 @@ TEST_F(HwMacSwLearningModeTest, VerifyCallbacksOnMacEntryChange) {
           [this](std::optional<cfg::AclLookupClass> lookupClass) {
             auto macTable = getProgrammedState()
                                 ->getVlans()
-                                ->getVlanIf(kVlanID())
+                                ->getNodeIf(kVlanID())
                                 ->getMacTable();
             auto macEntry = macTable->getMacIf(kSourceMac());
             EXPECT_EQ(macEntry->getClassID(), lookupClass);
@@ -829,7 +831,7 @@ class HwMacLearningMacMoveTest : public HwMacLearningTest {
         getHwSwitch(),
         masterLogicalPortIds()[0],
         masterLogicalPortIds()[1],
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     cfg.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
     return cfg;
   }

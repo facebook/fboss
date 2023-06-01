@@ -25,7 +25,7 @@ class SaiMeru800biaPlatform : public SaiBcmPlatform {
   HwAsic* getAsic() const override;
 
   uint32_t numLanesPerCore() const override {
-    return 4;
+    return 8;
   }
 
   uint32_t numCellsAvailable() const override {
@@ -62,7 +62,8 @@ class SaiMeru800biaPlatform : public SaiBcmPlatform {
   void setupAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
-      std::optional<cfg::Range64> systemPortRange) override;
+      std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac) override;
   std::unique_ptr<Jericho3Asic> asic_;
 };
 

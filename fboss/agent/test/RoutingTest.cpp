@@ -175,6 +175,17 @@ class RoutingFixture : public ::testing::Test {
  public:
   void SetUp() override {
     auto config = getSwitchConfig();
+    config.switchSettings()->switchIdToSwitchInfo() = {
+        {0,
+         createSwitchInfo(
+             cfg::SwitchType::NPU,
+             cfg::AsicType::ASIC_TYPE_MOCK,
+             cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
+             cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
+             0, /* switchIndex */
+             std::nullopt, /* sysPortMin */
+             std::nullopt, /* sysPortMax */
+             MockPlatform::getMockLocalMac().toString())}};
     handle = createTestHandle(&config, SwitchFlags::ENABLE_TUN);
     sw = handle->getSw();
 
@@ -186,8 +197,8 @@ class RoutingFixture : public ::testing::Test {
     // as well.
     auto updateFn = [=](const std::shared_ptr<SwitchState>& state) {
       std::shared_ptr<SwitchState> newState{state};
-      auto* vlan1 = newState->getVlans()->getVlanIf(VlanID(1)).get();
-      auto* vlan2 = newState->getVlans()->getVlanIf(VlanID(2)).get();
+      auto* vlan1 = newState->getVlans()->getNodeIf(VlanID(1)).get();
+      auto* vlan2 = newState->getVlans()->getNodeIf(VlanID(2)).get();
       auto* arpTable1 = vlan1->getArpTable().get()->modify(&vlan1, &newState);
       auto* ndpTable1 = vlan1->getNdpTable().get()->modify(&vlan1, &newState);
       auto* arpTable2 = vlan2->getArpTable().get()->modify(&vlan2, &newState);
@@ -405,19 +416,30 @@ TEST_F(RoutingFixture, SwitchToHostLinkLocalUnicast) {
   // Cache the current stats
   CounterCache counters(sw);
 
-  // v4 packet destined to intf2 link-local address from any address but from
-  // same VLAN as of intf2
-  {
+  auto verifyV4LLUcastPkt = [&](PortID portID) {
     auto pkt = createV4UnicastPacket(kllIPv4NbhAddr2, kllIPv4IntfAddr2);
 
     EXPECT_TUN_PKT(tunMgr, "V4 llUcastPkt", ifID2, matchRxPacket(pkt)).Times(1);
 
-    handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(2), VlanID(2));
+    handle->rxPacket(std::make_unique<IOBuf>(pkt), portID, VlanID(2));
 
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 1);
     counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 0);
-  }
+  };
+
+  // v4 packet destined to intf2 link-local address from any address but from
+  // same VLAN as of intf2
+  verifyV4LLUcastPkt(PortID(2));
+
+  // v4 packet destined to intf2 link-local address from any address
+  // originating from CPU port but from same VLAN as of intf2
+  //
+  // CPU originated LL V4 packets are sent to the ASIC. If the ARP is not
+  // resolved, the packets will be punted back to the CPU with the ingress port
+  // set to the CPU port. Mimic that by setting PortID in the pkt metadata to
+  // CPU port (0).
+  verifyV4LLUcastPkt(PortID(0));
 
   // v4 link local packet destined to non-interface address should be dropped.
   {

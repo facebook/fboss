@@ -57,6 +57,7 @@ class PortUpdateHandler;
 class RxPacket;
 class SwitchState;
 class SwitchStats;
+class SwitchIdScopeResolver;
 class StateDelta;
 class NeighborUpdater;
 class PacketLogger;
@@ -81,6 +82,8 @@ class FsdbSyncer;
 class TeFlowNexthopHandler;
 class DsfSubscriber;
 class HwAsicTable;
+class MultiHwSwitchSyncer;
+class SwitchStatsObserver;
 
 enum class SwitchFlags : int {
   DEFAULT = 0,
@@ -161,6 +164,9 @@ class SwSwitch : public HwSwitch::Callback {
   TunManager* getTunManager() {
     return tunMgr_.get();
   }
+  const SwitchIdScopeResolver* getScopeResolver() const {
+    return scopeResolver_.get();
+  }
 
   /*
    * Initialize the switch.
@@ -209,6 +215,8 @@ class SwSwitch : public HwSwitch::Callback {
   bool isExiting() const;
 
   void updateLldpStats();
+
+  void publishStatsToFsdb();
 
   void updateStats();
 
@@ -758,9 +766,6 @@ class SwSwitch : public HwSwitch::Callback {
 
   void setFibSyncTimeForClient(ClientID clientId);
 
-  FsdbSyncer* fsdbSyncer() {
-    return fsdbSyncer_.get();
-  }
   /*
    * Public use only in tests
    */
@@ -793,11 +798,24 @@ class SwSwitch : public HwSwitch::Callback {
     return switchInfoTable_;
   }
 
-  const HwAsicTable* getHwAsicTable() const {
+  HwAsicTable* getHwAsicTable() const {
     return hwAsicTable_.get();
   }
+  bool fsdbStatPublishReady() const;
+  bool fsdbStatePublishReady() const;
+
+  // Helper function to clone a new SwitchState to modify the original
+  // TransceiverMap if there's a change.
+  // This can be removed after deleting qsfp cache
+  static std::shared_ptr<SwitchState> modifyTransceivers(
+      const std::shared_ptr<SwitchState>& state,
+      const std::unordered_map<TransceiverID, TransceiverInfo>& currentTcvrs,
+      const PlatformMapping* platformMapping,
+      const SwitchIdScopeResolver* scopeResolver);
 
  private:
+  std::optional<folly::MacAddress> getSourceMac(
+      const std::shared_ptr<Interface>& intf) const;
   void updateStateBlockingImpl(
       folly::StringPiece name,
       StateUpdateFn fn,
@@ -889,6 +907,8 @@ class SwSwitch : public HwSwitch::Callback {
   fsdb::OperDelta stateChanged(const fsdb::OperDelta& delta, bool transaction)
       const;
 
+  template <typename FsdbFunc>
+  void runFsdbSyncFunction(FsdbFunc&& fn);
   std::string curConfigStr_;
   cfg::SwitchConfig curConfig_;
 
@@ -1029,12 +1049,15 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<PhySnapshotManager<kIphySnapshotIntervalSeconds>>
       phySnapshotManager_;
   std::unique_ptr<AclNexthopHandler> aclNexthopHandler_;
-  std::unique_ptr<FsdbSyncer> fsdbSyncer_;
+  folly::Synchronized<std::unique_ptr<FsdbSyncer>> fsdbSyncer_;
   std::unique_ptr<TeFlowNexthopHandler> teFlowNextHopHandler_;
   std::unique_ptr<DsfSubscriber> dsfSubscriber_;
   SwitchInfoTable switchInfoTable_;
   std::unique_ptr<PlatformMapping> platformMapping_;
   std::unique_ptr<HwAsicTable> hwAsicTable_;
+  std::unique_ptr<SwitchIdScopeResolver> scopeResolver_;
+  std::unique_ptr<MultiHwSwitchSyncer> multiHwSwitchSyncer_;
+  std::unique_ptr<SwitchStatsObserver> switchStatsObserver_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>

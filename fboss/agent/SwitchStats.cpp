@@ -237,7 +237,15 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
       threadHeartbeatMissCount_(
           map,
           kCounterPrefix + "thread_heartbeat_miss",
-          SUM) {}
+          SUM),
+      localSystemPort_(map, kCounterPrefix + "systemPort"),
+      remoteSystemPort_(map, kCounterPrefix + "remoteSystemPort"),
+      localRifs_(map, kCounterPrefix + "localRifs"),
+      remoteRifs_(map, kCounterPrefix + "remoteRifs"),
+      localResolvedNdp_(map, kCounterPrefix + "localResolvedNdp"),
+      remoteResolvedNdp_(map, kCounterPrefix + "remoteResolvedNdp"),
+      localResolvedArp_(map, kCounterPrefix + "localResolvedArp"),
+      remoteResolvedArp_(map, kCounterPrefix + "remoteResolvedArp") {}
 
 PortStats* FOLLY_NULLABLE SwitchStats::port(PortID portID) {
   auto it = ports_.find(portID);

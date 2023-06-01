@@ -23,6 +23,7 @@
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossInit.h"
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/RestartTimeTracker.h"
@@ -287,7 +288,6 @@ int AgentInitializer::initAgent(HwSwitch::Callback* callback) {
       *eventBase_,
       handler,
       {FLAGS_port, FLAGS_migrated_port},
-      true /*isDuplex*/,
       true /*setupSSL*/);
 
   handler->setSSLPolicy(server_->getSSLPolicy());
@@ -336,8 +336,9 @@ void AgentInitializer::stopAgent(bool setupWarmboot) {
 #endif
 #endif
   } else {
-    auto revertToMinAlpmState = sw_->getPlatform()->getAsic()->isSupported(
-        HwAsic::Feature::ROUTE_PROGRAMMING);
+    auto revertToMinAlpmState =
+        sw_->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+            HwAsic::Feature::ROUTE_PROGRAMMING);
     sw_->stop(revertToMinAlpmState);
   }
 }

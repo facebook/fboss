@@ -56,42 +56,41 @@ class TransceiverMap
     return getNodeIf(static_cast<int16_t>(id));
   }
 
-  void addTransceiver(const std::shared_ptr<TransceiverSpec>& tcvr);
-  void updateTransceiver(const std::shared_ptr<TransceiverSpec>& tcvr);
-  void removeTransceiver(TransceiverID id);
-
-  TransceiverMap* modify(std::shared_ptr<SwitchState>* state);
-
  private:
   // Inherit the constructors required for clone()
   using Base::Base;
   friend class CloneAllocator;
 };
 
-using MultiTransceiverMapTypeClass = apache::thrift::type_class::
+using MultiSwitchTransceiverMapTypeClass = apache::thrift::type_class::
     map<apache::thrift::type_class::string, TransceiverMapTypeClass>;
-using MultiTransceiverMapThriftType =
+using MultiSwitchTransceiverMapThriftType =
     std::map<std::string, TransceiverMapThriftType>;
 
-class MultiTransceiverMap;
+class MultiSwitchTransceiverMap;
 
-using MultiTransceiverMapTraits = ThriftMultiMapNodeTraits<
-    MultiTransceiverMap,
-    MultiTransceiverMapTypeClass,
-    MultiTransceiverMapThriftType,
+using MultiSwitchTransceiverMapTraits = ThriftMultiSwitchMapNodeTraits<
+    MultiSwitchTransceiverMap,
+    MultiSwitchTransceiverMapTypeClass,
+    MultiSwitchTransceiverMapThriftType,
     TransceiverMap>;
 
 class HwSwitchMatcher;
 
-class MultiTransceiverMap
-    : public ThriftMapNode<MultiTransceiverMap, MultiTransceiverMapTraits> {
+class MultiSwitchTransceiverMap : public ThriftMultiSwitchMapNode<
+                                      MultiSwitchTransceiverMap,
+                                      MultiSwitchTransceiverMapTraits> {
  public:
-  using Traits = MultiTransceiverMapTraits;
-  using BaseT = ThriftMapNode<MultiTransceiverMap, MultiTransceiverMapTraits>;
+  using Traits = MultiSwitchTransceiverMapTraits;
+  using BaseT = ThriftMultiSwitchMapNode<
+      MultiSwitchTransceiverMap,
+      MultiSwitchTransceiverMapTraits>;
   using BaseT::modify;
 
-  MultiTransceiverMap() {}
-  virtual ~MultiTransceiverMap() {}
+  MultiSwitchTransceiverMap() {}
+  virtual ~MultiSwitchTransceiverMap() {}
+
+  MultiSwitchTransceiverMap* modify(std::shared_ptr<SwitchState>* state);
 
  private:
   // Inherit the constructors required for clone()

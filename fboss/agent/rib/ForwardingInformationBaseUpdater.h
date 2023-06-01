@@ -21,10 +21,12 @@
 namespace facebook::fboss {
 
 class SwitchState;
+class SwitchIdScopeResolver;
 
 class ForwardingInformationBaseUpdater {
  public:
   ForwardingInformationBaseUpdater(
+      const SwitchIdScopeResolver* resolver,
       RouterID vrf,
       const IPv4NetworkToRouteMap& v4NetworkToRoute,
       const IPv6NetworkToRouteMap& v6NetworkToRoute,
@@ -43,11 +45,13 @@ class ForwardingInformationBaseUpdater {
       const facebook::fboss::NetworkToRouteMap<AddressT>& rib,
       const std::shared_ptr<
           facebook::fboss::ForwardingInformationBase<AddressT>>& fib);
-  std::shared_ptr<facebook::fboss::LabelForwardingInformationBase>
+  std::shared_ptr<facebook::fboss::MultiLabelForwardingInformationBase>
   createUpdatedLabelFib(
       const facebook::fboss::NetworkToRouteMap<LabelID>& rib,
-      std::shared_ptr<facebook::fboss::LabelForwardingInformationBase> fib);
+      std::shared_ptr<facebook::fboss::MultiLabelForwardingInformationBase>
+          fib);
 
+  const SwitchIdScopeResolver* resolver_;
   RouterID vrf_;
   const IPv4NetworkToRouteMap& v4NetworkToRoute_;
   const IPv6NetworkToRouteMap& v6NetworkToRoute_;

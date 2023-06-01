@@ -52,6 +52,7 @@ namespace facebook::fboss {
 
 class SwitchState;
 class ControlPlane;
+class MultiControlPlane;
 
 /*
  * StateDelta contains code for examining the differences between two
@@ -73,40 +74,42 @@ class StateDelta {
     return new_;
   }
 
-  thrift_cow::ThriftMapDelta<PortMap> getPortsDelta() const;
-  VlanMapDelta getVlansDelta() const;
-  InterfaceMapDelta getIntfsDelta() const;
+  MultiSwitchMapDelta<MultiSwitchPortMap> getPortsDelta() const;
+  MultiSwitchMapDelta<MultiSwitchVlanMap> getVlansDelta() const;
+  MultiSwitchInterfaceMapDelta getIntfsDelta() const;
   DeltaValue<QosPolicy> getDefaultDataPlaneQosPolicyDelta() const;
   AclMapDelta getAclsDelta(
       cfg::AclStage aclStage = cfg::AclStage::INGRESS,
       std::optional<std::string> tableName = std::nullopt) const;
-  thrift_cow::ThriftMapDelta<AclTableMap> getAclTablesDelta(
-      cfg::AclStage aclStage) const;
-  thrift_cow::ThriftMapDelta<AclTableGroupMap> getAclTableGroupsDelta() const;
-  QosPolicyMapDelta getQosPoliciesDelta() const;
-  thrift_cow::ThriftMapDelta<AggregatePortMap> getAggregatePortsDelta() const;
-  thrift_cow::ThriftMapDelta<SflowCollectorMap> getSflowCollectorsDelta() const;
-  thrift_cow::ThriftMapDelta<LoadBalancerMap> getLoadBalancersDelta() const;
-  DeltaValue<ControlPlane> getControlPlaneDelta() const;
-  thrift_cow::ThriftMapDelta<UdfPacketMatcherMap> getUdfPacketMatcherDelta()
+  ThriftMapDelta<AclTableMap> getAclTablesDelta(cfg::AclStage aclStage) const;
+  MultiSwitchMapDelta<MultiSwitchAclTableGroupMap> getAclTableGroupsDelta()
       const;
-  thrift_cow::ThriftMapDelta<UdfGroupMap> getUdfGroupDelta() const;
+  MultiSwitchMapDelta<MultiSwitchQosPolicyMap> getQosPoliciesDelta() const;
+  MultiSwitchMapDelta<MultiSwitchAggregatePortMap> getAggregatePortsDelta()
+      const;
+  MultiSwitchMapDelta<MultiSwitchSflowCollectorMap> getSflowCollectorsDelta()
+      const;
+  MultiSwitchMapDelta<MultiSwitchLoadBalancerMap> getLoadBalancersDelta() const;
+  ThriftMapDelta<MultiControlPlane> getControlPlaneDelta() const;
+  ThriftMapDelta<UdfPacketMatcherMap> getUdfPacketMatcherDelta() const;
+  ThriftMapDelta<UdfGroupMap> getUdfGroupDelta() const;
 
-  thrift_cow::ThriftMapDelta<MirrorMap> getMirrorsDelta() const;
+  MultiSwitchMapDelta<MultiSwitchMirrorMap> getMirrorsDelta() const;
 
-  thrift_cow::ThriftMapDelta<TransceiverMap> getTransceiversDelta() const;
-  ForwardingInformationBaseMapDelta getFibsDelta() const;
-  thrift_cow::ThriftMapDelta<LabelForwardingInformationBase>
+  MultiSwitchMapDelta<MultiSwitchTransceiverMap> getTransceiversDelta() const;
+  MultiSwitchForwardingInformationBaseMapDelta getFibsDelta() const;
+  MultiSwitchMapDelta<MultiLabelForwardingInformationBase>
   getLabelForwardingInformationBaseDelta() const;
-  DeltaValue<SwitchSettings> getSwitchSettingsDelta() const;
+  ThriftMapDelta<MultiSwitchSettings> getSwitchSettingsDelta() const;
   DeltaValue<FlowletSwitchingConfig> getFlowletSwitchingConfigDelta() const;
-  thrift_cow::ThriftMapDelta<SystemPortMap> getSystemPortsDelta() const;
-  thrift_cow::ThriftMapDelta<IpTunnelMap> getIpTunnelsDelta() const;
-  thrift_cow::ThriftMapDelta<TeFlowTable> getTeFlowEntriesDelta() const;
+  MultiSwitchMapDelta<MultiSwitchSystemPortMap> getSystemPortsDelta() const;
+  ThriftMapDelta<IpTunnelMap> getIpTunnelsDelta() const;
+  MultiSwitchMapDelta<MultiTeFlowTable> getTeFlowEntriesDelta() const;
   // Remote object deltas
-  thrift_cow::ThriftMapDelta<SystemPortMap> getRemoteSystemPortsDelta() const;
-  InterfaceMapDelta getRemoteIntfsDelta() const;
-  thrift_cow::ThriftMapDelta<DsfNodeMap> getDsfNodesDelta() const;
+  MultiSwitchMapDelta<MultiSwitchSystemPortMap> getRemoteSystemPortsDelta()
+      const;
+  MultiSwitchInterfaceMapDelta getRemoteIntfsDelta() const;
+  MultiSwitchMapDelta<MultiSwitchDsfNodeMap> getDsfNodesDelta() const;
 
   const fsdb::OperDelta& getOperDelta() const;
 

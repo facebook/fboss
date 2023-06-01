@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
@@ -25,11 +26,13 @@
 namespace facebook::fboss {
 
 ForwardingInformationBaseUpdater::ForwardingInformationBaseUpdater(
+    const SwitchIdScopeResolver* resolver,
     RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
     const IPv6NetworkToRouteMap& v6NetworkToRoute,
     const LabelToRouteMap& labelToRoute)
-    : vrf_(vrf),
+    : resolver_(resolver),
+      vrf_(vrf),
       v4NetworkToRoute_(v4NetworkToRoute),
       v6NetworkToRoute_(v6NetworkToRoute),
       labelToRoute_(labelToRoute) {}
@@ -45,12 +48,13 @@ std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
   // Unlike the coupled RIB implementation, we need only update the
   // SwitchState for a single VRF.
   std::shared_ptr<SwitchState> nextState(state);
-  auto previousFibContainer = nextState->getFibs()->getFibContainerIf(vrf_);
+  auto previousFibContainer = nextState->getFibs()->getNodeIf(vrf_);
   if (!previousFibContainer) {
     auto fibMap = nextState->getFibs()->modify(&nextState);
+    previousFibContainer =
+        std::make_shared<ForwardingInformationBaseContainer>(vrf_);
     fibMap->updateForwardingInformationBaseContainer(
-        std::make_shared<ForwardingInformationBaseContainer>(vrf_));
-    previousFibContainer = nextState->getFibs()->getFibContainerIf(vrf_);
+        previousFibContainer, resolver_->scope(previousFibContainer));
   }
   CHECK(previousFibContainer);
   auto newFibV4 =
@@ -147,16 +151,16 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
                  : nullptr;
 }
 
-std::shared_ptr<facebook::fboss::LabelForwardingInformationBase>
+std::shared_ptr<facebook::fboss::MultiLabelForwardingInformationBase>
 ForwardingInformationBaseUpdater::createUpdatedLabelFib(
     const facebook::fboss::NetworkToRouteMap<LabelID>& rib,
-    std::shared_ptr<facebook::fboss::LabelForwardingInformationBase> fib) {
+    std::shared_ptr<facebook::fboss::MultiLabelForwardingInformationBase> fib) {
   if (!FLAGS_mpls_rib) {
     return nullptr;
   }
 
   bool updated = false;
-  auto newFib = std::make_shared<LabelForwardingInformationBase>();
+  auto newFib = std::make_shared<MultiLabelForwardingInformationBase>();
   for (const auto& entry : rib) {
     const auto& label = entry.first;
     const auto& ribRoute = entry.second;
@@ -165,7 +169,7 @@ ForwardingInformationBaseUpdater::createUpdatedLabelFib(
       // DROP to be resolved.
       continue;
     }
-    auto fibRoute = fib->getLabelForwardingEntryIf(label);
+    auto fibRoute = fib->getNodeIf(label);
     if (fibRoute) {
       if (fibRoute == ribRoute || fibRoute->isSame(ribRoute.get())) {
         // Pointer or contents are same, reuse existing route
@@ -177,21 +181,23 @@ ForwardingInformationBaseUpdater::createUpdatedLabelFib(
       fibRoute = ribRoute;
       updated = true;
     }
-    if (!facebook::fboss::LabelForwardingInformationBase::isValidNextHopSet(
-            ribRoute->getForwardInfo().getNextHopSet())) {
+    if (!facebook::fboss::MultiLabelForwardingInformationBase::
+            isValidNextHopSet(ribRoute->getForwardInfo().getNextHopSet())) {
       throw FbossError("invalid label next hop");
     }
     CHECK(fibRoute->isPublished());
-    newFib->addNode(fibRoute);
+    newFib->addNode(fibRoute, resolver_->scope(fibRoute));
   }
   // Check for deleted routes. Routes that were in the previous FIB
   // and have now been removed
-  for (const auto& iter : std::as_const(*fib)) {
-    const auto& fibEntry = iter.second;
-    const auto& label = fibEntry->getID();
-    if (!newFib->getLabelForwardingEntryIf(label)) {
-      updated = true;
-      break;
+  for (const auto& miter : std::as_const(*fib)) {
+    for (const auto& iter : std::as_const(*miter.second)) {
+      const auto& fibEntry = iter.second;
+      const auto& label = fibEntry->getID();
+      if (!newFib->getNodeIf(label)) {
+        updated = true;
+        break;
+      }
     }
   }
   return updated ? newFib : nullptr;

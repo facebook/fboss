@@ -36,7 +36,6 @@ class AclMap : public ThriftMapNode<AclMap, AclMapTraits> {
  public:
   using Base = ThriftMapNode<AclMap, AclMapTraits>;
   using Traits = AclMapTraits;
-  using Base::modify;
 
   AclMap();
   ~AclMap() override;
@@ -69,8 +68,6 @@ class AclMap : public ThriftMapNode<AclMap, AclMapTraits> {
   size_t numEntries() const {
     return size();
   }
-
-  AclMap* modify(std::shared_ptr<SwitchState>* state);
 
   /*
    * The following functions modify the static state.
@@ -149,28 +146,34 @@ using AclMapDelta = NodeMapDelta<
     DeltaValue<PrioAclMap::Node>,
     MapUniquePointerTraits<PrioAclMap>>;
 
-using MultiAclMapTypeClass = apache::thrift::type_class::
+using MultiSwitchAclMapTypeClass = apache::thrift::type_class::
     map<apache::thrift::type_class::string, AclMapTypeClass>;
-using MultiAclMapThriftType = std::map<std::string, AclMapThriftType>;
+using MultiSwitchAclMapThriftType = std::map<std::string, AclMapThriftType>;
 
-class MultiAclMap;
+class MultiSwitchAclMap;
 
-using MultiAclMapTraits = ThriftMultiMapNodeTraits<
-    MultiAclMap,
-    MultiAclMapTypeClass,
-    MultiAclMapThriftType,
+using MultiSwitchAclMapTraits = ThriftMultiSwitchMapNodeTraits<
+    MultiSwitchAclMap,
+    MultiSwitchAclMapTypeClass,
+    MultiSwitchAclMapThriftType,
     AclMap>;
 
 class HwSwitchMatcher;
 
-class MultiAclMap : public ThriftMapNode<MultiAclMap, MultiAclMapTraits> {
+class MultiSwitchAclMap : public ThriftMultiSwitchMapNode<
+                              MultiSwitchAclMap,
+                              MultiSwitchAclMapTraits> {
  public:
-  using Traits = MultiAclMapTraits;
-  using BaseT = ThriftMapNode<MultiAclMap, MultiAclMapTraits>;
+  using Traits = MultiSwitchAclMapTraits;
+  using BaseT =
+      ThriftMultiSwitchMapNode<MultiSwitchAclMap, MultiSwitchAclMapTraits>;
   using BaseT::modify;
 
-  MultiAclMap() {}
-  virtual ~MultiAclMap() {}
+  MultiSwitchAclMap() = default;
+  virtual ~MultiSwitchAclMap() = default;
+
+  MultiSwitchAclMap* modify(std::shared_ptr<SwitchState>* state);
+
   std::shared_ptr<AclMap> getAclMap() const;
 
  private:

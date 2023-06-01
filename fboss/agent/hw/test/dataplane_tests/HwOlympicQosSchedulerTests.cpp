@@ -33,7 +33,7 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     auto streamType = *(getPlatform()
                             ->getAsic()
                             ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)

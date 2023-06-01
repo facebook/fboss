@@ -51,7 +51,7 @@ class HwEcmpTrunkTest : public HwLinkStateDependentTest {
     auto config = utility::oneL3IntfNPortConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     addAggPort(kAggId, getTrunkMemberPorts(), &config);
     return config;
   }

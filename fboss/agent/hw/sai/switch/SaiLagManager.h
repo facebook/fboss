@@ -76,7 +76,8 @@ class SaiLagManager {
   std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> addMember(
       const std::shared_ptr<SaiLag>& lag,
       AggregatePortID aggPort,
-      PortID subPort);
+      PortID subPort,
+      AggregatePort::Forwarding fwdState = AggregatePort::Forwarding::DISABLED);
   void removeMember(AggregatePortID aggPort, PortID subPort);
 
   void removeLagHandle(AggregatePortID aggPort, SaiLagHandle* handle);

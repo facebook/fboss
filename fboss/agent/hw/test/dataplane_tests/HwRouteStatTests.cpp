@@ -61,7 +61,7 @@ class HwRouteStatTest : public HwLinkStateDependentTest {
     auto config = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         std::move(ports),
-        getAsic()->desiredLoopbackMode(),
+        getAsic()->desiredLoopbackModes(),
         true);
     config.switchSettings()->maxRouteCounterIDs() = 3;
     return config;

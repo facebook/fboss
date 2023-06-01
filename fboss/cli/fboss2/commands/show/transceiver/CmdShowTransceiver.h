@@ -185,21 +185,41 @@ class CmdShowTransceiver
       const auto transceiverId =
           portEntry.transceiverIdx()->get_transceiverId();
       const auto& transceiver = transceiverEntries[transceiverId];
+      const auto& tcvrState = *transceiver.tcvrState();
+      const auto& tcvrStats = *transceiver.tcvrStats();
       details.isUp() = portEntry.get_up();
-      details.isPresent() = transceiver.get_present();
-      if (const auto& vendor = transceiver.vendor()) {
+      details.isPresent() = tcvrState.get_present();
+      if (const auto& vendor = tcvrState.vendor()) {
         details.vendor() = vendor->get_name();
         details.serial() = vendor->get_serialNumber();
         details.partNumber() = vendor->get_partNumber();
-        details.temperature() =
-            transceiver.get_sensor()->get_temp().get_value();
-        details.voltage() = transceiver.get_sensor()->get_vcc().get_value();
+        details.temperature() = tcvrStats.get_sensor()->get_temp().get_value();
+        details.voltage() = tcvrStats.get_sensor()->get_vcc().get_value();
 
         std::vector<double> current;
         std::vector<double> txPower;
         std::vector<double> rxPower;
         std::vector<double> rxSnr;
-        for (const auto& channel : transceiver.get_channels()) {
+        for (const auto& channel : tcvrStats.get_channels()) {
+          // Check if the transceiverInfo is updated to have the
+          // portNameToMediaLanes field
+          if (tcvrStats.portNameToMediaLanes().is_set()) {
+            // Need to filter out the lanes for this specific port
+            auto portToLaneMapIt = tcvrStats.portNameToMediaLanes()->find(
+                portEntries[portId].get_name());
+            // If the port in question exists in the map and if the
+            // channel number is not in the list, skip printing information
+            // about this channel
+            if (portToLaneMapIt != tcvrStats.portNameToMediaLanes()->end() &&
+                std::find(
+                    portToLaneMapIt->second.begin(),
+                    portToLaneMapIt->second.end(),
+                    channel.get_channel()) == portToLaneMapIt->second.end()) {
+              continue;
+            }
+            // If the port doesn't exist in the map, it's likely not configured
+            // yet. Display all channels in this case
+          }
           current.push_back(channel.get_sensors().get_txBias().get_value());
           txPower.push_back(channel.get_sensors().get_txPwrdBm()->get_value());
           rxPower.push_back(channel.get_sensors().get_rxPwrdBm()->get_value());

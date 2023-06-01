@@ -95,9 +95,12 @@ uint16_t getPriorityFromPfcPktCounterId(sai_stat_id_t counterId) {
 void fillHwPortStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     const SaiDebugCounterManager& debugCounterManager,
-    HwPortStats& hwPortStats) {
+    HwPortStats& hwPortStats,
+    const SaiPlatform* platform) {
   // TODO fill these in when we have debug counter support in SAI
   hwPortStats.inDstNullDiscards_() = 0;
+  bool isEtherStatsSupported =
+      platform->getAsic()->isSupported(HwAsic::Feature::SAI_PORT_ETHER_STATS);
   for (auto counterIdAndValue : counterId2Value) {
     auto [counterId, value] = counterIdAndValue;
     switch (counterId) {
@@ -105,7 +108,17 @@ void fillHwPortStats(
         hwPortStats.inBytes_() = value;
         break;
       case SAI_PORT_STAT_IF_IN_UCAST_PKTS:
-        hwPortStats.inUnicastPkts_() = value;
+        if (!isEtherStatsSupported) {
+          // when ether stats is supported, skip updating as ether counterpart
+          // will populate these stats
+          hwPortStats.inUnicastPkts_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_ETHER_STATS_RX_NO_ERRORS:
+        if (isEtherStatsSupported) {
+          // when ether stats is supported, update
+          hwPortStats.inUnicastPkts_() = value;
+        }
         break;
       case SAI_PORT_STAT_IF_IN_MULTICAST_PKTS:
         hwPortStats.inMulticastPkts_() = value;
@@ -129,7 +142,17 @@ void fillHwPortStats(
         hwPortStats.outBytes_() = value;
         break;
       case SAI_PORT_STAT_IF_OUT_UCAST_PKTS:
-        hwPortStats.outUnicastPkts_() = value;
+        if (!isEtherStatsSupported) {
+          // when port ether stats is supported, skip updating as ether
+          // counterpart stats will populate them
+          hwPortStats.outUnicastPkts_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_ETHER_STATS_TX_NO_ERRORS:
+        if (isEtherStatsSupported) {
+          // when port ether stats is supported, update
+          hwPortStats.outUnicastPkts_() = value;
+        }
         break;
       case SAI_PORT_STAT_IF_OUT_MULTICAST_PKTS:
         hwPortStats.outMulticastPkts_() = value;
@@ -447,7 +470,7 @@ void SaiPortManager::loadPortQueues(const Port& swPort) {
       saiPort->adapterKey(), portHandle->queues, updatedPortQueue);
 }
 
-void SaiPortManager::addMirror(const std::shared_ptr<Port>& swPort) {
+void SaiPortManager::addNode(const std::shared_ptr<Port>& swPort) {
   bool samplingMirror = swPort->getSampleDestination().has_value() &&
       swPort->getSampleDestination() == cfg::SampleDestination::MIRROR;
   /*
@@ -531,9 +554,13 @@ std::pair<sai_uint8_t, sai_uint8_t> SaiPortManager::preparePfcConfigs(
   sai_uint8_t rxPfc = 0;
 
   if (pfc.has_value()) {
-    // PFC is enabled for all priorities on a port
-    txPfc = (*pfc->tx()) ? 0xff : 0;
-    rxPfc = (*pfc->rx()) ? 0xff : 0;
+    sai_uint8_t enabledPriorities = 0; // Bitmap of enabled PFC priorities
+    for (auto pri : swPort->getPfcPriorities()) {
+      enabledPriorities |= (1 << static_cast<PfcPriority>(pri));
+    }
+    // PFC is enabled for priorities specified in PG configs
+    txPfc = (*pfc->tx()) ? enabledPriorities : 0;
+    rxPfc = (*pfc->rx()) ? enabledPriorities : 0;
   }
   return std::pair(txPfc, rxPfc);
 }
@@ -1048,9 +1075,15 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
   auto vlan = GET_OPT_ATTR(Port, PortVlanId, attributes);
   port->setIngressVlan(static_cast<VlanID>(vlan));
 
-  auto lbMode = GET_OPT_ATTR(Port, InternalLoopbackMode, attributes);
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  auto lbMode = GET_OPT_ATTR(Port, PortLoopbackMode, attributes);
+  port->setLoopbackMode(utility::getCfgPortLoopbackMode(
+      static_cast<sai_port_loopback_mode_t>(lbMode)));
+#else
+  auto ilbMode = GET_OPT_ATTR(Port, InternalLoopbackMode, attributes);
   port->setLoopbackMode(utility::getCfgPortInternalLoopbackMode(
-      static_cast<sai_port_internal_loopback_mode_t>(lbMode)));
+      static_cast<sai_port_internal_loopback_mode_t>(ilbMode)));
+#endif
 
   // TODO: support Preemphasis once it is also used
 
@@ -1118,11 +1151,30 @@ bool SaiPortManager::fecStatsSupported(PortID portId) const {
     defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
     defined(SAI_VERSION_9_0_EA_SIM_ODP) || defined(TAJO_SDK_VERSION_1_42_4) || \
     defined(SAI_VERSION_9_0_EA_ODP) || defined(SAI_VERSION_9_0_EA_DNX_ODP) ||  \
-    defined(TAJO_SDK_VERSION_1_42_8)
+    defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_1_62_0) ||    \
+    defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP) ||                                 \
+    defined(SAI_VERSION_10_0_EA_DNX_ODP)
     return true;
 #endif
   }
   return false;
+}
+
+std::vector<PortID> SaiPortManager::getFabricReachabilityForSwitch(
+    const SwitchID& switchId) const {
+  std::vector<PortID> reachablePorts;
+  const auto& portApi = SaiApiTable::getInstance()->portApi();
+  for (const auto& [portId, handle] : handles_) {
+    if (getPortType(portId) == cfg::PortType::FABRIC_PORT) {
+      sai_fabric_port_reachability_t reachability;
+      reachability.switch_id = switchId;
+      auto attr = SaiPortTraits::Attributes::FabricReachability{reachability};
+      if (portApi.getAttribute(handle->port->adapterKey(), attr).reachable) {
+        reachablePorts.push_back(portId);
+      }
+    }
+  }
+  return reachablePorts;
 }
 
 std::optional<FabricEndpoint> SaiPortManager::getFabricReachabilityForPort(
@@ -1219,7 +1271,8 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
         SAI_STATS_MODE_READ_AND_CLEAR);
   }
   const auto& counters = handle->port->getStats();
-  fillHwPortStats(counters, managerTable_->debugCounterManager(), curPortStats);
+  fillHwPortStats(
+      counters, managerTable_->debugCounterManager(), curPortStats, platform_);
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
       {*prevPortStats.inDstNullDiscards_(),
        *curPortStats.inDstNullDiscards_()}};
@@ -1300,15 +1353,16 @@ cfg::PortSpeed SaiPortManager::getMaxSpeed(PortID port) const {
   return platform_->getPortMaxSpeed(port);
 }
 
-std::shared_ptr<PortMap> SaiPortManager::reconstructPortsFromStore(
-    cfg::SwitchType switchType) const {
+std::shared_ptr<MultiSwitchPortMap> SaiPortManager::reconstructPortsFromStore(
+    cfg::SwitchType switchType,
+    const HwSwitchMatcher& matcher) const {
   auto& portStore = saiStore_->get<SaiPortTraits>();
-  auto portMap = std::make_shared<PortMap>();
+  auto portMap = std::make_shared<MultiSwitchPortMap>();
   for (auto& iter : portStore.objects()) {
     auto saiPort = iter.second.lock();
     auto port = swPortFromAttributes(
         saiPort->attributes(), saiPort->adapterKey(), switchType);
-    portMap->addNode(port);
+    portMap->addNode(port, matcher);
   }
   return portMap;
 }

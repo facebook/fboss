@@ -107,13 +107,21 @@
       "switchIdToSwitchInfo": {
         "0": {
             "switchType": 0,
-            "asicType": 4
+            "asicType": 4,
+            "switchIndex": 0,
+            "portIdRange": {
+              "minimum": 0,
+              "maximum": 1023
+            }
         }
       }
     },
     "dsfNodes": {
       
-    }
+    },
+    "defaultVoqConfig": [
+      
+    ]
   },
   "platform": {
     "chip": {
@@ -122,6 +130,7 @@
           "bcm_linkscan_interval": "25000",
           "bcm_num_cos": "0xa",
           "buf.mqueue.guarantee.0": "0x0b",
+          "custom_feature_mesh_topology_sync_mode": "1",
           "dport_map_enable": "0x1",
           "dport_map_port_1": "49",
           "dport_map_port_10": "58",
@@ -468,6 +477,7 @@
           "sai_common_hash_crc": "0x1",
           "sai_dis_ctr_incr_on_port_ln_dn": "0",
           "sai_disable_srcmacqedstmac_ctrl": "0x1",
+          "sai_ecmp_group_members_increment": "1",
           "sai_ifp_enable_on_cpu_tx": "0x1",
           "sai_interface_type_auto_detect": "0",
           "sai_l2_cpu_fdb_event_suppress": "1",

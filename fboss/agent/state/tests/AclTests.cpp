@@ -32,17 +32,25 @@ using std::shared_ptr;
 
 DECLARE_bool(enable_acl_table_group);
 
+namespace {
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+} // namespace
+
 TEST(Acl, applyConfig) {
   FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   auto aclEntry = make_shared<AclEntry>(0, std::string("acl0"));
-  stateV0->addAcl(aclEntry);
-  auto aclV0 = stateV0->getAcl("acl0");
+  auto aclsV0 = stateV0->getAcls()->modify(&stateV0);
+  aclsV0->addNode(aclEntry, scope());
+  auto aclsV1 = stateV0->getAcls();
+  auto aclV0 = aclsV1->getNodeIf("acl0");
   EXPECT_EQ(0, aclV0->getGeneration());
   EXPECT_FALSE(aclV0->isPublished());
   EXPECT_EQ(0, aclV0->getPriority());
-  stateV0->registerPort(PortID(1), "port1");
+  registerPort(stateV0, PortID(1), "port1", scope());
 
   aclV0->publish();
   EXPECT_TRUE(aclV0->isPublished());
@@ -332,24 +340,39 @@ TEST(Acl, Icmp) {
 
 TEST(Acl, aclModifyUnpublished) {
   auto state = make_shared<SwitchState>();
-  auto aclMap = state->getAcls();
-  EXPECT_EQ(aclMap.get(), aclMap->modify(&state));
+  auto acls = state->getAcls();
+  EXPECT_EQ(acls.get(), acls->modify(&state));
 }
 
 TEST(Acl, aclModifyPublished) {
   auto state = make_shared<SwitchState>();
   state->publish();
-  auto aclMap = state->getAcls();
-  validateThriftMapMapSerialization(*aclMap);
-  EXPECT_NE(aclMap.get(), aclMap->modify(&state));
+  auto acls = state->getAcls();
+  validateThriftMapMapSerialization(*acls);
+  EXPECT_NE(acls.get(), acls->modify(&state));
+}
+
+TEST(Acl, aclEntryModifyUnpublished) {
+  auto state = make_shared<SwitchState>();
+  auto aclEntry = make_shared<AclEntry>(0, std::string("acl0"));
+  state->getAcls()->addNode(aclEntry, scope());
+  EXPECT_EQ(aclEntry.get(), aclEntry->modify(&state, scope()));
+}
+
+TEST(Acl, aclEntryModifyPublished) {
+  auto state = make_shared<SwitchState>();
+  auto aclEntry = make_shared<AclEntry>(0, std::string("acl0"));
+  state->getAcls()->addNode(aclEntry, scope());
+  state->publish();
+  EXPECT_NE(aclEntry.get(), aclEntry->modify(&state, scope()));
 }
 
 TEST(Acl, AclGeneration) {
   FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  stateV0->registerPort(PortID(1), "port1");
-  stateV0->registerPort(PortID(2), "port2");
+  registerPort(stateV0, PortID(1), "port1", scope());
+  registerPort(stateV0, PortID(2), "port2", scope());
 
   cfg::SwitchConfig config;
   config.ports()->resize(2);
@@ -412,33 +435,33 @@ TEST(Acl, AclGeneration) {
   auto acls = stateV1->getAcls();
   validateThriftMapMapSerialization(*acls);
   EXPECT_NE(acls, nullptr);
-  EXPECT_NE(acls->getEntryIf("acl1"), nullptr);
-  EXPECT_NE(acls->getEntryIf("acl2"), nullptr);
-  EXPECT_NE(acls->getEntryIf("acl3"), nullptr);
-  EXPECT_NE(acls->getEntryIf("acl5"), nullptr);
+  EXPECT_NE(acls->getNodeIf("acl1"), nullptr);
+  EXPECT_NE(acls->getNodeIf("acl2"), nullptr);
+  EXPECT_NE(acls->getNodeIf("acl3"), nullptr);
+  EXPECT_NE(acls->getNodeIf("acl5"), nullptr);
 
   EXPECT_EQ(
-      acls->getEntryIf("acl1")->getPriority(),
+      acls->getNodeIf("acl1")->getPriority(),
       AclTable::kDataplaneAclMaxPriority);
   EXPECT_EQ(
-      acls->getEntryIf("acl4")->getPriority(),
+      acls->getNodeIf("acl4")->getPriority(),
       AclTable::kDataplaneAclMaxPriority + 1);
   EXPECT_EQ(
-      acls->getEntryIf("acl2")->getPriority(),
+      acls->getNodeIf("acl2")->getPriority(),
       AclTable::kDataplaneAclMaxPriority + 2);
   EXPECT_EQ(
-      acls->getEntryIf("acl3")->getPriority(),
+      acls->getNodeIf("acl3")->getPriority(),
       AclTable::kDataplaneAclMaxPriority + 3);
   EXPECT_EQ(
-      acls->getEntryIf("acl5")->getPriority(),
+      acls->getNodeIf("acl5")->getPriority(),
       AclTable::kDataplaneAclMaxPriority + 4);
 
   // Ensure that the global actions in global traffic policy has been added to
   // the ACL entries
-  EXPECT_TRUE(acls->getEntryIf("acl5")->getAclAction() != nullptr);
+  EXPECT_TRUE(acls->getNodeIf("acl5")->getAclAction() != nullptr);
   EXPECT_EQ(
       8,
-      acls->getEntryIf("acl5")
+      acls->getNodeIf("acl5")
           ->getAclAction()
           ->cref<switch_state_tags::setDscp>()
           ->cref<switch_config_tags::dscpValue>()
@@ -977,9 +1000,9 @@ TEST(Acl, GetRequiredAclTableQualifiers) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   validateThriftMapMapSerialization(*stateV1->getAcls());
   auto q0 =
-      stateV1->getAcls()->getEntry("acl0")->getRequiredAclTableQualifiers();
+      stateV1->getAcls()->getNodeIf("acl0")->getRequiredAclTableQualifiers();
   auto q1 =
-      stateV1->getAcls()->getEntry("acl1")->getRequiredAclTableQualifiers();
+      stateV1->getAcls()->getNodeIf("acl1")->getRequiredAclTableQualifiers();
 
   std::set<cfg::AclTableQualifier> qualifiers0{
       cfg::AclTableQualifier::SRC_IPV4,

@@ -123,31 +123,36 @@ void oidListAttr(
     const sai_attribute_t* attr_list,
     int i,
     uint32_t listIndex,
-    std::vector<std::string>& attrLines);
+    std::vector<std::string>& attrLines,
+    bool logEntry = true);
 
 void aclEntryActionSaiObjectIdListAttr(
     const sai_attribute_t* attr_list,
     int i,
     uint32_t listIndex,
-    std::vector<std::string>& attrLines);
+    std::vector<std::string>& attrLines,
+    bool logEntry = true);
 
 void s32ListAttr(
     const sai_attribute_t* attr_list,
     int i,
     uint32_t listIndex,
-    std::vector<std::string>& attrLines);
+    std::vector<std::string>& attrLines,
+    bool logEntry = true);
 
 void u32ListAttr(
     const sai_attribute_t* attr_list,
     int i,
     uint32_t listIndex,
-    std::vector<std::string>& attrLines);
+    std::vector<std::string>& attrLines,
+    bool logEntry = true);
 
 void qosMapListAttr(
     const sai_attribute_t* attr_list,
     int i,
     uint32_t listIndex,
-    std::vector<std::string>& attrLines);
+    std::vector<std::string>& attrLines,
+    bool logEntry = true);
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
 void latchStatusAttr(
@@ -159,14 +164,16 @@ void portLaneLatchStatusListAttr(
     const sai_attribute_t* attr_list,
     int i,
     uint32_t listIndex,
-    std::vector<std::string>& attrLines);
+    std::vector<std::string>& attrLines,
+    bool logEntry = true);
 #endif
 
 void systemPortConfigListAttr(
     const sai_attribute_t* attr_list,
     int i,
     uint32_t listIndex,
-    std::vector<std::string>& attrLines);
+    std::vector<std::string>& attrLines,
+    bool logEntry = true);
 
 void systemPortConfigAttr(
     const sai_attribute_t* attr_list,

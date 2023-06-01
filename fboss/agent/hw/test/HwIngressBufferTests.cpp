@@ -158,7 +158,7 @@ TEST_F(HwIngressBufferTest, validateConfig) {
   auto verify = [&]() {
     utility::checkSwHwPgCfgMatch(
         getHwSwitch(),
-        getProgrammedState()->getPort(
+        getProgrammedState()->getPorts()->getNodeIf(
             PortID(masterLogicalInterfacePortIds()[0])),
         true /*pfcEnable*/);
   };
@@ -186,7 +186,7 @@ TEST_F(HwIngressBufferTest, validateIngressPoolParamChange) {
   auto verify = [&]() {
     utility::checkSwHwPgCfgMatch(
         getHwSwitch(),
-        getProgrammedState()->getPort(
+        getProgrammedState()->getPorts()->getNodeIf(
             PortID(masterLogicalInterfacePortIds()[0])),
         true /*pfcEnable*/);
   };
@@ -210,7 +210,7 @@ TEST_F(HwIngressBufferTest, validatePGParamChange) {
   auto verify = [&]() {
     utility::checkSwHwPgCfgMatch(
         getHwSwitch(),
-        getProgrammedState()->getPort(
+        getProgrammedState()->getPorts()->getNodeIf(
             PortID(masterLogicalInterfacePortIds()[0])),
         true /*pfcEnable*/);
   };
@@ -228,7 +228,7 @@ TEST_F(HwIngressBufferTest, validatePgNoPfc) {
   auto verify = [&]() {
     utility::checkSwHwPgCfgMatch(
         getHwSwitch(),
-        getProgrammedState()->getPort(
+        getProgrammedState()->getPorts()->getNodeIf(
             PortID(masterLogicalInterfacePortIds()[0])),
         false /*pfcEnable*/);
   };
@@ -246,7 +246,7 @@ TEST_F(HwIngressBufferTest, validateHighBufferValues) {
   auto verify = [&]() {
     utility::checkSwHwPgCfgMatch(
         getHwSwitch(),
-        getProgrammedState()->getPort(
+        getProgrammedState()->getPorts()->getNodeIf(
             PortID(masterLogicalInterfacePortIds()[0])),
         true /*pfcEnable*/);
   };
@@ -257,14 +257,16 @@ TEST_F(HwIngressBufferTest, validateHighBufferValues) {
 // cfg, PGs should be in lossy mode now; validate that SDK programming
 // is as per cfg.
 TEST_F(HwIngressBufferTest, validateLossyMode) {
-  auto setup = [&]() { setupHelper(false /* enable headroom */); };
+  auto setup = [&]() {
+    setupHelper(false /* enable headroom */, false /* pfcEnable */);
+  };
 
   auto verify = [&]() {
     utility::checkSwHwPgCfgMatch(
         getHwSwitch(),
-        getProgrammedState()->getPort(
+        getProgrammedState()->getPorts()->getNodeIf(
             PortID(masterLogicalInterfacePortIds()[0])),
-        true /*pfcEnable*/);
+        false /* pfcEnable */);
   };
 
   verifyAcrossWarmBoots(setup, verify);

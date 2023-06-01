@@ -263,7 +263,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
         std::nullopt,
 #endif
-        std::nullopt,
+        std::nullopt, // Link Training Enable
+        std::nullopt, // Rx Squelch Enable
   };
 }
 

@@ -25,6 +25,7 @@ const std::map<std::string, std::string>& kSupportedVerbs() {
       {"show", "Show object info"},
       {"clear", "Clear object info"},
       {"create", "Create object"},
+      {"delete", "Delete object"},
       {"debug", "Debug object"},
       {"set", "Set object"},
       {"bounce", "Disable/Enable object"},
@@ -32,6 +33,7 @@ const std::map<std::string, std::string>& kSupportedVerbs() {
       {"start", "Start event"},
       {"stop", "Stop event"},
       {"get", "Get object"},
+      {"reload", "Reload object"},
   };
 
   return supportedVerbs;
@@ -200,6 +202,9 @@ CLI::App* CmdSubcommands::addCommand(
           break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MIRROR_LIST:
           subCmd->add_option("mirrors", args, "Mirror(s)");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_SWITCH_NAME_LIST:
+          subCmd->add_option("switch_name_list", args, "Switch Name(s)");
           break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:

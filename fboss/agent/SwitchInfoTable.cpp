@@ -8,9 +8,7 @@
 
 namespace facebook::fboss {
 SwitchInfoTable::SwitchInfoTable(
-    SwSwitch* sw,
-    const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo)
-    : sw_(sw) {
+    const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo) {
   std::optional<cfg::SwitchType> switchType;
   for (const auto& switchIdAndSwitchInfo : switchIdToSwitchInfo) {
     if (switchType.has_value() &&
@@ -24,21 +22,6 @@ SwitchInfoTable::SwitchInfoTable(
     }
     switchIdToSwitchInfo_.emplace(
         SwitchID(switchIdAndSwitchInfo.first), switchIdAndSwitchInfo.second);
-  }
-  // TODO - Till SwitchId config is rolled out everywhere
-  if (!switchIdToSwitchInfo.size()) {
-    cfg::SwitchInfo switchInfo;
-    int64_t switchId = sw_->getPlatform()->getAsic()->getSwitchId()
-        ? *sw_->getPlatform()->getAsic()->getSwitchId()
-        : 0;
-    cfg::Range64 portIdRange;
-    portIdRange.minimum() = 0;
-    portIdRange.maximum() = 1023;
-    switchInfo.switchIndex() = 0;
-    switchInfo.portIdRange() = portIdRange;
-    switchInfo.switchType() = sw_->getPlatform()->getAsic()->getSwitchType();
-    switchInfo.asicType() = sw_->getPlatform()->getAsic()->getAsicType();
-    switchIdToSwitchInfo_.emplace(switchId, switchInfo);
   }
 }
 
@@ -93,6 +76,10 @@ bool SwitchInfoTable::haveVoqSwitches() const {
 
 bool SwitchInfoTable::haveNpuSwitches() const {
   return getSwitchIdsOfType(cfg::SwitchType::NPU).size() > 0;
+}
+
+bool SwitchInfoTable::haveFabricSwitches() const {
+  return getSwitchIdsOfType(cfg::SwitchType::FABRIC).size() > 0;
 }
 
 bool SwitchInfoTable::haveL3Switches() const {

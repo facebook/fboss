@@ -33,7 +33,7 @@ std::string HwExternalPhyPortTest::neededFeatureNames() const {
 std::vector<std::pair<PortID, cfg::PortProfileID>>
 HwExternalPhyPortTest::findAvailableXphyPorts() {
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
-  const auto& ports = utility::findAvailablePorts(getHwQsfpEnsemble());
+  const auto& ports = utility::findAvailableCabledPorts(getHwQsfpEnsemble());
   std::vector<std::pair<PortID, cfg::PortProfileID>> xphyPortAndProfiles;
   // Check whether the ExternalPhy of such xphy port support all needed features
   const auto& features = neededFeatures();

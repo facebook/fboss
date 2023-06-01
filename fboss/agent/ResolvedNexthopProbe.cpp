@@ -31,7 +31,7 @@ ResolvedNextHopProbe::ResolvedNextHopProbe(
 void ResolvedNextHopProbe::timeoutExpired() noexcept {
   auto ip = nexthop_.addr();
   auto state = sw_->getState();
-  auto intf = state->getInterfaces()->getInterfaceIf(nexthop_.intfID().value());
+  auto intf = state->getInterfaces()->getNodeIf(nexthop_.intfID().value());
   if (!intf) {
     // probe and state update runs in distinct threads. probe runs in background
     // thread while state update in update thread.
@@ -46,7 +46,7 @@ void ResolvedNextHopProbe::timeoutExpired() noexcept {
     return;
   }
   auto vlanId = sw_->getVlanIDHelper(intf->getVlanIDIf());
-  auto vlan = state->getVlans()->getVlanIf(vlanId);
+  auto vlan = state->getVlans()->getNodeIf(vlanId);
   if (!vlan) {
     XLOG(ERR) << "a spurios probe to " << nexthop_.addr() << " on vlan "
               << vlanId << " exists!";
@@ -56,7 +56,7 @@ void ResolvedNextHopProbe::timeoutExpired() noexcept {
 
   if (ip.isV4()) {
     // send arp request
-    ArpHandler::sendArpRequest(sw_, vlan, ip.asV4());
+    ArpHandler::sendArpRequest(sw_, ip.asV4());
     sw_->getNeighborUpdater()->sentArpRequest(vlanId, ip.asV4());
   } else {
     // send ndp request

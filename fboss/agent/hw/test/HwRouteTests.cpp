@@ -19,6 +19,7 @@
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -43,7 +44,7 @@ class HwRouteTest : public HwLinkStateDependentTest {
     return utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode(),
+        getAsic()->desiredLoopbackModes(),
         true);
   }
 
@@ -566,6 +567,46 @@ TYPED_TEST(HwRouteTest, VerifyDefaultRoute) {
         {folly::IPAddress("0.0.0.0"), 0});
   };
   this->verifyAcrossWarmBoots([] {}, verify);
+}
+
+TYPED_TEST(HwRouteTest, AddHostRouteAndNeighbor) {
+  using AddrT = typename TestFixture::Type;
+  auto setup = [=]() {
+    auto ip = this->kGetRoutePrefix3().network();
+    // add neighbor
+    auto state = this->getProgrammedState();
+    auto [portId, port] = *util::getFirstMap(state->getPorts())->cbegin();
+    auto vlan = state->getVlans()->getNode(port->getIngressVlan());
+    auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
+        vlan->getID(), &state);
+    folly::MacAddress neighborMac = folly::MacAddress("06:00:00:01:02:03");
+    nbrTable->addEntry(
+        ip,
+        neighborMac,
+        PortDescriptor(PortID(portId)),
+        vlan->getInterfaceID());
+    this->applyNewState(state);
+
+    // add host route
+    auto updater = this->getHwSwitchEnsemble()->getRouteUpdater();
+    RouteNextHopSet nexthops;
+    // @lint-ignore CLANGTIDY
+    nexthops.emplace(ResolvedNextHop(ip, vlan->getInterfaceID(), ECMP_WEIGHT));
+    updater.addRoute(
+        this->kRouterID(),
+        ip,
+        AddrT::bitCount(),
+        ClientID::BGPD,
+        RouteNextHopEntry(nexthops, AdminDistance::EBGP));
+    updater.program();
+  };
+  auto verify = [=]() {
+    utility::isHwRoutePresent(
+        this->getHwSwitch(),
+        this->kRouterID(),
+        this->kGetRoutePrefix3().toCidrNetwork());
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss

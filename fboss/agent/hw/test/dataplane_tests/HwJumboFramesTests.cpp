@@ -35,7 +35,7 @@ class HwJumboFramesTest : public HwLinkStateDependentTest {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     cfg.interfaces()[0].mtu() = 9000;
     return cfg;
   }

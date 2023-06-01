@@ -6,6 +6,7 @@ namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.transceiver
 
 include "fboss/lib/phy/prbs.thrift"
+include "thrift/annotation/cpp.thrift"
 
 struct Vendor {
   1: string name;
@@ -194,6 +195,7 @@ enum MediaInterfaceCode {
   SR_10G = 8,
   CR4_200G = 9,
   CR8_400G = 10,
+  FR4_2x400G = 11,
 }
 
 // The extended specification compliance code of the transceiver module.
@@ -218,6 +220,7 @@ enum TransceiverModuleIdentifier {
   QSFP28 = 0x11,
   QSFP_DD = 0x18,
   QSFP_PLUS_CMIS = 0x1E,
+  OSFP = 0x19,
   MINIPHOTON_OBO = 0x91,
 }
 
@@ -483,7 +486,8 @@ struct TransceiverInfo {
   30: TcvrStats tcvrStats;
 }
 
-typedef binary (cpp2.type = "folly::IOBuf") IOBuf
+@cpp.Type{name = "folly::IOBuf"}
+typedef binary IOBuf
 
 struct RawDOMData {
   // The SFF DOM exposes at most 256 bytes at a time and is divided in

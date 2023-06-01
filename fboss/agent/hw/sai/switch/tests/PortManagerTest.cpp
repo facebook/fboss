@@ -49,7 +49,11 @@ class PortManagerTest : public ManagerTestBase {
     SaiPortTraits::Attributes::HwLaneList hwLaneListAttribute;
     SaiPortTraits::Attributes::Speed speedAttribute;
     SaiPortTraits::Attributes::FecMode fecMode;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    SaiPortTraits::Attributes::PortLoopbackMode lbMode;
+#else
     SaiPortTraits::Attributes::InternalLoopbackMode ilbMode;
+#endif
     SaiPortTraits::Attributes::Mtu mtuAttribute;
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
     SaiPortTraits::Attributes::FabricIsolate fabricIsolateAttribute;
@@ -63,9 +67,14 @@ class PortManagerTest : public ManagerTestBase {
     EXPECT_EQ(25000, gotSpeed);
     auto gotFecMode = portApi.getAttribute(saiId, fecMode);
     EXPECT_EQ(static_cast<int32_t>(SAI_PORT_FEC_MODE_NONE), gotFecMode);
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    auto gotlbMode = portApi.getAttribute(saiId, lbMode);
+    EXPECT_EQ(static_cast<int32_t>(SAI_PORT_LOOPBACK_MODE_NONE), gotlbMode);
+#else
     auto gotIlbMode = portApi.getAttribute(saiId, ilbMode);
     EXPECT_EQ(
         static_cast<int32_t>(SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE), gotIlbMode);
+#endif
     auto gotMtu = portApi.getAttribute(saiId, mtuAttribute);
     EXPECT_EQ(mtu, gotMtu);
     ASSERT_NE(handle->serdes.get(), nullptr);
@@ -143,6 +152,7 @@ class PortManagerTest : public ManagerTestBase {
           std::nullopt, // Inter Frame Gap
 #endif
           std::nullopt, // Link Training Enable
+          std::nullopt, // Rx Lane Squelch Enable
     };
     return portApi.create<SaiPortTraits>(a, 0);
   }
@@ -457,4 +467,19 @@ TEST_F(PortManagerTest, togglePtpTcEnable) {
     saiManagerTable->portManager().setPtpTcEnable(ptpTcEnable);
     checkPort(swPort->getID(), handle, true, 9412, ptpTcEnable);
   }
+}
+
+TEST_F(PortManagerTest, getFabricReachabilityForSwitch) {
+  std::shared_ptr<Port> swPort0 = makePort(p0);
+  swPort0->setPortType(cfg::PortType::FABRIC_PORT);
+  saiManagerTable->portManager().addPort(swPort0);
+
+  std::shared_ptr<Port> swPort1 = makePort(p1);
+  swPort1->setPortType(cfg::PortType::FABRIC_PORT);
+  saiManagerTable->portManager().addPort(swPort1);
+
+  std::vector<PortID> portIds =
+      saiManagerTable->portManager().getFabricReachabilityForSwitch(
+          static_cast<SwitchID>(0));
+  EXPECT_EQ(portIds.size(), 2);
 }

@@ -18,6 +18,7 @@
 #include "fboss/agent/test/ResourceLibUtil.h"
 
 namespace {
+constexpr int kDownlinkBaseVlanId = 2000;
 constexpr uint32_t kCoppLowPriReservedBytes = 1040;
 constexpr uint32_t kCoppDefaultPriReservedBytes = 1040;
 } // unnamed namespace
@@ -428,12 +429,31 @@ void sendAndVerifyPkts(
   sendPktAndVerifyCpuQueue(hwSwitch, queueId, sendPkts, 1);
 }
 
+std::shared_ptr<facebook::fboss::Interface> getEligibleInterface(
+    std::shared_ptr<SwitchState> swState) {
+  VlanID downlinkBaseVlanId(kDownlinkBaseVlanId);
+  auto intfMap = swState->getInterfaces()->modify(&swState);
+  for (const auto& [_, intfMap] : *intfMap) {
+    for (auto iter = intfMap->begin(); iter != intfMap->end(); ++iter) {
+      auto intf = iter->second;
+      if (intf->getVlanID() >= downlinkBaseVlanId) {
+        return intf->clone();
+      }
+    }
+  }
+  return nullptr;
+}
+
 void verifyCoppInvariantHelper(
     HwSwitch* hwSwitch,
     const HwAsic* hwAsic,
     std::shared_ptr<SwitchState> swState,
     PortID srcPort) {
-  auto intf = std::as_const(*swState->getInterfaces()->cbegin()).second;
+  auto intf = getEligibleInterface(swState);
+  if (!intf) {
+    throw FbossError(
+        "No eligible uplink/downlink interfaces in config to verify COPP invariant");
+  }
   for (auto iter : std::as_const(*intf->getAddresses())) {
     auto destIp = folly::IPAddress(iter.first);
     if (destIp.isLinkLocal()) {

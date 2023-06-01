@@ -19,7 +19,7 @@ class HwConfigVerifyQosTest : public HwConfigSetupTest {
     return utility::oneL3IntfConfig(
         getHwSwitch(),
         masterLogicalPortIds()[0],
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
   }
 };
 

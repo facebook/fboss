@@ -13,7 +13,6 @@
 
 #include "fboss/agent/hw/sai/api/WredApi.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
-#include "fboss/agent/hw/sai/tracer/WredApiTracer.h"
 
 using folly::to;
 

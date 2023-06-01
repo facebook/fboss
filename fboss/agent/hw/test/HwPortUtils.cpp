@@ -82,6 +82,30 @@ void updateFlexConfig(
   }
 }
 
+cfg::PortSpeed getDefaultInterfaceSpeed(const cfg::AsicType& asicType) {
+  switch (asicType) {
+    case cfg::AsicType::ASIC_TYPE_JERICHO2:
+      return cfg::PortSpeed::HUNDREDG;
+    case cfg::AsicType::ASIC_TYPE_JERICHO3:
+      return cfg::PortSpeed::TWOHUNDREDG;
+    default:
+      throw FbossError(
+          "Unsupported interface speed for asic type: ", (int)asicType);
+  }
+}
+
+cfg::PortSpeed getDefaultFabricSpeed(const cfg::AsicType& asicType) {
+  switch (asicType) {
+    case cfg::AsicType::ASIC_TYPE_JERICHO2:
+      return cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG;
+    case cfg::AsicType::ASIC_TYPE_JERICHO3:
+      return cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG;
+    default:
+      throw FbossError(
+          "Unsupported fabric speed for asic type: ", (int)asicType);
+  }
+}
+
 cfg::PortSpeed getSpeed(cfg::PortProfileID profile) {
   switch (profile) {
     case cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC:
@@ -117,6 +141,10 @@ cfg::PortSpeed getSpeed(cfg::PortProfileID profile) {
     case cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER:
     case cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL:
       return cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG;
+
+    case cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_COPPER:
+    case cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_OPTICAL:
+      return cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG;
 
     case cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC:
@@ -168,6 +196,7 @@ TransmitterTechnology getMediaType(cfg::PortProfileID profile) {
     case cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_COPPER_RACK_YV3_T1:
     case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_COPPER:
     case cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER:
+    case cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_COPPER:
       return TransmitterTechnology::COPPER;
 
     case cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL:
@@ -183,6 +212,7 @@ TransmitterTechnology getMediaType(cfg::PortProfileID profile) {
     case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_OPTICAL:
+    case cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_OPTICAL:
       return TransmitterTechnology::OPTICAL;
 
     case cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC:

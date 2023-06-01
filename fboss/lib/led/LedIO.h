@@ -10,6 +10,7 @@
 #pragma once
 
 #include <stdexcept>
+#include "fboss/led_service/if/gen-cpp2/led_structs_types.h"
 #include "fboss/lib/led/gen-cpp2/led_mapping_types.h"
 
 namespace facebook::fboss {
@@ -26,16 +27,10 @@ class LedIOError : public std::runtime_error {
  */
 class LedIO {
  public:
-  enum class Color {
-    OFF,
-    YELLOW,
-    BLUE,
-  };
-
   explicit LedIO(LedMapping ledMapping);
   ~LedIO() {}
-  void setColor(Color color);
-  Color getColor() const;
+  void setColor(led::LedColor color);
+  led::LedColor getColor() const;
 
   // Forbidden copy constructor and assignment operator
   LedIO(LedIO const&) = delete;
@@ -49,7 +44,7 @@ class LedIO {
   void yellowOff();
   void setLed(const std::string& ledPath, const std::string& ledOp);
 
-  Color currColor_;
+  led::LedColor currColor_;
   uint32_t id_;
   std::optional<std::string> bluePath_;
   std::optional<std::string> yellowPath_;

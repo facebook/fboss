@@ -32,15 +32,12 @@ class MockWedgeManager : public WedgeManager {
     return PlatformType::PLATFORM_WEDGE;
   }
 
-  std::map<TransceiverID, MockSffModule*> mockTransceivers_;
-
   std::unique_ptr<TransceiverI2CApi> getI2CBus() override {
     return std::make_unique<MockTransceiverI2CApi>();
   }
 
   MOCK_METHOD1(getXphyInfo, phy::PhyInfo(PortID));
   MOCK_METHOD0(clearAllTransceiverReset, void());
-  MOCK_METHOD1(triggerQsfpHardReset, void(int));
   MOCK_METHOD1(verifyEepromChecksums, bool(TransceiverID));
   MOCK_METHOD2(programExternalPhyPorts, void(TransceiverID, bool));
   MOCK_METHOD1(readyTransceiver, bool(TransceiverID));

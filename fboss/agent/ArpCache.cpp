@@ -66,12 +66,7 @@ inline void ArpCache::checkReachability(
 }
 
 inline void ArpCache::probeFor(folly::IPAddressV4 ip) const {
-  auto vlan = getSw()->getState()->getVlans()->getVlanIf(getVlanID());
-  if (!vlan) {
-    XLOG(DBG2) << "Vlan " << getVlanID() << " not found. Skip sending probe";
-    return;
-  }
-  ArpHandler::sendArpRequest(getSw(), vlan, ip);
+  ArpHandler::sendArpRequest(getSw(), ip);
 }
 
 std::list<ArpEntryThrift> ArpCache::getArpCacheData() {

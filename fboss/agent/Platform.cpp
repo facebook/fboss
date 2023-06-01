@@ -131,11 +131,7 @@ void Platform::init(
     uint32_t hwFeaturesDesired) {
   // take ownership of the config if passed in
   config_ = std::move(config);
-  // Override local mac from config if set
-  if (auto macStr = getPlatformAttribute(cfg::PlatformAttributes::MAC)) {
-    XLOG(DBG2) << " Setting platform mac to: " << macStr.value();
-    localMac_ = folly::MacAddress(*macStr);
-  }
+  auto macStr = getPlatformAttribute(cfg::PlatformAttributes::MAC);
   const auto switchSettings = *config_->thrift.sw()->switchSettings();
   std::optional<int64_t> switchId;
   std::optional<cfg::Range64> systemPortRange;
@@ -162,8 +158,17 @@ void Platform::init(
          asicType == cfg::AsicType::ASIC_TYPE_GARONNE)) {
       switchId = std::nullopt;
     }
+    if (switchSettings.switchIdToSwitchInfo()->begin()->second.switchMac()) {
+      macStr =
+          *switchSettings.switchIdToSwitchInfo()->begin()->second.switchMac();
+    }
   }
-  setupAsic(switchType, switchId, systemPortRange);
+  // Override local mac from config if set
+  if (macStr) {
+    XLOG(DBG2) << " Setting platform mac to: " << macStr.value();
+    localMac_ = folly::MacAddress(*macStr);
+  }
+  setupAsic(switchType, switchId, systemPortRange, localMac_);
   initImpl(hwFeaturesDesired);
   // We should always initPorts() here instead of leaving the hw/ to call
   initPorts();
@@ -234,6 +239,8 @@ int Platform::getLaneCount(cfg::PortProfileID profile) const {
     case cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_COPPER_RACK_YV3_T1:
     case cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER:
     case cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL:
+    case cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_COPPER:
+    case cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_OPTICAL:
       return 1;
 
     case cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC:

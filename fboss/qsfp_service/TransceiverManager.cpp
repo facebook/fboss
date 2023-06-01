@@ -9,7 +9,6 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
-#include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
@@ -205,9 +204,7 @@ const std::set<std::string> TransceiverManager::getPortNames(
   auto it = portGroupMap_.find(tcvrId);
   if (it != portGroupMap_.end() && !it->second.empty()) {
     for (const auto& port : it->second) {
-      if (auto portName = port.name()) {
-        ports.insert(*portName);
-      }
+      ports.insert(*port.mapping()->name());
     }
   }
   return ports;
@@ -1207,7 +1204,7 @@ void TransceiverManager::waitForAllBlockingStateUpdateDone(
  * software port id (or the agent port id) for that
  */
 std::optional<PortID> TransceiverManager::getPortIDByPortName(
-    const std::string& portName) {
+    const std::string& portName) const {
   auto portMapIt = portNameToPortID_.left.find(portName);
   if (portMapIt != portNameToPortID_.left.end()) {
     return portMapIt->second;
@@ -1778,6 +1775,7 @@ Transceiver* FOLLY_NULLABLE TransceiverManager::overrideTransceiverForTesting(
   auto lockedTransceivers = transceivers_.wlock();
   // Keep the same logic as updateTransceiverMap()
   if (auto it = lockedTransceivers->find(id); it != lockedTransceivers->end()) {
+    it->second->removeTransceiver();
     lockedTransceivers->erase(it);
   }
   // Only set the override transceiver if it's not null so that we can support

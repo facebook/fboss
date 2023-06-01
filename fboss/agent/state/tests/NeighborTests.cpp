@@ -16,9 +16,15 @@
 
 #include <gtest/gtest.h>
 
+using namespace facebook::fboss;
+
 namespace {
 auto constexpr kState = "state";
+
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
 }
+} // namespace
 
 using namespace facebook::fboss;
 using folly::IPAddressV4;
@@ -119,7 +125,7 @@ TEST(NeighborResponseTableTest, modify) {
   auto arpResponseTable = std::make_shared<ArpResponseTable>();
   arpResponseTable->setEntry(ip1, mac1, InterfaceID(0));
   vlan->setArpResponseTable(arpResponseTable);
-  state->getVlans()->addVlan(vlan);
+  state->getVlans()->addNode(vlan, scope());
 
   // modify unpublished state
   EXPECT_EQ(vlan.get(), vlan->modify(&state));

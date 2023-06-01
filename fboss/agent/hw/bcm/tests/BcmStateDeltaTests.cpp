@@ -99,8 +99,8 @@ namespace facebook::fboss {
 TEST_F(BcmTest, addPortFails) {
   const auto& portMap = getProgrammedState()->getPorts();
   auto highestPortIdPort = *std::max_element(
-      portMap->cbegin(),
-      portMap->cend(),
+      portMap->cbegin()->second->cbegin(),
+      portMap->cbegin()->second->cend(),
       [=](const auto& lport, const auto& rport) {
         return lport.second->getID() < rport.second->getID();
       });
@@ -109,13 +109,15 @@ TEST_F(BcmTest, addPortFails) {
   state::PortFields portFields;
   portFields.portId() = PortID(highestPortIdPort.second->getID() + 1);
   portFields.portName() = "foo";
-  newPortMap->addPort(std::make_shared<Port>(std::move(portFields)));
+  newPortMap->addNode(
+      std::make_shared<Port>(std::move(portFields)),
+      HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)})));
   EXPECT_THROW(applyNewState(newState), FbossError);
 }
 
 TEST_F(BcmTest, removePortFails) {
   const auto& portMap = getProgrammedState()->getPorts();
-  auto firstPort = *portMap->cbegin();
+  auto firstPort = *portMap->cbegin()->second->cbegin();
   auto newState = getProgrammedState()->clone();
   auto newPortMap = newState->getPorts()->modify(&newState);
   newPortMap->removeNode(firstPort.second->getID());

@@ -28,7 +28,7 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(),
         masterLogicalPortIds()[0],
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     if (HwTest::isSupported(HwAsic::Feature::L3_QOS)) {
       addQosMap(&cfg);
       auto streamType =

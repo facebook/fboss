@@ -79,6 +79,13 @@ void assertPortsLoopbackMode(
   }
 }
 
+int getLoopbackMode(cfg::PortLoopbackMode loopbackMode) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  return (int)getSaiPortLoopbackMode(loopbackMode);
+#endif
+  return (int)getSaiPortInternalLoopbackMode(loopbackMode);
+}
+
 void assertPortSampleDestination(
     const HwSwitch* /*hw*/,
     PortID /*port*/,
@@ -97,9 +104,15 @@ void assertPortLoopbackMode(
     PortID port,
     int expectedLoopbackMode) {
   auto key = getPortAdapterKey(hw, port);
-  SaiPortTraits::Attributes::InternalLoopbackMode loopbackMode;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  SaiPortTraits::Attributes::PortLoopbackMode loopbackMode;
   SaiApiTable::getInstance()->portApi().getAttribute(key, loopbackMode);
   CHECK_EQ(expectedLoopbackMode, loopbackMode.value());
+#else
+  SaiPortTraits::Attributes::InternalLoopbackMode internalLoopbackMode;
+  SaiApiTable::getInstance()->portApi().getAttribute(key, internalLoopbackMode);
+  CHECK_EQ(expectedLoopbackMode, internalLoopbackMode.value());
+#endif
 }
 
 void cleanPortConfig(
@@ -231,7 +244,6 @@ void verifyTxSettting(
   EXPECT_EQ(pre, GET_OPT_ATTR(PortSerdes, TxFirPre1, expectedTx));
   EXPECT_EQ(main, GET_OPT_ATTR(PortSerdes, TxFirMain, expectedTx));
   EXPECT_EQ(post, GET_OPT_ATTR(PortSerdes, TxFirPost1, expectedTx));
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
   if (saiPlatform->getAsic()->isSupported(
           HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
     pre2 = portApi.getAttribute(
@@ -244,7 +256,6 @@ void verifyTxSettting(
     EXPECT_EQ(post2, GET_OPT_ATTR(PortSerdes, TxFirPost2, expectedTx));
     EXPECT_EQ(post3, GET_OPT_ATTR(PortSerdes, TxFirPost3, expectedTx));
   }
-#endif
 
   // Also verify sixtap attributes against expected pin config
   EXPECT_EQ(pre.size(), txSettings.size());
@@ -253,17 +264,14 @@ void verifyTxSettting(
     EXPECT_EQ(pre[i], expectedTxFromPin.pre());
     EXPECT_EQ(main[i], expectedTxFromPin.main());
     EXPECT_EQ(post[i], expectedTxFromPin.post());
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
     if (saiPlatform->getAsic()->isSupported(
             HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
       EXPECT_EQ(pre2[i], expectedTxFromPin.pre2());
       EXPECT_EQ(post2[i], expectedTxFromPin.post2());
       EXPECT_EQ(post3[i], expectedTxFromPin.post3());
     }
-#endif
   }
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
   if (saiPlatform->getAsic()->isSupported(
           HwAsic::Feature::SAI_CONFIGURE_SIX_TAP) &&
       (saiPlatform->getAsic()->getAsicVendor() ==
@@ -282,7 +290,6 @@ void verifyTxSettting(
       EXPECT_EQ(txLutMode, expectedTxLutMode->value());
     }
   }
-#endif
 
   if (auto expectedDriveCurrent =
           std::get<std::optional<SaiPortSerdesTraits::Attributes::IDriver>>(

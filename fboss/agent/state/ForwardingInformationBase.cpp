@@ -29,7 +29,8 @@ ForwardingInformationBase<AddressT>* ForwardingInformationBase<
     CHECK(!(*state)->isPublished());
     return this;
   }
-  auto fibContainer = (*state)->getFibs()->getFibContainer(rid)->modify(state);
+  auto fibContainer =
+      (*state)->cref<switch_state_tags::fibsMap>()->getNode(rid)->modify(state);
   auto clonedFib = this->clone();
   fibContainer->setFib<AddressT>(clonedFib);
   return clonedFib.get();

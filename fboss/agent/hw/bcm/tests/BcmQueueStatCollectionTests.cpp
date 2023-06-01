@@ -21,7 +21,9 @@ namespace facebook::fboss {
 TEST_F(BcmTest, onlyExpectedQueueStatsSeen) {
   auto setup = [this] {
     applyNewConfig(utility::onePortPerInterfaceConfig(
-        getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC));
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getHwSwitch()->getPlatform()->getAsic()->desiredLoopbackModes()));
   };
   auto verify = [this] {
     for (auto i = 0; i < 10; ++i) {

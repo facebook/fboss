@@ -4,7 +4,6 @@
 
 #include <boost/container/flat_map.hpp>
 
-#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
@@ -130,10 +129,6 @@ class WedgeManager : public TransceiverManager {
 
   void updateAllXphyPortsStats() override;
 
-  const AgentConfig* getAgentConfig() const {
-    return agentConfig_.get();
-  }
-
   virtual std::vector<PortID> getMacsecCapablePorts() const override;
 
   virtual std::string listHwObjects(
@@ -164,8 +159,6 @@ class WedgeManager : public TransceiverManager {
   // thread safe handle to access bus
   std::unique_ptr<TransceiverI2CApi> wedgeI2cBus_;
 
-  std::unique_ptr<AgentConfig> agentConfig_;
-
   PlatformType platformType_;
 
  private:
@@ -177,9 +170,6 @@ class WedgeManager : public TransceiverManager {
 
   using LockedTransceiversPtr = folly::Synchronized<
       std::map<TransceiverID, std::unique_ptr<Transceiver>>>::WLockedPtr;
-  void triggerQsfpHardResetLocked(
-      int idx,
-      LockedTransceiversPtr& lockedTransceivers);
 
   std::unique_ptr<QsfpFsdbSyncManager> fsdbSyncManager_;
 };

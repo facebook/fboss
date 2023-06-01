@@ -14,7 +14,6 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/MockAsic.h"
-#include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/types.h"
 
@@ -26,8 +25,6 @@ class MockHwSwitch;
 class HwTestHandle;
 class MockPlatformPort;
 class HwSwitchWarmBootHelper;
-
-using MockPlatformMapping = Wedge100PlatformMapping;
 
 /*
  * MockPlatform is a mockable interface to a Platform. Non-critical
@@ -68,7 +65,8 @@ class MockPlatform : public Platform {
   void setupAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
-      std::optional<cfg::Range64> systemPortRange) override;
+      std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac) override;
   void createTmpDir();
   void cleanupTmpDir();
 

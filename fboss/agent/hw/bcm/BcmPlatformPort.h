@@ -47,12 +47,6 @@ class BcmPlatformPort : public PlatformPort {
    */
   virtual LaneSpeeds supportedLaneSpeeds() const = 0;
 
-  /*
-   * What type of cable is plugged in to the transceiver.
-   */
-  virtual folly::Future<TransmitterTechnology> getTransmitterTech(
-      folly::EventBase* evb = nullptr) const = 0;
-
   virtual const XPEs getEgressXPEs() const = 0;
 
   virtual bool shouldUsePortResourceAPIs() const = 0;

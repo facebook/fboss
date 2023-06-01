@@ -137,6 +137,7 @@ add_library(hw_switch_ensemble
 
 target_link_libraries(hw_switch_ensemble
   hw_link_state_toggler
+  switchid_scope_resolver
   core
   qsfp_cache
   hw_test_utils
@@ -190,7 +191,7 @@ add_fbthrift_cpp_library(
     visitation
 )
 
-add_library(hw_switch_test
+set(hw_switch_test_srcs
   fboss/agent/hw/test/HwEcmpTests.cpp
   fboss/agent/hw/test/HwTestFabricUtils.cpp
   fboss/agent/hw/test/HwFabricSwitchTests.cpp
@@ -219,6 +220,7 @@ add_library(hw_switch_test
   fboss/agent/hw/test/HwAclQualifierTests.cpp
   fboss/agent/hw/test/HwPfcTests.cpp
   fboss/agent/hw/test/HwAclStatTests.cpp
+  fboss/agent/hw/test/HwPortTests.cpp
   fboss/agent/hw/test/HwDiagShellStressTest.cpp
   fboss/agent/hw/test/HwPortLedTests.cpp
   fboss/agent/hw/test/HwPortProfileTests.cpp
@@ -230,14 +232,6 @@ add_library(hw_switch_test
   fboss/agent/hw/test/HwPtpTcTests.cpp
   fboss/agent/hw/test/HwTeFlowTestUtils.cpp
   fboss/agent/hw/test/HwTeFlowTests.cpp
-  fboss/agent/hw/test/HwHashPolarizationTestUtils.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTomahawk.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTrident2.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk3.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk4.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForTrident2.cpp
-  fboss/agent/hw/test/dataplane_tests/HwHashPolarizationTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwAclCounterTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwConfigSetupTest.cpp
   fboss/agent/hw/test/dataplane_tests/HwConfigVerifyQosTests.cpp
@@ -298,6 +292,29 @@ add_library(hw_switch_test
   fboss/agent/hw/test/dataplane_tests/HwRouteStatTests.cpp
 )
 
+if (NOT BUILD_SAI_FAKE)
+
+# Hash polarization packet utilities consume significant amount of
+# memory and causes on-diff to fail. Skip including Hash
+# polarization files for fake as we do not run these hw tests on fake.
+
+set(hw_switch_test_srcs
+  ${hw_switch_test_srcs}
+  fboss/agent/hw/test/HwHashPolarizationTestUtils.cpp
+  fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTomahawk.cpp
+  fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTrident2.cpp
+  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk.cpp
+  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk3.cpp
+  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk4.cpp
+  fboss/agent/hw/test/HwTestFullHashedPacketsForTrident2.cpp
+  fboss/agent/hw/test/dataplane_tests/HwHashPolarizationTests.cpp
+)
+endif()
+
+add_library(hw_switch_test
+  ${hw_switch_test_srcs}
+)
+
 target_link_libraries(hw_switch_test
   config_factory
   agent_test_utils
@@ -315,6 +332,8 @@ target_link_libraries(hw_switch_test
   trunk_utils
   Folly::folly
   validated_shell_commands_cpp2
+  hwswitch_matcher
+  switchid_scope_resolver
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )

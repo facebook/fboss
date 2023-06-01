@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -76,6 +77,20 @@ void ManagerTestBase::setupSaiPlatform() {
   saiStore = saiSwitch->getSaiStore();
   saiManagerTable = saiSwitch->managerTable();
 
+  std::map<int64_t, cfg::SwitchInfo> switchId2SwitchInfo{};
+  cfg::SwitchInfo switchInfo{};
+  cfg::Range64 portIdRange;
+  portIdRange.minimum() =
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN();
+  portIdRange.maximum() =
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
+  switchInfo.portIdRange() = portIdRange;
+  switchInfo.switchIndex() = 0;
+  // defaulting to NPU
+  switchInfo.switchType() = cfg::SwitchType::NPU;
+  switchInfo.asicType() = saiPlatform->getAsic()->getAsicType();
+  switchId2SwitchInfo.emplace(SwitchID(0), switchInfo);
+  resolver = std::make_unique<SwitchIdScopeResolver>(switchId2SwitchInfo);
   auto setupState = ret.switchState->clone();
   for (int i = 0; i < testInterfaces.size(); ++i) {
     if (i == 0) {
@@ -85,12 +100,13 @@ void ManagerTestBase::setupSaiPlatform() {
     }
   }
 
+  HwSwitchMatcher scope(std::unordered_set<SwitchID>({SwitchID(0)}));
   if (setupStage & SetupStage::PORT) {
     auto* ports = setupState->getPorts()->modify(&setupState);
     for (const auto& testInterface : testInterfaces) {
       for (const auto& remoteHost : testInterface.remoteHosts) {
         auto swPort = makePort(remoteHost.port);
-        ports->addPort(swPort);
+        ports->addNode(swPort, scopeResolver().scope(swPort));
       }
     }
   }
@@ -99,25 +115,25 @@ void ManagerTestBase::setupSaiPlatform() {
     for (const auto& testInterface : testInterfaces) {
       auto swPort =
           makeSystemPort(std::nullopt, kSysPortOffset + testInterface.id);
-      ports->addSystemPort(swPort);
+      ports->addNode(swPort, scope);
     }
   }
   if (setupStage & SetupStage::VLAN) {
     auto* vlans = setupState->getVlans()->modify(&setupState);
     for (const auto& testInterface : testInterfaces) {
       auto swVlan = makeVlan(testInterface);
-      vlans->addVlan(swVlan);
+      vlans->addNode(swVlan, scopeResolver().scope(swVlan));
     }
   }
   if (setupStage & SetupStage::INTERFACE) {
     auto* interfaces = setupState->getInterfaces()->modify(&setupState);
     for (const auto& testInterface : testInterfaces) {
       auto swInterface = makeInterface(testInterface);
-      interfaces->addInterface(swInterface);
+      interfaces->addNode(swInterface, scope);
       if (setupStage & SetupStage::SYSTEM_PORT) {
         auto swPortInterface =
             makeInterface(testInterface, cfg::InterfaceType::SYSTEM_PORT);
-        interfaces->addInterface(swPortInterface);
+        interfaces->addNode(swPortInterface, scope);
       }
     }
   }
@@ -125,9 +141,9 @@ void ManagerTestBase::setupSaiPlatform() {
     for (const auto& testInterface : testInterfaces) {
       for (const auto& remoteHost : testInterface.remoteHosts) {
         auto swNeighbor = makeArpEntry(testInterface.id, remoteHost);
-        auto* vlan = setupState->getVlans()
-                         ->getVlan(VlanID(testInterface.id))
-                         ->modify(&setupState);
+        auto existingVlanEntry =
+            setupState->getVlans()->getNode(VlanID(testInterface.id));
+        auto* vlan = existingVlanEntry->modify(&setupState);
         auto arpTable = vlan->getArpTable()->modify(&vlan, &setupState);
         PortDescriptor portDesc(PortID(remoteHost.port.id));
         arpTable->addEntry(
@@ -219,6 +235,10 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
       break;
     case cfg::PortSpeed::HUNDREDG:
       swPort->setProfileId(cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL);
+      break;
+    case cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG:
+      swPort->setProfileId(
+          cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_COPPER);
       break;
     case cfg::PortSpeed::TWOHUNDREDG:
       swPort->setProfileId(
@@ -574,4 +594,8 @@ void ManagerTestBase::applyNewState(
   programmedState->publish();
 }
 
+const SwitchIdScopeResolver& ManagerTestBase::scopeResolver() const {
+  CHECK(resolver);
+  return *resolver;
+}
 } // namespace facebook::fboss

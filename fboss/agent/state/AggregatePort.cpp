@@ -137,10 +137,11 @@ AggregatePort* AggregatePort::modify(std::shared_ptr<SwitchState>* state) {
     return this;
   }
 
-  AggregatePortMap* aggPorts = (*state)->getAggregatePorts()->modify(state);
+  auto* aggPorts = (*state)->getAggregatePorts()->modify(state);
+  auto [_, scope] = aggPorts->getNodeAndScope(getID());
   auto newAggPort = clone();
   auto* ptr = newAggPort.get();
-  aggPorts->updateAggregatePort(std::move(newAggPort));
+  aggPorts->updateNode(newAggPort, scope);
   return ptr;
 }
 
@@ -157,7 +158,7 @@ bool AggregatePort::isIngressValid(
     const std::unique_ptr<RxPacket>& packet) {
   auto physicalIngressPort = packet->getSrcPort();
   auto owningAggregatePort =
-      state->getAggregatePorts()->getAggregatePortIf(physicalIngressPort);
+      state->getAggregatePorts()->getAggregatePortForPort(physicalIngressPort);
 
   if (!owningAggregatePort) {
     // case C

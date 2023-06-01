@@ -4,6 +4,7 @@
 
 #include <string>
 
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/state/TeFlowEntry.h"
@@ -54,7 +55,6 @@ class TeFlowTable : public ThriftMapNode<TeFlowTable, TeFlowTableThriftTraits> {
   void addTeFlowEntry(const std::shared_ptr<TeFlowEntry>& teFlowEntry);
   void changeTeFlowEntry(const std::shared_ptr<TeFlowEntry>& teFlowEntry);
   void removeTeFlowEntry(const TeFlow& id);
-  TeFlowTable* modify(std::shared_ptr<SwitchState>* state);
 
  private:
   // Inherit the constructors required for clone()
@@ -65,6 +65,7 @@ class TeFlowTable : public ThriftMapNode<TeFlowTable, TeFlowTableThriftTraits> {
 class TeFlowSyncer {
  public:
   std::shared_ptr<SwitchState> programFlowEntries(
+      const HwSwitchMatcher& matcher,
       const std::shared_ptr<SwitchState>& state,
       const std::vector<FlowEntry>& addTeFlows,
       const std::vector<TeFlow>& delTeFlows,
@@ -76,10 +77,12 @@ class TeFlowSyncer {
       const FlowEntry& flowEntry,
       const int& dstIpPrefixLength);
   std::shared_ptr<SwitchState> addDelTeFlows(
+      const HwSwitchMatcher& matcher,
       const std::shared_ptr<SwitchState>& state,
       const std::vector<FlowEntry>& entriesToAdd,
       const std::vector<TeFlow>& entriesToDel);
   std::shared_ptr<SwitchState> syncTeFlows(
+      const HwSwitchMatcher& matcher,
       const std::shared_ptr<SwitchState>& state,
       const std::vector<FlowEntry>& flowEntries);
 };
@@ -90,7 +93,7 @@ using MultiTeFlowTableThriftType = std::map<std::string, TeFlowTableThriftType>;
 
 class MultiTeFlowTable;
 
-using MultiTeFlowTableTraits = ThriftMultiMapNodeTraits<
+using MultiTeFlowTableTraits = ThriftMultiSwitchMapNodeTraits<
     MultiTeFlowTable,
     MultiTeFlowTableTypeClass,
     MultiTeFlowTableThriftType,
@@ -98,15 +101,19 @@ using MultiTeFlowTableTraits = ThriftMultiMapNodeTraits<
 
 class HwSwitchMatcher;
 
-class MultiTeFlowTable
-    : public ThriftMapNode<MultiTeFlowTable, MultiTeFlowTableTraits> {
+class MultiTeFlowTable : public ThriftMultiSwitchMapNode<
+                             MultiTeFlowTable,
+                             MultiTeFlowTableTraits> {
  public:
   using Traits = MultiTeFlowTableTraits;
-  using BaseT = ThriftMapNode<MultiTeFlowTable, MultiTeFlowTableTraits>;
+  using BaseT =
+      ThriftMultiSwitchMapNode<MultiTeFlowTable, MultiTeFlowTableTraits>;
   using BaseT::modify;
 
-  MultiTeFlowTable() {}
-  virtual ~MultiTeFlowTable() {}
+  MultiTeFlowTable() = default;
+  virtual ~MultiTeFlowTable() = default;
+
+  MultiTeFlowTable* modify(std::shared_ptr<SwitchState>* state);
 
  private:
   // Inherit the constructors required for clone()

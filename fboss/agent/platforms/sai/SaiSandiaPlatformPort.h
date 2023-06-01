@@ -11,6 +11,7 @@
 
 #include "fboss/agent/platforms/sai/SaiTajoPlatformPort.h"
 #include "fboss/lib/fpga/FbDomFpga.h"
+#include "fboss/lib/led/LedIO.h"
 
 namespace facebook::fboss {
 
@@ -27,7 +28,7 @@ class SaiSandiaPlatformPort : public SaiTajoPlatformPort, MultiPimPlatformPort {
       std::shared_ptr<Port> /*oldPort*/) override {}
 
  private:
-  uint32_t currentLedState_;
+  led::LedColor currentLedState_;
 };
 
 } // namespace facebook::fboss

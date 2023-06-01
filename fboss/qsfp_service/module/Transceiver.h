@@ -118,6 +118,8 @@ class Transceiver {
   virtual void refresh() = 0;
   virtual folly::Future<folly::Unit> futureRefresh() = 0;
 
+  virtual void removeTransceiver() = 0;
+
   /*
    * Return all of the transceiver information
    */

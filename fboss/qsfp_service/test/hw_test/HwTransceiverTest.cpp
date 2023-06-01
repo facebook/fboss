@@ -16,7 +16,6 @@ namespace facebook::fboss {
 void HwTransceiverTest::SetUp() {
   HwTest::SetUp();
 
-  auto agentConfig = getHwQsfpEnsemble()->getWedgeManager()->getAgentConfig();
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
 
   // Set override agent port status so that we can update the active state
@@ -31,8 +30,7 @@ void HwTransceiverTest::SetUp() {
   wedgeManager->setOverrideAgentPortStatusForTesting(
       isPortUp_ /* up */, true /* enabled */, true /* clearOnly */);
 
-  expectedTcvrs_ =
-      utility::getCabledPortTranceivers(*agentConfig, getHwQsfpEnsemble());
+  expectedTcvrs_ = utility::getCabledPortTranceivers(getHwQsfpEnsemble());
   auto transceiverIds = refreshTransceiversWithRetry();
   EXPECT_TRUE(utility::containsSubset(transceiverIds, expectedTcvrs_));
 }

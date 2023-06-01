@@ -71,9 +71,14 @@ class NeighborUpdaterImpl {
 #include "fboss/agent/NeighborUpdater-defs.h"
 #undef NEIGHBOR_UPDATER_METHOD
 
+  // TODO(skhare) Remove after completely migrating to intfCaches_
   std::shared_ptr<NeighborCaches> createCaches(
       const SwitchState* state,
       const Vlan* vlan);
+
+  std::shared_ptr<NeighborCaches> createCachesForIntf(
+      const SwitchState* state,
+      const Interface* intf);
 
   void portChanged(
       const std::shared_ptr<Port>& oldPort,
@@ -82,18 +87,31 @@ class NeighborUpdaterImpl {
       const std::shared_ptr<AggregatePort>& oldAggPort,
       const std::shared_ptr<AggregatePort>& newAggPort);
 
+  // TODO(skhare) Remove after completely migrating to intfCaches_
   std::shared_ptr<ArpCache> getArpCacheFor(VlanID vlan);
   std::shared_ptr<ArpCache> getArpCacheInternal(VlanID vlan);
   std::shared_ptr<NdpCache> getNdpCacheFor(VlanID vlan);
   std::shared_ptr<NdpCache> getNdpCacheInternal(VlanID vlan);
 
+  std::shared_ptr<ArpCache> getArpCacheForIntf(InterfaceID intfID);
+  std::shared_ptr<ArpCache> getArpCacheInternalForIntf(InterfaceID intfID);
+  std::shared_ptr<NdpCache> getNdpCacheForIntf(InterfaceID intfID);
+  std::shared_ptr<NdpCache> getNdpCacheInternalForIntf(InterfaceID intfID);
+
+  // TODO(skhare) Remove after completely migrating to intfCaches_
   bool flushEntryImpl(VlanID vlan, folly::IPAddress ip);
+
+  bool flushEntryImplForIntf(InterfaceID intfID, folly::IPAddress ip);
 
   // Forbidden copy constructor and assignment operator
   NeighborUpdaterImpl(NeighborUpdaterImpl const&) = delete;
   NeighborUpdaterImpl& operator=(NeighborUpdaterImpl const&) = delete;
 
+  // TODO(skhare) Remove after completely migrating to intfCaches_
   boost::container::flat_map<VlanID, std::shared_ptr<NeighborCaches>> caches_;
+
+  boost::container::flat_map<InterfaceID, std::shared_ptr<NeighborCaches>>
+      intfCaches_;
 
   SwSwitch* sw_{nullptr};
 

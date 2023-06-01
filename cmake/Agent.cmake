@@ -59,6 +59,19 @@ add_library(address_utils
   fboss/agent/AddressUtil.h
 )
 
+add_library(switchinfo_utils
+  fboss/agent/SwitchInfoUtils.cpp
+)
+
+target_link_libraries(switchinfo_utils
+  Folly::folly
+  switch_config_cpp2
+  switch_state_cpp2
+  switch_asics
+  ctrl_cpp2
+  fboss_types
+)
+
 target_link_libraries(address_utils
   network_address_cpp2
   Folly::folly
@@ -66,6 +79,7 @@ target_link_libraries(address_utils
 
 add_library(utils
   fboss/agent/AlpmUtils.cpp
+  fboss/agent/LabelFibUtils.cpp
   fboss/agent/Utils.cpp
   fboss/agent/oss/Utils.cpp
 )
@@ -115,6 +129,7 @@ add_library(core
   fboss/agent/FibHelpers.cpp
   fboss/agent/HwAsicTable.cpp
   fboss/agent/HwSwitch.cpp
+  fboss/agent/HwSwitchSyncer.cpp
   fboss/agent/IPHeaderV4.cpp
   fboss/agent/IPv4Handler.cpp
   fboss/agent/IPv6Handler.cpp
@@ -134,6 +149,7 @@ add_library(core
   fboss/agent/MirrorManager.cpp
   fboss/agent/MirrorManagerImpl.cpp
   fboss/agent/MPLSHandler.cpp
+  fboss/agent/MultiHwSwitchSyncer.cpp
   fboss/agent/NdpCache.cpp
   fboss/agent/NeighborUpdater.cpp
   fboss/agent/NeighborUpdaterImpl.cpp
@@ -150,6 +166,7 @@ add_library(core
   fboss/agent/StaticL2ForNeighborUpdater.cpp
   fboss/agent/StaticL2ForNeighborSwSwitchUpdater.cpp
   fboss/agent/SwitchInfoTable.cpp
+  fboss/agent/SwitchStatsObserver.cpp
   fboss/agent/SwSwitch.cpp
   fboss/agent/SwSwitchRouteUpdateWrapper.cpp
   fboss/agent/TeFlowNexthopHandler.cpp
@@ -166,6 +183,7 @@ add_library(core
 
 target_link_libraries(core
   agent_config_cpp2
+  switchinfo_utils
   stats
   utils
   fb303::fb303
@@ -316,4 +334,7 @@ add_library(switchid_scope_resolver
 
 target_link_libraries(switchid_scope_resolver
   fboss_types
+  fboss_error
+  hwswitch_matcher
+  state
 )

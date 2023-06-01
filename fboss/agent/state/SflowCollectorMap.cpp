@@ -11,9 +11,14 @@
 
 #include "fboss/agent/state/NodeMap-defs.h"
 #include "fboss/agent/state/SflowCollector.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
 
 template class ThriftMapNode<SflowCollectorMap, SflowCollectorMapTraits>;
 
+MultiSwitchSflowCollectorMap* MultiSwitchSflowCollectorMap::modify(
+    std::shared_ptr<SwitchState>* state) {
+  return SwitchState::modify<switch_state_tags::sflowCollectorMaps>(state);
+}
 } // namespace facebook::fboss

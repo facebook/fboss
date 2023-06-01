@@ -19,7 +19,7 @@ class HwPortProfileTest : public HwTest {
   }
 
   cfg::SwitchConfig initialConfig(const std::vector<PortID>& ports) const {
-    auto lbMode = getPlatform()->getAsic()->desiredLoopbackMode();
+    auto lbMode = getPlatform()->getAsic()->desiredLoopbackModes();
     return utility::oneL3IntfTwoPortConfig(
         getHwSwitch(), ports[0], ports[1], lbMode);
   }
@@ -27,7 +27,7 @@ class HwPortProfileTest : public HwTest {
   void verifyPort(PortID portID) {
     auto platformPort = getPlatform()->getPlatformPort(portID);
     EXPECT_EQ(portID, platformPort->getPortID());
-    auto port = getProgrammedState()->getPorts()->getPort(portID);
+    auto port = getProgrammedState()->getPorts()->getNodeIf(portID);
     // verify interface mode
     utility::verifyInterfaceMode(
         port->getID(),
@@ -66,7 +66,7 @@ class HwPortProfileTest : public HwTest {
             cfg::AsicType::ASIC_TYPE_MOCK) {
       return;
     }
-    auto port = getProgrammedState()->getPorts()->getPort(portID);
+    auto port = getProgrammedState()->getPorts()->getNodeIf(portID);
     auto expectedNumPmdLanes = port->getPinConfigs().size();
 
     // Start with the expectation that PMD diagnostics are available if
@@ -297,5 +297,9 @@ TEST_PROFILE(PROFILE_100G_4_NRZ_CL91_COPPER_RACK_YV3_T1)
 TEST_PROFILE(PROFILE_25G_1_NRZ_NOFEC_COPPER_RACK_YV3_T1)
 
 TEST_PROFILE(PROFILE_400G_8_PAM4_RS544X2N_COPPER)
+
+TEST_PROFILE(PROFILE_400G_4_PAM4_RS544X2N_OPTICAL)
+
+TEST_PROFILE(PROFILE_800G_8_PAM4_RS544X2N_OPTICAL)
 
 } // namespace facebook::fboss

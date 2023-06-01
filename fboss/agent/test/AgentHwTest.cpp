@@ -2,6 +2,7 @@
 
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -13,7 +14,7 @@ namespace facebook::fboss {
 
 void AgentHwTest::setupConfigFlag() {
   utility::setPortToDefaultProfileIDMap(
-      std::make_shared<PortMap>(), platform());
+      std::make_shared<MultiSwitchPortMap>(), platform());
   auto portsByControllingPort =
       utility::getSubsidiaryPortIDs(platform()->getPlatformPorts());
   for (const auto& port : portsByControllingPort) {
@@ -51,13 +52,15 @@ void AgentHwTest::SetUp() {
     // up)
     sw()->updateStateBlocking("set port preemphasis 0", [&](const auto& state) {
       std::shared_ptr<SwitchState> newState{state};
-      for (auto& port : std::as_const(*newState->getPorts())) {
-        auto newPort = port.second->modify(&newState);
-        auto pinConfigs = newPort->getPinConfigs();
-        for (auto& pin : pinConfigs) {
-          pin.tx() = phy::TxSettings();
+      for (auto& portMap : std::as_const(*newState->getPorts())) {
+        for (auto& port : std::as_const(*portMap.second)) {
+          auto newPort = port.second->modify(&newState);
+          auto pinConfigs = newPort->getPinConfigs();
+          for (auto& pin : pinConfigs) {
+            pin.tx() = phy::TxSettings();
+          }
+          newPort->resetPinConfigs(pinConfigs);
         }
-        newPort->resetPinConfigs(pinConfigs);
       }
       return newState;
     });

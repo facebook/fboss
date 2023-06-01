@@ -14,7 +14,6 @@
 
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
-#include "fboss/agent/hw/sai/tracer/VirtualRouterApiTracer.h"
 
 using folly::to;
 

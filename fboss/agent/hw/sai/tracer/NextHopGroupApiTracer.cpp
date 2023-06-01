@@ -13,7 +13,6 @@
 #include <utility>
 
 #include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
-#include "fboss/agent/hw/sai/tracer/NextHopGroupApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
 
 using folly::to;

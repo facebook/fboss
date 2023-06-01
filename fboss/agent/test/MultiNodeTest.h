@@ -36,18 +36,18 @@ class MultiNodeTest : public AgentTest {
       AddrT addr,
       InterfaceID intfID) const {
     auto state = sw()->getState();
-    auto vlan = state->getInterfaces()->getInterfaceIf(intfID)->getVlanID();
+    auto vlan = state->getInterfaces()->getNodeIf(intfID)->getVlanID();
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
       auto entry = sw()->getState()
                        ->getVlans()
-                       ->getVlanIf(vlan)
+                       ->getNodeIf(vlan)
                        ->getNdpTable()
                        ->getEntryIf(addr);
       return {entry->getMac(), entry->getPort()};
     } else {
       auto entry = sw()->getState()
                        ->getVlans()
-                       ->getVlanIf(vlan)
+                       ->getNodeIf(vlan)
                        ->getArpTable()
                        ->getEntryIf(addr);
       return {entry->getMac(), entry->getPort()};
@@ -56,8 +56,7 @@ class MultiNodeTest : public AgentTest {
 
   template <typename AddrT>
   void disableTTLDecrementsForRoute(RoutePrefix<AddrT> prefix) const {
-    auto fibContainer =
-        sw()->getState()->getFibs()->getFibContainer(RouterID(0));
+    auto fibContainer = sw()->getState()->getFibs()->getNode(RouterID(0));
     auto fib = fibContainer->template getFib<AddrT>();
     auto defaultRoute = fib->getRouteIf(prefix);
     auto nhSet = defaultRoute->getForwardInfo().getNextHopSet();

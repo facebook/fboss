@@ -25,7 +25,8 @@ class FbDomFpga {
     MINIPACK_16O = 0xA5000000,
   };
 
-  explicit FbDomFpga(std::unique_ptr<FpgaMemoryRegion> io) : io_(move(io)) {}
+  explicit FbDomFpga(std::unique_ptr<FpgaMemoryRegion> io)
+      : io_(std::move(io)) {}
 
   uint32_t read(uint32_t offset) const {
     return io_->read(offset);

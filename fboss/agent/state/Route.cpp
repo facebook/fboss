@@ -160,19 +160,6 @@ bool Route<AddrT>::isSame(const Route<AddrT>* rt) const {
 }
 
 template <typename AddrT>
-std::shared_ptr<Route<AddrT>> Route<AddrT>::fromFollyDynamic(
-    const folly::dynamic& json) {
-  auto fields = RouteFields<AddrT>::fromFollyDynamic(json);
-  return std::make_shared<Route<AddrT>>(fields.toThrift());
-}
-
-template <typename AddrT>
-folly::dynamic Route<AddrT>::toFollyDynamic() const {
-  auto fields = RouteFields<AddrT>::fromThrift(this->toThrift());
-  return fields.toFollyDynamic();
-}
-
-template <typename AddrT>
 std::shared_ptr<Route<AddrT>> Route<AddrT>::cloneForReresolve() const {
   auto unresolvedRoute = this->clone();
 

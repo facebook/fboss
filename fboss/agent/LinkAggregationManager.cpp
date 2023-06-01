@@ -10,11 +10,13 @@
 #include "fboss/agent/LinkAggregationManager.h"
 
 #include "fboss/agent/AggregatePortStats.h"
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/LacpController.h"
 #include "fboss/agent/LacpTypes-defs.h"
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/state/AggregatePortMap.h"
@@ -73,15 +75,14 @@ ProgramForwardingAndPartnerState::ProgramForwardingAndPartnerState(
 std::shared_ptr<SwitchState> ProgramForwardingAndPartnerState::operator()(
     const std::shared_ptr<SwitchState>& state) {
   std::shared_ptr<SwitchState> nextState(state);
-  auto* aggPort = nextState->getAggregatePorts()
-                      ->getAggregatePortIf(aggregatePortID_)
-                      .get();
+  auto* aggPort =
+      nextState->getAggregatePorts()->getNodeIf(aggregatePortID_).get();
   if (!aggPort) {
     return nullptr;
   }
 
   XLOG(DBG2) << "Updating " << aggPort->getName() << ": ForwardingState["
-             << nextState->getPorts()->getPort(portID_)->getName() << "] --> "
+             << nextState->getPorts()->getNodeIf(portID_)->getName() << "] --> "
              << (forwardingState_ == AggregatePort::Forwarding::ENABLED
                      ? "ENABLED"
                      : "DISABLED")
@@ -327,9 +328,11 @@ bool LinkAggregationManager::transmit(LACPDU lacpdu, PortID portID) {
 
   folly::io::RWPrivateCursor writer(pkt->buf());
 
-  folly::MacAddress cpuMac = sw_->getPlatform()->getLocalMac();
+  auto switchId = sw_->getScopeResolver()->scope(portID).switchId();
+  MacAddress cpuMac =
+      sw_->getHwAsicTable()->getHwAsicIf(switchId)->getAsicMac();
 
-  auto port = sw_->getState()->getPorts()->getPortIf(portID);
+  auto port = sw_->getState()->getPorts()->getNodeIf(portID);
   CHECK(port);
 
   TxPacket::writeEthHeader(

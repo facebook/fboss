@@ -24,6 +24,10 @@ using std::shared_ptr;
 namespace {
 constexpr auto kNumCPUQueues = 48;
 
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+
 cfg::Range getRange(uint32_t minimum, uint32_t maximum) {
   cfg::Range range;
   range.minimum() = minimum;
@@ -132,7 +136,7 @@ boost::container::flat_map<int, shared_ptr<PortQueue>> getCPUQueuesMap() {
   return queueMap;
 }
 
-shared_ptr<ControlPlane> generateControlPlane() {
+shared_ptr<MultiControlPlane> generateControlPlane() {
   shared_ptr<ControlPlane> controlPlane = make_shared<ControlPlane>();
 
   auto cpuQueues = genCPUQueues();
@@ -157,7 +161,9 @@ shared_ptr<ControlPlane> generateControlPlane() {
   std::optional<std::string> qosPolicy("qp1");
   controlPlane->resetQosPolicy(qosPolicy);
 
-  return controlPlane;
+  auto multiSwitchControlPlane = std::make_shared<MultiControlPlane>();
+  multiSwitchControlPlane->addNode(scope().matcherString(), controlPlane);
+  return multiSwitchControlPlane;
 }
 
 shared_ptr<SwitchState> genCPUSwitchState() {
@@ -171,7 +177,9 @@ shared_ptr<SwitchState> genCPUSwitchState() {
     cpuQueues.push_back(queue);
   }
   cpu->resetQueues(cpuQueues);
-  stateV0->resetControlPlane(cpu);
+  auto multiSwitchControlPlane = make_shared<MultiControlPlane>();
+  multiSwitchControlPlane->addNode(scope().matcherString(), cpu);
+  stateV0->resetControlPlane(multiSwitchControlPlane);
 
   return stateV0;
 }
@@ -182,9 +190,9 @@ TEST(ControlPlane, serialize) {
   // to folly dynamic
   auto serialized = controlPlane->toThrift();
   // back to ControlPlane object
-  auto controlPlaneBack = std::make_shared<ControlPlane>(serialized);
-  EXPECT_TRUE(*controlPlane == *controlPlaneBack);
-  validateNodeSerialization(*controlPlane);
+  auto controlPlaneBack = std::make_shared<MultiControlPlane>(serialized);
+  EXPECT_EQ(controlPlane->toThrift(), controlPlaneBack->toThrift());
+  validateThriftMapMapSerialization(*controlPlane);
 }
 
 TEST(ControlPlane, modify) {
@@ -202,7 +210,7 @@ TEST(ControlPlane, modify) {
   auto modifiedCP = controlPlane->modify(&state);
   EXPECT_NE(controlPlane.get(), modifiedCP);
   EXPECT_TRUE(*controlPlane == *modifiedCP);
-  validateNodeSerialization(*controlPlane);
+  validateThriftMapMapSerialization(*controlPlane);
 }
 
 TEST(ControlPlane, applyDefaultConfig) {
@@ -216,22 +224,24 @@ TEST(ControlPlane, applyDefaultConfig) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
 
-  auto newQueues = stateV1->getControlPlane()->getQueues();
-  // it should always generate all queues
-  EXPECT_EQ(newQueues->size(), kNumCPUQueues);
-  auto cpu4QueuesMap = getCPUQueuesMap();
-  for (const auto& queue : std::as_const(*newQueues)) {
-    if (cpu4QueuesMap.find(queue->getID()) == cpu4QueuesMap.end()) {
-      // if it's not one of those 4 queues, it should have default value
-      auto unconfiguredQueue = std::make_shared<PortQueue>(queue->getID());
-      unconfiguredQueue->setStreamType(cfg::StreamType::MULTICAST);
-      EXPECT_TRUE(*unconfiguredQueue == *queue);
-    } else {
-      auto& cpuQueue = cpu4QueuesMap.find(queue->getID())->second;
-      EXPECT_TRUE(*cpuQueue == *queue);
+  for (const auto& entry : std::as_const(*stateV1->getControlPlane())) {
+    auto newQueues = entry.second->getQueues();
+    // it should always generate all queues
+    EXPECT_EQ(newQueues->size(), kNumCPUQueues);
+    auto cpu4QueuesMap = getCPUQueuesMap();
+    for (const auto& queue : std::as_const(*newQueues)) {
+      if (cpu4QueuesMap.find(queue->getID()) == cpu4QueuesMap.end()) {
+        // if it's not one of those 4 queues, it should have default value
+        auto unconfiguredQueue = std::make_shared<PortQueue>(queue->getID());
+        unconfiguredQueue->setStreamType(cfg::StreamType::MULTICAST);
+        EXPECT_TRUE(*unconfiguredQueue == *queue);
+      } else {
+        auto& cpuQueue = cpu4QueuesMap.find(queue->getID())->second;
+        EXPECT_TRUE(*cpuQueue == *queue);
+      }
     }
   }
-  validateNodeSerialization(*stateV1->getControlPlane());
+  validateThriftMapMapSerialization(*stateV1->getControlPlane());
 }
 
 TEST(ControlPlane, applySameConfig) {
@@ -244,7 +254,7 @@ TEST(ControlPlane, applySameConfig) {
   *config.cpuQueues() = cfgCpuQueues;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
-  validateNodeSerialization(*stateV1->getControlPlane());
+  validateThriftMapMapSerialization(*stateV1->getControlPlane());
 
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_EQ(nullptr, stateV2);
@@ -260,7 +270,7 @@ TEST(ControlPlane, resetLowPrioQueue) {
   *config.cpuQueues() = cfgCpuQueues;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
-  validateNodeSerialization(*stateV1->getControlPlane());
+  validateThriftMapMapSerialization(*stateV1->getControlPlane());
 
   auto newCfgCpuQueues = getConfigCPUQueues();
   newCfgCpuQueues.erase(newCfgCpuQueues.begin() + 3);
@@ -268,24 +278,26 @@ TEST(ControlPlane, resetLowPrioQueue) {
   *newConfig.cpuQueues() = newCfgCpuQueues;
   auto stateV2 = publishAndApplyConfig(stateV1, &newConfig, platform.get());
   EXPECT_NE(nullptr, stateV2);
-  validateNodeSerialization(*stateV2->getControlPlane());
+  validateThriftMapMapSerialization(*stateV2->getControlPlane());
 
-  auto newQueues = stateV2->getControlPlane()->getQueues();
-  // it should always generate all queues
-  EXPECT_EQ(newQueues->size(), kNumCPUQueues);
-  auto cpu4QueuesMap = getCPUQueuesMap();
-  // low-prio has been removed
-  cpu4QueuesMap.erase(cpu4QueuesMap.find(0));
-  for (const auto& queue : std::as_const(*newQueues)) {
-    if (cpu4QueuesMap.find(queue->getID()) == cpu4QueuesMap.end()) {
-      // if it's not one of those 4 queues, it should have default value
-      // also since low-prio has been removed, it should be checked in here.
-      auto unconfiguredQueue = std::make_shared<PortQueue>(queue->getID());
-      unconfiguredQueue->setStreamType(cfg::StreamType::MULTICAST);
-      EXPECT_TRUE(*unconfiguredQueue == *queue);
-    } else {
-      auto& cpuQueue = cpu4QueuesMap.find(queue->getID())->second;
-      EXPECT_TRUE(*cpuQueue == *queue);
+  for (const auto& entry : std::as_const(*stateV2->getControlPlane())) {
+    auto newQueues = entry.second->getQueues();
+    // it should always generate all queues
+    EXPECT_EQ(newQueues->size(), kNumCPUQueues);
+    auto cpu4QueuesMap = getCPUQueuesMap();
+    // low-prio has been removed
+    cpu4QueuesMap.erase(cpu4QueuesMap.find(0));
+    for (const auto& queue : std::as_const(*newQueues)) {
+      if (cpu4QueuesMap.find(queue->getID()) == cpu4QueuesMap.end()) {
+        // if it's not one of those 4 queues, it should have default value
+        // also since low-prio has been removed, it should be checked in here.
+        auto unconfiguredQueue = std::make_shared<PortQueue>(queue->getID());
+        unconfiguredQueue->setStreamType(cfg::StreamType::MULTICAST);
+        EXPECT_TRUE(*unconfiguredQueue == *queue);
+      } else {
+        auto& cpuQueue = cpu4QueuesMap.find(queue->getID())->second;
+        EXPECT_TRUE(*cpuQueue == *queue);
+      }
     }
   }
 }
@@ -300,7 +312,7 @@ TEST(ControlPlane, changeLowPrioQueue) {
   *config.cpuQueues() = cfgCpuQueues;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
-  validateNodeSerialization(*stateV1->getControlPlane());
+  validateThriftMapMapSerialization(*stateV1->getControlPlane());
 
   auto newCfgCpuQueues = getConfigCPUQueues();
   // change low queue pps from 100 to 1000. the last one is low queue
@@ -312,24 +324,27 @@ TEST(ControlPlane, changeLowPrioQueue) {
   *newConfig.cpuQueues() = newCfgCpuQueues;
   auto stateV2 = publishAndApplyConfig(stateV1, &newConfig, platform.get());
   EXPECT_NE(nullptr, stateV2);
-  validateNodeSerialization(*stateV2->getControlPlane());
+  validateThriftMapMapSerialization(*stateV2->getControlPlane());
 
-  auto newQueues = stateV2->getControlPlane()->getQueues();
-  // it should always generate all queues
-  EXPECT_EQ(newQueues->size(), kNumCPUQueues);
-  auto cpu4QueuesMap = getCPUQueuesMap();
-  // low-prio has been changed(pps from 100->1000)
-  cpu4QueuesMap.find(0)->second->setPortQueueRate(getPortQueueRatePps(0, 1000));
+  for (const auto& entry : std::as_const(*stateV2->getControlPlane())) {
+    auto newQueues = entry.second->getQueues();
+    // it should always generate all queues
+    EXPECT_EQ(newQueues->size(), kNumCPUQueues);
+    auto cpu4QueuesMap = getCPUQueuesMap();
+    // low-prio has been changed(pps from 100->1000)
+    cpu4QueuesMap.find(0)->second->setPortQueueRate(
+        getPortQueueRatePps(0, 1000));
 
-  for (const auto& queue : std::as_const(*newQueues)) {
-    if (cpu4QueuesMap.find(queue->getID()) == cpu4QueuesMap.end()) {
-      // if it's not one of those 4 queues, it should have default value
-      auto unconfiguredQueue = std::make_shared<PortQueue>(queue->getID());
-      unconfiguredQueue->setStreamType(cfg::StreamType::MULTICAST);
-      EXPECT_TRUE(*unconfiguredQueue == *queue);
-    } else {
-      auto& cpuQueue = cpu4QueuesMap.find(queue->getID())->second;
-      EXPECT_TRUE(*cpuQueue == *queue);
+    for (const auto& queue : std::as_const(*newQueues)) {
+      if (cpu4QueuesMap.find(queue->getID()) == cpu4QueuesMap.end()) {
+        // if it's not one of those 4 queues, it should have default value
+        auto unconfiguredQueue = std::make_shared<PortQueue>(queue->getID());
+        unconfiguredQueue->setStreamType(cfg::StreamType::MULTICAST);
+        EXPECT_TRUE(*unconfiguredQueue == *queue);
+      } else {
+        auto& cpuQueue = cpu4QueuesMap.find(queue->getID())->second;
+        EXPECT_TRUE(*cpuQueue == *queue);
+      }
     }
   }
 }
@@ -355,13 +370,15 @@ TEST(ControlPlane, testRxReasonToQueueBackwardsCompat) {
       {cfg::PacketRxReason::ARP, 9}};
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(stateV1, nullptr);
-  validateNodeSerialization(*stateV1->getControlPlane());
+  validateThriftMapMapSerialization(*stateV1->getControlPlane());
 
-  const auto& reasonToQueue1 = stateV1->getControlPlane()->getRxReasonToQueue();
-  EXPECT_EQ(reasonToQueue1->size(), 1);
-  const auto& entry1 = reasonToQueue1->ref(0);
-  EXPECT_EQ(
-      entry1->cref<switch_config_tags::rxReason>()->toThrift(),
-      cfg::PacketRxReason::ARP);
-  EXPECT_EQ(entry1->cref<switch_config_tags::queueId>()->toThrift(), 9);
+  for (const auto& entry : std::as_const(*stateV1->getControlPlane())) {
+    const auto& reasonToQueue1 = entry.second->getRxReasonToQueue();
+    EXPECT_EQ(reasonToQueue1->size(), 1);
+    const auto& entry1 = reasonToQueue1->ref(0);
+    EXPECT_EQ(
+        entry1->cref<switch_config_tags::rxReason>()->toThrift(),
+        cfg::PacketRxReason::ARP);
+    EXPECT_EQ(entry1->cref<switch_config_tags::queueId>()->toThrift(), 9);
+  }
 }

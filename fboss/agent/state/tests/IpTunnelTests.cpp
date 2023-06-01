@@ -7,6 +7,12 @@
 
 using namespace facebook::fboss;
 
+namespace {
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(10)}};
+}
+} // namespace
+
 std::shared_ptr<IpTunnel> makeTunnel(const std::string& tunnelId = "tunnel0") {
   auto tunnel = std::make_shared<IpTunnel>(tunnelId);
   tunnel->setType(cfg::TunnelType::IP_IN_IP);
@@ -34,17 +40,18 @@ TEST(Tunnel, SerDeserSwitchState) {
 
   auto tunnel0 = makeTunnel("tunnel0");
   auto tunnel1 = makeTunnel("tunnel1");
+  auto tunnels = state->getTunnels()->modify(&state);
 
-  state->addTunnel(tunnel0);
-  state->addTunnel(tunnel1);
+  tunnels->addNode(tunnel0, scope());
+  tunnels->addNode(tunnel1, scope());
 
   auto serialized = state->toThrift();
   auto stateBack = SwitchState::fromThrift(serialized);
 
   for (auto tunnelID : {"tunnel0", "tunnel1"}) {
     EXPECT_TRUE(
-        *state->getTunnels()->getTunnel(tunnelID) ==
-        *stateBack->getTunnels()->getTunnel(tunnelID));
+        *state->getTunnels()->getNode(tunnelID) ==
+        *stateBack->getTunnels()->getNode(tunnelID));
   }
 }
 
@@ -54,9 +61,10 @@ TEST(Tunnel, AddRemove) {
   auto tunnel0 = makeTunnel("tunnel0");
   auto tunnel1 = makeTunnel("tunnel1");
 
-  state->addTunnel(tunnel0);
-  state->addTunnel(tunnel1);
-  state->getTunnels()->removeTunnel("tunnel0");
-  EXPECT_EQ(state->getTunnels()->getTunnelIf("tunnel0"), nullptr);
-  EXPECT_NE(state->getTunnels()->getTunnelIf("tunnel1"), nullptr);
+  auto tunnels = state->getTunnels()->modify(&state);
+  tunnels->addNode(tunnel0, scope());
+  tunnels->addNode(tunnel1, scope());
+  tunnels->removeNode("tunnel0");
+  EXPECT_EQ(state->getTunnels()->getNodeIf("tunnel0"), nullptr);
+  EXPECT_NE(state->getTunnels()->getNodeIf("tunnel1"), nullptr);
 }

@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
@@ -268,7 +269,9 @@ void LinkTest::createL3DataplaneFlood(
       sw()->getState(), sw()->getPlatform()->getLocalMac());
   programDefaultRoute(ecmpPorts, ecmp6);
   disableTTLDecrements(ecmpPorts);
-  auto vlanID = sw()->getState()->getVlans()->cbegin()->second->getID();
+  auto vlanID = util::getFirstMap(sw()->getState()->getVlans())
+                    ->cbegin()
+                    ->second->getID();
   utility::pumpTraffic(
       true, sw()->getHw(), sw()->getPlatform()->getLocalMac(), vlanID);
   // TODO: Assert that traffic reached a certain rate
@@ -298,18 +301,22 @@ bool LinkTest::checkReachabilityOnAllCabledPorts() const {
 }
 
 PortID LinkTest::getPortID(const std::string& portName) const {
-  for (auto port : std::as_const(*sw()->getState()->getPorts())) {
-    if (port.second->getName() == portName) {
-      return port.second->getID();
+  for (auto portMap : std::as_const(*sw()->getState()->getPorts())) {
+    for (auto port : std::as_const(*portMap.second)) {
+      if (port.second->getName() == portName) {
+        return port.second->getID();
+      }
     }
   }
   throw FbossError("No port named: ", portName);
 }
 
 std::string LinkTest::getPortName(PortID portId) const {
-  for (auto port : std::as_const(*sw()->getState()->getPorts())) {
-    if (port.second->getID() == portId) {
-      return port.second->getName();
+  for (auto portMap : std::as_const(*sw()->getState()->getPorts())) {
+    for (auto port : std::as_const(*portMap.second)) {
+      if (port.second->getID() == portId) {
+        return port.second->getName();
+      }
     }
   }
   throw FbossError("No port with ID: ", portId);
@@ -459,9 +466,21 @@ void LinkTest::logLinkDbgMessage(std::vector<PortID>& portIDs) const {
   }
 }
 
-int linkTestMain(int argc, char** argv, PlatformInitFn initPlatformFn) {
+void LinkTest::setLinkState(bool enable, std::vector<PortID>& portIds) {
+  for (const auto& port : portIds) {
+    setPortStatus(port, enable);
+  }
+  EXPECT_NO_THROW(
+      waitForLinkStatus(portIds, enable, 60, std::chrono::milliseconds(1000)););
+}
+
+int linkTestMain(
+    int argc,
+    char** argv,
+    PlatformInitFn initPlatformFn,
+    std::optional<cfg::StreamType> streamType) {
   ::testing::InitGoogleTest(&argc, argv);
-  initAgentTest(argc, argv, initPlatformFn);
+  initAgentTest(argc, argv, initPlatformFn, streamType);
   return RUN_ALL_TESTS();
 }
 

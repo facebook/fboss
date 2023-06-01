@@ -112,7 +112,9 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
 
   cfg::SwitchConfig initialConfig() const override {
     return utility::onePortPerInterfaceConfig(
-        getHwSwitch(), getPortsForSampling(), getAsic()->desiredLoopbackMode());
+        getHwSwitch(),
+        getPortsForSampling(),
+        getAsic()->desiredLoopbackModes());
   }
 
   HwSwitchEnsemble::Features featuresDesired() const override {
@@ -155,8 +157,8 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
   void resolveMirror() {
     auto mac = utility::getFirstInterfaceMac(getProgrammedState());
     auto state = getProgrammedState()->clone();
-    auto mirrors = state->getMirrors()->clone();
-    auto mirror = mirrors->getMirrorIf("mirror")->clone();
+    auto mirrors = state->getMirrors()->modify(&state);
+    auto mirror = mirrors->getNodeIf("mirror")->clone();
     ASSERT_NE(mirror, nullptr);
 
     auto ip = mirror->getDestinationIp().value();
@@ -177,8 +179,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     }
 
     mirror->setEgressPort(getPortsForSampling()[0]);
-    mirrors->updateNode(mirror);
-    state->resetMirrors(mirrors);
+    mirrors->updateNode(mirror, scopeResolver().scope(mirror));
     applyNewState(state);
   }
 

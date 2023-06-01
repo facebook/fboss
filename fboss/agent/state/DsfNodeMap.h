@@ -29,15 +29,9 @@ class DsfNodeMap : public ThriftMapNode<DsfNodeMap, DsfNodeMapTraits> {
  public:
   using Traits = DsfNodeMapTraits;
   using BaseT = ThriftMapNode<DsfNodeMap, DsfNodeMapTraits>;
-  using BaseT::modify;
 
-  DsfNodeMap() {}
-  virtual ~DsfNodeMap() {}
-
-  DsfNodeMap* modify(std::shared_ptr<SwitchState>* state);
-  std::shared_ptr<DsfNode> getDsfNodeIf(SwitchID switchId) const;
-
-  void addDsfNode(const std::shared_ptr<DsfNode>& dsfNode);
+  DsfNodeMap() = default;
+  virtual ~DsfNodeMap() = default;
 
  private:
   // Inherit the constructors required for clone()
@@ -45,29 +39,29 @@ class DsfNodeMap : public ThriftMapNode<DsfNodeMap, DsfNodeMapTraits> {
   friend class CloneAllocator;
 };
 
-using MultiDsfNodeMapTypeClass = apache::thrift::type_class::
+using MultiSwitchDsfNodeMapTypeClass = apache::thrift::type_class::
     map<apache::thrift::type_class::string, DsfNodeMapTypeClass>;
-using MultiDsfNodeMapThriftType = std::map<std::string, DsfNodeMapThriftType>;
+using MultiSwitchDsfNodeMapThriftType =
+    std::map<std::string, DsfNodeMapThriftType>;
 
-class MultiDsfNodeMap;
+class MultiSwitchDsfNodeMap;
 
-using MultiDsfNodeMapTraits = ThriftMultiMapNodeTraits<
-    MultiDsfNodeMap,
-    MultiDsfNodeMapTypeClass,
-    MultiDsfNodeMapThriftType,
+using MultiSwitchDsfNodeMapTraits = ThriftMultiSwitchMapNodeTraits<
+    MultiSwitchDsfNodeMap,
+    MultiSwitchDsfNodeMapTypeClass,
+    MultiSwitchDsfNodeMapThriftType,
     DsfNodeMap>;
 
 class HwSwitchMatcher;
 
-class MultiDsfNodeMap
-    : public ThriftMapNode<MultiDsfNodeMap, MultiDsfNodeMapTraits> {
+class MultiSwitchDsfNodeMap : public ThriftMultiSwitchMapNode<
+                                  MultiSwitchDsfNodeMap,
+                                  MultiSwitchDsfNodeMapTraits> {
  public:
-  using Traits = MultiDsfNodeMapTraits;
-  using BaseT = ThriftMapNode<MultiDsfNodeMap, MultiDsfNodeMapTraits>;
-  using BaseT::modify;
-
-  MultiDsfNodeMap() {}
-  virtual ~MultiDsfNodeMap() {}
+  using Traits = MultiSwitchDsfNodeMapTraits;
+  using BaseT = ThriftMultiSwitchMapNode<
+      MultiSwitchDsfNodeMap,
+      MultiSwitchDsfNodeMapTraits>;
 
  private:
   // Inherit the constructors required for clone()

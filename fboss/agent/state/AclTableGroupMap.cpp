@@ -41,23 +41,23 @@ std::shared_ptr<AclMap> AclTableGroupMap::getDefaultAclTableGroupMap(
   }
 }
 
-std::shared_ptr<AclMap> MultiAclTableGroupMap::getAclMap() const {
-  auto iter = find(HwSwitchMatcher::defaultHwSwitchMatcherKey());
-  if (iter == cend()) {
+std::shared_ptr<AclMap> MultiSwitchAclTableGroupMap::getAclMap() const {
+  auto node = getMapNodeIf(HwSwitchMatcher::defaultHwSwitchMatcher());
+  if (!node) {
     return nullptr;
   }
   // THRIFT_COPY
-  return AclTableGroupMap::getDefaultAclTableGroupMap(iter->second->toThrift());
+  return AclTableGroupMap::getDefaultAclTableGroupMap(node->toThrift());
 }
 
-std::shared_ptr<MultiAclTableGroupMap> MultiAclTableGroupMap::fromAclMap(
+std::shared_ptr<MultiSwitchAclTableGroupMap>
+MultiSwitchAclTableGroupMap::fromAclMap(
     const std::map<std::string, state::AclEntryFields>& aclMap) {
   auto aclTableGroupMap =
       AclTableGroupMap::createDefaultAclTableGroupMapFromThrift(aclMap);
-  auto multiAclTableGroupMap = std::make_shared<MultiAclTableGroupMap>();
-  multiAclTableGroupMap->addNode(
-      HwSwitchMatcher::defaultHwSwitchMatcherKey(),
-      std::move(aclTableGroupMap));
+  auto multiAclTableGroupMap = std::make_shared<MultiSwitchAclTableGroupMap>();
+  multiAclTableGroupMap->addMapNode(
+      std::move(aclTableGroupMap), HwSwitchMatcher::defaultHwSwitchMatcher());
   return multiAclTableGroupMap;
 }
 

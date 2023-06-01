@@ -82,6 +82,8 @@ class PlatformMapping {
     return platformPorts_;
   }
 
+  const cfg::PlatformPortEntry& getPlatformPort(int32_t portId) const;
+
   const std::optional<phy::PortProfileConfig> getPortProfileConfig(
       PlatformPortProfileConfigMatcher matcher) const;
 
@@ -100,6 +102,10 @@ class PlatformMapping {
 
   std::set<uint8_t> getTransceiverHostLanes(
       PlatformPortProfileConfigMatcher matcher) const;
+
+  int getTransceiverIdFromSwPort(PortID swPort) const;
+
+  std::vector<PortID> getSwPortListFromTransceiverId(int tcvrId) const;
 
   const std::map<std::string, phy::DataPlanePhyChip>& getChips() const {
     return chips_;

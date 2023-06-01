@@ -38,7 +38,7 @@ TEST_F(HwPortStressTest, adminStateToggle) {
     auto firstPortId = PortID(masterLogicalPortIds()[0]);
     for (auto i = 0; i < 500; ++i) {
       auto newState = getProgrammedState();
-      auto port = newState->getPorts()->getPort(firstPortId);
+      auto port = newState->getPorts()->getNodeIf(firstPortId);
       auto newPort = port->modify(&newState);
       auto newAdminState = newPort->isEnabled() ? cfg::PortState::DISABLED
                                                 : cfg::PortState::ENABLED;

@@ -44,6 +44,13 @@ HwSysPortFb303Stats::kOutMacsecPortStatKeys() const {
   return kMacsecOutKeys;
 }
 
+const std::vector<folly::StringPiece>& HwSysPortFb303Stats::kPfcStatKeys()
+    const {
+  // No PFC stats on sys ports
+  static std::vector<folly::StringPiece> kPfcKeys{};
+  return kPfcKeys;
+}
+
 void HwSysPortFb303Stats::updateStats(
     const HwSysPortStats& curPortStats,
     const std::chrono::seconds& retrievedAt) {

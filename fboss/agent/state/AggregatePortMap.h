@@ -48,57 +48,53 @@ class AggregatePortMap
   AggregatePortMap();
   ~AggregatePortMap() override;
 
-  std::shared_ptr<AggregatePort> getAggregatePortIf(AggregatePortID id) const {
-    return getNodeIf(id);
+  std::shared_ptr<AggregatePort> getAggregatePortForPort(PortID port) const {
+    return getAggregatePortForPortImpl(port);
   }
 
-  std::shared_ptr<AggregatePort> getAggregatePort(AggregatePortID id) const {
-    return getNode(id);
-  }
-
-  static int16_t getNodeThriftKey(const std::shared_ptr<AggregatePort>& node);
-
+ private:
   /* This method will iterate over every member port in every aggregate port,
    * so it is a quadratic operation. If it turns out to be a bottleneck, we can
    * maintain an index to speed it up.
    */
-  std::shared_ptr<AggregatePort> getAggregatePortIf(PortID port) const;
+  std::shared_ptr<AggregatePort> getAggregatePortForPortImpl(PortID port) const;
 
-  void updateAggregatePort(const std::shared_ptr<AggregatePort>& aggPort);
-
-  AggregatePortMap* modify(std::shared_ptr<SwitchState>* state);
-
- private:
   // Inherit the constructors required for clone()
   using Base::Base;
   friend class CloneAllocator;
 };
 
-using MultiAggregatePortMapTypeClass = apache::thrift::type_class::
+using MultiSwitchAggregatePortMapTypeClass = apache::thrift::type_class::
     map<apache::thrift::type_class::string, AggregatePortMapTypeClass>;
-using MultiAggregatePortMapThriftType =
+using MultiSwitchAggregatePortMapThriftType =
     std::map<std::string, AggregatePortMapThriftType>;
 
-class MultiAggregatePortMap;
+class MultiSwitchAggregatePortMap;
 
-using MultiAggregatePortMapTraits = ThriftMultiMapNodeTraits<
-    MultiAggregatePortMap,
-    MultiAggregatePortMapTypeClass,
-    MultiAggregatePortMapThriftType,
+using MultiSwitchAggregatePortMapTraits = ThriftMultiSwitchMapNodeTraits<
+    MultiSwitchAggregatePortMap,
+    MultiSwitchAggregatePortMapTypeClass,
+    MultiSwitchAggregatePortMapThriftType,
     AggregatePortMap>;
 
 class HwSwitchMatcher;
 
-class MultiAggregatePortMap
-    : public ThriftMapNode<MultiAggregatePortMap, MultiAggregatePortMapTraits> {
+class MultiSwitchAggregatePortMap : public ThriftMultiSwitchMapNode<
+                                        MultiSwitchAggregatePortMap,
+                                        MultiSwitchAggregatePortMapTraits> {
  public:
-  using Traits = MultiAggregatePortMapTraits;
-  using BaseT =
-      ThriftMapNode<MultiAggregatePortMap, MultiAggregatePortMapTraits>;
+  using Traits = MultiSwitchAggregatePortMapTraits;
+  using BaseT = ThriftMultiSwitchMapNode<
+      MultiSwitchAggregatePortMap,
+      MultiSwitchAggregatePortMapTraits>;
   using BaseT::modify;
 
-  MultiAggregatePortMap() {}
-  virtual ~MultiAggregatePortMap() {}
+  MultiSwitchAggregatePortMap() {}
+  virtual ~MultiSwitchAggregatePortMap() {}
+
+  MultiSwitchAggregatePortMap* modify(std::shared_ptr<SwitchState>* state);
+
+  std::shared_ptr<AggregatePort> getAggregatePortForPort(PortID port) const;
 
  private:
   // Inherit the constructors required for clone()

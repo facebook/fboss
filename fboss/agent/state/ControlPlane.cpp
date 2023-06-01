@@ -30,19 +30,6 @@ constexpr auto kQosPolicy = "defaultQosPolicy";
 
 namespace facebook::fboss {
 
-ControlPlane* ControlPlane::modify(std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
-  }
-
-  SwitchState::modify(state);
-  auto newControlPlane = clone();
-  auto* ptr = newControlPlane.get();
-  (*state)->resetControlPlane(std::move(newControlPlane));
-  return ptr;
-}
-
 cfg::PacketRxReasonToQueue ControlPlane::makeRxReasonToQueueEntry(
     cfg::PacketRxReason reason,
     uint16_t queueId) {
@@ -58,6 +45,19 @@ std::shared_ptr<ControlPlane> MultiControlPlane::getControlPlane() const {
     return nullptr;
   }
   return iter->second;
+}
+
+MultiControlPlane* MultiControlPlane::modify(
+    std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  auto newMultiControlPlane = this->clone();
+  auto* ptr = newMultiControlPlane.get();
+  (*state)->resetControlPlane(std::move(newMultiControlPlane));
+  return ptr;
 }
 
 template class ThriftStructNode<ControlPlane, state::ControlPlaneFields>;

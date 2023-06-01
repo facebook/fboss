@@ -40,7 +40,7 @@ class BspSystemContainer {
   const BspPimContainer* getPimContainerFromPimID(int pimID) const;
   const BspPimContainer* getPimContainerFromTcvrID(int tcvrID) const;
   BspDeviceMdioController* getMdioController(int pimID, int controllerID) const;
-  LedIO* getLedController(int tcvrID) const;
+  std::map<uint32_t, LedIO*> getLedController(int tcvrID) const;
   int getNumTransceivers() const;
   int getPimIDFromTcvrID(int tcvrID) const;
   int getNumPims() const;

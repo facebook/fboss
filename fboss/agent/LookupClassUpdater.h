@@ -112,6 +112,7 @@ class LookupClassUpdater : public StateObserver {
 
   template <typename AddrT>
   void updateStateObserverLocalCacheHelper(
+      const std::shared_ptr<SwitchState>& switchState,
       const std::shared_ptr<Vlan>& vlan,
       const std::shared_ptr<Port>& port);
 
@@ -139,6 +140,7 @@ class LookupClassUpdater : public StateObserver {
 
   template <typename AddrT>
   void validateRemovedPortEntries(
+      const std::shared_ptr<SwitchState>& switchState,
       const std::shared_ptr<Vlan>& vlan,
       PortID portID);
 
@@ -268,7 +270,7 @@ class LookupClassUpdater : public StateObserver {
    */
   std::set<std::pair<VlanID, folly::MacAddress>> macAddrsToBlock_;
 
-  friend class VlanTableDeltaCallbackGenerator;
+  friend class NeighborTableDeltaCallbackGenerator;
   bool inited_{false};
 };
 

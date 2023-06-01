@@ -16,6 +16,7 @@ target_link_libraries(pkt
 add_library(hw_mock
   fboss/agent/hw/mock/MockHwSwitch.cpp
   fboss/agent/hw/mock/MockPlatform.cpp
+  fboss/agent/hw/mock/MockPlatformMapping.cpp
   fboss/agent/hw/mock/MockTestHandle.cpp
 )
 
@@ -26,6 +27,3 @@ target_link_libraries(hw_mock
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
-
-
-  

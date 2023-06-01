@@ -13,7 +13,6 @@
 #include <utility>
 
 #include "fboss/agent/hw/sai/api/CounterApi.h"
-#include "fboss/agent/hw/sai/tracer/CounterApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
 #include "folly/Conv.h"
 

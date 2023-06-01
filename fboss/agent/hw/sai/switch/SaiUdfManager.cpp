@@ -44,11 +44,11 @@ SaiUdfMatchTraits::CreateAttributes SaiUdfManager::udfMatchAttr(
   // L2 Match Type - match l3 protocol
   auto l2MatchType = cfgL3MatchTypeToSai(swUdfMatch->getUdfl3PktType());
   auto l2MatchAttr = SaiUdfMatchTraits::Attributes::L2Type{
-      AclEntryFieldU16(std::make_pair(l2MatchType, kMaskDontCare))};
+      AclEntryFieldU16(std::make_pair(l2MatchType, kMaskAny))};
   // L3 Match Type - match l4 protocol
   auto l3MatchType = cfgL4MatchTypeToSai(swUdfMatch->getUdfl4PktType());
-  auto l3MatchAttr = SaiUdfMatchTraits::Attributes::L3Type{
-      AclEntryFieldU8(std::make_pair(l3MatchType, kMaskDontCare))};
+  auto l3MatchAttr = SaiUdfMatchTraits::Attributes::L3Type{AclEntryFieldU8(
+      std::make_pair(l3MatchType, static_cast<uint8_t>(kMaskAny)))};
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   // L4 Dst Port
   auto l4DstPortAttr = SaiUdfMatchTraits::Attributes::L4DstPortType{
@@ -113,7 +113,24 @@ void SaiUdfManager::removeUdfGroup(
                << swUdfGroup->getName() << " and UdfPacketMatcher "
                << udfMatchName;
     // Cleanup UdfMatch pointer to Udf
-    std::erase(udfHandle->udfMatch->udfs, udfHandle.get());
+#ifdef IS_OSS_CPP17
+    auto& udfList = udfHandle->udfMatch->udfs;
+    auto iter = std::find(udfList.begin(), udfList.end(), udfHandle.get());
+    if (iter != udfList.end()) {
+      udfList.erase(iter);
+    } else {
+      throw FbossError(
+          "Cannot find UdfMatch " + udfMatchName +
+          " association with UdfGroup " + swUdfGroup->getName());
+    }
+#else
+    auto erased = std::erase(udfHandle->udfMatch->udfs, udfHandle.get());
+    if (erased != 1) {
+      throw FbossError(
+          "Cannot find UdfMatch " + udfMatchName +
+          " association with UdfGroup " + swUdfGroup->getName());
+    }
+#endif
   }
   udfGroupHandle->udfs.clear();
   udfGroupHandles_.erase(swUdfGroup->getName());
@@ -150,7 +167,7 @@ void SaiUdfManager::removeUdfMatch(
 uint8_t SaiUdfManager::cfgL4MatchTypeToSai(cfg::UdfMatchL4Type cfgType) const {
   switch (cfgType) {
     case cfg::UdfMatchL4Type::UDF_L4_PKT_TYPE_ANY:
-      throw FbossError("Unsupported udf l4 match type any.");
+      return 0;
     case cfg::UdfMatchL4Type::UDF_L4_PKT_TYPE_UDP:
       return static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP);
     case cfg::UdfMatchL4Type::UDF_L4_PKT_TYPE_TCP:
@@ -162,7 +179,7 @@ uint8_t SaiUdfManager::cfgL4MatchTypeToSai(cfg::UdfMatchL4Type cfgType) const {
 uint16_t SaiUdfManager::cfgL3MatchTypeToSai(cfg::UdfMatchL3Type cfgType) const {
   switch (cfgType) {
     case cfg::UdfMatchL3Type::UDF_L3_PKT_TYPE_ANY:
-      throw FbossError("Unsupported udf l3 match type any.");
+      return 0;
     case cfg::UdfMatchL3Type::UDF_L3_PKT_TYPE_IPV4:
       return static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4);
     case cfg::UdfMatchL3Type::UDF_L3_PKT_TYPE_IPV6:
@@ -188,7 +205,13 @@ std::vector<sai_object_id_t> SaiUdfManager::getUdfGroupIds(
     std::vector<std::string> udfGroupIds) const {
   std::vector<sai_object_id_t> udfGroupSaiIds;
   for (const auto& udfGroupName : udfGroupIds) {
-    udfGroupHandles_.at(udfGroupName)->udfGroup->adapterKey();
+    if (udfGroupHandles_.find(udfGroupName) != udfGroupHandles_.end()) {
+      udfGroupSaiIds.push_back(
+          udfGroupHandles_.at(udfGroupName)->udfGroup->adapterKey());
+    } else {
+      throw FbossError(
+          "Unable to find SaiUdfGroupId for UdfGroup " + udfGroupName);
+    }
   }
   return udfGroupSaiIds;
 }

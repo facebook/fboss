@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 namespace facebook::fboss::utility {
@@ -19,6 +20,7 @@ class HwTransceiverUtils {
  public:
   static void verifyTransceiverSettings(
       const TcvrState& tcvrState,
+      const std::string& portName,
       cfg::PortProfileID profile);
 
   // T114627923 Because some old firmware might not enable all capabilities
@@ -29,9 +31,16 @@ class HwTransceiverUtils {
       std::optional<DiagsCapability> diagsCapability,
       bool skipCheckingIndividualCapability = true);
 
+  static void verifyPortNameToLaneMap(
+      const std::vector<PortID>& portIDs,
+      cfg::PortProfileID profile,
+      const PlatformMapping* platformMapping,
+      std::map<int32_t, TransceiverInfo>& tcvrInfo);
+
  private:
   static void verifyOpticsSettings(
       const TcvrState& tcvrState,
+      const std::string& portName,
       cfg::PortProfileID profile);
   static void verifyMediaInterfaceCompliance(
       const TcvrState& tcvrState,
@@ -59,7 +68,9 @@ class HwTransceiverUtils {
       const TcvrState& tcvrState,
       const std::vector<MediaInterfaceId>& mediaInterfaces);
 
-  static void verifyDataPathEnabled(const TcvrState& tcvrState);
+  static void verifyDataPathEnabled(
+      const TcvrState& tcvrState,
+      const std::string& portName);
 };
 
 } // namespace facebook::fboss::utility

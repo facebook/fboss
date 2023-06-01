@@ -39,7 +39,7 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode(),
+        getAsic()->desiredLoopbackModes(),
         true /*interfaceHasSubnet*/);
     addCpuTrafficPolicy(cfg);
     utility::addCpuQueueConfig(cfg, getAsic());
@@ -181,7 +181,7 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         CHECK(switchId.has_value());
         auto sysPortRange = getProgrammedState()
                                 ->getDsfNodes()
-                                ->getDsfNodeIf(SwitchID(*switchId))
+                                ->getNodeIf(SwitchID(*switchId))
                                 ->getSystemPortRange();
         CHECK(sysPortRange.has_value());
         const SystemPortID sysPortId(kPort.intID() + *sysPortRange->minimum());
@@ -377,7 +377,7 @@ class HwVoqSwitchWithFabricPortsTest : public HwVoqSwitchTest {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode(),
+        getAsic()->desiredLoopbackModes(),
         true, /*interfaceHasSubnet*/
         false, /*setInterfaceMac*/
         utility::kBaseVlanId,
@@ -398,10 +398,13 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, init) {
 
   auto verify = [this]() {
     auto state = getProgrammedState();
-    for (auto& port : std::as_const(*state->getPorts())) {
-      if (port.second->isEnabled()) {
-        EXPECT_EQ(
-            port.second->getLoopbackMode(), getAsic()->desiredLoopbackMode());
+    for (auto& portMap : std::as_const(*state->getPorts())) {
+      for (auto& port : std::as_const(*portMap.second)) {
+        if (port.second->isEnabled()) {
+          EXPECT_EQ(
+              port.second->getLoopbackMode(),
+              getAsic()->getDesiredLoopbackMode(port.second->getPortType()));
+        }
       }
     }
   };
@@ -410,7 +413,7 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, init) {
 
 TEST_F(HwVoqSwitchWithFabricPortsTest, collectStats) {
   auto verify = [this]() {
-    EXPECT_GT(getProgrammedState()->getPorts()->size(), 0);
+    EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
     SwitchStats dummy;
     getHwSwitch()->updateStats(&dummy);
   };
@@ -430,14 +433,14 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, fabricIsolate) {
   auto setup = [=]() { applyNewConfig(initialConfig()); };
 
   auto verify = [=]() {
-    EXPECT_GT(getProgrammedState()->getPorts()->size(), 0);
+    EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
     SwitchStats dummy;
     getHwSwitch()->updateStats(&dummy);
     auto fabricPortId =
         PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
     checkPortFabricReachability(getHwSwitch(), fabricPortId);
     auto newState = getProgrammedState();
-    auto port = newState->getPorts()->getPort(fabricPortId);
+    auto port = newState->getPorts()->getNodeIf(fabricPortId);
     auto newPort = port->modify(&newState);
     newPort->setPortDrainState(cfg::PortDrainState::DRAINED);
     applyNewState(newState);
@@ -463,7 +466,7 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricPortSprayWithIsolate) {
     auto fabricPortId =
         PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
     auto newState = getProgrammedState();
-    auto port = newState->getPorts()->getPort(fabricPortId);
+    auto port = newState->getPorts()->getNodeIf(fabricPortId);
     auto newPort = port->modify(&newState);
     newPort->setPortDrainState(cfg::PortDrainState::DRAINED);
     applyNewState(newState);
@@ -646,11 +649,14 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
     auto dsfNodes = curDsfNodes;
     const auto& firstDsfNode = dsfNodes.begin()->second;
     CHECK(firstDsfNode.systemPortRange().has_value());
+    CHECK(firstDsfNode.nodeMac().has_value());
+    folly::MacAddress mac(*firstDsfNode.nodeMac());
     auto asic = HwAsic::makeAsic(
         *firstDsfNode.asicType(),
         cfg::SwitchType::VOQ,
         *firstDsfNode.switchId(),
-        *firstDsfNode.systemPortRange());
+        *firstDsfNode.systemPortRange(),
+        mac);
     auto otherDsfNodeCfg = utility::dsfNodeConfig(*asic, kRemoteSwitchId);
     dsfNodes.insert({*otherDsfNodeCfg.switchId(), otherDsfNodeCfg});
     return dsfNodes;
@@ -659,10 +665,11 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
  protected:
   void addRemoteSysPort(SystemPortID portId) {
     auto newState = getProgrammedState()->clone();
-    auto localPort = newState->getSystemPorts()->cbegin()->second;
+    const auto& localPorts = newState->getSystemPorts()->cbegin()->second;
+    auto localPort = localPorts->cbegin()->second;
     auto remoteSystemPorts =
         newState->getRemoteSystemPorts()->modify(&newState);
-    auto numPrevPorts = remoteSystemPorts->size();
+    auto numPrevPorts = remoteSystemPorts->numNodes();
     auto remoteSysPort = std::make_shared<SystemPort>(portId);
     remoteSysPort->setSwitchId(kRemoteSwitchId);
     remoteSysPort->setNumVoqs(localPort->getNumVoqs());
@@ -670,10 +677,12 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
     remoteSysPort->setCorePortIndex(localPort->getCorePortIndex());
     remoteSysPort->setSpeedMbps(localPort->getSpeedMbps());
     remoteSysPort->setEnabled(true);
-    remoteSystemPorts->addSystemPort(remoteSysPort);
+    remoteSystemPorts->addNode(
+        remoteSysPort, scopeResolver().scope(remoteSysPort));
     applyNewState(newState);
     EXPECT_EQ(
-        getProgrammedState()->getRemoteSystemPorts()->size(), numPrevPorts + 1);
+        getProgrammedState()->getRemoteSystemPorts()->numNodes(),
+        numPrevPorts + 1);
   }
   void addRemoteInterface(
       InterfaceID intfId,
@@ -693,10 +702,13 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
         false,
         cfg::InterfaceType::SYSTEM_PORT);
     newRemoteInterface->setAddresses(subnets);
-    newRemoteInterfaces->addInterface(newRemoteInterface);
+    newRemoteInterfaces->addNode(
+        newRemoteInterface,
+        scopeResolver().scope(newRemoteInterface, newState));
     applyNewState(newState);
     EXPECT_EQ(
-        getProgrammedState()->getRemoteInterfaces()->size(), numPrevIntfs + 1);
+        getProgrammedState()->getRemoteInterfaces()->numNodes(),
+        numPrevIntfs + 1);
   }
   void addRemoveRemoteNeighbor(
       const folly::IPAddressV6& neighborIp,
@@ -706,8 +718,8 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
       std::optional<int64_t> encapIndex = std::nullopt) {
     auto outState = getProgrammedState();
     auto interfaceMap = outState->getRemoteInterfaces()->modify(&outState);
-    auto interface = interfaceMap->getInterface(intfID)->clone();
-    auto ndpTable = interfaceMap->getInterface(intfID)->getNdpTable()->clone();
+    auto interface = interfaceMap->getNode(intfID)->clone();
+    auto ndpTable = interfaceMap->getNode(intfID)->getNdpTable()->clone();
     if (add) {
       const folly::MacAddress kNeighborMac{"2:3:4:5:6:7"};
       state::NeighborEntryFields ndp;
@@ -725,7 +737,8 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
       ndpTable->remove(neighborIp.str());
     }
     interface->setNdpTable(ndpTable->toThrift());
-    interfaceMap->updateNode(interface);
+    interfaceMap->updateNode(
+        interface, scopeResolver().scope(interface, outState));
     applyNewState(outState);
   }
 };

@@ -30,7 +30,7 @@ class HwInDiscardsCounterTest : public HwLinkStateDependentTest {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     cfg.staticRoutesToNull()->resize(2);
     *cfg.staticRoutesToNull()[0].routerID() =
         *cfg.staticRoutesToNull()[1].routerID() = 0;

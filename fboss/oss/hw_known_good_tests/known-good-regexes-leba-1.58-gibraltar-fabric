@@ -1,2 +1,0 @@
-# All tests matching the following filters pass on w400C in fabric mode
-HwFabricSwitchTest.*

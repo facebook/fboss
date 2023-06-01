@@ -102,9 +102,14 @@ QsfpModule::QsfpModule(
   markLastDownTime();
 }
 
-QsfpModule::~QsfpModule() {
-  // The transceiver has been removed
+QsfpModule::~QsfpModule() {}
+
+void QsfpModule::removeTransceiver() {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
+  removeTransceiverLocked();
+}
+
+void QsfpModule::removeTransceiverLocked() {
   getTransceiverManager()->updateStateBlocking(
       getID(), TransceiverStateMachineEvent::TCVR_EV_REMOVE_TRANSCEIVER);
 }
@@ -173,6 +178,52 @@ QsfpModule::detectPresenceLocked() {
     *info_.wlock() = info;
   }
   return {currentQsfpStatus, statusChanged};
+}
+
+unsigned int QsfpModule::numHostLanes() const {
+  switch (getModuleMediaInterface()) {
+    case MediaInterfaceCode::LR_10G:
+    case MediaInterfaceCode::SR_10G:
+      return 1;
+    case MediaInterfaceCode::CWDM4_100G:
+    case MediaInterfaceCode::CR4_100G:
+    case MediaInterfaceCode::FR1_100G:
+    case MediaInterfaceCode::FR4_200G:
+    case MediaInterfaceCode::CR4_200G:
+      return 4;
+    case MediaInterfaceCode::FR4_400G:
+    case MediaInterfaceCode::LR4_400G_10KM:
+    case MediaInterfaceCode::CR8_400G:
+    case MediaInterfaceCode::FR4_2x400G:
+      return 8;
+    case MediaInterfaceCode::UNKNOWN:
+      return 0;
+    default:
+      throw QsfpModuleError("invalid module media interface");
+  }
+}
+
+unsigned int QsfpModule::numMediaLanes() const {
+  switch (getModuleMediaInterface()) {
+    case MediaInterfaceCode::LR_10G:
+    case MediaInterfaceCode::SR_10G:
+    case MediaInterfaceCode::FR1_100G:
+      return 1;
+    case MediaInterfaceCode::CWDM4_100G:
+    case MediaInterfaceCode::CR4_100G:
+    case MediaInterfaceCode::FR4_200G:
+    case MediaInterfaceCode::CR4_200G:
+    case MediaInterfaceCode::FR4_400G:
+    case MediaInterfaceCode::LR4_400G_10KM:
+      return 4;
+    case MediaInterfaceCode::CR8_400G:
+    case MediaInterfaceCode::FR4_2x400G:
+      return 8;
+    case MediaInterfaceCode::UNKNOWN:
+      return 0;
+    default:
+      throw QsfpModuleError("invalid module media interface");
+  }
 }
 
 void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
@@ -857,23 +908,13 @@ ModuleStatus QsfpModule::readAndClearCachedModuleStatus() {
   return moduleStatus;
 }
 
-MediaInterfaceCode QsfpModule::getModuleMediaInterface() {
-  std::vector<MediaInterfaceId> mediaInterfaceCodes(numMediaLanes());
-  if (!getMediaInterfaceId(mediaInterfaceCodes)) {
-    return MediaInterfaceCode::UNKNOWN;
-  }
-  if (!mediaInterfaceCodes.empty()) {
-    return mediaInterfaceCodes[0].get_code();
-  }
-  return MediaInterfaceCode::UNKNOWN;
-}
-
 TransceiverManagementInterface QsfpModule::getTransceiverManagementInterface(
     const uint8_t moduleId,
     const unsigned int oneBasedPort) {
   if (moduleId ==
           static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS_CMIS) ||
-      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_DD)) {
+      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_DD) ||
+      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::OSFP)) {
     return TransceiverManagementInterface::CMIS;
   } else if (
       moduleId ==
@@ -988,11 +1029,13 @@ void QsfpModule::updateLaneToPortNameMapping(
   auto mediaLanes = configuredMediaLanes(
       startHostLane); // assumption: startMediaLane = startHostLane
 
+  portNameToHostLanes[portName] = {};
   for (auto lane : hostLanes) {
     hostLaneToPortName[lane] = portName;
     portNameToHostLanes[portName].insert(lane);
   }
 
+  portNameToMediaLanes[portName] = {};
   for (auto lane : mediaLanes) {
     mediaLaneToPortName[lane] = portName;
     portNameToMediaLanes[portName].insert(lane);

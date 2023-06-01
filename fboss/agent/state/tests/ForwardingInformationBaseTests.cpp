@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
@@ -89,6 +90,11 @@ std::shared_ptr<facebook::fboss::ForwardingInformationBaseV6> getFibV6() {
   return fibV6.clone();
 }
 
+facebook::fboss::HwSwitchMatcher scope() {
+  return facebook::fboss::HwSwitchMatcher{
+      std::unordered_set<facebook::fboss::SwitchID>{
+          facebook::fboss::SwitchID(10)}};
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -97,8 +103,7 @@ TEST(ForwardingInformationBaseV4, IPv4DefaultPrefixComparesSmallest) {
   ForwardingInformationBaseV4 oldFib;
   auto newFib = getFibV4();
 
-  thrift_cow::ThriftMapDelta<ForwardingInformationBaseV4> delta(
-      &oldFib, newFib.get());
+  ThriftMapDelta<ForwardingInformationBaseV4> delta(&oldFib, newFib.get());
   std::shared_ptr<RouteV4> firstRouteObserved;
 
   DeltaFunctions::forEachAdded(delta, [&](std::shared_ptr<RouteV4> newRoute) {
@@ -118,8 +123,7 @@ TEST(ForwardingInformationBaseV6, IPv6DefaultPrefixFound) {
 
   validateThriftMapMapSerialization(*newFib);
 
-  thrift_cow::ThriftMapDelta<ForwardingInformationBaseV6> delta(
-      &oldFib, newFib.get());
+  ThriftMapDelta<ForwardingInformationBaseV6> delta(&oldFib, newFib.get());
   std::shared_ptr<RouteV6> defaultRouteObserved;
 
   RoutePrefixV6 defaultPrefixV6{folly::IPAddressV6("::"), 0};
@@ -143,9 +147,9 @@ TEST(ForwardingInformationBaseContainer, Thrifty) {
   container.setFib(fibV6);
   validateNodeSerialization(container);
 
-  std::shared_ptr<ForwardingInformationBaseMap> fibs =
-      std::make_shared<ForwardingInformationBaseMap>();
-  fibs->addNode(container.clone());
+  std::shared_ptr<MultiSwitchForwardingInformationBaseMap> fibs =
+      std::make_shared<MultiSwitchForwardingInformationBaseMap>();
+  fibs->addNode(container.clone(), scope());
   validateThriftMapMapSerialization(*fibs);
 }
 

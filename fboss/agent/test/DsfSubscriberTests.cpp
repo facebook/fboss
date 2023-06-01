@@ -106,10 +106,35 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
     waitForStateUpdates(sw_);
     EXPECT_EQ(
         sysPorts->toThrift(),
-        sw_->getState()->getRemoteSystemPorts()->toThrift());
+        sw_->getState()->getRemoteSystemPorts()->getAllNodes()->toThrift());
+
+    for (const auto& [_, intfMap] :
+         std::as_const(*sw_->getState()->getRemoteInterfaces())) {
+      for (const auto& [_, localRif] : std::as_const(*intfMap)) {
+        const auto& expectedRif = expectedRifs.at(localRif->getID());
+        // Since resolved timestamp is only set locally, update expectedRifs to
+        // the same timestamp such that they're the same, for both arp and ndp.
+        for (const auto& [_, arp] : std::as_const(*localRif->getArpTable())) {
+          EXPECT_TRUE(arp->getResolvedSince().has_value());
+          if (arp->getResolvedSince().has_value()) {
+            expectedRif->getArpTable()
+                ->at(arp->getID())
+                ->setResolvedSince(*arp->getResolvedSince());
+          }
+        }
+        for (const auto& [_, ndp] : std::as_const(*localRif->getNdpTable())) {
+          EXPECT_TRUE(ndp->getResolvedSince().has_value());
+          if (ndp->getResolvedSince().has_value()) {
+            expectedRif->getNdpTable()
+                ->at(ndp->getID())
+                ->setResolvedSince(*ndp->getResolvedSince());
+          }
+        }
+      }
+    }
     EXPECT_EQ(
         expectedRifs.toThrift(),
-        sw_->getState()->getRemoteInterfaces()->toThrift());
+        sw_->getState()->getRemoteInterfaces()->getAllNodes()->toThrift());
 
     // neighbor entries are modified to set isLocal=false
     // Thus, if neighbor table is non-empty, programmed vs. actually
@@ -118,36 +143,8 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
     // programmed vs actually programmed state would be equal.
     EXPECT_TRUE(
         rifs->toThrift() !=
-            sw_->getState()->getRemoteInterfaces()->toThrift() ||
+            sw_->getState()->getRemoteInterfaces()->getAllNodes()->toThrift() ||
         noNeighbors || !publishState);
-  };
-
-  auto makeNbrs = []() {
-    state::NeighborEntries ndpTable, arpTable;
-    std::map<std::string, int> ip2Rif = {
-        {"fc00::1", kSysPortRangeMin + 1},
-        {"fc01::1", kSysPortRangeMin + 2},
-        {"10.0.1.1", kSysPortRangeMin + 1},
-        {"10.0.2.1", kSysPortRangeMin + 2},
-    };
-    for (const auto& [ip, rif] : ip2Rif) {
-      state::NeighborEntryFields nbr;
-      nbr.ipaddress() = ip;
-      nbr.mac() = "01:02:03:04:05:06";
-      cfg::PortDescriptor port;
-      port.portId() = rif;
-      port.portType() = cfg::PortDescriptorType::SystemPort;
-      nbr.portId() = port;
-      nbr.interfaceId() = rif;
-      nbr.isLocal() = true;
-      folly::IPAddress ipAddr(ip);
-      if (ipAddr.isV6()) {
-        ndpTable.insert({ip, nbr});
-      } else {
-        arpTable.insert({ip, nbr});
-      }
-    }
-    return std::make_pair(ndpTable, arpTable);
   };
 
   auto verifySetupNeighbors = [&](bool publishState) {

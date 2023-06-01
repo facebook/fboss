@@ -60,41 +60,6 @@ class NetworkToRouteMap
   using RouteFilter =
       std::function<bool(const std::shared_ptr<Route<AddressT>>&)>;
 
-  folly::dynamic toFollyDynamic() const {
-    return toFollyDynamic([](const std::shared_ptr<RouteT>&) { return true; });
-  }
-  folly::dynamic toFollyDynamic(const FilterFn& fn) const {
-    folly::dynamic routesJson = folly::dynamic::array;
-    for (const auto& routeNode : *this) {
-      std::shared_ptr<Route<AddressT>> route;
-      if constexpr (std::is_same_v<LabelID, AddressT>) {
-        route = routeNode.second;
-      } else {
-        route = routeNode.value();
-      }
-      if (fn(route)) {
-        routesJson.push_back(route->toFollyDynamic());
-      }
-    }
-    folly::dynamic routesObject = folly::dynamic::object;
-    routesObject[kRoutes] = std::move(routesJson);
-    return routesObject;
-  }
-
-  static NetworkToRouteMap<AddressT> fromFollyDynamic(
-      const folly::dynamic& routes) {
-    NetworkToRouteMap<AddressT> networkToRouteMap;
-
-    auto routesJson = routes[kRoutes];
-    for (const auto& routeJson : routesJson) {
-      auto route = Route<AddressT>::fromFollyDynamic(routeJson);
-      auto prefix = route->prefix();
-      networkToRouteMap.insert(prefix, std::move(route));
-    }
-
-    return networkToRouteMap;
-  }
-
   std::pair<Iterator, bool> insert(
       typename Route<AddressT>::Prefix key,
       std::shared_ptr<Route<AddressT>> route) {

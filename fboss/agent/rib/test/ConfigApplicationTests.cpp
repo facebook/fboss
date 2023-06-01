@@ -178,9 +178,9 @@ TEST(ConfigApplication, InterfaceRoutes) {
   ASSERT_NE(nullptr, state);
 
   auto fibMap = state->getFibs();
-  EXPECT_EQ(fibMap->size(), 1);
+  EXPECT_EQ(fibMap->numNodes(), 1);
 
-  auto fibContainer = fibMap->getFibContainer(RouterID(0));
+  auto fibContainer = fibMap->getNode(RouterID(0));
   EXPECT_NE(nullptr, fibContainer);
 
   auto v4Fib = fibContainer->getFibV4();
@@ -225,9 +225,9 @@ TEST(ConfigApplication, StaticRoutesWithNextHops) {
   ASSERT_NE(nullptr, state);
 
   auto fibMap = state->getFibs();
-  EXPECT_EQ(fibMap->size(), 1);
+  EXPECT_EQ(fibMap->numNodes(), 1);
 
-  auto fibContainer = fibMap->getFibContainer(RouterID(0));
+  auto fibContainer = fibMap->getNode(RouterID(0));
   EXPECT_NE(nullptr, fibContainer);
 
   auto v4Fib = fibContainer->getFibV4();
@@ -272,9 +272,9 @@ TEST(ConfigApplication, StaticRoutesWithoutNextHops) {
   ASSERT_NE(nullptr, state);
 
   auto fibMap = state->getFibs();
-  EXPECT_EQ(fibMap->size(), 1);
+  EXPECT_EQ(fibMap->numNodes(), 1);
 
-  auto fibContainer = fibMap->getFibContainer(RouterID(0));
+  auto fibContainer = fibMap->getNode(RouterID(0));
   EXPECT_NE(nullptr, fibContainer);
 
   auto v4Fib = fibContainer->getFibV4();
@@ -331,13 +331,13 @@ TEST(ConfigApplication, MultiVrfColdBoot) {
   ASSERT_NE(nullptr, state);
 
   auto fibMap = state->getFibs();
-  EXPECT_EQ(fibMap->size(), 2);
+  EXPECT_EQ(fibMap->numNodes(), 2);
 
   std::shared_ptr<ForwardingInformationBaseContainer> fibContainer{nullptr};
 
-  fibContainer = fibMap->getFibContainer(RouterID(0));
+  fibContainer = fibMap->getNode(RouterID(0));
   EXPECT_NE(nullptr, fibContainer);
 
-  fibContainer = fibMap->getFibContainer(RouterID(1));
+  fibContainer = fibMap->getNode(RouterID(1));
   EXPECT_NE(nullptr, fibContainer);
 }

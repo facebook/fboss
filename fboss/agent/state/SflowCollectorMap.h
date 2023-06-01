@@ -47,32 +47,34 @@ class SflowCollectorMap
   friend class CloneAllocator;
 };
 
-using MultiSflowCollectorMapTypeClass = apache::thrift::type_class::
+using MultiSwitchSflowCollectorMapTypeClass = apache::thrift::type_class::
     map<apache::thrift::type_class::string, SflowCollectorMapTypeClass>;
-using MultiSflowCollectorMapThriftType =
+using MultiSwitchSflowCollectorMapThriftType =
     std::map<std::string, SflowCollectorMapThriftType>;
 
-class MultiSflowCollectorMap;
+class MultiSwitchSflowCollectorMap;
 
-using MultiSflowCollectorMapTraits = ThriftMultiMapNodeTraits<
-    MultiSflowCollectorMap,
-    MultiSflowCollectorMapTypeClass,
-    MultiSflowCollectorMapThriftType,
+using MultiSwitchSflowCollectorMapTraits = ThriftMultiSwitchMapNodeTraits<
+    MultiSwitchSflowCollectorMap,
+    MultiSwitchSflowCollectorMapTypeClass,
+    MultiSwitchSflowCollectorMapThriftType,
     SflowCollectorMap>;
 
 class HwSwitchMatcher;
 
-class MultiSflowCollectorMap : public ThriftMapNode<
-                                   MultiSflowCollectorMap,
-                                   MultiSflowCollectorMapTraits> {
+class MultiSwitchSflowCollectorMap : public ThriftMultiSwitchMapNode<
+                                         MultiSwitchSflowCollectorMap,
+                                         MultiSwitchSflowCollectorMapTraits> {
  public:
-  using Traits = MultiSflowCollectorMapTraits;
-  using BaseT =
-      ThriftMapNode<MultiSflowCollectorMap, MultiSflowCollectorMapTraits>;
+  using Traits = MultiSwitchSflowCollectorMapTraits;
+  using BaseT = ThriftMultiSwitchMapNode<
+      MultiSwitchSflowCollectorMap,
+      MultiSwitchSflowCollectorMapTraits>;
   using BaseT::modify;
 
-  MultiSflowCollectorMap() {}
-  virtual ~MultiSflowCollectorMap() {}
+  MultiSwitchSflowCollectorMap() {}
+  virtual ~MultiSwitchSflowCollectorMap() {}
+  MultiSwitchSflowCollectorMap* modify(std::shared_ptr<SwitchState>* state);
 
  private:
   // Inherit the constructors required for clone()

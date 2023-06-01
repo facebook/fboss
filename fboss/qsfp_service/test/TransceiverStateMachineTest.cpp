@@ -40,8 +40,6 @@ class MockSff8472Module : public Sff8472Module {
       TransceiverManager* transceiverManager,
       std::unique_ptr<MockSff8472TransceiverImpl> qsfpImpl)
       : Sff8472Module(transceiverManager, std::move(qsfpImpl)) {
-    ON_CALL(*this, updateQsfpData(testing::_))
-        .WillByDefault(testing::Assign(&dirty_, false));
     ON_CALL(*this, ensureTransceiverReadyLocked())
         .WillByDefault(testing::Return(true));
   }
@@ -57,7 +55,6 @@ class MockSff8472Module : public Sff8472Module {
       ensureRxOutputSquelchEnabled,
       void(const std::vector<HostLaneSettings>&));
   MOCK_METHOD0(resetDataPath, void());
-  MOCK_METHOD1(updateQsfpData, void(bool));
   MOCK_METHOD1(updateCachedTransceiverInfoLocked, void(ModuleStatus));
   MOCK_METHOD0(ensureTransceiverReadyLocked, bool());
 };
@@ -87,6 +84,8 @@ class MockCmisModule : public CmisModule {
         .WillByDefault(testing::Assign(&dirty_, false));
     ON_CALL(*this, ensureTransceiverReadyLocked())
         .WillByDefault(testing::Return(true));
+    ON_CALL(*this, getPortPrbsStateLocked(testing::_))
+        .WillByDefault(testing::Return(prbs::InterfacePrbsState()));
   }
 
   MockCmisTransceiverImpl* getTransceiverImpl() {
@@ -104,6 +103,7 @@ class MockCmisModule : public CmisModule {
   MOCK_METHOD1(updateCachedTransceiverInfoLocked, void(ModuleStatus));
   MOCK_CONST_METHOD0(ensureOutOfReset, void());
   MOCK_METHOD0(ensureTransceiverReadyLocked, bool());
+  MOCK_METHOD1(getPortPrbsStateLocked, prbs::InterfacePrbsState(Side));
 };
 
 /*
@@ -2084,15 +2084,19 @@ TEST_F(TransceiverStateMachineTest, programMultiPortTransceiverSequentially) {
   auto verifyPortToLaneMap = [this](bool bothPorts) {
     std::map<std::string, std::vector<int>> expectedHostLaneMap = {
         {"eth1/1/1", {0, 1}}};
+    std::map<std::string, std::vector<int>> expectedMediaLaneMap = {
+        {"eth1/1/1", {0}}};
     if (bothPorts) {
       std::vector<int> hostLanes = {2, 3};
+      std::vector<int> mediaLanes = {1};
       expectedHostLaneMap.emplace("eth1/1/3", hostLanes);
+      expectedMediaLaneMap.emplace("eth1/1/3", mediaLanes);
     }
     const auto& info = transceiverManager_->getTransceiverInfo(id_);
     EXPECT_EQ(info.tcvrState()->portNameToHostLanes(), expectedHostLaneMap);
+    EXPECT_EQ(info.tcvrState()->portNameToMediaLanes(), expectedMediaLaneMap);
     EXPECT_EQ(info.tcvrStats()->portNameToHostLanes(), expectedHostLaneMap);
-    // TODO: media lanes have a bug for multi-port. Add that check when the bug
-    // is fixed
+    EXPECT_EQ(info.tcvrStats()->portNameToMediaLanes(), expectedMediaLaneMap);
   };
 
   // Step1: Start with discovered state

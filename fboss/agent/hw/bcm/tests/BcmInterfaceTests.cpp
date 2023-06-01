@@ -130,32 +130,34 @@ void checkSwHwIntfMatch(
     int unit,
     std::shared_ptr<SwitchState> state,
     bool verifyIngress) {
-  for (auto iter : std::as_const(*state->getInterfaces())) {
-    const auto& swIntf = iter.second;
-    bcm_l3_info_t l3HwStatus;
-    auto rv = bcm_l3_info(unit, &l3HwStatus);
-    bcmCheckError(rv, "failed get L3 hw info");
-    bcm_l3_intf_t intf;
-    bcm_l3_intf_t_init(&intf);
-    intf.l3a_vid = swIntf->getID();
-    rv = bcm_l3_intf_find_vlan(unit, &intf);
-    bcmCheckError(rv, "failed to find l3 intf");
-    EXPECT_EQ(swIntf->getMac(), macFromBcm(intf.l3a_mac_addr));
-    ASSERT_EQ(swIntf->getMtu(), intf.l3a_mtu);
-    ASSERT_EQ(swIntf->getRouterID(), RouterID(intf.l3a_vrf));
+  for (const auto& [_, intfMap] : std::as_const(*state->getInterfaces())) {
+    for (auto iter : std::as_const(*intfMap)) {
+      const auto& swIntf = iter.second;
+      bcm_l3_info_t l3HwStatus;
+      auto rv = bcm_l3_info(unit, &l3HwStatus);
+      bcmCheckError(rv, "failed get L3 hw info");
+      bcm_l3_intf_t intf;
+      bcm_l3_intf_t_init(&intf);
+      intf.l3a_vid = swIntf->getID();
+      rv = bcm_l3_intf_find_vlan(unit, &intf);
+      bcmCheckError(rv, "failed to find l3 intf");
+      EXPECT_EQ(swIntf->getMac(), macFromBcm(intf.l3a_mac_addr));
+      ASSERT_EQ(swIntf->getMtu(), intf.l3a_mtu);
+      ASSERT_EQ(swIntf->getRouterID(), RouterID(intf.l3a_vrf));
 
-    if (verifyIngress) {
-      bcm_l3_ingress_t ing_intf;
-      bcm_l3_ingress_t_init(&ing_intf);
-      rv = bcm_l3_ingress_get(unit, intf.l3a_intf_id, &ing_intf);
-      bcmCheckError(rv, "failed to get L3 ingress"); // FAILS
-      ASSERT_EQ(BcmSwitch::getBcmVrfId(swIntf->getRouterID()), ing_intf.vrf);
+      if (verifyIngress) {
+        bcm_l3_ingress_t ing_intf;
+        bcm_l3_ingress_t_init(&ing_intf);
+        rv = bcm_l3_ingress_get(unit, intf.l3a_intf_id, &ing_intf);
+        bcmCheckError(rv, "failed to get L3 ingress"); // FAILS
+        ASSERT_EQ(BcmSwitch::getBcmVrfId(swIntf->getRouterID()), ing_intf.vrf);
 
-      bcm_vlan_control_vlan_t vlan_ctrl;
-      bcm_vlan_control_vlan_t_init(&vlan_ctrl);
-      rv = bcm_vlan_control_vlan_get(unit, swIntf->getVlanID(), &vlan_ctrl);
-      bcmCheckError(rv, "failed to get bcm_vlan");
-      ASSERT_EQ(intf.l3a_intf_id, vlan_ctrl.ingress_if);
+        bcm_vlan_control_vlan_t vlan_ctrl;
+        bcm_vlan_control_vlan_t_init(&vlan_ctrl);
+        rv = bcm_vlan_control_vlan_get(unit, swIntf->getVlanID(), &vlan_ctrl);
+        bcmCheckError(rv, "failed to get bcm_vlan");
+        ASSERT_EQ(intf.l3a_intf_id, vlan_ctrl.ingress_if);
+      }
     }
   }
 }

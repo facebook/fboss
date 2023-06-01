@@ -18,7 +18,7 @@ namespace {
 const auto kTestMac = folly::MacAddress("01:02:03:04:05:06");
 }
 
-TEST(MacEntryTest, toFromFollyDynamic) {
+TEST(MacEntryTest, toFromThrift) {
   MacEntry entryDynamic(
       kTestMac,
       PortDescriptor(PortID(1)),

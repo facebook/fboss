@@ -33,9 +33,9 @@ void setExactMatchCfg(std::shared_ptr<SwitchState>* state, int prefixLength) {
   if (newState->isPublished()) {
     newState = newState->clone();
   }
-  auto newSwitchSettings = newState->getSwitchSettings()->clone();
+  auto switchSettings = util::getFirstNodeIf(newState->getSwitchSettings());
+  auto newSwitchSettings = switchSettings->modify(&newState);
   newSwitchSettings->setExactMatchTableConfig({exactMatchTableConfigs});
-  newState->resetSwitchSettings(newSwitchSettings);
   *state = newState;
 }
 
@@ -46,10 +46,10 @@ IpPrefix ipPrefix(StringPiece ip, int length) {
   return result;
 }
 
-TeFlow makeFlowKey(std::string dstIp, uint16_t srcPort) {
+TeFlow makeFlowKey(std::string dstIp, uint16_t srcPort, int prefixLength) {
   TeFlow flow;
   flow.srcPort() = srcPort;
-  flow.dstPrefix() = ipPrefix(dstIp, 56);
+  flow.dstPrefix() = ipPrefix(dstIp, prefixLength);
   return flow;
 }
 
@@ -117,27 +117,36 @@ std::shared_ptr<TeFlowEntry> makeFlowEntry(
   return flowEntry;
 }
 
-std::vector<std::shared_ptr<TeFlowEntry>> makeFlowEntries(
-    std::string dstIpStart,
-    std::string nhopAdd,
-    std::string ifName,
-    uint16_t srcPort,
-    uint32_t numEntries) {
+std::vector<std::shared_ptr<TeFlowEntry>>
+FlowEntryGenerator::generateFlowEntries() const {
   std::vector<std::shared_ptr<TeFlowEntry>> flowEntries;
-  int count{0};
-  int i{0};
-  int j{0};
-  while (++count <= numEntries) {
-    std::string prefix = fmt::format("{}:{}:{}::", dstIpStart, i, j);
-    std::string counter = fmt::format("counter{}", count);
-    flowEntries.emplace_back(
-        makeFlowEntry(prefix, nhopAdd, ifName, srcPort, counter));
-    if (j++ > 255) {
-      i++;
-      j = 0;
-    }
+  for (auto index = 0; index < numEntries; index++) {
+    flowEntries.emplace_back(makeFlowEntry(
+        getDstIp(index), nhopAddress, ifName, srcPort, getCounterId(index)));
   }
   return flowEntries;
+}
+
+std::string FlowEntryGenerator::getCounterId(int index) const {
+  return fmt::format("counter{}", index + 1);
+}
+
+std::string FlowEntryGenerator::getDstIp(int index) const {
+  auto i = int(index / 256);
+  auto j = index % 256;
+  std::string prefix = fmt::format("{}:{}:{}::", dstIpStart, i, j);
+  return prefix;
+}
+
+std::vector<std::shared_ptr<TeFlowEntry>> makeFlowEntries(
+    std::string& dstIpStart,
+    std::string& nhopAdd,
+    std::string& ifName,
+    uint16_t srcPort,
+    uint32_t numEntries) {
+  auto generator =
+      FlowEntryGenerator(dstIpStart, nhopAdd, ifName, srcPort, numEntries);
+  return generator.generateFlowEntries();
 }
 
 void addFlowEntry(
@@ -145,7 +154,7 @@ void addFlowEntry(
     std::shared_ptr<TeFlowEntry>& flowEntry) {
   auto state = hwEnsemble->getProgrammedState()->clone();
   auto teFlows = state->getTeFlowTable()->modify(&state);
-  teFlows->addNode(flowEntry);
+  teFlows->addNode(flowEntry, hwEnsemble->scopeResolver().scope(flowEntry));
   hwEnsemble->applyNewState(state, true);
 }
 
@@ -155,17 +164,18 @@ void addFlowEntries(
   auto state = hwEnsemble->getProgrammedState()->clone();
   auto teFlows = state->getTeFlowTable()->modify(&state);
   for (auto& flowEntry : flowEntries) {
-    teFlows->addNode(flowEntry);
+    teFlows->addNode(flowEntry, hwEnsemble->scopeResolver().scope(flowEntry));
   }
   hwEnsemble->applyNewState(state, true);
 }
 
 void addFlowEntries(
     std::shared_ptr<SwitchState>* state,
-    std::vector<std::shared_ptr<TeFlowEntry>>& flowEntries) {
+    std::vector<std::shared_ptr<TeFlowEntry>>& flowEntries,
+    const SwitchIdScopeResolver& resolver) {
   auto teFlows = (*state)->getTeFlowTable()->modify(state);
   for (auto& flowEntry : flowEntries) {
-    teFlows->addNode(flowEntry);
+    teFlows->addNode(flowEntry, resolver.scope(flowEntry));
   }
 }
 
@@ -202,8 +212,12 @@ void addSyncFlowEntries(
     bool addSync) {
   auto newState = hwEnsemble->getProgrammedState();
   TeFlowSyncer teFlowSyncer;
-  newState =
-      teFlowSyncer.programFlowEntries(newState, *flowEntries, {}, addSync);
+  newState = teFlowSyncer.programFlowEntries(
+      hwEnsemble->scopeResolver().scope(std::shared_ptr<TeFlowEntry>()),
+      newState,
+      *flowEntries,
+      {},
+      addSync);
   hwEnsemble->applyNewState(newState);
 }
 
@@ -212,7 +226,12 @@ void deleteFlowEntries(
     std::shared_ptr<std::vector<TeFlow>>& teFlows) {
   auto newState = hwEnsemble->getProgrammedState();
   TeFlowSyncer teFlowSyncer;
-  newState = teFlowSyncer.programFlowEntries(newState, {}, *teFlows, false);
+  newState = teFlowSyncer.programFlowEntries(
+      hwEnsemble->scopeResolver().scope(std::shared_ptr<TeFlowEntry>()),
+      newState,
+      {},
+      *teFlows,
+      false);
   hwEnsemble->applyNewState(newState);
 }
 
@@ -226,7 +245,8 @@ void modifyFlowEntry(
   auto flow = makeFlowKey(dstIp, srcPort);
   auto teFlows = hwEnsemble->getProgrammedState()->getTeFlowTable()->clone();
   auto newFlowEntry = makeFlowEntry(dstIp, nhopAdd, ifName, srcPort, counterID);
-  teFlows->updateNode(newFlowEntry);
+  teFlows->updateNode(
+      newFlowEntry, hwEnsemble->scopeResolver().scope(newFlowEntry));
   auto newState = hwEnsemble->getProgrammedState()->clone();
   newState->resetTeFlowTable(teFlows);
   hwEnsemble->applyNewState(newState);
@@ -238,7 +258,8 @@ void modifyFlowEntry(
     bool enable) {
   auto teFlows = hwEnsemble->getProgrammedState()->getTeFlowTable()->clone();
   newFlowEntry->setEnabled(enable);
-  teFlows->updateNode(newFlowEntry);
+  teFlows->updateNode(
+      newFlowEntry, hwEnsemble->scopeResolver().scope(newFlowEntry));
   auto newState = hwEnsemble->getProgrammedState()->clone();
   newState->resetTeFlowTable(teFlows);
   hwEnsemble->applyNewState(newState);

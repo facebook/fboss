@@ -34,7 +34,7 @@ class MirrorManagerTest : public ManagerTestBase {
         mirrorId,
         std::make_optional<PortID>(portId),
         std::optional<folly::IPAddress>());
-    saiManagerTable->mirrorManager().addMirror(mirror);
+    saiManagerTable->mirrorManager().addNode(mirror);
   }
 
   void createTunnelMirror(
@@ -66,7 +66,7 @@ class MirrorManagerTest : public ManagerTestBase {
               TunnelUdpPorts{udpSrcPort, udpDstPort},
               ttl};
     mirror->setMirrorTunnel(mirrorTunnel);
-    saiManagerTable->mirrorManager().addMirror(mirror);
+    saiManagerTable->mirrorManager().addNode(mirror);
   }
 
   void checkLocalMirror(
@@ -200,7 +200,7 @@ TEST_F(MirrorManagerTest, removeMirror) {
       mirrorId,
       std::make_optional<PortID>(swPort1->getID()),
       std::optional<folly::IPAddress>());
-  saiManagerTable->mirrorManager().addMirror(mirror);
+  saiManagerTable->mirrorManager().addNode(mirror);
   saiManagerTable->mirrorManager().removeMirror(mirror);
   EXPECT_THROW(
       saiManagerTable->mirrorManager().removeMirror(mirror), FbossError);

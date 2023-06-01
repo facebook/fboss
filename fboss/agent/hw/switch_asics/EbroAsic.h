@@ -12,11 +12,13 @@ class EbroAsic : public TajoAsic {
   EbroAsic(
       cfg::SwitchType type,
       std::optional<int64_t> id,
-      std::optional<cfg::Range64> systemPortRange)
+      std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac)
       : TajoAsic(
             type,
             id,
             systemPortRange,
+            mac,
             {cfg::SwitchType::NPU,
              cfg::SwitchType::VOQ,
              cfg::SwitchType::FABRIC}) {}
@@ -25,6 +27,8 @@ class EbroAsic : public TajoAsic {
         ? isSupportedNonFabric(feature)
         : isSupportedFabric(feature);
   }
+  const std::map<cfg::PortType, cfg::PortLoopbackMode>& desiredLoopbackModes()
+      const override;
   cfg::AsicType getAsicType() const override {
     return cfg::AsicType::ASIC_TYPE_EBRO;
   }

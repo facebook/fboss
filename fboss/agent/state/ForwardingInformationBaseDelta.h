@@ -21,8 +21,8 @@ class ForwardingInformationBaseContainerDelta
  public:
   using DeltaValue<ForwardingInformationBaseContainer>::DeltaValue;
 
-  thrift_cow::ThriftMapDelta<ForwardingInformationBaseV4> getV4FibDelta() const;
-  thrift_cow::ThriftMapDelta<ForwardingInformationBaseV6> getV6FibDelta() const;
+  ThriftMapDelta<ForwardingInformationBaseV4> getV4FibDelta() const;
+  ThriftMapDelta<ForwardingInformationBaseV6> getV6FibDelta() const;
 
   template <typename AddrT>
   auto getFibDelta() const {
@@ -37,13 +37,27 @@ class ForwardingInformationBaseContainerDelta
 template <typename IGNORED>
 struct ForwardingInformationBaseMapDeltaTraits {
   using mapped_type = typename ForwardingInformationBaseMap::mapped_type;
-  using ExtractorT =
-      thrift_cow::ThriftMapNodeExtractor<ForwardingInformationBaseMap>;
-  using DeltaValueT = ForwardingInformationBaseContainerDelta;
+  using Extractor = ExtractorT<ForwardingInformationBaseMap>;
+  using Delta = ForwardingInformationBaseContainerDelta;
+  using NodeWrapper = typename Delta::NodeWrapper;
+  using DeltaValueIterator =
+      DeltaValueIteratorT<ForwardingInformationBaseMap, Delta, Extractor>;
+  using MapPointerTraits = MapPointerTraitsT<ForwardingInformationBaseMap>;
 };
 
 using ForwardingInformationBaseMapDelta = MapDelta<
     ForwardingInformationBaseMap,
     ForwardingInformationBaseMapDeltaTraits>;
+
+using MultiSwitchForwardingInformationBaseMapDeltaTraits = NestedMapDeltaTraits<
+    MultiSwitchForwardingInformationBaseMap, /* outer map */
+    ForwardingInformationBaseMap, /* inner map */
+    ThriftMapDelta, /* outer map delta */
+    MapDelta, /* inner map delta */
+    MapDeltaTraits, /* outer map delta traits */
+    ForwardingInformationBaseMapDeltaTraits /* inner map delta traits */>;
+
+using MultiSwitchForwardingInformationBaseMapDelta =
+    NestedMapDelta<MultiSwitchForwardingInformationBaseMapDeltaTraits>;
 
 } // namespace facebook::fboss

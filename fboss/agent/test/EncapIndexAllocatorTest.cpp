@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/switch_asics/MockAsic.h"
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
 #include "fboss/agent/state/NeighborEntry.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -42,14 +43,15 @@ class EncapIndexAllocatorTest : public ::testing::Test {
       std::shared_ptr<SwitchState> state,
       const folly::IPAddressV6& ip,
       int64_t encapIdx) const {
-    auto firstVlan = state->getVlans()->cbegin()->second;
+    auto firstVlan = util::getFirstMap(state->getVlans())->cbegin()->second;
     state::NeighborEntryFields nbr;
     nbr.mac() = "02:00:00:00:00:01";
     nbr.interfaceId() = static_cast<int>(firstVlan->getInterfaceID());
     nbr.ipaddress() = ip.str();
     nbr.portId() =
-        PortDescriptor(
-            (*getSw()->getState()->getPorts()->cbegin()).second->getID())
+        PortDescriptor(util::getFirstMap(getSw()->getState()->getPorts())
+                           ->cbegin()
+                           ->second->getID())
             .toThrift();
     nbr.state() = state::NeighborState::Reachable;
     nbr.encapIndex() = encapIdx;
@@ -63,23 +65,23 @@ class EncapIndexAllocatorTest : public ::testing::Test {
       std::shared_ptr<SwitchState> state,
       const folly::IPAddressV6& ip,
       int64_t encapIdx) const {
-    auto firstIntf = state->getInterfaces()->cbegin()->second;
+    const auto& intfMap = state->getInterfaces()->cbegin()->second;
+    const auto& firstIntf = intfMap->cbegin()->second;
     state::NeighborEntryFields nbr;
     nbr.mac() = "02:00:00:00:00:01";
     nbr.interfaceId() = static_cast<int>(firstIntf->getID());
     nbr.ipaddress() = ip.str();
     nbr.portId() =
-        PortDescriptor(
-            (*getSw()->getState()->getPorts()->cbegin()).second->getID())
+        PortDescriptor(util::getFirstMap(getSw()->getState()->getPorts())
+                           ->cbegin()
+                           ->second->getID())
             .toThrift();
     nbr.state() = state::NeighborState::Reachable;
     nbr.encapIndex() = encapIdx;
     auto nbrTable = firstIntf->getNdpTable()->toThrift();
     nbrTable.insert({*nbr.ipaddress(), nbr});
-    auto interfaceMap = state->getInterfaces()->modify(&state);
-    auto interface = interfaceMap->getInterface(firstIntf->getID())->clone();
+    auto interface = firstIntf->modify(&state);
     interface->setNdpTable(nbrTable);
-    interfaceMap->updateNode(interface);
     return state;
   }
 
@@ -88,8 +90,9 @@ class EncapIndexAllocatorTest : public ::testing::Test {
 };
 
 TEST_F(EncapIndexAllocatorTest, unsupportedAsic) {
+  folly::MacAddress mac;
   auto asic = std::make_unique<TomahawkAsic>(
-      cfg::SwitchType::NPU, std::nullopt, std::nullopt);
+      cfg::SwitchType::NPU, std::nullopt, std::nullopt, mac);
   EXPECT_THROW(allocator.getNextAvailableEncapIdx(nullptr, *asic), FbossError);
 }
 

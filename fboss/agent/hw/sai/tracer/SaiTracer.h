@@ -37,8 +37,12 @@ DECLARE_bool(enable_get_attr_log);
 using PrimitiveFunction = std::string (*)(const sai_attribute_t*, int);
 using AttributeFunction =
     void (*)(const sai_attribute_t*, int, std::vector<std::string>&);
-using ListFunction =
-    void (*)(const sai_attribute_t*, int, uint32_t, std::vector<std::string>&);
+using ListFunction = void (*)(
+    const sai_attribute_t*,
+    int,
+    uint32_t,
+    std::vector<std::string>&,
+    bool);
 
 #define TYPE_INDEX(type) std::type_index(typeid(type)).hash_code()
 
@@ -139,7 +143,8 @@ class SaiTracer {
       sai_object_id_t get_object_id,
       uint32_t attr_count,
       const sai_attribute_t* attr,
-      sai_object_type_t object_type);
+      sai_object_type_t object_type,
+      sai_status_t rv);
 
   void logSetAttrFn(
       const std::string& fn_name,
@@ -224,6 +229,7 @@ class SaiTracer {
   sai_system_port_api_t* systemPortApi_;
   sai_tam_api_t* tamApi_;
   sai_tunnel_api_t* tunnelApi_;
+  sai_udf_api_t* udfApi_;
   sai_virtual_router_api_t* virtualRouterApi_;
   sai_vlan_api_t* vlanApi_;
   sai_wred_api_t* wredApi_;
@@ -286,7 +292,8 @@ class SaiTracer {
   std::vector<std::string> setAttrList(
       const sai_attribute_t* attr_list,
       uint32_t attr_count,
-      sai_object_type_t object_type);
+      sai_object_type_t object_type,
+      sai_status_t rv = 0);
 
   std::string createFnCall(
       const std::string& fn_name,
@@ -384,6 +391,8 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_TAM, "tam_"},
       {SAI_OBJECT_TYPE_TUNNEL, "tunnel_"},
       {SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY, "tunnelTerm_"},
+      {SAI_OBJECT_TYPE_UDF, "udf_"},
+      {SAI_OBJECT_TYPE_UDF_MATCH, "udfMatch_"},
       {SAI_OBJECT_TYPE_UDF_GROUP, "udfGroup_"},
       {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, "virtualRouter_"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_"},
@@ -440,6 +449,9 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_TAM, "tam_api->"},
       {SAI_OBJECT_TYPE_TUNNEL, "tunnel_api->"},
       {SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY, "tunnel_api->"},
+      {SAI_OBJECT_TYPE_UDF, "udf_api->"},
+      {SAI_OBJECT_TYPE_UDF_MATCH, "udf_api->"},
+      {SAI_OBJECT_TYPE_UDF_GROUP, "udf_api->"},
       {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, "virtual_router_api->"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_api->"},
       {SAI_OBJECT_TYPE_VLAN_MEMBER, "vlan_api->"},
@@ -523,7 +535,8 @@ class SaiTracer {
   void set##obj_type##Attributes(                \
       const sai_attribute_t* attr_list,          \
       uint32_t attr_count,                       \
-      std::vector<std::string>& attrLines);
+      std::vector<std::string>& attrLines,       \
+      sai_status_t rv);
 
 #define WRAP_CREATE_FUNC(obj_type, sai_obj_type, api_type)                 \
   sai_status_t wrap_create_##obj_type(                                     \
@@ -595,7 +608,8 @@ class SaiTracer {
           obj_type##_id,                                                     \
           attr_count,                                                        \
           attr_list,                                                         \
-          sai_obj_type);                                                     \
+          sai_obj_type,                                                      \
+          rv);                                                               \
       SaiTracer::getInstance()->logPostInvocation(rv, obj_type##_id, begin); \
       return rv;                                                             \
     }                                                                        \
@@ -716,7 +730,8 @@ class SaiTracer {
   void set##obj_type##Attributes(                                            \
       const sai_attribute_t* attr_list,                                      \
       uint32_t attr_count,                                                   \
-      std::vector<std::string>& attrLines) {                                 \
+      std::vector<std::string>& attrLines,                                   \
+      sai_status_t rv) {                                                     \
     uint32_t listCount = 0;                                                  \
                                                                              \
     for (int i = 0; i < attr_count; ++i) {                                   \
@@ -742,7 +757,8 @@ class SaiTracer {
         auto listFuncMatch =                                                 \
             SaiTracer::getInstance()->listFuncMap_.find(typeIndex);          \
         if (listFuncMatch != SaiTracer::getInstance()->listFuncMap_.end()) { \
-          (*listFuncMatch->second)(attr_list, i, listCount++, attrLines);    \
+          (*listFuncMatch->second)(                                          \
+              attr_list, i, listCount++, attrLines, rv == 0);                \
           continue;                                                          \
         }                                                                    \
       }

@@ -32,6 +32,9 @@ void verifySwitchStateSerialization(const SwitchState& state) {
   auto stateBack = SwitchState::fromThrift(state.toThrift());
   EXPECT_EQ(state, *stateBack);
 }
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
 } // namespace
 
 TEST(ThriftySwitchState, BasicTest) {
@@ -49,13 +52,12 @@ TEST(ThriftySwitchState, PortMap) {
   portFields2.portName() = "eth2/2/1";
   auto port2 = std::make_shared<Port>(std::move(portFields2));
 
-  auto portMap = std::make_shared<PortMap>();
-  portMap->addPort(port1);
-  portMap->addPort(port2);
+  auto state = SwitchState();
+  state.getPorts()->addNode(port1, scope());
+  state.getPorts()->addNode(port2, scope());
+  auto portMap = state.getPorts()->begin()->second;
   validateThriftMapMapSerialization(*portMap);
 
-  auto state = SwitchState();
-  state.resetPorts(portMap);
   verifySwitchStateSerialization(state);
 }
 
@@ -108,9 +110,9 @@ TEST(ThriftySwitchState, VlanMap) {
       {{MacAddress("02:00:00:00:00:03"),
         IPAddressV6("2401:db00:21:70cb:face:0:96:0")}});
 
-  auto vlanMap = std::make_shared<VlanMap>();
-  vlanMap->addVlan(vlan1);
-  vlanMap->addVlan(vlan2);
+  auto vlanMap = std::make_shared<MultiSwitchVlanMap>();
+  vlanMap->addNode(vlan1, scope());
+  vlanMap->addNode(vlan2, scope());
 
   auto state = SwitchState();
   state.resetVlans(vlanMap);
@@ -121,9 +123,9 @@ TEST(ThriftySwitchState, AclMap) {
   auto acl1 = std::make_shared<AclEntry>(1, std::string("acl1"));
   auto acl2 = std::make_shared<AclEntry>(2, std::string("acl2"));
 
-  auto aclMap = std::make_shared<AclMap>();
-  aclMap->addEntry(acl1);
-  aclMap->addEntry(acl2);
+  auto aclMap = std::make_shared<MultiSwitchAclMap>();
+  aclMap->addNode(acl1, scope());
+  aclMap->addNode(acl2, scope());
 
   auto state = SwitchState();
   state.resetAcls(aclMap);
@@ -134,9 +136,9 @@ TEST(ThriftySwitchState, TransceiverMap) {
   auto transceiver1 = std::make_shared<TransceiverSpec>(TransceiverID(1));
   auto transceiver2 = std::make_shared<TransceiverSpec>(TransceiverID(2));
 
-  auto transceiverMap = std::make_shared<TransceiverMap>();
-  transceiverMap->addTransceiver(transceiver1);
-  transceiverMap->addTransceiver(transceiver2);
+  auto transceiverMap = std::make_shared<MultiSwitchTransceiverMap>();
+  transceiverMap->addNode(transceiver1, scope());
+  transceiverMap->addNode(transceiver2, scope());
 
   auto state = SwitchState();
   state.resetTransceivers(transceiverMap);
@@ -151,9 +153,9 @@ TEST(ThriftySwitchState, BufferPoolCfgMap) {
   pool1->setHeadroomBytes(100);
   pool2->setHeadroomBytes(200);
 
-  auto map = std::make_shared<BufferPoolCfgMap>();
-  map->addNode(pool1);
-  map->addNode(pool2);
+  auto map = std::make_shared<MultiSwitchBufferPoolCfgMap>();
+  map->addNode(pool1, scope());
+  map->addNode(pool2, scope());
 
   auto state = SwitchState();
   state.resetBufferPoolCfgs(map);
@@ -165,9 +167,9 @@ TEST(ThriftySwitchState, QosPolicyMap) {
   auto qosPolicy1 = std::make_shared<QosPolicy>(kQosPolicy1Name, DscpMap());
   auto qosPolicy2 = std::make_shared<QosPolicy>(kQosPolicy2Name, DscpMap());
 
-  auto map = std::make_shared<QosPolicyMap>();
-  map->addNode(qosPolicy1);
-  map->addNode(qosPolicy2);
+  auto map = std::make_shared<MultiSwitchQosPolicyMap>();
+  map->addNode(qosPolicy1, scope());
+  map->addNode(qosPolicy2, scope());
 
   auto state = SwitchState();
   state.resetQosPolicies(map);
@@ -180,9 +182,9 @@ TEST(ThriftySwitchState, SflowCollectorMap) {
   auto sflowCollector2 = std::make_shared<SflowCollector>(
       std::string("2::3"), static_cast<uint16_t>(9090));
 
-  auto map = std::make_shared<SflowCollectorMap>();
-  map->addNode(sflowCollector1);
-  map->addNode(sflowCollector2);
+  auto map = std::make_shared<MultiSwitchSflowCollectorMap>();
+  map->addNode(sflowCollector1, scope());
+  map->addNode(sflowCollector2, scope());
 
   auto state = SwitchState();
   state.resetSflowCollectors(map);
@@ -261,8 +263,8 @@ TEST(ThriftySwitchState, AclTableGroupMap) {
   tableGroup->setAclTableMap(tableMap);
   tableGroup->setName(kGroup1);
 
-  auto tableGroups = std::make_shared<AclTableGroupMap>();
-  tableGroups->addAclTableGroup(tableGroup);
+  auto tableGroups = std::make_shared<MultiSwitchAclTableGroupMap>();
+  tableGroups->addNode(tableGroup, scope());
 
   auto state = SwitchState();
   state.resetAclTableGroups(tableGroups);
@@ -362,7 +364,7 @@ TEST(ThriftySwitchState, EmptyMultiMap) {
   state = SwitchState::fromThrift(stThr);
   /* mirror0 is found in multi map for default npu and is same as what was added
    * in legacy map */
-  EXPECT_EQ(state->getMirrors()->getNode("mirror0")->toThrift(), mirror);
+  EXPECT_EQ(state->getMirrors()->getNodeIf("mirror0")->toThrift(), mirror);
   auto mirrors = *state->toThrift().mirrorMap();
   EXPECT_EQ(mirrors.size(), 1);
 
@@ -398,16 +400,8 @@ TEST(ThriftySwitchState, MultiMapsDifferent) {
       makeFibContainerFields(
           1, {"100.1.1.1/24", "200.1.1.1/24"}, {"101::1/64", "201::1/64"}));
 
-  EXPECT_THROW(SwitchState::fromThrift(stateThrift0), FbossError);
+  EXPECT_NO_THROW(SwitchState::fromThrift(stateThrift0));
 
   auto fibs = utility::TagName<switch_state_tags::fibs>::value();
   EXPECT_EQ(fibs, "fibs");
-
-  try {
-    SwitchState::fromThrift(stateThrift0);
-  } catch (const FbossError& e) {
-    EXPECT_EQ(
-        e.what(),
-        folly::to<std::string>("Map fibs is different in multi-map fibsMap"));
-  }
 }

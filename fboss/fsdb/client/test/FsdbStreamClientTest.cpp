@@ -52,8 +52,8 @@ class TestFsdbStreamClient : public FsdbStreamClient {
   std::optional<FsdbStreamClient::State> lastStateUpdateSeen() const {
     return lastStateUpdateSeen_.load();
   }
-  void markConnected() {
-    setState(State::CONNECTED);
+  void markConnecting() {
+    setState(State::CONNECTING);
   }
 
  private:
@@ -106,7 +106,9 @@ TEST_F(StreamClientTest, connectAndCancel) {
   EXPECT_EQ(counterPrefix, "test_fsdb_client");
   EXPECT_EQ(
       fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 0);
-  streamClient_->markConnected();
+  streamClient_->markConnecting();
+  WITH_RETRIES(
+      { EXPECT_EVENTUALLY_TRUE(streamClient_->isConnectedToServer()); });
   EXPECT_EQ(
       fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 1);
   EXPECT_EQ(
@@ -125,8 +127,12 @@ TEST_F(StreamClientTest, connectAndCancel) {
 TEST_F(StreamClientTest, multipleStreamClientsOnSameEvb) {
   auto streamClient2 = std::make_unique<TestFsdbStreamClient>(
       streamEvbThread_->getEventBase(), connRetryEvbThread_->getEventBase());
-  streamClient_->markConnected();
-  streamClient2->markConnected();
+  streamClient_->markConnecting();
+  streamClient2->markConnecting();
+  WITH_RETRIES(
+      { EXPECT_EVENTUALLY_TRUE(streamClient_->isConnectedToServer()); });
+  WITH_RETRIES(
+      { EXPECT_EVENTUALLY_TRUE(streamClient2->isConnectedToServer()); });
   verifyServiceLoopRunning(true, {streamClient_.get(), streamClient2.get()});
   streamClient_->cancel();
   streamClient2->cancel();

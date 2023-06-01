@@ -31,8 +31,11 @@ namespace facebook::fboss {
  */
 
 BENCHMARK(HwTeFlowStatsCollection) {
+  folly::BenchmarkSuspender suspender;
+
   static std::string nextHopAddr("1::1");
   static std::string ifName("fboss2000");
+  static std::string dstIpStart("100");
   static int prefixLength(61);
   uint32_t numEntries = FLAGS_teflow_scale_entries;
   // @lint-ignore CLANGTIDY
@@ -43,7 +46,9 @@ BENCHMARK(HwTeFlowStatsCollection) {
       [](HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
         CHECK_GT(ports.size(), 0);
         return utility::onePortPerInterfaceConfig(
-            hwSwitch, {ports[0], ports[1]}, cfg::PortLoopbackMode::MAC);
+            hwSwitch,
+            {ports[0], ports[1]},
+            hwSwitch->getPlatform()->getAsic()->desiredLoopbackModes());
       };
 
   AgentEnsemblePlatformConfigFn platformConfigFn =
@@ -56,7 +61,6 @@ BENCHMARK(HwTeFlowStatsCollection) {
         AgentEnsemble::enableExactMatch(bcm);
       };
 
-  folly::BenchmarkSuspender suspender;
   ensemble = createAgentEnsemble(initialConfigFn, platformConfigFn);
   const auto& ports = ensemble->masterLogicalPortIds();
   auto hwSwitch = ensemble->getHw();
@@ -74,9 +78,9 @@ BENCHMARK(HwTeFlowStatsCollection) {
       ensemble->getSw()->getState(), {PortDescriptor(ports[1])}));
   // Add Entries
   auto flowEntries = utility::makeFlowEntries(
-      "100", nextHopAddr, ifName, ports[0], numEntries);
+      dstIpStart, nextHopAddr, ifName, ports[0], numEntries);
   state = ensemble->getSw()->getState();
-  utility::addFlowEntries(&state, flowEntries);
+  utility::addFlowEntries(&state, flowEntries, ensemble->scopeResolver());
   ensemble->applyNewState(state, true /* rollback on fail */);
   CHECK_EQ(utility::getNumTeFlowEntries(hwSwitch), numEntries);
   // Measure stats collection time for 9K entries

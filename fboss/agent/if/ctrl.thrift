@@ -16,9 +16,12 @@ include "fboss/agent/switch_config.thrift"
 include "fboss/agent/platform_config.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/agent/hw/hardware_stats.thrift"
+include "thrift/annotation/cpp.thrift"
 
-typedef binary (cpp2.type = "::folly::fbstring") fbbinary
-typedef string (cpp2.type = "::folly::fbstring") fbstring
+@cpp.Type{name = "::folly::fbstring"}
+typedef binary fbbinary
+@cpp.Type{name = "::folly::fbstring"}
+typedef string fbstring
 
 const i32 DEFAULT_CTRL_PORT = 5909;
 const i32 NO_VLAN = -1;
@@ -146,6 +149,7 @@ struct ArpEntryThrift {
   8: i32 classID;
   9: bool isLocal = true;
   10: optional i64 switchId;
+  11: optional i64 resolvedSince;
 }
 
 enum L2EntryType {
@@ -272,6 +276,7 @@ enum PortLoopbackMode {
   NONE = 0,
   MAC = 1,
   PHY = 2,
+  NIF = 3,
 }
 
 struct LinearQueueCongestionDetection {
@@ -409,6 +414,7 @@ struct NdpEntryThrift {
   8: i32 classID;
   9: bool isLocal = true;
   10: optional i64 switchId;
+  11: optional i64 resolvedSince;
 }
 
 enum BootType {
@@ -1312,12 +1318,20 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   map<string, FabricEndpoint> getFabricReachability() throws (
     1: fboss.FbossBaseError error,
   );
+  map<string, list<string>> getSwitchReachability(
+    1: list<string> switchNames,
+  ) throws (1: fboss.FbossBaseError error);
   map<i64, switch_config.DsfNode> getDsfNodes() throws (
     1: fboss.FbossBaseError error,
   );
   map<i64, SystemPortThrift> getSystemPorts() throws (
     1: fboss.FbossBaseError error,
   );
+
+  /*
+   * Only applicable to DSF Fabric Switch
+   */
+  bool isSwitchDrained() throws (1: fboss.FbossBaseError error);
 }
 
 service NeighborListenerClient extends fb303.FacebookService {

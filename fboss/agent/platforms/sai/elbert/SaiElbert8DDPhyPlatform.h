@@ -69,7 +69,8 @@ class SaiElbert8DDPhyPlatform : public SaiHwPlatform {
   void setupAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
-      std::optional<cfg::Range64> systemPortRange) override;
+      std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac) override;
   uint8_t pimId_{0};
   int phyId_{0};
   std::unique_ptr<CredoPhyAsic> asic_;

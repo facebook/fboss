@@ -196,8 +196,9 @@ bool BcmSwitchEnsemble::isRouteScaleEnabled() const {
 
 std::unique_ptr<HwLinkStateToggler> BcmSwitchEnsemble::createLinkToggler(
     HwSwitch* hwSwitch,
-    cfg::PortLoopbackMode desiredLoopbackMode) {
-  return std::make_unique<BcmLinkStateToggler>(this, desiredLoopbackMode);
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>&
+        desiredLoopbackModes) {
+  return std::make_unique<BcmLinkStateToggler>(this, desiredLoopbackModes);
 }
 
 uint64_t BcmSwitchEnsemble::getSdkSwitchId() const {
@@ -303,7 +304,7 @@ void BcmSwitchEnsemble::init(
   if (haveFeature(HwSwitchEnsemble::LINKSCAN)) {
     linkToggler = createLinkToggler(
         static_cast<BcmSwitch*>(platform->getHwSwitch()),
-        bcmTestPlatform->getAsic()->desiredLoopbackMode());
+        bcmTestPlatform->getAsic()->desiredLoopbackModes());
   }
   std::unique_ptr<std::thread> thriftThread;
   if (FLAGS_setup_thrift) {

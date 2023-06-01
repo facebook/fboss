@@ -24,18 +24,20 @@
 #include <folly/Range.h>
 #include <folly/lang/Bits.h>
 #include <folly/logging/xlog.h>
-#include "fboss/agent/state/NdpEntry.h"
+#include "fboss/agent/HwSwitchMatcher.h"
 
 #include <thrift/lib/cpp2/protocol/BinaryProtocol.h>
 
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
+#include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
 #include <chrono>
 
 DECLARE_string(mac);
 DECLARE_uint64(ingress_egress_buffer_pool_size);
+DECLARE_bool(allow_zero_headroom_for_lossless_pg);
 namespace folly {
 struct dynamic;
 }
@@ -272,9 +274,31 @@ bool readThriftFromBinaryFile(
  * for VLAN based interface, look up the neighbor table for VLAN.
  * for Port based interface, look up the neighbor table for interface.
  */
-std::shared_ptr<NdpEntry> getNeighborEntryForIP(
+template <typename NeighborEntryT>
+std::shared_ptr<NeighborEntryT> getNeighborEntryForIP(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& intf,
-    const folly::IPAddressV6& ipAddr);
+    const folly::IPAddress& ipAddr);
+
+template <typename NeighborEntryT>
+std::shared_ptr<NeighborEntryT> getNeighborEntryForIPAndIntf(
+    const std::shared_ptr<Interface>& intf,
+    const folly::IPAddress& ipAddr);
+
+class OperDeltaFilter {
+ public:
+  explicit OperDeltaFilter(SwitchID switchId);
+  std::optional<fsdb::OperDelta> filterWithSwitchStateRootPath(
+      const fsdb::OperDelta& delta) const {
+    return filter(delta, 1);
+  }
+
+  std::optional<fsdb::OperDelta> filter(const fsdb::OperDelta& delta, int index)
+      const;
+
+ private:
+  SwitchID switchId_;
+  mutable std::map<std::string, HwSwitchMatcher> matchersCache_;
+};
 
 } // namespace facebook::fboss

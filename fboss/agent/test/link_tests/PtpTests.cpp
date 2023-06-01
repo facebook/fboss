@@ -51,8 +51,8 @@ class PtpTests : public LinkTest {
 
   bool sendAndVerifyPtpPkts(
       PTPMessageType ptpType,
-      const PortDescriptor& portDescriptor,
-      HwAgentTestPacketSnooper& snooper) {
+      const PortDescriptor& portDescriptor) {
+    HwAgentTestPacketSnooper snooper(sw()->getPacketObservers());
     XLOG(DBG2) << "Validating PTP packet fields on Port "
                << portDescriptor.phyPortID();
     auto localMac = sw()->getPlatform()->getLocalMac();
@@ -132,6 +132,37 @@ class PtpTests : public LinkTest {
     return false;
   }
 
+  void verifyPtpTcOnPorts(
+      boost::container::flat_set<PortDescriptor>& ecmpPorts,
+      PTPMessageType ptpType) {
+    for (const auto& portDescriptor : ecmpPorts) {
+      // There are cases where a burst of other packets could occupy the CPU
+      // queue (e.g. NDP etc.) and force PTP packets to be dropped. In this
+      // case, retry 3 times on the same port.
+      int retries = 3;
+      bool retryable = true;
+      while (retries > 0 && retryable) {
+        retryable = sendAndVerifyPtpPkts(ptpType, portDescriptor);
+        retries--;
+      }
+      EXPECT_FALSE(retryable)
+          << "Failed to capture PTP packets on port "
+          << portDescriptor.phyPortID() << " after multiple retries";
+      break;
+    }
+  }
+
+  void setPtpTcEnable(bool enable) {
+    std::string updateMsg = enable ? "PTP enable" : "PTP disable";
+    sw()->updateStateBlocking(updateMsg, [=](auto state) {
+      auto newState = state->clone();
+      auto switchSettings = util::getFirstNodeIf(newState->getSwitchSettings())
+                                ->modify(&newState);
+      switchSettings->setPtpTcEnable(enable);
+      return newState;
+    });
+  }
+
  protected:
   void setCmdLineFlagOverrides() const override {
     // disable other processes which generate pkts
@@ -167,22 +198,88 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
   // SAI doesn't support this qualifier yet
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
   auto entry = HwTestPacketTrapEntry(sw()->getHw(), dstPrefix);
-  HwAgentTestPacketSnooper snooper(sw()->getPacketObservers());
   programDefaultRoute(ecmpPorts, sw()->getPlatform()->getLocalMac());
-  auto ptpType = PTPMessageType::PTP_DELAY_REQUEST;
 
+  verifyPtpTcOnPorts(ecmpPorts, PTPMessageType::PTP_DELAY_REQUEST);
+}
+
+TEST_F(PtpTests, verifyPtpTcAfterLinkFlap) {
+  folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
+  auto entry = HwTestPacketTrapEntry(sw()->getHw(), dstPrefix);
+  auto ecmpPorts = getVlanOwningCabledPorts();
+  std::vector<PortID> portVec;
+  boost::container::flat_set<PortDescriptor> portDescriptorSet;
+  // For the sake of time, use the first 5 ports.
+  const auto kNumPort = 5;
   for (const auto& portDescriptor : ecmpPorts) {
-    // There are cases where a burst of other packets could occupy the CPU queue
-    // (e.g. NDP etc.) and force PTP packets to be dropped. In this case, retry
-    // 3 times on the same port.
-    int retries = 3;
-    bool retryable = true;
-    while (retries > 0 && retryable) {
-      retryable = sendAndVerifyPtpPkts(ptpType, portDescriptor, snooper);
-      retries--;
+    portVec.push_back(portDescriptor.phyPortID());
+    portDescriptorSet.insert(portDescriptor);
+    if (portVec.size() >= kNumPort) {
+      break;
     }
-    EXPECT_FALSE(retryable)
-        << "Failed to capture PTP packets on port "
-        << portDescriptor.phyPortID() << " after multiple retries";
   }
+  programDefaultRoute(ecmpPorts, sw()->getPlatform()->getLocalMac());
+
+  // 1. Disable PTP
+  XLOG(DBG2) << "Disabling PTP";
+  setPtpTcEnable(false);
+
+  // 2. Flap links
+  XLOG(DBG2) << "Flapping ports the first time";
+  setLinkState(false, portVec);
+  setLinkState(true, portVec);
+
+  // 3. Enable PTP and ensure PTP TC is working properly. For now verify PTP on
+  // the first kNumPort ports.
+  XLOG(DBG2) << "Enabling PTP and verify PTP TC";
+  setPtpTcEnable(true);
+  verifyPtpTcOnPorts(portDescriptorSet, PTPMessageType::PTP_DELAY_REQUEST);
+
+  // 4. Flap links
+  XLOG(INFO) << "Flapping ports the second time";
+  setLinkState(false, portVec);
+  setLinkState(true, portVec);
+
+  // 5. Ensure PTP TC still works as expected.
+  XLOG(INFO) << "Ensure PTP TC still works as expected";
+  verifyPtpTcOnPorts(portDescriptorSet, PTPMessageType::PTP_DELAY_REQUEST);
+}
+
+// Validate PTP TC when PTP is enabled while port is down.
+TEST_F(PtpTests, enablePtpPortDown) {
+  folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
+  auto entry = HwTestPacketTrapEntry(sw()->getHw(), dstPrefix);
+  auto ecmpPorts = getVlanOwningCabledPorts();
+  std::vector<PortID> portVec;
+  boost::container::flat_set<PortDescriptor> portDescriptorSet;
+  // For the sake of time, use the first 5 ports.
+  const auto kNumPort = 5;
+  for (const auto& portDescriptor : ecmpPorts) {
+    portVec.push_back(portDescriptor.phyPortID());
+    portDescriptorSet.insert(portDescriptor);
+    if (portVec.size() >= kNumPort) {
+      break;
+    }
+  }
+  programDefaultRoute(ecmpPorts, sw()->getPlatform()->getLocalMac());
+
+  // 1. Disable PTP
+  XLOG(DBG2) << "Disabling PTP";
+  setPtpTcEnable(false);
+
+  // 2. Bring ports down
+  XLOG(DBG2) << "Bringing port down";
+  setLinkState(false, portVec);
+
+  // 3. Enable PTP
+  XLOG(DBG2) << "Enabling PTP";
+  setPtpTcEnable(true);
+
+  // 4. Bring ports up
+  XLOG(DBG2) << "Bringing port up";
+  setLinkState(true, portVec);
+
+  // 5. Ensure PTP TC works.
+  XLOG(INFO) << "Ensure PTP TC still works after port up";
+  verifyPtpTcOnPorts(portDescriptorSet, PTPMessageType::PTP_DELAY_REQUEST);
 }

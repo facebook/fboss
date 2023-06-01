@@ -43,57 +43,10 @@ class LabelForwardingInformationBase
 
   virtual ~LabelForwardingInformationBase() override;
 
-  const std::shared_ptr<LabelForwardingEntry>& getLabelForwardingEntry(
-      Label topLabel) const;
-
-  std::shared_ptr<LabelForwardingEntry> getLabelForwardingEntryIf(
-      Label topLabel) const;
-
-  std::shared_ptr<LabelForwardingEntry> cloneLabelEntry(
-      std::shared_ptr<LabelForwardingEntry> entry);
-
-  LabelForwardingInformationBase* modify(std::shared_ptr<SwitchState>* state);
-
-  LabelForwardingEntry* modifyLabelEntry(
-      std::shared_ptr<SwitchState>* state,
-      std::shared_ptr<LabelForwardingEntry> entry);
-
-  LabelForwardingInformationBase* programLabel(
-      std::shared_ptr<SwitchState>* state,
-      Label label,
-      ClientID client,
-      AdminDistance distance,
-      LabelNextHopSet nexthops);
-
-  LabelForwardingInformationBase* unprogramLabel(
-      std::shared_ptr<SwitchState>* state,
-      Label label,
-      ClientID client);
-
-  LabelForwardingInformationBase* purgeEntriesForClient(
-      std::shared_ptr<SwitchState>* state,
-      ClientID client);
-
-  static bool isValidNextHopSet(const LabelNextHopSet& nexthops);
-
-  // Used for resolving route when mpls rib is not enabled
-  static void resolve(std::shared_ptr<LabelForwardingEntry> entry) {
-    entry->setResolved(*(entry->getBestEntry().second));
-  }
-
-  // For backward compatibility with old format
-  static std::shared_ptr<LabelForwardingEntry> labelEntryFromFollyDynamic(
-      folly::dynamic entry);
-
-  static void noRibToRibEntryConvertor(
-      std::shared_ptr<LabelForwardingEntry>& entry);
-
  private:
   // Inherit the constructors required for clone()
   using Base::Base;
   friend class CloneAllocator;
-  static std::shared_ptr<LabelForwardingEntry> fromFollyDynamicOldFormat(
-      folly::dynamic entry);
 };
 
 using MultiLabelForwardingInformationBaseTypeClass =
@@ -105,27 +58,38 @@ using MultiLabelForwardingInformationBaseThriftType =
 
 class MultiLabelForwardingInformationBase;
 
-using MultiLabelForwardingInformationBaseTraits = ThriftMultiMapNodeTraits<
-    MultiLabelForwardingInformationBase,
-    MultiLabelForwardingInformationBaseTypeClass,
-    MultiLabelForwardingInformationBaseThriftType,
-    LabelForwardingInformationBase>;
+using MultiLabelForwardingInformationBaseTraits =
+    ThriftMultiSwitchMapNodeTraits<
+        MultiLabelForwardingInformationBase,
+        MultiLabelForwardingInformationBaseTypeClass,
+        MultiLabelForwardingInformationBaseThriftType,
+        LabelForwardingInformationBase>;
 
 class HwSwitchMatcher;
 
 class MultiLabelForwardingInformationBase
-    : public ThriftMapNode<
+    : public ThriftMultiSwitchMapNode<
           MultiLabelForwardingInformationBase,
           MultiLabelForwardingInformationBaseTraits> {
  public:
   using Traits = MultiLabelForwardingInformationBaseTraits;
-  using BaseT = ThriftMapNode<
+  using BaseT = ThriftMultiSwitchMapNode<
       MultiLabelForwardingInformationBase,
       MultiLabelForwardingInformationBaseTraits>;
   using BaseT::modify;
 
   MultiLabelForwardingInformationBase() {}
   virtual ~MultiLabelForwardingInformationBase() {}
+
+  static bool isValidNextHopSet(const LabelNextHopSet& nexthops);
+
+  // Used for resolving route when mpls rib is not enabled
+  static void resolve(std::shared_ptr<LabelForwardingEntry> entry) {
+    entry->setResolved(*(entry->getBestEntry().second));
+  }
+
+  MultiLabelForwardingInformationBase* modify(
+      std::shared_ptr<SwitchState>* state);
 
  private:
   // Inherit the constructors required for clone()

@@ -70,15 +70,17 @@ cfg::SwitchConfig createSwitchConfig(
     std::optional<std::string> routerAddress = std::nullopt) {
   // Create a thrift config to use
   cfg::SwitchConfig config;
+  config.switchSettings()->switchIdToSwitchInfo() = {
+      std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU))};
   config.vlans()->resize(2);
   *config.vlans()[0].name() = "PrimaryVlan";
   *config.vlans()[0].id() = 5;
   *config.vlans()[0].routable() = true;
-  config.vlans()[0].intfID() = 1234;
+  config.vlans()[0].intfID() = 5;
   *config.vlans()[1].name() = "DefaultHWVlan";
   *config.vlans()[1].id() = 1;
   *config.vlans()[1].routable() = true;
-  config.vlans()[1].intfID() = 4321;
+  config.vlans()[1].intfID() = 1;
 
   config.vlanPorts()->resize(10);
   config.ports()->resize(10);
@@ -97,7 +99,7 @@ cfg::SwitchConfig createSwitchConfig(
   }
 
   config.interfaces()->resize(2);
-  *config.interfaces()[0].intfID() = 1234;
+  *config.interfaces()[0].intfID() = 5;
   *config.interfaces()[0].vlanID() = 5;
   config.interfaces()[0].name() = "PrimaryInterface";
   config.interfaces()[0].mtu() = 9000;
@@ -114,7 +116,7 @@ cfg::SwitchConfig createSwitchConfig(
   if (routerAddress) {
     config.interfaces()[0].ndp()->routerAddress() = *routerAddress;
   }
-  *config.interfaces()[1].intfID() = 4321;
+  *config.interfaces()[1].intfID() = 1;
   *config.interfaces()[1].vlanID() = 1;
   config.interfaces()[1].name() = "DefaultHWInterface";
   config.interfaces()[1].mtu() = 9000;
@@ -679,7 +681,7 @@ void NdpTest::validateRouterAdv(std::optional<std::string> configuredRouterIp) {
   sw->initialConfigApplied(std::chrono::steady_clock::now());
 
   auto state = sw->getState();
-  auto intfConfig = state->getInterfaces()->getInterface(InterfaceID(1234));
+  auto intfConfig = state->getInterfaces()->getNode(InterfaceID(5));
   PrefixVector expectedPrefixes{
       {IPAddressV6("2401:db00:2110:3004::"), 64},
       {IPAddressV6("fe80::"), 64},
@@ -852,7 +854,7 @@ TEST_F(NdpTest, FlushEntry) {
   auto getNDPTableEntry = [&](IPAddressV6 ip, VlanID vlan) {
     return sw->getState()
         ->getVlans()
-        ->getVlanIf(vlan)
+        ->getNodeIf(vlan)
         ->getNdpTable()
         ->getEntryIf(ip);
   };
@@ -924,7 +926,7 @@ TEST_F(NdpTest, FlushOnAggPortTransition) {
   auto getNDPTableEntry = [&](IPAddressV6 ip, VlanID vlan) {
     return sw->getState()
         ->getVlans()
-        ->getVlanIf(vlan)
+        ->getNodeIf(vlan)
         ->getNdpTable()
         ->getEntryIf(ip);
   };
@@ -1043,7 +1045,7 @@ TEST_F(NdpTest, PendingNdp) {
 
   // Should see a pending entry now
   auto entry =
-      sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable()->getEntryIf(
+      sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable()->getEntryIf(
           IPAddressV6("2401:db00:2110:3004::1:0"));
   EXPECT_NE(entry, nullptr);
   EXPECT_EQ(entry->isPending(), true);
@@ -1063,7 +1065,7 @@ TEST_F(NdpTest, PendingNdp) {
   EXPECT_TRUE(neighborEntryReachable.wait());
   waitForStateUpdates(sw);
   entry =
-      sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable()->getEntryIf(
+      sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable()->getEntryIf(
           IPAddressV6("2401:db00:2110:3004::1:0"));
   EXPECT_NE(entry, nullptr);
   EXPECT_EQ(entry->isPending(), false);
@@ -1076,7 +1078,7 @@ TEST_F(NdpTest, PendingNdp) {
   handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), vlanID);
   waitForStateUpdates(sw);
   entry =
-      sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable()->getEntryIf(
+      sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable()->getEntryIf(
           IPAddressV6("2401:db00:2110:3004::1:0"));
   EXPECT_NE(entry, nullptr);
   EXPECT_EQ(entry->isPending(), false);
@@ -1142,7 +1144,7 @@ TEST_F(NdpTest, PendingNdpCleanup) {
   // Should see a pending entry now
   EXPECT_TRUE(neighborEntryCreate.wait());
   auto entry =
-      sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable()->getEntryIf(
+      sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable()->getEntryIf(
           IPAddressV6("2401:db00:2110:3004::1:0"));
   EXPECT_NE(entry, nullptr);
   EXPECT_EQ(entry->isPending(), true);
@@ -1218,10 +1220,10 @@ TEST_F(NdpTest, PendingNdpCleanup) {
 
   // Should see two more pending entries now
   entry =
-      sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable()->getEntryIf(
+      sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable()->getEntryIf(
           IPAddressV6("2401:db00:2110:3004::1"));
   auto entry2 =
-      sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable()->getEntryIf(
+      sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable()->getEntryIf(
           IPAddressV6("2401:db00:2110:3004::2"));
   EXPECT_NE(entry, nullptr);
   EXPECT_EQ(entry->isPending(), true);
@@ -1246,7 +1248,7 @@ TEST_F(NdpTest, PendingNdpCleanup) {
   EXPECT_TRUE(nexthop1Expire.wait());
   EXPECT_TRUE(nexthop2Expire.wait());
   // Entries should be removed
-  auto ndpTable = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable();
+  auto ndpTable = sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable();
   entry = ndpTable->getEntryIf(IPAddressV6("2401:db00:2110:3004::1:0"));
   entry2 = ndpTable->getEntryIf(IPAddressV6("2401:db00:2110:3004::1"));
   auto entry3 = ndpTable->getEntryIf(IPAddressV6("2401:db00:2110:3004::2"));
@@ -1318,7 +1320,7 @@ TEST_F(NdpTest, NdpExpiration) {
   // Should see a pending entry now
   EXPECT_TRUE(neighbor0Create.wait());
   auto entry =
-      sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable()->getEntryIf(
+      sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable()->getEntryIf(
           targetIP);
   EXPECT_NE(entry, nullptr);
   EXPECT_EQ(entry->isPending(), true);
@@ -1391,7 +1393,7 @@ TEST_F(NdpTest, NdpExpiration) {
   EXPECT_TRUE(neighbor1Create.wait());
   EXPECT_TRUE(neighbor2Create.wait());
 
-  auto ndpTable = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable();
+  auto ndpTable = sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable();
   auto entry2 = ndpTable->getEntryIf(targetIP2);
   auto entry3 = ndpTable->getEntryIf(targetIP3);
   EXPECT_NE(entry2, nullptr);
@@ -1426,7 +1428,7 @@ TEST_F(NdpTest, NdpExpiration) {
   EXPECT_TRUE(neighbor1Reachable.wait());
   EXPECT_TRUE(neighbor2Reachable.wait());
 
-  ndpTable = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable();
+  ndpTable = sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable();
   entry = ndpTable->getEntryIf(targetIP);
   entry2 = ndpTable->getEntryIf(targetIP2);
   entry3 = ndpTable->getEntryIf(targetIP3);
@@ -1484,7 +1486,7 @@ TEST_F(NdpTest, NdpExpiration) {
   EXPECT_TRUE(expire2.wait());
 
   // The first entry should not be expired, but the others should be
-  ndpTable = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable();
+  ndpTable = sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable();
   entry = ndpTable->getEntryIf(targetIP);
   entry2 = ndpTable->getEntryIf(targetIP2);
   entry3 = ndpTable->getEntryIf(targetIP3);
@@ -1522,7 +1524,7 @@ TEST_F(NdpTest, NdpExpiration) {
 
   // First entry should now be expired
   entry =
-      sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable()->getEntryIf(
+      sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable()->getEntryIf(
           targetIP);
   EXPECT_EQ(entry, nullptr);
 }
@@ -1657,7 +1659,7 @@ TEST_F(NdpTest, PortFlapRecover) {
   // Should see a pending entry now
   EXPECT_TRUE(neighbor0Create.wait());
   auto entry =
-      sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable()->getEntryIf(
+      sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable()->getEntryIf(
           targetIP);
   EXPECT_NE(entry, nullptr);
   EXPECT_EQ(entry->isPending(), true);
@@ -1729,7 +1731,7 @@ TEST_F(NdpTest, PortFlapRecover) {
 
   // Should see two more pending entries now
 
-  auto ndpTable = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable();
+  auto ndpTable = sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable();
   auto entry2 = ndpTable->getEntryIf(targetIP2);
   auto entry3 = ndpTable->getEntryIf(targetIP3);
   EXPECT_NE(entry2, nullptr);
@@ -1763,7 +1765,7 @@ TEST_F(NdpTest, PortFlapRecover) {
       .WillRepeatedly(testing::Return(true));
 
   // The entries should now be valid instead of pending
-  ndpTable = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable();
+  ndpTable = sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable();
   entry = ndpTable->getEntryIf(targetIP);
   entry2 = ndpTable->getEntryIf(targetIP2);
   entry3 = ndpTable->getEntryIf(targetIP3);
@@ -1794,7 +1796,7 @@ TEST_F(NdpTest, PortFlapRecover) {
   EXPECT_TRUE(neigbor0Pending.wait());
   EXPECT_TRUE(neigbor1Pending.wait());
 
-  ndpTable = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable();
+  ndpTable = sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable();
   entry = ndpTable->getEntryIf(targetIP);
   entry2 = ndpTable->getEntryIf(targetIP2);
   entry3 = ndpTable->getEntryIf(targetIP3);
@@ -1818,7 +1820,7 @@ TEST_F(NdpTest, PortFlapRecover) {
   EXPECT_TRUE(neighbor1Reachable.wait());
 
   // All entries should be valid again
-  ndpTable = sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable();
+  ndpTable = sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable();
   entry = ndpTable->getEntryIf(targetIP);
   entry2 = ndpTable->getEntryIf(targetIP2);
   entry3 = ndpTable->getEntryIf(targetIP3);

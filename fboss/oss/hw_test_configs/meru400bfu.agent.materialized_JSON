@@ -109,13 +109,22 @@
       "switchIdToSwitchInfo": {
         "0": {
             "switchType": 3,
-            "asicType": 12
+            "asicType": 12,
+            "switchIndex": 0,
+            "portIdRange": {
+              "minimum": 0,
+              "maximum": 1023
+            },
+            "connectionHandle": "0c:00"
         }
       }
     },
     "dsfNodes": {
       
-    }
+    },
+    "defaultVoqConfig": [
+      
+    ]
   },
   "platform": {
     "chip": {
@@ -129,6 +138,7 @@
           "core_clock_speed_khz.BCM8879X": "1000000",
           "custom_feature_access_only.BCM8879X": "0",
           "custom_feature_lane_swap_disable.BCM8879X": "0",
+          "custom_feature_mesh_topology_sync_mode": "1",
           "dport_map_direct.BCM8879X": "1",
           "fabric_cell_fifo_dma_enable.BCM8879X": "1",
           "fabric_device_mode.BCM8879X": "SINGLE_STAGE_FE2",
@@ -1407,6 +1417,7 @@
           "sai_common_hash_crc": "0x1",
           "sai_dis_ctr_incr_on_port_ln_dn": "0",
           "sai_disable_srcmacqedstmac_ctrl": "0x1",
+          "sai_ecmp_group_members_increment": "1",
           "sai_ifp_enable_on_cpu_tx": "0x1",
           "sai_macro_flow_based_hash": "1",
           "sai_mmu_qgroups_default": "1",

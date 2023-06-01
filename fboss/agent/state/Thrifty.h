@@ -13,6 +13,7 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/NodeMap.h"
 
@@ -224,28 +225,6 @@ class ThriftyFields {
 
   virtual ~ThriftyFields() = default;
 
-  static FieldsT fromFollyDynamic(folly::dynamic const& dyn) {
-    if (ThriftyUtils::nodeNeedsMigration(dyn)) {
-      XLOG(FATAL) << "incomptaible schema detected";
-    } else {
-      // Schema is up to date meaning there is no migration required
-      return fromJson(folly::toJson(dyn));
-    }
-  }
-
-  folly::dynamic toFollyDynamic() const {
-    auto dyn = folly::parseJson(this->str());
-    return dyn;
-  }
-
-  static FieldsT fromJson(const folly::fbstring& jsonStr) {
-    auto inBuf =
-        folly::IOBuf::wrapBufferAsValue(jsonStr.data(), jsonStr.size());
-    auto obj = apache::thrift::SimpleJSONSerializer::deserialize<ThriftT>(
-        folly::io::Cursor{&inBuf});
-    return FieldsT::fromThrift(obj);
-  }
-
   std::string str() const {
     auto obj = toThrift();
     std::string jsonStr;
@@ -288,6 +267,7 @@ struct ThriftMapNodeTraits {
   using Type = MapThrift;
   using KeyType = typename Type::key_type;
   using KeyCompare = std::less<KeyType>;
+  using Node = NODE;
   // for structure
   template <typename...>
   struct ValueTraits {
@@ -306,11 +286,13 @@ template <
     typename MultiMapTypeClass,
     typename MultiMapThrift,
     typename MAP>
-struct ThriftMultiMapNodeTraits {
+struct ThriftMultiSwitchMapNodeTraits {
   using TC = MultiMapTypeClass;
   using Type = MultiMapThrift;
   using KeyType = typename Type::key_type;
   using KeyCompare = std::less<KeyType>;
+  using InnerMap = MAP;
+  using Node = InnerMap;
 
   // for map
   template <typename...>
@@ -368,7 +350,7 @@ struct ThriftMapNode : public thrift_cow::ThriftMapNode<Traits, Resolver> {
   std::shared_ptr<Node> removeNode(const KeyType& key) {
     auto node = removeNodeIf(key);
     if (!node) {
-      throw FbossError("node ", key, " does not exist");
+      throw FbossError("Cannot remove node ", key, " does not exist");
     }
     return node;
   }
@@ -386,7 +368,7 @@ struct ThriftMapNode : public thrift_cow::ThriftMapNode<Traits, Resolver> {
   const std::shared_ptr<Node>& getNode(KeyType key) const {
     auto iter = this->find(key);
     if (iter == this->end()) {
-      throw FbossError("node ", key, " does not exist");
+      throw FbossError("Cannot get node ", key, " does not exist");
     }
     return iter->second;
   }
@@ -410,6 +392,131 @@ template <typename MultiMapName, template <typename> typename TypeFor>
 struct InnerMap {
   using type =
       typename TypeFor<MultiMapName>::element_type::mapped_type::element_type;
+};
+
+template <
+    typename MAP,
+    typename Traits,
+    typename Resolver = thrift_cow::TypeIdentity<MAP>>
+struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
+  using Base = ThriftMapNode<MAP, Traits, Resolver>;
+  using Base::Base;
+  using InnerMap = typename Traits::InnerMap;
+  using InnerNode = typename InnerMap::Traits::Node;
+
+  void addNode(
+      std::shared_ptr<InnerNode> node,
+      const HwSwitchMatcher& matcher) {
+    const auto& key = matcher.matcherString();
+    auto mitr = this->find(key);
+    if (mitr == this->end()) {
+      mitr = this->insert(key, std::make_shared<InnerMap>()).first;
+    }
+    auto& innerMap = mitr->second;
+    innerMap->addNode(std::move(node));
+  }
+
+  void updateNode(
+      std::shared_ptr<InnerNode> node,
+      const HwSwitchMatcher& matcher) {
+    const auto& key = matcher.matcherString();
+    auto mitr = this->find(key);
+    if (mitr == this->end()) {
+      throw FbossError("No map found for switchIds: ", key);
+    }
+    auto& innerMap = mitr->second;
+    innerMap->updateNode(std::move(node));
+  }
+
+  void removeNode(const typename InnerMap::Traits::KeyType& key) {
+    for (auto mitr = this->begin(); mitr != this->end(); ++mitr) {
+      if (mitr->second->remove(key)) {
+        return;
+      }
+    }
+    throw FbossError("node not found: ", key);
+  }
+
+  void removeNode(std::shared_ptr<InnerNode> node) {
+    removeNode(node->getID());
+  }
+
+  std::shared_ptr<InnerNode> getNodeIf(
+      const typename InnerMap::Traits::KeyType& key) const {
+    for (auto mnitr = this->cbegin(); mnitr != this->cend(); ++mnitr) {
+      auto node = mnitr->second->getNodeIf(key);
+      if (node) {
+        return node;
+      }
+    }
+    return nullptr;
+  }
+
+  std::shared_ptr<InnerNode> getNode(
+      const typename InnerMap::Traits::KeyType& key) const {
+    auto node = getNodeIf(key);
+    if (!node) {
+      throw FbossError("node not found: ", key);
+    }
+    return node;
+  }
+
+  std::pair<std::shared_ptr<InnerNode>, HwSwitchMatcher> getNodeAndScope(
+      const typename InnerMap::Traits::KeyType& key) const {
+    for (auto mnitr = this->cbegin(); mnitr != this->cend(); ++mnitr) {
+      auto nitr = mnitr->second->find(key);
+      if (nitr != mnitr->second->cend()) {
+        return std::make_pair(nitr->second, HwSwitchMatcher(mnitr->first));
+      }
+    }
+    throw FbossError("node not found: ", key);
+  }
+
+  size_t numNodes() const {
+    size_t cnt = 0;
+    for (auto mnitr = this->cbegin(); mnitr != this->cend(); ++mnitr) {
+      cnt += mnitr->second->size();
+    }
+    return cnt;
+  }
+
+  void addMapNode(
+      std::shared_ptr<InnerMap> node,
+      const HwSwitchMatcher& matcher) {
+    Base::addNode(matcher.matcherString(), node);
+  }
+
+  std::shared_ptr<InnerMap> getMapNodeIf(const HwSwitchMatcher& matcher) const {
+    return Base::getNodeIf(matcher.matcherString());
+  }
+
+  void updateMapNode(
+      std::shared_ptr<InnerMap> node,
+      const HwSwitchMatcher& matcher) {
+    Base::updateNode(matcher.matcherString(), node);
+  }
+
+  std::shared_ptr<MAP> clone() const {
+    auto cloned = Base::clone();
+    for (auto mnitr = cloned->cbegin(); mnitr != cloned->cend(); ++mnitr) {
+      if (!mnitr->second->isPublished()) {
+        continue;
+      }
+      auto newMap = mnitr->second->clone();
+      cloned->ref(mnitr->first) = newMap;
+    }
+    return cloned;
+  }
+
+  std::shared_ptr<InnerMap> getAllNodes() const {
+    auto nodes = std::make_shared<InnerMap>();
+    for (const auto& [_, innerMap] : std::as_const(*this)) {
+      for (const auto& [_, node] : std::as_const(*innerMap)) {
+        nodes->addNode(node);
+      }
+    }
+    return nodes;
+  }
 };
 
 namespace utility {

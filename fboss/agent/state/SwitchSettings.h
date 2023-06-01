@@ -167,6 +167,9 @@ class SwitchSettings
   std::unordered_set<SwitchID> getSwitchIdsOfType(cfg::SwitchType type) const;
   bool vlansSupported() const;
 
+  bool isSwitchDrained() const {
+    return getSwitchDrainState() == cfg::SwitchDrainState::DRAINED;
+  }
   cfg::SwitchDrainState getSwitchDrainState() const {
     return cref<switch_state_tags::switchDrainState>()->toThrift();
   }
@@ -422,8 +425,6 @@ class MultiSwitchSettings
 
   MultiSwitchSettings() {}
   virtual ~MultiSwitchSettings() {}
-
-  std::shared_ptr<SwitchSettings> getSwitchSettings() const;
 
  private:
   // Inherit the constructors required for clone()

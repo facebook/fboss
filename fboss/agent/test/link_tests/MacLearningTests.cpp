@@ -35,7 +35,8 @@ class MacLearningTest : public LinkTest {
   void updateL2Aging(int ageout) {
     sw()->updateStateBlocking("update L2 aging", [ageout](auto state) {
       auto newState = state->clone();
-      auto switchSettings = newState->getSwitchSettings()->modify(&newState);
+      auto switchSettings = util::getFirstNodeIf(newState->getSwitchSettings())
+                                ->modify(&newState);
       switchSettings->setL2AgeTimerSeconds(ageout);
       return newState;
     });
@@ -55,7 +56,7 @@ class MacLearningTest : public LinkTest {
 
   void verifyL2EntryLearned(MacAddress macAddr, VlanID vlanId) {
     auto l2EntryLearned = [&](const std::shared_ptr<SwitchState>& state) {
-      auto vlan = state->getVlans()->getVlan(vlanId);
+      auto vlan = state->getVlans()->getNode(vlanId);
       auto* macTable = vlan->getMacTable().get();
       auto node = macTable->getMacIf(macAddr);
       XLOG(DBG2) << "found l2 entry node for " << macAddr << " and vlan "

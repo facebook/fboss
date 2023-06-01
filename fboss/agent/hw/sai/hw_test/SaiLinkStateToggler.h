@@ -24,8 +24,9 @@ class SaiLinkStateToggler : public HwLinkStateToggler {
  public:
   SaiLinkStateToggler(
       TestEnsembleIf* ensemble,
-      cfg::PortLoopbackMode desiredLoopbackMode)
-      : HwLinkStateToggler(ensemble, desiredLoopbackMode),
+      const std::map<cfg::PortType, cfg::PortLoopbackMode>&
+          desiredLoopbackModes)
+      : HwLinkStateToggler(ensemble, desiredLoopbackModes),
         saiEnsemble_(ensemble) {}
 
  private:
@@ -36,6 +37,8 @@ class SaiLinkStateToggler : public HwLinkStateToggler {
   void setPortPreemphasis(const std::shared_ptr<Port>& port, int preemphasis)
       override;
   void setLinkTraining(const std::shared_ptr<Port>& port, bool enable) override;
+  void setRxLaneSquelchImpl(const std::shared_ptr<Port>& port, bool enable)
+      override;
 
   TestEnsembleIf* saiEnsemble_;
 };

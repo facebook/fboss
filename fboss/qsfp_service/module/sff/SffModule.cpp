@@ -441,26 +441,25 @@ TransceiverSettings SffModule::getTransceiverSettingsInfo() {
 }
 
 std::vector<uint8_t> SffModule::configuredHostLanes(
-    uint8_t /* hostStartLane */) const {
+    uint8_t hostStartLane) const {
+  if (hostStartLane != 0) {
+    return {};
+  }
   return {0, 1, 2, 3};
 }
 
 std::vector<uint8_t> SffModule::configuredMediaLanes(
-    uint8_t /* hostStartLane */) const {
+    uint8_t hostStartLane) const {
+  if (hostStartLane != 0 || flatMem_) {
+    return {};
+  }
+
   auto ext_comp_code = getExtendedSpecificationComplianceCode();
 
   if (ext_comp_code && *ext_comp_code == ExtendedSpecComplianceCode::FR1_100G) {
     return {0};
   }
   return {0, 1, 2, 3};
-}
-
-unsigned int SffModule::numHostLanes() const {
-  return configuredHostLanes(0).size();
-}
-
-unsigned int SffModule::numMediaLanes() const {
-  return configuredMediaLanes(0).size();
 }
 
 RateSelectSetting SffModule::getRateSelectSettingValue(RateSelectState state) {
@@ -791,6 +790,23 @@ bool SffModule::getMediaInterfaceId(
   }
 
   return true;
+}
+
+MediaInterfaceCode SffModule::getModuleMediaInterface() const {
+  auto extSpecCompliance = getExtendedSpecificationComplianceCode();
+  if (!extSpecCompliance) {
+    QSFP_LOG(ERR, this)
+        << "getExtendedSpecificationComplianceCode returned nullopt";
+    return MediaInterfaceCode::UNKNOWN;
+  }
+  if (auto it = mediaInterfaceMapping.find(*extSpecCompliance);
+      it != mediaInterfaceMapping.end()) {
+    return it->second;
+  }
+  QSFP_LOG(ERR, this) << "Cannot find "
+                      << apache::thrift::util::enumNameSafe(*extSpecCompliance)
+                      << " in mediaInterfaceMapping";
+  return MediaInterfaceCode::UNKNOWN;
 }
 
 ModuleStatus SffModule::getModuleStatus() {

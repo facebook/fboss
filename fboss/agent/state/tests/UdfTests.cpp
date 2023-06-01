@@ -24,6 +24,12 @@ constexpr folly::StringPiece kPacketMatcherCfgName = "matchCfg_1";
 constexpr folly::StringPiece kPacketMatcherCfgName2 = "matchCfg_2";
 constexpr folly::StringPiece kUdfGroupCfgName1 = "foo1";
 constexpr folly::StringPiece kUdfGroupCfgName2 = "foo2";
+
+facebook::fboss::HwSwitchMatcher scope() {
+  return facebook::fboss::HwSwitchMatcher{
+      std::unordered_set<facebook::fboss::SwitchID>{
+          facebook::fboss::SwitchID(0)}};
+}
 } // namespace
 
 using namespace facebook::fboss;
@@ -113,10 +119,9 @@ TEST(Udf, addUpdateRemove) {
   udfConfig->fromThrift(udf);
 
   // update the state
-  auto switchSettings = state->getSwitchSettings();
-  switchSettings = switchSettings->clone();
+  auto switchSettings = std::make_shared<SwitchSettings>();
   switchSettings->setUdfConfig(udfConfig);
-  state->resetSwitchSettings(switchSettings);
+  addSwitchSettingsToState(state, switchSettings);
 
   // both entries should be present
   EXPECT_EQ(state->getUdfConfig()->getUdfGroupMap()->size(), 2);
@@ -176,8 +181,8 @@ TEST(Udf, addUpdateRemove) {
 
 TEST(Udf, serDesUdfGroup) {
   auto udfEntry = createStateUdfGroup(kUdfGroupCfgName1.str());
-  auto serialized = udfEntry->toFollyDynamic();
-  auto deserialized = UdfGroup::fromFollyDynamic(serialized);
+  auto serialized = udfEntry->toThrift();
+  auto deserialized = std::make_shared<UdfGroup>(serialized);
   EXPECT_TRUE(*udfEntry == *deserialized);
 }
 
@@ -191,8 +196,8 @@ TEST(Udf, serDesUdfPacketMatcher) {
       std::make_shared<UdfPacketMatcher>(pktMatcherCfgName);
   udfStatePacketmatcherEntry->fromThrift(udfPacketmatcherEntry);
 
-  auto serialized = udfStatePacketmatcherEntry->toFollyDynamic();
-  auto deserialized = UdfPacketMatcher::fromFollyDynamic(serialized);
+  auto serialized = udfStatePacketmatcherEntry->toThrift();
+  auto deserialized = std::make_shared<UdfPacketMatcher>(serialized);
 
   EXPECT_TRUE(*udfStatePacketmatcherEntry == *deserialized);
 }
@@ -208,7 +213,9 @@ TEST(Udf, addUpdate) {
   // update the state with udfCfg
   auto switchSettings = std::make_shared<SwitchSettings>();
   switchSettings->setUdfConfig(udfConfig);
-  state->resetSwitchSettings(switchSettings);
+  auto multiSwitchSwitchSettings = std::make_shared<MultiSwitchSettings>();
+  multiSwitchSwitchSettings->addNode(scope().matcherString(), switchSettings);
+  state->resetSwitchSettings(multiSwitchSwitchSettings);
 
   EXPECT_EQ(state->getUdfConfig()->getUdfGroupMap()->size(), 0);
 
@@ -277,8 +284,8 @@ TEST(Udf, applyConfig) {
   EXPECT_EQ(stateV2->getUdfConfig()->getUdfGroupMap()->size(), 1);
   // one entry has been added <matchCfg_1>
   EXPECT_EQ(stateV2->getUdfConfig()->getUdfPacketMatcherMap()->size(), 1);
-  EXPECT_EQ(
-      stateV2->getUdfConfig(), stateV2->getSwitchSettings()->getUdfConfig());
+  auto switchSettingsV2 = util::getFirstNodeIf(stateV2->getSwitchSettings());
+  EXPECT_EQ(stateV2->getUdfConfig(), switchSettingsV2->getUdfConfig());
   const auto stateThrift = stateV2->toThrift();
   // make sure we are writing the global and switchSettings entry for
   // compatibility

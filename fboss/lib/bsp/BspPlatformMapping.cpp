@@ -45,5 +45,29 @@ int BspPlatformMapping::numPims() const {
   return bspMapping_.pimMapping()->size();
 }
 
+/* getLedId
+ *
+ * The function returns LED Id for a given Tcvr and give Tcvr Lane id. The Tcvr
+ * lanes could map to different LED
+ */
+int BspPlatformMapping::getLedId(int tcvrId, int tcvrLaneId) const {
+  auto tcvrMap = getTcvrMapping(tcvrId);
+  auto laneToLedMap = tcvrMap.tcvrLaneToLedId().value();
+  CHECK(laneToLedMap.find(tcvrLaneId) != laneToLedMap.end());
+  return laneToLedMap[tcvrLaneId];
+}
+
+/* getLedMapping
+ *
+ * Returns the LED mapping for a given PIM and the LED Id
+ */
+LedMapping BspPlatformMapping::getLedMapping(int pimId, int ledId) const {
+  auto pimMappings = getPimMappings();
+  CHECK(pimMappings.find(pimId) != pimMappings.end());
+  auto ledMapping = pimMappings[pimId].ledMapping().value();
+  CHECK(ledMapping.find(ledId) != ledMapping.end());
+  return ledMapping[ledId];
+}
+
 } // namespace fboss
 } // namespace facebook

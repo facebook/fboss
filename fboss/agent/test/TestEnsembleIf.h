@@ -12,6 +12,7 @@
 namespace facebook::fboss {
 
 class SwitchState;
+class SwitchIdScopeResolver;
 
 class TestEnsembleIf : public HwSwitch::Callback {
  public:
@@ -29,6 +30,7 @@ class TestEnsembleIf : public HwSwitch::Callback {
   virtual std::shared_ptr<SwitchState> getProgrammedState() const = 0;
   virtual HwSwitch* getHwSwitch() = 0;
   virtual const HwSwitch* getHwSwitch() const = 0;
+  virtual const SwitchIdScopeResolver& scopeResolver() const = 0;
 };
 
 } // namespace facebook::fboss

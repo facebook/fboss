@@ -37,9 +37,6 @@ class UdfGroup : public ThriftStructNode<UdfGroup, cfg::UdfGroup> {
   void setFieldSizeInBytes(int size);
   void setUdfPacketMatcherIds(const std::vector<std::string>& matcherIds);
 
-  static std::shared_ptr<UdfGroup> fromFollyDynamic(
-      const folly::dynamic& group);
-
  private:
   // Inherit the constructors required for clone()
   using BaseT::BaseT;

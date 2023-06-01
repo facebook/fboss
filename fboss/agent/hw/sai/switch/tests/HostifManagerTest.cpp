@@ -17,6 +17,12 @@
 
 using namespace facebook::fboss;
 
+namespace {
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+} // namespace
+
 class HostifManagerTest : public ManagerTestBase {};
 
 TEST_F(HostifManagerTest, createHostifTrap) {
@@ -73,15 +79,15 @@ TEST_F(HostifManagerTest, removeHostifTrap) {
 }
 
 TEST_F(HostifManagerTest, addCpuQueueAndCheckStats) {
-  auto prevControlPlane = std::make_shared<ControlPlane>();
-  auto newControlPlane = prevControlPlane->clone();
+  auto prevState = std::make_shared<SwitchState>();
+  auto newState = std::make_shared<SwitchState>();
+  auto newControlPlane = std::make_shared<ControlPlane>();
   std::vector<uint8_t> queueIds = {1, 2, 3, 4};
   auto queueConfig = makeQueueConfig({queueIds}, cfg::StreamType::ALL);
   newControlPlane->resetQueues(queueConfig);
-  auto prevState = std::make_shared<SwitchState>();
-  prevState->resetControlPlane(prevControlPlane);
-  auto newState = std::make_shared<SwitchState>();
-  newState->resetControlPlane(newControlPlane);
+  auto newMultiControlPlane = std::make_shared<MultiControlPlane>();
+  newMultiControlPlane->addNode(scope().matcherString(), newControlPlane);
+  newState->resetControlPlane(newMultiControlPlane);
   auto delta = StateDelta(prevState, newState);
   saiManagerTable->hostifManager().processHostifDelta(
       delta.getControlPlaneDelta());
@@ -102,15 +108,15 @@ TEST_F(HostifManagerTest, addCpuQueueAndCheckStats) {
 }
 
 TEST_F(HostifManagerTest, removeCpuQueueAndCheckStats) {
-  auto prevControlPlane = std::make_shared<ControlPlane>();
-  auto newControlPlane = prevControlPlane->clone();
+  auto newControlPlane = std::make_shared<ControlPlane>();
   std::vector<uint8_t> queueIds = {1, 2, 3, 4};
   auto queueConfig = makeQueueConfig({queueIds}, cfg::StreamType::ALL);
   newControlPlane->resetQueues(queueConfig);
   auto prevState = std::make_shared<SwitchState>();
-  prevState->resetControlPlane(prevControlPlane);
   auto newState = std::make_shared<SwitchState>();
-  newState->resetControlPlane(newControlPlane);
+  auto newMultiSwitchControlPlane = std::make_shared<MultiControlPlane>();
+  newMultiSwitchControlPlane->addNode(scope().matcherString(), newControlPlane);
+  newState->resetControlPlane(newMultiSwitchControlPlane);
   auto delta0 = StateDelta(prevState, newState);
   saiManagerTable->hostifManager().processHostifDelta(
       delta0.getControlPlaneDelta());
@@ -119,8 +125,11 @@ TEST_F(HostifManagerTest, removeCpuQueueAndCheckStats) {
   std::vector<uint8_t> newQueueIds = {1, 2};
   auto newQueueConfig = makeQueueConfig({newQueueIds}, cfg::StreamType::ALL);
   newNewControlPlane->resetQueues(newQueueConfig);
+  auto newNewMultiSwitchControlPlane = std::make_shared<MultiControlPlane>();
+  newNewMultiSwitchControlPlane->addNode(
+      scope().matcherString(), newNewControlPlane);
   auto newNewState = newState->clone();
-  newNewState->resetControlPlane(newNewControlPlane);
+  newNewState->resetControlPlane(newNewMultiSwitchControlPlane);
   auto delta1 = StateDelta(newState, newNewState);
   saiManagerTable->hostifManager().processHostifDelta(
       delta1.getControlPlaneDelta());
@@ -148,14 +157,14 @@ TEST_F(HostifManagerTest, removeCpuQueueAndCheckStats) {
 }
 
 TEST_F(HostifManagerTest, changeCpuQueueAndCheckStats) {
-  auto prevControlPlane = std::make_shared<ControlPlane>();
-  auto newControlPlane = prevControlPlane->clone();
+  auto newControlPlane = std::make_shared<ControlPlane>();
   auto queueConfig = makeQueueConfig({1}, cfg::StreamType::ALL);
   newControlPlane->resetQueues(queueConfig);
   auto prevState = std::make_shared<SwitchState>();
-  prevState->resetControlPlane(prevControlPlane);
   auto newState = std::make_shared<SwitchState>();
-  newState->resetControlPlane(newControlPlane);
+  auto newMultiControlPlane = std::make_shared<MultiControlPlane>();
+  newMultiControlPlane->addNode(scope().matcherString(), newControlPlane);
+  newState->resetControlPlane(newMultiControlPlane);
   auto delta0 = StateDelta(prevState, newState);
   saiManagerTable->hostifManager().processHostifDelta(
       delta0.getControlPlaneDelta());
@@ -165,7 +174,10 @@ TEST_F(HostifManagerTest, changeCpuQueueAndCheckStats) {
   newQueueConfig[0]->setName("high");
   newNewControlPlane->resetQueues(newQueueConfig);
   auto newNewState = newState->clone();
-  newNewState->resetControlPlane(newNewControlPlane);
+  auto newNewMultiSwitchControlPlane = std::make_shared<MultiControlPlane>();
+  newNewMultiSwitchControlPlane->addNode(
+      scope().matcherString(), newNewControlPlane);
+  newNewState->resetControlPlane(newNewMultiSwitchControlPlane);
   auto delta1 = StateDelta(newState, newNewState);
   saiManagerTable->hostifManager().processHostifDelta(
       delta1.getControlPlaneDelta());
@@ -186,8 +198,7 @@ TEST_F(HostifManagerTest, changeCpuQueueAndCheckStats) {
 }
 
 TEST_F(HostifManagerTest, checkHostifPriority) {
-  auto prevControlPlane = std::make_shared<ControlPlane>();
-  auto newControlPlane = prevControlPlane->clone();
+  auto newControlPlane = std::make_shared<ControlPlane>();
   std::vector<std::pair<cfg::PacketRxReason, uint16_t>>
       rxReasonToQueueMappings = {
           std::pair(cfg::PacketRxReason::ARP, 1),
@@ -203,9 +214,10 @@ TEST_F(HostifManagerTest, checkHostifPriority) {
   }
   newControlPlane->resetRxReasonToQueue(rxReasonToQueues);
   auto prevState = std::make_shared<SwitchState>();
-  prevState->resetControlPlane(prevControlPlane);
   auto newState = std::make_shared<SwitchState>();
-  newState->resetControlPlane(newControlPlane);
+  auto newMultiControlPlane = std::make_shared<MultiControlPlane>();
+  newMultiControlPlane->addNode(scope().matcherString(), newControlPlane);
+  newState->resetControlPlane(newMultiControlPlane);
   auto delta0 = StateDelta(prevState, newState);
   saiManagerTable->hostifManager().processHostifDelta(
       delta0.getControlPlaneDelta());
@@ -225,10 +237,12 @@ TEST_F(HostifManagerTest, checkHostifPriority) {
   rxReasonToQueue.rxReason() = cfg::PacketRxReason::ARP_RESPONSE;
   rxReasonToQueue.queueId() = 1;
   rxReasonToQueues.push_back(rxReasonToQueue);
-  auto newControlPlaneNew = prevControlPlane->clone();
+  auto newControlPlaneNew = std::make_shared<ControlPlane>();
   newControlPlaneNew->resetRxReasonToQueue(rxReasonToQueues);
   auto newNewState = std::make_shared<SwitchState>();
-  newNewState->resetControlPlane(newControlPlaneNew);
+  auto newMultiControlPlaneNew = std::make_shared<MultiControlPlane>();
+  newMultiControlPlaneNew->addNode(scope().matcherString(), newControlPlaneNew);
+  newNewState->resetControlPlane(newMultiControlPlaneNew);
   auto delta = StateDelta(newState, newNewState);
   saiManagerTable->hostifManager().processHostifDelta(
       delta.getControlPlaneDelta());
@@ -243,14 +257,14 @@ TEST_F(HostifManagerTest, checkHostifPriority) {
 
 TEST_F(HostifManagerTest, resetSchedulerOid) {
   // Create queue 1 and a scheduler config with Stream Type ALL
-  auto prevControlPlane = std::make_shared<ControlPlane>();
-  auto newControlPlane = prevControlPlane->clone();
+  auto newControlPlane = std::make_shared<ControlPlane>();
   auto queueConfig = makeQueueConfig({1}, cfg::StreamType::ALL);
   newControlPlane->resetQueues(queueConfig);
   auto prevState = std::make_shared<SwitchState>();
-  prevState->resetControlPlane(prevControlPlane);
   auto newState = std::make_shared<SwitchState>();
-  newState->resetControlPlane(newControlPlane);
+  auto newMultiControlPlane = std::make_shared<MultiControlPlane>();
+  newMultiControlPlane->addNode(scope().matcherString(), newControlPlane);
+  newState->resetControlPlane(newMultiControlPlane);
 
   // Apply the config changes using processHostifDelta
   auto delta = StateDelta(prevState, newState);

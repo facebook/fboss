@@ -270,6 +270,10 @@ class Platform {
     return platformMapping_.get();
   }
 
+  const AgentConfig* getConfig() const {
+    return config_.get();
+  }
+
   /*
    * The override transceiver map functions are only used for testing
    */
@@ -313,7 +317,8 @@ class Platform {
   virtual void setupAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
-      std::optional<cfg::Range64> systemPortRange) = 0;
+      std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac) = 0;
 
   std::unique_ptr<AgentConfig> config_;
 

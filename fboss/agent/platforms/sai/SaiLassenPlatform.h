@@ -29,7 +29,8 @@ class SaiLassenPlatform : public SaiTajoPlatform {
   void setupAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
-      std::optional<cfg::Range64> systemPortRange) override;
+      std::optional<cfg::Range64> systemPortRange,
+      folly::MacAddress& mac) override;
   std::unique_ptr<EbroAsic> asic_;
 };
 

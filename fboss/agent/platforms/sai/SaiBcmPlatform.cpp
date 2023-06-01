@@ -164,6 +164,8 @@ phy::VCOFrequency SaiBcmPlatform::getPortVcoFrequency(
       FOLLY_FALLTHROUGH;
     case cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG:
       FOLLY_FALLTHROUGH;
+    case cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG:
+      FOLLY_FALLTHROUGH;
     case cfg::PortSpeed::TWENTYFIVEG:
       switch (fec) {
         case phy::FecMode::RS544:

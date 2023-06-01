@@ -52,6 +52,17 @@ unique_ptr<HwTestHandle> setupTestHandle(bool enableLldp = false) {
   auto switchFlags =
       enableLldp ? SwitchFlags::ENABLE_LLDP : SwitchFlags::DEFAULT;
   auto state = testStateAWithPortsUp();
+  addSwitchInfo(
+      state,
+      cfg::SwitchType::NPU,
+      0, /*SwitchId*/
+      cfg::AsicType::ASIC_TYPE_MOCK,
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
+      0, /* switchIndex*/
+      std::nullopt, /* sysPort min*/
+      std::nullopt, /*sysPort max()*/
+      MockPlatform::getMockLocalMac().toString());
   return createTestHandle(state, switchFlags);
 }
 

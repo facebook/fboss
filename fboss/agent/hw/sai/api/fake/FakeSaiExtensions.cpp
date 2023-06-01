@@ -88,6 +88,11 @@ SaiPortTraits::Attributes::AttributeDiagModeEnable::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeRxLaneSquelchEnable::operator()() {
+  return SAI_PORT_ATTR_RX_LANE_SQUELCH_ENABLE;
+}
+
+std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeRestartIssuWrapper::operator()() {
   return SAI_SWITCH_ATTR_EXT_RESTART_ISSU;
 }
@@ -104,12 +109,11 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeSwitchIsolateWrapper::operator()() {
-  return SAI_SWITCH_ATTR_SWITCH_ISOLATE;
+  return std::nullopt;
 }
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeCreditWdWrapper::operator()() {
-  return SAI_SWITCH_ATTR_CREDIT_WD;
+  return std::nullopt;
 }
-
 } // namespace facebook::fboss

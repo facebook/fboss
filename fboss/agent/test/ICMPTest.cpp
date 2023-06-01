@@ -70,7 +70,18 @@ unique_ptr<HwTestHandle> setupTestHandle(bool noIpv4VlanIntf = false) {
   auto respTable1 = make_shared<ArpResponseTable>();
   respTable1->setEntry(
       kVlanInterfaceIP, MockPlatform::getMockLocalMac(), InterfaceID(1));
-  vlans->getVlan(VlanID(1))->setArpResponseTable(respTable1);
+  vlans->getNode(VlanID(1))->setArpResponseTable(respTable1);
+  addSwitchInfo(
+      state,
+      cfg::SwitchType::NPU,
+      0, /*SwitchId*/
+      cfg::AsicType::ASIC_TYPE_MOCK,
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
+      0, /* switchIndex*/
+      std::nullopt, /* sysPort min*/
+      std::nullopt, /*sysPort max()*/
+      MockPlatform::getMockLocalMac().toString());
   return createTestHandle(state);
 }
 

@@ -61,6 +61,8 @@ add_library(state
   fboss/agent/state/NdpTable.cpp
   fboss/agent/state/Port.cpp
   fboss/agent/state/PortMap.cpp
+  fboss/agent/state/PortFlowletConfig.cpp
+  fboss/agent/state/PortFlowletConfigMap.cpp
   fboss/agent/state/PortQueue.cpp
   fboss/agent/state/BufferPoolConfig.cpp
   fboss/agent/state/BufferPoolConfigMap.cpp
@@ -107,7 +109,6 @@ target_link_libraries(state
   fsdb_helper
   label_forwarding_action
   hwswitch_matcher
-  switchid_scope_resolver
   nodebase
   state_utils
   radix_tree

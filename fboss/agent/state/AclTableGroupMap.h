@@ -85,36 +85,38 @@ class AclTableGroupMap
   friend class CloneAllocator;
 };
 
-using MultiAclTableGroupMapTypeClass = apache::thrift::type_class::
+using MultiSwitchAclTableGroupMapTypeClass = apache::thrift::type_class::
     map<apache::thrift::type_class::string, AclTableGroupMapTypeClass>;
-using MultiAclTableGroupMapThriftType =
+using MultiSwitchAclTableGroupMapThriftType =
     std::map<std::string, AclTableGroupMapThriftType>;
 
-class MultiAclTableGroupMap;
+class MultiSwitchAclTableGroupMap;
 
-using MultiAclTableGroupMapTraits = ThriftMultiMapNodeTraits<
-    MultiAclTableGroupMap,
-    MultiAclTableGroupMapTypeClass,
-    MultiAclTableGroupMapThriftType,
+using MultiSwitchAclTableGroupMapTraits = ThriftMultiSwitchMapNodeTraits<
+    MultiSwitchAclTableGroupMap,
+    MultiSwitchAclTableGroupMapTypeClass,
+    MultiSwitchAclTableGroupMapThriftType,
     AclTableGroupMap>;
 
 class HwSwitchMatcher;
 
-class MultiAclTableGroupMap
-    : public ThriftMapNode<MultiAclTableGroupMap, MultiAclTableGroupMapTraits> {
+class MultiSwitchAclTableGroupMap : public ThriftMultiSwitchMapNode<
+                                        MultiSwitchAclTableGroupMap,
+                                        MultiSwitchAclTableGroupMapTraits> {
  public:
-  using Traits = MultiAclTableGroupMapTraits;
-  using BaseT =
-      ThriftMapNode<MultiAclTableGroupMap, MultiAclTableGroupMapTraits>;
+  using Traits = MultiSwitchAclTableGroupMapTraits;
+  using BaseT = ThriftMultiSwitchMapNode<
+      MultiSwitchAclTableGroupMap,
+      MultiSwitchAclTableGroupMapTraits>;
   using BaseT::modify;
 
-  MultiAclTableGroupMap() {}
-  virtual ~MultiAclTableGroupMap() {}
+  MultiSwitchAclTableGroupMap() {}
+  virtual ~MultiSwitchAclTableGroupMap() {}
 
   // ACL map in absence of multi-acl-table support
   std::shared_ptr<AclMap> getAclMap() const;
   // from legacy ACL map thrift
-  std::shared_ptr<MultiAclTableGroupMap> fromAclMap(
+  std::shared_ptr<MultiSwitchAclTableGroupMap> fromAclMap(
       const std::map<std::string, state::AclEntryFields>& aclMap);
 
  private:

@@ -109,6 +109,8 @@ std::shared_ptr<SystemPort> makeSysPort(
     const std::optional<std::string>& qosPolicy,
     int64_t sysPortId = 1,
     int64_t switchId = 1);
+std::tuple<state::NeighborEntries, state::NeighborEntries> makeNbrs();
+
 /*
  * Get the MockHwSwitch from a SwSwitch.
  */
@@ -241,27 +243,6 @@ cfg::SwitchConfig testConfigA(
  */
 cfg::SwitchConfig testConfigAWithLookupClasses();
 
-/*
- * Create a SwitchState for testing.
- *
- * Profile B:
- *   - 10 ports, 1 VLAN, 1 interface
- *   - Ports 1-10 are in VLAN 1
- *   - Interface 1:
- *     - VLAN 1
- *     - MAC 00:02:00:00:00:01
- *     - IPs:
- *       10.0.0.1/24
- *       192.168.0.1/24
- *       2401:db00:2110:3001::0001/64
- */
-std::shared_ptr<SwitchState> testStateB();
-
-/*
- * Same as testStateA but with all ports
- * enabled and up
- */
-std::shared_ptr<SwitchState> testStateBWithPortsUp();
 /*
  * Convenience macro that wraps EXPECT_CALL() on the underlying MockHwSwitch
  */
@@ -596,19 +577,50 @@ state::FibContainerFields makeFibContainerFields(
 
 void addSwitchInfo(
     std::shared_ptr<SwitchState>& state,
-    std::map<int64_t, cfg::SwitchInfo> switchInfo = {
-        {0,
-         cfg::SwitchInfo(
-             apache::thrift::FragileConstructor(),
-             cfg::SwitchType::NPU,
-             cfg::AsicType::ASIC_TYPE_MOCK,
-             0,
-             cfg::Range64(apache::thrift::FragileConstructor(), 0, 1023))}});
+    cfg::SwitchType switchType = cfg::SwitchType::NPU,
+    int64_t SwitchId = 0,
+    cfg::AsicType asicType = cfg::AsicType::ASIC_TYPE_MOCK,
+    int64_t portIdMin =
+        cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
+    int64_t portIdMax =
+        cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
+    int16_t switchIndex = 0,
+    std::optional<int64_t> sysPortMin = std::nullopt,
+    std::optional<int64_t> sysPortMax = std::nullopt,
+    std::optional<std::string> mac = std::nullopt,
+    std::optional<std::string> connectionHandle = std::nullopt);
 
 cfg::SwitchInfo createSwitchInfo(
     cfg::SwitchType switchType,
     cfg::AsicType asicType = cfg::AsicType::ASIC_TYPE_MOCK,
-    int64_t portIdMin = 0,
-    int64_t portIdMax = 1023,
-    int16_t switchIndex = 0);
+    int64_t portIdMin =
+        cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
+    int64_t portIdMax =
+        cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
+    int16_t switchIndex = 0,
+    std::optional<int64_t> sysPortMin = std::nullopt,
+    std::optional<int64_t> sysPortMax = std::nullopt,
+    std::optional<std::string> mac = std::nullopt,
+    std::optional<std::string> connectionHandle = std::nullopt);
+
+void registerPort(
+    std::shared_ptr<SwitchState> state,
+    PortID id,
+    const std::string& name,
+    HwSwitchMatcher scope,
+    cfg::PortType portType = cfg::PortType::INTERFACE_PORT);
+
+void setAggregatePortMemberIDs(
+    std::vector<cfg::AggregatePortMember>& members,
+    const std::vector<int32_t>& portIDs);
+
+template <typename T>
+std::vector<int32_t> getAggregatePortMemberIDs(const std::vector<T>& members);
+
+void addSwitchSettingsToState(
+    std::shared_ptr<SwitchState>& state,
+    std::shared_ptr<SwitchSettings> switchSettings =
+        std::make_shared<SwitchSettings>(),
+    int64_t switchId = 0);
+
 } // namespace facebook::fboss

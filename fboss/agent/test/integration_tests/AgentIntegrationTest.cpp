@@ -11,6 +11,7 @@
 #include <gflags/gflags.h>
 
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
@@ -20,6 +21,10 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 namespace facebook::fboss {
+
+void AgentIntegrationTest::SetUp() {
+  AgentHwTest::SetUp();
+}
 
 cfg::SwitchConfig AgentIntegrationTest::initialConfig() const {
   cfg::SwitchConfig cfg;
@@ -31,9 +36,13 @@ cfg::SwitchConfig AgentIntegrationTest::initialConfig() const {
     ports.emplace_back(port.first);
   }
   utility::setPortToDefaultProfileIDMap(
-      std::make_shared<PortMap>(), sw()->getPlatform());
+      std::make_shared<MultiSwitchPortMap>(), sw()->getPlatform());
   cfg = utility::onePortPerInterfaceConfig(
-      platform()->getHwSwitch(), ports, cfg::PortLoopbackMode::MAC, true, true);
+      platform()->getHwSwitch(),
+      ports,
+      platform()->getAsic()->desiredLoopbackModes(),
+      true,
+      true);
 
   cfg.switchSettings()->maxRouteCounterIDs() = 1;
   return cfg;
@@ -44,6 +53,10 @@ int agentIntegrationTestMain(
     char** argv,
     facebook::fboss::PlatformInitFn initPlatformFn) {
   ::testing::InitGoogleTest(&argc, argv);
+
+  // to ensure FLAGS_config is set, as this is used in case platform config is
+  // overridden by the tests
+  gflags::ParseCommandLineFlags(&argc, &argv, false);
 
   initAgentTest(argc, argv, initPlatformFn);
 

@@ -45,14 +45,6 @@ class Sff8472Module : public QsfpModule {
     return DOMDataUnion();
   }
 
-  unsigned int numHostLanes() const override {
-    return 1;
-  }
-
-  unsigned int numMediaLanes() const override {
-    return 1;
-  }
-
   void customizeTransceiverLocked(
       TransceiverPortState& /* portState */) override {}
 
@@ -147,6 +139,8 @@ class Sff8472Module : public QsfpModule {
    * readSff8472Field/writeSff8472Field helper functions. */
   void readSff8472Field(Sff8472Field field, uint8_t* data);
   void writeSff8472Field(Sff8472Field field, uint8_t* data);
+
+  MediaInterfaceCode getModuleMediaInterface() const override;
 
  protected:
   uint8_t a0LowerPage_[MAX_QSFP_PAGE_SIZE] = {0};

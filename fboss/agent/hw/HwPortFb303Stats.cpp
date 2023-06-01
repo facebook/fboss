@@ -95,6 +95,15 @@ HwPortFb303Stats::kOutMacsecPortStatKeys() const {
   return kMacsecOutKeys;
 }
 
+const std::vector<folly::StringPiece>& HwPortFb303Stats::kPfcStatKeys() const {
+  static std::vector<folly::StringPiece> kPfcKeys{
+      kInPfc(),
+      kInPfcXon(),
+      kOutPfc(),
+  };
+  return kPfcKeys;
+}
+
 void HwPortFb303Stats::updateStats(
     const HwPortStats& curPortStats,
     const std::chrono::seconds& retrievedAt) {
@@ -286,6 +295,33 @@ void HwPortFb303Stats::updateStats(
     updateMacsecPortStats(
         *curPortStats.macsecStats()->egressPortStats(), false);
   }
+
+  // PFC stats
+  auto updatePfcStat = [this](
+                           folly::StringPiece statKey,
+                           PfcPriority priority,
+                           const std::map<int16_t, int64_t>& pfcStats,
+                           int64_t* counter) {
+    auto pitr = pfcStats.find(priority);
+    if (pitr != pfcStats.end()) {
+      updateStat(timeRetrieved_, statKey, priority, pitr->second);
+      if (counter) {
+        *counter += pitr->second;
+      }
+    }
+  };
+  int64_t inPfc = 0, outPfc = 0;
+  for (auto priority : getEnabledPfcPriorities()) {
+    updatePfcStat(kInPfc(), priority, *curPortStats.inPfc_(), &inPfc);
+    updatePfcStat(
+        kInPfcXon(), priority, *curPortStats.inPfcXon_(), std::nullptr_t());
+    updatePfcStat(kOutPfc(), priority, *curPortStats.outPfc_(), &outPfc);
+  }
+  if (getEnabledPfcPriorities().size()) {
+    updateStat(timeRetrieved_, kInPfc(), inPfc);
+    updateStat(timeRetrieved_, kOutPfc(), outPfc);
+  }
+
   portStats_ = curPortStats;
 }
 

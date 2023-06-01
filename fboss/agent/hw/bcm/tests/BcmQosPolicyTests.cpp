@@ -60,15 +60,18 @@ void checkSwHwQosMapsMatch(
   auto bcmQosPolicyTable = hw->getQosPolicyTable();
   // default qos policy is mainted in sw switch state, but is maintained in same
   // qos policy map in bcm switch, need to reconcile this
-  auto swStateSize =
-      qosPolicyTable->size() + (state->getDefaultDataPlaneQosPolicy() ? 1 : 0);
+  auto swStateSize = qosPolicyTable->numNodes() +
+      (state->getDefaultDataPlaneQosPolicy() ? 1 : 0);
   ASSERT_EQ(swStateSize, bcmQosPolicyTable->getNumQosPolicies());
   ASSERT_EQ(swStateSize, getNumHwIngressL3QosMaps(hw));
 
-  for (const auto& [name, qosPolicy] : std::as_const(*qosPolicyTable)) {
-    auto bcmQosPolicy = bcmQosPolicyTable->getQosPolicyIf(qosPolicy->getName());
-    ASSERT_NE(nullptr, bcmQosPolicy);
-    ASSERT_TRUE(bcmQosPolicy->policyMatches(qosPolicy));
+  for (const auto& tableIter : std::as_const(*qosPolicyTable)) {
+    for (const auto& [name, qosPolicy] : std::as_const(*tableIter.second)) {
+      auto bcmQosPolicy =
+          bcmQosPolicyTable->getQosPolicyIf(qosPolicy->getName());
+      ASSERT_NE(nullptr, bcmQosPolicy);
+      ASSERT_TRUE(bcmQosPolicy->policyMatches(qosPolicy));
+    }
   }
 }
 

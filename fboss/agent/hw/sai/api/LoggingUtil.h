@@ -41,12 +41,12 @@ namespace fmt {
 template <>
 struct formatter<folly::MacAddress> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
-  auto format(const folly::MacAddress& mac, FormatContext& ctx) {
+  auto format(const folly::MacAddress& mac, FormatContext& ctx) const {
     return format_to(ctx.out(), "{}", mac.toString());
   }
 };
@@ -55,12 +55,12 @@ struct formatter<folly::MacAddress> {
 template <>
 struct formatter<folly::IPAddress> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
-  auto format(const folly::IPAddress& ip, FormatContext& ctx) {
+  auto format(const folly::IPAddress& ip, FormatContext& ctx) const {
     return format_to(ctx.out(), "{}", ip.str());
   }
 };
@@ -73,12 +73,12 @@ struct formatter<
     typename std::enable_if_t<
         facebook::fboss::IsSaiEntryStruct<AdapterKeyType>::value>> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
-  auto format(const AdapterKeyType& key, FormatContext& ctx) {
+  auto format(const AdapterKeyType& key, FormatContext& ctx) const {
     return format_to(ctx.out(), "{}", key.toString());
   }
 };
@@ -87,12 +87,12 @@ struct formatter<
 template <typename... Ts>
 struct formatter<std::variant<Ts...>> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
-  auto format(const std::variant<Ts...>& var, FormatContext& ctx) {
+  auto format(const std::variant<Ts...>& var, FormatContext& ctx) const {
     auto formatVariant = [&ctx](auto&& val) {
       return format_to(ctx.out(), "{}", val);
     };
@@ -113,12 +113,12 @@ struct formatter<
       SaiAttribute<AttrEnumT, AttrEnum, DataT, DefaultGetterT, void>;
 
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
-  auto format(const AttrT& attr, FormatContext& ctx) {
+  auto format(const AttrT& attr, FormatContext& ctx) const {
     return format_to(
         ctx.out(),
         "{}: {}",
@@ -131,12 +131,12 @@ struct formatter<
 template <>
 struct formatter<std::monostate> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
-  auto format(const std::monostate& unit, FormatContext& ctx) {
+  auto format(const std::monostate& unit, FormatContext& ctx) const {
     return format_to(ctx.out(), "(monostate)");
   }
 };
@@ -145,12 +145,12 @@ struct formatter<std::monostate> {
 template <>
 struct formatter<std::tuple<>> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
-  auto format(const std::tuple<>& tup, FormatContext& ctx) {
+  auto format(const std::tuple<>& tup, FormatContext& ctx) const {
     return format_to(ctx.out(), "()");
   }
 };
@@ -159,12 +159,12 @@ struct formatter<std::tuple<>> {
 template <typename T>
 struct formatter<std::optional<T>> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
-  auto format(const std::optional<T>& opt, FormatContext& ctx) {
+  auto format(const std::optional<T>& opt, FormatContext& ctx) const {
     static_assert(
         facebook::fboss::IsSaiAttribute<T>::value,
         "format(std::optional) only valid for SaiAttributes");
@@ -180,12 +180,12 @@ struct formatter<std::optional<T>> {
 template <>
 struct formatter<sai_qos_map_t> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
-  auto format(const sai_qos_map_t& qosMap, FormatContext& ctx) {
+  auto format(const sai_qos_map_t& qosMap, FormatContext& ctx) const {
     return format_to(
         ctx.out(),
         "(qos_mapping: key.dscp: {}, key.tc: {}, "
@@ -201,12 +201,13 @@ struct formatter<sai_qos_map_t> {
 template <>
 struct formatter<sai_port_lane_eye_values_t> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
-  auto format(const sai_port_lane_eye_values_t& eyeVal, FormatContext& ctx) {
+  auto format(const sai_port_lane_eye_values_t& eyeVal, FormatContext& ctx)
+      const {
     return format_to(
         ctx.out(),
         "(eye_value: eyeVal.lane: {}, "
@@ -225,12 +226,12 @@ struct formatter<sai_port_lane_eye_values_t> {
 template <>
 struct formatter<sai_prbs_rx_state_t> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
-  auto format(const sai_prbs_rx_state_t& prbsStats, FormatContext& ctx) {
+  auto format(const sai_prbs_rx_state_t& prbsStats, FormatContext& ctx) const {
     return format_to(
         ctx.out(),
         "(PRBS Rx stats:{}, "
@@ -245,12 +246,13 @@ struct formatter<sai_prbs_rx_state_t> {
 template <>
 struct formatter<sai_port_err_status_t> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
-  auto format(const sai_port_err_status_t& errStatus, FormatContext& ctx) {
+  auto format(const sai_port_err_status_t& errStatus, FormatContext& ctx)
+      const {
     return format_to(ctx.out(), "{}", static_cast<int>(errStatus));
   }
 };
@@ -260,14 +262,14 @@ struct formatter<sai_port_err_status_t> {
 template <>
 struct formatter<sai_port_lane_latch_status_t> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
   auto format(
       const sai_port_lane_latch_status_t& latchStatus,
-      FormatContext& ctx) {
+      FormatContext& ctx) const {
     return format_to(
         ctx.out(),
         "(lane_latch_status: lane_latch_status.lane: {}, "
@@ -282,12 +284,12 @@ struct formatter<sai_port_lane_latch_status_t> {
 template <>
 struct formatter<sai_latch_status_t> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
-  auto format(const sai_latch_status_t& latchStatus, FormatContext& ctx) {
+  auto format(const sai_latch_status_t& latchStatus, FormatContext& ctx) const {
     return format_to(
         ctx.out(),
         "latch_status.current_status: {}, latch_status.changed: {}",
@@ -301,7 +303,7 @@ struct formatter<sai_latch_status_t> {
 template <typename T>
 struct formatter<facebook::fboss::AclEntryField<T>> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
@@ -309,7 +311,7 @@ struct formatter<facebook::fboss::AclEntryField<T>> {
 
   auto format(
       const facebook::fboss::AclEntryField<T>& aclEntryField,
-      FormatContext& ctx) {
+      FormatContext& ctx) const {
     return format_to(ctx.out(), "{}", aclEntryField.str());
   }
 };
@@ -318,7 +320,7 @@ struct formatter<facebook::fboss::AclEntryField<T>> {
 template <typename T>
 struct formatter<facebook::fboss::AclEntryAction<T>> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
@@ -326,7 +328,7 @@ struct formatter<facebook::fboss::AclEntryAction<T>> {
 
   auto format(
       const facebook::fboss::AclEntryAction<T>& aclEntryAction,
-      FormatContext& ctx) {
+      FormatContext& ctx) const {
     return format_to(ctx.out(), "{}", aclEntryAction.str());
   }
 };
@@ -335,13 +337,13 @@ struct formatter<facebook::fboss::AclEntryAction<T>> {
 template <>
 struct formatter<sai_u32_range_t> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
 
-  auto format(const sai_u32_range_t& u32Range, FormatContext& ctx) {
+  auto format(const sai_u32_range_t& u32Range, FormatContext& ctx) const {
     return format_to(
         ctx.out(), "u32 range: min: {}, max: {}", u32Range.min, u32Range.max);
   }
@@ -351,13 +353,13 @@ struct formatter<sai_u32_range_t> {
 template <>
 struct formatter<sai_s32_range_t> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
 
-  auto format(const sai_s32_range_t& s32Range, FormatContext& ctx) {
+  auto format(const sai_s32_range_t& s32Range, FormatContext& ctx) const {
     return format_to(
         ctx.out(), "s32 range: min: {}, max: {}", s32Range.min, s32Range.max);
   }
@@ -370,12 +372,12 @@ struct formatter<
     char,
     std::enable_if_t<facebook::fboss::IsSaiExtensionAttribute<T>::value>> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
-  auto format(const T& attr, FormatContext& ctx) {
+  auto format(const T& attr, FormatContext& ctx) const {
     // TODO: implement this
     return format_to(
         ctx.out(),
@@ -389,13 +391,13 @@ struct formatter<
 template <>
 struct formatter<SaiCharArray32> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
 
-  auto format(const SaiCharArray32& data, FormatContext& ctx) {
+  auto format(const SaiCharArray32& data, FormatContext& ctx) const {
     return format_to(ctx.out(), "{}", std::string(data.begin(), data.end()));
   }
 };
@@ -403,14 +405,14 @@ struct formatter<SaiCharArray32> {
 template <>
 struct formatter<facebook::fboss::SaiPortDescriptor> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
   auto format(
       const facebook::fboss::SaiPortDescriptor& port,
-      FormatContext& ctx) {
+      FormatContext& ctx) const {
     return format_to(ctx.out(), "{}", port.str());
   }
 };
@@ -419,12 +421,13 @@ struct formatter<facebook::fboss::SaiPortDescriptor> {
 template <>
 struct formatter<sai_system_port_config_t> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
-  auto format(const sai_system_port_config_t& sysPortConf, FormatContext& ctx) {
+  auto format(const sai_system_port_config_t& sysPortConf, FormatContext& ctx)
+      const {
     return format_to(
         ctx.out(),
         "(port_id: {}, switch_id: {}, "
@@ -442,12 +445,13 @@ struct formatter<sai_system_port_config_t> {
 template <>
 struct formatter<sai_fabric_port_reachability_t> {
   template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
+  constexpr auto parse(ParseContext& ctx) const {
     return ctx.begin();
   }
 
   template <typename FormatContext>
-  auto format(const sai_fabric_port_reachability_t& reach, FormatContext& ctx) {
+  auto format(const sai_fabric_port_reachability_t& reach, FormatContext& ctx)
+      const {
     return format_to(
         ctx.out(),
         "(SwitchId: {}, "

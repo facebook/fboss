@@ -255,7 +255,10 @@ HwInitResult SaiSwitch::initImpl(
 #if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
     defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
     defined(SAI_VERSION_8_2_0_0_DNX_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
-    defined(SAI_VERSION_9_0_EA_SIM_ODP) || defined(SAI_VERSION_9_0_EA_DNX_ODP)
+    defined(SAI_VERSION_9_0_EA_SIM_ODP) ||                                     \
+    defined(SAI_VERSION_9_0_EA_DNX_ODP) ||                                     \
+    defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP) ||                                 \
+    defined(SAI_VERSION_10_0_EA_DNX_ODP)
     // TODO(zecheng): Remove after devices warmbooted to 8.2.
     managerTable_->wredManager().removeUnclaimedWredProfile();
 #endif
@@ -741,11 +744,10 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
         routerID, routeDelta.getFibDelta<folly::IPAddressV6>());
   }
   {
-    auto controlPlaneDelta = delta.getControlPlaneDelta();
-    if (*controlPlaneDelta.getOld() != *controlPlaneDelta.getNew()) {
-      [[maybe_unused]] const auto& lock = lockPolicy.lock();
-      managerTable_->hostifManager().processHostifDelta(controlPlaneDelta);
-    }
+    auto multiSwitchControlPlaneDelta = delta.getControlPlaneDelta();
+    [[maybe_unused]] const auto& lock = lockPolicy.lock();
+    managerTable_->hostifManager().processHostifDelta(
+        multiSwitchControlPlaneDelta);
   }
 
   if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_MPLS_INSEGMENT)) {
@@ -835,7 +837,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       managerTable_->mirrorManager(),
       lockPolicy,
       &SaiMirrorManager::changeMirror,
-      &SaiMirrorManager::addMirror,
+      &SaiMirrorManager::addNode,
       &SaiMirrorManager::removeMirror);
 
   processDelta(
@@ -862,36 +864,9 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
 
     if (delta.getAclTableGroupsDelta().getNew()) {
       // Process delta for the entries of each table in the new state
-      for (const auto& iter :
-           std::as_const(*delta.getAclTableGroupsDelta().getNew())) {
-        const auto& tableGroup = iter.second;
-        auto aclStage = tableGroup->getID();
-
-        processDelta(
-            delta.getAclTablesDelta(aclStage),
-            managerTable_->aclTableManager(),
-            lockPolicy,
-            &SaiAclTableManager::changedAclTable,
-            &SaiAclTableManager::addAclTable,
-            &SaiAclTableManager::removeAclTable,
-            aclStage);
-
-        if (delta.getAclTablesDelta(aclStage).getNew()) {
-          // Process delta for the entries of each table in the new state
-          for (const auto& iter :
-               std::as_const(*delta.getAclTablesDelta(aclStage).getNew())) {
-            auto table = iter.second;
-            auto tableName = table->getID();
-            processDelta(
-                delta.getAclsDelta(aclStage, tableName),
-                managerTable_->aclTableManager(),
-                lockPolicy,
-                &SaiAclTableManager::changedAclEntry,
-                &SaiAclTableManager::addAclEntry,
-                &SaiAclTableManager::removeAclEntry,
-                tableName);
-          }
-        }
+      for (const auto& [_, tableGroupMap] :
+           *delta.getAclTableGroupsDelta().getNew()) {
+        processAclTableGroupDelta(delta, *tableGroupMap, lockPolicy);
       }
     }
   } else {
@@ -993,12 +968,31 @@ void SaiSwitch::updateResourceUsage(const LockPolicyT& lockPolicy) {
 }
 
 void SaiSwitch::processSwitchSettingsChangedLocked(
-    const std::lock_guard<std::mutex>& /*lock*/,
+    const std::lock_guard<std::mutex>& lock,
     const StateDelta& delta) {
-  const auto switchSettingsDelta = delta.getSwitchSettingsDelta();
-  const auto& oldSwitchSettings = switchSettingsDelta.getOld();
-  const auto& newSwitchSettings = switchSettingsDelta.getNew();
+  const auto switchSettingDelta = delta.getSwitchSettingsDelta();
+  DeltaFunctions::forEachAdded(
+      switchSettingDelta, [&](const auto& newSwitchSettings) {
+        processSwitchSettingsChangedEntryLocked(
+            lock, std::make_shared<SwitchSettings>(), newSwitchSettings);
+      });
+  DeltaFunctions::forEachChanged(
+      switchSettingDelta,
+      [&](const auto& oldSwitchSettings, const auto& newSwitchSettings) {
+        processSwitchSettingsChangedEntryLocked(
+            lock, oldSwitchSettings, newSwitchSettings);
+      });
+  DeltaFunctions::forEachRemoved(
+      switchSettingDelta, [&](const auto& oldSwitchSettings) {
+        processSwitchSettingsChangedEntryLocked(
+            lock, oldSwitchSettings, std::make_shared<SwitchSettings>());
+      });
+}
 
+void SaiSwitch::processSwitchSettingsChangedEntryLocked(
+    const std::lock_guard<std::mutex>& /*lock*/,
+    const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
+    const std::shared_ptr<SwitchSettings>& newSwitchSettings) {
   if (oldSwitchSettings->getL2LearningMode() !=
       newSwitchSettings->getL2LearningMode()) {
     XLOG(DBG3) << "Configuring L2LearningMode old: "
@@ -1037,6 +1031,12 @@ void SaiSwitch::processSwitchSettingsChangedLocked(
       newSwitchSettings->getMaxRouteCounterIDs()) {
     managerTable_->counterManager().setMaxRouteCounterIDs(
         newSwitchSettings->getMaxRouteCounterIDs());
+  }
+
+  const auto oldVal = oldSwitchSettings->isSwitchDrained();
+  const auto newVal = newSwitchSettings->isSwitchDrained();
+  if (oldVal != newVal) {
+    managerTable_->switchManager().setSwitchIsolate(newVal);
   }
 }
 
@@ -1535,6 +1535,16 @@ std::map<PortID, FabricEndpoint> SaiSwitch::getFabricReachabilityLocked()
   return fabricReachabilityManager_->getReachabilityInfo();
 }
 
+std::vector<PortID> SaiSwitch::getSwitchReachability(SwitchID switchId) const {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return getSwitchReachabilityLocked(switchId);
+}
+
+std::vector<PortID> SaiSwitch::getSwitchReachabilityLocked(
+    SwitchID switchId) const {
+  return managerTable_->portManager().getFabricReachabilityForSwitch(switchId);
+}
+
 void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   fetchL2TableLocked(lock, l2Table);
@@ -1758,12 +1768,19 @@ SaiManagerTable* SaiSwitch::managerTable() {
 std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
   auto state = std::make_shared<SwitchState>();
 
+  auto switchId = platform_->getAsic()->getSwitchId()
+      ? *platform_->getAsic()->getSwitchId()
+      : 0;
+  auto matcher =
+      HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(switchId)}));
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
     // get cpu queue settings
     auto cpu = std::make_shared<ControlPlane>();
     auto cpuQueues = managerTable_->hostifManager().getQueueSettings();
     cpu->resetQueues(cpuQueues);
-    state->resetControlPlane(cpu);
+    auto multiSwitchControlPlane = std::make_shared<MultiControlPlane>();
+    multiSwitchControlPlane->addNode(matcher.matcherString(), cpu);
+    state->resetControlPlane(multiSwitchControlPlane);
   }
   if (platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORTS)) {
     if (switchType_ == cfg::SwitchType::FABRIC ||
@@ -1784,18 +1801,24 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
   // Temporarily skip resetPorts for ASIC_TYPE_ELBERT_8DD
   if (platform_->getAsic()->getAsicType() !=
       cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
+    auto switchId = platform_->getAsic()->getSwitchId()
+        ? *platform_->getAsic()->getSwitchId()
+        : 0;
+    HwSwitchMatcher matcher(std::unordered_set<SwitchID>({SwitchID(switchId)}));
     // reconstruct ports
-    auto portMap =
-        managerTable_->portManager().reconstructPortsFromStore(switchType_);
-    auto ports = std::make_shared<PortMap>();
+    auto portMaps = managerTable_->portManager().reconstructPortsFromStore(
+        switchType_, matcher);
+    auto ports = std::make_shared<MultiSwitchPortMap>();
     if (FLAGS_hide_fabric_ports) {
-      for (auto [id, port] : *portMap) {
-        if (port->getPortType() != cfg::PortType::FABRIC_PORT) {
-          ports->addPort(port);
+      for (const auto& portMap : std::as_const(*portMaps)) {
+        for (const auto& [id, port] : std::as_const(*portMap.second)) {
+          if (port->getPortType() != cfg::PortType::FABRIC_PORT) {
+            ports->addNode(port, matcher);
+          }
         }
       }
     } else {
-      ports = std::move(portMap);
+      ports = std::move(portMaps);
     }
     state->resetPorts(ports);
   }
@@ -1803,13 +1826,20 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
   // For VOQ switch, create system ports for existing egress ports
   if (switchType_ == cfg::SwitchType::VOQ) {
     CHECK(getSwitchId().has_value());
-    state->resetSystemPorts(
+    auto sysPorts = std::make_shared<MultiSwitchSystemPortMap>();
+    sysPorts->addMapNode(
         managerTable_->systemPortManager().constructSystemPorts(
             state->getPorts(),
             getSwitchId().value(),
-            platform_->getAsic()->getSystemPortRange()));
+            platform_->getAsic()->getSystemPortRange()),
+        matcher);
+    state->resetSystemPorts(sysPorts);
   }
 
+  auto multiSwitchSwitchSettings = std::make_shared<MultiSwitchSettings>();
+  multiSwitchSwitchSettings->addNode(
+      matcher.matcherString(), std::make_shared<SwitchSettings>());
+  state->resetSwitchSettings(multiSwitchSwitchSettings);
   return state;
 }
 
@@ -1876,12 +1906,6 @@ HwInitResult SaiSwitch::initLocked(
           routeTables,
           ret.switchState->getFibs(),
           ret.switchState->getLabelForwardingInformationBase());
-
-    } else if (switchStateJson.find(kRib) != switchStateJson.items().end()) {
-      ret.rib = RoutingInformationBase::fromFollyDynamic(
-          switchStateJson[kRib],
-          ret.switchState->getFibs(),
-          ret.switchState->getLabelForwardingInformationBase());
     }
   }
   initStoreAndManagersLocked(
@@ -1891,15 +1915,21 @@ HwInitResult SaiSwitch::initLocked(
       adapterKeys2AdapterHostKeysJson.get());
   if (bootType_ != BootType::WARM_BOOT) {
     ret.switchState = getColdBootSwitchState();
+    CHECK(ret.switchState->getSwitchSettings()->size());
     if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::MAC_AGING)) {
       managerTable_->switchManager().setMacAgingSeconds(
-          ret.switchState->getSwitchSettings()->getL2AgeTimerSeconds());
+          ret.switchState->getSwitchSettings()
+              ->cbegin()
+              ->second->getL2AgeTimerSeconds());
     }
   }
   if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::L2_LEARNING)) {
     // for both cold and warm boot, recover l2 learning mode
+    CHECK(ret.switchState->getSwitchSettings()->size());
     managerTable_->bridgeManager().setL2LearningMode(
-        ret.switchState->getSwitchSettings()->getL2LearningMode());
+        ret.switchState->getSwitchSettings()
+            ->cbegin()
+            ->second->getL2LearningMode());
   }
 
   ret.switchState->publish();
@@ -2312,7 +2342,10 @@ void SaiSwitch::unregisterCallbacksLocked(
 #if defined(SAI_VERSION_7_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_ODP) ||    \
     defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
     defined(SAI_VERSION_8_2_0_0_DNX_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
-    defined(SAI_VERSION_9_0_EA_SIM_ODP) || defined(SAI_VERSION_9_0_EA_DNX_ODP)
+    defined(SAI_VERSION_9_0_EA_SIM_ODP) ||                                     \
+    defined(SAI_VERSION_9_0_EA_DNX_ODP) ||                                     \
+    defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP) ||                                 \
+    defined(SAI_VERSION_10_0_EA_DNX_ODP)
     switchApi.unregisterParityErrorSwitchEventCallback(switchId_);
 #else
     switchApi.unregisterTamEventCallback(switchId_);
@@ -2344,37 +2377,36 @@ bool SaiSwitch::isValidStateUpdateLocked(
   }
 
   auto qosDelta = delta.getQosPoliciesDelta();
-  if (qosDelta.getNew()->size() > 0) {
+  if (qosDelta.getNew()->numNodes() > 0) {
     XLOG(ERR) << "Only default data plane qos policy is supported";
     return false;
   }
-  const auto switchSettingsDelta = delta.getSwitchSettingsDelta();
-  const auto& oldSwitchSettings = switchSettingsDelta.getOld();
-  const auto& newSwitchSettings = switchSettingsDelta.getNew();
 
-  /*
-   * SwitchSettings are mandatory and can thus only be modified.
-   * Every field in SwitchSettings must always be set in new SwitchState.
-   */
-  if (!oldSwitchSettings || !newSwitchSettings) {
-    throw FbossError("Switch settings must be present in SwitchState");
+  if (delta.oldState()->getSwitchSettings()->size() &&
+      delta.newState()->getSwitchSettings()->empty()) {
+    throw FbossError("Switch settings cannot be removed from SwitchState");
   }
 
-  if (oldSwitchSettings != newSwitchSettings) {
-    if (oldSwitchSettings->getL2LearningMode() !=
-        newSwitchSettings->getL2LearningMode()) {
-      if (l2LearningModeChangeProhibited()) {
-        throw FbossError(
-            "Chaging L2 learning mode after initial config "
-            "application is not permitted");
-      }
-    }
-  }
-  if (newSwitchSettings->isQcmEnable()) {
-    throw FbossError("QCM is not supported on SAI");
-  }
+  DeltaFunctions::forEachChanged(
+      delta.getSwitchSettingsDelta(),
+      [&](const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
+          const std::shared_ptr<SwitchSettings>& newSwitchSettings) {
+        if (*oldSwitchSettings != *newSwitchSettings) {
+          if (oldSwitchSettings->getL2LearningMode() !=
+              newSwitchSettings->getL2LearningMode()) {
+            if (l2LearningModeChangeProhibited()) {
+              throw FbossError(
+                  "Chaging L2 learning mode after initial config "
+                  "application is not permitted");
+            }
+          }
+        }
+        if (newSwitchSettings->isQcmEnable()) {
+          throw FbossError("QCM is not supported on SAI");
+        }
+      });
 
-  if (delta.newState()->getMirrors()->size() >
+  if (delta.newState()->getMirrors()->numNodes() >
       getPlatform()->getAsic()->getMaxMirrors()) {
     XLOG(ERR) << "Number of mirrors configured is high on this platform";
     return false;
@@ -2392,19 +2424,6 @@ bool SaiSwitch::isValidStateUpdateLocked(
           isValid = false;
         }
       });
-
-  // Ensure only one sflow mirror session is configured
-  int sflowMirrorCount = 0;
-  for (auto iter : std::as_const(*(delta.newState()->getMirrors()))) {
-    auto mirror = iter.second;
-    if (mirror->type() == Mirror::Type::SFLOW) {
-      sflowMirrorCount++;
-    }
-  }
-  if (sflowMirrorCount > 1) {
-    XLOG(ERR) << "More than one sflow mirrors configured";
-    isValid = false;
-  }
 
   auto qualifiersSupported =
       managerTable_->aclTableManager().getSupportedQualifierSet();
@@ -2437,19 +2456,21 @@ bool SaiSwitch::isValidStateUpdateLocked(
   // TODO - Add support for per port watchdog recovery action
   std::shared_ptr<Port> firstPort;
   std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction{};
-  for (const auto& port : std::as_const(*delta.newState()->getPorts())) {
-    if (port.second->getPfc().has_value() &&
-        port.second->getPfc()->watchdog().has_value()) {
-      auto pfcWd = port.second->getPfc()->watchdog().value();
-      if (!recoveryAction.has_value()) {
-        recoveryAction = *pfcWd.recoveryAction();
-        firstPort = port.second;
-      } else if (*recoveryAction != *pfcWd.recoveryAction()) {
-        // Error: All ports should have the same recovery action configured
-        XLOG(ERR) << "PFC watchdog deadlock recovery action on "
-                  << port.second->getName() << " conflicting with "
-                  << firstPort->getName();
-        isValid = false;
+  for (const auto& portMap : std::as_const(*delta.newState()->getPorts())) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      if (port.second->getPfc().has_value() &&
+          port.second->getPfc()->watchdog().has_value()) {
+        auto pfcWd = port.second->getPfc()->watchdog().value();
+        if (!recoveryAction.has_value()) {
+          recoveryAction = *pfcWd.recoveryAction();
+          firstPort = port.second;
+        } else if (*recoveryAction != *pfcWd.recoveryAction()) {
+          // Error: All ports should have the same recovery action configured
+          XLOG(ERR) << "PFC watchdog deadlock recovery action on "
+                    << port.second->getName() << " conflicting with "
+                    << firstPort->getName();
+          isValid = false;
+        }
       }
     }
   }
@@ -2624,7 +2645,10 @@ void SaiSwitch::switchRunStateChangedImplLocked(
 #if defined(SAI_VERSION_7_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_ODP) ||    \
     defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
     defined(SAI_VERSION_8_2_0_0_DNX_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
-    defined(SAI_VERSION_9_0_EA_SIM_ODP) || defined(SAI_VERSION_9_0_EA_DNX_ODP)
+    defined(SAI_VERSION_9_0_EA_SIM_ODP) ||                                     \
+    defined(SAI_VERSION_9_0_EA_DNX_ODP) ||                                     \
+    defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP) ||                                 \
+    defined(SAI_VERSION_10_0_EA_DNX_ODP)
         switchApi.registerParityErrorSwitchEventCallback(
             switchId_, (void*)__gParityErrorSwitchEventCallback);
 #else
@@ -3103,5 +3127,41 @@ void SaiSwitch::rollbackInTest(
     const std::shared_ptr<SwitchState>& knownGoodState) {
   rollback(knownGoodState);
   setProgrammedState(knownGoodState);
+}
+
+template <typename LockPolicyT>
+void SaiSwitch::processAclTableGroupDelta(
+    const StateDelta& delta,
+    const AclTableGroupMap& aclTableGroupMap,
+    const LockPolicyT& lockPolicy) {
+  for (const auto& [_, tableGroup] : aclTableGroupMap) {
+    auto aclStage = tableGroup->getID();
+
+    processDelta(
+        delta.getAclTablesDelta(aclStage),
+        managerTable_->aclTableManager(),
+        lockPolicy,
+        &SaiAclTableManager::changedAclTable,
+        &SaiAclTableManager::addAclTable,
+        &SaiAclTableManager::removeAclTable,
+        aclStage);
+
+    if (delta.getAclTablesDelta(aclStage).getNew()) {
+      // Process delta for the entries of each table in the new state
+      for (const auto& iter :
+           std::as_const(*delta.getAclTablesDelta(aclStage).getNew())) {
+        auto table = iter.second;
+        auto tableName = table->getID();
+        processDelta(
+            delta.getAclsDelta(aclStage, tableName),
+            managerTable_->aclTableManager(),
+            lockPolicy,
+            &SaiAclTableManager::changedAclEntry,
+            &SaiAclTableManager::addAclEntry,
+            &SaiAclTableManager::removeAclEntry,
+            tableName);
+      }
+    }
+  }
 }
 } // namespace facebook::fboss

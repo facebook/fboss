@@ -59,6 +59,7 @@ class SaiUdfManager {
       : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
   static auto constexpr kMaskDontCare = 0;
+  static auto constexpr kMaskAny = 0xFFFF;
   static auto constexpr kL4PortMask = 0xFFFF;
 
   SaiUdfTraits::CreateAttributes udfAttr(

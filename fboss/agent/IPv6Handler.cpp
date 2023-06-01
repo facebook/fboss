@@ -39,6 +39,8 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 
+DECLARE_bool(intf_nbr_tables);
+
 using folly::IPAddressV6;
 using folly::MacAddress;
 using folly::io::Cursor;
@@ -193,7 +195,7 @@ void IPv6Handler::handlePacket(
     // and let Linux handle it. In software we consume ICMPv6 Multicast
     // packets for function of NDP protocol, rest all are forwarded to host.
     auto intfID = sw_->getState()->getInterfaceIDForPort(port);
-    intf = state->getInterfaces()->getInterfaceIf(intfID);
+    intf = state->getInterfaces()->getNodeIf(intfID);
   } else if (ipv6.dstAddr.isLinkLocal()) {
     // If srcPort == CPU port, this packet was injected by self, and then
     // trapped back via RX callback. We don't need to handle self injected
@@ -208,7 +210,7 @@ void IPv6Handler::handlePacket(
       // Forward link-local packet directly to corresponding host interface
       // provided desAddr is assigned to that interface.
       auto intfID = sw_->getState()->getInterfaceIDForPort(port);
-      intf = state->getInterfaces()->getInterfaceIf(intfID);
+      intf = state->getInterfaces()->getNodeIf(intfID);
       if (intf && !(intf->hasAddress(ipv6.dstAddr))) {
         intf = nullptr;
       }
@@ -226,8 +228,10 @@ void IPv6Handler::handlePacket(
     XLOG(DBG4) << "Rx IPv6 Packet with hop limit exceeded";
     sw_->portStats(port)->pktDropped();
     sw_->portStats(port)->ipv6HopExceeded();
-    // Look up cpu mac from platform
-    MacAddress cpuMac = sw_->getPlatform()->getLocalMac();
+    // Look up cpu mac from switchInfo
+    auto switchId = sw_->getScopeResolver()->scope(port).switchId();
+    MacAddress cpuMac =
+        sw_->getHwAsicTable()->getHwAsicIf(switchId)->getAsicMac();
     sendICMPv6TimeExceeded(port, vlanID, cpuMac, cpuMac, ipv6, cursor);
     return;
   }
@@ -324,14 +328,14 @@ void IPv6Handler::handleRouterSolicitation(
   cursor.skip(4); // 4 reserved bytes
 
   auto state = sw_->getState();
-  auto vlan = state->getVlans()->getVlanIf(sw_->getVlanIDHelper(vlanID));
+  auto vlan = state->getVlans()->getNodeIf(sw_->getVlanIDHelper(vlanID));
   if (!vlan) {
     sw_->portStats(pkt)->pktDropped();
     return;
   }
 
   auto intfID = sw_->getState()->getInterfaceIDForPort(pkt->getSrcPort());
-  auto intf = state->getInterfaces()->getInterfaceIf(intfID);
+  auto intf = state->getInterfaces()->getNodeIf(intfID);
   if (!intf) {
     sw_->portStats(pkt)->pktDropped();
     return;
@@ -418,7 +422,7 @@ void IPv6Handler::handleNeighborSolicitation(
   XLOG(DBG4) << "got neighbor solicitation for " << targetIP.str();
 
   auto state = sw_->getState();
-  auto vlan = state->getVlans()->getVlanIf(sw_->getVlanIDHelper(vlanID));
+  auto vlan = state->getVlans()->getNodeIf(sw_->getVlanIDHelper(vlanID));
   if (!vlan) {
     // Hmm, we don't actually have this VLAN configured.
     // Perhaps the state has changed since we received the packet.
@@ -542,7 +546,7 @@ void IPv6Handler::handleNeighborAdvertisement(
   }
 
   auto state = sw_->getState();
-  auto vlan = state->getVlans()->getVlanIf(sw_->getVlanIDHelper(vlanID));
+  auto vlan = state->getVlans()->getNodeIf(sw_->getVlanIDHelper(vlanID));
   if (!vlan) {
     // Hmm, we don't actually have this VLAN configured.
     // Perhaps the state has changed since we received the packet.
@@ -743,11 +747,11 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
         sw->getState()->getInterfaces()->getIntfToReach(RouterID(0), targetIP);
     if (intf) {
       CHECK(intf->getSystemPortID().has_value());
-      auto systemPort = sw->getState()->getSystemPorts()->getSystemPort(
-          *intf->getSystemPortID());
+      auto systemPort =
+          sw->getState()->getSystemPorts()->getNode(*intf->getSystemPortID());
       CHECK(systemPort);
-      auto dsfNode = sw->getState()->getDsfNodes()->getDsfNodeIf(
-          systemPort->getSwitchId());
+      auto dsfNode =
+          sw->getState()->getDsfNodes()->getNodeIf(systemPort->getSwitchId());
       CHECK(dsfNode);
       CHECK(dsfNode->getSystemPortRange().has_value());
       auto portID = intf->getSystemPortID().value() -
@@ -816,7 +820,6 @@ void IPv6Handler::sendUnicastNeighborSolicitation(
 void IPv6Handler::sendMulticastNeighborSolicitation(
     SwSwitch* sw,
     const IPAddressV6& targetIP) {
-  auto state = sw->getState();
   auto intf =
       sw->getState()->getInterfaces()->getIntfToReach(RouterID(0), targetIP);
 
@@ -862,7 +865,7 @@ void IPv6Handler::resolveDestAndHandlePacket(
 
   for (auto nexthop : nexthops) {
     // get interface needed to reach next hop
-    auto intf = interfaces->getInterfaceIf(nexthop.intf());
+    auto intf = interfaces->getNodeIf(nexthop.intf());
     if (intf) {
       // what should be source & destination of packet
       auto source = intf->getAddressToReach(nexthop.addr())->first.asV6();
@@ -881,15 +884,20 @@ void IPv6Handler::resolveDestAndHandlePacket(
         return;
       } else {
         // Check if destination is unknown, in which case trigger NDP
-        auto entry = getNeighborEntryForIP(state, intf, target);
+        auto entry = getNeighborEntryForIP<NdpEntry>(state, intf, target);
 
         if (nullptr == entry) {
           // No entry in NDP table, create a neighbor solicitation packet
           sendMulticastNeighborSolicitation(
               sw_, target, intf->getMac(), intf->getVlanIDIf());
           // Notify the updater that we sent a solicitation out
-          sw_->getNeighborUpdater()->sentNeighborSolicitation(
-              sw_->getVlanIDHelper(vlanID), target);
+          if (FLAGS_intf_nbr_tables) {
+            sw_->getNeighborUpdater()->sentNeighborSolicitationForIntf(
+                intf->getID(), target);
+          } else {
+            sw_->getNeighborUpdater()->sentNeighborSolicitation(
+                sw_->getVlanIDHelper(vlanID), target);
+          }
         } else {
           XLOG(DBG5) << "not sending neighbor solicitation for " << target.str()
                      << ", " << ((entry->isPending()) ? "pending" : "")
@@ -921,7 +929,7 @@ void IPv6Handler::sendMulticastNeighborSolicitations(
   auto intfs = state->getInterfaces();
   auto nhs = route->getForwardInfo().getNextHopSet();
   for (auto nh : nhs) {
-    auto intf = intfs->getInterfaceIf(nh.intf());
+    auto intf = intfs->getNodeIf(nh.intf());
     if (intf) {
       if (nh.addr().isV6()) {
         auto source = intf->getAddressToReach(nh.addr())->first.asV6();
@@ -948,26 +956,29 @@ void IPv6Handler::sendMulticastNeighborSolicitations(
 }
 
 void IPv6Handler::floodNeighborAdvertisements() {
-  for (auto iter : std::as_const(*sw_->getState()->getInterfaces())) {
-    // This check is mostly for agent tests where we dont want to flood NDP
-    // causing loop, when ports are in loopback
-    const auto& intf = iter.second;
-    if (isAnyInterfacePortInLoopbackMode(sw_->getState(), intf)) {
-      XLOG(DBG2) << "Do not flood neighbor advertisement on interface: "
-                 << intf->getName();
-      continue;
-    }
-    for (auto iter : std::as_const(*intf->getAddresses())) {
-      auto addrEntry = folly::IPAddress(iter.first);
-      if (!addrEntry.isV6()) {
+  for (const auto& [_, intfMap] :
+       std::as_const(*sw_->getState()->getInterfaces())) {
+    for (auto iter : std::as_const(*intfMap)) {
+      // This check is mostly for agent tests where we dont want to flood NDP
+      // causing loop, when ports are in loopback
+      const auto& intf = iter.second;
+      if (isAnyInterfacePortInLoopbackMode(sw_->getState(), intf)) {
+        XLOG(DBG2) << "Do not flood neighbor advertisement on interface: "
+                   << intf->getName();
         continue;
       }
-      sendNeighborAdvertisement(
-          intf->getVlanIDIf(),
-          intf->getMac(),
-          addrEntry.asV6(),
-          MacAddress::BROADCAST,
-          IPAddressV6());
+      for (auto iter : std::as_const(*intf->getAddresses())) {
+        auto addrEntry = folly::IPAddress(iter.first);
+        if (!addrEntry.isV6()) {
+          continue;
+        }
+        sendNeighborAdvertisement(
+            intf->getVlanIDIf(),
+            intf->getMac(),
+            addrEntry.asV6(),
+            MacAddress::BROADCAST,
+            IPAddressV6());
+      }
     }
   }
 }

@@ -42,26 +42,9 @@ class InterfaceMap : public ThriftMapNode<InterfaceMap, InterfaceMapTraits> {
   using Base = ThriftMapNode<InterfaceMap, InterfaceMapTraits>;
   using Base::modify;
 
-  InterfaceMap();
-  ~InterfaceMap() override;
+  InterfaceMap() = default;
+  ~InterfaceMap() override = default;
 
-  /*
-   * Get the specified Interface.
-   *
-   * Throws an FbossError if the INTERFACE does not exist.
-   */
-  const std::shared_ptr<Interface> getInterface(InterfaceID id) const {
-    return getNode(static_cast<int32_t>(id));
-  }
-
-  /*
-   * Get the specified Interface.
-   *
-   * Returns null if the interface does not exist.
-   */
-  std::shared_ptr<Interface> getInterfaceIf(InterfaceID id) const {
-    return getNodeIf(static_cast<int32_t>(id));
-  }
   /*
    *  Get interface which has the given IPAddress. If multiple
    *  interfaces have the same address (unlikely) we return the
@@ -84,7 +67,7 @@ class InterfaceMap : public ThriftMapNode<InterfaceMap, InterfaceMapTraits> {
 
   /*
    *  Get interface which has the given vlan. If multiple
-   *  interfaces exist, this will return the default interface.
+   *  interfaces exist, this will return the first interface.
    */
   std::shared_ptr<Interface> getInterfaceInVlanIf(VlanID vlan) const;
 
@@ -101,47 +84,72 @@ class InterfaceMap : public ThriftMapNode<InterfaceMap, InterfaceMapTraits> {
       RouterID router,
       const folly::IPAddress& dest) const;
 
-  /*
-   * The following functions modify the static state.
-   * These should only be called on unpublished objects which are only visible
-   * to a single thread.
-   */
-
-  void addInterface(const std::shared_ptr<Interface>& interface);
-  void updateInterface(const std::shared_ptr<Interface>& interface);
-
-  InterfaceMap* modify(std::shared_ptr<SwitchState>* state);
-
  private:
   // Inherit the constructors required for clone()
   using Base::Base;
   friend class CloneAllocator;
 };
 
-using MultiInterfaceMapTypeClass = apache::thrift::type_class::
+using MultiSwitchInterfaceMapTypeClass = apache::thrift::type_class::
     map<apache::thrift::type_class::string, InterfaceMapTypeClass>;
-using MultiInterfaceMapThriftType =
+using MultiSwitchInterfaceMapThriftType =
     std::map<std::string, InterfaceMapThriftType>;
 
-class MultiInterfaceMap;
+class MultiSwitchInterfaceMap;
 
-using MultiInterfaceMapTraits = ThriftMultiMapNodeTraits<
-    MultiInterfaceMap,
-    MultiInterfaceMapTypeClass,
-    MultiInterfaceMapThriftType,
+using MultiSwitchInterfaceMapTraits = ThriftMultiSwitchMapNodeTraits<
+    MultiSwitchInterfaceMap,
+    MultiSwitchInterfaceMapTypeClass,
+    MultiSwitchInterfaceMapThriftType,
     InterfaceMap>;
 
 class HwSwitchMatcher;
 
-class MultiInterfaceMap
-    : public ThriftMapNode<MultiInterfaceMap, MultiInterfaceMapTraits> {
+class MultiSwitchInterfaceMap : public ThriftMultiSwitchMapNode<
+                                    MultiSwitchInterfaceMap,
+                                    MultiSwitchInterfaceMapTraits> {
  public:
-  using Traits = MultiInterfaceMapTraits;
-  using BaseT = ThriftMapNode<MultiInterfaceMap, MultiInterfaceMapTraits>;
+  using Traits = MultiSwitchInterfaceMapTraits;
+  using BaseT = ThriftMultiSwitchMapNode<
+      MultiSwitchInterfaceMap,
+      MultiSwitchInterfaceMapTraits>;
   using BaseT::modify;
 
-  MultiInterfaceMap() {}
-  virtual ~MultiInterfaceMap() {}
+  MultiSwitchInterfaceMap() = default;
+  virtual ~MultiSwitchInterfaceMap() = default;
+  const std::shared_ptr<Interface> getIntfToReach(
+      RouterID router,
+      const folly::IPAddress& dest) const;
+
+  MultiSwitchInterfaceMap* modify(std::shared_ptr<SwitchState>* state);
+  /*
+   *  Get interface which has the given vlan. If multiple
+   *  interfaces exist, this will return the first interface.
+   */
+  std::shared_ptr<Interface> getInterfaceInVlanIf(VlanID vlan) const;
+
+  /*
+   * Same as getInterfaceInVlanIf but throws a execption
+   * instead of returning null
+   */
+  const std::shared_ptr<Interface> getInterfaceInVlan(VlanID vlan) const;
+  /*
+   *  Get interface which has the given IPAddress. If multiple
+   *  interfaces have the same address (unlikely) we return the
+   *  first one. If no interface is found that has the given IP,
+   *  we return null.
+   */
+  std::shared_ptr<Interface> getInterfaceIf(
+      RouterID router,
+      const folly::IPAddress& ip) const;
+
+  /*
+   * Same as get interface by IP above, but throws a execption
+   * instead of returning null
+   */
+  const std::shared_ptr<Interface> getInterface(
+      RouterID router,
+      const folly::IPAddress& ip) const;
 
  private:
   // Inherit the constructors required for clone()

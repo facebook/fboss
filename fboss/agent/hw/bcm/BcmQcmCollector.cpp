@@ -124,14 +124,16 @@ void BcmQcmCollector::exportProfileCreate() {
 bool BcmQcmCollector::getCollectorVlan(
     const std::shared_ptr<SwitchState>& swState) {
   const auto vlans = swState->getVlans();
-  for (const auto& [id, vlan] : std::as_const(*vlans)) {
-    // pick up any arbitrary vlan which is programmed
-    // Collector pkts need to hit my station table entry
-    // to route which can happen based on {dst_mac, vlan}
-    // vlan is picked to be any configured vlan
-    // for convinence.
-    collector_vlan_ = vlan->getID();
-    return true;
+  for (const auto& vlanMap : std::as_const(*vlans)) {
+    for (const auto& [id, vlan] : std::as_const(*vlanMap.second)) {
+      // pick up any arbitrary vlan which is programmed
+      // Collector pkts need to hit my station table entry
+      // to route which can happen based on {dst_mac, vlan}
+      // vlan is picked to be any configured vlan
+      // for convinence.
+      collector_vlan_ = vlan->getID();
+      return true;
+    }
   }
   return false;
 }

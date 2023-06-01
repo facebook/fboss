@@ -8,6 +8,8 @@
  *
  */
 #include "fboss/agent/FabricReachabilityManager.h"
+#include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/state/DsfNodeMap.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/HwTestHandle.h"
@@ -26,6 +28,14 @@ class FabricReachabilityManagerTest : public ::testing::Test {
     // Create a separate instance of DsfSubscriber (vs
     // using one from SwSwitch) for ease of testing.
     fabricReachabilityManager_ = std::make_unique<FabricReachabilityManager>();
+  }
+
+  HwSwitchMatcher getScope(const std::shared_ptr<DsfNode>& node) const {
+    return handle_->getSw()->getScopeResolver()->scope(node);
+  }
+
+  HwSwitchMatcher getScope(const std::shared_ptr<Port>& port) const {
+    return handle_->getSw()->getScopeResolver()->scope(port);
   }
 
   cfg::DsfNode makeDsfNodeCfg(int64_t switchId, std::string name) {
@@ -82,7 +92,7 @@ TEST_F(FabricReachabilityManagerTest, validateRemoteOffset) {
   std::shared_ptr<Port> swPort = makePort(1);
   swPort->setExpectedNeighborReachability(
       createPortNeighbor("fab1/9/2", "rdswA"));
-  newState->getPorts()->addPort(swPort);
+  newState->getPorts()->addNode(swPort, getScope(swPort));
 
   std::map<PortID, FabricEndpoint> hwReachabilityMap;
   FabricEndpoint endpoint;
@@ -97,8 +107,8 @@ TEST_F(FabricReachabilityManagerTest, validateRemoteOffset) {
       "rdswA",
       cfg::AsicType::ASIC_TYPE_JERICHO2,
       PlatformType::PLATFORM_MERU400BIU);
-  auto dsfNodeMap = std::make_shared<DsfNodeMap>();
-  dsfNodeMap->addNode(dsfNode);
+  auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
+  dsfNodeMap->addNode(dsfNode, getScope(dsfNode));
   newState->resetDsfNodes(dsfNodeMap);
 
   StateDelta delta(oldState, newState);
@@ -126,7 +136,7 @@ TEST_F(FabricReachabilityManagerTest, validateProcessReachabilityInfo) {
   std::shared_ptr<Port> swPort = makePort(1);
   swPort->setExpectedNeighborReachability(
       createPortNeighbor("fab1/2/4", "fdswA"));
-  newState->getPorts()->addPort(swPort);
+  newState->getPorts()->addNode(swPort, getScope(swPort));
 
   std::map<PortID, FabricEndpoint> hwReachabilityMap;
   FabricEndpoint endpoint;
@@ -137,8 +147,8 @@ TEST_F(FabricReachabilityManagerTest, validateProcessReachabilityInfo) {
   hwReachabilityMap.emplace(swPort->getID(), endpoint);
 
   auto dsfNode = makeDsfNode(10, "fdswA", cfg::AsicType::ASIC_TYPE_RAMON);
-  auto dsfNodeMap = std::make_shared<DsfNodeMap>();
-  dsfNodeMap->addNode(dsfNode);
+  auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
+  dsfNodeMap->addNode(dsfNode, getScope(dsfNode));
   newState->resetDsfNodes(dsfNodeMap);
 
   StateDelta delta(oldState, newState);
@@ -169,11 +179,11 @@ TEST_F(FabricReachabilityManagerTest, validateUnattachedEndpoint) {
   std::shared_ptr<Port> swPort = makePort(1);
   swPort->setExpectedNeighborReachability(
       createPortNeighbor("fab1/2/4", "fdswA"));
-  newState->getPorts()->addPort(swPort);
+  newState->getPorts()->addNode(swPort, getScope(swPort));
 
   auto dsfNode = makeDsfNode(10, "fdswA");
-  auto dsfNodeMap = std::make_shared<DsfNodeMap>();
-  dsfNodeMap->addNode(dsfNode);
+  auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
+  dsfNodeMap->addNode(dsfNode, getScope(dsfNode));
   newState->resetDsfNodes(dsfNodeMap);
 
   std::map<PortID, FabricEndpoint> hwReachabilityMap;
@@ -212,7 +222,7 @@ TEST_F(FabricReachabilityManagerTest, validateUnexpectedNeighbors) {
   std::shared_ptr<Port> swPort = makePort(1);
   swPort->setExpectedNeighborReachability(
       createPortNeighbor("fab1/2/3", "fdswA"));
-  newState->getPorts()->addPort(swPort);
+  newState->getPorts()->addNode(swPort, getScope(swPort));
 
   std::map<PortID, FabricEndpoint> hwReachabilityMap;
   FabricEndpoint endpoint;
@@ -224,9 +234,9 @@ TEST_F(FabricReachabilityManagerTest, validateUnexpectedNeighbors) {
   auto dsfNode1 = makeDsfNode(10, "fdswB");
   auto dsfNode2 = makeDsfNode(20, "fdswA");
 
-  auto dsfNodeMap = std::make_shared<DsfNodeMap>();
-  dsfNodeMap->addNode(dsfNode1);
-  dsfNodeMap->addDsfNode(dsfNode2);
+  auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
+  dsfNodeMap->addNode(dsfNode1, getScope(dsfNode1));
+  dsfNodeMap->addNode(dsfNode2, getScope(dsfNode2));
   newState->resetDsfNodes(dsfNodeMap);
 
   // update

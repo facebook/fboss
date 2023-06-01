@@ -13,7 +13,6 @@
 #include <utility>
 
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
-#include "fboss/agent/hw/sai/tracer/SwitchApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
 
 using folly::to;
@@ -152,7 +151,8 @@ sai_status_t wrap_get_switch_attribute(
         switch_id,
         attr_count,
         attr_list,
-        SAI_OBJECT_TYPE_SWITCH);
+        SAI_OBJECT_TYPE_SWITCH,
+        rv);
     SaiTracer::getInstance()->logPostInvocation(rv, switch_id, begin);
     return rv;
   }

@@ -50,8 +50,7 @@ LagSaiId SaiLagManager::addLag(
   std::map<PortSaiId, std::shared_ptr<SaiLagMember>> members;
   for (auto iter : folly::enumerate(aggregatePort->subportAndFwdState())) {
     auto [subPort, fwdState] = *iter;
-    auto member = addMember(lag, aggregatePort->getID(), subPort);
-    setMemberState(member.second.get(), fwdState);
+    auto member = addMember(lag, aggregatePort->getID(), subPort, fwdState);
     members.emplace(std::move(member));
   }
   concurrentIndices_->vlanIds.emplace(
@@ -142,7 +141,8 @@ void SaiLagManager::changeLag(
 std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> SaiLagManager::addMember(
     const std::shared_ptr<SaiLag>& lag,
     AggregatePortID aggregatePortID,
-    PortID subPort) {
+    PortID subPort,
+    AggregatePort::Forwarding fwdState) {
   auto portHandle = managerTable_->portManager().getPortHandle(subPort);
   CHECK(portHandle);
   portHandle->bridgePort.reset();
@@ -150,8 +150,11 @@ std::pair<PortSaiId, std::shared_ptr<SaiLagMember>> SaiLagManager::addMember(
   auto saiLagId = lag->adapterKey();
 
   SaiLagMemberTraits::AdapterHostKey adapterHostKey{saiLagId, saiPortId};
+  auto egressDisabled = (fwdState == AggregatePort::Forwarding::ENABLED)
+      ? SaiLagMemberTraits::Attributes::EgressDisable{false}
+      : SaiLagMemberTraits::Attributes::EgressDisable{true};
   SaiLagMemberTraits::CreateAttributes attrs{
-      saiLagId, saiPortId, SaiLagMemberTraits::Attributes::EgressDisable{true}};
+      saiLagId, saiPortId, egressDisabled};
   auto& lagMemberStore = saiStore_->get<SaiLagMemberTraits>();
   auto member = lagMemberStore.setObject(adapterHostKey, attrs);
   concurrentIndices_->memberPort2AggregatePortIds.emplace(

@@ -8,23 +8,23 @@
 
 namespace facebook::fboss {
 
-class SwSwitch;
-
 class SwitchInfoTable {
  public:
   SwitchInfoTable(
-      SwSwitch* sw,
       const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo);
   std::unordered_set<SwitchID> getSwitchIdsOfType(cfg::SwitchType type) const;
   std::unordered_set<SwitchID> getSwitchIDs() const;
   bool haveVoqSwitches() const;
   bool haveNpuSwitches() const;
+  bool haveFabricSwitches() const;
   bool haveL3Switches() const;
   bool vlansSupported() const;
   cfg::SwitchType l3SwitchType() const;
+  const std::map<SwitchID, cfg::SwitchInfo>& getSwitchIdToSwitchInfo() const {
+    return switchIdToSwitchInfo_;
+  }
 
  private:
-  SwSwitch* sw_;
   std::map<SwitchID, cfg::SwitchInfo> switchIdToSwitchInfo_;
 };
 

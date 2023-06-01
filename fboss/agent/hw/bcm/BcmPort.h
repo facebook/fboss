@@ -261,6 +261,9 @@ class BcmPort {
       folly::Synchronized<std::optional<BcmPortStats>>::WLockedPtr;
 
   void updateWredStats(std::chrono::seconds now, int64_t* portStatVal);
+  void updateInCongestionDiscardStats(
+      std::chrono::seconds now,
+      uint64_t* portStatVal);
   uint32_t getCL91FECStatus() const;
   bool isCL91FECApplicable() const;
   // no copy or assignment
@@ -290,12 +293,12 @@ class BcmPort {
   void removePortPfcStatsLocked(
       const BcmPort::PortStatsWLockedPtr& lockedPortStatsPtr,
       const std::shared_ptr<Port>& swPort,
-      Port::PfcPriorityList priorities);
+      const std::vector<PfcPriority>& priorities);
   void reinitPortPfcStats(const std::shared_ptr<Port>& swPort);
   void updatePortPfcStats(
       std::chrono::seconds now,
       HwPortStats& curPortStats,
-      Port::PfcPriorityList pfcPriorities);
+      const std::vector<PfcPriority>& pfcPriorities);
   std::string getPfcPriorityStatsKey(
       folly::StringPiece statKey,
       PfcPriority priority);
@@ -353,6 +356,7 @@ class BcmPort {
       const std::vector<phy::PinConfig>& iphyPinConfigs);
 
   bool isMmuLossy() const;
+  bool isMmuLossless() const;
 
   void applyMirrorAction(
       MirrorAction action,

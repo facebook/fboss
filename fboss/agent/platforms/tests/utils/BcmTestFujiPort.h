@@ -27,12 +27,6 @@ class BcmTestFujiPort : public BcmTestPort {
     return true;
   }
 
-  folly::Future<TransmitterTechnology> getTransmitterTech(
-      folly::EventBase* /*evb*/) const override {
-    return folly::makeFuture<TransmitterTechnology>(
-        TransmitterTechnology::BACKPLANE);
-  }
-
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestFujiPort(BcmTestFujiPort const&) = delete;

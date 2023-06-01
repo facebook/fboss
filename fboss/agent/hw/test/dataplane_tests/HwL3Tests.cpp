@@ -27,7 +27,7 @@ class HwL3Test : public HwLinkStateDependentTest {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(),
         masterLogicalPortIds()[0],
-        getAsic()->desiredLoopbackMode());
+        getAsic()->desiredLoopbackModes());
     return cfg;
   }
 

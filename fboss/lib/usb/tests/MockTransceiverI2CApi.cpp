@@ -32,7 +32,7 @@ void MockTransceiverI2CApi::moduleRead(
       (len != 1 && throwReadExceptionForDomQuery_)) {
     throw std::exception();
   }
-  if (offset == 0) {
+  if (offset == 0 && len == 1) {
     if (overridenMgmtInterface_.find(module) != overridenMgmtInterface_.end()) {
       buf[0] = overridenMgmtInterface_[module];
     } else {
@@ -89,6 +89,10 @@ void MockTransceiverI2CApi::overrideMgmtInterface(
     case uint8_t(TransceiverModuleIdentifier::MINIPHOTON_OBO):
       overridenTransceivers_[id] =
           std::make_unique<MiniphotonOBOTransceiver>(id);
+      break;
+    case uint8_t(TransceiverModuleIdentifier::OSFP):
+      overridenTransceivers_[id] =
+          std::make_unique<Cmis2x400GFr4Transceiver>(id);
       break;
     default:
       overridenTransceivers_.erase(id);

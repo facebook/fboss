@@ -14,8 +14,10 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SysError.h"
+#include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/NdpEntry.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 
@@ -44,6 +46,10 @@ DEFINE_uint64(
     ingress_egress_buffer_pool_size,
     0,
     "Common ingress/egress buffer pool size override");
+DEFINE_bool(
+    allow_zero_headroom_for_lossless_pg,
+    false,
+    "Allow lossless PG to have headroom as zero");
 
 namespace facebook::fboss {
 
@@ -88,12 +94,14 @@ void utilCreateDir(folly::StringPiece path) {
 
 IPAddressV4 getAnyIntfIP(const std::shared_ptr<SwitchState>& state) {
   IPAddressV4 intfIp;
-  for (auto intfIter : std::as_const(*state->getInterfaces())) {
-    const auto& intf = intfIter.second;
-    for (auto iter : std::as_const(*intf->getAddresses())) {
-      auto address = folly::IPAddress(iter.first);
-      if (address.isV4()) {
-        return address.asV4();
+  for (const auto& [_, intfMap] : std::as_const(*state->getInterfaces())) {
+    for (const auto& intfIter : std::as_const(*intfMap)) {
+      const auto& intf = intfIter.second;
+      for (auto iter : std::as_const(*intf->getAddresses())) {
+        auto address = folly::IPAddress(iter.first);
+        if (address.isV4()) {
+          return address.asV4();
+        }
       }
     }
   }
@@ -102,12 +110,14 @@ IPAddressV4 getAnyIntfIP(const std::shared_ptr<SwitchState>& state) {
 
 IPAddressV6 getAnyIntfIPv6(const std::shared_ptr<SwitchState>& state) {
   IPAddressV6 intfIp;
-  for (auto intfIter : std::as_const(*state->getInterfaces())) {
-    const auto& intf = intfIter.second;
-    for (auto iter : std::as_const(*intf->getAddresses())) {
-      auto address = folly::IPAddress(iter.first);
-      if (address.isV6()) {
-        return address.asV6();
+  for (const auto& [_, intfMap] : std::as_const(*state->getInterfaces())) {
+    for (const auto& intfIter : std::as_const(*intfMap)) {
+      const auto& intf = intfIter.second;
+      for (auto iter : std::as_const(*intf->getAddresses())) {
+        auto address = folly::IPAddress(iter.first);
+        if (address.isV6()) {
+          return address.asV6();
+        }
       }
     }
   }
@@ -127,7 +137,7 @@ IPAddressV4 getSwitchVlanIP(
 IPAddressV4 getSwitchIntfIP(
     const std::shared_ptr<SwitchState>& state,
     InterfaceID intfID) {
-  auto interface = state->getInterfaces()->getInterface(intfID);
+  auto interface = state->getInterfaces()->getNode(intfID);
 
   return getIPAddress<IPAddressV4>(intfID, interface->getAddresses());
 }
@@ -144,7 +154,7 @@ IPAddressV6 getSwitchVlanIPv6(
 IPAddressV6 getSwitchIntfIPv6(
     const std::shared_ptr<SwitchState>& state,
     InterfaceID intfID) {
-  auto interface = state->getInterfaces()->getInterface(intfID);
+  auto interface = state->getInterfaces()->getNode(intfID);
 
   return getIPAddress<IPAddressV6>(intfID, interface->getAddresses());
 }
@@ -299,10 +309,10 @@ UnicastRoute makeUnicastRoute(
 PortID getPortID(
     SystemPortID sysPortId,
     const std::shared_ptr<SwitchState>& state) {
-  auto sysPort = state->getSystemPorts()->getSystemPort(sysPortId);
+  auto sysPort = state->getSystemPorts()->getNode(sysPortId);
   auto voqSwitchId = sysPort->getSwitchId();
   auto sysPortRange = state->getDsfNodes()
-                          ->getDsfNodeIf(SwitchID(voqSwitchId))
+                          ->getNodeIf(SwitchID(voqSwitchId))
                           ->getSystemPortRange();
   CHECK(sysPortRange.has_value());
   return PortID(static_cast<int64_t>(sysPortId) - *sysPortRange->minimum());
@@ -321,7 +331,7 @@ SystemPortID getSystemPortID(
 std::vector<PortID> getPortsForInterface(
     InterfaceID intfId,
     const std::shared_ptr<SwitchState>& state) {
-  auto intf = state->getInterfaces()->getInterfaceIf(intfId);
+  auto intf = state->getInterfaces()->getNodeIf(intfId);
   if (!intf) {
     return {};
   }
@@ -329,7 +339,7 @@ std::vector<PortID> getPortsForInterface(
   switch (intf->getType()) {
     case cfg::InterfaceType::VLAN: {
       auto vlanId = intf->getVlanID();
-      auto vlan = state->getVlans()->getVlanIf(vlanId);
+      auto vlan = state->getVlans()->getNodeIf(vlanId);
       if (vlan) {
         for (const auto& memberPort : vlan->getPorts()) {
           ports.push_back(PortID(memberPort.first));
@@ -351,7 +361,7 @@ bool isAnyInterfacePortInLoopbackMode(
   // want to flood grat arp when we are in loopback resulting in these pkts
   // getting looped back forever
   for (auto portId : getPortsForInterface(interface->getID(), swState)) {
-    auto port = swState->getPorts()->getPortIf(portId);
+    auto port = swState->getPorts()->getNodeIf(portId);
     if (port && port->getLoopbackMode() != cfg::PortLoopbackMode::NONE) {
       XLOG(DBG2) << "Port: " << port->getName()
                  << " in interface: " << interface->getID()
@@ -414,29 +424,99 @@ void enableExactMatch(std::string& yamlCfg) {
   }
 }
 
-std::shared_ptr<NdpEntry> getNeighborEntryForIP(
+// Avoid template linker errors by listing possible template instantiations:
+// https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
+template std::shared_ptr<ArpEntry> getNeighborEntryForIP<ArpEntry>(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& intf,
-    const folly::IPAddressV6& ipAddr) {
-  std::shared_ptr<NdpEntry> entry{nullptr};
+    const folly::IPAddress& ipAddr);
+template std::shared_ptr<NdpEntry> getNeighborEntryForIP<NdpEntry>(
+    const std::shared_ptr<SwitchState>& state,
+    const std::shared_ptr<Interface>& intf,
+    const folly::IPAddress& ipAddr);
+
+template <typename NeighborEntryT>
+std::shared_ptr<NeighborEntryT> getNeighborEntryForIPAndIntf(
+    const std::shared_ptr<Interface>& intf,
+    const folly::IPAddress& ipAddr) {
+  std::shared_ptr<NeighborEntryT> entry{nullptr};
+
+  if constexpr (std::is_same_v<NeighborEntryT, ArpEntry>) {
+    const auto& arpTable = intf->getArpTable();
+    entry = arpTable->getEntryIf(ipAddr.asV4());
+  } else {
+    const auto& nbrTable = intf->getNdpTable();
+    entry = nbrTable->getEntryIf(ipAddr.asV6());
+  }
+  return entry;
+}
+
+// TODO(skhare) Replace all callsites for getNeighborEntryForIP with
+// getNeighborEntryForIPAndIntf as part of migrating to consuming neighbor
+// tables from interfaces
+template <typename NeighborEntryT>
+std::shared_ptr<NeighborEntryT> getNeighborEntryForIP(
+    const std::shared_ptr<SwitchState>& state,
+    const std::shared_ptr<Interface>& intf,
+    const folly::IPAddress& ipAddr) {
+  std::shared_ptr<NeighborEntryT> entry{nullptr};
 
   switch (intf->getType()) {
     case cfg::InterfaceType::VLAN: {
       auto vlanID = intf->getVlanID();
-      auto vlan = state->getVlans()->getVlanIf(vlanID);
+      auto vlan = state->getVlans()->getNodeIf(vlanID);
       if (vlan) {
-        entry = vlan->getNdpTable()->getEntryIf(ipAddr);
+        if constexpr (std::is_same_v<NeighborEntryT, ArpEntry>) {
+          entry = vlan->getArpTable()->getEntryIf(ipAddr.asV4());
+        } else {
+          entry = vlan->getNdpTable()->getEntryIf(ipAddr.asV6());
+        }
       }
       break;
     }
     case cfg::InterfaceType::SYSTEM_PORT: {
-      const auto& nbrTable = intf->getNdpTable();
-      entry = nbrTable->getEntryIf(ipAddr);
+      entry = getNeighborEntryForIPAndIntf<NeighborEntryT>(intf, ipAddr);
       break;
     }
   }
 
   return entry;
+}
+
+OperDeltaFilter::OperDeltaFilter(SwitchID switchId) : switchId_(switchId) {}
+
+std::optional<fsdb::OperDelta> OperDeltaFilter::filter(
+    const fsdb::OperDelta& delta,
+    int index) const {
+  fsdb::OperDelta result{};
+  result.protocol() = *delta.protocol();
+  if (delta.metadata().has_value()) {
+    result.metadata() = *delta.metadata();
+  }
+
+  for (const auto& change : *delta.changes()) {
+    auto& path = *change.path()->raw();
+    if (path.size() < index + 1) {
+      continue;
+    }
+    const auto& matcherStr = path[index];
+    auto iter = matchersCache_.find(matcherStr);
+    if (iter == matchersCache_.end()) {
+      // if matcher string is not found in cache, cache it.
+      HwSwitchMatcher matcher(matcherStr);
+      auto result =
+          matchersCache_.emplace(matcherStr, HwSwitchMatcher(matcherStr));
+      iter = result.first;
+    }
+    CHECK(iter != matchersCache_.end());
+    if (iter->second.has(switchId_)) {
+      result.changes()->push_back(change);
+    }
+  }
+  if (result.changes()->empty()) {
+    return std::nullopt;
+  }
+  return result;
 }
 
 } // namespace facebook::fboss

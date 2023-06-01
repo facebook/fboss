@@ -205,8 +205,13 @@ BcmMmuState BcmAPI::getMmuState() {
     if (!lossless) {
       return BcmMmuState::UNKNOWN;
     }
-    return std::string(lossless) == "0x1" ? BcmMmuState::MMU_LOSSLESS
-                                          : BcmMmuState::MMU_LOSSY;
+    if (std::string(lossless) == "0x1") {
+      return BcmMmuState::MMU_LOSSLESS;
+    } else if (std::string(lossless) == "0x2") {
+      return BcmMmuState::MMU_LOSSY_AND_LOSSLESS;
+    } else {
+      return BcmMmuState::MMU_LOSSY;
+    }
   }
 }
 

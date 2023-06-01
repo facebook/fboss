@@ -62,11 +62,12 @@ void FsdbStreamClient::setState(State state) {
     }
     *stateLocked = state;
   }
-  if (state == State::CONNECTED) {
-    fb303::fbData->setCounter(getConnectedCounterName(), 1);
+  if (state == State::CONNECTING) {
 #if FOLLY_HAS_COROUTINES
     serviceLoopScope_.add(serviceLoopWrapper().scheduleOn(streamEvb_));
 #endif
+  } else if (state == State::CONNECTED) {
+    fb303::fbData->setCounter(getConnectedCounterName(), 1);
   } else if (state == State::CANCELLED) {
 #if FOLLY_HAS_COROUTINES
     folly::coro::blockingWait(serviceLoopScope_.cancelAndJoinAsync());
@@ -105,7 +106,7 @@ void FsdbStreamClient::connectToServer(const ServerOptions& options) {
   streamEvb_->runImmediatelyOrRunInEventBaseThreadAndWait([this, &options]() {
     try {
       createClient(options);
-      setState(State::CONNECTED);
+      setState(State::CONNECTING);
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Connect to server failed with ex:" << ex.what();
       setState(State::DISCONNECTED);
@@ -123,6 +124,7 @@ folly::coro::Task<void> FsdbStreamClient::serviceLoopWrapper() {
   };
   try {
     auto stream = co_await setupStream();
+    setState(State::CONNECTED);
     co_await serveStream(std::move(stream));
   } catch (const folly::OperationCancelled&) {
     XLOG(DBG2) << "Service loop cancelled :" << clientId();

@@ -29,9 +29,8 @@ void MPLSHandler::handleKnownLabel(
   auto topLabel = header.getLookupLabel();
   XLOG(WARNING) << "Received Mpls packet with known label:"
                 << topLabel.getLabelValue();
-  auto entry = sw_->getState()
-                   ->getLabelForwardingInformationBase()
-                   ->getLabelForwardingEntry(topLabel.getLabelValue());
+  auto entry = sw_->getState()->getLabelForwardingInformationBase()->getNode(
+      topLabel.getLabelValue());
   const auto& fwd = entry->getForwardInfo();
 
   if (fwd.getAction() == LabelNextHopEntry::Action::TO_CPU) {
@@ -93,6 +92,6 @@ bool MPLSHandler::isLabelProgrammed(const MPLSHdr& header) const {
   if (!labels) {
     return false;
   }
-  return labels->getLabelForwardingEntryIf(topLabel.getLabelValue()) != nullptr;
+  return labels->getNodeIf(topLabel.getLabelValue()) != nullptr;
 }
 } // namespace facebook::fboss

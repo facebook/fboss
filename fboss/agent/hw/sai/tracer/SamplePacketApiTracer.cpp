@@ -12,7 +12,6 @@
 #include <utility>
 
 #include "fboss/agent/hw/sai/api/SamplePacketApi.h"
-#include "fboss/agent/hw/sai/tracer/SamplePacketApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
 
 using folly::to;

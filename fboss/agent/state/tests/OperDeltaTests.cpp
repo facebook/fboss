@@ -10,6 +10,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FsdbHelper.h"
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -35,18 +36,19 @@ TEST(OperDeltaTests, OperDeltaCompute) {
   ASSERT_NE(nullptr, stateV1);
 
   auto delta1 = StateDelta(stateV0, stateV1);
-  // 20 ports, 2 vlans, 2 intfs
-  EXPECT_EQ(delta1.getOperDelta().changes()->size(), 24);
+  // 1 port map, 1 vlan map, 1 intf map change
+  EXPECT_EQ(delta1.getOperDelta().changes()->size(), 3);
 
   auto stateV2 = stateV1->clone();
-  auto mirrors = stateV2->getMirrors()->clone();
+  auto mnpuMirrors = stateV1->getMirrors()->modify(&stateV2);
   state::MirrorFields mirror{};
   mirror.name() = "mirror0";
   mirror.configHasEgressPort() = true;
   mirror.egressPort() = 1;
   mirror.isResolved() = true;
-  mirrors->addMirror(std::make_shared<Mirror>(mirror));
-  stateV2->resetMirrors(mirrors);
+  auto mirrorObj = std::make_shared<Mirror>(mirror);
+  HwSwitchMatcher scope(std::unordered_set<SwitchID>({SwitchID(0)}));
+  mnpuMirrors->addNode(mirrorObj, scope);
   stateV2->publish();
 
   auto delta2 = StateDelta(stateV1, stateV2);

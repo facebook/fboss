@@ -91,6 +91,8 @@ class QsfpModule : public Transceiver {
   virtual void refresh() override;
   folly::Future<folly::Unit> futureRefresh() override;
 
+  void removeTransceiver() override;
+
   /*
    * Customize QSPF fields as necessary
    *
@@ -146,15 +148,15 @@ class QsfpModule : public Transceiver {
   ModuleStatus readAndClearCachedModuleStatus() override;
 
   /*
-   * Returns the number of host lanes. Should be overridden by the appropriate
-   * module's subclass
+   * Returns the total number of media lanes supported by the inserted
+   * transceiver
    */
-  virtual unsigned int numHostLanes() const = 0;
+  unsigned int numHostLanes() const;
   /*
-   * Returns the number of media lanes. Should be overridden by the appropriate
-   * module's subclass
+   * Returns the total number of media lanes supported by the inserted
+   * transceiver
    */
-  virtual unsigned int numMediaLanes() const = 0;
+  unsigned int numMediaLanes() const;
 
   virtual void configureModule(uint8_t /* startHostLane */) {}
 
@@ -489,7 +491,7 @@ class QsfpModule : public Transceiver {
    * configured for 100G-CWDM4 application, then getModuleMediaInterface will
    * return 200G-FR4
    */
-  virtual MediaInterfaceCode getModuleMediaInterface();
+  virtual MediaInterfaceCode getModuleMediaInterface() const = 0;
 
   /*
    * Returns true if getting the mediaInterfaceId is successful, false otherwise
@@ -564,6 +566,8 @@ class QsfpModule : public Transceiver {
 
   void refreshLocked();
   virtual void updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus);
+
+  void removeTransceiverLocked();
 
   TransceiverPresenceDetectionStatus detectPresenceLocked();
 

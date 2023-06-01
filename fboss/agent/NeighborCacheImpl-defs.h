@@ -17,8 +17,10 @@
 #include <list>
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/EncapIndexAllocator.h"
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/NeighborCacheImpl.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/NdpTable.h"
@@ -41,7 +43,7 @@ bool checkVlanAndIntf(
     const typename NeighborCacheEntry<NTable>::EntryFields& fields,
     VlanID vlanID) {
   // Make sure vlan exists
-  auto* vlan = state->getVlans()->getVlanIf(vlanID).get();
+  auto* vlan = state->getVlans()->getNodeIf(vlanID).get();
   if (!vlan) {
     // This VLAN no longer exists.  Just ignore the entry update.
     XLOG(DBG3) << "VLAN " << vlanID << " deleted before entry " << fields.ip
@@ -72,7 +74,7 @@ void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
       updateFn = getUpdateFnToProgramEntryForNpu(entry);
       break;
     case cfg::SwitchType::VOQ:
-      updateFn = getUpdateFnToProgramEntryForVoq(entry);
+      updateFn = getUpdateFnToProgramEntry(entry, cfg::SwitchType::VOQ);
       break;
     case cfg::SwitchType::FABRIC:
     case cfg::SwitchType::PHY:
@@ -100,14 +102,23 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForNpu(Entry* entry) {
       return nullptr;
     }
 
-    auto vlan = state->getVlans()->getVlanIf(vlanID).get();
+    auto vlan = state->getVlans()->getNodeIf(vlanID).get();
     std::shared_ptr<SwitchState> newState{state};
     auto* table = vlan->template getNeighborTable<NTable>().get();
     auto node = table->getNodeIf(fields.ip.str());
-    auto asic = sw_->getPlatform()->getAsic();
-    if (asic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
-      fields.encapIndex =
-          EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
+
+    auto port = fields.port;
+    // No support for encap index for agg ports. On NPU switches encap index
+    // is used only by mock asic for verification.
+    if (port.isPhysicalPort()) {
+      auto switchIds =
+          sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchIds();
+      CHECK_EQ(switchIds.size(), 1);
+      auto asic = sw_->getHwAsicTable()->getHwAsicIf(*switchIds.begin());
+      if (asic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
+        fields.encapIndex =
+            EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
+      }
     }
 
     if (!node) {
@@ -136,15 +147,19 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForNpu(Entry* entry) {
 }
 
 template <typename NTable>
-SwSwitch::StateUpdateFn
-NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForVoq(Entry* entry) {
+SwSwitch::StateUpdateFn NeighborCacheImpl<NTable>::getUpdateFnToProgramEntry(
+    Entry* entry,
+    cfg::SwitchType switchType) {
   CHECK(!entry->isPending());
 
   auto fields = entry->getFields();
   auto updateFn = [this,
                    fields](const std::shared_ptr<SwitchState>& state) mutable
       -> std::shared_ptr<SwitchState> {
-    auto asic = sw_->getPlatform()->getAsic();
+    auto switchIds =
+        sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchIds();
+    CHECK_EQ(switchIds.size(), 1);
+    auto asic = sw_->getHwAsicTable()->getHwAsicIf(*switchIds.begin());
     if (asic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
       fields.encapIndex =
           EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
@@ -159,7 +174,7 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForVoq(Entry* entry) {
     auto intfMap = newState->getInterfaces()->modify(&newState);
     // interfaceID is same as the systemPortID
     auto interfaceID = InterfaceID(systemPortID);
-    auto intf = intfMap->getInterface(interfaceID);
+    auto intf = intfMap->getNode(interfaceID);
     auto intfNew = intf->clone();
 
     auto nbrTable = intf->getTable<NTable>();
@@ -200,7 +215,8 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForVoq(Entry* entry) {
     }
 
     intfNew->setNdpTable(updatedNbrTable);
-    intfMap->updateNode(intfNew);
+    intfMap->updateNode(
+        intfNew, sw_->getScopeResolver()->scope(intfNew, newState));
 
     return newState;
   };
@@ -221,7 +237,8 @@ void NeighborCacheImpl<NTable>::programPendingEntry(
       updateFn = getUpdateFnToProgramPendingEntryForNpu(entry, port, force);
       break;
     case cfg::SwitchType::VOQ:
-      updateFn = getUpdateFnToProgramPendingEntryForVoq(entry, port, force);
+      updateFn = getUpdateFnToProgramPendingEntry(
+          entry, port, force, cfg::SwitchType::VOQ);
       break;
     case cfg::SwitchType::FABRIC:
     case cfg::SwitchType::PHY:
@@ -252,7 +269,7 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntryForNpu(
       return nullptr;
     }
 
-    auto vlan = state->getVlans()->getVlanIf(vlanID).get();
+    auto vlan = state->getVlans()->getNodeIf(vlanID).get();
     std::shared_ptr<SwitchState> newState{state};
     auto* table = vlan->template getNeighborTable<NTable>().get();
     auto node = table->getNodeIf(fields.ip.str());
@@ -278,10 +295,11 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntryForNpu(
 
 template <typename NTable>
 SwSwitch::StateUpdateFn
-NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntryForVoq(
+NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
     Entry* entry,
     PortDescriptor port,
-    bool force) {
+    bool force,
+    cfg::SwitchType switchType) {
   auto fields = entry->getFields();
   auto updateFn =
       [this, fields, port, force](const std::shared_ptr<SwitchState>& state)
@@ -300,7 +318,10 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntryForVoq(
     CHECK(systemPortRange.has_value());
     auto systemPortID = *systemPortRange->minimum() + port.phyPortID();
 
-    auto asic = sw_->getPlatform()->getAsic();
+    auto switchIds =
+        sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchIds();
+    CHECK_EQ(switchIds.size(), 1);
+    auto asic = sw_->getHwAsicTable()->getHwAsicIf(*switchIds.begin());
     auto encapIndex =
         EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
 
@@ -308,7 +329,7 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntryForVoq(
     auto intfMap = newState->getInterfaces()->modify(&newState);
     // interfaceID is same as the systemPortID
     auto interfaceID = InterfaceID(systemPortID);
-    auto intf = intfMap->getInterface(interfaceID);
+    auto intf = intfMap->getNode(interfaceID);
     auto intfNew = intf->clone();
 
     auto nbrTable = intf->getTable<NTable>();
@@ -345,7 +366,8 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntryForVoq(
 
     updatedNbrTable.insert({fields.ip.str(), nbrEntry});
     intfNew->setNdpTable(updatedNbrTable);
-    intfMap->updateNode(intfNew);
+    intfMap->updateNode(
+        intfNew, sw_->getScopeResolver()->scope(intfNew, newState));
 
     return newState;
   };
@@ -413,7 +435,7 @@ void NeighborCacheImpl<NTable>::updateEntryClassID(
 
     auto updateClassIDFn =
         [this, ip, classID](const std::shared_ptr<SwitchState>& state) {
-          auto vlan = state->getVlans()->getVlanIf(vlanID_).get();
+          auto vlan = state->getVlans()->getNodeIf(vlanID_).get();
           std::shared_ptr<SwitchState> newState{state};
           auto* table = vlan->template getNeighborTable<NTable>().get();
           auto node = table->getNodeIf(ip.str());
@@ -531,7 +553,7 @@ template <typename NTable>
 bool NeighborCacheImpl<NTable>::flushEntryFromSwitchState(
     std::shared_ptr<SwitchState>* state,
     AddressType ip) {
-  auto* vlan = (*state)->getVlans()->getVlan(vlanID_).get();
+  auto* vlan = (*state)->getVlans()->getNode(vlanID_).get();
   auto* table = vlan->template getNeighborTable<NTable>().get();
   const auto& entry = table->getNodeIf(ip.str());
   if (!entry) {

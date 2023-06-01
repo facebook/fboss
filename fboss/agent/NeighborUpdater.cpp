@@ -43,6 +43,8 @@ DEFINE_bool(
     false,
     "Disable neighbor updater in agent");
 
+DECLARE_bool(intf_nbr_tables);
+
 namespace facebook::fboss {
 
 using facebook::fboss::DeltaFunctions::forEachChanged;
@@ -80,9 +82,27 @@ void NeighborUpdater::waitForPendingUpdates() {
   folly::via(sw_->getNeighborCacheEvb(), [impl = this->impl_]() {}).get();
 }
 
-void NeighborUpdater::stateUpdated(const StateDelta& delta) {
-  CHECK(sw_->getUpdateEvb()->inRunningEventBaseThread());
-  for (const auto& entry : delta.getVlansDelta()) {
+void NeighborUpdater::processInterfaceUpdates(const StateDelta& stateDelta) {
+  for (const auto& delta : stateDelta.getIntfsDelta()) {
+    sendNeighborUpdatesForIntf(delta);
+    auto oldInterface = delta.getOld();
+    auto newInterface = delta.getNew();
+
+    if (!oldInterface && newInterface) {
+      interfaceAdded(newInterface->getID(), stateDelta.newState());
+    } else if (oldInterface && !newInterface) {
+      interfaceRemoved(oldInterface->getID());
+    } else {
+      // From the neighbor cache perspective, we only care about the
+      // interfaceID which cannot change for a given interface. Thus, no need
+      // to process change to interface
+      ;
+    }
+  }
+}
+
+void NeighborUpdater::processVlanUpdates(const StateDelta& stateDelta) {
+  for (const auto& entry : stateDelta.getVlansDelta()) {
     sendNeighborUpdates(entry);
     auto oldEntry = entry.getOld();
     auto newEntry = entry.getNew();
@@ -90,7 +110,7 @@ void NeighborUpdater::stateUpdated(const StateDelta& delta) {
     if (!newEntry) {
       vlanDeleted(oldEntry->getID());
     } else if (!oldEntry) {
-      vlanAdded(newEntry->getID(), delta.newState());
+      vlanAdded(newEntry->getID(), stateDelta.newState());
     } else {
       if (newEntry->getInterfaceID() != oldEntry->getInterfaceID() ||
           newEntry->getName() != oldEntry->getName()) {
@@ -99,6 +119,16 @@ void NeighborUpdater::stateUpdated(const StateDelta& delta) {
             newEntry->getID(), newEntry->getInterfaceID(), newEntry->getName());
       }
     }
+  }
+}
+
+void NeighborUpdater::stateUpdated(const StateDelta& delta) {
+  CHECK(sw_->getUpdateEvb()->inRunningEventBaseThread());
+
+  if (FLAGS_intf_nbr_tables) {
+    processInterfaceUpdates(delta);
+  } else {
+    processVlanUpdates(delta);
   }
 
   const auto& oldState = delta.oldState();
@@ -150,6 +180,16 @@ void collectPresenceChange(
 }
 
 void NeighborUpdater::sendNeighborUpdates(const VlanDelta& delta) {
+  std::vector<std::string> added;
+  std::vector<std::string> deleted;
+  collectPresenceChange(delta.getArpDelta(), &added, &deleted);
+  collectPresenceChange(delta.getNdpDelta(), &added, &deleted);
+  if (!(added.empty() && deleted.empty())) {
+    sw_->invokeNeighborListener(added, deleted);
+  }
+}
+
+void NeighborUpdater::sendNeighborUpdatesForIntf(const InterfaceDelta& delta) {
   std::vector<std::string> added;
   std::vector<std::string> deleted;
   collectPresenceChange(delta.getArpDelta(), &added, &deleted);

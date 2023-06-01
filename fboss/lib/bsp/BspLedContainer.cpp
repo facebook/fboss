@@ -9,7 +9,7 @@ namespace fboss {
 
 BspLedContainer::BspLedContainer(LedMapping& ledMapping)
     : ledMapping_(ledMapping) {
-  tcvrID_ = *ledMapping.id();
+  ledID_ = *ledMapping.id();
   ledIO_ = std::make_unique<LedIO>(ledMapping);
 }
 

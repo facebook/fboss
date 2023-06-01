@@ -73,6 +73,6 @@ class MacTable : public ThriftMapNode<MacTable, MacTableTraits> {
   friend class CloneAllocator;
 };
 
-using MacTableDelta = thrift_cow::ThriftMapDelta<MacTable>;
+using MacTableDelta = ThriftMapDelta<MacTable>;
 
 } // namespace facebook::fboss

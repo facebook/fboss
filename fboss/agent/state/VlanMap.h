@@ -41,16 +41,36 @@ class VlanMap : public ThriftMapNode<VlanMap, VlanMapTraits> {
   VlanMap();
   ~VlanMap() override;
 
-  VlanMap* modify(std::shared_ptr<SwitchState>* state);
+ private:
+  // Inherit the constructors required for clone()
+  using Base::Base;
+  friend class CloneAllocator;
+};
 
-  /*
-   * Get the specified Vlan.
-   *
-   * Throws an FbossError if the VLAN does not exist.
-   */
-  const std::shared_ptr<Vlan>& getVlan(VlanID id) const {
-    return getNode(static_cast<int16_t>(id));
-  }
+using MultiSwitchVlanMapTypeClass = apache::thrift::type_class::
+    map<apache::thrift::type_class::string, VlanMapTypeClass>;
+using MultiSwitchVlanMapThriftType = std::map<std::string, VlanMapThriftType>;
+
+class MultiSwitchVlanMap;
+
+using MultiSwitchVlanMapTraits = ThriftMultiSwitchMapNodeTraits<
+    MultiSwitchVlanMap,
+    MultiSwitchVlanMapTypeClass,
+    MultiSwitchVlanMapThriftType,
+    VlanMap>;
+
+class HwSwitchMatcher;
+
+class MultiSwitchVlanMap : public ThriftMultiSwitchMapNode<
+                               MultiSwitchVlanMap,
+                               MultiSwitchVlanMapTraits> {
+ public:
+  using Traits = MultiSwitchVlanMapTraits;
+  using BaseT =
+      ThriftMultiSwitchMapNode<MultiSwitchVlanMap, MultiSwitchVlanMapTraits>;
+  using BaseT::modify;
+
+  MultiSwitchVlanMap* modify(std::shared_ptr<SwitchState>* state);
 
   /*
    * Get the specified Vlan by name. Throw FbossError if Vlan
@@ -64,15 +84,6 @@ class VlanMap : public ThriftMapNode<VlanMap, VlanMapTraits> {
   const std::shared_ptr<Vlan>& getVlanSlow(const std::string& name) const;
 
   /*
-   * Get the specified Vlan.
-   *
-   * Returns null if the VLAN does not exist.
-   */
-  std::shared_ptr<Vlan> getVlanIf(VlanID id) const {
-    return getNodeIf(id);
-  }
-
-  /*
    * Get the specified Vlan by name. Returns null if Vlan
    * does not exist.
    * Note that this requires a linear traversal of all Vlans
@@ -83,46 +94,10 @@ class VlanMap : public ThriftMapNode<VlanMap, VlanMapTraits> {
    */
   std::shared_ptr<Vlan> getVlanSlowIf(const std::string& name) const;
 
-  /*
-   * The following functions modify the static state.
-   * These should only be called on unpublished objects which are only visible
-   * to a single thread.
-   */
-
-  void addVlan(const std::shared_ptr<Vlan>& vlan);
-
-  void updateVlan(const std::shared_ptr<Vlan>& vlan);
-
   VlanID getFirstVlanID() const;
 
- private:
-  // Inherit the constructors required for clone()
-  using Base::Base;
-  friend class CloneAllocator;
-};
-
-using MultiVlanMapTypeClass = apache::thrift::type_class::
-    map<apache::thrift::type_class::string, VlanMapTypeClass>;
-using MultiVlanMapThriftType = std::map<std::string, VlanMapThriftType>;
-
-class MultiVlanMap;
-
-using MultiVlanMapTraits = ThriftMultiMapNodeTraits<
-    MultiVlanMap,
-    MultiVlanMapTypeClass,
-    MultiVlanMapThriftType,
-    VlanMap>;
-
-class HwSwitchMatcher;
-
-class MultiVlanMap : public ThriftMapNode<MultiVlanMap, MultiVlanMapTraits> {
- public:
-  using Traits = MultiVlanMapTraits;
-  using BaseT = ThriftMapNode<MultiVlanMap, MultiVlanMapTraits>;
-  using BaseT::modify;
-
-  MultiVlanMap() {}
-  virtual ~MultiVlanMap() {}
+  MultiSwitchVlanMap() {}
+  virtual ~MultiSwitchVlanMap() {}
 
  private:
   // Inherit the constructors required for clone()

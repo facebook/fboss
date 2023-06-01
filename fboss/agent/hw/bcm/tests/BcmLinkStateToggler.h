@@ -24,8 +24,9 @@ class BcmLinkStateToggler : public HwLinkStateToggler {
  public:
   BcmLinkStateToggler(
       TestEnsembleIf* ensemble,
-      cfg::PortLoopbackMode desiredLoopbackMode)
-      : HwLinkStateToggler(ensemble, desiredLoopbackMode) {}
+      const std::map<cfg::PortType, cfg::PortLoopbackMode>&
+          desiredLoopbackModes)
+      : HwLinkStateToggler(ensemble, desiredLoopbackModes) {}
 
  private:
   BcmSwitch* getHw();

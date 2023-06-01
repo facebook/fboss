@@ -37,6 +37,10 @@ namespace {
 
 const AdminDistance kDefaultAdminDistance = AdminDistance::EBGP;
 
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(10)}};
+}
+
 } // namespace
 
 TEST(ForwardingInformationBaseUpdater, ModifyUnpublishedSwitchState) {
@@ -53,9 +57,9 @@ TEST(ForwardingInformationBaseUpdater, ModifyUnpublishedSwitchState) {
   fibContainer->ref<switch_state_tags::fibV4>() = v4Fib;
   fibContainer->ref<switch_state_tags::fibV6>() = v6Fib;
 
-  auto fibMap =
-      std::make_shared<facebook::fboss::ForwardingInformationBaseMap>();
-  fibMap->addNode(fibContainer);
+  auto fibMap = std::make_shared<
+      facebook::fboss::MultiSwitchForwardingInformationBaseMap>();
+  fibMap->addNode(fibContainer, scope());
 
   auto initialState = std::make_shared<facebook::fboss::SwitchState>();
   initialState->resetForwardingInformationBases(fibMap);
@@ -67,7 +71,11 @@ TEST(ForwardingInformationBaseUpdater, ModifyUnpublishedSwitchState) {
   facebook::fboss::IPv6NetworkToRouteMap v6NetworkToRouteMap;
   facebook::fboss::LabelToRouteMap labelToRouteMap;
   facebook::fboss::ForwardingInformationBaseUpdater updater(
-      vrfOne, v4NetworkToRouteMap, v6NetworkToRouteMap, labelToRouteMap);
+      nullptr,
+      vrfOne,
+      v4NetworkToRouteMap,
+      v6NetworkToRouteMap,
+      labelToRouteMap);
   auto updatedState = updater(initialState);
 
   // Lastly, we check that the invocations of modify() operated on the
@@ -79,26 +87,21 @@ TEST(ForwardingInformationBaseUpdater, ModifyUnpublishedSwitchState) {
   ASSERT_FALSE(updatedState->getFibs()->isPublished());
 
   ASSERT_EQ(
-      updatedState->getFibs()->getFibContainerIf(vrfOne),
-      initialState->getFibs()->getFibContainerIf(vrfOne));
+      updatedState->getFibs()->getNodeIf(vrfOne),
+      initialState->getFibs()->getNodeIf(vrfOne));
+  ASSERT_FALSE(updatedState->getFibs()->getNodeIf(vrfOne)->isPublished());
+
+  ASSERT_EQ(
+      updatedState->getFibs()->getNodeIf(vrfOne)->getFibV4(),
+      initialState->getFibs()->getNodeIf(vrfOne)->getFibV4());
   ASSERT_FALSE(
-      updatedState->getFibs()->getFibContainerIf(vrfOne)->isPublished());
+      updatedState->getFibs()->getNodeIf(vrfOne)->getFibV4()->isPublished());
 
   ASSERT_EQ(
-      updatedState->getFibs()->getFibContainerIf(vrfOne)->getFibV4(),
-      initialState->getFibs()->getFibContainerIf(vrfOne)->getFibV4());
-  ASSERT_FALSE(updatedState->getFibs()
-                   ->getFibContainerIf(vrfOne)
-                   ->getFibV4()
-                   ->isPublished());
-
-  ASSERT_EQ(
-      updatedState->getFibs()->getFibContainerIf(vrfOne)->getFibV6(),
-      initialState->getFibs()->getFibContainerIf(vrfOne)->getFibV6());
-  ASSERT_FALSE(updatedState->getFibs()
-                   ->getFibContainerIf(vrfOne)
-                   ->getFibV6()
-                   ->isPublished());
+      updatedState->getFibs()->getNodeIf(vrfOne)->getFibV6(),
+      initialState->getFibs()->getNodeIf(vrfOne)->getFibV6());
+  ASSERT_FALSE(
+      updatedState->getFibs()->getNodeIf(vrfOne)->getFibV6()->isPublished());
 }
 
 namespace {
@@ -109,7 +112,7 @@ std::shared_ptr<facebook::fboss::Route<AddressT>> getRoute(
     AddressT address,
     uint8_t mask) {
   const auto& fibs = state->getFibs();
-  const auto& fibContainer = fibs->getFibContainer(vrf);
+  const auto& fibContainer = fibs->getNode(vrf);
 
   const std::shared_ptr<facebook::fboss::ForwardingInformationBase<AddressT>>&
       fib = fibContainer->template getFib<AddressT>();
@@ -163,7 +166,7 @@ void EXPECT_FIB_SIZE(
     std::size_t v4FibSize,
     std::size_t v6FibSize) {
   const auto& fibs = state->getFibs();
-  const auto& fibContainer = fibs->getFibContainer(vrf);
+  const auto& fibContainer = fibs->getNode(vrf);
 
   EXPECT_EQ(fibContainer->getFibV4()->size(), v4FibSize);
   EXPECT_EQ(fibContainer->getFibV6()->size(), v6FibSize);
@@ -378,21 +381,17 @@ TEST(ForwardingInformationBaseUpdater, Deduplication) {
   // 1)
   programRoutes(sw, ClientID(0), routesToAdd, routesToDelete);
 
-  auto route = sw->getState()
-                   ->getFibs()
-                   ->getFibContainer(vrfZero)
-                   ->getFibV6()
-                   ->exactMatch(prefix);
+  auto route =
+      sw->getState()->getFibs()->getNode(vrfZero)->getFibV6()->exactMatch(
+          prefix);
   ASSERT_TRUE(route);
 
   // 3)
   programRoutes(sw, ClientID(0), routesToAdd, routesToDelete);
 
-  auto route2 = sw->getState()
-                    ->getFibs()
-                    ->getFibContainer(vrfZero)
-                    ->getFibV6()
-                    ->exactMatch(prefix);
+  auto route2 =
+      sw->getState()->getFibs()->getNode(vrfZero)->getFibV6()->exactMatch(
+          prefix);
   ASSERT_TRUE(route2);
   EXPECT_EQ(route, route2);
 
@@ -404,11 +403,9 @@ TEST(ForwardingInformationBaseUpdater, Deduplication) {
   // 2)
   programRoutes(sw, ClientID(0), routesToAdd, routesToDelete);
 
-  auto route3 = sw->getState()
-                    ->getFibs()
-                    ->getFibContainer(vrfZero)
-                    ->getFibV6()
-                    ->exactMatch(prefix);
+  auto route3 =
+      sw->getState()->getFibs()->getNode(vrfZero)->getFibV6()->exactMatch(
+          prefix);
   ASSERT_TRUE(route3);
   EXPECT_NE(route, route3);
 }

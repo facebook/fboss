@@ -327,31 +327,33 @@ void SaiSystemPortManager::updateStats(
   portStats_[portId]->updateStats(curPortStats, now);
 }
 std::shared_ptr<SystemPortMap> SaiSystemPortManager::constructSystemPorts(
-    const std::shared_ptr<PortMap>& ports,
+    const std::shared_ptr<MultiSwitchPortMap>& ports,
     int64_t switchId,
     std::optional<cfg::Range64> systemPortRange) {
   auto sysPortMap = std::make_shared<SystemPortMap>();
   CHECK(systemPortRange);
   const std::set<cfg::PortType> kCreateSysPortsFor = {
       cfg::PortType::INTERFACE_PORT, cfg::PortType::RECYCLE_PORT};
-  for (const auto& port : std::as_const(*ports)) {
-    if (kCreateSysPortsFor.find(port.second->getPortType()) ==
-        kCreateSysPortsFor.end()) {
-      continue;
+  for (const auto& portMap : std::as_const(*ports)) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      if (kCreateSysPortsFor.find(port.second->getPortType()) ==
+          kCreateSysPortsFor.end()) {
+        continue;
+      }
+      auto sysPort = std::make_shared<SystemPort>(
+          SystemPortID{*systemPortRange->minimum() + port.second->getID()});
+      sysPort->setSwitchId(SwitchID(switchId));
+      sysPort->setPortName(
+          folly::sformat("{}:{}", switchId, port.second->getName()));
+      auto platformPort = platform_->getPlatformPort(port.second->getID());
+      sysPort->setCoreIndex(*platformPort->getAttachedCoreId());
+      sysPort->setCorePortIndex(*platformPort->getCorePortIndex());
+      sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
+      sysPort->setNumVoqs(8);
+      sysPort->setEnabled(port.second->isEnabled());
+      sysPort->setQosPolicy(port.second->getQosPolicy());
+      sysPortMap->addSystemPort(std::move(sysPort));
     }
-    auto sysPort = std::make_shared<SystemPort>(
-        SystemPortID{*systemPortRange->minimum() + port.second->getID()});
-    sysPort->setSwitchId(SwitchID(switchId));
-    sysPort->setPortName(
-        folly::sformat("{}:{}", switchId, port.second->getName()));
-    auto platformPort = platform_->getPlatformPort(port.second->getID());
-    sysPort->setCoreIndex(*platformPort->getAttachedCoreId());
-    sysPort->setCorePortIndex(*platformPort->getCorePortIndex());
-    sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
-    sysPort->setNumVoqs(8);
-    sysPort->setEnabled(port.second->isEnabled());
-    sysPort->setQosPolicy(port.second->getQosPolicy());
-    sysPortMap->addSystemPort(std::move(sysPort));
   }
 
   return sysPortMap;

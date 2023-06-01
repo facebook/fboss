@@ -5,41 +5,35 @@
 #include "fboss/agent/state/NodeMap-defs.h"
 #include "fboss/agent/state/SwitchState.h"
 
-#include "fboss/agent/HwSwitchMatcher.h"
-
 namespace facebook::fboss {
 
-std::shared_ptr<Mirror> MirrorMap::getMirrorIf(const std::string& name) const {
-  return getNodeIf(name);
-}
-
-void MirrorMap::addMirror(const std::shared_ptr<Mirror>& mirror) {
-  return addNode(mirror);
-}
-
-MirrorMap* MirrorMap::modify(std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
+std::shared_ptr<MirrorMap> MirrorMap::fromThrift(
+    const std::map<std::string, state::MirrorFields>& mirrors) {
+  auto map = std::make_shared<MirrorMap>();
+  for (auto mirror : mirrors) {
+    auto node = std::make_shared<Mirror>();
+    node->fromThrift(mirror.second);
+    // TODO(pshaikh): make this private
+    node->markResolved();
+    map->insert(*mirror.second.name(), std::move(node));
   }
-
-  SwitchState::modify(state);
-  auto newMirrors = clone();
-  auto* ptr = newMirrors.get();
-  (*state)->resetMirrors(std::move(newMirrors));
-  return ptr;
+  return map;
 }
 
-void MultiMirrorMap::addNode(
-    std::shared_ptr<Mirror> mirror,
-    const HwSwitchMatcher& matcher) {
-  const auto& key = matcher.matcherString();
-  auto mitr = find(key);
-  if (mitr == end()) {
-    mitr = insert(key, std::make_shared<MirrorMap>()).first;
+MultiSwitchMirrorMap* MultiSwitchMirrorMap::modify(
+    std::shared_ptr<SwitchState>* state) {
+  return SwitchState::modify<switch_state_tags::mirrorMaps>(state);
+}
+
+std::shared_ptr<MultiSwitchMirrorMap> MultiSwitchMirrorMap::fromThrift(
+    const std::map<std::string, std::map<std::string, state::MirrorFields>>&
+        mnpuMirrors) {
+  auto mnpuMap = std::make_shared<MultiSwitchMirrorMap>();
+  for (const auto& matcherAndMirrors : mnpuMirrors) {
+    auto map = MirrorMap::fromThrift(matcherAndMirrors.second);
+    mnpuMap->insert(matcherAndMirrors.first, std::move(map));
   }
-  auto& mirrorMap = mitr->second;
-  mirrorMap->addMirror(std::move(mirror));
+  return mnpuMap;
 }
 
 template class ThriftMapNode<MirrorMap, MirrorMapTraits>;

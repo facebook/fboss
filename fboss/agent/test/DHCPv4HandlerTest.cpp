@@ -78,11 +78,22 @@ shared_ptr<SwitchState> testState() {
   auto respTable1 = make_shared<ArpResponseTable>();
   respTable1->setEntry(
       kVlanInterfaceIP, MockPlatform::getMockLocalMac(), InterfaceID(1));
-  vlans->getVlan(VlanID(1))->setArpResponseTable(respTable1);
-  vlans->getVlan(VlanID(1))->setDhcpV4Relay(kDhcpV4Relay);
+  vlans->getNode(VlanID(1))->setArpResponseTable(respTable1);
+  vlans->getNode(VlanID(1))->setDhcpV4Relay(kDhcpV4Relay);
   DhcpV4OverrideMap overrides;
   overrides[kClientMacOverride] = kDhcpOverride;
-  vlans->getVlan(VlanID(1))->setDhcpV4RelayOverrides(overrides);
+  vlans->getNode(VlanID(1))->setDhcpV4RelayOverrides(overrides);
+  addSwitchInfo(
+      state,
+      cfg::SwitchType::NPU,
+      0, /*SwitchId*/
+      cfg::AsicType::ASIC_TYPE_MOCK,
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
+      0, /* switchIndex*/
+      std::nullopt, /* sysPort min*/
+      std::nullopt, /*sysPort max()*/
+      MockPlatform::getMockLocalMac().toString());
   return state;
 }
 
@@ -91,8 +102,23 @@ shared_ptr<SwitchState> testStateNAT() {
   auto switchSettings = std::make_shared<SwitchSettings>();
   switchSettings->setDhcpV4RelaySrc(kDhcpV4RelaySrc);
   switchSettings->setDhcpV4ReplySrc(kDhcpV4ReplySrc);
-  state->resetSwitchSettings(switchSettings);
-  addSwitchInfo(state);
+  auto multiSwitchSwitchSettings = std::make_shared<MultiSwitchSettings>();
+  multiSwitchSwitchSettings->addNode(
+      HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(0)})
+          .matcherString(),
+      switchSettings);
+  state->resetSwitchSettings(multiSwitchSwitchSettings);
+  addSwitchInfo(
+      state,
+      cfg::SwitchType::NPU,
+      0, /*SwitchId*/
+      cfg::AsicType::ASIC_TYPE_MOCK,
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
+      0, /* switchIndex*/
+      std::nullopt, /* sysPort min*/
+      std::nullopt, /*sysPort max()*/
+      MockPlatform::getMockLocalMac().toString());
   return state;
 }
 

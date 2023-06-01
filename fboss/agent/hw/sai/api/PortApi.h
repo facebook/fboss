@@ -298,6 +298,16 @@ struct SaiPortTraits {
         EnumType,
         SAI_PORT_ATTR_FABRIC_ATTACHED_SWITCH_TYPE,
         sai_uint32_t>;
+    using FabricReachability = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_FABRIC_REACHABILITY,
+        sai_fabric_port_reachability_t>;
+
+    struct AttributeRxLaneSquelchEnable {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using RxLaneSquelchEnable =
+        SaiExtensionAttribute<bool, AttributeRxLaneSquelchEnable>;
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -314,7 +324,11 @@ struct SaiPortTraits {
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
       std::optional<Attributes::FabricIsolate>,
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      std::optional<Attributes::PortLoopbackMode>,
+#else
       std::optional<Attributes::InternalLoopbackMode>,
+#endif
       std::optional<Attributes::MediaType>,
       std::optional<Attributes::GlobalFlowControlMode>,
       std::optional<Attributes::PortVlanId>,
@@ -345,7 +359,8 @@ struct SaiPortTraits {
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       std::optional<Attributes::InterFrameGap>,
 #endif
-      std::optional<Attributes::LinkTrainingEnable>>;
+      std::optional<Attributes::LinkTrainingEnable>,
+      std::optional<Attributes::RxLaneSquelchEnable>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -453,6 +468,8 @@ SAI_ATTRIBUTE_NAME(Port, FabricAttached);
 SAI_ATTRIBUTE_NAME(Port, FabricAttachedPortIndex);
 SAI_ATTRIBUTE_NAME(Port, FabricAttachedSwitchId);
 SAI_ATTRIBUTE_NAME(Port, FabricAttachedSwitchType);
+SAI_ATTRIBUTE_NAME(Port, FabricReachability);
+SAI_ATTRIBUTE_NAME(Port, RxLaneSquelchEnable);
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};
@@ -554,16 +571,12 @@ struct SaiPortSerdesTraits {
 
       std::optional<Attributes::IDriver>,
       std::optional<Attributes::TxFirPre1>,
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       std::optional<Attributes::TxFirPre2>,
-#endif
       std::optional<Attributes::TxFirMain>,
       std::optional<Attributes::TxFirPost1>,
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       std::optional<Attributes::TxFirPost2>,
       std::optional<Attributes::TxFirPost3>,
       std::optional<Attributes::TxLutMode>,
-#endif
       std::optional<Attributes::RxCtleCode>,
       std::optional<Attributes::RxDspMode>,
       std::optional<Attributes::RxAfeTrim>,

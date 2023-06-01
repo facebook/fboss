@@ -36,7 +36,7 @@ void BcmMirrorTable::processChangedMirror(
 }
 
 BcmMirror* BcmMirrorTable::getMirror(const std::string& mirrorName) const {
-  auto mirror = getMirrorIf(mirrorName);
+  auto mirror = getNodeIf(mirrorName);
   if (!mirror) {
     throw FbossError("Mirror ", mirrorName, " does not exist");
   }
@@ -44,7 +44,7 @@ BcmMirror* BcmMirrorTable::getMirror(const std::string& mirrorName) const {
 }
 
 BcmMirror* FOLLY_NULLABLE
-BcmMirrorTable::getMirrorIf(const std::string& mirrorName) const {
+BcmMirrorTable::getNodeIf(const std::string& mirrorName) const {
   auto iter = mirrorEntryMap_.find(mirrorName);
   if (iter == mirrorEntryMap_.end()) {
     return nullptr;

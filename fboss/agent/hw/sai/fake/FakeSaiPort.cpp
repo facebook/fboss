@@ -32,8 +32,12 @@ sai_status_t create_port_fn(
   std::optional<bool> useExtendedFec;
   std::optional<sai_port_fec_mode_extended_t> extendedFecMode;
 #endif
-  std::optional<bool> fabricIsolate;
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  std::optional<sai_port_loopback_mode_t> loopbackMode;
+#endif
   std::optional<sai_port_internal_loopback_mode_t> internalLoopbackMode;
+  std::optional<bool> fabricIsolate;
   std::optional<sai_port_flow_control_mode_t> flowControlMode;
   std::optional<sai_port_media_type_t> mediaType;
   std::optional<sai_vlan_id_t> vlanId;
@@ -66,6 +70,7 @@ sai_status_t create_port_fn(
   std::optional<sai_uint32_t> interFrameGap;
 #endif
   std::optional<bool> linkTrainingEnable;
+  std::optional<bool> rxLaneSquelchEnable;
 
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
@@ -95,6 +100,12 @@ sai_status_t create_port_fn(
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
       case SAI_PORT_ATTR_FABRIC_ISOLATE:
         fabricIsolate = attr_list[i].value.booldata;
+        break;
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      case SAI_PORT_ATTR_LOOPBACK_MODE:
+        loopbackMode =
+            static_cast<sai_port_loopback_mode_t>(attr_list[i].value.u32);
         break;
 #endif
       case SAI_PORT_ATTR_INTERNAL_LOOPBACK_MODE:
@@ -210,6 +221,9 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_LINK_TRAINING_ENABLE:
         linkTrainingEnable = attr_list[i].value.booldata;
         break;
+      case SAI_PORT_ATTR_RX_LANE_SQUELCH_ENABLE:
+        rxLaneSquelchEnable = attr_list[i].value.booldata;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -233,11 +247,16 @@ sai_status_t create_port_fn(
     port.extendedFecMode = extendedFecMode.value();
   }
 #endif
-  if (fabricIsolate) {
-    port.fabricIsolate = fabricIsolate.value();
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  if (loopbackMode.has_value()) {
+    port.loopbackMode = loopbackMode.value();
   }
+#endif
   if (internalLoopbackMode.has_value()) {
     port.internalLoopbackMode = internalLoopbackMode.value();
+  }
+  if (fabricIsolate) {
+    port.fabricIsolate = fabricIsolate.value();
   }
   if (vlanId.has_value()) {
     port.vlanId = vlanId.value();
@@ -327,6 +346,9 @@ sai_status_t create_port_fn(
   if (linkTrainingEnable.has_value()) {
     port.linkTrainingEnable = linkTrainingEnable.value();
   }
+  if (rxLaneSquelchEnable.has_value()) {
+    port.rxLaneSquelchEnable = rxLaneSquelchEnable.value();
+  }
 
   return SAI_STATUS_SUCCESS;
 }
@@ -378,6 +400,12 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_FEC_MODE_EXTENDED:
       port.extendedFecMode =
           static_cast<sai_port_fec_mode_extended_t>(attr->value.u32);
+      break;
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    case SAI_PORT_ATTR_LOOPBACK_MODE:
+      port.loopbackMode =
+          static_cast<sai_port_loopback_mode_t>(attr->value.s32);
       break;
 #endif
     case SAI_PORT_ATTR_INTERNAL_LOOPBACK_MODE:
@@ -587,6 +615,9 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_LINK_TRAINING_ENABLE:
       port.linkTrainingEnable = attr->value.booldata;
       break;
+    case SAI_PORT_ATTR_RX_LANE_SQUELCH_ENABLE:
+      port.rxLaneSquelchEnable = attr->value.booldata;
+      break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
     case SAI_PORT_ATTR_FABRIC_ISOLATE:
       port.fabricIsolate = attr->value.booldata;
@@ -644,6 +675,11 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_FEC_MODE_EXTENDED:
         attr[i].value.u32 = static_cast<uint32_t>(port.extendedFecMode);
+        break;
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      case SAI_PORT_ATTR_LOOPBACK_MODE:
+        attr[i].value.s32 = static_cast<int32_t>(port.loopbackMode);
         break;
 #endif
       case SAI_PORT_ATTR_INTERNAL_LOOPBACK_MODE:
@@ -837,9 +873,11 @@ sai_status_t get_port_attribute_fn(
       case SAI_PORT_ATTR_LINK_TRAINING_ENABLE:
         attr->value.booldata = port.linkTrainingEnable;
         break;
+      case SAI_PORT_ATTR_RX_LANE_SQUELCH_ENABLE:
+        attr->value.booldata = port.rxLaneSquelchEnable;
+        break;
       case SAI_PORT_ATTR_FABRIC_REACHABILITY:
-        attr->value.reachability.switch_id = 0;
-        attr->value.reachability.reachable = false;
+        attr->value.reachability.reachable = true;
         break;
       case SAI_PORT_ATTR_FABRIC_ATTACHED_SWITCH_ID:
         attr->value.u32 = 0;

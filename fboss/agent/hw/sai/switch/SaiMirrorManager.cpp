@@ -22,7 +22,7 @@
 
 namespace facebook::fboss {
 
-SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorSpan(
+SaiMirrorHandle::SaiMirror SaiMirrorManager::addNodeSpan(
     PortSaiId monitorPort) {
   SaiLocalMirrorTraits::AdapterHostKey k{
       SAI_MIRROR_SESSION_TYPE_LOCAL, monitorPort};
@@ -31,7 +31,7 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorSpan(
   return store.setObject(k, attributes);
 }
 
-SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorErSpan(
+SaiMirrorHandle::SaiMirror SaiMirrorManager::addNodeErSpan(
     const std::shared_ptr<Mirror>& mirror,
     PortSaiId monitorPort) {
   auto mirrorTunnel = mirror->getMirrorTunnel().value();
@@ -60,7 +60,7 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorErSpan(
   return store.setObject(k, attributes);
 }
 
-SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorSflow(
+SaiMirrorHandle::SaiMirror SaiMirrorManager::addNodeSflow(
     const std::shared_ptr<Mirror>& mirror,
     PortSaiId monitorPort) {
   auto mirrorTunnel = mirror->getMirrorTunnel().value();
@@ -98,7 +98,7 @@ SaiMirrorHandle::~SaiMirrorHandle() {
       mirrorId, MirrorAction::STOP);
 }
 
-void SaiMirrorManager::addMirror(const std::shared_ptr<Mirror>& mirror) {
+void SaiMirrorManager::addNode(const std::shared_ptr<Mirror>& mirror) {
   if (!mirror->isResolved()) {
     return;
   }
@@ -121,13 +121,13 @@ void SaiMirrorManager::addMirror(const std::shared_ptr<Mirror>& mirror) {
     auto mirrorTunnel = mirror->getMirrorTunnel().value();
     if (mirrorTunnel.udpPorts.has_value()) {
       mirrorHandle->mirror =
-          addMirrorSflow(mirror, monitorPortHandle->port->adapterKey());
+          addNodeSflow(mirror, monitorPortHandle->port->adapterKey());
     } else {
       mirrorHandle->mirror =
-          addMirrorErSpan(mirror, monitorPortHandle->port->adapterKey());
+          addNodeErSpan(mirror, monitorPortHandle->port->adapterKey());
     }
   } else {
-    mirrorHandle->mirror = addMirrorSpan(monitorPortHandle->port->adapterKey());
+    mirrorHandle->mirror = addNodeSpan(monitorPortHandle->port->adapterKey());
   }
   mirrorHandles_.emplace(mirror->getID(), std::move(mirrorHandle));
   managerTable_->portManager().programMirrorOnAllPorts(
@@ -156,7 +156,7 @@ void SaiMirrorManager::changeMirror(
     const std::shared_ptr<Mirror>& oldMirror,
     const std::shared_ptr<Mirror>& newMirror) {
   removeMirror(oldMirror);
-  addMirror(newMirror);
+  addNode(newMirror);
 }
 
 SaiMirrorHandle* FOLLY_NULLABLE

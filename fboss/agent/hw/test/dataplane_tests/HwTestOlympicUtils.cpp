@@ -186,17 +186,29 @@ void addNetworkAIQueueConfig(
 void addVoqQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
+    const HwAsic* asic,
     bool addWredConfig) {
   std::vector<cfg::PortQueue> voqConfig;
-  for (auto queueId = kOlympicSilverQueueId; queueId <= kOlympicNCQueueId;
-       queueId++) {
+  std::vector<OlympicQueueType> kQueueTypes{
+      OlympicQueueType::SILVER,
+      OlympicQueueType::GOLD,
+      OlympicQueueType::ECN1,
+      OlympicQueueType::ICP,
+      OlympicQueueType::NC};
+  for (auto queueType : kQueueTypes) {
+    auto queueId = getOlympicQueueId(asic, queueType);
     cfg::PortQueue queue;
     *queue.id() = queueId;
     queue.streamType() = streamType;
     queue.name() = folly::to<std::string>("queue", queueId);
     *queue.scheduling() = cfg::QueueScheduling::INTERNAL;
 
-    if (queueId == kOlympicEcn1QueueId) {
+    if (asic->scalingFactorBasedDynamicThresholdSupported()) {
+      queue.scalingFactor() = cfg::MMUScalingFactor::ONE;
+    }
+    queue.reservedBytes() = 1500; // Set to possible MTU!
+
+    if (queueId == getOlympicQueueId(asic, OlympicQueueType::ECN1)) {
       queue.aqms() = {};
       queue.aqms()->push_back(kGetOlympicEcnConfig());
       if (addWredConfig) {
@@ -297,7 +309,7 @@ void addOlympicQueueConfig(
   }
   // For VoQ switches, add the default VoQ queue config as well!
   if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
-    addVoqQueueConfig(config, streamType, addWredConfig);
+    addVoqQueueConfig(config, streamType, asic, addWredConfig);
   }
 }
 

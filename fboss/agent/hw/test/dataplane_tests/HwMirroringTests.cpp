@@ -80,7 +80,7 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
     return utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode(),
+        getAsic()->desiredLoopbackModes(),
         true);
   }
 
@@ -150,26 +150,23 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
       bool truncate = false) {
     resolveNeigborAndProgramRoutes(*ecmpHelper_, 1);
     auto state = getProgrammedState()->clone();
-    auto mirrors = state->getMirrors()->clone();
+    auto mirrors = state->getMirrors()->modify(&state);
     auto mirror = mirrorName == kSpan ? getSpanMirror() : getErSpanMirror();
     mirror->setTruncate(truncate);
-    mirrors->addMirror(mirror);
-    state->resetMirrors(mirrors);
-
+    mirrors->addNode(mirror, scopeResolver().scope(mirror));
     applyNewState(state);
   }
 
   void mirrorPort(const std::string& mirrorName) {
-    auto ports = this->getProgrammedState()->getPorts()->clone();
-    auto port = ports->getPort(trafficPort_)->clone();
+    auto state = this->getProgrammedState()->clone();
+    auto ports = this->getProgrammedState()->getPorts()->modify(&state);
+    auto port = ports->getNodeIf(trafficPort_)->clone();
     port->setIngressMirror(mirrorName);
     if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::EGRESS_MIRRORING)) {
       port->setEgressMirror(mirrorName);
     }
-    ports->updateNode(port);
-    auto state = this->getProgrammedState()->clone();
-    state->resetPorts(ports);
+    ports->updateNode(port, scopeResolver().scope(port));
     this->applyNewState(state);
   }
 
@@ -223,13 +220,13 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
 
     auto state = this->getProgrammedState()->clone();
     auto acls = state->getAcls()->modify(&state);
-    acls->addNode(acl);
+    acls->addNode(acl, scopeResolver().scope(acl));
     this->applyNewState(state);
   }
 
   void verify(const std::string& mirrorName, int payloadSize = 500) {
     auto mirror =
-        this->getProgrammedState()->getMirrors()->getMirrorIf(mirrorName);
+        this->getProgrammedState()->getMirrors()->getNodeIf(mirrorName);
     ASSERT_NE(mirror, nullptr);
     EXPECT_EQ(mirror->isResolved(), true);
 

@@ -22,8 +22,17 @@ namespace facebook::fboss::utility {
 
 sai_port_flow_control_mode_t getSaiPortPauseMode(cfg::PortPause pause);
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+sai_port_loopback_mode_t getSaiPortLoopbackMode(
+    cfg::PortLoopbackMode loopbackMode);
+
+cfg::PortLoopbackMode getCfgPortLoopbackMode(sai_port_loopback_mode_t mode);
+#endif
 sai_port_internal_loopback_mode_t getSaiPortInternalLoopbackMode(
     cfg::PortLoopbackMode loopbackMode);
+
+cfg::PortLoopbackMode getCfgPortInternalLoopbackMode(
+    sai_port_internal_loopback_mode_t mode);
 
 sai_port_media_type_t getSaiPortMediaType(
     TransmitterTechnology transmitterTech,
@@ -35,9 +44,6 @@ sai_port_media_type_t getSaiPortMediaFromInterfaceType(
 sai_port_fec_mode_t getSaiPortFecMode(phy::FecMode fec);
 
 sai_port_ptp_mode_t getSaiPortPtpMode(bool enable);
-
-cfg::PortLoopbackMode getCfgPortInternalLoopbackMode(
-    sai_port_internal_loopback_mode_t mode);
 
 phy::FecMode getFecModeFromSaiFecMode(
     sai_port_fec_mode_t fec,

@@ -47,9 +47,6 @@ class UdfConfig : public ThriftStructNode<UdfConfig, cfg::UdfConfig> {
     return get<switch_config_tags::udfPacketMatcher>();
   }
 
-  static std::shared_ptr<UdfConfig> fromFollyDynamic(
-      const folly::dynamic& group);
-
  private:
   // Inherit the constructors required for clone()
   using BaseT::BaseT;

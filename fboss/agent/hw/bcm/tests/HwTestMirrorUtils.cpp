@@ -81,7 +81,7 @@ void verifyResolvedMirror(
   ASSERT_EQ(mirror->isResolved(), true);
   BcmSwitch* bcmSwitch = static_cast<BcmSwitch*>(hwSwitch);
   const auto* bcmMirrorTable = bcmSwitch->getBcmMirrorTable();
-  auto* bcmMirror = bcmMirrorTable->getMirrorIf(mirror->getID());
+  auto* bcmMirror = bcmMirrorTable->getNodeIf(mirror->getID());
   ASSERT_NE(bcmMirror, nullptr);
   ASSERT_TRUE(bcmMirror->isProgrammed());
 
@@ -150,7 +150,7 @@ void verifyUnResolvedMirror(
   ASSERT_EQ(mirror->isResolved(), false);
   BcmSwitch* bcmSwitch = static_cast<BcmSwitch*>(hwSwitch);
   const auto* bcmMirrorTable = bcmSwitch->getBcmMirrorTable();
-  auto* bcmMirror = bcmMirrorTable->getMirrorIf(mirror->getID());
+  auto* bcmMirror = bcmMirrorTable->getNodeIf(mirror->getID());
   ASSERT_NE(bcmMirror, nullptr);
   ASSERT_FALSE(bcmMirror->isProgrammed());
 }

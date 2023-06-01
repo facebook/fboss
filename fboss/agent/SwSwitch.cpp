@@ -28,7 +28,9 @@
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/LookupClassUpdater.h"
+#include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #if FOLLY_HAS_COROUTINES
 #include "fboss/agent/MKAServiceManager.h"
@@ -39,6 +41,7 @@
 #include "fboss/agent/MPLSHandler.h"
 #include "fboss/agent/MacTableManager.h"
 #include "fboss/agent/MirrorManager.h"
+#include "fboss/agent/MultiHwSwitchSyncer.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PacketLogger.h"
 #include "fboss/agent/PacketObserver.h"
@@ -53,7 +56,9 @@
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/StaticL2ForNeighborObserver.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/SwitchStatsObserver.h"
 #include "fboss/agent/TeFlowNexthopHandler.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/TxPacket.h"
@@ -75,6 +80,7 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/StateUpdateHelpers.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
@@ -151,6 +157,9 @@ DEFINE_int32(
     update_phy_info_interval_s,
     10,
     "Update phy info interval in seconds");
+
+DECLARE_bool(intf_nbr_tables);
+
 namespace {
 
 /**
@@ -194,23 +203,6 @@ facebook::fboss::PortStatus fillInPortStatus(
   return status;
 }
 
-const std::map<int64_t, SwitchInfo> getSwitchInfoFromConfig(
-    const SwitchConfig* config) {
-  return *config->switchSettings()->switchIdToSwitchInfo();
-}
-
-const std::map<int64_t, SwitchInfo> getSwitchInfoFromConfig() {
-  std::unique_ptr<AgentConfig> config;
-  try {
-    config = AgentConfig::fromDefaultFile();
-  } catch (const exception& e) {
-    // expected on devservers where no config file is available
-    return std::map<int64_t, SwitchInfo>();
-  }
-  auto swConfig = config->thrift.sw();
-  return getSwitchInfoFromConfig(&(swConfig.value()));
-}
-
 auto constexpr kHwUpdateFailures = "hw_update_failures";
 
 } // anonymous namespace
@@ -246,8 +238,12 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       aclNexthopHandler_(new AclNexthopHandler(this)),
       teFlowNextHopHandler_(new TeFlowNexthopHandler(this)),
       dsfSubscriber_(new DsfSubscriber(this)),
-      switchInfoTable_(this, getSwitchInfoFromConfig()),
-      hwAsicTable_(new HwAsicTable(this, getSwitchInfoFromConfig())) {
+      switchInfoTable_(getSwitchInfoFromConfig(platform_.get())),
+      hwAsicTable_(new HwAsicTable(getSwitchInfoFromConfig(platform_.get()))),
+      scopeResolver_(
+          new SwitchIdScopeResolver(getSwitchInfoFromConfig(platform_.get()))),
+      multiHwSwitchSyncer_(nullptr),
+      switchStatsObserver_(new SwitchStatsObserver(this)) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());
@@ -272,9 +268,12 @@ SwSwitch::SwSwitch(
     : SwSwitch(std::move(platform)) {
   platformMapping_ = std::move(platformMapping);
   if (config) {
-    switchInfoTable_ = SwitchInfoTable(this, getSwitchInfoFromConfig(config));
-    hwAsicTable_ =
-        std::make_unique<HwAsicTable>(this, getSwitchInfoFromConfig(config));
+    switchInfoTable_ =
+        SwitchInfoTable(getSwitchInfoFromConfig(config, platform_.get()));
+    hwAsicTable_ = std::make_unique<HwAsicTable>(
+        getSwitchInfoFromConfig(config, platform_.get()));
+    scopeResolver_ = std::make_unique<SwitchIdScopeResolver>(
+        getSwitchInfoFromConfig(config, platform_.get()));
   }
 }
 
@@ -287,7 +286,23 @@ SwSwitch::~SwSwitch() {
   }
 }
 
+bool SwSwitch::fsdbStatPublishReady() const {
+  return fsdbSyncer_.withRLock(
+      [](const auto& syncer) { return syncer->isReadyForStatPublishing(); });
+}
+
+bool SwSwitch::fsdbStatePublishReady() const {
+  return fsdbSyncer_.withRLock(
+      [](const auto& syncer) { return syncer->isReadyForStatePublishing(); });
+}
+
 void SwSwitch::stop(bool revertToMinAlpmState) {
+  // Clean up connections to FSDB before stopping
+  // packet flow.
+  runFsdbSyncFunction([](auto& syncer) {
+    syncer->stop();
+    syncer.reset();
+  });
   setSwitchRunState(SwitchRunState::EXITING);
 
   XLOG(DBG2) << "Stopping SwSwitch...";
@@ -357,9 +372,6 @@ void SwSwitch::stop(bool revertToMinAlpmState) {
 #endif
   phySnapshotManager_.reset();
 
-  if (fsdbSyncer_) {
-    fsdbSyncer_->stop();
-  }
   // stops the background and update threads.
   stopThreads();
 
@@ -369,7 +381,6 @@ void SwSwitch::stop(bool revertToMinAlpmState) {
   pcapMgr_.reset();
   pktObservers_.reset();
 
-  fsdbSyncer_.reset();
   // reset tunnel manager only after pkt thread is stopped
   // as there could be state updates in progress which will
   // access entries in tunnel manager
@@ -453,8 +464,6 @@ std::tuple<folly::dynamic, state::WarmbootState> SwSwitch::gracefulExitState()
     // For RIB we employ a optmization to serialize only unresolved routes
     // and recover others from FIB
     thriftSwitchState.routeTables() = rib_->warmBootState();
-    // TODO(pshaikh): delete rib's folly dynamic
-    follySwitchState[kRib] = rib_->unresolvedRoutesFollyDynamic();
   }
   *thriftSwitchState.swSwitchState() = getAppliedState()->toThrift();
   return std::make_tuple(follySwitchState, thriftSwitchState);
@@ -510,6 +519,21 @@ void SwSwitch::updateLldpStats() {
   stats()->LldpNeighborsSize(lldpManager_->getDB()->pruneExpiredNeighbors());
 }
 
+void SwSwitch::publishStatsToFsdb() {
+  AgentStats agentStats;
+  agentStats.hwPortStats() = getHw()->getPortStats();
+  agentStats.sysPortStats() = getHw()->getSysPortStats();
+
+  agentStats.hwAsicErrors() = getHw()->getSwitchStats()->getHwAsicErrors();
+  agentStats.teFlowStats() = getTeFlowStats();
+  stats()->fillAgentStats(agentStats);
+  agentStats.bufferPoolStats() = getBufferPoolStats();
+
+  runFsdbSyncFunction([&agentStats](auto& syncer) {
+    syncer->statsUpdated(std::move(agentStats));
+  });
+}
+
 void SwSwitch::updateStats() {
   SCOPE_EXIT {
     if (FLAGS_publish_stats_to_fsdb) {
@@ -518,16 +542,7 @@ void SwSwitch::updateStats() {
           std::chrono::duration_cast<std::chrono::seconds>(
               now - *publishedStatsToFsdbAt_)
                   .count() > FLAGS_fsdbStatsStreamIntervalSeconds) {
-        AgentStats agentStats;
-        agentStats.hwPortStats() = getHw()->getPortStats();
-        agentStats.sysPortStats() = getHw()->getSysPortStats();
-
-        agentStats.hwAsicErrors() =
-            getHw()->getSwitchStats()->getHwAsicErrors();
-        agentStats.teFlowStats() = getTeFlowStats();
-        stats()->fillAgentStats(agentStats);
-        agentStats.bufferPoolStats() = getBufferPoolStats();
-        fsdbSyncer_->statsUpdated(std::move(agentStats));
+        publishStatsToFsdb();
         publishedStatsToFsdbAt_ = now;
       }
     }
@@ -560,19 +575,21 @@ TeFlowStats SwSwitch::getTeFlowStats() {
   TeFlowStats teFlowStats;
   std::map<std::string, HwTeFlowStats> hwTeFlowStats;
   auto statMap = facebook::fb303::fbData->getStatMap();
-  for (const auto& [flowStr, flowEntry] :
+  for (const auto& [_, teFlowTable] :
        std::as_const(*getState()->getTeFlowTable())) {
-    std::ignore = flowStr;
-    if (const auto& counter = flowEntry->getCounterID()) {
-      auto statName = folly::to<std::string>(counter->toThrift(), ".bytes");
-      // returns default stat if statName does not exists
-      auto statPtr = statMap->getStatPtrNoExport(statName);
-      auto lockedStatPtr = statPtr->lock();
-      auto numLevels = lockedStatPtr->numLevels();
-      // Cumulative (ALLTIME) counters are at (numLevels - 1)
-      HwTeFlowStats flowStat;
-      flowStat.bytes() = lockedStatPtr->sum(numLevels - 1);
-      hwTeFlowStats.emplace(counter->toThrift(), std::move(flowStat));
+    for (const auto& [flowStr, flowEntry] : std::as_const(*teFlowTable)) {
+      std::ignore = flowStr;
+      if (const auto& counter = flowEntry->getCounterID()) {
+        auto statName = folly::to<std::string>(counter->toThrift(), ".bytes");
+        // returns default stat if statName does not exists
+        auto statPtr = statMap->getStatPtrNoExport(statName);
+        auto lockedStatPtr = statPtr->lock();
+        auto numLevels = lockedStatPtr->numLevels();
+        // Cumulative (ALLTIME) counters are at (numLevels - 1)
+        HwTeFlowStats flowStat;
+        flowStat.bytes() = lockedStatPtr->sum(numLevels - 1);
+        hwTeFlowStats.emplace(counter->toThrift(), std::move(flowStat));
+      }
     }
   }
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
@@ -656,6 +673,8 @@ void SwSwitch::init(
       false /*failHwCallsOnWarmboot*/,
       platform_->getAsic()->getSwitchType(),
       platform_->getAsic()->getSwitchId());
+  multiHwSwitchSyncer_ = std::make_unique<MultiHwSwitchSyncer>(
+      hw_, switchInfoTable_.getSwitchIdToSwitchInfo());
   auto initialState = hwInitRet.switchState;
   bootType_ = hwInitRet.bootType;
   rib_ = std::move(hwInitRet.rib);
@@ -696,6 +715,7 @@ void SwSwitch::init(
         StateDelta(std::make_shared<SwitchState>(), initialState));
   });
 
+  multiHwSwitchSyncer_->start();
   startThreads();
   XLOG(DBG2)
       << "Time to init switch and start all threads "
@@ -775,7 +795,14 @@ void SwSwitch::init(
   heartbeatWatchdog_->start();
 
   setSwitchRunState(SwitchRunState::INITIALIZED);
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::ROUTE_PROGRAMMING)) {
+  const auto& switchInfo =
+      switchInfoTable_.getSwitchIdToSwitchInfo().begin()->second;
+  auto npuOrVoq =
+      (*switchInfo.switchType() == cfg::SwitchType::VOQ ||
+       *switchInfo.switchType() == cfg::SwitchType::NPU);
+  if (npuOrVoq &&
+      getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::ROUTE_PROGRAMMING)) {
     SwSwitchRouteUpdateWrapper(this, rib_.get()).programMinAlpmState();
   }
   if (FLAGS_log_all_fib_updates) {
@@ -829,9 +856,11 @@ void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
     mkaServiceManager_ = std::make_unique<MKAServiceManager>(this);
   }
 #endif
-  // Start FSDB state syncer post initial config applied. FSDB state
-  // syncer will do a full sync upon connection establishment to FSDB
-  fsdbSyncer_ = std::make_unique<FsdbSyncer>(this);
+  fsdbSyncer_.withWLock([this](auto& syncer) {
+    // Start FSDB state syncer post initial config applied. FSDB state
+    // syncer will do a full sync upon connection establishment to FSDB
+    syncer = std::make_unique<FsdbSyncer>(this);
+  });
 }
 
 void SwSwitch::logRouteUpdates(
@@ -899,6 +928,16 @@ void SwSwitch::notifyStateObservers(const StateDelta& delta) {
                   << " of update: " << folly::exceptionStr(ex);
     }
   }
+  runFsdbSyncFunction([&delta](auto& syncer) { syncer->stateUpdated(delta); });
+}
+
+template <typename FsdbFunc>
+void SwSwitch::runFsdbSyncFunction(FsdbFunc&& fn) {
+  fsdbSyncer_.withWLock([&](auto& syncer) {
+    if (syncer) {
+      fn(syncer);
+    }
+  });
 }
 
 bool SwSwitch::updateState(unique_ptr<StateUpdate> update) {
@@ -1114,7 +1153,9 @@ void SwSwitch::handlePendingUpdates() {
 void SwSwitch::updatePtpTcCounter() {
   // update fb303 counter to reflect current state of PTP
   // should be invoked post update
-  auto switchSettings = getState()->getSwitchSettings();
+  auto switchSettings = util::getFirstNodeIf(getState()->getSwitchSettings())
+      ? util::getFirstNodeIf(getState()->getSwitchSettings())
+      : std::make_shared<SwitchSettings>();
   fb303::fbData->setCounter(
       SwitchStats::kCounterPrefix + "ptp_tc_enabled",
       switchSettings->isPtpTcEnable() ? 1 : 0);
@@ -1222,7 +1263,7 @@ PortStats* SwSwitch::portStats(PortID portID) {
   if (portStats) {
     return portStats;
   }
-  auto portIf = getState()->getPorts()->getPortIf(portID);
+  auto portIf = getState()->getPorts()->getNodeIf(portID);
   if (portIf) {
     // get portName from current state
     return stats()->createPortStats(
@@ -1243,7 +1284,7 @@ InterfaceStats* SwSwitch::interfaceStats(InterfaceID intfID) {
   if (intfStats) {
     return intfStats;
   }
-  auto interfaceIf = getState()->getInterfaces()->getInterfaceIf(intfID);
+  auto interfaceIf = getState()->getInterfaces()->getNodeIf(intfID);
   if (!interfaceIf) {
     XLOG(DBG0) << "Interface node doesn't exist, use default name=intf"
                << intfID;
@@ -1255,9 +1296,11 @@ InterfaceStats* SwSwitch::interfaceStats(InterfaceID intfID) {
 
 map<int32_t, PortStatus> SwSwitch::getPortStatus() {
   map<int32_t, PortStatus> statusMap;
-  std::shared_ptr<PortMap> portMap = getState()->getPorts();
-  for (const auto& p : std::as_const(*portMap)) {
-    statusMap[p.second->getID()] = fillInPortStatus(*p.second, this);
+  std::shared_ptr<MultiSwitchPortMap> portMaps = getState()->getPorts();
+  for (const auto& portMap : std::as_const(*portMaps)) {
+    for (const auto& p : std::as_const(*portMap.second)) {
+      statusMap[p.second->getID()] = fillInPortStatus(*p.second, this);
+    }
   }
   return statusMap;
 }
@@ -1451,7 +1494,7 @@ void SwSwitch::linkStateChanged(
   // Schedule an update for port's operational status
   auto updateOperStateFn = [=](const std::shared_ptr<SwitchState>& state) {
     std::shared_ptr<SwitchState> newState(state);
-    auto* port = newState->getPorts()->getPortIf(portId).get();
+    auto* port = newState->getPorts()->getNodeIf(portId).get();
 
     if (port) {
       if (port->isUp() != up) {
@@ -1615,7 +1658,7 @@ void SwSwitch::sendPacketOutOfPortAsync(
     PortID portID,
     std::optional<uint8_t> queue) noexcept {
   auto state = getState();
-  if (!state->getPorts()->getPortIf(portID)) {
+  if (!state->getPorts()->getNodeIf(portID)) {
     XLOG(ERR) << "SendPacketOutOfPortAsync: dropping packet to unexpected port "
               << portID;
     stats()->pktDropped();
@@ -1648,7 +1691,7 @@ void SwSwitch::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> pkt,
     AggregatePortID aggPortID,
     std::optional<uint8_t> queue) noexcept {
-  auto aggPort = getState()->getAggregatePorts()->getAggregatePortIf(aggPortID);
+  auto aggPort = getState()->getAggregatePorts()->getNodeIf(aggPortID);
   if (!aggPort) {
     XLOG(ERR) << "failed to send packet out aggregate port " << aggPortID
               << ": no aggregate port corresponding to identifier";
@@ -1697,6 +1740,28 @@ void SwSwitch::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept {
   }
 }
 
+std::optional<folly::MacAddress> SwSwitch::getSourceMac(
+    const std::shared_ptr<Interface>& intf) const {
+  try {
+    auto switchIds = getScopeResolver()->scope(intf, getState()).switchIds();
+    if (switchIds.empty()) {
+      throw FbossError("No switchId scope found for intf: ", intf->getID());
+    }
+    auto switchId = *switchIds.begin();
+    // We always use our CPU's mac-address as source mac-address
+    return getHwAsicTable()->getHwAsic(switchId)->getAsicMac();
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to get Mac for intf :" << intf->getID() << " "
+              << folly::exceptionStr(ex);
+    auto swIds = getHwAsicTable()->getSwitchIDs();
+    if (swIds.size()) {
+      XLOG(DBG2) << " Falling back to first switchID mac";
+      return getHwAsicTable()->getHwAsic(*swIds.begin())->getAsicMac();
+    }
+  }
+  return std::nullopt;
+}
+
 void SwSwitch::sendL3Packet(
     std::unique_ptr<TxPacket> pkt,
     InterfaceID ifID) noexcept {
@@ -1727,7 +1792,7 @@ void SwSwitch::sendL3Packet(
 
   auto state = getState();
 
-  auto intf = state->getInterfaces()->getInterfaceIf(ifID);
+  auto intf = state->getInterfaces()->getNodeIf(ifID);
   if (!intf) {
     XLOG(ERR) << "Interface " << ifID << " doesn't exists in state.";
     stats()->pktDropped();
@@ -1768,8 +1833,12 @@ void SwSwitch::sendL3Packet(
       buf->append(tailRoom);
     }
 
-    // We always use our CPU's mac-address as source mac-address
-    const folly::MacAddress srcMac = getPlatform()->getLocalMac();
+    auto srcMacOpt = getSourceMac(intf);
+    if (!srcMacOpt.has_value()) {
+      XLOG(WARNING) << " Failed to get source mac for intf: " << intf->getID();
+      return;
+    }
+    auto srcMac = *srcMacOpt;
 
     // Derive destination mac address
     folly::MacAddress dstMac{};
@@ -1786,7 +1855,6 @@ void SwSwitch::sendL3Packet(
       // Resolve neighbor mac address for given destination address. If address
       // doesn't exists in NDP table then request neighbor solicitation for it.
       CHECK(dstAddr.isLinkLocal());
-      auto vlan = state->getVlans()->getVlan(getVlanIDHelper(vlanID));
       if (dstAddr.isV4()) {
         // We do not consult ARP table to forward v4 link local addresses.
         // Reason explained below.
@@ -1800,7 +1868,7 @@ void SwSwitch::sendL3Packet(
       } else {
         const auto dstAddrV6 = dstAddr.asV6();
         try {
-          auto entry = getNeighborEntryForIP(state, intf, dstAddrV6);
+          auto entry = getNeighborEntryForIP<NdpEntry>(state, intf, dstAddrV6);
           if (entry) {
             dstMac = entry->getMac();
           } else {
@@ -1890,7 +1958,8 @@ void SwSwitch::applyConfig(
         auto qsfpCache = getPlatform()->getQsfpCache();
         if (qsfpCache) {
           const auto& currentTcvrs = qsfpCache->getAllTransceivers();
-          auto tempState = SwitchState::modifyTransceivers(state, currentTcvrs);
+          auto tempState = modifyTransceivers(
+              state, currentTcvrs, getPlatformMapping(), getScopeResolver());
           if (tempState) {
             originalState = tempState;
           }
@@ -1902,12 +1971,16 @@ void SwSwitch::applyConfig(
                                    originalState,
                                    &newConfig,
                                    getPlatform(),
+                                   platformMapping_.get(),
+                                   hwAsicTable_.get(),
                                    &routeUpdater,
                                    aclNexthopHandler_.get())
                              : applyThriftConfig(
                                    originalState,
                                    &newConfig,
                                    getPlatform(),
+                                   platformMapping_.get(),
+                                   hwAsicTable_.get(),
                                    (RoutingInformationBase*)nullptr,
                                    aclNexthopHandler_.get());
 
@@ -1952,10 +2025,9 @@ void SwSwitch::applyConfig(
    */
 
   routeUpdater.program();
-  if (fsdbSyncer_) {
-    // TODO - figure out a way to send full agent config
-    fsdbSyncer_->cfgUpdated(oldConfig, newConfig);
-  }
+  runFsdbSyncFunction([&oldConfig, &newConfig](auto& syncer) {
+    syncer->cfgUpdated(oldConfig, newConfig);
+  });
 }
 
 void SwSwitch::updateConfigAppliedInfo() {
@@ -2008,6 +2080,20 @@ bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
       },
       [&](const shared_ptr<Port>& /* delport */) {});
 
+  // Ensure only one sflow mirror session is configured
+  int sflowMirrorCount = 0;
+  for (auto mniter : std::as_const(*(delta.newState()->getMirrors()))) {
+    for (auto iter : std::as_const(*mniter.second)) {
+      auto mirror = iter.second;
+      if (mirror->type() == Mirror::Type::SFLOW) {
+        sflowMirrorCount++;
+      }
+    }
+  }
+  if (sflowMirrorCount > 1) {
+    XLOG(ERR) << "More than one sflow mirrors configured";
+    isValid = false;
+  }
   return isValid && hw_->isValidStateUpdate(delta);
 }
 
@@ -2093,23 +2179,20 @@ bool SwSwitch::sendArpRequestHelper(
     folly::IPAddressV4 source,
     folly::IPAddressV4 target) {
   bool sent = false;
-  auto vlanID = intf->getVlanID();
-  auto vlan = state->getVlans()->getVlanIf(vlanID);
-  if (vlan) {
-    auto entry = vlan->getArpTable()->getEntryIf(target);
-    if (entry == nullptr) {
-      // No entry in ARP table, send ARP request
-      auto mac = intf->getMac();
-      ArpHandler::sendArpRequest(this, vlanID, mac, source, target);
+  auto entry = getNeighborEntryForIP<ArpEntry>(state, intf, target);
+  if (entry == nullptr) {
+    // No entry in ARP table, send ARP request
+    ArpHandler::sendArpRequest(
+        this, intf->getVlanIDIf(), intf->getMac(), source, target);
 
-      // Notify the updater that we sent an arp request
-      getNeighborUpdater()->sentArpRequest(vlanID, target);
-      sent = true;
-    } else {
-      XLOG(DBG4) << "not sending arp for " << target.str() << ", "
-                 << ((entry->isPending()) ? "pending " : "")
-                 << "entry already exists";
-    }
+    // Notify the updater that we sent an arp request
+    getNeighborUpdater()->sentArpRequest(
+        getVlanIDHelper(intf->getVlanIDIf()), target);
+    sent = true;
+  } else {
+    XLOG(DBG5) << "not sending arp for " << target.str() << ", "
+               << ((entry->isPending()) ? "pending " : "")
+               << "entry already exists";
   }
 
   return sent;
@@ -2120,7 +2203,7 @@ bool SwSwitch::sendNdpSolicitationHelper(
     std::shared_ptr<SwitchState> state,
     const folly::IPAddressV6& target) {
   bool sent = false;
-  auto entry = getNeighborEntryForIP(state, intf, target);
+  auto entry = getNeighborEntryForIP<NdpEntry>(state, intf, target);
   if (entry == nullptr) {
     // No entry in NDP table, create a neighbor solicitation packet
     IPv6Handler::sendMulticastNeighborSolicitation(
@@ -2173,7 +2256,7 @@ std::optional<VlanID> SwSwitch::getVlanIDForPkt(VlanID vlanID) const {
 InterfaceID SwSwitch::getInterfaceIDForAggregatePort(
     AggregatePortID aggregatePortID) const {
   auto aggregatePort =
-      getState()->getAggregatePorts()->getAggregatePortIf(aggregatePortID);
+      getState()->getAggregatePorts()->getNodeIf(aggregatePortID);
   CHECK(aggregatePort);
   // On VOQ/Fabric switches, port and interface have 1:1 relation.
   // For non VOQ/Fabric switches, in practice, a port is always part of a
@@ -2185,20 +2268,7 @@ InterfaceID SwSwitch::getInterfaceIDForAggregatePort(
 std::shared_ptr<SwitchState> SwSwitch::stateChanged(
     const StateDelta& delta,
     bool transaction) const {
-  if (!FLAGS_enable_state_oper_delta) {
-    return transaction ? hw_->stateChangedTransaction(delta)
-                       : hw_->stateChanged(delta);
-  }
-  auto inDelta = delta.getOperDelta();
-  auto outDelta = stateChanged(inDelta, transaction);
-  if (outDelta.changes()->empty()) {
-    return delta.newState();
-  }
-  if (inDelta == outDelta) {
-    return delta.oldState();
-  }
-  // obtain the state that actually got programmed
-  return StateDelta(delta.newState(), outDelta).newState();
+  return multiHwSwitchSyncer_->stateChanged(delta, transaction);
 }
 
 fsdb::OperDelta SwSwitch::stateChanged(
@@ -2207,4 +2277,75 @@ fsdb::OperDelta SwSwitch::stateChanged(
   return transaction ? hw_->stateChangedTransaction(delta)
                      : hw_->stateChanged(delta);
 }
+
+std::shared_ptr<SwitchState> SwSwitch::modifyTransceivers(
+    const std::shared_ptr<SwitchState>& state,
+    const std::unordered_map<TransceiverID, TransceiverInfo>& currentTcvrs,
+    const PlatformMapping* platformMapping,
+    const SwitchIdScopeResolver* scopeResolver) {
+  auto origTcvrs = state->getTransceivers();
+  TransceiverMap::NodeContainer newTcvrs;
+  bool changed = false;
+  for (const auto& tcvrInfo : currentTcvrs) {
+    auto origTcvr = origTcvrs->getNodeIf(tcvrInfo.first);
+    auto newTcvr = TransceiverSpec::createPresentTransceiver(tcvrInfo.second);
+    if (!newTcvr) {
+      // If the transceiver used to be present but now was removed
+      changed |= (origTcvr != nullptr);
+      continue;
+    } else {
+      if (origTcvr && *origTcvr == *newTcvr) {
+        newTcvrs.emplace(origTcvr->getID(), origTcvr);
+      } else {
+        changed = true;
+        newTcvrs.emplace(newTcvr->getID(), newTcvr);
+      }
+    }
+  }
+
+  if (changed) {
+    XLOG(DBG2) << "New TransceiverMap has " << newTcvrs.size()
+               << " present transceivers, original map has "
+               << origTcvrs->size();
+    auto newState = state->clone();
+    std::unordered_map<PortID, TransceiverID> portIdToTransceiverID;
+    const auto& platformPorts = platformMapping->getPlatformPorts();
+    for (const auto& [portId, platformPort] : platformPorts) {
+      auto transceiverId =
+          utility::getTransceiverId(platformPort, platformMapping->getChips());
+      if (transceiverId) {
+        portIdToTransceiverID.emplace(PortID(portId), *transceiverId);
+      }
+    }
+    auto getPortIdsForTransceiver = [&portIdToTransceiverID](
+                                        const TransceiverID& id) {
+      std::vector<PortID> portIds;
+      for (const auto& [portId, transceiverId] : portIdToTransceiverID) {
+        if (id == transceiverId) {
+          portIds.emplace_back(portId);
+        }
+      }
+      CHECK_NE(portIds.size(), 0) << "No portId found for transceiver " << id;
+      return portIds;
+    };
+    auto transceiverMap = std::make_shared<TransceiverMap>(std::move(newTcvrs));
+    auto multiSwitchTransceiverMap =
+        std::make_shared<MultiSwitchTransceiverMap>();
+    for (const auto& entry : std::as_const(*transceiverMap)) {
+      multiSwitchTransceiverMap->addNode(
+          entry.second,
+          scopeResolver->scope(
+              getPortIdsForTransceiver(TransceiverID(entry.first))));
+    }
+    newState->resetTransceivers(multiSwitchTransceiverMap);
+    return newState;
+  } else {
+    XLOG(DBG2)
+        << "Current transceivers from QsfpCache has the same transceiver size:"
+        << origTcvrs->size()
+        << ", no need to reset TransceiverMap in current SwitchState";
+    return nullptr;
+  }
+}
+
 } // namespace facebook::fboss

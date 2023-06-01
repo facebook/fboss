@@ -290,18 +290,22 @@ TurboFSWRouteScaleGenerator::TurboFSWRouteScaleGenerator(
       // 11 /26 for interpod + 3750 VIP routes
       v4PrefixLabelDistributionSpec_(
           {{26, {11, 1, 500}}, {32, {3761, 376, 600}}}) {
-  boost::container::flat_set<PortDescriptor> allPorts;
-  for (auto port : std::as_const(*startingState->getPorts())) {
-    if (!port.second->isEnabled()) {
-      continue;
+  std::set<PortDescriptor> allPorts;
+  for (auto portMap : std::as_const(*startingState->getPorts())) {
+    for (auto port : std::as_const(*portMap.second)) {
+      if (!port.second->isEnabled()) {
+        continue;
+      }
+      allPorts.insert(PortDescriptor(port.second->getID()));
     }
-    allPorts.insert(PortDescriptor(port.second->getID()));
   }
   CHECK_GE(allPorts.size(), ecmpWidth);
 
   size_t unlabeledPortsSize = ecmpWidth - 32;
   for (auto i = 0; i < ecmpWidth; i++) {
-    auto iPortId = *(allPorts.begin() + i);
+    auto iter = allPorts.begin();
+    std::advance(iter, i);
+    auto iPortId = *iter;
     if (i < unlabeledPortsSize) {
       unlabeledPorts_.insert(iPortId);
     } else {

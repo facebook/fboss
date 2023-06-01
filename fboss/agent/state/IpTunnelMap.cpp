@@ -24,5 +24,10 @@ void IpTunnelMap::removeTunnel(std::string id) {
   removeNodeIf(id);
 }
 
+MultiSwitchIpTunnelMap* MultiSwitchIpTunnelMap::modify(
+    std::shared_ptr<SwitchState>* state) {
+  return SwitchState::modify<switch_state_tags::ipTunnelMaps>(state);
+}
+
 template class ThriftMapNode<IpTunnelMap, IpTunnelMapTraits>;
 } // namespace facebook::fboss

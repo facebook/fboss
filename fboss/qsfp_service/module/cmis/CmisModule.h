@@ -82,15 +82,6 @@ class CmisModule : public QsfpModule {
 
   using LengthAndGauge = std::pair<double, uint8_t>;
 
-  /*
-   * Returns the number of lanes on the host side
-   */
-  unsigned int numHostLanes() const override;
-  /*
-   * Returns the number of lanes on the media side
-   */
-  unsigned int numMediaLanes() const override;
-
   void configureModule(uint8_t startHostLane) override;
 
   /*
@@ -343,12 +334,14 @@ class CmisModule : public QsfpModule {
       uint8_t startHostLane) const;
 
   // Returns the list of host lanes configured in the same datapath as the
-  // provided hostLane
-  std::vector<uint8_t> configuredHostLanes(uint8_t hostLane) const override;
+  // provided startHostLane
+  std::vector<uint8_t> configuredHostLanes(
+      uint8_t startHostLane) const override;
 
   // Returns the list of media lanes configured in the same datapath as the
-  // provided hostLane
-  std::vector<uint8_t> configuredMediaLanes(uint8_t hostLane) const override;
+  // provided startHostLane
+  std::vector<uint8_t> configuredMediaLanes(
+      uint8_t startHostLane) const override;
 
  private:
   // no copy or assignment
@@ -423,7 +416,7 @@ class CmisModule : public QsfpModule {
    * configured for 100G-CWDM4 application, then getModuleMediaInterface will
    * return 200G-FR4
    */
-  MediaInterfaceCode getModuleMediaInterface() override;
+  MediaInterfaceCode getModuleMediaInterface() const override;
 
   void resetDataPathWithFunc(
       std::optional<std::function<void()>> afterDataPathDeinitFunc =
