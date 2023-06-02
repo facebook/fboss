@@ -270,7 +270,8 @@ void AgentInitializer::createSwitch(
 
   // Create the SwSwitch and thrift handler
   sw_ = std::make_unique<SwSwitch>(std::move(platform));
-  initializer_ = std::make_unique<Initializer>(sw_.get(), sw_->getPlatform());
+  initializer_ =
+      std::make_unique<Initializer>(sw_.get(), sw_->getPlatform_DEPRECATED());
 }
 
 int AgentInitializer::initAgent() {

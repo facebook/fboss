@@ -5,7 +5,7 @@
 #include <re2/re2.h>
 
 namespace {
-constexpr auto kFbossPortNameRegex = "(eth|fab)(\\d+)/(\\d+)/1";
+constexpr auto kFbossPortNameRegex = "(?:eth|fab)(\\d+)/(\\d+)/1";
 }
 
 namespace facebook::fboss {

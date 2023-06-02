@@ -266,14 +266,17 @@ void LinkTest::disableTTLDecrements(
 void LinkTest::createL3DataplaneFlood(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
   utility::EcmpSetupTargetedPorts6 ecmp6(
-      sw()->getState(), sw()->getPlatform()->getLocalMac());
+      sw()->getState(), sw()->getPlatform_DEPRECATED()->getLocalMac());
   programDefaultRoute(ecmpPorts, ecmp6);
   disableTTLDecrements(ecmpPorts);
   auto vlanID = util::getFirstMap(sw()->getState()->getVlans())
                     ->cbegin()
                     ->second->getID();
   utility::pumpTraffic(
-      true, sw()->getHw(), sw()->getPlatform()->getLocalMac(), vlanID);
+      true,
+      sw()->getHw(),
+      sw()->getPlatform_DEPRECATED()->getLocalMac(),
+      vlanID);
   // TODO: Assert that traffic reached a certain rate
   XLOG(DBG2) << "Created L3 Data Plane Flood";
 }

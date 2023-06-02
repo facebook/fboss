@@ -582,6 +582,21 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     set<switch_state_tags::interfaceIDs>(interfaceIDs);
   }
 
+  std::optional<std::string> getFlowletConfigName() const {
+    if (auto name = cref<switch_state_tags::flowletConfigName>()) {
+      return name->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setFlowletConfigName(const std::optional<std::string>& name) {
+    if (!name) {
+      ref<switch_state_tags::flowletConfigName>().reset();
+      return;
+    }
+    set<switch_state_tags::flowletConfigName>(name.value());
+  }
+
   Port* modify(std::shared_ptr<SwitchState>* state);
 
   void fillPhyInfo(phy::PhyInfo* phyInfo);

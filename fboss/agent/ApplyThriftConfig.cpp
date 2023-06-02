@@ -1946,6 +1946,20 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
         " cannot be drained as it's NOT a DSF fabric port");
   }
 
+  auto newFlowletConfigName = std::optional<cfg::PortFlowletConfigName>();
+  if (portConf->flowletConfigName().has_value()) {
+    newFlowletConfigName = portConf->flowletConfigName().value();
+    if (auto portFlowletConfigs = cfg_->portFlowletConfigs()) {
+      auto it = portFlowletConfigs->find(newFlowletConfigName.value());
+      if (it == portFlowletConfigs->end()) {
+        throw FbossError(
+            "Port flowlet config name: ",
+            *newFlowletConfigName,
+            " does not exist in PortFlowletConfig map");
+      }
+    }
+  }
+
   // Ensure portConf has actually changed, before applying
   if (*portConf->state() == orig->getAdminState() &&
       VlanID(*portConf->ingressVlan()) == orig->getIngressVlan() &&
@@ -1967,7 +1981,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       *portConf->maxFrameSize() == orig->getMaxFrameSize() &&
       lookupClassesUnchanged && profileConfigUnchanged && pinConfigsUnchanged &&
       *portConf->portType() == orig->getPortType() &&
-      *portConf->drainState() == orig->getPortDrainState()) {
+      *portConf->drainState() == orig->getPortDrainState() &&
+      newFlowletConfigName == orig->getFlowletConfigName()) {
     return nullptr;
   }
 
@@ -2007,6 +2022,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setExpectedNeighborReachability(
       *portConf->expectedNeighborReachability());
   newPort->setPortDrainState(*portConf->drainState());
+  newPort->setFlowletConfigName(newFlowletConfigName);
   return newPort;
 }
 

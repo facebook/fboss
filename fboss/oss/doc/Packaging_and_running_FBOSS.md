@@ -54,7 +54,7 @@ Verify that all runtime dependencies are satisified for HW test binary including
 ```
 cd /opt/fboss
 source ./bin/setup_fboss_env
-ldd /opt/fboss/bin/sai_test-sai_impl-1.11.0
+ldd /opt/fboss/bin/sai_test-sai_impl-1.12.0
 ```
 
 If there are any missing libraries, then those need to be installed on the switch using "sudo dnf install ..." if the switch has internet access OR the missing libraries need to be copied from the FBOSS build's scratch path (/opt/app/FBOSS_DIR/tmp_bld_dir/installed/<missing_lib*>/) to switch (/opt/fboss/lib64/).
@@ -79,7 +79,7 @@ Run setup script to populate fruid.json and other config files (this step may no
 Running single HW test using HW test binary -
 
 ```
-./bin/sai_test-sai_impl-1.11.0 --config ./share/hw_test_configs/meru400biu.agent.materialized_JSON --gtest_filter=HwVoqSwitchWithFabricPortsTest.init
+./bin/sai_test-sai_impl-1.12.0 --config ./share/hw_test_configs/meru400biu.agent.materialized_JSON --filter=HwVoqSwitchWithFabricPortsTest.init
 ```
 
 Running multiple tests using test runner -
@@ -87,5 +87,5 @@ Running multiple tests using test runner -
 FBOSS tests can be launched by executing the test runner script. The script automatically selects and runs tests relevant to the optional filters. Also, the test runner can be run using various options - known good tests, known bad tests, include and exclude regexes, etc... These are documented in run_test.py. After running all the tests, results will also be generated in a csv file.
 
 ```
-./bin/run_test.py sai --sai-bin sai_test-sai_impl-1.11.0 --config ./share/hw_test_configs/meru400biu.agent.materialized_JSON --filter=HwVoqSwitchWithFabricPortsTest.*
+./bin/run_test.py sai --sai-bin sai_test-sai_impl-1.12.0 --config ./share/hw_test_configs/meru400biu.agent.materialized_JSON --filter=HwVoqSwitchWithFabricPortsTest.*
 ```

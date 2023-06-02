@@ -147,10 +147,10 @@ class SwSwitch : public HwSwitch::Callback {
     return hw_;
   }
 
-  const Platform* getPlatform() const {
+  const Platform* getPlatform_DEPRECATED() const {
     return platform_.get();
   }
-  Platform* getPlatform() {
+  Platform* getPlatform_DEPRECATED() {
     return platform_.get();
   }
 

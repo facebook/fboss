@@ -2267,7 +2267,7 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
             cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER);
 
         // Make sure the enabled ports using the new profile config/pin configs
-        auto platform = sw_->getPlatform();
+        auto platform = sw_->getPlatform_DEPRECATED();
         auto tcvr = sw_->getState()->getTransceivers()->getNodeIf(id);
         std::optional<cfg::PlatformPortConfigOverrideFactor> factor;
         if (tcvr != nullptr) {

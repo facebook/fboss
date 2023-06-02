@@ -21,7 +21,71 @@ using std::make_pair;
 using std::make_shared;
 using std::shared_ptr;
 
-namespace {} // unnamed namespace
+namespace {
+
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+
+} // unnamed namespace
+
+TEST(PortFlowletConfigTest, flowletConfigName) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  registerPort(stateV0, PortID(1), "port1", scope());
+
+  cfg::SwitchConfig config;
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
+
+  config.ports()[0].flowletConfigName() = "flowletNew";
+
+  // configured flowletConfigName but no PortFlowletConfig map exists.
+  // No Throw execpetion since we don't access the option field
+  EXPECT_NO_THROW(publishAndApplyConfig(stateV0, &config, platform.get()));
+
+  std::map<std::string, cfg::PortFlowletConfig> portFlowletCfgMap;
+  {
+    cfg::PortFlowletConfig tmpFlowletConfig;
+    portFlowletCfgMap.insert(make_pair("flowletOld", tmpFlowletConfig));
+    config.portFlowletConfigs() = portFlowletCfgMap;
+
+    // configured "flowletName" flowlet config  map exists.
+    // but "flowletNew" doesn't exist. Only "flowletOld" does so expect an error
+    EXPECT_THROW(
+        publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+  }
+
+  {
+    cfg::PortFlowletConfig tmpFlowletConfig;
+    portFlowletCfgMap.insert(make_pair("flowletNew", tmpFlowletConfig));
+    config.portFlowletConfigs() = portFlowletCfgMap;
+
+    // update goes through now, as "flowletNew" is configured
+    auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+    EXPECT_NE(nullptr, stateV1);
+    auto portV1 = stateV1->getPorts()->getNodeIf(PortID(1));
+    ASSERT_NE(nullptr, portV1);
+    EXPECT_TRUE(portV1->getFlowletConfigName().has_value());
+    EXPECT_EQ(portV1->getFlowletConfigName().value(), "flowletNew");
+  }
+
+  {
+    // unconfigure the flowlet config
+    config.ports()[0].flowletConfigName().reset();
+
+    // port flowlet  can have any entry, shouldn't matter
+    cfg::PortFlowletConfig tmpFlowletConfig;
+    portFlowletCfgMap.insert(make_pair("coolFlowlet", tmpFlowletConfig));
+    config.portFlowletConfigs() = portFlowletCfgMap;
+
+    auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+    EXPECT_NE(nullptr, stateV1);
+    auto portV1 = stateV1->getPorts()->getNodeIf(PortID(1));
+    ASSERT_NE(nullptr, portV1);
+    EXPECT_FALSE(portV1->getFlowletConfigName().has_value());
+  }
+}
 
 TEST(PortFlowletConfigTest, applyConfig) {
   auto platform = createMockPlatform();

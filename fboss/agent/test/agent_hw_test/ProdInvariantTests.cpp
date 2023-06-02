@@ -191,7 +191,7 @@ void ProdInvariantTest::verifyAcl() {
 void ProdInvariantTest::verifyCopp() {
   utility::verifyCoppInvariantHelper(
       sw()->getHw(),
-      sw()->getPlatform()->getAsic(),
+      sw()->getPlatform_DEPRECATED()->getAsic(),
       sw()->getState(),
       getDownlinkPort());
   XLOG(DBG2) << "Verify COPP Done";
@@ -224,7 +224,8 @@ void ProdInvariantTest::verifyLoadBalancing() {
 }
 
 void ProdInvariantTest::verifyDscpToQueueMapping() {
-  if (!sw()->getPlatform()->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
+  if (!sw()->getPlatform_DEPRECATED()->getAsic()->isSupported(
+          HwAsic::Feature::L3_QOS)) {
     return;
   }
 
@@ -295,7 +296,7 @@ void ProdInvariantTest::verifyQueuePerHostMapping(bool dscpMarkingTest) {
 
 void ProdInvariantTest::verifySafeDiagCommands() {
   std::set<std::string> diagCmds;
-  switch (sw()->getPlatform()->getAsic()->getAsicType()) {
+  switch (sw()->getPlatform_DEPRECATED()->getAsic()->getAsicType()) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
     case cfg::AsicType::ASIC_TYPE_MOCK:
     case cfg::AsicType::ASIC_TYPE_EBRO:

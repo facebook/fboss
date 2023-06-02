@@ -31,7 +31,7 @@ class EncapIndexAllocatorTest : public ::testing::Test {
     return handle->getSw();
   }
   const HwAsic& getAsic() const {
-    return *getSw()->getPlatform()->getAsic();
+    return *getSw()->getPlatform_DEPRECATED()->getAsic();
   }
 
   int64_t allocationStart() const {
