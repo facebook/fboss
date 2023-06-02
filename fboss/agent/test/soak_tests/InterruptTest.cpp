@@ -35,21 +35,21 @@ void InterruptTest::SetUp() {
   AgentTest::SetUp();
   setUpPorts();
 
-  originalIntrTimeout_ = sw()->getPlatform()->getIntrTimeout();
+  originalIntrTimeout_ = sw()->getPlatform_DEPRECATED()->getIntrTimeout();
 
   XLOG(DBG2) << "The original intr_timeout is " << originalIntrTimeout_;
 
   // Set the timeout to be 1 sec, so the scheduling latency should not be a
   // factor. If we see any non-zero intr_timeout_count, it should be from real
   // hw interrupt miss.
-  sw()->getPlatform()->setIntrTimeout(1000000);
+  sw()->getPlatform_DEPRECATED()->setIntrTimeout(1000000);
 
   XLOG(DBG2) << "Soak Test setup ready";
 }
 
 void InterruptTest::TearDown() {
   // Undo the intr_timeout setting change done in SetUp()
-  sw()->getPlatform()->setIntrTimeout(originalIntrTimeout_);
+  sw()->getPlatform_DEPRECATED()->setIntrTimeout(originalIntrTimeout_);
 
   AgentTest::TearDown();
 }
@@ -61,7 +61,7 @@ bool InterruptTest::RunOneLoop(SoakLoopArgs* args) {
   XLOG(DBG5) << "numPktsPerLoop = " << numPktsPerLoop;
 
   SwSwitch* swSwitch = sw();
-  Platform* platform = swSwitch->getPlatform();
+  Platform* platform = swSwitch->getPlatform_DEPRECATED();
 
   uint64_t intrTimeoutCountStart = platform->getIntrTimeoutCount();
   uint64_t intrCountStart = platform->getIntrCount();

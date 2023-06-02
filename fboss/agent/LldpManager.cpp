@@ -109,7 +109,8 @@ void LldpManager::handlePacket(
              << " port=" << neighbor->humanReadablePortId()
              << " name=" << neighbor->getSystemName();
 
-  auto plport = sw_->getPlatform()->getPlatformPort(pkt->getSrcPort());
+  auto plport =
+      sw_->getPlatform_DEPRECATED()->getPlatformPort(pkt->getSrcPort());
   auto port = sw_->getState()->getPorts()->getNodeIf(pkt->getSrcPort());
   PortID pid = pkt->getSrcPort();
 
