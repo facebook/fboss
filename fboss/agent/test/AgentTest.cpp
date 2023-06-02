@@ -267,6 +267,18 @@ void AgentTest::reloadConfig(std::string reason) const {
 
 AgentTest::~AgentTest() {}
 
+SwitchID AgentTest::scope(
+    const boost::container::flat_set<PortDescriptor>& ports) {
+  return scope(sw()->getState(), ports);
+}
+
+SwitchID AgentTest::scope(
+    const std::shared_ptr<SwitchState>& state,
+    const boost::container::flat_set<PortDescriptor>& ports) {
+  auto matcher = sw()->getScopeResolver()->scope(state, ports);
+  return matcher.switchId();
+}
+
 void initAgentTest(
     int argc,
     char** argv,

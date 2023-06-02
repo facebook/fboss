@@ -5,6 +5,7 @@
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/types.h"
 
+#include <boost/container/flat_set.hpp>
 #include <unordered_set>
 
 namespace facebook::fboss {
@@ -31,6 +32,7 @@ class TeFlowEntry;
 class SwitchState;
 class Interface;
 class Port;
+class PortDescriptor;
 class AclTableGroup;
 class ForwardingInformationBaseContainer;
 class BufferPoolCfg;
@@ -138,6 +140,19 @@ class SwitchIdScopeResolver {
       const std::shared_ptr<PortFlowletCfg>& /*p*/) const {
     return l3SwitchMatcher();
   }
+
+  HwSwitchMatcher scope(
+      const std::shared_ptr<SwitchState>& state,
+      const boost::container::flat_set<PortDescriptor>& ports) const;
+  HwSwitchMatcher scope(
+      const std::shared_ptr<SwitchState>& state,
+      const PortDescriptor& portDesc) const;
+  HwSwitchMatcher scope(
+      const std::shared_ptr<SwitchState>& state,
+      const PortID& portId) const;
+  HwSwitchMatcher scope(
+      const std::shared_ptr<SwitchState>& state,
+      const AggregatePortID& aggPortId) const;
 
  private:
   void checkL3() const;
