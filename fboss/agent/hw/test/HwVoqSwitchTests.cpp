@@ -41,8 +41,16 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes(),
         true /*interfaceHasSubnet*/);
-    addCpuTrafficPolicy(cfg);
-    utility::addCpuQueueConfig(cfg, getAsic());
+    const auto& cpuStreamTypes =
+        getAsic()->getQueueStreamTypes(cfg::PortType::CPU_PORT);
+    for (const auto& cpuStreamType : cpuStreamTypes) {
+      if (getAsic()->getDefaultNumPortQueues(cpuStreamType, true)) {
+        // cpu queues supported
+        addCpuTrafficPolicy(cfg);
+        utility::addCpuQueueConfig(cfg, getAsic());
+        break;
+      }
+    }
     return cfg;
   }
   void SetUp() override {
@@ -198,9 +206,17 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
                                : 0;
       };
 
-      auto [beforeOutPkts, beforeOutBytes] = getPortOutPktsBytes();
-      auto [beforeQueueOutPkts, beforeQueueOutBytes] = getQueueOutPktsBytes();
+      int64_t beforeQueueOutPkts = 0, beforeQueueOutBytes = 0;
+      int64_t afterQueueOutPkts = 0, afterQueueOutBytes = 0;
+
       auto beforeVoQOutBytes = getVoQOutBytes();
+      if (getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
+        auto beforeQueueOut = getQueueOutPktsBytes();
+        beforeQueueOutPkts = beforeQueueOut.first;
+        beforeQueueOutBytes = beforeQueueOut.second;
+      }
+
+      auto [beforeOutPkts, beforeOutBytes] = getPortOutPktsBytes();
       auto beforeAclPkts = getAclPackets();
       std::optional<PortID> frontPanelPort;
       if (isFrontPanel) {
@@ -210,13 +226,15 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
 
       WITH_RETRIES({
         auto afterVoQOutBytes = getVoQOutBytes();
+        if (getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
+          auto queueOutPktsAndBytes = getQueueOutPktsBytes();
+          afterQueueOutPkts = queueOutPktsAndBytes.first;
+          afterQueueOutBytes = queueOutPktsAndBytes.second;
+        }
         auto afterAclPkts = getAclPackets();
         auto portOutPktsAndBytes = getPortOutPktsBytes();
-        auto queueOutPktsAndBytes = getQueueOutPktsBytes();
         auto afterOutPkts = portOutPktsAndBytes.first;
         auto afterOutBytes = portOutPktsAndBytes.second;
-        auto afterQueueOutPkts = queueOutPktsAndBytes.first;
-        auto afterQueueOutBytes = queueOutPktsAndBytes.second;
 
         XLOG(DBG2) << "Stats:: beforeOutPkts: " << beforeOutPkts
                    << " beforeOutBytes: " << beforeOutBytes
@@ -235,10 +253,12 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         EXPECT_EVENTUALLY_EQ(afterOutPkts - 1, beforeOutPkts);
         // CS00012267635: debug why we get 4 extra bytes
         EXPECT_EVENTUALLY_EQ(afterOutBytes - txPacketSize - 4, beforeOutBytes);
-        EXPECT_EVENTUALLY_EQ(afterQueueOutPkts - 1, beforeQueueOutPkts);
-        // CS00012267635: debug why queue counter is 310, when txPacketSize is
-        // 322
-        EXPECT_EVENTUALLY_GE(afterQueueOutBytes, beforeQueueOutBytes);
+        if (getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
+          EXPECT_EVENTUALLY_EQ(afterQueueOutPkts - 1, beforeQueueOutPkts);
+          // CS00012267635: debug why queue counter is 310, when txPacketSize is
+          // 322
+          EXPECT_EVENTUALLY_GE(afterQueueOutBytes, beforeQueueOutBytes);
+        }
         if (checkAclCounter) {
           EXPECT_EVENTUALLY_GT(afterAclPkts, beforeAclPkts);
         }
