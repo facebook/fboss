@@ -16,7 +16,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SFLOWv6:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::ECN:
-    case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
@@ -54,9 +53,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::LINK_TRAINING:
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
-    case HwAsic::Feature::VOQ:
     case HwAsic::Feature::RECYCLE_PORTS:
-    case HwAsic::Feature::FABRIC_TX_QUEUES:
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
     case HwAsic::Feature::ACL_TABLE_GROUP:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
@@ -64,7 +61,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::MEDIA_TYPE:
-    case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::PORT_FABRIC_ISOLATE:
     case HwAsic::Feature::QUEUE_ECN_COUNTER:
@@ -78,6 +74,10 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::PFC:
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
+    case HwAsic::Feature::L3_QOS:
+    case HwAsic::Feature::VOQ:
+    case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
+    case HwAsic::Feature::FABRIC_TX_QUEUES:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
 
     case HwAsic::Feature::SAI_PORT_ETHER_STATS:
@@ -167,6 +167,9 @@ std::set<cfg::StreamType> Jericho3Asic::getQueueStreamTypes(
 }
 int Jericho3Asic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
     const {
+  if (getAsicMode() == AsicMode::ASIC_MODE_SIM) {
+    return 0;
+  }
   switch (streamType) {
     case cfg::StreamType::UNICAST:
       if (cpu) {
