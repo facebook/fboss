@@ -30,6 +30,14 @@ class FsdbPubSubManager {
   using Path = std::vector<std::string>;
   using MultiPath = std::vector<Path>;
 
+  struct SubscriptionInfo {
+    std::string server;
+    bool isDelta;
+    bool isStats;
+    std::vector<std::string> paths;
+    FsdbStreamClient::State state;
+  };
+
   /* Publisher create APIs */
   void createStateDeltaPublisher(
       const Path& publishPath,
@@ -150,6 +158,8 @@ class FsdbPubSubManager {
   void removeStatPathSubscription(
       const MultiPath& subscribePath,
       const std::string& fsdbHost = "::1");
+
+  const std::vector<SubscriptionInfo> getSubscriptionInfo() const;
 
   size_t numSubscriptions() const {
     return path2Subscriber_.rlock()->size();

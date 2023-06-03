@@ -50,6 +50,21 @@ std::string toSubscriptionStr(
       ":/",
       extendedPathsStr(paths));
 }
+
+std::tuple<std::string, std::string, std::string, std::vector<std::string>>
+parseSubscriptionStr(const std::string& subStr) {
+  std::vector<std::string> elements;
+  std::vector<std::string> paths;
+  folly::split(":/", subStr, elements);
+  // Server, Delta/Path, State/Stat, Paths
+  CHECK_EQ(elements.size(), 4);
+  const auto& pathStr = elements[elements.size() - 1];
+  if (!pathStr.empty()) {
+    folly::split("_", pathStr, paths);
+  }
+  return std::make_tuple(elements[0], elements[1], elements[2], paths);
+}
+
 std::vector<ExtendedOperPath> toExtendedOperPath(
     const std::vector<std::vector<std::string>>& paths) {
   std::vector<ExtendedOperPath> extPaths;
@@ -416,6 +431,22 @@ void FsdbPubSubManager::addSubscriptionImpl(
   }
   XLOG(DBG2) << " Added subscription for: " << subsStr;
   itr->second->setServerOptions(std::move(serverOptions));
+}
+
+const std::vector<FsdbPubSubManager::SubscriptionInfo>
+FsdbPubSubManager::getSubscriptionInfo() const {
+  std::vector<SubscriptionInfo> subscriptionInfo;
+  auto path2SubscriberR = path2Subscriber_.rlock();
+  for (const auto& [subStr, streamClient] : *path2SubscriberR) {
+    const auto& [server, delta, stats, paths] = parseSubscriptionStr(subStr);
+    subscriptionInfo.push_back(
+        {server,
+         delta == kDelta,
+         stats == kStats,
+         paths,
+         streamClient->getState()});
+  }
+  return subscriptionInfo;
 }
 
 void FsdbPubSubManager::removeStateDeltaSubscription(

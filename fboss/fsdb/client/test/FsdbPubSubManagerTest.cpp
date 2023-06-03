@@ -136,6 +136,19 @@ TEST_F(PubSubManagerTest, addRemoveSubscriptions) {
   addStatePathSubscription({}, "::2");
   addStatPathSubscription({}, "::2");
   EXPECT_EQ(pubSubManager_.numSubscriptions(), 8);
+
+  // Verify getSubscriptionInfo
+  const auto subscriptionInfoList = pubSubManager_.getSubscriptionInfo();
+  EXPECT_EQ(subscriptionInfoList.size(), 8);
+  for (const auto& subscriptionInfo : subscriptionInfoList) {
+    EXPECT_TRUE(
+        subscriptionInfo.server == "::1" || subscriptionInfo.server == "::2");
+    EXPECT_EQ(subscriptionInfo.state, FsdbStreamClient::State::DISCONNECTED);
+    if (subscriptionInfo.paths.size()) {
+      EXPECT_EQ(subscriptionInfo.paths.size(), 1);
+      EXPECT_EQ(subscriptionInfo.paths[0], "foo");
+    }
+  }
 }
 
 TEST_F(PubSubManagerTest, passEvbOrNot) {
