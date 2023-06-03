@@ -32,6 +32,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_dsf_subcription_model
+  fboss/cli/fboss2/commands/show/dsf/subscription/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_dsfnodes_model
   fboss/cli/fboss2/commands/show/dsfnodes/model.thrift
   OPTIONS
@@ -270,6 +277,8 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h
   fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h
   fboss/cli/fboss2/commands/show/arp/CmdShowArp.h
+  fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.h
+  fboss/cli/fboss2/commands/show/dsf/subscription/CmdShowDsfSubscription.h
   fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.h
   fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h
   fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h
@@ -347,6 +356,7 @@ target_link_libraries(fboss2
   show_agent_model
   show_aggregateport_model
   show_arp_model
+  show_dsf_subcription_model
   show_dsfnodes_model
   show_fabric_model
   show_fabric_reachability_model

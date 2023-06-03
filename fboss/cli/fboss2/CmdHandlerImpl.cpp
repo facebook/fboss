@@ -33,6 +33,9 @@
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/arp/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/cpuport/CmdShowCpuPort.h"
+#include "fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.h"
+#include "fboss/cli/fboss2/commands/show/dsf/subscription/CmdShowDsfSubscription.h"
+#include "fboss/cli/fboss2/commands/show/dsf/subscription/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.h"
 #include "fboss/cli/fboss2/commands/show/dsfnodes/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h"
@@ -113,9 +116,12 @@ template void
 CmdHandler<CmdShowAggregatePort, CmdShowAggregatePortTraits>::run();
 template void CmdHandler<CmdShowArp, CmdShowArpTraits>::run();
 template void CmdHandler<CmdShowFabric, CmdShowFabricTraits>::run();
+template void CmdHandler<CmdShowDsf, CmdShowDsfTraits>::run();
 template void
 CmdHandler<CmdShowFabricReachability, CmdShowFabricReachabilityTraits>::run();
 template void CmdHandler<CmdShowDsfNodes, CmdShowDsfNodesTraits>::run();
+template void
+CmdHandler<CmdShowDsfSubscription, CmdShowDsfSubscriptionTraits>::run();
 template void CmdHandler<CmdShowL2, CmdShowL2Traits>::run();
 template void CmdHandler<CmdShowLldp, CmdShowLldpTraits>::run();
 template void
@@ -194,6 +200,11 @@ template const ValidFilterMapType CmdHandler<
     CmdShowFabricReachabilityTraits>::getValidFilters();
 template const ValidFilterMapType
 CmdHandler<CmdShowDsfNodes, CmdShowDsfNodesTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdShowDsf, CmdShowDsfTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
+    CmdShowDsfSubscription,
+    CmdShowDsfSubscriptionTraits>::getValidFilters();
 template const ValidFilterMapType
 CmdHandler<CmdShowLldp, CmdShowLldpTraits>::getValidFilters();
 template const ValidFilterMapType CmdHandler<

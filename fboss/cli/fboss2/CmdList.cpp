@@ -31,6 +31,8 @@
 #include "fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/cpuport/CmdShowCpuPort.h"
+#include "fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.h"
+#include "fboss/cli/fboss2/commands/show/dsf/subscription/CmdShowDsfSubscription.h"
 #include "fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.h"
 #include "fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h"
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h"
@@ -114,6 +116,18 @@ const CommandTree& kCommandTree() {
             "Show Fabric ports that can reach the given switch name",
             commandHandler<CmdShowFabricReachability>,
             argTypeHandler<CmdShowFabricReachabilityTraits>}}},
+
+      {"show",
+       "dsf",
+       "Show DSF device information",
+       commandHandler<CmdShowDsf>,
+       argTypeHandler<CmdShowDsfTraits>,
+       {
+
+           {"subscription",
+            "Show DSF subscription status/path other other devices",
+            commandHandler<CmdShowDsfSubscription>,
+            argTypeHandler<CmdShowDsfSubscriptionTraits>}}},
 
       {"show",
        "dsfnodes",
