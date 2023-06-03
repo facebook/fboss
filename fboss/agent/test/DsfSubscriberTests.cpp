@@ -9,7 +9,9 @@
  */
 #include "fboss/agent/DsfSubscriber.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 
@@ -241,8 +243,7 @@ TEST_F(DsfSubscriberTest, addSubscription) {
   EXPECT_EQ(sw_->getDsfSubscriber()->getSubscriptionInfo().size(), 0);
 
   // Insert 2 IN nodes
-  auto node5Id = 5;
-  auto node5DsfConfig = makeDsfNodeCfg(node5Id);
+  auto node5DsfConfig = makeDsfNodeCfg(5);
   sw_->updateStateBlocking(
       "Add IN node", [&](const std::shared_ptr<SwitchState>& state) {
         auto newState = state->clone();
@@ -256,8 +257,7 @@ TEST_F(DsfSubscriberTest, addSubscription) {
   EXPECT_TRUE(verifySubsriptionState(
       node5DsfConfig, sw_->getDsfSubscriber()->getSubscriptionInfo()));
 
-  auto node6Id = 6;
-  auto node6DsfConfig = makeDsfNodeCfg(node6Id);
+  auto node6DsfConfig = makeDsfNodeCfg(6);
   sw_->updateStateBlocking(
       "Add IN node", [&](const std::shared_ptr<SwitchState>& state) {
         auto newState = state->clone();
@@ -273,7 +273,7 @@ TEST_F(DsfSubscriberTest, addSubscription) {
 
   // Remove 2 IN nodes
   sw_->updateStateBlocking(
-      "Add IN node", [&](const std::shared_ptr<SwitchState>& state) {
+      "Remove IN nodes", [&](const std::shared_ptr<SwitchState>& state) {
         auto newState = state->clone();
         updateDsfInNode(
             newState->getDsfNodes()->modify(&newState),
@@ -286,5 +286,58 @@ TEST_F(DsfSubscriberTest, addSubscription) {
         return newState;
       });
   EXPECT_EQ(sw_->getDsfSubscriber()->getSubscriptionInfo().size(), 0);
+}
+
+TEST_F(DsfSubscriberTest, failedDsfCounter) {
+  // Remove the other subscriber to avoid double counting
+  dsfSubscriber_.reset();
+
+  CounterCache counters(sw_);
+  auto failedDsfCounter = SwitchStats::kCounterPrefix + "failedDsfSubscription";
+  auto node5DsfConfig = makeDsfNodeCfg(5);
+  sw_->updateStateBlocking(
+      "Add IN node", [&](const std::shared_ptr<SwitchState>& state) {
+        auto newState = state->clone();
+        updateDsfInNode(
+            newState->getDsfNodes()->modify(&newState),
+            node5DsfConfig,
+            /* add */ true);
+        return newState;
+      });
+  counters.update();
+
+  EXPECT_TRUE(counters.checkExist(failedDsfCounter));
+  EXPECT_EQ(counters.value(failedDsfCounter), 1);
+
+  auto node6DsfConfig = makeDsfNodeCfg(6);
+  sw_->updateStateBlocking(
+      "Add IN node", [&](const std::shared_ptr<SwitchState>& state) {
+        auto newState = state->clone();
+        updateDsfInNode(
+            newState->getDsfNodes()->modify(&newState),
+            node6DsfConfig,
+            /* add */ true);
+        return newState;
+      });
+  counters.update();
+
+  EXPECT_EQ(counters.value(failedDsfCounter), 2);
+
+  // Remove 2 IN nodes
+  sw_->updateStateBlocking(
+      "Remove IN nodes", [&](const std::shared_ptr<SwitchState>& state) {
+        auto newState = state->clone();
+        updateDsfInNode(
+            newState->getDsfNodes()->modify(&newState),
+            node5DsfConfig,
+            /* add */ false);
+        updateDsfInNode(
+            newState->getDsfNodes()->modify(&newState),
+            node6DsfConfig,
+            /* add */ false);
+        return newState;
+      });
+  counters.update();
+  EXPECT_EQ(counters.value(failedDsfCounter), 0);
 }
 } // namespace facebook::fboss

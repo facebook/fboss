@@ -540,4 +540,16 @@ void FsdbPubSubManager::removeSubscriptionImpl(
   }
 }
 
+FsdbStreamClient::State FsdbPubSubManager::getStatePathSubsriptionState(
+    const MultiPath& subscribePath,
+    const std::string& fsdbHost) {
+  auto subsStr = toSubscriptionStr(
+      fsdbHost, toExtendedOperPath(subscribePath), false, false);
+  auto path2SubscriberR = path2Subscriber_.rlock();
+  if (path2SubscriberR->find(subsStr) == path2SubscriberR->end()) {
+    return FsdbStreamClient::State::CANCELLED;
+  }
+  return path2SubscriberR->at(subsStr)->getState();
+}
+
 } // namespace facebook::fboss::fsdb

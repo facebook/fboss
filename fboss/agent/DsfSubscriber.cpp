@@ -5,6 +5,7 @@
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/state/DsfNode.h"
 #include "fboss/agent/state/InterfaceMap.h"
@@ -272,22 +273,31 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     }
     auto nodeName = node->getName();
     auto nodeSwitchId = node->getSwitchId();
+    // Subscription is not established until state becomes CONNECTED
+    this->sw_->stats()->failedDsfSubscription(1);
     XLOG(DBG2) << " Setting up DSF subscriptions to : " << nodeName;
     fsdbPubSubMgr_->addStatePathSubscription(
         {getSystemPortsPath(), getInterfacesPath()},
-        [nodeName](auto /*oldState*/, auto newState) {
+        [this, nodeName](auto oldState, auto newState) {
           switch (newState) {
             case fsdb::FsdbStreamClient::State::CONNECTING:
               XLOG(DBG2) << "Try connecting to " << nodeName;
               break;
             case fsdb::FsdbStreamClient::State::CONNECTED:
               XLOG(DBG2) << "Connected to " << nodeName;
+              this->sw_->stats()->failedDsfSubscription(-1);
               break;
             case fsdb::FsdbStreamClient::State::DISCONNECTED:
               XLOG(DBG2) << "Disconnected from " << nodeName;
+              if (oldState == fsdb::FsdbStreamClient::State::CONNECTED) {
+                this->sw_->stats()->failedDsfSubscription(1);
+              }
               break;
             case fsdb::FsdbStreamClient::State::CANCELLED:
               XLOG(DBG2) << "Cancelled " << nodeName;
+              if (oldState == fsdb::FsdbStreamClient::State::CONNECTED) {
+                this->sw_->stats()->failedDsfSubscription(1);
+              }
               break;
           }
         },
@@ -330,6 +340,12 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
       return;
     }
     XLOG(DBG2) << " Removing DSF subscriptions to : " << node->getName();
+    if (fsdbPubSubMgr_->getStatePathSubsriptionState(
+            {getSystemPortsPath(), getInterfacesPath()}, getLoopbackIp(node)) !=
+        fsdb::FsdbStreamClient::State::CONNECTED) {
+      // Subscription was not established - decrement failedDSF counter.
+      this->sw_->stats()->failedDsfSubscription(-1);
+    }
     fsdbPubSubMgr_->removeStatePathSubscription(
         {getSystemPortsPath(), getInterfacesPath()}, getLoopbackIp(node));
   };

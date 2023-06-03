@@ -391,6 +391,9 @@ class SwitchStats : public boost::noncopyable {
   void remoteResolvedArp(int value) {
     remoteResolvedArp_.incrementValue(value);
   }
+  void failedDsfSubscription(int value) {
+    failedDsfSubscription_.incrementValue(value);
+  }
 
   typedef fb303::ThreadCachedServiceData::ThreadLocalStatsMap
       ThreadLocalStatsMap;
@@ -625,6 +628,8 @@ class SwitchStats : public boost::noncopyable {
   TLCounter localResolvedArp_;
   // Number of remote resolved ARP
   TLCounter remoteResolvedArp_;
+  // Failed Dsf subscriptions
+  TLCounter failedDsfSubscription_;
 };
 
 } // namespace facebook::fboss
