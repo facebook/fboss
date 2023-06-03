@@ -46,6 +46,14 @@ std::string FsdbSubscriber<SubUnit, PathElement>::pathsStr(
   }
 }
 
+template <typename SubUnit, typename PathElement>
+void FsdbSubscriber<SubUnit, PathElement>::bumpServerLiveness() {
+  auto now = std::chrono::system_clock::now();
+  lastServerAliveTs_ =
+      std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch())
+          .count();
+}
+
 template class FsdbSubscriber<OperDelta, std::string>;
 template class FsdbSubscriber<OperState, std::string>;
 template class FsdbSubscriber<OperSubPathUnit, ExtendedOperPath>;

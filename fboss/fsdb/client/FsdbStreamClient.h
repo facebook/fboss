@@ -136,6 +136,14 @@ class FsdbStreamClient {
   std::unique_ptr<apache::thrift::Client<FsdbService>> client_;
 #endif
 
+  /*
+   * Temporary hook for subscribers to verify server hasn't silently gone away.
+   * This can happen if userver shutsdown ungracefully and does not clean up tcp
+   * connection. As a result an offbox subscriber stream can dangle and never
+   * reconnect. This will be replaced with a proper heartbeat
+   */
+  virtual void checkServerState() {}
+
  private:
   std::string getConnectedCounterName() {
     return counterPrefix_ + ".connected";

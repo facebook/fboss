@@ -20,6 +20,7 @@ target_link_libraries(fsdb_stream_client
 
 add_library(fsdb_pub_sub
   fboss/fsdb/client/FsdbSubscriber.cpp
+  fboss/fsdb/client/oss/FsdbSubscriber.cpp
   fboss/fsdb/client/FsdbPublisher.cpp
   fboss/fsdb/client/FsdbPubSubManager.cpp
 )

@@ -52,6 +52,10 @@ class FsdbSubscriber : public FsdbStreamClient {
   }
 
  protected:
+  void checkServerState() override;
+
+  void bumpServerLiveness();
+
   auto createRequest() const {
     if constexpr (std::is_same_v<PathElement, std::string>) {
       OperPath operPath;
@@ -72,5 +76,6 @@ class FsdbSubscriber : public FsdbStreamClient {
  private:
   const Paths subscribePaths_;
   const bool subscribeStats_;
+  std::atomic_uint64_t lastServerAliveTs_{0};
 };
 } // namespace facebook::fboss::fsdb
