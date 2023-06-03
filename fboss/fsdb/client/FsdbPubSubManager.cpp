@@ -449,6 +449,23 @@ FsdbPubSubManager::getSubscriptionInfo() const {
   return subscriptionInfo;
 }
 
+std::string FsdbPubSubManager::subscriptionStateToString(
+    FsdbStreamClient::State state) {
+  switch (state) {
+    case fsdb::FsdbStreamClient::State::CONNECTING:
+      return "CONNECTING";
+    case fsdb::FsdbStreamClient::State::CONNECTED:
+      return "CONNECTED";
+    case fsdb::FsdbStreamClient::State::DISCONNECTED:
+      return "DISCONNECTED";
+    case fsdb::FsdbStreamClient::State::CANCELLED:
+      return "CANCELLED";
+  }
+  throw std::runtime_error(
+      "Unhandled FsdbStreamClient State " +
+      std::to_string(static_cast<int>(state)));
+}
+
 void FsdbPubSubManager::removeStateDeltaSubscription(
     const Path& subscribePath,
     const std::string& fsdbHost) {

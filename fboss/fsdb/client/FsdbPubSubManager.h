@@ -173,6 +173,8 @@ class FsdbPubSubManager {
     return stats ? statPathPublisher_.get() : statePathPublisher_.get();
   }
 
+  static std::string subscriptionStateToString(FsdbStreamClient::State state);
+
  private:
   // Publisher helpers
   template <typename PublisherT, typename PubUnitT>

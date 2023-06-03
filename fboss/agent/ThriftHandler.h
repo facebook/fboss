@@ -279,6 +279,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::map<std::string, std::vector<std::string>>& reachabilityMatrix,
       std::unique_ptr<std::vector<std::string>> switchNames) override;
   void getDsfNodes(std::map<int64_t, cfg::DsfNode>& dsfNodes) override;
+  void getDsfSubscriptions(
+      std::vector<FsdbSubscriptionThrift>& subscriptions) override;
   void getSystemPorts(std::map<int64_t, SystemPortThrift>& sysPorts) override;
   void getSysPortStats(
       std::map<std::string, HwSysPortStats>& hwSysPortStats) override;

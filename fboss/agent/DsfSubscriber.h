@@ -36,7 +36,10 @@ class DsfSubscriber : public StateObserver {
 
   const std::vector<fsdb::FsdbPubSubManager::SubscriptionInfo>
   getSubscriptionInfo() const {
-    return fsdbPubSubMgr_->getSubscriptionInfo();
+    if (fsdbPubSubMgr_) {
+      return fsdbPubSubMgr_->getSubscriptionInfo();
+    }
+    return {};
   }
 
  private:

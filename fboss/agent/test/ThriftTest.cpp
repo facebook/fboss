@@ -602,6 +602,33 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getSwitchReachability) {
   }
 }
 
+TYPED_TEST(ThriftTestAllSwitchTypes, getDsfSubscriptions) {
+  ThriftHandler handler(this->sw_);
+  std::vector<FsdbSubscriptionThrift> subscriptions;
+  if (this->isNpu()) {
+    EXPECT_THROW(handler.getDsfSubscriptions(subscriptions), FbossError);
+  } else if (this->isFabric()) {
+    handler.getDsfSubscriptions(subscriptions);
+    EXPECT_EQ(subscriptions.size(), 0);
+  } else {
+    // VOQ
+    handler.getDsfSubscriptions(subscriptions);
+    EXPECT_EQ(subscriptions.size(), 0);
+
+    // Add 1 IN node to DSF config
+    cfg::SwitchConfig config = testConfigA(cfg::SwitchType::VOQ);
+    auto dsfNodeCfg = makeDsfNodeCfg(5);
+    config.dsfNodes()->insert({5, dsfNodeCfg});
+    this->sw_->applyConfig("Config with 1 more IN node", config);
+
+    handler.getDsfSubscriptions(subscriptions);
+    EXPECT_EQ(subscriptions.size(), 1);
+    EXPECT_EQ(*subscriptions[0].name(), *dsfNodeCfg.name());
+    EXPECT_EQ((*subscriptions[0].paths()).size(), 2);
+    EXPECT_EQ(*subscriptions[0].state(), "DISCONNECTED");
+  }
+}
+
 std::unique_ptr<UnicastRoute> makeUnicastRoute(
     std::string prefixStr,
     std::string nxtHop,

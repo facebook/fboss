@@ -12,6 +12,7 @@
 #include "common/logging/logging.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/ArpHandler.h"
+#include "fboss/agent/DsfSubscriber.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/HwAsicTable.h"
@@ -2887,6 +2888,42 @@ void ThriftHandler::getDsfNodes(std::map<int64_t, cfg::DsfNode>& dsfNodes) {
       dsfNodes.insert(
           {static_cast<int64_t>(idAndNode.first),
            idAndNode.second->toThrift()});
+    }
+  }
+}
+
+void ThriftHandler::getDsfSubscriptions(
+    std::vector<FsdbSubscriptionThrift>& subscriptions) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureVoqOrFabric(__func__);
+  // Build a map of <loopbackIp, switchName> from DsfNodes
+  std::unordered_map<std::string, std::string> loopbackIpToName;
+  for (const auto& [_, dsfNodes] :
+       std::as_const(*sw_->getState()->getDsfNodes())) {
+    for (const auto& [_, node] : std::as_const(*dsfNodes)) {
+      if (node->getType() == cfg::DsfNodeType::INTERFACE_NODE) {
+        const auto ipv6Loopback =
+            (*node->getLoopbackIps()->cbegin())->toThrift();
+        loopbackIpToName.emplace(
+            ipv6Loopback.substr(0, ipv6Loopback.find("/")), node->getName());
+      }
+    }
+  }
+
+  for (const auto& subscriptionInfo :
+       sw_->getDsfSubscriber()->getSubscriptionInfo()) {
+    FsdbSubscriptionThrift subscriptionThrift;
+    subscriptionThrift.paths() = subscriptionInfo.paths;
+    subscriptionThrift.state() =
+        fsdb::FsdbPubSubManager::subscriptionStateToString(
+            subscriptionInfo.state);
+    if (loopbackIpToName.find(subscriptionInfo.server) !=
+        loopbackIpToName.end()) {
+      subscriptionThrift.name() = loopbackIpToName[subscriptionInfo.server];
+      subscriptions.push_back(subscriptionThrift);
+    } else {
+      XLOG(ERR) << "Unable to find loopback ip " << subscriptionInfo.server
+                << " from DsfSubscription in Dsf nodes";
     }
   }
 }

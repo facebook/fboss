@@ -681,6 +681,12 @@ struct FabricEndpoint {
   10: optional string expectedSwitchName;
 }
 
+struct FsdbSubscriptionThrift {
+  1: string name;
+  2: list<string> paths;
+  3: string state;
+}
+
 service FbossCtrl extends phy.FbossCommonPhyCtrl {
   /*
    * Retrieve up-to-date counters from the hardware, and publish all
@@ -1322,6 +1328,9 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
     1: list<string> switchNames,
   ) throws (1: fboss.FbossBaseError error);
   map<i64, switch_config.DsfNode> getDsfNodes() throws (
+    1: fboss.FbossBaseError error,
+  );
+  list<FsdbSubscriptionThrift> getDsfSubscriptions() throws (
     1: fboss.FbossBaseError error,
   );
   map<i64, SystemPortThrift> getSystemPorts() throws (
