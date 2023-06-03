@@ -62,6 +62,9 @@ class MultiSwitchDsfNodeMap : public ThriftMultiSwitchMapNode<
   using BaseT = ThriftMultiSwitchMapNode<
       MultiSwitchDsfNodeMap,
       MultiSwitchDsfNodeMapTraits>;
+  using BaseT::modify;
+
+  MultiSwitchDsfNodeMap* modify(std::shared_ptr<SwitchState>* state);
 
  private:
   // Inherit the constructors required for clone()

@@ -7,5 +7,10 @@
 
 namespace facebook::fboss {
 
+MultiSwitchDsfNodeMap* MultiSwitchDsfNodeMap::modify(
+    std::shared_ptr<SwitchState>* state) {
+  return SwitchState::modify<switch_state_tags::dsfNodesMap>(state);
+}
+
 template class ThriftMapNode<DsfNodeMap, DsfNodeMapTraits>;
 } // namespace facebook::fboss

@@ -276,10 +276,20 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     fsdbPubSubMgr_->addStatePathSubscription(
         {getSystemPortsPath(), getInterfacesPath()},
         [nodeName](auto /*oldState*/, auto newState) {
-          XLOG(DBG2) << (newState == fsdb::FsdbStreamClient::State::CONNECTED
-                             ? "Connected to:"
-                             : "Disconnected from: ")
-                     << nodeName;
+          switch (newState) {
+            case fsdb::FsdbStreamClient::State::CONNECTING:
+              XLOG(DBG2) << "Try connecting to " << nodeName;
+              break;
+            case fsdb::FsdbStreamClient::State::CONNECTED:
+              XLOG(DBG2) << "Connected to " << nodeName;
+              break;
+            case fsdb::FsdbStreamClient::State::DISCONNECTED:
+              XLOG(DBG2) << "Disconnected from " << nodeName;
+              break;
+            case fsdb::FsdbStreamClient::State::CANCELLED:
+              XLOG(DBG2) << "Cancelled " << nodeName;
+              break;
+          }
         },
         [this, nodeName, nodeSwitchId](fsdb::OperSubPathUnit&& operStateUnit) {
           std::shared_ptr<SystemPortMap> newSysPorts;

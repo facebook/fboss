@@ -35,6 +35,10 @@ cfg::DsfNodeType DsfNode::getType() const {
   return get<switch_config_tags::type>()->cref();
 }
 
+void DsfNode::setType(cfg::DsfNodeType type) {
+  set<switch_config_tags::type>(type);
+}
+
 cfg::AsicType DsfNode::getAsicType() const {
   return get<switch_config_tags::asicType>()->cref();
 }

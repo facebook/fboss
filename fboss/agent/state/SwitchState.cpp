@@ -955,6 +955,8 @@ template MultiSwitchTransceiverMap* SwitchState::modify<
     switch_state_tags::transceiverMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchPortFlowletCfgMap* SwitchState::modify<
     switch_state_tags::portFlowletCfgMaps>(std::shared_ptr<SwitchState>*);
+template MultiSwitchDsfNodeMap* SwitchState::modify<
+    switch_state_tags::dsfNodesMap>(std::shared_ptr<SwitchState>*);
 
 template class ThriftStructNode<SwitchState, state::SwitchState>;
 

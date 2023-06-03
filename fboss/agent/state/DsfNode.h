@@ -30,6 +30,7 @@ class DsfNode : public ThriftStructNode<DsfNode, cfg::DsfNode> {
   std::string getName() const;
   void setName(const std::string& name);
   cfg::DsfNodeType getType() const;
+  void setType(cfg::DsfNodeType type);
   cfg::AsicType getAsicType() const;
 
   auto getLoopbackIps() const {

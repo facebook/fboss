@@ -63,6 +63,25 @@ class DsfSubscriberTest : public ::testing::Test {
     dsfSubscriber_ = std::make_unique<DsfSubscriber>(sw_);
   }
 
+  HwSwitchMatcher matcher() const {
+    return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
+  }
+
+  void updateDsfInNode(
+      MultiSwitchDsfNodeMap* dsfNodes,
+      cfg::DsfNode& dsfConifg,
+      bool add) {
+    if (add) {
+      auto dsfNode = std::make_shared<DsfNode>(SwitchID(*dsfConifg.switchId()));
+      dsfNode->setName(*dsfConifg.name());
+      dsfNode->setType(*dsfConifg.type());
+      dsfNode->setLoopbackIps(*dsfConifg.loopbackIps());
+      dsfNodes->addNode(dsfNode, matcher());
+    } else {
+      dsfNodes->removeNode(*dsfConifg.switchId());
+    }
+  }
+
  protected:
   SwSwitch* sw_;
   std::unique_ptr<HwTestHandle> handle_;
@@ -200,5 +219,72 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
 
   verifySetupNeighbors(false /* publishState */);
   verifySetupNeighbors(true /* publishState */);
+}
+
+TEST_F(DsfSubscriberTest, addSubscription) {
+  auto verifySubsriptionState = [&](cfg::DsfNode& nodeConfig,
+                                    auto subscriptionInfoList) {
+    auto ipv6Loopback = (*nodeConfig.loopbackIps())[0];
+    auto serverStr = ipv6Loopback.substr(0, ipv6Loopback.find("/"));
+    for (const auto& subscriptionInfo : subscriptionInfoList) {
+      if (subscriptionInfo.server == serverStr) {
+        EXPECT_EQ(subscriptionInfo.paths.size(), 2);
+        EXPECT_EQ(
+            subscriptionInfo.state,
+            fsdb::FsdbStreamClient::State::DISCONNECTED);
+        return true;
+      }
+    }
+    return false;
+  };
+
+  EXPECT_EQ(sw_->getDsfSubscriber()->getSubscriptionInfo().size(), 0);
+
+  // Insert 2 IN nodes
+  auto node5Id = 5;
+  auto node5DsfConfig = makeDsfNodeCfg(node5Id);
+  sw_->updateStateBlocking(
+      "Add IN node", [&](const std::shared_ptr<SwitchState>& state) {
+        auto newState = state->clone();
+        updateDsfInNode(
+            newState->getDsfNodes()->modify(&newState),
+            node5DsfConfig,
+            /* add */ true);
+        return newState;
+      });
+  EXPECT_EQ(sw_->getDsfSubscriber()->getSubscriptionInfo().size(), 1);
+  EXPECT_TRUE(verifySubsriptionState(
+      node5DsfConfig, sw_->getDsfSubscriber()->getSubscriptionInfo()));
+
+  auto node6Id = 6;
+  auto node6DsfConfig = makeDsfNodeCfg(node6Id);
+  sw_->updateStateBlocking(
+      "Add IN node", [&](const std::shared_ptr<SwitchState>& state) {
+        auto newState = state->clone();
+        updateDsfInNode(
+            newState->getDsfNodes()->modify(&newState),
+            node6DsfConfig,
+            /* add */ true);
+        return newState;
+      });
+  EXPECT_EQ(sw_->getDsfSubscriber()->getSubscriptionInfo().size(), 2);
+  EXPECT_TRUE(verifySubsriptionState(
+      node6DsfConfig, sw_->getDsfSubscriber()->getSubscriptionInfo()));
+
+  // Remove 2 IN nodes
+  sw_->updateStateBlocking(
+      "Add IN node", [&](const std::shared_ptr<SwitchState>& state) {
+        auto newState = state->clone();
+        updateDsfInNode(
+            newState->getDsfNodes()->modify(&newState),
+            node5DsfConfig,
+            /* add */ false);
+        updateDsfInNode(
+            newState->getDsfNodes()->modify(&newState),
+            node6DsfConfig,
+            /* add */ false);
+        return newState;
+      });
+  EXPECT_EQ(sw_->getDsfSubscriber()->getSubscriptionInfo().size(), 0);
 }
 } // namespace facebook::fboss
