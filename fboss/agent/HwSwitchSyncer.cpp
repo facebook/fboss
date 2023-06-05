@@ -14,8 +14,11 @@ HwSwitchStateUpdate::HwSwitchStateUpdate(
     bool transaction)
     : oldState(delta.oldState()),
       newState(delta.newState()),
-      inDelta(delta.getOperDelta()),
-      isTransaction(transaction) {}
+      isTransaction(transaction) {
+  if (FLAGS_enable_state_oper_delta) {
+    inDelta = delta.getOperDelta();
+  }
+}
 
 HwSwitchSyncer::HwSwitchSyncer(
     HwSwitch* hwSwitch,
