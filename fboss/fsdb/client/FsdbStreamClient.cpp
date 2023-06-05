@@ -93,8 +93,6 @@ void FsdbStreamClient::timeoutExpired() noexcept {
   auto serverOptions = *serverOptions_.rlock();
   if (getState() == State::DISCONNECTED && serverOptions) {
     connectToServer(*serverOptions);
-  } else {
-    checkServerState();
   }
   timer_->scheduleTimeout(FLAGS_fsdb_reconnect_ms);
 }
