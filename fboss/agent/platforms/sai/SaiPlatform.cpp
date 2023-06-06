@@ -36,6 +36,7 @@
 #include "fboss/agent/platforms/sai/SaiMeru400biaPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMeru400biuPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMeru800biaPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiMorgan800ccPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiSandiaPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
 #include "fboss/agent/state/Port.h"
@@ -225,6 +226,8 @@ void SaiPlatform::initSaiProfileValues() {
   auto vendorProfileValues = getSaiProfileVendorExtensionValues();
   kSaiProfileValues.insert(
       vendorProfileValues.begin(), vendorProfileValues.end());
+  kSaiProfileValues.insert(std::make_pair(
+      "SAI_SDK_LOG_CONFIG_FILE", "/root/res/config/sai_sdk_log_config.json"));
 }
 
 void SaiPlatform::initImpl(uint32_t hwFeaturesDesired) {
@@ -263,6 +266,8 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiBcmDarwinPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_MINIPACK) {
       saiPort = std::make_unique<SaiBcmMinipackPlatformPort>(portId, this);
+    } else if (platformMode == PlatformType::PLATFORM_MORGAN800CC) {
+      saiPort = std::make_unique<SaiMorgan800ccPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_YAMP) {
       saiPort = std::make_unique<SaiBcmYampPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_FUJI) {

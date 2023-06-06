@@ -81,6 +81,7 @@ TEST_F(HwOverflowTest, overflowRoutes) {
     case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
     case PlatformType::PLATFORM_LASSEN:
     case PlatformType::PLATFORM_SANDIA:
+    case PlatformType::PLATFORM_MORGAN800CC:
       XLOG(WARNING) << " No overflow test for 400C yet";
       break;
     case PlatformType::PLATFORM_FUJI:

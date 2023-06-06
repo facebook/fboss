@@ -24,6 +24,8 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiHwPlatform.cpp
   fboss/agent/platforms/sai/SaiLassenPlatform.cpp
   fboss/agent/platforms/sai/SaiLassenPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiMorgan800ccPlatform.cpp
+  fboss/agent/platforms/sai/SaiMorgan800ccPlatformPort.cpp
   fboss/agent/platforms/sai/SaiPlatformPort.cpp
   fboss/agent/platforms/sai/SaiPlatformInit.cpp
   fboss/agent/platforms/sai/SaiSandiaPlatform.cpp
@@ -66,6 +68,7 @@ add_library(sai_platform
   fboss/agent/platforms/sai/oss/SaiMeru400bfuPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiMeru400bfuPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiSandiaPlatformPort.cpp
+  fboss/agent/platforms/sai/oss/SaiMorgan800ccPlatformPort.cpp
 )
 
 target_link_libraries(sai_platform
@@ -89,6 +92,7 @@ target_link_libraries(sai_platform
   wedge400_platform_mapping
   wedge400c_platform_mapping
   lassen_platform_mapping
+  morgan_platform_mapping
   sandia_platform_mapping
   wedge400c_ebb_lab_platform_mapping
   qsfp_cache
