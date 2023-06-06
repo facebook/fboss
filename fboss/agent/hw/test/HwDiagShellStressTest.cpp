@@ -36,6 +36,7 @@ class HwDiagShellStressTest : public HwLinkStateDependentTest {
         break;
       case cfg::AsicType::ASIC_TYPE_EBRO:
       case cfg::AsicType::ASIC_TYPE_GARONNE:
+      case cfg::AsicType::ASIC_TYPE_YUBA:
         runTajoDiagCmds();
         break;
       case cfg::AsicType::ASIC_TYPE_TRIDENT2:
