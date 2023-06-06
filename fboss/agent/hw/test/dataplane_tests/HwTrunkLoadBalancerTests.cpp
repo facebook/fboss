@@ -243,14 +243,13 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       bool loopThroughFrontPanel,
       AggPortInfo aggInfo,
       int deviation) {
-    auto isLoadBalanced = utility::pumpTrafficAndVerifyLoadBalanced(
+    utility::pumpTrafficAndVerifyLoadBalanced(
         [=]() { pumpIPTraffic(isV6, loopThroughFrontPanel, aggInfo); },
         [=]() { clearPortStats(aggInfo); },
         [=]() {
           return utility::isLoadBalanced(
               getHwSwitchEnsemble(), getPhysicalPorts(aggInfo), deviation);
         });
-    EXPECT_TRUE(isLoadBalanced);
   }
 
   void pumpMPLSTrafficAndVerifyLoadBalanced(
@@ -260,7 +259,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       bool loopThroughFrontPanel,
       AggPortInfo aggInfo,
       int deviation) {
-    auto isLoadBalanced = utility::pumpTrafficAndVerifyLoadBalanced(
+    utility::pumpTrafficAndVerifyLoadBalanced(
         [=]() {
           if (isV6) {
             pumpMPLSTraffic(isV6, labelV6, loopThroughFrontPanel, aggInfo);
@@ -273,7 +272,6 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
           return utility::isLoadBalanced(
               getHwSwitchEnsemble(), getPhysicalPorts(aggInfo), deviation);
         });
-    EXPECT_TRUE(isLoadBalanced);
   }
 
   void runIPLoadBalanceTest(

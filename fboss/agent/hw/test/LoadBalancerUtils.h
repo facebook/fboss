@@ -153,11 +153,11 @@ bool isLoadBalanced(
     int maxDeviationPct,
     bool noTrafficOk = false);
 
-bool pumpTrafficAndVerifyLoadBalanced(
+void pumpTrafficAndVerifyLoadBalanced(
     std::function<void()> pumpTraffic,
     std::function<void()> clearPortStats,
     std::function<bool()> isLoadBalanced,
-    int retries = 3);
+    bool loadBalanceExpected = true);
 
 cfg::UdfConfig addUdfConfig();
 

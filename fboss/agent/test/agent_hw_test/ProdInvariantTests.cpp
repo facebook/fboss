@@ -143,11 +143,7 @@ void ProdInvariantTest::sendTraffic() {
   auto mac = utility::getInterfaceMac(
       sw()->getState(), sw()->getState()->getVlans()->getFirstVlanID());
   utility::pumpTraffic(
-      true,
-      sw()->getHw(),
-      mac,
-      sw()->getState()->getVlans()->getFirstVlanID(),
-      getDownlinkPort());
+      true, sw()->getHw(), mac, sw()->getState()->getVlans()->getFirstVlanID());
 }
 
 PortID ProdInvariantTest::getDownlinkPort() {
@@ -202,7 +198,7 @@ void ProdInvariantTest::verifyLoadBalancing() {
       [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
     return getLatestPortStats(portIds);
   };
-  bool loadBalanced = utility::pumpTrafficAndVerifyLoadBalanced(
+  utility::pumpTrafficAndVerifyLoadBalanced(
       [=]() { sendTraffic(); },
       [=]() {
         auto ports = std::make_unique<std::vector<int32_t>>();
@@ -219,7 +215,6 @@ void ProdInvariantTest::verifyLoadBalancing() {
             getPortStatsFn,
             25);
       });
-  EXPECT_TRUE(loadBalanced);
   XLOG(DBG2) << "Verify Load Balancing Done";
 }
 

@@ -149,7 +149,7 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
       bool loopThroughFrontPanel,
       uint8_t deviation,
       bool loadBalanceExpected) {
-    bool isLoadBalanced = utility::pumpTrafficAndVerifyLoadBalanced(
+    utility::pumpTrafficAndVerifyLoadBalanced(
         [=]() { helper_->pumpTraffic(ecmpWidth, loopThroughFrontPanel); },
         [=]() {
           auto helper = helper_->ecmpSetupHelper();
@@ -164,13 +164,8 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
         },
         [=]() {
           return helper_->isLoadBalanced(ecmpWidth, weights, deviation);
-        });
-
-    if (loadBalanceExpected) {
-      EXPECT_TRUE(isLoadBalanced);
-    } else {
-      EXPECT_FALSE(isLoadBalanced);
-    }
+        },
+        loadBalanceExpected);
   }
 
   void resolveNextHopsandClearStats(unsigned int ecmpWidth) {
