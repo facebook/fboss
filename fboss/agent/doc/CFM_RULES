@@ -1,15 +1,15 @@
 publish(
     wiki_root_path = "FBOSS_Agent/Features",
     srcs = ["Overview.md"],
-    oncall = "fboss_dev",
+    oncall = "fboss_agent",
 )
 publish(
     wiki_root_path = "FBOSS_Agent/Features",
     srcs = ["SwitchState.md"],
-    oncall = "fboss_dev",
+    oncall = "fboss_agent",
 )
 publish(
     wiki_root_path = "FBOSS_Agent/Features",
     srcs = ["ConcurrencyModel.md"],
-    oncall = "fboss_dev",
+    oncall = "fboss_agent",
 )
