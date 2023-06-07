@@ -10,11 +10,13 @@
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
 
 #include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
 #include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
+#include "fboss/lib/bsp/meru400bia/Meru400biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
@@ -54,6 +56,8 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
     return createSandiaWedgeManager();
   } else if (mode == PlatformType::PLATFORM_MERU400BFU) {
     return createMeru400bfuWedgeManager();
+  } else if (mode == PlatformType::PLATFORM_MERU400BIA) {
+    return createMeru400biaWedgeManager();
   } else if (mode == PlatformType::PLATFORM_MERU400BIU) {
     return createMeru400biuWedgeManager();
   } else if (mode == PlatformType::PLATFORM_MERU800BIA) {
@@ -80,6 +84,17 @@ std::unique_ptr<WedgeManager> createMeru400bfuWedgeManager() {
       std::make_unique<BspTransceiverApi>(systemContainer),
       std::make_unique<Meru400bfuPlatformMapping>(),
       PlatformType::PLATFORM_MERU400BFU);
+}
+
+std::unique_ptr<WedgeManager> createMeru400biaWedgeManager() {
+  auto systemContainer =
+      BspGenericSystemContainer<Meru400biaBspPlatformMapping>::getInstance()
+          .get();
+  return std::make_unique<BspWedgeManager>(
+      systemContainer,
+      std::make_unique<BspTransceiverApi>(systemContainer),
+      std::make_unique<Meru400biaPlatformMapping>(),
+      PlatformType::PLATFORM_MERU400BIA);
 }
 
 std::unique_ptr<WedgeManager> createMeru400biuWedgeManager() {
