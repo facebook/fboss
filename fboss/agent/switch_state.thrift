@@ -556,7 +556,7 @@ struct SwitchState {
   24: map<string, SflowCollectorFields> sflowCollectorMap;
   25: map<string, IpTunnelFields> ipTunnelMap_DEPRECATED;
   26: map<string, TeFlowEntryFields> teFlowTable_DEPRECATED;
-  27: map<i16, AggregatePortFields> aggregatePortMap;
+  27: map<i16, AggregatePortFields> aggregatePortMap_DEPRECATED;
   28: map<
     switch_config.LoadBalancerID,
     LoadBalancerFields

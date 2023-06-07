@@ -534,9 +534,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   state->fromThrift<
       switch_state_tags::sflowCollectorMaps,
       switch_state_tags::sflowCollectorMap>(true /*emptyMnpuMapOk*/);
-  state->fromThrift<
-      switch_state_tags::aggregatePortMaps,
-      switch_state_tags::aggregatePortMap>(true /*emptyMnpuMapOk*/);
 
   return state;
 }
@@ -658,9 +655,6 @@ state::SwitchState SwitchState::toThrift() const {
   /* backward compatibility */
   if (auto obj = toThrift(cref<switch_state_tags::sflowCollectorMaps>())) {
     data.sflowCollectorMap() = *obj;
-  }
-  if (auto obj = toThrift(cref<switch_state_tags::aggregatePortMaps>())) {
-    data.aggregatePortMap() = *obj;
   }
   return data;
 }
