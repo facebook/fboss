@@ -350,7 +350,7 @@ class SwitchSettings
   }
 
   std::shared_ptr<QcmCfg> getQcmCfg() const {
-    return cref<switch_state_tags::qcmCfg>();
+    return safe_cref<switch_state_tags::qcmCfg>();
   }
 
   void setQcmCfg(std::shared_ptr<QcmCfg> qcmCfg) {

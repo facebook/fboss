@@ -98,7 +98,6 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::defaultDataPlaneQosPolicy,
     QosPolicy);
-RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::qcmCfg, QcmCfg);
 RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::udfConfig, UdfConfig);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
@@ -338,10 +337,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
     const auto switchSettings = util::getFirstNodeIf(getSwitchSettings())
         ? util::getFirstNodeIf(getSwitchSettings())
         : std::make_shared<SwitchSettings>();
-    if (auto qcmCfg = switchSettings->getQcmCfg()) {
-      return qcmCfg;
-    }
-    return cref<switch_state_tags::qcmCfg>();
+    return switchSettings->getQcmCfg();
   }
 
   const std::shared_ptr<MultiSwitchBufferPoolCfgMap> getBufferPoolCfgs() const;

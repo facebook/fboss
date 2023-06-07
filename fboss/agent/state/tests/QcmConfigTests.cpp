@@ -122,16 +122,11 @@ TEST(QcmConfigTest, applyConfig) {
     }
   }
 
-  const auto& thriftState0 = state2->toThrift();
-  EXPECT_EQ(thriftState0.qcmCfg()->numFlowsClear(), 22);
-  EXPECT_EQ(thriftState0.qcmCfg(), thriftState0.switchSettings()->qcmCfg());
-
   // remove the cfg
   config.qcmConfig().reset();
   auto state3 = publishAndApplyConfig(state2, &config, platform.get());
   EXPECT_NE(nullptr, state3);
   EXPECT_FALSE(state3->getQcmCfg());
-  EXPECT_FALSE(util::getFirstNodeIf(state3->getSwitchSettings())->getQcmCfg());
 }
 
 // Intent of this test is to enable QCM, modify an
