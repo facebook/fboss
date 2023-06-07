@@ -542,7 +542,7 @@ struct SwitchState {
   9: i16 defaultVlan_DEPRECATED;
   10: i64 arpTimeout_DEPRECATED;
   11: i64 ndpTimeout_DEPRECATED;
-  12: i32 arpAgerInterval = 5;
+  12: i32 arpAgerInterval_DEPRECATED;
   13: i32 maxNeighborProbes = 300;
   14: i64 staleEntryInterval = 10;
   15: Address.BinaryAddress dhcpV4RelaySrc;

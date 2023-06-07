@@ -680,12 +680,6 @@ state::SwitchState SwitchState::toThrift() const {
         multiSwitchSwitchSettings->cbegin()->second->toThrift();
   }
 
-  // Write arpAgerInterval to switchSettings and old fields for transition
-  if (data.switchSettings()->arpAgerInterval().has_value()) {
-    data.arpAgerInterval() = data.switchSettings()->arpAgerInterval().value();
-  } else {
-    data.switchSettings()->arpAgerInterval() = data.arpAgerInterval().value();
-  }
   // Write staleEntryInterval to switchSettings and old fields for transition
   if (data.switchSettings()->staleEntryInterval().has_value()) {
     data.staleEntryInterval() =

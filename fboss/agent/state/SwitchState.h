@@ -354,7 +354,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       return arpAgeSwSettings.value();
     }
     return std::chrono::seconds(
-        cref<switch_state_tags::arpAgerInterval>()->toThrift());
+        cfg::switch_config_constants::arpAgerIntervalDefault());
   }
 
   uint32_t getMaxNeighborProbes() const {
