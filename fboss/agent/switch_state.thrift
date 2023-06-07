@@ -535,7 +535,7 @@ struct SwitchState {
   2: map<i16, VlanFields> vlanMap;
   3: map<string, AclEntryFields> aclMap;
   4: map<i16, TransceiverSpecFields> transceiverMap_DEPRECATED;
-  5: map<string, BufferPoolFields> bufferPoolCfgMap;
+  5: map<string, BufferPoolFields> bufferPoolCfgMap_DEPRECATED;
   6: map<string, MirrorFields> mirrorMap_DEPRECATED;
   7: ControlPlaneFields controlPlane;
   8: SwitchSettingsFields switchSettings;

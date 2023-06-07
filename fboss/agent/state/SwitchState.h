@@ -75,10 +75,6 @@ RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::vlanMap, VlanMap);
 RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::aclMap, AclMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
-    switch_state_tags::bufferPoolCfgMap,
-    BufferPoolCfgMap);
-RESOLVE_STRUCT_MEMBER(
-    SwitchState,
     switch_state_tags::controlPlane,
     ControlPlane);
 RESOLVE_STRUCT_MEMBER(
