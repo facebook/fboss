@@ -563,18 +563,6 @@ TEST(SwitchSettingsTest, applyDhcpConfig) {
 
   const auto& thriftState0 = stateV1->toThrift();
   EXPECT_EQ(
-      thriftState0.dhcpV4RelaySrc(),
-      facebook::network::toBinaryAddress(kDhcpV4RelaySrc));
-  EXPECT_EQ(
-      thriftState0.dhcpV6RelaySrc(),
-      facebook::network::toBinaryAddress(kDhcpV6RelaySrc));
-  EXPECT_EQ(
-      thriftState0.dhcpV4ReplySrc(),
-      facebook::network::toBinaryAddress(kDhcpV4ReplySrc));
-  EXPECT_EQ(
-      thriftState0.dhcpV6ReplySrc(),
-      facebook::network::toBinaryAddress(kDhcpV6ReplySrc));
-  EXPECT_EQ(
       thriftState0.switchSettings()->dhcpV4RelaySrc(),
       facebook::network::toBinaryAddress(kDhcpV4RelaySrc));
   EXPECT_EQ(

@@ -390,9 +390,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
     if (dhcpV4RelaySrc.has_value()) {
       return dhcpV4RelaySrc.value();
     }
-    return network::toIPAddress(
-               cref<switch_state_tags::dhcpV4RelaySrc>()->toThrift())
-        .asV4();
+    return folly::IPAddressV4("0.0.0.0");
   }
 
   folly::IPAddressV6 getDhcpV6RelaySrc() const {
@@ -403,9 +401,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
     if (dhcpV6RelaySrc.has_value()) {
       return dhcpV6RelaySrc.value();
     }
-    return network::toIPAddress(
-               cref<switch_state_tags::dhcpV6RelaySrc>()->toThrift())
-        .asV6();
+    return folly::IPAddressV6("::");
   }
 
   folly::IPAddressV4 getDhcpV4ReplySrc() const {
@@ -416,9 +412,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
     if (dhcpV4ReplySrc.has_value()) {
       return dhcpV4ReplySrc.value();
     }
-    return network::toIPAddress(
-               cref<switch_state_tags::dhcpV4ReplySrc>()->toThrift())
-        .asV4();
+    return folly::IPAddressV4("0.0.0.0");
   }
 
   folly::IPAddressV6 getDhcpV6ReplySrc() const {
@@ -429,9 +423,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
     if (dhcpV6ReplySrc.has_value()) {
       return dhcpV6ReplySrc.value();
     }
-    return network::toIPAddress(
-               cref<switch_state_tags::dhcpV6ReplySrc>()->toThrift())
-        .asV6();
+    return folly::IPAddressV6("::");
   }
 
   // THRIFT_COPY

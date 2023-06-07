@@ -135,15 +135,6 @@ std::shared_ptr<Map>& SwitchState::getMap(const HwSwitchMatcher& matcher) {
 }
 
 SwitchState::SwitchState() {
-  set<switch_state_tags::dhcpV4RelaySrc>(
-      network::toBinaryAddress(folly::IPAddress("0.0.0.0")));
-  set<switch_state_tags::dhcpV4ReplySrc>(
-      network::toBinaryAddress(folly::IPAddress("0.0.0.0")));
-  set<switch_state_tags::dhcpV6RelaySrc>(
-      network::toBinaryAddress(folly::IPAddress("::")));
-  set<switch_state_tags::dhcpV6ReplySrc>(
-      network::toBinaryAddress(folly::IPAddress("::")));
-
   resetIntfs(std::make_shared<MultiSwitchInterfaceMap>());
   resetRemoteIntfs(std::make_shared<MultiSwitchInterfaceMap>());
   resetTransceivers(std::make_shared<MultiSwitchTransceiverMap>());
@@ -680,27 +671,6 @@ state::SwitchState SwitchState::toThrift() const {
         multiSwitchSwitchSettings->cbegin()->second->toThrift();
   }
 
-  // Write dhcp fields to switchSettings and old fields for transition
-  if (data.switchSettings()->dhcpV4RelaySrc().has_value()) {
-    data.dhcpV4RelaySrc() = data.switchSettings()->dhcpV4RelaySrc().value();
-  } else {
-    data.switchSettings()->dhcpV4RelaySrc() = data.dhcpV4RelaySrc().value();
-  }
-  if (data.switchSettings()->dhcpV6RelaySrc().has_value()) {
-    data.dhcpV6RelaySrc() = data.switchSettings()->dhcpV6RelaySrc().value();
-  } else {
-    data.switchSettings()->dhcpV6RelaySrc() = data.dhcpV6RelaySrc().value();
-  }
-  if (data.switchSettings()->dhcpV4ReplySrc().has_value()) {
-    data.dhcpV4ReplySrc() = data.switchSettings()->dhcpV4ReplySrc().value();
-  } else {
-    data.switchSettings()->dhcpV4ReplySrc() = data.dhcpV4ReplySrc().value();
-  }
-  if (data.switchSettings()->dhcpV6ReplySrc().has_value()) {
-    data.dhcpV6ReplySrc() = data.switchSettings()->dhcpV6ReplySrc().value();
-  } else {
-    data.switchSettings()->dhcpV6ReplySrc() = data.dhcpV6ReplySrc().value();
-  }
   /* backward compatibility */
   if (auto obj = toThrift(cref<switch_state_tags::fibsMap>())) {
     data.fibs() = *obj;

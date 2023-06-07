@@ -545,10 +545,10 @@ struct SwitchState {
   12: i32 arpAgerInterval_DEPRECATED;
   13: i32 maxNeighborProbes_DEPRECATED;
   14: i64 staleEntryInterval_DEPRECATED;
-  15: Address.BinaryAddress dhcpV4RelaySrc;
-  16: Address.BinaryAddress dhcpV6RelaySrc;
-  17: Address.BinaryAddress dhcpV4ReplySrc;
-  18: Address.BinaryAddress dhcpV6ReplySrc;
+  15: Address.BinaryAddress dhcpV4RelaySrc_DEPRECATED;
+  16: Address.BinaryAddress dhcpV6RelaySrc_DEPRECATED;
+  17: Address.BinaryAddress dhcpV4ReplySrc_DEPRECATED;
+  18: Address.BinaryAddress dhcpV6ReplySrc_DEPRECATED;
   20: map<i64, SystemPortFields> systemPortMap_DEPRECATED;
   21: map<i16, FibContainerFields> fibs;
   22: map<i32, LabelForwardingEntryFields> labelFib;
