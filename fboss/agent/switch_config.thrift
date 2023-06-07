@@ -21,7 +21,9 @@ const i16 defaultVlanId = 0;
 const i64 arpTimeoutDefault = 60;
 const i64 ndpTimeoutDefault = 60;
 const i32 arpAgerIntervalDefault = 5;
+const i32 arpRefreshSecondsDefault = 20;
 const i32 maxNeighborProbesDefault = 300;
+const i64 staleEntryIntervalDefault = 10;
 
 enum PortDescriptorType {
   Physical = 0,
@@ -1763,9 +1765,9 @@ struct SwitchConfig {
    */
   5: i32 defaultVlan;
   6: list<Interface> interfaces = [];
-  7: i32 arpTimeoutSeconds = 60;
-  8: i32 arpRefreshSeconds = 20;
-  9: i32 arpAgerInterval = 5;
+  7: i32 arpTimeoutSeconds = arpTimeoutDefault;
+  8: i32 arpRefreshSeconds = arpRefreshSecondsDefault;
+  9: i32 arpAgerInterval = arpAgerIntervalDefault;
   10: bool proactiveArp = 0;
   // The MAC address to use for the switch CPU.
   11: optional string cpuMAC;
@@ -1795,8 +1797,8 @@ struct SwitchConfig {
   // safety measure here to avoid catastrophic failure if such a situation
   // arises again.On vendor devices we set ARP expiry to be as high as 1500
   // seconds.
-  16: i32 maxNeighborProbes = 300;
-  17: i32 staleEntryInterval = 10;
+  16: i32 maxNeighborProbes = maxNeighborProbesDefault;
+  17: i32 staleEntryInterval = staleEntryIntervalDefault;
   18: list<AggregatePort> aggregatePorts = [];
   // What admin distance to use for each potential clientID
   // These mappings map a ClientID to a AdminDistance

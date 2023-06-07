@@ -519,7 +519,6 @@ TEST(SwitchSettingsTest, applyArpNdpTimeoutConfig) {
   EXPECT_EQ(switchSettingsV1->getMaxNeighborProbes(), 100);
 
   const auto& thriftState0 = stateV1->toThrift();
-  EXPECT_EQ(thriftState0.staleEntryInterval(), 200);
   EXPECT_EQ(thriftState0.switchSettings()->arpTimeout(), 300);
   EXPECT_EQ(thriftState0.switchSettings()->ndpTimeout(), 300);
   EXPECT_EQ(thriftState0.switchSettings()->arpAgerInterval(), 200);

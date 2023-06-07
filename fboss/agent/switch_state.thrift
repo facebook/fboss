@@ -544,7 +544,7 @@ struct SwitchState {
   11: i64 ndpTimeout_DEPRECATED;
   12: i32 arpAgerInterval_DEPRECATED;
   13: i32 maxNeighborProbes_DEPRECATED;
-  14: i64 staleEntryInterval = 10;
+  14: i64 staleEntryInterval_DEPRECATED;
   15: Address.BinaryAddress dhcpV4RelaySrc;
   16: Address.BinaryAddress dhcpV6RelaySrc;
   17: Address.BinaryAddress dhcpV4ReplySrc;

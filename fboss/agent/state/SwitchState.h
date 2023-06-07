@@ -377,7 +377,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       return staleEntrySwSettings.value();
     }
     return std::chrono::seconds(
-        cref<switch_state_tags::staleEntryInterval>()->toThrift());
+        cfg::switch_config_constants::staleEntryIntervalDefault());
   }
 
   // dhcp relay packet IP overrides

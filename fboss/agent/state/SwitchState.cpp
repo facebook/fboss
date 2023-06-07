@@ -680,14 +680,6 @@ state::SwitchState SwitchState::toThrift() const {
         multiSwitchSwitchSettings->cbegin()->second->toThrift();
   }
 
-  // Write staleEntryInterval to switchSettings and old fields for transition
-  if (data.switchSettings()->staleEntryInterval().has_value()) {
-    data.staleEntryInterval() =
-        data.switchSettings()->staleEntryInterval().value();
-  } else {
-    data.switchSettings()->staleEntryInterval() =
-        data.staleEntryInterval().value();
-  }
   // Write dhcp fields to switchSettings and old fields for transition
   if (data.switchSettings()->dhcpV4RelaySrc().has_value()) {
     data.dhcpV4RelaySrc() = data.switchSettings()->dhcpV4RelaySrc().value();
