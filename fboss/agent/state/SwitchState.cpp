@@ -663,14 +663,6 @@ state::SwitchState SwitchState::toThrift() const {
     aclTableGroupMaps->clear();
   }
 
-  // SwitchSettings need to restored before the transition logic
-  // for new SwitchSettings members is executed
-  auto multiSwitchSwitchSettings = cref<switch_state_tags::switchSettingsMap>();
-  if (!multiSwitchSwitchSettings->empty()) {
-    data.switchSettings() =
-        multiSwitchSwitchSettings->cbegin()->second->toThrift();
-  }
-
   /* backward compatibility */
   if (auto obj = toThrift(cref<switch_state_tags::fibsMap>())) {
     data.fibs() = *obj;

@@ -480,9 +480,6 @@ TEST(SwitchSettingsTest, applyDefaultVlanConfig) {
   ASSERT_NE(nullptr, switchSettingsV1);
   EXPECT_FALSE(switchSettingsV1->isPublished());
   EXPECT_EQ(switchSettingsV1->getDefaultVlan(), 1);
-
-  const auto& thriftState0 = stateV1->toThrift();
-  EXPECT_EQ(thriftState0.switchSettings()->defaultVlan(), 1);
 }
 
 TEST(SwitchSettingsTest, applyArpNdpTimeoutConfig) {
@@ -517,13 +514,6 @@ TEST(SwitchSettingsTest, applyArpNdpTimeoutConfig) {
   EXPECT_EQ(
       switchSettingsV1->getStaleEntryInterval(), std::chrono::seconds(200));
   EXPECT_EQ(switchSettingsV1->getMaxNeighborProbes(), 100);
-
-  const auto& thriftState0 = stateV1->toThrift();
-  EXPECT_EQ(thriftState0.switchSettings()->arpTimeout(), 300);
-  EXPECT_EQ(thriftState0.switchSettings()->ndpTimeout(), 300);
-  EXPECT_EQ(thriftState0.switchSettings()->arpAgerInterval(), 200);
-  EXPECT_EQ(thriftState0.switchSettings()->staleEntryInterval(), 200);
-  EXPECT_EQ(thriftState0.switchSettings()->maxNeighborProbes(), 100);
 }
 
 TEST(SwitchSettingsTest, applyDhcpConfig) {
@@ -560,20 +550,6 @@ TEST(SwitchSettingsTest, applyDhcpConfig) {
   EXPECT_EQ(switchSettingsV1->getDhcpV6RelaySrc(), kDhcpV6RelaySrc);
   EXPECT_EQ(switchSettingsV1->getDhcpV4ReplySrc(), kDhcpV4ReplySrc);
   EXPECT_EQ(switchSettingsV1->getDhcpV6ReplySrc(), kDhcpV6ReplySrc);
-
-  const auto& thriftState0 = stateV1->toThrift();
-  EXPECT_EQ(
-      thriftState0.switchSettings()->dhcpV4RelaySrc(),
-      facebook::network::toBinaryAddress(kDhcpV4RelaySrc));
-  EXPECT_EQ(
-      thriftState0.switchSettings()->dhcpV6RelaySrc(),
-      facebook::network::toBinaryAddress(kDhcpV6RelaySrc));
-  EXPECT_EQ(
-      thriftState0.switchSettings()->dhcpV4ReplySrc(),
-      facebook::network::toBinaryAddress(kDhcpV4ReplySrc));
-  EXPECT_EQ(
-      thriftState0.switchSettings()->dhcpV6ReplySrc(),
-      facebook::network::toBinaryAddress(kDhcpV6ReplySrc));
 }
 
 TEST(SwitchSettingsTest, modify) {

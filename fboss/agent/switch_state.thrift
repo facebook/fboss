@@ -538,7 +538,7 @@ struct SwitchState {
   5: map<string, BufferPoolFields> bufferPoolCfgMap_DEPRECATED;
   6: map<string, MirrorFields> mirrorMap_DEPRECATED;
   7: ControlPlaneFields controlPlane_DEPRECATED;
-  8: SwitchSettingsFields switchSettings;
+  8: SwitchSettingsFields switchSettings_DEPRECATED;
   9: i16 defaultVlan_DEPRECATED;
   10: i64 arpTimeout_DEPRECATED;
   11: i64 ndpTimeout_DEPRECATED;
