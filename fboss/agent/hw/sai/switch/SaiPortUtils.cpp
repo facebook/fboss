@@ -10,7 +10,6 @@
 
 #include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #if defined(SAI_VERSION_9_0_EA_SIM_ODP) ||      \
-    defined(SAI_VERSION_9_0_EA_DNX_ODP) ||      \
     defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) || \
     defined(SAI_VERSION_10_0_EA_DNX_ODP)
 #ifndef IS_OSS_BRCM_SAI
@@ -48,7 +47,6 @@ sai_port_loopback_mode_t getSaiPortLoopbackMode(
       return SAI_PORT_LOOPBACK_MODE_MAC;
     case cfg::PortLoopbackMode::NIF:
 #if defined(SAI_VERSION_9_0_EA_SIM_ODP) ||      \
-    defined(SAI_VERSION_9_0_EA_DNX_ODP) ||      \
     defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) || \
     defined(SAI_VERSION_10_0_EA_DNX_ODP)
       // since this one is not an enum for now
@@ -69,7 +67,6 @@ cfg::PortLoopbackMode getCfgPortLoopbackMode(sai_port_loopback_mode_t mode) {
     case SAI_PORT_LOOPBACK_MODE_MAC:
       return cfg::PortLoopbackMode::MAC;
 #if defined(SAI_VERSION_9_0_EA_SIM_ODP) ||      \
-    defined(SAI_VERSION_9_0_EA_DNX_ODP) ||      \
     defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) || \
     defined(SAI_VERSION_10_0_EA_DNX_ODP)
     case SAI_PORT_LOOPBACK_MODE_NIF:
