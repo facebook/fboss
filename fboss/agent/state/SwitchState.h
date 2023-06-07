@@ -78,10 +78,6 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::aggregatePortMap,
     AggregatePortMap);
-RESOLVE_STRUCT_MEMBER(
-    SwitchState,
-    switch_state_tags::loadBalancerMap,
-    LoadBalancerMap);
 
 /* multi npu maps */
 RESOLVE_STRUCT_MEMBER(

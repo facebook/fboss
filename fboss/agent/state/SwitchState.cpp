@@ -537,9 +537,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   state->fromThrift<
       switch_state_tags::aggregatePortMaps,
       switch_state_tags::aggregatePortMap>(true /*emptyMnpuMapOk*/);
-  state->fromThrift<
-      switch_state_tags::loadBalancerMaps,
-      switch_state_tags::loadBalancerMap>(true /*emptyMnpuMapOk*/);
 
   return state;
 }
@@ -664,9 +661,6 @@ state::SwitchState SwitchState::toThrift() const {
   }
   if (auto obj = toThrift(cref<switch_state_tags::aggregatePortMaps>())) {
     data.aggregatePortMap() = *obj;
-  }
-  if (auto obj = toThrift(cref<switch_state_tags::loadBalancerMaps>())) {
-    data.loadBalancerMap() = *obj;
   }
   return data;
 }
