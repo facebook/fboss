@@ -752,15 +752,6 @@ state::SwitchState SwitchState::toThrift() const {
   } else if (data.udfConfig().is_set()) {
     data.switchSettings()->udfConfig() = data.udfConfig().value();
   }
-  // Write flowletSwitchingConfig to switchSettings and old fields for
-  // transition
-  if (data.switchSettings()->flowletSwitchingConfig().has_value()) {
-    data.flowletSwitchingConfig() =
-        data.switchSettings()->flowletSwitchingConfig().value();
-  } else if (data.flowletSwitchingConfig().has_value()) {
-    data.switchSettings()->flowletSwitchingConfig() =
-        data.flowletSwitchingConfig().value();
-  }
   /* backward compatibility */
   if (auto obj = toThrift(cref<switch_state_tags::fibsMap>())) {
     data.fibs() = *obj;

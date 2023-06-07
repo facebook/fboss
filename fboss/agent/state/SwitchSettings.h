@@ -373,9 +373,9 @@ class SwitchSettings
     ref<switch_state_tags::udfConfig>() = udfConfig;
   }
 
-  const std::shared_ptr<FlowletSwitchingConfig>& getFlowletSwitchingConfig()
+  const std::shared_ptr<FlowletSwitchingConfig> getFlowletSwitchingConfig()
       const {
-    return cref<switch_state_tags::flowletSwitchingConfig>();
+    return safe_cref<switch_state_tags::flowletSwitchingConfig>();
   }
 
   void setFlowletSwitchingConfig(

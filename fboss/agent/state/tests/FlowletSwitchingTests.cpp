@@ -187,10 +187,6 @@ TEST(FlowletSwitching, applyConfig) {
       stateV2->getFlowletSwitchingConfig(),
       util::getFirstNodeIf(stateV2->getSwitchSettings())
           ->getFlowletSwitchingConfig());
-  const auto& stateThrift = stateV2->toThrift();
-  EXPECT_EQ(
-      stateThrift.flowletSwitchingConfig(),
-      *(stateThrift.switchSettings()->flowletSwitchingConfig()));
 
   // undo flowlet switching cfg
   config.flowletSwitchingConfig().reset();

@@ -99,10 +99,6 @@ RESOLVE_STRUCT_MEMBER(
     switch_state_tags::defaultDataPlaneQosPolicy,
     QosPolicy);
 RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::udfConfig, UdfConfig);
-RESOLVE_STRUCT_MEMBER(
-    SwitchState,
-    switch_state_tags::flowletSwitchingConfig,
-    FlowletSwitchingConfig);
 
 /* multi npu maps */
 RESOLVE_STRUCT_MEMBER(
@@ -474,15 +470,12 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
     return cref<switch_state_tags::udfConfig>();
   }
 
-  const std::shared_ptr<FlowletSwitchingConfig>& getFlowletSwitchingConfig()
+  const std::shared_ptr<FlowletSwitchingConfig> getFlowletSwitchingConfig()
       const {
     const auto switchSettings = util::getFirstNodeIf(getSwitchSettings())
         ? util::getFirstNodeIf(getSwitchSettings())
         : std::make_shared<SwitchSettings>();
-    if (switchSettings->getFlowletSwitchingConfig()) {
-      return switchSettings->getFlowletSwitchingConfig();
-    }
-    return cref<switch_state_tags::flowletSwitchingConfig>();
+    return switchSettings->getFlowletSwitchingConfig();
   }
 
   /*
