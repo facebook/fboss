@@ -365,8 +365,8 @@ class SwitchSettings
     ref<switch_state_tags::defaultDataPlaneQosPolicy>() = qosPolicy;
   }
 
-  const std::shared_ptr<UdfConfig>& getUdfConfig() const {
-    return cref<switch_state_tags::udfConfig>();
+  const std::shared_ptr<UdfConfig> getUdfConfig() const {
+    return safe_cref<switch_state_tags::udfConfig>();
   }
 
   void setUdfConfig(std::shared_ptr<UdfConfig> udfConfig) {

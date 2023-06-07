@@ -245,18 +245,6 @@ TEST(Udf, addUpdate) {
           kUdfGroupCfgName1.str()));
 }
 
-TEST(Udf, publish) {
-  cfg::UdfConfig udfCfg;
-  auto udfConfig = std::make_shared<UdfConfig>();
-  auto state = std::make_shared<SwitchState>();
-
-  // convert to state
-  udfConfig->fromThrift(udfCfg);
-  // update the state with udfCfg
-  state->publish();
-  EXPECT_TRUE(state->getUdfConfig()->isPublished());
-}
-
 TEST(Udf, applyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
@@ -269,7 +257,7 @@ TEST(Udf, applyConfig) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_EQ(nullptr, stateV1);
   // no map has been populated
-  EXPECT_EQ(stateV0->getUdfConfig()->getUdfGroupMap()->size(), 0);
+  EXPECT_EQ(stateV0->getUdfConfig(), nullptr);
 
   auto udfEntry = makeCfgUdfGroupEntry(kUdfGroupCfgName1.str());
   auto udfPacketmatcherEntry =
@@ -286,11 +274,6 @@ TEST(Udf, applyConfig) {
   EXPECT_EQ(stateV2->getUdfConfig()->getUdfPacketMatcherMap()->size(), 1);
   auto switchSettingsV2 = util::getFirstNodeIf(stateV2->getSwitchSettings());
   EXPECT_EQ(stateV2->getUdfConfig(), switchSettingsV2->getUdfConfig());
-  const auto stateThrift = stateV2->toThrift();
-  // make sure we are writing the global and switchSettings entry for
-  // compatibility
-  EXPECT_EQ(
-      stateThrift.udfConfig(), *(stateThrift.switchSettings()->udfConfig()));
 
   // undo udf cfg
   config.udfConfig().reset();
@@ -311,7 +294,7 @@ TEST(Udf, validateMissingPacketMatcherConfig) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_EQ(nullptr, stateV1);
   // no map has been populated
-  EXPECT_EQ(stateV0->getUdfConfig()->getUdfGroupMap()->size(), 0);
+  EXPECT_EQ(stateV0->getUdfConfig(), nullptr);
 
   auto udfEntry = makeCfgUdfGroupEntry(kUdfGroupCfgName1.str());
   // Add matchCfg_2 for packetMatcher while matchCfg_1 is associated with
@@ -394,7 +377,7 @@ TEST(Udf, removeUdfConfigStateDelta) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_EQ(nullptr, stateV1);
   // no map has been populated
-  EXPECT_EQ(stateV0->getUdfConfig()->getUdfGroupMap()->size(), 0);
+  EXPECT_EQ(stateV0->getUdfConfig(), nullptr);
 
   auto udfEntry = makeCfgUdfGroupEntry(kUdfGroupCfgName1.str());
   auto udfPacketmatcherEntry =

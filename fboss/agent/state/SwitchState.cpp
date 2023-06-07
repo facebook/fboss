@@ -738,12 +738,6 @@ state::SwitchState SwitchState::toThrift() const {
   } else {
     data.switchSettings()->dhcpV6ReplySrc() = data.dhcpV6ReplySrc().value();
   }
-  // Write udfConfig to switchSettings and old fields for transition
-  if (data.switchSettings()->udfConfig().has_value()) {
-    data.udfConfig() = data.switchSettings()->udfConfig().value();
-  } else if (data.udfConfig().is_set()) {
-    data.switchSettings()->udfConfig() = data.udfConfig().value();
-  }
   /* backward compatibility */
   if (auto obj = toThrift(cref<switch_state_tags::fibsMap>())) {
     data.fibs() = *obj;

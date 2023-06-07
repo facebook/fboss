@@ -560,7 +560,7 @@ struct SwitchState {
   28: map<switch_config.LoadBalancerID, LoadBalancerFields> loadBalancerMap;
   30: map<i32, InterfaceFields> interfaceMap_DEPRECATED;
   33: map<i64, switch_config.DsfNode> dsfNodes_DEPRECATED;
-  34: switch_config.UdfConfig udfConfig;
+  34: switch_config.UdfConfig udfConfig_DEPRECATED;
   // Remote objects
   500: map<i64, SystemPortFields> remoteSystemPortMap_DEPRECATED;
   501: map<i32, InterfaceFields> remoteInterfaceMap_DEPRECATED;

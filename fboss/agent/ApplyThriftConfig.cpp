@@ -987,7 +987,8 @@ void ThriftConfigApplier::validateUdfConfig(const UdfConfig& newUdfConfig) {
 
 std::shared_ptr<UdfConfig> ThriftConfigApplier::updateUdfConfig(bool* changed) {
   *changed = false;
-  auto origUdfConfig = orig_->getUdfConfig();
+  auto origUdfConfig = orig_->getUdfConfig() ? orig_->getUdfConfig()
+                                             : std::make_shared<UdfConfig>();
   auto newUdfConfig = std::make_shared<UdfConfig>();
 
   if (!cfg_->udfConfig()) {

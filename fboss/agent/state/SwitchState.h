@@ -94,7 +94,6 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::loadBalancerMap,
     LoadBalancerMap);
-RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::udfConfig, UdfConfig);
 
 /* multi npu maps */
 RESOLVE_STRUCT_MEMBER(
@@ -453,14 +452,11 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
 
   const std::shared_ptr<MultiSwitchDsfNodeMap>& getDsfNodes() const;
 
-  const std::shared_ptr<UdfConfig>& getUdfConfig() const {
+  const std::shared_ptr<UdfConfig> getUdfConfig() const {
     const auto switchSettings = util::getFirstNodeIf(getSwitchSettings())
         ? util::getFirstNodeIf(getSwitchSettings())
         : std::make_shared<SwitchSettings>();
-    if (switchSettings->getUdfConfig()) {
-      return switchSettings->getUdfConfig();
-    }
-    return cref<switch_state_tags::udfConfig>();
+    return switchSettings->getUdfConfig();
   }
 
   const std::shared_ptr<FlowletSwitchingConfig> getFlowletSwitchingConfig()
