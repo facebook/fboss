@@ -537,7 +537,7 @@ struct SwitchState {
   4: map<i16, TransceiverSpecFields> transceiverMap_DEPRECATED;
   5: map<string, BufferPoolFields> bufferPoolCfgMap_DEPRECATED;
   6: map<string, MirrorFields> mirrorMap_DEPRECATED;
-  7: ControlPlaneFields controlPlane;
+  7: ControlPlaneFields controlPlane_DEPRECATED;
   8: SwitchSettingsFields switchSettings;
   9: i16 defaultVlan = 0;
   10: i64 arpTimeout = 60;

@@ -836,10 +836,6 @@ state::SwitchState SwitchState::toThrift() const {
   if (auto obj = toThrift(cref<switch_state_tags::systemPortMaps>())) {
     data.systemPortMap() = *obj;
   }
-  if (auto controlPlane =
-          cref<switch_state_tags::controlPlaneMap>()->getControlPlane()) {
-    data.controlPlane() = controlPlane->toThrift();
-  }
   return data;
 }
 
