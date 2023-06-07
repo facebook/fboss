@@ -680,18 +680,6 @@ state::SwitchState SwitchState::toThrift() const {
         multiSwitchSwitchSettings->cbegin()->second->toThrift();
   }
 
-  // Write arpTimeout to switchSettings and old fields for transition
-  if (data.switchSettings()->arpTimeout().has_value()) {
-    data.arpTimeout() = data.switchSettings()->arpTimeout().value();
-  } else {
-    data.switchSettings()->arpTimeout() = data.arpTimeout().value();
-  }
-  // Write ndpTimeout to switchSettings and old fields for transition
-  if (data.switchSettings()->ndpTimeout().has_value()) {
-    data.ndpTimeout() = data.switchSettings()->ndpTimeout().value();
-  } else {
-    data.switchSettings()->ndpTimeout() = data.ndpTimeout().value();
-  }
   // Write arpAgerInterval to switchSettings and old fields for transition
   if (data.switchSettings()->arpAgerInterval().has_value()) {
     data.arpAgerInterval() = data.switchSettings()->arpAgerInterval().value();

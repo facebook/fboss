@@ -301,8 +301,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
     if (arpTimeoutSwSettings.has_value()) {
       return arpTimeoutSwSettings.value();
     }
-    auto arpTimeout = cref<switch_state_tags::arpTimeout>()->toThrift();
-    return std::chrono::seconds(arpTimeout);
+    return std::chrono::seconds(
+        cfg::switch_config_constants::arpTimeoutDefault());
   }
 
   std::shared_ptr<const AclMap> getAclsForTable(
@@ -342,7 +342,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       return ndpTimeoutSwSettings.value();
     }
     return std::chrono::seconds(
-        cref<switch_state_tags::ndpTimeout>()->toThrift());
+        cfg::switch_config_constants::ndpTimeoutDefault());
   }
 
   std::chrono::seconds getArpAgerInterval() const {
