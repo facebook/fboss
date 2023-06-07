@@ -549,20 +549,11 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   state->fromThrift<switch_state_tags::fibsMap, switch_state_tags::fibs>(
       true /* emptyMnpuMapOk */);
   state->fromThrift<
-      switch_state_tags::ipTunnelMaps,
-      switch_state_tags::ipTunnelMap>(true /*emptyMnpuMapOk*/);
-  state->fromThrift<
-      switch_state_tags::teFlowTables,
-      switch_state_tags::teFlowTable>(true /*emptyMnpuMapOk*/);
-  state->fromThrift<
       switch_state_tags::aggregatePortMaps,
       switch_state_tags::aggregatePortMap>(true /*emptyMnpuMapOk*/);
   state->fromThrift<
       switch_state_tags::loadBalancerMaps,
       switch_state_tags::loadBalancerMap>(true /*emptyMnpuMapOk*/);
-  state
-      ->fromThrift<switch_state_tags::dsfNodesMap, switch_state_tags::dsfNodes>(
-          true /*emptyMnpuMapOk*/);
 
   return state;
 }
@@ -786,20 +777,11 @@ state::SwitchState SwitchState::toThrift() const {
   if (auto obj = toThrift(cref<switch_state_tags::sflowCollectorMaps>())) {
     data.sflowCollectorMap() = *obj;
   }
-  if (auto obj = toThrift(cref<switch_state_tags::ipTunnelMaps>())) {
-    data.ipTunnelMap() = *obj;
-  }
-  if (auto obj = toThrift(cref<switch_state_tags::teFlowTables>())) {
-    data.teFlowTable() = *obj;
-  }
   if (auto obj = toThrift(cref<switch_state_tags::aggregatePortMaps>())) {
     data.aggregatePortMap() = *obj;
   }
   if (auto obj = toThrift(cref<switch_state_tags::loadBalancerMaps>())) {
     data.loadBalancerMap() = *obj;
-  }
-  if (auto obj = toThrift(cref<switch_state_tags::dsfNodesMap>())) {
-    data.dsfNodes() = *obj;
   }
   return data;
 }

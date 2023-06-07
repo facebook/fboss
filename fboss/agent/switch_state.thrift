@@ -554,14 +554,14 @@ struct SwitchState {
   22: map<i32, LabelForwardingEntryFields> labelFib;
   23: map<string, QosPolicyFields> qosPolicyMap_DEPRECATED;
   24: map<string, SflowCollectorFields> sflowCollectorMap;
-  25: map<string, IpTunnelFields> ipTunnelMap;
-  26: map<string, TeFlowEntryFields> teFlowTable;
+  25: map<string, IpTunnelFields> ipTunnelMap_DEPRECATED;
+  26: map<string, TeFlowEntryFields> teFlowTable_DEPRECATED;
   27: map<i16, AggregatePortFields> aggregatePortMap;
   28: map<switch_config.LoadBalancerID, LoadBalancerFields> loadBalancerMap;
   30: map<i32, InterfaceFields> interfaceMap_DEPRECATED;
   31: optional QcmCfgFields qcmCfg;
   32: optional QosPolicyFields defaultDataPlaneQosPolicy;
-  33: map<i64, switch_config.DsfNode> dsfNodes;
+  33: map<i64, switch_config.DsfNode> dsfNodes_DEPRECATED;
   34: switch_config.UdfConfig udfConfig;
   35: optional switch_config.FlowletSwitchingConfig flowletSwitchingConfig;
   // Remote objects

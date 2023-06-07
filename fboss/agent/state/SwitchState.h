@@ -86,8 +86,6 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::sflowCollectorMap,
     SflowCollectorMap);
-RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::ipTunnelMap, IpTunnelMap);
-RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::teFlowTable, TeFlowTable);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::aggregatePortMap,
@@ -96,7 +94,6 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::loadBalancerMap,
     LoadBalancerMap);
-RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::dsfNodes, DsfNodeMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::defaultDataPlaneQosPolicy,
