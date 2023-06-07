@@ -532,7 +532,7 @@ typedef string SwitchIdList
 
 struct SwitchState {
   1: map<i16, PortFields> portMap_DEPRECATED;
-  2: map<i16, VlanFields> vlanMap;
+  2: map<i16, VlanFields> vlanMap_DEPRECATED;
   3: map<string, AclEntryFields> aclMap;
   4: map<i16, TransceiverSpecFields> transceiverMap_DEPRECATED;
   5: map<string, BufferPoolFields> bufferPoolCfgMap_DEPRECATED;

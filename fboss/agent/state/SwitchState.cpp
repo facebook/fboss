@@ -563,8 +563,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   state->fromThrift<
       switch_state_tags::loadBalancerMaps,
       switch_state_tags::loadBalancerMap>(true /*emptyMnpuMapOk*/);
-  state->fromThrift<switch_state_tags::vlanMaps, switch_state_tags::vlanMap>(
-      true /*emptyMnpuMapOk*/);
   state->fromThrift<
       switch_state_tags::interfaceMaps,
       switch_state_tags::interfaceMap>(true /*emptyMnpuMapOk*/);
@@ -829,9 +827,6 @@ state::SwitchState SwitchState::toThrift() const {
   }
   if (auto obj = toThrift(cref<switch_state_tags::loadBalancerMaps>())) {
     data.loadBalancerMap() = *obj;
-  }
-  if (auto obj = toThrift(cref<switch_state_tags::vlanMaps>())) {
-    data.vlanMap() = *obj;
   }
   if (auto obj = toThrift(cref<switch_state_tags::remoteSystemPortMaps>())) {
     data.remoteSystemPortMap() = *obj;
