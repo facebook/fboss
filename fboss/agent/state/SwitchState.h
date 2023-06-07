@@ -76,10 +76,6 @@ RESOLVE_STRUCT_MEMBER(
     SwitchSettings);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
-    switch_state_tags::systemPortMap,
-    SystemPortMap);
-RESOLVE_STRUCT_MEMBER(
-    SwitchState,
     switch_state_tags::fibs,
     ForwardingInformationBaseMap);
 RESOLVE_STRUCT_MEMBER(
