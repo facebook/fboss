@@ -688,14 +688,6 @@ state::SwitchState SwitchState::toThrift() const {
     data.switchSettings()->staleEntryInterval() =
         data.staleEntryInterval().value();
   }
-  // Write maxNeighborProbes to switchSettings and old fields for transition
-  if (data.switchSettings()->maxNeighborProbes().has_value()) {
-    data.maxNeighborProbes() =
-        data.switchSettings()->maxNeighborProbes().value();
-  } else {
-    data.switchSettings()->maxNeighborProbes() =
-        data.maxNeighborProbes().value();
-  }
   // Write dhcp fields to switchSettings and old fields for transition
   if (data.switchSettings()->dhcpV4RelaySrc().has_value()) {
     data.dhcpV4RelaySrc() = data.switchSettings()->dhcpV4RelaySrc().value();

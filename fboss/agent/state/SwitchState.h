@@ -365,7 +365,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
     if (maxNeighborProbes.has_value()) {
       return maxNeighborProbes.value();
     }
-    return cref<switch_state_tags::maxNeighborProbes>()->toThrift();
+    return cfg::switch_config_constants::maxNeighborProbesDefault();
   }
 
   std::chrono::seconds getStaleEntryInterval() const {

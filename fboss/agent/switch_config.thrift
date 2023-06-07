@@ -21,6 +21,7 @@ const i16 defaultVlanId = 0;
 const i64 arpTimeoutDefault = 60;
 const i64 ndpTimeoutDefault = 60;
 const i32 arpAgerIntervalDefault = 5;
+const i32 maxNeighborProbesDefault = 300;
 
 enum PortDescriptorType {
   Physical = 0,
