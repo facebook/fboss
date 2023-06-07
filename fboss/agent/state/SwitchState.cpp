@@ -531,9 +531,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     }
   }
   /* forward compatibility */
-  state
-      ->fromThrift<switch_state_tags::labelFibMap, switch_state_tags::labelFib>(
-          true /*emptyMnpuMapOk*/);
   state->fromThrift<
       switch_state_tags::sflowCollectorMaps,
       switch_state_tags::sflowCollectorMap>(true /*emptyMnpuMapOk*/);
@@ -662,9 +659,6 @@ state::SwitchState SwitchState::toThrift() const {
   }
 
   /* backward compatibility */
-  if (auto obj = toThrift(cref<switch_state_tags::labelFibMap>())) {
-    data.labelFib() = *obj;
-  }
   if (auto obj = toThrift(cref<switch_state_tags::sflowCollectorMaps>())) {
     data.sflowCollectorMap() = *obj;
   }
