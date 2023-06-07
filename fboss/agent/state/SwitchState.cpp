@@ -540,10 +540,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     }
   }
   /* forward compatibility */
-  state->fromThrift<
-      switch_state_tags::qosPolicyMaps,
-      switch_state_tags::qosPolicyMap>(true /*emptyMnpuMapOk*/);
-
   state
       ->fromThrift<switch_state_tags::labelFibMap, switch_state_tags::labelFib>(
           true /*emptyMnpuMapOk*/);
@@ -801,13 +797,6 @@ state::SwitchState SwitchState::toThrift() const {
   }
   if (auto obj = toThrift(cref<switch_state_tags::sflowCollectorMaps>())) {
     data.sflowCollectorMap() = *obj;
-  }
-  if (!cref<switch_state_tags::qosPolicyMaps>()->empty()) {
-    auto key = HwSwitchMatcher::defaultHwSwitchMatcher();
-    if (auto qosPolicys =
-            cref<switch_state_tags::qosPolicyMaps>()->getMapNodeIf(key)) {
-      data.qosPolicyMap() = qosPolicys->toThrift();
-    }
   }
   if (auto obj = toThrift(cref<switch_state_tags::ipTunnelMaps>())) {
     data.ipTunnelMap() = *obj;

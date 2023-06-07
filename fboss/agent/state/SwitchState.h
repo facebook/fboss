@@ -88,10 +88,6 @@ RESOLVE_STRUCT_MEMBER(
     LabelForwardingInformationBase);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
-    switch_state_tags::qosPolicyMap,
-    QosPolicyMap);
-RESOLVE_STRUCT_MEMBER(
-    SwitchState,
     switch_state_tags::sflowCollectorMap,
     SflowCollectorMap);
 RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::ipTunnelMap, IpTunnelMap);
