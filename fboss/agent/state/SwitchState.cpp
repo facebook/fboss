@@ -840,10 +840,6 @@ state::SwitchState SwitchState::toThrift() const {
           cref<switch_state_tags::controlPlaneMap>()->getControlPlane()) {
     data.controlPlane() = controlPlane->toThrift();
   }
-  // for backward compatibility
-  if (const auto& pfcWatchdogRecoveryAction = getPfcWatchdogRecoveryAction()) {
-    data.pfcWatchdogRecoveryAction() = pfcWatchdogRecoveryAction.value();
-  }
   return data;
 }
 
