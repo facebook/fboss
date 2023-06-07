@@ -738,14 +738,6 @@ state::SwitchState SwitchState::toThrift() const {
   } else {
     data.switchSettings()->dhcpV6ReplySrc() = data.dhcpV6ReplySrc().value();
   }
-  // Write defaultQosPolicy to switchSettings and old fields for transition
-  if (data.switchSettings()->defaultDataPlaneQosPolicy().has_value()) {
-    data.defaultDataPlaneQosPolicy() =
-        data.switchSettings()->defaultDataPlaneQosPolicy().value();
-  } else if (data.defaultDataPlaneQosPolicy().has_value()) {
-    data.switchSettings()->defaultDataPlaneQosPolicy() =
-        data.defaultDataPlaneQosPolicy().value();
-  }
   // Write udfConfig to switchSettings and old fields for transition
   if (data.switchSettings()->udfConfig().has_value()) {
     data.udfConfig() = data.switchSettings()->udfConfig().value();

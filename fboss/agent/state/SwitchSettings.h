@@ -358,7 +358,7 @@ class SwitchSettings
   }
 
   const std::shared_ptr<QosPolicy> getDefaultDataPlaneQosPolicy() const {
-    return cref<switch_state_tags::defaultDataPlaneQosPolicy>();
+    return safe_cref<switch_state_tags::defaultDataPlaneQosPolicy>();
   }
 
   void setDefaultDataPlaneQosPolicy(std::shared_ptr<QosPolicy> qosPolicy) {

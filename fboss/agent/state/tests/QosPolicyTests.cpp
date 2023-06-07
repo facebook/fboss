@@ -529,10 +529,6 @@ TEST(QosPolicy, DefaultQosPolicy) {
       state->getDefaultDataPlaneQosPolicy(),
       util::getFirstNodeIf(state->getSwitchSettings())
           ->getDefaultDataPlaneQosPolicy());
-  const auto& stateThrift = state->toThrift();
-  EXPECT_EQ(
-      stateThrift.defaultDataPlaneQosPolicy(),
-      stateThrift.switchSettings()->defaultDataPlaneQosPolicy());
   EXPECT_EQ(state->getQosPolicies()->getNodeIf("qosPolicy"), nullptr);
 }
 

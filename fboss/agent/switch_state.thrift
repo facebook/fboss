@@ -559,7 +559,6 @@ struct SwitchState {
   27: map<i16, AggregatePortFields> aggregatePortMap;
   28: map<switch_config.LoadBalancerID, LoadBalancerFields> loadBalancerMap;
   30: map<i32, InterfaceFields> interfaceMap_DEPRECATED;
-  32: optional QosPolicyFields defaultDataPlaneQosPolicy;
   33: map<i64, switch_config.DsfNode> dsfNodes_DEPRECATED;
   34: switch_config.UdfConfig udfConfig;
   // Remote objects

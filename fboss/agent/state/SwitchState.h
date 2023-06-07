@@ -94,10 +94,6 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::loadBalancerMap,
     LoadBalancerMap);
-RESOLVE_STRUCT_MEMBER(
-    SwitchState,
-    switch_state_tags::defaultDataPlaneQosPolicy,
-    QosPolicy);
 RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::udfConfig, UdfConfig);
 
 /* multi npu maps */
@@ -273,10 +269,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
     const auto switchSettings = util::getFirstNodeIf(getSwitchSettings())
         ? util::getFirstNodeIf(getSwitchSettings())
         : std::make_shared<SwitchSettings>();
-    if (switchSettings->getDefaultDataPlaneQosPolicy()) {
-      return switchSettings->getDefaultDataPlaneQosPolicy();
-    }
-    return cref<switch_state_tags::defaultDataPlaneQosPolicy>();
+    return switchSettings->getDefaultDataPlaneQosPolicy();
   }
 
   /*
