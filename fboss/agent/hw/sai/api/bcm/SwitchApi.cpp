@@ -68,7 +68,7 @@ void SwitchApi::registerParityErrorSwitchEventCallback(
     defined(SAI_VERSION_8_2_0_0_DNX_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
     defined(SAI_VERSION_9_0_EA_DNX_ODP) ||                                     \
     defined(SAI_VERSION_9_0_EA_SIM_ODP) ||                                     \
-    defined(SAI_VERSION_9_0_EA_DNX_SIM_ODP) ||                                 \
+    defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) ||                                \
     defined(SAI_VERSION_10_0_EA_DNX_ODP)
   sai_attribute_t attr;
   attr.value.ptr = switch_event_cb;
