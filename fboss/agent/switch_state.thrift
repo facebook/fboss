@@ -549,7 +549,7 @@ struct SwitchState {
   16: Address.BinaryAddress dhcpV6RelaySrc;
   17: Address.BinaryAddress dhcpV4ReplySrc;
   18: Address.BinaryAddress dhcpV6ReplySrc;
-  20: map<i64, SystemPortFields> systemPortMap;
+  20: map<i64, SystemPortFields> systemPortMap_DEPRECATED;
   21: map<i16, FibContainerFields> fibs;
   22: map<i32, LabelForwardingEntryFields> labelFib;
   23: map<string, QosPolicyFields> qosPolicyMap_DEPRECATED;
@@ -558,7 +558,7 @@ struct SwitchState {
   26: map<string, TeFlowEntryFields> teFlowTable;
   27: map<i16, AggregatePortFields> aggregatePortMap;
   28: map<switch_config.LoadBalancerID, LoadBalancerFields> loadBalancerMap;
-  30: map<i32, InterfaceFields> interfaceMap;
+  30: map<i32, InterfaceFields> interfaceMap_DEPRECATED;
   31: optional QcmCfgFields qcmCfg;
   32: optional QosPolicyFields defaultDataPlaneQosPolicy;
   33: map<i64, switch_config.DsfNode> dsfNodes;

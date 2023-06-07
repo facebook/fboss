@@ -96,10 +96,6 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::loadBalancerMap,
     LoadBalancerMap);
-RESOLVE_STRUCT_MEMBER(
-    SwitchState,
-    switch_state_tags::interfaceMap,
-    InterfaceMap);
 RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::dsfNodes, DsfNodeMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
