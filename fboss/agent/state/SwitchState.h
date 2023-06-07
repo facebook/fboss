@@ -70,11 +70,6 @@ class PortFlowletCfg;
 class PortFlowletCfgMap;
 
 USE_THRIFT_COW(SwitchState);
-RESOLVE_STRUCT_MEMBER(
-    SwitchState,
-    switch_state_tags::sflowCollectorMap,
-    SflowCollectorMap);
-
 /* multi npu maps */
 RESOLVE_STRUCT_MEMBER(
     SwitchState,

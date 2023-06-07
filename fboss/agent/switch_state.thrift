@@ -553,7 +553,7 @@ struct SwitchState {
   21: map<i16, FibContainerFields> fibs_DEPRECATED;
   22: map<i32, LabelForwardingEntryFields> labelFib_DEPRECATED;
   23: map<string, QosPolicyFields> qosPolicyMap_DEPRECATED;
-  24: map<string, SflowCollectorFields> sflowCollectorMap;
+  24: map<string, SflowCollectorFields> sflowCollectorMap_DEPRECATED;
   25: map<string, IpTunnelFields> ipTunnelMap_DEPRECATED;
   26: map<string, TeFlowEntryFields> teFlowTable_DEPRECATED;
   27: map<i16, AggregatePortFields> aggregatePortMap_DEPRECATED;

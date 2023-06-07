@@ -530,11 +530,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
       state->set<switch_state_tags::aclMaps>(multiSwitchAclMap->toThrift());
     }
   }
-  /* forward compatibility */
-  state->fromThrift<
-      switch_state_tags::sflowCollectorMaps,
-      switch_state_tags::sflowCollectorMap>(true /*emptyMnpuMapOk*/);
-
   return state;
 }
 
@@ -650,11 +645,6 @@ state::SwitchState SwitchState::toThrift() const {
       }
     }
     aclTableGroupMaps->clear();
-  }
-
-  /* backward compatibility */
-  if (auto obj = toThrift(cref<switch_state_tags::sflowCollectorMaps>())) {
-    data.sflowCollectorMap() = *obj;
   }
   return data;
 }
