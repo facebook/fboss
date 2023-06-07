@@ -349,34 +349,6 @@ TEST(ThriftySwitchState, MultiMaps) {
   EXPECT_EQ(*stateThrift0.fibs(), stateThrift1.fibsMap()->at("id=0"));
 }
 
-TEST(ThriftySwitchState, EmptyMultiMap) {
-  auto state = SwitchState::fromThrift(state::SwitchState{});
-  EXPECT_NO_THROW(state->getMirrors());
-  EXPECT_NO_THROW(state->getFibs());
-
-  state::SwitchState stThr;
-  state::MirrorFields mirror;
-  mirror.name() = "mirror0";
-  mirror.egressPort() = 1;
-  mirror.configHasEgressPort() = true;
-  mirror.isResolved() = true;
-  stThr.mirrorMap()->emplace("mirror0", mirror);
-  state = SwitchState::fromThrift(stThr);
-  /* mirror0 is found in multi map for default npu and is same as what was added
-   * in legacy map */
-  EXPECT_EQ(state->getMirrors()->getNodeIf("mirror0")->toThrift(), mirror);
-  auto mirrors = *state->toThrift().mirrorMap();
-  EXPECT_EQ(mirrors.size(), 1);
-
-  EXPECT_EQ(mirrors["mirror0"], mirror);
-
-  /* to thrift has both legacy and multi maps populated */
-  stThr = state->toThrift();
-  EXPECT_EQ(*stThr.mirrorMap(), mirrors);
-  EXPECT_EQ(stThr.mirrorMaps()->size(), 1);
-  EXPECT_EQ(*stThr.mirrorMap(), stThr.mirrorMaps()->at("id=0"));
-}
-
 TEST(ThriftySwitchState, MultiMapsDifferent) {
   state::SwitchState stateThrift0{};
 

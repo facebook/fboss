@@ -536,7 +536,7 @@ struct SwitchState {
   3: map<string, AclEntryFields> aclMap;
   4: map<i16, TransceiverSpecFields> transceiverMap_DEPRECATED;
   5: map<string, BufferPoolFields> bufferPoolCfgMap;
-  6: map<string, MirrorFields> mirrorMap;
+  6: map<string, MirrorFields> mirrorMap_DEPRECATED;
   7: ControlPlaneFields controlPlane;
   8: SwitchSettingsFields switchSettings;
   9: i16 defaultVlan = 0;

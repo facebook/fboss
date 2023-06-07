@@ -77,7 +77,6 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::bufferPoolCfgMap,
     BufferPoolCfgMap);
-RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::mirrorMap, MirrorMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::controlPlane,

@@ -549,9 +549,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   state->fromThrift<
       switch_state_tags::sflowCollectorMaps,
       switch_state_tags::sflowCollectorMap>(true /*emptyMnpuMapOk*/);
-  state
-      ->fromThrift<switch_state_tags::mirrorMaps, switch_state_tags::mirrorMap>(
-          true /*emptyMnpuMapOk*/);
   state->fromThrift<switch_state_tags::fibsMap, switch_state_tags::fibs>(
       true /* emptyMnpuMapOk */);
   state->fromThrift<
@@ -810,9 +807,6 @@ state::SwitchState SwitchState::toThrift() const {
         data.flowletSwitchingConfig().value();
   }
   /* backward compatibility */
-  if (auto obj = toThrift(cref<switch_state_tags::mirrorMaps>())) {
-    data.mirrorMap() = *obj;
-  }
   if (auto obj = toThrift(cref<switch_state_tags::fibsMap>())) {
     data.fibs() = *obj;
   }
