@@ -70,7 +70,6 @@ class PortFlowletCfg;
 class PortFlowletCfgMap;
 
 USE_THRIFT_COW(SwitchState);
-RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::aclMap, AclMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::controlPlane,
@@ -109,10 +108,6 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::loadBalancerMap,
     LoadBalancerMap);
-RESOLVE_STRUCT_MEMBER(
-    SwitchState,
-    switch_state_tags::aclTableGroupMap,
-    AclTableGroupMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::interfaceMap,

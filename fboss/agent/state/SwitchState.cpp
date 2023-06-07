@@ -144,8 +144,6 @@ SwitchState::SwitchState() {
   set<switch_state_tags::dhcpV6ReplySrc>(
       network::toBinaryAddress(folly::IPAddress("::")));
 
-  set<switch_state_tags::aclTableGroupMap>(
-      std::map<cfg::AclStage, state::AclTableGroupFields>{});
   resetIntfs(std::make_shared<MultiSwitchInterfaceMap>());
   resetRemoteIntfs(std::make_shared<MultiSwitchInterfaceMap>());
   resetTransceivers(std::make_shared<MultiSwitchTransceiverMap>());
@@ -511,31 +509,34 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   auto state = std::make_unique<SwitchState>();
   state->BaseT::fromThrift(switchState);
   if (FLAGS_enable_acl_table_group) {
-    // Use old map if valid else use mmap
-    auto aclMap = state->cref<switch_state_tags::aclMap>();
-    aclMap = aclMap->size()
-        ? aclMap
-        : state->cref<switch_state_tags::aclMaps>()->getAclMap();
+    auto aclMap = util::getFirstMap(state->cref<switch_state_tags::aclMaps>());
     if (aclMap && aclMap->size()) {
-      state->ref<switch_state_tags::aclTableGroupMap>() =
+      auto multiSwitchAclGroupMap =
+          std::make_shared<MultiSwitchAclTableGroupMap>();
+      auto matcher = HwSwitchMatcher(
+          state->cref<switch_state_tags::aclMaps>()->cbegin()->first);
+      multiSwitchAclGroupMap->addMapNode(
           AclTableGroupMap::createDefaultAclTableGroupMapFromThrift(
-              aclMap->toThrift());
+              aclMap->toThrift()),
+          matcher);
+      state->ref<switch_state_tags::aclTableGroupMaps>() =
+          multiSwitchAclGroupMap;
       state->resetAcls(std::make_shared<MultiSwitchAclMap>());
-      state->ref<switch_state_tags::aclMap>()->clear();
     }
   }
   if (!FLAGS_enable_acl_table_group) {
-    // check legacy table first
-    auto aclMap = state->cref<switch_state_tags::aclTableGroupMap>()
+    auto firstTableGroupMap =
+        util::getFirstMap(state->cref<switch_state_tags::aclTableGroupMaps>());
+    auto aclMap = firstTableGroupMap
         ? AclTableGroupMap::getDefaultAclTableGroupMap(
-              state->cref<switch_state_tags::aclTableGroupMap>()->toThrift())
+              firstTableGroupMap->toThrift())
         : nullptr;
-    aclMap = aclMap && aclMap->size()
-        ? aclMap
-        : state->cref<switch_state_tags::aclTableGroupMaps>()->getAclMap();
     if (aclMap && aclMap->size()) {
-      state->set<switch_state_tags::aclMap>(aclMap->toThrift());
-      state->ref<switch_state_tags::aclTableGroupMap>().reset();
+      auto multiSwitchAclMap = std::make_shared<MultiSwitchAclMap>();
+      auto matcher = HwSwitchMatcher(
+          state->cref<switch_state_tags::aclTableGroupMaps>()->cbegin()->first);
+      multiSwitchAclMap->addMapNode(aclMap, matcher);
+      state->set<switch_state_tags::aclMaps>(multiSwitchAclMap->toThrift());
     }
   }
   /* forward compatibility */
@@ -566,12 +567,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   state->fromThrift<
       switch_state_tags::interfaceMaps,
       switch_state_tags::interfaceMap>(true /*emptyMnpuMapOk*/);
-  if (state->cref<switch_state_tags::aclTableGroupMap>()) {
-    // set multi map if acl table group map exists
-    state->fromThrift<
-        switch_state_tags::aclTableGroupMaps,
-        switch_state_tags::aclTableGroupMap>(true /*emptyMnpuMapOk*/);
-  }
   state
       ->fromThrift<switch_state_tags::dsfNodesMap, switch_state_tags::dsfNodes>(
           true /*emptyMnpuMapOk*/);
@@ -585,8 +580,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
       switch_state_tags::remoteSystemPortMaps,
       switch_state_tags::remoteSystemPortMap>(true /*emptyMnpuMapOk*/);
 
-  state->fromThrift<switch_state_tags::aclMaps, switch_state_tags::aclMap>(
-      true /*emptyMnpuMapOk*/);
   return state;
 }
 
@@ -834,9 +827,6 @@ state::SwitchState SwitchState::toThrift() const {
   if (auto obj = toThrift(cref<switch_state_tags::interfaceMaps>())) {
     data.interfaceMap() = *obj;
   }
-  if (auto obj = toThrift(cref<switch_state_tags::aclTableGroupMaps>())) {
-    data.aclTableGroupMap() = *obj;
-  }
   if (auto obj = toThrift(cref<switch_state_tags::dsfNodesMap>())) {
     data.dsfNodes() = *obj;
   }
@@ -849,9 +839,6 @@ state::SwitchState SwitchState::toThrift() const {
   if (auto controlPlane =
           cref<switch_state_tags::controlPlaneMap>()->getControlPlane()) {
     data.controlPlane() = controlPlane->toThrift();
-  }
-  if (auto obj = toThrift(cref<switch_state_tags::aclMaps>())) {
-    data.aclMap() = *obj;
   }
   // for backward compatibility
   if (const auto& pfcWatchdogRecoveryAction = getPfcWatchdogRecoveryAction()) {

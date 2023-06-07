@@ -174,8 +174,6 @@ class MultiSwitchAclMap : public ThriftMultiSwitchMapNode<
 
   MultiSwitchAclMap* modify(std::shared_ptr<SwitchState>* state);
 
-  std::shared_ptr<AclMap> getAclMap() const;
-
  private:
   // Inherit the constructors required for clone()
   using BaseT::BaseT;

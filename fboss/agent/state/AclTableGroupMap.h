@@ -113,12 +113,6 @@ class MultiSwitchAclTableGroupMap : public ThriftMultiSwitchMapNode<
   MultiSwitchAclTableGroupMap() {}
   virtual ~MultiSwitchAclTableGroupMap() {}
 
-  // ACL map in absence of multi-acl-table support
-  std::shared_ptr<AclMap> getAclMap() const;
-  // from legacy ACL map thrift
-  std::shared_ptr<MultiSwitchAclTableGroupMap> fromAclMap(
-      const std::map<std::string, state::AclEntryFields>& aclMap);
-
  private:
   // Inherit the constructors required for clone()
   using BaseT::BaseT;

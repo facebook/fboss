@@ -41,26 +41,6 @@ std::shared_ptr<AclMap> AclTableGroupMap::getDefaultAclTableGroupMap(
   }
 }
 
-std::shared_ptr<AclMap> MultiSwitchAclTableGroupMap::getAclMap() const {
-  auto node = getMapNodeIf(HwSwitchMatcher::defaultHwSwitchMatcher());
-  if (!node) {
-    return nullptr;
-  }
-  // THRIFT_COPY
-  return AclTableGroupMap::getDefaultAclTableGroupMap(node->toThrift());
-}
-
-std::shared_ptr<MultiSwitchAclTableGroupMap>
-MultiSwitchAclTableGroupMap::fromAclMap(
-    const std::map<std::string, state::AclEntryFields>& aclMap) {
-  auto aclTableGroupMap =
-      AclTableGroupMap::createDefaultAclTableGroupMapFromThrift(aclMap);
-  auto multiAclTableGroupMap = std::make_shared<MultiSwitchAclTableGroupMap>();
-  multiAclTableGroupMap->addMapNode(
-      std::move(aclTableGroupMap), HwSwitchMatcher::defaultHwSwitchMatcher());
-  return multiAclTableGroupMap;
-}
-
 template class ThriftMapNode<AclTableGroupMap, AclTableGroupMapTraits>;
 
 } // namespace facebook::fboss

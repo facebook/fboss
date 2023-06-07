@@ -533,7 +533,7 @@ typedef string SwitchIdList
 struct SwitchState {
   1: map<i16, PortFields> portMap_DEPRECATED;
   2: map<i16, VlanFields> vlanMap_DEPRECATED;
-  3: map<string, AclEntryFields> aclMap;
+  3: map<string, AclEntryFields> aclMap_DEPRECATED;
   4: map<i16, TransceiverSpecFields> transceiverMap_DEPRECATED;
   5: map<string, BufferPoolFields> bufferPoolCfgMap_DEPRECATED;
   6: map<string, MirrorFields> mirrorMap_DEPRECATED;
@@ -560,10 +560,6 @@ struct SwitchState {
   26: map<string, TeFlowEntryFields> teFlowTable;
   27: map<i16, AggregatePortFields> aggregatePortMap;
   28: map<switch_config.LoadBalancerID, LoadBalancerFields> loadBalancerMap;
-  29: optional map<
-    switch_config.AclStage,
-    AclTableGroupFields
-  > aclTableGroupMap;
   30: map<i32, InterfaceFields> interfaceMap;
   31: optional QcmCfgFields qcmCfg;
   32: optional QosPolicyFields defaultDataPlaneQosPolicy;
