@@ -567,9 +567,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
       switch_state_tags::loadBalancerMaps,
       switch_state_tags::loadBalancerMap>(true /*emptyMnpuMapOk*/);
   state->fromThrift<
-      switch_state_tags::transceiverMaps,
-      switch_state_tags::transceiverMap>(true /*emptyMnpuMapOk*/);
-  state->fromThrift<
       switch_state_tags::bufferPoolCfgMaps,
       switch_state_tags::bufferPoolCfgMap>(true /*emptyMnpuMapOk*/);
   state->fromThrift<switch_state_tags::vlanMaps, switch_state_tags::vlanMap>(
@@ -843,9 +840,6 @@ state::SwitchState SwitchState::toThrift() const {
   }
   if (auto obj = toThrift(cref<switch_state_tags::loadBalancerMaps>())) {
     data.loadBalancerMap() = *obj;
-  }
-  if (auto obj = toThrift(cref<switch_state_tags::transceiverMaps>())) {
-    data.transceiverMap() = *obj;
   }
   if (auto obj = toThrift(cref<switch_state_tags::bufferPoolCfgMaps>())) {
     data.bufferPoolCfgMap() = *obj;
