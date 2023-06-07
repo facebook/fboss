@@ -482,7 +482,6 @@ TEST(SwitchSettingsTest, applyDefaultVlanConfig) {
   EXPECT_EQ(switchSettingsV1->getDefaultVlan(), 1);
 
   const auto& thriftState0 = stateV1->toThrift();
-  EXPECT_EQ(thriftState0.defaultVlan(), 1);
   EXPECT_EQ(thriftState0.switchSettings()->defaultVlan(), 1);
 }
 

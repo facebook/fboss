@@ -566,7 +566,10 @@ VlanID SwitchState::getDefaultVlan() const {
   if (defaultVlan.has_value()) {
     return VlanID(defaultVlan.value());
   }
-  return VlanID(cref<switch_state_tags::defaultVlan>()->toThrift());
+  // TODO - remove the default value return. Defaut vlan is
+  // mandatory on broadcom NPU switches. Set it in config
+  // for required switches.
+  return VlanID(cfg::switch_config_constants::defaultVlanId());
 }
 
 SwitchID SwitchState::getAssociatedSwitchID(PortID portID) const {
@@ -677,12 +680,6 @@ state::SwitchState SwitchState::toThrift() const {
         multiSwitchSwitchSettings->cbegin()->second->toThrift();
   }
 
-  // Write defaultVlan to switchSettings and old fields for transition
-  if (data.switchSettings()->defaultVlan().has_value()) {
-    data.defaultVlan() = data.switchSettings()->defaultVlan().value();
-  } else {
-    data.switchSettings()->defaultVlan() = data.defaultVlan().value();
-  }
   // Write arpTimeout to switchSettings and old fields for transition
   if (data.switchSettings()->arpTimeout().has_value()) {
     data.arpTimeout() = data.switchSettings()->arpTimeout().value();

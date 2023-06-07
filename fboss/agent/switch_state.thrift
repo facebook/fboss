@@ -539,7 +539,7 @@ struct SwitchState {
   6: map<string, MirrorFields> mirrorMap_DEPRECATED;
   7: ControlPlaneFields controlPlane_DEPRECATED;
   8: SwitchSettingsFields switchSettings;
-  9: i16 defaultVlan = 0;
+  9: i16 defaultVlan_DEPRECATED;
   10: i64 arpTimeout = 60;
   11: i64 ndpTimeout = 60;
   12: i32 arpAgerInterval = 5;

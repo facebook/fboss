@@ -17,6 +17,8 @@ include "thrift/annotation/cpp.thrift"
 @cpp.Type{name = "uint64_t"}
 typedef i64 u64
 
+const i16 defaultVlanId = 0;
+
 enum PortDescriptorType {
   Physical = 0,
   Aggregate = 1,
