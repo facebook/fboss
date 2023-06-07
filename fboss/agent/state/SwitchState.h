@@ -70,7 +70,6 @@ class PortFlowletCfg;
 class PortFlowletCfgMap;
 
 USE_THRIFT_COW(SwitchState);
-RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::portMap, PortMap);
 RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::vlanMap, VlanMap);
 RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::aclMap, AclMap);
 RESOLVE_STRUCT_MEMBER(
