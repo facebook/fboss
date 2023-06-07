@@ -72,10 +72,6 @@ class PortFlowletCfgMap;
 USE_THRIFT_COW(SwitchState);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
-    switch_state_tags::fibs,
-    ForwardingInformationBaseMap);
-RESOLVE_STRUCT_MEMBER(
-    SwitchState,
     switch_state_tags::labelFib,
     LabelForwardingInformationBase);
 RESOLVE_STRUCT_MEMBER(

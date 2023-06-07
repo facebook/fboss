@@ -550,7 +550,7 @@ struct SwitchState {
   17: Address.BinaryAddress dhcpV4ReplySrc_DEPRECATED;
   18: Address.BinaryAddress dhcpV6ReplySrc_DEPRECATED;
   20: map<i64, SystemPortFields> systemPortMap_DEPRECATED;
-  21: map<i16, FibContainerFields> fibs;
+  21: map<i16, FibContainerFields> fibs_DEPRECATED;
   22: map<i32, LabelForwardingEntryFields> labelFib;
   23: map<string, QosPolicyFields> qosPolicyMap_DEPRECATED;
   24: map<string, SflowCollectorFields> sflowCollectorMap;
