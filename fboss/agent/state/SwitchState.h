@@ -107,10 +107,6 @@ RESOLVE_STRUCT_MEMBER(
 RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::dsfNodes, DsfNodeMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
-    switch_state_tags::remoteInterfaceMap,
-    InterfaceMap);
-RESOLVE_STRUCT_MEMBER(
-    SwitchState,
     switch_state_tags::defaultDataPlaneQosPolicy,
     QosPolicy);
 RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::qcmCfg, QcmCfg);

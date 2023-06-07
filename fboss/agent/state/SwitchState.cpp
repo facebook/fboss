@@ -567,9 +567,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
       ->fromThrift<switch_state_tags::dsfNodesMap, switch_state_tags::dsfNodes>(
           true /*emptyMnpuMapOk*/);
   state->fromThrift<
-      switch_state_tags::remoteInterfaceMaps,
-      switch_state_tags::remoteInterfaceMap>(true /*emptyMnpuMapOk*/);
-  state->fromThrift<
       switch_state_tags::systemPortMaps,
       switch_state_tags::systemPortMap>(true /*emptyMnpuMapOk*/);
 
@@ -812,9 +809,6 @@ state::SwitchState SwitchState::toThrift() const {
   }
   if (auto obj = toThrift(cref<switch_state_tags::dsfNodesMap>())) {
     data.dsfNodes() = *obj;
-  }
-  if (auto obj = toThrift(cref<switch_state_tags::remoteInterfaceMaps>())) {
-    data.remoteInterfaceMap() = *obj;
   }
   if (auto obj = toThrift(cref<switch_state_tags::systemPortMaps>())) {
     data.systemPortMap() = *obj;

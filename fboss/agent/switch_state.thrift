@@ -566,7 +566,7 @@ struct SwitchState {
   35: optional switch_config.FlowletSwitchingConfig flowletSwitchingConfig;
   // Remote objects
   500: map<i64, SystemPortFields> remoteSystemPortMap_DEPRECATED;
-  501: map<i32, InterfaceFields> remoteInterfaceMap;
+  501: map<i32, InterfaceFields> remoteInterfaceMap_DEPRECATED;
 
   // Multi NPU table definitions
   100: map<SwitchIdList, map<i16, PortFields>> portMaps;
