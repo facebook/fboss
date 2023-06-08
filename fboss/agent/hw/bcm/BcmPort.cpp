@@ -1884,6 +1884,21 @@ void BcmPort::setEgressPortMirror(const std::string& mirrorName) {
   egressMirror_ = mirrorName;
 }
 
+cfg::PortFlowletConfig BcmPort::getPortFlowletConfig() const {
+  cfg::PortFlowletConfig flowletConfig;
+  auto port = getProgrammedSettings();
+  if (port && (port->getFlowletConfigName().has_value())) {
+    if (port->getPortFlowletConfig().has_value()) {
+      auto flowletCfgPtr = port->getPortFlowletConfig().value();
+      CHECK(flowletCfgPtr != nullptr);
+      flowletConfig.scalingFactor() = flowletCfgPtr->getScalingFactor();
+      flowletConfig.loadWeight() = flowletCfgPtr->getLoadWeight();
+      flowletConfig.queueWeight() = flowletCfgPtr->getQueueWeight();
+    }
+  }
+  return flowletConfig;
+}
+
 void BcmPort::destroyAllPortStatsLocked(
     const BcmPort::PortStatsWLockedPtr& lockedPortStatsPtr) {
   std::map<std::string, stats::MonotonicCounter> swapTo;

@@ -21,6 +21,9 @@ using namespace facebook::fboss::utility;
 namespace {
 static folly::IPAddressV6 kAddr1{"2803:6080:d038:3063::"};
 folly::CIDRNetwork kAddr1Prefix{folly::IPAddress("2803:6080:d038:3063::"), 64};
+const int kScalingFactor = 100;
+const int kLoadWeight = 70;
+const int kQueueWeight = 30;
 } // namespace
 
 namespace facebook::fboss {
@@ -43,6 +46,23 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     auto flowletCfg = getFlowletSwitchingConfig();
     cfg.flowletSwitchingConfig() = flowletCfg;
     addLoadBalancerToConfig(cfg, getHwSwitch(), LBHash::FULL_HASH);
+
+    std::map<std::string, cfg::PortFlowletConfig> portFlowletCfgMap;
+    cfg::PortFlowletConfig portFlowletConfig;
+    portFlowletConfig.scalingFactor() = kScalingFactor;
+    portFlowletConfig.loadWeight() = kLoadWeight;
+    portFlowletConfig.queueWeight() = kQueueWeight;
+    portFlowletCfgMap.insert(std::make_pair("default", portFlowletConfig));
+    cfg.portFlowletConfigs() = portFlowletCfgMap;
+
+    auto allPorts = masterLogicalInterfacePortIds();
+    std::vector<PortID> ports(
+        allPorts.begin(), allPorts.begin() + allPorts.size());
+    for (auto portId : ports) {
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->flowletConfigName() = "default";
+    }
+
     return cfg;
   }
 

@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/bcm/BcmEgressManager.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
+#include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
@@ -180,20 +181,23 @@ void BcmEgress::program(
       flags |= BCM_L3_REPLACE | BCM_L3_WITH_ID;
     }
     if (FLAGS_flowletSwitchingEnable) {
-      auto bcmFlowletConfig = hw_->getEgressManager()->getBcmFlowletConfig();
-      if (bcmFlowletConfig.portScalingFactor) {
-        eObj.dynamic_scaling_factor = bcmFlowletConfig.portScalingFactor;
+      auto* bcmPort = hw_->getPortTable()->getBcmPortIf(port);
+      if (bcmPort) {
+        auto bcmFlowletConfig = bcmPort->getPortFlowletConfig();
+        if (*bcmFlowletConfig.scalingFactor()) {
+          eObj.dynamic_scaling_factor = *bcmFlowletConfig.scalingFactor();
+        }
+        if (*bcmFlowletConfig.loadWeight()) {
+          eObj.dynamic_load_weight = *bcmFlowletConfig.loadWeight();
+        }
+        if (*bcmFlowletConfig.queueWeight()) {
+          eObj.dynamic_queue_size_weight = *bcmFlowletConfig.queueWeight();
+        }
+        XLOG(DBG2) << "Programmed PortScalingFactor="
+                   << eObj.dynamic_scaling_factor
+                   << " PortLoadWeight=" << eObj.dynamic_load_weight
+                   << " PortQueueWeight=" << eObj.dynamic_queue_size_weight;
       }
-      if (bcmFlowletConfig.portLoadWeight) {
-        eObj.dynamic_load_weight = bcmFlowletConfig.portLoadWeight;
-      }
-      if (bcmFlowletConfig.portQueueWeight) {
-        eObj.dynamic_queue_size_weight = bcmFlowletConfig.portQueueWeight;
-      }
-      XLOG(DBG2) << "Programmed PortScalingFactor="
-                 << eObj.dynamic_scaling_factor
-                 << " PortLoadWeight=" << eObj.dynamic_load_weight
-                 << " PortQueueWeight=" << eObj.dynamic_queue_size_weight;
     }
     if (!alreadyExists(eObj)) {
       /*
