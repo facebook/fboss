@@ -83,7 +83,6 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
-#include "fboss/qsfp_service/lib/QsfpCache.h"
 
 #include <fb303/ServiceData.h>
 #include <folly/Demangle.h>
@@ -1949,24 +1948,6 @@ void SwSwitch::applyConfig(
       reason,
       [&](const shared_ptr<SwitchState>& state) -> shared_ptr<SwitchState> {
         auto originalState = state;
-        // Eventually we'll allow qsfp_service to call programInternalPhyPorts
-        // with specific TransceiverInfo, and then build the TransceiverMap from
-        // there. Before we can enable qsfp_service to do that, we need to have
-        // wedge_agent use TrransceiverMap to build Port::profileConfig and
-        // pinConfigs. To do so, we need to manually build this TransceiverMap
-        // by using QsfpCache to fetch all transceiver infos.
-        auto qsfpCache = getPlatform_DEPRECATED()->getQsfpCache();
-        if (qsfpCache) {
-          const auto& currentTcvrs = qsfpCache->getAllTransceivers();
-          auto tempState = modifyTransceivers(
-              state, currentTcvrs, getPlatformMapping(), getScopeResolver());
-          if (tempState) {
-            originalState = tempState;
-          }
-        } else {
-          XLOG(WARN) << "Current platform doesn't have QsfpCache. "
-                     << "No need to build TransceiverMap";
-        }
         auto newState = rib_ ? applyThriftConfig(
                                    originalState,
                                    &newConfig,
