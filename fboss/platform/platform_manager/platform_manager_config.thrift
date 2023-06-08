@@ -88,11 +88,11 @@ include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 //                    │     └────┴────┘           └──────────┘   │
 //                    └──────────────────────────────────────────┘
 struct I2cDeviceConfig {
-  string busName;
-  i32 addr;
-  string kernelDeviceName;
-  string fruScopedName;
-  optional i32 numOutgoingChannels;
+  1: string busName;
+  2: i32 addr;
+  3: string kernelDeviceName;
+  4: string fruScopedName;
+  5: optional i32 numOutgoingChannels;
 }
 
 // The EEPROM in the FRU which contains information about the FRU
@@ -103,20 +103,23 @@ struct I2cDeviceConfig {
 //
 // `kernelDeviceName`: The device name used by kernel to identify the device
 struct FruEEPROMConfig {
-  i32 incomingBusIndex;
-  i32 address;
-  string kernelDeviceName;
+  1: i32 incomingBusIndex;
+  2: i32 address;
+  3: string kernelDeviceName;
 }
 
 // These are the FRU Slot types. Examples: "PIM", "PSU", "CHASSIS" and "FAN".
 typedef string SlotType
 
+// These are the FRU Types. Examples: "PIM-8DD", "PIM-16Q".
+typedef string FruType
+
 // The below struct holds the global properties for each SlotType within any
 // platform.  This means all slots of the same SlotType within a platform
 // should have the same number of outgoing I2C buses, and same FruEEPROMConfig
 struct SlotTypeConfig {
-  i32 numOutgoingI2cBuses;
-  FruEEPROMConfig fruEeprom;
+  1: i32 numOutgoingI2cBuses;
+  2: FruEEPROMConfig fruEeprom;
 }
 
 // SlotConfig holds information specific to each slot.
@@ -132,12 +135,12 @@ struct SlotTypeConfig {
 // `outgoingI2cBusNames`: is the list of the buses from the FRU perspective
 // which are going out in the slot.  Refer to Bus Naming Convention above.
 struct SlotConfig {
-  SlotType slotType;
-  platform_manager_presence.PresenceDetection presenceDetection;
-  list<string> outgoingI2cBusNames;
+  1: SlotType slotType;
+  2: platform_manager_presence.PresenceDetection presenceDetection;
+  3: list<string> outgoingI2cBusNames;
 }
 
-// `FruConfig` defines the configuration of FRU.
+// `FruTypeConfig` defines the configuration of FRU.
 //
 // `pluggedInSlotType`: The SlotType where the FRU is plugged in.
 //
@@ -146,34 +149,34 @@ struct SlotConfig {
 // `outgoingSlotConfigs`: Details about the slots present on the FRU. Slot Name
 // is the key.
 //
-struct FruConfig {
-  SlotType pluggedInSlotType;
-  list<I2cDeviceConfig> i2cDeviceConfigs;
-  map<string, SlotConfig> outgoingSlotConfigs;
+struct FruTypeConfig {
+  1: SlotType pluggedInSlotType;
+  2: list<I2cDeviceConfig> i2cDeviceConfigs;
+  3: map<string, SlotConfig> outgoingSlotConfigs;
 }
 
 // Defines the whole Platform. The top level struct.
 struct PlatformConfig {
   // Name of the platform.  Should match the name set in dmedicode
-  string platformName;
+  1: string platformName;
 
-  // Each platform should have a Chassis FruConfig defined.
-  FruConfig chassisFruConfig;
+  // Each platform should have a Chassis FruTypeConfig defined.
+  2: FruTypeConfig chassisFruTypeConfig;
 
   // chassisSlotConfig describes the virtual Chassis slot where the Chassis is
   // plugged in.
-  SlotConfig chassisSlotConfig;
+  3: SlotConfig chassisSlotConfig;
 
   // Map from SlotType name to the global properties of the SlotType.
-  map<SlotType, SlotTypeConfig> slotTypeConfigs;
+  4: map<SlotType, SlotTypeConfig> slotTypeConfigs;
 
   // List of FRUs which the platform can support. Key is the FRU name.
-  map<string, FruConfig> fruConfigs;
+  5: map<FruType, FruTypeConfig> fruTypeConfigs;
 
   // List of the i2c busses created by the kerne/bsp and fed to the chassis.
-  list<string> i2cBussesFromMainBoard;
+  6: list<string> i2cBussesFromMainBoard;
 
   // Global mapping from the i2c device paths to an application friendly sysfs
   // path.
-  map<string, string> i2cPathToHumanFriendlyName;
+  7: map<string, string> i2cPathToHumanFriendlyName;
 }

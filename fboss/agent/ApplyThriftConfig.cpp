@@ -317,6 +317,9 @@ class ThriftConfigApplier {
   PortPgConfigs updatePortPgConfigs(
       const std::vector<cfg::PortPgConfig>& newPortPgConfig,
       const shared_ptr<Port>& orig);
+  bool isPortFlowletConfigUnchanged(
+      std::shared_ptr<PortFlowletCfg> newPortFlowletCfg,
+      const shared_ptr<Port>& port);
   void checkPortQueueAQMValid(
       const std::vector<cfg::ActiveQueueManagement>& aqms);
   std::shared_ptr<AggregatePortMap> updateAggregatePorts();
@@ -1550,6 +1553,27 @@ ThriftConfigApplier::findEnabledPfcPriorities(PortPgConfigs& portPgCfgs) {
   return tmpPfcPri;
 }
 
+bool ThriftConfigApplier::isPortFlowletConfigUnchanged(
+    std::shared_ptr<PortFlowletCfg> newPortFlowletCfg,
+    const shared_ptr<Port>& port) {
+  std::shared_ptr<PortFlowletCfg> oldPortFlowletCfg{nullptr};
+  if (port->getPortFlowletConfig().has_value()) {
+    oldPortFlowletCfg = port->getPortFlowletConfig().value();
+  }
+  // old port flowlet cfg exists and new one doesn't or vice versa
+  if ((newPortFlowletCfg && !oldPortFlowletCfg) ||
+      (!newPortFlowletCfg && oldPortFlowletCfg)) {
+    return false;
+  }
+  // contents changed in the port flowlet cfg
+  if (oldPortFlowletCfg && newPortFlowletCfg) {
+    if (*oldPortFlowletCfg != *newPortFlowletCfg) {
+      return false;
+    }
+  }
+  return true;
+}
+
 QueueConfig ThriftConfigApplier::updatePortQueues(
     const QueueConfig& origPortQueues,
     const std::vector<cfg::PortQueue>& cfgPortQueues,
@@ -1947,7 +1971,9 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
         " cannot be drained as it's NOT a DSF fabric port");
   }
 
+  bool portFlowletConfigUnchanged = true;
   auto newFlowletConfigName = std::optional<cfg::PortFlowletConfigName>();
+  std::shared_ptr<PortFlowletCfg> portFlowletCfg;
   if (portConf->flowletConfigName().has_value()) {
     newFlowletConfigName = portConf->flowletConfigName().value();
     if (auto portFlowletConfigs = cfg_->portFlowletConfigs()) {
@@ -1959,6 +1985,18 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
             " does not exist in PortFlowletConfig map");
       }
     }
+    auto portFlowletCfgMap = new_->getPortFlowletCfgs();
+    portFlowletCfg = portFlowletCfgMap->getNodeIf(*newFlowletConfigName);
+    if (!portFlowletCfg) {
+      throw FbossError(
+          "Port:",
+          orig->getID(),
+          " but flowlet config name: ",
+          *newFlowletConfigName,
+          " doesn't exist in the port flowlet config map.");
+    }
+    portFlowletConfigUnchanged =
+        isPortFlowletConfigUnchanged(portFlowletCfg, orig);
   }
 
   // Ensure portConf has actually changed, before applying
@@ -1983,6 +2021,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       lookupClassesUnchanged && profileConfigUnchanged && pinConfigsUnchanged &&
       *portConf->portType() == orig->getPortType() &&
       *portConf->drainState() == orig->getPortDrainState() &&
+      portFlowletConfigUnchanged &&
       newFlowletConfigName == orig->getFlowletConfigName()) {
     return nullptr;
   }
@@ -2024,6 +2063,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       *portConf->expectedNeighborReachability());
   newPort->setPortDrainState(*portConf->drainState());
   newPort->setFlowletConfigName(newFlowletConfigName);
+  newPort->setPortFlowletConfig(portFlowletCfg);
   return newPort;
 }
 

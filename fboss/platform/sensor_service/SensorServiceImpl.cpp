@@ -52,7 +52,7 @@ void SensorServiceImpl::init() {
   // Check if conf file name is set, if not, set the default name
   if (confFileName_.empty()) {
     XLOG(INFO) << "No config file was provided. Inferring from config_lib";
-    sensorConfJson = config_lib::getSensorServiceConfig();
+    sensorConfJson = ConfigLib().getSensorServiceConfig();
   } else {
     XLOG(INFO) << "Using config file: " << confFileName_;
     if (!folly::readFile(confFileName_.c_str(), sensorConfJson)) {

@@ -13,6 +13,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/state/PortFlowletConfig.h"
 #include "fboss/agent/state/PortPgConfig.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/Thrifty.h"
@@ -28,6 +29,8 @@
 namespace facebook::fboss {
 
 class SwitchState;
+
+using PortFlowletCfgPtr = std::shared_ptr<PortFlowletCfg>;
 
 struct PortFields {
   struct VlanInfo {
@@ -74,6 +77,7 @@ struct PortFields {
 
 USE_THRIFT_COW(Port);
 
+RESOLVE_STRUCT_MEMBER(Port, switch_state_tags::flowletConfig, PortFlowletCfg);
 /*
  * Port stores state about one of the physical ports on the switch.
  */
@@ -595,6 +599,17 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
       return;
     }
     set<switch_state_tags::flowletConfigName>(name.value());
+  }
+
+  std::optional<PortFlowletCfgPtr> getPortFlowletConfig() const {
+    if (auto flowletConfigPtr = safe_cref<switch_state_tags::flowletConfig>()) {
+      return flowletConfigPtr;
+    }
+    return std::nullopt;
+  }
+
+  void setPortFlowletConfig(PortFlowletCfgPtr flowletConfigPtr) {
+    ref<switch_state_tags::flowletConfig>() = flowletConfigPtr;
   }
 
   Port* modify(std::shared_ptr<SwitchState>* state);
