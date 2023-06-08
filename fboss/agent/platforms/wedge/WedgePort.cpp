@@ -51,11 +51,6 @@ bool WedgePort::isMediaPresent() {
   return false;
 }
 
-folly::Future<TransceiverInfo> WedgePort::getFutureTransceiverInfo() const {
-  auto qsfpCache = dynamic_cast<WedgePlatform*>(getPlatform())->getQsfpCache();
-  return qsfpCache->futureGet(getTransceiverID().value());
-}
-
 std::shared_ptr<TransceiverSpec> WedgePort::getTransceiverSpec() const {
   auto transceiverMaps = dynamic_cast<WedgePlatform*>(getPlatform())
                              ->getHwSwitch()

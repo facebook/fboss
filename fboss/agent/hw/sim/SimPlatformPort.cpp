@@ -41,15 +41,6 @@ bool SimPlatformPort::shouldDisableFEC() const {
   return true;
 }
 
-folly::Future<TransceiverInfo> SimPlatformPort::getFutureTransceiverInfo()
-    const {
-  if (auto transceiver =
-          getPlatform()->getOverrideTransceiverInfo(getPortID())) {
-    return transceiver.value();
-  }
-  throw FbossError("failed to get transceiver info for ", getPortID());
-}
-
 std::shared_ptr<TransceiverSpec> SimPlatformPort::getTransceiverSpec() const {
   throw FbossError("failed to get transceiver spec for ", getPortID());
 }

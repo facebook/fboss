@@ -54,7 +54,6 @@ class SaiPlatformPort : public PlatformPort {
   bool checkSupportsTransceiver() const;
   TransceiverIdxThrift getTransceiverMapping(cfg::PortSpeed speed);
 
-  folly::Future<TransceiverInfo> getFutureTransceiverInfo() const override;
   std::shared_ptr<TransceiverSpec> getTransceiverSpec() const override;
 
   void setCurrentProfile(cfg::PortProfileID profile) {

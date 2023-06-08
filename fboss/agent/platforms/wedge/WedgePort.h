@@ -75,7 +75,6 @@ class WedgePort : public BcmPlatformPort {
 
   BcmPortGroup::LaneMode getLaneMode() const;
 
-  folly::Future<TransceiverInfo> getFutureTransceiverInfo() const override;
   std::shared_ptr<TransceiverSpec> getTransceiverSpec() const override;
 
  protected:

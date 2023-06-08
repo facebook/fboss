@@ -117,19 +117,6 @@ TransceiverIdxThrift SaiPlatformPort::getTransceiverMapping(
   return xcvr;
 }
 
-folly::Future<TransceiverInfo> SaiPlatformPort::getFutureTransceiverInfo()
-    const {
-  // use this method to query transceiver info
-  // for hw test, it uses a map populated by switch ensemble to return
-  // transceiver information
-  if (auto transceiver =
-          getPlatform()->getOverrideTransceiverInfo(getPortID())) {
-    return transceiver.value();
-  }
-  auto qsfpCache = static_cast<SaiPlatform*>(getPlatform())->getQsfpCache();
-  return qsfpCache->futureGet(getTransceiverID().value());
-}
-
 std::shared_ptr<TransceiverSpec> SaiPlatformPort::getTransceiverSpec() const {
   // use this method to query transceiver info
   // for hw test, it uses a map populated by switch ensemble to return

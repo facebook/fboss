@@ -44,9 +44,6 @@ class MockPlatformPort : public PlatformPort {
   MOCK_METHOD0(prepareForGracefulExit, void());
   MOCK_CONST_METHOD0(shouldDisableFEC, bool());
   MOCK_METHOD1(externalState, void(PortLedExternalState));
-  MOCK_CONST_METHOD0(
-      getFutureTransceiverInfo,
-      folly::Future<TransceiverInfo>());
   std::shared_ptr<TransceiverSpec> getTransceiverSpec() const override {
     return nullptr;
   }
