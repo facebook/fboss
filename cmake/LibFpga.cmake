@@ -31,3 +31,28 @@ target_link_libraries(fb_fpga_i2c
   utils
   Folly::folly
 )
+
+add_library(wedge400_fpga
+  fboss/lib/fpga/Wedge400Fpga.cpp
+)
+
+target_link_libraries(wedge400_fpga
+  fboss_error
+  fboss_types
+  Folly::folly
+  pci_access
+  facebook_fpga
+)
+
+add_library(wedge400_i2c
+  fboss/lib/fpga/Wedge400I2CBus.cpp
+  fboss/lib/fpga/Wedge400TransceiverApi.cpp
+)
+
+target_link_libraries(wedge400_i2c
+  wedge400_fpga
+  pci_access
+  Folly::folly
+  utils
+  fb_fpga_i2c
+)
