@@ -217,8 +217,7 @@ class PlatformPort {
 
   virtual folly::Future<TransceiverInfo> getFutureTransceiverInfo() const = 0;
   virtual std::shared_ptr<TransceiverSpec> getTransceiverSpec() const = 0;
-  std::optional<TransceiverInfo> getTransceiverInfo(
-      folly::EventBase* evb) const;
+  std::shared_ptr<TransceiverSpec> getTransceiverInfo() const;
 
   std::optional<int32_t> getExternalPhyID();
 

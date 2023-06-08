@@ -93,13 +93,13 @@ phy::PortPinConfig PlatformPort::getPortXphyPinConfig(
     cfg::PortProfileID profileID) const {
   if (platform_->needTransceiverInfo()) {
     folly::EventBase evb;
-    auto transceiverInfo = getTransceiverInfo(&evb);
-    if (transceiverInfo) {
+    auto transceiverSpec = getTransceiverInfo();
+    if (transceiverSpec) {
       return platform_->getPlatformMapping()->getPortXphyPinConfig(
           PlatformPortProfileConfigMatcher(
               profileID,
               id_,
-              buildPlatformPortConfigOverrideFactor(*transceiverInfo)));
+              buildPlatformPortConfigOverrideFactorBySpec(*transceiverSpec)));
     }
   }
   return platform_->getPlatformMapping()->getPortXphyPinConfig(
@@ -201,12 +201,12 @@ const std::optional<phy::PortProfileConfig>
 PlatformPort::getPortProfileConfigIf(cfg::PortProfileID profileID) const {
   if (platform_->needTransceiverInfo()) {
     folly::EventBase evb;
-    std::optional<TransceiverInfo> transceiverInfo = getTransceiverInfo(&evb);
-    if (transceiverInfo.has_value()) {
+    auto transceiverSpec = getTransceiverInfo();
+    if (transceiverSpec) {
       return platform_->getPortProfileConfig(PlatformPortProfileConfigMatcher(
           profileID,
           id_,
-          buildPlatformPortConfigOverrideFactor(*transceiverInfo)));
+          buildPlatformPortConfigOverrideFactorBySpec(*transceiverSpec)));
     }
   }
   return platform_->getPortProfileConfig(
@@ -254,15 +254,14 @@ std::optional<int32_t> PlatformPort::getExternalPhyID() {
   }
 }
 
-std::optional<TransceiverInfo> PlatformPort::getTransceiverInfo(
-    folly::EventBase* evb) const {
+std::shared_ptr<TransceiverSpec> PlatformPort::getTransceiverInfo() const {
   auto transID = getTransceiverID();
   try {
-    return std::optional(getFutureTransceiverInfo().getVia(evb));
+    return getTransceiverSpec();
   } catch (const std::exception& e) {
     XLOG(DBG3) << "Error retrieving TransceiverInfo for transceiver "
                << *transID << " Exception: " << folly::exceptionStr(e);
-    return std::nullopt;
+    return nullptr;
   }
 }
 
