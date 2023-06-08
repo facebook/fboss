@@ -22,6 +22,7 @@
 #include "fboss/qsfp_service/platforms/wedge/BspWedgeManager.h"
 #include "fboss/qsfp_service/platforms/wedge/GalaxyManager.h"
 #include "fboss/qsfp_service/platforms/wedge/Wedge100Manager.h"
+#include "fboss/qsfp_service/platforms/wedge/Wedge400CManager.h"
 #include "fboss/qsfp_service/platforms/wedge/Wedge40Manager.h"
 
 #include "fboss/lib/CommonFileUtils.h"
@@ -60,11 +61,12 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
     return createMeru800biaWedgeManager();
   } else if (mode == PlatformType::PLATFORM_MONTBLANC) {
     return createMontblancWedgeManager();
+  } else if (mode == PlatformType::PLATFORM_WEDGE400C) {
+    return std::make_unique<Wedge400CManager>();
   } else if (
       mode == PlatformType::PLATFORM_FUJI ||
       mode == PlatformType::PLATFORM_MINIPACK ||
       mode == PlatformType::PLATFORM_WEDGE400 ||
-      mode == PlatformType::PLATFORM_WEDGE400C ||
       mode == PlatformType::PLATFORM_CLOUDRIPPER) {
     return createFBWedgeManager(std::move(productInfo));
   }
