@@ -143,14 +143,42 @@ OPT_ARG_SAI_LOGGING = "--sai_logging"
 SUB_CMD_BCM = "bcm"
 SUB_CMD_SAI = "sai"
 SUB_CMD_QSFP = "qsfp"
-AGENT_WARMBOOT_CHECK_FILE = "/dev/shm/fboss/warm_boot/can_warm_boot_0"
-QSFP_WARMBOOT_CHECK_FILE = "/dev/shm/fboss/qsfp_service/can_warm_boot"
+SUB_CMD_LINK = "link"
 SAI_HW_KNOWN_BAD_TESTS = (
     "./share/hw_known_bad_tests/sai_known_bad_tests.materialized_JSON"
 )
 QSFP_KNOWN_BAD_TESTS = (
     "./share/qsfp_known_bad_tests/fboss_qsfp_known_bad_tests.materialized_JSON"
 )
+QSFP_SERVICE_FOR_TESTING = "qsfp_service_for_testing"
+QSFP_SERVICE_DIR = "/dev/shm/fboss/qsfp_service"
+QSFP_SERVICE_COLD_BOOT_FILE = "cold_boot_once_qsfp_service"
+AGENT_WARMBOOT_CHECK_FILE = "/dev/shm/fboss/warm_boot/can_warm_boot_0"
+QSFP_WARMBOOT_CHECK_FILE = rf"{QSFP_SERVICE_DIR}/can_warm_boot"
+CLEANUP_QSFP_SERVICE_CMD = rf"""systemctl stop qsfp_service; systemctl stop {QSFP_SERVICE_FOR_TESTING}; systemctl disable {QSFP_SERVICE_FOR_TESTING}; systemctl daemon-reload; pkill -f qsfp_service; rm /etc/rsyslog.d/{QSFP_SERVICE_FOR_TESTING}.conf; systemctl restart rsyslog"""
+SETUP_QSFP_SERVICE_COLDBOOT_CMD = rf"""mkdir -p {QSFP_SERVICE_DIR}; touch {QSFP_SERVICE_DIR}/{QSFP_SERVICE_COLD_BOOT_FILE}"""
+START_QSFP_SERVICE_CMD = rf"""systemctl enable {{qsfp_service_file}}; systemctl daemon-reload; systemctl start {QSFP_SERVICE_FOR_TESTING}; sleep 10"""
+QSFP_SERVICE_FILE_TEMPLATE = rf"""
+[Unit]
+Description=QSFP Service For Testing
+
+[Service]
+LimitNOFILE=10000000
+LimitCORE=32G
+
+Environment=TSAN_OPTIONS="die_after_fork=0 halt_on_error=1
+Environment=LD_LIBRARY_PATH=/opt/fboss/lib
+ExecStart=/opt/fboss/bin/qsfp_service --qsfp-config {{qsfp_config}} --can-qsfp-service-warm-boot {{is_warm_boot}}
+SyslogIdentifier={QSFP_SERVICE_FOR_TESTING}
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
+"""
+QSFP_SERVICE_LOG_TEMPLATE = rf"""
+if $programname == "{QSFP_SERVICE_FOR_TESTING}" then {{qsfp_service_log}}
+& stop
+"""
 
 
 class TestRunner(abc.ABC):
@@ -191,8 +219,50 @@ class TestRunner(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _setup_test(self):
+    def _get_test_run_args(self, conf_file):
         pass
+
+    @abc.abstractmethod
+    def _setup_coldboot_test(self):
+        pass
+
+    @abc.abstractmethod
+    def _setup_warmboot_test(self):
+        pass
+
+    @abc.abstractmethod
+    def _end_run(self):
+        pass
+
+    def setup_qsfp_service(self, is_warm_boot):
+        subprocess.run(CLEANUP_QSFP_SERVICE_CMD, shell=True)
+        qsfp_service_file = f"/tmp/{QSFP_SERVICE_FOR_TESTING}.service"
+        with open(qsfp_service_file, "w") as f:
+            f.write(
+                QSFP_SERVICE_FILE_TEMPLATE.format(
+                    qsfp_config=args.qsfp_config,
+                    is_warm_boot=is_warm_boot,
+                )
+            )
+            f.flush()
+        if not is_warm_boot:
+            subprocess.run(SETUP_QSFP_SERVICE_COLDBOOT_CMD, shell=True)
+        return qsfp_service_file
+
+    def setup_qsfp_service_log(self):
+        qsfp_service_log = f"/etc/rsyslog.d/{QSFP_SERVICE_FOR_TESTING}.conf"
+        with open(qsfp_service_log, "w") as f:
+            f.write(QSFP_SERVICE_LOG_TEMPLATE.format(qsfp_service_log=qsfp_service_log))
+            f.flush()
+        subprocess.run("systemctl restart rsyslog; sleep 5", shell=True)
+
+    def start_qsfp_service(self, is_warm_boot):
+        qsfp_service_file = self.setup_qsfp_service(is_warm_boot)
+        self.setup_qsfp_service_log()
+        start_qsfp_service_cmd = START_QSFP_SERVICE_CMD.format(
+            qsfp_service_file=qsfp_service_file
+        )
+        subprocess.run(start_qsfp_service_cmd, shell=True)
 
     def _get_test_run_cmd(self, conf_file, test_to_run, flags):
         test_binary_name = self._get_test_binary_name()
@@ -201,12 +271,7 @@ class TestRunner(abc.ABC):
             "--gtest_filter=" + test_to_run,
             "--fruid_filepath=" + args.fruid_path,
         ]
-        run_args = []
-        if "sai_test" in test_binary_name or test_binary_name == args.sai_bin:
-            run_args = ["--config", conf_file, "--mgmt-if", args.mgmt_if]
-        if test_binary_name == "qsfp_hw_test":
-            run_args = ["--qsfp-config", args.qsfp_config]
-        run_cmd += run_args
+        run_cmd += self._get_test_run_args(conf_file)
 
         return run_cmd + flags if flags else run_cmd
 
@@ -455,7 +520,7 @@ class TestRunner(abc.ABC):
         num_tests = len(tests_to_run)
         for idx, test_to_run in enumerate(tests_to_run):
             # Run the test for coldboot verification
-            self._setup_test()
+            self._setup_coldboot_test()
             print("########## Running test: " + test_to_run, flush=True)
             if args.simulator:
                 self._restart_bcmsim(args.simulator)
@@ -476,6 +541,7 @@ class TestRunner(abc.ABC):
 
             # Run the test again for warmboot verification if the test supports it
             if warmboot and os.path.isfile(self._get_warmboot_check_file()):
+                self._setup_warmboot_test()
                 print(
                     "########## Verifying test with warmboot: " + test_to_run,
                     flush=True,
@@ -494,7 +560,7 @@ class TestRunner(abc.ABC):
                     flush=True,
                 )
                 test_outputs.append(test_output)
-
+        self._end_run()
         return test_outputs
 
     def _print_output_summary(self, test_outputs):
@@ -567,7 +633,16 @@ class BcmTestRunner(TestRunner):
     def _get_warmboot_check_file(self):
         return AGENT_WARMBOOT_CHECK_FILE
 
-    def _setup_test(self):
+    def _get_test_run_args(self, conf_file):
+        return []
+
+    def _setup_coldboot_test(self):
+        return
+
+    def _setup_warmboot_test(self):
+        return
+
+    def _end_run(self):
         return
 
 
@@ -600,7 +675,16 @@ class SaiTestRunner(TestRunner):
     def _get_warmboot_check_file(self):
         return AGENT_WARMBOOT_CHECK_FILE
 
-    def _setup_test(self):
+    def _get_test_run_args(self, conf_file):
+        return ["--config", conf_file, "--mgmt-if", args.mgmt_if]
+
+    def _setup_coldboot_test(self):
+        return
+
+    def _setup_warmboot_test(self):
+        return
+
+    def _end_run(self):
         return
 
 
@@ -624,11 +708,53 @@ class QsfpTestRunner(TestRunner):
     def _get_warmboot_check_file(self):
         return QSFP_WARMBOOT_CHECK_FILE
 
-    def _setup_test(self):
+    def _get_test_run_args(self, conf_file):
+        return ["--qsfp-config", args.qsfp_config]
+
+    def _setup_coldboot_test(self):
         subprocess.Popen(
             # Clean up left over flags
-            ["rm", "-rf", "/dev/shm/fboss/qsfp_service"]
+            ["rm", "-rf", QSFP_SERVICE_DIR]
         )
+
+    def _setup_warmboot_test(self):
+        return
+
+    def _end_run(self):
+        return
+
+
+class LinkTestRunner(TestRunner):
+    def _get_config_path(self):
+        return ""
+
+    def _get_known_bad_tests_file(self):
+        return ""
+
+    def _get_test_binary_name(self):
+        return "sai_link_test-sai_impl-1.12.0"
+
+    def _get_sdk_logging_flags(self, sdk_logging_dir, test_prefix, test_to_run):
+        return []
+
+    def _get_sai_logging_flags(self, sai_logging):
+        # N/A
+        return []
+
+    def _get_warmboot_check_file(self):
+        return AGENT_WARMBOOT_CHECK_FILE
+
+    def _get_test_run_args(self, conf_file):
+        return ["--config", conf_file]
+
+    def _setup_coldboot_test(self):
+        self.start_qsfp_service(False)
+
+    def _setup_warmboot_test(self):
+        self.start_qsfp_service(True)
+
+    def _end_run(self):
+        subprocess.run(CLEANUP_QSFP_SERVICE_CMD, shell=True)
 
 
 if __name__ == "__main__":
@@ -760,6 +886,10 @@ if __name__ == "__main__":
     # Add subparser for QSFP tests
     qsfp_test_parser = subparsers.add_parser(SUB_CMD_QSFP, help="run qsfp tests")
     qsfp_test_parser.set_defaults(func=QsfpTestRunner().run_test)
+
+    # Add subparser for Link tests
+    link_test_parser = subparsers.add_parser(SUB_CMD_LINK, help="run link tests")
+    link_test_parser.set_defaults(func=LinkTestRunner().run_test)
 
     # Parse the args
     args = ap.parse_known_args()
