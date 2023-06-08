@@ -161,3 +161,7 @@ target_link_libraries(fpga_device
   fboss_types
   Folly::folly
 )
+
+add_library(pci_access
+  fboss/lib/PciAccess.cpp
+)
