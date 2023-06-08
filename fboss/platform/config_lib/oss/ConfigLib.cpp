@@ -2,33 +2,42 @@
 
 #include "fboss/platform/config_lib/ConfigLib.h"
 
-namespace facebook::fboss::platform::config_lib {
+namespace facebook::fboss::platform {
 
-std::string getSensorServiceConfig(
-    const std::optional<std::string>& /* platformName */) {
+std::string ConfigLib::getSensorServiceConfig(
+    const std::optional<std::string>& /* platformName */) const {
   throw std::runtime_error(
       "Unimplemented function. Specify config_file explicitly");
 }
 
-std::string getFbdevdConfig(
-    const std::optional<std::string>& /* platformName */) {
+std::string ConfigLib::getFbdevdConfig(
+    const std::optional<std::string>& /* platformName */) const {
   throw std::runtime_error(
       "Unimplemented function. Specify config_file explicitly");
 }
 
-std::string getFanServiceConfig(
-    const std::optional<std::string>& platformName) {
+std::string ConfigLib::getFanServiceConfig(
+    const std::optional<std::string>& platformName) const {
   throw std::runtime_error(
       "Unimplemented function. Specify config_file explicitly");
 }
 
-std::string getWeutilConfig(const std::optional<std::string>& platformName) {
+std::string ConfigLib::getWeutilConfig(
+    const std::optional<std::string>& platformName) const {
   throw std::runtime_error(
       "Unimplemented function. Specify config_file explicitly");
 }
 
-std::string getFwUtilConfig(const std::optional<std::string>& platformName) {
+std::string ConfigLib::getFwUtilConfig(
+    const std::optional<std::string>& platformName) const {
   throw std::runtime_error(
       "Unimplemented function. Specify config_file explicitly");
 }
-} // namespace facebook::fboss::platform::config_lib
+
+std::string ConfigLib::getPlatformManagerConfig(
+    const std::optional<std::string>& platformName) const {
+  throw std::runtime_error(
+      "Unimplemented function. Specify config_file explicitly");
+}
+
+} // namespace facebook::fboss::platform
