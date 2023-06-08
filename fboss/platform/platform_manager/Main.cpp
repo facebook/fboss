@@ -17,12 +17,18 @@ DEFINE_int32(
     60,
     "Frequency at which the platform needs to be explored");
 
+DEFINE_string(
+    config_file,
+    "",
+    "Optional platform manager config file. "
+    "If this is empty, we pick the platform default config");
+
 int main(int argc, char** argv) {
   fb303::registerFollyLoggingOptionHandlers();
   helpers::init(argc, argv);
 
   PlatformExplorer platformExplorer(
-      (std::chrono::seconds(FLAGS_explore_interval_s)));
+      std::chrono::seconds(FLAGS_explore_interval_s), FLAGS_config_file);
 
   auto server = std::make_shared<apache::thrift::ThriftServer>();
   auto handler = std::make_shared<PlatformManagerHandler>();
