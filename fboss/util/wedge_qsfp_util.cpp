@@ -1993,12 +1993,12 @@ void printCmisDetailService(
   if (auto mediaInterfaceId = settings.mediaInterface()) {
     std::string mediaInterface;
     if ((*mediaInterfaceId)[0].media()->getType() ==
-        MediaInterfaceUnion::smfCode) {
+        MediaInterfaceUnion::Type::smfCode) {
       mediaInterface = apache::thrift::util::enumNameSafe(
           (*mediaInterfaceId)[0].media()->get_smfCode());
     } else if (
         (*mediaInterfaceId)[0].media()->getType() ==
-        MediaInterfaceUnion::passiveCuCode) {
+        MediaInterfaceUnion::Type::passiveCuCode) {
       mediaInterface = apache::thrift::util::enumNameSafe(
           (*mediaInterfaceId)[0].media()->get_passiveCuCode());
     }
