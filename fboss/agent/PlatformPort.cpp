@@ -281,6 +281,25 @@ cfg::PortType PlatformPort::getPortType() const {
   return *getPlatformPortEntry().mapping()->portType();
 }
 
+cfg::PlatformPortConfigOverrideFactor
+PlatformPort::buildPlatformPortConfigOverrideFactorBySpec(
+    const TransceiverSpec& transceiverSpec) const {
+  cfg::PlatformPortConfigOverrideFactor factor;
+  if (auto cable = transceiverSpec.getCableLength(); cable.has_value()) {
+    factor.cableLengths() = {cable.value()};
+  }
+  if (auto mediaInterface = transceiverSpec.getMediaInterface();
+      mediaInterface.has_value()) {
+    // Use the first lane mediaInterface
+    factor.mediaInterfaceCode() = mediaInterface.value();
+  }
+  if (auto interface = transceiverSpec.getManagementInterface();
+      interface.has_value()) {
+    factor.transceiverManagementInterface() = interface.value();
+  }
+  return factor;
+}
+
 namespace {
 constexpr auto kFbossPortNameRegex = "eth(\\d+)/(\\d+)/1";
 }

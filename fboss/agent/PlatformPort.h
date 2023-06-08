@@ -231,6 +231,10 @@ class PlatformPort {
   std::vector<phy::PinID> getTransceiverLanes(
       std::optional<cfg::PortProfileID> profileID = std::nullopt) const;
 
+  cfg::PlatformPortConfigOverrideFactor
+  buildPlatformPortConfigOverrideFactorBySpec(
+      const TransceiverSpec& transceiverSpec) const;
+
  private:
   // Forbidden copy constructor and assignment operator
   PlatformPort(PlatformPort const&) = delete;
