@@ -111,6 +111,9 @@ struct FruEEPROMConfig {
 // These are the FRU Slot types. Examples: "PIM", "PSU", "CHASSIS" and "FAN".
 typedef string SlotType
 
+// These are the FRU Types. Examples: "PIM-8DD", "PIM-16Q".
+typedef string FruType
+
 // The below struct holds the global properties for each SlotType within any
 // platform.  This means all slots of the same SlotType within a platform
 // should have the same number of outgoing I2C buses, and same FruEEPROMConfig
@@ -137,7 +140,7 @@ struct SlotConfig {
   3: list<string> outgoingI2cBusNames;
 }
 
-// `FruConfig` defines the configuration of FRU.
+// `FruTypeConfig` defines the configuration of FRU.
 //
 // `pluggedInSlotType`: The SlotType where the FRU is plugged in.
 //
@@ -146,7 +149,7 @@ struct SlotConfig {
 // `outgoingSlotConfigs`: Details about the slots present on the FRU. Slot Name
 // is the key.
 //
-struct FruConfig {
+struct FruTypeConfig {
   1: SlotType pluggedInSlotType;
   2: list<I2cDeviceConfig> i2cDeviceConfigs;
   3: map<string, SlotConfig> outgoingSlotConfigs;
@@ -157,8 +160,8 @@ struct PlatformConfig {
   // Name of the platform.  Should match the name set in dmedicode
   1: string platformName;
 
-  // Each platform should have a Chassis FruConfig defined.
-  2: FruConfig chassisFruConfig;
+  // Each platform should have a Chassis FruTypeConfig defined.
+  2: FruTypeConfig chassisFruTypeConfig;
 
   // chassisSlotConfig describes the virtual Chassis slot where the Chassis is
   // plugged in.
@@ -168,7 +171,7 @@ struct PlatformConfig {
   4: map<SlotType, SlotTypeConfig> slotTypeConfigs;
 
   // List of FRUs which the platform can support. Key is the FRU name.
-  5: map<string, FruConfig> fruConfigs;
+  5: map<FruType, FruTypeConfig> fruTypeConfigs;
 
   // List of the i2c busses created by the kerne/bsp and fed to the chassis.
   6: list<string> i2cBussesFromMainBoard;
