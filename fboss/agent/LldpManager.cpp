@@ -109,8 +109,6 @@ void LldpManager::handlePacket(
              << " port=" << neighbor->humanReadablePortId()
              << " name=" << neighbor->getSystemName();
 
-  auto plport =
-      sw_->getPlatform_DEPRECATED()->getPlatformPort(pkt->getSrcPort());
   auto port = sw_->getState()->getPorts()->getNodeIf(pkt->getSrcPort());
   PortID pid = pkt->getSrcPort();
 
@@ -132,10 +130,7 @@ void LldpManager::handlePacket(
             cfg::LLDPTag::PORT,
             neighbor->humanReadablePortId()))) {
     sw_->stats()->LldpValidateMisMatch();
-    // TODO(pjakma): Figure out how to mock plport
-    if (plport) {
-      plport->externalState(PortLedExternalState::CABLING_ERROR);
-    }
+    sw_->externalState(pid, PortLedExternalState::CABLING_ERROR);
     XLOG(DBG4) << "LLDP expected/recvd value mismatch!";
   }
   db_.update(neighbor);

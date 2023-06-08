@@ -815,6 +815,8 @@ class SwSwitch : public HwSwitch::Callback {
 
   folly::MacAddress getLocalMac(SwitchID switchId) const;
 
+  void externalState(PortID portID, PortLedExternalState state);
+
  private:
   std::optional<folly::MacAddress> getSourceMac(
       const std::shared_ptr<Interface>& intf) const;

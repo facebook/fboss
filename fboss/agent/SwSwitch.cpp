@@ -2341,4 +2341,14 @@ folly::MacAddress SwSwitch::getLocalMac(SwitchID switchId) const {
   return getLocalMacAddress();
 }
 
+void SwSwitch::externalState(PortID portID, PortLedExternalState state) {
+  auto plport = getPlatform_DEPRECATED()->getPlatformPort(portID);
+  // TODO(pjakma): Figure out how to mock plport
+  if (plport) {
+    // TODO (m-NPU): shift this to HwSwitch and identify HwSwitch based on
+    // portID
+    plport->externalState(state);
+  }
+}
+
 } // namespace facebook::fboss

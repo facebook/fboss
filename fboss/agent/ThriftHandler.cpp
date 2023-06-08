@@ -2298,13 +2298,7 @@ void ThriftHandler::setExternalLedState(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
   PortID portId = PortID(portNum);
-
-  const auto plport = sw_->getPlatform_DEPRECATED()->getPlatformPort(portId);
-
-  if (!plport) {
-    throw FbossError("No such port ", portNum);
-  }
-  plport->externalState(ledState);
+  sw_->externalState(portId, ledState);
 }
 
 void ThriftHandler::addMplsRoutes(
