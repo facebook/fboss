@@ -16,6 +16,7 @@
 #include <folly/io/async/EventBaseManager.h>
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
@@ -53,6 +54,15 @@ bool WedgePort::isMediaPresent() {
 folly::Future<TransceiverInfo> WedgePort::getFutureTransceiverInfo() const {
   auto qsfpCache = dynamic_cast<WedgePlatform*>(getPlatform())->getQsfpCache();
   return qsfpCache->futureGet(getTransceiverID().value());
+}
+
+std::shared_ptr<TransceiverSpec> WedgePort::getTransceiverSpec() const {
+  auto transceiverMaps = dynamic_cast<WedgePlatform*>(getPlatform())
+                             ->getHwSwitch()
+                             ->getProgrammedState()
+                             ->getTransceivers();
+  auto transceiverSpec = transceiverMaps->getNodeIf(getTransceiverID().value());
+  return transceiverSpec;
 }
 
 void WedgePort::statusIndication(

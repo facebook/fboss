@@ -15,6 +15,7 @@
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/state/Transceiver.h"
 #include "fboss/agent/types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
@@ -215,6 +216,7 @@ class PlatformPort {
   virtual void externalState(PortLedExternalState) = 0;
 
   virtual folly::Future<TransceiverInfo> getFutureTransceiverInfo() const = 0;
+  virtual std::shared_ptr<TransceiverSpec> getTransceiverSpec() const = 0;
   std::optional<TransceiverInfo> getTransceiverInfo(
       folly::EventBase* evb) const;
 

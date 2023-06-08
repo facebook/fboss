@@ -60,6 +60,16 @@ folly::Future<TransceiverInfo> BcmTestPort::getFutureTransceiverInfo() const {
   throw FbossError("failed to get transceiver info for ", getPortID());
 }
 
+std::shared_ptr<TransceiverSpec> BcmTestPort::getTransceiverSpec() const {
+  if (auto overrideTransceiverInfo =
+          getPlatform()->getOverrideTransceiverInfo(getPortID())) {
+    auto overrideTransceiverSpec = TransceiverSpec::createPresentTransceiver(
+        overrideTransceiverInfo.value());
+    return overrideTransceiverSpec;
+  }
+  throw FbossError("failed to get transceiver info for ", getPortID());
+}
+
 int BcmTestPort::numberOfLanes() const {
   auto profile = getBcmPort()->getCurrentProfile();
   return getPlatform()->getLaneCount(profile);

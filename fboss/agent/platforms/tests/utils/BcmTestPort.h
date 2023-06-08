@@ -59,6 +59,7 @@ class BcmTestPort : public BcmPlatformPort {
   }
 
   folly::Future<TransceiverInfo> getFutureTransceiverInfo() const override;
+  std::shared_ptr<TransceiverSpec> getTransceiverSpec() const override;
 
   int numberOfLanes() const;
 

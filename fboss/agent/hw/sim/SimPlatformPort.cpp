@@ -49,4 +49,8 @@ folly::Future<TransceiverInfo> SimPlatformPort::getFutureTransceiverInfo()
   }
   throw FbossError("failed to get transceiver info for ", getPortID());
 }
+
+std::shared_ptr<TransceiverSpec> SimPlatformPort::getTransceiverSpec() const {
+  throw FbossError("failed to get transceiver spec for ", getPortID());
+}
 } // namespace facebook::fboss

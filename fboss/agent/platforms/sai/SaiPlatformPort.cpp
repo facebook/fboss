@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/platforms/sai/SaiPlatformPort.h"
+#include <optional>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
@@ -127,6 +128,24 @@ folly::Future<TransceiverInfo> SaiPlatformPort::getFutureTransceiverInfo()
   }
   auto qsfpCache = static_cast<SaiPlatform*>(getPlatform())->getQsfpCache();
   return qsfpCache->futureGet(getTransceiverID().value());
+}
+
+std::shared_ptr<TransceiverSpec> SaiPlatformPort::getTransceiverSpec() const {
+  // use this method to query transceiver info
+  // for hw test, it uses a map populated by switch ensemble to return
+  // transceiver information
+  if (auto overrideTransceiverInfo =
+          getPlatform()->getOverrideTransceiverInfo(getPortID())) {
+    auto overrideTransceiverSpec = TransceiverSpec::createPresentTransceiver(
+        overrideTransceiverInfo.value());
+    return overrideTransceiverSpec;
+  }
+  auto transceiverMaps = static_cast<SaiPlatform*>(getPlatform())
+                             ->getHwSwitch()
+                             ->getProgrammedState()
+                             ->getTransceivers();
+  auto transceiverSpec = transceiverMaps->getNodeIf(getTransceiverID().value());
+  return transceiverSpec;
 }
 
 std::optional<ChannelID> SaiPlatformPort::getChannel() const {

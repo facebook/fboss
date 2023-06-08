@@ -47,6 +47,9 @@ class MockPlatformPort : public PlatformPort {
   MOCK_CONST_METHOD0(
       getFutureTransceiverInfo,
       folly::Future<TransceiverInfo>());
+  std::shared_ptr<TransceiverSpec> getTransceiverSpec() const override {
+    return nullptr;
+  }
   std::optional<int> getAttachedCoreId() const override {
     return 0;
   }
