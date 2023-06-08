@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 #include <chrono>
+#include <exception>
 
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
@@ -7,6 +8,7 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/platform_manager/PlatformExplorer.h"
+#include "fboss/platform/platform_manager/PlatformValidator.h"
 
 namespace facebook::fboss::platform::platform_manager {
 
@@ -26,10 +28,20 @@ PlatformExplorer::PlatformExplorer(
     }
   }
 
-  apache::thrift::SimpleJSONSerializer::deserialize<PlatformConfig>(
-      pmConfigJson, platformConfig_);
+  try {
+    apache::thrift::SimpleJSONSerializer::deserialize<PlatformConfig>(
+        pmConfigJson, platformConfig_);
+  } catch (const std::exception& e) {
+    XLOG(ERR) << "Failed to deserialize platform config: " << e.what();
+    throw;
+  }
   XLOG(DBG2) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
       platformConfig_);
+
+  if (!PlatformValidator().isValid(platformConfig_)) {
+    XLOG(ERR) << "Invalid platform config";
+    throw std::runtime_error("Invalid platform config");
+  }
 
   scheduler_.addFunction([this]() { explore(); }, exploreInterval);
   scheduler_.start();
