@@ -109,6 +109,7 @@ struct PortFields {
   42: list<switch_config.PortNeighbor> expectedNeighborReachability;
   43: switch_config.PortDrainState drainState = switch_config.PortDrainState.UNDRAINED;
   44: optional string flowletConfigName;
+  45: optional PortFlowletFields flowletConfig;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
