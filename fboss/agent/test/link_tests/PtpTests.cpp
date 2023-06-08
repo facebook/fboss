@@ -33,7 +33,9 @@ class PtpTests : public LinkTest {
       throw FbossError("VLAN id unavailable for test");
     }
     auto vlanId = *vlan;
-    const auto dstMac = sw()->getPlatform_DEPRECATED()->getLocalMac();
+    auto scope = sw()->getScopeResolver()->scope(
+        sw()->getState()->getVlans()->getNode(vlanId));
+    const auto dstMac = sw()->getLocalMac(scope.switchId());
     auto intf = sw()->getState()->getInterfaces()->getInterfaceInVlan(vlanId);
 
     auto srcIp = folly::IPAddressV6("1::1"); // arbit
@@ -55,7 +57,9 @@ class PtpTests : public LinkTest {
     HwAgentTestPacketSnooper snooper(sw()->getPacketObservers());
     XLOG(DBG2) << "Validating PTP packet fields on Port "
                << portDescriptor.phyPortID();
-    auto localMac = sw()->getPlatform_DEPRECATED()->getLocalMac();
+    auto matcher =
+        sw()->getScopeResolver()->scope(sw()->getState(), portDescriptor);
+    auto localMac = sw()->getLocalMac(matcher.switchId());
     // Send out PTP packet
     auto ptpPkt = createPtpPkt(ptpType);
     sw()->getHw()->sendPacketOutOfPortSync(
@@ -198,7 +202,7 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
   // SAI doesn't support this qualifier yet
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
   auto entry = HwTestPacketTrapEntry(sw()->getHw(), dstPrefix);
-  programDefaultRoute(ecmpPorts, sw()->getPlatform_DEPRECATED()->getLocalMac());
+  programDefaultRoute(ecmpPorts, sw()->getLocalMac(scope(ecmpPorts)));
 
   verifyPtpTcOnPorts(ecmpPorts, PTPMessageType::PTP_DELAY_REQUEST);
 }
@@ -218,7 +222,7 @@ TEST_F(PtpTests, verifyPtpTcAfterLinkFlap) {
       break;
     }
   }
-  programDefaultRoute(ecmpPorts, sw()->getPlatform_DEPRECATED()->getLocalMac());
+  programDefaultRoute(ecmpPorts, sw()->getLocalMac(scope(ecmpPorts)));
 
   // 1. Disable PTP
   XLOG(DBG2) << "Disabling PTP";
@@ -261,7 +265,7 @@ TEST_F(PtpTests, enablePtpPortDown) {
       break;
     }
   }
-  programDefaultRoute(ecmpPorts, sw()->getPlatform_DEPRECATED()->getLocalMac());
+  programDefaultRoute(ecmpPorts, sw()->getLocalMac(scope(ecmpPorts)));
 
   // 1. Disable PTP
   XLOG(DBG2) << "Disabling PTP";

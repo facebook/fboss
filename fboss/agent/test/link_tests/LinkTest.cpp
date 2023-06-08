@@ -265,18 +265,16 @@ void LinkTest::disableTTLDecrements(
 }
 void LinkTest::createL3DataplaneFlood(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
+  auto switchId = scope(ecmpPorts);
   utility::EcmpSetupTargetedPorts6 ecmp6(
-      sw()->getState(), sw()->getPlatform_DEPRECATED()->getLocalMac());
+      sw()->getState(), sw()->getLocalMac(switchId));
   programDefaultRoute(ecmpPorts, ecmp6);
   disableTTLDecrements(ecmpPorts);
   auto vlanID = util::getFirstMap(sw()->getState()->getVlans())
                     ->cbegin()
                     ->second->getID();
   utility::pumpTraffic(
-      true,
-      sw()->getHw(),
-      sw()->getPlatform_DEPRECATED()->getLocalMac(),
-      vlanID);
+      true, sw()->getHw(), sw()->getLocalMac(switchId), vlanID);
   // TODO: Assert that traffic reached a certain rate
   XLOG(DBG2) << "Created L3 Data Plane Flood";
 }
@@ -301,17 +299,6 @@ bool LinkTest::checkReachabilityOnAllCabledPorts() const {
     }
   }
   return true;
-}
-
-PortID LinkTest::getPortID(const std::string& portName) const {
-  for (auto portMap : std::as_const(*sw()->getState()->getPorts())) {
-    for (auto port : std::as_const(*portMap.second)) {
-      if (port.second->getName() == portName) {
-        return port.second->getID();
-      }
-    }
-  }
-  throw FbossError("No port named: ", portName);
 }
 
 std::string LinkTest::getPortName(PortID portId) const {

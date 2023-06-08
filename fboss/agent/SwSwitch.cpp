@@ -2329,4 +2329,16 @@ std::shared_ptr<SwitchState> SwSwitch::modifyTransceivers(
   }
 }
 
+folly::MacAddress SwSwitch::getLocalMac(SwitchID switchId) const {
+  const auto& switchId2SwitchInfo = switchInfoTable_.getSwitchIdToSwitchInfo();
+  auto iter = switchId2SwitchInfo.find(switchId);
+  if (iter == switchId2SwitchInfo.end()) {
+    throw FbossError("mac can not be found for switch ", switchId);
+  }
+  if (auto switchMac = iter->second.switchMac()) {
+    return folly::MacAddress(*switchMac);
+  }
+  return getLocalMacAddress();
+}
+
 } // namespace facebook::fboss

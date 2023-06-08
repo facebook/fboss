@@ -7,9 +7,8 @@ using namespace facebook::fboss;
 
 TEST_F(LinkTest, ecmpShrink) {
   auto setup = [this]() {
-    programDefaultRoute(
-        getVlanOwningCabledPorts(),
-        sw()->getPlatform_DEPRECATED()->getLocalMac());
+    const auto cabledPorts = getVlanOwningCabledPorts();
+    programDefaultRoute(cabledPorts, sw()->getLocalMac(scope(cabledPorts)));
   };
   auto verify = [this]() {
     auto ecmpPorts = getVlanOwningCabledPorts();

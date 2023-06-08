@@ -813,6 +813,8 @@ class SwSwitch : public HwSwitch::Callback {
       const PlatformMapping* platformMapping,
       const SwitchIdScopeResolver* scopeResolver);
 
+  folly::MacAddress getLocalMac(SwitchID switchId) const;
+
  private:
   std::optional<folly::MacAddress> getSourceMac(
       const std::shared_ptr<Interface>& intf) const;

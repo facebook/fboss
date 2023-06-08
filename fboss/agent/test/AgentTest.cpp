@@ -279,6 +279,17 @@ SwitchID AgentTest::scope(
   return matcher.switchId();
 }
 
+PortID AgentTest::getPortID(const std::string& portName) const {
+  for (auto portMap : std::as_const(*sw()->getState()->getPorts())) {
+    for (auto port : std::as_const(*portMap.second)) {
+      if (port.second->getName() == portName) {
+        return port.second->getID();
+      }
+    }
+  }
+  throw FbossError("No port named: ", portName);
+}
+
 void initAgentTest(
     int argc,
     char** argv,

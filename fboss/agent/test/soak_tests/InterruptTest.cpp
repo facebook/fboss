@@ -66,13 +66,15 @@ bool InterruptTest::RunOneLoop(SoakLoopArgs* args) {
   uint64_t intrTimeoutCountStart = platform->getIntrTimeoutCount();
   uint64_t intrCountStart = platform->getIntrCount();
 
+  auto vlan =
+      util::getFirstMap(swSwitch->getState()->getVlans())->cbegin()->second;
+  auto scope = swSwitch->getScopeResolver()->scope(vlan);
+  auto switchId = scope.switchId();
   utility::pumpTraffic(
       true, // is IPv6
       swSwitch->getHw(),
-      platform->getLocalMac(),
-      util::getFirstMap(swSwitch->getState()->getVlans())
-          ->cbegin()
-          ->second->getID(),
+      swSwitch->getLocalMac(switchId),
+      vlan->getID(),
       frontPanelPortToLoopTraffic_);
 
   uint64_t intrTimeoutCountEnd = platform->getIntrTimeoutCount();
