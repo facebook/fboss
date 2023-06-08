@@ -420,7 +420,7 @@ int PlatformMapping::getTransceiverIdFromSwPort(PortID swPort) const {
   }
 
   auto tcvrID = utility::getTransceiverId(platformPortItr->second, chips);
-  if (tcvrID.has_value()) {
+  if (!tcvrID.has_value()) {
     throw FbossError("Can't find Tcvr ID for portId ", swPort);
   }
 

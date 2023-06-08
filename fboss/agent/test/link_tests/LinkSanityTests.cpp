@@ -10,6 +10,8 @@
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
+#include "fboss/agent/platforms/common/PlatformMapping.h"
+
 using namespace ::testing;
 using namespace facebook::fboss;
 
@@ -47,6 +49,16 @@ TEST_F(LinkTest, getTransceivers) {
             platform()->getPlatformPort(port)->getTransceiverID().value();
         EXPECT_EVENTUALLY_TRUE(platform()->getQsfpCache()->getIf(transceiverId))
             << "TcvrId " << transceiverId;
+      }
+    })
+
+    WITH_RETRIES({
+      auto ports = getCabledPorts();
+      for (const auto& port : ports) {
+        auto speed = sw()->getState()->getPorts()->getNode(port)->getSpeed();
+        auto transceiverIndx0 = platform()->getPortMapping(port, speed);
+        auto transceiverIndx1 = sw()->getTransceiverIdxThrift(port);
+        EXPECT_EVENTUALLY_TRUE(transceiverIndx0 == transceiverIndx1);
       }
     })
   };

@@ -2351,4 +2351,17 @@ void SwSwitch::externalState(PortID portID, PortLedExternalState state) {
   }
 }
 
+TransceiverIdxThrift SwSwitch::getTransceiverIdxThrift(PortID portID) const {
+  auto port = getState()->getPorts()->getNode(portID);
+
+  TransceiverIdxThrift idx{};
+  idx.transceiverId() = platformMapping_->getTransceiverIdFromSwPort(portID);
+  PlatformPortProfileConfigMatcher matcher(port->getProfileID(), portID);
+  std::vector<int32_t> lanes;
+  auto hostLanes = platformMapping_->getTransceiverHostLanes(matcher);
+  std::copy(hostLanes.begin(), hostLanes.end(), std::back_inserter(lanes));
+  idx.channels() = std::move(lanes);
+  return idx;
+}
+
 } // namespace facebook::fboss

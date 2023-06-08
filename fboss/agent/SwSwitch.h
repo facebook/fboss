@@ -817,6 +817,8 @@ class SwSwitch : public HwSwitch::Callback {
 
   void externalState(PortID portID, PortLedExternalState state);
 
+  TransceiverIdxThrift getTransceiverIdxThrift(PortID port) const;
+
  private:
   std::optional<folly::MacAddress> getSourceMac(
       const std::shared_ptr<Interface>& intf) const;

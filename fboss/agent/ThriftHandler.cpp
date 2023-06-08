@@ -365,8 +365,7 @@ void getPortInfoHelper(
     portInfo.pfc() = pc;
   }
   try {
-    portInfo.transceiverIdx() = sw.getPlatform_DEPRECATED()->getPortMapping(
-        port->getID(), port->getSpeed());
+    portInfo.transceiverIdx() = sw.getTransceiverIdxThrift(port->getID());
   } catch (const facebook::fboss::FbossError& err) {
     // No problem, we just don't set the other info
   }
