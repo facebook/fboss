@@ -2364,4 +2364,9 @@ TransceiverIdxThrift SwSwitch::getTransceiverIdxThrift(PortID portID) const {
   return idx;
 }
 
+std::optional<uint32_t> SwSwitch::getHwLogicalPortId(PortID portID) const {
+  auto platformPort = getPlatform_DEPRECATED()->getPlatformPort(portID);
+  return platformPort->getHwLogicalPortId();
+}
+
 } // namespace facebook::fboss

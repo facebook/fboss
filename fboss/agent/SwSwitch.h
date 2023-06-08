@@ -819,6 +819,8 @@ class SwSwitch : public HwSwitch::Callback {
 
   TransceiverIdxThrift getTransceiverIdxThrift(PortID port) const;
 
+  std::optional<uint32_t> getHwLogicalPortId(PortID port) const;
+
  private:
   std::optional<folly::MacAddress> getSourceMac(
       const std::shared_ptr<Interface>& intf) const;

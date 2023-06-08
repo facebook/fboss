@@ -182,10 +182,8 @@ void getPortInfoHelper(
   for (auto entry : port->getVlans()) {
     portInfo.vlans()->push_back(entry.first);
   }
-  auto platformPort =
-      sw.getPlatform_DEPRECATED()->getPlatformPort(port->getID());
-  if (platformPort->getHwLogicalPortId().has_value()) {
-    portInfo.hwLogicalPortId() = platformPort->getHwLogicalPortId().value();
+  if (auto id = sw.getHwLogicalPortId(port->getID())) {
+    portInfo.hwLogicalPortId() = *id;
   }
 
   std::shared_ptr<QosPolicy> qosPolicy;
