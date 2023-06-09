@@ -544,7 +544,7 @@ unique_ptr<HwTestHandle> createTestHandle(
 }
 
 MockHwSwitch* getMockHw(SwSwitch* sw) {
-  return boost::polymorphic_downcast<MockHwSwitch*>(sw->getHw());
+  return boost::polymorphic_downcast<MockHwSwitch*>(sw->getHw_DEPRECATED());
 }
 
 MockPlatform* getMockPlatform(SwSwitch* sw) {
@@ -553,7 +553,7 @@ MockPlatform* getMockPlatform(SwSwitch* sw) {
 }
 
 MockHwSwitch* getMockHw(std::unique_ptr<SwSwitch>& sw) {
-  return boost::polymorphic_downcast<MockHwSwitch*>(sw->getHw());
+  return boost::polymorphic_downcast<MockHwSwitch*>(sw->getHw_DEPRECATED());
 }
 
 MockPlatform* getMockPlatform(std::unique_ptr<SwSwitch>& sw) {

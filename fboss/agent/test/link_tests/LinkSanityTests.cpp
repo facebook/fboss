@@ -90,7 +90,7 @@ TEST_F(LinkTest, warmbootIsHitLess) {
         auto ecmpSizeInSw = getVlanOwningCabledPorts().size();
         EXPECT_EQ(
             utility::getEcmpSizeInHw(
-                sw()->getHw(),
+                sw()->getHw_DEPRECATED(),
                 {folly::IPAddress("::"), 0},
                 RouterID(0),
                 ecmpSizeInSw),
@@ -119,7 +119,7 @@ TEST_F(LinkTest, qsfpWarmbootIsHitLess) {
         auto ecmpSizeInSw = getVlanOwningCabledPorts().size();
         EXPECT_EQ(
             utility::getEcmpSizeInHw(
-                sw()->getHw(),
+                sw()->getHw_DEPRECATED(),
                 {folly::IPAddress("::"), 0},
                 RouterID(0),
                 ecmpSizeInSw),
@@ -158,7 +158,7 @@ TEST_F(LinkTest, ptpEnableIsHitless) {
   auto ecmpSizeInSw = getVlanOwningCabledPorts().size();
   EXPECT_EQ(
       utility::getEcmpSizeInHw(
-          sw()->getHw(),
+          sw()->getHw_DEPRECATED(),
           {folly::IPAddress("::"), 0},
           RouterID(0),
           ecmpSizeInSw),

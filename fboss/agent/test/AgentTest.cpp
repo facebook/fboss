@@ -64,7 +64,7 @@ void AgentTest::TearDown() {
 
 std::map<std::string, HwPortStats> AgentTest::getPortStats(
     const std::vector<std::string>& ports) const {
-  auto allPortStats = sw()->getHw()->getPortStats();
+  auto allPortStats = sw()->getHw_DEPRECATED()->getPortStats();
   std::map<std::string, HwPortStats> portStats;
   std::for_each(ports.begin(), ports.end(), [&](const auto& portName) {
     portStats.insert({portName, allPortStats[portName]});
@@ -210,7 +210,7 @@ void AgentTest::assertNoInDiscards(int maxNumDiscards) {
   int maxRetry = 5;
   while (numRounds < 2 && maxRetry-- > 0) {
     bool retry = false;
-    auto portStats = sw()->getHw()->getPortStats();
+    auto portStats = sw()->getHw_DEPRECATED()->getPortStats();
     for (auto [port, stats] : portStats) {
       auto inDiscards = *stats.inDiscards_();
       XLOG(DBG2) << "Port: " << port << " in discards: " << inDiscards

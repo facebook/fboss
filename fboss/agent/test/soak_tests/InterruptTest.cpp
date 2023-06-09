@@ -72,7 +72,7 @@ bool InterruptTest::RunOneLoop(SoakLoopArgs* args) {
   auto switchId = scope.switchId();
   utility::pumpTraffic(
       true, // is IPv6
-      swSwitch->getHw(),
+      swSwitch->getHw_DEPRECATED(),
       swSwitch->getLocalMac(switchId),
       vlan->getID(),
       frontPanelPortToLoopTraffic_);

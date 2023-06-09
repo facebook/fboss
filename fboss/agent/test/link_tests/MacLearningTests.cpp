@@ -44,14 +44,15 @@ class MacLearningTest : public LinkTest {
 
   void txPacket(MacAddress macAddr, VlanID vlan, PortID port) {
     auto txPacket = utility::makeEthTxPacket(
-        sw()->getHw(),
+        sw()->getHw_DEPRECATED(),
         vlan,
         macAddr,
         MacAddress::BROADCAST,
         ETHERTYPE::ETHERTYPE_LLDP);
     XLOG(DBG2) << "send packet with vlan " << vlan << " mac addr " << macAddr
                << " out of port " << port;
-    sw()->getHw()->sendPacketOutOfPortSync(std::move(txPacket), port);
+    sw()->getHw_DEPRECATED()->sendPacketOutOfPortSync(
+        std::move(txPacket), port);
   }
 
   void verifyL2EntryLearned(MacAddress macAddr, VlanID vlanId) {
@@ -77,7 +78,7 @@ class MacLearningTest : public LinkTest {
     // sleep override
     sleep(5);
     // get discards before pump traffic
-    auto portStats = sw()->getHw()->getPortStats();
+    auto portStats = sw()->getHw_DEPRECATED()->getPortStats();
     int maxDiscards = 0;
     for (auto [port, stats] : portStats) {
       auto inDiscards = *stats.inDiscards_();
@@ -91,7 +92,7 @@ class MacLearningTest : public LinkTest {
     }
     utility::pumpTraffic(
         true,
-        sw()->getHw(),
+        sw()->getHw_DEPRECATED(),
         sw()->getLocalMac(switchId),
         sw()->getState()->getVlans()->getFirstVlanID(),
         txPort,
@@ -139,7 +140,7 @@ TEST_F(MacLearningTest, l2EntryFlap) {
 
     verifyL2EntryLearned(macAddr, vlan);
     std::vector<L2EntryThrift> l2Entries;
-    sw()->getHw()->fetchL2Table(&l2Entries);
+    sw()->getHw_DEPRECATED()->fetchL2Table(&l2Entries);
     bool foundL2Entry = false;
     for (auto& l2Entry : l2Entries) {
       if (*l2Entry.mac() == macAddr.toString()) {

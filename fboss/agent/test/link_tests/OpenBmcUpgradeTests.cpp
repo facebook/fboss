@@ -123,7 +123,7 @@ TEST_F(OpenBmcUpgradeTest, openBmcHitlessUpgrade) {
   auto ecmpSizeInSw = getVlanOwningCabledPorts().size();
   EXPECT_EQ(
       utility::getEcmpSizeInHw(
-          sw()->getHw(),
+          sw()->getHw_DEPRECATED(),
           {folly::IPAddress("::"), 0},
           RouterID(0),
           ecmpSizeInSw),

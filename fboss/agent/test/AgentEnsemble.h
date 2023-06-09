@@ -78,7 +78,7 @@ class AgentEnsemble : public TestEnsembleIf {
   }
 
   HwSwitch* getHw() const {
-    return getSw()->getHw();
+    return getSw()->getHw_DEPRECATED();
   }
 
   std::shared_ptr<SwitchState> applyNewState(

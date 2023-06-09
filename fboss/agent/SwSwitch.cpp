@@ -434,7 +434,7 @@ void SwSwitch::onSwitchRunStateChange(SwitchRunState newState) {
   } else if (newState == SwitchRunState::CONFIGURED) {
     restart_time::mark(RestartEvent::CONFIGURED);
   }
-  getHw()->switchRunStateChanged(newState);
+  getHw_DEPRECATED()->switchRunStateChanged(newState);
 }
 
 SwitchRunState SwSwitch::getSwitchRunState() const {
@@ -520,10 +520,11 @@ void SwSwitch::updateLldpStats() {
 
 void SwSwitch::publishStatsToFsdb() {
   AgentStats agentStats;
-  agentStats.hwPortStats() = getHw()->getPortStats();
-  agentStats.sysPortStats() = getHw()->getSysPortStats();
+  agentStats.hwPortStats() = getHw_DEPRECATED()->getPortStats();
+  agentStats.sysPortStats() = getHw_DEPRECATED()->getSysPortStats();
 
-  agentStats.hwAsicErrors() = getHw()->getSwitchStats()->getHwAsicErrors();
+  agentStats.hwAsicErrors() =
+      getHw_DEPRECATED()->getSwitchStats()->getHwAsicErrors();
   agentStats.teFlowStats() = getTeFlowStats();
   stats()->fillAgentStats(agentStats);
   agentStats.bufferPoolStats() = getBufferPoolStats();
@@ -551,7 +552,7 @@ void SwSwitch::updateStats() {
   updateLldpStats();
   updateTeFlowStats();
   try {
-    getHw()->updateStats(stats());
+    getHw_DEPRECATED()->updateStats(stats());
   } catch (const std::exception& ex) {
     stats()->updateStatsException();
     XLOG(ERR) << "Error running updateStats: " << folly::exceptionStr(ex);
@@ -562,7 +563,8 @@ void SwSwitch::updateStats() {
   if (now - phyInfoUpdateTime_ >= FLAGS_update_phy_info_interval_s) {
     phyInfoUpdateTime_ = now;
     try {
-      phySnapshotManager_->updatePhyInfos(getHw()->updateAllPhyInfo());
+      phySnapshotManager_->updatePhyInfos(
+          getHw_DEPRECATED()->updateAllPhyInfo());
     } catch (const std::exception& ex) {
       stats()->updateStatsException();
       XLOG(ERR) << "Error running updatePhyInfos: " << folly::exceptionStr(ex);
@@ -599,7 +601,7 @@ TeFlowStats SwSwitch::getTeFlowStats() {
 
 HwBufferPoolStats SwSwitch::getBufferPoolStats() const {
   HwBufferPoolStats stats;
-  stats.deviceWatermarkBytes() = getHw()->getDeviceWatermarkBytes();
+  stats.deviceWatermarkBytes() = getHw_DEPRECATED()->getDeviceWatermarkBytes();
   return stats;
 }
 
@@ -1095,7 +1097,7 @@ void SwSwitch::handlePendingUpdates() {
   // Now apply the update and notify subscribers
   if (newDesiredState != oldAppliedState) {
     auto isTransaction = updates.begin()->hwFailureProtected() &&
-        getHw()->transactionsSupported();
+        getHw_DEPRECATED()->transactionsSupported();
     // There was some change during these state updates
     newAppliedState =
         applyUpdate(oldAppliedState, newDesiredState, isTransaction);
@@ -2101,34 +2103,34 @@ AdminDistance SwSwitch::clientIdToAdminDistance(int clientId) const {
 
 void SwSwitch::clearPortStats(
     const std::unique_ptr<std::vector<int32_t>>& ports) {
-  getHw()->clearPortStats(ports);
+  getHw_DEPRECATED()->clearPortStats(ports);
 }
 
 std::vector<PrbsLaneStats> SwSwitch::getPortAsicPrbsStats(int32_t portId) {
-  return getHw()->getPortAsicPrbsStats(portId);
+  return getHw_DEPRECATED()->getPortAsicPrbsStats(portId);
 }
 
 void SwSwitch::clearPortAsicPrbsStats(int32_t portId) {
-  getHw()->clearPortAsicPrbsStats(portId);
+  getHw_DEPRECATED()->clearPortAsicPrbsStats(portId);
 }
 
 std::vector<prbs::PrbsPolynomial> SwSwitch::getPortPrbsPolynomials(
     int32_t portId) {
-  return getHw()->getPortPrbsPolynomials(portId);
+  return getHw_DEPRECATED()->getPortPrbsPolynomials(portId);
 }
 
 prbs::InterfacePrbsState SwSwitch::getPortPrbsState(PortID portId) {
-  return getHw()->getPortPrbsState(portId);
+  return getHw_DEPRECATED()->getPortPrbsState(portId);
 }
 
 std::vector<PrbsLaneStats> SwSwitch::getPortGearboxPrbsStats(
     int32_t portId,
     phy::Side side) {
-  return getHw()->getPortGearboxPrbsStats(portId, side);
+  return getHw_DEPRECATED()->getPortGearboxPrbsStats(portId, side);
 }
 
 void SwSwitch::clearPortGearboxPrbsStats(int32_t portId, phy::Side side) {
-  getHw()->clearPortGearboxPrbsStats(portId, side);
+  getHw_DEPRECATED()->clearPortGearboxPrbsStats(portId, side);
 }
 
 template <typename AddressT>

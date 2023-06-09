@@ -15,7 +15,7 @@ TEST_F(LinkTest, ecmpShrink) {
     EXPECT_NO_THROW(waitForAllCabledPorts(true));
     EXPECT_EQ(
         utility::getEcmpSizeInHw(
-            sw()->getHw(),
+            sw()->getHw_DEPRECATED(),
             {folly::IPAddress("::"), 0},
             RouterID(0),
             ecmpPorts.size()),
@@ -29,7 +29,7 @@ TEST_F(LinkTest, ecmpShrink) {
     EXPECT_NO_THROW(waitForLinkStatus(ports, false));
     EXPECT_EQ(
         utility::getEcmpSizeInHw(
-            sw()->getHw(),
+            sw()->getHw_DEPRECATED(),
             {folly::IPAddress("::"), 0},
             RouterID(0),
             ecmpPorts.size()),

@@ -141,7 +141,8 @@ void init() {
 
 BENCHMARK(ArpRequest, numIters) {
   BENCHMARK_SUSPEND {
-    SimSwitch* sim = boost::polymorphic_downcast<SimSwitch*>(sw->getHw());
+    SimSwitch* sim =
+        boost::polymorphic_downcast<SimSwitch*>(sw->getHw_DEPRECATED());
     sim->resetTxCount();
   }
 
@@ -153,14 +154,16 @@ BENCHMARK(ArpRequest, numIters) {
   BENCHMARK_SUSPEND {
     // Make sure the SwSwitch sent out 1 packet for each iteration,
     // just to verify that it was actually sending ARP replies
-    SimSwitch* sim = boost::polymorphic_downcast<SimSwitch*>(sw->getHw());
+    SimSwitch* sim =
+        boost::polymorphic_downcast<SimSwitch*>(sw->getHw_DEPRECATED());
     CHECK_EQ(sim->getTxCount(), numIters);
   }
 }
 
 BENCHMARK(ArpRequestNotMine, numIters) {
   BENCHMARK_SUSPEND {
-    SimSwitch* sim = boost::polymorphic_downcast<SimSwitch*>(sw->getHw());
+    SimSwitch* sim =
+        boost::polymorphic_downcast<SimSwitch*>(sw->getHw_DEPRECATED());
     sim->resetTxCount();
   }
 
@@ -172,7 +175,8 @@ BENCHMARK(ArpRequestNotMine, numIters) {
   BENCHMARK_SUSPEND {
     // This request wasn't for one of our IPs, so no outgoing packets
     // should have been generated.
-    SimSwitch* sim = boost::polymorphic_downcast<SimSwitch*>(sw->getHw());
+    SimSwitch* sim =
+        boost::polymorphic_downcast<SimSwitch*>(sw->getHw_DEPRECATED());
     CHECK_EQ(sim->getTxCount(), 0);
   }
 }

@@ -40,7 +40,7 @@ class PtpTests : public LinkTest {
 
     auto srcIp = folly::IPAddressV6("1::1"); // arbit
     return utility::makePTPTxPacket(
-        sw()->getHw(),
+        sw()->getHw_DEPRECATED(),
         vlanId,
         kSrcMac,
         dstMac,
@@ -62,7 +62,7 @@ class PtpTests : public LinkTest {
     auto localMac = sw()->getLocalMac(matcher.switchId());
     // Send out PTP packet
     auto ptpPkt = createPtpPkt(ptpType);
-    sw()->getHw()->sendPacketOutOfPortSync(
+    sw()->getHw_DEPRECATED()->sendPacketOutOfPortSync(
         std::move(ptpPkt), portDescriptor.phyPortID());
 
     // Hop total should be equal to (kStartTtl + 1) * kStartTtl / 2
@@ -201,7 +201,7 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
   // Ideally we should have used the l4port (PTP_UDP_EVENT_PORT), but
   // SAI doesn't support this qualifier yet
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
-  auto entry = HwTestPacketTrapEntry(sw()->getHw(), dstPrefix);
+  auto entry = HwTestPacketTrapEntry(sw()->getHw_DEPRECATED(), dstPrefix);
   programDefaultRoute(ecmpPorts, sw()->getLocalMac(scope(ecmpPorts)));
 
   verifyPtpTcOnPorts(ecmpPorts, PTPMessageType::PTP_DELAY_REQUEST);
@@ -209,7 +209,7 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
 
 TEST_F(PtpTests, verifyPtpTcAfterLinkFlap) {
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
-  auto entry = HwTestPacketTrapEntry(sw()->getHw(), dstPrefix);
+  auto entry = HwTestPacketTrapEntry(sw()->getHw_DEPRECATED(), dstPrefix);
   auto ecmpPorts = getVlanOwningCabledPorts();
   std::vector<PortID> portVec;
   boost::container::flat_set<PortDescriptor> portDescriptorSet;
@@ -252,7 +252,7 @@ TEST_F(PtpTests, verifyPtpTcAfterLinkFlap) {
 // Validate PTP TC when PTP is enabled while port is down.
 TEST_F(PtpTests, enablePtpPortDown) {
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
-  auto entry = HwTestPacketTrapEntry(sw()->getHw(), dstPrefix);
+  auto entry = HwTestPacketTrapEntry(sw()->getHw_DEPRECATED(), dstPrefix);
   auto ecmpPorts = getVlanOwningCabledPorts();
   std::vector<PortID> portVec;
   boost::container::flat_set<PortDescriptor> portDescriptorSet;
