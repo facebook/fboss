@@ -66,13 +66,14 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     std::vector<std::pair<cfg::PacketRxReason, uint16_t>>
         rxReasonToQueueMappings = {
             std::pair(
-                cfg::PacketRxReason::CPU_IS_NHOP, utility::kCoppMidPriQueueId),
-            std::pair(
                 cfg::PacketRxReason::BGP,
                 utility::getCoppHighPriQueueId(this->getAsic())),
             std::pair(
                 cfg::PacketRxReason::BGPV6,
                 utility::getCoppHighPriQueueId(this->getAsic())),
+            std::pair(
+                cfg::PacketRxReason::CPU_IS_NHOP, utility::kCoppMidPriQueueId),
+
         };
     for (auto rxEntry : rxReasonToQueueMappings) {
       auto rxReasonToQueue = cfg::PacketRxReasonToQueue();
