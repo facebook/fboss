@@ -79,7 +79,7 @@ void sendDHCPv6Packet(
   ipHdr.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP);
   ipHdr.trafficClass = kGetNetworkControlTrafficClass();
   ipHdr.payloadLength = UDPHeader::size() + dhcpLength;
-  ipHdr.hopLimit = 255;
+  ipHdr.hopLimit = 127;
 
   // UDPHeader
   UDPHeader udpHdr(udpSrcPort, udpDstPort, UDPHeader::size() + dhcpLength);
