@@ -124,7 +124,7 @@
             "switchIndex": 0,
             "portIdRange": {
               "minimum": 0,
-              "maximum": 1023
+              "maximum": 2047
             },
             "systemPortRange": {
               "minimum": 100,
