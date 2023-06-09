@@ -151,12 +151,12 @@ SwitchFlags Initializer::setupFlags() {
   return flags;
 }
 
-void Initializer::initImpl(HwSwitch::Callback* hwCallBack) {
+void Initializer::initImpl(HwSwitch::Callback* hwSwitchCallback) {
   auto startTime = steady_clock::now();
   std::lock_guard<mutex> g(initLock_);
   // Initialize the switch.  This operation can take close to a minute
   // on some of our current platforms.
-  sw_->init(hwCallBack, nullptr, setupFlags());
+  sw_->init(hwSwitchCallback, nullptr, setupFlags());
 
   sw_->applyConfig("apply initial config");
   // Enable route update logging for all routes so that when we are told
