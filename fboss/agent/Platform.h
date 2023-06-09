@@ -123,7 +123,7 @@ class Platform {
   /*
    * Get the product information
    */
-  void getProductInfo(ProductInfo& info);
+  void getProductInfo(ProductInfo& info) const;
 
   bool isProductInfoExist() {
     if (!productInfo_) {

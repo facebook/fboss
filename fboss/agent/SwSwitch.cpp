@@ -219,7 +219,7 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       ipv6_(new IPv6Handler(this)),
       nUpdater_(new NeighborUpdater(this)),
       pcapMgr_(new PktCaptureManager(
-          platform_->getPersistentStateDir(),
+          getPlatform_DEPRECATED()->getPersistentStateDir(),
           pktObservers_.get())),
       mirrorManager_(new MirrorManager(this)),
       mplsHandler_(new MPLSHandler(this)),
@@ -245,13 +245,13 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       switchStatsObserver_(new SwitchStatsObserver(this)) {
   // Create the platform-specific state directories if they
   // don't exist already.
-  utilCreateDir(platform_->getVolatileStateDir());
-  utilCreateDir(platform_->getPersistentStateDir());
+  utilCreateDir(getPlatform_DEPRECATED()->getVolatileStateDir());
+  utilCreateDir(getPlatform_DEPRECATED()->getPersistentStateDir());
   try {
     platformProductInfo_->initialize();
     platformMapping_ =
         utility::initPlatformMapping(platformProductInfo_->getType());
-    auto existingMapping = platform_->getPlatformMapping();
+    auto existingMapping = getPlatform_DEPRECATED()->getPlatformMapping();
     // TODO - remove this later
     CHECK(existingMapping->toThrift() == platformMapping_->toThrift());
   } catch (const std::exception& ex) {
@@ -502,7 +502,7 @@ void SwSwitch::gracefulExit() {
 }
 
 void SwSwitch::getProductInfo(ProductInfo& productInfo) const {
-  platform_->getProductInfo(productInfo);
+  getPlatform_DEPRECATED()->getProductInfo(productInfo);
 }
 
 void SwSwitch::publishPhyInfoSnapshots(PortID portID) const {
@@ -632,9 +632,11 @@ void SwSwitch::exitFatal() const noexcept {
   switchState[kHwSwitch] = hw_->toFollyDynamic();
   state::WarmbootState thriftSwitchState;
   *thriftSwitchState.swSwitchState() = getAppliedState()->toThrift();
-  if (!dumpStateToFile(platform_->getCrashSwitchStateFile(), switchState) ||
+  if (!dumpStateToFile(
+          getPlatform_DEPRECATED()->getCrashSwitchStateFile(), switchState) ||
       !dumpBinaryThriftToFile(
-          platform_->getCrashThriftSwitchStateFile(), thriftSwitchState)) {
+          getPlatform_DEPRECATED()->getCrashThriftSwitchStateFile(),
+          thriftSwitchState)) {
     XLOG(ERR) << "Unable to write switch state JSON or Thrift to file";
   }
 }
@@ -672,8 +674,8 @@ void SwSwitch::init(
   auto hwInitRet = hw_->init(
       callback,
       false /*failHwCallsOnWarmboot*/,
-      platform_->getAsic()->getSwitchType(),
-      platform_->getAsic()->getSwitchId());
+      getPlatform_DEPRECATED()->getAsic()->getSwitchType(),
+      getPlatform_DEPRECATED()->getAsic()->getSwitchId());
   multiHwSwitchSyncer_ = std::make_unique<MultiHwSwitchSyncer>(
       hw_, switchInfoTable_.getSwitchIdToSwitchInfo());
   auto initialState = hwInitRet.switchState;
@@ -685,7 +687,8 @@ void SwSwitch::init(
              << " seconds; applying initial config";
 
   restart_time::init(
-      platform_->getWarmBootDir(), bootType_ == BootType::WARM_BOOT);
+      getPlatform_DEPRECATED()->getWarmBootDir(),
+      bootType_ == BootType::WARM_BOOT);
 
   // Store the initial state
   initialState->publish();
@@ -708,7 +711,7 @@ void SwSwitch::init(
     }
     tunMgr_->probe();
   }
-  platform_->onHwInitialized(this);
+  getPlatform_DEPRECATED()->onHwInitialized(this);
 
   // Notify the state observers of the initial state
   updateEventBase_.runInEventBaseThread([initialState, this]() {
@@ -819,7 +822,7 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
 
 void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
   // notify the hw
-  platform_->onInitialConfigApplied(this);
+  getPlatform_DEPRECATED()->onInitialConfigApplied(this);
   setSwitchRunState(SwitchRunState::CONFIGURED);
 
   if (tunMgr_) {
@@ -1239,18 +1242,18 @@ void SwSwitch::dumpBadStateUpdate(
     const std::shared_ptr<SwitchState>& newState) const {
   // dump the previous state and target state to understand what led to the
   // crash
-  utilCreateDir(platform_->getCrashBadStateUpdateDir());
+  utilCreateDir(getPlatform_DEPRECATED()->getCrashBadStateUpdateDir());
   if (!dumpBinaryThriftToFile(
-          platform_->getCrashBadStateUpdateOldStateFile(),
+          getPlatform_DEPRECATED()->getCrashBadStateUpdateOldStateFile(),
           oldState->toThrift())) {
     XLOG(ERR) << "Unable to write old switch state thrift to "
-              << platform_->getCrashBadStateUpdateOldStateFile();
+              << getPlatform_DEPRECATED()->getCrashBadStateUpdateOldStateFile();
   }
   if (!dumpBinaryThriftToFile(
-          platform_->getCrashBadStateUpdateNewStateFile(),
+          getPlatform_DEPRECATED()->getCrashBadStateUpdateNewStateFile(),
           newState->toThrift())) {
     XLOG(ERR) << "Unable to write new switch state thrift to "
-              << platform_->getCrashBadStateUpdateNewStateFile();
+              << getPlatform_DEPRECATED()->getCrashBadStateUpdateNewStateFile();
   }
 }
 
@@ -1597,7 +1600,7 @@ void SwSwitch::stopThreads() {
     }
   } while (!updatesDrained);
 
-  platform_->stop();
+  getPlatform_DEPRECATED()->stop();
 }
 
 void SwSwitch::threadLoop(StringPiece name, EventBase* eventBase) {
@@ -1934,10 +1937,11 @@ bool SwSwitch::sendPacketToHost(
 }
 
 void SwSwitch::applyConfig(const std::string& reason, bool reload) {
-  auto target = reload ? platform_->reloadConfig() : platform_->config();
+  auto target = reload ? getPlatform_DEPRECATED()->reloadConfig()
+                       : getPlatform_DEPRECATED()->config();
   const auto& newConfig = *target->thrift.sw();
   applyConfig(reason, newConfig);
-  target->dumpConfig(platform_->getRunningConfigDumpFile());
+  target->dumpConfig(getPlatform_DEPRECATED()->getRunningConfigDumpFile());
 }
 
 void SwSwitch::applyConfig(
