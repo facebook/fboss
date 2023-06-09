@@ -821,6 +821,8 @@ class SwSwitch : public HwSwitch::Callback {
 
   std::optional<uint32_t> getHwLogicalPortId(PortID port) const;
 
+  void switchRunStateChanged(SwitchRunState newState);
+
  private:
   std::optional<folly::MacAddress> getSourceMac(
       const std::shared_ptr<Interface>& intf) const;

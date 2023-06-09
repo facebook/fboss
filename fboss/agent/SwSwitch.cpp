@@ -434,7 +434,7 @@ void SwSwitch::onSwitchRunStateChange(SwitchRunState newState) {
   } else if (newState == SwitchRunState::CONFIGURED) {
     restart_time::mark(RestartEvent::CONFIGURED);
   }
-  getHw_DEPRECATED()->switchRunStateChanged(newState);
+  switchRunStateChanged(newState);
 }
 
 SwitchRunState SwSwitch::getSwitchRunState() const {
@@ -2369,6 +2369,11 @@ TransceiverIdxThrift SwSwitch::getTransceiverIdxThrift(PortID portID) const {
 std::optional<uint32_t> SwSwitch::getHwLogicalPortId(PortID portID) const {
   auto platformPort = getPlatform_DEPRECATED()->getPlatformPort(portID);
   return platformPort->getHwLogicalPortId();
+}
+
+void SwSwitch::switchRunStateChanged(SwitchRunState newState) {
+  // TODO (m-NPU): handle m-NPU support
+  getHw_DEPRECATED()->switchRunStateChanged(newState);
 }
 
 } // namespace facebook::fboss
