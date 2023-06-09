@@ -105,7 +105,7 @@ void Initializer::start() {
   start(sw_);
 }
 
-void Initializer::start(HwSwitch::Callback* callback) {
+void Initializer::start(HwSwitchCallback* callback) {
   std::thread t(&Initializer::initThread, this, callback);
   t.detach();
 }
@@ -123,7 +123,7 @@ void Initializer::waitForInitDone() {
   initCondition_.wait(lk, [&] { return sw_->isFullyInitialized(); });
 }
 
-void Initializer::initThread(HwSwitch::Callback* callback) {
+void Initializer::initThread(HwSwitchCallback* callback) {
   try {
     initImpl(callback);
   } catch (const std::exception& ex) {
@@ -151,7 +151,7 @@ SwitchFlags Initializer::setupFlags() {
   return flags;
 }
 
-void Initializer::initImpl(HwSwitch::Callback* hwSwitchCallback) {
+void Initializer::initImpl(HwSwitchCallback* hwSwitchCallback) {
   auto startTime = steady_clock::now();
   std::lock_guard<mutex> g(initLock_);
   // Initialize the switch.  This operation can take close to a minute
@@ -278,7 +278,7 @@ int AgentInitializer::initAgent() {
   return initAgent(sw_.get());
 }
 
-int AgentInitializer::initAgent(HwSwitch::Callback* callback) {
+int AgentInitializer::initAgent(HwSwitchCallback* callback) {
   auto handler =
       std::shared_ptr<ThriftHandler>(platform()->createHandler(sw_.get()));
   handler->setIdleTimeout(FLAGS_thrift_idle_timeout);

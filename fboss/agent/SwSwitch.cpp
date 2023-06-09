@@ -664,7 +664,7 @@ void SwSwitch::publishTxPacket(TxPacket* pkt, uint16_t ethertype) {
 }
 
 void SwSwitch::init(
-    HwSwitch::Callback* callback,
+    HwSwitchCallback* callback,
     std::unique_ptr<TunManager> tunMgr,
     SwitchFlags flags) {
   auto begin = steady_clock::now();

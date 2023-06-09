@@ -42,14 +42,14 @@ class Initializer {
   Initializer(SwSwitch* sw, Platform* platform)
       : sw_(sw), platform_(platform) {}
   void start();
-  void start(HwSwitch::Callback* callback);
+  void start(HwSwitchCallback* callback);
   void stopFunctionScheduler();
   void waitForInitDone();
 
  private:
-  void initThread(HwSwitch::Callback* callback);
+  void initThread(HwSwitchCallback* callback);
   SwitchFlags setupFlags();
-  void initImpl(HwSwitch::Callback* callback);
+  void initImpl(HwSwitchCallback* callback);
   SwSwitch* sw_;
   Platform* platform_;
   std::unique_ptr<folly::FunctionScheduler> fs_;
@@ -100,7 +100,7 @@ class AgentInitializer {
       uint32_t hwFeaturesDesired,
       PlatformInitFn initPlatform);
   int initAgent();
-  int initAgent(HwSwitch::Callback* callback);
+  int initAgent(HwSwitchCallback* callback);
   void stopAgent(bool setupWarmboot);
 
   /*

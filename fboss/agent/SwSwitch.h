@@ -121,7 +121,7 @@ inline bool operator&(SwitchFlags lhs, SwitchFlags rhs) {
  * must be used in conjunction with a HwSwitch object, which provides an
  * interface to the switch hardware.
  */
-class SwSwitch : public HwSwitch::Callback {
+class SwSwitch : public HwSwitchCallback {
  public:
   typedef std::function<std::shared_ptr<SwitchState>(
       const std::shared_ptr<SwitchState>&)>
@@ -200,7 +200,7 @@ class SwSwitch : public HwSwitch::Callback {
   // injected between HwSwitch and SwSwitch an ensemble must dispatch events to
   // SwSwitch as soon as it receives.
   void init(
-      HwSwitch::Callback* callback,
+      HwSwitchCallback* callback,
       std::unique_ptr<TunManager> tunMgr,
       SwitchFlags flags = SwitchFlags::DEFAULT);
 
@@ -486,7 +486,7 @@ class SwSwitch : public HwSwitch::Callback {
    */
   void packetReceivedThrowExceptionOnError(std::unique_ptr<RxPacket> pkt);
 
-  // HwSwitch::Callback methods
+  // HwSwitchCallback methods
   void packetReceived(std::unique_ptr<RxPacket> pkt) noexcept override;
   void linkStateChanged(
       PortID port,

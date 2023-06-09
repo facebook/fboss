@@ -150,7 +150,7 @@ class SimSwitch : public HwSwitch {
   SimSwitch& operator=(SimSwitch const&) = delete;
 
   SimPlatform* platform_;
-  HwSwitch::Callback* callback_{nullptr};
+  HwSwitchCallback* callback_{nullptr};
   uint32_t numPorts_{0};
   uint64_t txCount_{0};
   BootType bootType_{BootType::UNINITIALIZED};
