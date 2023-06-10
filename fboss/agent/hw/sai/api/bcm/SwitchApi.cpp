@@ -15,6 +15,16 @@ extern "C" {
 namespace facebook::fboss {
 
 std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeMaxCoresWrapper::operator()() {
+#if defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) || \
+    defined(SAI_VERSION_10_0_EA_DNX_ODP)
+  return SAI_SWITCH_ATTR_MAX_CORES;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeLedIdWrapper::operator()() {
   return SAI_SWITCH_ATTR_LED;
 }

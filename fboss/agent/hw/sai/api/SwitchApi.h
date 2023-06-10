@@ -436,6 +436,11 @@ struct SaiSwitchTraits {
       std::optional<sai_attr_id_t> operator()();
     };
     using CreditWd = SaiExtensionAttribute<bool, AttributeCreditWdWrapper>;
+    struct AttributeMaxCoresWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using MaxCores =
+        SaiExtensionAttribute<sai_uint32_t, AttributeMaxCoresWrapper>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -484,7 +489,8 @@ struct SaiSwitchTraits {
       std::optional<Attributes::DllPath>,
       std::optional<Attributes::RestartIssu>,
       std::optional<Attributes::SwitchIsolate>,
-      std::optional<Attributes::CreditWd>>;
+      std::optional<Attributes::CreditWd>,
+      std::optional<Attributes::MaxCores>>;
   static constexpr std::array<sai_stat_id_t, 2> CounterIdsToRead = {
       SAI_SWITCH_STAT_REACHABILITY_DROP,
       SAI_SWITCH_STAT_GLOBAL_DROP,
@@ -579,6 +585,7 @@ SAI_ATTRIBUTE_NAME(Switch, ForceTrafficOverFabric)
 SAI_ATTRIBUTE_NAME(Switch, WarmBootTargetVersion)
 SAI_ATTRIBUTE_NAME(Switch, SwitchIsolate)
 SAI_ATTRIBUTE_NAME(Switch, CreditWd)
+SAI_ATTRIBUTE_NAME(Switch, MaxCores)
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};

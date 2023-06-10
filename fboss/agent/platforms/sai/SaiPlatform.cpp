@@ -384,6 +384,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   std::optional<SaiSwitchTraits::Attributes::SwitchType> switchType;
   std::optional<SaiSwitchTraits::Attributes::SwitchId> switchId;
   std::optional<SaiSwitchTraits::Attributes::MaxSystemCores> cores;
+  std::optional<SaiSwitchTraits::Attributes::MaxCores> maxCores;
   std::optional<SaiSwitchTraits::Attributes::SysPortConfigList> sysPortConfigs;
   if (swType == cfg::SwitchType::VOQ || swType == cfg::SwitchType::FABRIC) {
     switchType = swType == cfg::SwitchType::VOQ ? SAI_SWITCH_TYPE_VOQ
@@ -394,16 +395,25 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       CHECK(agentCfg) << " agent config must be set ";
       uint32_t systemCores = 0;
       auto localMac = getLocalMac();
-      const Jericho2Asic indus(cfg::SwitchType::VOQ, 0, std::nullopt, localMac);
       const EbroAsic ebro(cfg::SwitchType::VOQ, 0, std::nullopt, localMac);
+      const Jericho2Asic j2(cfg::SwitchType::VOQ, 0, std::nullopt, localMac);
+      const Jericho3Asic j3(cfg::SwitchType::VOQ, 0, std::nullopt, localMac);
       for (const auto& [id, dsfNode] : *agentCfg->thrift.sw()->dsfNodes()) {
         if (dsfNode.type() != cfg::DsfNodeType::INTERFACE_NODE) {
           continue;
         }
         switch (*dsfNode.asicType()) {
           case cfg::AsicType::ASIC_TYPE_JERICHO2:
+            systemCores += j2.getNumCores();
+            // for directly connected interface nodes we don't expect
+            // asic type to change across dsf nodes
+            maxCores = j2.getNumCores();
+            break;
           case cfg::AsicType::ASIC_TYPE_JERICHO3:
-            systemCores += indus.getNumCores();
+            systemCores += j3.getNumCores();
+            // for directly connected interface nodes we don't expect
+            // asic type to change across dsf nodes
+            maxCores = j3.getNumCores();
             break;
           case cfg::AsicType::ASIC_TYPE_EBRO:
             systemCores += ebro.getNumCores();
@@ -487,6 +497,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         std::nullopt, // Restart Issu
         std::nullopt, // Switch Isolate
         std::nullopt, // Credit Watchdog
+        maxCores, // Max cores
   };
 }
 
