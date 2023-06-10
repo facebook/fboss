@@ -60,7 +60,7 @@ parseSubscriptionStr(const std::string& subStr) {
   CHECK_EQ(elements.size(), 4);
   const auto& pathStr = elements[elements.size() - 1];
   if (!pathStr.empty()) {
-    folly::split("_", pathStr, paths);
+    folly::split('_', pathStr, paths);
   }
   return std::make_tuple(elements[0], elements[1], elements[2], paths);
 }
