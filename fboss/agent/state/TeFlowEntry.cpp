@@ -42,6 +42,10 @@ bool TeFlowEntry::isNexthopResolved(
     return false;
   }
   auto interface = state->getInterfaces()->getNodeIf(nhop.intfID().value());
+  if (!interface) {
+    XLOG(WARNING) << "Invalid inteface ID " << nhop;
+    return false;
+  }
   std::optional<folly::MacAddress> dstMac;
   if (nhop.addr().isV6()) {
     dstMac = getNeighborMac<folly::IPAddressV6>(

@@ -185,8 +185,13 @@ TEST_F(TeFlowTest, AddDeleteTeFlow) {
 
   // change flow entry
   flowEntry.nextHops()[0].address() = toBinaryAddress(IPAddress(kNhopAddrB));
-  flowEntry.nextHops()[0].address()->ifName() = "fboss55";
+  flowEntry.nextHops()[0].address()->ifName() = "fboss2000";
   flowEntry.counterID() = "counter1";
+  teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
+  EXPECT_THROW(teFlowEntry->resolve(state), FbossError);
+
+  // change with interface which exists
+  flowEntry.nextHops()[0].address()->ifName() = "fboss55";
   teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
   teFlowEntry->resolve(state);
   EXPECT_NO_THROW(flowTable->updateNode(teFlowEntry, scope()));
