@@ -230,8 +230,9 @@ TEST(LldpManagerTest, NotEnabledTest) {
 }
 
 TEST(LldpManagerTest, LldpParse) {
-  auto lldpParseHelper = [](std::optional<VlanID> vlanID) {
-    cfg::SwitchConfig config = testConfigA();
+  auto lldpParseHelper = [](cfg::SwitchType switchType,
+                            std::optional<VlanID> vlanID) {
+    cfg::SwitchConfig config = testConfigA(switchType);
     *config.ports()[0].routable() = true;
 
     auto handle = createTestHandle(&config, SwitchFlags::ENABLE_LLDP);
@@ -261,13 +262,14 @@ TEST(LldpManagerTest, LldpParse) {
         SwitchStats::kCounterPrefix + "lldp.validate_mismatch.sum", 0);
   };
 
-  lldpParseHelper(VlanID(1));
-  lldpParseHelper(std::nullopt /* vlanID */);
+  lldpParseHelper(cfg::SwitchType::NPU, VlanID(1));
+  lldpParseHelper(cfg::SwitchType::VOQ, std::nullopt /* vlanID */);
 }
 
 TEST(LldpManagerTest, LldpValidationPass) {
-  auto lldpValidationPassHelper = [](std::optional<VlanID> vlanID) {
-    cfg::SwitchConfig config = testConfigA();
+  auto lldpValidationPassHelper = [](cfg::SwitchType switchType,
+                                     std::optional<VlanID> vlanID) {
+    cfg::SwitchConfig config = testConfigA(switchType);
     *config.ports()[0].routable() = true;
     config.ports()[0].Port::name() = "FooP0";
     config.ports()[0].Port::description() = "FooP0 Port Description here";
@@ -307,13 +309,15 @@ TEST(LldpManagerTest, LldpValidationPass) {
         SwitchStats::kCounterPrefix + "lldp.neighbors_size.sum", 1);
   };
 
-  lldpValidationPassHelper(VlanID(1));
-  lldpValidationPassHelper(std::nullopt /* vlanID */);
+  lldpValidationPassHelper(cfg::SwitchType::NPU, VlanID(1));
+  lldpValidationPassHelper(cfg::SwitchType::VOQ, std::nullopt /* vlanID */);
 }
 
 TEST(LldpManagerTest, LldpValidationFail) {
-  auto lldpValidationFailHelper = [](std::optional<VlanID> vlanID) {
-    cfg::SwitchConfig config = testConfigA();
+  auto lldpValidationFailHelper = [](cfg::SwitchType switchType,
+                                     PortID portID,
+                                     std::optional<VlanID> vlanID) {
+    cfg::SwitchConfig config = testConfigA(switchType);
     *config.ports()[0].routable() = true;
     config.ports()[0].Port::name() = "FooP0";
     config.ports()[0].Port::description() = "FooP0 Port Description here";
@@ -351,7 +355,7 @@ TEST(LldpManagerTest, LldpValidationFail) {
         LldpManager::SYSTEM_CAPABILITY_ROUTER);
 
     handle->rxPacket(
-        std::make_unique<folly::IOBuf>(*pkt->buf()), PortID(1), vlanID);
+        std::make_unique<folly::IOBuf>(*pkt->buf()), portID, vlanID);
 
     counters.update();
     counters.checkDelta(
@@ -361,7 +365,8 @@ TEST(LldpManagerTest, LldpValidationFail) {
         SwitchStats::kCounterPrefix + "lldp.validate_mismatch.sum", 1);
   };
 
-  lldpValidationFailHelper(VlanID(1));
-  lldpValidationFailHelper(std::nullopt /* vlanID */);
+  lldpValidationFailHelper(cfg::SwitchType::NPU, PortID(1), VlanID(1));
+  lldpValidationFailHelper(
+      cfg::SwitchType::VOQ, PortID(5), std::nullopt /* vlanID */);
 }
 } // unnamed namespace
