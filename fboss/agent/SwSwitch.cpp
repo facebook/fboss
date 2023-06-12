@@ -1422,7 +1422,7 @@ void SwSwitch::handlePacketImpl(
 
   switch (ethertype) {
     case ArpHandler::ETHERTYPE_ARP:
-      arp_->handlePacket(std::move(pkt), dstMac, srcMac, c);
+      arp_->handlePacket(std::move(pkt), dstMac, srcMac, c, vlanOrIntf);
       return;
     case LldpManager::ETHERTYPE_LLDP:
       if (lldpManager_) {
