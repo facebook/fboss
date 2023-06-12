@@ -257,7 +257,12 @@ void NeighborCacheImpl<NTable>::programPendingEntry(
   auto switchType = sw_->getSwitchInfoTable().l3SwitchType();
   switch (switchType) {
     case cfg::SwitchType::NPU:
-      updateFn = getUpdateFnToProgramPendingEntryForVlan(entry, port, force);
+      if (FLAGS_intf_nbr_tables) {
+        updateFn = getUpdateFnToProgramPendingEntry(
+            entry, port, force, cfg::SwitchType::NPU);
+      } else {
+        updateFn = getUpdateFnToProgramPendingEntryForVlan(entry, port, force);
+      }
       break;
     case cfg::SwitchType::VOQ:
       updateFn = getUpdateFnToProgramPendingEntry(
