@@ -319,7 +319,7 @@ unique_ptr<RxPacket> IPv6Handler::handleICMPv6Packet(
       handleRouterAdvertisement(std::move(pkt), hdr, cursor);
       return nullptr;
     case ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION:
-      handleNeighborSolicitation(std::move(pkt), hdr, cursor);
+      handleNeighborSolicitation(std::move(pkt), hdr, cursor, vlanOrIntf);
       return nullptr;
     case ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT:
       handleNeighborAdvertisement(std::move(pkt), hdr, cursor);
@@ -417,11 +417,13 @@ void IPv6Handler::handleRouterAdvertisement(
   sw_->portStats(pkt)->pktDropped();
 }
 
+template <typename VlanOrIntfT>
 void IPv6Handler::handleNeighborSolicitation(
     unique_ptr<RxPacket> pkt,
     const ICMPHeaders& hdr,
-    Cursor cursor) {
-  auto vlanID = pkt->getSrcVlanIf();
+    Cursor cursor,
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
+  auto vlanID = getVlanIDFromVlanOrIntf(vlanOrIntf);
   auto vlanIDStr = vlanID.has_value()
       ? folly::to<std::string>(static_cast<int>(vlanID.value()))
       : "None";
@@ -443,11 +445,10 @@ void IPv6Handler::handleNeighborSolicitation(
   XLOG(DBG4) << "got neighbor solicitation for " << targetIP.str();
 
   auto state = sw_->getState();
-  auto vlan = state->getVlans()->getNodeIf(sw_->getVlanIDHelper(vlanID));
-  if (!vlan) {
-    // Hmm, we don't actually have this VLAN configured.
-    // Perhaps the state has changed since we received the packet.
-    XLOG(DBG5) << "invalid vlan " << vlan << ", drop the packet";
+
+  if (!vlanOrIntf) {
+    XLOG(DBG5) << "invalid vlan or interface " << vlanOrIntf->getID()
+               << ", drop the packet";
     sw_->portStats(pkt)->pktDropped();
     return;
   }
@@ -463,7 +464,6 @@ void IPv6Handler::handleNeighborSolicitation(
     return;
   }
 
-  auto updater = sw_->getNeighborUpdater();
   auto type = ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION;
 
   if ((!ndpOptions.sourceLinkLayerAddress.has_value() &&
@@ -488,7 +488,7 @@ void IPv6Handler::handleNeighborSolicitation(
     return;
   }
 
-  auto entry = vlan->getNdpResponseTable()->getEntry(targetIP);
+  auto entry = vlanOrIntf->getNdpResponseTable()->getEntry(targetIP);
   auto srcPortDescriptor = PortDescriptor::fromRxPacket(*pkt.get());
   if (ndpOptions.sourceLinkLayerAddress.has_value()) {
     /* rfc 4861 - if the source address is not the unspecified address and,
@@ -498,8 +498,8 @@ void IPv6Handler::handleNeighborSolicitation(
     */
     if (!entry) {
       // if this IP address not is in NDP response table.
-      updater->receivedNdpNotMine(
-          vlan->getID(),
+      receivedNdpNotMine(
+          vlanOrIntf,
           hdr.ipv6->srcAddr,
           ndpOptions.sourceLinkLayerAddress.value(),
           srcPortDescriptor,
@@ -508,8 +508,8 @@ void IPv6Handler::handleNeighborSolicitation(
       return;
     }
 
-    updater->receivedNdpMine(
-        vlan->getID(),
+    receivedNdpMine(
+        vlanOrIntf,
         hdr.ipv6->srcAddr,
         ndpOptions.sourceLinkLayerAddress.value(),
         srcPortDescriptor,

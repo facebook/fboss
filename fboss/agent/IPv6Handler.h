@@ -157,10 +157,12 @@ class IPv6Handler : public StateObserver {
       std::unique_ptr<RxPacket> pkt,
       const ICMPHeaders& hdr,
       folly::io::Cursor cursor);
+  template <typename VlanOrIntfT>
   void handleNeighborSolicitation(
       std::unique_ptr<RxPacket> pkt,
       const ICMPHeaders& hdr,
-      folly::io::Cursor cursor);
+      folly::io::Cursor cursor,
+      const std::shared_ptr<VlanOrIntfT>& vlanOrIntf);
   void handleNeighborAdvertisement(
       std::unique_ptr<RxPacket> pkt,
       const ICMPHeaders& hdr,
