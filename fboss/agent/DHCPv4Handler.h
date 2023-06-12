@@ -44,12 +44,14 @@ class DHCPv4Handler {
       const std::shared_ptr<VlanOrIntfT>& vlanOrIntf);
 
  private:
+  template <typename VlanOrIntfT>
   static void processRequest(
       SwSwitch* sw,
       std::unique_ptr<RxPacket> pkt,
       folly::MacAddress srcMac,
       const IPv4Hdr& ipHdr,
-      const DHCPv4Packet& dhcpPacket);
+      const DHCPv4Packet& dhcpPacket,
+      const std::shared_ptr<VlanOrIntfT>& vlanOrIntf);
   static void processReply(
       SwSwitch* sw,
       std::unique_ptr<RxPacket> pkt,
