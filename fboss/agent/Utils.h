@@ -290,6 +290,12 @@ template <typename VlanOrIntfT>
 std::optional<VlanID> getVlanIDFromVlanOrIntf(
     const std::shared_ptr<VlanOrIntfT>& vlanOrIntf);
 
+template <typename NTableT>
+std::shared_ptr<NTableT> getNeighborTableForVlan(
+    const std::shared_ptr<SwitchState>& state,
+    VlanID vlanID,
+    bool use_intf_nbr_tables);
+
 class OperDeltaFilter {
  public:
   explicit OperDeltaFilter(SwitchID switchId);

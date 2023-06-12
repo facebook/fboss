@@ -15,9 +15,11 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/state/ArpEntry.h"
+#include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/NdpEntry.h"
+#include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 
@@ -513,6 +515,39 @@ template std::optional<VlanID> getVlanIDFromVlanOrIntf<Vlan>(
     const std::shared_ptr<Vlan>& vlanOrIntf);
 template std::optional<VlanID> getVlanIDFromVlanOrIntf<Interface>(
     const std::shared_ptr<Interface>& vlanOrIntf);
+
+template <typename NTableT>
+std::shared_ptr<NTableT> getNeighborTableForVlan(
+    const std::shared_ptr<SwitchState>& state,
+    VlanID vlanID,
+    bool use_intf_nbr_tables) {
+  auto vlan = state->getVlans()->getNode(vlanID);
+  if (use_intf_nbr_tables) {
+    auto intf = state->getInterfaces()->getNode(vlan->getInterfaceID());
+    if constexpr (std::is_same_v<NTableT, ArpTable>) {
+      return intf->getArpTable();
+    } else {
+      return intf->getNdpTable();
+    }
+  } else {
+    if constexpr (std::is_same_v<NTableT, ArpTable>) {
+      return vlan->getArpTable();
+    } else {
+      return vlan->getNdpTable();
+    }
+  }
+}
+
+// Explicit instantiation to avoid linker errors
+// https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
+template std::shared_ptr<ArpTable> getNeighborTableForVlan(
+    const std::shared_ptr<SwitchState>& state,
+    VlanID vlanID,
+    bool use_intf_nbr_tables);
+template std::shared_ptr<NdpTable> getNeighborTableForVlan(
+    const std::shared_ptr<SwitchState>& state,
+    VlanID vlanID,
+    bool use_intf_nbr_tables);
 
 OperDeltaFilter::OperDeltaFilter(SwitchID switchId) : switchId_(switchId) {}
 
