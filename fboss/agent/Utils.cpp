@@ -490,6 +490,30 @@ std::shared_ptr<NeighborEntryT> getNeighborEntryForIP(
   return entry;
 }
 
+template <typename VlanOrIntfT>
+std::optional<VlanID> getVlanIDFromVlanOrIntf(
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
+  std::optional<VlanID> vlanID{std::nullopt};
+
+  if (vlanOrIntf) {
+    if constexpr (std::is_same_v<VlanOrIntfT, Vlan>) {
+      vlanID = vlanOrIntf->getID();
+    } else {
+      vlanID = vlanOrIntf->getVlanIDIf();
+    }
+  }
+
+  return vlanID;
+}
+
+// Explicit instantiation to avoid linker errors
+// https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
+
+template std::optional<VlanID> getVlanIDFromVlanOrIntf<Vlan>(
+    const std::shared_ptr<Vlan>& vlanOrIntf);
+template std::optional<VlanID> getVlanIDFromVlanOrIntf<Interface>(
+    const std::shared_ptr<Interface>& vlanOrIntf);
+
 OperDeltaFilter::OperDeltaFilter(SwitchID switchId) : switchId_(switchId) {}
 
 std::optional<fsdb::OperDelta> OperDeltaFilter::filter(

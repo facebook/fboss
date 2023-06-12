@@ -286,6 +286,10 @@ std::shared_ptr<NeighborEntryT> getNeighborEntryForIPAndIntf(
     const std::shared_ptr<Interface>& intf,
     const folly::IPAddress& ipAddr);
 
+template <typename VlanOrIntfT>
+std::optional<VlanID> getVlanIDFromVlanOrIntf(
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf);
+
 class OperDeltaFilter {
  public:
   explicit OperDeltaFilter(SwitchID switchId);
