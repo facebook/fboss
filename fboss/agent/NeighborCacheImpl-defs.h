@@ -31,6 +31,27 @@
 
 DECLARE_bool(intf_nbr_tables);
 
+namespace {
+
+using facebook::fboss::PortDescriptor;
+using FbossError = facebook::fboss::FbossError;
+
+facebook::fboss::cfg::PortDescriptor getNeighborPortDescriptor(
+    const PortDescriptor& port) {
+  switch (port.type()) {
+    case PortDescriptor::PortType::PHYSICAL:
+      return PortDescriptor(port.phyPortID()).toThrift();
+    case PortDescriptor::PortType::AGGREGATE:
+      return PortDescriptor(port.aggPortID()).toThrift();
+    case PortDescriptor::PortType::SYSTEM_PORT:
+      return PortDescriptor(port.sysPortID()).toThrift();
+  }
+
+  throw FbossError("Unnknown port descriptor");
+}
+
+} // namespace
+
 namespace facebook::fboss {
 
 namespace ncachehelpers {
