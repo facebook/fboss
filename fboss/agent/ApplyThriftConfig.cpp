@@ -83,6 +83,8 @@
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
+DECLARE_bool(intf_nbr_tables);
+
 using boost::container::flat_map;
 using boost::container::flat_set;
 using folly::CIDRNetwork;
@@ -3255,6 +3257,11 @@ bool ThriftConfigApplier::updateNbrResponseTablesFromAllIntfCfg(Vlan* vlan) {
 bool ThriftConfigApplier::updateNeighborResponseTables(
     Vlan* vlan,
     const cfg::Vlan* config) {
+  if (FLAGS_intf_nbr_tables) {
+    // Neighbor response tables are consumed from Interface
+    return false;
+  }
+
   auto arpChanged = false, ndpChanged = false;
   auto origArp = vlan->getArpResponseTable();
   auto origNdp = vlan->getNdpResponseTable();
