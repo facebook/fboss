@@ -2173,8 +2173,7 @@ bool SwSwitch::sendArpRequestHelper(
         this, intf->getVlanIDIf(), intf->getMac(), source, target);
 
     // Notify the updater that we sent an arp request
-    getNeighborUpdater()->sentArpRequest(
-        getVlanIDHelper(intf->getVlanIDIf()), target);
+    sentArpRequest(intf, target);
     sent = true;
   } else {
     XLOG(DBG5) << "not sending arp for " << target.str() << ", "
@@ -2197,8 +2196,7 @@ bool SwSwitch::sendNdpSolicitationHelper(
         this, target, intf->getMac(), intf->getVlanIDIf());
 
     // Notify the updater that we sent a solicitation out
-    getNeighborUpdater()->sentNeighborSolicitation(
-        getVlanIDHelper(intf->getVlanIDIf()), target);
+    sentNeighborSolicitation(intf, target);
     sent = true;
   } else {
     XLOG(DBG5) << "not sending neighbor solicitation for " << target.str()
