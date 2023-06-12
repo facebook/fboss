@@ -291,8 +291,8 @@ void DHCPv4Handler::processRequest(
 
   if (switchIp.isZero()) {
     sw->stats()->dhcpV4DropPkt();
-    XLOG(ERR) << "Could not find a SVI interface on vlan : "
-              << pkt->getSrcVlan() << "DHCP packet dropped ";
+    XLOG(ERR) << "Could not find a SVI interface on vlan : " << vlanIDStr
+              << "DHCP packet dropped ";
     return;
   }
 
