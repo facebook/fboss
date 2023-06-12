@@ -5,7 +5,7 @@
 #if !defined(SAI_VERSION_7_2_0_0_ODP) && !defined(SAI_VERSION_8_2_0_0_ODP) && \
     !defined(SAI_VERSION_8_2_0_0_DNX_ODP) &&                                  \
     !defined(SAI_VERSION_8_2_0_0_SIM_ODP) &&                                  \
-    !defined(SAI_VERSION_9_0_EA_ODP) &&                                       \
+    !defined(SAI_VERSION_9_2_0_0_ODP) &&                                      \
     !defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) &&                              \
     !defined(SAI_VERSION_9_0_EA_SIM_ODP) &&                                   \
     !defined(SAI_VERSION_10_0_EA_DNX_ODP)
@@ -26,7 +26,7 @@ SaiTamEventTraits::Attributes::AttributeSwitchEventType::operator()() {
 #if !defined(SAI_VERSION_7_2_0_0_ODP) && !defined(SAI_VERSION_8_2_0_0_ODP) && \
     !defined(SAI_VERSION_8_2_0_0_DNX_ODP) &&                                  \
     !defined(SAI_VERSION_8_2_0_0_SIM_ODP) &&                                  \
-    !defined(SAI_VERSION_9_0_EA_ODP) &&                                       \
+    !defined(SAI_VERSION_9_2_0_0_ODP) &&                                      \
     !defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) &&                              \
     !defined(SAI_VERSION_9_0_EA_SIM_ODP) &&                                   \
     !defined(SAI_VERSION_10_0_EA_DNX_ODP)
@@ -41,7 +41,7 @@ SaiTamEventTraits::Attributes::AttributeEventId::operator()() {
 #if !defined(SAI_VERSION_7_2_0_0_ODP) && !defined(SAI_VERSION_8_2_0_0_ODP) && \
     !defined(SAI_VERSION_8_2_0_0_DNX_ODP) &&                                  \
     !defined(SAI_VERSION_8_2_0_0_SIM_ODP) &&                                  \
-    !defined(SAI_VERSION_9_0_EA_ODP) &&                                       \
+    !defined(SAI_VERSION_9_2_0_0_ODP) &&                                      \
     !defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) &&                              \
     !defined(SAI_VERSION_9_0_EA_SIM_ODP) &&                                   \
     !defined(SAI_VERSION_10_0_EA_DNX_ODP)

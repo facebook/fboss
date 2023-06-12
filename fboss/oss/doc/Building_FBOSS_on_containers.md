@@ -102,9 +102,9 @@ export SAI_BRCM_IMPL=1 # Needed only for BRCM SAI
 export GETDEPS_USE_WGET=1
 # Optionally, set the SAI_SDK_VERSION build flag.
 # This flag can be used to build FBOSS to link with a specific version of vendor SAI implementation.
-# The default for BRCM SAI implementation is SAI_VERSION_9_0_EA_DNX_ODP. Other possible values are -
-# SAI_VERSION_9_0_EA_ODP, SAI_VERSION_9_0_EA_SIM_ODP, SAI_VERSION_8_2_0_0_ODP, TAJO_SDK_VERSION_1_42_4, etc...
-export SAI_SDK_VERSION="SAI_VERSION_9_0_EA_ODP"
+# The default for BRCM SAI implementation is SAI_VERSION_10_0_EA_DNX_ODP. Other possible values are -
+# SAI_VERSION_9_2_0_0_ODP, SAI_VERSION_9_0_EA_SIM_ODP, SAI_VERSION_8_2_0_0_ODP, TAJO_SDK_VERSION_1_42_4, etc...
+export SAI_SDK_VERSION="SAI_VERSION_9_2_0_0_ODP"
 cd /var/FBOSS/fboss.git
 time ./build/fbcode_builder/getdeps.py build --allow-system-packages --scratch-path /var/FBOSS/tmp_bld_dir fboss
 ```

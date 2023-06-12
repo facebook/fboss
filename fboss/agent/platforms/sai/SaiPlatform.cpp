@@ -428,9 +428,9 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     }
   }
   std::optional<SaiSwitchTraits::Attributes::DllPath> dllPath;
-#if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
-    defined(SAI_VERSION_8_2_0_0_SIM_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
-    defined(SAI_VERSION_9_0_EA_SIM_ODP)
+#if defined(SAI_VERSION_8_2_0_0_ODP) ||     \
+    defined(SAI_VERSION_8_2_0_0_SIM_ODP) || \
+    defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP)
   auto platformMode = getType();
   if (platformMode == PlatformType::PLATFORM_FUJI ||
       platformMode == PlatformType::PLATFORM_ELBERT) {
