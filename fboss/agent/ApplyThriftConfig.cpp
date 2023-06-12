@@ -777,7 +777,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     }
   }
 
-  {
+  if (!FLAGS_intf_nbr_tables) {
     // VOQ/Fabric switches require that the packets are not tagged with any
     // VLAN. We are gradually enhancing wedge_agent to handle tagged as well as
     // untagged packets. During this transition, we will use VlanID 0 as
