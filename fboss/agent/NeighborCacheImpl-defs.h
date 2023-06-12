@@ -220,14 +220,15 @@ SwSwitch::StateUpdateFn NeighborCacheImpl<NTable>::getUpdateFnToProgramEntry(
     nbrEntry.state() = static_cast<state::NeighborState>(fields.state);
 
     if (switchType == cfg::SwitchType::VOQ) {
+      // TODO: Support aggregate ports for VOQ switches
+      CHECK(fields.port.isPhysicalPort());
       CHECK(systemPortID.has_value());
       nbrEntry.portId() =
           PortDescriptor(SystemPortID(systemPortID.value())).toThrift();
       nbrEntry.encapIndex() = fields.encapIndex.value();
       nbrEntry.isLocal() = fields.isLocal;
     } else {
-      // TODO(skhare): Handle aggregate ports
-      nbrEntry.portId() = PortDescriptor(fields.port.phyPortID()).toThrift();
+      nbrEntry.portId() = getNeighborPortDescriptor(fields.port);
     }
 
     if (fields.classID.has_value()) {
@@ -359,9 +360,6 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
       return nullptr;
     }
 
-    // TODO(skhare): Handle aggregate ports
-    CHECK(port.isPhysicalPort());
-
     InterfaceID interfaceID;
     SystemPortID systemPortID;
     int64_t encapIndex;
@@ -411,11 +409,13 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
         static_cast<state::NeighborState>(state::NeighborState::Pending);
 
     if (switchType == cfg::SwitchType::VOQ) {
+      // TODO: Support aggregate ports for VOQ switches
+      CHECK(port.isPhysicalPort());
       nbrEntry.portId() = PortDescriptor(SystemPortID(systemPortID)).toThrift();
       nbrEntry.encapIndex() = encapIndex;
       nbrEntry.isLocal() = fields.isLocal;
     } else {
-      nbrEntry.portId() = PortDescriptor(port.phyPortID()).toThrift();
+      nbrEntry.portId() = getNeighborPortDescriptor(fields.port);
     }
 
     if (fields.classID.has_value()) {
