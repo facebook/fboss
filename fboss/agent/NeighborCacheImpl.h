@@ -137,7 +137,7 @@ class NeighborCacheImpl {
       Entry* entry,
       cfg::SwitchType switchType);
 
-  SwSwitch::StateUpdateFn getUpdateFnToProgramPendingEntryForNpu(
+  SwSwitch::StateUpdateFn getUpdateFnToProgramPendingEntryForVlan(
       Entry* entry,
       PortDescriptor port,
       bool force);
