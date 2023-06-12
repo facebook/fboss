@@ -899,13 +899,7 @@ void IPv6Handler::resolveDestAndHandlePacket(
           sendMulticastNeighborSolicitation(
               sw_, target, intf->getMac(), intf->getVlanIDIf());
           // Notify the updater that we sent a solicitation out
-          if (FLAGS_intf_nbr_tables) {
-            sw_->getNeighborUpdater()->sentNeighborSolicitationForIntf(
-                intf->getID(), target);
-          } else {
-            sw_->getNeighborUpdater()->sentNeighborSolicitation(
-                sw_->getVlanIDHelper(vlanID), target);
-          }
+          sw_->sentNeighborSolicitation(intf, target);
         } else {
           XLOG(DBG5) << "not sending neighbor solicitation for " << target.str()
                      << ", " << ((entry->isPending()) ? "pending" : "")
