@@ -29,6 +29,8 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/types.h"
 
+DECLARE_bool(intf_nbr_tables);
+
 namespace facebook::fboss {
 
 namespace ncachehelpers {
@@ -71,7 +73,11 @@ void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
   auto switchType = sw_->getSwitchInfoTable().l3SwitchType();
   switch (switchType) {
     case cfg::SwitchType::NPU:
-      updateFn = getUpdateFnToProgramEntryForNpu(entry);
+      if (FLAGS_intf_nbr_tables) {
+        updateFn = getUpdateFnToProgramEntry(entry, cfg::SwitchType::NPU);
+      } else {
+        updateFn = getUpdateFnToProgramEntryForNpu(entry);
+      }
       break;
     case cfg::SwitchType::VOQ:
       updateFn = getUpdateFnToProgramEntry(entry, cfg::SwitchType::VOQ);
