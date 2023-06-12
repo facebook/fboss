@@ -798,6 +798,10 @@ class SwSwitch : public HwSwitchCallback {
       const std::shared_ptr<Interface>& intf,
       folly::IPAddressV4 ip);
 
+  void sentNeighborSolicitation(
+      const std::shared_ptr<Interface>& intf,
+      const folly::IPAddressV6& target);
+
   const SwitchInfoTable& getSwitchInfoTable() const {
     return switchInfoTable_;
   }

@@ -2263,6 +2263,18 @@ void SwSwitch::sentArpRequest(
   }
 }
 
+void SwSwitch::sentNeighborSolicitation(
+    const std::shared_ptr<Interface>& intf,
+    const folly::IPAddressV6& target) {
+  if (FLAGS_intf_nbr_tables) {
+    getNeighborUpdater()->sentNeighborSolicitationForIntf(
+        intf->getID(), target);
+  } else {
+    getNeighborUpdater()->sentNeighborSolicitation(
+        getVlanIDHelper(intf->getVlanIDIf()), target);
+  }
+}
+
 std::shared_ptr<SwitchState> SwSwitch::stateChanged(
     const StateDelta& delta,
     bool transaction) const {
