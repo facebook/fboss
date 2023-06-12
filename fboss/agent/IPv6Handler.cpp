@@ -340,7 +340,6 @@ void IPv6Handler::handleRouterSolicitation(
     unique_ptr<RxPacket> pkt,
     const ICMPHeaders& hdr,
     Cursor cursor) {
-  auto vlanID = pkt->getSrcVlanIf();
   sw_->portStats(pkt)->ipv6NdpPkt();
   if (!checkNdpPacket(hdr, pkt.get())) {
     return;
@@ -348,15 +347,8 @@ void IPv6Handler::handleRouterSolicitation(
 
   cursor.skip(4); // 4 reserved bytes
 
-  auto state = sw_->getState();
-  auto vlan = state->getVlans()->getNodeIf(sw_->getVlanIDHelper(vlanID));
-  if (!vlan) {
-    sw_->portStats(pkt)->pktDropped();
-    return;
-  }
-
   auto intfID = sw_->getState()->getInterfaceIDForPort(pkt->getSrcPort());
-  auto intf = state->getInterfaces()->getNodeIf(intfID);
+  auto intf = sw_->getState()->getInterfaces()->getNodeIf(intfID);
   if (!intf) {
     sw_->portStats(pkt)->pktDropped();
     return;
