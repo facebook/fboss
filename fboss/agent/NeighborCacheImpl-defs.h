@@ -76,7 +76,7 @@ void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
       if (FLAGS_intf_nbr_tables) {
         updateFn = getUpdateFnToProgramEntry(entry, cfg::SwitchType::NPU);
       } else {
-        updateFn = getUpdateFnToProgramEntryForNpu(entry);
+        updateFn = getUpdateFnToProgramEntryForVlan(entry);
       }
       break;
     case cfg::SwitchType::VOQ:
@@ -95,7 +95,7 @@ void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
 
 template <typename NTable>
 SwSwitch::StateUpdateFn
-NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForNpu(Entry* entry) {
+NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForVlan(Entry* entry) {
   CHECK(!entry->isPending());
 
   auto fields = entry->getFields();
