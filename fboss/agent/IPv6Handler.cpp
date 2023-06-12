@@ -250,7 +250,8 @@ void IPv6Handler::handlePacket(
       return;
     }
     if (ipv6.nextHeader == static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP)) {
-      pkt = handleICMPv6Packet(std::move(pkt), dst, src, ipv6, cursor);
+      pkt = handleICMPv6Packet(
+          std::move(pkt), dst, src, ipv6, cursor, vlanOrIntf);
       if (pkt == nullptr) {
         // packet has been handled
         return;
@@ -291,12 +292,14 @@ template void IPv6Handler::handlePacket<Interface>(
     Cursor cursor,
     const std::shared_ptr<Interface>& vlanOrIntf);
 
+template <typename VlanOrIntfT>
 unique_ptr<RxPacket> IPv6Handler::handleICMPv6Packet(
     unique_ptr<RxPacket> pkt,
     MacAddress dst,
     MacAddress src,
     const IPv6Hdr& ipv6,
-    Cursor cursor) {
+    Cursor cursor,
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
   ICMPHdr icmp6(cursor); // note: advances our cursor object
 
   // Validate the checksum, and drop the packet if it is not valid

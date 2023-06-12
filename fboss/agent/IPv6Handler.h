@@ -141,12 +141,14 @@ class IPv6Handler : public StateObserver {
    *                caller to decide what to do with the packet (i.e. forward
    *                the packet to host)
    */
+  template <typename VlanOrIntfT>
   std::unique_ptr<RxPacket> handleICMPv6Packet(
       std::unique_ptr<RxPacket> pkt,
       folly::MacAddress dst,
       folly::MacAddress src,
       const IPv6Hdr& ipv6,
-      folly::io::Cursor cursor);
+      folly::io::Cursor cursor,
+      const std::shared_ptr<VlanOrIntfT>& vlanOrIntf);
   void handleRouterSolicitation(
       std::unique_ptr<RxPacket> pkt,
       const ICMPHeaders& hdr,
