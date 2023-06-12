@@ -70,30 +70,6 @@ std::shared_ptr<MacEntry> getMacEntry(
   return macTable->getMacIf(mac);
 }
 
-std::shared_ptr<ArpTable> getArpTableHelper(
-    const std::shared_ptr<SwitchState>& state,
-    const Vlan* vlan) {
-  if (FLAGS_intf_nbr_tables) {
-    return state->getInterfaces()
-        ->getNode(vlan->getInterfaceID())
-        ->getArpTable();
-  } else {
-    return vlan->getArpTable();
-  }
-}
-
-std::shared_ptr<NdpTable> getNdpTableHelper(
-    const std::shared_ptr<SwitchState>& state,
-    const Vlan* vlan) {
-  if (FLAGS_intf_nbr_tables) {
-    return state->getInterfaces()
-        ->getNode(vlan->getInterfaceID())
-        ->getNdpTable();
-  } else {
-    return vlan->getNdpTable();
-  }
-}
-
 } // namespace
 
 namespace facebook::fboss {
