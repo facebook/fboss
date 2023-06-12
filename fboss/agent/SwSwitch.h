@@ -794,6 +794,10 @@ class SwSwitch : public HwSwitchCallback {
   InterfaceID getInterfaceIDForAggregatePort(
       AggregatePortID aggregatePortID) const;
 
+  void sentArpRequest(
+      const std::shared_ptr<Interface>& intf,
+      folly::IPAddressV4 ip);
+
   const SwitchInfoTable& getSwitchInfoTable() const {
     return switchInfoTable_;
   }
