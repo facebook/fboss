@@ -429,11 +429,13 @@ void enableExactMatch(std::string& yamlCfg) {
 template std::shared_ptr<ArpEntry> getNeighborEntryForIP<ArpEntry>(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& intf,
-    const folly::IPAddress& ipAddr);
+    const folly::IPAddress& ipAddr,
+    bool use_intf_nbr_tables);
 template std::shared_ptr<NdpEntry> getNeighborEntryForIP<NdpEntry>(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& intf,
-    const folly::IPAddress& ipAddr);
+    const folly::IPAddress& ipAddr,
+    bool use_intf_nbr_tables);
 
 template <typename NeighborEntryT>
 std::shared_ptr<NeighborEntryT> getNeighborEntryForIPAndIntf(
@@ -458,8 +460,13 @@ template <typename NeighborEntryT>
 std::shared_ptr<NeighborEntryT> getNeighborEntryForIP(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& intf,
-    const folly::IPAddress& ipAddr) {
+    const folly::IPAddress& ipAddr,
+    bool use_intf_nbr_tables) {
   std::shared_ptr<NeighborEntryT> entry{nullptr};
+
+  if (use_intf_nbr_tables) {
+    return getNeighborEntryForIPAndIntf<NeighborEntryT>(intf, ipAddr);
+  }
 
   switch (intf->getType()) {
     case cfg::InterfaceType::VLAN: {

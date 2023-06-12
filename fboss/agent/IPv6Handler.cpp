@@ -884,7 +884,8 @@ void IPv6Handler::resolveDestAndHandlePacket(
         return;
       } else {
         // Check if destination is unknown, in which case trigger NDP
-        auto entry = getNeighborEntryForIP<NdpEntry>(state, intf, target);
+        auto entry = getNeighborEntryForIP<NdpEntry>(
+            state, intf, target, FLAGS_intf_nbr_tables);
 
         if (nullptr == entry) {
           // No entry in NDP table, create a neighbor solicitation packet
