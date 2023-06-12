@@ -163,10 +163,12 @@ class IPv6Handler : public StateObserver {
       const ICMPHeaders& hdr,
       folly::io::Cursor cursor,
       const std::shared_ptr<VlanOrIntfT>& vlanOrIntf);
+  template <typename VlanOrIntfT>
   void handleNeighborAdvertisement(
       std::unique_ptr<RxPacket> pkt,
       const ICMPHeaders& hdr,
-      folly::io::Cursor cursor);
+      folly::io::Cursor cursor,
+      const std::shared_ptr<VlanOrIntfT>& vlanOrIntf);
 
   bool checkNdpPacket(const ICMPHeaders& hdr, const RxPacket* pkt) const;
 

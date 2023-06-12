@@ -322,7 +322,7 @@ unique_ptr<RxPacket> IPv6Handler::handleICMPv6Packet(
       handleNeighborSolicitation(std::move(pkt), hdr, cursor, vlanOrIntf);
       return nullptr;
     case ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT:
-      handleNeighborAdvertisement(std::move(pkt), hdr, cursor);
+      handleNeighborAdvertisement(std::move(pkt), hdr, cursor, vlanOrIntf);
       return nullptr;
     case ICMPv6Type::ICMPV6_TYPE_NDP_REDIRECT_MESSAGE:
       sw_->portStats(pkt)->ipv6NdpPkt();
@@ -522,15 +522,12 @@ void IPv6Handler::handleNeighborSolicitation(
       srcPortDescriptor);
 }
 
+template <typename VlanOrIntfT>
 void IPv6Handler::handleNeighborAdvertisement(
     unique_ptr<RxPacket> pkt,
     const ICMPHeaders& hdr,
-    Cursor cursor) {
-  auto vlanID = pkt->getSrcVlanIf();
-  auto vlanIDStr = vlanID.has_value()
-      ? folly::to<std::string>(static_cast<int>(vlanID.value()))
-      : "None";
-
+    Cursor cursor,
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
   sw_->portStats(pkt)->ipv6NdpPkt();
   if (!checkNdpPacket(hdr, pkt.get())) {
     return;
@@ -558,9 +555,7 @@ void IPv6Handler::handleNeighborAdvertisement(
     return;
   }
 
-  auto state = sw_->getState();
-  auto vlan = state->getVlans()->getNodeIf(sw_->getVlanIDHelper(vlanID));
-  if (!vlan) {
+  if (!vlanOrIntf) {
     // Hmm, we don't actually have this VLAN configured.
     // Perhaps the state has changed since we received the packet.
     sw_->portStats(pkt)->pktDropped();
@@ -570,14 +565,13 @@ void IPv6Handler::handleNeighborAdvertisement(
   XLOG(DBG4) << "got neighbor advertisement for " << targetIP << " ("
              << targetMac << ")";
 
-  auto updater = sw_->getNeighborUpdater();
   auto type = ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT;
 
   // Check to see if this IP address is in our NDP response table.
-  auto entry = vlan->getNdpResponseTable()->getEntry(hdr.ipv6->dstAddr);
+  auto entry = vlanOrIntf->getNdpResponseTable()->getEntry(hdr.ipv6->dstAddr);
   if (!entry) {
-    updater->receivedNdpNotMine(
-        vlan->getID(),
+    receivedNdpNotMine(
+        vlanOrIntf,
         targetIP,
         hdr.src,
         PortDescriptor::fromRxPacket(*pkt.get()),
@@ -586,8 +580,8 @@ void IPv6Handler::handleNeighborAdvertisement(
     return;
   }
 
-  updater->receivedNdpMine(
-      vlan->getID(),
+  receivedNdpMine(
+      vlanOrIntf,
       targetIP,
       hdr.src,
       PortDescriptor::fromRxPacket(*pkt.get()),
