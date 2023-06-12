@@ -82,6 +82,14 @@ class ArpHandler {
       folly::MacAddress targetMac,
       folly::IPAddressV4 targetIP);
 
+  template <typename VlanOrIntfT>
+  void receivedArpNotMine(
+      const std::shared_ptr<VlanOrIntfT>& vlanOrIntf,
+      folly::IPAddressV4 ip,
+      folly::MacAddress mac,
+      PortDescriptor port,
+      ArpOpCode op);
+
   SwSwitch* sw_{nullptr};
 };
 
