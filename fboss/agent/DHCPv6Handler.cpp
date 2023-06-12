@@ -129,6 +129,7 @@ bool DHCPv6Handler::isForDHCPv6RelayOrServer(const UDPHeader& udpHdr) {
   return (udpHdr.dstPort == DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT);
 }
 
+template <typename VlanOrIntfT>
 void DHCPv6Handler::handlePacket(
     SwSwitch* sw,
     std::unique_ptr<RxPacket> pkt,
@@ -136,7 +137,8 @@ void DHCPv6Handler::handlePacket(
     MacAddress dstMac,
     const IPv6Hdr& ipHdr,
     const UDPHeader& /*udpHdr*/,
-    Cursor cursor) {
+    Cursor cursor,
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
   sw->portStats(pkt->getSrcPort())->dhcpV6Pkt();
   // Parse dhcp packet
   DHCPv6Packet dhcp6Pkt;
@@ -161,6 +163,28 @@ void DHCPv6Handler::handlePacket(
     processDHCPv6Packet(sw, std::move(pkt), srcMac, dstMac, ipHdr, dhcp6Pkt);
   }
 }
+
+// Explicit instantiation to avoid linker errors
+// https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
+template void DHCPv6Handler::handlePacket<Vlan>(
+    SwSwitch* sw,
+    std::unique_ptr<RxPacket> pkt,
+    MacAddress srcMac,
+    MacAddress dstMac,
+    const IPv6Hdr& ipHdr,
+    const UDPHeader& /*udpHdr*/,
+    Cursor cursor,
+    const std::shared_ptr<Vlan>& vlanOrIntf);
+
+template void DHCPv6Handler::handlePacket<Interface>(
+    SwSwitch* sw,
+    std::unique_ptr<RxPacket> pkt,
+    MacAddress srcMac,
+    MacAddress dstMac,
+    const IPv6Hdr& ipHdr,
+    const UDPHeader& /*udpHdr*/,
+    Cursor cursor,
+    const std::shared_ptr<Interface>& vlanOrIntf);
 
 void DHCPv6Handler::processDHCPv6Packet(
     SwSwitch* sw,

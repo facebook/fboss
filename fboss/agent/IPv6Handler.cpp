@@ -170,7 +170,7 @@ void IPv6Handler::handlePacket(
                << " destination port: " << udpHdr.dstPort;
     if (DHCPv6Handler::isForDHCPv6RelayOrServer(udpHdr)) {
       DHCPv6Handler::handlePacket(
-          sw_, std::move(pkt), src, dst, ipv6, udpHdr, udpCursor);
+          sw_, std::move(pkt), src, dst, ipv6, udpHdr, udpCursor, vlanOrIntf);
       return;
     }
   }

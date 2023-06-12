@@ -31,6 +31,7 @@ class DHCPv6Handler {
 
   static bool isForDHCPv6RelayOrServer(const UDPHeader& udpHdr);
 
+  template <typename VlanOrIntfT>
   static void handlePacket(
       SwSwitch* sw,
       std::unique_ptr<RxPacket> pkt,
@@ -38,7 +39,8 @@ class DHCPv6Handler {
       folly::MacAddress dstMac,
       const IPv6Hdr& ipHdr,
       const UDPHeader& udpHdr,
-      folly::io::Cursor cursor);
+      folly::io::Cursor cursor,
+      const std::shared_ptr<VlanOrIntfT>& vlanOrIntf);
 
  private:
   /**
