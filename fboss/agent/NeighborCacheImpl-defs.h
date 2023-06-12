@@ -324,8 +324,8 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
     bool force,
     cfg::SwitchType switchType) {
   auto fields = entry->getFields();
-  auto updateFn =
-      [this, fields, port, force](const std::shared_ptr<SwitchState>& state)
+  auto updateFn = [this, fields, port, force, switchType](
+                      const std::shared_ptr<SwitchState>& state)
       -> std::shared_ptr<SwitchState> {
     if (port.isPhysicalPort() && port.phyPortID() == PortID(0)) {
       // If the entry is pointing to the CPU port, it is not programmed in the
@@ -333,25 +333,33 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
       return nullptr;
     }
 
-    // TODO: Handle aggregate ports for VOQ switches
+    // TODO(skhare): Handle aggregate ports
     CHECK(port.isPhysicalPort());
 
-    auto systemPortRange =
-        sw_->getState()->getAssociatedSystemPortRangeIf(port.phyPortID());
-    CHECK(systemPortRange.has_value());
-    auto systemPortID = *systemPortRange->minimum() + port.phyPortID();
+    InterfaceID interfaceID;
+    SystemPortID systemPortID;
+    int64_t encapIndex;
 
-    auto switchIds =
-        sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchIds();
-    CHECK_EQ(switchIds.size(), 1);
-    auto asic = sw_->getHwAsicTable()->getHwAsicIf(*switchIds.begin());
-    auto encapIndex =
-        EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
+    if (switchType == cfg::SwitchType::VOQ) {
+      auto systemPortRange =
+          sw_->getState()->getAssociatedSystemPortRangeIf(port.phyPortID());
+      CHECK(systemPortRange.has_value());
+      systemPortID = *systemPortRange->minimum() + port.phyPortID();
+
+      auto switchIds =
+          sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchIds();
+      CHECK_EQ(switchIds.size(), 1);
+      auto asic = sw_->getHwAsicTable()->getHwAsicIf(*switchIds.begin());
+      encapIndex = EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
+
+      // interfaceID is same as the systemPortID
+      interfaceID = InterfaceID(systemPortID);
+    } else {
+      interfaceID = intfID_;
+    }
 
     auto newState = state->clone();
     auto intfMap = newState->getInterfaces()->modify(&newState);
-    // interfaceID is same as the systemPortID
-    auto interfaceID = InterfaceID(systemPortID);
     auto intf = intfMap->getNode(interfaceID);
     auto intfNew = intf->clone();
 
@@ -372,12 +380,18 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
     auto nbrEntry = state::NeighborEntryFields();
     nbrEntry.ipaddress() = fields.ip.str();
     nbrEntry.mac() = fields.mac.toString();
-    nbrEntry.portId() = PortDescriptor(SystemPortID(systemPortID)).toThrift();
     nbrEntry.interfaceId() = static_cast<uint32_t>(interfaceID);
     nbrEntry.state() =
         static_cast<state::NeighborState>(state::NeighborState::Pending);
-    nbrEntry.encapIndex() = encapIndex;
-    nbrEntry.isLocal() = fields.isLocal;
+
+    if (switchType == cfg::SwitchType::VOQ) {
+      nbrEntry.portId() = PortDescriptor(SystemPortID(systemPortID)).toThrift();
+      nbrEntry.encapIndex() = encapIndex;
+      nbrEntry.isLocal() = fields.isLocal;
+    } else {
+      nbrEntry.portId() = PortDescriptor(port.phyPortID()).toThrift();
+    }
+
     if (fields.classID.has_value()) {
       nbrEntry.classID() = fields.classID.value();
     }
@@ -388,7 +402,7 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
                       nbrEntry);
 
     updatedNbrTable.insert({fields.ip.str(), nbrEntry});
-    intfNew->setNdpTable(updatedNbrTable);
+    intfNew->setNeighborTable<NTable>(updatedNbrTable);
     intfMap->updateNode(
         intfNew, sw_->getScopeResolver()->scope(intfNew, newState));
 
