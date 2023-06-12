@@ -160,7 +160,8 @@ void DHCPv6Handler::handlePacket(
         sw, std::move(pkt), srcMac, dstMac, ipHdr, dhcp6Pkt);
   } else {
     XLOG(DBG4) << "Received DHCPv6 packet: " << dhcp6Pkt.toString();
-    processDHCPv6Packet(sw, std::move(pkt), srcMac, dstMac, ipHdr, dhcp6Pkt);
+    processDHCPv6Packet(
+        sw, std::move(pkt), srcMac, dstMac, ipHdr, dhcp6Pkt, vlanOrIntf);
   }
 }
 
@@ -186,19 +187,27 @@ template void DHCPv6Handler::handlePacket<Interface>(
     Cursor cursor,
     const std::shared_ptr<Interface>& vlanOrIntf);
 
+template <typename VlanOrIntfT>
 void DHCPv6Handler::processDHCPv6Packet(
     SwSwitch* sw,
     std::unique_ptr<RxPacket> pkt,
     MacAddress srcMac,
     MacAddress /*dstMac*/,
     const IPv6Hdr& ipHdr,
-    const DHCPv6Packet& dhcpPacket) {
-  auto vlanId = pkt->getSrcVlanIf();
+    const DHCPv6Packet& dhcpPacket,
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
+  auto vlanId = getVlanIDFromVlanOrIntf(vlanOrIntf);
   auto vlanIdStr = vlanId.has_value()
       ? folly::to<std::string>(static_cast<int>(vlanId.value()))
       : "None";
-  auto states = sw->getState();
-  auto vlan = states->getVlans()->getNodeIf(sw->getVlanIDHelper(vlanId));
+  auto state = sw->getState();
+
+  // TODO(skhare)
+  // Support DHCPv4 relay for VOQ switches
+  // This requires moving get/set Dhcpv6Relay, get/set DhcpV6RelayOverrides
+  // etc. to Interfaces.
+  CHECK(vlanId.has_value());
+  auto vlan = state->getVlans()->getNodeIf(vlanId.value());
   if (!vlan) {
     sw->stats()->dhcpV6DropPkt();
     XLOG(DBG2) << "VLAN " << vlanIdStr << " is no longer present"
@@ -226,10 +235,10 @@ void DHCPv6Handler::processDHCPv6Packet(
     return;
   }
 
-  auto switchIp = states->getDhcpV6RelaySrc();
+  auto switchIp = state->getDhcpV6RelaySrc();
   if (switchIp.isZero()) {
     switchIp = getSwitchIntfIPv6(
-        states, sw->getState()->getInterfaceIDForPort(pkt->getSrcPort()));
+        state, sw->getState()->getInterfaceIDForPort(pkt->getSrcPort()));
   }
 
   // link address set to unspecified

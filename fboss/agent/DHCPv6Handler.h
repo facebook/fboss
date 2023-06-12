@@ -46,13 +46,15 @@ class DHCPv6Handler {
   /**
    * process DHCPv6 packet from client and send relay forward
    */
+  template <typename VlanOrIntfT>
   static void processDHCPv6Packet(
       SwSwitch* sw,
       std::unique_ptr<RxPacket> pkt,
       folly::MacAddress srcMac,
       folly::MacAddress dstMac,
       const IPv6Hdr& ipHdr,
-      const DHCPv6Packet& dhcpPacket);
+      const DHCPv6Packet& dhcpPacket,
+      const std::shared_ptr<VlanOrIntfT>& vlanOrIntf);
 
   /**
    * process relay reply from server or relay forward message from other agents
