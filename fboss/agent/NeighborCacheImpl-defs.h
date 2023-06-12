@@ -153,40 +153,56 @@ SwSwitch::StateUpdateFn NeighborCacheImpl<NTable>::getUpdateFnToProgramEntry(
   CHECK(!entry->isPending());
 
   auto fields = entry->getFields();
-  auto updateFn = [this,
-                   fields](const std::shared_ptr<SwitchState>& state) mutable
+  auto updateFn = [this, fields, switchType](
+                      const std::shared_ptr<SwitchState>& state) mutable
       -> std::shared_ptr<SwitchState> {
-    auto switchIds =
-        sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchIds();
-    CHECK_EQ(switchIds.size(), 1);
-    auto asic = sw_->getHwAsicTable()->getHwAsicIf(*switchIds.begin());
-    if (asic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
-      fields.encapIndex =
-          EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
-    }
+    InterfaceID interfaceID;
+    std::optional<SystemPortID> systemPortID;
 
-    auto systemPortRange = sw_->getState()->getAssociatedSystemPortRangeIf(
-        fields.port.phyPortID());
-    CHECK(systemPortRange.has_value());
-    auto systemPortID = *systemPortRange->minimum() + fields.port.phyPortID();
+    if (switchType == cfg::SwitchType::VOQ) {
+      auto switchIds =
+          sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchIds();
+      CHECK_EQ(switchIds.size(), 1);
+      auto asic = sw_->getHwAsicTable()->getHwAsicIf(*switchIds.begin());
+      if (asic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
+        fields.encapIndex =
+            EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
+      }
+
+      auto systemPortRange = sw_->getState()->getAssociatedSystemPortRangeIf(
+          fields.port.phyPortID());
+      CHECK(systemPortRange.has_value());
+      systemPortID = *systemPortRange->minimum() + fields.port.phyPortID();
+
+      // interfaceID is same as the systemPortID
+      interfaceID = InterfaceID(systemPortID.value());
+    } else {
+      interfaceID = intfID_;
+    }
 
     auto newState = state->clone();
     auto intfMap = newState->getInterfaces()->modify(&newState);
-    // interfaceID is same as the systemPortID
-    auto interfaceID = InterfaceID(systemPortID);
     auto intf = intfMap->getNode(interfaceID);
     auto intfNew = intf->clone();
-
     auto nbrTable = intf->getTable<NTable>();
     auto updatedNbrTable = nbrTable->toThrift();
     auto nbrEntry = state::NeighborEntryFields();
     nbrEntry.ipaddress() = fields.ip.str();
     nbrEntry.mac() = fields.mac.toString();
-    nbrEntry.portId() = PortDescriptor(SystemPortID(systemPortID)).toThrift();
     nbrEntry.interfaceId() = static_cast<uint32_t>(interfaceID);
     nbrEntry.state() = static_cast<state::NeighborState>(fields.state);
-    nbrEntry.encapIndex() = fields.encapIndex.value();
-    nbrEntry.isLocal() = fields.isLocal;
+
+    if (switchType == cfg::SwitchType::VOQ) {
+      CHECK(systemPortID.has_value());
+      nbrEntry.portId() =
+          PortDescriptor(SystemPortID(systemPortID.value())).toThrift();
+      nbrEntry.encapIndex() = fields.encapIndex.value();
+      nbrEntry.isLocal() = fields.isLocal;
+    } else {
+      // TODO(skhare): Handle aggregate ports
+      nbrEntry.portId() = PortDescriptor(fields.port.phyPortID()).toThrift();
+    }
+
     if (fields.classID.has_value()) {
       nbrEntry.classID() = fields.classID.value();
     }
@@ -199,8 +215,9 @@ SwSwitch::StateUpdateFn NeighborCacheImpl<NTable>::getUpdateFnToProgramEntry(
           << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
                  nbrEntry);
     } else {
-      if (node->getMac() == fields.mac && node->getPort().isSystemPort() &&
-          node->getPort().sysPortID() == systemPortID &&
+      if (node->getMac() == fields.mac &&
+          (switchType != cfg::SwitchType::VOQ ||
+           node->getPort().sysPortIDIf() == systemPortID) &&
           node->getIntfID() == interfaceID &&
           node->getState() == fields.state && !node->isPending() &&
           node->getClassID() == fields.classID) {
@@ -214,7 +231,7 @@ SwSwitch::StateUpdateFn NeighborCacheImpl<NTable>::getUpdateFnToProgramEntry(
                  nbrEntry);
     }
 
-    intfNew->setNdpTable(updatedNbrTable);
+    intfNew->setNeighborTable<NTable>(updatedNbrTable);
     intfMap->updateNode(
         intfNew, sw_->getScopeResolver()->scope(intfNew, newState));
 
