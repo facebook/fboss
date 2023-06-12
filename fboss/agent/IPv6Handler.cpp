@@ -1106,4 +1106,23 @@ void IPv6Handler::receivedNdpNotMine(
   }
 }
 
+template <typename VlanOrIntfT>
+void IPv6Handler::receivedNdpMine(
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf,
+    IPAddressV6 ip,
+    MacAddress macAddr,
+    PortDescriptor port,
+    ICMPv6Type type,
+    uint32_t flags) {
+  auto updater = sw_->getNeighborUpdater();
+  if constexpr (std::is_same_v<VlanOrIntfT, Vlan>) {
+    updater->receivedNdpMine(
+        vlanOrIntf->getID(), ip, macAddr, port, type, flags);
+
+  } else {
+    updater->receivedNdpMineForIntf(
+        vlanOrIntf->getID(), ip, macAddr, port, type, flags);
+  }
+}
+
 } // namespace facebook::fboss

@@ -196,6 +196,15 @@ class IPv6Handler : public StateObserver {
       ICMPv6Type type,
       uint32_t flags);
 
+  template <typename VlanOrIntfT>
+  void receivedNdpMine(
+      const std::shared_ptr<VlanOrIntfT>& vlanOrIntf,
+      folly::IPAddressV6 ip,
+      folly::MacAddress macAddr,
+      PortDescriptor port,
+      ICMPv6Type type,
+      uint32_t flags);
+
   SwSwitch* sw_{nullptr};
   RAMap routeAdvertisers_;
 };
