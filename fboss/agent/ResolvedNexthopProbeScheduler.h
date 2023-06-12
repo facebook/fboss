@@ -40,10 +40,19 @@ class ResolvedNexthopProbeScheduler {
   void schedule();
 
  private:
-  template <typename AddrT>
-  bool shouldProbe(const AddrT& addr, Vlan* vlan) {
-    auto table = vlan->template getNeighborEntryTable<AddrT>();
-    return table->getEntryIf(addr) == nullptr;
+  template <typename VlanOrIntfT>
+  bool shouldProbe(
+      const folly::IPAddress& addr,
+      const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
+    if (addr.isV4()) {
+      auto table =
+          vlanOrIntf->template getNeighborEntryTable<folly::IPAddressV4>();
+      return table->getEntryIf(addr.asV4()) == nullptr;
+    } else {
+      auto table =
+          vlanOrIntf->template getNeighborEntryTable<folly::IPAddressV6>();
+      return table->getEntryIf(addr.asV6()) == nullptr;
+    }
   }
 
   SwSwitch* sw_{nullptr};
