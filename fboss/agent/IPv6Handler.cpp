@@ -131,12 +131,14 @@ void IPv6Handler::intfDeleted(const Interface* intf) {
   CHECK_EQ(numErased, 1);
 }
 
+template <typename VlanOrIntfT>
 void IPv6Handler::handlePacket(
     unique_ptr<RxPacket> pkt,
     MacAddress dst,
     MacAddress src,
-    Cursor cursor) {
-  auto vlanID = pkt->getSrcVlanIf();
+    Cursor cursor,
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
+  auto vlanID = getVlanIDFromVlanOrIntf(vlanOrIntf);
   auto vlanIDStr = vlanID.has_value()
       ? folly::to<std::string>(static_cast<int>(vlanID.value()))
       : "None";
@@ -272,6 +274,22 @@ void IPv6Handler::handlePacket(
     resolveDestAndHandlePacket(ipv6, std::move(pkt), dst, src, cursor);
   }
 }
+
+// Explicit instantiation to avoid linker errors
+// https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
+template void IPv6Handler::handlePacket<Vlan>(
+    unique_ptr<RxPacket> pkt,
+    MacAddress dst,
+    MacAddress src,
+    Cursor cursor,
+    const std::shared_ptr<Vlan>& vlanOrIntf);
+
+template void IPv6Handler::handlePacket<Interface>(
+    unique_ptr<RxPacket> pkt,
+    MacAddress dst,
+    MacAddress src,
+    Cursor cursor,
+    const std::shared_ptr<Interface>& vlanOrIntf);
 
 unique_ptr<RxPacket> IPv6Handler::handleICMPv6Packet(
     unique_ptr<RxPacket> pkt,

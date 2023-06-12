@@ -1443,7 +1443,7 @@ void SwSwitch::handlePacketImpl(
       ipv4_->handlePacket(std::move(pkt), dstMac, srcMac, c);
       return;
     case IPv6Handler::ETHERTYPE_IPV6:
-      ipv6_->handlePacket(std::move(pkt), dstMac, srcMac, c);
+      ipv6_->handlePacket(std::move(pkt), dstMac, srcMac, c, vlanOrIntf);
       return;
     case LACPDU::EtherType::SLOW_PROTOCOLS: {
       // The only supported protocol in the Ethernet suite's "Slow Protocols"

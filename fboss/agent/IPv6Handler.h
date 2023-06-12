@@ -45,11 +45,13 @@ class IPv6Handler : public StateObserver {
 
   void stateUpdated(const StateDelta& delta) override;
 
+  template <typename VlanOrIntfT>
   void handlePacket(
       std::unique_ptr<RxPacket> pkt,
       folly::MacAddress dst,
       folly::MacAddress src,
-      folly::io::Cursor cursor);
+      folly::io::Cursor cursor,
+      const std::shared_ptr<VlanOrIntfT>& vlanOrIntf);
 
   void floodNeighborAdvertisements();
 
