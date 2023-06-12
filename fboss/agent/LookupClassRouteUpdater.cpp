@@ -1510,6 +1510,14 @@ void LookupClassRouteUpdater::processMacAddrsToBlockUpdates(
 }
 
 void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
+  // The current LookupClassRouteUpdater logic relies on VLANs, MAC learning
+  // callbacks etc. that are not supported on VOQ/Fabric switches. Thus, run
+  // this stateObserver for NPU switches only.
+  if (!sw_->getSwitchInfoTable().haveL3Switches() ||
+      sw_->getSwitchInfoTable().l3SwitchType() != cfg::SwitchType::NPU) {
+    return;
+  }
+
   /*
    * If FLAGS_queue_per_host_route_fix is false:
    *  - if inited_ is false i.e. first call to this state observer, disable
