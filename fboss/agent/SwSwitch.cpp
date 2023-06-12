@@ -1440,7 +1440,7 @@ void SwSwitch::handlePacketImpl(
       break;
 #endif
     case IPv4Handler::ETHERTYPE_IPV4:
-      ipv4_->handlePacket(std::move(pkt), dstMac, srcMac, c);
+      ipv4_->handlePacket(std::move(pkt), dstMac, srcMac, c, vlanOrIntf);
       return;
     case IPv6Handler::ETHERTYPE_IPV6:
       ipv6_->handlePacket(std::move(pkt), dstMac, srcMac, c, vlanOrIntf);

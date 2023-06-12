@@ -36,11 +36,13 @@ class IPv4Handler {
 
   explicit IPv4Handler(SwSwitch* sw);
 
+  template <typename VlanOrIntfT>
   void handlePacket(
       std::unique_ptr<RxPacket> pkt,
       folly::MacAddress dst,
       folly::MacAddress src,
-      folly::io::Cursor cursor);
+      folly::io::Cursor cursor,
+      const std::shared_ptr<VlanOrIntfT>& vlanOrIntf);
 
   /*
    * TODO(aeckert): t17949183 unify packet handling pipeline and then

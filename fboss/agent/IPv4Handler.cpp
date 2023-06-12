@@ -130,11 +130,13 @@ void IPv4Handler::sendICMPTimeExceeded(
   sw_->sendPacketSwitchedAsync(std::move(icmpPkt));
 }
 
+template <typename VlanOrIntfT>
 void IPv4Handler::handlePacket(
     unique_ptr<RxPacket> pkt,
     MacAddress dst,
     MacAddress src,
-    Cursor cursor) {
+    Cursor cursor,
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
   SwitchStats* stats = sw_->stats();
   PortID port = pkt->getSrcPort();
   auto vlanID = pkt->getSrcVlanIf();
@@ -254,6 +256,22 @@ void IPv4Handler::handlePacket(
   // then send this pkt out. For now, just drop it.
   stats->port(port)->pktDropped();
 }
+
+// Explicit instantiation to avoid linker errors
+// https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
+template void IPv4Handler::handlePacket(
+    unique_ptr<RxPacket> pkt,
+    MacAddress dst,
+    MacAddress src,
+    Cursor cursor,
+    const std::shared_ptr<Vlan>& vlanOrIntf);
+
+template void IPv4Handler::handlePacket(
+    unique_ptr<RxPacket> pkt,
+    MacAddress dst,
+    MacAddress src,
+    Cursor cursor,
+    const std::shared_ptr<Interface>& vlanOrIntf);
 
 // Return true if we successfully sent an ARP request, false otherwise
 bool IPv4Handler::resolveMac(
