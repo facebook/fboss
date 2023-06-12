@@ -163,7 +163,7 @@ void IPv4Handler::handlePacket(
                << " destination port: " << udpHdr.dstPort;
     if (DHCPv4Handler::isDHCPv4Packet(udpHdr)) {
       DHCPv4Handler::handlePacket(
-          sw_, std::move(pkt), src, dst, v4Hdr, udpHdr, udpCursor);
+          sw_, std::move(pkt), src, dst, v4Hdr, udpHdr, udpCursor, vlanOrIntf);
       return;
     }
   }

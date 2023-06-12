@@ -160,6 +160,7 @@ bool DHCPv4Handler::isDHCPv4Packet(const UDPHeader& udpHdr) {
       (dstPort == kBootPCPort || dstPort == kBootPSPort);
 }
 
+template <typename VlanOrIntfT>
 void DHCPv4Handler::handlePacket(
     SwSwitch* sw,
     std::unique_ptr<RxPacket> pkt,
@@ -167,7 +168,8 @@ void DHCPv4Handler::handlePacket(
     MacAddress /*dstMac*/,
     const IPv4Hdr& ipHdr,
     const UDPHeader& /*udpHdr*/,
-    Cursor cursor) {
+    Cursor cursor,
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
   sw->portStats(pkt->getSrcPort())->dhcpV4Pkt();
   if (ipHdr.ttl <= 1) {
     sw->portStats(pkt->getSrcPort())->dhcpV4BadPkt();
@@ -205,6 +207,28 @@ void DHCPv4Handler::handlePacket(
     XLOG(DBG4) << " Dropped bootp packet ";
   }
 }
+
+// Explicit instantiation to avoid linker errors
+// https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
+template void DHCPv4Handler::handlePacket(
+    SwSwitch* sw,
+    std::unique_ptr<RxPacket> pkt,
+    MacAddress srcMac,
+    MacAddress /*dstMac*/,
+    const IPv4Hdr& ipHdr,
+    const UDPHeader& /*udpHdr*/,
+    Cursor cursor,
+    const std::shared_ptr<Vlan>& vlanOrIntf);
+
+template void DHCPv4Handler::handlePacket(
+    SwSwitch* sw,
+    std::unique_ptr<RxPacket> pkt,
+    MacAddress srcMac,
+    MacAddress /*dstMac*/,
+    const IPv4Hdr& ipHdr,
+    const UDPHeader& /*udpHdr*/,
+    Cursor cursor,
+    const std::shared_ptr<Interface>& vlanOrIntf);
 
 void DHCPv4Handler::processRequest(
     SwSwitch* sw,
