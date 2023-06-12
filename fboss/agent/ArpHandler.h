@@ -90,6 +90,14 @@ class ArpHandler {
       PortDescriptor port,
       ArpOpCode op);
 
+  template <typename VlanOrIntfT>
+  void receivedArpMine(
+      const std::shared_ptr<VlanOrIntfT>& vlanOrIntf,
+      folly::IPAddressV4 ip,
+      folly::MacAddress mac,
+      PortDescriptor port,
+      ArpOpCode op);
+
   SwSwitch* sw_{nullptr};
 };
 

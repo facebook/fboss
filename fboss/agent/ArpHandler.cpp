@@ -330,4 +330,19 @@ void ArpHandler::receivedArpNotMine(
   }
 }
 
+template <typename VlanOrIntfT>
+void ArpHandler::receivedArpMine(
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf,
+    IPAddressV4 ip,
+    MacAddress mac,
+    PortDescriptor port,
+    ArpOpCode op) {
+  auto updater = sw_->getNeighborUpdater();
+  if constexpr (std::is_same_v<VlanOrIntfT, Vlan>) {
+    updater->receivedArpMine(vlanOrIntf->getID(), ip, mac, port, op);
+  } else {
+    updater->receivedArpMineForIntf(vlanOrIntf->getID(), ip, mac, port, op);
+  }
+}
+
 } // namespace facebook::fboss
