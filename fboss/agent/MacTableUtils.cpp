@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/MacTableUtils.h"
 
+#include "fboss/agent/Utils.h"
+
 DECLARE_bool(intf_nbr_tables);
 
 namespace {
@@ -219,8 +221,10 @@ std::shared_ptr<SwitchState> MacTableUtils::updateOrAddStaticEntryIfNbrExists(
         });
   };
   auto vlan = state->getVlans()->getNode(vlanId).get();
-  const auto& arpTable = *getArpTableHelper(state, vlan);
-  const auto& ndpTable = *getNdpTableHelper(state, vlan);
+  const auto& arpTable =
+      *getNeighborTableForVlan<ArpTable>(state, vlanId, FLAGS_intf_nbr_tables);
+  const auto& ndpTable =
+      *getNeighborTableForVlan<NdpTable>(state, vlanId, FLAGS_intf_nbr_tables);
   auto arpItr = findNeighbor(arpTable);
   auto ndpItr = findNeighbor(ndpTable);
   if (arpItr != arpTable.end() || ndpItr != ndpTable.end()) {
