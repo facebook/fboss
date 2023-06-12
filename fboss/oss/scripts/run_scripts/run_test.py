@@ -40,61 +40,65 @@ from datetime import datetime
 #     ./run_test.py qsfp --qsfp-config $qsfpConfFile
 #     desc: Runs ALL Hw QSFP tests: coldboot and warmboot
 #
-#  3. Running only coldboot tests:
+#  3. Running all HW Link TESTS:
+#     ./run_test.py link --config $linkConfFile --qsfp-config $qsfpConfFile
+#     desc: Runs ALL Hw Link tests: coldboot and warmboot
+#
+#  4. Running only coldboot tests:
 #      ./run_test.py sai --config $confFile --coldboot_only
 #      desc: Runs all HW tests only on coldboot mode
 #
-#  4. Running specific tests through regex:
+#  5. Running specific tests through regex:
 #      ./run_test.py sai --config $confFile --filter=*Route*V6*
 #      desc: Runs only the HW test matching the regex *Route*V6*
 #
 #      e./run_test.py sai --config $confFile --filter=*Vlan*:*Port*
 #      desc: Run tests matching "Vlan" and "Port" filters
 #
-#  5. Running specific tests through regex and excluding certain tests:
+#  6. Running specific tests through regex and excluding certain tests:
 #      ./run_test.py sai --config $confFile --filter=*Vlan*:*Port*:-*Mac*:*Intf*
 #      desc: Run tests matching "Vlan" and "Port" filters, but excluding "Mac" and "Intf" tests in that list
 #
-#  6. Running a targeted test:
+#  7. Running a targeted test:
 #      ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig
 #      desc: Runs a single test by providing the entire test name as a filter
 #
-#  7. Enable SAI Replayer Logging:
+#  8. Enable SAI Replayer Logging:
 #      ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig --sdk_logging /tmp/XYZ #
 #      desc: Enables SAI Replayer Logging for the specified test case
 #
 #      ./run_test.py sai --config $confFile --sdk_logging /root/all_replayer_logs
 #      desc: Enables SAI replayer Logging for all test cases
 #
-#  8. Running a single test in coldboot mode:
+#  9. Running a single test in coldboot mode:
 #      ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig --coldboot_only
 #      desc: Runs a single test and performs only coldboot
 #
-#  9. Example of control plane tests:
+#  10. Example of control plane tests:
 #      ./run_test.py sai --config $confFile --filter=HwAclQualifierTest*
 #      desc: Sample HW test by programming the hardware and validating the functionality
 #
-#  10. Example of data plane tests:
+#  11. Example of data plane tests:
 #      ./run_test.py sai --config $confFile --filter=HwOlympicQosSchedulerTest*
 #      desc: Sample HW test by programming the hardware, creating a dataplane loop and validating functionality
 #
-#  11. List all tests in the test binary:
+#  12. List all tests in the test binary:
 #      ./run_test.py sai --config $confFile --list_tests
 #      desc: Print all the tests but do not run any test
 #
-#  12. List tests matching given regex:
+#  13. List tests matching given regex:
 #      ./run_test.py sai --config $confFile --filter=<filter_regex> --list_tests
 #      desc: Print the matching tests but do not run any test
 #
-#  13. Skip running Known Bad Tests:
+#  14. Skip running Known Bad Tests:
 #      ./run_test.py sai --config $confFile --skip-known-bad-tests $test-config
 #      desc: Run tests but skip running known bad tests for a specific platform
 #
-#  14. Use Custom Management Interface:
+#  15. Use Custom Management Interface:
 #      ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig --mgmt-if eth0
 #      desc: Instead of eth0, provide a custom mgmt-if
 #
-#  15. Running non-OSS Binary using run_test helper:
+#  16. Running non-OSS Binary using run_test helper:
 #      ./run_test.py sai --config fuji.agent.materialized_JSON --filter HwVlanTest.VlanApplyConfig --sdk_logging /root/skhare/sai_replayer_logs --no-oss --sai-bin /root/skhare/sai_test-brcm-7.2.0.0_odp --mgmt-if eth0
 #      desc: Runs tests but does not use OSS binary for testing
 #
@@ -119,6 +123,13 @@ from datetime import datetime
 # which can be used to skip running known bad tests for specific platforms.
 # eg: To skip running bad tests on meru400bfu on phy sdk version credo-0.7.2, the test-config to be used is
 # "meru400bfu/physdk-credo-0.7.2/credo-0.7.2"
+#
+# Similarly, for link HW tests, there is a consolidated JSON file under fboss.git/oss/link_known_bad_tests/fboss_link_known_bad_tests.materialized_JSON.
+# This file is also indexed based on $test-config format - platform/{bcm,sai}/coldboot-asic-sdk-version-from/warmboot-asic-sdk-version-to.
+# The known bad list can be provided to run_test.py as an argument --skip-known-bad-tests $testConfig
+# which can be used to skip running known bad tests for specific platforms.
+# eg: To skip running bad tests on SAI-configured meru400bfu on asic sdk version 10.0_ea_dnx_odp, the test-config to be used is
+# "meru400bfu/sai/asicsdk-10.0_ea_dnx_odp/10.0_ea_dnx_odp"
 #
 # (TODO):
 # SDK Logging:
@@ -149,6 +160,9 @@ SAI_HW_KNOWN_BAD_TESTS = (
 )
 QSFP_KNOWN_BAD_TESTS = (
     "./share/qsfp_known_bad_tests/fboss_qsfp_known_bad_tests.materialized_JSON"
+)
+LINK_KNOWN_BAD_TESTS = (
+    "./share/link_known_bad_tests/fboss_link_known_bad_tests.materialized_JSON"
 )
 QSFP_SERVICE_FOR_TESTING = "qsfp_service_for_testing"
 QSFP_SERVICE_DIR = "/dev/shm/fboss/qsfp_service"
@@ -729,7 +743,7 @@ class LinkTestRunner(TestRunner):
         return ""
 
     def _get_known_bad_tests_file(self):
-        return ""
+        return LINK_KNOWN_BAD_TESTS
 
     def _get_test_binary_name(self):
         return "sai_link_test-sai_impl-1.12.0"
