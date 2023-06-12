@@ -869,7 +869,12 @@ class SwSwitch : public HwSwitchCallback {
   void publishSwitchInfo(const HwInitResult& hwInitRet);
   void setSwitchRunState(SwitchRunState desiredState);
   SwitchStats* createSwitchStats();
+
   void handlePacket(std::unique_ptr<RxPacket> pkt);
+  template <typename VlanOrIntfT>
+  void handlePacketImpl(
+      std::unique_ptr<RxPacket> pkt,
+      const std::shared_ptr<VlanOrIntfT>& vlanOrIntf);
 
   void updatePtpTcCounter();
   static void handlePendingUpdatesHelper(SwSwitch* sw);

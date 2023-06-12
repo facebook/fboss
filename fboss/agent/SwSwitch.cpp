@@ -1348,6 +1348,21 @@ void SwSwitch::packetReceivedThrowExceptionOnError(
 }
 
 void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
+  if (FLAGS_intf_nbr_tables) {
+    auto intf = getState()->getInterfaces()->getNodeIf(
+        getState()->getInterfaceIDForPort(pkt->getSrcPort()));
+    handlePacketImpl(std::move(pkt), intf);
+  } else {
+    auto vlan =
+        getState()->getVlans()->getNodeIf(getVlanIDHelper(pkt->getSrcVlanIf()));
+    handlePacketImpl(std::move(pkt), vlan);
+  }
+}
+
+template <typename VlanOrIntfT>
+void SwSwitch::handlePacketImpl(
+    std::unique_ptr<RxPacket> pkt,
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
   // If we are not fully initialized or are already exiting, don't handle
   // packets since the individual handlers, h/w sdk data structures
   // may not be ready or may already be (partially) destroyed
@@ -1389,7 +1404,7 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
     ethertype = c.readBE<uint16_t>();
   }
 
-  auto vlanID = pkt->getSrcVlanIf();
+  auto vlanID = getVlanIDFromVlanOrIntf(vlanOrIntf);
   auto vlanIDStr = vlanID.has_value()
       ? folly::to<std::string>(static_cast<int>(vlanID.value()))
       : "None";
