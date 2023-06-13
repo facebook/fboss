@@ -15,6 +15,34 @@
 using namespace ::testing;
 using namespace facebook::fboss;
 
+namespace {
+bool isEqual(
+    const TransceiverIdxThrift& left,
+    const TransceiverIdxThrift& right) {
+  auto getChannelId = [](const TransceiverIdxThrift& idx) {
+    if (!idx.channelId().has_value()) {
+      return std::optional<int32_t>();
+    }
+    return std::make_optional(static_cast<int>(*idx.channelId()));
+  };
+
+  auto getChannels = [](const TransceiverIdxThrift& idx) {
+    std::set<int32_t> channels;
+    if (!idx.channels().has_value()) {
+      return channels;
+    }
+    for (auto channel : *idx.channels()) {
+      channels.insert(channel);
+    }
+    return channels;
+  };
+
+  return *left.transceiverId() == *right.transceiverId() &&
+      getChannelId(left) == getChannelId(right) &&
+      getChannels(left) == getChannels(right);
+}
+} // namespace
+
 // Tests that the link comes up after a flap on the ASIC
 TEST_F(LinkTest, asicLinkFlap) {
   auto verify = [this]() {
@@ -58,7 +86,7 @@ TEST_F(LinkTest, getTransceivers) {
         auto speed = sw()->getState()->getPorts()->getNode(port)->getSpeed();
         auto transceiverIndx0 = platform()->getPortMapping(port, speed);
         auto transceiverIndx1 = sw()->getTransceiverIdxThrift(port);
-        EXPECT_EVENTUALLY_TRUE(transceiverIndx0 == transceiverIndx1);
+        EXPECT_EVENTUALLY_TRUE(isEqual(transceiverIndx0, transceiverIndx1));
       }
     })
   };
