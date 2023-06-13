@@ -1,6 +1,6 @@
 packages:
   fb-fboss2-cli:
-    packager: fboss_dev
+    packager: fboss_agent
     summary: Cpp CLI to speak to fboss agent
     rules:
       buck:fboss/cli/fboss2:fboss2:
