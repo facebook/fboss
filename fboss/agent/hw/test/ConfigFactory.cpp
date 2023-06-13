@@ -84,6 +84,14 @@ bool isRswPlatform(PlatformType type) {
 
 namespace facebook::fboss::utility {
 
+std::pair<int, int> getRetryCountAndDelay(const HwAsic* asic) {
+  if (asic->isSupported(HwAsic::Feature::SLOW_STAT_UPDATE)) {
+    return std::make_pair(50, 5000);
+  }
+  // default
+  return std::make_pair(30, 1000);
+}
+
 std::unordered_map<PortID, cfg::PortProfileID>& getPortToDefaultProfileIDMap() {
   static std::unordered_map<PortID, cfg::PortProfileID> portProfileIDMap;
   return portProfileIDMap;

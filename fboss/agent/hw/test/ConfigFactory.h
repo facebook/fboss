@@ -175,6 +175,7 @@ cfg::SwitchConfig createRtswUplinkDownlinkConfig(
  * state of the Hardware.
  */
 std::unordered_map<PortID, cfg::PortProfileID>& getPortToDefaultProfileIDMap();
+std::pair<int, int> getRetryCountAndDelay(const HwAsic* asic);
 
 void setPortToDefaultProfileIDMap(
     const std::shared_ptr<MultiSwitchPortMap>& ports,

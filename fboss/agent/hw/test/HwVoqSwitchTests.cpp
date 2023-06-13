@@ -225,48 +225,57 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
       }
       auto txPacketSize = sendPacket(ecmpHelper.ip(kPort), frontPanelPort);
 
-      WITH_RETRIES({
-        auto afterVoQOutBytes = getVoQOutBytes();
-        if (getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
-          auto queueOutPktsAndBytes = getQueueOutPktsBytes();
-          afterQueueOutPkts = queueOutPktsAndBytes.first;
-          afterQueueOutBytes = queueOutPktsAndBytes.second;
-        }
-        auto afterAclPkts = getAclPackets();
-        auto portOutPktsAndBytes = getPortOutPktsBytes();
-        auto afterOutPkts = portOutPktsAndBytes.first;
-        auto afterOutBytes = portOutPktsAndBytes.second;
+      auto [maxRetryCount, sleepTimeMsecs] =
+          utility::getRetryCountAndDelay(getAsic());
+      WITH_RETRIES_N_TIMED(
+          maxRetryCount, std::chrono::milliseconds(sleepTimeMsecs), {
+            auto afterVoQOutBytes = getVoQOutBytes();
+            if (getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
+              auto queueOutPktsAndBytes = getQueueOutPktsBytes();
+              afterQueueOutPkts = queueOutPktsAndBytes.first;
+              afterQueueOutBytes = queueOutPktsAndBytes.second;
+            }
+            auto afterAclPkts = getAclPackets();
+            auto portOutPktsAndBytes = getPortOutPktsBytes();
+            auto afterOutPkts = portOutPktsAndBytes.first;
+            auto afterOutBytes = portOutPktsAndBytes.second;
 
-        XLOG(DBG2) << "Stats:: beforeOutPkts: " << beforeOutPkts
-                   << " beforeOutBytes: " << beforeOutBytes
-                   << " beforeQueueOutPkts: " << beforeQueueOutPkts
-                   << " beforeQueueOutBytes: " << beforeQueueOutBytes
-                   << " beforeVoQOutBytes: " << beforeVoQOutBytes
-                   << " beforeAclPkts: " << beforeAclPkts
-                   << " txPacketSize: " << txPacketSize
-                   << " afterOutPkts: " << afterOutPkts
-                   << " afterOutBytes: " << afterOutBytes
-                   << " afterQueueOutPkts: " << afterQueueOutPkts
-                   << " afterQueueOutBytes: " << afterQueueOutBytes
-                   << " afterVoQOutBytes: " << afterVoQOutBytes
-                   << " afterAclPkts: " << afterAclPkts;
+            XLOG(DBG2) << "Stats:: beforeOutPkts: " << beforeOutPkts
+                       << " beforeOutBytes: " << beforeOutBytes
+                       << " beforeQueueOutPkts: " << beforeQueueOutPkts
+                       << " beforeQueueOutBytes: " << beforeQueueOutBytes
+                       << " beforeVoQOutBytes: " << beforeVoQOutBytes
+                       << " beforeAclPkts: " << beforeAclPkts
+                       << " txPacketSize: " << txPacketSize
+                       << " afterOutPkts: " << afterOutPkts
+                       << " afterOutBytes: " << afterOutBytes
+                       << " afterQueueOutPkts: " << afterQueueOutPkts
+                       << " afterQueueOutBytes: " << afterQueueOutBytes
+                       << " afterVoQOutBytes: " << afterVoQOutBytes
+                       << " afterAclPkts: " << afterAclPkts;
 
-        EXPECT_EVENTUALLY_EQ(afterOutPkts - 1, beforeOutPkts);
-        // CS00012267635: debug why we get 4 extra bytes
-        EXPECT_EVENTUALLY_EQ(afterOutBytes - txPacketSize - 4, beforeOutBytes);
-        if (getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
-          EXPECT_EVENTUALLY_EQ(afterQueueOutPkts - 1, beforeQueueOutPkts);
-          // CS00012267635: debug why queue counter is 310, when txPacketSize is
-          // 322
-          EXPECT_EVENTUALLY_GE(afterQueueOutBytes, beforeQueueOutBytes);
-        }
-        if (checkAclCounter) {
-          EXPECT_EVENTUALLY_GT(afterAclPkts, beforeAclPkts);
-        }
-        if (getAsic()->isSupported(HwAsic::Feature::VOQ)) {
-          EXPECT_EVENTUALLY_GT(afterVoQOutBytes, beforeVoQOutBytes);
-        }
-      });
+            EXPECT_EVENTUALLY_EQ(afterOutPkts - 1, beforeOutPkts);
+            int extraByteOffset = 0;
+            if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
+              // CS00012267635: debug why we get 4 extra bytes
+              // CS00012299306 why we don't get extra 4 bytes for J3
+              extraByteOffset = 4;
+            }
+            EXPECT_EVENTUALLY_EQ(
+                afterOutBytes - txPacketSize - extraByteOffset, beforeOutBytes);
+            if (getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
+              EXPECT_EVENTUALLY_EQ(afterQueueOutPkts - 1, beforeQueueOutPkts);
+              // CS00012267635: debug why queue counter is 310, when
+              // txPacketSize is 322
+              EXPECT_EVENTUALLY_GE(afterQueueOutBytes, beforeQueueOutBytes);
+            }
+            if (checkAclCounter) {
+              EXPECT_EVENTUALLY_GT(afterAclPkts, beforeAclPkts);
+            }
+            if (getAsic()->isSupported(HwAsic::Feature::VOQ)) {
+              EXPECT_EVENTUALLY_GT(afterVoQOutBytes, beforeVoQOutBytes);
+            }
+          });
     };
 
     verifyAcrossWarmBoots(setup, verify);
