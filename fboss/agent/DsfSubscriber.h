@@ -42,6 +42,13 @@ class DsfSubscriber : public StateObserver {
     return {};
   }
 
+  std::string getClientId() const {
+    if (fsdbPubSubMgr_) {
+      return fsdbPubSubMgr_->getClientId();
+    }
+    throw FbossError("DsfSubscriber: fsdbPubSubMgr_ is null");
+  }
+
  private:
   void scheduleUpdate(
       const std::shared_ptr<SystemPortMap>& newSysPorts,

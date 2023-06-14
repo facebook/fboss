@@ -629,6 +629,17 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getDsfSubscriptions) {
   }
 }
 
+TYPED_TEST(ThriftTestAllSwitchTypes, getDsfSubscriptionClientId) {
+  ThriftHandler handler(this->sw_);
+  std::string ret;
+  if (this->isNpu() || this->isFabric()) {
+    EXPECT_THROW(handler.getDsfSubscriptionClientId(ret), FbossError);
+  } else {
+    handler.getDsfSubscriptionClientId(ret);
+    EXPECT_TRUE(ret.find(":agent:") != std::string::npos);
+  }
+}
+
 std::unique_ptr<UnicastRoute> makeUnicastRoute(
     std::string prefixStr,
     std::string nxtHop,

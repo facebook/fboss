@@ -1333,6 +1333,8 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   list<FsdbSubscriptionThrift> getDsfSubscriptions() throws (
     1: fboss.FbossBaseError error,
   );
+  string getDsfSubscriptionClientId() throws (1: fboss.FbossBaseError error);
+
   map<i64, SystemPortThrift> getSystemPorts() throws (
     1: fboss.FbossBaseError error,
   );
