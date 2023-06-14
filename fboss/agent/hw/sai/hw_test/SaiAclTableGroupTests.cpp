@@ -52,7 +52,9 @@ class SaiAclTableGroupTest : public HwTest {
 
   cfg::SwitchConfig initialConfig() const {
     return utility::onePortPerInterfaceConfig(
-        getHwSwitch(), masterLogicalPortIds());
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackModes());
   }
 
   bool isSupported() const {

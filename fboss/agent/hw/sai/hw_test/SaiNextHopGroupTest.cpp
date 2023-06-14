@@ -21,7 +21,9 @@ class SaiNextHopGroupTest : public SaiLinkStateDependentTests {
 
   cfg::SwitchConfig initialConfig() const override {
     return utility::onePortPerInterfaceConfig(
-        getHwSwitch(), masterLogicalPortIds());
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackModes());
   }
 
   void addRoute(int nextHopGroupMemberCount) {
