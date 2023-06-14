@@ -28,9 +28,6 @@ constexpr uint8_t kDefaultQueue = 0;
 }
 
 namespace facebook::fboss {
-namespace {
-const SwitchID kRemoteSwitchId(2);
-}
 class HwVoqSwitchTest : public HwLinkStateDependentTest {
   using pktReceivedCb = folly::Function<void(RxPacket* pkt) const>;
 
@@ -673,6 +670,15 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
     cfg.dsfNodes() = *overrideDsfNodes(*cfg.dsfNodes());
     return cfg;
   }
+
+  const SwitchID kGetRemoteSwitchId() const {
+    if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      // with maxCores = 4 , remote switchId has to be atleast 4
+      return SwitchID(4);
+    }
+    return SwitchID(2);
+  }
+
   std::optional<std::map<int64_t, cfg::DsfNode>> overrideDsfNodes(
       const std::map<int64_t, cfg::DsfNode>& curDsfNodes) const override {
     CHECK(!curDsfNodes.empty());
@@ -687,7 +693,7 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
         *firstDsfNode.switchId(),
         *firstDsfNode.systemPortRange(),
         mac);
-    auto otherDsfNodeCfg = utility::dsfNodeConfig(*asic, kRemoteSwitchId);
+    auto otherDsfNodeCfg = utility::dsfNodeConfig(*asic, kGetRemoteSwitchId());
     dsfNodes.insert({*otherDsfNodeCfg.switchId(), otherDsfNodeCfg});
     return dsfNodes;
   }
@@ -701,7 +707,7 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
         newState->getRemoteSystemPorts()->modify(&newState);
     auto numPrevPorts = remoteSystemPorts->numNodes();
     auto remoteSysPort = std::make_shared<SystemPort>(portId);
-    remoteSysPort->setSwitchId(kRemoteSwitchId);
+    remoteSysPort->setSwitchId(kGetRemoteSwitchId());
     remoteSysPort->setNumVoqs(localPort->getNumVoqs());
     remoteSysPort->setCoreIndex(localPort->getCoreIndex());
     remoteSysPort->setCorePortIndex(localPort->getCorePortIndex());
