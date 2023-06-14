@@ -525,7 +525,7 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
-    "darwin/sai/asicsdk-7.2.0.0_odp/9.0_ea_odp": [
+    "darwin/sai/asicsdk-7.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -619,7 +619,7 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
-    "darwin/sai/asicsdk-9.0_ea_odp/9.0_ea_odp": [
+    "darwin/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -956,7 +956,7 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
-    "darwin_mix/sai/asicsdk-7.2.0.0_odp/9.0_ea_odp": [
+    "darwin_mix/sai/asicsdk-7.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -1050,7 +1050,7 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
-    "darwin_mix/sai/asicsdk-9.0_ea_odp/9.0_ea_odp": [
+    "darwin_mix/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -1387,7 +1387,7 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
-    "darwin_original/sai/asicsdk-7.2.0.0_odp/9.0_ea_odp": [
+    "darwin_original/sai/asicsdk-7.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -1481,7 +1481,7 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
-    "darwin_original/sai/asicsdk-9.0_ea_odp/9.0_ea_odp": [
+    "darwin_original/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -1797,7 +1797,7 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
-    "elbert_2x16Q_6x8DD/sai/asicsdk-7.2.0.0_odp/9.0_ea_odp": [
+    "elbert_2x16Q_6x8DD/sai/asicsdk-7.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "warm_boot.*$"
         },
@@ -1885,7 +1885,7 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
-    "elbert_2x16Q_6x8DD/sai/asicsdk-9.0_ea_odp/9.0_ea_odp": [
+    "elbert_2x16Q_6x8DD/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "warm_boot.*$"
         },
@@ -2198,7 +2198,7 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
-    "elbert_5x16Q_3x8DD/sai/asicsdk-7.2.0.0_odp/9.0_ea_odp": [
+    "elbert_5x16Q_3x8DD/sai/asicsdk-7.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "warm_boot.*$"
         },
@@ -2286,7 +2286,7 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
-    "elbert_5x16Q_3x8DD/sai/asicsdk-9.0_ea_odp/9.0_ea_odp": [
+    "elbert_5x16Q_3x8DD/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "warm_boot.*$"
         },
@@ -2662,7 +2662,7 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
-    "elbert_8x16Q/sai/asicsdk-7.2.0.0_odp/9.0_ea_odp": [
+    "elbert_8x16Q/sai/asicsdk-7.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -2768,7 +2768,7 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
-    "elbert_8x16Q/sai/asicsdk-9.0_ea_odp/9.0_ea_odp": [
+    "elbert_8x16Q/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -3069,7 +3069,7 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
-    "fuji_8x16Q/sai/asicsdk-7.2.0.0_odp/9.0_ea_odp": [
+    "fuji_8x16Q/sai/asicsdk-7.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -3151,7 +3151,7 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
-    "fuji_8x16Q/sai/asicsdk-9.0_ea_odp/9.0_ea_odp": [
+    "fuji_8x16Q/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -3790,7 +3790,7 @@
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
         }
     ],
-    "minipack_7x16Q_1x16O/sai/asicsdk-7.2.0.0_odp/9.0_ea_odp": [
+    "minipack_7x16Q_1x16O/sai/asicsdk-7.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -3878,7 +3878,7 @@
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
         }
     ],
-    "minipack_7x16Q_1x16O/sai/asicsdk-9.0_ea_odp/9.0_ea_odp": [
+    "minipack_7x16Q_1x16O/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -5073,7 +5073,7 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
-    "wedge100s/sai/asicsdk-7.2.0.0_odp/9.0_ea_odp": [
+    "wedge100s/sai/asicsdk-7.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -5173,7 +5173,7 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
-    "wedge100s/sai/asicsdk-9.0_ea_odp/9.0_ea_odp": [
+    "wedge100s/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -5597,7 +5597,7 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
-    "wedge400/sai/asicsdk-7.2.0.0_odp/9.0_ea_odp": [
+    "wedge400/sai/asicsdk-7.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -5715,7 +5715,7 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
-    "wedge400/sai/asicsdk-9.0_ea_odp/9.0_ea_odp": [
+    "wedge400/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -6332,7 +6332,7 @@
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
         }
     ],
-    "yamp_8x16Q/sai/asicsdk-7.2.0.0_odp/9.0_ea_odp": [
+    "yamp_8x16Q/sai/asicsdk-7.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -6444,7 +6444,7 @@
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
         }
     ],
-    "yamp_8x16Q/sai/asicsdk-9.0_ea_odp/9.0_ea_odp": [
+    "yamp_8x16Q/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
