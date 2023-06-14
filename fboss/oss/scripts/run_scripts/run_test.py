@@ -194,6 +194,11 @@ if $programname == "{QSFP_SERVICE_FOR_TESTING}" then {{qsfp_service_log}}
 & stop
 """
 
+XGS_SIMULATOR_ASICS = ["th3", "th4", "th4_b0", "th5"]
+DNX_SIMULATOR_ASICS = ["j3"]
+
+ALL_SIMUALTOR_ASICS_STR = "|".join(XGS_SIMULATOR_ASICS + DNX_SIMULATOR_ASICS)
+
 
 class TestRunner(abc.ABC):
     ENV_VAR = dict(os.environ)
@@ -430,7 +435,7 @@ class TestRunner(abc.ABC):
                 ["rm", "-f", "/dev/shm/fboss/warm_boot/can_warm_boot_0"]
             )
             subprocess.Popen(
-                # command to start th4 bcmsim service
+                # command to start bcmsim service
                 ["./runner.sh", "restart", "python3", "brcmsim.py", "-a", asic, "-s"]
             )
             time.sleep(60)
@@ -509,13 +514,28 @@ class TestRunner(abc.ABC):
                 )
 
             os.makedirs(args.sdk_logging)
-        if args.simulator:
+        if args.simulator in XGS_SIMULATOR_ASICS:
             self.ENV_VAR["SOC_TARGET_SERVER"] = "127.0.0.1"
             self.ENV_VAR["BCM_SIM_PATH"] = "1"
             self.ENV_VAR["SOC_BOOT_FLAGS"] = "4325376"
             self.ENV_VAR["SAI_BOOT_FLAGS"] = "4325376"
             self.ENV_VAR["SOC_TARGET_PORT"] = "22222"
             self.ENV_VAR["SOC_TARGET_COUNT"] = "1"
+        elif args.simulator in DNX_SIMULATOR_ASICS:
+            self.ENV_VAR["BCM_SIM_PATH"] = "1"
+            self.ENV_VAR["SOC_BOOT_FLAGS"] = "0x1020000"
+            self.ENV_VAR["ADAPTER_DEVID_0"] = "8860"
+            self.ENV_VAR["ADAPTER_REVID_0"] = "1"
+            self.ENV_VAR["CMODEL_DEVID_0"] = "8860"
+            self.ENV_VAR["CMODEL_REVID_0"] = "1"
+            self.ENV_VAR["CMODEL_MEMORY_PORT_0"] = "1222"
+            self.ENV_VAR["CMODEL_PACKET_PORT_0"] = "6815"
+            self.ENV_VAR["CMODEL_SDK_INTERFACE_PORT_0"] = "6816"
+            self.ENV_VAR["CMODEL_EXTERNAL_EVENTS_PORT_0"] = "6817"
+            self.ENV_VAR["cmodel_ip_address"] = "localhost"
+            self.ENV_VAR["SOC_TARGET_SERVER"] = "localhost"
+            self.ENV_VAR["SOC_TARGET_SERVER_0"] = "localhost"
+            self.ENV_VAR["SAI_BOOT_FLAGS"] = "0x1020000"
 
         # Determine if tests need to be run with warmboot mode too
         warmboot = False
@@ -875,8 +895,9 @@ if __name__ == "__main__":
         OPT_ARG_SIMULATOR,
         type=str,
         help=(
-            "Specify what asic simulator to use if configured. "
-            "Default is None, meaning physical asic is used"
+            "Specify what asic simulator to use if configured. These are options"
+            + ALL_SIMUALTOR_ASICS_STR
+            + "Default is None, meaning physical asic is used"
         ),
     )
     ap.add_argument(
