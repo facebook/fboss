@@ -2888,7 +2888,7 @@ void ThriftHandler::getDsfSubscriptions(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureVoqOrFabric(__func__);
   // Build a map of <loopbackIp, switchName> from DsfNodes
-  std::unordered_map<std::string, std::string> loopbackIpToName;
+  std::unordered_map<IPAddressV6, std::string> loopbackIpToName;
   for (const auto& [_, dsfNodes] :
        std::as_const(*sw_->getState()->getDsfNodes())) {
     for (const auto& [_, node] : std::as_const(*dsfNodes)) {
@@ -2896,7 +2896,8 @@ void ThriftHandler::getDsfSubscriptions(
         const auto ipv6Loopback =
             (*node->getLoopbackIps()->cbegin())->toThrift();
         loopbackIpToName.emplace(
-            ipv6Loopback.substr(0, ipv6Loopback.find("/")), node->getName());
+            IPAddressV6(ipv6Loopback.substr(0, ipv6Loopback.find("/"))),
+            node->getName());
       }
     }
   }
@@ -2908,9 +2909,9 @@ void ThriftHandler::getDsfSubscriptions(
     subscriptionThrift.state() =
         fsdb::FsdbPubSubManager::subscriptionStateToString(
             subscriptionInfo.state);
-    if (loopbackIpToName.find(subscriptionInfo.server) !=
-        loopbackIpToName.end()) {
-      subscriptionThrift.name() = loopbackIpToName[subscriptionInfo.server];
+    auto serverIp = IPAddressV6(subscriptionInfo.server);
+    if (loopbackIpToName.find(serverIp) != loopbackIpToName.end()) {
+      subscriptionThrift.name() = loopbackIpToName[serverIp];
       subscriptions.push_back(subscriptionThrift);
     } else {
       XLOG(ERR) << "Unable to find loopback ip " << subscriptionInfo.server
