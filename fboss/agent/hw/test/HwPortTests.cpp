@@ -29,19 +29,14 @@ class HwPortTest : public HwTest {
  protected:
   cfg::SwitchConfig initialConfig() const {
     return utility::onePortPerInterfaceConfig(
-        getHwSwitch(), masterLogicalPortIds());
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackModes());
   }
 };
 
 TEST_F(HwPortTest, PortLoopbackMode) {
-  auto setup = [this]() {
-    auto newCfg = initialConfig();
-    auto portId = masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0];
-    auto portCfg = utility::findCfgPort(newCfg, portId);
-    portCfg->loopbackMode() = getAsic()->getDesiredLoopbackMode();
-    applyNewConfig(newCfg);
-  };
-
+  auto setup = [this]() { applyNewConfig(initialConfig()); };
   auto verify = [this]() {
     std::map<PortID, int> port2LoopbackMode = {
         {PortID(masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
