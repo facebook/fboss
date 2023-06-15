@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
+#include "fboss/agent/hw/switch_asics/Ramon3Asic.h"
 #include "fboss/agent/hw/switch_asics/RamonAsic.h"
 #include "fboss/agent/hw/test/HwPortUtils.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
@@ -120,6 +121,9 @@ cfg::DsfNode dsfNodeConfig(const HwAsic& myAsic, int64_t otherSwitchId) {
             fromAsic.getSwitchType(), switchId, systemPortRange, localMac);
       case cfg::AsicType::ASIC_TYPE_RAMON:
         return std::make_unique<RamonAsic>(
+            fromAsic.getSwitchType(), switchId, std::nullopt, localMac);
+      case cfg::AsicType::ASIC_TYPE_RAMON3:
+        return std::make_unique<Ramon3Asic>(
             fromAsic.getSwitchType(), switchId, std::nullopt, localMac);
       case cfg::AsicType::ASIC_TYPE_EBRO:
         return std::make_unique<EbroAsic>(

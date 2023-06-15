@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include "fboss/agent/hw/switch_asics/MarvelPhyAsic.h"
 #include "fboss/agent/hw/switch_asics/MockAsic.h"
+#include "fboss/agent/hw/switch_asics/Ramon3Asic.h"
 #include "fboss/agent/hw/switch_asics/RamonAsic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk4Asic.h"
@@ -115,6 +116,9 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
           switchType, switchId, systemPortRange, mac);
     case cfg::AsicType::ASIC_TYPE_RAMON:
       return std::make_unique<RamonAsic>(
+          switchType, switchId, systemPortRange, mac);
+    case cfg::AsicType::ASIC_TYPE_RAMON3:
+      return std::make_unique<Ramon3Asic>(
           switchType, switchId, systemPortRange, mac);
   };
   throw FbossError("Unexcepted asic type: ", asicType);

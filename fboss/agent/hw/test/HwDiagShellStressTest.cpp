@@ -32,6 +32,7 @@ class HwDiagShellStressTest : public HwLinkStateDependentTest {
       case cfg::AsicType::ASIC_TYPE_JERICHO2:
       case cfg::AsicType::ASIC_TYPE_JERICHO3:
       case cfg::AsicType::ASIC_TYPE_RAMON:
+      case cfg::AsicType::ASIC_TYPE_RAMON3:
         // No diag shell to test for these ASICs
         break;
       case cfg::AsicType::ASIC_TYPE_EBRO:
