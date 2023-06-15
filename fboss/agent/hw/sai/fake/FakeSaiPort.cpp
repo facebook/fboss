@@ -71,6 +71,8 @@ sai_status_t create_port_fn(
 #endif
   std::optional<bool> linkTrainingEnable;
   std::optional<bool> rxLaneSquelchEnable;
+  std::vector<sai_map_t> pfcTcDldInterval;
+  std::vector<sai_map_t> pfcTcDlrInterval;
 
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
@@ -224,6 +226,16 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_RX_LANE_SQUELCH_ENABLE:
         rxLaneSquelchEnable = attr_list[i].value.booldata;
         break;
+      case SAI_PORT_ATTR_PFC_TC_DLD_INTERVAL:
+        for (int j = 0; j < attr_list[i].value.maplist.count; ++j) {
+          pfcTcDldInterval.push_back(attr_list[i].value.maplist.list[j]);
+        }
+        break;
+      case SAI_PORT_ATTR_PFC_TC_DLR_INTERVAL:
+        for (int j = 0; j < attr_list[i].value.maplist.count; ++j) {
+          pfcTcDlrInterval.push_back(attr_list[i].value.maplist.list[j]);
+        }
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -348,6 +360,12 @@ sai_status_t create_port_fn(
   }
   if (rxLaneSquelchEnable.has_value()) {
     port.rxLaneSquelchEnable = rxLaneSquelchEnable.value();
+  }
+  if (pfcTcDldInterval.size()) {
+    port.pfcTcDldInterval = pfcTcDldInterval;
+  }
+  if (pfcTcDlrInterval.size()) {
+    port.pfcTcDlrInterval = pfcTcDlrInterval;
   }
 
   return SAI_STATUS_SUCCESS;
@@ -623,6 +641,24 @@ sai_status_t set_port_attribute_fn(
       port.fabricIsolate = attr->value.booldata;
       break;
 #endif
+    case SAI_PORT_ATTR_PFC_TC_DLD_INTERVAL: {
+      std::vector<sai_map_t> pfcTcDldInterval{};
+      for (int j = 0; j < attr->value.maplist.count; ++j) {
+        pfcTcDldInterval.push_back(attr->value.maplist.list[j]);
+      }
+      if (pfcTcDldInterval.size()) {
+        port.pfcTcDldInterval = pfcTcDldInterval;
+      }
+    } break;
+    case SAI_PORT_ATTR_PFC_TC_DLR_INTERVAL: {
+      std::vector<sai_map_t> pfcTcDlrInterval{};
+      for (int j = 0; j < attr->value.maplist.count; ++j) {
+        pfcTcDlrInterval.push_back(attr->value.maplist.list[j]);
+      }
+      if (pfcTcDlrInterval.size()) {
+        port.pfcTcDlrInterval = pfcTcDlrInterval;
+      }
+    } break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -896,6 +932,37 @@ sai_status_t get_port_attribute_fn(
         attr->value.booldata = port.fabricIsolate;
         break;
 #endif
+      case SAI_PORT_ATTR_PFC_TC_DLD_INTERVAL:
+        if (port.pfcTcDldInterval.has_value()) {
+          auto& pfcTcDldInterval = port.pfcTcDldInterval.value();
+          if (pfcTcDldInterval.size() > attr[i].value.maplist.count) {
+            attr[i].value.maplist.count = pfcTcDldInterval.size();
+            return SAI_STATUS_BUFFER_OVERFLOW;
+          }
+          for (int j = 0; j < pfcTcDldInterval.size(); ++j) {
+            attr[i].value.maplist.list[j] = pfcTcDldInterval[j];
+          }
+          attr[i].value.maplist.count = pfcTcDldInterval.size();
+        }
+        break;
+      case SAI_PORT_ATTR_PFC_TC_DLR_INTERVAL:
+        if (port.pfcTcDlrInterval.has_value()) {
+          auto& pfcTcDlrInterval = port.pfcTcDlrInterval.value();
+          if (pfcTcDlrInterval.size() > attr[i].value.maplist.count) {
+            attr[i].value.maplist.count = pfcTcDlrInterval.size();
+            return SAI_STATUS_BUFFER_OVERFLOW;
+          }
+          for (int j = 0; j < pfcTcDlrInterval.size(); ++j) {
+            attr[i].value.maplist.list[j] = pfcTcDlrInterval[j];
+          }
+          attr[i].value.maplist.count = pfcTcDlrInterval.size();
+        }
+        break;
+      case SAI_PORT_ATTR_PFC_TC_DLD_INTERVAL_RANGE:
+      case SAI_PORT_ATTR_PFC_TC_DLR_INTERVAL_RANGE:
+        attr[i].value.u32range.min = 0;
+        attr[i].value.u32range.max = std::numeric_limits<uint32_t>::max();
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }

@@ -89,6 +89,8 @@ struct FakePort {
 #endif
   bool linkTrainingEnable{false};
   bool rxLaneSquelchEnable{false};
+  std::optional<std::vector<sai_map_t>> pfcTcDldInterval{};
+  std::optional<std::vector<sai_map_t>> pfcTcDlrInterval{};
 };
 
 struct FakePortSerdes {
