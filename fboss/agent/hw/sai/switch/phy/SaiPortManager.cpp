@@ -265,6 +265,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #endif
         std::nullopt, // Link Training Enable
         std::nullopt, // Rx Squelch Enable
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+        std::nullopt, // PFC Deadlock Detection Interval
+        std::nullopt, // PFC Deadlock Recovery Interval
+#endif
   };
 }
 

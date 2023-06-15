@@ -24,6 +24,9 @@ extern "C" {
 #include <sai.h>
 }
 
+bool operator==(const sai_map_t& lhs, const sai_map_t& rhs);
+bool operator!=(const sai_map_t& lhs, const sai_map_t& rhs);
+
 namespace facebook::fboss {
 
 class PortApi;
@@ -308,6 +311,28 @@ struct SaiPortTraits {
     };
     using RxLaneSquelchEnable =
         SaiExtensionAttribute<bool, AttributeRxLaneSquelchEnable>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+    using PfcTcDldInterval = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_PFC_TC_DLD_INTERVAL,
+        std::vector<sai_map_t>,
+        SaiListDefault<sai_map_list_t>>;
+    using PfcTcDlrInterval = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_PFC_TC_DLR_INTERVAL,
+        std::vector<sai_map_t>,
+        SaiListDefault<sai_map_list_t>>;
+    using PfcTcDldIntervalRange = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_PFC_TC_DLD_INTERVAL_RANGE,
+        sai_u32_range_t,
+        SaiIntRangeDefault<sai_u32_range_t>>;
+    using PfcTcDlrIntervalRange = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_PFC_TC_DLR_INTERVAL_RANGE,
+        sai_u32_range_t,
+        SaiIntRangeDefault<sai_u32_range_t>>;
+#endif
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -360,7 +385,13 @@ struct SaiPortTraits {
       std::optional<Attributes::InterFrameGap>,
 #endif
       std::optional<Attributes::LinkTrainingEnable>,
-      std::optional<Attributes::RxLaneSquelchEnable>>;
+      std::optional<Attributes::RxLaneSquelchEnable>
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+      ,
+      std::optional<Attributes::PfcTcDldInterval>,
+      std::optional<Attributes::PfcTcDlrInterval>
+#endif
+      >;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -470,6 +501,12 @@ SAI_ATTRIBUTE_NAME(Port, FabricAttachedSwitchId);
 SAI_ATTRIBUTE_NAME(Port, FabricAttachedSwitchType);
 SAI_ATTRIBUTE_NAME(Port, FabricReachability);
 SAI_ATTRIBUTE_NAME(Port, RxLaneSquelchEnable);
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+SAI_ATTRIBUTE_NAME(Port, PfcTcDldInterval);
+SAI_ATTRIBUTE_NAME(Port, PfcTcDlrInterval);
+SAI_ATTRIBUTE_NAME(Port, PfcTcDldIntervalRange);
+SAI_ATTRIBUTE_NAME(Port, PfcTcDlrIntervalRange);
+#endif
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};

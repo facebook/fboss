@@ -64,6 +64,10 @@ class PortApiTest : public ::testing::Test {
 #endif
           std::nullopt, // Link Training Enable
           std::nullopt, // Rx Lane Squelch Enable
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+          std::nullopt, // PFC Deadlock Detection Interval
+          std::nullopt, // PFC Deadlock Recovery Interval
+#endif
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }
