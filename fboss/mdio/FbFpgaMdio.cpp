@@ -69,14 +69,22 @@ void FbFpgaMdio::setFastMode(bool enable) {
 }
 
 void FbFpgaMdio::clearStatus() {
+  MdioStatus priorStatus = readReg<MdioStatus>();
   MdioStatus status;
   status.reg = 0;
-  status.done = 1;
-  status.err = 1;
+  // Clear the done and error bits (by writing 1) if they are already set
+  status.done = priorStatus.done;
+  status.err = priorStatus.err;
   writeReg(status);
+
   status = readReg<MdioStatus>();
-  XCHECK(!status.done && !status.err)
-      << "Failed to clear mdio status reg for fpgaDevice " << io_->getName();
+  if (status.done || status.err) {
+    XLOG(ERR) << folly::sformat(
+        "Failed to clear mdio status for fpgaDevice {}, Prior status reg: {:#x}, after clear: {:#x}",
+        io_->getName(),
+        priorStatus.reg,
+        status.reg);
+  }
 }
 
 void FbFpgaMdio::waitUntilDone(uint32_t millis, MdioCommand command) {
