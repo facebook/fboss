@@ -256,7 +256,7 @@ struct MirrorTunnel {
   4: string dstMac;
   5: optional i16 udpSrcPort;
   6: optional i16 udpDstPort;
-  7: i16 ttl = 255;
+  7: i16 ttl = 127;
 }
 
 struct MirrorFields {
