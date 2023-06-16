@@ -146,8 +146,11 @@ std::shared_ptr<SwitchState> addLoadBalancers(
   auto newState{inputState->clone()};
   auto lbMap = newState->getLoadBalancers()->modify(&newState);
   for (const auto& loadBalancerCfg : loadBalancerCfgs) {
+    auto id = LoadBalancerConfigParser::parseLoadBalancerID(loadBalancerCfg);
     auto loadBalancer =
-        LoadBalancerConfigParser(platform).parse(loadBalancerCfg);
+        LoadBalancerConfigParser(
+            platform->getHwSwitch()->generateDeterministicSeed(id))
+            .parse(loadBalancerCfg);
     if (lbMap->getNodeIf(loadBalancer->getID())) {
       lbMap->updateNode(loadBalancer, resolver.scope(loadBalancer));
     } else {

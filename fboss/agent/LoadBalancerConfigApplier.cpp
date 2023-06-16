@@ -18,7 +18,7 @@
 namespace facebook::fboss {
 
 LoadBalancerID LoadBalancerConfigParser::parseLoadBalancerID(
-    const cfg::LoadBalancer& loadBalancerConfig) const {
+    const cfg::LoadBalancer& loadBalancerConfig) {
   // LoadBalancerID is an alias for the type of loadBalancerConfig.id so no
   // validation is necessary
   return *loadBalancerConfig.id();
@@ -54,11 +54,10 @@ LoadBalancerConfigParser::parseFields(
 
 std::shared_ptr<LoadBalancer> LoadBalancerConfigParser::parse(
     const cfg::LoadBalancer& cfg) const {
-  auto loadBalancerID = parseLoadBalancerID(cfg);
+  auto loadBalancerID = LoadBalancerConfigParser::parseLoadBalancerID(cfg);
   auto fields = parseFields(cfg);
   auto algorithm = *cfg.algorithm(); // TODO(samank): handle not being set
-  auto hwSeed =
-      platform_->getHwSwitch()->generateDeterministicSeed(loadBalancerID);
+  auto hwSeed = deterministicSeed_;
   auto seed = cfg.seed() ? *cfg.seed() : hwSeed;
 
   return std::make_shared<LoadBalancer>(
@@ -103,8 +102,11 @@ LoadBalancerConfigApplier::updateLoadBalancers() {
   boost::container::flat_set<LoadBalancerID> loadBalancerIDs;
   size_t numExistingProcessed = 0;
   for (const auto& loadBalancerConfig : loadBalancersConfig_) {
+    auto deterministicSeed =
+        platform_->getHwSwitch()->generateDeterministicSeed(
+            LoadBalancerConfigParser::parseLoadBalancerID(loadBalancerConfig));
     auto newLoadBalancer =
-        LoadBalancerConfigParser(platform_).parse(loadBalancerConfig);
+        LoadBalancerConfigParser(deterministicSeed).parse(loadBalancerConfig);
 
     auto rtn = loadBalancerIDs.insert(newLoadBalancer->getID());
     if (!rtn.second) {

@@ -24,15 +24,15 @@ class Platform;
 
 class LoadBalancerConfigParser {
  public:
-  explicit LoadBalancerConfigParser(const Platform* platform)
-      : platform_(platform) {}
+  explicit LoadBalancerConfigParser(uint32_t deterministicSeed)
+      : deterministicSeed_(deterministicSeed) {}
   // The newly created LoadBalancer is returned via std::shared_ptr.
   // Caller is sole owner of the newly constructed LoadBalancer.
   std::shared_ptr<LoadBalancer> parse(const cfg::LoadBalancer& cfg) const;
+  static LoadBalancerID parseLoadBalancerID(
+      const cfg::LoadBalancer& loadBalancerID);
 
  private:
-  LoadBalancerID parseLoadBalancerID(
-      const cfg::LoadBalancer& loadBalancerID) const;
   std::tuple<
       LoadBalancer::IPv4Fields,
       LoadBalancer::IPv6Fields,
@@ -41,7 +41,7 @@ class LoadBalancerConfigParser {
       LoadBalancer::UdfGroupIds>
   parseFields(const cfg::LoadBalancer& cfg) const;
 
-  const Platform* platform_;
+  uint32_t deterministicSeed_;
 };
 
 /* LoadBalancerConfigApplier parses and validates a list of LoadBalancer Thrift
