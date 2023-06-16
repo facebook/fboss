@@ -246,20 +246,24 @@ class HwAqmTest : public HwLinkStateDependentTest {
       bool isEcn,
       std::vector<int> queueIds,
       cfg::SwitchConfig& cfg) {
+    bool isVoq =
+        getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ;
     for (auto queueId : queueIds) {
       if (isEcn) {
         utility::addQueueEcnConfig(
             &cfg,
             queueId,
             utility::kQueueConfigAqmsEcnThresholdMinMax,
-            utility::kQueueConfigAqmsEcnThresholdMinMax);
+            utility::kQueueConfigAqmsEcnThresholdMinMax,
+            isVoq);
       } else {
         utility::addQueueWredConfig(
             &cfg,
             queueId,
             utility::kQueueConfigAqmsWredThresholdMinMax,
             utility::kQueueConfigAqmsWredThresholdMinMax,
-            utility::kQueueConfigAqmsWredDropProbability);
+            utility::kQueueConfigAqmsWredDropProbability,
+            isVoq);
       }
     }
   }

@@ -102,10 +102,10 @@ kGetWredConfig(int minLength, int maxLength, int probability) {
   return wredAQM;
 }
 
-cfg::PortQueue& getPortQueueConfig(
-    cfg::SwitchConfig* config,
-    const int queueId) {
-  auto& queueConfig = config->portQueueConfigs()["queue_config"];
+cfg::PortQueue&
+getPortQueueConfig(cfg::SwitchConfig* config, const int queueId, bool isVoq) {
+  auto& queueConfig = isVoq ? *config->defaultVoqConfig()
+                            : config->portQueueConfigs()["queue_config"];
   for (auto& queue : queueConfig) {
     if (queue.id() == queueId) {
       return queue;
@@ -122,7 +122,7 @@ void addQueueShaperConfig(
   cfg::Range kbpsRange;
   kbpsRange.minimum() = minKbps;
   kbpsRange.maximum() = maxKbps;
-  auto& queue = getPortQueueConfig(config, queueId);
+  auto& queue = getPortQueueConfig(config, queueId, false /* isVoq */);
   queue.portQueueRate() = cfg::PortQueueRate();
   queue.portQueueRate()->kbitsPerSec_ref() = kbpsRange;
 }
@@ -132,7 +132,7 @@ void addQueueBurstSizeConfig(
     const int queueId,
     const uint32_t minKbits,
     const uint32_t maxKbits) {
-  auto& queue = getPortQueueConfig(config, queueId);
+  auto& queue = getPortQueueConfig(config, queueId, false /* isVoq */);
   queue.bandwidthBurstMinKbits() = minKbits;
   queue.bandwidthBurstMaxKbits() = maxKbits;
 }
@@ -141,8 +141,9 @@ void addQueueEcnConfig(
     cfg::SwitchConfig* config,
     const int queueId,
     const uint32_t minLen,
-    const uint32_t maxLen) {
-  auto& queue = getPortQueueConfig(config, queueId);
+    const uint32_t maxLen,
+    bool isVoq) {
+  auto& queue = getPortQueueConfig(config, queueId, isVoq);
   if (!queue.aqms().has_value()) {
     queue.aqms() = {};
   }
@@ -154,8 +155,9 @@ void addQueueWredConfig(
     const int queueId,
     const uint32_t minLen,
     const uint32_t maxLen,
-    const int probability) {
-  auto& queue = getPortQueueConfig(config, queueId);
+    const int probability,
+    bool isVoq) {
+  auto& queue = getPortQueueConfig(config, queueId, isVoq);
   if (!queue.aqms().has_value()) {
     queue.aqms() = {};
   }

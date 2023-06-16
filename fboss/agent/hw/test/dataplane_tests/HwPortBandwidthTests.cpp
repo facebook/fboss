@@ -309,6 +309,8 @@ void HwPortBandwidthTest::verifyQueueShaper() {
 
   auto setup = [=]() {
     auto newCfg{initialConfig()};
+    auto isVoq =
+        getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ;
     utility::addQueueShaperConfig(
         &newCfg, kQueueId0(), 0, kMhnicPerHostBandwidthKbps);
     utility::addQueueBurstSizeConfig(
@@ -321,12 +323,14 @@ void HwPortBandwidthTest::verifyQueueShaper() {
         kQueueId0(),
         utility::kQueueConfigAqmsWredThresholdMinMax,
         utility::kQueueConfigAqmsWredThresholdMinMax,
-        utility::kQueueConfigAqmsWredDropProbability);
+        utility::kQueueConfigAqmsWredDropProbability,
+        isVoq);
     utility::addQueueEcnConfig(
         &newCfg,
         kQueueId0(),
         utility::kQueueConfigAqmsEcnThresholdMinMax,
-        utility::kQueueConfigAqmsEcnThresholdMinMax);
+        utility::kQueueConfigAqmsEcnThresholdMinMax,
+        isVoq);
     applyNewConfig(newCfg);
     setupHelper();
   };

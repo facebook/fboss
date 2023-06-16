@@ -162,13 +162,15 @@ void addQueueEcnConfig(
     cfg::SwitchConfig* config,
     const int queueId,
     const uint32_t minLen,
-    const uint32_t maxLen);
+    const uint32_t maxLen,
+    bool isVoq);
 void addQueueWredConfig(
     cfg::SwitchConfig* config,
     const int queueId,
     const uint32_t minLen,
     const uint32_t maxLen,
-    const int probability);
+    const int probability,
+    bool isVoq);
 void addQueueShaperConfig(
     cfg::SwitchConfig* config,
     const int queueId,
