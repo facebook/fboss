@@ -16,11 +16,11 @@ add_library(led_core_lib
   fboss/led_service/FsdbSwitchStateSubscriber.cpp
   fboss/led_service/oss/FsdbSwitchStateSubscriber.cpp
   fboss/led_service/oss/FujiLedManager.cpp
-  fboss/led_service/oss/MinipackLedManager.cpp
   fboss/led_service/LedManager.cpp
   fboss/led_service/LedService.cpp
   fboss/led_service/LedServiceHandler.cpp
   fboss/led_service/MinipackBaseLedManager.cpp
+  fboss/led_service/MinipackLedManager.cpp
   fboss/led_service/MontblancLedManager.cpp
 )
 
