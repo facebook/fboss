@@ -63,6 +63,9 @@ class LoadBalancerConfigApplier {
   // loadBalancersConfig_ or null if the resulting LoadBalancerMap
   // is equivalent to originalLoadBalancers_.
   std::shared_ptr<LoadBalancerMap> updateLoadBalancers();
+  std::shared_ptr<LoadBalancerMap> updateLoadBalancers(
+      uint32_t ecmpSeed,
+      uint32_t aggPortSeed);
 
  private:
   // Forbidden copy constructor and assignment operator

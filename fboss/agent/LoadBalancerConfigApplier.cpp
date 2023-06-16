@@ -93,6 +93,16 @@ void LoadBalancerConfigApplier::appendToLoadBalancerContainer(
 
 std::shared_ptr<LoadBalancerMap>
 LoadBalancerConfigApplier::updateLoadBalancers() {
+  auto ecmpSeed = platform_->getHwSwitch()->generateDeterministicSeed(
+      cfg::LoadBalancerID::ECMP);
+  auto aggPortSeed = platform_->getHwSwitch()->generateDeterministicSeed(
+      cfg::LoadBalancerID::AGGREGATE_PORT);
+  return updateLoadBalancers(ecmpSeed, aggPortSeed);
+}
+
+std::shared_ptr<LoadBalancerMap> LoadBalancerConfigApplier::updateLoadBalancers(
+    uint32_t ecmpSeed,
+    uint32_t aggPortSeed) {
   LoadBalancerMap::NodeContainer newLoadBalancers{};
   bool changed = false;
 
@@ -102,9 +112,9 @@ LoadBalancerConfigApplier::updateLoadBalancers() {
   boost::container::flat_set<LoadBalancerID> loadBalancerIDs;
   size_t numExistingProcessed = 0;
   for (const auto& loadBalancerConfig : loadBalancersConfig_) {
+    auto id = LoadBalancerConfigParser::parseLoadBalancerID(loadBalancerConfig);
     auto deterministicSeed =
-        platform_->getHwSwitch()->generateDeterministicSeed(
-            LoadBalancerConfigParser::parseLoadBalancerID(loadBalancerConfig));
+        (id == LoadBalancerID::ECMP) ? ecmpSeed : aggPortSeed;
     auto newLoadBalancer =
         LoadBalancerConfigParser(deterministicSeed).parse(loadBalancerConfig);
 
