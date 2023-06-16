@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "fboss/led_service/LedManager.h"
+#include "fboss/led_service/MinipackBaseLedManager.h"
 
 namespace facebook::fboss {
 
@@ -21,7 +21,7 @@ namespace facebook::fboss {
  * FPGA operation, setting platform specific color of LED. For rest of the work
  * the base class is used
  */
-class MinipackLedManager : public LedManager {
+class MinipackLedManager : public MinipackBaseLedManager {
  public:
   MinipackLedManager();
   virtual ~MinipackLedManager() override;
@@ -31,10 +31,6 @@ class MinipackLedManager : public LedManager {
   MinipackLedManager& operator=(MinipackLedManager const&) = delete;
 
  protected:
-  virtual led::LedColor calculateLedColor(
-      uint32_t portId,
-      cfg::PortProfileID portProfile) const override;
-
   virtual void setLedColor(
       uint32_t portId,
       cfg::PortProfileID portProfile,
