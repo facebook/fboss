@@ -110,6 +110,7 @@ struct PortFields {
   43: switch_config.PortDrainState drainState = switch_config.PortDrainState.UNDRAINED;
   44: optional string flowletConfigName;
   45: optional PortFlowletFields flowletConfig;
+  46: optional ctrl.PortLedExternalState portLedExternalState;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
