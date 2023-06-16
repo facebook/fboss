@@ -2239,7 +2239,7 @@ ThriftConfigApplier::getSystemLacpConfig() {
     // is not a compile-time constant (it is derived from the CPU mac),
     // the default value is defined here, instead of, say,
     // AggregatePortFields::kDefaultSystemID.
-    systemID = platform_->getLocalMac();
+    systemID = getLocalMacAddress();
     systemPriority = kDefaultSystemPriority;
   }
 
@@ -4156,7 +4156,7 @@ MacAddress ThriftConfigApplier::getInterfaceMac(const cfg::Interface* config) {
   if (auto mac = config->mac()) {
     return MacAddress(*mac);
   }
-  return platform_->getLocalMac();
+  return getLocalMacAddress();
 }
 
 Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
@@ -4169,7 +4169,7 @@ Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
   if (auto mac = config->mac()) {
     macAddr = folly::MacAddress(*mac);
   } else {
-    macAddr = platform_->getLocalMac();
+    macAddr = getLocalMacAddress();
   }
   const folly::IPAddressV6 v6llAddr(folly::IPAddressV6::LINK_LOCAL, macAddr);
   addrs.emplace(v6llAddr, kV6LinkLocalAddrMask);
