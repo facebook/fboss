@@ -477,6 +477,10 @@ class ThriftConfigApplier {
       const std::string& id,
       const cfg::PortFlowletConfig& config);
 
+  uint32_t generateDeterministicSeed(cfg::LoadBalancerID id);
+  uint32_t generateDeterministicSeedSai(cfg::LoadBalancerID id);
+  uint32_t generateDeterministicSeedNonSai(cfg::LoadBalancerID id);
+
   std::shared_ptr<SwitchState> orig_;
   std::shared_ptr<SwitchState> new_;
   const cfg::SwitchConfig* cfg_{nullptr};
@@ -736,8 +740,10 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
 
   {
     LoadBalancerConfigApplier loadBalancerConfigApplier(
-        orig_->getLoadBalancers(), cfg_->get_loadBalancers(), platform_);
-    auto newLoadBalancers = loadBalancerConfigApplier.updateLoadBalancers();
+        orig_->getLoadBalancers(), cfg_->get_loadBalancers());
+    auto newLoadBalancers = loadBalancerConfigApplier.updateLoadBalancers(
+        generateDeterministicSeed(cfg::LoadBalancerID::ECMP),
+        generateDeterministicSeed(cfg::LoadBalancerID::AGGREGATE_PORT));
     if (newLoadBalancers) {
       new_->resetLoadBalancers(toMultiSwitchMap<MultiSwitchLoadBalancerMap>(
           newLoadBalancers, scopeResolver_));
@@ -4673,6 +4679,52 @@ ThriftConfigApplier::updateStaticMplsRoutes(
     }
   }
   return labelFib;
+}
+
+uint32_t ThriftConfigApplier::generateDeterministicSeed(
+    cfg::LoadBalancerID id) {
+  if (auto sdkVersion = cfg_->sdkVersion()) {
+    if (sdkVersion->saiSdk()) {
+      return generateDeterministicSeedSai(id);
+    }
+  }
+  return generateDeterministicSeedNonSai(id);
+}
+
+uint32_t ThriftConfigApplier::generateDeterministicSeedSai(
+    cfg::LoadBalancerID loadBalancerID) {
+  auto platformMac = getLocalMacAddress();
+  auto mac64 = platformMac.u64HBO();
+  uint32_t mac32 = static_cast<uint32_t>(mac64 & 0xFFFFFFFF);
+  uint32_t seed = 0;
+  switch (loadBalancerID) {
+    case cfg::LoadBalancerID::ECMP:
+      seed = folly::hash::twang_32from64(mac64);
+      break;
+    case cfg::LoadBalancerID::AGGREGATE_PORT:
+      seed = folly::hash::jenkins_rev_mix32(mac32);
+      break;
+  }
+  return seed;
+  return 0;
+}
+
+uint32_t ThriftConfigApplier::generateDeterministicSeedNonSai(
+    cfg::LoadBalancerID loadBalancerID) {
+  auto platformMac = getLocalMacAddress();
+  auto mac64 = platformMac.u64HBO();
+  uint32_t mac32 = static_cast<uint32_t>(mac64 & 0xFFFFFFFF);
+
+  uint32_t seed = 0;
+  switch (loadBalancerID) {
+    case cfg::LoadBalancerID::ECMP:
+      seed = folly::hash::jenkins_rev_mix32(mac32);
+      break;
+    case cfg::LoadBalancerID::AGGREGATE_PORT:
+      seed = folly::hash::twang_32from64(mac64);
+      break;
+  }
+  return seed;
 }
 
 shared_ptr<SwitchState> applyThriftConfig(
