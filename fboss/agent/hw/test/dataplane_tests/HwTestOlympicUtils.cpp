@@ -102,6 +102,18 @@ kGetWredConfig(int minLength, int maxLength, int probability) {
   return wredAQM;
 }
 
+cfg::PortQueue& getPortQueueConfig(
+    cfg::SwitchConfig* config,
+    const int queueId) {
+  auto& queueConfig = config->portQueueConfigs()["queue_config"];
+  for (auto& queue : queueConfig) {
+    if (queue.id() == queueId) {
+      return queue;
+    }
+  }
+  throw FbossError("Cannot find queue ID ", queueId, " in config!");
+}
+
 void addQueueShaperConfig(
     cfg::SwitchConfig* config,
     const int queueId,
@@ -110,7 +122,7 @@ void addQueueShaperConfig(
   cfg::Range kbpsRange;
   kbpsRange.minimum() = minKbps;
   kbpsRange.maximum() = maxKbps;
-  auto& queue = config->portQueueConfigs()["queue_config"][queueId];
+  auto& queue = getPortQueueConfig(config, queueId);
   queue.portQueueRate() = cfg::PortQueueRate();
   queue.portQueueRate()->kbitsPerSec_ref() = kbpsRange;
 }
@@ -120,7 +132,7 @@ void addQueueBurstSizeConfig(
     const int queueId,
     const uint32_t minKbits,
     const uint32_t maxKbits) {
-  auto& queue = config->portQueueConfigs()["queue_config"][queueId];
+  auto& queue = getPortQueueConfig(config, queueId);
   queue.bandwidthBurstMinKbits() = minKbits;
   queue.bandwidthBurstMaxKbits() = maxKbits;
 }
@@ -130,7 +142,7 @@ void addQueueEcnConfig(
     const int queueId,
     const uint32_t minLen,
     const uint32_t maxLen) {
-  auto& queue = config->portQueueConfigs()["queue_config"][queueId];
+  auto& queue = getPortQueueConfig(config, queueId);
   if (!queue.aqms().has_value()) {
     queue.aqms() = {};
   }
@@ -143,7 +155,7 @@ void addQueueWredConfig(
     const uint32_t minLen,
     const uint32_t maxLen,
     const int probability) {
-  auto& queue = config->portQueueConfigs()["queue_config"][queueId];
+  auto& queue = getPortQueueConfig(config, queueId);
   if (!queue.aqms().has_value()) {
     queue.aqms() = {};
   }
