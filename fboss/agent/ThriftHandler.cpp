@@ -2295,7 +2295,15 @@ void ThriftHandler::setExternalLedState(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
   PortID portId = PortID(portNum);
-  sw_->externalState(portId, ledState);
+
+  auto updateFn = [&portId, ledState](const shared_ptr<SwitchState>& state) {
+    auto newState = state->clone();
+    auto port = state->getPorts()->getNode(portId);
+    auto newPort = port->modify(&newState);
+    newPort->setLedPortExternalState(ledState);
+    return newState;
+  };
+  sw_->updateStateBlocking("set port LED state from thrift handler", updateFn);
 }
 
 void ThriftHandler::addMplsRoutes(
