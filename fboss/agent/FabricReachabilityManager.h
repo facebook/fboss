@@ -24,6 +24,8 @@ class FabricReachabilityManager {
   FabricEndpoint processReachabilityInfoForPort(
       const PortID& portId,
       const FabricEndpoint& hwReachability);
+  bool isReachabilityInfoMissing(const PortID& portId);
+  bool isReachabilityInfoMismatch(const PortID& portId);
 
  private:
   void updatePorts(const StateDelta& delta);
