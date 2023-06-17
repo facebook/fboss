@@ -1845,15 +1845,6 @@ void BcmSwitch::pickupLinkStatusChanges(const StateDelta& delta) {
                      << ", RemoteFault: " << *(*faultStatus).remoteFault();
           bcmPort->cacheFaultStatus(*faultStatus);
         }
-
-        if (oldPort->getLedPortExternalState() !=
-            newPort->getLedPortExternalState()) {
-          if (newPort->getLedPortExternalState().has_value()) {
-            auto platformPort = bcmPort->getPlatformPort();
-            platformPort->externalState(
-                newPort->getLedPortExternalState().value());
-          }
-        }
       });
 }
 

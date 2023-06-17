@@ -363,11 +363,6 @@ TEST(LldpManagerTest, LldpValidationFail) {
     counters.checkDelta(SwitchStats::kCounterPrefix + "lldp.recvd.sum", 1);
     counters.checkDelta(
         SwitchStats::kCounterPrefix + "lldp.validate_mismatch.sum", 1);
-    waitForStateUpdates(sw);
-    auto port = sw->getState()->getPorts()->getNodeIf(portID);
-    EXPECT_EQ(
-        port->getLedPortExternalState().value(),
-        PortLedExternalState::CABLING_ERROR);
   };
 
   lldpValidationFailHelper(cfg::SwitchType::NPU, PortID(1), VlanID(1));

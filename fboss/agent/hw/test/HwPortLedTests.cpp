@@ -29,20 +29,4 @@ TEST_F(HwPortLedTest, TestLed) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwPortLedTest, TestLedFromSwitchState) {
-  auto setup = [=]() { applyNewConfig(initialConfig()); };
-  auto verify = [=]() {
-    auto portID = masterLogicalPortIds()[0];
-    bringUpPort(portID);
-    utility::verifyLedStatus(getHwSwitchEnsemble(), portID, true /* up */);
-    auto state = getProgrammedState();
-    auto newState = state->clone();
-    auto port = newState->getPorts()->getNode(portID);
-    auto newPort = port->modify(&newState);
-    newPort->setLedPortExternalState(PortLedExternalState::EXTERNAL_FORCE_OFF);
-    applyNewState(newState);
-    utility::verifyLedStatus(getHwSwitchEnsemble(), portID, false /* down */);
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
 } // namespace facebook::fboss
