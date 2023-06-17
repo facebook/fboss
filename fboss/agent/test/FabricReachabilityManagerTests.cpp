@@ -169,6 +169,11 @@ TEST_F(FabricReachabilityManagerTest, validateProcessReachabilityInfo) {
     EXPECT_EQ(*neighbor.expectedPortId(), *neighbor.portId());
     EXPECT_EQ(neighbor.expectedPortName(), neighbor.portName());
   }
+
+  EXPECT_FALSE(
+      fabricReachabilityManager_->isReachabilityInfoMissing(PortID(1)));
+  EXPECT_FALSE(
+      fabricReachabilityManager_->isReachabilityInfoMismatch(PortID(1)));
 }
 
 TEST_F(FabricReachabilityManagerTest, validateUnattachedEndpoint) {
@@ -212,6 +217,12 @@ TEST_F(FabricReachabilityManagerTest, validateUnattachedEndpoint) {
     EXPECT_FALSE(neighbor.switchName().has_value());
     EXPECT_FALSE(*neighbor.isAttached());
   }
+
+  EXPECT_FALSE(
+      fabricReachabilityManager_->isReachabilityInfoMissing(PortID(1)));
+  // unattached port implies connectivity issues
+  EXPECT_TRUE(
+      fabricReachabilityManager_->isReachabilityInfoMismatch(PortID(1)));
 }
 
 TEST_F(FabricReachabilityManagerTest, validateUnexpectedNeighbors) {
@@ -257,6 +268,67 @@ TEST_F(FabricReachabilityManagerTest, validateUnexpectedNeighbors) {
     // portId = 79 results in fab1/2/4
     EXPECT_EQ(neighbor.portName(), "fab1/2/4");
   }
+
+  // there is info mismatch here
+  EXPECT_TRUE(
+      fabricReachabilityManager_->isReachabilityInfoMismatch(PortID(1)));
+  EXPECT_FALSE(
+      fabricReachabilityManager_->isReachabilityInfoMissing(PortID(1)));
+}
+
+// test case below mimics both invalid cfg scenario and cabling issues
+TEST_F(FabricReachabilityManagerTest, validateMissingNeighborInfo) {
+  auto oldState = std::make_shared<SwitchState>();
+  auto newState = std::make_shared<SwitchState>();
+
+  // create port with neighbor reachability
+  std::shared_ptr<Port> swPort = makePort(1);
+  swPort->setExpectedNeighborReachability(
+      createPortNeighbor("fab1/2/3", "fdswA"));
+  newState->getPorts()->addNode(swPort, getScope(swPort));
+
+  std::map<PortID, FabricEndpoint> hwReachabilityMap;
+  FabricEndpoint endpoint;
+  endpoint.switchId() = 10;
+  endpoint.isAttached() = true;
+  endpoint.portId() = 79;
+  hwReachabilityMap.emplace(swPort->getID(), endpoint);
+
+  auto dsfNode1 = makeDsfNode(10, "fdswB");
+  // explicitly don't add dsfNode for fdswA to mimic missing info
+
+  auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
+  dsfNodeMap->addNode(dsfNode1, getScope(dsfNode1));
+
+  newState->resetDsfNodes(dsfNodeMap);
+
+  // update
+  StateDelta delta(oldState, newState);
+  fabricReachabilityManager_->stateUpdated(delta);
+
+  const auto expectedReachabilityMap =
+      fabricReachabilityManager_->processReachabilityInfo(hwReachabilityMap);
+
+  for (const auto& expectedReachability : expectedReachabilityMap) {
+    const auto& neighbor = expectedReachability.second;
+    EXPECT_EQ(expectedReachabilityMap.size(), 1);
+    EXPECT_EQ(neighbor.expectedPortName(), "fab1/2/3");
+    EXPECT_NE(neighbor.expectedSwitchName(), neighbor.switchName());
+    EXPECT_NE(neighbor.expectedPortName(), neighbor.portName());
+    // portId = 79 results in fab1/2/4
+    EXPECT_EQ(neighbor.portName(), "fab1/2/4");
+    // can't get it since dsf node is missing (fdswA)
+    EXPECT_FALSE(neighbor.expectedPortId().has_value());
+    EXPECT_FALSE(neighbor.expectedSwitchId().has_value());
+  }
+
+  // there is info mismatch here, since portName = fab1/2/4, but expected
+  // fab1/2/3
+  EXPECT_TRUE(
+      fabricReachabilityManager_->isReachabilityInfoMismatch(PortID(1)));
+  // there is info missing on expected switch id, portId (because of dsf node
+  // missing)
+  EXPECT_TRUE(fabricReachabilityManager_->isReachabilityInfoMissing(PortID(1)));
 }
 
 } // namespace facebook::fboss
