@@ -147,6 +147,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_MONTBLANC;
     } else if (modelName.find("Meru800bia") == 0) {
       type_ = PlatformType::PLATFORM_MERU800BIA;
+    } else if (modelName.find("Meru800bfa") == 0) {
+      type_ = PlatformType::PLATFORM_MERU800BFA;
     } else if (modelName.find("MORGAN800CC") == 0) {
       type_ = PlatformType::PLATFORM_MORGAN800CC;
     } else {
@@ -183,6 +185,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_MERU400BIU;
     } else if (FLAGS_mode == "meru800bia") {
       type_ = PlatformType::PLATFORM_MERU800BIA;
+    } else if (FLAGS_mode == "meru800bfa") {
+      type_ = PlatformType::PLATFORM_MERU800BFA;
     } else if (FLAGS_mode == "meru400bia") {
       type_ = PlatformType::PLATFORM_MERU400BIA;
     } else if (FLAGS_mode == "meru400bfu") {
