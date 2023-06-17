@@ -47,16 +47,19 @@ BENCHMARK(runTxSlowPathBenchmark) {
   AgentEnsembleSwitchConfigFn initialConfigFn =
       [](HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
         CHECK_GT(ports.size(), 0);
-        return utility::onePortPerInterfaceConfig(hwSwitch, {ports[0]});
+        return utility::onePortPerInterfaceConfig(
+            hwSwitch,
+            ports,
+            hwSwitch->getPlatform()->getAsic()->desiredLoopbackModes());
       };
   ensemble = createAgentEnsemble(initialConfigFn);
   auto config =
       initialConfigFn(ensemble->getHw(), ensemble->masterLogicalPortIds());
 
   auto hwSwitch = ensemble->getHw();
-  auto portUsed = ensemble->masterLogicalPortIds()[0];
   auto state = ensemble->getSw()->getState();
   auto ecmpHelper = utility::EcmpSetupAnyNPorts6(state);
+  auto portUsed = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
 
   state =
       ensemble->applyNewState(ecmpHelper.resolveNextHops(state, kEcmpWidth));
@@ -65,8 +68,9 @@ BENCHMARK(runTxSlowPathBenchmark) {
           ensemble->getSw(), ensemble->getSw()->getRib()),
       kEcmpWidth);
   auto cpuMac = ensemble->getPlatform()->getLocalMac();
+  auto vlanId = utility::firstVlanID(ensemble->getProgrammedState());
   std::atomic<bool> packetTxDone{false};
-  std::thread t([cpuMac, hwSwitch, &config, &packetTxDone]() {
+  std::thread t([cpuMac, vlanId, hwSwitch, &packetTxDone]() {
     const auto kSrcIp = folly::IPAddressV6("2620:0:1cfe:face:b00c::3");
     const auto kDstIp = folly::IPAddressV6("2620:0:1cfe:face:b00c::4");
     const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0c"};
@@ -74,12 +78,7 @@ BENCHMARK(runTxSlowPathBenchmark) {
       for (auto i = 0; i < 1'000; ++i) {
         // Send packet
         auto txPacket = utility::makeIpTxPacket(
-            hwSwitch,
-            VlanID(*config.vlanPorts()[0].vlanID()),
-            kSrcMac,
-            cpuMac,
-            kSrcIp,
-            kDstIp);
+            hwSwitch, vlanId, kSrcMac, cpuMac, kSrcIp, kDstIp);
         hwSwitch->sendPacketSwitchedAsync(std::move(txPacket));
       }
     }

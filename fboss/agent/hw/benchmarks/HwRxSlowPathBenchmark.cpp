@@ -39,7 +39,10 @@ BENCHMARK(RxSlowPathBenchmark) {
   AgentEnsembleSwitchConfigFn initialConfig =
       [](HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
         CHECK_GE(ports.size(), 1);
-        auto config = utility::onePortPerInterfaceConfig(hwSwitch, ports);
+        auto config = utility::onePortPerInterfaceConfig(
+            hwSwitch,
+            ports,
+            hwSwitch->getPlatform()->getAsic()->desiredLoopbackModes());
         // We don't want to set queue rate that limits the number of rx pkts
         utility::addCpuQueueConfig(
             config,
