@@ -24,7 +24,7 @@ namespace facebook::fboss {
 class MontblancLedManager : public BspLedManager {
  public:
   MontblancLedManager();
-  virtual ~MontblancLedManager() override;
+  virtual ~MontblancLedManager() override {}
 
   // Forbidden copy constructor and assignment operator
   MontblancLedManager(MontblancLedManager const&) = delete;

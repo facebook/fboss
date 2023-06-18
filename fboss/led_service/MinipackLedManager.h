@@ -24,7 +24,7 @@ namespace facebook::fboss {
 class MinipackLedManager : public MinipackBaseLedManager {
  public:
   MinipackLedManager();
-  virtual ~MinipackLedManager() override;
+  virtual ~MinipackLedManager() override {}
 
   // Forbidden copy constructor and assignment operator
   MinipackLedManager(MinipackLedManager const&) = delete;

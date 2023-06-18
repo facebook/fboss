@@ -30,7 +30,7 @@ namespace facebook::fboss {
 class BspLedManager : public LedManager {
  public:
   BspLedManager();
-  virtual ~BspLedManager() override;
+  virtual ~BspLedManager() override {}
 
   // Forbidden copy constructor and assignment operator
   BspLedManager(BspLedManager const&) = delete;
