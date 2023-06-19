@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/led_service/LedManagerInit.h"
+#include "fboss/led_service/DarwinLedManager.h"
 #include "fboss/led_service/ElbertLedManager.h"
 #include "fboss/led_service/FujiLedManager.h"
 #include "fboss/led_service/MinipackLedManager.h"
@@ -31,6 +32,8 @@ std::unique_ptr<LedManager> createLedManager() {
     return std::make_unique<YampLedManager>();
   } else if (mode == PlatformType::PLATFORM_ELBERT) {
     return std::make_unique<ElbertLedManager>();
+  } else if (mode == PlatformType::PLATFORM_DARWIN) {
+    return std::make_unique<DarwinLedManager>();
   }
   return nullptr;
 }

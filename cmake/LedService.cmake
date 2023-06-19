@@ -14,6 +14,7 @@ add_fbthrift_cpp_library(
 add_library(led_core_lib
   fboss/led_service/BspLedManager.cpp
   fboss/led_service/FsdbSwitchStateSubscriber.cpp
+  fboss/led_service/oss/DarwinLedManager.cpp
   fboss/led_service/oss/ElbertLedManager.cpp
   fboss/led_service/oss/FsdbSwitchStateSubscriber.cpp
   fboss/led_service/oss/FujiLedManager.cpp
@@ -34,6 +35,7 @@ target_link_libraries(led_core_lib
   led_structs_types_cpp2
   log_thrift_call
   montblanc_bsp
+  darwin_platform_mapping
   elbert_platform_mapping
   fuji_platform_mapping
   minipack_platform_mapping

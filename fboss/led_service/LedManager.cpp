@@ -2,6 +2,7 @@
 
 #include "fboss/led_service/LedManager.h"
 #include "fboss/agent/EnumUtils.h"
+#include "fboss/agent/platforms/common/darwin/DarwinPlatformMapping.h"
 #include "fboss/agent/platforms/common/elbert/ElbertPlatformMapping.h"
 #include "fboss/agent/platforms/common/fuji/FujiPlatformMapping.h"
 #include "fboss/lib/CommonFileUtils.h"
