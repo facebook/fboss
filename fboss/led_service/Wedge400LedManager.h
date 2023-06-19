@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "fboss/led_service/LedManager.h"
+#include "fboss/led_service/Wedge400BaseLedManager.h"
 
 namespace facebook::fboss {
 
@@ -21,7 +21,7 @@ namespace facebook::fboss {
  * like FPGA operation, setting platform specific color of LED. For rest of the
  * work the base class is used
  */
-class Wedge400LedManager : public LedManager {
+class Wedge400LedManager : public Wedge400BaseLedManager {
  public:
   Wedge400LedManager();
   virtual ~Wedge400LedManager() override {}
@@ -29,16 +29,6 @@ class Wedge400LedManager : public LedManager {
   // Forbidden copy constructor and assignment operator
   Wedge400LedManager(Wedge400LedManager const&) = delete;
   Wedge400LedManager& operator=(Wedge400LedManager const&) = delete;
-
- protected:
-  virtual led::LedColor calculateLedColor(
-      uint32_t portId,
-      cfg::PortProfileID portProfile) const override;
-
-  virtual void setLedColor(
-      uint32_t portId,
-      cfg::PortProfileID portProfile,
-      led::LedColor ledColor) override;
 };
 
 } // namespace facebook::fboss
