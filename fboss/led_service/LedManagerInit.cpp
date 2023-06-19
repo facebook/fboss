@@ -4,6 +4,7 @@
 #include "fboss/led_service/FujiLedManager.h"
 #include "fboss/led_service/MinipackLedManager.h"
 #include "fboss/led_service/MontblancLedManager.h"
+#include "fboss/led_service/YampLedManager.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 
 namespace facebook::fboss {
@@ -25,6 +26,8 @@ std::unique_ptr<LedManager> createLedManager() {
     return std::make_unique<FujiLedManager>();
   } else if (mode == PlatformType::PLATFORM_MINIPACK) {
     return std::make_unique<MinipackLedManager>();
+  } else if (mode == PlatformType::PLATFORM_YAMP) {
+    return std::make_unique<YampLedManager>();
   }
   return nullptr;
 }

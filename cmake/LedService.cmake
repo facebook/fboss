@@ -16,6 +16,7 @@ add_library(led_core_lib
   fboss/led_service/FsdbSwitchStateSubscriber.cpp
   fboss/led_service/oss/FsdbSwitchStateSubscriber.cpp
   fboss/led_service/oss/FujiLedManager.cpp
+  fboss/led_service/oss/YampLedManager.cpp
   fboss/led_service/LedManager.cpp
   fboss/led_service/LedManagerInit.cpp
   fboss/led_service/LedService.cpp
@@ -35,6 +36,7 @@ target_link_libraries(led_core_lib
   fuji_platform_mapping
   minipack_platform_mapping
   montblanc_platform_mapping
+  yamp_platform_mapping
   product_info
   Folly::folly
   FBThrift::thriftcpp2
