@@ -19,6 +19,7 @@ add_library(led_core_lib
   fboss/led_service/oss/FsdbSwitchStateSubscriber.cpp
   fboss/led_service/oss/FujiLedManager.cpp
   fboss/led_service/oss/LassenLedManager.cpp
+  fboss/led_service/oss/Wedge400LedManager.cpp
   fboss/led_service/oss/YampLedManager.cpp
   fboss/led_service/LedManager.cpp
   fboss/led_service/LedManagerInit.cpp
@@ -42,6 +43,7 @@ target_link_libraries(led_core_lib
   lassen_platform_mapping
   minipack_platform_mapping
   montblanc_platform_mapping
+  wedge400_platform_mapping
   yamp_platform_mapping
   product_info
   Folly::folly

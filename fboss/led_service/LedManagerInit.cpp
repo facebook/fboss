@@ -7,6 +7,7 @@
 #include "fboss/led_service/LassenLedManager.h"
 #include "fboss/led_service/MinipackLedManager.h"
 #include "fboss/led_service/MontblancLedManager.h"
+#include "fboss/led_service/Wedge400LedManager.h"
 #include "fboss/led_service/YampLedManager.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 
@@ -37,6 +38,8 @@ std::unique_ptr<LedManager> createLedManager() {
     return std::make_unique<DarwinLedManager>();
   } else if (mode == PlatformType::PLATFORM_LASSEN) {
     return std::make_unique<LassenLedManager>();
+  } else if (mode == PlatformType::PLATFORM_WEDGE400) {
+    return std::make_unique<Wedge400LedManager>();
   }
   return nullptr;
 }
