@@ -26,6 +26,7 @@ target_link_libraries(qsfp_platforms_wedge
   wedge400c_platform_mapping
   meru400bfu_platform_mapping
   meru400biu_platform_mapping
+  meru400bia_platform_mapping
   meru800bia_platform_mapping
   montblanc_platform_mapping
   platform_base
