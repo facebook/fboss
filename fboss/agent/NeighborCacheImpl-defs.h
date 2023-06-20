@@ -31,27 +31,6 @@
 
 DECLARE_bool(intf_nbr_tables);
 
-namespace {
-
-using facebook::fboss::PortDescriptor;
-using FbossError = facebook::fboss::FbossError;
-
-facebook::fboss::cfg::PortDescriptor getNeighborPortDescriptor(
-    const PortDescriptor& port) {
-  switch (port.type()) {
-    case PortDescriptor::PortType::PHYSICAL:
-      return PortDescriptor(port.phyPortID()).toThrift();
-    case PortDescriptor::PortType::AGGREGATE:
-      return PortDescriptor(port.aggPortID()).toThrift();
-    case PortDescriptor::PortType::SYSTEM_PORT:
-      return PortDescriptor(port.sysPortID()).toThrift();
-  }
-
-  throw FbossError("Unnknown port descriptor");
-}
-
-} // namespace
-
 namespace facebook::fboss {
 
 namespace ncachehelpers {
@@ -83,6 +62,20 @@ bool checkVlanAndIntf(
   }
 
   return true;
+}
+
+static cfg::PortDescriptor getNeighborPortDescriptor(
+    const PortDescriptor& port) {
+  switch (port.type()) {
+    case PortDescriptor::PortType::PHYSICAL:
+      return PortDescriptor(port.phyPortID()).toThrift();
+    case PortDescriptor::PortType::AGGREGATE:
+      return PortDescriptor(port.aggPortID()).toThrift();
+    case PortDescriptor::PortType::SYSTEM_PORT:
+      return PortDescriptor(port.sysPortID()).toThrift();
+  }
+
+  throw FbossError("Unnknown port descriptor");
 }
 
 } // namespace ncachehelpers
@@ -228,7 +221,7 @@ SwSwitch::StateUpdateFn NeighborCacheImpl<NTable>::getUpdateFnToProgramEntry(
       nbrEntry.encapIndex() = fields.encapIndex.value();
       nbrEntry.isLocal() = fields.isLocal;
     } else {
-      nbrEntry.portId() = getNeighborPortDescriptor(fields.port);
+      nbrEntry.portId() = ncachehelpers::getNeighborPortDescriptor(fields.port);
     }
 
     if (fields.classID.has_value()) {
@@ -415,7 +408,7 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
       nbrEntry.encapIndex() = encapIndex;
       nbrEntry.isLocal() = fields.isLocal;
     } else {
-      nbrEntry.portId() = getNeighborPortDescriptor(fields.port);
+      nbrEntry.portId() = ncachehelpers::getNeighborPortDescriptor(fields.port);
     }
 
     if (fields.classID.has_value()) {
