@@ -1,6 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/led_service/Wedge400LedManager.h"
+#include "fboss/led_service/Wedge400CLedManager.h"
 
 namespace facebook::fboss {
 
