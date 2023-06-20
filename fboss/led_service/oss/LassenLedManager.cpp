@@ -5,7 +5,6 @@
 #include "fboss/agent/platforms/common/lassen/LassenPlatformMapping.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonPortUtils.h"
-#include "fboss/lib/fpga/facebook/lassen/LassenSystemContainer.h"
 
 namespace facebook::fboss {
 
