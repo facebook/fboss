@@ -106,6 +106,7 @@ target_link_libraries(sai_platform
   meru400bia_platform_mapping
   meru400bfu_platform_mapping
   meru800bia_platform_mapping
+  meru800bfa_platform_mapping
   montblanc_platform_mapping
 )
 
