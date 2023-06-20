@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/LoadBalancerConfigApplier.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/Platform.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 
 #include <utility>
@@ -71,9 +73,11 @@ std::shared_ptr<LoadBalancer> LoadBalancerConfigParser::parse(
 
 LoadBalancerConfigApplier::LoadBalancerConfigApplier(
     const std::shared_ptr<MultiSwitchLoadBalancerMap>& originalLoadBalancers,
-    const std::vector<cfg::LoadBalancer>& loadBalancersConfig)
+    const std::vector<cfg::LoadBalancer>& loadBalancersConfig,
+    const Platform* platform)
     : originalLoadBalancers_(originalLoadBalancers),
-      loadBalancersConfig_(loadBalancersConfig) {}
+      loadBalancersConfig_(loadBalancersConfig),
+      platform_(platform) {}
 
 LoadBalancerConfigApplier::~LoadBalancerConfigApplier() {}
 
@@ -85,6 +89,15 @@ void LoadBalancerConfigApplier::appendToLoadBalancerContainer(
   std::tie(std::ignore, inserted) = loadBalancerContainer->emplace(
       std::make_pair(loadBalancerID, std::move(loadBalancer)));
   CHECK(inserted);
+}
+
+std::shared_ptr<LoadBalancerMap>
+LoadBalancerConfigApplier::updateLoadBalancers() {
+  auto ecmpSeed = platform_->getHwSwitch()->generateDeterministicSeed(
+      cfg::LoadBalancerID::ECMP);
+  auto aggPortSeed = platform_->getHwSwitch()->generateDeterministicSeed(
+      cfg::LoadBalancerID::AGGREGATE_PORT);
+  return updateLoadBalancers(ecmpSeed, aggPortSeed);
 }
 
 std::shared_ptr<LoadBalancerMap> LoadBalancerConfigApplier::updateLoadBalancers(

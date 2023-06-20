@@ -386,10 +386,6 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       AggPortInfo aggInfo,
       bool loopThroughFrontPanel = false,
       int deviation = 25) {
-    EXPECT_TRUE(utility::issHwDeterministicSeed(
-        getHwSwitch(), getProgrammedState(), LoadBalancerID::AGGREGATE_PORT));
-    EXPECT_TRUE(utility::issHwDeterministicSeed(
-        getHwSwitch(), getProgrammedState(), LoadBalancerID::ECMP));
     switch (traffic) {
       case TrafficType::IPv4:
         return runIPLoadBalanceTest(

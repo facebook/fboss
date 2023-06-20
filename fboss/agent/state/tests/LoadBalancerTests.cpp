@@ -180,7 +180,6 @@ TEST(LoadBalancer, defaultConfiguration) {
   cfg::SwitchConfig config;
   *config.loadBalancers() = defaultLoadBalancers();
 
-  FLAGS_mac = platform->getLocalMac().toString();
   auto finalState =
       publishAndApplyConfig(initialState, &config, platform.get());
   ASSERT_NE(nullptr, finalState);
@@ -236,7 +235,6 @@ TEST(LoadBalancer, udfGroupIdsConfiguration) {
 
   auto platform = createMockPlatform();
   auto initialState = std::make_shared<SwitchState>();
-  FLAGS_mac = platform->getLocalMac().toString();
 
   cfg::SwitchConfig config;
   *config.loadBalancers() = {fullECMPHashWithUDF()};

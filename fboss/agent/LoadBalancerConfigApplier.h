@@ -20,6 +20,7 @@
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
+class Platform;
 
 class LoadBalancerConfigParser {
  public:
@@ -54,12 +55,14 @@ class LoadBalancerConfigApplier {
  public:
   LoadBalancerConfigApplier(
       const std::shared_ptr<MultiSwitchLoadBalancerMap>& originalLoadBalancers,
-      const std::vector<cfg::LoadBalancer>& loadBalancersConfig);
+      const std::vector<cfg::LoadBalancer>& loadBalancersConfig,
+      const Platform* platform);
   ~LoadBalancerConfigApplier();
 
   // Returns a LoadBalancerMap SwitchState object derived from
   // loadBalancersConfig_ or null if the resulting LoadBalancerMap
   // is equivalent to originalLoadBalancers_.
+  std::shared_ptr<LoadBalancerMap> updateLoadBalancers();
   std::shared_ptr<LoadBalancerMap> updateLoadBalancers(
       uint32_t ecmpSeed,
       uint32_t aggPortSeed);
@@ -76,6 +79,7 @@ class LoadBalancerConfigApplier {
 
   const std::shared_ptr<MultiSwitchLoadBalancerMap>& originalLoadBalancers_;
   const std::vector<cfg::LoadBalancer>& loadBalancersConfig_;
+  const Platform* platform_;
 };
 
 } // namespace facebook::fboss

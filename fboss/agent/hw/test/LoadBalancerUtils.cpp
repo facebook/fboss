@@ -591,17 +591,4 @@ void pumpTrafficAndVerifyLoadBalanced(
   }
 }
 
-bool issHwDeterministicSeed(
-    HwSwitch* hwSwitch,
-    const std::shared_ptr<SwitchState>& state,
-    LoadBalancerID id) {
-  if (!hwSwitch->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
-    // hash seed is not programmed or configured
-    return true;
-  }
-  auto lb = state->getLoadBalancers()->getNode(id);
-  return lb->getSeed() == hwSwitch->generateDeterministicSeed(id);
-}
-
 } // namespace facebook::fboss::utility

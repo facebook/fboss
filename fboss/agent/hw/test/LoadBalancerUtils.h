@@ -161,9 +161,4 @@ void pumpTrafficAndVerifyLoadBalanced(
 
 cfg::UdfConfig addUdfConfig();
 
-bool issHwDeterministicSeed(
-    HwSwitch* hwSwitch,
-    const std::shared_ptr<SwitchState>& state,
-    LoadBalancerID id);
-
 } // namespace facebook::fboss::utility

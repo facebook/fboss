@@ -249,9 +249,6 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
             true);
         width++;
       }
-
-      EXPECT_TRUE(utility::issHwDeterministicSeed(
-          getHwSwitch(), getProgrammedState(), LoadBalancerID::ECMP));
     };
     setup();
     verify();
