@@ -226,6 +226,7 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_RX_LANE_SQUELCH_ENABLE:
         rxLaneSquelchEnable = attr_list[i].value.booldata;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
       case SAI_PORT_ATTR_PFC_TC_DLD_INTERVAL:
         for (int j = 0; j < attr_list[i].value.maplist.count; ++j) {
           pfcTcDldInterval.push_back(attr_list[i].value.maplist.list[j]);
@@ -236,6 +237,7 @@ sai_status_t create_port_fn(
           pfcTcDlrInterval.push_back(attr_list[i].value.maplist.list[j]);
         }
         break;
+#endif
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -641,6 +643,7 @@ sai_status_t set_port_attribute_fn(
       port.fabricIsolate = attr->value.booldata;
       break;
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
     case SAI_PORT_ATTR_PFC_TC_DLD_INTERVAL: {
       std::vector<sai_map_t> pfcTcDldInterval{};
       for (int j = 0; j < attr->value.maplist.count; ++j) {
@@ -659,6 +662,7 @@ sai_status_t set_port_attribute_fn(
         port.pfcTcDlrInterval = pfcTcDlrInterval;
       }
     } break;
+#endif
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -932,6 +936,7 @@ sai_status_t get_port_attribute_fn(
         attr->value.booldata = port.fabricIsolate;
         break;
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
       case SAI_PORT_ATTR_PFC_TC_DLD_INTERVAL:
         if (port.pfcTcDldInterval.has_value()) {
           auto& pfcTcDldInterval = port.pfcTcDldInterval.value();
@@ -963,6 +968,7 @@ sai_status_t get_port_attribute_fn(
         attr[i].value.u32range.min = 0;
         attr[i].value.u32range.max = std::numeric_limits<uint32_t>::max();
         break;
+#endif
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
