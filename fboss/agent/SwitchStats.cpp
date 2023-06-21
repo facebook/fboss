@@ -238,6 +238,16 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           map,
           kCounterPrefix + "thread_heartbeat_miss",
           SUM),
+      fabricReachabilityMissingCount_(
+          map,
+          kCounterPrefix + "fabric_reachability_missing",
+          SUM,
+          RATE),
+      fabricReachabilityMismatchCount_(
+          map,
+          kCounterPrefix + "fabric_reachability_mismatch",
+          SUM,
+          RATE),
       localSystemPort_(map, kCounterPrefix + "systemPort"),
       remoteSystemPort_(map, kCounterPrefix + "remoteSystemPort"),
       localRifs_(map, kCounterPrefix + "localRifs"),
