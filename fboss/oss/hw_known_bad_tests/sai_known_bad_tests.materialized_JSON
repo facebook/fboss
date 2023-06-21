@@ -13924,6 +13924,9 @@
         },
         {
           "test_name_regex": "HwFabricSwitchTest.fabricSwitchIsolate"
+        },
+        {
+          "test_name_regex": "HwVoqSwitchTest.sendPacketFrontPanel"
         }
     ],
     "leaba/1.62.0/1.62.0/gibraltar/voq": [
@@ -14301,6 +14304,9 @@
         },
         {
           "test_name_regex": "HwFabricSwitchTest.fabricSwitchIsolate"
+        },
+        {
+          "test_name_regex": "HwVoqSwitchTest.sendPacketFrontPanel"
         }
     ]
   }
