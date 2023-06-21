@@ -32,7 +32,6 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/qsfp_service/lib/QsfpCache.h"
 
 #include <folly/experimental/FunctionScheduler.h>
 #include <folly/gen/Base.h>
@@ -130,11 +129,8 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewConfig(
   // Mimic SwSwitch::applyConfig() to modifyTransceiverMap
   auto originalState = getProgrammedState();
   auto overrideTcvrInfos = platform_->getOverrideTransceiverInfos();
-  auto qsfpCache = getPlatform()->getQsfpCache();
-  if (overrideTcvrInfos || qsfpCache) {
-    const auto& currentTcvrs = overrideTcvrInfos
-        ? *overrideTcvrInfos
-        : qsfpCache->getAllTransceivers();
+  if (overrideTcvrInfos) {
+    const auto& currentTcvrs = *overrideTcvrInfos;
     auto tempState = SwSwitch::modifyTransceivers(
         getProgrammedState(),
         currentTcvrs,
@@ -144,8 +140,8 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewConfig(
       originalState = tempState;
     }
   } else {
-    XLOG(WARN) << "Current platform doesn't have QsfpCache and "
-               << "OverrideTransceiverInfos. No need to build TransceiverMap";
+    XLOG(WARN) << "Current platform doesn't have OverrideTransceiverInfos. "
+               << "No need to build TransceiverMap";
   }
 
   if (routingInformationBase_) {

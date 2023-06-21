@@ -45,9 +45,6 @@ class SimPlatform : public Platform {
   }
 
   void initPorts() override;
-  QsfpCache* getQsfpCache() const override {
-    return nullptr;
-  }
   HwSwitchWarmBootHelper* getWarmBootHelper() override {
     return nullptr;
   }

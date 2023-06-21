@@ -20,7 +20,6 @@
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
-#include "fboss/qsfp_service/lib/QsfpCache.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 
 namespace facebook::fboss {

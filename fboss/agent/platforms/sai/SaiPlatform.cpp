@@ -42,7 +42,6 @@
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
-#include "fboss/qsfp_service/lib/QsfpCache.h"
 
 #include "fboss/agent/hw/sai/switch/SaiHandler.h"
 
@@ -127,8 +126,7 @@ SaiPlatform::SaiPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     std::unique_ptr<PlatformMapping> platformMapping,
     folly::MacAddress localMac)
-    : Platform(std::move(productInfo), std::move(platformMapping), localMac),
-      qsfpCache_(std::make_unique<AutoInitQsfpCache>()) {
+    : Platform(std::move(productInfo), std::move(platformMapping), localMac) {
   const auto& portsByMasterPort =
       utility::getSubsidiaryPortIDs(getPlatformPorts());
   const auto& platPorts = getPlatformPorts();
@@ -166,28 +164,8 @@ void SaiPlatform::onHwInitialized(SwSwitch* sw) {
   sw->registerStateObserver(this, "SaiPlatform");
 }
 
-void SaiPlatform::updateQsfpCache(const StateDelta& delta) {
-  QsfpCache::PortMapThrift changedPorts;
-  auto portsDelta = delta.getPortsDelta();
-  for (const auto& entry : portsDelta) {
-    auto port = entry.getNew();
-    if (port) {
-      auto platformPort = getPort(port->getID());
-      PortStatus portStatus;
-      *portStatus.enabled() = port->isEnabled();
-      *portStatus.up() = port->isUp();
-      *portStatus.speedMbps() = static_cast<int64_t>(port->getSpeed());
-      portStatus.transceiverIdx() =
-          platformPort->getTransceiverMapping(port->getSpeed());
-      changedPorts.insert(std::make_pair(port->getID(), portStatus));
-    }
-  }
-  qsfpCache_->portsChanged(changedPorts);
-}
-
 void SaiPlatform::stateUpdated(const StateDelta& delta) {
   updatePorts(delta);
-  updateQsfpCache(delta);
 }
 
 void SaiPlatform::onInitialConfigApplied(SwSwitch* /* sw */) {}
@@ -325,10 +303,6 @@ HwSwitchWarmBootHelper* SaiPlatform::getWarmBootHelper() {
         0, getWarmBootDir(), "sai_adaptor_state_");
   }
   return wbHelper_.get();
-}
-
-QsfpCache* SaiPlatform::getQsfpCache() const {
-  return qsfpCache_.get();
 }
 
 PortID SaiPlatform::findPortID(

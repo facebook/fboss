@@ -28,7 +28,6 @@
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/lib/usb/UsbError.h"
 #include "fboss/lib/usb/WedgeI2CBus.h"
-#include "fboss/qsfp_service/lib/QsfpCache.h"
 
 #include <future>
 
@@ -47,8 +46,10 @@ WedgePlatform::WedgePlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     std::unique_ptr<PlatformMapping> platformMapping,
     folly::MacAddress localMac)
-    : BcmPlatform(std::move(productInfo), std::move(platformMapping), localMac),
-      qsfpCache_(std::make_unique<AutoInitQsfpCache>()) {}
+    : BcmPlatform(
+          std::move(productInfo),
+          std::move(platformMapping),
+          localMac) {}
 
 void WedgePlatform::initImpl(uint32_t hwFeaturesDesired) {
   if (getAsic()->isSupported(HwAsic::Feature::HSDK)) {
@@ -82,10 +83,7 @@ WedgePlatform::BcmPlatformPortMap WedgePlatform::getPlatformPortMap() {
   return mapping;
 }
 
-void WedgePlatform::stop() {
-  // destroying the cache will cause it to stop the QsfpCacheThread
-  qsfpCache_.reset();
-}
+void WedgePlatform::stop() {}
 
 void WedgePlatform::onHwInitialized(SwSwitch* sw) {
   // could populate with initial ports here, but should get taken care
@@ -107,30 +105,6 @@ void WedgePlatform::onHwInitialized(SwSwitch* sw) {
 
 void WedgePlatform::stateUpdated(const StateDelta& delta) {
   updatePorts(delta);
-  updateQsfpCache(delta);
-}
-
-void WedgePlatform::updateQsfpCache(const StateDelta& delta) {
-  QsfpCache::PortMapThrift changedPorts;
-  auto portsDelta = delta.getPortsDelta();
-  for (const auto& entry : portsDelta) {
-    auto newPort = entry.getNew();
-    if (newPort) {
-      auto platformPort = getPort(newPort->getID());
-      if (platformPort->supportsTransceiver()) {
-        changedPorts[newPort->getID()] = platformPort->toThrift(newPort);
-      }
-    }
-  }
-  qsfpCache_->portsChanged(changedPorts);
-  for (const auto& entry : portsDelta) {
-    auto newPort = entry.getNew();
-    if (newPort) {
-      // clear cached port profile config that depends on transceiver info
-      auto platformPort = getPort(newPort->getID());
-      platformPort->clearCachedProfileConfig();
-    }
-  }
 }
 
 void WedgePlatform::updatePorts(const StateDelta& delta) {
@@ -160,31 +134,7 @@ void WedgePlatform::onUnitCreate(int unit) {
 
 void WedgePlatform::onUnitAttach(int /*unit*/) {}
 
-void WedgePlatform::preWarmbootStateApplied() {
-  // Update QsfpCache with the existing ports
-  QsfpCache::PortMapThrift changedPorts;
-  for (const auto& entry : *portMapping_) {
-    // As some platform allows add/remove port at the first time applying the
-    // config, we should skip those ports which doesn't exist in hw.
-    auto bcmPortIf = hw_->getPortTable()->getBcmPortIf(entry.first);
-    if (!bcmPortIf) {
-      XLOG(WARNING) << "Port:" << entry.first << " is not in hw port table.";
-      continue;
-    }
-
-    if (entry.second->supportsTransceiver()) {
-      PortStatus s;
-      *s.enabled() = bcmPortIf->isEnabled();
-      *s.up() = bcmPortIf->isUp();
-      *s.speedMbps() = static_cast<int>(bcmPortIf->getSpeed());
-      s.transceiverIdx() = entry.second->getTransceiverMapping();
-      changedPorts[entry.first] = s;
-    }
-  }
-  XLOG(DBG2) << "[preWarmbootStateApplied]: Will update " << changedPorts.size()
-             << " ports to qsfp cache.";
-  qsfpCache_->portsChanged(changedPorts);
-}
+void WedgePlatform::preWarmbootStateApplied() {}
 
 std::unique_ptr<BaseWedgeI2CBus> WedgePlatform::getI2CBus() {
   return make_unique<WedgeI2CBus>();

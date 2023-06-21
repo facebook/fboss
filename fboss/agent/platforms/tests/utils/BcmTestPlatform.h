@@ -83,9 +83,6 @@ class BcmTestPlatform : public BcmPlatform {
   virtual bool usesYamlConfig() const {
     return false;
   }
-  QsfpCache* getQsfpCache() const override {
-    return nullptr;
-  }
 
   void setOverridePortInterPacketGapBits(uint32_t ipgBits) {
     overridePortInterPacketGapBits_ = ipgBits;

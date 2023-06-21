@@ -13,7 +13,6 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
-#include "fboss/qsfp_service/lib/QsfpCache.h"
 
 DEFINE_bool(
     skip_transceiver_programming,
