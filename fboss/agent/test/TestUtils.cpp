@@ -416,6 +416,24 @@ shared_ptr<SwitchState> removeVlanIPv4Address(
   return newState;
 }
 
+/*
+ * Applies the config to a switch and returns the new state.
+ * This helper also does fixup of config if some of the needed
+ * fields such as switchInfo is missing.
+ */
+shared_ptr<SwitchState> publishAndApplyConfig(
+    const shared_ptr<SwitchState>& state,
+    cfg::SwitchConfig* config,
+    const Platform* platform,
+    RoutingInformationBase* rib) {
+  if (config->switchSettings()->switchIdToSwitchInfo()->empty()) {
+    config->switchSettings()->switchIdToSwitchInfo() = {
+        {0, createSwitchInfo(cfg::SwitchType::NPU)}};
+  }
+  return publishAndApplyConfig(
+      state, (const cfg::SwitchConfig*)config, platform, rib);
+}
+
 shared_ptr<SwitchState> publishAndApplyConfig(
     const shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
