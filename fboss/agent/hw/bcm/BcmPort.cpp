@@ -1211,13 +1211,24 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
   if (auto lastStats = lastPhyInfo_.stats()) {
     lastPmdStats = *lastStats->line()->pmd();
   }
+  bool readRxFreq = hw_->getPlatform()->getAsic()->isSupported(
+      HwAsic::Feature::RX_FREQUENCY_PPM);
+  // On TH4, BCM_PORT_PHY_CONTROL_RX_PPM is only supported from 6.5.28
+  if (readRxFreq &&
+      hw_->getPlatform()->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
+#if defined(BCM_SDK_VERSION_GTE_6_5_28)
+    readRxFreq = true;
+#else
+    readRxFreq = false;
+#endif
+  }
   for (int lane = 0; lane < totalPmdLanes; lane++) {
     phy::LaneInfo laneInfo;
     phy::LaneState laneState;
     laneInfo.lane_ref() = lane;
     laneState.lane_ref() = lane;
-    if (hw_->getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::RX_FREQUENCY_PPM)) {
+    if (readRxFreq) {
       uint32_t value;
       auto rv = bcm_port_phy_control_get(
           unit_, port_, BCM_PORT_PHY_CONTROL_RX_PPM, &value);
