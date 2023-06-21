@@ -25,6 +25,7 @@
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/cli/fboss2/utils/PrbsUtils.h"
+#include "fboss/fsdb/if/facebook/gen-cpp2/FsdbService.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 
@@ -389,5 +390,7 @@ std::optional<std::string> getMyHostname(const std::string& hostname);
 std::string getSSHCmdPrefix(const std::string& hostname);
 std::string runCmd(const std::string& cmd);
 std::vector<std::string> getBgpDrainedInterafces(const HostInfo& hostInfo);
+
+std::string getSubscriptionPathStr(const fsdb::OperSubscriberInfo& subscriber);
 
 } // namespace facebook::fboss::utils
