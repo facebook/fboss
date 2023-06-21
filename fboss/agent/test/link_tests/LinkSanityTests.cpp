@@ -7,8 +7,8 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/test/HwTestEcmpUtils.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
+#include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
-#include "fboss/qsfp_service/lib/QsfpCache.h"
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
@@ -75,8 +75,8 @@ TEST_F(LinkTest, getTransceivers) {
       for (const auto& port : ports) {
         auto transceiverId =
             platform()->getPlatformPort(port)->getTransceiverID().value();
-        EXPECT_EVENTUALLY_TRUE(platform()->getQsfpCache()->getIf(transceiverId))
-            << "TcvrId " << transceiverId;
+        auto transceiverSpec = utility::getTransceiverSpec(sw(), port);
+        EXPECT_EVENTUALLY_TRUE(transceiverSpec) << "TcvrId " << transceiverId;
       }
     })
 
