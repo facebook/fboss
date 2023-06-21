@@ -30,7 +30,10 @@ BENCHMARK(RibResolutionBenchmark) {
   AgentEnsembleSwitchConfigFn initialConfigFn =
       [](HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
         CHECK_GT(ports.size(), 0);
-        return utility::onePortPerInterfaceConfig(hwSwitch, ports);
+        return utility::onePortPerInterfaceConfig(
+            hwSwitch,
+            ports,
+            hwSwitch->getPlatform()->getAsic()->desiredLoopbackModes());
       };
   ensemble = createAgentEnsemble(initialConfigFn);
   auto ports = ensemble->masterLogicalPortIds();
