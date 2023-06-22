@@ -250,9 +250,6 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
     platformProductInfo_->initialize();
     platformMapping_ =
         utility::initPlatformMapping(platformProductInfo_->getType());
-    auto existingMapping = getPlatform_DEPRECATED()->getPlatformMapping();
-    // TODO - remove this later
-    CHECK(existingMapping->toThrift() == platformMapping_->toThrift());
   } catch (const std::exception& ex) {
     // Expected when fruid file is not of a switch (eg: on devservers)
     XLOG(INFO) << "Couldn't initialize platform mapping " << ex.what();
