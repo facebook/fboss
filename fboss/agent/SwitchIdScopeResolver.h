@@ -102,6 +102,10 @@ class SwitchIdScopeResolver {
   HwSwitchMatcher scope(
       const std::shared_ptr<Interface>& intf,
       const cfg::SwitchConfig& cfg) const;
+  HwSwitchMatcher scope(
+      const cfg::InterfaceType& type,
+      const InterfaceID& interfaceId,
+      const cfg::SwitchConfig& cfg) const;
 
   HwSwitchMatcher scope(const cfg::AclTableGroup& aclTableGroup) const;
   HwSwitchMatcher scope(
@@ -153,6 +157,10 @@ class SwitchIdScopeResolver {
   HwSwitchMatcher scope(
       const std::shared_ptr<SwitchState>& state,
       const AggregatePortID& aggPortId) const;
+
+  const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo() const {
+    return switchIdToSwitchInfo_;
+  }
 
  private:
   void checkL3() const;
