@@ -1710,7 +1710,7 @@
           "phy_tx_polarity_flip_fabric508.BCM8892X": "1",
           "phy_tx_polarity_flip_fabric509.BCM8892X": "0",
           "phy_tx_polarity_flip_fabric510.BCM8892X": "1",
-          "phy_tx_polarity_flip_fabric511.BCM8892X": "0",
+          "phy_tx_polarity_flip_fabric511.BCM8892X": "0"
         }
       }
     },
