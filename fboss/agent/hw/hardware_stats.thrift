@@ -208,6 +208,11 @@ struct TeFlowStats {
   2: i64 timestamp;
 }
 
+struct FabricReachabilityStats {
+  1: i64 mismatchCount;
+  2: i64 missingCount;
+}
+
 struct HwRxReasonStats {
   1: map<i64, i64> rxReasonStats;
 }
