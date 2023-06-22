@@ -50,4 +50,23 @@ std::shared_ptr<SwitchState> applyThriftConfig(
     const HwAsicTable* hwAsicTable,
     RouteUpdateWrapper* routeUpdater,
     AclNexthopHandler* aclNexthopHandler = nullptr);
+
+std::shared_ptr<SwitchState> applyThriftConfig(
+    const std::shared_ptr<SwitchState>& state,
+    const cfg::SwitchConfig* config,
+    const bool supportsAddRemovePort,
+    const PlatformMapping* platformMapping,
+    const HwAsicTable* hwAsicTable,
+    RoutingInformationBase* rib = nullptr,
+    AclNexthopHandler* aclNexthopHandler = nullptr);
+
+std::shared_ptr<SwitchState> applyThriftConfig(
+    const std::shared_ptr<SwitchState>& state,
+    const cfg::SwitchConfig* config,
+    const bool supportsAddRemovePort,
+    const PlatformMapping* platformMapping,
+    const HwAsicTable* hwAsicTable,
+    RouteUpdateWrapper* routeUpdater,
+    AclNexthopHandler* aclNexthopHandler = nullptr);
+
 } // namespace facebook::fboss

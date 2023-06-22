@@ -4756,16 +4756,14 @@ shared_ptr<SwitchState> applyThriftConfig(
     const HwAsicTable* hwAsicTable,
     RoutingInformationBase* rib,
     AclNexthopHandler* aclNexthopHandler) {
-  cfg::SwitchConfig emptyConfig;
-  return ThriftConfigApplier(
-             state,
-             config,
-             platform->supportsAddRemovePort(),
-             rib,
-             aclNexthopHandler,
-             platformMapping,
-             hwAsicTable)
-      .run();
+  return applyThriftConfig(
+      state,
+      config,
+      platform->supportsAddRemovePort(),
+      platformMapping,
+      hwAsicTable,
+      rib,
+      aclNexthopHandler);
 }
 shared_ptr<SwitchState> applyThriftConfig(
     const shared_ptr<SwitchState>& state,
@@ -4775,11 +4773,47 @@ shared_ptr<SwitchState> applyThriftConfig(
     const HwAsicTable* hwAsicTable,
     RouteUpdateWrapper* routeUpdater,
     AclNexthopHandler* aclNexthopHandler) {
-  cfg::SwitchConfig emptyConfig;
+  return applyThriftConfig(
+      state,
+      config,
+      platform->supportsAddRemovePort(),
+      platformMapping,
+      hwAsicTable,
+      routeUpdater,
+      aclNexthopHandler);
+}
+
+std::shared_ptr<SwitchState> applyThriftConfig(
+    const std::shared_ptr<SwitchState>& state,
+    const cfg::SwitchConfig* config,
+    const bool supportsAddRemovePort,
+    const PlatformMapping* platformMapping,
+    const HwAsicTable* hwAsicTable,
+    RoutingInformationBase* rib,
+    AclNexthopHandler* aclNexthopHandler) {
   return ThriftConfigApplier(
              state,
              config,
-             platform->supportsAddRemovePort(),
+             supportsAddRemovePort,
+             rib,
+             aclNexthopHandler,
+             platformMapping,
+             hwAsicTable)
+      .run();
+}
+
+std::shared_ptr<SwitchState> applyThriftConfig(
+    const std::shared_ptr<SwitchState>& state,
+    const cfg::SwitchConfig* config,
+    const bool supportsAddRemovePort,
+    const PlatformMapping* platformMapping,
+    const HwAsicTable* hwAsicTable,
+    RouteUpdateWrapper* routeUpdater,
+    AclNexthopHandler* aclNexthopHandler) {
+  return ThriftConfigApplier(
+             state,
+             config,
+             supportsAddRemovePort,
              routeUpdater,
              aclNexthopHandler,
              platformMapping,
