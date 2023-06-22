@@ -166,14 +166,14 @@ class ThriftConfigApplier {
   ThriftConfigApplier(
       const std::shared_ptr<SwitchState>& orig,
       const cfg::SwitchConfig* config,
-      const Platform* platform,
+      bool supportsAddRemovePort,
       RoutingInformationBase* rib,
       AclNexthopHandler* aclNexthopHandler,
       const PlatformMapping* platformMapping,
       const HwAsicTable* hwAsicTable)
       : orig_(orig),
         cfg_(config),
-        platform_(platform),
+        supportsAddRemovePort_(supportsAddRemovePort),
         rib_(rib),
         aclNexthopHandler_(aclNexthopHandler),
         scopeResolver_(getSwitchInfoFromConfig(config, platform)),
@@ -183,14 +183,14 @@ class ThriftConfigApplier {
   ThriftConfigApplier(
       const std::shared_ptr<SwitchState>& orig,
       const cfg::SwitchConfig* config,
-      const Platform* platform,
+      bool supportsAddRemovePort,
       RouteUpdateWrapper* routeUpdater,
       AclNexthopHandler* aclNexthopHandler,
       const PlatformMapping* platformMapping,
       const HwAsicTable* hwAsicTable)
       : orig_(orig),
         cfg_(config),
-        platform_(platform),
+        supportsAddRemovePort_(supportsAddRemovePort),
         routeUpdater_(routeUpdater),
         aclNexthopHandler_(aclNexthopHandler),
         scopeResolver_(getSwitchInfoFromConfig(config, platform)),
@@ -487,7 +487,7 @@ class ThriftConfigApplier {
   std::shared_ptr<SwitchState> orig_;
   std::shared_ptr<SwitchState> new_;
   const cfg::SwitchConfig* cfg_{nullptr};
-  const Platform* platform_{nullptr};
+  bool supportsAddRemovePort_{false};
   RoutingInformationBase* rib_{nullptr};
   RouteUpdateWrapper* routeUpdater_{nullptr};
   AclNexthopHandler* aclNexthopHandler_{nullptr};
@@ -1338,7 +1338,7 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
       // ports without configs out of the switch state. For BCM tests + hardware
       // that doesn't allow add/remove, we need to leave the ports in the switch
       // state with a default (disabled) config.
-      if (platform_->supportsAddRemovePort()) {
+      if (supportsAddRemovePort_) {
         changed = true;
       } else {
         throw FbossError(
@@ -4760,7 +4760,7 @@ shared_ptr<SwitchState> applyThriftConfig(
   return ThriftConfigApplier(
              state,
              config,
-             platform,
+             platform->supportsAddRemovePort(),
              rib,
              aclNexthopHandler,
              platformMapping,
@@ -4779,7 +4779,7 @@ shared_ptr<SwitchState> applyThriftConfig(
   return ThriftConfigApplier(
              state,
              config,
-             platform,
+             platform->supportsAddRemovePort(),
              routeUpdater,
              aclNexthopHandler,
              platformMapping,
