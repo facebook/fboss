@@ -194,8 +194,7 @@ facebook::fboss::PortStatus fillInPortStatus(
   *status.drained() = port.isDrained();
 
   try {
-    status.transceiverIdx() = sw->getPlatform_DEPRECATED()->getPortMapping(
-        port.getID(), port.getSpeed());
+    status.transceiverIdx() = sw->getTransceiverIdxThrift(port.getID());
   } catch (const facebook::fboss::FbossError& err) {
     // No problem, we just don't set the other info
   }
