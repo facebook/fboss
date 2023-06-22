@@ -58,6 +58,13 @@ class HwSwitchFb303Stats {
     asicErrors_.addValue(1);
   }
 
+  void FabricReachabilityMissingCount() {
+    fabricReachabilityMissingCount_.addValue(1);
+  }
+  void FabricReachabilityMismatchCount() {
+    fabricReachabilityMismatchCount_.addValue(1);
+  }
+
   void update(const HwSwitchDropStats& dropStats);
   // TODO: FSDB needs to support count() method on stats
 
@@ -89,6 +96,7 @@ class HwSwitchFb303Stats {
     return asicErrors_.count();
   }
   HwAsicErrors getHwAsicErrors() const;
+  FabricReachabilityStats getFabricReachabilityStats() const;
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -122,6 +130,9 @@ class HwSwitchFb303Stats {
   // Drops
   TLTimeseries globalDrops_;
   TLTimeseries globalReachDrops_;
+  // fabric reachability errors
+  TLTimeseries fabricReachabilityMissingCount_;
+  TLTimeseries fabricReachabilityMismatchCount_;
 };
 
 } // namespace facebook::fboss

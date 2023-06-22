@@ -86,6 +86,16 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           map,
           SwitchStats::kCounterPrefix + "global_reachability_drops",
           SUM,
+          RATE),
+      fabricReachabilityMissingCount_(
+          map,
+          SwitchStats::kCounterPrefix + "fabric_reachability_missing",
+          SUM,
+          RATE),
+      fabricReachabilityMismatchCount_(
+          map,
+          SwitchStats::kCounterPrefix + "fabric_reachability_mismatch",
+          SUM,
           RATE) {}
 
 void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
@@ -106,4 +116,12 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   asicErrors.asicErrors() = getCumulativeValue(asicErrors_);
   return asicErrors;
 }
+
+FabricReachabilityStats HwSwitchFb303Stats::getFabricReachabilityStats() const {
+  FabricReachabilityStats stats;
+  stats.mismatchCount() = getCumulativeValue(fabricReachabilityMismatchCount_);
+  stats.missingCount() = getCumulativeValue(fabricReachabilityMissingCount_);
+  return stats;
+}
+
 } // namespace facebook::fboss
