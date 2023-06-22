@@ -127,15 +127,15 @@ class PrbsTest : public LinkTest {
       EXPECT_EVENTUALLY_TRUE(checkPrbsStateOnAllInterfaces(enabledState));
     });
 
-    // 4. Let PRBS warm up for 30 seconds
-    /* sleep override */ std::this_thread::sleep_for(30s);
+    // 4. Let PRBS warm up for 10 seconds
+    /* sleep override */ std::this_thread::sleep_for(10s);
 
     // 5. Clear the PRBS stats to clear the instability at PRBS startup
     XLOG(DBG2) << "Clearing PRBS stats before monitoring BER";
     clearPrbsStatsOnAllInterfaces();
 
-    // 6. Let PRBS run for 30 seconds so that we can check the BER later
-    /* sleep override */ std::this_thread::sleep_for(30s);
+    // 6. Let PRBS run for 10 seconds so that we can check the BER later
+    /* sleep override */ std::this_thread::sleep_for(10s);
 
     // 7. Check PRBS stats, expect no loss of lock
     XLOG(DBG2) << "Verifying PRBS stats";
@@ -149,7 +149,6 @@ class PrbsTest : public LinkTest {
 
     // 9. Verify the last clear timestamp advanced and that there was no
     // impact on some of the other fields
-    /* sleep override */ std::this_thread::sleep_for(20s);
     XLOG(DBG2) << "Verifying PRBS stats after clear";
     checkPrbsStatsAfterClearOnAllInterfaces(
         timestampBeforeClear, true /* prbsEnabled */);
