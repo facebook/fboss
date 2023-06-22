@@ -130,8 +130,14 @@ void LldpManager::handlePacket(
             cfg::LLDPTag::PORT,
             neighbor->humanReadablePortId()))) {
     sw_->stats()->LldpValidateMisMatch();
-    sw_->externalState(pid, PortLedExternalState::CABLING_ERROR);
     XLOG(DBG4) << "LLDP expected/recvd value mismatch!";
+    auto updateFn = [&port](const shared_ptr<SwitchState>& state) {
+      auto newState = state->clone();
+      auto newPort = port->modify(&newState);
+      newPort->setLedPortExternalState(PortLedExternalState::CABLING_ERROR);
+      return newState;
+    };
+    sw_->updateStateBlocking("set port LED state from lldp", updateFn);
   }
   db_.update(neighbor);
 }

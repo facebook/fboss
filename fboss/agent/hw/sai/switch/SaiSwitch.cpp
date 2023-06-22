@@ -397,6 +397,15 @@ void SaiSwitch::processLinkStateChangeDelta(
           platformPort->linkStatusChanged(
               newPort->isUp(), newPort->isEnabled());
         }
+
+        if (oldPort->getLedPortExternalState() !=
+            newPort->getLedPortExternalState()) {
+          if (newPort->getLedPortExternalState().has_value()) {
+            auto platformPort = platform_->getPort(id);
+            platformPort->externalState(
+                newPort->getLedPortExternalState().value());
+          }
+        }
       });
 }
 

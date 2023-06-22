@@ -2259,6 +2259,17 @@ TEST_F(ThriftTest, setLoopbackMode) {
   }
 }
 
+TEST_F(ThriftTest, programLedExternalState) {
+  ThriftHandler handler(sw_);
+  auto firstPort =
+      sw_->getState()->getPorts()->cbegin()->second->cbegin()->second->getID();
+  handler.setExternalLedState(
+      firstPort, PortLedExternalState::EXTERNAL_FORCE_ON);
+  auto port = sw_->getState()->getPorts()->getNode(firstPort);
+  EXPECT_EQ(
+      port->getLedPortExternalState(), PortLedExternalState::EXTERNAL_FORCE_ON);
+}
+
 TEST_F(ThriftTest, programInternalPhyPorts) {
   ThriftHandler handler(sw_);
   // Using Wedge100PlatformMapping in MockPlatform. Transceiver 4 is used by

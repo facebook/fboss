@@ -612,6 +612,21 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     ref<switch_state_tags::flowletConfig>() = flowletConfigPtr;
   }
 
+  void setLedPortExternalState(std::optional<PortLedExternalState> state) {
+    if (state.has_value()) {
+      set<switch_state_tags::portLedExternalState>(*state);
+    } else {
+      ref<switch_state_tags::portLedExternalState>().reset();
+    }
+  }
+
+  std::optional<PortLedExternalState> getLedPortExternalState() {
+    if (auto state = cref<switch_state_tags::portLedExternalState>()) {
+      return state->toThrift();
+    }
+    return std::nullopt;
+  }
+
   Port* modify(std::shared_ptr<SwitchState>* state);
 
   void fillPhyInfo(phy::PhyInfo* phyInfo);

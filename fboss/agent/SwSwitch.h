@@ -823,8 +823,6 @@ class SwSwitch : public HwSwitchCallback {
 
   folly::MacAddress getLocalMac(SwitchID switchId) const;
 
-  void externalState(PortID portID, PortLedExternalState state);
-
   TransceiverIdxThrift getTransceiverIdxThrift(PortID port) const;
 
   std::optional<uint32_t> getHwLogicalPortId(PortID port) const;
