@@ -36,8 +36,7 @@ sai_port_flow_control_mode_t getSaiPortPauseMode(cfg::PortPause pause) {
 }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-sai_port_loopback_mode_t getSaiPortLoopbackMode(
-    cfg::PortLoopbackMode loopbackMode) {
+int getSaiPortLoopbackMode(cfg::PortLoopbackMode loopbackMode) {
   switch (loopbackMode) {
     case cfg::PortLoopbackMode::NONE:
       return SAI_PORT_LOOPBACK_MODE_NONE;
@@ -49,8 +48,8 @@ sai_port_loopback_mode_t getSaiPortLoopbackMode(
 #if defined(SAI_VERSION_9_0_EA_SIM_ODP) ||      \
     defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) || \
     defined(SAI_VERSION_10_0_EA_DNX_ODP)
-      // since this one is not an enum for now
-      return static_cast<sai_port_loopback_mode_t>(SAI_PORT_LOOPBACK_MODE_NIF);
+      // experimental and hence not added to _sai_port_loopback_mode_t
+      return SAI_PORT_LOOPBACK_MODE_NIF;
 #else
       break;
 #endif
