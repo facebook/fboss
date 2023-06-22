@@ -481,6 +481,9 @@ class ThriftConfigApplier {
   uint32_t generateDeterministicSeedSai(cfg::LoadBalancerID id);
   uint32_t generateDeterministicSeedNonSai(cfg::LoadBalancerID id);
 
+  folly::MacAddress getLocalMac(SwitchID switchId) const;
+  SwitchID getSwitchId(const cfg::Interface& intfConfig) const;
+
   std::shared_ptr<SwitchState> orig_;
   std::shared_ptr<SwitchState> new_;
   const cfg::SwitchConfig* cfg_{nullptr};
@@ -2239,7 +2242,7 @@ ThriftConfigApplier::getSystemLacpConfig() {
     // is not a compile-time constant (it is derived from the CPU mac),
     // the default value is defined here, instead of, say,
     // AggregatePortFields::kDefaultSystemID.
-    systemID = platform_->getLocalMac();
+    systemID = getLocalMacAddress();
     systemPriority = kDefaultSystemPriority;
   }
 
@@ -4156,7 +4159,7 @@ MacAddress ThriftConfigApplier::getInterfaceMac(const cfg::Interface* config) {
   if (auto mac = config->mac()) {
     return MacAddress(*mac);
   }
-  return platform_->getLocalMac();
+  return getLocalMac(getSwitchId(*config));
 }
 
 Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
@@ -4169,7 +4172,7 @@ Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
   if (auto mac = config->mac()) {
     macAddr = folly::MacAddress(*mac);
   } else {
-    macAddr = platform_->getLocalMac();
+    macAddr = getLocalMac(getSwitchId(*config));
   }
   const folly::IPAddressV6 v6llAddr(folly::IPAddressV6::LINK_LOCAL, macAddr);
   addrs.emplace(v6llAddr, kV6LinkLocalAddrMask);
@@ -4724,6 +4727,27 @@ uint32_t ThriftConfigApplier::generateDeterministicSeedNonSai(
       break;
   }
   return seed;
+}
+
+SwitchID ThriftConfigApplier::getSwitchId(
+    const cfg::Interface& intfConfig) const {
+  auto scope = scopeResolver_.scope(
+      *intfConfig.type(), InterfaceID(*intfConfig.intfID()), *cfg_);
+  CHECK_EQ(scope.switchIds().size(), 1)
+      << "Interface can belong to only one switch";
+  return scope.switchId();
+}
+
+folly::MacAddress ThriftConfigApplier::getLocalMac(SwitchID switchId) const {
+  const auto& info = scopeResolver_.switchIdToSwitchInfo();
+  auto iter = info.find(switchId);
+  if (iter != info.end()) {
+    if (auto switchMac = iter->second.switchMac()) {
+      return folly::MacAddress(*switchMac);
+    }
+  }
+  XLOG(WARNING) << " No mac address found for switch " << switchId;
+  return getLocalMacAddress();
 }
 
 shared_ptr<SwitchState> applyThriftConfig(

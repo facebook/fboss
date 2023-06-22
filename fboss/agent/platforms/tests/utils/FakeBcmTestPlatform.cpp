@@ -26,12 +26,17 @@ std::vector<int> getControllingPortIDs() {
 }
 } // namespace
 
+// @lint-ignore CLANGTIDY
+DECLARE_string(mac);
+
 namespace facebook::fboss {
 
 FakeBcmTestPlatform::FakeBcmTestPlatform()
     : BcmTestPlatform(
           fakeProductInfo(),
-          std::make_unique<FakeTestPlatformMapping>(getControllingPortIDs())) {}
+          std::make_unique<FakeTestPlatformMapping>(getControllingPortIDs())) {
+  FLAGS_mac = "02:00:00:00:00:01";
+}
 
 void FakeBcmTestPlatform::setupAsic(
     cfg::SwitchType switchType,
