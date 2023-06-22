@@ -176,7 +176,7 @@ class ThriftConfigApplier {
         supportsAddRemovePort_(supportsAddRemovePort),
         rib_(rib),
         aclNexthopHandler_(aclNexthopHandler),
-        scopeResolver_(getSwitchInfoFromConfig(config, platform)),
+        scopeResolver_(getSwitchInfoFromConfig(config)),
         platformMapping_(platformMapping),
         hwAsicTable_(hwAsicTable) {}
 
@@ -193,7 +193,7 @@ class ThriftConfigApplier {
         supportsAddRemovePort_(supportsAddRemovePort),
         routeUpdater_(routeUpdater),
         aclNexthopHandler_(aclNexthopHandler),
-        scopeResolver_(getSwitchInfoFromConfig(config, platform)),
+        scopeResolver_(getSwitchInfoFromConfig(config)),
         platformMapping_(platformMapping),
         hwAsicTable_(hwAsicTable) {}
 
@@ -3861,8 +3861,7 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     return true;
   };
 
-  SwitchIdToSwitchInfo switchIdtoSwitchInfo =
-      getSwitchInfoFromConfig(cfg_, platform_);
+  SwitchIdToSwitchInfo switchIdtoSwitchInfo = getSwitchInfoFromConfig(cfg_);
   if (origSwitchSettings->getSwitchIdToSwitchInfo() != switchIdtoSwitchInfo) {
     if (origSwitchSettings->getSwitchIdToSwitchInfo().size() &&
         !validateSwitchInfoChange(
