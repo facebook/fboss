@@ -26,8 +26,10 @@ class Platform;
  * Get switch info from config
  */
 const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig(
-    const cfg::SwitchConfig* config);
+    const cfg::SwitchConfig* config,
+    const Platform* platform);
 
-const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig();
+const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig(
+    const Platform* platform);
 
 } // namespace facebook::fboss
