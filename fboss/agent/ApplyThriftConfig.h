@@ -33,23 +33,6 @@ class HwAsicTable;
  * Returns a new SwitchState object with the resulting state, or null if
  * the config file results in no changes.
  */
-std::shared_ptr<SwitchState> applyThriftConfig(
-    const std::shared_ptr<SwitchState>& state,
-    const cfg::SwitchConfig* config,
-    const Platform* platform,
-    const PlatformMapping* platformMapping,
-    const HwAsicTable* hwAsicTable,
-    RoutingInformationBase* rib = nullptr,
-    AclNexthopHandler* aclNexthopHandler = nullptr);
-
-std::shared_ptr<SwitchState> applyThriftConfig(
-    const std::shared_ptr<SwitchState>& state,
-    const cfg::SwitchConfig* config,
-    const Platform* platform,
-    const PlatformMapping* platformMapping,
-    const HwAsicTable* hwAsicTable,
-    RouteUpdateWrapper* routeUpdater,
-    AclNexthopHandler* aclNexthopHandler = nullptr);
 
 std::shared_ptr<SwitchState> applyThriftConfig(
     const std::shared_ptr<SwitchState>& state,

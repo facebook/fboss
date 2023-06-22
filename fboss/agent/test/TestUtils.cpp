@@ -429,7 +429,12 @@ shared_ptr<SwitchState> publishAndApplyConfig(
           : std::map<int64_t, cfg::SwitchInfo>(
                 {{0, createSwitchInfo(cfg::SwitchType::NPU)}}));
   return applyThriftConfig(
-      state, config, platform, platformMapping.get(), &hwAsicTable, rib);
+      state,
+      config,
+      platform->supportsAddRemovePort(),
+      platformMapping.get(),
+      &hwAsicTable,
+      rib);
 }
 
 std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(

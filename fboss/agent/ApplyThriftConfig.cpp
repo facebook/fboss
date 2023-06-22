@@ -4748,41 +4748,6 @@ folly::MacAddress ThriftConfigApplier::getLocalMac(SwitchID switchId) const {
   return getLocalMacAddress();
 }
 
-shared_ptr<SwitchState> applyThriftConfig(
-    const shared_ptr<SwitchState>& state,
-    const cfg::SwitchConfig* config,
-    const Platform* platform,
-    const PlatformMapping* platformMapping,
-    const HwAsicTable* hwAsicTable,
-    RoutingInformationBase* rib,
-    AclNexthopHandler* aclNexthopHandler) {
-  return applyThriftConfig(
-      state,
-      config,
-      platform->supportsAddRemovePort(),
-      platformMapping,
-      hwAsicTable,
-      rib,
-      aclNexthopHandler);
-}
-shared_ptr<SwitchState> applyThriftConfig(
-    const shared_ptr<SwitchState>& state,
-    const cfg::SwitchConfig* config,
-    const Platform* platform,
-    const PlatformMapping* platformMapping,
-    const HwAsicTable* hwAsicTable,
-    RouteUpdateWrapper* routeUpdater,
-    AclNexthopHandler* aclNexthopHandler) {
-  return applyThriftConfig(
-      state,
-      config,
-      platform->supportsAddRemovePort(),
-      platformMapping,
-      hwAsicTable,
-      routeUpdater,
-      aclNexthopHandler);
-}
-
 std::shared_ptr<SwitchState> applyThriftConfig(
     const std::shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,

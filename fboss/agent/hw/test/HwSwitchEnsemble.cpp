@@ -149,7 +149,7 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewConfig(
     applyNewState(applyThriftConfig(
         originalState,
         &config,
-        getPlatform(),
+        getPlatform()->supportsAddRemovePort(),
         getPlatform()->getPlatformMapping(),
         hwAsicTable_.get(),
         &routeUpdater));
@@ -159,7 +159,7 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewConfig(
   return applyNewState(applyThriftConfig(
       originalState,
       &config,
-      getPlatform(),
+      getPlatform()->supportsAddRemovePort(),
       getPlatform()->getPlatformMapping(),
       hwAsicTable_.get()));
 }

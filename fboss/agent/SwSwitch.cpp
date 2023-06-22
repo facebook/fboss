@@ -1970,22 +1970,23 @@ void SwSwitch::applyConfig(
       reason,
       [&](const shared_ptr<SwitchState>& state) -> shared_ptr<SwitchState> {
         auto originalState = state;
-        auto newState = rib_ ? applyThriftConfig(
-                                   originalState,
-                                   &newConfig,
-                                   getPlatform_DEPRECATED(),
-                                   platformMapping_.get(),
-                                   hwAsicTable_.get(),
-                                   &routeUpdater,
-                                   aclNexthopHandler_.get())
-                             : applyThriftConfig(
-                                   originalState,
-                                   &newConfig,
-                                   getPlatform_DEPRECATED(),
-                                   platformMapping_.get(),
-                                   hwAsicTable_.get(),
-                                   (RoutingInformationBase*)nullptr,
-                                   aclNexthopHandler_.get());
+        auto newState = rib_
+            ? applyThriftConfig(
+                  originalState,
+                  &newConfig,
+                  getPlatform_DEPRECATED()->supportsAddRemovePort(),
+                  platformMapping_.get(),
+                  hwAsicTable_.get(),
+                  &routeUpdater,
+                  aclNexthopHandler_.get())
+            : applyThriftConfig(
+                  originalState,
+                  &newConfig,
+                  getPlatform_DEPRECATED()->supportsAddRemovePort(),
+                  platformMapping_.get(),
+                  hwAsicTable_.get(),
+                  (RoutingInformationBase*)nullptr,
+                  aclNexthopHandler_.get());
 
         if (newState && !isValidStateUpdate(StateDelta(state, newState))) {
           throw FbossError("Invalid config passed in, skipping");
