@@ -1926,12 +1926,11 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   if (transceiver != nullptr) {
     factor = transceiver->toPlatformPortConfigOverrideFactor();
   }
-  platform_->getPlatformMapping()->customizePlatformPortConfigOverrideFactor(
-      factor);
+  platformMapping_->customizePlatformPortConfigOverrideFactor(factor);
   PlatformPortProfileConfigMatcher matcher{
       *portConf->profileID(), orig->getID(), factor};
 
-  auto portProfileCfg = platform_->getPortProfileConfig(matcher);
+  auto portProfileCfg = platformMapping_->getPortProfileConfig(matcher);
   if (!portProfileCfg) {
     throw FbossError(
         "No port profile config found with matcher:", matcher.toString());
@@ -1963,8 +1962,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     }
   }
 
-  const auto& newPinConfigs =
-      platform_->getPlatformMapping()->getPortIphyPinConfigs(matcher);
+  const auto& newPinConfigs = platformMapping_->getPortIphyPinConfigs(matcher);
   auto pinConfigsUnchanged = (newPinConfigs == orig->getPinConfigs());
 
   XLOG_IF(DBG2, !profileConfigUnchanged || !pinConfigsUnchanged)

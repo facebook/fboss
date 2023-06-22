@@ -466,11 +466,13 @@ TEST_F(BcmPortTest, PortFdrStats) {
 #endif
 
 TEST_F(BcmPortTest, SetInterPacketGapBits) {
+  if (!getPlatform()->getPlatformMapping()->supportsInterPacketGapBits()) {
+    GTEST_SKIP();
+    return;
+  }
   static auto constexpr expectedInterPacketGapBits = 352;
   // Enable all master ports
   auto setup = [this]() {
-    getPlatform()->setOverridePortInterPacketGapBits(
-        expectedInterPacketGapBits);
     applyNewConfig(utility::oneL3IntfNPortConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
@@ -483,8 +485,8 @@ TEST_F(BcmPortTest, SetInterPacketGapBits) {
         if (!port.second->isEnabled()) {
           continue;
         }
-        // Due to the override port IPG is set, so the profileConfig should have
-        // the override value
+        // platform mapping is used in apply thrift config, and not platform
+        // inter packet gap bits setting is only applicable in Elbert platform
         EXPECT_TRUE(port.second->getProfileConfig().interPacketGapBits());
         EXPECT_EQ(
             *port.second->getProfileConfig().interPacketGapBits(),
