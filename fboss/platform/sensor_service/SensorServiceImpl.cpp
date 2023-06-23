@@ -41,9 +41,9 @@ const std::string kSensorFieldName = "name";
 
 const std::string kLmsensorCommand = "sensors -j";
 
-auto constexpr kReadFailure = "sensor_service.{}.read.failure";
-auto constexpr kTotalReadFailure = "sensor_service.total.read.failures";
-auto constexpr kHasReadFailure = "sensor_service.has.read.failures";
+auto constexpr kReadFailure = "sensor_read.{}.failure";
+auto constexpr kTotalReadFailure = "sensor_read.total.failures";
+auto constexpr kHasReadFailure = "sensor_read.has.failures";
 
 } // namespace
 namespace facebook::fboss::platform::sensor_service {
