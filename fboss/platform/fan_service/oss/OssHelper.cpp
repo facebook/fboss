@@ -24,9 +24,3 @@ void getSensorValueThroughThrift(
   // error log
   XLOG(ERR) << "Thrift RPC to other services are not yet supported in OSS.";
 }
-
-bool initQsfpSvc(
-    std::shared_ptr<QsfpCache>& qsfpCache_,
-    folly::EventBase& evb_) {
-  return false;
-}

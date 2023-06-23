@@ -35,7 +35,6 @@ target_link_libraries(fan_service_lib
   fan_config_structs_types_cpp2
   Folly::folly
   FBThrift::thriftcpp2
-  qsfp_cache
   fsdb_stream_client
   fsdb_pub_sub
   fsdb_flags

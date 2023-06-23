@@ -21,9 +21,6 @@
 // Auto-generated Thrift inteface headerfile (by Buck)
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
 
-// Use QsfpCache library
-#include "fboss/qsfp_service/lib/QsfpCache.h"
-
 // Coroutine BlockWait headerfile
 #include <folly/experimental/coro/BlockingWait.h>
 
@@ -83,7 +80,6 @@ class Bsp {
       std::string tgt) const;
   // This attribute is accessed by internal function and Mock class (Mokujin)
   void setEmergencyState(bool state);
-  std::shared_ptr<QsfpCache> qsfpCache_;
 
  private:
   virtual int run(const std::string& cmd);
@@ -99,7 +95,6 @@ class Bsp {
   // For communicating with sensor_service
   folly::EventBase evbSensor_;
   bool emergencyShutdownState_{false};
-  bool qsfpCacheInitialized_{false};
 
   // Private Attributes
   int sensordThriftPort_{5970};
