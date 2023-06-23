@@ -57,6 +57,11 @@ TEST(NameToPathVisitorTests, TraverseOk) {
       {"2"}, // rx
       {"3"}, // name
       {"4"}, // member
+      {"4", "1"}, // member/min
+      {"4", "2"}, // member/max
+      {"7", "1"}, // variantMember/integral
+      {"7", "2"}, // variantMember/boolean
+      {"7", "3"}, // variantMember/str
   };
 
   for (auto& path : paths) {
@@ -84,7 +89,8 @@ TEST(NameToPathVisitorTests, TraverseNotOk) {
       {"foo", "bar"},
       // Cannot start at a nested root
       {"max"},
-      {"10000"}, // invalid id>
+      {"10000"}, // invalid id
+      {"7", "1000"}, // variantMember/<invalid id>
   };
   for (auto& path : paths) {
     auto result = RootNameToPathVisitor::visit(

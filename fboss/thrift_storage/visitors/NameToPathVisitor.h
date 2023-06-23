@@ -366,15 +366,25 @@ struct NameToPathVisitor<apache::thrift::type_class::variant> {
     // Get key
     auto token = *curr++;
     auto result = NameToPathResult::INVALID_VARIANT_MEMBER;
-    fatal::trie_find<
-        typename folly::remove_cvref_t<Path>::Children,
-        fatal::get_first>(token.begin(), token.end(), [&](auto tag) {
+
+    auto visitChild = [&](auto tag) {
       using PathT =
           typename folly::remove_cvref_t<decltype(tag)>::type::second_type;
       auto childPath = PathT(std::vector<std::string>(begin, curr));
       result = NameToPathVisitor<typename PathT::TC>::visit(
           childPath, begin, curr, end, std::forward<Func>(f));
-    });
+    };
+
+    auto idTry = folly::tryTo<apache::thrift::field_id_t>(token);
+    if (!idTry.hasError()) {
+      fatal::scalar_search<
+          typename folly::remove_cvref_t<Path>::ChildrenById,
+          fatal::get_first>(idTry.value(), std::move(visitChild));
+    } else {
+      fatal::trie_find<
+          typename folly::remove_cvref_t<Path>::Children,
+          fatal::get_first>(token.begin(), token.end(), std::move(visitChild));
+    }
     return result;
   }
 
