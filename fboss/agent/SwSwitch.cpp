@@ -2292,13 +2292,6 @@ std::shared_ptr<SwitchState> SwSwitch::stateChanged(
   return multiHwSwitchSyncer_->stateChanged(delta, transaction);
 }
 
-fsdb::OperDelta SwSwitch::stateChanged(
-    const fsdb::OperDelta& delta,
-    bool transaction) const {
-  return transaction ? hw_->stateChangedTransaction(delta)
-                     : hw_->stateChanged(delta);
-}
-
 std::shared_ptr<SwitchState> SwSwitch::modifyTransceivers(
     const std::shared_ptr<SwitchState>& state,
     const std::unordered_map<TransceiverID, TransceiverInfo>& currentTcvrs,

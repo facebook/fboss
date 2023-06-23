@@ -925,9 +925,6 @@ class SwSwitch : public HwSwitchCallback {
       const StateDelta& delta,
       bool transaction) const;
 
-  fsdb::OperDelta stateChanged(const fsdb::OperDelta& delta, bool transaction)
-      const;
-
   template <typename FsdbFunc>
   void runFsdbSyncFunction(FsdbFunc&& fn);
   std::string curConfigStr_;
