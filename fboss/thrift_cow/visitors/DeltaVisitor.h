@@ -227,8 +227,10 @@ void visitAddedOrRemovedNode(
     RecurseVisitor<TC>::visit(
         traverser,
         target,
-        RecurseVisitMode::FULL,
-        RecurseVisitOrder::PARENTS_FIRST,
+        RecurseVisitOptions(
+            RecurseVisitMode::FULL,
+            RecurseVisitOrder::PARENTS_FIRST,
+            options.outputIdPaths),
         std::move(processChange));
   }
 }
