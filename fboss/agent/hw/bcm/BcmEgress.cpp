@@ -193,10 +193,9 @@ void BcmEgress::program(
         if (*bcmFlowletConfig.queueWeight()) {
           eObj.dynamic_queue_size_weight = *bcmFlowletConfig.queueWeight();
         }
-        XLOG(DBG2) << "Programmed PortScalingFactor="
-                   << eObj.dynamic_scaling_factor
-                   << " PortLoadWeight=" << eObj.dynamic_load_weight
-                   << " PortQueueWeight=" << eObj.dynamic_queue_size_weight;
+        XLOG(DBG2) << "Programmed ScalingFactor=" << eObj.dynamic_scaling_factor
+                   << " LoadWeight=" << eObj.dynamic_load_weight
+                   << " QueueWeight=" << eObj.dynamic_queue_size_weight;
       }
     }
     if (!alreadyExists(eObj)) {

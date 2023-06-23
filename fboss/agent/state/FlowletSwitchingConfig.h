@@ -88,51 +88,6 @@ class FlowletSwitchingConfig : public ThriftStructNode<
     return get<switch_config_tags::dynamicSampleRate>()->cref();
   }
 
-  void setPortScalingFactor(std::optional<uint16_t> portScalingFactor) {
-    if (!portScalingFactor) {
-      ref<switch_config_tags::portScalingFactor>().reset();
-    } else {
-      set<switch_config_tags::portScalingFactor>(*portScalingFactor);
-    }
-  }
-
-  std::optional<uint16_t> getPortScalingFactor() const {
-    if (auto portScalingFactor = get<switch_config_tags::portScalingFactor>()) {
-      return portScalingFactor->cref();
-    }
-    return std::nullopt;
-  }
-
-  void setPortLoadWeight(std::optional<uint16_t> portLoadWeight) {
-    if (!portLoadWeight) {
-      ref<switch_config_tags::portLoadWeight>().reset();
-    } else {
-      set<switch_config_tags::portLoadWeight>(*portLoadWeight);
-    }
-  }
-
-  std::optional<uint16_t> getPortLoadWeight() const {
-    if (auto portLoadWeight = get<switch_config_tags::portLoadWeight>()) {
-      return portLoadWeight->cref();
-    }
-    return std::nullopt;
-  }
-
-  void setPortQueueWeight(std::optional<uint16_t> portQueueWeight) {
-    if (!portQueueWeight) {
-      ref<switch_config_tags::portQueueWeight>().reset();
-    } else {
-      set<switch_config_tags::portQueueWeight>(*portQueueWeight);
-    }
-  }
-
-  std::optional<uint16_t> getPortQueueWeight() const {
-    if (auto portQueueWeight = get<switch_config_tags::portQueueWeight>()) {
-      return portQueueWeight->cref();
-    }
-    return std::nullopt;
-  }
-
  private:
   // Inherit the constructors required for clone()
   using BaseT::BaseT;

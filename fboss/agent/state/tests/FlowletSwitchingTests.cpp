@@ -54,9 +54,6 @@ TEST(FlowletSwitching, addUpdate) {
   flowletCfg.dynamicQueueMinThresholdBytes() = 0x5D44;
   flowletCfg.dynamicQueueMaxThresholdBytes() = 0xFE00;
   flowletCfg.dynamicSampleRate() = 62500;
-  flowletCfg.portScalingFactor() = 400;
-  flowletCfg.portLoadWeight() = 50;
-  flowletCfg.portQueueWeight() = 40;
 
   flowletSwitchingConfig->fromThrift(flowletCfg);
   switchSettings = std::make_shared<SwitchSettings>();
@@ -74,9 +71,6 @@ TEST(FlowletSwitching, addUpdate) {
   EXPECT_EQ(flowletCfg2->getDynamicQueueMinThresholdBytes(), 0x5D44);
   EXPECT_EQ(flowletCfg2->getDynamicQueueMaxThresholdBytes(), 0xFE00);
   EXPECT_EQ(flowletCfg2->getDynamicSampleRate(), 62500);
-  EXPECT_EQ(flowletCfg2->getPortScalingFactor(), 400);
-  EXPECT_EQ(flowletCfg2->getPortLoadWeight(), 50);
-  EXPECT_EQ(flowletCfg2->getPortQueueWeight(), 40);
 }
 
 TEST(FlowletSwitching, publish) {
@@ -109,9 +103,6 @@ TEST(FlowletSwitching, serDeserSwitchState) {
   flowletCfg.dynamicQueueMinThresholdBytes() = 0x5D44;
   flowletCfg.dynamicQueueMaxThresholdBytes() = 0xFE00;
   flowletCfg.dynamicSampleRate() = 62500;
-  flowletCfg.portScalingFactor() = 400;
-  flowletCfg.portLoadWeight() = 50;
-  flowletCfg.portQueueWeight() = 40;
 
   // convert to state
   flowletSwitchingConfig->fromThrift(flowletCfg);
@@ -160,9 +151,6 @@ TEST(FlowletSwitching, applyConfig) {
   flowletCfg.dynamicQueueMinThresholdBytes() = 0x5D44;
   flowletCfg.dynamicQueueMaxThresholdBytes() = 0xFE00;
   flowletCfg.dynamicSampleRate() = 62500;
-  flowletCfg.portScalingFactor() = 400;
-  flowletCfg.portLoadWeight() = 50;
-  flowletCfg.portQueueWeight() = 40;
 
   config.flowletSwitchingConfig() = flowletCfg;
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
@@ -177,9 +165,6 @@ TEST(FlowletSwitching, applyConfig) {
   EXPECT_EQ(flowletCfg2->getDynamicQueueMinThresholdBytes(), 0x5D44);
   EXPECT_EQ(flowletCfg2->getDynamicQueueMaxThresholdBytes(), 0xFE00);
   EXPECT_EQ(flowletCfg2->getDynamicSampleRate(), 62500);
-  EXPECT_EQ(flowletCfg2->getPortScalingFactor(), 400);
-  EXPECT_EQ(flowletCfg2->getPortLoadWeight(), 50);
-  EXPECT_EQ(flowletCfg2->getPortQueueWeight(), 40);
 
   // Ensure that the global and switchSettings field are set for
   // backward/forward compatibility

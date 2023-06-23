@@ -1737,13 +1737,6 @@ struct FlowletSwitchingConfig {
   6: i32 dynamicQueueMaxThresholdBytes;
   // number of times historical member load and queued bytes are computed in a second
   7: i32 dynamicSampleRate;
-  // TODO move the following 3 port params to port specific structure
-  // port scaling factor for dynamic load balancing
-  8: optional i16 portScalingFactor;
-  // weight of traffic load in determining ports quality
-  9: optional i16 portLoadWeight;
-  // weight of total queue size in determining port quality
-  10: optional i16 portQueueWeight;
 }
 
 /**

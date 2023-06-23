@@ -3591,15 +3591,6 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
   newFlowletSwitchingConfig->setDynamicQueueMaxThresholdBytes(
       *config.dynamicQueueMaxThresholdBytes());
   newFlowletSwitchingConfig->setDynamicSampleRate(*config.dynamicSampleRate());
-  if (auto portScalingFactor = config.portScalingFactor()) {
-    newFlowletSwitchingConfig->setPortScalingFactor(*portScalingFactor);
-  }
-  if (auto portLoadWeight = config.portLoadWeight()) {
-    newFlowletSwitchingConfig->setPortLoadWeight(*portLoadWeight);
-  }
-  if (auto portQueueWeight = config.portQueueWeight()) {
-    newFlowletSwitchingConfig->setPortQueueWeight(*portQueueWeight);
-  }
   return newFlowletSwitchingConfig;
 }
 

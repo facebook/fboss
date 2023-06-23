@@ -75,9 +75,6 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     flowletCfg.dynamicQueueMinThresholdBytes() = 100000;
     flowletCfg.dynamicQueueMaxThresholdBytes() = 200000;
     flowletCfg.dynamicSampleRate() = 100000;
-    flowletCfg.portScalingFactor() = 400;
-    flowletCfg.portLoadWeight() = 50;
-    flowletCfg.portQueueWeight() = 40;
     return flowletCfg;
   }
 
