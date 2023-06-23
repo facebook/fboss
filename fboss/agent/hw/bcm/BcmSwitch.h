@@ -847,6 +847,18 @@ class BcmSwitch : public BcmSwitchIf {
       const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitching,
       const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching);
 
+  void processDynamicEgressMinThresholdBytesChanged(
+      const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitching,
+      const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching);
+
+  void processDynamicEgressMaxThresholdBytesChanged(
+      const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitching,
+      const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching);
+
+  void processDynamicPhysicalQueueExponentChanged(
+      const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitching,
+      const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching);
+
   /*
    * linkStateChangedHwNotLocked is in the call chain started by link scan
    * thread while invoking our link state handler. Link scan thread

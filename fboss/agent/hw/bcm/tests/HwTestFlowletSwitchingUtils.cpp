@@ -59,6 +59,15 @@ bool validateFlowletSwitchingEnabled(
       *flowletCfg.dynamicQueueMaxThresholdBytes());
   utility::assertSwitchControl(
       bcmSwitchEcmpDynamicSampleRate, *flowletCfg.dynamicSampleRate());
+  utility::assertSwitchControl(
+      bcmSwitchEcmpDynamicEgressBytesMinThreshold,
+      *flowletCfg.dynamicEgressMinThresholdBytes());
+  utility::assertSwitchControl(
+      bcmSwitchEcmpDynamicEgressBytesMaxThreshold,
+      *flowletCfg.dynamicEgressMaxThresholdBytes());
+  utility::assertSwitchControl(
+      bcmSwitchEcmpDynamicPhysicalQueuedBytesExponent,
+      *flowletCfg.dynamicPhysicalQueueExponent());
   verifyEgressEcmpEthertype(bcmSwitch);
   return true;
 }
