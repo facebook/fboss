@@ -163,6 +163,7 @@ struct UnionMemberTraits {
   using member = Member;
   using traits = UnionMemberTraits<Member>;
   using name = typename Member::metadata::name;
+  using id = typename Member::metadata::id;
   using ttype = typename Member::type;
   using tc = typename Member::metadata::type_class;
   using type = typename ConvertToNodeTraits<tc, ttype>::type;

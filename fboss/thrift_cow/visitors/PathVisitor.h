@@ -363,30 +363,38 @@ struct PathVisitor<apache::thrift::type_class::variant> {
     // Get key
     auto key = *begin++;
 
-    fatal::trie_find<MemberTypes, fatal::get_type::name>(
-        key.begin(), key.end(), [&](auto tag) {
-          using descriptor = typename decltype(fatal::tag_type(tag))::member;
-          using name = typename descriptor::metadata::name;
-          using tc = typename descriptor::metadata::type_class;
+    auto visitMember = [&](auto tag) {
+      using descriptor = typename decltype(fatal::tag_type(tag))::member;
+      using name = typename descriptor::metadata::name;
+      using tc = typename descriptor::metadata::type_class;
 
-          if (fields.type() != descriptor::metadata::id::value) {
-            result = ThriftTraverseResult::INCORRECT_VARIANT_MEMBER;
-            return;
-          }
+      if (fields.type() != descriptor::metadata::id::value) {
+        result = ThriftTraverseResult::INCORRECT_VARIANT_MEMBER;
+        return;
+      }
 
-          auto& child = fields.template ref<name>();
+      auto& child = fields.template ref<name>();
 
-          // ensure we propagate constness, since children will have type
-          // const shared_ptr<T>, not shared_ptr<const T>.
-          if constexpr (std::is_const_v<Fields>) {
-            const auto& next = *child;
-            result = PathVisitor<tc>::visit(
-                next, begin, end, mode, std::forward<Func>(f));
-          } else {
-            result = PathVisitor<tc>::visit(
-                *child, begin, end, mode, std::forward<Func>(f));
-          }
-        });
+      // ensure we propagate constness, since children will have type
+      // const shared_ptr<T>, not shared_ptr<const T>.
+      if constexpr (std::is_const_v<Fields>) {
+        const auto& next = *child;
+        result = PathVisitor<tc>::visit(
+            next, begin, end, mode, std::forward<Func>(f));
+      } else {
+        result = PathVisitor<tc>::visit(
+            *child, begin, end, mode, std::forward<Func>(f));
+      }
+    };
+
+    auto idTry = folly::tryTo<apache::thrift::field_id_t>(key);
+    if (!idTry.hasError()) {
+      fatal::scalar_search<MemberTypes, fatal::get_type::id>(
+          idTry.value(), std::move(visitMember));
+    } else {
+      fatal::trie_find<MemberTypes, fatal::get_type::name>(
+          key.begin(), key.end(), std::move(visitMember));
+    }
 
     return result;
   }

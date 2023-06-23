@@ -50,6 +50,13 @@ TEST(PathVisitorTests, AccessField) {
       *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   EXPECT_EQ(dyn.asInt(), 54);
+
+  // inlineVariant/inlineInt
+  path = {"21", "2"};
+  result = RootPathVisitor::visit(
+      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+  EXPECT_EQ(dyn.asInt(), 99);
 }
 
 TEST(PathVisitorTests, AccessFieldInContainer) {
