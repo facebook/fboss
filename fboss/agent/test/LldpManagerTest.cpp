@@ -368,6 +368,21 @@ TEST(LldpManagerTest, LldpValidationFail) {
     EXPECT_EQ(
         port->getLedPortExternalState().value(),
         PortLedExternalState::CABLING_ERROR);
+
+    auto validPkt = LldpManager::createLldpPkt(
+        sw,
+        MacAddress("2:2:2:2:2:10"),
+        vlanID,
+        "somesysname0",
+        "someportdesc0",
+        "somedesc",
+        1,
+        LldpManager::SYSTEM_CAPABILITY_ROUTER);
+    handle->rxPacket(
+        std::make_unique<folly::IOBuf>(*validPkt->buf()), portID, vlanID);
+    waitForStateUpdates(sw);
+    port = sw->getState()->getPorts()->getNodeIf(portID);
+    EXPECT_EQ(port->getLedPortExternalState(), PortLedExternalState::NONE);
   };
 
   lldpValidationFailHelper(cfg::SwitchType::NPU, PortID(1), VlanID(1));
