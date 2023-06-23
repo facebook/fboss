@@ -402,7 +402,13 @@ struct RecurseVisitor<apache::thrift::type_class::structure> {
       using id = typename member::id;
 
       // Look for the expected member name
-      std::string memberName(fatal::z_data<name>(), fatal::size<name>::value);
+      std::string memberName;
+      if (options.outputIdPaths) {
+        memberName = folly::to<std::string>(id::value);
+      } else {
+        memberName =
+            std::string(fatal::z_data<name>(), fatal::size<name>::value);
+      }
 
       traverser.push(std::move(memberName));
 
