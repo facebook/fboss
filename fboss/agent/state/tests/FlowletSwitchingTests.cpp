@@ -54,6 +54,9 @@ TEST(FlowletSwitching, addUpdate) {
   flowletCfg.dynamicQueueMinThresholdBytes() = 0x5D44;
   flowletCfg.dynamicQueueMaxThresholdBytes() = 0xFE00;
   flowletCfg.dynamicSampleRate() = 62500;
+  flowletCfg.dynamicEgressMinThresholdBytes() = 1000;
+  flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
+  flowletCfg.dynamicPhysicalQueueExponent() = 3;
 
   flowletSwitchingConfig->fromThrift(flowletCfg);
   switchSettings = std::make_shared<SwitchSettings>();
@@ -71,6 +74,9 @@ TEST(FlowletSwitching, addUpdate) {
   EXPECT_EQ(flowletCfg2->getDynamicQueueMinThresholdBytes(), 0x5D44);
   EXPECT_EQ(flowletCfg2->getDynamicQueueMaxThresholdBytes(), 0xFE00);
   EXPECT_EQ(flowletCfg2->getDynamicSampleRate(), 62500);
+  EXPECT_EQ(flowletCfg2->getDynamicEgressMinThresholdBytes(), 1000);
+  EXPECT_EQ(flowletCfg2->getDynamicEgressMaxThresholdBytes(), 10000);
+  EXPECT_EQ(flowletCfg2->getDynamicPhysicalQueueExponent(), 3);
 }
 
 TEST(FlowletSwitching, publish) {
@@ -103,6 +109,9 @@ TEST(FlowletSwitching, serDeserSwitchState) {
   flowletCfg.dynamicQueueMinThresholdBytes() = 0x5D44;
   flowletCfg.dynamicQueueMaxThresholdBytes() = 0xFE00;
   flowletCfg.dynamicSampleRate() = 62500;
+  flowletCfg.dynamicEgressMinThresholdBytes() = 1000;
+  flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
+  flowletCfg.dynamicPhysicalQueueExponent() = 3;
 
   // convert to state
   flowletSwitchingConfig->fromThrift(flowletCfg);
@@ -151,6 +160,9 @@ TEST(FlowletSwitching, applyConfig) {
   flowletCfg.dynamicQueueMinThresholdBytes() = 0x5D44;
   flowletCfg.dynamicQueueMaxThresholdBytes() = 0xFE00;
   flowletCfg.dynamicSampleRate() = 62500;
+  flowletCfg.dynamicEgressMinThresholdBytes() = 1000;
+  flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
+  flowletCfg.dynamicPhysicalQueueExponent() = 3;
 
   config.flowletSwitchingConfig() = flowletCfg;
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
@@ -165,6 +177,9 @@ TEST(FlowletSwitching, applyConfig) {
   EXPECT_EQ(flowletCfg2->getDynamicQueueMinThresholdBytes(), 0x5D44);
   EXPECT_EQ(flowletCfg2->getDynamicQueueMaxThresholdBytes(), 0xFE00);
   EXPECT_EQ(flowletCfg2->getDynamicSampleRate(), 62500);
+  EXPECT_EQ(flowletCfg2->getDynamicEgressMinThresholdBytes(), 1000);
+  EXPECT_EQ(flowletCfg2->getDynamicEgressMaxThresholdBytes(), 10000);
+  EXPECT_EQ(flowletCfg2->getDynamicPhysicalQueueExponent(), 3);
 
   // Ensure that the global and switchSettings field are set for
   // backward/forward compatibility

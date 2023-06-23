@@ -3591,6 +3591,12 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
   newFlowletSwitchingConfig->setDynamicQueueMaxThresholdBytes(
       *config.dynamicQueueMaxThresholdBytes());
   newFlowletSwitchingConfig->setDynamicSampleRate(*config.dynamicSampleRate());
+  newFlowletSwitchingConfig->setDynamicEgressMinThresholdBytes(
+      *config.dynamicEgressMinThresholdBytes());
+  newFlowletSwitchingConfig->setDynamicEgressMaxThresholdBytes(
+      *config.dynamicEgressMaxThresholdBytes());
+  newFlowletSwitchingConfig->setDynamicPhysicalQueueExponent(
+      *config.dynamicPhysicalQueueExponent());
   return newFlowletSwitchingConfig;
 }
 

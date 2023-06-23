@@ -88,6 +88,36 @@ class FlowletSwitchingConfig : public ThriftStructNode<
     return get<switch_config_tags::dynamicSampleRate>()->cref();
   }
 
+  void setDynamicEgressMinThresholdBytes(
+      const uint32_t dynamicEgressMinThresholdBytes) {
+    set<switch_config_tags::dynamicEgressMinThresholdBytes>(
+        dynamicEgressMinThresholdBytes);
+  }
+
+  uint32_t getDynamicEgressMinThresholdBytes() const {
+    return get<switch_config_tags::dynamicEgressMinThresholdBytes>()->cref();
+  }
+
+  void setDynamicEgressMaxThresholdBytes(
+      const uint32_t dynamicEgressMaxThresholdBytes) {
+    set<switch_config_tags::dynamicEgressMaxThresholdBytes>(
+        dynamicEgressMaxThresholdBytes);
+  }
+
+  uint32_t getDynamicEgressMaxThresholdBytes() const {
+    return get<switch_config_tags::dynamicEgressMaxThresholdBytes>()->cref();
+  }
+
+  void setDynamicPhysicalQueueExponent(
+      const uint16_t dynamicPhysicalQueueExponent) {
+    set<switch_config_tags::dynamicPhysicalQueueExponent>(
+        dynamicPhysicalQueueExponent);
+  }
+
+  uint16_t getDynamicPhysicalQueueExponent() const {
+    return get<switch_config_tags::dynamicPhysicalQueueExponent>()->cref();
+  }
+
  private:
   // Inherit the constructors required for clone()
   using BaseT::BaseT;
