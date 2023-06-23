@@ -1737,6 +1737,12 @@ struct FlowletSwitchingConfig {
   6: i32 dynamicQueueMaxThresholdBytes;
   // number of times historical member load and queued bytes are computed in a second
   7: i32 dynamicSampleRate;
+  // minimum threshold, in mbps, used to quantize historical member load
+  8: i32 dynamicEgressMinThresholdBytes;
+  // maximum threshold, in mbps, used to quantize historical member load
+  9: i32 dynamicEgressMaxThresholdBytes;
+  // EWMA of historical member bytes in physical queue
+  10: i16 dynamicPhysicalQueueExponent;
 }
 
 /**
