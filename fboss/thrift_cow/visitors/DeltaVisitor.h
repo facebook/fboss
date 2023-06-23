@@ -540,9 +540,15 @@ struct DeltaVisitor<apache::thrift::type_class::variant> {
               using descriptor = decltype(fatal::tag_type(indexed));
               using name = typename descriptor::metadata::name;
               using tc = typename descriptor::metadata::type_class;
+              using id = typename descriptor::metadata::id;
 
-              std::string memberName =
-                  std::string(fatal::z_data<name>(), fatal::size<name>::value);
+              std::string memberName;
+              if (options.outputIdPaths) {
+                memberName = folly::to<std::string>(id::value);
+              } else {
+                memberName = std::string(
+                    fatal::z_data<name>(), fatal::size<name>::value);
+              }
 
               traverser.push(std::move(memberName));
 
@@ -565,9 +571,15 @@ struct DeltaVisitor<apache::thrift::type_class::variant> {
               using descriptor = decltype(fatal::tag_type(indexed));
               using name = typename descriptor::metadata::name;
               using tc = typename descriptor::metadata::type_class;
+              using id = typename descriptor::metadata::id;
 
-              std::string memberName =
-                  std::string(fatal::z_data<name>(), fatal::size<name>::value);
+              std::string memberName;
+              if (options.outputIdPaths) {
+                memberName = folly::to<std::string>(id::value);
+              } else {
+                memberName = std::string(
+                    fatal::z_data<name>(), fatal::size<name>::value);
+              }
 
               traverser.push(std::move(memberName));
 
@@ -590,9 +602,15 @@ struct DeltaVisitor<apache::thrift::type_class::variant> {
             using descriptor = decltype(fatal::tag_type(indexed));
             using name = typename descriptor::metadata::name;
             using tc = typename descriptor::metadata::type_class;
+            using id = typename descriptor::metadata::id;
 
-            std::string memberName(
-                fatal::z_data<name>(), fatal::size<name>::value);
+            std::string memberName;
+            if (options.outputIdPaths) {
+              memberName = folly::to<std::string>(id::value);
+            } else {
+              memberName =
+                  std::string(fatal::z_data<name>(), fatal::size<name>::value);
+            }
 
             traverser.push(std::move(memberName));
             hasDifferences = DeltaVisitor<tc>::visit(

@@ -142,7 +142,7 @@ TEST(RecurseVisitorTests, TestLeafRecurse) {
       {{"4", "1"}, 10},
       {{"4", "2"}, 20},
       {{"4", "3"}, false},
-      {{"21", "inlineInt"}, testDyn["inlineVariant"]["inlineInt"]},
+      {{"21", "2"}, testDyn["inlineVariant"]["inlineInt"]},
       {{"15", "3", "1"}, testDyn["mapOfEnumToStruct"][3]["min"]},
       {{"15", "3", "2"}, testDyn["mapOfEnumToStruct"][3]["max"]},
       {{"15", "3", "3"}, testDyn["mapOfEnumToStruct"][3]["invert"]}};

@@ -559,6 +559,21 @@ TEST(DeltaVisitorTests, EditVariantField) {
           std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
           std::make_pair("/inlineVariant", DeltaElemTag::NOT_MINIMAL),
           std::make_pair("/inlineVariant/inlineInt", DeltaElemTag::MINIMAL)}));
+
+  // Test with ids
+  differingPaths.clear();
+  result = RootDeltaVisitor::visit(
+      nodeA,
+      nodeB,
+      DeltaVisitOptions(DeltaVisitMode::FULL, true),
+      processChange);
+  EXPECT_EQ(result, true);
+  EXPECT_THAT(
+      differingPaths,
+      ::testing::ContainerEq(PathTagSet{
+          std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
+          std::make_pair("/21", DeltaElemTag::NOT_MINIMAL),
+          std::make_pair("/21/2", DeltaElemTag::MINIMAL)}));
 }
 
 TEST(DeltaVisitorTests, SwitchVariantField) {
