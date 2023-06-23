@@ -184,19 +184,16 @@ void Bsp::processOpticEntries(
         fan_config_structs::OpticTableType::kOpticTableInval;
     // Qsfp_service send the data as double, but fan service use float.
     // So, cast the data to float
-    auto sensor = info.sensor();
+    auto sensor = info.tcvrStats()->sensor();
     // If no sensor available for this transceiver, just skip
     if (!sensor) {
       XLOG(INFO) << "Skipping transceiver " << xvrId
                  << ", as there is no global sensor entry.";
       continue;
     }
-    auto qsfpTimestampRef = info.timeCollected();
-    if (!qsfpTimestampRef) {
-      auto timeStamp = apache::thrift::can_throw(*qsfpTimestampRef);
-      if (timeStamp > currentQsfpSvcTimestamp) {
-        currentQsfpSvcTimestamp = timeStamp;
-      }
+    auto timeStamp = *info.tcvrStats()->timeCollected();
+    if (timeStamp > currentQsfpSvcTimestamp) {
+      currentQsfpSvcTimestamp = timeStamp;
     }
 
     float temp = static_cast<float>(*(sensor->temp()->value()));
@@ -218,9 +215,9 @@ void Bsp::processOpticEntries(
     // Detect the speed. If unknown, use the very first table.
     // This field is optional. If missing, we use unknown.
     MediaInterfaceCode mediaInterfaceCode = MediaInterfaceCode::UNKNOWN;
-    if (info.moduleMediaInterface()) {
-      mediaInterfaceCode = *info.moduleMediaInterface();
-      XLOG(DBG3) << "OpticsType: port is " << *info.port();
+    if (info.tcvrState()->moduleMediaInterface()) {
+      mediaInterfaceCode = *info.tcvrState()->moduleMediaInterface();
+      XLOG(DBG3) << "OpticsType: port is " << *info.tcvrState()->port();
     }
     switch (mediaInterfaceCode) {
       case MediaInterfaceCode::UNKNOWN:
