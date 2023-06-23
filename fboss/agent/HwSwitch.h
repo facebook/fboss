@@ -44,14 +44,6 @@ class HwSwitchFb303Stats;
 
 enum class L2EntryUpdateType : uint8_t;
 
-struct HwInitResult {
-  std::shared_ptr<SwitchState> switchState{nullptr};
-  std::unique_ptr<RoutingInformationBase> rib{nullptr};
-  BootType bootType{BootType::UNINITIALIZED};
-  float initializedTime{0.0};
-  float bootTime{0.0};
-};
-
 template <typename Delta, typename Mgr>
 void checkUnsupportedDelta(const Delta& delta, Mgr& mgr) {
   DeltaFunctions::forEachChanged(

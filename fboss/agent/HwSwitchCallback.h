@@ -5,9 +5,19 @@
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
+
+struct HwInitResult {
+  std::shared_ptr<SwitchState> switchState{nullptr};
+  std::unique_ptr<RoutingInformationBase> rib{nullptr};
+  BootType bootType{BootType::UNINITIALIZED};
+  float initializedTime{0.0};
+  float bootTime{0.0};
+};
 
 class HwSwitchCallback {
  public:
