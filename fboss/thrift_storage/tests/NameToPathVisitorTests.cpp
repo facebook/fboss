@@ -52,6 +52,11 @@ TEST(NameToPathVisitorTests, TraverseOk) {
       {"enumSet", "1"},
       {"enumSet", "FIRST"},
       {"enumeration"},
+      // using ids
+      {"1"}, // tx
+      {"2"}, // rx
+      {"3"}, // name
+      {"4"}, // member
   };
 
   for (auto& path : paths) {
@@ -79,6 +84,7 @@ TEST(NameToPathVisitorTests, TraverseNotOk) {
       {"foo", "bar"},
       // Cannot start at a nested root
       {"max"},
+      {"10000"}, // invalid id>
   };
   for (auto& path : paths) {
     auto result = RootNameToPathVisitor::visit(
