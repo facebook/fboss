@@ -44,6 +44,12 @@ TEST(PathVisitorTests, AccessField) {
       *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   EXPECT_EQ(dyn.asInt(), 54);
+
+  path = {"2"};
+  result = RootPathVisitor::visit(
+      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+  EXPECT_EQ(dyn.asInt(), 54);
 }
 
 TEST(PathVisitorTests, AccessFieldInContainer) {
@@ -59,6 +65,13 @@ TEST(PathVisitorTests, AccessFieldInContainer) {
 
   std::vector<std::string> path{"mapOfEnumToStruct", "3"};
   auto result = RootPathVisitor::visit(
+      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+  EXPECT_EQ(*got.min(), 100);
+  EXPECT_EQ(*got.max(), 200);
+
+  path = {"15", "3"};
+  result = RootPathVisitor::visit(
       *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   EXPECT_EQ(*got.min(), 100);
