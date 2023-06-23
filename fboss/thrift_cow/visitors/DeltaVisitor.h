@@ -13,6 +13,7 @@
 
 #include <fboss/thrift_cow/visitors/RecurseVisitor.h>
 #include <fboss/thrift_cow/visitors/TraverseHelper.h>
+#include <fboss/thrift_cow/visitors/VisitorUtils.h>
 
 namespace facebook::fboss::thrift_cow {
 
@@ -540,15 +541,10 @@ struct DeltaVisitor<apache::thrift::type_class::variant> {
               using descriptor = decltype(fatal::tag_type(indexed));
               using name = typename descriptor::metadata::name;
               using tc = typename descriptor::metadata::type_class;
-              using id = typename descriptor::metadata::id;
 
-              std::string memberName;
-              if (options.outputIdPaths) {
-                memberName = folly::to<std::string>(id::value);
-              } else {
-                memberName = std::string(
-                    fatal::z_data<name>(), fatal::size<name>::value);
-              }
+              std::string memberName =
+                  getMemberName<typename descriptor::metadata>(
+                      options.outputIdPaths);
 
               traverser.push(std::move(memberName));
 
@@ -571,15 +567,10 @@ struct DeltaVisitor<apache::thrift::type_class::variant> {
               using descriptor = decltype(fatal::tag_type(indexed));
               using name = typename descriptor::metadata::name;
               using tc = typename descriptor::metadata::type_class;
-              using id = typename descriptor::metadata::id;
 
-              std::string memberName;
-              if (options.outputIdPaths) {
-                memberName = folly::to<std::string>(id::value);
-              } else {
-                memberName = std::string(
-                    fatal::z_data<name>(), fatal::size<name>::value);
-              }
+              std::string memberName =
+                  getMemberName<typename descriptor::metadata>(
+                      options.outputIdPaths);
 
               traverser.push(std::move(memberName));
 
@@ -602,15 +593,10 @@ struct DeltaVisitor<apache::thrift::type_class::variant> {
             using descriptor = decltype(fatal::tag_type(indexed));
             using name = typename descriptor::metadata::name;
             using tc = typename descriptor::metadata::type_class;
-            using id = typename descriptor::metadata::id;
 
-            std::string memberName;
-            if (options.outputIdPaths) {
-              memberName = folly::to<std::string>(id::value);
-            } else {
-              memberName =
-                  std::string(fatal::z_data<name>(), fatal::size<name>::value);
-            }
+            std::string memberName =
+                getMemberName<typename descriptor::metadata>(
+                    options.outputIdPaths);
 
             traverser.push(std::move(memberName));
             hasDifferences = DeltaVisitor<tc>::visit(
@@ -681,17 +667,10 @@ struct DeltaVisitor<apache::thrift::type_class::structure> {
     fatal::foreach<Members>([&](auto indexed) {
       using member = decltype(fatal::tag_type(indexed));
       using name = typename member::name;
-      using id = typename member::id;
       using tc = typename member::type_class;
 
       // Look for the expected member name
-      std::string memberName;
-      if (options.outputIdPaths) {
-        memberName = folly::to<std::string>(id::value);
-      } else {
-        memberName =
-            std::string(fatal::z_data<name>(), fatal::size<name>::value);
-      }
+      std::string memberName = getMemberName<member>(options.outputIdPaths);
 
       traverser.push(std::move(memberName));
       SCOPE_EXIT {

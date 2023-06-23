@@ -11,6 +11,7 @@ add_library(
   fboss/thrift_cow/visitors/ExtendedPathVisitor.h
   fboss/thrift_cow/visitors/PathVisitor.h
   fboss/thrift_cow/visitors/RecurseVisitor.h
+  fboss/thrift_cow/visitors/VisitorUtils.h
 )
 
 set_target_properties(thrift_cow_visitors PROPERTIES LINKER_LANGUAGE CXX)
