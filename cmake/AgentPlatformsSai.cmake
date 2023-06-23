@@ -98,7 +98,6 @@ target_link_libraries(sai_platform
   morgan_platform_mapping
   sandia_platform_mapping
   wedge400c_ebb_lab_platform_mapping
-  qsfp_cache
   wedge_led_utils
   bcm_yaml_config
   cloud_ripper_platform_mapping

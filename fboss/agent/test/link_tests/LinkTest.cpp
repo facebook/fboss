@@ -23,7 +23,6 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types_custom_protocol.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types_custom_protocol.h"
-#include "fboss/qsfp_service/lib/QsfpCache.h"
 
 DECLARE_bool(enable_macsec);
 

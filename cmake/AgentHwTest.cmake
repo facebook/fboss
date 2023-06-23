@@ -139,7 +139,6 @@ target_link_libraries(hw_switch_ensemble
   hw_link_state_toggler
   switchid_scope_resolver
   core
-  qsfp_cache
   hw_test_utils
   test_ensemble_if
 )
