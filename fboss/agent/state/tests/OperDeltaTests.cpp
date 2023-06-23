@@ -65,7 +65,7 @@ TEST(OperDeltaTests, OperDeltaProcess) {
   ASSERT_NE(nullptr, stateV1);
 
   auto operDelta =
-      fsdb::computeOperDelta(stateV0, stateV1, switchStateRootPath());
+      fsdb::computeOperDelta(stateV0, stateV1, switchStateRootPath(), true);
 
   auto delta = StateDelta(stateV0, operDelta);
   auto stateV2 = delta.newState();

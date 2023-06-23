@@ -39,7 +39,8 @@ TEST(FsdbHelperTests, VerifyOperDelta) {
   auto operDelta = fsdb::computeOperDelta(
       std::make_shared<SwitchState>(),
       state,
-      fsdbAgentDataSwitchStateRootPath());
+      fsdbAgentDataSwitchStateRootPath(),
+      false);
   auto& changes = *operDelta.changes();
   EXPECT_GT(changes.size(), 0);
   std::set<std::string> members{};

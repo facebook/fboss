@@ -52,7 +52,8 @@ struct BenchmarkHelperForRouteScale {
       fsdb::computeOperDelta(                                       \
           std::make_shared<SwitchState>(),                          \
           state,                                                    \
-          fsdbAgentDataSwitchStateRootPath());                      \
+          fsdbAgentDataSwitchStateRootPath(),                       \
+          true);                                                    \
     }                                                               \
   }
 

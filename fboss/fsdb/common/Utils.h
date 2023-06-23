@@ -31,7 +31,8 @@ template <typename Node>
 fsdb::OperDelta computeOperDelta(
     const std::shared_ptr<Node>& oldNode,
     const std::shared_ptr<Node>& newNode,
-    const std::vector<std::string>& basePath) {
+    const std::vector<std::string>& basePath,
+    bool outputIdPaths = false) {
   std::vector<fsdb::OperDeltaUnit> operDeltaUnits{};
 
   auto processDelta = [basePath, &operDeltaUnits](
@@ -51,7 +52,8 @@ fsdb::OperDelta computeOperDelta(
   thrift_cow::RootDeltaVisitor::visit(
       oldNode,
       newNode,
-      thrift_cow::DeltaVisitOptions(thrift_cow::DeltaVisitMode::MINIMAL),
+      thrift_cow::DeltaVisitOptions(
+          thrift_cow::DeltaVisitMode::MINIMAL, outputIdPaths),
       std::move(processDelta));
   return createDelta(std::move(operDeltaUnits));
 }
