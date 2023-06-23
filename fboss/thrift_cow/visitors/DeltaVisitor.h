@@ -663,10 +663,17 @@ struct DeltaVisitor<apache::thrift::type_class::structure> {
     fatal::foreach<Members>([&](auto indexed) {
       using member = decltype(fatal::tag_type(indexed));
       using name = typename member::name;
+      using id = typename member::id;
       using tc = typename member::type_class;
 
       // Look for the expected member name
-      std::string memberName(fatal::z_data<name>(), fatal::size<name>::value);
+      std::string memberName;
+      if (options.outputIdPaths) {
+        memberName = folly::to<std::string>(id::value);
+      } else {
+        memberName =
+            std::string(fatal::z_data<name>(), fatal::size<name>::value);
+      }
 
       traverser.push(std::move(memberName));
       SCOPE_EXIT {

@@ -56,6 +56,20 @@ TEST(DeltaVisitorTests, ChangeOneField) {
           std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
           std::make_pair("/inlineInt", DeltaElemTag::MINIMAL)}));
 
+  // test encoding IDs
+  differingPaths.clear();
+  result = RootDeltaVisitor::visit(
+      nodeA,
+      nodeB,
+      DeltaVisitOptions(DeltaVisitMode::PARENTS, true),
+      processChange);
+  EXPECT_EQ(result, true);
+  EXPECT_THAT(
+      differingPaths,
+      ::testing::ContainerEq(PathTagSet{
+          std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
+          std::make_pair("/2", DeltaElemTag::MINIMAL)}));
+
   // test MINIMAL delta mode
   differingPaths.clear();
 
@@ -285,6 +299,20 @@ TEST(DeltaVisitorTests, UpdateMap) {
       ::testing::ContainerEq(PathTagSet{
           std::make_pair("/mapOfEnumToStruct/1/min", DeltaElemTag::MINIMAL),
           std::make_pair("/mapOfEnumToStruct/1/max", DeltaElemTag::MINIMAL)}));
+
+  // Test encoding ids
+  differingPaths.clear();
+  result = RootDeltaVisitor::visit(
+      nodeA,
+      nodeB,
+      DeltaVisitOptions(DeltaVisitMode::MINIMAL, true),
+      processChange);
+  EXPECT_EQ(result, true);
+  EXPECT_THAT(
+      differingPaths,
+      ::testing::ContainerEq(PathTagSet{
+          std::make_pair("/15/1/1", DeltaElemTag::MINIMAL),
+          std::make_pair("/15/1/2", DeltaElemTag::MINIMAL)}));
 
   // Test FULL mode
   differingPaths.clear();
