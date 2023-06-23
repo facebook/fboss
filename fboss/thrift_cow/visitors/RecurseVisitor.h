@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <string>
+#include "folly/Conv.h"
 
 #include <fboss/thrift_cow/visitors/TraverseHelper.h>
 #include <fboss/thrift_cow/visitors/VisitorUtils.h>

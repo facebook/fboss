@@ -155,38 +155,10 @@ class FsdbSyncManager {
     }
   }
 
-  OperDelta createDelta(std::vector<OperDeltaUnit>&& deltaUnits) {
-    OperDelta delta;
-    delta.changes() = deltaUnits;
-    delta.protocol() = OperProtocol::BINARY;
-    return delta;
-  }
-
   void publishDelta(
       const std::shared_ptr<CowState>& oldState,
       const std::shared_ptr<CowState>& newState) {
-    std::vector<OperDeltaUnit> deltas;
-    auto processChange = [this, &deltas](
-                             const std::vector<std::string>& path,
-                             auto oldNode,
-                             auto newNode,
-                             thrift_cow::DeltaElemTag /* visitTag */) {
-      std::vector<std::string> fullPath;
-      fullPath.reserve(basePath_.size() + path.size());
-      fullPath.insert(fullPath.end(), basePath_.begin(), basePath_.end());
-      fullPath.insert(fullPath.end(), path.begin(), path.end());
-      // TODO: metadata
-      deltas.push_back(
-          buildOperDeltaUnit(fullPath, oldNode, newNode, OperProtocol::BINARY));
-    };
-
-    thrift_cow::RootDeltaVisitor::visit(
-        oldState,
-        newState,
-        thrift_cow::DeltaVisitOptions(thrift_cow::DeltaVisitMode::MINIMAL),
-        std::move(processChange));
-
-    publish(createDelta(std::move(deltas)));
+    publish(computeOperDelta(oldState, newState, basePath_));
   }
 
   void publishPath(const std::shared_ptr<CowState>& newState) {

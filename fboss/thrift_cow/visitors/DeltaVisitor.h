@@ -2,7 +2,9 @@
 
 #pragma once
 
+#include <glog/logging.h>
 #include <type_traits>
+#include "folly/Conv.h"
 #include "folly/ScopeGuard.h"
 
 #include <boost/function_output_iterator.hpp>
