@@ -34,7 +34,7 @@ fsdb::OperDelta computeOperDelta(
   thrift_cow::RootDeltaVisitor::visit(
       oldNode,
       newNode,
-      thrift_cow::DeltaVisitMode::MINIMAL,
+      thrift_cow::DeltaVisitOptions(thrift_cow::DeltaVisitMode::MINIMAL),
       std::move(processDelta));
 
   fsdb::OperDelta operDelta{};

@@ -48,7 +48,7 @@ TEST(DeltaVisitorTests, ChangeOneField) {
   };
 
   auto result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::PARENTS, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::PARENTS), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -60,7 +60,7 @@ TEST(DeltaVisitorTests, ChangeOneField) {
   differingPaths.clear();
 
   result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::MINIMAL, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::MINIMAL), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -71,7 +71,7 @@ TEST(DeltaVisitorTests, ChangeOneField) {
   differingPaths.clear();
 
   result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::FULL, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::FULL), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -99,7 +99,7 @@ TEST(DeltaVisitorTests, ChangeOneFieldInContainer) {
   };
 
   auto result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::PARENTS, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::PARENTS), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -112,7 +112,7 @@ TEST(DeltaVisitorTests, ChangeOneFieldInContainer) {
   differingPaths.clear();
 
   result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::MINIMAL, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::MINIMAL), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -139,7 +139,7 @@ TEST(DeltaVisitorTests, SetOptional) {
   };
 
   auto result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::PARENTS, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::PARENTS), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -151,7 +151,7 @@ TEST(DeltaVisitorTests, SetOptional) {
   differingPaths.clear();
 
   result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::MINIMAL, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::MINIMAL), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -162,7 +162,7 @@ TEST(DeltaVisitorTests, SetOptional) {
   differingPaths.clear();
 
   result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::FULL, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::FULL), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -194,7 +194,7 @@ TEST(DeltaVisitorTests, AddToMap) {
   };
 
   auto result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::PARENTS, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::PARENTS), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -207,7 +207,7 @@ TEST(DeltaVisitorTests, AddToMap) {
   differingPaths.clear();
 
   result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::MINIMAL, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::MINIMAL), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -218,7 +218,7 @@ TEST(DeltaVisitorTests, AddToMap) {
   differingPaths.clear();
 
   result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::FULL, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::FULL), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -262,7 +262,7 @@ TEST(DeltaVisitorTests, UpdateMap) {
   };
 
   auto result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::PARENTS, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::PARENTS), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -278,7 +278,7 @@ TEST(DeltaVisitorTests, UpdateMap) {
   differingPaths.clear();
 
   result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::MINIMAL, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::MINIMAL), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -290,7 +290,7 @@ TEST(DeltaVisitorTests, UpdateMap) {
   differingPaths.clear();
 
   result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::FULL, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::FULL), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -322,7 +322,7 @@ TEST(DeltaVisitorTests, DeleteFromMap) {
   };
 
   auto result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::PARENTS, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::PARENTS), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -335,7 +335,7 @@ TEST(DeltaVisitorTests, DeleteFromMap) {
   differingPaths.clear();
 
   result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::MINIMAL, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::MINIMAL), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -346,7 +346,7 @@ TEST(DeltaVisitorTests, DeleteFromMap) {
   differingPaths.clear();
 
   result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::FULL, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::FULL), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -382,7 +382,7 @@ TEST(DeltaVisitorTests, AddToList) {
   };
 
   auto result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::PARENTS, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::PARENTS), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -395,7 +395,7 @@ TEST(DeltaVisitorTests, AddToList) {
   differingPaths.clear();
 
   result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::MINIMAL, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::MINIMAL), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -406,7 +406,7 @@ TEST(DeltaVisitorTests, AddToList) {
   differingPaths.clear();
 
   result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::FULL, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::FULL), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -442,7 +442,7 @@ TEST(DeltaVisitorTests, DeleteFromList) {
   };
 
   auto result = RootDeltaVisitor::visit(
-      nodeB, nodeA, DeltaVisitMode::PARENTS, processChange);
+      nodeB, nodeA, DeltaVisitOptions(DeltaVisitMode::PARENTS), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -455,7 +455,7 @@ TEST(DeltaVisitorTests, DeleteFromList) {
   differingPaths.clear();
 
   result = RootDeltaVisitor::visit(
-      nodeB, nodeA, DeltaVisitMode::MINIMAL, processChange);
+      nodeB, nodeA, DeltaVisitOptions(DeltaVisitMode::MINIMAL), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -466,7 +466,7 @@ TEST(DeltaVisitorTests, DeleteFromList) {
   differingPaths.clear();
 
   result = RootDeltaVisitor::visit(
-      nodeB, nodeA, DeltaVisitMode::FULL, processChange);
+      nodeB, nodeA, DeltaVisitOptions(DeltaVisitMode::FULL), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -499,7 +499,7 @@ TEST(DeltaVisitorTests, EditVariantField) {
   };
 
   auto result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::PARENTS, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::PARENTS), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -512,7 +512,7 @@ TEST(DeltaVisitorTests, EditVariantField) {
   differingPaths.clear();
 
   result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::MINIMAL, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::MINIMAL), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -523,7 +523,7 @@ TEST(DeltaVisitorTests, EditVariantField) {
   differingPaths.clear();
 
   result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::FULL, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::FULL), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -552,7 +552,7 @@ TEST(DeltaVisitorTests, SwitchVariantField) {
   };
 
   auto result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::PARENTS, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::PARENTS), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -566,7 +566,7 @@ TEST(DeltaVisitorTests, SwitchVariantField) {
   differingPaths.clear();
 
   result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::MINIMAL, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::MINIMAL), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -578,7 +578,7 @@ TEST(DeltaVisitorTests, SwitchVariantField) {
   differingPaths.clear();
 
   result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::FULL, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::FULL), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -613,7 +613,7 @@ TEST(DeltaVisitorTests, SwitchVariantFieldToStruct) {
   };
 
   auto result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::PARENTS, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::PARENTS), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -628,7 +628,7 @@ TEST(DeltaVisitorTests, SwitchVariantFieldToStruct) {
   differingPaths.clear();
 
   result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::MINIMAL, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::MINIMAL), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -641,7 +641,7 @@ TEST(DeltaVisitorTests, SwitchVariantFieldToStruct) {
   differingPaths.clear();
 
   result = RootDeltaVisitor::visit(
-      nodeA, nodeB, DeltaVisitMode::FULL, processChange);
+      nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::FULL), processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,

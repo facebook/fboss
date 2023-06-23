@@ -183,7 +183,7 @@ class FsdbSyncManager {
     thrift_cow::RootDeltaVisitor::visit(
         oldState,
         newState,
-        thrift_cow::DeltaVisitMode::MINIMAL,
+        thrift_cow::DeltaVisitOptions(thrift_cow::DeltaVisitMode::MINIMAL),
         std::move(processChange));
 
     publish(createDelta(std::move(deltas)));
