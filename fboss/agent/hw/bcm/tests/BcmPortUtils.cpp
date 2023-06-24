@@ -239,10 +239,10 @@ void verifyTxSettting(
   }
 }
 
-void verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {
+bool verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {
   BcmTestPlatform* platform =
       static_cast<BcmTestPlatform*>(ensemble->getPlatform());
-  EXPECT_TRUE(platform->verifyLEDStatus(port, up));
+  return platform->verifyLEDStatus(port, up);
 }
 
 void verifyRxSettting(

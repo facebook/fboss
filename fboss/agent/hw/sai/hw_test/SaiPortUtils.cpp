@@ -309,7 +309,7 @@ void verifyTxSettting(
   }
 }
 
-void verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {
+bool verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {
   SaiPlatform* platform = static_cast<SaiPlatform*>(ensemble->getPlatform());
   SaiPlatformPort* platformPort = platform->getPort(port);
   uint32_t currentVal = platformPort->getCurrentLedState();
@@ -335,9 +335,9 @@ void verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {
           platform->getLaneCount(platformPort->getCurrentProfile()), up, up));
     } break;
     default:
-      return;
+      return true;
   }
-  EXPECT_EQ(currentVal, expectedVal);
+  return currentVal == expectedVal;
 }
 
 void verifyRxSettting(
