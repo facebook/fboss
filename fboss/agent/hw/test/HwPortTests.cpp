@@ -31,17 +31,28 @@ class HwPortTest : public HwTest {
     return utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackModes());
+        getAsic()->desiredLoopbackModes(),
+        false /*interfaceHasSubnet*/,
+        false, /*setInterfaceMac*/
+        utility::kBaseVlanId,
+        true);
+  }
+
+ private:
+  bool hideFabricPorts() const override {
+    return false;
   }
 };
 
 TEST_F(HwPortTest, PortLoopbackMode) {
   auto setup = [this]() { applyNewConfig(initialConfig()); };
   auto verify = [this]() {
-    std::map<PortID, int> port2LoopbackMode = {
-        {PortID(masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
-         utility::getLoopbackMode(getAsic()->getDesiredLoopbackMode())}};
-    utility::assertPortsLoopbackMode(getHwSwitch(), port2LoopbackMode);
+    for (const auto& loopbackMode : getAsic()->desiredLoopbackModes()) {
+      std::map<PortID, int> port2LoopbackMode = {
+          {PortID(masterLogicalPortIds({loopbackMode.first})[0]),
+           utility::getLoopbackMode(loopbackMode.second)}};
+      utility::assertPortsLoopbackMode(getHwSwitch(), port2LoopbackMode);
+    }
   };
 
   verifyAcrossWarmBoots(setup, verify);
