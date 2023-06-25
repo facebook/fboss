@@ -210,7 +210,7 @@ Jericho3Asic::desiredLoopbackModes() const {
   static const std::map<cfg::PortType, cfg::PortLoopbackMode> kLoopbackMode = {
       {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::NIF},
       {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC},
-      {cfg::PortType::RECYCLE_PORT, cfg::PortLoopbackMode::MAC}};
+      {cfg::PortType::RECYCLE_PORT, cfg::PortLoopbackMode::NONE}};
   return kLoopbackMode;
 }
 } // namespace facebook::fboss
