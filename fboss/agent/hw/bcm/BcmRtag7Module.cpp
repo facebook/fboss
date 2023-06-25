@@ -25,8 +25,12 @@ extern "C" {
 
 namespace {
 const bool kEnable = true;
-static constexpr int kBcmECMPHashSet0Offset = 0x5;
-static constexpr int kBcmEcmpDynamicHashOffset = 0x5;
+static constexpr int kBcmECMPHashSet0Offset = 5;
+static constexpr int kBcmEcmpDynamicHashOffset = 5;
+static constexpr int kBcmHashUseFlowSelEcmpDynamic = 1;
+static constexpr int kBcmMacroFlowEcmpDynamicHashMinOffset = 0;
+static constexpr int kBcmMacroFlowEcmpDynamicHashMaxOffset = 15;
+static constexpr int kBcmMacroFlowEcmpDynamicHashStrideOffset = 1;
 } // namespace
 
 namespace facebook::fboss {
@@ -333,6 +337,30 @@ void BcmRtag7Module::programSeed(uint32_t seed) {
   bcmCheckError(rv, "failed to set seed on module ", moduleControl_.module);
 }
 
+void BcmRtag7Module::programFlowletHash() {
+  int rv = 0;
+  rv = setUnitControl(bcmSwitchECMPHashSet0Offset, kBcmECMPHashSet0Offset);
+  bcmCheckError(rv, "failed to set enhanced hash bits selection");
+  rv =
+      setUnitControl(bcmSwitchEcmpDynamicHashOffset, kBcmEcmpDynamicHashOffset);
+  bcmCheckError(rv, "failed to set ECMP-DLB hashout selection");
+  rv = setUnitControl(
+      bcmSwitchHashUseFlowSelEcmpDynamic, kBcmHashUseFlowSelEcmpDynamic);
+  bcmCheckError(rv, "failed to set flow select ECMP dynamic selection");
+  rv = setUnitControl(
+      bcmSwitchMacroFlowEcmpDynamicHashMinOffset,
+      kBcmMacroFlowEcmpDynamicHashMinOffset);
+  bcmCheckError(rv, "failed to set macro flow ECMP Dynamic hash min offset");
+  rv = setUnitControl(
+      bcmSwitchMacroFlowEcmpDynamicHashMaxOffset,
+      kBcmMacroFlowEcmpDynamicHashMaxOffset);
+  bcmCheckError(rv, "failed to set macro flow ECMP Dynamic hash max offset");
+  rv = setUnitControl(
+      bcmSwitchMacroFlowEcmpDynamicHashStrideOffset,
+      kBcmMacroFlowEcmpDynamicHashStrideOffset);
+  bcmCheckError(rv, "failed to set macro flow ECMP Dynamic hash stride offset");
+}
+
 void BcmRtag7Module::enableRtag7(LoadBalancerID loadBalancerID) {
   int rv = 0;
 
@@ -342,12 +370,7 @@ void BcmRtag7Module::enableRtag7(LoadBalancerID loadBalancerID) {
       bcmCheckError(rv, "failed to enable RTAG7 for ECMP");
       if (FLAGS_flowletSwitchingEnable) {
         XLOG(DBG2) << "RTAG7 Programming for flowlet switching config: ";
-        rv =
-            setUnitControl(bcmSwitchECMPHashSet0Offset, kBcmECMPHashSet0Offset);
-        bcmCheckError(rv, "failed to set enhanced hash bits selection");
-        rv = setUnitControl(
-            bcmSwitchEcmpDynamicHashOffset, kBcmEcmpDynamicHashOffset);
-        bcmCheckError(rv, "failed to set ECMP-DLB hashout selection");
+        programFlowletHash();
       }
       break;
     case LoadBalancerID::AGGREGATE_PORT:
