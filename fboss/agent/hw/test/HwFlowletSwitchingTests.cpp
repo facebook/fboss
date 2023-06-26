@@ -66,6 +66,13 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
+  void TearDown() override {
+    if (!FLAGS_setup_for_warmboot) {
+      bringDownPorts(masterLogicalPortIds());
+    }
+    HwLinkStateDependentTest::TearDown();
+  }
+
   cfg::FlowletSwitchingConfig getFlowletSwitchingConfig() const {
     cfg::FlowletSwitchingConfig flowletCfg;
     flowletCfg.inactivityIntervalUsecs() = 60;
@@ -99,6 +106,10 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
         }));
   }
 
+  void unresolveNextHop(PortDescriptor port) {
+    applyNewState(ecmpHelper_->unresolveNextHops(getProgrammedState(), {port}));
+  }
+
   void addRoute(folly::IPAddressV6 prefix, uint8_t mask) {
     auto nHops = swSwitchWeights_.size();
     ecmpHelper_->programRoutes(
@@ -128,6 +139,22 @@ TEST_F(HwFlowletSwitchingTest, VerifyFlowletSwitchingEnable) {
 
   auto verify = [&]() {
     auto flowletCfg = this->getFlowletSwitchingConfig();
+    EXPECT_TRUE(
+        utility::validateFlowletSwitchingEnabled(getHwSwitch(), flowletCfg));
+    EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
+        getHwSwitch(), kAddr1Prefix, flowletCfg));
+
+    // Shrink egress and verify
+    this->unresolveNextHop(PortDescriptor(masterLogicalPortIds()[3]));
+
+    EXPECT_TRUE(
+        utility::validateFlowletSwitchingEnabled(getHwSwitch(), flowletCfg));
+    EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
+        getHwSwitch(), kAddr1Prefix, flowletCfg));
+
+    // Expand egress and verify
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[3]));
+
     EXPECT_TRUE(
         utility::validateFlowletSwitchingEnabled(getHwSwitch(), flowletCfg));
     EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(

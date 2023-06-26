@@ -160,6 +160,21 @@ std::shared_ptr<SwitchState> addLoadBalancers(
   return newState;
 }
 
+cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(void) {
+  cfg::FlowletSwitchingConfig flowletCfg;
+  flowletCfg.inactivityIntervalUsecs() = 16;
+  flowletCfg.flowletTableSize() = 2048;
+  flowletCfg.dynamicEgressLoadExponent() = 4;
+  flowletCfg.dynamicQueueExponent() = 4;
+  flowletCfg.dynamicQueueMinThresholdBytes() = 1000;
+  flowletCfg.dynamicQueueMaxThresholdBytes() = 10000;
+  flowletCfg.dynamicSampleRate() = 1000000;
+  flowletCfg.dynamicEgressMinThresholdBytes() = 1000;
+  flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
+  flowletCfg.dynamicPhysicalQueueExponent() = 4;
+  return flowletCfg;
+}
+
 cfg::UdfConfig addUdfConfig(void) {
   cfg::UdfConfig udfCfg;
   cfg::UdfGroup udfGroupEntry;

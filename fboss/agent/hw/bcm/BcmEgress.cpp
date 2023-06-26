@@ -670,6 +670,7 @@ bool BcmEcmpEgress::removeEgressIdHwNotLocked(
       return true;
     }
     for (int i = 0; i < toRemove.second; i++) {
+      XLOG(DBG3) << " Removing  " << toRemove.first << " from: " << ecmpId;
       bcm_l3_egress_ecmp_t obj;
       bcm_l3_egress_ecmp_t_init(&obj);
       obj.ecmp_intf = ecmpId;

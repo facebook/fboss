@@ -127,11 +127,6 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
-  void SetUp() override {
-    HwLinkStateDependentTest::SetUp();
-    helper_ = getECMPHelper();
-  }
-
   void programECMP(
       unsigned int ecmpWidth,
       const cfg::LoadBalancer& loadBalancer,
@@ -190,6 +185,12 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
   virtual bool skipTest() const {
     return false;
   }
+
+  void SetUp() override {
+    HwLinkStateDependentTest::SetUp();
+    helper_ = getECMPHelper();
+  }
+
   void runLoadBalanceTest(
       unsigned int ecmpWidth,
       const cfg::LoadBalancer& loadBalancer,

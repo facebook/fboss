@@ -233,6 +233,24 @@ void BcmHostIf::program(
   egressPtr = getEgress();
 
   CHECK(egressPtr);
+
+  BcmEcmpEgress::Action ecmpAction;
+  bool isSet = isPortOrTrunkSet();
+
+  // For DLB the egressId should be removed from the ECMP group first
+  // since egressId points to CPU port can not be part of DLB enabled ECMP group
+  if (isSet && !port) {
+    /* went down */
+    ecmpAction = BcmEcmpEgress::Action::SHRINK;
+
+    // This will remove the egressId from ECMP group
+    hw_->writableMultiPathNextHopTable()->egressResolutionChangedHwLocked(
+        getEgressId(), ecmpAction);
+
+    XLOG(DBG3) << "Removed the egressId= " << getEgressId()
+               << " from ECMP groups";
+  }
+
   if (mac) {
     egressPtr->programToPort(intf, vrf, addr, *mac, port);
   } else {
@@ -262,7 +280,6 @@ void BcmHostIf::program(
   // TODO(samank): isPortOrTrunkSet set is used as a proxy for whether
   // egressId_ is in the set of resolved egresses. We should instead simply
   // consult the set of resolved egresses for this information.
-  bool isSet = isPortOrTrunkSet();
   // If ARP/NDP just resolved for this host, we need to inform
   // ecmp egress objects about this egress Id becoming reachable.
   // Consider the case where a port went down, neighbor entry expires
@@ -288,12 +305,7 @@ void BcmHostIf::program(
   // of a egress ID changes (e.g. on IP Address renumbering). This is
   // however safe since we ECMP expand code handles the case where we
   // try to add a already present egress ID in a ECMP group.
-  BcmEcmpEgress::Action ecmpAction;
-  if (isSet && !port) {
-    /* went down */
-    hw_->writableEgressManager()->unresolved(getEgressId());
-    ecmpAction = BcmEcmpEgress::Action::SHRINK;
-  } else if (!isSet && port) {
+  if (!isSet && port) {
     /* came up */
     hw_->writableEgressManager()->resolved(getEgressId());
     ecmpAction = BcmEcmpEgress::Action::EXPAND;
@@ -301,7 +313,7 @@ void BcmHostIf::program(
     /* stayed down */
     /* unresolved(egressId_); */
     ecmpAction = BcmEcmpEgress::Action::SKIP;
-  } else {
+  } else if (isSet && port) {
     /* stayed up */
     DCHECK(isSet && port);
     /* resolved(egressId_); */
@@ -311,11 +323,17 @@ void BcmHostIf::program(
   // Update port mapping, for entries marked to RouteForwardAction::DROP or to
   // CPU port gets set to 0, which implies no ports are associated with this
   // entry now.
-  hw_->writableEgressManager()->updatePortToEgressMapping(
-      egressPtr->getID(), getSetPortAsGPort(), BcmPort::asGPort(port));
+  if (ecmpAction == BcmEcmpEgress::Action::SHRINK) {
+    hw_->writableEgressManager()->unresolved(getEgressId());
+    hw_->writableEgressManager()->updatePortToEgressMapping(
+        egressPtr->getID(), getSetPortAsGPort(), BcmPort::asGPort(port));
+  } else {
+    hw_->writableEgressManager()->updatePortToEgressMapping(
+        egressPtr->getID(), getSetPortAsGPort(), BcmPort::asGPort(port));
 
-  hw_->writableMultiPathNextHopTable()->egressResolutionChangedHwLocked(
-      getEgressId(), ecmpAction);
+    hw_->writableMultiPathNextHopTable()->egressResolutionChangedHwLocked(
+        getEgressId(), ecmpAction);
+  }
 
   egressPort_ = newEgressPort;
   action_ = action;

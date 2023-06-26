@@ -166,4 +166,6 @@ bool isHwDeterministicSeed(
     const std::shared_ptr<SwitchState>& state,
     LoadBalancerID id);
 
+cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig();
+
 } // namespace facebook::fboss::utility
