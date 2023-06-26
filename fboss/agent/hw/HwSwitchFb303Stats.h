@@ -58,10 +58,10 @@ class HwSwitchFb303Stats {
     asicErrors_.addValue(1);
   }
 
-  void FabricReachabilityMissingCount() {
+  void fabricReachabilityMissingCount() {
     fabricReachabilityMissingCount_.addValue(1);
   }
-  void FabricReachabilityMismatchCount() {
+  void fabricReachabilityMismatchCount() {
     fabricReachabilityMismatchCount_.addValue(1);
   }
 
