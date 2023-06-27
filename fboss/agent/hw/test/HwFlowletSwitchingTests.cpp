@@ -66,13 +66,6 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
-  void TearDown() override {
-    if (!FLAGS_setup_for_warmboot) {
-      bringDownPorts(masterLogicalPortIds());
-    }
-    HwLinkStateDependentTest::TearDown();
-  }
-
   cfg::FlowletSwitchingConfig getFlowletSwitchingConfig() const {
     cfg::FlowletSwitchingConfig flowletCfg;
     flowletCfg.inactivityIntervalUsecs() = 60;

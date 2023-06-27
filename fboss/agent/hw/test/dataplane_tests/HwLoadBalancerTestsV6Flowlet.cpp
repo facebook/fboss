@@ -94,20 +94,6 @@ class HwLoadBalancerTestV6Flowlet
     // BRCM does not support MAC loopback for 100G links due to phy lane issues
     setPortState();
   }
-
-  // For DLB, egress must be removed from ecmp group before egress can point to
-  // CPU. Destructor sequence leads to egress pointing to CPU before it is
-  // removed from ecmp group. But link down removes egress from ecmp group
-  // immediately without pointing egress to CPU. TearDown meets DLB constraint
-  // of not setting ecmp group member to CPU which can happen in destructor
-  // sequence during exit for cold boot
-  void TearDown() override {
-    auto ports = getPorts();
-    if (!FLAGS_setup_for_warmboot) {
-      bringDownPorts(ports);
-    }
-    HwLinkStateDependentTest::TearDown();
-  }
 };
 
 // DLB expects traffic not to be balanced on all egress ports
