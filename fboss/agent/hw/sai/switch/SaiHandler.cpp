@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
 #include <folly/logging/xlog.h>
+#include "fboss/lib/LogThriftCall.h"
 
 namespace facebook::fboss {
 
@@ -53,6 +54,8 @@ void SaiHandler::diagCmd(
     std::unique_ptr<ClientInformation> client,
     int16_t /* unused */,
     bool /* unused */) {
+  auto log = LOG_THRIFT_CALL(WARN, *cmd);
+  ensureConfigured(__func__);
   result = diagCmdServer_.diagCmd(std::move(cmd), std::move(client));
 }
 
