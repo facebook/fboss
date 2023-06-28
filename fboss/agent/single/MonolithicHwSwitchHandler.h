@@ -51,6 +51,8 @@ class MonolinithicHwSwitchHandler : public HwSwitchHandler {
 
   std::optional<uint32_t> getHwLogicalPortId(PortID portID) const override;
 
+  void initPlatformData() override;
+
  private:
   PlatformInitFn initPlatformFn_;
   HwSwitch* hw_;

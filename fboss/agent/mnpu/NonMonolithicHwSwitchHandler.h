@@ -41,6 +41,8 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
   folly::dynamic toFollyDynamic() const override;
 
   std::optional<uint32_t> getHwLogicalPortId(PortID portID) const override;
+
+  void initPlatformData() override;
 };
 
 } // namespace facebook::fboss

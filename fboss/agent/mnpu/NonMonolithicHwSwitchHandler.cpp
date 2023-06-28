@@ -72,4 +72,8 @@ std::optional<uint32_t> NonMonolithicHwSwitchHandler::getHwLogicalPortId(
   return std::nullopt;
 }
 
+void NonMonolithicHwSwitchHandler::initPlatformData() {
+  // TODO: implement this
+}
+
 } // namespace facebook::fboss

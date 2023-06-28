@@ -18,6 +18,7 @@ void MonolinithicHwSwitchHandler::initPlatform(
     uint32_t features) {
   platform_ = initPlatformFn_(std::move(config), features);
   hw_ = platform_->getHwSwitch();
+  initPlatformData();
 }
 
 HwInitResult MonolinithicHwSwitchHandler::initHw(
@@ -80,6 +81,22 @@ std::optional<uint32_t> MonolinithicHwSwitchHandler::getHwLogicalPortId(
     PortID portID) const {
   auto platformPort = platform_->getPlatformPort(portID);
   return platformPort->getHwLogicalPortId();
+}
+
+void MonolinithicHwSwitchHandler::initPlatformData() {
+  platformData_.volatileStateDir = platform_->getVolatileStateDir();
+  platformData_.persistentStateDir = platform_->getPersistentStateDir();
+  platformData_.crashSwitchStateFile = platform_->getCrashSwitchStateFile();
+  platformData_.crashThriftSwitchStateFile =
+      platform_->getCrashThriftSwitchStateFile();
+  platformData_.warmBootDir = platform_->getWarmBootDir();
+  platformData_.crashBadStateUpdateDir = platform_->getCrashBadStateUpdateDir();
+  platformData_.crashBadStateUpdateOldStateFile =
+      platform_->getCrashBadStateUpdateOldStateFile();
+  platformData_.crashBadStateUpdateNewStateFile =
+      platform_->getCrashBadStateUpdateNewStateFile();
+  platformData_.runningConfigDumpFile = platform_->getRunningConfigDumpFile();
+  platformData_.supportsAddRemovePort = platform_->supportsAddRemovePort();
 }
 
 } // namespace facebook::fboss

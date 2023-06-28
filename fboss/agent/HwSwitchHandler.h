@@ -10,6 +10,19 @@ namespace facebook::fboss {
 class TxPacket;
 class StateDelta;
 
+struct PlatformData {
+  std::string volatileStateDir;
+  std::string persistentStateDir;
+  std::string crashSwitchStateFile;
+  std::string crashThriftSwitchStateFile;
+  std::string warmBootDir;
+  std::string crashBadStateUpdateDir;
+  std::string crashBadStateUpdateOldStateFile;
+  std::string crashBadStateUpdateNewStateFile;
+  std::string runningConfigDumpFile;
+  bool supportsAddRemovePort;
+};
+
 struct HwSwitchHandler {
   virtual ~HwSwitchHandler() = default;
 
@@ -46,6 +59,14 @@ struct HwSwitchHandler {
   virtual folly::dynamic toFollyDynamic() const = 0;
 
   virtual std::optional<uint32_t> getHwLogicalPortId(PortID portID) const = 0;
+
+  const PlatformData& getPlatformData() const {
+    return platformData_;
+  }
+
+ protected:
+  virtual void initPlatformData() = 0;
+  PlatformData platformData_;
 };
 
 } // namespace facebook::fboss
