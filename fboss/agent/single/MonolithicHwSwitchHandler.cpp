@@ -5,6 +5,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 namespace facebook::fboss {
@@ -56,6 +57,11 @@ bool MonolinithicHwSwitchHandler::sendPacketOutOfPortAsync(
 bool MonolinithicHwSwitchHandler::sendPacketSwitchedSync(
     std::unique_ptr<TxPacket> pkt) noexcept {
   return hw_->sendPacketSwitchedSync(std::move(pkt));
+}
+
+bool MonolinithicHwSwitchHandler::sendPacketSwitchedAsync(
+    std::unique_ptr<TxPacket> pkt) noexcept {
+  return hw_->sendPacketSwitchedAsync(std::move(pkt));
 }
 
 bool MonolinithicHwSwitchHandler::isValidStateUpdate(
@@ -124,6 +130,36 @@ const AgentConfig* MonolinithicHwSwitchHandler::config() {
 
 const AgentConfig* MonolinithicHwSwitchHandler::reloadConfig() {
   return platform_->reloadConfig();
+}
+
+bool MonolinithicHwSwitchHandler::transactionsSupported() const {
+  return hw_->transactionsSupported();
+}
+
+folly::F14FastMap<std::string, HwPortStats>
+MonolinithicHwSwitchHandler::getPortStats() const {
+  return hw_->getPortStats();
+}
+
+std::map<std::string, HwSysPortStats>
+MonolinithicHwSwitchHandler::getSysPortStats() const {
+  return hw_->getSysPortStats();
+}
+
+void MonolinithicHwSwitchHandler::updateStats(SwitchStats* switchStats) {
+  return hw_->updateStats(switchStats);
+}
+
+std::map<PortID, phy::PhyInfo> MonolinithicHwSwitchHandler::updateAllPhyInfo() {
+  return hw_->updateAllPhyInfo();
+}
+
+uint64_t MonolinithicHwSwitchHandler::getDeviceWatermarkBytes() const {
+  return hw_->getDeviceWatermarkBytes();
+}
+
+HwSwitchFb303Stats* MonolinithicHwSwitchHandler::getSwitchStats() const {
+  return hw_->getSwitchStats();
 }
 
 void MonolinithicHwSwitchHandler::clearPortStats(

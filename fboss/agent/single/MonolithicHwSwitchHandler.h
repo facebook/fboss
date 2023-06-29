@@ -40,6 +40,8 @@ class MonolinithicHwSwitchHandler : public HwSwitchHandler {
 
   bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept override;
 
+  bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept override;
+
   bool isValidStateUpdate(const StateDelta& delta) const override;
 
   void unregisterCallbacks() override;
@@ -55,6 +57,18 @@ class MonolinithicHwSwitchHandler : public HwSwitchHandler {
   std::optional<uint32_t> getHwLogicalPortId(PortID portID) const override;
 
   void initPlatformData() override;
+
+  folly::F14FastMap<std::string, HwPortStats> getPortStats() const override;
+
+  std::map<std::string, HwSysPortStats> getSysPortStats() const override;
+
+  void updateStats(SwitchStats* switchStats) override;
+
+  std::map<PortID, phy::PhyInfo> updateAllPhyInfo() override;
+
+  uint64_t getDeviceWatermarkBytes() const override;
+
+  HwSwitchFb303Stats* getSwitchStats() const override;
 
   void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& ports) override;
@@ -90,6 +104,8 @@ class MonolinithicHwSwitchHandler : public HwSwitchHandler {
   std::shared_ptr<SwitchState> stateChanged(
       const StateDelta& delta,
       bool transaction) override;
+
+  bool transactionsSupported() const override;
 
   /* TODO: remove this method */
   HwSwitch* getHwSwitch() {

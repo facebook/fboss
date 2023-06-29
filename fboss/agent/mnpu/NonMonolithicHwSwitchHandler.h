@@ -28,6 +28,8 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
 
   bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept override;
 
+  bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept override;
+
   bool isValidStateUpdate(const StateDelta& delta) const override;
 
   void unregisterCallbacks() override;
@@ -43,6 +45,20 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
   std::optional<uint32_t> getHwLogicalPortId(PortID portID) const override;
 
   void initPlatformData() override;
+
+  bool transactionsSupported() const override;
+
+  folly::F14FastMap<std::string, HwPortStats> getPortStats() const override;
+
+  std::map<std::string, HwSysPortStats> getSysPortStats() const override;
+
+  void updateStats(SwitchStats* switchStats) override;
+
+  std::map<PortID, phy::PhyInfo> updateAllPhyInfo() override;
+
+  uint64_t getDeviceWatermarkBytes() const override;
+
+  HwSwitchFb303Stats* getSwitchStats() const override;
 
   void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& ports) override;

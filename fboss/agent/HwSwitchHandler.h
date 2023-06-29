@@ -9,6 +9,8 @@ namespace facebook::fboss {
 
 class TxPacket;
 class StateDelta;
+class SwitchStats;
+class HwSwitchFb303Stats;
 
 struct PlatformData {
   std::string volatileStateDir;
@@ -46,6 +48,9 @@ struct HwSwitchHandler {
   virtual bool sendPacketSwitchedSync(
       std::unique_ptr<TxPacket> pkt) noexcept = 0;
 
+  virtual bool sendPacketSwitchedAsync(
+      std::unique_ptr<TxPacket> pkt) noexcept = 0;
+
   virtual bool isValidStateUpdate(const StateDelta& delta) const = 0;
 
   virtual void unregisterCallbacks() = 0;
@@ -63,6 +68,20 @@ struct HwSwitchHandler {
   const PlatformData& getPlatformData() const {
     return platformData_;
   }
+
+  virtual bool transactionsSupported() const = 0;
+
+  virtual HwSwitchFb303Stats* getSwitchStats() const = 0;
+
+  virtual folly::F14FastMap<std::string, HwPortStats> getPortStats() const = 0;
+
+  virtual std::map<std::string, HwSysPortStats> getSysPortStats() const = 0;
+
+  virtual void updateStats(SwitchStats* switchStats) = 0;
+
+  virtual std::map<PortID, phy::PhyInfo> updateAllPhyInfo() = 0;
+
+  virtual uint64_t getDeviceWatermarkBytes() const = 0;
 
   virtual void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& ports) = 0;

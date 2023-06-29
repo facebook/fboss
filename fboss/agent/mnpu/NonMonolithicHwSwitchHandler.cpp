@@ -39,6 +39,12 @@ bool NonMonolithicHwSwitchHandler::sendPacketSwitchedSync(
   return true;
 }
 
+bool NonMonolithicHwSwitchHandler::sendPacketSwitchedAsync(
+    std::unique_ptr<TxPacket> /*pkt*/) noexcept {
+  // TODO: implement this
+  return true;
+}
+
 bool NonMonolithicHwSwitchHandler::isValidStateUpdate(
     const StateDelta& /*delta*/) const {
   // TODO: implement this
@@ -97,6 +103,44 @@ const AgentConfig* NonMonolithicHwSwitchHandler::config() {
 }
 
 const AgentConfig* NonMonolithicHwSwitchHandler::reloadConfig() {
+  // TODO: implement this
+  // @lint-ignore CLANGTIDY
+  return nullptr;
+}
+
+bool NonMonolithicHwSwitchHandler::transactionsSupported() const {
+  // TODO: implement this
+  return false;
+}
+
+folly::F14FastMap<std::string, HwPortStats>
+NonMonolithicHwSwitchHandler::getPortStats() const {
+  // TODO: implement this
+  return {};
+}
+
+std::map<std::string, HwSysPortStats>
+NonMonolithicHwSwitchHandler::getSysPortStats() const {
+  // TODO: implement this
+  return {};
+}
+
+void NonMonolithicHwSwitchHandler::updateStats(SwitchStats* /*switchStats*/) {
+  // TODO: implement this
+}
+
+std::map<PortID, phy::PhyInfo>
+NonMonolithicHwSwitchHandler::updateAllPhyInfo() {
+  // TODO: implement this
+  return {};
+}
+
+uint64_t NonMonolithicHwSwitchHandler::getDeviceWatermarkBytes() const {
+  // TODO: implement this
+  return 0;
+}
+
+HwSwitchFb303Stats* NonMonolithicHwSwitchHandler::getSwitchStats() const {
   // TODO: implement this
   // @lint-ignore CLANGTIDY
   return nullptr;
