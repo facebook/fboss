@@ -551,6 +551,7 @@ class ProductInfoCli(object):
         "-d", "--detail", is_flag=True, help="Display detailed product information"
     )
     @click.pass_obj
+    @fboss2_deprecate("show product (details)", DeprecationLevel.WARN)
     def product(cli_opts, detail):
         """Show product information"""
         info.ProductInfoCmd(cli_opts).run(detail)
@@ -708,12 +709,14 @@ class AgentConfig(object):
         "--json", is_flag=True, default=False, help="Show configuration in JSON format"
     )
     @click.pass_obj
+    @fboss2_deprecate("show config running agent", DeprecationLevel.WARN)
     def _show(cli_opts, json):  # noqa: B902
         """Show running config"""
         agent.AgentConfigCmd(cli_opts).run(KEYWORD_CONFIG_SHOW, json)
 
     @click.command()
     @click.pass_obj
+    @fboss2_deprecate("reload config agent", DeprecationLevel.WARN)
     def _reload(cli_opts):  # noqa: B902
         """Reload agent configuration file"""
         agent.AgentConfigCmd(cli_opts).run(KEYWORD_CONFIG_RELOAD)
