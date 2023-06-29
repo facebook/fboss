@@ -944,6 +944,7 @@ class SwSwitch : public HwSwitchCallback {
 
   // The HwSwitch object.  This object is owned by the Platform.
   std::unique_ptr<MonolinithicHwSwitchHandler> hwSwitchHandler_;
+  PlatformData platformData_;
   const std::unique_ptr<PlatformProductInfo> platformProductInfo_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};
   folly::ThreadLocalPtr<SwitchStats, SwSwitch> stats_;
