@@ -26,7 +26,7 @@ class Wedge100Platform : public WedgeTomahawkPlatform {
       folly::MacAddress localMac);
 
   std::unique_ptr<WedgePortMapping> createPortMapping() override;
-  void onHwInitialized(SwSwitch* sw) override;
+  void onHwInitialized(HwSwitchCallback* sw) override;
   void onUnitAttach(int unit) override;
 
  private:

@@ -32,6 +32,7 @@ struct ProductInfo;
 class HwAsic;
 class HwSwitchWarmBootHelper;
 class PlatformProductInfo;
+class HwSwitchCallback;
 
 /*
  * Platform represents a specific switch/router platform.
@@ -148,14 +149,14 @@ class Platform {
    * initialized.  Platform-specific initialization that requires access to the
    * HwSwitch can be performed here.
    */
-  virtual void onHwInitialized(SwSwitch* sw) = 0;
+  virtual void onHwInitialized(HwSwitchCallback* sw) = 0;
 
   /*
    * onInitialConfigApplied() will be called after the initial
    * configuration has been applied.  Platform-specific initialization
    * that needs to happen after this can be performed here.
    */
-  virtual void onInitialConfigApplied(SwSwitch* sw) = 0;
+  virtual void onInitialConfigApplied(HwSwitchCallback* sw) = 0;
 
   /*
    * Create the ThriftHandler.

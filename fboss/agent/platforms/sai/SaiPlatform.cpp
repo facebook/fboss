@@ -159,7 +159,7 @@ HwSwitch* SaiPlatform::getHwSwitch() const {
   return saiSwitch_.get();
 }
 
-void SaiPlatform::onHwInitialized(SwSwitch* sw) {
+void SaiPlatform::onHwInitialized(HwSwitchCallback* sw) {
   initLEDs();
   sw->registerStateObserver(this, "SaiPlatform");
 }
@@ -168,7 +168,7 @@ void SaiPlatform::stateUpdated(const StateDelta& delta) {
   updatePorts(delta);
 }
 
-void SaiPlatform::onInitialConfigApplied(SwSwitch* /* sw */) {}
+void SaiPlatform::onInitialConfigApplied(HwSwitchCallback* /* sw */) {}
 
 void SaiPlatform::stop() {}
 

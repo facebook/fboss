@@ -37,9 +37,9 @@ HwSwitch* SimPlatform::getHwSwitch() const {
   return hw_.get();
 }
 
-void SimPlatform::onHwInitialized(SwSwitch* /*sw*/) {}
+void SimPlatform::onHwInitialized(HwSwitchCallback* /*sw*/) {}
 
-void SimPlatform::onInitialConfigApplied(SwSwitch* /*sw*/) {}
+void SimPlatform::onInitialConfigApplied(HwSwitchCallback* /*sw*/) {}
 
 void SimPlatform::stop() {}
 

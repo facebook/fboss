@@ -49,7 +49,7 @@ void Wedge100Platform::enableLedMode() {
   Wedge100LedUtils::enableLedMode();
 }
 
-void Wedge100Platform::onHwInitialized(SwSwitch* sw) {
+void Wedge100Platform::onHwInitialized(HwSwitchCallback* sw) {
   WedgePlatform::onHwInitialized(sw);
   enableLedMode();
 }

@@ -55,9 +55,9 @@ void BcmTestPlatform::onUnitCreate(int unit) {
   dumpHwConfig();
 }
 
-void BcmTestPlatform::onHwInitialized(SwSwitch* /*sw*/) {}
+void BcmTestPlatform::onHwInitialized(HwSwitchCallback* /*sw*/) {}
 
-void BcmTestPlatform::onInitialConfigApplied(SwSwitch* /*sw*/) {}
+void BcmTestPlatform::onInitialConfigApplied(HwSwitchCallback* /*sw*/) {}
 
 void BcmTestPlatform::stop() {}
 
