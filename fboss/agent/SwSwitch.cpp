@@ -207,7 +207,7 @@ auto constexpr kHwUpdateFailures = "hw_update_failures";
 
 namespace facebook::fboss {
 
-SwSwitch::SwSwitch(std::unique_ptr<MonolinithicHwSwitchHandler> hwSwitchHandler)
+SwSwitch::SwSwitch(std::unique_ptr<HwSwitchHandler> hwSwitchHandler)
     : hwSwitchHandler_(std::move(hwSwitchHandler)),
       platformData_(hwSwitchHandler_->getPlatformData()),
       platformProductInfo_(
@@ -256,7 +256,7 @@ SwSwitch::SwSwitch(std::unique_ptr<MonolinithicHwSwitchHandler> hwSwitchHandler)
 }
 
 SwSwitch::SwSwitch(
-    std::unique_ptr<MonolinithicHwSwitchHandler> hwSwitchHandler,
+    std::unique_ptr<HwSwitchHandler> hwSwitchHandler,
     std::unique_ptr<PlatformMapping> platformMapping,
     cfg::SwitchConfig* config)
     : SwSwitch(std::move(hwSwitchHandler)) {

@@ -108,12 +108,12 @@ class MonolinithicHwSwitchHandler : public HwSwitchHandler {
   bool transactionsSupported() const override;
 
   /* TODO: remove this method */
-  HwSwitch* getHwSwitch() {
+  HwSwitch* getHwSwitch() const {
     return hw_;
   }
 
   /* TODO: remove this method */
-  Platform* getPlatform() {
+  Platform* getPlatform() const {
     return platform_.get();
   }
 

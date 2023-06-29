@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/hw/sim/SimPlatform.h"
 #include "fboss/agent/hw/sim/SimSwitch.h"
+#include "fboss/agent/single/MonolithicHwSwitchHandler.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"

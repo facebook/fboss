@@ -31,6 +31,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/single/MonolithicHwSwitchHandler.h"
 
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
