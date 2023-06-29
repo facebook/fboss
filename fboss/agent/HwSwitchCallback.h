@@ -19,6 +19,8 @@ struct HwInitResult {
   float bootTime{0.0};
 };
 
+class StateObserver;
+
 class HwSwitchCallback {
  public:
   virtual ~HwSwitchCallback() {}
@@ -55,6 +57,12 @@ class HwSwitchCallback {
   virtual void pfcWatchdogStateChanged(
       const PortID& port,
       const bool deadlock) = 0;
+
+  virtual void registerStateObserver(
+      StateObserver* observer,
+      const std::string& name) = 0;
+
+  virtual void unregisterStateObserver(StateObserver* observer) = 0;
 };
 
 } // namespace facebook::fboss

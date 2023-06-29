@@ -19,6 +19,7 @@ DECLARE_string(config);
 DECLARE_bool(setup_for_warmboot);
 
 namespace facebook::fboss {
+class StateObserver;
 
 using AgentEnsembleSwitchConfigFn = std::function<
     cfg::SwitchConfig(HwSwitch* hwSwitch, const std::vector<PortID>&)>;
@@ -157,6 +158,10 @@ class AgentEnsemble : public TestEnsembleIf {
     CHECK(getSw()->getScopeResolver());
     return *(getSw()->getScopeResolver());
   }
+
+  void registerStateObserver(StateObserver* observer, const std::string& name)
+      override;
+  void unregisterStateObserver(StateObserver* observer) override;
 
  private:
   void writeConfig(const cfg::SwitchConfig& config);

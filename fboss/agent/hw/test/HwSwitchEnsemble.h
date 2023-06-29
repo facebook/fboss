@@ -44,6 +44,7 @@ class Platform;
 class SwitchState;
 class HwLinkStateToggler;
 class SwitchIdScopeResolver;
+class StateObserver;
 
 class HwSwitchEnsemble : public TestEnsembleIf {
  public:
@@ -248,6 +249,11 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   virtual bool isSai() const = 0;
 
   const SwitchIdScopeResolver& scopeResolver() const override;
+
+  void registerStateObserver(
+      StateObserver* /*observer*/,
+      const std::string& /*name*/) override {}
+  void unregisterStateObserver(StateObserver* /*observer*/) override {}
 
  protected:
   /*

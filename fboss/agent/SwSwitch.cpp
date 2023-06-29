@@ -878,7 +878,7 @@ void SwSwitch::stopLoggingRouteUpdates(const std::string& identifier) {
 
 void SwSwitch::registerStateObserver(
     StateObserver* observer,
-    const string name) {
+    const string& name) {
   XLOG(DBG2) << "Registering state observer: " << name;
   updateEventBase_.runImmediatelyOrRunInEventBaseThreadAndWait(
       [=]() { addStateObserver(observer, name); });

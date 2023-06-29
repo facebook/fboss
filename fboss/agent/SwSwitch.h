@@ -347,8 +347,9 @@ class SwSwitch : public HwSwitchCallback {
    * The only required method for observers is stateUpdated and observers can
    * count on this always being called from the update thread.
    */
-  void registerStateObserver(StateObserver* observer, const std::string name);
-  void unregisterStateObserver(StateObserver* observer);
+  void registerStateObserver(StateObserver* observer, const std::string& name)
+      override;
+  void unregisterStateObserver(StateObserver* observer) override;
 
   /*
    * Signal to the switch that initial config is applied.
