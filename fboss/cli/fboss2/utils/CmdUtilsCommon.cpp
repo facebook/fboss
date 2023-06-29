@@ -9,7 +9,9 @@
  */
 
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
+#ifndef IS_OSS
 #include "common/time/TimeUtil.h"
+#endif
 
 #include <folly/String.h>
 #include <folly/gen/Base.h>
@@ -186,10 +188,12 @@ timeval splitFractionalSecondsFromTimer(const long& timer) {
 }
 
 const std::string parseTimeToTimeStamp(const long& timeToParse) {
-  constexpr std::string_view kTimeFormat = "%Y-%m-%d %H:%M:%S %Z";
   const auto splitTime = utils::splitFractionalSecondsFromTimer(timeToParse);
   std::string formattedTime; // Timestamp storage
+#ifndef IS_OSS
+  constexpr std::string_view kTimeFormat = "%Y-%m-%d %H:%M:%S %Z";
   stringFormatTimestamp(splitTime.tv_sec, kTimeFormat.data(), &formattedTime);
+#endif
 
   // stringFormatTimestamp returns a formatted time like the following:
   //      2021-10-27 00:00:06 PDT
