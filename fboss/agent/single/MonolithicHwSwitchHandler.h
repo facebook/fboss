@@ -16,6 +16,11 @@ class MonolinithicHwSwitchHandler : public HwSwitchHandler {
       std::unique_ptr<AgentConfig>,
       uint32_t featuresDesired)>;
 
+  /* TODO: remove this constructor */
+  explicit MonolinithicHwSwitchHandler(
+      std::unique_ptr<Platform> platform,
+      PlatformInitFn initPlatformFn);
+
   explicit MonolinithicHwSwitchHandler(PlatformInitFn initPlatformFn);
 
   virtual ~MonolinithicHwSwitchHandler() override {}
@@ -88,10 +93,20 @@ class MonolinithicHwSwitchHandler : public HwSwitchHandler {
       const StateDelta& delta,
       bool transaction) override;
 
+  /* TODO: remove this method */
+  HwSwitch* getHwSwitch() {
+    return hw_;
+  }
+
+  /* TODO: remove this method */
+  Platform* getPlatform() {
+    return platform_.get();
+  }
+
  private:
   PlatformInitFn initPlatformFn_;
-  HwSwitch* hw_;
   std::unique_ptr<Platform> platform_;
+  HwSwitch* hw_;
 };
 
 } // namespace facebook::fboss

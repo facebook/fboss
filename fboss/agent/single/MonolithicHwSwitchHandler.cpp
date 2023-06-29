@@ -13,6 +13,15 @@ MonolinithicHwSwitchHandler::MonolinithicHwSwitchHandler(
     PlatformInitFn initPlatformFn)
     : initPlatformFn_(std::move(initPlatformFn)) {}
 
+MonolinithicHwSwitchHandler::MonolinithicHwSwitchHandler(
+    std::unique_ptr<Platform> platform,
+    PlatformInitFn initPlatformFn)
+    : initPlatformFn_(std::move(initPlatformFn)),
+      platform_(std::move(platform)),
+      hw_(platform_->getHwSwitch()) {
+  initPlatformData();
+}
+
 void MonolinithicHwSwitchHandler::initPlatform(
     std::unique_ptr<AgentConfig> config,
     uint32_t features) {
