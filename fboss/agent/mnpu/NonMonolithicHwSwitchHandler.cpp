@@ -102,4 +102,49 @@ const AgentConfig* NonMonolithicHwSwitchHandler::reloadConfig() {
   return nullptr;
 }
 
+void NonMonolithicHwSwitchHandler::clearPortStats(
+    const std::unique_ptr<std::vector<int32_t>>& /*ports*/) {
+  // TODO: implement this
+}
+
+std::vector<phy::PrbsLaneStats>
+NonMonolithicHwSwitchHandler::getPortAsicPrbsStats(int32_t /*portId*/) {
+  // TODO: implement this
+  return {};
+}
+
+void NonMonolithicHwSwitchHandler::clearPortAsicPrbsStats(int32_t /*portId*/) {
+  // TODO: implement this
+}
+
+std::vector<prbs::PrbsPolynomial>
+NonMonolithicHwSwitchHandler::getPortPrbsPolynomials(int32_t /*portId*/) {
+  // TODO: implement this
+  return {};
+}
+
+prbs::InterfacePrbsState NonMonolithicHwSwitchHandler::getPortPrbsState(
+    PortID /* portId */) {
+  // TODO: implement this
+  return prbs::InterfacePrbsState{};
+}
+
+std::vector<phy::PrbsLaneStats>
+NonMonolithicHwSwitchHandler::getPortGearboxPrbsStats(
+    int32_t /*portId*/,
+    phy::Side /*side*/) {
+  // TODO: implement this
+  return {};
+}
+
+void NonMonolithicHwSwitchHandler::clearPortGearboxPrbsStats(
+    int32_t /*portId*/,
+    phy::Side /*side*/) {
+  // TODO: implement this
+}
+
+void NonMonolithicHwSwitchHandler::switchRunStateChanged(
+    SwitchRunState /*newState*/) {
+  // TODO: implement this
+}
 } // namespace facebook::fboss

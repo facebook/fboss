@@ -64,6 +64,27 @@ struct HwSwitchHandler {
     return platformData_;
   }
 
+  virtual void clearPortStats(
+      const std::unique_ptr<std::vector<int32_t>>& ports) = 0;
+
+  virtual std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(
+      int32_t portId) = 0;
+
+  virtual void clearPortAsicPrbsStats(int32_t portId) = 0;
+
+  virtual std::vector<prbs::PrbsPolynomial> getPortPrbsPolynomials(
+      int32_t portId) = 0;
+
+  virtual prbs::InterfacePrbsState getPortPrbsState(PortID portId) = 0;
+
+  virtual std::vector<phy::PrbsLaneStats> getPortGearboxPrbsStats(
+      int32_t portId,
+      phy::Side side) = 0;
+
+  virtual void clearPortGearboxPrbsStats(int32_t portId, phy::Side side) = 0;
+
+  virtual void switchRunStateChanged(SwitchRunState newState) = 0;
+
   // platform access apis
   virtual void onHwInitialized(HwSwitchCallback* callback) = 0;
 

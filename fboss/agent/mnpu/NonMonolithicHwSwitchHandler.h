@@ -44,6 +44,26 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
 
   void initPlatformData() override;
 
+  void clearPortStats(
+      const std::unique_ptr<std::vector<int32_t>>& ports) override;
+
+  std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(int32_t portId) override;
+
+  void clearPortAsicPrbsStats(int32_t portId) override;
+
+  std::vector<prbs::PrbsPolynomial> getPortPrbsPolynomials(
+      int32_t portId) override;
+
+  prbs::InterfacePrbsState getPortPrbsState(PortID portId) override;
+
+  std::vector<phy::PrbsLaneStats> getPortGearboxPrbsStats(
+      int32_t portId,
+      phy::Side side) override;
+
+  void clearPortGearboxPrbsStats(int32_t portId, phy::Side side) override;
+
+  void switchRunStateChanged(SwitchRunState newState) override;
+
   // platform access apis
   void onHwInitialized(HwSwitchCallback* callback) override;
 

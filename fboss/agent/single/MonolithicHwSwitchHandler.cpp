@@ -120,4 +120,46 @@ const AgentConfig* MonolinithicHwSwitchHandler::reloadConfig() {
   return platform_->reloadConfig();
 }
 
+void MonolinithicHwSwitchHandler::clearPortStats(
+    const std::unique_ptr<std::vector<int32_t>>& ports) {
+  hw_->clearPortStats(ports);
+}
+
+std::vector<phy::PrbsLaneStats>
+MonolinithicHwSwitchHandler::getPortAsicPrbsStats(int32_t portId) {
+  return hw_->getPortAsicPrbsStats(portId);
+}
+
+void MonolinithicHwSwitchHandler::clearPortAsicPrbsStats(int32_t portId) {
+  hw_->clearPortAsicPrbsStats(portId);
+}
+
+std::vector<prbs::PrbsPolynomial>
+MonolinithicHwSwitchHandler::getPortPrbsPolynomials(int32_t portId) {
+  return hw_->getPortPrbsPolynomials(portId);
+}
+
+prbs::InterfacePrbsState MonolinithicHwSwitchHandler::getPortPrbsState(
+    PortID portId) {
+  return hw_->getPortPrbsState(portId);
+}
+
+std::vector<phy::PrbsLaneStats>
+MonolinithicHwSwitchHandler::getPortGearboxPrbsStats(
+    int32_t portId,
+    phy::Side side) {
+  return hw_->getPortGearboxPrbsStats(portId, side);
+}
+
+void MonolinithicHwSwitchHandler::clearPortGearboxPrbsStats(
+    int32_t portId,
+    phy::Side side) {
+  hw_->clearPortGearboxPrbsStats(portId, side);
+}
+
+void MonolinithicHwSwitchHandler::switchRunStateChanged(
+    SwitchRunState newState) {
+  hw_->switchRunStateChanged(newState);
+}
+
 } // namespace facebook::fboss
