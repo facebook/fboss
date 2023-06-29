@@ -181,6 +181,9 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
                 queueDiscardBytes.second));
           }
         }
+        detailedOutput.emplace_back(fmt::format(
+            "    In Congestion Discards (pkts)\t\t {}",
+            portHwStats.get_inCongestionDiscards()));
         if (portHwStats.get_outPfcPackets()) {
           detailedOutput.emplace_back(fmt::format(
               "    PFC Output (pkts)             \t\t {}",
@@ -386,6 +389,8 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
               portHwStatsEntry.get_outCongestionDiscardPkts_();
           cliPortStats.queueOutDiscardBytes() =
               portHwStatsEntry.get_queueOutDiscardBytes_();
+          cliPortStats.inCongestionDiscards() =
+              portHwStatsEntry.get_inCongestionDiscards_();
           cliPortStats.queueOutBytes() = portHwStatsEntry.get_queueOutBytes_();
           if (portInfo.get_pfc()) {
             cliPortStats.outPfcPriorityPackets() =
