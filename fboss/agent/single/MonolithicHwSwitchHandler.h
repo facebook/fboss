@@ -53,6 +53,17 @@ class MonolinithicHwSwitchHandler : public HwSwitchHandler {
 
   void initPlatformData() override;
 
+  // platform access apis
+  void onHwInitialized(HwSwitchCallback* callback) override;
+
+  void onInitialConfigApplied(HwSwitchCallback* sw) override;
+
+  void platformStop() override;
+
+  const AgentConfig* config() override;
+
+  const AgentConfig* reloadConfig() override;
+
  private:
   PlatformInitFn initPlatformFn_;
   HwSwitch* hw_;

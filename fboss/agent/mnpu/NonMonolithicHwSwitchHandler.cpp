@@ -76,4 +76,30 @@ void NonMonolithicHwSwitchHandler::initPlatformData() {
   // TODO: implement this
 }
 
+void NonMonolithicHwSwitchHandler::onHwInitialized(
+    HwSwitchCallback* /*callback*/) {
+  // TODO: implement this
+}
+
+void NonMonolithicHwSwitchHandler::onInitialConfigApplied(
+    HwSwitchCallback* /*callback*/) {
+  // TODO: implement this
+}
+
+void NonMonolithicHwSwitchHandler::platformStop() {
+  // TODO: implement this
+}
+
+const AgentConfig* NonMonolithicHwSwitchHandler::config() {
+  // TODO: implement this
+  // @lint-ignore CLANGTIDY
+  return nullptr;
+}
+
+const AgentConfig* NonMonolithicHwSwitchHandler::reloadConfig() {
+  // TODO: implement this
+  // @lint-ignore CLANGTIDY
+  return nullptr;
+}
+
 } // namespace facebook::fboss

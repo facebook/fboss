@@ -99,4 +99,25 @@ void MonolinithicHwSwitchHandler::initPlatformData() {
   platformData_.supportsAddRemovePort = platform_->supportsAddRemovePort();
 }
 
+void MonolinithicHwSwitchHandler::onHwInitialized(HwSwitchCallback* callback) {
+  platform_->onHwInitialized(callback);
+}
+
+void MonolinithicHwSwitchHandler::onInitialConfigApplied(
+    HwSwitchCallback* callback) {
+  platform_->onInitialConfigApplied(callback);
+}
+
+void MonolinithicHwSwitchHandler::platformStop() {
+  platform_->stop();
+}
+
+const AgentConfig* MonolinithicHwSwitchHandler::config() {
+  return platform_->config();
+}
+
+const AgentConfig* MonolinithicHwSwitchHandler::reloadConfig() {
+  return platform_->reloadConfig();
+}
+
 } // namespace facebook::fboss

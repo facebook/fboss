@@ -64,6 +64,17 @@ struct HwSwitchHandler {
     return platformData_;
   }
 
+  // platform access apis
+  virtual void onHwInitialized(HwSwitchCallback* callback) = 0;
+
+  virtual void onInitialConfigApplied(HwSwitchCallback* sw) = 0;
+
+  virtual void platformStop() = 0;
+
+  virtual const AgentConfig* config() = 0;
+
+  virtual const AgentConfig* reloadConfig() = 0;
+
  protected:
   virtual void initPlatformData() = 0;
   PlatformData platformData_;
