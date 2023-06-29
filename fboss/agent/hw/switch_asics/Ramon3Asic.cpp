@@ -10,8 +10,6 @@ bool Ramon3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
     case HwAsic::Feature::FABRIC_PORTS:
     case HwAsic::Feature::LINK_TRAINING:
-    case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
-    case HwAsic::Feature::FABRIC_TX_QUEUES:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::FEC:
@@ -19,8 +17,11 @@ bool Ramon3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_FABRIC_ISOLATE:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::SWITCH_DROP_STATS:
-    case HwAsic::Feature::RX_LANE_SQUELCH_ENABLE:
       return true;
+    case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
+    case HwAsic::Feature::FABRIC_TX_QUEUES:
+    case HwAsic::Feature::RX_LANE_SQUELCH_ENABLE:
+      return getAsicMode() != AsicMode::ASIC_MODE_SIM;
     default:
       return false;
   }
