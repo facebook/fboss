@@ -114,8 +114,7 @@
             "portIdRange": {
               "minimum": 0,
               "maximum": 2047
-            },
-            "connectionHandle": "0c:00"
+            }
         }
       }
     },
@@ -1715,7 +1714,6 @@
       }
     },
     "platformSettings": {
-      "1": "0c:00"
     }
   }
 }
