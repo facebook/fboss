@@ -1126,6 +1126,11 @@ std::map<std::string, HwSysPortStats> SaiSwitch::getSysPortStats() const {
   return getSysPortStatsLocked(lock);
 }
 
+FabricReachabilityStats SaiSwitch::getFabricReachabilityStats() const {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return getSwitchStats()->getFabricReachabilityStats();
+}
+
 std::map<std::string, HwSysPortStats> SaiSwitch::getSysPortStatsLocked(
     const std::lock_guard<std::mutex>& /* lock */) const {
   std::map<std::string, HwSysPortStats> portStatsMap;

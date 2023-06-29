@@ -76,6 +76,7 @@ class MockHwSwitch : public HwSwitch {
       folly::F14FastMap<std::string, HwPortStats>());
   MOCK_CONST_METHOD0(getCpuPortStats, CpuPortStats());
   MOCK_CONST_METHOD0(getSysPortStats, std::map<std::string, HwSysPortStats>());
+  MOCK_CONST_METHOD0(getFabricReachabilityStats, FabricReachabilityStats());
   MOCK_CONST_METHOD1(fetchL2Table, void(std::vector<L2EntryThrift>* l2Table));
   MOCK_METHOD2(
       gracefulExitImpl,

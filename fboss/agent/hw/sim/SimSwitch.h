@@ -59,6 +59,9 @@ class SimSwitch : public HwSwitch {
   CpuPortStats getCpuPortStats() const override {
     return {};
   }
+  FabricReachabilityStats getFabricReachabilityStats() const override {
+    return {};
+  }
 
   void fetchL2Table(std::vector<L2EntryThrift>* /*l2Table*/) const override {
     return;

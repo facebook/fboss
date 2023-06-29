@@ -391,6 +391,10 @@ class BcmSwitch : public BcmSwitchIf {
     return {};
   }
 
+  FabricReachabilityStats getFabricReachabilityStats() const override {
+    return {};
+  }
+
   CpuPortStats getCpuPortStats() const override {
     throw FbossError("Unsupported platform for retrieving cpuPort stats");
   }

@@ -408,6 +408,8 @@ class SwitchStats : public boost::noncopyable {
   typedef fb303::ThreadCachedServiceData::TLCounter TLCounter;
 
   void fillAgentStats(AgentStats& agentStats) const;
+  void fillFabricReachabilityStats(
+      FabricReachabilityStats& fabricReachabilityStats) const;
 
  private:
   // Forbidden copy constructor and assignment operator

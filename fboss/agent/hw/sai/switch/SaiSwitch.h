@@ -111,6 +111,7 @@ class SaiSwitch : public HwSwitch {
 
   folly::F14FastMap<std::string, HwPortStats> getPortStats() const override;
   std::map<std::string, HwSysPortStats> getSysPortStats() const override;
+  FabricReachabilityStats getFabricReachabilityStats() const override;
   CpuPortStats getCpuPortStats() const override;
 
   uint64_t getDeviceWatermarkBytes() const override;

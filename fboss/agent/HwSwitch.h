@@ -234,6 +234,7 @@ class HwSwitch {
   virtual std::vector<PortID> getSwitchReachability(
       SwitchID switchId) const = 0;
   virtual std::map<std::string, HwSysPortStats> getSysPortStats() const = 0;
+  virtual FabricReachabilityStats getFabricReachabilityStats() const = 0;
 
   /*
    * Get latest device watermark bytes
