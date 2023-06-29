@@ -207,9 +207,8 @@ auto constexpr kHwUpdateFailures = "hw_update_failures";
 
 namespace facebook::fboss {
 
-SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
-    : hw_(platform->getHwSwitch()),
-      platform_(std::move(platform)),
+SwSwitch::SwSwitch(std::unique_ptr<MonolinithicHwSwitchHandler> hwSwitchHandler)
+    : hwSwitchHandler_(std::move(hwSwitchHandler)),
       platformProductInfo_(
           std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath)),
       pktObservers_(new PacketObservers()),
@@ -256,10 +255,10 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
 }
 
 SwSwitch::SwSwitch(
-    std::unique_ptr<Platform> platform,
+    std::unique_ptr<MonolinithicHwSwitchHandler> hwSwitchHandler,
     std::unique_ptr<PlatformMapping> platformMapping,
     cfg::SwitchConfig* config)
-    : SwSwitch(std::move(platform)) {
+    : SwSwitch(std::move(hwSwitchHandler)) {
   platformMapping_ = std::move(platformMapping);
   if (config) {
     switchInfoTable_ = SwitchInfoTable(getSwitchInfoFromConfig(config));
@@ -306,7 +305,7 @@ void SwSwitch::stop(bool revertToMinAlpmState) {
   // First tell the hw to stop sending us events by unregistering the callback
   // After this we should no longer receive packets or link state changed events
   // while we are destroying ourselves
-  hw_->unregisterCallbacks();
+  getHw_DEPRECATED()->unregisterCallbacks();
 
   // Stop tunMgr so we don't get any packets to process
   // in software that were sent to the switch ip or were
@@ -383,7 +382,7 @@ void SwSwitch::stop(bool revertToMinAlpmState) {
   // blow away all routes except the min required for ALPM,
   // so as to properly destroy hw switch. This is part of
   // exit logic, but updateStateBlocking() won't work in EXITING
-  // state. Thus, directly calling underlying hw_->stateChanged()
+  // state. Thus, directly calling underlying getHw_DEPRECATED()->stateChanged()
   if (revertToMinAlpmState) {
     XLOG(DBG3) << "setup min ALPM state";
     stateChanged(
@@ -488,7 +487,7 @@ void SwSwitch::gracefulExit() {
                       switchStateToFollyDone - stopThreadsAndHandlersDone)
                       .count();
     // Cleanup if we ever initialized
-    hw_->gracefulExit(follySwitchState, thriftSwitchState);
+    getHw_DEPRECATED()->gracefulExit(follySwitchState, thriftSwitchState);
     XLOG(DBG2)
         << "[Exit] SwSwitch Graceful Exit time "
         << duration_cast<duration<float>>(steady_clock::now() - begin).count();
@@ -618,12 +617,12 @@ void SwSwitch::invokeNeighborListener(
 }
 
 bool SwSwitch::getAndClearNeighborHit(RouterID vrf, folly::IPAddress ip) {
-  return hw_->getAndClearNeighborHit(vrf, ip);
+  return getHw_DEPRECATED()->getAndClearNeighborHit(vrf, ip);
 }
 
 void SwSwitch::exitFatal() const noexcept {
   folly::dynamic switchState = folly::dynamic::object;
-  switchState[kHwSwitch] = hw_->toFollyDynamic();
+  switchState[kHwSwitch] = getHw_DEPRECATED()->toFollyDynamic();
   state::WarmbootState thriftSwitchState;
   *thriftSwitchState.swSwitchState() = getAppliedState()->toThrift();
   if (!dumpStateToFile(
@@ -665,13 +664,13 @@ void SwSwitch::init(
     SwitchFlags flags) {
   auto begin = steady_clock::now();
   flags_ = flags;
-  auto hwInitRet = hw_->init(
+  auto hwInitRet = getHw_DEPRECATED()->init(
       callback,
       false /*failHwCallsOnWarmboot*/,
       getPlatform_DEPRECATED()->getAsic()->getSwitchType(),
       getPlatform_DEPRECATED()->getAsic()->getSwitchId());
   multiHwSwitchSyncer_ = std::make_unique<MultiHwSwitchSyncer>(
-      hw_, switchInfoTable_.getSwitchIdToSwitchInfo());
+      getHw_DEPRECATED(), switchInfoTable_.getSwitchIdToSwitchInfo());
   auto initialState = hwInitRet.switchState;
   bootType_ = hwInitRet.bootType;
   rib_ = std::move(hwInitRet.rib);
@@ -1211,7 +1210,7 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
     // Another thing we could try here is rolling back to the old state.
     XLOG(ERR) << "error applying state change to hardware: "
               << folly::exceptionStr(ex);
-    hw_->exitFatal();
+    getHw_DEPRECATED()->exitFatal();
 
     dumpBadStateUpdate(oldState, newState);
     XLOG(FATAL) << "encountered a fatal error: " << folly::exceptionStr(ex);
@@ -1624,14 +1623,14 @@ uint32_t SwSwitch::getEthernetHeaderSize() const {
 }
 
 std::unique_ptr<TxPacket> SwSwitch::allocatePacket(uint32_t size) {
-  return hw_->allocatePacket(size);
+  return getHw_DEPRECATED()->allocatePacket(size);
 }
 
 std::unique_ptr<TxPacket> SwSwitch::allocateL3TxPacket(uint32_t l3Len) {
   const uint32_t l2Len = getEthernetHeaderSize();
   const uint32_t minLen = 68;
   auto len = std::max(l2Len + l3Len, minLen);
-  auto pkt = hw_->allocatePacket(len);
+  auto pkt = getHw_DEPRECATED()->allocatePacket(len);
   auto buf = pkt->buf();
   // make sure the whole buffer is available
   buf->clear();
@@ -1691,7 +1690,8 @@ void SwSwitch::sendPacketOutOfPortAsync(
     ethertype = c.readBE<uint16_t>();
   }
 
-  if (!hw_->sendPacketOutOfPortAsync(std::move(pkt), portID, queue)) {
+  if (!getHw_DEPRECATED()->sendPacketOutOfPortAsync(
+          std::move(pkt), portID, queue)) {
     // Just log an error for now.  There's not much the caller can do about
     // send failures--even on successful return from sendPacket*() the
     // send may ultimately fail since it occurs asynchronously in the
@@ -1744,7 +1744,7 @@ void SwSwitch::sendPacketOutOfPortAsync(
 
 void SwSwitch::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept {
   pcapMgr_->packetSent(pkt.get());
-  if (!hw_->sendPacketSwitchedAsync(std::move(pkt))) {
+  if (!getHw_DEPRECATED()->sendPacketSwitchedAsync(std::move(pkt))) {
     // Just log an error for now.  There's not much the caller can do about
     // send failures--even on successful return from sendPacketSwitchedAsync()
     // the send may ultimately fail since it occurs asynchronously in the
@@ -2092,7 +2092,7 @@ bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
     XLOG(ERR) << "More than one sflow mirrors configured";
     isValid = false;
   }
-  return isValid && hw_->isValidStateUpdate(delta);
+  return isValid && getHw_DEPRECATED()->isValidStateUpdate(delta);
 }
 
 AdminDistance SwSwitch::clientIdToAdminDistance(int clientId) const {

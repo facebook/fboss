@@ -40,7 +40,8 @@ unique_ptr<MockRxPacket> arpRequest_10_0_0_5;
 
 unique_ptr<SwSwitch> setupSwitch() {
   MacAddress localMac("02:00:01:00:00:01");
-  auto sw = make_unique<SwSwitch>(make_unique<SimPlatform>(localMac, 10));
+  auto sw = make_unique<SwSwitch>(std::make_unique<MonolinithicHwSwitchHandler>(
+      make_unique<SimPlatform>(localMac, 10)));
   sw->init(nullptr /* No custom TunManager */);
   auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
   auto updateFn = [&](const shared_ptr<SwitchState>& oldState) {

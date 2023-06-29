@@ -24,6 +24,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/RouteNextHop.h"
 
+#include "fboss/agent/single/MonolithicHwSwitchHandler.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
@@ -482,7 +483,9 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
     }
   }
   auto sw = make_unique<SwSwitch>(
-      std::move(platform), std::move(platformMapping), config);
+      std::make_unique<MonolinithicHwSwitchHandler>(std::move(platform)),
+      std::move(platformMapping),
+      config);
   HwInitResult ret;
   ret.switchState = state ? state : make_shared<SwitchState>();
   ret.bootType = BootType::COLD_BOOT;

@@ -17,9 +17,7 @@ class MonolinithicHwSwitchHandler : public HwSwitchHandler {
       uint32_t featuresDesired)>;
 
   /* TODO: remove this constructor */
-  explicit MonolinithicHwSwitchHandler(
-      std::unique_ptr<Platform> platform,
-      PlatformInitFn initPlatformFn);
+  explicit MonolinithicHwSwitchHandler(std::unique_ptr<Platform> platform);
 
   explicit MonolinithicHwSwitchHandler(PlatformInitFn initPlatformFn);
 

@@ -19,6 +19,7 @@
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/single/MonolithicHwSwitchHandler.h"
 #include "fboss/agent/state/StateUpdate.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/ThreadHeartbeat.h"
@@ -84,6 +85,7 @@ class DsfSubscriber;
 class HwAsicTable;
 class MultiHwSwitchSyncer;
 class SwitchStatsObserver;
+struct HwSwitchHandler;
 
 enum class SwitchFlags : int {
   DEFAULT = 0,
@@ -132,26 +134,35 @@ class SwSwitch : public HwSwitchCallback {
   using AllThreadsSwitchStats =
       folly::ThreadLocalPtr<SwitchStats, SwSwitch>::Accessor;
 
-  explicit SwSwitch(std::unique_ptr<Platform> platform);
+  explicit SwSwitch(
+      std::unique_ptr<MonolinithicHwSwitchHandler> hwSwitchHandler);
   /*
    * Needed for mock platforms that do cannot initialize platform mapping
    * based on fruid file
    */
   SwSwitch(
-      std::unique_ptr<Platform> platform,
+      std::unique_ptr<MonolinithicHwSwitchHandler> hwSwitchHandler,
       std::unique_ptr<PlatformMapping> platformMapping,
       cfg::SwitchConfig* config);
   ~SwSwitch() override;
 
   HwSwitch* getHw_DEPRECATED() const {
-    return hw_;
+    return hwSwitchHandler_->getHwSwitch();
   }
 
   const Platform* getPlatform_DEPRECATED() const {
-    return platform_.get();
+    return hwSwitchHandler_->getPlatform();
   }
   Platform* getPlatform_DEPRECATED() {
-    return platform_.get();
+    return hwSwitchHandler_->getPlatform();
+  }
+
+  HwSwitchHandler* getHwSwitchHandler() {
+    return hwSwitchHandler_.get();
+  }
+
+  const HwSwitchHandler* getHwSwitchHandler() const {
+    return hwSwitchHandler_.get();
   }
 
   const PlatformMapping* getPlatformMapping() const {
@@ -932,8 +943,7 @@ class SwSwitch : public HwSwitchCallback {
   cfg::SwitchConfig curConfig_;
 
   // The HwSwitch object.  This object is owned by the Platform.
-  HwSwitch* hw_;
-  std::unique_ptr<Platform> platform_;
+  std::unique_ptr<MonolinithicHwSwitchHandler> hwSwitchHandler_;
   const std::unique_ptr<PlatformProductInfo> platformProductInfo_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};
   folly::ThreadLocalPtr<SwitchStats, SwSwitch> stats_;
