@@ -162,4 +162,10 @@ void MonolinithicHwSwitchHandler::switchRunStateChanged(
   hw_->switchRunStateChanged(newState);
 }
 
+std::shared_ptr<SwitchState> MonolinithicHwSwitchHandler::stateChanged(
+    const StateDelta& delta,
+    bool transaction) {
+  return transaction ? hw_->stateChangedTransaction(delta)
+                     : hw_->stateChanged(delta);
+}
 } // namespace facebook::fboss

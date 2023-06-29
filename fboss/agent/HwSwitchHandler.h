@@ -85,6 +85,10 @@ struct HwSwitchHandler {
 
   virtual void switchRunStateChanged(SwitchRunState newState) = 0;
 
+  virtual std::shared_ptr<SwitchState> stateChanged(
+      const StateDelta& delta,
+      bool transaction) = 0;
+
   // platform access apis
   virtual void onHwInitialized(HwSwitchCallback* callback) = 0;
 

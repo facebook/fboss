@@ -147,4 +147,11 @@ void NonMonolithicHwSwitchHandler::switchRunStateChanged(
     SwitchRunState /*newState*/) {
   // TODO: implement this
 }
+
+std::shared_ptr<SwitchState> NonMonolithicHwSwitchHandler::stateChanged(
+    const StateDelta& /*delta*/,
+    bool /*transaction*/) {
+  // TODO: implement this
+  return nullptr;
+}
 } // namespace facebook::fboss

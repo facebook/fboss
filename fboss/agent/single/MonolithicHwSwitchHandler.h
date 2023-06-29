@@ -84,6 +84,10 @@ class MonolinithicHwSwitchHandler : public HwSwitchHandler {
 
   const AgentConfig* reloadConfig() override;
 
+  std::shared_ptr<SwitchState> stateChanged(
+      const StateDelta& delta,
+      bool transaction) override;
+
  private:
   PlatformInitFn initPlatformFn_;
   HwSwitch* hw_;
