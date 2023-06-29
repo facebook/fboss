@@ -496,7 +496,8 @@ void SwSwitch::gracefulExit() {
 }
 
 void SwSwitch::getProductInfo(ProductInfo& productInfo) const {
-  getPlatform_DEPRECATED()->getProductInfo(productInfo);
+  CHECK(platformProductInfo_);
+  platformProductInfo_->getInfo(productInfo);
 }
 
 void SwSwitch::publishPhyInfoSnapshots(PortID portID) const {
