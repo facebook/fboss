@@ -8,6 +8,7 @@ namespace facebook::fboss {
 class HwSwitch;
 void setForceTrafficOverFabric(const HwSwitch* hw, bool force);
 void checkFabricReachability(const HwSwitch* hw);
+void checkFabricReachabilityStats(const HwSwitch* hw);
 void populatePortExpectedNeighbors(
     const std::vector<PortID>& ports,
     cfg::SwitchConfig& cfg);

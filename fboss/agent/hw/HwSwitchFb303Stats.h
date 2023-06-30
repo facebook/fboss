@@ -95,6 +95,12 @@ class HwSwitchFb303Stats {
   int64_t getAsicErrorCount() {
     return asicErrors_.count();
   }
+  int64_t getFabricReachabilityMismatchCount() {
+    return fabricReachabilityMismatchCount_.count();
+  }
+  int64_t getFabricReachabilityMissingCount() {
+    return fabricReachabilityMissingCount_.count();
+  }
   HwAsicErrors getHwAsicErrors() const;
   FabricReachabilityStats getFabricReachabilityStats() const;
 
