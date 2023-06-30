@@ -48,6 +48,7 @@ class FsdbPublisher : public FsdbStreamClient {
                 typeStr(),
                 (publishStats ? "Stat" : "State"),
                 folly::join('_', publishPath)),
+            publishStats,
             [this, stateChangeCb](State oldState, State newState) {
               if (newState == State::CONNECTED) {
                 // For CONNECTED, first setup internal state and
@@ -69,7 +70,6 @@ class FsdbPublisher : public FsdbStreamClient {
         asyncPipe_(makePipe()),
 #endif
         publishPath_(publishPath),
-        publishStats_(publishStats),
         writeErrors_(
             fb303::ThreadCachedServiceData::get()->getThreadStats(),
             getCounterPrefix() + ".writeErrors",
@@ -84,9 +84,6 @@ class FsdbPublisher : public FsdbStreamClient {
   }
   size_t queueCapacity() const {
     return kPubQueueCapacity;
-  }
-  bool publishStats() const {
-    return publishStats_;
   }
 
  protected:
@@ -104,7 +101,6 @@ class FsdbPublisher : public FsdbStreamClient {
 #endif
   std::atomic<ssize_t> queueSize_{0};
   const std::vector<std::string> publishPath_;
-  const bool publishStats_;
   fb303::ThreadCachedServiceData::TLTimeseries writeErrors_;
 };
 } // namespace facebook::fboss::fsdb

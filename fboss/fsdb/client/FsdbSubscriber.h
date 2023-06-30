@@ -42,14 +42,10 @@ class FsdbSubscriber : public FsdbStreamClient {
                 typeStr(),
                 (subscribeStats ? "Stat" : "State"),
                 pathsStr(subscribePaths)),
+            subscribeStats,
             stateChangeCb),
         operSubUnitUpdate_(operSubUnitUpdate),
-        subscribePaths_(subscribePaths),
-        subscribeStats_(subscribeStats) {}
-
-  bool subscribeStats() const {
-    return subscribeStats_;
-  }
+        subscribePaths_(subscribePaths) {}
 
  protected:
   auto createRequest() const {
@@ -71,6 +67,5 @@ class FsdbSubscriber : public FsdbStreamClient {
 
  private:
   const Paths subscribePaths_;
-  const bool subscribeStats_;
 };
 } // namespace facebook::fboss::fsdb
