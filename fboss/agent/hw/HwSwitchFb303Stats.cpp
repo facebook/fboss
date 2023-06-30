@@ -87,6 +87,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           SwitchStats::kCounterPrefix + "global_reachability_drops",
           SUM,
           RATE),
+      packetIntegrityDrops_(
+          map,
+          SwitchStats::kCounterPrefix + "packet_integrity_drops",
+          SUM,
+          RATE),
       fabricReachabilityMissingCount_(
           map,
           SwitchStats::kCounterPrefix + "fabric_reachability_missing",
@@ -104,6 +109,9 @@ void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
   }
   if (dropStats.globalReachabilityDrops().has_value()) {
     globalReachDrops_.addValue(*dropStats.globalReachabilityDrops());
+  }
+  if (dropStats.packetIntegrityDrops().has_value()) {
+    packetIntegrityDrops_.addValue(*dropStats.packetIntegrityDrops());
   }
 }
 

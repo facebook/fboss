@@ -136,6 +136,7 @@ class HwSwitchFb303Stats {
   // Drops
   TLTimeseries globalDrops_;
   TLTimeseries globalReachDrops_;
+  TLTimeseries packetIntegrityDrops_;
   // fabric reachability errors
   TLTimeseries fabricReachabilityMissingCount_;
   TLTimeseries fabricReachabilityMismatchCount_;
