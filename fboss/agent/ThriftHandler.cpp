@@ -2969,4 +2969,12 @@ void ThriftHandler::getHwPortStats(
   hwPortStats.insert(portStats.begin(), portStats.end());
 }
 
+void ThriftHandler::getFabricReachabilityStats(
+    FabricReachabilityStats& fabricReachabilityStats) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+  fabricReachabilityStats =
+      sw_->getHw_DEPRECATED()->getFabricReachabilityStats();
+}
+
 } // namespace facebook::fboss
