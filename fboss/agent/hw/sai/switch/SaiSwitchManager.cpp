@@ -76,6 +76,11 @@ void fillHwSwitchDropStats(
       case SAI_SWITCH_STAT_GLOBAL_DROP:
         hwSwitchDropStats.globalDrops() = value;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      case SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP:
+        hwSwitchDropStats.packetIntegrityDrops() = value;
+        break;
+#endif
       default:
         throw FbossError("Got unexpected switch counter id: ", counterId);
     }
