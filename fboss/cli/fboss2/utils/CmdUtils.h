@@ -25,7 +25,7 @@
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/cli/fboss2/utils/PrbsUtils.h"
-#include "fboss/fsdb/if/facebook/gen-cpp2/FsdbService.h"
+#include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 
