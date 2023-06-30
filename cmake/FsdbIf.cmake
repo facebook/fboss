@@ -12,14 +12,6 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
-  fsdb_cpp2
-  fboss/fsdb/if/fsdb.thrift
-  OPTIONS
-    json
-    reflection
-)
-
-add_fbthrift_cpp_library(
   fsdb_oper_cpp2
   fboss/fsdb/if/fsdb_oper.thrift
   OPTIONS
