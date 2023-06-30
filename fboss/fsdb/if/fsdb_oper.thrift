@@ -48,6 +48,7 @@ struct OperState {
   1: optional fbbinary contents;
   2: OperProtocol protocol;
   3: optional OperMetadata metadata;
+  4: bool isHeartbeat = false;
 }
 
 struct TaggedOperState {
