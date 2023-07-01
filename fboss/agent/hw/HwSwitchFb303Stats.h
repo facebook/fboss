@@ -68,38 +68,41 @@ class HwSwitchFb303Stats {
   void update(const HwSwitchDropStats& dropStats);
   // TODO: FSDB needs to support count() method on stats
 
-  int64_t getTxPktAllocCount() {
+  int64_t getTxPktAllocCount() const {
     return txPktAlloc_.count();
   }
-  int64_t getTxPktFreeCount() {
+  int64_t getTxPktFreeCount() const {
     return txPktFree_.count();
   }
-  int64_t getTxSentCount() {
+  int64_t getTxSentCount() const {
     return txSent_.count();
   }
-  int64_t getTxSentDoneCount() {
+  int64_t getTxSentDoneCount() const {
     return txSentDone_.count();
   }
-  int64_t getTxErrorCount() {
+  int64_t getTxErrorCount() const {
     return txErrors_.count();
   }
-  int64_t getTxPktAllocErrorsCount() {
+  int64_t getTxPktAllocErrorsCount() const {
     return txPktAllocErrors_.count();
   }
-  int64_t getCorrParityErrorCount() {
+  int64_t getCorrParityErrorCount() const {
     return corrParityErrors_.count();
   }
-  int64_t getUncorrParityErrorCount() {
+  int64_t getUncorrParityErrorCount() const {
     return uncorrParityErrors_.count();
   }
-  int64_t getAsicErrorCount() {
+  int64_t getAsicErrorCount() const {
     return asicErrors_.count();
   }
-  int64_t getFabricReachabilityMismatchCount() {
+  int64_t getFabricReachabilityMismatchCount() const {
     return fabricReachabilityMismatchCount_.count();
   }
-  int64_t getFabricReachabilityMissingCount() {
+  int64_t getFabricReachabilityMissingCount() const {
     return fabricReachabilityMissingCount_.count();
+  }
+  int64_t getPacketIntegrityDropsCount() const {
+    return packetIntegrityDrops_.count();
   }
   HwAsicErrors getHwAsicErrors() const;
   FabricReachabilityStats getFabricReachabilityStats() const;
