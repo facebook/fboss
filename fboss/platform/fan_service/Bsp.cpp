@@ -16,6 +16,11 @@
 
 using namespace folly::literals::shell_literals;
 
+DEFINE_bool(
+    subscribe_to_qsfp_data_from_fsdb,
+    false,
+    "For subscribing to qsfp state and stats from FSDB");
+
 namespace {
 int runShellCmd(const std::string& cmd) {
   auto shellCmd = "/bin/sh -c {}"_shellify(cmd);
@@ -55,6 +60,10 @@ Bsp::Bsp() {
       std::make_unique<FsdbSensorSubscriber>(fsdbPubSubMgr_.get());
   if (FLAGS_subscribe_to_stats_from_fsdb) {
     fsdbSensorSubscriber_->subscribeToSensorServiceStat(subscribedSensorData);
+    if (FLAGS_subscribe_to_qsfp_data_from_fsdb) {
+      fsdbSensorSubscriber_->subscribeToQsfpServiceStat(subscribedQsfpStats);
+      fsdbSensorSubscriber_->subscribeToQsfpServiceState(subscribedQsfpState);
+    }
   }
 }
 

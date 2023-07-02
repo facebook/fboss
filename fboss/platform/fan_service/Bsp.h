@@ -32,6 +32,8 @@
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/platform/fan_service/FsdbSensorSubscriber.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_state_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_stats_types.h"
 
 namespace {
 struct TransceiverData {
@@ -159,5 +161,7 @@ class Bsp {
   folly::Synchronized<
       std::map<std::string, fboss::platform::sensor_service::SensorData>>
       subscribedSensorData;
+  folly::Synchronized<std::map<int32_t, TcvrState>> subscribedQsfpState;
+  folly::Synchronized<std::map<int32_t, TcvrStats>> subscribedQsfpStats;
 };
 } // namespace facebook::fboss::platform
