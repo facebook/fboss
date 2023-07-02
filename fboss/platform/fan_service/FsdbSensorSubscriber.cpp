@@ -20,6 +20,11 @@ void FsdbSensorSubscriber::subscribeToStat(
                     fsdb::FsdbStreamClient::State /*new*/) {};
   auto dataCb = [&](fsdb::OperState&& state) {
     storage.withWLock([&](auto& locked) {
+      if (auto metadata = state.metadata()) {
+        if (auto lastConfirmedAt = metadata->lastConfirmedAt()) {
+          lastUpdatedTime.store(*lastConfirmedAt);
+        }
+      }
       if (auto contents = state.contents()) {
         locked = apache::thrift::BinarySerializer::deserialize<T>(*contents);
       } else {

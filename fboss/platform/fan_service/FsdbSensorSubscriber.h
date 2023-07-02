@@ -29,12 +29,17 @@ class FsdbSensorSubscriber {
   // Paths
   static std::vector<std::string> getSensorDataStatsPath();
 
+  uint64_t getLastUpdatedTime() const {
+    return lastUpdatedTime.load();
+  }
+
  private:
   template <typename T>
   void subscribeToStat(
       std::vector<std::string> path,
       folly::Synchronized<T>& storage);
   fsdb::FsdbPubSubManager* fsdbPubSubMgr_;
+  std::atomic<uint64_t> lastUpdatedTime{0};
 };
 
 } // namespace facebook::fboss

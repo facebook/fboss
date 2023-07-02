@@ -11,6 +11,7 @@
 #pragma once
 
 // Standard CPP include file
+#include <cstdint>
 #include <fstream>
 #include <sstream>
 

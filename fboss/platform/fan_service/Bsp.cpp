@@ -24,6 +24,8 @@ int runShellCmd(const std::string& cmd) {
   return p.wait().exitStatus();
 }
 
+auto constexpr kFsdbSyncTimeoutThresholdInSec = 3 * 60; // 3 minutes
+auto constexpr kFsdbDataStale = "fsdb_sensor_service_data_stale";
 } // namespace
 
 namespace facebook::fboss::platform {
@@ -108,6 +110,15 @@ void Bsp::getSensorData(
     getSensorDataRest(pServiceConfig, pSensorData);
   }
   if (fetchFromFsdb) {
+    auto timeSinceLastUpdate = facebook::WallClockUtil::NowInSecFast() -
+        fsdbSensorSubscriber_->getLastUpdatedTime();
+    if (timeSinceLastUpdate > kFsdbSyncTimeoutThresholdInSec) {
+      XLOG(ERR) << "Warning! Sensor data hasn't been synced since last "
+                << timeSinceLastUpdate << " seconds";
+      fb303::fbData->setCounter(kFsdbDataStale, 1);
+    } else {
+      fb303::fbData->setCounter(kFsdbDataStale, 0);
+    }
     // Populate the last data that was received from FSDB into pSensorData
     auto subscribedData = *subscribedSensorData.rlock();
     for (const auto& sensorIt : subscribedData) {
