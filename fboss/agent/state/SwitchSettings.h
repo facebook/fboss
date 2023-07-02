@@ -187,6 +187,41 @@ class SwitchSettings
     set<switch_state_tags::exactMatchTableConfigs>(exactMatchConfigs);
   }
 
+  std::optional<int32_t> getMinLinksToRemainInVOQDomain() const {
+    if (auto minLinksToRemainInVOQDomain =
+            cref<switch_state_tags::minLinksToRemainInVOQDomain>()) {
+      return minLinksToRemainInVOQDomain->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setMinLinksToRemainInVOQDomain(
+      std::optional<int64_t> minLinksToRemainInVOQDomain) {
+    if (!minLinksToRemainInVOQDomain) {
+      ref<switch_state_tags::minLinksToRemainInVOQDomain>().reset();
+    } else {
+      set<switch_state_tags::minLinksToRemainInVOQDomain>(
+          *minLinksToRemainInVOQDomain);
+    }
+  }
+
+  std::optional<int32_t> getMinLinksToJoinVOQDomain() const {
+    if (auto minLinksToJoinVOQDomain =
+            cref<switch_state_tags::minLinksToJoinVOQDomain>()) {
+      return minLinksToJoinVOQDomain->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setMinLinksToJoinVOQDomain(
+      std::optional<int64_t> minLinksToJoinVOQDomain) {
+    if (!minLinksToJoinVOQDomain) {
+      ref<switch_state_tags::minLinksToJoinVOQDomain>().reset();
+    } else {
+      set<switch_state_tags::minLinksToJoinVOQDomain>(*minLinksToJoinVOQDomain);
+    }
+  }
+
   /*
    * 0 or more l3 switch types {NPU, VOQ} are supported on
    * a CPU-NPUs complex
