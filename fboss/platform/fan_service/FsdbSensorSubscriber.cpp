@@ -40,6 +40,16 @@ void FsdbSensorSubscriber::subscribeToStatsOrState(
   }
 }
 
+void FsdbSensorSubscriber::subscribeToQsfpServiceStat(
+    folly::Synchronized<std::map<int32_t, TcvrStats>>& storage) {
+  subscribeToStatsOrState(getQsfpDataStatsPath(), storage, true /* stats */);
+}
+
+void FsdbSensorSubscriber::subscribeToQsfpServiceState(
+    folly::Synchronized<std::map<int32_t, TcvrState>>& storage) {
+  subscribeToStatsOrState(getQsfpDataStatePath(), storage, false /* state */);
+}
+
 void FsdbSensorSubscriber::subscribeToSensorServiceStat(
     folly::Synchronized<
         std::map<std::string, fboss::platform::sensor_service::SensorData>>&
