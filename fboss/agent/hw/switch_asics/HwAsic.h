@@ -145,6 +145,7 @@ class HwAsic {
     RX_LANE_SQUELCH_ENABLE,
     SAI_PORT_ETHER_STATS,
     SLOW_STAT_UPDATE, // pending CS00012299308
+    LINK_STATE_BASED_ISOLATE,
   };
 
   enum class AsicMode {

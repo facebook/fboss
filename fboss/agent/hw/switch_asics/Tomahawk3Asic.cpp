@@ -135,6 +135,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::RX_LANE_SQUELCH_ENABLE:
     case HwAsic::Feature::SAI_PORT_ETHER_STATS:
     case HwAsic::Feature::SLOW_STAT_UPDATE:
+    case HwAsic::Feature::LINK_STATE_BASED_ISOLATE:
       return false;
   }
   return false;

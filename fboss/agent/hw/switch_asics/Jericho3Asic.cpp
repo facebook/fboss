@@ -68,6 +68,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CPU_TX_VIA_RECYCLE_PORT:
     case HwAsic::Feature::QUEUE_PRIORITY_LOWER_VAL_IS_HIGH_PRI:
     case HwAsic::Feature::SWITCH_DROP_STATS:
+    case HwAsic::Feature::LINK_STATE_BASED_ISOLATE:
       return true;
 
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
