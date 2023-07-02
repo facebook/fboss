@@ -35,9 +35,10 @@ class FsdbSensorSubscriber {
 
  private:
   template <typename T>
-  void subscribeToStat(
+  void subscribeToStatsOrState(
       std::vector<std::string> path,
-      folly::Synchronized<T>& storage);
+      folly::Synchronized<T>& storage,
+      bool stats);
   fsdb::FsdbPubSubManager* fsdbPubSubMgr_;
   std::atomic<uint64_t> lastUpdatedTime{0};
 };

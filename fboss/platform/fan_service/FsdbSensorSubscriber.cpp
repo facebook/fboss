@@ -13,9 +13,10 @@
 namespace facebook::fboss {
 
 template <typename T>
-void FsdbSensorSubscriber::subscribeToStat(
+void FsdbSensorSubscriber::subscribeToStatsOrState(
     std::vector<std::string> path,
-    folly::Synchronized<T>& storage) {
+    folly::Synchronized<T>& storage,
+    bool stats) {
   auto stateCb = [](fsdb::FsdbStreamClient::State /*old*/,
                     fsdb::FsdbStreamClient::State /*new*/) {};
   auto dataCb = [&](fsdb::OperState&& state) {
@@ -32,14 +33,18 @@ void FsdbSensorSubscriber::subscribeToStat(
       }
     });
   };
-  pubSubMgr()->addStatPathSubscription(path, stateCb, dataCb);
+  if (stats) {
+    pubSubMgr()->addStatPathSubscription(path, stateCb, dataCb);
+  } else {
+    pubSubMgr()->addStatePathSubscription(path, stateCb, dataCb);
+  }
 }
 
 void FsdbSensorSubscriber::subscribeToSensorServiceStat(
     folly::Synchronized<
         std::map<std::string, fboss::platform::sensor_service::SensorData>>&
         storage) {
-  subscribeToStat(getSensorDataStatsPath(), storage);
+  subscribeToStatsOrState(getSensorDataStatsPath(), storage, true /* stats */);
 }
 
 } // namespace facebook::fboss
