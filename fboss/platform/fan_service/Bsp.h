@@ -33,6 +33,26 @@
 #include "fboss/platform/fan_service/FsdbSensorSubscriber.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
 
+namespace {
+struct TransceiverData {
+  int portID;
+  facebook::fboss::GlobalSensors sensor;
+  facebook::fboss::MediaInterfaceCode mediaInterfaceCode;
+  uint32_t timeCollected;
+
+  TransceiverData(
+      int portID_,
+      facebook::fboss::GlobalSensors sensor_,
+      facebook::fboss::MediaInterfaceCode mediaInterfaceCode_,
+      uint32_t timeCollected_) {
+    portID = portID_;
+    sensor = sensor_;
+    mediaInterfaceCode = mediaInterfaceCode_;
+    timeCollected = timeCollected_;
+  }
+};
+} // namespace
+
 namespace facebook::fboss::platform {
 
 class Bsp {
@@ -131,7 +151,7 @@ class Bsp {
       Optic* opticsGroup,
       std::shared_ptr<SensorData> pSensorData,
       uint64_t& currentQsfpSvcTimestamp,
-      const std::map<int32_t, TransceiverInfo>& cacheTable,
+      const std::map<int32_t, TransceiverData>& cacheTable,
       OpticEntry* opticData);
 
   std::unique_ptr<FsdbSensorSubscriber> fsdbSensorSubscriber_;

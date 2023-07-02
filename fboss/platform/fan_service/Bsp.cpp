@@ -26,6 +26,25 @@ int runShellCmd(const std::string& cmd) {
 
 auto constexpr kFsdbSyncTimeoutThresholdInSec = 3 * 60; // 3 minutes
 auto constexpr kFsdbDataStale = "fsdb_sensor_service_data_stale";
+
+std::optional<TransceiverData> getTransceiverData(
+    int32_t xvrId,
+    const facebook::fboss::TcvrState& tcvrState,
+    const facebook::fboss::TcvrStats& tcvrStats) {
+  auto sensor = tcvrStats.sensor();
+  if (!sensor) {
+    XLOG(INFO) << "Skipping transceiver " << xvrId
+               << ", as there is no global sensor entry.";
+    return std::nullopt;
+  }
+  auto timestamp = *tcvrStats.timeCollected();
+  auto mediaInterfaceCodeRef = tcvrState.moduleMediaInterface();
+  // This field is optional. If missing, we use unknown.
+  auto mediaInterfaceCode = mediaInterfaceCodeRef
+      ? *mediaInterfaceCodeRef
+      : facebook::fboss::MediaInterfaceCode::UNKNOWN;
+  return TransceiverData(xvrId, *sensor, mediaInterfaceCode, timestamp);
+}
 } // namespace
 
 namespace facebook::fboss::platform {
@@ -185,29 +204,22 @@ void Bsp::processOpticEntries(
     Optic* opticsGroup,
     std::shared_ptr<SensorData> pSensorData,
     uint64_t& currentQsfpSvcTimestamp,
-    const std::map<int32_t, TransceiverInfo>& cacheTable,
+    const std::map<int32_t, TransceiverData>& cacheTable,
     OpticEntry* opticData) {
   std::pair<fan_config_structs::OpticTableType, float> prepData;
-  for (auto cacheEntry : cacheTable) {
+  for (auto& cacheEntry : cacheTable) {
     int xvrId = static_cast<int>(cacheEntry.first);
-    TransceiverInfo& info = cacheEntry.second;
     fan_config_structs::OpticTableType tableType =
         fan_config_structs::OpticTableType::kOpticTableInval;
     // Qsfp_service send the data as double, but fan service use float.
     // So, cast the data to float
-    auto sensor = info.tcvrStats()->sensor();
-    // If no sensor available for this transceiver, just skip
-    if (!sensor) {
-      XLOG(INFO) << "Skipping transceiver " << xvrId
-                 << ", as there is no global sensor entry.";
-      continue;
-    }
-    auto timeStamp = *info.tcvrStats()->timeCollected();
+    auto timeStamp = cacheEntry.second.timeCollected;
     if (timeStamp > currentQsfpSvcTimestamp) {
       currentQsfpSvcTimestamp = timeStamp;
     }
 
-    float temp = static_cast<float>(*(sensor->temp()->value()));
+    float temp =
+        static_cast<float>(*(cacheEntry.second.sensor.temp()->value()));
     // In the following two cases, do not process the entries and move on
     // 1. temperature from QSFP service is 0.0 - meaning the port is
     //    not populated in qsfp_service or read failure occured. So skip this.
@@ -224,12 +236,8 @@ void Bsp::processOpticEntries(
 
     // Parse using the definition in qsfp_service/if/transceiver.thrift
     // Detect the speed. If unknown, use the very first table.
-    // This field is optional. If missing, we use unknown.
-    MediaInterfaceCode mediaInterfaceCode = MediaInterfaceCode::UNKNOWN;
-    if (info.tcvrState()->moduleMediaInterface()) {
-      mediaInterfaceCode = *info.tcvrState()->moduleMediaInterface();
-      XLOG(DBG3) << "OpticsType: port is " << *info.tcvrState()->port();
-    }
+    MediaInterfaceCode mediaInterfaceCode =
+        cacheEntry.second.mediaInterfaceCode;
     switch (mediaInterfaceCode) {
       case MediaInterfaceCode::UNKNOWN:
         // Use the first table's type for unknown/missing media type
@@ -267,15 +275,25 @@ void Bsp::getOpticsDataThrift(
   // Here, we don't really futureGet the transceiver data,
   // but use the cached value from the background thread.
   // We use QsfpClient for this.
-  std::map<int32_t, TransceiverInfo> cacheTable;
+  std::map<int, TransceiverData> transceiverData;
   uint64_t currentQsfpSvcTimestamp = 0;
 
   try {
     // QsfpClient sync with Qsfp service every
     // 30 seconds. The following merely reads the cached data
     // updated in the last sync attempt (thus returns very quickly.)
+    std::map<int32_t, TransceiverInfo> cacheTable;
     getTransceivers(cacheTable, evb_);
-
+    // Create TransceiverData map from the received TransceiverInfo map. We are
+    // going to use TransceiverData to process optics entries later
+    for (auto& cacheEntry : cacheTable) {
+      if (auto tcvrData = getTransceiverData(
+              cacheEntry.first,
+              cacheEntry.second.get_tcvrState(),
+              cacheEntry.second.get_tcvrStats())) {
+        transceiverData.emplace(cacheEntry.first, *tcvrData);
+      }
+    }
   } catch (std::exception& e) {
     XLOG(ERR) << "Failed to read optics data from Qsfp for "
               << opticsGroup->opticName
@@ -298,7 +316,11 @@ void Bsp::getOpticsDataThrift(
   opticData->data.clear();
   // Parse the data
   processOpticEntries(
-      opticsGroup, pSensorData, currentQsfpSvcTimestamp, cacheTable, opticData);
+      opticsGroup,
+      pSensorData,
+      currentQsfpSvcTimestamp,
+      transceiverData,
+      opticData);
 
   bool dataUpdated = true;
   // Using the timestamp, check if the data is too old or not.
