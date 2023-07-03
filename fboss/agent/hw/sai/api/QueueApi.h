@@ -80,6 +80,15 @@ struct SaiQueueTraits {
       SAI_QUEUE_STAT_DROPPED_BYTES,
   };
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  static constexpr std::array<sai_stat_id_t, 1>
+      VoqWatchDogDeleteCounterIdsToRead = {
+          SAI_QUEUE_STAT_CREDIT_WD_DELETED_PACKETS};
+#else
+  static constexpr std::array<sai_stat_id_t, 0>
+      VoqWatchDogDeleteCounterIdsToRead = {};
+#endif
+
   static constexpr std::array<sai_stat_id_t, 1> WredCounterIdsToRead = {
       SAI_QUEUE_STAT_WRED_DROPPED_PACKETS,
   };
