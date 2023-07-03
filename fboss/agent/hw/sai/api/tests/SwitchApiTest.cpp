@@ -618,3 +618,10 @@ TEST_F(SwitchApiTest, getSomeStats) {
       switchId, {SAI_SWITCH_STAT_GLOBAL_DROP}, SAI_STATS_MODE_READ);
   EXPECT_EQ(stats.size(), 1);
 }
+
+TEST_F(SwitchApiTest, setGetCreditWatchdog) {
+  SaiSwitchTraits::Attributes::CreditWd wd{false};
+  switchApi->setAttribute(switchId, wd);
+  SaiSwitchTraits::Attributes::CreditWd blank{true};
+  EXPECT_FALSE(switchApi->getAttribute(switchId, blank));
+}
