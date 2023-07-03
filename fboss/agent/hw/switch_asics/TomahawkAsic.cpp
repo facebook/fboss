@@ -136,6 +136,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_ETHER_STATS:
     case HwAsic::Feature::SLOW_STAT_UPDATE:
     case HwAsic::Feature::LINK_STATE_BASED_ISOLATE:
+    case HwAsic::Feature::VOQ_DELETE_COUNTER:
       return false;
   }
   return false;
