@@ -435,7 +435,15 @@ struct SaiSwitchTraits {
     struct AttributeCreditWdWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    using CreditWd = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_CREDIT_WD,
+        bool,
+        SaiBoolDefaultTrue>;
+#else
     using CreditWd = SaiExtensionAttribute<bool, AttributeCreditWdWrapper>;
+#endif
     struct AttributeMaxCoresWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
