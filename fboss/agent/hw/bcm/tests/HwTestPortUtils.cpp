@@ -41,6 +41,9 @@ void setCreditWatchdogAndPortTx(const HwSwitch* hw, PortID port, bool enable) {
   auto rv = bcm_port_control_set(
       bcmSwitch->getUnit(), bcmPortId, bcmPortControlTxEnable, enable ? 1 : 0);
   bcmCheckError(rv, "failed to disable TX");
+  // Credit watchdog needs to be set for VOQ switches
+  CHECK(hw->getPlatform()->getAsic()->getSwitchType() != cfg::SwitchType::VOQ)
+      << " VOQ switch types not supported in BCM layer";
 }
 
 int getLoopbackMode(cfg::PortLoopbackMode lbMode) {
