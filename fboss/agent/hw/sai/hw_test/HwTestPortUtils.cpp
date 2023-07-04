@@ -51,7 +51,7 @@ void setPortLoopbackMode(
 #endif
 }
 
-void setPortTxEnable(const HwSwitch* hw, PortID port, bool enable) {
+void setCreditWatchdogAndPortTx(const HwSwitch* hw, PortID port, bool enable) {
   auto portHandle = static_cast<const SaiSwitch*>(hw)
                         ->managerTable()
                         ->portManager()

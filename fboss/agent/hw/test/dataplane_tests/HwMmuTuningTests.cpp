@@ -50,7 +50,8 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
     utility::EcmpSetupAnyNPorts6 helper(getProgrammedState(), dstMac());
     auto constexpr kEcmpWidth = 1;
     resolveNeigborAndProgramRoutes(helper, kEcmpWidth);
-    utility::setPortTxEnable(getHwSwitch(), masterLogicalPortIds()[0], false);
+    utility::setCreditWatchdogAndPortTx(
+        getHwSwitch(), masterLogicalPortIds()[0], false);
   }
   void verify(
       int16_t lowPriQueue,
@@ -92,7 +93,8 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
     // After verification, enable tx to let packets go through.
     // New SDK expects buffer to be empty during teardown.
     if (!FLAGS_setup_for_warmboot) {
-      utility::setPortTxEnable(getHwSwitch(), masterLogicalPortIds()[0], true);
+      utility::setCreditWatchdogAndPortTx(
+          getHwSwitch(), masterLogicalPortIds()[0], true);
     }
   }
 

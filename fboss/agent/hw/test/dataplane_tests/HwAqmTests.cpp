@@ -899,7 +899,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
 
       // Disable TX to build up queue for each port
       for (auto const& port : ports) {
-        utility::setPortTxEnable(
+        utility::setCreditWatchdogAndPortTx(
             getHwSwitchEnsemble()->getHwSwitch(), port, false);
       }
 
@@ -918,7 +918,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
 
       // Enable TX to let traffic egress
       for (auto const& port : ports) {
-        utility::setPortTxEnable(
+        utility::setCreditWatchdogAndPortTx(
             getHwSwitchEnsemble()->getHwSwitch(), port, true);
       }
 

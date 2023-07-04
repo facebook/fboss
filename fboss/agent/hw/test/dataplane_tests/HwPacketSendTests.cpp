@@ -351,7 +351,7 @@ TEST_F(HwPacketSendTest, PortTxEnableTest) {
     };
 
     // Disable TX on port
-    utility::setPortTxEnable(
+    utility::setCreditWatchdogAndPortTx(
         getHwSwitch(), masterLogicalInterfacePortIds()[0], false);
 
     auto portStatsT0 = getLatestPortStats(masterLogicalInterfacePortIds()[0]);
@@ -369,7 +369,7 @@ TEST_F(HwPacketSendTest, PortTxEnableTest) {
     auto portStatsT2 = getLatestPortStats(masterLogicalInterfacePortIds()[0]);
 
     // Enable TX on port, and wait for a while for packets to TX
-    utility::setPortTxEnable(
+    utility::setCreditWatchdogAndPortTx(
         getHwSwitch(), masterLogicalInterfacePortIds()[0], true);
     /*
      * For most platforms where TX disable will not drop traffic, will have
