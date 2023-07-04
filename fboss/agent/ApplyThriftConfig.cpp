@@ -4020,6 +4020,41 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     }
   }
 
+  std::optional<int32_t> newMinLinksToRemainInVOQDomain{std::nullopt};
+  if (cfg_->switchSettings()->minLinksToRemainInVOQDomain()) {
+    if (newSwitchSettings->getSwitchIdsOfType(cfg::SwitchType::VOQ).size() ==
+        0) {
+      throw FbossError(
+          "Min links to remain in VOQ Domain is supported only for VOQ switches");
+    }
+
+    newMinLinksToRemainInVOQDomain =
+        *cfg_->switchSettings()->minLinksToRemainInVOQDomain();
+  }
+  if (origSwitchSettings->getMinLinksToRemainInVOQDomain() !=
+      newMinLinksToRemainInVOQDomain) {
+    newSwitchSettings->setMinLinksToRemainInVOQDomain(
+        newMinLinksToRemainInVOQDomain);
+    switchSettingsChange = true;
+  }
+
+  std::optional<int32_t> newMinLinksToJoinVOQDomain{std::nullopt};
+  if (cfg_->switchSettings()->minLinksToJoinVOQDomain()) {
+    if (newSwitchSettings->getSwitchIdsOfType(cfg::SwitchType::VOQ).size() ==
+        0) {
+      throw FbossError(
+          "Min links to join VOQ Domain is supported only for VOQ switches");
+    }
+
+    newMinLinksToJoinVOQDomain =
+        *cfg_->switchSettings()->minLinksToJoinVOQDomain();
+  }
+  if (origSwitchSettings->getMinLinksToJoinVOQDomain() !=
+      newMinLinksToJoinVOQDomain) {
+    newSwitchSettings->setMinLinksToJoinVOQDomain(newMinLinksToJoinVOQDomain);
+    switchSettingsChange = true;
+  }
+
   if (switchSettingsChange) {
     return newSwitchSettings;
   }
