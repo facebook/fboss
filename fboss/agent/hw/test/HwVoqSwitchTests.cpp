@@ -120,6 +120,17 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     }
   }
 
+  SystemPortID getSystemPortID(const PortDescriptor& port) {
+    auto switchId = getHwSwitch()->getSwitchId();
+    CHECK(switchId.has_value());
+    auto sysPortRange = getProgrammedState()
+                            ->getDsfNodes()
+                            ->getNodeIf(SwitchID(*switchId))
+                            ->getSystemPortRange();
+    CHECK(sysPortRange.has_value());
+    return SystemPortID(port.intID() + *sysPortRange->minimum());
+  }
+
   int sendPacket(
       const folly::IPAddressV6& dstIp,
       std::optional<PortID> frontPanelPort) {
@@ -183,16 +194,9 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         if (!getAsic()->isSupported(HwAsic::Feature::VOQ)) {
           return 0L;
         }
-        auto switchId = getHwSwitch()->getSwitchId();
-        CHECK(switchId.has_value());
-        auto sysPortRange = getProgrammedState()
-                                ->getDsfNodes()
-                                ->getNodeIf(SwitchID(*switchId))
-                                ->getSystemPortRange();
-        CHECK(sysPortRange.has_value());
-        const SystemPortID sysPortId(kPort.intID() + *sysPortRange->minimum());
-        return getLatestSysPortStats(sysPortId).get_queueOutBytes_().at(
-            kDefaultQueue);
+        return getLatestSysPortStats(getSystemPortID(kPort))
+            .get_queueOutBytes_()
+            .at(kDefaultQueue);
       };
 
       auto getAclPackets = [this, checkAclCounter]() {
