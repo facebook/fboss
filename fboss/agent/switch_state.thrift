@@ -329,6 +329,7 @@ struct SwitchSettingsFields {
   29: map<i64, switch_config.SwitchInfo> switchIdToSwitchInfo;
   30: optional i32 minLinksToRemainInVOQDomain;
   31: optional i32 minLinksToJoinVOQDomain;
+  32: switch_config.SwitchDrainState desiredSwitchDrainState = switch_config.SwitchDrainState.UNDRAINED;
 }
 
 struct RoutePrefix {
