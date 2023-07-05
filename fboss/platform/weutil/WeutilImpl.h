@@ -1,12 +1,13 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
+
 #pragma once
 #include <gflags/gflags.h>
 #include "fboss/platform/weutil/WeutilInterface.h"
 
 namespace facebook::fboss::platform {
-class WeutilDarwin : public WeutilInterface {
+class WeutilImpl : public WeutilInterface {
  public:
-  WeutilDarwin(const std::string& eeprom = "");
+  WeutilImpl(const std::string& eeprom = "");
   std::vector<std::pair<std::string, std::string>> getInfo(
       const std::string& eeprom = "") override;
   void printInfo() override;
@@ -14,7 +15,6 @@ class WeutilDarwin : public WeutilInterface {
   bool verifyOptions(void) override;
 
  private:
-  void genSpiPrefdlFile(void);
   void printUsage(void);
   std::string eeprom_;
 };

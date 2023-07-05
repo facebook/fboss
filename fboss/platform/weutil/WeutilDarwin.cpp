@@ -53,7 +53,7 @@ const std::unordered_map<std::string, std::string> kMapping{
 } // namespace
 
 namespace facebook::fboss::platform {
-WeutilDarwin::WeutilDarwin(std::string eeprom) : eeprom_(eeprom) {
+WeutilDarwin::WeutilDarwin(const std::string& eeprom) : eeprom_(eeprom) {
   std::transform(eeprom_.begin(), eeprom_.end(), eeprom_.begin(), ::tolower);
   if (eeprom_ == "" || eeprom_ == "chassis") {
     genSpiPrefdlFile();
@@ -124,7 +124,7 @@ void WeutilDarwin::genSpiPrefdlFile(void) {
 }
 
 std::vector<std::pair<std::string, std::string>> WeutilDarwin::getInfo(
-    __attribute__((unused)) std::string eeprom) {
+    const std::string&) {
   PrefdlBase prefdl(kPredfl);
 
   std::vector<std::pair<std::string, std::string>> ret;

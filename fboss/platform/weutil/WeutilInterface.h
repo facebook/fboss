@@ -13,7 +13,7 @@ class WeutilInterface {
   virtual bool verifyOptions(void) = 0;
   // get weutil info in a vector of pairs, e.g. <"Version", "x"> , etc
   virtual std::vector<std::pair<std::string, std::string>> getInfo(
-      std::string eeprom = "") = 0;
+      const std::string& eeprom = "") = 0;
   virtual ~WeutilInterface() = default;
 
  protected:
