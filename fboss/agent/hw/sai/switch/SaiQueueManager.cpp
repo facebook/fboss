@@ -60,11 +60,6 @@ void fillHwQueueStats(
       case SAI_QUEUE_STAT_WRED_ECN_MARKED_PACKETS:
         hwPortStats.queueEcnMarkedPackets_()[queueId] = value;
         break;
-#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-      case SAI_QUEUE_STAT_CREDIT_WD_DELETED_PACKETS:
-        hwPortStats.queueCreditWatchdogDeletedPackets_()[queueId] = value;
-        break;
-#endif
       default:
         throw FbossError("Got unexpected queue counter id: ", counterId);
     }

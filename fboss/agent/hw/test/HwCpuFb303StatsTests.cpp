@@ -63,7 +63,6 @@ HwPortStats getInitedStats() {
       {{0, 3}, {7, 3}}, // outPfc_
       {{1, 0}, {2, 0}}, // queueWredDroppedPackets
       {{1, 0}, {2, 0}}, // queueEcnMarkedPackets
-      {{1, 0}, {2, 0}}, // queueCreditWatchdogDeletedPackets
       0, // timestamp
       "test", // portName
       {}, // macsec stats,
@@ -79,7 +78,7 @@ void updateStats(HwCpuFb303Stats& cpuStats) {
   HwPortStats empty{};
   // Need to populate queue stats, since by default these
   // maps are empty
-  *empty.queueOutDiscardPackets_() = *empty.queueOutPackets_() =
+  *empty.queueOutDiscardPackets_() =
       *empty.queueOutPackets_() = {{1, 0}, {2, 0}};
   cpuStats.updateStats(empty, now);
   cpuStats.updateStats(getInitedStats(), now);

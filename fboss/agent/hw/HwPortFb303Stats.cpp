@@ -55,7 +55,6 @@ const std::vector<folly::StringPiece>& HwPortFb303Stats::kQueueStatKeys()
       kOutPkts(),
       kWredDroppedPackets(),
       kOutEcnCounter(),
-      kCreditWatchdogDeletedPackets(),
   };
   return kQueueKeys;
 }
@@ -195,12 +194,6 @@ void HwPortFb303Stats::updateStats(
           kOutEcnCounter(),
           queueIdAndName.first,
           *curPortStats.queueEcnMarkedPackets_());
-    }
-    if (curPortStats.queueCreditWatchdogDeletedPackets_()->size()) {
-      updateQueueStat(
-          kCreditWatchdogDeletedPackets(),
-          queueIdAndName.first,
-          *curPortStats.queueCreditWatchdogDeletedPackets_());
     }
   }
   CHECK(
