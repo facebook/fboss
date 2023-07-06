@@ -5,6 +5,7 @@ namespace py3 neteng.fboss
 
 include "fboss/agent/if/fboss.thrift"
 include "fboss/agent/if/ctrl.thrift"
+include "fboss/agent/if/common.thrift"
 
 service SaiCtrl extends ctrl.FbossCtrl {
   string, stream<string> startDiagShell() throws (
@@ -12,6 +13,6 @@ service SaiCtrl extends ctrl.FbossCtrl {
   );
   void produceDiagShellInput(
     1: string input,
-    2: ctrl.ClientInformation client,
+    2: common.ClientInformation client,
   ) throws (1: fboss.FbossBaseError error);
 }

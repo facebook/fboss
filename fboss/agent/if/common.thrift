@@ -7,6 +7,17 @@ namespace py.asyncio neteng.fboss.asyncio.common
 
 include "fboss/agent/if/mpls.thrift"
 include "common/network/if/Address.thrift"
+include "thrift/annotation/cpp.thrift"
+
+@cpp.Type{name = "::folly::fbstring"}
+typedef binary fbbinary
+@cpp.Type{name = "::folly::fbstring"}
+typedef string fbstring
+
+struct ClientInformation {
+  1: optional fbstring username;
+  2: optional fbstring hostname;
+}
 
 struct NextHopThrift {
   1: Address.BinaryAddress address;

@@ -16,12 +16,10 @@ include "fboss/agent/switch_config.thrift"
 include "fboss/agent/platform_config.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/agent/hw/hardware_stats.thrift"
-include "thrift/annotation/cpp.thrift"
 
-@cpp.Type{name = "::folly::fbstring"}
-typedef binary fbbinary
-@cpp.Type{name = "::folly::fbstring"}
-typedef string fbstring
+typedef common.fbbinary fbbinary
+typedef common.fbstring fbstring
+typedef common.ClientInformation ClientInformation
 
 const i32 DEFAULT_CTRL_PORT = 5909;
 const i32 NO_VLAN = -1;
@@ -585,11 +583,6 @@ struct AclEntryThrift {
   21: string actionType;
   22: optional byte lookupClassL2;
   23: optional bool enabled;
-}
-
-struct ClientInformation {
-  1: optional fbstring username;
-  2: optional fbstring hostname;
 }
 
 enum HwObjectType {
