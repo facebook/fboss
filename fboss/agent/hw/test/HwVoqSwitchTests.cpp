@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/test/HwTestPacketSnooper.h"
 #include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/state/Interface.h"
@@ -664,6 +665,40 @@ TEST_F(HwVoqSwitchTest, AclCounter) {
         kCounterTypes());
   };
 
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwVoqSwitchTest, voqDelete) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  auto port = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [=]() {
+    addRemoveNeighbor(port, true /*add*/);
+    // Disable port TX
+    utility::setPortTx(getHwSwitch(), port.phyPortID(), false);
+  };
+  auto verify = [=]() {
+    auto getVoQDeletedPkts = [port, this]() {
+      if (!getAsic()->isSupported(HwAsic::Feature::VOQ_DELETE_COUNTER)) {
+        return 0L;
+      }
+      return getLatestSysPortStats(getSystemPortID(port))
+          .get_queueCreditWatchdogDeletedPackets_()
+          .at(kDefaultQueue);
+    };
+
+    auto voqDeletedPktsBefore = getVoQDeletedPkts();
+    const auto dstIp = ecmpHelper.ip(port);
+    for (auto i = 0; i < 100; ++i) {
+      // Send pkts via front panel
+      sendPacket(dstIp, ecmpHelper.ecmpPortDescriptorAt(1).phyPortID());
+    }
+    WITH_RETRIES({
+      auto voqDeletedPktsAfter = getVoQDeletedPkts();
+      XLOG(INFO) << "Voq deleted pkts, before: " << voqDeletedPktsBefore
+                 << " after: " << voqDeletedPktsAfter;
+      EXPECT_EVENTUALLY_EQ(voqDeletedPktsBefore + 100, voqDeletedPktsAfter);
+    });
+  };
   verifyAcrossWarmBoots(setup, verify);
 }
 
