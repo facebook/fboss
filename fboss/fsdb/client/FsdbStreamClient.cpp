@@ -17,11 +17,11 @@ DEFINE_int32(
     1000,
     "reconnect to fsdb timer in milliseconds");
 
-DEFINE_time_s(
+DEFINE_int32(
     fsdb_state_chunk_timeout,
     0, // disabled by default for now
     "Chunk timeout in seconds for FSDB State streams");
-DEFINE_time_s(
+DEFINE_int32(
     fsdb_stat_chunk_timeout,
     0, // disabled by default for now
     "Chunk timeout in seconds for FSDB Stat streams");
@@ -51,10 +51,12 @@ FsdbStreamClient::FsdbStreamClient(
     throw std::runtime_error(
         "Must pass valid stream, connRetry evbs to ctor, but passed null");
   }
-  if (isStats && FLAGS_fsdb_stat_chunk_timeout_s.count()) {
-    rpcOptions_.setChunkTimeout(FLAGS_fsdb_stat_chunk_timeout_s);
-  } else if (!isStats && FLAGS_fsdb_state_chunk_timeout_s.count()) {
-    rpcOptions_.setChunkTimeout(FLAGS_fsdb_state_chunk_timeout_s);
+  if (isStats && FLAGS_fsdb_stat_chunk_timeout) {
+    rpcOptions_.setChunkTimeout(
+        std::chrono::seconds(FLAGS_fsdb_stat_chunk_timeout));
+  } else if (!isStats && FLAGS_fsdb_state_chunk_timeout) {
+    rpcOptions_.setChunkTimeout(
+        std::chrono::seconds(FLAGS_fsdb_state_chunk_timeout));
   }
 
   fb303::fbData->setCounter(getConnectedCounterName(), 0);

@@ -13,7 +13,6 @@
 #include <thrift/lib/cpp2/async/Sink.h>
 #include <optional>
 #include <string>
-#include "common/time/ChronoFlags.h"
 #ifndef IS_OSS
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #endif
@@ -31,8 +30,8 @@ template <class>
 class Client;
 } // namespace apache::thrift
 
-DECLARE_time_s(fsdb_state_chunk_timeout);
-DECLARE_time_s(fsdb_stat_chunk_timeout);
+DECLARE_int32(fsdb_state_chunk_timeout);
+DECLARE_int32(fsdb_stat_chunk_timeout);
 
 namespace facebook::fboss::fsdb {
 class FsdbService;
