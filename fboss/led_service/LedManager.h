@@ -55,6 +55,10 @@ class LedManager {
     return eventBase_.get();
   }
 
+  fsdb::FsdbPubSubManager* pubSubMgr() const {
+    return fsdbPubSubMgr_.get();
+  }
+
   // Forbidden copy constructor and assignment operator
   LedManager(LedManager const&) = delete;
   LedManager& operator=(LedManager const&) = delete;
