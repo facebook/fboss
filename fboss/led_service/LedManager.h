@@ -37,6 +37,7 @@ class LedManager {
     cfg::PortProfileID portProfileId;
     bool operationStateUp{false};
     bool neighborReachable{false};
+    bool cablingError{false};
     led::LedColor currentLedColor{led::LedColor::UNKNOWN};
   };
 

@@ -71,19 +71,19 @@ void LedManager::updateLedStatus(
     auto portProfile = portFields.portProfileID().value();
     auto portProfileEnumVal = nameToEnum<cfg::PortProfileID>(portProfile);
 
-    if (portDisplayMap_.find(portId) == portDisplayMap_.end()) {
-      PortDisplayInfo portInfo;
-      portInfo.portName = portName;
-      portInfo.portProfileId = portProfileEnumVal;
-      portInfo.operationStateUp = portFields.portOperState().value();
-      portInfo.currentLedColor = led::LedColor::UNKNOWN;
-      portDisplayMap_[portId] = portInfo;
-    } else {
-      portDisplayMap_[portId].portName = portName;
-      portDisplayMap_[portId].portProfileId = portProfileEnumVal;
-      portDisplayMap_[portId].operationStateUp =
-          portFields.portOperState().value();
+    PortDisplayInfo portInfo;
+    portInfo.portName = portName;
+    portInfo.portProfileId = portProfileEnumVal;
+    portInfo.operationStateUp = portFields.portOperState().value();
+    if (portFields.portLedExternalState().has_value()) {
+      portInfo.cablingError = portFields.portLedExternalState().value() ==
+          PortLedExternalState::CABLING_ERROR;
     }
+    portInfo.currentLedColor =
+        (portDisplayMap_.find(portId) == portDisplayMap_.end())
+        ? led::LedColor::UNKNOWN
+        : portDisplayMap_.at(portId).currentLedColor;
+    portDisplayMap_[portId] = portInfo;
   }
 
   for (const auto& [portId, portFields] : newSwitchState) {
