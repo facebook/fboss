@@ -334,15 +334,19 @@ void getPortInfoHelper(
   *portInfo.profileID() = apache::thrift::util::enumName(port->getProfileID());
 
   if (port->isEnabled()) {
-    const auto pPort =
-        sw.getPlatform_DEPRECATED()->getPlatformPort(port->getID());
+    const auto pPort = sw.getPlatformMapping()->getPlatformPort(port->getID());
     PortHardwareDetails hw;
     hw.profile() = port->getProfileID();
-    hw.profileConfig() = pPort->getPortProfileConfigFromCache(*hw.profile());
-    hw.pinConfig() = pPort->getPortPinConfigs(*hw.profile());
+    auto matcher =
+        PlatformPortProfileConfigMatcher(port->getProfileID(), port->getID());
+    if (auto portProfileCfg =
+            sw.getPlatformMapping()->getPortProfileConfig(matcher)) {
+      hw.profileConfig() = *portProfileCfg;
+    }
+    hw.pinConfig() = sw.getPlatformMapping()->getPortXphyPinConfig(matcher);
     // Use SW Port pinConfig directly
     hw.pinConfig()->iphy() = port->getPinConfigs();
-    hw.chips() = pPort->getPortDataplaneChips(*hw.profile());
+    hw.chips() = sw.getPlatformMapping()->getPortDataplaneChips(matcher);
     portInfo.hw() = hw;
 
     auto fec = hw.profileConfig()->iphy()->fec().value();

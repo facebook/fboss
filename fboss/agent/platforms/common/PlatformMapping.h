@@ -111,6 +111,9 @@ class PlatformMapping {
     return chips_;
   }
 
+  std::map<std::string, phy::DataPlanePhyChip> getPortDataplaneChips(
+      PlatformPortProfileConfigMatcher matcher) const;
+
   int getPimID(PortID portID) const;
 
   int getPimID(const cfg::PlatformPortEntry& platformPort) const;

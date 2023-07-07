@@ -24,6 +24,31 @@ class HwPortProfileTest : public HwTest {
         getHwSwitch(), ports[0], ports[1], lbMode);
   }
 
+  void verifyPlatformMapping(PortID port) {
+    auto pPort = getPlatform()->getPlatformPort(port);
+    EXPECT_EQ(
+        pPort->getPlatformPortEntry(),
+        getPlatform()->getPlatformMapping()->getPlatformPort(port));
+
+    auto swPort = getProgrammedState()->getPort(port);
+    auto matcher = PlatformPortProfileConfigMatcher(
+        swPort->getProfileID(), swPort->getID());
+
+    if (auto portProfileCfg =
+            getPlatform()->getPlatformMapping()->getPortProfileConfig(
+                matcher)) {
+      EXPECT_EQ(
+          pPort->getPortProfileConfigFromCache(swPort->getProfileID()),
+          *portProfileCfg);
+    }
+    EXPECT_EQ(
+        pPort->getPortPinConfigs(swPort->getProfileID()),
+        getPlatform()->getPlatformMapping()->getPortXphyPinConfig(matcher));
+    EXPECT_EQ(
+        pPort->getPortDataplaneChips(swPort->getProfileID()),
+        getPlatform()->getPlatformMapping()->getPortDataplaneChips(matcher));
+  }
+
   void verifyPort(PortID portID) {
     auto platformPort = getPlatform()->getPlatformPort(portID);
     EXPECT_EQ(portID, platformPort->getPortID());
@@ -53,6 +78,8 @@ class HwPortProfileTest : public HwTest {
         getPlatform(),
         port->getProfileConfig());
     // (TODO): verify lane count (for sai)
+
+    verifyPlatformMapping(port->getID());
   }
 
   // Verifies that we can read various PHY diagnostics but not the correctness
