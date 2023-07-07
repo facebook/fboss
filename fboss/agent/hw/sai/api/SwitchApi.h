@@ -499,10 +499,19 @@ struct SaiSwitchTraits {
       std::optional<Attributes::SwitchIsolate>,
       std::optional<Attributes::CreditWd>,
       std::optional<Attributes::MaxCores>>;
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  static constexpr std::array<sai_stat_id_t, 3> CounterIdsToRead = {
+      SAI_SWITCH_STAT_REACHABILITY_DROP,
+      SAI_SWITCH_STAT_GLOBAL_DROP,
+      SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP,
+  };
+#else
   static constexpr std::array<sai_stat_id_t, 2> CounterIdsToRead = {
       SAI_SWITCH_STAT_REACHABILITY_DROP,
       SAI_SWITCH_STAT_GLOBAL_DROP,
   };
+#endif
   static constexpr std::array<sai_stat_id_t, 0> CounterIdsToReadAndClear = {};
 };
 
