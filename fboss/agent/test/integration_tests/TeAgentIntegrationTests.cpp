@@ -249,7 +249,7 @@ class TeAgentIntegrationTest : public AgentIntegrationTest {
 
 TEST_F(TeAgentIntegrationTest, teAgentRunning) {
   auto verify = [&]() { checkTeAgentState(); };
-  verifyAcrossWarmBoots(verify);
+  verifyAcrossWarmBoots([]() {}, verify);
 }
 
 TEST_F(TeAgentIntegrationTest, addDeleteTeFlows) {
