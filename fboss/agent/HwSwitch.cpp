@@ -213,4 +213,22 @@ std::shared_ptr<SwitchState> HwSwitch::fillinPortInterfaces(
   return newState;
 }
 
+bool HwSwitch::isFullyConfigured() const {
+  auto state = getRunState();
+  return state >= SwitchRunState::CONFIGURED &&
+      state != SwitchRunState::EXITING;
+}
+
+void HwSwitch::ensureConfigured(folly::StringPiece function) const {
+  if (isFullyConfigured()) {
+    return;
+  }
+
+  if (!function.empty()) {
+    XLOG(DBG1) << "failing thrift prior to switch configuration: " << function;
+  }
+  throw FbossError(
+      "switch is still initializing or is exiting and is not "
+      "fully configured yet");
+}
 } // namespace facebook::fboss

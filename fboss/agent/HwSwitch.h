@@ -363,6 +363,10 @@ class HwSwitch {
   fsdb::OperDelta stateChanged(const fsdb::OperDelta& delta);
   fsdb::OperDelta stateChangedTransaction(const fsdb::OperDelta& delta);
 
+  void ensureConfigured(folly::StringPiece function) const;
+
+  bool isFullyConfigured() const;
+
  protected:
   void setProgrammedState(const std::shared_ptr<SwitchState>& state);
 

@@ -55,7 +55,7 @@ void SaiHandler::diagCmd(
     int16_t /* unused */,
     bool /* unused */) {
   auto log = LOG_THRIFT_CALL(WARN, *cmd);
-  ensureConfigured(__func__);
+  hw_->ensureConfigured(__func__);
   result = diagCmdServer_.diagCmd(std::move(cmd), std::move(client));
 }
 
