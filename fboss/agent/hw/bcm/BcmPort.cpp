@@ -1358,6 +1358,7 @@ void BcmPort::updateStats() {
           hardware_stats_constants::STAT_UNINITIALIZED()
       ? 0
       : *curPortStats.inDiscards_();
+  curPortStats.portName_() = getPortName();
   curPortStats.timestamp_() = now.count();
 
   updateStat(now, kInBytes(), snmpIfHCInOctets, &(*curPortStats.inBytes_()));
