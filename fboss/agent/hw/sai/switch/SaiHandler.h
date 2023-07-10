@@ -13,6 +13,7 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/hw/sai/diag/DiagShell.h"
 #include "fboss/agent/hw/sai/switch/gen-cpp2/SaiCtrl.h"
+#include "fboss/agent/hw/sai/switch/gen-cpp2/SaiCtrl2.h"
 
 namespace facebook::fboss {
 
@@ -41,6 +42,13 @@ class SaiHandler : virtual public SaiCtrlSvIf, public ThriftHandler {
   const SaiSwitch* hw_;
   StreamingDiagShellServer diagShell_;
   DiagCmdServer diagCmdServer_;
+};
+
+class SaiHandler2 : public SaiCtrl2SvIf {
+ public:
+  int32_t echoI32(int32_t input) override {
+    return input;
+  }
 };
 
 } // namespace facebook::fboss
