@@ -23,7 +23,7 @@ void FsdbSensorSubscriber::subscribeToStatsOrState(
     storage.withWLock([&](auto& locked) {
       if (auto metadata = state.metadata()) {
         if (auto lastConfirmedAt = metadata->lastConfirmedAt()) {
-          lastUpdatedTime.store(*lastConfirmedAt);
+          sensorStatsLastUpdatedTime.store(*lastConfirmedAt);
         }
       }
       if (auto contents = state.contents()) {

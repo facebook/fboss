@@ -30,7 +30,7 @@ int runShellCmd(const std::string& cmd) {
 }
 
 auto constexpr kFsdbSyncTimeoutThresholdInSec = 3 * 60; // 3 minutes
-auto constexpr kFsdbDataStale = "fsdb_sensor_service_data_stale";
+auto constexpr kFsdbSensorDataStale = "fsdb_sensor_service_data_stale";
 
 std::optional<TransceiverData> getTransceiverData(
     int32_t xvrId,
@@ -139,13 +139,13 @@ void Bsp::getSensorData(
   }
   if (fetchFromFsdb) {
     auto timeSinceLastUpdate = facebook::WallClockUtil::NowInSecFast() -
-        fsdbSensorSubscriber_->getLastUpdatedTime();
+        fsdbSensorSubscriber_->getSensorStatsLastUpdatedTime();
     if (timeSinceLastUpdate > kFsdbSyncTimeoutThresholdInSec) {
       XLOG(ERR) << "Warning! Sensor data hasn't been synced since last "
                 << timeSinceLastUpdate << " seconds";
-      fb303::fbData->setCounter(kFsdbDataStale, 1);
+      fb303::fbData->setCounter(kFsdbSensorDataStale, 1);
     } else {
-      fb303::fbData->setCounter(kFsdbDataStale, 0);
+      fb303::fbData->setCounter(kFsdbSensorDataStale, 0);
     }
     // Populate the last data that was received from FSDB into pSensorData
     auto subscribedData = *subscribedSensorData.rlock();

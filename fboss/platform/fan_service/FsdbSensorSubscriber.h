@@ -38,8 +38,8 @@ class FsdbSensorSubscriber {
   static std::vector<std::string> getQsfpDataStatsPath();
   static std::vector<std::string> getQsfpDataStatePath();
 
-  uint64_t getLastUpdatedTime() const {
-    return lastUpdatedTime.load();
+  uint64_t getSensorStatsLastUpdatedTime() const {
+    return sensorStatsLastUpdatedTime.load();
   }
 
  private:
@@ -49,7 +49,7 @@ class FsdbSensorSubscriber {
       folly::Synchronized<T>& storage,
       bool stats);
   fsdb::FsdbPubSubManager* fsdbPubSubMgr_;
-  std::atomic<uint64_t> lastUpdatedTime{0};
+  std::atomic<uint64_t> sensorStatsLastUpdatedTime{0};
 };
 
 } // namespace facebook::fboss
