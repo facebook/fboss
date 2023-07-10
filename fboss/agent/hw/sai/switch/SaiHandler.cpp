@@ -56,4 +56,8 @@ void SaiHandler::diagCmd(
   result = diagCmdServer_.diagCmd(std::move(cmd), std::move(client));
 }
 
+SwitchRunState SaiHandler::getHwSwitchRunState() {
+  return hw_->getRunState();
+}
+
 } // namespace facebook::fboss

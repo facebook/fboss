@@ -25,5 +25,5 @@ service FbossHwCtrl {
   common.fbstring cmdFiltersAsString() throws (1: fboss.FbossBaseError error);
 
   // an api  to test hw switch handler in hardware agnostic way
-  i32 echoI32(i32 input);
+  common.SwitchRunState getHwSwitchRunState();
 }

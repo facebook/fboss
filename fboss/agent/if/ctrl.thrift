@@ -35,15 +35,7 @@ enum AdminDistance {
   MAX_ADMIN_DISTANCE = 255,
 }
 
-// SwSwitch run states. SwSwitch moves forward from a
-// lower numbered state to the next
-enum SwitchRunState {
-  UNINITIALIZED = 0,
-  INITIALIZED = 1,
-  CONFIGURED = 2,
-  FIB_SYNCED = 3,
-  EXITING = 4,
-}
+typedef common.SwitchRunState SwitchRunState
 
 enum SSLType {
   DISABLED = 0,

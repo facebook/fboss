@@ -37,9 +37,7 @@ class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl> {
       int16_t serverTimeoutMsecs = 0,
       bool bypassFilter = false) override;
 
-  int32_t echoI32(int32_t input) override {
-    return input;
-  }
+  SwitchRunState getHwSwitchRunState() override;
 
  private:
   const SaiSwitch* hw_;

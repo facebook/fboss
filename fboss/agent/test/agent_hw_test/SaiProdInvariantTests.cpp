@@ -8,8 +8,8 @@ namespace facebook::fboss {
 void verifyHwSwitchHandler() {
   std::shared_ptr<folly::ScopedEventBaseThread> evbThread;
   auto client = setupClient<apache::thrift::Client<SaiCtrl>>("sai", evbThread);
-  auto out = client->sync_echoI32(10);
-  EXPECT_EQ(out, 10);
+  auto state = client->sync_getHwSwitchRunState();
+  EXPECT_GE(state, SwitchRunState::CONFIGURED);
 }
 } // namespace facebook::fboss
 int main(int argc, char* argv[]) {

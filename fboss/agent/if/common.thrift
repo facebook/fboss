@@ -87,3 +87,13 @@ union NamedRouteDestination {
   // traffic redirection policy name
   2: string policyName;
 }
+
+// SwSwitch run states. SwSwitch moves forward from a
+// lower numbered state to the next
+enum SwitchRunState {
+  UNINITIALIZED = 0,
+  INITIALIZED = 1,
+  CONFIGURED = 2,
+  FIB_SYNCED = 3,
+  EXITING = 4,
+}
