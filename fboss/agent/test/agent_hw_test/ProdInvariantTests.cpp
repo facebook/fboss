@@ -336,7 +336,15 @@ void ProdInvariantTest::verifySafeDiagCommands() {
   XLOG(DBG2) << "Verify Safe Diagnostic Commands Done";
 }
 
+void ProdInvariantTest::verifySwSwitchHandler() {
+  std::shared_ptr<folly::ScopedEventBaseThread> evbThread;
+  auto client = setupClient<apache::thrift::Client<FbossCtrl>>("sw", evbThread);
+  auto runState = client->sync_getSwitchRunState();
+  EXPECT_GE(runState, SwitchRunState::CONFIGURED);
+}
+
 void ProdInvariantTest::verifyThriftHandler() {
+  verifySwSwitchHandler();
   verifyHwSwitchHandler();
 }
 

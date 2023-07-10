@@ -25,6 +25,7 @@ class ProdInvariantTest : public ProdAgentTests {
   bool checkBaseConfigPortsEmpty();
   cfg::SwitchConfig getConfigFromFlag();
   void verifyThriftHandler();
+  void verifySwSwitchHandler();
 
  protected:
   std::optional<bool> useProdConfig_ = std::nullopt;
