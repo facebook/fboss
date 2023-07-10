@@ -12,7 +12,6 @@
 #include <folly/Memory.h>
 #include <folly/logging/xlog.h>
 
-#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmConfig.h"

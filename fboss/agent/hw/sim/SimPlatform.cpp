@@ -10,7 +10,6 @@
 
 #include "fboss/agent/hw/sim/SimPlatform.h"
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/hw/sim/SimPlatformMapping.h"
 #include "fboss/agent/hw/sim/SimPlatformPort.h"

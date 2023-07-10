@@ -10,7 +10,6 @@
 
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
-#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
