@@ -47,9 +47,12 @@ class FsdbSensorSubscriber {
   void subscribeToStatsOrState(
       std::vector<std::string> path,
       folly::Synchronized<T>& storage,
-      bool stats);
+      bool stats,
+      std::atomic<uint64_t>& lastUpdateTime);
   fsdb::FsdbPubSubManager* fsdbPubSubMgr_;
   std::atomic<uint64_t> sensorStatsLastUpdatedTime{0};
+  std::atomic<uint64_t> qsfpStatsLastUpdatedTime{0};
+  std::atomic<uint64_t> qsfpStateLastUpdatedTime{0};
   folly::Synchronized<std::map<
       std::string /* sensor name */,
       fboss::platform::sensor_service::SensorData>>
