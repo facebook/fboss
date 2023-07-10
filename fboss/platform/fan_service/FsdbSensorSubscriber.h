@@ -24,14 +24,9 @@ class FsdbSensorSubscriber {
     return fsdbPubSubMgr_;
   }
 
-  void subscribeToSensorServiceStat(
-      folly::Synchronized<
-          std::map<std::string, fboss::platform::sensor_service::SensorData>>&
-          storage);
-  void subscribeToQsfpServiceState(
-      folly::Synchronized<std::map<int32_t, TcvrState>>& storage);
-  void subscribeToQsfpServiceStat(
-      folly::Synchronized<std::map<int32_t, TcvrStats>>& storage);
+  void subscribeToSensorServiceStat();
+  void subscribeToQsfpServiceState();
+  void subscribeToQsfpServiceStat();
 
   // Paths
   static std::vector<std::string> getSensorDataStatsPath();
@@ -42,6 +37,11 @@ class FsdbSensorSubscriber {
     return sensorStatsLastUpdatedTime.load();
   }
 
+  std::map<std::string, fboss::platform::sensor_service::SensorData>
+  getSensorData() const;
+  std::map<int32_t, TcvrState> getTcvrState() const;
+  std::map<int32_t, TcvrStats> getTcvrStats() const;
+
  private:
   template <typename T>
   void subscribeToStatsOrState(
@@ -50,6 +50,12 @@ class FsdbSensorSubscriber {
       bool stats);
   fsdb::FsdbPubSubManager* fsdbPubSubMgr_;
   std::atomic<uint64_t> sensorStatsLastUpdatedTime{0};
+  folly::Synchronized<std::map<
+      std::string /* sensor name */,
+      fboss::platform::sensor_service::SensorData>>
+      sensorSvcData;
+  folly::Synchronized<std::map<int32_t /* tcvrId */, TcvrState>> tcvrState;
+  folly::Synchronized<std::map<int32_t /* tcvrId */, TcvrStats>> tcvrStats;
 };
 
 } // namespace facebook::fboss

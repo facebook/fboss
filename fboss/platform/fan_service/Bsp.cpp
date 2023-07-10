@@ -59,10 +59,10 @@ Bsp::Bsp() {
   fsdbSensorSubscriber_ =
       std::make_unique<FsdbSensorSubscriber>(fsdbPubSubMgr_.get());
   if (FLAGS_subscribe_to_stats_from_fsdb) {
-    fsdbSensorSubscriber_->subscribeToSensorServiceStat(subscribedSensorData);
+    fsdbSensorSubscriber_->subscribeToSensorServiceStat();
     if (FLAGS_subscribe_to_qsfp_data_from_fsdb) {
-      fsdbSensorSubscriber_->subscribeToQsfpServiceStat(subscribedQsfpStats);
-      fsdbSensorSubscriber_->subscribeToQsfpServiceState(subscribedQsfpState);
+      fsdbSensorSubscriber_->subscribeToQsfpServiceStat();
+      fsdbSensorSubscriber_->subscribeToQsfpServiceState();
     }
   }
 }
@@ -148,7 +148,7 @@ void Bsp::getSensorData(
       fb303::fbData->setCounter(kFsdbSensorDataStale, 0);
     }
     // Populate the last data that was received from FSDB into pSensorData
-    auto subscribedData = *subscribedSensorData.rlock();
+    auto subscribedData = fsdbSensorSubscriber_->getSensorData();
     for (const auto& sensorIt : subscribedData) {
       auto sensorData = sensorIt.second;
       pSensorData->updateEntryFloat(
@@ -289,8 +289,8 @@ void Bsp::getOpticsDataFromQsfpSvc(
   try {
     if (FLAGS_subscribe_to_stats_from_fsdb &&
         FLAGS_subscribe_to_qsfp_data_from_fsdb) {
-      auto subscribedQsfpDataState = *subscribedQsfpState.rlock();
-      auto subscribedQsfpDataStats = *subscribedQsfpStats.rlock();
+      auto subscribedQsfpDataState = fsdbSensorSubscriber_->getTcvrState();
+      auto subscribedQsfpDataStats = fsdbSensorSubscriber_->getTcvrStats();
       for (const auto& [tcvrId, tcvrState] : subscribedQsfpDataState) {
         auto tcvrStatIt = subscribedQsfpDataStats.find(tcvrId);
         // Expect to see a stat if state exists. If not, ignore this port

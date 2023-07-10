@@ -158,10 +158,5 @@ class Bsp {
 
   std::unique_ptr<FsdbSensorSubscriber> fsdbSensorSubscriber_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
-  folly::Synchronized<
-      std::map<std::string, fboss::platform::sensor_service::SensorData>>
-      subscribedSensorData;
-  folly::Synchronized<std::map<int32_t, TcvrState>> subscribedQsfpState;
-  folly::Synchronized<std::map<int32_t, TcvrStats>> subscribedQsfpStats;
 };
 } // namespace facebook::fboss::platform

@@ -40,21 +40,29 @@ void FsdbSensorSubscriber::subscribeToStatsOrState(
   }
 }
 
-void FsdbSensorSubscriber::subscribeToQsfpServiceStat(
-    folly::Synchronized<std::map<int32_t, TcvrStats>>& storage) {
-  subscribeToStatsOrState(getQsfpDataStatsPath(), storage, true /* stats */);
+void FsdbSensorSubscriber::subscribeToQsfpServiceStat() {
+  subscribeToStatsOrState(getQsfpDataStatsPath(), tcvrStats, true /* stats */);
 }
 
-void FsdbSensorSubscriber::subscribeToQsfpServiceState(
-    folly::Synchronized<std::map<int32_t, TcvrState>>& storage) {
-  subscribeToStatsOrState(getQsfpDataStatePath(), storage, false /* state */);
+void FsdbSensorSubscriber::subscribeToQsfpServiceState() {
+  subscribeToStatsOrState(getQsfpDataStatePath(), tcvrState, false /* state */);
 }
 
-void FsdbSensorSubscriber::subscribeToSensorServiceStat(
-    folly::Synchronized<
-        std::map<std::string, fboss::platform::sensor_service::SensorData>>&
-        storage) {
-  subscribeToStatsOrState(getSensorDataStatsPath(), storage, true /* stats */);
+void FsdbSensorSubscriber::subscribeToSensorServiceStat() {
+  subscribeToStatsOrState(
+      getSensorDataStatsPath(), sensorSvcData, true /* stats */);
 }
 
+std::map<std::string, fboss::platform::sensor_service::SensorData>
+FsdbSensorSubscriber::getSensorData() const {
+  return sensorSvcData.copy();
+};
+
+std::map<int32_t, TcvrState> FsdbSensorSubscriber::getTcvrState() const {
+  return tcvrState.copy();
+};
+
+std::map<int32_t, TcvrStats> FsdbSensorSubscriber::getTcvrStats() const {
+  return tcvrStats.copy();
+};
 } // namespace facebook::fboss
