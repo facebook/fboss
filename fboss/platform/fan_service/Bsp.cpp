@@ -281,26 +281,39 @@ void Bsp::processOpticEntries(
 void Bsp::getOpticsDataThrift(
     Optic* opticsGroup,
     std::shared_ptr<SensorData> pSensorData) {
-  // Here, we don't really futureGet the transceiver data,
-  // but use the cached value from the background thread.
-  // We use QsfpClient for this.
+  // Here, we either use the subscribed data we got from FSDB or directly use
+  // the QsfpClient to query data over thrift
   std::map<int, TransceiverData> transceiverData;
   uint64_t currentQsfpSvcTimestamp = 0;
 
   try {
-    // QsfpClient sync with Qsfp service every
-    // 30 seconds. The following merely reads the cached data
-    // updated in the last sync attempt (thus returns very quickly.)
-    std::map<int32_t, TransceiverInfo> cacheTable;
-    getTransceivers(cacheTable, evb_);
-    // Create TransceiverData map from the received TransceiverInfo map. We are
-    // going to use TransceiverData to process optics entries later
-    for (auto& cacheEntry : cacheTable) {
-      if (auto tcvrData = getTransceiverData(
-              cacheEntry.first,
-              cacheEntry.second.get_tcvrState(),
-              cacheEntry.second.get_tcvrStats())) {
-        transceiverData.emplace(cacheEntry.first, *tcvrData);
+    if (FLAGS_subscribe_to_stats_from_fsdb &&
+        FLAGS_subscribe_to_qsfp_data_from_fsdb) {
+      auto subscribedQsfpDataState = *subscribedQsfpState.rlock();
+      auto subscribedQsfpDataStats = *subscribedQsfpStats.rlock();
+      for (const auto& [tcvrId, tcvrState] : subscribedQsfpDataState) {
+        auto tcvrStatIt = subscribedQsfpDataStats.find(tcvrId);
+        // Expect to see a stat if state exists. If not, ignore this port
+        if (tcvrStatIt == subscribedQsfpDataStats.end()) {
+          continue;
+        }
+        if (auto tcvrData =
+                getTransceiverData(tcvrId, tcvrState, tcvrStatIt->second)) {
+          transceiverData.emplace(tcvrId, *tcvrData);
+        }
+      }
+    } else {
+      std::map<int32_t, TransceiverInfo> cacheTable;
+      getTransceivers(cacheTable, evb_);
+      // Create TransceiverData map from the received TransceiverInfo map. We
+      // are going to use TransceiverData to process optics entries later
+      for (auto& cacheEntry : cacheTable) {
+        if (auto tcvrData = getTransceiverData(
+                cacheEntry.first,
+                cacheEntry.second.get_tcvrState(),
+                cacheEntry.second.get_tcvrStats())) {
+          transceiverData.emplace(cacheEntry.first, *tcvrData);
+        }
       }
     }
   } catch (std::exception& e) {
