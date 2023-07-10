@@ -160,12 +160,6 @@ class Platform {
   virtual void onInitialConfigApplied(HwSwitchCallback* sw) = 0;
 
   /*
-   * Create the ThriftHandler.
-   *
-   * This will be invoked by fbossMain() during the initialization process.
-   */
-  virtual std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) = 0;
-  /*
    * Create the handler for HwSwitch service
    */
   virtual std::shared_ptr<apache::thrift::AsyncProcessorFactory>

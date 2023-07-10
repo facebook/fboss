@@ -43,10 +43,6 @@ void SimPlatform::onInitialConfigApplied(HwSwitchCallback* /*sw*/) {}
 
 void SimPlatform::stop() {}
 
-unique_ptr<ThriftHandler> SimPlatform::createHandler(SwSwitch* sw) {
-  return std::make_unique<ThriftHandler>(sw);
-}
-
 std::string SimPlatform::getVolatileStateDir() const {
   FLAGS_volatile_state_dir = "/tmp/fboss_sim/volatile";
   return FLAGS_volatile_state_dir;

@@ -66,12 +66,6 @@ void BcmTestPlatform::initImpl(uint32_t hwFeaturesDesired) {
   bcmSwitch_ = std::make_unique<BcmSwitch>(this, hwFeaturesDesired);
 }
 
-std::unique_ptr<ThriftHandler> BcmTestPlatform::createHandler(
-    SwSwitch* /*sw*/) {
-  XLOG(FATAL) << "unexpected call to BcmTestPlatform::createHandler()";
-  return nullptr;
-}
-
 void BcmTestPlatform::onUnitAttach(int /*unit*/) {
   // Nothing to do
 }

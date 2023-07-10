@@ -13,10 +13,6 @@
 
 namespace facebook::fboss {
 
-std::unique_ptr<ThriftHandler> WedgePlatform::createHandler(SwSwitch* sw) {
-  return std::make_unique<ThriftHandler>(sw);
-}
-
 std::shared_ptr<apache::thrift::AsyncProcessorFactory>
 WedgePlatform::createHandler() {
   return nullptr;
