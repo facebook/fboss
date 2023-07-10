@@ -6,6 +6,7 @@ namespace py3 neteng.fboss
 include "fboss/agent/if/fboss.thrift"
 include "fboss/agent/if/common.thrift"
 include "fboss/agent/if/ctrl.thrift"
+include "fboss/agent/if/hw_ctrl.thrift"
 include "fboss/agent/hw/bcm/packettrace.thrift"
 
 service BcmCtrl extends ctrl.FbossCtrl {
@@ -32,4 +33,7 @@ service BcmCtrl extends ctrl.FbossCtrl {
   bool isFineGrainedBufferStatLoggingEnabled() throws (
     1: fboss.FbossBaseError error,
   );
+}
+
+service BcmCtrl2 extends hw_ctrl.FbossHwCtrl {
 }
