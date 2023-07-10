@@ -176,6 +176,11 @@ std::unique_ptr<ThriftHandler> SaiPlatform::createHandler(SwSwitch* sw) {
   return std::make_unique<SaiHandler>(sw, saiSwitch_.get());
 }
 
+std::shared_ptr<apache::thrift::AsyncProcessorFactory>
+SaiPlatform::createHandler() {
+  return std::make_shared<SaiHandler2>();
+}
+
 TransceiverIdxThrift SaiPlatform::getPortMapping(
     PortID portId,
     cfg::PortSpeed speed) const {

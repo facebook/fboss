@@ -44,7 +44,7 @@ class SaiHandler : virtual public SaiCtrlSvIf, public ThriftHandler {
   DiagCmdServer diagCmdServer_;
 };
 
-class SaiHandler2 : public SaiCtrl2SvIf {
+class SaiHandler2 : public apache::thrift::ServiceHandler<SaiCtrl2> {
  public:
   int32_t echoI32(int32_t input) override {
     return input;

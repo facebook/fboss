@@ -50,9 +50,7 @@ class SaiPlatform : public Platform, public StateObserver {
   void onInitialConfigApplied(HwSwitchCallback* sw) override;
   std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) override;
   std::shared_ptr<apache::thrift::AsyncProcessorFactory> createHandler()
-      override {
-    return nullptr;
-  }
+      override;
   TransceiverIdxThrift getPortMapping(PortID port, cfg::PortSpeed speed)
       const override;
   virtual SaiPlatformPort* getPort(PortID id) const;

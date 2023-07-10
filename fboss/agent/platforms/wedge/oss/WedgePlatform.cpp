@@ -17,6 +17,11 @@ std::unique_ptr<ThriftHandler> WedgePlatform::createHandler(SwSwitch* sw) {
   return std::make_unique<ThriftHandler>(sw);
 }
 
+std::shared_ptr<apache::thrift::AsyncProcessorFactory>
+WedgePlatform::createHandler() {
+  return nullptr;
+}
+
 void WedgePlatform::initLEDs() {
   // TODO: Initialize the LEDs.  The LED handling code isn't open source yet,
   // but should be soon once we get approval for the required Bcm APIs.
