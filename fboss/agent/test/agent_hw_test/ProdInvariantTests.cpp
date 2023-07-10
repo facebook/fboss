@@ -336,6 +336,10 @@ void ProdInvariantTest::verifySafeDiagCommands() {
   XLOG(DBG2) << "Verify Safe Diagnostic Commands Done";
 }
 
+void ProdInvariantTest::verifyThriftHandler() {
+  verifyHwSwitchHandler();
+}
+
 int ProdInvariantTestMain(
     int argc,
     char** argv,
@@ -353,6 +357,7 @@ TEST_F(ProdInvariantTest, verifyInvariants) {
     verifyLoadBalancing();
     verifyDscpToQueueMapping();
     verifySafeDiagCommands();
+    verifyThriftHandler();
   };
   verifyAcrossWarmBoots(setup, verify);
 }

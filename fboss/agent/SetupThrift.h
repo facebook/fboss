@@ -14,6 +14,8 @@
 #include <folly/SocketAddress.h>
 #include <folly/io/async/EventBase.h>
 #include <gflags/gflags.h>
+#include <thrift/lib/cpp2/async/PooledRequestChannel.h>
+#include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 
 DECLARE_int32(thrift_idle_timeout);
@@ -42,6 +44,24 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
       handlers{};
   handlers.push_back(handler);
   return setupThriftServer(eventBase, handlers, ports, setupSSL);
+}
+
+template <typename clientT>
+std::unique_ptr<clientT> setupClient(
+    std::string clientName,
+    std::shared_ptr<folly::ScopedEventBaseThread>& evbThread,
+    const std::string& ip = "::1",
+    uint32_t port = 5909) {
+  evbThread = std::make_shared<folly::ScopedEventBaseThread>(clientName);
+  auto channel = apache::thrift::PooledRequestChannel::newChannel(
+      evbThread->getEventBase(),
+      evbThread,
+      [ip, port](folly::EventBase& evb) mutable {
+        return apache::thrift::RocketClientChannel::newChannel(
+            folly::AsyncSocket::UniquePtr(
+                new folly::AsyncSocket(&evb, ip, port)));
+      });
+  return std::make_unique<clientT>(std::move(channel));
 }
 
 } // namespace facebook::fboss
