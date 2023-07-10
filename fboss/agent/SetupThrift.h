@@ -25,38 +25,23 @@ void serverSSLSetup(apache::thrift::ThriftServer& server);
 
 void setupThriftModules();
 
+std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
+    folly::EventBase& eventBase,
+    const std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>&
+        handlers,
+    const std::vector<int>& ports,
+    bool setupSSL);
+
 template <typename THRIFT_HANDLER>
 std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
     folly::EventBase& eventBase,
     std::shared_ptr<THRIFT_HANDLER>& handler,
     std::vector<int> ports,
     bool setupSSL) {
-  // Start the thrift server
-  auto server = std::make_unique<apache::thrift::ThriftServer>();
-  server->setTaskExpireTime(
-      std::chrono::milliseconds(FLAGS_thrift_task_expire_timeout * 1000));
-  server->getEventBaseManager()->setEventBase(&eventBase, false);
-  server->setInterface(handler);
-  // Since thrift calls may involve programming HW, don't
-  // set queue timeouts
-  server->setQueueTimeout(std::chrono::milliseconds(0));
-  server->setSocketQueueTimeout(std::chrono::milliseconds(0));
-
-  if (setupSSL) {
-    serverSSLSetup(*server);
-  }
-
-  setupThriftModules();
-
-  std::vector<folly::SocketAddress> addresses;
-  for (auto port : ports) {
-    folly::SocketAddress address;
-    address.setFromLocalPort(port);
-    addresses.push_back(address);
-  }
-  server->setAddresses(addresses);
-  server->setIdleTimeout(std::chrono::seconds(FLAGS_thrift_idle_timeout));
-  return server;
+  std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
+      handlers{};
+  handlers.push_back(handler);
+  return setupThriftServer(eventBase, handlers, ports, setupSSL);
 }
 
 } // namespace facebook::fboss
