@@ -1147,21 +1147,6 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   ) throws (1: fboss.FbossBaseError error);
 
   /*
-   * Enables submitting diag cmds to the switch
-   */
-  fbstring diagCmd(
-    1: fbstring cmd,
-    2: ClientInformation client,
-    3: i16 serverTimeoutMsecs = 0,
-    4: bool bypassFilter = false,
-  );
-
-  /*
-   * Get formatted string for diag cmd filters configuration
-   */
-  fbstring cmdFiltersAsString() throws (1: fboss.FbossBaseError error);
-
-  /*
   * Return the system's platform mapping (see platform_config.thrift)
   */
   platform_config.PlatformMapping getPlatformMapping() throws (

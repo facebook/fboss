@@ -16,11 +16,8 @@
 
 namespace facebook::fboss {
 
-SaiHandler::SaiHandler(SwSwitch* sw, const SaiSwitch* hw)
-    : ThriftHandler(sw),
-      hw_(hw),
-      diagShell_(hw),
-      diagCmdServer_(hw, &diagShell_) {}
+SaiHandler::SaiHandler(const SaiSwitch* hw)
+    : hw_(hw), diagShell_(hw), diagCmdServer_(hw, &diagShell_) {}
 
 SaiHandler::~SaiHandler() {}
 

@@ -1,4 +1,4 @@
-#include "fboss/agent/hw/bcm/gen-cpp2/BcmCtrl2.h"
+#include "fboss/agent/hw/bcm/gen-cpp2/BcmCtrl.h"
 #include "fboss/agent/platforms/wedge/WedgePlatformInit.h"
 #include "fboss/agent/test/agent_hw_test/ProdInvariantTests.h"
 
@@ -7,7 +7,7 @@
 namespace facebook::fboss {
 void verifyHwSwitchHandler() {
   std::shared_ptr<folly::ScopedEventBaseThread> evbThread;
-  auto client = setupClient<apache::thrift::Client<BcmCtrl2>>("bcm", evbThread);
+  auto client = setupClient<apache::thrift::Client<BcmCtrl>>("bcm", evbThread);
   auto out = client->sync_echoI32(10);
   EXPECT_EQ(out, 10);
 }

@@ -173,12 +173,13 @@ void SaiPlatform::onInitialConfigApplied(HwSwitchCallback* /* sw */) {}
 void SaiPlatform::stop() {}
 
 std::unique_ptr<ThriftHandler> SaiPlatform::createHandler(SwSwitch* sw) {
-  return std::make_unique<SaiHandler>(sw, saiSwitch_.get());
+  // TODO: delete this method
+  return nullptr;
 }
 
 std::shared_ptr<apache::thrift::AsyncProcessorFactory>
 SaiPlatform::createHandler() {
-  return std::make_shared<SaiHandler2>();
+  return std::make_shared<SaiHandler>(saiSwitch_.get());
 }
 
 TransceiverIdxThrift SaiPlatform::getPortMapping(

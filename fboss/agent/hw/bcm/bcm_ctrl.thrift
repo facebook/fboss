@@ -9,7 +9,7 @@ include "fboss/agent/if/ctrl.thrift"
 include "fboss/agent/if/hw_ctrl.thrift"
 include "fboss/agent/hw/bcm/packettrace.thrift"
 
-service BcmCtrl extends ctrl.FbossCtrl {
+service BcmCtrl extends hw_ctrl.FbossHwCtrl {
   list<common.fbstring> listCmds() throws (1: fboss.FbossBaseError error);
 
   /*
@@ -33,7 +33,4 @@ service BcmCtrl extends ctrl.FbossCtrl {
   bool isFineGrainedBufferStatLoggingEnabled() throws (
     1: fboss.FbossBaseError error,
   );
-}
-
-service BcmCtrl2 extends hw_ctrl.FbossHwCtrl {
 }

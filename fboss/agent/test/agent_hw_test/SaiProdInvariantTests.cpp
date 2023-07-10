@@ -1,4 +1,4 @@
-#include "fboss/agent/hw/sai/switch/gen-cpp2/SaiCtrl2.h"
+#include "fboss/agent/hw/sai/switch/gen-cpp2/SaiCtrl.h"
 #include "fboss/agent/platforms/sai/SaiPlatformInit.h"
 #include "fboss/agent/test/agent_hw_test/ProdInvariantTests.h"
 
@@ -7,7 +7,7 @@
 namespace facebook::fboss {
 void verifyHwSwitchHandler() {
   std::shared_ptr<folly::ScopedEventBaseThread> evbThread;
-  auto client = setupClient<apache::thrift::Client<SaiCtrl2>>("sai", evbThread);
+  auto client = setupClient<apache::thrift::Client<SaiCtrl>>("sai", evbThread);
   auto out = client->sync_echoI32(10);
   EXPECT_EQ(out, 10);
 }

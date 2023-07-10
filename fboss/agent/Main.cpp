@@ -285,8 +285,7 @@ int AgentInitializer::initAgent() {
 int AgentInitializer::initAgent(HwSwitchCallback* callback) {
   std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
       handlers{};
-  auto swHandler =
-      std::shared_ptr<ThriftHandler>(platform()->createHandler(sw_.get()));
+  auto swHandler = std::make_shared<ThriftHandler>(sw_.get());
   handlers.push_back(swHandler);
   auto hwHandler = platform()->createHandler();
   if (hwHandler) {
