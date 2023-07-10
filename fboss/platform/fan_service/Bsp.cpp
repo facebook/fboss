@@ -278,7 +278,7 @@ void Bsp::processOpticEntries(
   }
 }
 
-void Bsp::getOpticsDataThrift(
+void Bsp::getOpticsDataFromQsfpSvc(
     Optic* opticsGroup,
     std::shared_ptr<SensorData> pSensorData) {
   // Here, we either use the subscribed data we got from FSDB or directly use
@@ -422,7 +422,7 @@ void Bsp::getOpticsData(
     switch (*opticsGroup->access.accessType()) {
       case fan_config_structs::SourceType::kSrcQsfpService:
       case fan_config_structs::SourceType::kSrcThrift:
-        getOpticsDataThrift(&(*opticsGroup), pSensorData);
+        getOpticsDataFromQsfpSvc(&(*opticsGroup), pSensorData);
         break;
       case fan_config_structs::SourceType::kSrcSysfs:
         getOpticsDataSysfs(&(*opticsGroup), pSensorData);

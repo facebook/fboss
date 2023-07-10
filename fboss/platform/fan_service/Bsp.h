@@ -106,7 +106,7 @@ class Bsp {
 
  private:
   virtual int run(const std::string& cmd);
-  void getOpticsDataThrift(
+  void getOpticsDataFromQsfpSvc(
       Optic* opticsGroup,
       std::shared_ptr<SensorData> pSensorData);
   void getOpticsDataSysfs(
