@@ -32,6 +32,7 @@ DECLARE_int32(reset_action);
 DECLARE_bool(electrical_loopback);
 DECLARE_bool(optical_loopback);
 DECLARE_bool(clear_loopback);
+DECLARE_bool(skip_check);
 DECLARE_bool(read_reg);
 DECLARE_bool(write_reg);
 DECLARE_int32(offset);
