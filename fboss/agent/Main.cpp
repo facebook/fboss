@@ -283,19 +283,26 @@ int AgentInitializer::initAgent() {
 }
 
 int AgentInitializer::initAgent(HwSwitchCallback* callback) {
-  auto handler =
+  std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
+      handlers{};
+  auto swHandler =
       std::shared_ptr<ThriftHandler>(platform()->createHandler(sw_.get()));
-  handler->setIdleTimeout(FLAGS_thrift_idle_timeout);
+  handlers.push_back(swHandler);
+  auto hwHandler = platform()->createHandler();
+  if (hwHandler) {
+    handlers.push_back(hwHandler);
+  }
+  swHandler->setIdleTimeout(FLAGS_thrift_idle_timeout);
   eventBase_ = new EventBase();
 
   // Start the thrift server
   server_ = setupThriftServer(
       *eventBase_,
-      handler,
+      handlers,
       {FLAGS_port, FLAGS_migrated_port},
       true /*setupSSL*/);
 
-  handler->setSSLPolicy(server_->getSSLPolicy());
+  swHandler->setSSLPolicy(server_->getSSLPolicy());
 
   // At this point, we are guaranteed no other agent process will initialize
   // the ASIC because such a process would have crashed attempting to bind to

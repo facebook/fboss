@@ -50,6 +50,9 @@ class MockPlatform : public Platform {
   HwSwitchWarmBootHelper* getWarmBootHelper() override;
 
   MOCK_METHOD1(createHandler, std::unique_ptr<ThriftHandler>(SwSwitch* sw));
+  MOCK_METHOD0(
+      createHandler,
+      std::shared_ptr<apache::thrift::AsyncProcessorFactory>());
   MOCK_METHOD1(getProductInfo, void(ProductInfo& productInfo));
   MOCK_CONST_METHOD2(
       getPortMapping,

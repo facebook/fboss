@@ -12,6 +12,7 @@
 #include <folly/Conv.h>
 #include <folly/MacAddress.h>
 #include <folly/io/async/EventBase.h>
+#include <thrift/lib/cpp2/server/ThriftServer.h>
 #include <memory>
 #include <unordered_map>
 #include "fboss/agent/PlatformPort.h"
@@ -164,6 +165,11 @@ class Platform {
    * This will be invoked by fbossMain() during the initialization process.
    */
   virtual std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) = 0;
+  /*
+   * Create the handler for HwSwitch service
+   */
+  virtual std::shared_ptr<apache::thrift::AsyncProcessorFactory>
+  createHandler() = 0;
 
   /*
    * Get the local MAC address for the switch.

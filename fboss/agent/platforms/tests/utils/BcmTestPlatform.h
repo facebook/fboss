@@ -38,6 +38,10 @@ class BcmTestPlatform : public BcmPlatform {
   void onInitialConfigApplied(HwSwitchCallback* sw) override;
   void stop() override;
   std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) override;
+  std::shared_ptr<apache::thrift::AsyncProcessorFactory> createHandler()
+      override {
+    return nullptr;
+  }
 
   virtual std::vector<FlexPortMode> getSupportedFlexPortModes() const = 0;
 

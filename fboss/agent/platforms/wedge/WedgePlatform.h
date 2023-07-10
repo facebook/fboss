@@ -52,6 +52,10 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   HwSwitch* getHwSwitch() const override;
   void onHwInitialized(HwSwitchCallback* sw) override;
   std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) override;
+  std::shared_ptr<apache::thrift::AsyncProcessorFactory> createHandler()
+      override {
+    return nullptr;
+  }
 
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
