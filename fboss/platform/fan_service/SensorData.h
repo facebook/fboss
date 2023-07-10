@@ -79,6 +79,13 @@ class SensorData {
   auto size() const {
     return sensorEntry_.size();
   }
+  auto opticEntrySize() const {
+    return opticEntry_.size();
+  }
+  const std::unordered_map<std::string, OpticEntry>& getOpticEntries() const {
+    return opticEntry_;
+  }
+
   void setLastQsfpSvcTime(uint64_t t);
   uint64_t getLastQsfpSvcTime();
 
