@@ -34,16 +34,6 @@ namespace facebook::fboss::platform {
 std::string getDarwinFSConfig();
 std::string getMokujinFSConfig();
 
-struct Zone {
- public:
-  fan_config_structs::ZoneType type;
-  std::string zoneName;
-  std::vector<std::string> sensorNames;
-  std::vector<std::string> fanNames;
-  // 0 means immediate
-  float slope{0};
-};
-
 class FanStatus {
  public:
   int rpm;
@@ -236,7 +226,7 @@ class ServiceConfig {
   //
   // Attribs
   //
-  std::vector<Zone> zones;
+  std::vector<fan_config_structs::Zone> zones;
   std::vector<Sensor> sensors;
   std::vector<Optic> optics;
   std::vector<Fan> fans;

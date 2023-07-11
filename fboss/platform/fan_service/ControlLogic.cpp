@@ -511,29 +511,30 @@ bool ControlLogic::checkIfFanPresent(Fan* fan) {
   }
   return false;
 }
-void ControlLogic::programFan(Zone* zone, float pwmSoFar) {
+void ControlLogic::programFan(fan_config_structs::Zone* zone, float pwmSoFar) {
   for (auto fan = pConfig_->fans.begin(); fan != pConfig_->fans.end(); ++fan) {
     auto srcType = *fan->pwm.accessType();
     float pwmToProgram = 0;
     float currentPwm = fan->fanStatus.currentPwm;
     bool writeSuccess{false};
     // If this fan does not belong to the current zone, do not do anything
-    if (std::find(zone->fanNames.begin(), zone->fanNames.end(), fan->fanName) ==
-        zone->fanNames.end()) {
+    if (std::find(
+            zone->fanNames()->begin(), zone->fanNames()->end(), fan->fanName) ==
+        zone->fanNames()->end()) {
       continue;
     }
-    if ((zone->slope == 0) || (currentPwm == 0)) {
+    if ((*zone->slope() == 0) || (currentPwm == 0)) {
       pwmToProgram = pwmSoFar;
     } else {
       if (pwmSoFar > currentPwm) {
-        if ((pwmSoFar - currentPwm) > zone->slope) {
-          pwmToProgram = currentPwm + zone->slope;
+        if ((pwmSoFar - currentPwm) > *zone->slope()) {
+          pwmToProgram = currentPwm + *zone->slope();
         } else {
           pwmToProgram = pwmSoFar;
         }
       } else if (pwmSoFar < currentPwm) {
-        if ((currentPwm - pwmSoFar) > zone->slope) {
-          pwmToProgram = currentPwm - zone->slope;
+        if ((currentPwm - pwmSoFar) > *zone->slope()) {
+          pwmToProgram = currentPwm - *zone->slope();
         } else {
           pwmToProgram = pwmSoFar;
         }
@@ -570,7 +571,7 @@ void ControlLogic::programFan(Zone* zone, float pwmSoFar) {
             "Unsupported PWM access type for : ", fan->fanName);
     }
     fb303::fbData->setCounter(
-        fmt::format(kFanWriteFailure, zone->zoneName, fan->fanName),
+        fmt::format(kFanWriteFailure, *zone->zoneName(), fan->fanName),
         !writeSuccess);
     fan->fanStatus.currentPwm = pwmToProgram;
   }
@@ -631,12 +632,12 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
   for (auto zone = pConfig_->zones.begin(); zone != pConfig_->zones.end();
        ++zone) {
     float pwmSoFar = 0;
-    XLOG(INFO) << "Zone : " << zone->zoneName;
+    XLOG(INFO) << "Zone : " << *zone->zoneName();
     // First, calculate the pwm value for this zone
-    auto zoneType = zone->type;
+    auto zoneType = *zone->zoneType();
     int totalPwmConsidered = 0;
-    for (auto sensorName = zone->sensorNames.begin();
-         sensorName != zone->sensorNames.end();
+    for (auto sensorName = zone->sensorNames()->begin();
+         sensorName != zone->sensorNames()->end();
          sensorName++) {
       auto pSensorConfig_ = findSensorConfig(*sensorName);
       if ((pSensorConfig_ != nullptr) ||
@@ -667,7 +668,7 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
           case fan_config_structs::ZoneType::kZoneInval:
           default:
             facebook::fboss::FbossError(
-                "Undefined Zone Type for zone : ", zone->zoneName);
+                "Undefined Zone Type for zone : ", *zone->zoneName());
             break;
         }
         XLOG(INFO) << "  Sensor/Optic " << *sensorName << " : "
@@ -685,8 +686,8 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
     }
     // Update the previous pwm value in each associated sensors,
     // so that they may be used in the next calculation.
-    for (auto sensorName = zone->sensorNames.begin();
-         sensorName != zone->sensorNames.end();
+    for (auto sensorName = zone->sensorNames()->begin();
+         sensorName != zone->sensorNames()->end();
          sensorName++) {
       auto pSensorConfig_ = findSensorConfig(*sensorName);
       if (pSensorConfig_ != nullptr) {
@@ -705,10 +706,11 @@ void ControlLogic::setTransitionValue() {
          ++fan) {
       // If this a fan belongs to the zone, then write the transitional value
       if (std::find(
-              zone->fanNames.begin(), zone->fanNames.end(), fan->fanName) !=
-          zone->fanNames.end()) {
-        for (auto sensorName = zone->sensorNames.begin();
-             sensorName != zone->sensorNames.end();
+              zone->fanNames()->begin(),
+              zone->fanNames()->end(),
+              fan->fanName) != zone->fanNames()->end()) {
+        for (auto sensorName = zone->sensorNames()->begin();
+             sensorName != zone->sensorNames()->end();
              sensorName++) {
           auto pSensorConfig_ = findSensorConfig(*sensorName);
           if (pSensorConfig_ != nullptr) {

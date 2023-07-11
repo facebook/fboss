@@ -303,65 +303,13 @@ Alarm ServiceConfig::parseAlarm(folly::dynamic valueCluster) {
 }
 
 void ServiceConfig::parseZonesChapter(folly::dynamic zonesDynamic) {
-  try {
-    for (auto& zoneItem : zonesDynamic.items()) {
-      // Prepare a new Zone entry
-      Zone newZone;
-      // Supposed to be nested JSON (otherwise, exception is raised)
-      // first element should be a zone type
-      std::string zoneName = zoneItem.first.asString();
-      newZone.zoneName = zoneName;
-      // second element should be the nest json with zone attributes
-      auto zoneAttrib = zoneItem.second;
-      for (auto& pair : zoneAttrib.items()) {
-        auto key = pair.first.asString();
-        auto value = pair.second;
-        switch (convertKeywordToIndex(key)) {
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesType:
-            if (convertKeywordToIndex(value.asString()) ==
-                fan_config_structs::FsvcConfigDictIndex::kFsvcCfgTypeMax) {
-              newZone.type = fan_config_structs::ZoneType::kZoneMax;
-            } else if (
-                convertKeywordToIndex(value.asString()) ==
-                fan_config_structs::FsvcConfigDictIndex::kFsvcCfgTypeMin) {
-              newZone.type = fan_config_structs::ZoneType::kZoneMin;
-            } else if (
-                convertKeywordToIndex(value.asString()) ==
-                fan_config_structs::FsvcConfigDictIndex::kFsvcCfgTypeAvg) {
-              newZone.type = fan_config_structs::ZoneType::kZoneAvg;
-            } else {
-              facebook::fboss::FbossError(
-                  "Invalid Zone Type : ", value.asString());
-            }
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesFanSlope:
-            newZone.slope = (float)value.asDouble();
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensors:
-            for (auto& item : value)
-              newZone.sensorNames.push_back(item.asString());
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFans:
-            for (auto& item : value)
-              newZone.fanNames.push_back(item.asString());
-            break;
-          default:
-            XLOG(ERR) << "Invalid Key in Zone Chapter Config : " << key;
-            throw facebook::fboss::FbossError(
-                "Invalid Key in Zone Chapter Config : ", key);
-            break;
-        }
-      }
-
-      zones.insert(zones.begin(), newZone);
-    }
-
-  } catch (std::exception& e) {
-    XLOG(ERR) << "Config parsing failure during Zone chapter parsing! "
-              << e.what();
-    throw e;
+  for (const auto& zoneDynamic : zonesDynamic) {
+    fan_config_structs::Zone zone;
+    std::string zoneJson = folly::toJson(zoneDynamic);
+    apache::thrift::SimpleJSONSerializer::deserialize<fan_config_structs::Zone>(
+        zoneJson, zone);
+    zones.insert(zones.begin(), zone);
   }
-  return;
 }
 
 void ServiceConfig::parseFansChapter(folly::dynamic value) {
@@ -720,15 +668,7 @@ void ServiceConfig::prepareDict() {
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgShutdownCmd;
   configDict_["zones"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgChapterZones;
-  configDict_["name"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesName;
-  configDict_["zone_type"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesType;
   configDict_["max"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgTypeMax;
-  configDict_["min"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgTypeMin;
-  configDict_["avg"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgTypeAvg;
-  configDict_["slope"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesFanSlope;
   configDict_["fans"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFans;
   configDict_["pwm"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanPwm;
   configDict_["rpm"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanRpm;

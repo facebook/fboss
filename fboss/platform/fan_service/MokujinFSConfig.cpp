@@ -281,42 +281,45 @@ std::string getMokujinFSConfig() {
       "fan_fail_led_val" : 0
     }
   },
-  "zones": {
-    "left_zone" : {
-      "zone_type" : "max",
-      "sensors" : [
+  "zones" : [
+    {
+      "zoneType" : 0,
+      "zoneName" : "left_zone",
+      "sensorNames" : [
         "test_sensor_1",
         "test_sensor_2",
         "qsfp_group_1"
       ],
-      "slope" : 3,
-      "fans" : [
+      "fanNames" : [
         "fan_1",
         "qsfp_group_1"
-      ]
+      ],
+      "slope" : 3
     },
-    "center_zone" : {
-      "zone_type" : "avg",
-      "sensors" : [
+    {
+      "zoneType" : 2,
+      "zoneName" : "center_zone",
+      "sensorNames" : [
         "test_sensor_3",
         "qsfp_group_1"
       ],
-      "slope" : 3,
-      "fans" : [
+      "fanNames" : [
         "fan_2"
-      ]
+      ],
+      "slope" : 3
     },
-    "right_zone" : {
-      "zone_type" : "min",
-      "sensors" : [
+    {
+      "zoneType" : 1,
+      "zoneName" : "right_zone",
+      "sensorNames" : [
         "test_sensor_4"
       ],
-      "slope" : 3,
-      "fans" : [
+      "fanNames" : [
         "fan_3"
-      ]
+      ],
+      "slope" : 3
     }
-  }
+  ]
 })";
 }
 } // namespace facebook::fboss::platform

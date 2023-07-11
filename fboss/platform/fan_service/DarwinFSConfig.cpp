@@ -250,25 +250,26 @@ std::string getDarwinFSConfig() {
       "fan_fail_led_val" : 1
     }
   },
-  "zones": {
-    "zone1" : {
-      "zone_type" : "max",
-      "sensors" : [
+  "zones": [
+    {
+      "zoneType" : 0,
+      "zoneName" : "zone1",
+      "sensorNames" : [
         "SC_TH3_DIODE1_TEMP",
         "SC_TH3_DIODE2_TEMP",
         "qsfp_group_1"
       ],
-      "slope" : 3,
-      "fans" : [
+      "fanNames" : [
         "fan_1",
         "fan_2",
         "fan_3",
         "fan_4",
         "fan_5",
         "fan_6"
-      ]
+      ],
+      "slope" : 3
     }
-  }
+  ]
 })";
 }
 } // namespace facebook::fboss::platform

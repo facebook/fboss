@@ -20,15 +20,10 @@ enum FsvcConfigDictIndex {
   kFscvCfgWatchdogEnable = 12,
   kFsvcCfgShutdownCmd = 13,
   kFsvcCfgChapterZones = 14,
-  kFsvcCfgZonesName = 15,
-  kFsvcCfgZonesType = 16,
   kFsvcCfgTypeMax = 17,
-  kFsvcCfgTypeMin = 18,
-  kFsvcCfgTypeAvg = 19,
   kFsvcCfgFans = 20,
   kFsvcCfgFanPwm = 21,
   kFsvcCfgFanRpm = 22,
-  kFsvcCfgZonesFanSlope = 23,
   kFsvcCfgSensors = 30,
   kFsvcCfgAccess = 31,
   kFsvcCfgSensorAdjustment = 32,
@@ -111,6 +106,14 @@ enum SourceType {
 struct AccessMethod {
   1: SourceType accessType = kSrcInvalid;
   2: string path;
+}
+
+struct Zone {
+  1: ZoneType zoneType;
+  2: string zoneName;
+  3: list<string> sensorNames;
+  4: list<string> fanNames;
+  5: float slope;
 }
 
 enum BspType {
