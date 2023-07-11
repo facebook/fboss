@@ -511,12 +511,22 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  hw_ctrl_cpp2
+  fboss/agent/if/hw_ctrl.thrift
+  SERVICES
+    FbossHwCtrl
+  DEPENDS
+    ctrl_cpp2
+)
+
+add_fbthrift_cpp_library(
   sai_ctrl_cpp2
   fboss/agent/hw/sai/switch/sai_ctrl.thrift
   SERVICES
     SaiCtrl
   DEPENDS
     ctrl_cpp2
+    hw_ctrl_cpp2
 )
 
 add_fbthrift_cpp_library(
