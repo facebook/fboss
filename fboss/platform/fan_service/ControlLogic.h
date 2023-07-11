@@ -40,7 +40,7 @@ class ControlLogic {
   void programFan(const fan_config_structs::Zone& zone, float pwmSoFar);
   void adjustZoneFans(bool boostMode);
   void updateTargetPwm(Sensor* sensorItem);
-  void setFanFailState(fan_config_structs::Fan* fan, bool fanFailed);
+  void setFanFailState(const fan_config_structs::Fan& fan, bool fanFailed);
   bool checkIfFanPresent(const fan_config_structs::Fan& fan);
   Sensor* findSensorConfig(std::string sensorName);
 };

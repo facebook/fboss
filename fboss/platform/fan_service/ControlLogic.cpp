@@ -97,16 +97,16 @@ void ControlLogic::getFanUpdate() {
     // We honor fan presence bit first,
     // If fan is present, then check if access has failed
     if (fanMissing) {
-      setFanFailState(std::addressof(*fanItem), true);
+      setFanFailState(*fanItem, true);
     } else if (fanAccessFail) {
       uint64_t timeDiffInSec = pBsp_->getCurrentTime() -
           pConfig_->fanStatuses[fanItemName].timeStamp;
       if (timeDiffInSec >= kFanFailThresholdInSec) {
-        setFanFailState(std::addressof(*fanItem), true);
+        setFanFailState(*fanItem, true);
         numFanFailed_++;
       }
     } else {
-      setFanFailState(std::addressof(*fanItem), false);
+      setFanFailState(*fanItem, false);
     }
     XLOG(INFO) << "Control :: RPM :" << pConfig_->fanStatuses[fanItemName].rpm
                << " Failed : "
@@ -560,14 +560,14 @@ void ControlLogic::programFan(
       case fan_config_structs::SourceType::kSrcSysfs:
         writeSuccess = pBsp_->setFanPwmSysfs(*fan->pwmAccess()->path(), pwmInt);
         if (!writeSuccess) {
-          setFanFailState(std::addressof(*fan), true);
+          setFanFailState(*fan, true);
         }
         break;
       case fan_config_structs::SourceType::kSrcUtil:
         writeSuccess = pBsp_->setFanPwmShell(
             *fan->pwmAccess()->path(), *fan->fanName(), pwmInt);
         if (!writeSuccess) {
-          setFanFailState(std::addressof(*fan), true);
+          setFanFailState(*fan, true);
         }
         break;
       case fan_config_structs::SourceType::kSrcThrift:
@@ -585,56 +585,56 @@ void ControlLogic::programFan(
 }
 
 void ControlLogic::setFanFailState(
-    fan_config_structs::Fan* fan,
+    const fan_config_structs::Fan& fan,
     bool fanFailed) {
-  XLOG(INFO) << "Control :: Enter LED for " << *fan->fanName();
+  XLOG(INFO) << "Control :: Enter LED for " << *fan.fanName();
   bool ledAccessNeeded = false;
-  if (pConfig_->fanStatuses[*fan->fanName()].firstTimeLedAccess) {
+  if (pConfig_->fanStatuses[*fan.fanName()].firstTimeLedAccess) {
     ledAccessNeeded = true;
-    pConfig_->fanStatuses[*fan->fanName()].firstTimeLedAccess = false;
+    pConfig_->fanStatuses[*fan.fanName()].firstTimeLedAccess = false;
   }
   if (fanFailed) {
     // Fan failed.
     // If the previous status was fan good, we need to set fan LED color
-    if (!pConfig_->fanStatuses[*fan->fanName()].fanFailed) {
+    if (!pConfig_->fanStatuses[*fan.fanName()].fanFailed) {
       // We need to change internal state
-      pConfig_->fanStatuses[*fan->fanName()].fanFailed = true;
+      pConfig_->fanStatuses[*fan.fanName()].fanFailed = true;
       // Also change led color to "FAIL", if Fan LED is available
-      if (*fan->pwmAccess()->path() != "") {
+      if (*fan.pwmAccess()->path() != "") {
         ledAccessNeeded = true;
       }
     }
   } else {
     // Fan did NOT fail (is in a good shape)
     // If the previous status was fan fail, we need to set fan LED color
-    if (pConfig_->fanStatuses[*fan->fanName()].fanFailed) {
+    if (pConfig_->fanStatuses[*fan.fanName()].fanFailed) {
       // We need to change internal state
-      pConfig_->fanStatuses[*fan->fanName()].fanFailed = false;
+      pConfig_->fanStatuses[*fan.fanName()].fanFailed = false;
       // Also change led color to "GOOD", if Fan LED is available
       ledAccessNeeded = true;
     }
   }
   if (ledAccessNeeded) {
     unsigned int valueToWrite =
-        (fanFailed ? *fan->fanFailLedVal() : *fan->fanGoodLedVal());
-    switch (*fan->ledAccess()->accessType()) {
+        (fanFailed ? *fan.fanFailLedVal() : *fan.fanGoodLedVal());
+    switch (*fan.ledAccess()->accessType()) {
       case fan_config_structs::SourceType::kSrcSysfs:
-        pBsp_->setFanLedSysfs(*fan->ledAccess()->path(), valueToWrite);
+        pBsp_->setFanLedSysfs(*fan.ledAccess()->path(), valueToWrite);
         break;
       case fan_config_structs::SourceType::kSrcUtil:
         pBsp_->setFanLedShell(
-            *fan->ledAccess()->path(), *fan->fanName(), valueToWrite);
+            *fan.ledAccess()->path(), *fan.fanName(), valueToWrite);
         break;
       case fan_config_structs::SourceType::kSrcThrift:
       case fan_config_structs::SourceType::kSrcRest:
       case fan_config_structs::SourceType::kSrcInvalid:
       default:
         facebook::fboss::FbossError(
-            "Unsupported LED access type for : ", *fan->fanName());
+            "Unsupported LED access type for : ", *fan.fanName());
     }
-    XLOG(INFO) << "Control :: Set the LED of " << *fan->fanName() << " to "
+    XLOG(INFO) << "Control :: Set the LED of " << *fan.fanName() << " to "
                << (fanFailed ? "Fail" : "Good") << "(" << valueToWrite << ") "
-               << *fan->fanFailLedVal() << " vs " << *fan->fanGoodLedVal();
+               << *fan.fanFailLedVal() << " vs " << *fan.fanGoodLedVal();
   }
 }
 
