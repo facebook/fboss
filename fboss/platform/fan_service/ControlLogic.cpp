@@ -250,12 +250,10 @@ void ControlLogic::getSensorUpdate() {
   std::string sensorItemName;
   float rawValue = 0.0, adjustedValue;
   uint64_t calculatedTime = 0;
-  for (auto configSensorItem = pConfig_->sensors.begin();
-       configSensorItem != pConfig_->sensors.end();
-       ++configSensorItem) {
-    XLOG(INFO) << "Control :: Sensor Name : " << configSensorItem->sensorName;
+  for (auto& sensor : pConfig_->sensors) {
+    XLOG(INFO) << "Control :: Sensor Name : " << sensor.sensorName;
     bool sensorAccessFail = false;
-    sensorItemName = configSensorItem->sensorName;
+    sensorItemName = sensor.sensorName;
     if (pSensor_->checkIfEntryExists(sensorItemName)) {
       XLOG(INFO) << "Control :: Sensor Exists. Getting the entry type";
       // 1.a Get the reading
@@ -263,11 +261,11 @@ void ControlLogic::getSensorUpdate() {
       switch (entryType) {
         case SensorEntryType::kSensorEntryInt:
           rawValue = pSensor_->getSensorDataInt(sensorItemName);
-          rawValue = rawValue / configSensorItem->scale;
+          rawValue = rawValue / sensor.scale;
           break;
         case SensorEntryType::kSensorEntryFloat:
           rawValue = pSensor_->getSensorDataFloat(sensorItemName);
-          rawValue = rawValue / configSensorItem->scale;
+          rawValue = rawValue / sensor.scale;
           break;
         default:
           facebook::fboss::FbossError(
@@ -283,107 +281,99 @@ void ControlLogic::getSensorUpdate() {
     if (sensorAccessFail) {
       // If the sensor data cache is stale for a while, we consider it as the
       // failure of such sensor
-      uint64_t timeDiffInSec = pBsp_->getCurrentTime() -
-          configSensorItem->processedData.lastUpdatedTime;
-      if (timeDiffInSec >= configSensorItem->sensorFailThresholdInSec) {
-        configSensorItem->processedData.sensorFailed = true;
+      uint64_t timeDiffInSec =
+          pBsp_->getCurrentTime() - sensor.processedData.lastUpdatedTime;
+      if (timeDiffInSec >= sensor.sensorFailThresholdInSec) {
+        sensor.processedData.sensorFailed = true;
         numSensorFailed_++;
       }
     } else {
       calculatedTime = pSensor_->getLastUpdated(sensorItemName);
-      configSensorItem->processedData.lastUpdatedTime = calculatedTime;
-      configSensorItem->processedData.sensorFailed = false;
+      sensor.processedData.lastUpdatedTime = calculatedTime;
+      sensor.processedData.sensorFailed = false;
     }
 
     // 1.b If adjustment table exists, adjust the raw value
-    if (configSensorItem->offsetTable.size() == 0) {
+    if (sensor.offsetTable.size() == 0) {
       adjustedValue = rawValue;
     } else {
       float offset = 0;
-      for (const auto& [k, v] : configSensorItem->offsetTable) {
+      for (const auto& [k, v] : sensor.offsetTable) {
         if (rawValue >= k) {
           offset = v;
         }
         adjustedValue = rawValue + offset;
       }
     }
-    configSensorItem->processedData.adjustedReadCache = adjustedValue;
+    sensor.processedData.adjustedReadCache = adjustedValue;
     XLOG(INFO) << "Control :: Adjusted Value : " << adjustedValue;
     // 1.c Check and trigger alarm
-    bool prevMajorAlarm = configSensorItem->processedData.majorAlarmTriggered;
-    configSensorItem->processedData.majorAlarmTriggered =
-        (adjustedValue >= *configSensorItem->alarm.highMajor());
+    bool prevMajorAlarm = sensor.processedData.majorAlarmTriggered;
+    sensor.processedData.majorAlarmTriggered =
+        (adjustedValue >= *sensor.alarm.highMajor());
     // If major alarm was triggered, write it as a ERR log
-    if (!prevMajorAlarm &&
-        configSensorItem->processedData.majorAlarmTriggered) {
-      XLOG(ERR) << "Major Alarm Triggered on " << configSensorItem->sensorName
+    if (!prevMajorAlarm && sensor.processedData.majorAlarmTriggered) {
+      XLOG(ERR) << "Major Alarm Triggered on " << sensor.sensorName
                 << " at value " << adjustedValue;
-    } else if (
-        prevMajorAlarm &&
-        !configSensorItem->processedData.majorAlarmTriggered) {
-      XLOG(WARN) << "Major Alarm Cleared on " << configSensorItem->sensorName
+    } else if (prevMajorAlarm && !sensor.processedData.majorAlarmTriggered) {
+      XLOG(WARN) << "Major Alarm Cleared on " << sensor.sensorName
                  << " at value " << adjustedValue;
     }
-    bool prevMinorAlarm = configSensorItem->processedData.minorAlarmTriggered;
-    if (adjustedValue >= *configSensorItem->alarm.highMinor()) {
-      if (configSensorItem->processedData.soakStarted) {
-        uint64_t timeDiffInSec = pBsp_->getCurrentTime() -
-            configSensorItem->processedData.soakStartedAt;
-        if (timeDiffInSec >= *configSensorItem->alarm.minorSoakSeconds()) {
-          configSensorItem->processedData.minorAlarmTriggered = true;
-          configSensorItem->processedData.soakStarted = false;
+    bool prevMinorAlarm = sensor.processedData.minorAlarmTriggered;
+    if (adjustedValue >= *sensor.alarm.highMinor()) {
+      if (sensor.processedData.soakStarted) {
+        uint64_t timeDiffInSec =
+            pBsp_->getCurrentTime() - sensor.processedData.soakStartedAt;
+        if (timeDiffInSec >= *sensor.alarm.minorSoakSeconds()) {
+          sensor.processedData.minorAlarmTriggered = true;
+          sensor.processedData.soakStarted = false;
         }
       } else {
-        configSensorItem->processedData.soakStarted = true;
-        configSensorItem->processedData.soakStartedAt = calculatedTime;
+        sensor.processedData.soakStarted = true;
+        sensor.processedData.soakStartedAt = calculatedTime;
       }
     } else {
-      configSensorItem->processedData.minorAlarmTriggered = false;
-      configSensorItem->processedData.soakStarted = false;
+      sensor.processedData.minorAlarmTriggered = false;
+      sensor.processedData.soakStarted = false;
     }
     // If minor alarm was triggered, write it as a WARN log
-    if (!prevMinorAlarm &&
-        configSensorItem->processedData.minorAlarmTriggered) {
-      XLOG(WARN) << "Minor Alarm Triggered on " << configSensorItem->sensorName
+    if (!prevMinorAlarm && sensor.processedData.minorAlarmTriggered) {
+      XLOG(WARN) << "Minor Alarm Triggered on " << sensor.sensorName
                  << " at value " << adjustedValue;
     }
-    if (prevMinorAlarm &&
-        !configSensorItem->processedData.minorAlarmTriggered) {
-      XLOG(WARN) << "Minor Alarm Cleared on " << configSensorItem->sensorName
+    if (prevMinorAlarm && !sensor.processedData.minorAlarmTriggered) {
+      XLOG(WARN) << "Minor Alarm Cleared on " << sensor.sensorName
                  << " at value " << adjustedValue;
     }
     // 1.d Check the range (if required), and do emergency
     // shutdown, if the value is out of range for more than
     // the "tolerance" times
-    if (configSensorItem->rangeCheck.enabled) {
-      if ((adjustedValue > configSensorItem->rangeCheck.rangeHigh) ||
-          (adjustedValue < configSensorItem->rangeCheck.rangeLow)) {
-        configSensorItem->rangeCheck.invalidCount += 1;
-        if (configSensorItem->rangeCheck.invalidCount >=
-            configSensorItem->rangeCheck.tolerance) {
+    if (sensor.rangeCheck.enabled) {
+      if ((adjustedValue > sensor.rangeCheck.rangeHigh) ||
+          (adjustedValue < sensor.rangeCheck.rangeLow)) {
+        sensor.rangeCheck.invalidCount += 1;
+        if (sensor.rangeCheck.invalidCount >= sensor.rangeCheck.tolerance) {
           // ERR log only once.
-          if (configSensorItem->rangeCheck.invalidCount ==
-              configSensorItem->rangeCheck.tolerance) {
-            XLOG(ERR) << "Sensor " << configSensorItem->sensorName
+          if (sensor.rangeCheck.invalidCount == sensor.rangeCheck.tolerance) {
+            XLOG(ERR) << "Sensor " << sensor.sensorName
                       << " out of range for too long!";
           }
           // If we are not yet in emergency state, do the emergency shutdown.
-          if ((configSensorItem->rangeCheck.action ==
-               kRangeCheckActionShutdown) &&
+          if ((sensor.rangeCheck.action == kRangeCheckActionShutdown) &&
               (pBsp_->getEmergencyState() == false)) {
             pBsp_->emergencyShutdown(pConfig_, true);
           }
         }
       } else {
-        configSensorItem->rangeCheck.invalidCount = 0;
+        sensor.rangeCheck.invalidCount = 0;
       }
     }
     // 1.e Calculate the target pwm in percent
     //     (the table or incremental pid should produce
     //      percent as its output)
-    updateTargetPwm(&(*configSensorItem));
-    XLOG(INFO) << configSensorItem->sensorName << " has the target PWM of "
-               << configSensorItem->processedData.targetPwmCache;
+    updateTargetPwm(&sensor);
+    XLOG(INFO) << sensor.sensorName << " has the target PWM of "
+               << sensor.processedData.targetPwmCache;
   }
   return;
 }
