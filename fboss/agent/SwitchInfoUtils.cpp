@@ -11,7 +11,6 @@
 
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/Platform.h"
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 

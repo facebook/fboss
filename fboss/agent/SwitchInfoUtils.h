@@ -20,8 +20,6 @@
 
 namespace facebook::fboss {
 
-class Platform;
-
 /*
  * Get switch info from config
  */
