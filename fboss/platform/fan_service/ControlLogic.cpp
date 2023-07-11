@@ -623,19 +623,16 @@ void ControlLogic::setFanFailState(
 }
 
 void ControlLogic::adjustZoneFans(bool boostMode) {
-  for (auto zone = pConfig_->zones.begin(); zone != pConfig_->zones.end();
-       ++zone) {
+  for (const auto& zone : pConfig_->zones) {
     float pwmSoFar = 0;
-    XLOG(INFO) << "Zone : " << *zone->zoneName();
+    XLOG(INFO) << "Zone : " << *zone.zoneName();
     // First, calculate the pwm value for this zone
-    auto zoneType = *zone->zoneType();
+    auto zoneType = *zone.zoneType();
     int totalPwmConsidered = 0;
-    for (auto sensorName = zone->sensorNames()->begin();
-         sensorName != zone->sensorNames()->end();
-         sensorName++) {
-      auto pSensorConfig_ = findSensorConfig(*sensorName);
+    for (const auto& sensorName : *zone.sensorNames()) {
+      auto pSensorConfig_ = findSensorConfig(sensorName);
       if ((pSensorConfig_ != nullptr) ||
-          (pSensor_->checkIfOpticEntryExists(*sensorName))) {
+          (pSensor_->checkIfOpticEntryExists(sensorName))) {
         totalPwmConsidered++;
         float pwmForThisSensor;
         if (pSensorConfig_ != nullptr) {
@@ -643,7 +640,7 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
           pwmForThisSensor = pSensorConfig_->processedData.targetPwmCache;
         } else {
           // If this is an optics name
-          pwmForThisSensor = pSensor_->getOpticsPwm(*sensorName);
+          pwmForThisSensor = pSensor_->getOpticsPwm(sensorName);
         }
         switch (zoneType) {
           case fan_config_structs::ZoneType::kZoneMax:
@@ -662,10 +659,10 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
           case fan_config_structs::ZoneType::kZoneInval:
           default:
             facebook::fboss::FbossError(
-                "Undefined Zone Type for zone : ", *zone->zoneName());
+                "Undefined Zone Type for zone : ", *zone.zoneName());
             break;
         }
-        XLOG(INFO) << "  Sensor/Optic " << *sensorName << " : "
+        XLOG(INFO) << "  Sensor/Optic " << sensorName << " : "
                    << pwmForThisSensor << " Overall so far : " << pwmSoFar;
       }
     }
@@ -680,14 +677,14 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
     }
     // Update the previous pwm value in each associated sensors,
     // so that they may be used in the next calculation.
-    for (const auto& sensorName : *zone->sensorNames()) {
+    for (const auto& sensorName : *zone.sensorNames()) {
       auto pSensorConfig_ = findSensorConfig(sensorName);
       if (pSensorConfig_ != nullptr) {
         pSensorConfig_->incrementPid.previousTargetPwm = pwmSoFar;
       }
     }
     // Secondly, set Zone pwm value to all the fans in the zone
-    programFan(*zone, pwmSoFar);
+    programFan(zone, pwmSoFar);
   }
 }
 
