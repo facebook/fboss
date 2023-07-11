@@ -37,9 +37,9 @@ namespace facebook::fboss {
 class AgentConfig;
 class Platform;
 
-class Initializer {
+class MonolithicSwSwitchInitializer {
  public:
-  Initializer(SwSwitch* sw, Platform* platform)
+  MonolithicSwSwitchInitializer(SwSwitch* sw, Platform* platform)
       : sw_(sw), platform_(platform) {}
   void start();
   void start(HwSwitchCallback* callback);
@@ -88,7 +88,7 @@ class AgentInitializer {
   Platform* platform() const {
     return sw_->getPlatform_DEPRECATED();
   }
-  Initializer* initializer() const {
+  MonolithicSwSwitchInitializer* initializer() const {
     return initializer_.get();
   }
 
@@ -113,7 +113,7 @@ class AgentInitializer {
 
  private:
   std::unique_ptr<SwSwitch> sw_;
-  std::unique_ptr<Initializer> initializer_;
+  std::unique_ptr<MonolithicSwSwitchInitializer> initializer_;
   std::unique_ptr<apache::thrift::ThriftServer> server_;
   folly::EventBase* eventBase_;
 };

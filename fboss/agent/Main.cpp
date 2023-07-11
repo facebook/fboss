@@ -102,16 +102,16 @@ FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
 namespace facebook::fboss {
 
-void Initializer::start() {
+void MonolithicSwSwitchInitializer::start() {
   start(sw_);
 }
 
-void Initializer::start(HwSwitchCallback* callback) {
-  std::thread t(&Initializer::initThread, this, callback);
+void MonolithicSwSwitchInitializer::start(HwSwitchCallback* callback) {
+  std::thread t(&MonolithicSwSwitchInitializer::initThread, this, callback);
   t.detach();
 }
 
-void Initializer::stopFunctionScheduler() {
+void MonolithicSwSwitchInitializer::stopFunctionScheduler() {
   std::unique_lock<std::mutex> lk(initLock_);
   initCondition_.wait(lk, [&] { return sw_->isFullyInitialized(); });
   if (fs_) {
@@ -119,12 +119,12 @@ void Initializer::stopFunctionScheduler() {
   }
 }
 
-void Initializer::waitForInitDone() {
+void MonolithicSwSwitchInitializer::waitForInitDone() {
   std::unique_lock<std::mutex> lk(initLock_);
   initCondition_.wait(lk, [&] { return sw_->isFullyInitialized(); });
 }
 
-void Initializer::initThread(HwSwitchCallback* callback) {
+void MonolithicSwSwitchInitializer::initThread(HwSwitchCallback* callback) {
   try {
     initImpl(callback);
   } catch (const std::exception& ex) {
@@ -132,7 +132,7 @@ void Initializer::initThread(HwSwitchCallback* callback) {
   }
 }
 
-SwitchFlags Initializer::setupFlags() {
+SwitchFlags MonolithicSwSwitchInitializer::setupFlags() {
   SwitchFlags flags = SwitchFlags::DEFAULT;
   if (FLAGS_enable_lacp) {
     flags |= SwitchFlags::ENABLE_LACP;
@@ -152,7 +152,8 @@ SwitchFlags Initializer::setupFlags() {
   return flags;
 }
 
-void Initializer::initImpl(HwSwitchCallback* hwSwitchCallback) {
+void MonolithicSwSwitchInitializer::initImpl(
+    HwSwitchCallback* hwSwitchCallback) {
   auto startTime = steady_clock::now();
   std::lock_guard<mutex> g(initLock_);
   // Initialize the switch.  This operation can take close to a minute
@@ -274,8 +275,8 @@ void AgentInitializer::createSwitch(
 
   // Create the SwSwitch and thrift handler
   sw_ = std::make_unique<SwSwitch>(std::move(hwSwitchHandler));
-  initializer_ =
-      std::make_unique<Initializer>(sw_.get(), sw_->getPlatform_DEPRECATED());
+  initializer_ = std::make_unique<MonolithicSwSwitchInitializer>(
+      sw_.get(), sw_->getPlatform_DEPRECATED());
 }
 
 int AgentInitializer::initAgent() {
