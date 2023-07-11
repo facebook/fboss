@@ -181,48 +181,6 @@ std::vector<std::pair<float, float>> ServiceConfig::parseTable(
   return returnVal;
 }
 
-std::vector<std::string> ServiceConfig::splitter(
-    std::string str,
-    char delimiter) {
-  std::vector<std::string> retVal;
-  std::stringstream strm(str);
-  std::string marker;
-  while (std::getline(strm, marker, delimiter)) {
-    retVal.push_back(marker);
-  }
-  return retVal;
-}
-
-std::vector<int> ServiceConfig::parseInstance(folly::dynamic value) {
-  std::vector<int> returnVal;
-  std::string valueStr = value.asString();
-  std::vector<std::string> tokens;
-  if (valueStr == "all") {
-    // Vector of size 0 means all range
-    return returnVal;
-  }
-
-  tokens = splitter(valueStr, ',');
-
-  for (std::string token : tokens) {
-    if (token.find('-') != std::string::npos) {
-      // Range
-      std::vector<std::string> ranges;
-      ranges = splitter(token, '-');
-      int begin = std::stoi(ranges[0], nullptr);
-      int end = std::stoi(ranges[1], nullptr);
-      for (int i = begin; i <= end; i++) {
-        returnVal.push_back(i);
-      }
-    } else {
-      // Single value
-      int valueInt = std::stoi(token, nullptr);
-      returnVal.push_back(valueInt);
-    }
-  }
-
-  return returnVal;
-}
 RangeCheck ServiceConfig::parseRangeCheck(folly::dynamic valueCluster) {
   RangeCheck returnVal;
   returnVal.enabled = true;

@@ -234,7 +234,6 @@ class ServiceConfig {
   std::string getConfigContents();
   fan_config_structs::AccessMethod parseAccessMethod(folly::dynamic value);
   std::vector<std::pair<float, float>> parseTable(folly::dynamic value);
-  std::vector<int> parseInstance(folly::dynamic value);
   fan_config_structs::Alarm parseAlarm(folly::dynamic value);
   RangeCheck parseRangeCheck(folly::dynamic value);
   void parseZonesChapter(folly::dynamic value);
@@ -244,6 +243,5 @@ class ServiceConfig {
   void parseWatchdogChapter(folly::dynamic values);
   void prepareDict();
   void parseBspType(std::string bspString);
-  std::vector<std::string> splitter(std::string str, char delimiter);
 };
 } // namespace facebook::fboss::platform
