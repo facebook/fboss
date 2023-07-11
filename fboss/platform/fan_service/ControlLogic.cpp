@@ -708,25 +708,21 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
 }
 
 void ControlLogic::setTransitionValue() {
-  for (auto zone = pConfig_->zones.begin(); zone != pConfig_->zones.end();
-       ++zone) {
-    for (auto fan = pConfig_->fans.begin(); fan != pConfig_->fans.end();
-         ++fan) {
-      // If this a fan belongs to the zone, then write the transitional value
+  for (const auto& zone : pConfig_->zones) {
+    for (const auto& fan : pConfig_->fans) {
+      // If this fan belongs to the zone, then write the transitional value
       if (std::find(
-              zone->fanNames()->begin(),
-              zone->fanNames()->end(),
-              *fan->fanName()) != zone->fanNames()->end()) {
-        for (auto sensorName = zone->sensorNames()->begin();
-             sensorName != zone->sensorNames()->end();
-             sensorName++) {
-          auto pSensorConfig_ = findSensorConfig(*sensorName);
+              zone.fanNames()->begin(),
+              zone.fanNames()->end(),
+              *fan.fanName()) != zone.fanNames()->end()) {
+        for (const auto& sensorName : *zone.sensorNames()) {
+          auto pSensorConfig_ = findSensorConfig(sensorName);
           if (pSensorConfig_ != nullptr) {
             pSensorConfig_->incrementPid.previousTargetPwm =
                 pConfig_->getPwmTransitionValue();
           }
         }
-        programFan(*zone, pConfig_->getPwmTransitionValue());
+        programFan(zone, pConfig_->getPwmTransitionValue());
       }
     }
   }
