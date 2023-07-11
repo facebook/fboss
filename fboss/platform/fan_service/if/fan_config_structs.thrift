@@ -129,6 +129,11 @@ struct Fan {
   11: i32 fanFailLedVal;
 }
 
+struct Watchdog {
+  1: AccessMethod access;
+  2: i32 value;
+}
+
 enum BspType {
   kBspGeneric = 0,
   kBspDarwin = 1,

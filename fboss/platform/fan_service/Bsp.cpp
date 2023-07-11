@@ -174,16 +174,18 @@ int Bsp::kickWatchdog(std::shared_ptr<ServiceConfig> pServiceConfig) {
   int rc = 0;
   bool sysfsSuccess = false;
   std::string cmdLine;
-  if (pServiceConfig->getWatchdogEnable()) {
-    auto access = pServiceConfig->getWatchdogAccess();
+  if (pServiceConfig->watchdog_) {
+    fan_config_structs::AccessMethod access =
+        *pServiceConfig->watchdog_->access();
     switch (*access.accessType()) {
       case fan_config_structs::SourceType::kSrcUtil:
-        cmdLine = *access.path() + " " + pServiceConfig->getWatchdogValue();
+        cmdLine = fmt::format(
+            "{} {}", *access.path(), *pServiceConfig->watchdog_->value());
         rc = run(cmdLine.c_str());
         break;
       case fan_config_structs::SourceType::kSrcSysfs:
-        sysfsSuccess = writeSysfs(
-            *access.path(), std::stoi(pServiceConfig->getWatchdogValue()));
+        sysfsSuccess =
+            writeSysfs(*access.path(), *pServiceConfig->watchdog_->value());
         rc = sysfsSuccess ? 0 : -1;
         break;
       default:

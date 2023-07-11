@@ -164,6 +164,7 @@ class ServiceConfig {
   std::vector<fan_config_structs::Optic> optics;
   std::vector<fan_config_structs::Fan> fans;
   std::map<std::string /* fanName */, FanStatus> fanStatuses;
+  std::optional<fan_config_structs::Watchdog> watchdog_{std::nullopt};
   // Number of broken fan required for pwm boost
   int pwmBoostOnDeadFan;
   // Number of broken fan required for pwm boost
@@ -193,9 +194,6 @@ class ServiceConfig {
   std::optional<fan_config_structs::TempToPwmMap> getConfigOpticTable(
       std::string name,
       fan_config_structs::OpticTableType dataType);
-  bool getWatchdogEnable();
-  fan_config_structs::AccessMethod getWatchdogAccess();
-  std::string getWatchdogValue();
 
  private:
   //

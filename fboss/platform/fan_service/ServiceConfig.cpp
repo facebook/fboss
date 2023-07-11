@@ -270,25 +270,12 @@ void ServiceConfig::parseOpticsChapter(folly::dynamic opticsDynamic) {
   }
 }
 
-void ServiceConfig::parseWatchdogChapter(folly::dynamic values) {
-  watchdogEnable_ = true;
-  for (auto& item : values.items()) {
-    auto key = item.first.asString();
-    auto value = item.second;
-    switch (convertKeywordToIndex(key)) {
-      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAccess:
-        watchdogAccess_ = parseAccessMethod(value);
-        break;
-      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgValue:
-        watchdogValue_ = value.asString();
-        break;
-      default:
-        XLOG(ERR) << "Invalid Key in Watchdog Chapter Config : " << key;
-        facebook::fboss::FbossError(
-            "Invalid Key in Watchdog Chapter Config : ", key);
-        break;
-    }
-  }
+void ServiceConfig::parseWatchdogChapter(folly::dynamic watchdogDynamic) {
+  fan_config_structs::Watchdog watchdog;
+  std::string watchdogJson = folly::toJson(watchdogDynamic);
+  apache::thrift::SimpleJSONSerializer::deserialize<
+      fan_config_structs::Watchdog>(watchdogJson, watchdog);
+  watchdog_ = watchdog;
 }
 
 void ServiceConfig::parseSensorsChapter(folly::dynamic value) {
@@ -451,15 +438,6 @@ float ServiceConfig::getPwmTransitionValue() const {
   return pwmTransitionValue_;
 }
 
-bool ServiceConfig::getWatchdogEnable() {
-  return watchdogEnable_;
-}
-fan_config_structs::AccessMethod ServiceConfig::getWatchdogAccess() {
-  return watchdogAccess_;
-}
-std::string ServiceConfig::getWatchdogValue() {
-  return watchdogValue_;
-}
 void ServiceConfig::prepareDict() {
   configDict_["bsp"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBsp;
   configDict_["generic"] =
