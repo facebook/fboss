@@ -14,6 +14,8 @@
 #include <atomic>
 #include <memory>
 
+DECLARE_bool(publish_use_id_paths);
+
 namespace facebook::fboss::fsdb {
 
 template <typename PubRootT>
@@ -27,25 +29,29 @@ class FsdbSyncManager {
       const std::string& clientId,
       const std::vector<std::string>& basePath,
       bool isStats,
-      bool publishDeltas)
+      bool publishDeltas,
+      bool useIdPaths = FLAGS_publish_use_id_paths)
       : FsdbSyncManager(
             std::make_shared<fsdb::FsdbPubSubManager>(clientId),
             basePath,
             isStats,
-            publishDeltas) {}
+            publishDeltas,
+            useIdPaths) {}
 
   FsdbSyncManager(
       const std::shared_ptr<fsdb::FsdbPubSubManager>& pubSubMr,
       const std::vector<std::string>& basePath,
       bool isStats,
-      bool publishDeltas)
+      bool publishDeltas,
+      bool useIdPaths = FLAGS_publish_use_id_paths)
       : pubSubMgr_(pubSubMr),
         basePath_(basePath),
         isStats_(isStats),
         publishDeltas_(publishDeltas),
         storage_([this](const auto& oldState, const auto& newState) {
           processDelta(oldState, newState);
-        }) {
+        }),
+        useIdPaths_(useIdPaths) {
     CHECK(pubSubMr);
     // make sure publisher is not already created for shared pubSubMgr
     if (publishDeltas_) {
@@ -158,7 +164,7 @@ class FsdbSyncManager {
   void publishDelta(
       const std::shared_ptr<CowState>& oldState,
       const std::shared_ptr<CowState>& newState) {
-    publish(computeOperDelta(oldState, newState, basePath_));
+    publish(computeOperDelta(oldState, newState, basePath_, useIdPaths_));
   }
 
   void publishPath(const std::shared_ptr<CowState>& newState) {
@@ -200,6 +206,7 @@ class FsdbSyncManager {
   bool publishDeltas_;
   CowStorageManager storage_;
   std::atomic_bool readyForPublishing_ = false;
+  bool useIdPaths_ = false;
 };
 
 } // namespace facebook::fboss::fsdb
