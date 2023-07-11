@@ -45,13 +45,13 @@ class AgentEnsemble : public TestEnsembleIf {
 
   void applyNewConfig(const cfg::SwitchConfig& config, bool activate);
 
-  const AgentInitializer* agentInitializer() const {
+  const MonolithicAgentInitializer* agentInitializer() const {
     return &agentInitializer_;
   }
 
   void setupLinkStateToggler();
 
-  AgentInitializer* agentInitializer() {
+  MonolithicAgentInitializer* agentInitializer() {
     return &agentInitializer_;
   }
 
@@ -168,7 +168,7 @@ class AgentEnsemble : public TestEnsembleIf {
   void writeConfig(const cfg::AgentConfig& config);
   void writeConfig(const cfg::AgentConfig& config, const std::string& file);
 
-  AgentInitializer agentInitializer_{};
+  MonolithicAgentInitializer agentInitializer_{};
   cfg::SwitchConfig initialConfig_;
   std::unique_ptr<std::thread> asyncInitThread_{nullptr};
   std::vector<PortID> masterLogicalPortIds_;

@@ -234,7 +234,7 @@ void initFlagDefaults(const std::map<std::string, std::string>& defaults) {
   }
 }
 
-void AgentInitializer::createSwitch(
+void MonolithicAgentInitializer::createSwitch(
     int argc,
     char** argv,
     uint32_t hwFeaturesDesired,
@@ -279,11 +279,11 @@ void AgentInitializer::createSwitch(
       sw_.get(), sw_->getPlatform_DEPRECATED());
 }
 
-int AgentInitializer::initAgent() {
+int MonolithicAgentInitializer::initAgent() {
   return initAgent(sw_.get());
 }
 
-int AgentInitializer::initAgent(HwSwitchCallback* callback) {
+int MonolithicAgentInitializer::initAgent(HwSwitchCallback* callback) {
   std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
       handlers{};
   auto swHandler = std::make_shared<ThriftHandler>(sw_.get());
@@ -326,7 +326,7 @@ int AgentInitializer::initAgent(HwSwitchCallback* callback) {
   return 0;
 }
 
-void AgentInitializer::stopServices() {
+void MonolithicAgentInitializer::stopServices() {
   // stop Thrift server: stop all worker threads and
   // stop accepting new connections
   XLOG(DBG2) << "Stopping thrift server";
@@ -337,7 +337,7 @@ void AgentInitializer::stopServices() {
   fbossFinalize();
 }
 
-void AgentInitializer::stopAgent(bool setupWarmboot) {
+void MonolithicAgentInitializer::stopAgent(bool setupWarmboot) {
   stopServices();
   if (setupWarmboot) {
     sw_->gracefulExit();
@@ -360,7 +360,7 @@ int fbossMain(
     char** argv,
     uint32_t hwFeaturesDesired,
     PlatformInitFn initPlatform) {
-  AgentInitializer initializer;
+  MonolithicAgentInitializer initializer;
   initializer.createSwitch(argc, argv, hwFeaturesDesired, initPlatform);
   return initializer.initAgent();
 }

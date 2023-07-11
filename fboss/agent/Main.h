@@ -80,7 +80,7 @@ class SignalHandler : public folly::AsyncSignalHandler {
 typedef std::unique_ptr<Platform> (
     *PlatformInitFn)(std::unique_ptr<AgentConfig>, uint32_t featuresDesired);
 
-class AgentInitializer {
+class MonolithicAgentInitializer {
  public:
   SwSwitch* sw() const {
     return sw_.get();
@@ -92,7 +92,7 @@ class AgentInitializer {
     return initializer_.get();
   }
 
-  virtual ~AgentInitializer() = default;
+  virtual ~MonolithicAgentInitializer() = default;
   void stopServices();
   void createSwitch(
       int argc,

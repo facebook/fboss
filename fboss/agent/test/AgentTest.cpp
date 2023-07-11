@@ -28,7 +28,7 @@ DECLARE_string(config);
 namespace facebook::fboss {
 
 void AgentTest::setupAgent() {
-  AgentInitializer::createSwitch(
+  MonolithicAgentInitializer::createSwitch(
       argCount,
       argVec,
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
@@ -46,7 +46,7 @@ void AgentTest::setupAgent() {
   utilCreateDir(getAgentTestDir());
   setupConfigFlag();
   asyncInitThread_.reset(
-      new std::thread([this] { AgentInitializer::initAgent(); }));
+      new std::thread([this] { MonolithicAgentInitializer::initAgent(); }));
   // Cannot join the thread because initAgent starts a thrift server in the main
   // thread and that runs for lifetime of the application.
   asyncInitThread_->detach();
@@ -59,7 +59,7 @@ void AgentTest::TearDown() {
       (::testing::Test::HasFailure() && FLAGS_run_forever_on_failure)) {
     runForever();
   }
-  AgentInitializer::stopAgent(FLAGS_setup_for_warmboot);
+  MonolithicAgentInitializer::stopAgent(FLAGS_setup_for_warmboot);
 }
 
 std::map<std::string, HwPortStats> AgentTest::getPortStats(
