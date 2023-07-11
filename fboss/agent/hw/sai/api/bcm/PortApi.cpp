@@ -16,9 +16,10 @@ namespace facebook::fboss {
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeSerdesLaneList::operator()() {
-#if defined(SAI_VERSION_8_2_0_0_ODP) ||     \
-    defined(SAI_VERSION_8_2_0_0_SIM_ODP) || \
-    defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP)
+#if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
+    defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
+    defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP) || \
+    defined(SAI_VERSION_10_0_EA_ODP) || defined(SAI_VERSION_10_0_EA_SIM_ODP)
   return SAI_PORT_ATTR_SERDES_LANE_LIST;
 #else
   return std::nullopt;
@@ -26,9 +27,10 @@ SaiPortTraits::Attributes::AttributeSerdesLaneList::operator()() {
 }
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeDiagModeEnable::operator()() {
-#if defined(SAI_VERSION_8_2_0_0_ODP) ||     \
-    defined(SAI_VERSION_8_2_0_0_SIM_ODP) || \
-    defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP)
+#if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
+    defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
+    defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP) || \
+    defined(SAI_VERSION_10_0_EA_ODP) || defined(SAI_VERSION_10_0_EA_SIM_ODP)
   return SAI_PORT_ATTR_DIAGNOSTICS_MODE_ENABLE;
 #else
   return std::nullopt;
@@ -38,7 +40,8 @@ SaiPortTraits::Attributes::AttributeDiagModeEnable::operator()() {
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeRxLaneSquelchEnable::operator()() {
 #if defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP) || \
-    defined(SAI_VERSION_10_0_EA_DNX_ODP)
+    defined(SAI_VERSION_10_0_EA_DNX_ODP) ||                                    \
+    defined(SAI_VERSION_10_0_EA_ODP) || defined(SAI_VERSION_10_0_EA_SIM_ODP)
   return SAI_PORT_ATTR_RX_LANE_SQUELCH_ENABLE;
 #else
   return std::nullopt;

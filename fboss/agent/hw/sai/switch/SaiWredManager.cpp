@@ -54,7 +54,8 @@ SaiWredTraits::CreateAttributes SaiWredManager::profileCreateAttrs(
     !defined(SAI_VERSION_9_2_0_0_ODP) &&         \
     !defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) && \
     !defined(SAI_VERSION_9_0_EA_SIM_ODP) &&      \
-    !defined(SAI_VERSION_10_0_EA_DNX_ODP)
+    !defined(SAI_VERSION_10_0_EA_DNX_ODP) &&     \
+    !defined(SAI_VERSION_10_0_EA_ODP) && !defined(SAI_VERSION_10_0_EA_SIM_ODP)
   std::tie(greenMin, greenMax, greenDropProbability, ecnGreenMin, ecnGreenMax) =
       std::make_tuple(0, 0, kDefaultDropProbability, 0, 0);
 #endif
