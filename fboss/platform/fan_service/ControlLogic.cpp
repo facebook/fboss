@@ -10,7 +10,8 @@
 
 namespace {
 auto constexpr kFanWriteFailure = "fan_write.{}.{}.failure";
-}
+auto constexpr kFanFailThresholdInSec = 300;
+} // namespace
 
 namespace facebook::fboss::platform {
 ControlLogic::ControlLogic(
@@ -99,7 +100,7 @@ void ControlLogic::getFanUpdate() {
     } else if (fanAccessFail) {
       uint64_t timeDiffInSec =
           pBsp_->getCurrentTime() - fanItem->fanStatus.timeStamp;
-      if (timeDiffInSec >= fanItem->fanFailThresholdInSec) {
+      if (timeDiffInSec >= kFanFailThresholdInSec) {
         setFanFailState(std::addressof(*fanItem), true);
         numFanFailed_++;
       }

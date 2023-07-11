@@ -64,7 +64,6 @@ class Fan {
   unsigned int pwmMin;
   unsigned int pwmMax;
   FanStatus fanStatus;
-  int fanFailThresholdInSec;
 
   Fan() {
     pwmMin = 0;
@@ -73,7 +72,6 @@ class Fan {
     presence.path() = "";
     fanGoodLedVal = 0;
     fanFailLedVal = 0;
-    fanFailThresholdInSec = 300;
   }
 };
 
