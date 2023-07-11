@@ -392,10 +392,9 @@ void ControlLogic::getOpticsUpdate() {
   // For all optics entry
   // Read optics array and set calculated pwm
   // No need to worry about timestamp, but update it anyway
-  for (auto optic = pConfig_->optics.begin(); optic != pConfig_->optics.end();
-       ++optic) {
-    XLOG(INFO) << "Control :: Optics Group Name : " << *optic->opticName();
-    std::string opticName = *optic->opticName();
+  for (const auto& optic : pConfig_->optics) {
+    XLOG(INFO) << "Control :: Optics Group Name : " << *optic.opticName();
+    std::string opticName = *optic.opticName();
 
     if (!pSensor_->checkIfOpticEntryExists(opticName)) {
       // No data found. Skip this config entry
@@ -411,11 +410,7 @@ void ControlLogic::getOpticsUpdate() {
         // This data set is empty, already processed. Ignore.
         continue;
       } else {
-        for (auto dataPair = opticData->data.begin();
-             dataPair != opticData->data.end();
-             ++dataPair) {
-          auto dataType = dataPair->first;
-          auto value = dataPair->second;
+        for (const auto& [dataType, value] : opticData->data) {
           int pwmForThis = 0;
           auto tablePointer =
               pConfig_->getConfigOpticTable(opticName, dataType);
@@ -424,11 +419,9 @@ void ControlLogic::getOpticsUpdate() {
           if (tablePointer) {
             // Start with the minumum, then continue the comparison
             pwmForThis = tablePointer->begin()->second;
-            for (auto tableEntry = tablePointer->begin();
-                 tableEntry != tablePointer->end();
-                 ++tableEntry) {
-              if (value >= tableEntry->first) {
-                pwmForThis = tableEntry->second;
+            for (const auto& [temp, pwm] : *tablePointer) {
+              if (value >= temp) {
+                pwmForThis = pwm;
               }
             }
           }
@@ -510,16 +503,15 @@ bool ControlLogic::checkIfFanPresent(const fan_config_structs::Fan& fan) {
 void ControlLogic::programFan(
     const fan_config_structs::Zone& zone,
     float pwmSoFar) {
-  for (auto fan = pConfig_->fans.begin(); fan != pConfig_->fans.end(); ++fan) {
-    auto srcType = *fan->pwmAccess()->accessType();
+  for (const auto& fan : pConfig_->fans) {
+    auto srcType = *fan.pwmAccess()->accessType();
     float pwmToProgram = 0;
-    float currentPwm = pConfig_->fanStatuses[*fan->fanName()].currentPwm;
+    float currentPwm = pConfig_->fanStatuses[*fan.fanName()].currentPwm;
     bool writeSuccess{false};
     // If this fan does not belong to the current zone, do not do anything
     if (std::find(
-            zone.fanNames()->begin(),
-            zone.fanNames()->end(),
-            *fan->fanName()) == zone.fanNames()->end()) {
+            zone.fanNames()->begin(), zone.fanNames()->end(), *fan.fanName()) ==
+        zone.fanNames()->end()) {
       continue;
     }
     if ((*zone.slope() == 0) || (currentPwm == 0)) {
@@ -542,24 +534,24 @@ void ControlLogic::programFan(
       }
     }
     int pwmInt =
-        (int)(((*fan->pwmMax()) - (*fan->pwmMin())) * pwmToProgram / 100.0 + *fan->pwmMin());
-    if (pwmInt < *fan->pwmMin()) {
-      pwmInt = *fan->pwmMin();
-    } else if (pwmInt > *fan->pwmMax()) {
-      pwmInt = *fan->pwmMax();
+        (int)(((*fan.pwmMax()) - (*fan.pwmMin())) * pwmToProgram / 100.0 + *fan.pwmMin());
+    if (pwmInt < *fan.pwmMin()) {
+      pwmInt = *fan.pwmMin();
+    } else if (pwmInt > *fan.pwmMax()) {
+      pwmInt = *fan.pwmMax();
     }
     switch (srcType) {
       case fan_config_structs::SourceType::kSrcSysfs:
-        writeSuccess = pBsp_->setFanPwmSysfs(*fan->pwmAccess()->path(), pwmInt);
+        writeSuccess = pBsp_->setFanPwmSysfs(*fan.pwmAccess()->path(), pwmInt);
         if (!writeSuccess) {
-          setFanFailState(*fan, true);
+          setFanFailState(fan, true);
         }
         break;
       case fan_config_structs::SourceType::kSrcUtil:
         writeSuccess = pBsp_->setFanPwmShell(
-            *fan->pwmAccess()->path(), *fan->fanName(), pwmInt);
+            *fan.pwmAccess()->path(), *fan.fanName(), pwmInt);
         if (!writeSuccess) {
-          setFanFailState(*fan, true);
+          setFanFailState(fan, true);
         }
         break;
       case fan_config_structs::SourceType::kSrcThrift:
@@ -567,12 +559,12 @@ void ControlLogic::programFan(
       case fan_config_structs::SourceType::kSrcInvalid:
       default:
         facebook::fboss::FbossError(
-            "Unsupported PWM access type for : ", *fan->fanName());
+            "Unsupported PWM access type for : ", *fan.fanName());
     }
     fb303::fbData->setCounter(
-        fmt::format(kFanWriteFailure, *zone.zoneName(), *fan->fanName()),
+        fmt::format(kFanWriteFailure, *zone.zoneName(), *fan.fanName()),
         !writeSuccess);
-    pConfig_->fanStatuses[*fan->fanName()].currentPwm = pwmToProgram;
+    pConfig_->fanStatuses[*fan.fanName()].currentPwm = pwmToProgram;
   }
 }
 
