@@ -27,9 +27,6 @@ enum FsvcConfigDictIndex {
   kFsvcCfgAccess = 31,
   kFsvcCfgSensorAdjustment = 32,
   kFsvcCfgSensorAlarm = 33,
-  kFsvcCfgAlarmMajor = 34,
-  kFsvcCfgAlarmMinor = 35,
-  kFsvcCfgAlarmMinorSoakInSec = 36,
   kFsvcCfgRangeCheck = 37,
   kFsvcCfgRangeLow = 38,
   kFsvcCfgRangeHigh = 39,
@@ -119,6 +116,12 @@ struct Optic {
   3: list<i32> portList;
   4: OpticAggregationType aggregationType;
   5: map<OpticTableType, TempToPwmMap> tempToPwmMaps;
+}
+
+struct Alarm {
+  1: float highMajor;
+  2: float highMinor;
+  3: i32 minorSoakSeconds;
 }
 
 enum BspType {

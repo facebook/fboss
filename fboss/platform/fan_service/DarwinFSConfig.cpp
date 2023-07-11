@@ -94,9 +94,9 @@ std::string getDarwinFSConfig() {
         [110, 100]
       ],
       "alarm" : {
-        "alarm_major" : 105.0,
-        "alarm_minor" : 90.0,
-        "alarm_minor_soak" : 15
+        "highMajor" : 105.0,
+        "highMinor" : 90.0,
+        "minorSoakSeconds" : 15
       }
     },
     "SC_TH3_DIODE2_TEMP" : {
@@ -125,9 +125,9 @@ std::string getDarwinFSConfig() {
         [110, 100]
       ],
       "alarm" : {
-        "alarm_major" : 105.0,
-        "alarm_minor" : 90.0,
-        "alarm_minor_soak" : 15
+        "highMajor" : 105.0,
+        "highMinor" : 90.0,
+        "minorSoakSeconds" : 15
       }
     }
   },

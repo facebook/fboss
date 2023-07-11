@@ -100,9 +100,9 @@ std::string getMokujinFSConfig() {
         [33, 70]
       ],
       "alarm" : {
-        "alarm_major" : 70.0,
-        "alarm_minor" : 65.0,
-        "alarm_minor_soak" : 15
+        "highMajor" : 70.0,
+        "highMinor" : 65.0,
+        "minorSoakSeconds" : 15
       }
     },
     "test_sensor_2" : {
@@ -152,9 +152,9 @@ std::string getMokujinFSConfig() {
         [33, 70]
       ],
       "alarm" : {
-        "alarm_major" : 70.0,
-        "alarm_minor" : 65.0,
-        "alarm_minor_soak" : 15
+        "highMajor" : 70.0,
+        "highMinor" : 65.0,
+        "minorSoakSeconds" : 15
       }
     },
     "test_sensor_3" : {
@@ -175,9 +175,9 @@ std::string getMokujinFSConfig() {
       "ki" : 0.1,
       "kd" : 0.1,
       "alarm" : {
-        "alarm_major" : 120.0,
-        "alarm_minor" : 105.0,
-        "alarm_minor_soak" : 30
+        "highMajor" : 120.0,
+        "highMinor" : 105.0,
+        "minorSoakSeconds" : 30
       },
       "range_check" : {
         "range_low" : 0,
@@ -204,9 +204,9 @@ std::string getMokujinFSConfig() {
       "ki" : 0.5,
       "kd" : 0.5,
       "alarm" : {
-        "alarm_major" : 120.0,
-        "alarm_minor" : 105.0,
-        "alarm_minor_soak" : 30
+        "highMajor" : 120.0,
+        "highMinor" : 105.0,
+        "minorSoakSeconds" : 30
       },
       "range_check" : {
         "range_low" : 0,

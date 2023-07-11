@@ -81,20 +81,6 @@ class Fan {
   }
 };
 
-class Alarm {
- public:
-  float high_minor;
-  int high_minor_soak;
-  float high_major;
-  bool enabled;
-  Alarm() {
-    enabled = false;
-    high_minor = 0;
-    high_major = 0;
-    high_minor_soak = 300;
-  }
-};
-
 typedef enum {
   kRangeCheckActionNone,
   kRangeCheckActionShutdown,
@@ -189,7 +175,7 @@ class Sensor {
   std::string sensorName;
   fan_config_structs::AccessMethod access;
   std::vector<std::pair<float, float>> offsetTable;
-  Alarm alarm;
+  fan_config_structs::Alarm alarm;
   RangeCheck rangeCheck;
   fan_config_structs::SensorPwmCalcType calculationType;
   float scale;
@@ -285,7 +271,7 @@ class ServiceConfig {
   fan_config_structs::AccessMethod parseAccessMethod(folly::dynamic value);
   std::vector<std::pair<float, float>> parseTable(folly::dynamic value);
   std::vector<int> parseInstance(folly::dynamic value);
-  Alarm parseAlarm(folly::dynamic value);
+  fan_config_structs::Alarm parseAlarm(folly::dynamic value);
   RangeCheck parseRangeCheck(folly::dynamic value);
   void parseZonesChapter(folly::dynamic value);
   void parseFansChapter(folly::dynamic value);

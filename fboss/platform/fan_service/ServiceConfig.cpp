@@ -273,29 +273,13 @@ RangeCheck ServiceConfig::parseRangeCheck(folly::dynamic valueCluster) {
   return returnVal;
 }
 
-Alarm ServiceConfig::parseAlarm(folly::dynamic valueCluster) {
-  Alarm returnVal;
-  for (auto& item : valueCluster.items()) {
-    std::string key = item.first.asString();
-    auto value = item.second;
-    switch (convertKeywordToIndex(key)) {
-      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAlarmMajor:
-        returnVal.high_major = (float)value.asDouble();
-        break;
-      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAlarmMinor:
-        returnVal.high_minor = (float)value.asDouble();
-        break;
-      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAlarmMinorSoakInSec:
-        returnVal.high_minor_soak = value.asInt();
-        break;
-      default:
-        XLOG(ERR) << "Invalid Key in Alarm Parsing : " << key;
-        throw facebook::fboss::FbossError(
-            "Invalid Key in Alarm Parsing : ", key);
-        break;
-    }
-  }
-  return returnVal;
+fan_config_structs::Alarm ServiceConfig::parseAlarm(
+    folly::dynamic alarmDynamic) {
+  fan_config_structs::Alarm alarm;
+  std::string alarmJson = folly::toJson(alarmDynamic);
+  apache::thrift::SimpleJSONSerializer::deserialize<fan_config_structs::Alarm>(
+      alarmJson, alarm);
+  return alarm;
 }
 
 void ServiceConfig::parseZonesChapter(folly::dynamic zonesDynamic) {
@@ -620,12 +604,6 @@ void ServiceConfig::prepareDict() {
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorAlarm;
   configDict_["access"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAccess;
-  configDict_["alarm_major"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAlarmMajor;
-  configDict_["alarm_minor"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAlarmMinor;
-  configDict_["alarm_minor_soak"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAlarmMinorSoakInSec;
   configDict_["type"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorType;
   configDict_["linear_four_curves"] =

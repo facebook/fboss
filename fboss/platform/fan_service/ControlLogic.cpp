@@ -314,7 +314,7 @@ void ControlLogic::getSensorUpdate() {
     // 1.c Check and trigger alarm
     bool prevMajorAlarm = configSensorItem->processedData.majorAlarmTriggered;
     configSensorItem->processedData.majorAlarmTriggered =
-        (adjustedValue >= configSensorItem->alarm.high_major);
+        (adjustedValue >= *configSensorItem->alarm.highMajor());
     // If major alarm was triggered, write it as a ERR log
     if (!prevMajorAlarm &&
         configSensorItem->processedData.majorAlarmTriggered) {
@@ -327,11 +327,11 @@ void ControlLogic::getSensorUpdate() {
                  << " at value " << adjustedValue;
     }
     bool prevMinorAlarm = configSensorItem->processedData.minorAlarmTriggered;
-    if (adjustedValue >= configSensorItem->alarm.high_minor) {
+    if (adjustedValue >= *configSensorItem->alarm.highMinor()) {
       if (configSensorItem->processedData.soakStarted) {
         uint64_t timeDiffInSec = pBsp_->getCurrentTime() -
             configSensorItem->processedData.soakStartedAt;
-        if (timeDiffInSec >= configSensorItem->alarm.high_minor_soak) {
+        if (timeDiffInSec >= *configSensorItem->alarm.minorSoakSeconds()) {
           configSensorItem->processedData.minorAlarmTriggered = true;
           configSensorItem->processedData.soakStarted = false;
         }
