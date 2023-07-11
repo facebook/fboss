@@ -515,7 +515,9 @@ bool ControlLogic::checkIfFanPresent(const fan_config_structs::Fan& fan) {
   return false;
 }
 
-void ControlLogic::programFan(fan_config_structs::Zone* zone, float pwmSoFar) {
+void ControlLogic::programFan(
+    const fan_config_structs::Zone& zone,
+    float pwmSoFar) {
   for (auto fan = pConfig_->fans.begin(); fan != pConfig_->fans.end(); ++fan) {
     auto srcType = *fan->pwmAccess()->accessType();
     float pwmToProgram = 0;
@@ -523,23 +525,23 @@ void ControlLogic::programFan(fan_config_structs::Zone* zone, float pwmSoFar) {
     bool writeSuccess{false};
     // If this fan does not belong to the current zone, do not do anything
     if (std::find(
-            zone->fanNames()->begin(),
-            zone->fanNames()->end(),
-            *fan->fanName()) == zone->fanNames()->end()) {
+            zone.fanNames()->begin(),
+            zone.fanNames()->end(),
+            *fan->fanName()) == zone.fanNames()->end()) {
       continue;
     }
-    if ((*zone->slope() == 0) || (currentPwm == 0)) {
+    if ((*zone.slope() == 0) || (currentPwm == 0)) {
       pwmToProgram = pwmSoFar;
     } else {
       if (pwmSoFar > currentPwm) {
-        if ((pwmSoFar - currentPwm) > *zone->slope()) {
-          pwmToProgram = currentPwm + *zone->slope();
+        if ((pwmSoFar - currentPwm) > *zone.slope()) {
+          pwmToProgram = currentPwm + *zone.slope();
         } else {
           pwmToProgram = pwmSoFar;
         }
       } else if (pwmSoFar < currentPwm) {
-        if ((currentPwm - pwmSoFar) > *zone->slope()) {
-          pwmToProgram = currentPwm - *zone->slope();
+        if ((currentPwm - pwmSoFar) > *zone.slope()) {
+          pwmToProgram = currentPwm - *zone.slope();
         } else {
           pwmToProgram = pwmSoFar;
         }
@@ -576,7 +578,7 @@ void ControlLogic::programFan(fan_config_structs::Zone* zone, float pwmSoFar) {
             "Unsupported PWM access type for : ", *fan->fanName());
     }
     fb303::fbData->setCounter(
-        fmt::format(kFanWriteFailure, *zone->zoneName(), *fan->fanName()),
+        fmt::format(kFanWriteFailure, *zone.zoneName(), *fan->fanName()),
         !writeSuccess);
     pConfig_->fanStatuses[*fan->fanName()].currentPwm = pwmToProgram;
   }
@@ -703,7 +705,7 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
       }
     }
     // Secondly, set Zone pwm value to all the fans in the zone
-    programFan(&(*zone), pwmSoFar);
+    programFan(*zone, pwmSoFar);
   }
 }
 
@@ -726,7 +728,7 @@ void ControlLogic::setTransitionValue() {
                 pConfig_->getPwmTransitionValue();
           }
         }
-        programFan(&(*zone), pConfig_->getPwmTransitionValue());
+        programFan(*zone, pConfig_->getPwmTransitionValue());
       }
     }
   }

@@ -37,7 +37,7 @@ class ControlLogic {
   void getSensorUpdate();
   void getFanUpdate();
   void getOpticsUpdate();
-  void programFan(fan_config_structs::Zone* zone, float pwmSoFar);
+  void programFan(const fan_config_structs::Zone& zone, float pwmSoFar);
   void adjustZoneFans(bool boostMode);
   void updateTargetPwm(Sensor* sensorItem);
   void setFanFailState(fan_config_structs::Fan* fan, bool fanFailed);
