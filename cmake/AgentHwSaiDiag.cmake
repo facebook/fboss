@@ -62,6 +62,7 @@ add_executable(diag_shell_client
 )
 
 target_link_libraries(diag_shell_client
+  hw_ctrl_cpp2
   sai_ctrl_cpp2
   Folly::folly
 )
