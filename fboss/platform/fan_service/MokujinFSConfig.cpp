@@ -216,74 +216,77 @@ std::string getMokujinFSConfig() {
       }
     }
   },
-  "fans" : {
-    "fan_1" : {
-      "rpm" : {
+  "fans" : [
+    {
+      "fanName" : "fan_1",
+      "rpmAccess" : {
         "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan1_rpm"
       },
-      "pwm" : {
+      "pwmAccess" : {
         "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan1_pwm"
       },
-      "presence" : {
+      "presenceAccess" : {
         "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan1_presence"
       },
-      "fan_present_val" : 1,
-      "fan_missing_val" : 0,
-      "led" : {
+      "ledAccess" : {
         "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan1_led"
       },
-      "fan_good_led_val" : 1,
-      "fan_fail_led_val" : 0
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 1,
+      "fanFailLedVal" : 0
     },
-    "fan_2" : {
-      "rpm" : {
+    {
+      "fanName" : "fan_2",
+      "rpmAccess" : {
         "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan2_rpm"
       },
-      "pwm" : {
+      "pwmAccess" : {
         "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan2_pwm"
       },
-      "presence" : {
+      "presenceAccess" : {
         "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan2_presence"
       },
-      "fan_present_val" : 1,
-      "fan_missing_val" : 0,
-      "led" : {
+      "ledAccess" : {
         "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan2_led"
       },
-      "fan_good_led_val" : 1,
-      "fan_fail_led_val" : 0
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 1,
+      "fanFailLedVal" : 0
     },
-    "fan_3" : {
-      "rpm" : {
+    {
+      "fanName" : "fan_3",
+      "rpmAccess" : {
         "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan3_rpm"
       },
-      "pwm" : {
+      "pwmAccess" : {
         "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan3_pwm"
       },
-      "presence" : {
+      "presenceAccess" : {
         "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan3_presence"
       },
-      "fan_present_val" : 1,
-      "fan_missing_val" : 0,
-      "led" : {
+      "ledAccess" : {
         "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan3_led"
       },
-      "fan_good_led_val" : 1,
-      "fan_fail_led_val" : 0
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 1,
+      "fanFailLedVal" : 0
     }
-  },
+  ],
   "zones" : [
     {
       "zoneType" : 0,

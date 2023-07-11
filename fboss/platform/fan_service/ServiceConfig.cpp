@@ -292,62 +292,14 @@ void ServiceConfig::parseZonesChapter(folly::dynamic zonesDynamic) {
   }
 }
 
-void ServiceConfig::parseFansChapter(folly::dynamic value) {
-  try {
-    for (auto& fan : value.items()) {
-      Fan newFan;
-      std::string fanName = fan.first.asString();
-      newFan.fanName = fanName;
-      auto fanAttribs = fan.second;
-      for (auto& pair : fanAttribs.items()) {
-        auto key = pair.first.asString();
-        auto value = pair.second;
-        switch (convertKeywordToIndex(key)) {
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanPwm:
-            newFan.pwm = parseAccessMethod(value);
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanRpm:
-            newFan.rpmAccess = parseAccessMethod(value);
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanLed:
-            newFan.led = parseAccessMethod(value);
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanGoodLedVal:
-            newFan.fanGoodLedVal = static_cast<unsigned>(value.asInt());
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanFailLedVal:
-            newFan.fanFailLedVal = static_cast<unsigned>(value.asInt());
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanPresence:
-            newFan.presence = parseAccessMethod(value);
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanPresentVal:
-            newFan.fanPresentVal = static_cast<unsigned>(value.asInt());
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanMissingVal:
-            newFan.fanMissingVal = static_cast<unsigned>(value.asInt());
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgPwmRangeMin:
-            newFan.pwmMin = static_cast<unsigned>(value.asInt());
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgPwmRangeMax:
-            newFan.pwmMax = static_cast<unsigned>(value.asInt());
-            break;
-          default:
-            XLOG(ERR) << "Invalid Key in Fan Chapter Config : " << key;
-            facebook::fboss::FbossError(
-                "Invalid Key in Fan Chapter Config : ", key);
-            break;
-        }
-      }
-      fans.insert(fans.begin(), newFan);
-    }
-  } catch (std::exception& e) {
-    XLOG(ERR) << "Config parsing failure during Fans chapter parsing! "
-              << e.what();
-    throw e;
+void ServiceConfig::parseFansChapter(folly::dynamic fansDynamic) {
+  for (const auto& fanDynamic : fansDynamic) {
+    fan_config_structs::Fan fan;
+    std::string fanJson = folly::toJson(fanDynamic);
+    apache::thrift::SimpleJSONSerializer::deserialize<fan_config_structs::Fan>(
+        fanJson, fan);
+    fans.insert(fans.begin(), fan);
   }
-  return;
 }
 
 void ServiceConfig::parseOpticsChapter(folly::dynamic opticsDynamic) {
@@ -583,19 +535,6 @@ void ServiceConfig::prepareDict() {
   configDict_["zones"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgChapterZones;
   configDict_["fans"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFans;
-  configDict_["pwm"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanPwm;
-  configDict_["rpm"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanRpm;
-  configDict_["led"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanLed;
-  configDict_["fan_good_led_val"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanGoodLedVal;
-  configDict_["fan_fail_led_val"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanFailLedVal;
-  configDict_["presence"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanPresence;
-  configDict_["fan_present_val"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanPresentVal;
-  configDict_["fan_missing_val"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanMissingVal;
   configDict_["sensors"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensors;
   configDict_["adjustment"] =
@@ -650,10 +589,6 @@ void ServiceConfig::prepareDict() {
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgOptics;
   configDict_["boost_on_no_qsfp_after"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgNoQsfpBoostInSec;
-  configDict_["pwm_range_min"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgPwmRangeMin;
-  configDict_["pwm_range_max"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgPwmRangeMax;
   configDict_["value"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgValue;
 }
 } // namespace facebook::fboss::platform

@@ -22,7 +22,6 @@ enum FsvcConfigDictIndex {
   kFsvcCfgChapterZones = 14,
   kFsvcCfgFans = 20,
   kFsvcCfgFanPwm = 21,
-  kFsvcCfgFanRpm = 22,
   kFsvcCfgSensors = 30,
   kFsvcCfgAccess = 31,
   kFsvcCfgSensorAdjustment = 32,
@@ -48,16 +47,8 @@ enum FsvcConfigDictIndex {
   kFsvcCfgSensorIncrpidKp = 55,
   kFsvcCfgSensorIncrpidKi = 56,
   kFsvcCfgSensorIncrpidKd = 57,
-  kFsvcCfgFanLed = 58,
-  kFsvcCfgFanGoodLedVal = 59,
-  kFsvcCfgFanFailLedVal = 60,
-  kFsvcCfgFanPresence = 61,
-  kFsvcCfgFanPresentVal = 62,
-  kFsvcCfgFanMissingVal = 63,
   kFsvcCfgOptics = 64,
   kFsvcCfgNoQsfpBoostInSec = 72,
-  kFsvcCfgPwmRangeMin = 73,
-  kFsvcCfgPwmRangeMax = 74,
   kFsvcCfgPwmTransition = 75,
   kFsvcCfgValue = 77,
   kFsvcCfgScale = 78,
@@ -122,6 +113,20 @@ struct Alarm {
   1: float highMajor;
   2: float highMinor;
   3: i32 minorSoakSeconds;
+}
+
+struct Fan {
+  1: string fanName;
+  2: AccessMethod rpmAccess;
+  3: AccessMethod pwmAccess;
+  4: AccessMethod presenceAccess;
+  5: AccessMethod ledAccess;
+  6: i32 pwmMin;
+  7: i32 pwmMax;
+  8: i32 fanPresentVal;
+  9: i32 fanMissingVal;
+  10: i32 fanGoodLedVal;
+  11: i32 fanFailLedVal;
 }
 
 enum BspType {

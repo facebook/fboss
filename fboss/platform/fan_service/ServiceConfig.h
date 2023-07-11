@@ -44,30 +44,6 @@ class FanStatus {
   uint64_t timeStamp;
 };
 
-class Fan {
- public:
-  std::string fanName;
-  fan_config_structs::AccessMethod pwm;
-  fan_config_structs::AccessMethod rpmAccess;
-  fan_config_structs::AccessMethod led;
-  fan_config_structs::AccessMethod presence;
-  unsigned int fanGoodLedVal;
-  unsigned int fanFailLedVal;
-  unsigned int fanPresentVal;
-  unsigned int fanMissingVal;
-  unsigned int pwmMin;
-  unsigned int pwmMax;
-
-  Fan() {
-    pwmMin = 0;
-    pwmMax = 255;
-    led.path() = "";
-    presence.path() = "";
-    fanGoodLedVal = 0;
-    fanFailLedVal = 0;
-  }
-};
-
 typedef enum {
   kRangeCheckActionNone,
   kRangeCheckActionShutdown,
@@ -186,7 +162,7 @@ class ServiceConfig {
   std::vector<fan_config_structs::Zone> zones;
   std::vector<Sensor> sensors;
   std::vector<fan_config_structs::Optic> optics;
-  std::vector<Fan> fans;
+  std::vector<fan_config_structs::Fan> fans;
   std::map<std::string /* fanName */, FanStatus> fanStatuses;
   // Number of broken fan required for pwm boost
   int pwmBoostOnDeadFan;

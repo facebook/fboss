@@ -131,128 +131,134 @@ std::string getDarwinFSConfig() {
       }
     }
   },
-  "fans" : {
-    "fan_1" : {
-      "rpm" : {
+  "fans" : [
+    {
+      "fanName" : "fan_1",
+      "rpmAccess" : {
         "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan1_input"
       },
-      "pwm" : {
+      "pwmAccess" : {
         "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/pwm1"
       },
-      "pwm_range_min" : 1,
-      "pwm_range_max" : 255,
-      "presence" : {
+      "presenceAccess" : {
         "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan1_present"
       },
-      "fan_present_val" : 1,
-      "fan_missing_val" : 0,
-      "led" : {
+      "ledAccess" : {
         "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan1_led"
       },
-      "fan_good_led_val" : 2,
-      "fan_fail_led_val" : 1
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 2,
+      "fanFailLedVal" : 1
     },
-    "fan_2" : {
-      "rpm" : {
+    {
+      "fanName" : "fan_2",
+      "rpmAccess" : {
         "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan2_input"
       },
-      "pwm" : {
+      "pwmAccess" : {
         "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/pwm2"
       },
-      "pwm_range_min" : 1,
-      "pwm_range_max" : 255,
-      "presence" : {
+      "presenceAccess" : {
         "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan2_present"
       },
-      "fan_present_val" : 1,
-      "fan_missing_val" : 0,
-      "led" : {
+      "ledAccess" : {
         "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan2_led"
       },
-      "fan_good_led_val" : 2,
-      "fan_fail_led_val" : 1
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 2,
+      "fanFailLedVal" : 1
     },
-    "fan_3" : {
-      "rpm" : {
+    {
+      "fanName" : "fan_3",
+      "rpmAccess" : {
         "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan3_input"
       },
-      "pwm" : {
+      "pwmAccess" : {
         "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/pwm3"
       },
-      "pwm_range_min" : 1,
-      "pwm_range_max" : 255,
-      "presence" : {
+      "presenceAccess" : {
         "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan3_present"
       },
-      "fan_present_val" : 1,
-      "fan_missing_val" : 0,
-      "led" : {
+      "ledAccess" : {
         "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan3_led"
       },
-      "fan_good_led_val" : 2,
-      "fan_fail_led_val" : 1
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 2,
+      "fanFailLedVal" : 1
     },
-    "fan_4" : {
-      "rpm" : {
+    {
+      "fanName" : "fan_4",
+      "rpmAccess" : {
         "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan4_input"
       },
-      "pwm" : {
+      "pwmAccess" : {
         "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/pwm4"
       },
-      "pwm_range_min" : 1,
-      "pwm_range_max" : 255,
-      "presence" : {
+      "presenceAccess" : {
         "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan4_present"
       },
-      "fan_present_val" : 1,
-      "fan_missing_val" : 0,
-      "led" : {
+      "ledAccess" : {
         "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan4_led"
       },
-      "fan_good_led_val" : 2,
-      "fan_fail_led_val" : 1
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 2,
+      "fanFailLedVal" : 1
     },
-    "fan_5" : {
-      "rpm" : {
+    {
+      "fanName" : "fan_5",
+      "rpmAccess" : {
         "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan5_input"
       },
-      "pwm" : {
+      "pwmAccess" : {
         "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/pwm5"
       },
-      "pwm_range_min" : 1,
-      "pwm_range_max" : 255,
-      "presence" : {
+      "presenceAccess" : {
         "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan5_present"
       },
-      "fan_present_val" : 1,
-      "fan_missing_val" : 0,
-      "led" : {
+      "ledAccess" : {
         "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan5_led"
       },
-      "fan_good_led_val" : 2,
-      "fan_fail_led_val" : 1
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 2,
+      "fanFailLedVal" : 1
+
     }
-  },
+  ],
   "zones": [
     {
       "zoneType" : 0,
