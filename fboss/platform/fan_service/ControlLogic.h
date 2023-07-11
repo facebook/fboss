@@ -42,6 +42,6 @@ class ControlLogic {
   void updateTargetPwm(Sensor* sensorItem);
   void setFanFailState(const fan_config_structs::Fan& fan, bool fanFailed);
   bool checkIfFanPresent(const fan_config_structs::Fan& fan);
-  Sensor* findSensorConfig(std::string sensorName);
+  Sensor* findSensorConfig(const std::string& sensorName);
 };
 } // namespace facebook::fboss::platform

@@ -141,10 +141,9 @@ void ControlLogic::updateTargetPwm(Sensor* sensorItem) {
       }
       // Start with the lowest value
       targetPwm = tableToUse[0].second;
-      for (auto tableEntry = tableToUse.begin(); tableEntry != tableToUse.end();
-           ++tableEntry) {
-        if (sensorValue > tableEntry->first) {
-          targetPwm = tableEntry->second;
+      for (const auto& [temp, pwm] : tableToUse) {
+        if (sensorValue > temp) {
+          targetPwm = pwm;
         }
       }
       if (accelerate) {
@@ -301,11 +300,9 @@ void ControlLogic::getSensorUpdate() {
       adjustedValue = rawValue;
     } else {
       float offset = 0;
-      for (auto tableEntry = configSensorItem->offsetTable.begin();
-           tableEntry != configSensorItem->offsetTable.end();
-           ++tableEntry) {
-        if (rawValue >= tableEntry->first) {
-          offset = tableEntry->second;
+      for (const auto& [k, v] : configSensorItem->offsetTable) {
+        if (rawValue >= k) {
+          offset = v;
         }
         adjustedValue = rawValue + offset;
       }
@@ -448,15 +445,12 @@ void ControlLogic::getOpticsUpdate() {
   }
 }
 
-Sensor* ControlLogic::findSensorConfig(std::string sensorName) {
-  for (auto sensorConfig = pConfig_->sensors.begin();
-       sensorConfig != pConfig_->sensors.end();
-       ++sensorConfig) {
-    if (sensorConfig->sensorName == sensorName) {
-      return &(*sensorConfig);
+Sensor* ControlLogic::findSensorConfig(const std::string& sensorName) {
+  for (auto& sensor : pConfig_->sensors) {
+    if (sensor.sensorName == sensorName) {
+      return &sensor;
     }
   }
-  facebook::fboss::FbossError("Enable to find sensorConfig : ", sensorName);
   return nullptr;
 }
 
@@ -694,10 +688,8 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
     }
     // Update the previous pwm value in each associated sensors,
     // so that they may be used in the next calculation.
-    for (auto sensorName = zone->sensorNames()->begin();
-         sensorName != zone->sensorNames()->end();
-         sensorName++) {
-      auto pSensorConfig_ = findSensorConfig(*sensorName);
+    for (const auto& sensorName : *zone->sensorNames()) {
+      auto pSensorConfig_ = findSensorConfig(sensorName);
       if (pSensorConfig_ != nullptr) {
         pSensorConfig_->incrementPid.previousTargetPwm = pwmSoFar;
       }
