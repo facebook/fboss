@@ -530,6 +530,116 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
       state->set<switch_state_tags::aclMaps>(multiSwitchAclMap->toThrift());
     }
   }
+
+  // TODO - Remove this post S352171 recovery
+  // Perform any SwitchSettings reconstruction needed for missing fields
+  //
+  // Some fields in switch state were moved to switch settings.
+  // Later the switch settings struct in switch state was
+  // moved to SwitchSettingsMap. Each of these transitions
+  // had logic to write the fields to old and new places.
+  // However the binary with first transition was not deployed on some
+  // switches in the fleet which cause them from migrate directly to the final
+  // state. On these switches, the transition logic for switchSettings to
+  // switchSettingMap would run first before the transition logic for
+  // switchstate to switchSettings field migration resulting in these fields
+  // being empty in the map. This fixup is to recover the switch state on
+  // those devices with warm boot. This fixup will removed as soon as the
+  // impacted devices are recovered.
+
+  if (state->cref<switch_state_tags::switchSettingsMap>()->size() == 1) {
+    auto switchSettings =
+        state->cref<switch_state_tags::switchSettingsMap>()->cbegin()->second;
+    auto legacySwitchSettings =
+        state->cref<switch_state_tags::switchSettings_DEPRECATED>();
+    if (!switchSettings->getDefaultDataPlaneQosPolicy() &&
+        legacySwitchSettings
+            ->cref<switch_state_tags::defaultDataPlaneQosPolicy>()) {
+      switchSettings->set<switch_state_tags::defaultDataPlaneQosPolicy>(
+          legacySwitchSettings
+              ->cref<switch_state_tags::defaultDataPlaneQosPolicy>()
+              ->toThrift());
+    }
+    if (!switchSettings->getDefaultVlan() &&
+        legacySwitchSettings->cref<switch_state_tags::defaultVlan>()) {
+      switchSettings->set<switch_state_tags::defaultVlan>(
+          legacySwitchSettings->cref<switch_state_tags::defaultVlan>()
+              ->toThrift());
+    }
+    if (!switchSettings->getArpTimeout() &&
+        legacySwitchSettings->cref<switch_state_tags::arpTimeout>()) {
+      switchSettings->set<switch_state_tags::arpTimeout>(
+          legacySwitchSettings->cref<switch_state_tags::arpTimeout>()
+              ->toThrift());
+    }
+    if (!switchSettings->getNdpTimeout() &&
+        legacySwitchSettings->cref<switch_state_tags::ndpTimeout>()) {
+      switchSettings->set<switch_state_tags::ndpTimeout>(
+          legacySwitchSettings->cref<switch_state_tags::ndpTimeout>()
+              ->toThrift());
+    }
+    if (!switchSettings->getArpAgerInterval() &&
+        legacySwitchSettings->cref<switch_state_tags::arpAgerInterval>()) {
+      switchSettings->set<switch_state_tags::arpAgerInterval>(
+          legacySwitchSettings->cref<switch_state_tags::arpAgerInterval>()
+              ->toThrift());
+    }
+    if (!switchSettings->getMaxNeighborProbes() &&
+        legacySwitchSettings->cref<switch_state_tags::maxNeighborProbes>()) {
+      switchSettings->set<switch_state_tags::maxNeighborProbes>(
+          legacySwitchSettings->cref<switch_state_tags::maxNeighborProbes>()
+              ->toThrift());
+    }
+    if (!switchSettings->getStaleEntryInterval() &&
+        legacySwitchSettings->cref<switch_state_tags::staleEntryInterval>()) {
+      switchSettings->set<switch_state_tags::staleEntryInterval>(
+          legacySwitchSettings->cref<switch_state_tags::staleEntryInterval>()
+              ->toThrift());
+    }
+    if (!switchSettings->getDhcpV4RelaySrc() &&
+        legacySwitchSettings->cref<switch_state_tags::dhcpV4RelaySrc>()) {
+      switchSettings->set<switch_state_tags::dhcpV4RelaySrc>(
+          legacySwitchSettings->cref<switch_state_tags::dhcpV4RelaySrc>()
+              ->toThrift());
+    }
+    if (!switchSettings->getDhcpV6RelaySrc() &&
+        legacySwitchSettings->cref<switch_state_tags::dhcpV6RelaySrc>()) {
+      switchSettings->set<switch_state_tags::dhcpV6RelaySrc>(
+          legacySwitchSettings->cref<switch_state_tags::dhcpV6RelaySrc>()
+              ->toThrift());
+    }
+    if (!switchSettings->getDhcpV4ReplySrc() &&
+        legacySwitchSettings->cref<switch_state_tags::dhcpV4ReplySrc>()) {
+      switchSettings->set<switch_state_tags::dhcpV4ReplySrc>(
+          legacySwitchSettings->cref<switch_state_tags::dhcpV4ReplySrc>()
+              ->toThrift());
+    }
+    if (!switchSettings->getDhcpV6ReplySrc() &&
+        legacySwitchSettings->cref<switch_state_tags::dhcpV6ReplySrc>()) {
+      switchSettings->set<switch_state_tags::dhcpV6ReplySrc>(
+          legacySwitchSettings->cref<switch_state_tags::dhcpV6ReplySrc>()
+              ->toThrift());
+    }
+    if (!switchSettings->getQcmCfg() &&
+        legacySwitchSettings->cref<switch_state_tags::qcmCfg>()) {
+      switchSettings->set<switch_state_tags::qcmCfg>(
+          legacySwitchSettings->cref<switch_state_tags::qcmCfg>()->toThrift());
+    }
+    if (!switchSettings->getUdfConfig() &&
+        legacySwitchSettings->cref<switch_state_tags::udfConfig>()) {
+      switchSettings->set<switch_state_tags::udfConfig>(
+          legacySwitchSettings->cref<switch_state_tags::udfConfig>()
+              ->toThrift());
+    }
+    if (!switchSettings->getFlowletSwitchingConfig() &&
+        legacySwitchSettings
+            ->cref<switch_state_tags::flowletSwitchingConfig>()) {
+      switchSettings->set<switch_state_tags::flowletSwitchingConfig>(
+          legacySwitchSettings
+              ->cref<switch_state_tags::flowletSwitchingConfig>()
+              ->toThrift());
+    }
+  }
   return state;
 }
 
