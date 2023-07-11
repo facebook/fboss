@@ -37,17 +37,11 @@ std::string getMokujinFSConfig();
 class FanStatus {
  public:
   int rpm;
-  float currentPwm;
-  bool fanFailed;
-  bool fanAccessLost;
-  bool firstTimeLedAccess;
+  float currentPwm{0};
+  bool fanFailed{false};
+  bool fanAccessLost{false};
+  bool firstTimeLedAccess{true};
   uint64_t timeStamp;
-  FanStatus() {
-    fanFailed = false;
-    fanAccessLost = false;
-    firstTimeLedAccess = true;
-    currentPwm = 0;
-  }
 };
 
 class Fan {
@@ -63,7 +57,6 @@ class Fan {
   unsigned int fanMissingVal;
   unsigned int pwmMin;
   unsigned int pwmMax;
-  FanStatus fanStatus;
 
   Fan() {
     pwmMin = 0;
@@ -194,6 +187,7 @@ class ServiceConfig {
   std::vector<Sensor> sensors;
   std::vector<fan_config_structs::Optic> optics;
   std::vector<Fan> fans;
+  std::map<std::string /* fanName */, FanStatus> fanStatuses;
   // Number of broken fan required for pwm boost
   int pwmBoostOnDeadFan;
   // Number of broken fan required for pwm boost

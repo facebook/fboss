@@ -64,13 +64,13 @@ void ControlLogic::getFanUpdate() {
             break;
         }
         rpmTimeStamp = pSensor_->getLastUpdated(fanItemName);
-        if (rpmTimeStamp == fanItem->fanStatus.timeStamp) {
+        if (rpmTimeStamp == pConfig_->fanStatuses[fanItemName].timeStamp) {
           // If read method is Thrift, but read time stamp is stale
           // , consider that as access failure
           fanAccessFail = true;
         } else {
-          fanItem->fanStatus.rpm = fanRpm;
-          fanItem->fanStatus.timeStamp = rpmTimeStamp;
+          pConfig_->fanStatuses[fanItemName].rpm = fanRpm;
+          pConfig_->fanStatuses[fanItemName].timeStamp = rpmTimeStamp;
         }
       } else {
         // If no entry in Thrift response, consider that as failure
@@ -80,8 +80,9 @@ void ControlLogic::getFanUpdate() {
         fanItem->rpmAccess.accessType() ==
         fan_config_structs::SourceType::kSrcSysfs) {
       try {
-        fanItem->fanStatus.rpm = pBsp_->readSysfs(*fanItem->rpmAccess.path());
-        fanItem->fanStatus.timeStamp = pBsp_->getCurrentTime();
+        pConfig_->fanStatuses[fanItemName].rpm =
+            pBsp_->readSysfs(*fanItem->rpmAccess.path());
+        pConfig_->fanStatuses[fanItemName].timeStamp = pBsp_->getCurrentTime();
       } catch (std::exception& e) {
         XLOG(ERR) << "Fan RPM access fail " << *fanItem->rpmAccess.path();
         // Obvious. Sysfs fail means access fail
@@ -98,8 +99,8 @@ void ControlLogic::getFanUpdate() {
     if (fanMissing) {
       setFanFailState(std::addressof(*fanItem), true);
     } else if (fanAccessFail) {
-      uint64_t timeDiffInSec =
-          pBsp_->getCurrentTime() - fanItem->fanStatus.timeStamp;
+      uint64_t timeDiffInSec = pBsp_->getCurrentTime() -
+          pConfig_->fanStatuses[fanItemName].timeStamp;
       if (timeDiffInSec >= kFanFailThresholdInSec) {
         setFanFailState(std::addressof(*fanItem), true);
         numFanFailed_++;
@@ -107,8 +108,9 @@ void ControlLogic::getFanUpdate() {
     } else {
       setFanFailState(std::addressof(*fanItem), false);
     }
-    XLOG(INFO) << "Control :: RPM :" << fanItem->fanStatus.rpm
-               << " Failed : " << (fanItem->fanStatus.fanFailed ? "Yes" : "No");
+    XLOG(INFO) << "Control :: RPM :" << pConfig_->fanStatuses[fanItemName].rpm
+               << " Failed : "
+               << (pConfig_->fanStatuses[fanItemName].fanFailed ? "Yes" : "No");
   }
   XLOG(INFO) << "Control :: Done checking Fans Status";
   return;
@@ -516,7 +518,7 @@ void ControlLogic::programFan(fan_config_structs::Zone* zone, float pwmSoFar) {
   for (auto fan = pConfig_->fans.begin(); fan != pConfig_->fans.end(); ++fan) {
     auto srcType = *fan->pwm.accessType();
     float pwmToProgram = 0;
-    float currentPwm = fan->fanStatus.currentPwm;
+    float currentPwm = pConfig_->fanStatuses[fan->fanName].currentPwm;
     bool writeSuccess{false};
     // If this fan does not belong to the current zone, do not do anything
     if (std::find(
@@ -574,23 +576,23 @@ void ControlLogic::programFan(fan_config_structs::Zone* zone, float pwmSoFar) {
     fb303::fbData->setCounter(
         fmt::format(kFanWriteFailure, *zone->zoneName(), fan->fanName),
         !writeSuccess);
-    fan->fanStatus.currentPwm = pwmToProgram;
+    pConfig_->fanStatuses[fan->fanName].currentPwm = pwmToProgram;
   }
 }
 
 void ControlLogic::setFanFailState(Fan* fan, bool fanFailed) {
   XLOG(INFO) << "Control :: Enter LED for " << fan->fanName;
   bool ledAccessNeeded = false;
-  if (fan->fanStatus.firstTimeLedAccess) {
+  if (pConfig_->fanStatuses[fan->fanName].firstTimeLedAccess) {
     ledAccessNeeded = true;
-    fan->fanStatus.firstTimeLedAccess = false;
+    pConfig_->fanStatuses[fan->fanName].firstTimeLedAccess = false;
   }
   if (fanFailed) {
     // Fan failed.
     // If the previous status was fan good, we need to set fan LED color
-    if (!fan->fanStatus.fanFailed) {
+    if (!pConfig_->fanStatuses[fan->fanName].fanFailed) {
       // We need to change internal state
-      fan->fanStatus.fanFailed = true;
+      pConfig_->fanStatuses[fan->fanName].fanFailed = true;
       // Also change led color to "FAIL", if Fan LED is available
       if (fan->pwm.path() != "") {
         ledAccessNeeded = true;
@@ -599,9 +601,9 @@ void ControlLogic::setFanFailState(Fan* fan, bool fanFailed) {
   } else {
     // Fan did NOT fail (is in a good shape)
     // If the previous status was fan fail, we need to set fan LED color
-    if (fan->fanStatus.fanFailed) {
+    if (pConfig_->fanStatuses[fan->fanName].fanFailed) {
       // We need to change internal state
-      fan->fanStatus.fanFailed = false;
+      pConfig_->fanStatuses[fan->fanName].fanFailed = false;
       // Also change led color to "GOOD", if Fan LED is available
       ledAccessNeeded = true;
     }
