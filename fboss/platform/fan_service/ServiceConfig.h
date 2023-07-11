@@ -53,10 +53,6 @@ class FanStatus {
 class Fan {
  public:
   std::string fanName;
-  std::string label;
-  // Fan RPM is read as a sensor, but referred here
-  // through the sensor name
-  std::string rpmSensorName;
   fan_config_structs::AccessMethod pwm;
   fan_config_structs::AccessMethod rpmAccess;
   fan_config_structs::AccessMethod led;
