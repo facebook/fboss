@@ -10,7 +10,7 @@ std::string getMokujinFSConfig() {
   "bsp" : "mokujin",
   "watchdog" : {
     "access" : {
-      "source" : "sysfs",
+      "accessType" : 0,
       "path" : "/sys/bus/i2c/drivers/iob_cpld/watchdog"
     },
     "value" : 1
@@ -27,7 +27,7 @@ std::string getMokujinFSConfig() {
       "instance" : "all",
       "aggregation" : "max",
       "access" : {
-        "source" : "qsfp_service"
+        "accessType" : 5
       },
       "speed_100" : [
         [40,35],
@@ -52,7 +52,7 @@ std::string getMokujinFSConfig() {
   "sensors" : {
     "test_sensor_1" : {
       "access" : {
-        "source" : "thrift"
+        "accessType" : 2
       },
       "adjustment" : [
         [10,5],
@@ -104,7 +104,7 @@ std::string getMokujinFSConfig() {
     },
     "test_sensor_2" : {
       "access" : {
-        "source" : "thrift"
+        "accessType" : 2
       },
       "adjustment" : [
         [10,5],
@@ -156,7 +156,7 @@ std::string getMokujinFSConfig() {
     },
     "test_sensor_3" : {
       "access" : {
-        "source" : "util",
+        "accessType" : 1,
         "path" : "sensor-util --read --name:test_sensor_2"
       },
       "adjustment" : [
@@ -185,7 +185,7 @@ std::string getMokujinFSConfig() {
     },
     "test_sensor_4" : {
       "access" : {
-        "source" : "util",
+        "accessType" : 1,
         "path" : "sensor-util --read --name:test_sensor_2"
       },
       "adjustment" : [
@@ -216,21 +216,21 @@ std::string getMokujinFSConfig() {
   "fans" : {
     "fan_1" : {
       "rpm" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan1_rpm"
       },
       "pwm" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan1_pwm"
       },
       "presence" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan1_presence"
       },
       "fan_present_val" : 1,
       "fan_missing_val" : 0,
       "led" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan1_led"
       },
       "fan_good_led_val" : 1,
@@ -238,21 +238,21 @@ std::string getMokujinFSConfig() {
     },
     "fan_2" : {
       "rpm" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan2_rpm"
       },
       "pwm" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan2_pwm"
       },
       "presence" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan2_presence"
       },
       "fan_present_val" : 1,
       "fan_missing_val" : 0,
       "led" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan2_led"
       },
       "fan_good_led_val" : 1,
@@ -260,21 +260,21 @@ std::string getMokujinFSConfig() {
     },
     "fan_3" : {
       "rpm" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan3_rpm"
       },
       "pwm" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan3_pwm"
       },
       "presence" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan3_presence"
       },
       "fan_present_val" : 1,
       "fan_missing_val" : 0,
       "led" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/sys/bus/i2c/drivers/fan_cpld/fan3_led"
       },
       "fan_good_led_val" : 1,

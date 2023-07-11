@@ -1,5 +1,9 @@
 // Copyright 2021- Facebook. All rights reserved.
-#include "ServiceConfig.h"
+#include "fboss/platform/fan_service/ServiceConfig.h"
+
+#include <folly/json.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
+
 #include "fboss/lib/platforms/PlatformMode.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 
@@ -161,49 +165,11 @@ void ServiceConfig::parseBspType(std::string bspString) {
 
 fan_config_structs::AccessMethod ServiceConfig::parseAccessMethod(
     folly::dynamic values) {
-  fan_config_structs::AccessMethod returnVal;
-  for (auto& item : values.items()) {
-    std::string key = item.first.asString();
-    auto value = item.second;
-    switch (convertKeywordToIndex(key)) {
-      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSource:
-        if (convertKeywordToIndex(value.asString()) ==
-            fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceSysfs) {
-          returnVal.accessType() = fan_config_structs::SourceType::kSrcSysfs;
-        } else if (
-            convertKeywordToIndex(value.asString()) ==
-            fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceThrift) {
-          returnVal.accessType() = fan_config_structs::SourceType::kSrcThrift;
-        } else if (
-            convertKeywordToIndex(value.asString()) ==
-            fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceUtil) {
-          returnVal.accessType() = fan_config_structs::SourceType::kSrcUtil;
-        } else if (
-            convertKeywordToIndex(value.asString()) ==
-            fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceRest) {
-          returnVal.accessType() = fan_config_structs::SourceType::kSrcRest;
-        } else if (
-            convertKeywordToIndex(value.asString()) ==
-            fan_config_structs::FsvcConfigDictIndex::
-                kFsvcCfgSourceQsfpService) {
-          returnVal.accessType() =
-              fan_config_structs::SourceType::kSrcQsfpService;
-        } else {
-          throw facebook::fboss::FbossError(
-              "Invalid Access Type : ", value.asString());
-        }
-        break;
-      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAccessPath:
-        returnVal.path() = value.asString();
-        break;
-      default:
-        XLOG(ERR) << "Invalid Key in Access Method Parsing : " << key;
-        throw facebook::fboss::FbossError(
-            "Invalid Key in Access Method Parsing : ", key);
-        break;
-    }
-  }
-  return returnVal;
+  fan_config_structs::AccessMethod accessMethod;
+  std::string accessMethodJson = folly::toJson(values);
+  apache::thrift::SimpleJSONSerializer::deserialize<
+      fan_config_structs::AccessMethod>(accessMethodJson, accessMethod);
+  return accessMethod;
 }
 
 std::vector<std::pair<float, float>> ServiceConfig::parseTable(
@@ -397,6 +363,7 @@ void ServiceConfig::parseZonesChapter(folly::dynamic zonesDynamic) {
   }
   return;
 }
+
 void ServiceConfig::parseFansChapter(folly::dynamic value) {
   try {
     for (auto& fan : value.items()) {
@@ -776,20 +743,6 @@ void ServiceConfig::prepareDict() {
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanPresentVal;
   configDict_["fan_missing_val"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanMissingVal;
-  configDict_["source"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSource;
-  configDict_["sysfs"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceSysfs;
-  configDict_["util"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceUtil;
-  configDict_["thrift"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceThrift;
-  configDict_["REST"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceRest;
-  configDict_["qsfp_service"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceQsfpService;
-  configDict_["path"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAccessPath;
   configDict_["sensors"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensors;
   configDict_["adjustment"] =

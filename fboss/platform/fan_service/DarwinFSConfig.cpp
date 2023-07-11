@@ -23,7 +23,7 @@ std::string getDarwinFSConfig() {
       "instance" : "all",
       "aggregation" : "max",
       "access" : {
-        "source" : "qsfp_service"
+        "accessType" : 5
       },
       "speed_100" : [
         [5, 24],
@@ -68,7 +68,7 @@ std::string getDarwinFSConfig() {
     "SC_TH3_DIODE1_TEMP" : {
       "scale" : 1000.0,
       "access" : {
-        "source" : "thrift"
+        "accessType" : 2
       },
       "adjustment" : [
         [0,0]
@@ -99,7 +99,7 @@ std::string getDarwinFSConfig() {
     "SC_TH3_DIODE2_TEMP" : {
       "scale" : 1000.0,
       "access" : {
-        "source" : "thrift"
+        "accessType" : 2
       },
       "adjustment" : [
         [0,0]
@@ -131,23 +131,23 @@ std::string getDarwinFSConfig() {
   "fans" : {
     "fan_1" : {
       "rpm" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan1_input"
       },
       "pwm" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/pwm1"
       },
       "pwm_range_min" : 1,
       "pwm_range_max" : 255,
       "presence" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan1_present"
       },
       "fan_present_val" : 1,
       "fan_missing_val" : 0,
       "led" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan1_led"
       },
       "fan_good_led_val" : 2,
@@ -155,23 +155,23 @@ std::string getDarwinFSConfig() {
     },
     "fan_2" : {
       "rpm" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan2_input"
       },
       "pwm" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/pwm2"
       },
       "pwm_range_min" : 1,
       "pwm_range_max" : 255,
       "presence" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan2_present"
       },
       "fan_present_val" : 1,
       "fan_missing_val" : 0,
       "led" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan2_led"
       },
       "fan_good_led_val" : 2,
@@ -179,23 +179,23 @@ std::string getDarwinFSConfig() {
     },
     "fan_3" : {
       "rpm" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan3_input"
       },
       "pwm" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/pwm3"
       },
       "pwm_range_min" : 1,
       "pwm_range_max" : 255,
       "presence" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan3_present"
       },
       "fan_present_val" : 1,
       "fan_missing_val" : 0,
       "led" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan3_led"
       },
       "fan_good_led_val" : 2,
@@ -203,23 +203,23 @@ std::string getDarwinFSConfig() {
     },
     "fan_4" : {
       "rpm" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan4_input"
       },
       "pwm" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/pwm4"
       },
       "pwm_range_min" : 1,
       "pwm_range_max" : 255,
       "presence" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan4_present"
       },
       "fan_present_val" : 1,
       "fan_missing_val" : 0,
       "led" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan4_led"
       },
       "fan_good_led_val" : 2,
@@ -227,23 +227,23 @@ std::string getDarwinFSConfig() {
     },
     "fan_5" : {
       "rpm" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan5_input"
       },
       "pwm" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/pwm5"
       },
       "pwm_range_min" : 1,
       "pwm_range_max" : 255,
       "presence" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan5_present"
       },
       "fan_present_val" : 1,
       "fan_missing_val" : 0,
       "led" : {
-        "source" : "sysfs",
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan5_led"
       },
       "fan_good_led_val" : 2,
