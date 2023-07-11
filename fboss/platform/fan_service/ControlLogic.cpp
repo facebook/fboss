@@ -44,7 +44,7 @@ void ControlLogic::getFanUpdate() {
         fan_config_structs::SourceType::kSrcThrift) {
       fanItemName = *fanItem->rpmAccess()->path();
     }
-    if (!checkIfFanPresent(std::addressof(*fanItem))) {
+    if (!checkIfFanPresent(*fanItem)) {
       fanMissing = true;
     }
     // If source type is not specified (SRC_INVALID), we treat it as Thrift.
@@ -462,19 +462,19 @@ Sensor* ControlLogic::findSensorConfig(std::string sensorName) {
   return nullptr;
 }
 
-bool ControlLogic::checkIfFanPresent(fan_config_structs::Fan* fan) {
+bool ControlLogic::checkIfFanPresent(const fan_config_structs::Fan& fan) {
   unsigned int readVal;
   bool readSuccessful = false;
   uint64_t nowSec;
 
   // If no access method is listed in config,
   // skip any check and return true
-  if (*fan->presenceAccess()->path() == "") {
+  if (*fan.presenceAccess()->path() == "") {
     return true;
   }
 
-  std::string presenceKey = *fan->fanName() + "_presence";
-  auto presenceAccessType = *fan->presenceAccess()->accessType();
+  std::string presenceKey = *fan.fanName() + "_presence";
+  auto presenceAccessType = *fan.presenceAccess()->accessType();
   switch (presenceAccessType) {
     case fan_config_structs::SourceType::kSrcThrift:
       // In the case of Thrift, we use the last data from Thrift read
@@ -485,10 +485,10 @@ bool ControlLogic::checkIfFanPresent(fan_config_structs::Fan* fan) {
       nowSec = facebook::WallClockUtil::NowInSecFast();
       try {
         readVal = static_cast<unsigned>(
-            pBsp_->readSysfs(*fan->presenceAccess()->path()));
+            pBsp_->readSysfs(*fan.presenceAccess()->path()));
         readSuccessful = true;
       } catch (std::exception& e) {
-        XLOG(ERR) << "Failed to read sysfs " << *fan->presenceAccess()->path();
+        XLOG(ERR) << "Failed to read sysfs " << *fan.presenceAccess()->path();
       }
       // If the read is successful, also update the SW state
       if (readSuccessful) {
@@ -505,15 +505,16 @@ bool ControlLogic::checkIfFanPresent(fan_config_structs::Fan* fan) {
       break;
   }
   XLOG(INFO) << "Control :: " << presenceKey << " : " << readVal << " vs good "
-             << *fan->fanPresentVal() << " - bad " << *fan->fanMissingVal();
+             << *fan.fanPresentVal() << " - bad " << *fan.fanMissingVal();
 
   if (readSuccessful) {
-    if (readVal == *fan->fanPresentVal()) {
+    if (readVal == *fan.fanPresentVal()) {
       return true;
     }
   }
   return false;
 }
+
 void ControlLogic::programFan(fan_config_structs::Zone* zone, float pwmSoFar) {
   for (auto fan = pConfig_->fans.begin(); fan != pConfig_->fans.end(); ++fan) {
     auto srcType = *fan->pwmAccess()->accessType();
