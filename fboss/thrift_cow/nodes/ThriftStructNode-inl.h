@@ -306,23 +306,11 @@ struct ThriftStructFields {
 
   bool remove(const std::string& token) {
     bool ret{false}, found{false};
-
-    auto idTry = folly::tryTo<apache::thrift::field_id_t>(token);
-    if (!idTry.hasError()) {
-      fatal::scalar_search<Members, fatal::get_type::id>(
-          idTry.value(), [&](auto tag) {
-            using member = decltype(fatal::tag_type(tag));
-            found = true;
-            ret = this->remove_impl<member>();
-          });
-    } else {
-      fatal::trie_find<Members, fatal::get_type::name>(
-          token.begin(), token.end(), [&](auto tag) {
-            using member = decltype(fatal::tag_type(tag));
-            found = true;
-            ret = this->remove_impl<member>();
-          });
-    }
+    visitMember<Members>(token, [&](auto tag) {
+      using member = decltype(fatal::tag_type(tag));
+      found = true;
+      ret = this->remove_impl<member>();
+    });
 
     if (!found) {
       // should we throw here?
@@ -511,20 +499,10 @@ class ThriftStructNode
   }
 
   void modify(const std::string& token) {
-    auto idTry = folly::tryTo<apache::thrift::field_id_t>(token);
-    if (!idTry.hasError()) {
-      fatal::scalar_search<typename Fields::Members, fatal::get_type::id>(
-          idTry.value(), [&](auto tag) {
-            using name = typename decltype(fatal::tag_type(tag))::name;
-            this->modify<name>();
-          });
-    } else {
-      fatal::trie_find<typename Fields::Members, fatal::get_type::name>(
-          token.begin(), token.end(), [&](auto tag) {
-            using name = typename decltype(fatal::tag_type(tag))::name;
-            this->modify<name>();
-          });
-    }
+    visitMember<typename Fields::Members>(token, [&](auto tag) {
+      using name = typename decltype(fatal::tag_type(tag))::name;
+      this->modify<name>();
+    });
   }
 
   static void modify(std::shared_ptr<Derived>* node, std::string token) {

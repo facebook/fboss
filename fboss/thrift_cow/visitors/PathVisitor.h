@@ -5,6 +5,7 @@
 #include <type_traits>
 #include "folly/Conv.h"
 
+#include <fboss/thrift_cow/visitors/VisitorUtils.h>
 #include <thrift/lib/cpp2/Thrift.h>
 #include <thrift/lib/cpp2/TypeClass.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
@@ -363,7 +364,7 @@ struct PathVisitor<apache::thrift::type_class::variant> {
     // Get key
     auto key = *begin++;
 
-    auto visitMember = [&](auto tag) {
+    visitMember<MemberTypes>(key, [&](auto tag) {
       using descriptor = typename decltype(fatal::tag_type(tag))::member;
       using name = typename descriptor::metadata::name;
       using tc = typename descriptor::metadata::type_class;
@@ -385,16 +386,7 @@ struct PathVisitor<apache::thrift::type_class::variant> {
         result = PathVisitor<tc>::visit(
             *child, begin, end, mode, std::forward<Func>(f));
       }
-    };
-
-    auto idTry = folly::tryTo<apache::thrift::field_id_t>(key);
-    if (!idTry.hasError()) {
-      fatal::scalar_search<MemberTypes, fatal::get_type::id>(
-          idTry.value(), std::move(visitMember));
-    } else {
-      fatal::trie_find<MemberTypes, fatal::get_type::name>(
-          key.begin(), key.end(), std::move(visitMember));
-    }
+    });
 
     return result;
   }
@@ -443,7 +435,7 @@ struct PathVisitor<apache::thrift::type_class::structure> {
 
     ThriftTraverseResult result = ThriftTraverseResult::INVALID_STRUCT_MEMBER;
 
-    auto visitChild = [&](auto indexed) {
+    visitMember<Members>(key, [&](auto indexed) {
       using member = decltype(fatal::tag_type(indexed));
       using name = typename member::name;
       using tc = typename member::type_class;
@@ -467,18 +459,7 @@ struct PathVisitor<apache::thrift::type_class::structure> {
         result = PathVisitor<tc>::visit(
             *child, begin, end, mode, std::forward<Func>(f));
       }
-    };
-
-    auto idTry = folly::tryTo<apache::thrift::field_id_t>(key);
-    if (!idTry.hasError()) {
-      // find member using id
-      fatal::scalar_search<Members, fatal::get_type::id>(
-          idTry.value(), std::move(visitChild));
-    } else {
-      // Perform linear search over all members for key
-      fatal::trie_find<Members, fatal::get_type::name>(
-          key.begin(), key.end(), std::move(visitChild));
-    }
+    });
 
     return result;
   }
