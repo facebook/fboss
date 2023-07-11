@@ -198,7 +198,7 @@ int Bsp::kickWatchdog(std::shared_ptr<ServiceConfig> pServiceConfig) {
 // the thrift response, then push the data back to the
 // end of opticData array.
 void Bsp::processOpticEntries(
-    Optic* opticsGroup,
+    fan_config_structs::Optic* opticsGroup,
     std::shared_ptr<SensorData> pSensorData,
     uint64_t& currentQsfpSvcTimestamp,
     const std::map<int32_t, TransceiverData>& cacheTable,
@@ -223,11 +223,11 @@ void Bsp::processOpticEntries(
     // 2. Config file specified the port entries we care, but this port
     //    does not belong to the ports we care.
     if (((temp == 0.0)) ||
-        ((opticsGroup->instanceList.size() != 0) &&
+        ((opticsGroup->portList()->size() != 0) &&
          (std::find(
-              opticsGroup->instanceList.begin(),
-              opticsGroup->instanceList.end(),
-              xvrId) != opticsGroup->instanceList.end()))) {
+              opticsGroup->portList()->begin(),
+              opticsGroup->portList()->end(),
+              xvrId) != opticsGroup->portList()->end()))) {
       continue;
     }
 
@@ -239,7 +239,7 @@ void Bsp::processOpticEntries(
       case MediaInterfaceCode::UNKNOWN:
         // Use the first table's type for unknown/missing media type
         assert(opticsGroup);
-        tableType = opticsGroup->tables[0].first;
+        tableType = opticsGroup->tempToPwmMaps()->begin()->first;
         break;
       case MediaInterfaceCode::CWDM4_100G:
       case MediaInterfaceCode::CR4_100G:
@@ -267,7 +267,7 @@ void Bsp::processOpticEntries(
 }
 
 void Bsp::getOpticsDataFromQsfpSvc(
-    Optic* opticsGroup,
+    fan_config_structs::Optic* opticsGroup,
     std::shared_ptr<SensorData> pSensorData) {
   // Here, we either use the subscribed data we got from FSDB or directly use
   // the QsfpClient to query data over thrift
@@ -306,7 +306,7 @@ void Bsp::getOpticsDataFromQsfpSvc(
     }
   } catch (std::exception& e) {
     XLOG(ERR) << "Failed to read optics data from Qsfp for "
-              << opticsGroup->opticName
+              << *opticsGroup->opticName()
               << ", exception: " << folly::exceptionStr(e);
     // If thrift fails, just return without updating sensor data
     // control logic will see that the timestamp did not change,
@@ -317,11 +317,12 @@ void Bsp::getOpticsDataFromQsfpSvc(
   // If no entry, create one (unlike sensor entry,
   // optic entiry needs to be created manually,
   // as the data is vector of pairs)
-  if (!pSensorData->checkIfOpticEntryExists(opticsGroup->opticName)) {
+  if (!pSensorData->checkIfOpticEntryExists(*opticsGroup->opticName())) {
     std::vector<std::pair<fan_config_structs::OpticTableType, float>> empty;
-    pSensorData->setOpticEntry(opticsGroup->opticName, empty, getCurrentTime());
+    pSensorData->setOpticEntry(
+        *opticsGroup->opticName(), empty, getCurrentTime());
   }
-  OpticEntry* opticData = pSensorData->getOpticEntry(opticsGroup->opticName);
+  OpticEntry* opticData = pSensorData->getOpticEntry(*opticsGroup->opticName());
   // Clear any old data
   opticData->data.clear();
   // Parse the data
@@ -364,7 +365,7 @@ void Bsp::getOpticsDataFromQsfpSvc(
 }
 
 void Bsp::getOpticsDataSysfs(
-    Optic* opticsGroup,
+    fan_config_structs::Optic* opticsGroup,
     std::shared_ptr<SensorData> pSensorData) {
   float readVal;
   bool readSuccessful;
@@ -375,19 +376,19 @@ void Bsp::getOpticsDataSysfs(
   // of all) or the first instance in the instance list.
   readSuccessful = false;
   try {
-    readVal = getSensorDataSysfs(*opticsGroup->access.path());
+    readVal = getSensorDataSysfs(*opticsGroup->access()->path());
     readSuccessful = true;
   } catch (std::exception& e) {
-    XLOG(ERR) << "Failed to read sysfs " << *opticsGroup->access.path();
+    XLOG(ERR) << "Failed to read sysfs " << *opticsGroup->access()->path();
   }
   if (readSuccessful) {
     OpticEntry* opticData =
-        pSensorData->getOrCreateOpticEntry(opticsGroup->opticName);
+        pSensorData->getOrCreateOpticEntry(*opticsGroup->opticName());
     // Use the very first table type to store the data, as we only have data,
     // but without any table type.
     fan_config_structs::OpticTableType firstTableType;
     assert(opticsGroup);
-    firstTableType = opticsGroup->tables[0].first;
+    firstTableType = opticsGroup->tempToPwmMaps()->begin()->first;
     std::pair<fan_config_structs::OpticTableType, float> prepData = {
         firstTableType, static_cast<float>(readVal)};
     // Erase any old data, and store the new pair
@@ -407,7 +408,7 @@ void Bsp::getOpticsData(
   for (auto opticsGroup = pServiceConfig->optics.begin();
        opticsGroup != pServiceConfig->optics.end();
        ++opticsGroup) {
-    switch (*opticsGroup->access.accessType()) {
+    switch (*opticsGroup->access()->accessType()) {
       case fan_config_structs::SourceType::kSrcQsfpService:
       case fan_config_structs::SourceType::kSrcThrift:
         getOpticsDataFromQsfpSvc(&(*opticsGroup), pSensorData);

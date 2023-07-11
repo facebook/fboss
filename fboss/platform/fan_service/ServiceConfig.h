@@ -95,8 +95,6 @@ class Alarm {
   }
 };
 
-using opticThresholdTable = std::vector<std::pair<float, float>>;
-
 typedef enum {
   kRangeCheckActionNone,
   kRangeCheckActionShutdown,
@@ -207,20 +205,6 @@ class Sensor {
   }
 };
 
-class Optic {
- public:
-  std::string opticName;
-  fan_config_structs::AccessMethod access;
-  std::vector<int> instanceList;
-  fan_config_structs::OpticAggregationType aggregation;
-  std::vector<
-      std::pair<fan_config_structs::OpticTableType, opticThresholdTable>>
-      tables;
-  Optic() {
-    aggregation = fan_config_structs::OpticAggregationType::kOpticMax;
-  }
-};
-
 class ServiceConfig {
  public:
   //
@@ -228,7 +212,7 @@ class ServiceConfig {
   //
   std::vector<fan_config_structs::Zone> zones;
   std::vector<Sensor> sensors;
-  std::vector<Optic> optics;
+  std::vector<fan_config_structs::Optic> optics;
   std::vector<Fan> fans;
   // Number of broken fan required for pwm boost
   int pwmBoostOnDeadFan;
@@ -256,7 +240,7 @@ class ServiceConfig {
   int getPwmLowerThreshold() const;
   float getPwmTransitionValue() const;
   int parseConfigString(std::string contents);
-  opticThresholdTable* FOLLY_NULLABLE getConfigOpticTable(
+  std::optional<fan_config_structs::TempToPwmMap> getConfigOpticTable(
       std::string name,
       fan_config_structs::OpticTableType dataType);
   bool getWatchdogEnable();

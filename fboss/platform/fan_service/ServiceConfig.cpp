@@ -3,14 +3,10 @@
 
 #include <folly/json.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
+#include <optional>
 
 #include "fboss/lib/platforms/PlatformMode.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
-
-const std::string TABLE_100G = "speed_100";
-const std::string TABLE_200G = "speed_200";
-const std::string TABLE_400G = "speed_400";
-const std::string TABLE_800G = "speed_800";
 
 namespace facebook::fboss::platform {
 
@@ -370,81 +366,14 @@ void ServiceConfig::parseFansChapter(folly::dynamic value) {
   return;
 }
 
-void ServiceConfig::parseOpticsChapter(folly::dynamic values) {
-  try {
-    std::string valStr;
-    // Go through each optics group
-    for (auto& optic : values.items()) {
-      Optic newOptic;
-      std::vector<std::pair<float, float>> table;
-      fan_config_structs::FsvcConfigDictIndex aggregationType;
-      // Set name
-      std::string opticName = optic.first.asString();
-      newOptic.opticName = opticName;
-      // Go through each attribute of this optics group
-      auto opticAttrib = optic.second;
-      for (auto& pair : opticAttrib.items()) {
-        auto key = pair.first.asString();
-        auto value = pair.second;
-        switch (convertKeywordToIndex(key)) {
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAccess:
-            newOptic.access = parseAccessMethod(value);
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgInstance:
-            newOptic.instanceList = parseInstance(value);
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAggregation:
-            aggregationType = convertKeywordToIndex(value.asString());
-            if (aggregationType ==
-                fan_config_structs::FsvcConfigDictIndex::kFsvcCfgTypeMax) {
-              newOptic.aggregation =
-                  fan_config_structs::OpticAggregationType::kOpticMax;
-            } else {
-              XLOG(ERR) << "Invalid Optics data aggregation type : "
-                        << value.asString();
-              facebook::fboss::FbossError(
-                  "Invalid Optics data aggregation type  : ", value.asString());
-            }
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSpeed100:
-            table = parseTable(value);
-            newOptic.tables.push_back(
-                {fan_config_structs::OpticTableType::kOpticTable100Generic,
-                 table});
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSpeed200:
-            table = parseTable(value);
-            newOptic.tables.push_back(
-                {fan_config_structs::OpticTableType::kOpticTable200Generic,
-                 table});
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSpeed400:
-            table = parseTable(value);
-            newOptic.tables.push_back(
-                {fan_config_structs::OpticTableType::kOpticTable400Generic,
-                 table});
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSpeed800:
-            table = parseTable(value);
-            newOptic.tables.push_back(
-                {fan_config_structs::OpticTableType::kOpticTable800Generic,
-                 table});
-            break;
-          default:
-            XLOG(ERR) << "Invalid Key in Optics Chapter Config : " << key;
-            facebook::fboss::FbossError(
-                "Invalid Key in Optics Chapter Config : ", key);
-            break;
-        }
-      }
-      optics.insert(optics.begin(), newOptic);
-    }
-  } catch (std::exception& e) {
-    XLOG(ERR) << "Config parsing failure during Optics chapter parsing! "
-              << e.what();
-    throw e;
+void ServiceConfig::parseOpticsChapter(folly::dynamic opticsDynamic) {
+  for (const auto& opticDynamic : opticsDynamic) {
+    fan_config_structs::Optic optic;
+    std::string opticJson = folly::toJson(opticDynamic);
+    apache::thrift::SimpleJSONSerializer::deserialize<
+        fan_config_structs::Optic>(opticJson, optic);
+    optics.insert(optics.begin(), optic);
   }
-  return;
 }
 
 void ServiceConfig::parseWatchdogChapter(folly::dynamic values) {
@@ -588,21 +517,22 @@ fan_config_structs::FsvcConfigDictIndex ServiceConfig::convertKeywordToIndex(
       : itr->second;
 }
 
-opticThresholdTable* FOLLY_NULLABLE ServiceConfig::getConfigOpticTable(
+std::optional<fan_config_structs::TempToPwmMap>
+ServiceConfig::getConfigOpticTable(
     std::string name,
     fan_config_structs::OpticTableType dataType) {
   for (auto optic = optics.begin(); optic != optics.end(); ++optic) {
-    if (optic->opticName == name) {
-      for (auto entry = optic->tables.begin(); entry != optic->tables.end();
+    if (*optic->opticName() == name) {
+      for (auto entry = optic->tempToPwmMaps()->begin();
+           entry != optic->tempToPwmMaps()->end();
            ++entry) {
         if (dataType == entry->first) {
-          return &entry->second;
+          return entry->second;
         }
       }
     }
   }
-  // If not found, return null pointer
-  return nullptr;
+  return std::nullopt;
 }
 
 std::string ServiceConfig::getShutDownCommand() const {
@@ -668,7 +598,6 @@ void ServiceConfig::prepareDict() {
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgShutdownCmd;
   configDict_["zones"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgChapterZones;
-  configDict_["max"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgTypeMax;
   configDict_["fans"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFans;
   configDict_["pwm"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanPwm;
   configDict_["rpm"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanRpm;
@@ -741,18 +670,6 @@ void ServiceConfig::prepareDict() {
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgInvalidRangeActionNone;
   configDict_["optics"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgOptics;
-  configDict_["instance"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgInstance;
-  configDict_["aggregation"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAggregation;
-  configDict_["speed_100"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSpeed100;
-  configDict_["speed_200"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSpeed200;
-  configDict_["speed_400"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSpeed400;
-  configDict_["speed_800"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSpeed800;
   configDict_["boost_on_no_qsfp_after"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgNoQsfpBoostInSec;
   configDict_["pwm_range_min"] =

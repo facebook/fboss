@@ -396,8 +396,8 @@ void ControlLogic::getOpticsUpdate() {
   // No need to worry about timestamp, but update it anyway
   for (auto optic = pConfig_->optics.begin(); optic != pConfig_->optics.end();
        ++optic) {
-    XLOG(INFO) << "Control :: Optics Group Name : " << optic->opticName;
-    std::string opticName = optic->opticName;
+    XLOG(INFO) << "Control :: Optics Group Name : " << *optic->opticName();
+    std::string opticName = *optic->opticName();
 
     if (!pSensor_->checkIfOpticEntryExists(opticName)) {
       // No data found. Skip this config entry
@@ -423,9 +423,9 @@ void ControlLogic::getOpticsUpdate() {
               pConfig_->getConfigOpticTable(opticName, dataType);
           // We have <type, value> pair. If we have table entry for this
           // optics type, get the matching pwm value using the optics value
-          if (tablePointer != nullptr) {
+          if (tablePointer) {
             // Start with the minumum, then continue the comparison
-            pwmForThis = (*tablePointer)[0].second;
+            pwmForThis = tablePointer->begin()->second;
             for (auto tableEntry = tablePointer->begin();
                  tableEntry != tablePointer->end();
                  ++tableEntry) {

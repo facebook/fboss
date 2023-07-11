@@ -22,33 +22,36 @@ std::string getMokujinFSConfig() {
   "pwm_percent_lower_limit" : 10,
   "pwm_percent_upper_limit" : 70,
   "shutdown_command" : "wedge_power reset -s",
-  "optics" : {
-    "qsfp_group_1" : {
-      "instance" : "all",
-      "aggregation" : "max",
+  "optics" : [
+    {
+      "opticName" : "qsfp_group_1",
       "access" : {
         "accessType" : 5
       },
-      "speed_100" : [
-        [40,35],
-        [42,50],
-        [44,75],
-        [50,100]
-      ],
-      "speed_200" : [
-        [42,35],
-        [44,50],
-        [46,75],
-        [52,100]
-      ],
-      "speed_400" : [
-        [46,35],
-        [48,50],
-        [50,75],
-        [52,100]
-      ]
+      "portList" : [],
+      "aggregationType" : 0,
+      "tempToPwmMaps" : {
+        "0" : {
+          "40" : 35,
+          "42" : 50,
+          "44" : 75,
+          "50" : 100
+        },
+        "1" : {
+          "42" : 35,
+          "44" : 50,
+          "46" : 75,
+          "52" : 100
+        },
+        "2" : {
+          "46" : 35,
+          "48" : 50,
+          "50" : 75,
+          "52" : 100
+        }
+      }
     }
-  },
+  ],
   "sensors" : {
     "test_sensor_1" : {
       "access" : {

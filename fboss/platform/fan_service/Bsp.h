@@ -107,10 +107,10 @@ class Bsp {
  private:
   virtual int run(const std::string& cmd);
   void getOpticsDataFromQsfpSvc(
-      Optic* opticsGroup,
+      fan_config_structs::Optic* opticsGroup,
       std::shared_ptr<SensorData> pSensorData);
   void getOpticsDataSysfs(
-      Optic* opticsGroup,
+      fan_config_structs::Optic* opticsGroup,
       std::shared_ptr<SensorData> pSensorData);
   std::shared_ptr<std::thread> thread_{nullptr};
   // For communicating with qsfp_service
@@ -150,7 +150,7 @@ class Bsp {
       std::shared_ptr<ServiceConfig> pServiceConfig,
       std::shared_ptr<SensorData> pSensorData);
   void processOpticEntries(
-      Optic* opticsGroup,
+      fan_config_structs::Optic* opticsGroup,
       std::shared_ptr<SensorData> pSensorData,
       uint64_t& currentQsfpSvcTimestamp,
       const std::map<int32_t, TransceiverData>& cacheTable,

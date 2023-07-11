@@ -20,7 +20,6 @@ enum FsvcConfigDictIndex {
   kFscvCfgWatchdogEnable = 12,
   kFsvcCfgShutdownCmd = 13,
   kFsvcCfgChapterZones = 14,
-  kFsvcCfgTypeMax = 17,
   kFsvcCfgFans = 20,
   kFsvcCfgFanPwm = 21,
   kFsvcCfgFanRpm = 22,
@@ -59,12 +58,6 @@ enum FsvcConfigDictIndex {
   kFsvcCfgFanPresentVal = 62,
   kFsvcCfgFanMissingVal = 63,
   kFsvcCfgOptics = 64,
-  kFsvcCfgInstance = 65,
-  kFsvcCfgAggregation = 66,
-  kFsvcCfgSpeed100 = 67,
-  kFsvcCfgSpeed200 = 68,
-  kFsvcCfgSpeed400 = 69,
-  kFsvcCfgSpeed800 = 70,
   kFsvcCfgNoQsfpBoostInSec = 72,
   kFsvcCfgPwmRangeMin = 73,
   kFsvcCfgPwmRangeMax = 74,
@@ -114,6 +107,18 @@ struct Zone {
   3: list<string> sensorNames;
   4: list<string> fanNames;
   5: float slope;
+}
+
+# If the read temperature exceeds the specified temperature,
+# set the PWM to the specified value.
+typedef map<i32, float> TempToPwmMap
+
+struct Optic {
+  1: string opticName;
+  2: AccessMethod access;
+  3: list<i32> portList;
+  4: OpticAggregationType aggregationType;
+  5: map<OpticTableType, TempToPwmMap> tempToPwmMaps;
 }
 
 enum BspType {
