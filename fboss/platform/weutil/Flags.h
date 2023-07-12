@@ -14,3 +14,4 @@
 
 DECLARE_bool(json);
 DECLARE_string(eeprom);
+DECLARE_bool(h);

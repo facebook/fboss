@@ -13,9 +13,9 @@ class WeutilImpl : public WeutilInterface {
   void printInfo() override;
   void printInfoJson() override;
   bool verifyOptions(void) override;
+  void printUsage(void) override;
 
  private:
-  void printUsage(void);
   std::string eeprom_;
 };
 

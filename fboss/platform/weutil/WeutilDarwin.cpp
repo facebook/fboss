@@ -14,7 +14,6 @@
 #include "fboss/platform/weutil/prefdl/Prefdl.h"
 
 using namespace facebook::fboss::platform::helpers;
-DEFINE_bool(h, false, "Help");
 
 namespace {
 const std::string kPathPrefix = "/tmp/WeutilDarwin";
@@ -205,10 +204,6 @@ void WeutilDarwin::printInfoJson() {
 }
 
 bool WeutilDarwin::verifyOptions(void) {
-  if (FLAGS_h) {
-    printUsage();
-    return false;
-  }
   if (eeprom_ != "") {
     if (eeprom_ != "pem" && eeprom_ != "fanspinner" && eeprom_ != "rackmon" &&
         eeprom_ != "chassis") {
@@ -221,7 +216,7 @@ bool WeutilDarwin::verifyOptions(void) {
 
 void WeutilDarwin::printUsage(void) {
   std::cout
-      << "weutil [--h] [-json] [--eeprom pem|fanspinner|rackmon|chassis(default)]"
+      << "weutil [--h] [--json] [--eeprom pem|fanspinner|rackmon|chassis(default)]"
       << std::endl;
 
   std::cout << "usage examples:" << std::endl;

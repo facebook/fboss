@@ -15,6 +15,7 @@ class WeutilInterface {
   virtual std::vector<std::pair<std::string, std::string>> getInfo(
       const std::string& eeprom = "") = 0;
   virtual ~WeutilInterface() = default;
+  virtual void printUsage() = 0;
 
  protected:
   // weutil output fields and default value for all FBOSS switches w/wo OpenBMC

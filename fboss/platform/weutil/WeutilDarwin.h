@@ -12,10 +12,11 @@ class WeutilDarwin : public WeutilInterface {
   void printInfo() override;
   void printInfoJson() override;
   bool verifyOptions(void) override;
+  void printUsage(void) override;
 
  private:
   void genSpiPrefdlFile(void);
-  void printUsage(void);
+
   std::string eeprom_;
 };
 

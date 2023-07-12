@@ -32,7 +32,9 @@ int main(int argc, char* argv[]) {
   weutilInstance = get_plat_weutil(FLAGS_eeprom);
 
   if (weutilInstance) {
-    if (FLAGS_json) {
+    if (FLAGS_h) {
+      weutilInstance->printUsage();
+    } else if (FLAGS_json) {
       weutilInstance->printInfoJson();
     } else {
       weutilInstance->printInfo();
