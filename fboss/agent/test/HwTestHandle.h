@@ -18,11 +18,16 @@ namespace facebook::fboss {
 
 class HwTestHandle {
  public:
-  explicit HwTestHandle(std::unique_ptr<SwSwitch> sw) : sw_(std::move(sw)) {}
+  explicit HwTestHandle(std::unique_ptr<SwSwitch> sw, Platform* platform)
+      : sw_(std::move(sw)), platform_(platform) {}
   virtual ~HwTestHandle() = default;
 
   SwSwitch* getSw() const {
     return sw_.get();
+  }
+
+  Platform* getPlatform() const {
+    return platform_;
   }
 
   virtual void prepareForTesting() {}
@@ -38,6 +43,7 @@ class HwTestHandle {
 
  private:
   std::unique_ptr<SwSwitch> sw_{nullptr};
+  Platform* platform_;
 };
 
 } // namespace facebook::fboss

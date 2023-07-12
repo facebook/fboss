@@ -114,8 +114,7 @@ class MultiNodeLoadBalancerTest : public MultiNodeTest {
         true /*interfaceHasSubnet*/,
         false /*setInterfaceMac*/);
     config.loadBalancers()->push_back(
-        facebook::fboss::utility::getEcmpFullHashConfig(
-            sw()->getPlatform_DEPRECATED()));
+        facebook::fboss::utility::getEcmpFullHashConfig(platform()));
     return config;
   }
 };

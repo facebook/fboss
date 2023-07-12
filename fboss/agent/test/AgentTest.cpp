@@ -36,9 +36,8 @@ void AgentTest::setupAgent() {
       initPlatform);
   if (streamTypeOpt.has_value()) {
     HwAsic* hwAsicTableEntry = sw()->getHwAsicTable()->getHwAsicIf(
-        sw()->getPlatform_DEPRECATED()->getAsic()->getSwitchId()
-            ? SwitchID(
-                  *sw()->getPlatform_DEPRECATED()->getAsic()->getSwitchId())
+        platform()->getAsic()->getSwitchId()
+            ? SwitchID(*platform()->getAsic()->getSwitchId())
             : SwitchID(0));
     hwAsicTableEntry->setDefaultStreamType(streamTypeOpt.value());
   }

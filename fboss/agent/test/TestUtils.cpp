@@ -86,7 +86,7 @@ void initSwSwitchWithFlags(SwSwitch* sw, SwitchFlags flags) {
   }
 }
 
-unique_ptr<SwSwitch> createMockSw(
+std::pair<unique_ptr<SwSwitch>, MockPlatform*> createMockSw(
     const shared_ptr<SwitchState>& state,
     SwitchFlags flags,
     cfg::SwitchConfig* config) {
@@ -100,7 +100,9 @@ unique_ptr<SwSwitch> createMockSw(
   } else {
     platform = createMockPlatform();
   }
-  return setupMockSwitchWithoutHW(std::move(platform), state, flags, config);
+  MockPlatform* platformPtr = platform.get();
+  auto sw = setupMockSwitchWithoutHW(std::move(platform), state, flags, config);
+  return std::make_pair(std::move(sw), platformPtr);
 }
 
 shared_ptr<SwitchState> setAllPortState(
@@ -515,8 +517,7 @@ unique_ptr<HwTestHandle> createTestHandle(
     const shared_ptr<SwitchState>& state,
     SwitchFlags flags,
     cfg::SwitchConfig* config) {
-  auto sw = createMockSw(state, flags, config);
-  auto platform = static_cast<MockPlatform*>(sw->getPlatform_DEPRECATED());
+  auto [sw, platform] = createMockSw(state, flags, config);
   auto handle = platform->createTestHandle(std::move(sw));
   handle->prepareForTesting();
   return handle;

@@ -45,6 +45,9 @@ class MonolithicSwSwitchInitializer {
   void start(HwSwitchCallback* callback);
   void stopFunctionScheduler();
   void waitForInitDone();
+  Platform* platform() {
+    return platform_;
+  }
 
  private:
   void initThread(HwSwitchCallback* callback);
@@ -86,7 +89,7 @@ class MonolithicAgentInitializer {
     return sw_.get();
   }
   Platform* platform() const {
-    return sw_->getPlatform_DEPRECATED();
+    return initializer_->platform();
   }
   MonolithicSwSwitchInitializer* initializer() const {
     return initializer_.get();

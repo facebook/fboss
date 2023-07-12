@@ -21,7 +21,7 @@ namespace facebook::fboss {
 class MockTestHandle : public HwTestHandle {
  public:
   MockTestHandle(std::unique_ptr<SwSwitch> sw, MockPlatform* platform)
-      : HwTestHandle(std::move(sw)), platform_(platform) {}
+      : HwTestHandle(std::move(sw), platform), platform_(platform) {}
   ~MockTestHandle() {}
 
   void rxPacket(

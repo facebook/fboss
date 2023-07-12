@@ -36,7 +36,7 @@ cfg::SwitchConfig AgentIntegrationTest::initialConfig() const {
     ports.emplace_back(port.first);
   }
   utility::setPortToDefaultProfileIDMap(
-      std::make_shared<MultiSwitchPortMap>(), sw()->getPlatform_DEPRECATED());
+      std::make_shared<MultiSwitchPortMap>(), platform());
   cfg = utility::onePortPerInterfaceConfig(
       platform()->getHwSwitch(),
       ports,

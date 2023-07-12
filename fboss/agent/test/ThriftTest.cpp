@@ -2323,26 +2323,26 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
             cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER);
 
         // Make sure the enabled ports using the new profile config/pin configs
-        auto platform = sw_->getPlatform_DEPRECATED();
         auto tcvr = sw_->getState()->getTransceivers()->getNodeIf(id);
         std::optional<cfg::PlatformPortConfigOverrideFactor> factor;
         if (tcvr != nullptr) {
           factor = tcvr->toPlatformPortConfigOverrideFactor();
         }
-        platform->getPlatformMapping()
-            ->customizePlatformPortConfigOverrideFactor(factor);
+        sw_->getPlatformMapping()->customizePlatformPortConfigOverrideFactor(
+            factor);
         // Port must exist in the SwitchState
         const auto port =
             sw_->getState()->getPorts()->getNodeIf(PortID(kEnabledPort));
         EXPECT_TRUE(port->isEnabled());
         PlatformPortProfileConfigMatcher matcher{
             port->getProfileID(), port->getID(), factor};
-        auto portProfileCfg = platform->getPortProfileConfig(matcher);
+        auto portProfileCfg =
+            sw_->getPlatformMapping()->getPortProfileConfig(matcher);
         CHECK(portProfileCfg) << "No port profile config found with matcher:"
                               << matcher.toString();
         auto expectedProfileConfig = *portProfileCfg->iphy();
         const auto& expectedPinConfigs =
-            platform->getPlatformMapping()->getPortIphyPinConfigs(matcher);
+            sw_->getPlatformMapping()->getPortIphyPinConfigs(matcher);
 
         EXPECT_TRUE(expectedProfileConfig == port->getProfileConfig());
         EXPECT_TRUE(expectedPinConfigs == port->getPinConfigs());

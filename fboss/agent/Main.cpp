@@ -270,13 +270,15 @@ void MonolithicAgentInitializer::createSwitch(
   unique_ptr<Platform> platform =
       initPlatform(std::move(config), hwFeaturesDesired);
 
+  CHECK(platform);
   auto hwSwitchHandler =
       std::make_unique<MonolinithicHwSwitchHandler>(std::move(platform));
+  auto platformPtr = hwSwitchHandler->getPlatform();
 
   // Create the SwSwitch and thrift handler
   sw_ = std::make_unique<SwSwitch>(std::move(hwSwitchHandler));
-  initializer_ = std::make_unique<MonolithicSwSwitchInitializer>(
-      sw_.get(), sw_->getPlatform_DEPRECATED());
+  initializer_ =
+      std::make_unique<MonolithicSwSwitchInitializer>(sw_.get(), platformPtr);
 }
 
 int MonolithicAgentInitializer::initAgent() {
