@@ -244,4 +244,8 @@ FabricReachabilityStats
 MonolinithicHwSwitchHandler::getFabricReachabilityStats() const {
   return hw_->getFabricReachabilityStats();
 }
+
+bool MonolinithicHwSwitchHandler::needL2EntryForNeighbor() const {
+  return hw_->needL2EntryForNeighbor();
+}
 } // namespace facebook::fboss

@@ -10,7 +10,6 @@
 
 #include "fboss/agent/StaticL2ForNeighborUpdater.h"
 
-#include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/MacTableUtils.h"
 #include "fboss/agent/NeighborTableDeltaCallbackGenerator.h"
 #include "fboss/agent/state/ArpEntry.h"
@@ -29,7 +28,7 @@ bool isReachable(const std::shared_ptr<NeighborEntryT>& entry) {
 }
 } // namespace
 void StaticL2ForNeighborUpdater::stateUpdated(const StateDelta& stateDelta) {
-  if (!hw_->needL2EntryForNeighbor()) {
+  if (!needL2EntryForNeighbor_) {
     return;
   }
   NeighborTableDeltaCallbackGenerator::genCallbacks(stateDelta, *this);

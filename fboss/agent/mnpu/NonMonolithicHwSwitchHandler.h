@@ -109,6 +109,8 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
 
   std::string listObjects(const std::vector<HwObjectType>& types, bool cached)
       const override;
+
+  bool needL2EntryForNeighbor() const override;
 };
 
 } // namespace facebook::fboss

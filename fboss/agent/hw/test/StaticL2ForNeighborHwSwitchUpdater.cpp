@@ -20,7 +20,8 @@ namespace facebook::fboss {
 
 StaticL2ForNeighborHwSwitchUpdater::StaticL2ForNeighborHwSwitchUpdater(
     HwSwitchEnsemble* hwSwitchEnsemble)
-    : StaticL2ForNeighborUpdater(hwSwitchEnsemble->getHwSwitch()),
+    : StaticL2ForNeighborUpdater(
+          hwSwitchEnsemble->getHwSwitch()->needL2EntryForNeighbor()),
       hwSwitchEnsemble_(hwSwitchEnsemble) {}
 
 template <typename NeighborEntryT>

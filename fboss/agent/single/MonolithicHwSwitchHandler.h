@@ -132,6 +132,8 @@ class MonolinithicHwSwitchHandler : public HwSwitchHandler {
   std::string listObjects(const std::vector<HwObjectType>& types, bool cached)
       const override;
 
+  bool needL2EntryForNeighbor() const override;
+
  private:
   PlatformInitFn initPlatformFn_;
   std::unique_ptr<Platform> platform_;

@@ -233,4 +233,8 @@ NonMonolithicHwSwitchHandler::getFabricReachabilityStats() const {
   throw FbossError("getFabricReachabilityStats not implemented");
 }
 
+bool NonMonolithicHwSwitchHandler::needL2EntryForNeighbor() const {
+  throw FbossError("listObjects not implemented");
+}
+
 } // namespace facebook::fboss

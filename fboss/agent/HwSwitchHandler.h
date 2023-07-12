@@ -136,6 +136,8 @@ struct HwSwitchHandler {
       const std::vector<HwObjectType>& types,
       bool cached) const = 0;
 
+  virtual bool needL2EntryForNeighbor() const = 0;
+
  protected:
   virtual void initPlatformData() = 0;
   PlatformData platformData_;

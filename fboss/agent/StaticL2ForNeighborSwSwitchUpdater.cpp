@@ -20,7 +20,9 @@ namespace facebook::fboss {
 
 StaticL2ForNeighborSwSwitchUpdater::StaticL2ForNeighborSwSwitchUpdater(
     SwSwitch* sw)
-    : StaticL2ForNeighborUpdater(sw->getHw_DEPRECATED()), sw_(sw) {}
+    : StaticL2ForNeighborUpdater(
+          sw->getHwSwitchHandler()->needL2EntryForNeighbor()),
+      sw_(sw) {}
 
 template <typename NeighborEntryT>
 void StaticL2ForNeighborSwSwitchUpdater::ensureMacEntry(

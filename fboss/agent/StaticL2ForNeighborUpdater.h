@@ -21,11 +21,11 @@ class StateDelta;
 class MacEntry;
 class ArpEntry;
 class NdpEntry;
-class HwSwitch;
 
 class StaticL2ForNeighborUpdater {
  public:
-  explicit StaticL2ForNeighborUpdater(const HwSwitch* hw) : hw_(hw) {}
+  explicit StaticL2ForNeighborUpdater(bool needL2EntryForNeighbor)
+      : needL2EntryForNeighbor_(needL2EntryForNeighbor) {}
   virtual ~StaticL2ForNeighborUpdater() = default;
 
   void stateUpdated(const StateDelta& stateDelta);
@@ -81,6 +81,6 @@ class StaticL2ForNeighborUpdater {
 
   template <typename NeighborEntryT>
   void assertNeighborEntry(const NeighborEntryT& neighbor);
-  const HwSwitch* hw_;
+  bool needL2EntryForNeighbor_;
 };
 } // namespace facebook::fboss
