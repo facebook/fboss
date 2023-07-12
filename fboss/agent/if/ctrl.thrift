@@ -631,8 +631,10 @@ typedef string TeCounterID
 
 struct FlowEntry {
   1: TeFlow flow;
+  // DEPRECATED: nextHops is replaced by the optional nexthops field.
   2: list<common.NextHopThrift> nextHops;
   3: optional TeCounterID counterID;
+  4: optional list<common.NextHopThrift> nexthops;
 }
 
 safe stateful server exception FbossTeUpdateError {
