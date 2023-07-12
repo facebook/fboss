@@ -286,7 +286,7 @@ class MultiNodeLacpTest : public MultiNodeTest {
       for (const auto& sendV6 : {true, false}) {
         utility::pumpTraffic(
             sendV6,
-            sw()->getHw_DEPRECATED(),
+            platform()->getHwSwitch(),
             destMac,
             vlan,
             std::nullopt,
@@ -385,7 +385,7 @@ TEST_F(MultiNodeLacpTest, LacpWarmBoootIsHitless) {
     auto ecmpSizeInSw = getAggPorts().size();
     EXPECT_EQ(
         utility::getEcmpSizeInHw(
-            sw()->getHw_DEPRECATED(),
+            platform()->getHwSwitch(),
             {folly::IPAddress("::"), 0},
             RouterID(0),
             ecmpSizeInSw),
@@ -397,7 +397,7 @@ TEST_F(MultiNodeLacpTest, LacpWarmBoootIsHitless) {
                                  ->subportsCount();
       EXPECT_EQ(
           utility::getTrunkMemberCountInHw(
-              sw()->getHw_DEPRECATED(), aggId, countInSw),
+              platform()->getHwSwitch(), aggId, countInSw),
           countInSw);
     }
   };
@@ -472,7 +472,7 @@ class MultiNodeRoutingLoop : public MultiNodeLacpTest {
             state->getInterfaces()->getInterfaceInVlan(vlan)->getID())
             .first;
     utility::pumpTraffic(
-        sw()->getHw_DEPRECATED(),
+        platform()->getHwSwitch(),
         destMac,
         {folly::IPAddress("200::10")},
         {folly::IPAddress("100::10")},

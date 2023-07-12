@@ -69,7 +69,7 @@ class MultiNodeTest : public AgentTest {
             getNeighborEntry(nhop.addr().asV6(), nhop.intf()).first,
             *nhop.intfID());
         utility::disableTTLDecrements(
-            sw()->getHw_DEPRECATED(), RouterID(0), ecmpNh);
+            platform()->getHwSwitch(), RouterID(0), ecmpNh);
       } else {
         auto ecmpNh = utility::EcmpNextHop<AddrT>(
             nhop.addr().asV4(),
@@ -77,7 +77,7 @@ class MultiNodeTest : public AgentTest {
             getNeighborEntry(nhop.addr().asV4(), nhop.intf()).first,
             *nhop.intfID());
         utility::disableTTLDecrements(
-            sw()->getHw_DEPRECATED(), RouterID(0), ecmpNh);
+            platform()->getHwSwitch(), RouterID(0), ecmpNh);
       }
     }
   }

@@ -79,7 +79,7 @@ class AgentEnsemble : public TestEnsembleIf {
   }
 
   HwSwitch* getHw() const {
-    return getSw()->getHw_DEPRECATED();
+    return getPlatform()->getHwSwitch();
   }
 
   std::shared_ptr<SwitchState> applyNewState(

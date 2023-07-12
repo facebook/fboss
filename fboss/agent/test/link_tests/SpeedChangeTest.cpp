@@ -140,7 +140,7 @@ TEST_F(SpeedChangeTest, secondarySpeed) {
     auto ecmpSizeInSw = getVlanOwningCabledPorts().size();
     EXPECT_EQ(
         utility::getEcmpSizeInHw(
-            sw()->getHw_DEPRECATED(),
+            platform()->getHwSwitch(),
             {folly::IPAddress("::"), 0},
             RouterID(0),
             ecmpSizeInSw),

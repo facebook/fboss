@@ -258,7 +258,7 @@ void LinkTest::disableTTLDecrements(
   for (const auto& nextHop : ecmp6.getNextHops()) {
     if (ecmpPorts.find(nextHop.portDesc) != ecmpPorts.end()) {
       utility::disableTTLDecrements(
-          sw()->getHw_DEPRECATED(), ecmp6.getRouterId(), nextHop);
+          platform()->getHwSwitch(), ecmp6.getRouterId(), nextHop);
     }
   }
 }
@@ -273,7 +273,7 @@ void LinkTest::createL3DataplaneFlood(
                     ->cbegin()
                     ->second->getID();
   utility::pumpTraffic(
-      true, sw()->getHw_DEPRECATED(), sw()->getLocalMac(switchId), vlanID);
+      true, platform()->getHwSwitch(), sw()->getLocalMac(switchId), vlanID);
   // TODO: Assert that traffic reached a certain rate
   XLOG(DBG2) << "Created L3 Data Plane Flood";
 }
@@ -289,7 +289,7 @@ bool LinkTest::checkReachabilityOnAllCabledPorts() const {
     }
     if (portType == cfg::PortType::FABRIC_PORT) {
       auto fabricReachabilityEntries =
-          sw()->getHw_DEPRECATED()->getFabricReachability();
+          platform()->getHwSwitch()->getFabricReachability();
       auto fabricPortEndPoint = fabricReachabilityEntries.find(port);
       if (fabricPortEndPoint == fabricReachabilityEntries.end() ||
           !*fabricPortEndPoint->second.isAttached()) {

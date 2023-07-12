@@ -290,15 +290,15 @@ TEST_F(TeAgentIntegrationTest, addDeleteTeFlows) {
     // Verify 2 teflow entries in wedge agent
     WITH_RETRIES({
       EXPECT_EVENTUALLY_EQ(
-          utility::getNumTeFlowEntries(sw()->getHw_DEPRECATED()), 2);
+          utility::getNumTeFlowEntries(platform()->getHwSwitch()), 2);
     });
     utility::checkSwHwTeFlowMatch(
-        sw()->getHw_DEPRECATED(),
+        platform()->getHwSwitch(),
         sw()->getState(),
         utility::makeFlowKey(
             "100::", masterLogicalPortIds()[0], kPrefixLength));
     utility::checkSwHwTeFlowMatch(
-        sw()->getHw_DEPRECATED(),
+        platform()->getHwSwitch(),
         sw()->getState(),
         utility::makeFlowKey(
             "101::", masterLogicalPortIds()[1], kPrefixLength));
@@ -321,10 +321,10 @@ TEST_F(TeAgentIntegrationTest, addDeleteTeFlows) {
     // Verify 1 teflow entry in wedge agent
     WITH_RETRIES({
       EXPECT_EVENTUALLY_EQ(
-          utility::getNumTeFlowEntries(sw()->getHw_DEPRECATED()), 1);
+          utility::getNumTeFlowEntries(platform()->getHwSwitch()), 1);
     });
     utility::checkSwHwTeFlowMatch(
-        sw()->getHw_DEPRECATED(),
+        platform()->getHwSwitch(),
         sw()->getState(),
         utility::makeFlowKey(
             "100::", masterLogicalPortIds()[0], kPrefixLength));
@@ -391,7 +391,7 @@ TEST_F(TeAgentIntegrationTest, addTeFlowsScale) {
     // Verify 9K teflow entries in wedge agent
     WITH_RETRIES({
       EXPECT_EVENTUALLY_EQ(
-          utility::getNumTeFlowEntries(sw()->getHw_DEPRECATED()),
+          utility::getNumTeFlowEntries(platform()->getHwSwitch()),
           kTeFlowEntries);
     });
   };

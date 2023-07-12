@@ -144,7 +144,7 @@ void ProdInvariantTest::sendTraffic() {
       sw()->getState(), sw()->getState()->getVlans()->getFirstVlanID());
   utility::pumpTraffic(
       true,
-      sw()->getHw_DEPRECATED(),
+      platform()->getHwSwitch(),
       mac,
       sw()->getState()->getVlans()->getFirstVlanID());
 }
@@ -153,7 +153,7 @@ PortID ProdInvariantTest::getDownlinkPort() {
   // pick the first downlink in the list
   auto downlinkPort =
       utility::getAllUplinkDownlinkPorts(
-          sw()->getHw_DEPRECATED(), initialConfig(), kEcmpWidth, false)
+          platform()->getHwSwitch(), initialConfig(), kEcmpWidth, false)
           .second[0];
   return downlinkPort;
 }
@@ -161,7 +161,7 @@ PortID ProdInvariantTest::getDownlinkPort() {
 std::map<PortID, HwPortStats> ProdInvariantTest::getLatestPortStats(
     const std::vector<PortID>& ports) {
   std::map<PortID, HwPortStats> portIdStatsMap;
-  auto portNameStatsMap = sw()->getHw_DEPRECATED()->getPortStats();
+  auto portNameStatsMap = platform()->getHwSwitch()->getPortStats();
   for (auto [portName, stats] : portNameStatsMap) {
     auto portId = sw()->getState()->getPorts()->getPort(portName)->getID();
     if (std::find(ports.begin(), ports.end(), (PortID)portId) == ports.end()) {
@@ -183,14 +183,14 @@ std::vector<PortID> ProdInvariantTest::getEcmpPortIds() {
 }
 
 void ProdInvariantTest::verifyAcl() {
-  auto isEnabled = utility::verifyAclEnabled(sw()->getHw_DEPRECATED());
+  auto isEnabled = utility::verifyAclEnabled(platform()->getHwSwitch());
   EXPECT_TRUE(isEnabled);
   XLOG(DBG2) << "Verify ACL Done";
 }
 
 void ProdInvariantTest::verifyCopp() {
   utility::verifyCoppInvariantHelper(
-      sw()->getHw_DEPRECATED(),
+      platform()->getHwSwitch(),
       platform()->getAsic(),
       sw()->getState(),
       getDownlinkPort());
@@ -210,7 +210,7 @@ void ProdInvariantTest::verifyLoadBalancing() {
         for (auto ecmpPortId : ecmpPortIds) {
           ports->push_back(static_cast<int32_t>(ecmpPortId));
         }
-        sw()->getHw_DEPRECATED()->clearPortStats(ports);
+        platform()->getHwSwitch()->clearPortStats(ports);
       },
       [=]() {
         return utility::isLoadBalanced(
@@ -247,7 +247,7 @@ void ProdInvariantTest::verifyDscpToQueueMapping() {
   // time to 100ms.
   EXPECT_TRUE(utility::verifyQueueMappingsInvariantHelper(
       q2dscpMap,
-      sw()->getHw_DEPRECATED(),
+      platform()->getHwSwitch(),
       sw()->getState(),
       getPortStatsFn,
       getEcmpPortIds(),
