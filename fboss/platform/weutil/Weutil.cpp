@@ -6,6 +6,7 @@
 
 #include "fboss/lib/platforms/PlatformMode.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
+#include "fboss/platform/weutil/WeutilImpl.h"
 
 namespace facebook::fboss::platform {
 
@@ -19,6 +20,14 @@ std::unique_ptr<WeutilInterface> get_plat_weutil(std::string eeprom) {
     pDarwinIntf = std::make_unique<WeutilDarwin>(eeprom);
     if (pDarwinIntf->verifyOptions()) {
       return std::move(pDarwinIntf);
+    } else {
+      return nullptr;
+    }
+  } else {
+    std::unique_ptr<WeutilImpl> pWeutilImpl =
+        std::make_unique<WeutilImpl>(eeprom);
+    if (pWeutilImpl->verifyOptions()) {
+      return std::move(pWeutilImpl);
     } else {
       return nullptr;
     }
