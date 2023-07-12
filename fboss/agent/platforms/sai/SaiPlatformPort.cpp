@@ -9,10 +9,10 @@
  */
 
 #include "fboss/agent/platforms/sai/SaiPlatformPort.h"
+#include <optional>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
-#include "fboss/qsfp_service/lib/QsfpCache.h"
 
 DEFINE_bool(
     skip_transceiver_programming,
@@ -116,17 +116,22 @@ TransceiverIdxThrift SaiPlatformPort::getTransceiverMapping(
   return xcvr;
 }
 
-folly::Future<TransceiverInfo> SaiPlatformPort::getFutureTransceiverInfo()
-    const {
+std::shared_ptr<TransceiverSpec> SaiPlatformPort::getTransceiverSpec() const {
   // use this method to query transceiver info
   // for hw test, it uses a map populated by switch ensemble to return
   // transceiver information
-  if (auto transceiver =
+  if (auto overrideTransceiverInfo =
           getPlatform()->getOverrideTransceiverInfo(getPortID())) {
-    return transceiver.value();
+    auto overrideTransceiverSpec = TransceiverSpec::createPresentTransceiver(
+        overrideTransceiverInfo.value());
+    return overrideTransceiverSpec;
   }
-  auto qsfpCache = static_cast<SaiPlatform*>(getPlatform())->getQsfpCache();
-  return qsfpCache->futureGet(getTransceiverID().value());
+  auto transceiverMaps = static_cast<SaiPlatform*>(getPlatform())
+                             ->getHwSwitch()
+                             ->getProgrammedState()
+                             ->getTransceivers();
+  auto transceiverSpec = transceiverMaps->getNodeIf(getTransceiverID().value());
+  return transceiverSpec;
 }
 
 std::optional<ChannelID> SaiPlatformPort::getChannel() const {

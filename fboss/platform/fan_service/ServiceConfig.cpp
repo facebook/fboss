@@ -1,12 +1,12 @@
 // Copyright 2021- Facebook. All rights reserved.
-#include "ServiceConfig.h"
+#include "fboss/platform/fan_service/ServiceConfig.h"
+
+#include <folly/json.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
+#include <optional>
+
 #include "fboss/lib/platforms/PlatformMode.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
-
-const std::string TABLE_100G = "speed_100";
-const std::string TABLE_200G = "speed_200";
-const std::string TABLE_400G = "speed_400";
-const std::string TABLE_800G = "speed_800";
 
 namespace facebook::fboss::platform {
 
@@ -161,49 +161,11 @@ void ServiceConfig::parseBspType(std::string bspString) {
 
 fan_config_structs::AccessMethod ServiceConfig::parseAccessMethod(
     folly::dynamic values) {
-  fan_config_structs::AccessMethod returnVal;
-  for (auto& item : values.items()) {
-    std::string key = item.first.asString();
-    auto value = item.second;
-    switch (convertKeywordToIndex(key)) {
-      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSource:
-        if (convertKeywordToIndex(value.asString()) ==
-            fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceSysfs) {
-          returnVal.accessType() = fan_config_structs::SourceType::kSrcSysfs;
-        } else if (
-            convertKeywordToIndex(value.asString()) ==
-            fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceThrift) {
-          returnVal.accessType() = fan_config_structs::SourceType::kSrcThrift;
-        } else if (
-            convertKeywordToIndex(value.asString()) ==
-            fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceUtil) {
-          returnVal.accessType() = fan_config_structs::SourceType::kSrcUtil;
-        } else if (
-            convertKeywordToIndex(value.asString()) ==
-            fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceRest) {
-          returnVal.accessType() = fan_config_structs::SourceType::kSrcRest;
-        } else if (
-            convertKeywordToIndex(value.asString()) ==
-            fan_config_structs::FsvcConfigDictIndex::
-                kFsvcCfgSourceQsfpService) {
-          returnVal.accessType() =
-              fan_config_structs::SourceType::kSrcQsfpService;
-        } else {
-          throw facebook::fboss::FbossError(
-              "Invalid Access Type : ", value.asString());
-        }
-        break;
-      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAccessPath:
-        returnVal.path() = value.asString();
-        break;
-      default:
-        XLOG(ERR) << "Invalid Key in Access Method Parsing : " << key;
-        throw facebook::fboss::FbossError(
-            "Invalid Key in Access Method Parsing : ", key);
-        break;
-    }
-  }
-  return returnVal;
+  fan_config_structs::AccessMethod accessMethod;
+  std::string accessMethodJson = folly::toJson(values);
+  apache::thrift::SimpleJSONSerializer::deserialize<
+      fan_config_structs::AccessMethod>(accessMethodJson, accessMethod);
+  return accessMethod;
 }
 
 std::vector<std::pair<float, float>> ServiceConfig::parseTable(
@@ -219,48 +181,6 @@ std::vector<std::pair<float, float>> ServiceConfig::parseTable(
   return returnVal;
 }
 
-std::vector<std::string> ServiceConfig::splitter(
-    std::string str,
-    char delimiter) {
-  std::vector<std::string> retVal;
-  std::stringstream strm(str);
-  std::string marker;
-  while (std::getline(strm, marker, delimiter)) {
-    retVal.push_back(marker);
-  }
-  return retVal;
-}
-
-std::vector<int> ServiceConfig::parseInstance(folly::dynamic value) {
-  std::vector<int> returnVal;
-  std::string valueStr = value.asString();
-  std::vector<std::string> tokens;
-  if (valueStr == "all") {
-    // Vector of size 0 means all range
-    return returnVal;
-  }
-
-  tokens = splitter(valueStr, ',');
-
-  for (std::string token : tokens) {
-    if (token.find('-') != std::string::npos) {
-      // Range
-      std::vector<std::string> ranges;
-      ranges = splitter(token, '-');
-      int begin = std::stoi(ranges[0], nullptr);
-      int end = std::stoi(ranges[1], nullptr);
-      for (int i = begin; i <= end; i++) {
-        returnVal.push_back(i);
-      }
-    } else {
-      // Single value
-      int valueInt = std::stoi(token, nullptr);
-      returnVal.push_back(valueInt);
-    }
-  }
-
-  return returnVal;
-}
 RangeCheck ServiceConfig::parseRangeCheck(folly::dynamic valueCluster) {
   RangeCheck returnVal;
   returnVal.enabled = true;
@@ -311,246 +231,51 @@ RangeCheck ServiceConfig::parseRangeCheck(folly::dynamic valueCluster) {
   return returnVal;
 }
 
-Alarm ServiceConfig::parseAlarm(folly::dynamic valueCluster) {
-  Alarm returnVal;
-  for (auto& item : valueCluster.items()) {
-    std::string key = item.first.asString();
-    auto value = item.second;
-    switch (convertKeywordToIndex(key)) {
-      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAlarmMajor:
-        returnVal.high_major = (float)value.asDouble();
-        break;
-      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAlarmMinor:
-        returnVal.high_minor = (float)value.asDouble();
-        break;
-      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAlarmMinorSoakInSec:
-        returnVal.high_minor_soak = value.asInt();
-        break;
-      default:
-        XLOG(ERR) << "Invalid Key in Alarm Parsing : " << key;
-        throw facebook::fboss::FbossError(
-            "Invalid Key in Alarm Parsing : ", key);
-        break;
-    }
-  }
-  return returnVal;
+fan_config_structs::Alarm ServiceConfig::parseAlarm(
+    folly::dynamic alarmDynamic) {
+  fan_config_structs::Alarm alarm;
+  std::string alarmJson = folly::toJson(alarmDynamic);
+  apache::thrift::SimpleJSONSerializer::deserialize<fan_config_structs::Alarm>(
+      alarmJson, alarm);
+  return alarm;
 }
 
 void ServiceConfig::parseZonesChapter(folly::dynamic zonesDynamic) {
-  try {
-    for (auto& zoneItem : zonesDynamic.items()) {
-      // Prepare a new Zone entry
-      Zone newZone;
-      // Supposed to be nested JSON (otherwise, exception is raised)
-      // first element should be a zone type
-      std::string zoneName = zoneItem.first.asString();
-      newZone.zoneName = zoneName;
-      // second element should be the nest json with zone attributes
-      auto zoneAttrib = zoneItem.second;
-      for (auto& pair : zoneAttrib.items()) {
-        auto key = pair.first.asString();
-        auto value = pair.second;
-        switch (convertKeywordToIndex(key)) {
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesType:
-            if (convertKeywordToIndex(value.asString()) ==
-                fan_config_structs::FsvcConfigDictIndex::kFsvcCfgTypeMax) {
-              newZone.type = fan_config_structs::ZoneType::kZoneMax;
-            } else if (
-                convertKeywordToIndex(value.asString()) ==
-                fan_config_structs::FsvcConfigDictIndex::kFsvcCfgTypeMin) {
-              newZone.type = fan_config_structs::ZoneType::kZoneMin;
-            } else if (
-                convertKeywordToIndex(value.asString()) ==
-                fan_config_structs::FsvcConfigDictIndex::kFsvcCfgTypeAvg) {
-              newZone.type = fan_config_structs::ZoneType::kZoneAvg;
-            } else {
-              facebook::fboss::FbossError(
-                  "Invalid Zone Type : ", value.asString());
-            }
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesFanSlope:
-            newZone.slope = (float)value.asDouble();
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensors:
-            for (auto& item : value)
-              newZone.sensorNames.push_back(item.asString());
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFans:
-            for (auto& item : value)
-              newZone.fanNames.push_back(item.asString());
-            break;
-          default:
-            XLOG(ERR) << "Invalid Key in Zone Chapter Config : " << key;
-            throw facebook::fboss::FbossError(
-                "Invalid Key in Zone Chapter Config : ", key);
-            break;
-        }
-      }
-
-      zones.insert(zones.begin(), newZone);
-    }
-
-  } catch (std::exception& e) {
-    XLOG(ERR) << "Config parsing failure during Zone chapter parsing! "
-              << e.what();
-    throw e;
+  for (const auto& zoneDynamic : zonesDynamic) {
+    fan_config_structs::Zone zone;
+    std::string zoneJson = folly::toJson(zoneDynamic);
+    apache::thrift::SimpleJSONSerializer::deserialize<fan_config_structs::Zone>(
+        zoneJson, zone);
+    zones.insert(zones.begin(), zone);
   }
-  return;
-}
-void ServiceConfig::parseFansChapter(folly::dynamic value) {
-  try {
-    for (auto& fan : value.items()) {
-      Fan newFan;
-      std::string fanName = fan.first.asString();
-      newFan.fanName = fanName;
-      auto fanAttribs = fan.second;
-      for (auto& pair : fanAttribs.items()) {
-        auto key = pair.first.asString();
-        auto value = pair.second;
-        switch (convertKeywordToIndex(key)) {
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanPwm:
-            newFan.pwm = parseAccessMethod(value);
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanRpm:
-            newFan.rpmAccess = parseAccessMethod(value);
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanLed:
-            newFan.led = parseAccessMethod(value);
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanGoodLedVal:
-            newFan.fanGoodLedVal = static_cast<unsigned>(value.asInt());
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanFailLedVal:
-            newFan.fanFailLedVal = static_cast<unsigned>(value.asInt());
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanPresence:
-            newFan.presence = parseAccessMethod(value);
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanPresentVal:
-            newFan.fanPresentVal = static_cast<unsigned>(value.asInt());
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanMissingVal:
-            newFan.fanMissingVal = static_cast<unsigned>(value.asInt());
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgPwmRangeMin:
-            newFan.pwmMin = static_cast<unsigned>(value.asInt());
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgPwmRangeMax:
-            newFan.pwmMax = static_cast<unsigned>(value.asInt());
-            break;
-          default:
-            XLOG(ERR) << "Invalid Key in Fan Chapter Config : " << key;
-            facebook::fboss::FbossError(
-                "Invalid Key in Fan Chapter Config : ", key);
-            break;
-        }
-      }
-      fans.insert(fans.begin(), newFan);
-    }
-  } catch (std::exception& e) {
-    XLOG(ERR) << "Config parsing failure during Fans chapter parsing! "
-              << e.what();
-    throw e;
-  }
-  return;
 }
 
-void ServiceConfig::parseOpticsChapter(folly::dynamic values) {
-  try {
-    std::string valStr;
-    // Go through each optics group
-    for (auto& optic : values.items()) {
-      Optic newOptic;
-      std::vector<std::pair<float, float>> table;
-      fan_config_structs::FsvcConfigDictIndex aggregationType;
-      // Set name
-      std::string opticName = optic.first.asString();
-      newOptic.opticName = opticName;
-      // Go through each attribute of this optics group
-      auto opticAttrib = optic.second;
-      for (auto& pair : opticAttrib.items()) {
-        auto key = pair.first.asString();
-        auto value = pair.second;
-        switch (convertKeywordToIndex(key)) {
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAccess:
-            newOptic.access = parseAccessMethod(value);
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgInstance:
-            newOptic.instanceList = parseInstance(value);
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAggregation:
-            aggregationType = convertKeywordToIndex(value.asString());
-            if (aggregationType ==
-                fan_config_structs::FsvcConfigDictIndex::kFsvcCfgTypeMax) {
-              newOptic.aggregation =
-                  fan_config_structs::OpticAggregationType::kOpticMax;
-            } else {
-              XLOG(ERR) << "Invalid Optics data aggregation type : "
-                        << value.asString();
-              facebook::fboss::FbossError(
-                  "Invalid Optics data aggregation type  : ", value.asString());
-            }
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSpeed100:
-            table = parseTable(value);
-            newOptic.tables.push_back(
-                {fan_config_structs::OpticTableType::kOpticTable100Generic,
-                 table});
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSpeed200:
-            table = parseTable(value);
-            newOptic.tables.push_back(
-                {fan_config_structs::OpticTableType::kOpticTable200Generic,
-                 table});
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSpeed400:
-            table = parseTable(value);
-            newOptic.tables.push_back(
-                {fan_config_structs::OpticTableType::kOpticTable400Generic,
-                 table});
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSpeed800:
-            table = parseTable(value);
-            newOptic.tables.push_back(
-                {fan_config_structs::OpticTableType::kOpticTable800Generic,
-                 table});
-            break;
-          default:
-            XLOG(ERR) << "Invalid Key in Optics Chapter Config : " << key;
-            facebook::fboss::FbossError(
-                "Invalid Key in Optics Chapter Config : ", key);
-            break;
-        }
-      }
-      optics.insert(optics.begin(), newOptic);
-    }
-  } catch (std::exception& e) {
-    XLOG(ERR) << "Config parsing failure during Optics chapter parsing! "
-              << e.what();
-    throw e;
+void ServiceConfig::parseFansChapter(folly::dynamic fansDynamic) {
+  for (const auto& fanDynamic : fansDynamic) {
+    fan_config_structs::Fan fan;
+    std::string fanJson = folly::toJson(fanDynamic);
+    apache::thrift::SimpleJSONSerializer::deserialize<fan_config_structs::Fan>(
+        fanJson, fan);
+    fans.insert(fans.begin(), fan);
   }
-  return;
 }
 
-void ServiceConfig::parseWatchdogChapter(folly::dynamic values) {
-  watchdogEnable_ = true;
-  for (auto& item : values.items()) {
-    auto key = item.first.asString();
-    auto value = item.second;
-    switch (convertKeywordToIndex(key)) {
-      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAccess:
-        watchdogAccess_ = parseAccessMethod(value);
-        break;
-      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgValue:
-        watchdogValue_ = value.asString();
-        break;
-      default:
-        XLOG(ERR) << "Invalid Key in Watchdog Chapter Config : " << key;
-        facebook::fboss::FbossError(
-            "Invalid Key in Watchdog Chapter Config : ", key);
-        break;
-    }
+void ServiceConfig::parseOpticsChapter(folly::dynamic opticsDynamic) {
+  for (const auto& opticDynamic : opticsDynamic) {
+    fan_config_structs::Optic optic;
+    std::string opticJson = folly::toJson(opticDynamic);
+    apache::thrift::SimpleJSONSerializer::deserialize<
+        fan_config_structs::Optic>(opticJson, optic);
+    optics.insert(optics.begin(), optic);
   }
+}
+
+void ServiceConfig::parseWatchdogChapter(folly::dynamic watchdogDynamic) {
+  fan_config_structs::Watchdog watchdog;
+  std::string watchdogJson = folly::toJson(watchdogDynamic);
+  apache::thrift::SimpleJSONSerializer::deserialize<
+      fan_config_structs::Watchdog>(watchdogJson, watchdog);
+  watchdog_ = watchdog;
 }
 
 void ServiceConfig::parseSensorsChapter(folly::dynamic value) {
@@ -673,21 +398,22 @@ fan_config_structs::FsvcConfigDictIndex ServiceConfig::convertKeywordToIndex(
       : itr->second;
 }
 
-opticThresholdTable* FOLLY_NULLABLE ServiceConfig::getConfigOpticTable(
+std::optional<fan_config_structs::TempToPwmMap>
+ServiceConfig::getConfigOpticTable(
     std::string name,
     fan_config_structs::OpticTableType dataType) {
   for (auto optic = optics.begin(); optic != optics.end(); ++optic) {
-    if (optic->opticName == name) {
-      for (auto entry = optic->tables.begin(); entry != optic->tables.end();
+    if (*optic->opticName() == name) {
+      for (auto entry = optic->tempToPwmMaps()->begin();
+           entry != optic->tempToPwmMaps()->end();
            ++entry) {
         if (dataType == entry->first) {
-          return &entry->second;
+          return entry->second;
         }
       }
     }
   }
-  // If not found, return null pointer
-  return nullptr;
+  return std::nullopt;
 }
 
 std::string ServiceConfig::getShutDownCommand() const {
@@ -712,15 +438,6 @@ float ServiceConfig::getPwmTransitionValue() const {
   return pwmTransitionValue_;
 }
 
-bool ServiceConfig::getWatchdogEnable() {
-  return watchdogEnable_;
-}
-fan_config_structs::AccessMethod ServiceConfig::getWatchdogAccess() {
-  return watchdogAccess_;
-}
-std::string ServiceConfig::getWatchdogValue() {
-  return watchdogValue_;
-}
 void ServiceConfig::prepareDict() {
   configDict_["bsp"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBsp;
   configDict_["generic"] =
@@ -753,43 +470,7 @@ void ServiceConfig::prepareDict() {
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgShutdownCmd;
   configDict_["zones"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgChapterZones;
-  configDict_["name"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesName;
-  configDict_["zone_type"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesType;
-  configDict_["max"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgTypeMax;
-  configDict_["min"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgTypeMin;
-  configDict_["avg"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgTypeAvg;
-  configDict_["slope"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesFanSlope;
   configDict_["fans"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFans;
-  configDict_["pwm"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanPwm;
-  configDict_["rpm"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanRpm;
-  configDict_["led"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanLed;
-  configDict_["fan_good_led_val"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanGoodLedVal;
-  configDict_["fan_fail_led_val"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanFailLedVal;
-  configDict_["presence"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanPresence;
-  configDict_["fan_present_val"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanPresentVal;
-  configDict_["fan_missing_val"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanMissingVal;
-  configDict_["source"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSource;
-  configDict_["sysfs"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceSysfs;
-  configDict_["util"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceUtil;
-  configDict_["thrift"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceThrift;
-  configDict_["REST"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceRest;
-  configDict_["qsfp_service"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceQsfpService;
-  configDict_["path"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAccessPath;
   configDict_["sensors"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensors;
   configDict_["adjustment"] =
@@ -798,12 +479,6 @@ void ServiceConfig::prepareDict() {
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorAlarm;
   configDict_["access"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAccess;
-  configDict_["alarm_major"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAlarmMajor;
-  configDict_["alarm_minor"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAlarmMinor;
-  configDict_["alarm_minor_soak"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAlarmMinorSoakInSec;
   configDict_["type"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorType;
   configDict_["linear_four_curves"] =
@@ -848,24 +523,8 @@ void ServiceConfig::prepareDict() {
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgInvalidRangeActionNone;
   configDict_["optics"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgOptics;
-  configDict_["instance"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgInstance;
-  configDict_["aggregation"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAggregation;
-  configDict_["speed_100"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSpeed100;
-  configDict_["speed_200"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSpeed200;
-  configDict_["speed_400"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSpeed400;
-  configDict_["speed_800"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSpeed800;
   configDict_["boost_on_no_qsfp_after"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgNoQsfpBoostInSec;
-  configDict_["pwm_range_min"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgPwmRangeMin;
-  configDict_["pwm_range_max"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgPwmRangeMax;
   configDict_["value"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgValue;
 }
 } // namespace facebook::fboss::platform

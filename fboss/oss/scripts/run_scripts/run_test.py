@@ -40,61 +40,65 @@ from datetime import datetime
 #     ./run_test.py qsfp --qsfp-config $qsfpConfFile
 #     desc: Runs ALL Hw QSFP tests: coldboot and warmboot
 #
-#  3. Running only coldboot tests:
+#  3. Running all HW Link TESTS:
+#     ./run_test.py link --config $linkConfFile --qsfp-config $qsfpConfFile
+#     desc: Runs ALL Hw Link tests: coldboot and warmboot
+#
+#  4. Running only coldboot tests:
 #      ./run_test.py sai --config $confFile --coldboot_only
 #      desc: Runs all HW tests only on coldboot mode
 #
-#  4. Running specific tests through regex:
+#  5. Running specific tests through regex:
 #      ./run_test.py sai --config $confFile --filter=*Route*V6*
 #      desc: Runs only the HW test matching the regex *Route*V6*
 #
 #      e./run_test.py sai --config $confFile --filter=*Vlan*:*Port*
 #      desc: Run tests matching "Vlan" and "Port" filters
 #
-#  5. Running specific tests through regex and excluding certain tests:
+#  6. Running specific tests through regex and excluding certain tests:
 #      ./run_test.py sai --config $confFile --filter=*Vlan*:*Port*:-*Mac*:*Intf*
 #      desc: Run tests matching "Vlan" and "Port" filters, but excluding "Mac" and "Intf" tests in that list
 #
-#  6. Running a targeted test:
+#  7. Running a targeted test:
 #      ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig
 #      desc: Runs a single test by providing the entire test name as a filter
 #
-#  7. Enable SAI Replayer Logging:
+#  8. Enable SAI Replayer Logging:
 #      ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig --sdk_logging /tmp/XYZ #
 #      desc: Enables SAI Replayer Logging for the specified test case
 #
 #      ./run_test.py sai --config $confFile --sdk_logging /root/all_replayer_logs
 #      desc: Enables SAI replayer Logging for all test cases
 #
-#  8. Running a single test in coldboot mode:
+#  9. Running a single test in coldboot mode:
 #      ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig --coldboot_only
 #      desc: Runs a single test and performs only coldboot
 #
-#  9. Example of control plane tests:
+#  10. Example of control plane tests:
 #      ./run_test.py sai --config $confFile --filter=HwAclQualifierTest*
 #      desc: Sample HW test by programming the hardware and validating the functionality
 #
-#  10. Example of data plane tests:
+#  11. Example of data plane tests:
 #      ./run_test.py sai --config $confFile --filter=HwOlympicQosSchedulerTest*
 #      desc: Sample HW test by programming the hardware, creating a dataplane loop and validating functionality
 #
-#  11. List all tests in the test binary:
+#  12. List all tests in the test binary:
 #      ./run_test.py sai --config $confFile --list_tests
 #      desc: Print all the tests but do not run any test
 #
-#  12. List tests matching given regex:
+#  13. List tests matching given regex:
 #      ./run_test.py sai --config $confFile --filter=<filter_regex> --list_tests
 #      desc: Print the matching tests but do not run any test
 #
-#  13. Skip running Known Bad Tests:
+#  14. Skip running Known Bad Tests:
 #      ./run_test.py sai --config $confFile --skip-known-bad-tests $test-config
 #      desc: Run tests but skip running known bad tests for a specific platform
 #
-#  14. Use Custom Management Interface:
+#  15. Use Custom Management Interface:
 #      ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig --mgmt-if eth0
 #      desc: Instead of eth0, provide a custom mgmt-if
 #
-#  15. Running non-OSS Binary using run_test helper:
+#  16. Running non-OSS Binary using run_test helper:
 #      ./run_test.py sai --config fuji.agent.materialized_JSON --filter HwVlanTest.VlanApplyConfig --sdk_logging /root/skhare/sai_replayer_logs --no-oss --sai-bin /root/skhare/sai_test-brcm-7.2.0.0_odp --mgmt-if eth0
 #      desc: Runs tests but does not use OSS binary for testing
 #
@@ -120,6 +124,13 @@ from datetime import datetime
 # eg: To skip running bad tests on meru400bfu on phy sdk version credo-0.7.2, the test-config to be used is
 # "meru400bfu/physdk-credo-0.7.2/credo-0.7.2"
 #
+# Similarly, for link HW tests, there is a consolidated JSON file under fboss.git/oss/link_known_bad_tests/fboss_link_known_bad_tests.materialized_JSON.
+# This file is also indexed based on $test-config format - platform/{bcm,sai}/coldboot-asic-sdk-version-from/warmboot-asic-sdk-version-to.
+# The known bad list can be provided to run_test.py as an argument --skip-known-bad-tests $testConfig
+# which can be used to skip running known bad tests for specific platforms.
+# eg: To skip running bad tests on SAI-configured meru400bfu on asic sdk version 10.0_ea_dnx_odp, the test-config to be used is
+# "meru400bfu/sai/asicsdk-10.0_ea_dnx_odp/10.0_ea_dnx_odp"
+#
 # (TODO):
 # SDK Logging:
 # Coldboot & Warmboot:
@@ -143,14 +154,50 @@ OPT_ARG_SAI_LOGGING = "--sai_logging"
 SUB_CMD_BCM = "bcm"
 SUB_CMD_SAI = "sai"
 SUB_CMD_QSFP = "qsfp"
-AGENT_WARMBOOT_CHECK_FILE = "/dev/shm/fboss/warm_boot/can_warm_boot_0"
-QSFP_WARMBOOT_CHECK_FILE = "/dev/shm/fboss/qsfp_service/can_warm_boot"
+SUB_CMD_LINK = "link"
 SAI_HW_KNOWN_BAD_TESTS = (
     "./share/hw_known_bad_tests/sai_known_bad_tests.materialized_JSON"
 )
 QSFP_KNOWN_BAD_TESTS = (
     "./share/qsfp_known_bad_tests/fboss_qsfp_known_bad_tests.materialized_JSON"
 )
+LINK_KNOWN_BAD_TESTS = (
+    "./share/link_known_bad_tests/fboss_link_known_bad_tests.materialized_JSON"
+)
+QSFP_SERVICE_FOR_TESTING = "qsfp_service_for_testing"
+QSFP_SERVICE_DIR = "/dev/shm/fboss/qsfp_service"
+QSFP_SERVICE_COLD_BOOT_FILE = "cold_boot_once_qsfp_service"
+AGENT_WARMBOOT_CHECK_FILE = "/dev/shm/fboss/warm_boot/can_warm_boot_0"
+QSFP_WARMBOOT_CHECK_FILE = rf"{QSFP_SERVICE_DIR}/can_warm_boot"
+CLEANUP_QSFP_SERVICE_CMD = rf"""systemctl stop qsfp_service; systemctl stop {QSFP_SERVICE_FOR_TESTING}; systemctl disable {QSFP_SERVICE_FOR_TESTING}; systemctl daemon-reload; pkill -f qsfp_service; rm /etc/rsyslog.d/{QSFP_SERVICE_FOR_TESTING}.conf; systemctl restart rsyslog"""
+SETUP_QSFP_SERVICE_COLDBOOT_CMD = rf"""mkdir -p {QSFP_SERVICE_DIR}; touch {QSFP_SERVICE_DIR}/{QSFP_SERVICE_COLD_BOOT_FILE}"""
+START_QSFP_SERVICE_CMD = rf"""systemctl enable {{qsfp_service_file}}; systemctl daemon-reload; systemctl start {QSFP_SERVICE_FOR_TESTING}; sleep 10"""
+QSFP_SERVICE_FILE_TEMPLATE = rf"""
+[Unit]
+Description=QSFP Service For Testing
+
+[Service]
+LimitNOFILE=10000000
+LimitCORE=32G
+
+Environment=TSAN_OPTIONS="die_after_fork=0 halt_on_error=1
+Environment=LD_LIBRARY_PATH=/opt/fboss/lib
+ExecStart=/opt/fboss/bin/qsfp_service --qsfp-config {{qsfp_config}} --can-qsfp-service-warm-boot {{is_warm_boot}}
+SyslogIdentifier={QSFP_SERVICE_FOR_TESTING}
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
+"""
+QSFP_SERVICE_LOG_TEMPLATE = rf"""
+if $programname == "{QSFP_SERVICE_FOR_TESTING}" then {{qsfp_service_log}}
+& stop
+"""
+
+XGS_SIMULATOR_ASICS = ["th3", "th4", "th4_b0", "th5"]
+DNX_SIMULATOR_ASICS = ["j3"]
+
+ALL_SIMUALTOR_ASICS_STR = "|".join(XGS_SIMULATOR_ASICS + DNX_SIMULATOR_ASICS)
 
 
 class TestRunner(abc.ABC):
@@ -191,8 +238,50 @@ class TestRunner(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _setup_test(self):
+    def _get_test_run_args(self, conf_file):
         pass
+
+    @abc.abstractmethod
+    def _setup_coldboot_test(self):
+        pass
+
+    @abc.abstractmethod
+    def _setup_warmboot_test(self):
+        pass
+
+    @abc.abstractmethod
+    def _end_run(self):
+        pass
+
+    def setup_qsfp_service(self, is_warm_boot):
+        subprocess.run(CLEANUP_QSFP_SERVICE_CMD, shell=True)
+        qsfp_service_file = f"/tmp/{QSFP_SERVICE_FOR_TESTING}.service"
+        with open(qsfp_service_file, "w") as f:
+            f.write(
+                QSFP_SERVICE_FILE_TEMPLATE.format(
+                    qsfp_config=args.qsfp_config,
+                    is_warm_boot=is_warm_boot,
+                )
+            )
+            f.flush()
+        if not is_warm_boot:
+            subprocess.run(SETUP_QSFP_SERVICE_COLDBOOT_CMD, shell=True)
+        return qsfp_service_file
+
+    def setup_qsfp_service_log(self):
+        qsfp_service_log = f"/etc/rsyslog.d/{QSFP_SERVICE_FOR_TESTING}.conf"
+        with open(qsfp_service_log, "w") as f:
+            f.write(QSFP_SERVICE_LOG_TEMPLATE.format(qsfp_service_log=qsfp_service_log))
+            f.flush()
+        subprocess.run("systemctl restart rsyslog; sleep 5", shell=True)
+
+    def start_qsfp_service(self, is_warm_boot):
+        qsfp_service_file = self.setup_qsfp_service(is_warm_boot)
+        self.setup_qsfp_service_log()
+        start_qsfp_service_cmd = START_QSFP_SERVICE_CMD.format(
+            qsfp_service_file=qsfp_service_file
+        )
+        subprocess.run(start_qsfp_service_cmd, shell=True)
 
     def _get_test_run_cmd(self, conf_file, test_to_run, flags):
         test_binary_name = self._get_test_binary_name()
@@ -201,12 +290,7 @@ class TestRunner(abc.ABC):
             "--gtest_filter=" + test_to_run,
             "--fruid_filepath=" + args.fruid_path,
         ]
-        run_args = []
-        if "sai_test" in test_binary_name or test_binary_name == args.sai_bin:
-            run_args = ["--config", conf_file, "--mgmt-if", args.mgmt_if]
-        if test_binary_name == "qsfp_hw_test":
-            run_args = ["--qsfp-config", args.qsfp_config]
-        run_cmd += run_args
+        run_cmd += self._get_test_run_args(conf_file)
 
         return run_cmd + flags if flags else run_cmd
 
@@ -351,7 +435,7 @@ class TestRunner(abc.ABC):
                 ["rm", "-f", "/dev/shm/fboss/warm_boot/can_warm_boot_0"]
             )
             subprocess.Popen(
-                # command to start th4 bcmsim service
+                # command to start bcmsim service
                 ["./runner.sh", "restart", "python3", "brcmsim.py", "-a", asic, "-s"]
             )
             time.sleep(60)
@@ -430,13 +514,28 @@ class TestRunner(abc.ABC):
                 )
 
             os.makedirs(args.sdk_logging)
-        if args.simulator:
+        if args.simulator in XGS_SIMULATOR_ASICS:
             self.ENV_VAR["SOC_TARGET_SERVER"] = "127.0.0.1"
             self.ENV_VAR["BCM_SIM_PATH"] = "1"
             self.ENV_VAR["SOC_BOOT_FLAGS"] = "4325376"
             self.ENV_VAR["SAI_BOOT_FLAGS"] = "4325376"
             self.ENV_VAR["SOC_TARGET_PORT"] = "22222"
             self.ENV_VAR["SOC_TARGET_COUNT"] = "1"
+        elif args.simulator in DNX_SIMULATOR_ASICS:
+            self.ENV_VAR["BCM_SIM_PATH"] = "1"
+            self.ENV_VAR["SOC_BOOT_FLAGS"] = "0x1020000"
+            self.ENV_VAR["ADAPTER_DEVID_0"] = "8860"
+            self.ENV_VAR["ADAPTER_REVID_0"] = "1"
+            self.ENV_VAR["CMODEL_DEVID_0"] = "8860"
+            self.ENV_VAR["CMODEL_REVID_0"] = "1"
+            self.ENV_VAR["CMODEL_MEMORY_PORT_0"] = "1222"
+            self.ENV_VAR["CMODEL_PACKET_PORT_0"] = "6815"
+            self.ENV_VAR["CMODEL_SDK_INTERFACE_PORT_0"] = "6816"
+            self.ENV_VAR["CMODEL_EXTERNAL_EVENTS_PORT_0"] = "6817"
+            self.ENV_VAR["cmodel_ip_address"] = "localhost"
+            self.ENV_VAR["SOC_TARGET_SERVER"] = "localhost"
+            self.ENV_VAR["SOC_TARGET_SERVER_0"] = "localhost"
+            self.ENV_VAR["SAI_BOOT_FLAGS"] = "0x1020000"
 
         # Determine if tests need to be run with warmboot mode too
         warmboot = False
@@ -455,7 +554,7 @@ class TestRunner(abc.ABC):
         num_tests = len(tests_to_run)
         for idx, test_to_run in enumerate(tests_to_run):
             # Run the test for coldboot verification
-            self._setup_test()
+            self._setup_coldboot_test()
             print("########## Running test: " + test_to_run, flush=True)
             if args.simulator:
                 self._restart_bcmsim(args.simulator)
@@ -476,6 +575,7 @@ class TestRunner(abc.ABC):
 
             # Run the test again for warmboot verification if the test supports it
             if warmboot and os.path.isfile(self._get_warmboot_check_file()):
+                self._setup_warmboot_test()
                 print(
                     "########## Verifying test with warmboot: " + test_to_run,
                     flush=True,
@@ -494,7 +594,7 @@ class TestRunner(abc.ABC):
                     flush=True,
                 )
                 test_outputs.append(test_output)
-
+        self._end_run()
         return test_outputs
 
     def _print_output_summary(self, test_outputs):
@@ -567,7 +667,16 @@ class BcmTestRunner(TestRunner):
     def _get_warmboot_check_file(self):
         return AGENT_WARMBOOT_CHECK_FILE
 
-    def _setup_test(self):
+    def _get_test_run_args(self, conf_file):
+        return []
+
+    def _setup_coldboot_test(self):
+        return
+
+    def _setup_warmboot_test(self):
+        return
+
+    def _end_run(self):
         return
 
 
@@ -600,7 +709,16 @@ class SaiTestRunner(TestRunner):
     def _get_warmboot_check_file(self):
         return AGENT_WARMBOOT_CHECK_FILE
 
-    def _setup_test(self):
+    def _get_test_run_args(self, conf_file):
+        return ["--config", conf_file, "--mgmt-if", args.mgmt_if]
+
+    def _setup_coldboot_test(self):
+        return
+
+    def _setup_warmboot_test(self):
+        return
+
+    def _end_run(self):
         return
 
 
@@ -624,11 +742,53 @@ class QsfpTestRunner(TestRunner):
     def _get_warmboot_check_file(self):
         return QSFP_WARMBOOT_CHECK_FILE
 
-    def _setup_test(self):
+    def _get_test_run_args(self, conf_file):
+        return ["--qsfp-config", args.qsfp_config]
+
+    def _setup_coldboot_test(self):
         subprocess.Popen(
             # Clean up left over flags
-            ["rm", "-rf", "/dev/shm/fboss/qsfp_service"]
+            ["rm", "-rf", QSFP_SERVICE_DIR]
         )
+
+    def _setup_warmboot_test(self):
+        return
+
+    def _end_run(self):
+        return
+
+
+class LinkTestRunner(TestRunner):
+    def _get_config_path(self):
+        return ""
+
+    def _get_known_bad_tests_file(self):
+        return LINK_KNOWN_BAD_TESTS
+
+    def _get_test_binary_name(self):
+        return "sai_link_test-sai_impl-1.12.0"
+
+    def _get_sdk_logging_flags(self, sdk_logging_dir, test_prefix, test_to_run):
+        return []
+
+    def _get_sai_logging_flags(self, sai_logging):
+        # N/A
+        return []
+
+    def _get_warmboot_check_file(self):
+        return AGENT_WARMBOOT_CHECK_FILE
+
+    def _get_test_run_args(self, conf_file):
+        return ["--config", conf_file]
+
+    def _setup_coldboot_test(self):
+        self.start_qsfp_service(False)
+
+    def _setup_warmboot_test(self):
+        self.start_qsfp_service(True)
+
+    def _end_run(self):
+        subprocess.run(CLEANUP_QSFP_SERVICE_CMD, shell=True)
 
 
 if __name__ == "__main__":
@@ -735,8 +895,9 @@ if __name__ == "__main__":
         OPT_ARG_SIMULATOR,
         type=str,
         help=(
-            "Specify what asic simulator to use if configured. "
-            "Default is None, meaning physical asic is used"
+            "Specify what asic simulator to use if configured. These are options"
+            + ALL_SIMUALTOR_ASICS_STR
+            + "Default is None, meaning physical asic is used"
         ),
     )
     ap.add_argument(
@@ -760,6 +921,10 @@ if __name__ == "__main__":
     # Add subparser for QSFP tests
     qsfp_test_parser = subparsers.add_parser(SUB_CMD_QSFP, help="run qsfp tests")
     qsfp_test_parser.set_defaults(func=QsfpTestRunner().run_test)
+
+    # Add subparser for Link tests
+    link_test_parser = subparsers.add_parser(SUB_CMD_LINK, help="run link tests")
+    link_test_parser.set_defaults(func=LinkTestRunner().run_test)
 
     # Parse the args
     args = ap.parse_known_args()

@@ -19,6 +19,7 @@ DECLARE_string(config);
 DECLARE_bool(setup_for_warmboot);
 
 namespace facebook::fboss {
+class StateObserver;
 
 using AgentEnsembleSwitchConfigFn = std::function<
     cfg::SwitchConfig(HwSwitch* hwSwitch, const std::vector<PortID>&)>;
@@ -44,13 +45,13 @@ class AgentEnsemble : public TestEnsembleIf {
 
   void applyNewConfig(const cfg::SwitchConfig& config, bool activate);
 
-  const AgentInitializer* agentInitializer() const {
+  const MonolithicAgentInitializer* agentInitializer() const {
     return &agentInitializer_;
   }
 
   void setupLinkStateToggler();
 
-  AgentInitializer* agentInitializer() {
+  MonolithicAgentInitializer* agentInitializer() {
     return &agentInitializer_;
   }
 
@@ -78,7 +79,7 @@ class AgentEnsemble : public TestEnsembleIf {
   }
 
   HwSwitch* getHw() const {
-    return getSw()->getHw();
+    return getSw()->getHw_DEPRECATED();
   }
 
   std::shared_ptr<SwitchState> applyNewState(
@@ -158,12 +159,16 @@ class AgentEnsemble : public TestEnsembleIf {
     return *(getSw()->getScopeResolver());
   }
 
+  void registerStateObserver(StateObserver* observer, const std::string& name)
+      override;
+  void unregisterStateObserver(StateObserver* observer) override;
+
  private:
   void writeConfig(const cfg::SwitchConfig& config);
   void writeConfig(const cfg::AgentConfig& config);
   void writeConfig(const cfg::AgentConfig& config, const std::string& file);
 
-  AgentInitializer agentInitializer_{};
+  MonolithicAgentInitializer agentInitializer_{};
   cfg::SwitchConfig initialConfig_;
   std::unique_ptr<std::thread> asyncInitThread_{nullptr};
   std::vector<PortID> masterLogicalPortIds_;

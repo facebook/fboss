@@ -174,7 +174,7 @@ void Platform::init(
   initPorts();
 }
 
-void Platform::getProductInfo(ProductInfo& info) {
+void Platform::getProductInfo(ProductInfo& info) const {
   CHECK(productInfo_);
   productInfo_->getInfo(info);
 }

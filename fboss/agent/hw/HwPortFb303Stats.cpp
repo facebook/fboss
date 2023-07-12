@@ -54,7 +54,8 @@ const std::vector<folly::StringPiece>& HwPortFb303Stats::kQueueStatKeys()
       kOutBytes(),
       kOutPkts(),
       kWredDroppedPackets(),
-      kOutEcnCounter()};
+      kOutEcnCounter(),
+  };
   return kQueueKeys;
 }
 

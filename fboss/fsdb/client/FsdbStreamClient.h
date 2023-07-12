@@ -9,6 +9,7 @@
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <gtest/gtest_prod.h>
 #include <thrift/lib/cpp2/async/ClientBufferedStream.h>
+#include <thrift/lib/cpp2/async/RpcOptions.h>
 #include <thrift/lib/cpp2/async/Sink.h>
 #include <optional>
 #include <string>
@@ -28,6 +29,9 @@ namespace apache::thrift {
 template <class>
 class Client;
 } // namespace apache::thrift
+
+DECLARE_int32(fsdb_state_chunk_timeout);
+DECLARE_int32(fsdb_stat_chunk_timeout);
 
 namespace facebook::fboss::fsdb {
 class FsdbService;
@@ -71,6 +75,7 @@ class FsdbStreamClient {
       folly::EventBase* streamEvb,
       folly::EventBase* connRetryEvb,
       const std::string& counterPrefix,
+      bool isStats = false,
       FsdbStreamStateChangeCb stateChangeCb = [](State /*old*/,
                                                  State /*newState*/) {});
   virtual ~FsdbStreamClient();
@@ -95,6 +100,10 @@ class FsdbStreamClient {
   }
   const std::string& getCounterPrefix() const {
     return counterPrefix_;
+  }
+
+  bool isStats() const {
+    return isStats_;
   }
 
 #ifndef IS_OSS
@@ -136,6 +145,10 @@ class FsdbStreamClient {
   std::unique_ptr<apache::thrift::Client<FsdbService>> client_;
 #endif
 
+  apache::thrift::RpcOptions& getRpcOptions() {
+    return rpcOptions_;
+  }
+
  private:
   std::string getConnectedCounterName() {
     return counterPrefix_ + ".connected";
@@ -153,6 +166,8 @@ class FsdbStreamClient {
   folly::coro::CancellableAsyncScope serviceLoopScope_;
 #endif
   fb303::TimeseriesWrapper disconnectEvents_;
+  const bool isStats_;
+  apache::thrift::RpcOptions rpcOptions_;
 };
 
 } // namespace facebook::fboss::fsdb

@@ -43,8 +43,13 @@ bool validateFlowletSwitchingEnabled(
     const facebook::fboss::HwSwitch* hw,
     const cfg::FlowletSwitchingConfig& flowletCfg) {
   const auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
-  utility::assertSwitchControl(bcmSwitchECMPHashSet0Offset, 0x5);
-  utility::assertSwitchControl(bcmSwitchEcmpDynamicHashOffset, 0x5);
+  utility::assertSwitchControl(bcmSwitchECMPHashSet0Offset, 5);
+  utility::assertSwitchControl(bcmSwitchEcmpDynamicHashOffset, 5);
+  utility::assertSwitchControl(bcmSwitchHashUseFlowSelEcmpDynamic, 1);
+  utility::assertSwitchControl(bcmSwitchMacroFlowEcmpDynamicHashMinOffset, 0);
+  utility::assertSwitchControl(bcmSwitchMacroFlowEcmpDynamicHashMaxOffset, 15);
+  utility::assertSwitchControl(
+      bcmSwitchMacroFlowEcmpDynamicHashStrideOffset, 1);
   utility::assertSwitchControl(
       bcmSwitchEcmpDynamicEgressBytesExponent,
       *flowletCfg.dynamicEgressLoadExponent());
@@ -59,6 +64,15 @@ bool validateFlowletSwitchingEnabled(
       *flowletCfg.dynamicQueueMaxThresholdBytes());
   utility::assertSwitchControl(
       bcmSwitchEcmpDynamicSampleRate, *flowletCfg.dynamicSampleRate());
+  utility::assertSwitchControl(
+      bcmSwitchEcmpDynamicEgressBytesMinThreshold,
+      *flowletCfg.dynamicEgressMinThresholdBytes());
+  utility::assertSwitchControl(
+      bcmSwitchEcmpDynamicEgressBytesMaxThreshold,
+      *flowletCfg.dynamicEgressMaxThresholdBytes());
+  utility::assertSwitchControl(
+      bcmSwitchEcmpDynamicPhysicalQueuedBytesExponent,
+      *flowletCfg.dynamicPhysicalQueueExponent());
   verifyEgressEcmpEthertype(bcmSwitch);
   return true;
 }

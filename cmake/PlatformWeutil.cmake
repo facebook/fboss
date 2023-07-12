@@ -17,6 +17,7 @@ target_link_libraries(weutil_lib
 
 add_executable(weutil
   fboss/platform/weutil/main.cpp
+  fboss/platform/weutil/Flags.cpp
 )
 
 target_link_libraries(weutil

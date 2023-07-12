@@ -49,17 +49,18 @@ class MockPlatform : public Platform {
   PlatformPort* getPlatformPort(PortID id) const override;
   HwSwitchWarmBootHelper* getWarmBootHelper() override;
 
-  MOCK_METHOD1(createHandler, std::unique_ptr<ThriftHandler>(SwSwitch* sw));
+  MOCK_METHOD0(
+      createHandler,
+      std::shared_ptr<apache::thrift::AsyncProcessorFactory>());
   MOCK_METHOD1(getProductInfo, void(ProductInfo& productInfo));
   MOCK_CONST_METHOD2(
       getPortMapping,
       TransceiverIdxThrift(PortID port, cfg::PortSpeed speed));
   MOCK_METHOD0(stop, void());
-  MOCK_METHOD1(onHwInitialized, void(SwSwitch* sw));
-  MOCK_METHOD1(onInitialConfigApplied, void(SwSwitch* sw));
+  MOCK_METHOD1(onHwInitialized, void(HwSwitchCallback* sw));
+  MOCK_METHOD1(onInitialConfigApplied, void(HwSwitchCallback* sw));
   MOCK_METHOD0(initPorts, void());
   MOCK_CONST_METHOD0(supportsAddRemovePort, bool());
-  MOCK_CONST_METHOD0(getQsfpCache, QsfpCache*());
 
  private:
   void setupAsic(

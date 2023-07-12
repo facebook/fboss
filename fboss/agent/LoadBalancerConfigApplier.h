@@ -20,19 +20,18 @@
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
-class Platform;
 
 class LoadBalancerConfigParser {
  public:
-  explicit LoadBalancerConfigParser(const Platform* platform)
-      : platform_(platform) {}
+  explicit LoadBalancerConfigParser(uint32_t deterministicSeed)
+      : deterministicSeed_(deterministicSeed) {}
   // The newly created LoadBalancer is returned via std::shared_ptr.
   // Caller is sole owner of the newly constructed LoadBalancer.
   std::shared_ptr<LoadBalancer> parse(const cfg::LoadBalancer& cfg) const;
+  static LoadBalancerID parseLoadBalancerID(
+      const cfg::LoadBalancer& loadBalancerID);
 
  private:
-  LoadBalancerID parseLoadBalancerID(
-      const cfg::LoadBalancer& loadBalancerID) const;
   std::tuple<
       LoadBalancer::IPv4Fields,
       LoadBalancer::IPv6Fields,
@@ -41,7 +40,7 @@ class LoadBalancerConfigParser {
       LoadBalancer::UdfGroupIds>
   parseFields(const cfg::LoadBalancer& cfg) const;
 
-  const Platform* platform_;
+  uint32_t deterministicSeed_;
 };
 
 /* LoadBalancerConfigApplier parses and validates a list of LoadBalancer Thrift
@@ -55,14 +54,15 @@ class LoadBalancerConfigApplier {
  public:
   LoadBalancerConfigApplier(
       const std::shared_ptr<MultiSwitchLoadBalancerMap>& originalLoadBalancers,
-      const std::vector<cfg::LoadBalancer>& loadBalancersConfig,
-      const Platform* platform);
+      const std::vector<cfg::LoadBalancer>& loadBalancersConfig);
   ~LoadBalancerConfigApplier();
 
   // Returns a LoadBalancerMap SwitchState object derived from
   // loadBalancersConfig_ or null if the resulting LoadBalancerMap
   // is equivalent to originalLoadBalancers_.
-  std::shared_ptr<LoadBalancerMap> updateLoadBalancers();
+  std::shared_ptr<LoadBalancerMap> updateLoadBalancers(
+      uint32_t ecmpSeed,
+      uint32_t aggPortSeed);
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -76,7 +76,6 @@ class LoadBalancerConfigApplier {
 
   const std::shared_ptr<MultiSwitchLoadBalancerMap>& originalLoadBalancers_;
   const std::vector<cfg::LoadBalancer>& loadBalancersConfig_;
-  const Platform* platform_;
 };
 
 } // namespace facebook::fboss

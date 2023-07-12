@@ -149,7 +149,7 @@ HwPortStats sendPacketsWithQueueBuildup(
   int eightyPercentPackets = (numPackets * 80) / 100;
   auto statsAtStart = ensemble->getLatestPortStats(port);
   // Disable TX to allow queue to build up
-  utility::setPortTxEnable(ensemble->getHwSwitch(), port, false);
+  utility::setCreditWatchdogAndPortTx(ensemble->getHwSwitch(), port, false);
   sendPktsFn(port, eightyPercentPackets);
 
   auto waitForStatsIncrement = [&](const auto& newStats) {
@@ -196,7 +196,7 @@ HwPortStats sendPacketsWithQueueBuildup(
   sendPktsFn(port, txedPackets + (numPackets - eightyPercentPackets));
 
   // Enable TX to send traffic out
-  utility::setPortTxEnable(ensemble->getHwSwitch(), port, true);
+  utility::setCreditWatchdogAndPortTx(ensemble->getHwSwitch(), port, true);
 
   // Return the stats before numPackets were sent
   return statsWithTxDisabled;

@@ -83,6 +83,8 @@
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
+DECLARE_bool(intf_nbr_tables);
+
 using boost::container::flat_map;
 using boost::container::flat_set;
 using folly::CIDRNetwork;
@@ -164,34 +166,34 @@ class ThriftConfigApplier {
   ThriftConfigApplier(
       const std::shared_ptr<SwitchState>& orig,
       const cfg::SwitchConfig* config,
-      const Platform* platform,
+      bool supportsAddRemovePort,
       RoutingInformationBase* rib,
       AclNexthopHandler* aclNexthopHandler,
       const PlatformMapping* platformMapping,
       const HwAsicTable* hwAsicTable)
       : orig_(orig),
         cfg_(config),
-        platform_(platform),
+        supportsAddRemovePort_(supportsAddRemovePort),
         rib_(rib),
         aclNexthopHandler_(aclNexthopHandler),
-        scopeResolver_(getSwitchInfoFromConfig(config, platform)),
+        scopeResolver_(getSwitchInfoFromConfig(config)),
         platformMapping_(platformMapping),
         hwAsicTable_(hwAsicTable) {}
 
   ThriftConfigApplier(
       const std::shared_ptr<SwitchState>& orig,
       const cfg::SwitchConfig* config,
-      const Platform* platform,
+      bool supportsAddRemovePort,
       RouteUpdateWrapper* routeUpdater,
       AclNexthopHandler* aclNexthopHandler,
       const PlatformMapping* platformMapping,
       const HwAsicTable* hwAsicTable)
       : orig_(orig),
         cfg_(config),
-        platform_(platform),
+        supportsAddRemovePort_(supportsAddRemovePort),
         routeUpdater_(routeUpdater),
         aclNexthopHandler_(aclNexthopHandler),
-        scopeResolver_(getSwitchInfoFromConfig(config, platform)),
+        scopeResolver_(getSwitchInfoFromConfig(config)),
         platformMapping_(platformMapping),
         hwAsicTable_(hwAsicTable) {}
 
@@ -317,6 +319,9 @@ class ThriftConfigApplier {
   PortPgConfigs updatePortPgConfigs(
       const std::vector<cfg::PortPgConfig>& newPortPgConfig,
       const shared_ptr<Port>& orig);
+  bool isPortFlowletConfigUnchanged(
+      std::shared_ptr<PortFlowletCfg> newPortFlowletCfg,
+      const shared_ptr<Port>& port);
   void checkPortQueueAQMValid(
       const std::vector<cfg::ActiveQueueManagement>& aqms);
   std::shared_ptr<AggregatePortMap> updateAggregatePorts();
@@ -472,10 +477,17 @@ class ThriftConfigApplier {
       const std::string& id,
       const cfg::PortFlowletConfig& config);
 
+  uint32_t generateDeterministicSeed(cfg::LoadBalancerID id);
+  uint32_t generateDeterministicSeedSai(cfg::LoadBalancerID id);
+  uint32_t generateDeterministicSeedNonSai(cfg::LoadBalancerID id);
+
+  folly::MacAddress getLocalMac(SwitchID switchId) const;
+  SwitchID getSwitchId(const cfg::Interface& intfConfig) const;
+
   std::shared_ptr<SwitchState> orig_;
   std::shared_ptr<SwitchState> new_;
   const cfg::SwitchConfig* cfg_{nullptr};
-  const Platform* platform_{nullptr};
+  bool supportsAddRemovePort_{false};
   RoutingInformationBase* rib_{nullptr};
   RouteUpdateWrapper* routeUpdater_{nullptr};
   AclNexthopHandler* aclNexthopHandler_{nullptr};
@@ -731,8 +743,10 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
 
   {
     LoadBalancerConfigApplier loadBalancerConfigApplier(
-        orig_->getLoadBalancers(), cfg_->get_loadBalancers(), platform_);
-    auto newLoadBalancers = loadBalancerConfigApplier.updateLoadBalancers();
+        orig_->getLoadBalancers(), cfg_->get_loadBalancers());
+    auto newLoadBalancers = loadBalancerConfigApplier.updateLoadBalancers(
+        generateDeterministicSeed(cfg::LoadBalancerID::ECMP),
+        generateDeterministicSeed(cfg::LoadBalancerID::AGGREGATE_PORT));
     if (newLoadBalancers) {
       new_->resetLoadBalancers(toMultiSwitchMap<MultiSwitchLoadBalancerMap>(
           newLoadBalancers, scopeResolver_));
@@ -772,7 +786,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     }
   }
 
-  {
+  if (!FLAGS_intf_nbr_tables) {
     // VOQ/Fabric switches require that the packets are not tagged with any
     // VLAN. We are gradually enhancing wedge_agent to handle tagged as well as
     // untagged packets. During this transition, we will use VlanID 0 as
@@ -1324,7 +1338,7 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
       // ports without configs out of the switch state. For BCM tests + hardware
       // that doesn't allow add/remove, we need to leave the ports in the switch
       // state with a default (disabled) config.
-      if (platform_->supportsAddRemovePort()) {
+      if (supportsAddRemovePort_) {
         changed = true;
       } else {
         throw FbossError(
@@ -1548,6 +1562,27 @@ ThriftConfigApplier::findEnabledPfcPriorities(PortPgConfigs& portPgCfgs) {
   }
 
   return tmpPfcPri;
+}
+
+bool ThriftConfigApplier::isPortFlowletConfigUnchanged(
+    std::shared_ptr<PortFlowletCfg> newPortFlowletCfg,
+    const shared_ptr<Port>& port) {
+  std::shared_ptr<PortFlowletCfg> oldPortFlowletCfg{nullptr};
+  if (port->getPortFlowletConfig().has_value()) {
+    oldPortFlowletCfg = port->getPortFlowletConfig().value();
+  }
+  // old port flowlet cfg exists and new one doesn't or vice versa
+  if ((newPortFlowletCfg && !oldPortFlowletCfg) ||
+      (!newPortFlowletCfg && oldPortFlowletCfg)) {
+    return false;
+  }
+  // contents changed in the port flowlet cfg
+  if (oldPortFlowletCfg && newPortFlowletCfg) {
+    if (*oldPortFlowletCfg != *newPortFlowletCfg) {
+      return false;
+    }
+  }
+  return true;
 }
 
 QueueConfig ThriftConfigApplier::updatePortQueues(
@@ -1891,12 +1926,11 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   if (transceiver != nullptr) {
     factor = transceiver->toPlatformPortConfigOverrideFactor();
   }
-  platform_->getPlatformMapping()->customizePlatformPortConfigOverrideFactor(
-      factor);
+  platformMapping_->customizePlatformPortConfigOverrideFactor(factor);
   PlatformPortProfileConfigMatcher matcher{
       *portConf->profileID(), orig->getID(), factor};
 
-  auto portProfileCfg = platform_->getPortProfileConfig(matcher);
+  auto portProfileCfg = platformMapping_->getPortProfileConfig(matcher);
   if (!portProfileCfg) {
     throw FbossError(
         "No port profile config found with matcher:", matcher.toString());
@@ -1928,8 +1962,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     }
   }
 
-  const auto& newPinConfigs =
-      platform_->getPlatformMapping()->getPortIphyPinConfigs(matcher);
+  const auto& newPinConfigs = platformMapping_->getPortIphyPinConfigs(matcher);
   auto pinConfigsUnchanged = (newPinConfigs == orig->getPinConfigs());
 
   XLOG_IF(DBG2, !profileConfigUnchanged || !pinConfigsUnchanged)
@@ -1947,7 +1980,9 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
         " cannot be drained as it's NOT a DSF fabric port");
   }
 
+  bool portFlowletConfigUnchanged = true;
   auto newFlowletConfigName = std::optional<cfg::PortFlowletConfigName>();
+  std::shared_ptr<PortFlowletCfg> portFlowletCfg;
   if (portConf->flowletConfigName().has_value()) {
     newFlowletConfigName = portConf->flowletConfigName().value();
     if (auto portFlowletConfigs = cfg_->portFlowletConfigs()) {
@@ -1959,6 +1994,18 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
             " does not exist in PortFlowletConfig map");
       }
     }
+    auto portFlowletCfgMap = new_->getPortFlowletCfgs();
+    portFlowletCfg = portFlowletCfgMap->getNodeIf(*newFlowletConfigName);
+    if (!portFlowletCfg) {
+      throw FbossError(
+          "Port:",
+          orig->getID(),
+          " but flowlet config name: ",
+          *newFlowletConfigName,
+          " doesn't exist in the port flowlet config map.");
+    }
+    portFlowletConfigUnchanged =
+        isPortFlowletConfigUnchanged(portFlowletCfg, orig);
   }
 
   // Ensure portConf has actually changed, before applying
@@ -1983,6 +2030,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       lookupClassesUnchanged && profileConfigUnchanged && pinConfigsUnchanged &&
       *portConf->portType() == orig->getPortType() &&
       *portConf->drainState() == orig->getPortDrainState() &&
+      portFlowletConfigUnchanged &&
       newFlowletConfigName == orig->getFlowletConfigName()) {
     return nullptr;
   }
@@ -2024,6 +2072,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       *portConf->expectedNeighborReachability());
   newPort->setPortDrainState(*portConf->drainState());
   newPort->setFlowletConfigName(newFlowletConfigName);
+  newPort->setPortFlowletConfig(portFlowletCfg);
   return newPort;
 }
 
@@ -2191,7 +2240,7 @@ ThriftConfigApplier::getSystemLacpConfig() {
     // is not a compile-time constant (it is derived from the CPU mac),
     // the default value is defined here, instead of, say,
     // AggregatePortFields::kDefaultSystemID.
-    systemID = platform_->getLocalMac();
+    systemID = getLocalMacAddress();
     systemPriority = kDefaultSystemPriority;
   }
 
@@ -3215,6 +3264,11 @@ bool ThriftConfigApplier::updateNbrResponseTablesFromAllIntfCfg(Vlan* vlan) {
 bool ThriftConfigApplier::updateNeighborResponseTables(
     Vlan* vlan,
     const cfg::Vlan* config) {
+  if (FLAGS_intf_nbr_tables) {
+    // Neighbor response tables are consumed from Interface
+    return false;
+  }
+
   auto arpChanged = false, ndpChanged = false;
   auto origArp = vlan->getArpResponseTable();
   auto origNdp = vlan->getNdpResponseTable();
@@ -3537,15 +3591,12 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
   newFlowletSwitchingConfig->setDynamicQueueMaxThresholdBytes(
       *config.dynamicQueueMaxThresholdBytes());
   newFlowletSwitchingConfig->setDynamicSampleRate(*config.dynamicSampleRate());
-  if (auto portScalingFactor = config.portScalingFactor()) {
-    newFlowletSwitchingConfig->setPortScalingFactor(*portScalingFactor);
-  }
-  if (auto portLoadWeight = config.portLoadWeight()) {
-    newFlowletSwitchingConfig->setPortLoadWeight(*portLoadWeight);
-  }
-  if (auto portQueueWeight = config.portQueueWeight()) {
-    newFlowletSwitchingConfig->setPortQueueWeight(*portQueueWeight);
-  }
+  newFlowletSwitchingConfig->setDynamicEgressMinThresholdBytes(
+      *config.dynamicEgressMinThresholdBytes());
+  newFlowletSwitchingConfig->setDynamicEgressMaxThresholdBytes(
+      *config.dynamicEgressMaxThresholdBytes());
+  newFlowletSwitchingConfig->setDynamicPhysicalQueueExponent(
+      *config.dynamicPhysicalQueueExponent());
   return newFlowletSwitchingConfig;
 }
 
@@ -3807,8 +3858,7 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     return true;
   };
 
-  SwitchIdToSwitchInfo switchIdtoSwitchInfo =
-      getSwitchInfoFromConfig(cfg_, platform_);
+  SwitchIdToSwitchInfo switchIdtoSwitchInfo = getSwitchInfoFromConfig(cfg_);
   if (origSwitchSettings->getSwitchIdToSwitchInfo() != switchIdtoSwitchInfo) {
     if (origSwitchSettings->getSwitchIdToSwitchInfo().size() &&
         !validateSwitchInfoChange(
@@ -3970,6 +4020,41 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     }
   }
 
+  std::optional<int32_t> newMinLinksToRemainInVOQDomain{std::nullopt};
+  if (cfg_->switchSettings()->minLinksToRemainInVOQDomain()) {
+    if (newSwitchSettings->getSwitchIdsOfType(cfg::SwitchType::VOQ).size() ==
+        0) {
+      throw FbossError(
+          "Min links to remain in VOQ Domain is supported only for VOQ switches");
+    }
+
+    newMinLinksToRemainInVOQDomain =
+        *cfg_->switchSettings()->minLinksToRemainInVOQDomain();
+  }
+  if (origSwitchSettings->getMinLinksToRemainInVOQDomain() !=
+      newMinLinksToRemainInVOQDomain) {
+    newSwitchSettings->setMinLinksToRemainInVOQDomain(
+        newMinLinksToRemainInVOQDomain);
+    switchSettingsChange = true;
+  }
+
+  std::optional<int32_t> newMinLinksToJoinVOQDomain{std::nullopt};
+  if (cfg_->switchSettings()->minLinksToJoinVOQDomain()) {
+    if (newSwitchSettings->getSwitchIdsOfType(cfg::SwitchType::VOQ).size() ==
+        0) {
+      throw FbossError(
+          "Min links to join VOQ Domain is supported only for VOQ switches");
+    }
+
+    newMinLinksToJoinVOQDomain =
+        *cfg_->switchSettings()->minLinksToJoinVOQDomain();
+  }
+  if (origSwitchSettings->getMinLinksToJoinVOQDomain() !=
+      newMinLinksToJoinVOQDomain) {
+    newSwitchSettings->setMinLinksToJoinVOQDomain(newMinLinksToJoinVOQDomain);
+    switchSettingsChange = true;
+  }
+
   if (switchSettingsChange) {
     return newSwitchSettings;
   }
@@ -4103,7 +4188,7 @@ MacAddress ThriftConfigApplier::getInterfaceMac(const cfg::Interface* config) {
   if (auto mac = config->mac()) {
     return MacAddress(*mac);
   }
-  return platform_->getLocalMac();
+  return getLocalMac(getSwitchId(*config));
 }
 
 Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
@@ -4116,7 +4201,7 @@ Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
   if (auto mac = config->mac()) {
     macAddr = folly::MacAddress(*mac);
   } else {
-    macAddr = platform_->getLocalMac();
+    macAddr = getLocalMac(getSwitchId(*config));
   }
   const folly::IPAddressV6 v6llAddr(folly::IPAddressV6::LINK_LOCAL, macAddr);
   addrs.emplace(v6llAddr, kV6LinkLocalAddrMask);
@@ -4628,38 +4713,103 @@ ThriftConfigApplier::updateStaticMplsRoutes(
   return labelFib;
 }
 
-shared_ptr<SwitchState> applyThriftConfig(
-    const shared_ptr<SwitchState>& state,
+uint32_t ThriftConfigApplier::generateDeterministicSeed(
+    cfg::LoadBalancerID id) {
+  if (auto sdkVersion = cfg_->sdkVersion()) {
+    if (sdkVersion->saiSdk()) {
+      return generateDeterministicSeedSai(id);
+    }
+  }
+  return generateDeterministicSeedNonSai(id);
+}
+
+uint32_t ThriftConfigApplier::generateDeterministicSeedSai(
+    cfg::LoadBalancerID loadBalancerID) {
+  auto platformMac = getLocalMacAddress();
+  auto mac64 = platformMac.u64HBO();
+  uint32_t mac32 = static_cast<uint32_t>(mac64 & 0xFFFFFFFF);
+  uint32_t seed = 0;
+  switch (loadBalancerID) {
+    case cfg::LoadBalancerID::ECMP:
+      seed = folly::hash::twang_32from64(mac64);
+      break;
+    case cfg::LoadBalancerID::AGGREGATE_PORT:
+      seed = folly::hash::jenkins_rev_mix32(mac32);
+      break;
+  }
+  return seed;
+}
+
+uint32_t ThriftConfigApplier::generateDeterministicSeedNonSai(
+    cfg::LoadBalancerID loadBalancerID) {
+  auto platformMac = getLocalMacAddress();
+  auto mac64 = platformMac.u64HBO();
+  uint32_t mac32 = static_cast<uint32_t>(mac64 & 0xFFFFFFFF);
+
+  uint32_t seed = 0;
+  switch (loadBalancerID) {
+    case cfg::LoadBalancerID::ECMP:
+      seed = folly::hash::jenkins_rev_mix32(mac32);
+      break;
+    case cfg::LoadBalancerID::AGGREGATE_PORT:
+      seed = folly::hash::twang_32from64(mac64);
+      break;
+  }
+  return seed;
+}
+
+SwitchID ThriftConfigApplier::getSwitchId(
+    const cfg::Interface& intfConfig) const {
+  auto scope = scopeResolver_.scope(
+      *intfConfig.type(), InterfaceID(*intfConfig.intfID()), *cfg_);
+  CHECK_EQ(scope.switchIds().size(), 1)
+      << "Interface can belong to only one switch";
+  return scope.switchId();
+}
+
+folly::MacAddress ThriftConfigApplier::getLocalMac(SwitchID switchId) const {
+  const auto& info = scopeResolver_.switchIdToSwitchInfo();
+  auto iter = info.find(switchId);
+  if (iter != info.end()) {
+    if (auto switchMac = iter->second.switchMac()) {
+      return folly::MacAddress(*switchMac);
+    }
+  }
+  XLOG(WARNING) << " No mac address found for switch " << switchId;
+  return getLocalMacAddress();
+}
+
+std::shared_ptr<SwitchState> applyThriftConfig(
+    const std::shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
-    const Platform* platform,
+    const bool supportsAddRemovePort,
     const PlatformMapping* platformMapping,
     const HwAsicTable* hwAsicTable,
     RoutingInformationBase* rib,
     AclNexthopHandler* aclNexthopHandler) {
-  cfg::SwitchConfig emptyConfig;
   return ThriftConfigApplier(
              state,
              config,
-             platform,
+             supportsAddRemovePort,
              rib,
              aclNexthopHandler,
              platformMapping,
              hwAsicTable)
       .run();
 }
-shared_ptr<SwitchState> applyThriftConfig(
-    const shared_ptr<SwitchState>& state,
+
+std::shared_ptr<SwitchState> applyThriftConfig(
+    const std::shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
-    const Platform* platform,
+    const bool supportsAddRemovePort,
     const PlatformMapping* platformMapping,
     const HwAsicTable* hwAsicTable,
     RouteUpdateWrapper* routeUpdater,
     AclNexthopHandler* aclNexthopHandler) {
-  cfg::SwitchConfig emptyConfig;
   return ThriftConfigApplier(
              state,
              config,
-             platform,
+             supportsAddRemovePort,
              routeUpdater,
              aclNexthopHandler,
              platformMapping,

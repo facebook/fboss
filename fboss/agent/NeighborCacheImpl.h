@@ -132,12 +132,12 @@ class NeighborCacheImpl {
   void
   programPendingEntry(Entry* entry, PortDescriptor port, bool force = false);
 
-  SwSwitch::StateUpdateFn getUpdateFnToProgramEntryForNpu(Entry* entry);
+  SwSwitch::StateUpdateFn getUpdateFnToProgramEntryForVlan(Entry* entry);
   SwSwitch::StateUpdateFn getUpdateFnToProgramEntry(
       Entry* entry,
       cfg::SwitchType switchType);
 
-  SwSwitch::StateUpdateFn getUpdateFnToProgramPendingEntryForNpu(
+  SwSwitch::StateUpdateFn getUpdateFnToProgramPendingEntryForVlan(
       Entry* entry,
       PortDescriptor port,
       bool force);

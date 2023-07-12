@@ -12,6 +12,7 @@
 #include <folly/Conv.h>
 #include <folly/MacAddress.h>
 #include <folly/io/async/EventBase.h>
+#include <thrift/lib/cpp2/server/ThriftServer.h>
 #include <memory>
 #include <unordered_map>
 #include "fboss/agent/PlatformPort.h"
@@ -32,7 +33,7 @@ struct ProductInfo;
 class HwAsic;
 class HwSwitchWarmBootHelper;
 class PlatformProductInfo;
-class QsfpCache;
+class HwSwitchCallback;
 
 /*
  * Platform represents a specific switch/router platform.
@@ -123,7 +124,7 @@ class Platform {
   /*
    * Get the product information
    */
-  void getProductInfo(ProductInfo& info);
+  void getProductInfo(ProductInfo& info) const;
 
   bool isProductInfoExist() {
     if (!productInfo_) {
@@ -149,21 +150,20 @@ class Platform {
    * initialized.  Platform-specific initialization that requires access to the
    * HwSwitch can be performed here.
    */
-  virtual void onHwInitialized(SwSwitch* sw) = 0;
+  virtual void onHwInitialized(HwSwitchCallback* sw) = 0;
 
   /*
    * onInitialConfigApplied() will be called after the initial
    * configuration has been applied.  Platform-specific initialization
    * that needs to happen after this can be performed here.
    */
-  virtual void onInitialConfigApplied(SwSwitch* sw) = 0;
+  virtual void onInitialConfigApplied(HwSwitchCallback* sw) = 0;
 
   /*
-   * Create the ThriftHandler.
-   *
-   * This will be invoked by fbossMain() during the initialization process.
+   * Create the handler for HwSwitch service
    */
-  virtual std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) = 0;
+  virtual std::shared_ptr<apache::thrift::AsyncProcessorFactory>
+  createHandler() = 0;
 
   /*
    * Get the local MAC address for the switch.
@@ -259,8 +259,6 @@ class Platform {
    * initPorts() will be called during port initialization.
    */
   virtual void initPorts() = 0;
-
-  virtual QsfpCache* getQsfpCache() const = 0;
 
   virtual bool supportsAddRemovePort() const {
     return false;

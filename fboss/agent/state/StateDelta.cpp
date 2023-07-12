@@ -27,22 +27,27 @@
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/Route.h"
 
+#include "fboss/agent/FsdbHelper.h"
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/state/SflowCollector.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/state/VlanMapDelta.h"
+#include "fboss/fsdb/common/Utils.h"
 
 #include <folly/dynamic.h>
-
-#include "fboss/agent/FsdbHelper.h"
 
 using std::shared_ptr;
 
 DEFINE_bool(
     enable_state_oper_delta,
     false,
+    "Generate and process oper delta for state delta processing");
+
+DEFINE_bool(
+    state_oper_delta_use_id_paths,
+    true,
     "Generate and process oper delta for state delta processing");
 
 DEFINE_bool(
@@ -285,7 +290,11 @@ MultiSwitchMapDelta<MultiTeFlowTable> StateDelta::getTeFlowEntriesDelta()
 
 const fsdb::OperDelta& StateDelta::getOperDelta() const {
   if (!operDelta_.has_value()) {
-    operDelta_.emplace(computeOperDelta(old_, new_, switchStateRootPath()));
+    operDelta_.emplace(fsdb::computeOperDelta(
+        old_,
+        new_,
+        switchStateRootPath(),
+        FLAGS_state_oper_delta_use_id_paths));
   }
   return operDelta_.value();
 }

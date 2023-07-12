@@ -33,11 +33,13 @@ BENCHMARK(HwEcmpGroupShrink) {
   constexpr int kEcmpWidth = 4;
   AgentEnsembleSwitchConfigFn initialConfigFn =
       [](HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
-        return utility::onePortPerInterfaceConfig(hwSwitch, ports);
+        return utility::onePortPerInterfaceConfig(
+            hwSwitch,
+            ports,
+            hwSwitch->getPlatform()->getAsic()->desiredLoopbackModes());
       };
   auto ensemble = createAgentEnsemble(initialConfigFn);
   auto hwSwitch = ensemble->getHw();
-  auto ports = ensemble->masterLogicalPortIds();
   auto ecmpHelper = utility::EcmpSetupAnyNPorts6(ensemble->getSw()->getState());
   ensemble->applyNewState(
       ecmpHelper.resolveNextHops(ensemble->getSw()->getState(), kEcmpWidth));

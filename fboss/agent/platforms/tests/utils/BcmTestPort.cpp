@@ -52,10 +52,12 @@ void BcmTestPort::statusIndication(
 
 void BcmTestPort::prepareForGracefulExit() {}
 
-folly::Future<TransceiverInfo> BcmTestPort::getFutureTransceiverInfo() const {
-  if (auto transceiver =
+std::shared_ptr<TransceiverSpec> BcmTestPort::getTransceiverSpec() const {
+  if (auto overrideTransceiverInfo =
           getPlatform()->getOverrideTransceiverInfo(getPortID())) {
-    return transceiver.value();
+    auto overrideTransceiverSpec = TransceiverSpec::createPresentTransceiver(
+        overrideTransceiverInfo.value());
+    return overrideTransceiverSpec;
   }
   throw FbossError("failed to get transceiver info for ", getPortID());
 }

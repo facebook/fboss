@@ -143,21 +143,25 @@ void ProdInvariantTest::sendTraffic() {
   auto mac = utility::getInterfaceMac(
       sw()->getState(), sw()->getState()->getVlans()->getFirstVlanID());
   utility::pumpTraffic(
-      true, sw()->getHw(), mac, sw()->getState()->getVlans()->getFirstVlanID());
+      true,
+      sw()->getHw_DEPRECATED(),
+      mac,
+      sw()->getState()->getVlans()->getFirstVlanID());
 }
 
 PortID ProdInvariantTest::getDownlinkPort() {
   // pick the first downlink in the list
-  auto downlinkPort = utility::getAllUplinkDownlinkPorts(
-                          sw()->getHw(), initialConfig(), kEcmpWidth, false)
-                          .second[0];
+  auto downlinkPort =
+      utility::getAllUplinkDownlinkPorts(
+          sw()->getHw_DEPRECATED(), initialConfig(), kEcmpWidth, false)
+          .second[0];
   return downlinkPort;
 }
 
 std::map<PortID, HwPortStats> ProdInvariantTest::getLatestPortStats(
     const std::vector<PortID>& ports) {
   std::map<PortID, HwPortStats> portIdStatsMap;
-  auto portNameStatsMap = sw()->getHw()->getPortStats();
+  auto portNameStatsMap = sw()->getHw_DEPRECATED()->getPortStats();
   for (auto [portName, stats] : portNameStatsMap) {
     auto portId = sw()->getState()->getPorts()->getPort(portName)->getID();
     if (std::find(ports.begin(), ports.end(), (PortID)portId) == ports.end()) {
@@ -179,14 +183,14 @@ std::vector<PortID> ProdInvariantTest::getEcmpPortIds() {
 }
 
 void ProdInvariantTest::verifyAcl() {
-  auto isEnabled = utility::verifyAclEnabled(sw()->getHw());
+  auto isEnabled = utility::verifyAclEnabled(sw()->getHw_DEPRECATED());
   EXPECT_TRUE(isEnabled);
   XLOG(DBG2) << "Verify ACL Done";
 }
 
 void ProdInvariantTest::verifyCopp() {
   utility::verifyCoppInvariantHelper(
-      sw()->getHw(),
+      sw()->getHw_DEPRECATED(),
       sw()->getPlatform_DEPRECATED()->getAsic(),
       sw()->getState(),
       getDownlinkPort());
@@ -206,7 +210,7 @@ void ProdInvariantTest::verifyLoadBalancing() {
         for (auto ecmpPortId : ecmpPortIds) {
           ports->push_back(static_cast<int32_t>(ecmpPortId));
         }
-        sw()->getHw()->clearPortStats(ports);
+        sw()->getHw_DEPRECATED()->clearPortStats(ports);
       },
       [=]() {
         return utility::isLoadBalanced(
@@ -244,7 +248,7 @@ void ProdInvariantTest::verifyDscpToQueueMapping() {
   // time to 100ms.
   EXPECT_TRUE(utility::verifyQueueMappingsInvariantHelper(
       q2dscpMap,
-      sw()->getHw(),
+      sw()->getHw_DEPRECATED(),
       sw()->getState(),
       getPortStatsFn,
       getEcmpPortIds(),
@@ -301,6 +305,7 @@ void ProdInvariantTest::verifySafeDiagCommands() {
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
     case cfg::AsicType::ASIC_TYPE_RAMON:
+    case cfg::AsicType::ASIC_TYPE_RAMON3:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
     case cfg::AsicType::ASIC_TYPE_YUBA:
       break;
@@ -331,6 +336,18 @@ void ProdInvariantTest::verifySafeDiagCommands() {
   XLOG(DBG2) << "Verify Safe Diagnostic Commands Done";
 }
 
+void ProdInvariantTest::verifySwSwitchHandler() {
+  std::shared_ptr<folly::ScopedEventBaseThread> evbThread;
+  auto client = setupClient<apache::thrift::Client<FbossCtrl>>("sw", evbThread);
+  auto runState = client->sync_getSwitchRunState();
+  EXPECT_GE(runState, SwitchRunState::CONFIGURED);
+}
+
+void ProdInvariantTest::verifyThriftHandler() {
+  verifySwSwitchHandler();
+  verifyHwSwitchHandler();
+}
+
 int ProdInvariantTestMain(
     int argc,
     char** argv,
@@ -348,6 +365,7 @@ TEST_F(ProdInvariantTest, verifyInvariants) {
     verifyLoadBalancing();
     verifyDscpToQueueMapping();
     verifySafeDiagCommands();
+    verifyThriftHandler();
   };
   verifyAcrossWarmBoots(setup, verify);
 }

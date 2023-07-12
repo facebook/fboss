@@ -366,12 +366,11 @@ struct ThriftUnionFields {
 
   bool remove(const std::string& token) {
     bool found{false}, ret{false};
-    fatal::trie_find<MemberTypes, fatal::get_type::name>(
-        token.begin(), token.end(), [&](auto tag) {
-          using name = typename decltype(fatal::tag_type(tag))::name;
-          found = true;
-          ret = this->template remove<name>();
-        });
+    visitMember<MemberTypes>(token, [&](auto tag) {
+      using name = typename decltype(fatal::tag_type(tag))::name;
+      found = true;
+      ret = this->template remove<name>();
+    });
 
     if (!found) {
       throw std::runtime_error(
@@ -511,11 +510,10 @@ class ThriftUnionNode
   }
 
   void modify(const std::string& token) {
-    fatal::trie_find<typename Fields::MemberTypes, fatal::get_type::name>(
-        token.begin(), token.end(), [&](auto tag) {
-          using name = typename decltype(fatal::tag_type(tag))::name;
-          this->template modify<name>();
-        });
+    visitMember<typename Fields::MemberTypes>(token, [&](auto tag) {
+      using name = typename decltype(fatal::tag_type(tag))::name;
+      this->template modify<name>();
+    });
   }
 
   static void modify(std::shared_ptr<Self>* node, std::string token) {

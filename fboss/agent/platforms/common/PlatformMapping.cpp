@@ -420,7 +420,7 @@ int PlatformMapping::getTransceiverIdFromSwPort(PortID swPort) const {
   }
 
   auto tcvrID = utility::getTransceiverId(platformPortItr->second, chips);
-  if (tcvrID.has_value()) {
+  if (!tcvrID.has_value()) {
     throw FbossError("Can't find Tcvr ID for portId ", swPort);
   }
 
@@ -534,6 +534,9 @@ phy::PortPinConfig PlatformMapping::getPortXphyPinConfig(
       getPortXphySidePinConfigs(matcher, phy::Side::SYSTEM);
   newPortPinConfig.xphyLine() =
       getPortXphySidePinConfigs(matcher, phy::Side::LINE);
+  if (auto transceivers = getPortTransceiverPinConfigs(matcher)) {
+    newPortPinConfig.transceiver() = *transceivers;
+  }
   return newPortPinConfig;
 }
 
@@ -686,5 +689,32 @@ const cfg::PlatformPortEntry& PlatformMapping::getPlatformPort(
   throw FbossError("No PlatformMapping entry for port ", portId);
 }
 
+std::map<std::string, phy::DataPlanePhyChip>
+PlatformMapping::getPortDataplaneChips(
+    PlatformPortProfileConfigMatcher matcher) const {
+  std::map<std::string, phy::DataPlanePhyChip> chips;
+  const auto& pins = getPortXphyPinConfig(matcher);
+  auto allChips = getChips();
+
+  auto addChips = [&allChips, &chips](const auto& pins) {
+    for (auto& pin : pins) {
+      auto chip = *pin.id()->chip();
+      chips[chip] = allChips[chip];
+    }
+  };
+
+  addChips(*pins.iphy());
+  if (auto xphySys = pins.xphySys()) {
+    addChips(*xphySys);
+  }
+  if (auto xphyLine = pins.xphyLine()) {
+    addChips(*xphyLine);
+  }
+  if (auto transceiver = pins.transceiver()) {
+    addChips(*transceiver);
+  }
+
+  return chips;
+}
 } // namespace fboss
 } // namespace facebook

@@ -84,6 +84,11 @@ void fillHwQueueStats(
       case SAI_QUEUE_STAT_WRED_DROPPED_PACKETS:
         hwSysPortStats.queueWredDroppedPackets_()[queueId] = value;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      case SAI_QUEUE_STAT_CREDIT_WD_DELETED_PACKETS:
+        hwSysPortStats.queueCreditWatchdogDeletedPackets_()[queueId] = value;
+        break;
+#endif
       default:
         throw FbossError("Got unexpected queue counter id: ", counterId);
     }
@@ -318,21 +323,28 @@ SaiQueueManager::voqNonWatermarkCounterIdsRead(
   static std::vector<sai_stat_id_t> baseCounterIds(
       SaiQueueTraits::VoqNonWatermarkCounterIdsToRead.begin(),
       SaiQueueTraits::VoqNonWatermarkCounterIdsToRead.end());
-  static std::vector<sai_stat_id_t> basePlusWredCounterIds;
-  if (!basePlusWredCounterIds.size()) {
-    basePlusWredCounterIds.resize(
+  static std::vector<sai_stat_id_t> supportedCounterIds;
+  if (!supportedCounterIds.size()) {
+    supportedCounterIds.resize(
         baseCounterIds.size() + SaiQueueTraits::WredCounterIdsToRead.size());
     std::set_union(
         baseCounterIds.begin(),
         baseCounterIds.end(),
         SaiQueueTraits::WredCounterIdsToRead.begin(),
         SaiQueueTraits::WredCounterIdsToRead.end(),
-        basePlusWredCounterIds.begin());
+        supportedCounterIds.begin());
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::VOQ_DELETE_COUNTER)) {
+      supportedCounterIds.insert(
+          supportedCounterIds.end(),
+          SaiQueueTraits::VoqWatchDogDeleteCounterIdsToRead.begin(),
+          SaiQueueTraits::VoqWatchDogDeleteCounterIdsToRead.end());
+    }
   }
 
   if (queueHandle && queueHandle->wredProfile &&
       GET_ATTR(Wred, GreenEnable, queueHandle->wredProfile->attributes())) {
-    return basePlusWredCounterIds;
+    return supportedCounterIds;
   }
   return baseCounterIds;
 }

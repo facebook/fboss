@@ -23,8 +23,7 @@ namespace facebook::fboss::utility {
 sai_port_flow_control_mode_t getSaiPortPauseMode(cfg::PortPause pause);
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-sai_port_loopback_mode_t getSaiPortLoopbackMode(
-    cfg::PortLoopbackMode loopbackMode);
+int getSaiPortLoopbackMode(cfg::PortLoopbackMode loopbackMode);
 
 cfg::PortLoopbackMode getCfgPortLoopbackMode(sai_port_loopback_mode_t mode);
 #endif

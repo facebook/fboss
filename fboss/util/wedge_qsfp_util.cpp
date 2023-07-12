@@ -219,6 +219,7 @@ DEFINE_bool(
     clear_loopback,
     false,
     "Clear the module loopback bits, only for Miniphoton");
+DEFINE_bool(skip_check, false, "Skip checks for setting module loopback");
 DEFINE_bool(
     read_reg,
     false,
@@ -1993,12 +1994,12 @@ void printCmisDetailService(
   if (auto mediaInterfaceId = settings.mediaInterface()) {
     std::string mediaInterface;
     if ((*mediaInterfaceId)[0].media()->getType() ==
-        MediaInterfaceUnion::smfCode) {
+        MediaInterfaceUnion::Type::smfCode) {
       mediaInterface = apache::thrift::util::enumNameSafe(
           (*mediaInterfaceId)[0].media()->get_smfCode());
     } else if (
         (*mediaInterfaceId)[0].media()->getType() ==
-        MediaInterfaceUnion::passiveCuCode) {
+        MediaInterfaceUnion::Type::passiveCuCode) {
       mediaInterface = apache::thrift::util::enumNameSafe(
           (*mediaInterfaceId)[0].media()->get_passiveCuCode());
     }
@@ -2404,7 +2405,20 @@ void cmisHostInputLoopback(
     bus->moduleWrite(
         port, {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
 
-    uint8_t data = (mode == electricalLoopback) ? 0xff : 0;
+    uint8_t data;
+    if (!FLAGS_skip_check) {
+      bus->moduleRead(
+          port, {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(data)}, &data);
+      if (!(data & 0x08)) {
+        fprintf(
+            stderr,
+            "QSFP %d: Host side input loopback not supported, you may try --skip_check\n",
+            port);
+        return;
+      }
+    }
+
+    data = (mode == electricalLoopback) ? 0xff : 0;
     bus->moduleWrite(
         port, {TransceiverI2CApi::ADDR_QSFP, 183, sizeof(data)}, &data);
   } catch (const I2cError& ex) {
@@ -2423,12 +2437,16 @@ void cmisMediaInputLoopback(
         port, {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
 
     uint8_t data;
-    bus->moduleRead(
-        port, {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(data)}, &data);
-    if (!(data & 0x02)) {
-      fprintf(
-          stderr, "QSFP %d: Media side input loopback not supported\n", port);
-      return;
+    if (!FLAGS_skip_check) {
+      bus->moduleRead(
+          port, {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(data)}, &data);
+      if (!(data & 0x02)) {
+        fprintf(
+            stderr,
+            "QSFP %d: Media side input loopback not supported, you may try --skip_check\n",
+            port);
+        return;
+      }
     }
 
     data = (mode == opticalLoopback) ? 0xff : 0;

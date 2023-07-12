@@ -25,3 +25,15 @@ add_fbthrift_cpp_library(
     qsfp_stats_cpp2
     sensor_service_stats_cpp2
 )
+
+
+add_fbthrift_cpp_library(
+  fsdb_cpp2
+  fboss/fsdb/if/fsdb.thrift
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    fsdb_common_cpp2
+    fsdb_oper_cpp2
+)

@@ -262,4 +262,25 @@ std::string runCmd(const std::string& cmd) {
   return result;
 }
 
+std::string getSubscriptionPathStr(const fsdb::OperSubscriberInfo& subscriber) {
+  if (subscriber.get_path()) {
+    return folly::join("/", subscriber.get_path()->get_raw());
+  }
+  std::vector<std::string> extPaths;
+  for (const auto& extPath : *subscriber.get_extendedPaths()) {
+    std::vector<std::string> pathElements;
+    for (const auto& pathElm : *extPath.path()) {
+      if (pathElm.any_ref().has_value()) {
+        pathElements.push_back("*");
+      } else if (pathElm.regex_ref().has_value()) {
+        pathElements.push_back(*pathElm.regex_ref());
+      } else {
+        pathElements.push_back(*pathElm.raw_ref());
+      }
+    }
+    extPaths.push_back(folly::join("/", pathElements));
+  }
+  return folly::join(";", extPaths);
+}
+
 } // namespace facebook::fboss::utils

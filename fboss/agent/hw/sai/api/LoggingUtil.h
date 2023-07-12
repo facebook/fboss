@@ -197,6 +197,21 @@ struct formatter<sai_qos_map_t> {
   }
 };
 
+// Formatting for sai_map_t
+template <>
+struct formatter<sai_map_t> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) const {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const sai_map_t& map, FormatContext& ctx) const {
+    return format_to(
+        ctx.out(), "(mapping: key: {}, value: {}", map.key, map.value);
+  }
+};
+
 // Formatting for sai_port_eye_values_list_t
 template <>
 struct formatter<sai_port_lane_eye_values_t> {

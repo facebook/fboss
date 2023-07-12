@@ -14,7 +14,7 @@ namespace facebook::fboss {
 class SwitchState;
 class SwitchIdScopeResolver;
 
-class TestEnsembleIf : public HwSwitch::Callback {
+class TestEnsembleIf : public HwSwitchCallback {
  public:
   ~TestEnsembleIf() override {}
   virtual std::vector<PortID> masterLogicalPortIds() const = 0;

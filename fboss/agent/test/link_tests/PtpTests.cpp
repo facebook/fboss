@@ -33,12 +33,14 @@ class PtpTests : public LinkTest {
       throw FbossError("VLAN id unavailable for test");
     }
     auto vlanId = *vlan;
-    const auto dstMac = sw()->getPlatform_DEPRECATED()->getLocalMac();
+    auto scope = sw()->getScopeResolver()->scope(
+        sw()->getState()->getVlans()->getNode(vlanId));
+    const auto dstMac = sw()->getLocalMac(scope.switchId());
     auto intf = sw()->getState()->getInterfaces()->getInterfaceInVlan(vlanId);
 
     auto srcIp = folly::IPAddressV6("1::1"); // arbit
     return utility::makePTPTxPacket(
-        sw()->getHw(),
+        sw()->getHw_DEPRECATED(),
         vlanId,
         kSrcMac,
         dstMac,
@@ -55,10 +57,12 @@ class PtpTests : public LinkTest {
     HwAgentTestPacketSnooper snooper(sw()->getPacketObservers());
     XLOG(DBG2) << "Validating PTP packet fields on Port "
                << portDescriptor.phyPortID();
-    auto localMac = sw()->getPlatform_DEPRECATED()->getLocalMac();
+    auto matcher =
+        sw()->getScopeResolver()->scope(sw()->getState(), portDescriptor);
+    auto localMac = sw()->getLocalMac(matcher.switchId());
     // Send out PTP packet
     auto ptpPkt = createPtpPkt(ptpType);
-    sw()->getHw()->sendPacketOutOfPortSync(
+    sw()->getHw_DEPRECATED()->sendPacketOutOfPortSync(
         std::move(ptpPkt), portDescriptor.phyPortID());
 
     // Hop total should be equal to (kStartTtl + 1) * kStartTtl / 2
@@ -197,15 +201,15 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
   // Ideally we should have used the l4port (PTP_UDP_EVENT_PORT), but
   // SAI doesn't support this qualifier yet
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
-  auto entry = HwTestPacketTrapEntry(sw()->getHw(), dstPrefix);
-  programDefaultRoute(ecmpPorts, sw()->getPlatform_DEPRECATED()->getLocalMac());
+  auto entry = HwTestPacketTrapEntry(sw()->getHw_DEPRECATED(), dstPrefix);
+  programDefaultRoute(ecmpPorts, sw()->getLocalMac(scope(ecmpPorts)));
 
   verifyPtpTcOnPorts(ecmpPorts, PTPMessageType::PTP_DELAY_REQUEST);
 }
 
 TEST_F(PtpTests, verifyPtpTcAfterLinkFlap) {
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
-  auto entry = HwTestPacketTrapEntry(sw()->getHw(), dstPrefix);
+  auto entry = HwTestPacketTrapEntry(sw()->getHw_DEPRECATED(), dstPrefix);
   auto ecmpPorts = getVlanOwningCabledPorts();
   std::vector<PortID> portVec;
   boost::container::flat_set<PortDescriptor> portDescriptorSet;
@@ -218,7 +222,7 @@ TEST_F(PtpTests, verifyPtpTcAfterLinkFlap) {
       break;
     }
   }
-  programDefaultRoute(ecmpPorts, sw()->getPlatform_DEPRECATED()->getLocalMac());
+  programDefaultRoute(ecmpPorts, sw()->getLocalMac(scope(ecmpPorts)));
 
   // 1. Disable PTP
   XLOG(DBG2) << "Disabling PTP";
@@ -248,7 +252,7 @@ TEST_F(PtpTests, verifyPtpTcAfterLinkFlap) {
 // Validate PTP TC when PTP is enabled while port is down.
 TEST_F(PtpTests, enablePtpPortDown) {
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
-  auto entry = HwTestPacketTrapEntry(sw()->getHw(), dstPrefix);
+  auto entry = HwTestPacketTrapEntry(sw()->getHw_DEPRECATED(), dstPrefix);
   auto ecmpPorts = getVlanOwningCabledPorts();
   std::vector<PortID> portVec;
   boost::container::flat_set<PortDescriptor> portDescriptorSet;
@@ -261,7 +265,7 @@ TEST_F(PtpTests, enablePtpPortDown) {
       break;
     }
   }
-  programDefaultRoute(ecmpPorts, sw()->getPlatform_DEPRECATED()->getLocalMac());
+  programDefaultRoute(ecmpPorts, sw()->getLocalMac(scope(ecmpPorts)));
 
   // 1. Disable PTP
   XLOG(DBG2) << "Disabling PTP";

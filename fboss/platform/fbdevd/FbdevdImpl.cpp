@@ -14,7 +14,7 @@ void FbdevdImpl::initPlatformConfig() {
   std::string fbdevdConfJson;
   // Check if conf file name is set, if not, get from config lib
   if (confFileName_.empty()) {
-    fbdevdConfJson = config_lib::getFbdevdConfig();
+    fbdevdConfJson = ConfigLib().getFbdevdConfig();
   } else if (!folly::readFile(confFileName_.c_str(), fbdevdConfJson)) {
     throw std::runtime_error(
         "Can not find fbdevd config file: " + confFileName_);

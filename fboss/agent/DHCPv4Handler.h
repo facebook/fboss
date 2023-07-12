@@ -31,6 +31,8 @@ class DHCPv4Handler {
   static constexpr uint16_t kBootPSPort = 67;
   static constexpr uint16_t kBootPCPort = 68;
   static bool isDHCPv4Packet(const UDPHeader& udpHdr);
+
+  template <typename VlanOrIntfT>
   static void handlePacket(
       SwSwitch* sw,
       std::unique_ptr<RxPacket> pkt,
@@ -38,15 +40,18 @@ class DHCPv4Handler {
       folly::MacAddress dstMac,
       const IPv4Hdr& ipHdr,
       const UDPHeader& udpHdr,
-      folly::io::Cursor cursor);
+      folly::io::Cursor cursor,
+      const std::shared_ptr<VlanOrIntfT>& vlanOrIntf);
 
  private:
+  template <typename VlanOrIntfT>
   static void processRequest(
       SwSwitch* sw,
       std::unique_ptr<RxPacket> pkt,
       folly::MacAddress srcMac,
       const IPv4Hdr& ipHdr,
-      const DHCPv4Packet& dhcpPacket);
+      const DHCPv4Packet& dhcpPacket,
+      const std::shared_ptr<VlanOrIntfT>& vlanOrIntf);
   static void processReply(
       SwSwitch* sw,
       std::unique_ptr<RxPacket> pkt,

@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/hw/test/HwTestEcmpUtils.h"
@@ -37,7 +38,10 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
 
   AgentEnsembleSwitchConfigFn initialConfigFn =
       [](HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
-        return utility::onePortPerInterfaceConfig(hwSwitch, ports);
+        return utility::onePortPerInterfaceConfig(
+            hwSwitch,
+            ports,
+            hwSwitch->getPlatform()->getAsic()->desiredLoopbackModes());
       };
   ensemble = createAgentEnsemble(initialConfigFn);
   auto hwSwitch = ensemble->getHw();

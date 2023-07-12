@@ -12,14 +12,12 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
 #include <folly/logging/xlog.h>
+#include "fboss/lib/LogThriftCall.h"
 
 namespace facebook::fboss {
 
-SaiHandler::SaiHandler(SwSwitch* sw, const SaiSwitch* hw)
-    : ThriftHandler(sw),
-      hw_(hw),
-      diagShell_(hw),
-      diagCmdServer_(hw, &diagShell_) {}
+SaiHandler::SaiHandler(const SaiSwitch* hw)
+    : hw_(hw), diagShell_(hw), diagCmdServer_(hw, &diagShell_) {}
 
 SaiHandler::~SaiHandler() {}
 
@@ -53,7 +51,13 @@ void SaiHandler::diagCmd(
     std::unique_ptr<ClientInformation> client,
     int16_t /* unused */,
     bool /* unused */) {
+  auto log = LOG_THRIFT_CALL(WARN, *cmd);
+  hw_->ensureConfigured(__func__);
   result = diagCmdServer_.diagCmd(std::move(cmd), std::move(client));
+}
+
+SwitchRunState SaiHandler::getHwSwitchRunState() {
+  return hw_->getRunState();
 }
 
 } // namespace facebook::fboss

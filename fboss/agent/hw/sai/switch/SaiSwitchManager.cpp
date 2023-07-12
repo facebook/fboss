@@ -76,6 +76,11 @@ void fillHwSwitchDropStats(
       case SAI_SWITCH_STAT_GLOBAL_DROP:
         hwSwitchDropStats.globalDrops() = value;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      case SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP:
+        hwSwitchDropStats.packetIntegrityDrops() = value;
+        break;
+#endif
       default:
         throw FbossError("Got unexpected switch counter id: ", counterId);
     }
@@ -574,10 +579,11 @@ std::optional<bool> SaiSwitchManager::getPtpTcEnabled() {
 bool SaiSwitchManager::isGlobalQoSMapSupported() const {
 #if defined(SAI_VERSION_7_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_ODP) ||    \
     defined(SAI_VERSION_8_2_0_0_SIM) ||                                        \
-    defined(SAI_VERSION_8_2_0_0_DNX_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
-    defined(SAI_VERSION_9_0_EA_SIM_ODP) ||                                     \
+    defined(SAI_VERSION_8_2_0_0_DNX_ODP) ||                                    \
+    defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP) || \
     defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) ||                                \
-    defined(SAI_VERSION_10_0_EA_DNX_ODP)
+    defined(SAI_VERSION_10_0_EA_DNX_ODP) ||                                    \
+    defined(SAI_VERSION_10_0_EA_ODP) || defined(SAI_VERSION_10_0_EA_SIM_ODP)
   return false;
 #endif
   return platform_->getAsic()->isSupported(HwAsic::Feature::QOS_MAP_GLOBAL);

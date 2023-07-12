@@ -233,6 +233,7 @@ class BcmRtag7Module {
   void programNonTerminatedMPLSFieldSelection(const LoadBalancer& loadBalancer);
   void programTerminatedMPLSFieldSelection(const LoadBalancer& loadBalancer);
   void programSeed(uint32_t seed);
+  void programFlowletHash();
   void enableRtag7(LoadBalancerID);
   void programIPv4FieldSelection(
       LoadBalancer::IPv4FieldsRange v4FieldsRange,

@@ -281,11 +281,14 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getDsfNodes(std::map<int64_t, cfg::DsfNode>& dsfNodes) override;
   void getDsfSubscriptions(
       std::vector<FsdbSubscriptionThrift>& subscriptions) override;
+  void getDsfSubscriptionClientId(std::string& ret) override;
   void getSystemPorts(std::map<int64_t, SystemPortThrift>& sysPorts) override;
   void getSysPortStats(
       std::map<std::string, HwSysPortStats>& hwSysPortStats) override;
   void getCpuPortStats(CpuPortStats& hwCpuPortStats) override;
   void getHwPortStats(std::map<std::string, HwPortStats>& hwPortStats) override;
+  void getFabricReachabilityStats(
+      FabricReachabilityStats& fabricReachabilityStats) override;
 
   /*
    * Thrift handler for keepalive messages.  It's a no-op, but prevents the

@@ -20,28 +20,12 @@ enum FsvcConfigDictIndex {
   kFscvCfgWatchdogEnable = 12,
   kFsvcCfgShutdownCmd = 13,
   kFsvcCfgChapterZones = 14,
-  kFsvcCfgZonesName = 15,
-  kFsvcCfgZonesType = 16,
-  kFsvcCfgTypeMax = 17,
-  kFsvcCfgTypeMin = 18,
-  kFsvcCfgTypeAvg = 19,
   kFsvcCfgFans = 20,
   kFsvcCfgFanPwm = 21,
-  kFsvcCfgFanRpm = 22,
-  kFsvcCfgZonesFanSlope = 23,
-  kFsvcCfgSource = 24,
-  kFsvcCfgSourceSysfs = 25,
-  kFsvcCfgSourceUtil = 26,
-  kFsvcCfgSourceThrift = 27,
-  kFsvcCfgSourceRest = 28,
-  kFsvcCfgAccessPath = 29,
   kFsvcCfgSensors = 30,
   kFsvcCfgAccess = 31,
   kFsvcCfgSensorAdjustment = 32,
   kFsvcCfgSensorAlarm = 33,
-  kFsvcCfgAlarmMajor = 34,
-  kFsvcCfgAlarmMinor = 35,
-  kFsvcCfgAlarmMinorSoakInSec = 36,
   kFsvcCfgRangeCheck = 37,
   kFsvcCfgRangeLow = 38,
   kFsvcCfgRangeHigh = 39,
@@ -63,23 +47,8 @@ enum FsvcConfigDictIndex {
   kFsvcCfgSensorIncrpidKp = 55,
   kFsvcCfgSensorIncrpidKi = 56,
   kFsvcCfgSensorIncrpidKd = 57,
-  kFsvcCfgFanLed = 58,
-  kFsvcCfgFanGoodLedVal = 59,
-  kFsvcCfgFanFailLedVal = 60,
-  kFsvcCfgFanPresence = 61,
-  kFsvcCfgFanPresentVal = 62,
-  kFsvcCfgFanMissingVal = 63,
   kFsvcCfgOptics = 64,
-  kFsvcCfgInstance = 65,
-  kFsvcCfgAggregation = 66,
-  kFsvcCfgSpeed100 = 67,
-  kFsvcCfgSpeed200 = 68,
-  kFsvcCfgSpeed400 = 69,
-  kFsvcCfgSpeed800 = 70,
-  kFsvcCfgSourceQsfpService = 71,
   kFsvcCfgNoQsfpBoostInSec = 72,
-  kFsvcCfgPwmRangeMin = 73,
-  kFsvcCfgPwmRangeMax = 74,
   kFsvcCfgPwmTransition = 75,
   kFsvcCfgValue = 77,
   kFsvcCfgScale = 78,
@@ -118,6 +87,51 @@ enum SourceType {
 struct AccessMethod {
   1: SourceType accessType = kSrcInvalid;
   2: string path;
+}
+
+struct Zone {
+  1: ZoneType zoneType;
+  2: string zoneName;
+  3: list<string> sensorNames;
+  4: list<string> fanNames;
+  5: float slope;
+}
+
+# If the read temperature exceeds the specified temperature,
+# set the PWM to the specified value.
+typedef map<i32, float> TempToPwmMap
+
+struct Optic {
+  1: string opticName;
+  2: AccessMethod access;
+  3: list<i32> portList;
+  4: OpticAggregationType aggregationType;
+  5: map<OpticTableType, TempToPwmMap> tempToPwmMaps;
+}
+
+struct Alarm {
+  1: float highMajor;
+  2: float highMinor;
+  3: i32 minorSoakSeconds;
+}
+
+struct Fan {
+  1: string fanName;
+  2: AccessMethod rpmAccess;
+  3: AccessMethod pwmAccess;
+  4: AccessMethod presenceAccess;
+  5: AccessMethod ledAccess;
+  6: i32 pwmMin;
+  7: i32 pwmMax;
+  8: i32 fanPresentVal;
+  9: i32 fanMissingVal;
+  10: i32 fanGoodLedVal;
+  11: i32 fanFailLedVal;
+}
+
+struct Watchdog {
+  1: AccessMethod access;
+  2: i32 value;
 }
 
 enum BspType {

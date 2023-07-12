@@ -241,6 +241,10 @@ TxMatchFn checkDHCPV6Pkt(
         "IPv6 protocol");
     checkField(srcIp, ipv6.srcAddr, "src IP");
     checkField(dstIp, ipv6.dstAddr, "dst IP");
+    if (ipv6.hopLimit > 127) {
+      throw FbossError(
+          "DHCP messages should not have hop limit ", ipv6.hopLimit, " > 127.");
+    }
 
     Cursor ipv6PayloadStart(c);
 

@@ -56,17 +56,19 @@ namespace facebook::fboss {
 
 ArpHandler::ArpHandler(SwSwitch* sw) : sw_(sw) {}
 
+template <typename VlanOrIntfT>
 void ArpHandler::handlePacket(
     unique_ptr<RxPacket> pkt,
     MacAddress /*dst*/,
     MacAddress /*src*/,
-    Cursor cursor) {
+    Cursor cursor,
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
   auto stats = sw_->stats();
   CHECK(stats);
   PortID port = pkt->getSrcPort();
   CHECK(stats->port(port));
 
-  auto vlanID = pkt->getSrcVlanIf();
+  auto vlanID = getVlanIDFromVlanOrIntf(vlanOrIntf);
   auto vlanIDStr = vlanID.has_value()
       ? folly::to<std::string>(static_cast<int>(vlanID.value()))
       : "None";
@@ -94,10 +96,7 @@ void ArpHandler::handlePacket(
     return;
   }
 
-  // Look up the Vlan state.
-  auto state = sw_->getState();
-  auto vlan = state->getVlans()->getNodeIf(sw_->getVlanIDHelper(vlanID));
-  if (!vlan) {
+  if (!vlanOrIntf) {
     // Hmm, we don't actually have this VLAN configured.
     // Perhaps the state has changed since we received the packet.
     stats->port(port)->pktDropped();
@@ -118,17 +117,16 @@ void ArpHandler::handlePacket(
 
   auto op = ArpOpCode(readOp);
 
-  auto updater = sw_->getNeighborUpdater();
   // Check to see if this IP address is in our ARP response table.
-  auto entry = vlan->getArpResponseTable()->getEntry(targetIP);
+  auto entry = vlanOrIntf->getArpResponseTable()->getEntry(targetIP);
   if (!entry) {
     // The target IP does not refer to us.
     XLOG(DBG5) << "ignoring ARP message for " << targetIP.str() << " on vlan "
                << vlanIDStr;
     stats->port(port)->arpNotMine();
 
-    updater->receivedArpNotMine(
-        vlan->getID(),
+    receivedArpNotMine(
+        vlanOrIntf,
         senderIP,
         senderMac,
         PortDescriptor::fromRxPacket(*pkt.get()),
@@ -143,7 +141,8 @@ void ArpHandler::handlePacket(
     stats->port(port)->arpReplyRx();
   }
 
-  if (op == ARP_OP_REQUEST && !AggregatePort::isIngressValid(state, pkt)) {
+  if (op == ARP_OP_REQUEST &&
+      !AggregatePort::isIngressValid(sw_->getState(), pkt)) {
     XLOG(DBG2) << "Dropping invalid ARP request ingressing on port "
                << pkt->getSrcPort() << " on vlan " << vlanIDStr << " for "
                << targetIP;
@@ -152,8 +151,8 @@ void ArpHandler::handlePacket(
 
   // This ARP packet is destined to us.
   // Update the sender IP --> sender MAC entry in the ARP table.
-  updater->receivedArpMine(
-      vlan->getID(),
+  receivedArpMine(
+      vlanOrIntf,
       senderIP,
       senderMac,
       PortDescriptor::fromRxPacket(*pkt.get()),
@@ -162,7 +161,7 @@ void ArpHandler::handlePacket(
   // Send a reply if this is an ARP request.
   if (op == ARP_OP_REQUEST) {
     sendArpReply(
-        pkt->getSrcVlanIf(),
+        vlanID,
         pkt->getSrcPort(),
         entry->getMac(),
         targetIP,
@@ -172,6 +171,22 @@ void ArpHandler::handlePacket(
 
   (void)targetMac; // unused
 }
+
+// Explicit instantiation to avoid linker errors
+// https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
+template void ArpHandler::handlePacket<Vlan>(
+    unique_ptr<RxPacket> pkt,
+    MacAddress /*dst*/,
+    MacAddress /*src*/,
+    Cursor cursor,
+    const std::shared_ptr<Vlan>& vlanOrIntf);
+
+template void ArpHandler::handlePacket<Interface>(
+    unique_ptr<RxPacket> pkt,
+    MacAddress /*dst*/,
+    MacAddress /*src*/,
+    Cursor cursor,
+    const std::shared_ptr<Interface>& vlanOrIntf);
 
 static void sendArp(
     SwSwitch* sw,
@@ -313,6 +328,36 @@ void ArpHandler::sendArpRequest(
       intf->getMac(),
       addrToReach->first.asV4(),
       targetIP);
+}
+
+template <typename VlanOrIntfT>
+void ArpHandler::receivedArpNotMine(
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf,
+    IPAddressV4 ip,
+    MacAddress mac,
+    PortDescriptor port,
+    ArpOpCode op) {
+  auto updater = sw_->getNeighborUpdater();
+  if constexpr (std::is_same_v<VlanOrIntfT, Vlan>) {
+    updater->receivedArpNotMine(vlanOrIntf->getID(), ip, mac, port, op);
+  } else {
+    updater->receivedArpNotMineForIntf(vlanOrIntf->getID(), ip, mac, port, op);
+  }
+}
+
+template <typename VlanOrIntfT>
+void ArpHandler::receivedArpMine(
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf,
+    IPAddressV4 ip,
+    MacAddress mac,
+    PortDescriptor port,
+    ArpOpCode op) {
+  auto updater = sw_->getNeighborUpdater();
+  if constexpr (std::is_same_v<VlanOrIntfT, Vlan>) {
+    updater->receivedArpMine(vlanOrIntf->getID(), ip, mac, port, op);
+  } else {
+    updater->receivedArpMineForIntf(vlanOrIntf->getID(), ip, mac, port, op);
+  }
 }
 
 } // namespace facebook::fboss

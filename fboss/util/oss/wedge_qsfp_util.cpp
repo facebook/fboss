@@ -4,6 +4,7 @@
 #include "fboss/lib/bsp/BspIOBus.h"
 #include "fboss/lib/bsp/BspTransceiverApi.h"
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
+#include "fboss/lib/bsp/meru400bia/Meru400biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
 #include "fboss/lib/platforms/PlatformMode.h"
@@ -37,6 +38,12 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
               .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
+    } else if (FLAGS_platform == "meru400bia") {
+      auto systemContainer =
+          BspGenericSystemContainer<Meru400biaBspPlatformMapping>::getInstance()
+              .get();
+      auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+      return std::make_pair(std::move(ioBus), 0);
     } else if (FLAGS_platform == "meru400biu") {
       auto systemContainer =
           BspGenericSystemContainer<Meru400biuBspPlatformMapping>::getInstance()
@@ -63,6 +70,12 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
   if (mode == PlatformType::PLATFORM_MERU400BFU) {
     auto systemContainer =
         BspGenericSystemContainer<Meru400bfuBspPlatformMapping>::getInstance()
+            .get();
+    auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+    return std::make_pair(std::move(ioBus), 0);
+  } else if (mode == PlatformType::PLATFORM_MERU400BIA) {
+    auto systemContainer =
+        BspGenericSystemContainer<Meru400biaBspPlatformMapping>::getInstance()
             .get();
     auto ioBus = std::make_unique<BspIOBus>(systemContainer);
     return std::make_pair(std::move(ioBus), 0);
@@ -100,6 +113,8 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
     // Fpga object
     if (FLAGS_platform == "meru400bfu") {
       mode = PlatformType::PLATFORM_MERU400BFU;
+    } else if (FLAGS_platform == "meru400bia") {
+      mode = PlatformType::PLATFORM_MERU400BIA;
     } else if (FLAGS_platform == "meru400biu") {
       mode = PlatformType::PLATFORM_MERU400BIU;
     }
@@ -116,6 +131,12 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
   if (mode == PlatformType::PLATFORM_MERU400BFU) {
     auto systemContainer =
         BspGenericSystemContainer<Meru400bfuBspPlatformMapping>::getInstance()
+            .get();
+    return std::make_pair(
+        std::make_unique<BspTransceiverApi>(systemContainer), 0);
+  } else if (mode == PlatformType::PLATFORM_MERU400BIA) {
+    auto systemContainer =
+        BspGenericSystemContainer<Meru400biaBspPlatformMapping>::getInstance()
             .get();
     return std::make_pair(
         std::make_unique<BspTransceiverApi>(systemContainer), 0);

@@ -16,6 +16,7 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/fsdb/common/Utils.h"
 
 #include <boost/container/flat_map.hpp>
 #include <gtest/gtest.h>
@@ -63,7 +64,8 @@ TEST(OperDeltaTests, OperDeltaProcess) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
 
-  auto operDelta = computeOperDelta(stateV0, stateV1, switchStateRootPath());
+  auto operDelta =
+      fsdb::computeOperDelta(stateV0, stateV1, switchStateRootPath(), true);
 
   auto delta = StateDelta(stateV0, operDelta);
   auto stateV2 = delta.newState();

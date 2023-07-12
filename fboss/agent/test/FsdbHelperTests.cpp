@@ -8,6 +8,7 @@ using namespace ::testing;
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/fsdb/common/Utils.h"
 
 namespace facebook::fboss {
 
@@ -35,10 +36,11 @@ TEST(FsdbHelperTests, VerifyOperDelta) {
   }
   auto state = handle->getSw()->getState();
 
-  auto operDelta = computeOperDelta(
+  auto operDelta = fsdb::computeOperDelta(
       std::make_shared<SwitchState>(),
       state,
-      fsdbAgentDataSwitchStateRootPath());
+      fsdbAgentDataSwitchStateRootPath(),
+      false);
   auto& changes = *operDelta.changes();
   EXPECT_GT(changes.size(), 0);
   std::set<std::string> members{};

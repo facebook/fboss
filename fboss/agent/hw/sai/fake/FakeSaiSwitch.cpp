@@ -261,6 +261,9 @@ sai_status_t set_switch_attribute_fn(
       sw.setEcmpMemberCount(attr->value.u32);
       break;
 #endif
+    case SAI_SWITCH_ATTR_CREDIT_WD:
+      sw.setCreditWatchdogEnable(attr->value.booldata);
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -501,6 +504,9 @@ sai_status_t get_switch_attribute_fn(
         break;
       case SAI_SWITCH_ATTR_FABRIC_PORT_LIST:
         attr[i].value.objlist.count = 0;
+        break;
+      case SAI_SWITCH_ATTR_CREDIT_WD:
+        attr[i].value.booldata = sw.getCreditWatchdogEnable();
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

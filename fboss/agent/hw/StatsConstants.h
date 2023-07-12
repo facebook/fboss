@@ -125,6 +125,10 @@ inline folly::StringPiece constexpr kOutPkts() {
   return "out_pkts";
 }
 
+inline folly::StringPiece constexpr kCreditWatchdogDeletedPackets() {
+  return "credit_watchdog_deleted_packets";
+}
+
 inline folly::StringPiece constexpr kFecCorrectable() {
   return "fec_correctable_errors";
 }

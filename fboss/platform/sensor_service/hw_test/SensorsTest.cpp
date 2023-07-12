@@ -60,10 +60,7 @@ TEST_F(SensorsTest, getSomeSensors) {
   auto response2 = getSensors({"PCH_TEMP"});
   EXPECT_EQ(response2.sensorData()->size(), 1);
   // Response2 sensor collection time stamp should be later
-  EXPECT_GT(response2.timeStamp(), response1.timeStamp());
-  EXPECT_GT(
-      response2.sensorData()->begin()->timeStamp(),
-      response1.sensorData()->begin()->timeStamp());
+  EXPECT_GT(*response2.timeStamp(), *response1.timeStamp());
 }
 
 TEST_F(SensorsTest, getSensorsByFruTypes) {

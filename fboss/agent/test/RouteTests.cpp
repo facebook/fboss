@@ -126,6 +126,8 @@ class RouteTest : public ::testing::Test {
   }
   virtual cfg::SwitchConfig initialConfig() const {
     cfg::SwitchConfig config;
+    config.switchSettings()->switchIdToSwitchInfo() = {
+        {0, createSwitchInfo(cfg::SwitchType::NPU)}};
     config.vlans()->resize(4);
     config.vlans()[0].id() = 1;
     config.vlans()[1].id() = 2;

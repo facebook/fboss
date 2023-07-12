@@ -160,6 +160,7 @@ bool DHCPv4Handler::isDHCPv4Packet(const UDPHeader& udpHdr) {
       (dstPort == kBootPCPort || dstPort == kBootPSPort);
 }
 
+template <typename VlanOrIntfT>
 void DHCPv4Handler::handlePacket(
     SwSwitch* sw,
     std::unique_ptr<RxPacket> pkt,
@@ -167,7 +168,8 @@ void DHCPv4Handler::handlePacket(
     MacAddress /*dstMac*/,
     const IPv4Hdr& ipHdr,
     const UDPHeader& /*udpHdr*/,
-    Cursor cursor) {
+    Cursor cursor,
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
   sw->portStats(pkt->getSrcPort())->dhcpV4Pkt();
   if (ipHdr.ttl <= 1) {
     sw->portStats(pkt->getSrcPort())->dhcpV4BadPkt();
@@ -187,7 +189,7 @@ void DHCPv4Handler::handlePacket(
     switch (dhcpPkt.op) {
       case BOOTREQUEST:
         XLOG(DBG4) << " Got boot request ";
-        processRequest(sw, std::move(pkt), srcMac, ipHdr, dhcpPkt);
+        processRequest(sw, std::move(pkt), srcMac, ipHdr, dhcpPkt, vlanOrIntf);
         break;
       case BOOTREPLY:
         XLOG(DBG4) << " Got boot reply";
@@ -206,19 +208,49 @@ void DHCPv4Handler::handlePacket(
   }
 }
 
+// Explicit instantiation to avoid linker errors
+// https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
+template void DHCPv4Handler::handlePacket(
+    SwSwitch* sw,
+    std::unique_ptr<RxPacket> pkt,
+    MacAddress srcMac,
+    MacAddress /*dstMac*/,
+    const IPv4Hdr& ipHdr,
+    const UDPHeader& /*udpHdr*/,
+    Cursor cursor,
+    const std::shared_ptr<Vlan>& vlanOrIntf);
+
+template void DHCPv4Handler::handlePacket(
+    SwSwitch* sw,
+    std::unique_ptr<RxPacket> pkt,
+    MacAddress srcMac,
+    MacAddress /*dstMac*/,
+    const IPv4Hdr& ipHdr,
+    const UDPHeader& /*udpHdr*/,
+    Cursor cursor,
+    const std::shared_ptr<Interface>& vlanOrIntf);
+
+template <typename VlanOrIntfT>
 void DHCPv4Handler::processRequest(
     SwSwitch* sw,
     std::unique_ptr<RxPacket> pkt,
     MacAddress srcMac,
     const IPv4Hdr& origIPHdr,
-    const DHCPv4Packet& dhcpPacket) {
+    const DHCPv4Packet& dhcpPacket,
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
   auto dhcpPacketOut(dhcpPacket);
   auto state = sw->getState();
-  auto vlanID = pkt->getSrcVlanIf();
+  auto vlanID = getVlanIDFromVlanOrIntf(vlanOrIntf);
   auto vlanIDStr = vlanID.has_value()
       ? folly::to<std::string>(static_cast<int>(vlanID.value()))
       : "None";
-  auto vlan = state->getVlans()->getNodeIf(sw->getVlanIDHelper(vlanID));
+
+  // TODO(skhare)
+  // Support DHCPv4 relay for VOQ switches
+  // This requires moving get/set Dhcpv4Relay, get/set DhcpV4RelayOverrides
+  // etc. to Interfaces.
+  CHECK(vlanID.has_value());
+  auto vlan = state->getVlans()->getNodeIf(vlanID.value());
   if (!vlan) {
     sw->stats()->dhcpV4DropPkt();
     XLOG(DBG4) << " VLAN  " << vlanIDStr << " is no longer present "
@@ -259,8 +291,8 @@ void DHCPv4Handler::processRequest(
 
   if (switchIp.isZero()) {
     sw->stats()->dhcpV4DropPkt();
-    XLOG(ERR) << "Could not find a SVI interface on vlan : "
-              << pkt->getSrcVlan() << "DHCP packet dropped ";
+    XLOG(ERR) << "Could not find a SVI interface on vlan : " << vlanIDStr
+              << "DHCP packet dropped ";
     return;
   }
 

@@ -1268,6 +1268,75 @@ void BcmSwitch::processDynamicSampleRateChanged(
   }
 }
 
+void BcmSwitch::processDynamicEgressMinThresholdBytesChanged(
+    const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitching,
+    const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching) {
+  uint32_t oldDynamicEgressMinThresholdBytes = 0;
+  uint32_t newDynamicEgressMinThresholdBytes = 0;
+  if (oldFlowletSwitching) {
+    oldDynamicEgressMinThresholdBytes =
+        oldFlowletSwitching->getDynamicEgressMinThresholdBytes();
+  }
+  if (newFlowletSwitching) {
+    newDynamicEgressMinThresholdBytes =
+        newFlowletSwitching->getDynamicEgressMinThresholdBytes();
+  }
+  if (oldDynamicEgressMinThresholdBytes != newDynamicEgressMinThresholdBytes) {
+    auto rv = bcm_switch_control_set(
+        unit_,
+        bcmSwitchEcmpDynamicEgressBytesMinThreshold,
+        newDynamicEgressMinThresholdBytes);
+    bcmCheckError(
+        rv, "Failed to set bcmSwitchEcmpDynamicEgressBytesMinThreshold");
+  }
+}
+
+void BcmSwitch::processDynamicEgressMaxThresholdBytesChanged(
+    const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitching,
+    const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching) {
+  uint32_t oldDynamicEgressMaxThresholdBytes = 0;
+  uint32_t newDynamicEgressMaxThresholdBytes = 0;
+  if (oldFlowletSwitching) {
+    oldDynamicEgressMaxThresholdBytes =
+        oldFlowletSwitching->getDynamicEgressMaxThresholdBytes();
+  }
+  if (newFlowletSwitching) {
+    newDynamicEgressMaxThresholdBytes =
+        newFlowletSwitching->getDynamicEgressMaxThresholdBytes();
+  }
+  if (oldDynamicEgressMaxThresholdBytes != newDynamicEgressMaxThresholdBytes) {
+    auto rv = bcm_switch_control_set(
+        unit_,
+        bcmSwitchEcmpDynamicEgressBytesMaxThreshold,
+        newDynamicEgressMaxThresholdBytes);
+    bcmCheckError(
+        rv, "Failed to set bcmSwitchEcmpDynamicEgressBytesMaxThreshold");
+  }
+}
+
+void BcmSwitch::processDynamicPhysicalQueueExponentChanged(
+    const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitching,
+    const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching) {
+  uint16_t oldDynamicPhysicalQueueExponent = 0;
+  uint16_t newDynamicPhysicalQueueExponent = 0;
+  if (oldFlowletSwitching) {
+    oldDynamicPhysicalQueueExponent =
+        oldFlowletSwitching->getDynamicPhysicalQueueExponent();
+  }
+  if (newFlowletSwitching) {
+    newDynamicPhysicalQueueExponent =
+        newFlowletSwitching->getDynamicPhysicalQueueExponent();
+  }
+  if (oldDynamicPhysicalQueueExponent != newDynamicPhysicalQueueExponent) {
+    auto rv = bcm_switch_control_set(
+        unit_,
+        bcmSwitchEcmpDynamicPhysicalQueuedBytesExponent,
+        newDynamicPhysicalQueueExponent);
+    bcmCheckError(
+        rv, "Failed to set bcmSwitchEcmpDynamicPhysicalQueuedBytesExponent");
+  }
+}
+
 void BcmSwitch::processFlowletSwitchingConfigChanges(const StateDelta& delta) {
   const auto flowletSwitchingDelta = delta.getFlowletSwitchingConfigDelta();
   const auto& oldFlowletSwitching = flowletSwitchingDelta.getOld();
@@ -1298,6 +1367,12 @@ void BcmSwitch::processFlowletSwitchingConfigChanges(const StateDelta& delta) {
   processDynamicQueueMaxThresholdBytesChanged(
       oldFlowletSwitching, newFlowletSwitching);
   processDynamicSampleRateChanged(oldFlowletSwitching, newFlowletSwitching);
+  processDynamicEgressMinThresholdBytesChanged(
+      oldFlowletSwitching, newFlowletSwitching);
+  processDynamicEgressMaxThresholdBytesChanged(
+      oldFlowletSwitching, newFlowletSwitching);
+  processDynamicPhysicalQueueExponentChanged(
+      oldFlowletSwitching, newFlowletSwitching);
 
   egressManager_->processFlowletSwitchingConfigChanged(newFlowletSwitching);
 }
@@ -1844,6 +1919,15 @@ void BcmSwitch::pickupLinkStatusChanges(const StateDelta& delta) {
                      << " LocalFault: " << *(*faultStatus).localFault()
                      << ", RemoteFault: " << *(*faultStatus).remoteFault();
           bcmPort->cacheFaultStatus(*faultStatus);
+        }
+
+        if (oldPort->getLedPortExternalState() !=
+            newPort->getLedPortExternalState()) {
+          if (newPort->getLedPortExternalState().has_value()) {
+            auto platformPort = bcmPort->getPlatformPort();
+            platformPort->externalState(
+                newPort->getLedPortExternalState().value());
+          }
         }
       });
 }
@@ -3777,6 +3861,7 @@ void BcmSwitch::disableHotSwap() const {
       case cfg::AsicType::ASIC_TYPE_JERICHO2:
       case cfg::AsicType::ASIC_TYPE_JERICHO3:
       case cfg::AsicType::ASIC_TYPE_RAMON:
+      case cfg::AsicType::ASIC_TYPE_RAMON3:
         CHECK(0) << " Invalid ASIC type";
     }
   }

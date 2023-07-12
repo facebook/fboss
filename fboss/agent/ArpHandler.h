@@ -43,11 +43,13 @@ class ArpHandler {
 
   explicit ArpHandler(SwSwitch* sw);
 
+  template <typename VlanOrIntfT>
   void handlePacket(
       std::unique_ptr<RxPacket> pkt,
       folly::MacAddress dst,
       folly::MacAddress src,
-      folly::io::Cursor cursor);
+      folly::io::Cursor cursor,
+      const std::shared_ptr<VlanOrIntfT>& vlanOrIntf);
 
   /*
    * These two static methods are for sending out ARP requests.
@@ -81,6 +83,22 @@ class ArpHandler {
       folly::IPAddressV4 senderIP,
       folly::MacAddress targetMac,
       folly::IPAddressV4 targetIP);
+
+  template <typename VlanOrIntfT>
+  void receivedArpNotMine(
+      const std::shared_ptr<VlanOrIntfT>& vlanOrIntf,
+      folly::IPAddressV4 ip,
+      folly::MacAddress mac,
+      PortDescriptor port,
+      ArpOpCode op);
+
+  template <typename VlanOrIntfT>
+  void receivedArpMine(
+      const std::shared_ptr<VlanOrIntfT>& vlanOrIntf,
+      folly::IPAddressV4 ip,
+      folly::MacAddress mac,
+      PortDescriptor port,
+      ArpOpCode op);
 
   SwSwitch* sw_{nullptr};
 };

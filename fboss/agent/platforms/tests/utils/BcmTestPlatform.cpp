@@ -55,21 +55,15 @@ void BcmTestPlatform::onUnitCreate(int unit) {
   dumpHwConfig();
 }
 
-void BcmTestPlatform::onHwInitialized(SwSwitch* /*sw*/) {}
+void BcmTestPlatform::onHwInitialized(HwSwitchCallback* /*sw*/) {}
 
-void BcmTestPlatform::onInitialConfigApplied(SwSwitch* /*sw*/) {}
+void BcmTestPlatform::onInitialConfigApplied(HwSwitchCallback* /*sw*/) {}
 
 void BcmTestPlatform::stop() {}
 
 void BcmTestPlatform::initImpl(uint32_t hwFeaturesDesired) {
   initPorts();
   bcmSwitch_ = std::make_unique<BcmSwitch>(this, hwFeaturesDesired);
-}
-
-std::unique_ptr<ThriftHandler> BcmTestPlatform::createHandler(
-    SwSwitch* /*sw*/) {
-  XLOG(FATAL) << "unexpected call to BcmTestPlatform::createHandler()";
-  return nullptr;
 }
 
 void BcmTestPlatform::onUnitAttach(int /*unit*/) {
@@ -127,14 +121,7 @@ void BcmTestPlatform::initLEDs(
 const std::optional<phy::PortProfileConfig>
 BcmTestPlatform::getPortProfileConfig(
     PlatformPortProfileConfigMatcher profileMatcher) const {
-  auto originalConfig = Platform::getPortProfileConfig(profileMatcher);
-  if (!overridePortInterPacketGapBits_ || !originalConfig) {
-    return originalConfig;
-  }
-  // change the return config to use override ipg
-  phy::PortProfileConfig newConfig = *originalConfig;
-  newConfig.iphy()->interPacketGapBits() = *overridePortInterPacketGapBits_;
-  return newConfig;
+  return Platform::getPortProfileConfig(profileMatcher);
 }
 
 } // namespace facebook::fboss

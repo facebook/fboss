@@ -14,6 +14,8 @@
 #include <atomic>
 #include <memory>
 
+DECLARE_bool(publish_use_id_paths);
+
 namespace facebook::fboss::fsdb {
 
 template <typename PubRootT>
@@ -27,25 +29,29 @@ class FsdbSyncManager {
       const std::string& clientId,
       const std::vector<std::string>& basePath,
       bool isStats,
-      bool publishDeltas)
+      bool publishDeltas,
+      bool useIdPaths = FLAGS_publish_use_id_paths)
       : FsdbSyncManager(
             std::make_shared<fsdb::FsdbPubSubManager>(clientId),
             basePath,
             isStats,
-            publishDeltas) {}
+            publishDeltas,
+            useIdPaths) {}
 
   FsdbSyncManager(
       const std::shared_ptr<fsdb::FsdbPubSubManager>& pubSubMr,
       const std::vector<std::string>& basePath,
       bool isStats,
-      bool publishDeltas)
+      bool publishDeltas,
+      bool useIdPaths = FLAGS_publish_use_id_paths)
       : pubSubMgr_(pubSubMr),
         basePath_(basePath),
         isStats_(isStats),
         publishDeltas_(publishDeltas),
         storage_([this](const auto& oldState, const auto& newState) {
           processDelta(oldState, newState);
-        }) {
+        }),
+        useIdPaths_(useIdPaths) {
     CHECK(pubSubMr);
     // make sure publisher is not already created for shared pubSubMgr
     if (publishDeltas_) {
@@ -155,38 +161,10 @@ class FsdbSyncManager {
     }
   }
 
-  OperDelta createDelta(std::vector<OperDeltaUnit>&& deltaUnits) {
-    OperDelta delta;
-    delta.changes() = deltaUnits;
-    delta.protocol() = OperProtocol::BINARY;
-    return delta;
-  }
-
   void publishDelta(
       const std::shared_ptr<CowState>& oldState,
       const std::shared_ptr<CowState>& newState) {
-    std::vector<OperDeltaUnit> deltas;
-    auto processChange = [this, &deltas](
-                             const std::vector<std::string>& path,
-                             auto oldNode,
-                             auto newNode,
-                             thrift_cow::DeltaElemTag /* visitTag */) {
-      std::vector<std::string> fullPath;
-      fullPath.reserve(basePath_.size() + path.size());
-      fullPath.insert(fullPath.end(), basePath_.begin(), basePath_.end());
-      fullPath.insert(fullPath.end(), path.begin(), path.end());
-      // TODO: metadata
-      deltas.push_back(
-          buildOperDeltaUnit(fullPath, oldNode, newNode, OperProtocol::BINARY));
-    };
-
-    thrift_cow::RootDeltaVisitor::visit(
-        oldState,
-        newState,
-        thrift_cow::DeltaVisitMode::MINIMAL,
-        std::move(processChange));
-
-    publish(createDelta(std::move(deltas)));
+    publish(computeOperDelta(oldState, newState, basePath_, useIdPaths_));
   }
 
   void publishPath(const std::shared_ptr<CowState>& newState) {
@@ -228,6 +206,7 @@ class FsdbSyncManager {
   bool publishDeltas_;
   CowStorageManager storage_;
   std::atomic_bool readyForPublishing_ = false;
+  bool useIdPaths_ = false;
 };
 
 } // namespace facebook::fboss::fsdb

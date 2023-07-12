@@ -38,7 +38,10 @@ void routeAddDelBenchmarker(bool measureAdd) {
   folly::BenchmarkSuspender suspender;
   AgentEnsembleSwitchConfigFn initialConfigFn =
       [](HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
-        return utility::onePortPerInterfaceConfig(hwSwitch, ports);
+        return utility::onePortPerInterfaceConfig(
+            hwSwitch,
+            ports,
+            hwSwitch->getPlatform()->getAsic()->desiredLoopbackModes());
       };
   auto ensemble = createAgentEnsemble(initialConfigFn);
   auto* sw = ensemble->getSw();

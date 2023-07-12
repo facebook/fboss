@@ -96,6 +96,7 @@ SaiVirtualRouterManager::createMplsRouterInterface(VirtualRouterSaiId vrId) {
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
     case cfg::AsicType::ASIC_TYPE_RAMON:
+    case cfg::AsicType::ASIC_TYPE_RAMON3:
       // TODO(pshaikh): mpls support required
       break;
   }

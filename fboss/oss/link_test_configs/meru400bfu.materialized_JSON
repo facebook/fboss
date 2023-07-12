@@ -6838,7 +6838,7 @@
             "switchIndex": 0,
             "portIdRange": {
               "minimum": 0,
-              "maximum": 1023
+              "maximum": 2047
             },
             "connectionHandle": "0c:00"
         }
@@ -8358,7 +8358,7 @@
           "stable_size.BCM8879X": "350000",
           "sw_state_max_size.BCM8879X": "250000",
           "system_contains_multiple_pipe_device.BCM8879X": "0",
-          "system_ref_core_clock_khz.BCM8879X": "1200000",
+          "system_ref_core_clock_khz.BCM8879X": "1600000",
           "tdma_intr_enable.BCM8879X": "0",
           "tdma_timeout_usec.BCM8879X": "5000000",
           "tslam_intr_enable.BCM8879X": "0",

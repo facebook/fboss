@@ -1231,6 +1231,7 @@ enum AsicType {
   ASIC_TYPE_TOMAHAWK5 = 13,
   ASIC_TYPE_JERICHO3 = 14,
   ASIC_TYPE_YUBA = 15,
+  ASIC_TYPE_RAMON3 = 16,
 }
 /**
  * The configuration for an interface
@@ -1736,13 +1737,12 @@ struct FlowletSwitchingConfig {
   6: i32 dynamicQueueMaxThresholdBytes;
   // number of times historical member load and queued bytes are computed in a second
   7: i32 dynamicSampleRate;
-  // TODO move the following 3 port params to port specific structure
-  // port scaling factor for dynamic load balancing
-  8: optional i16 portScalingFactor;
-  // weight of traffic load in determining ports quality
-  9: optional i16 portLoadWeight;
-  // weight of total queue size in determining port quality
-  10: optional i16 portQueueWeight;
+  // minimum threshold, in mbps, used to quantize historical member load
+  8: i32 dynamicEgressMinThresholdBytes;
+  // maximum threshold, in mbps, used to quantize historical member load
+  9: i32 dynamicEgressMaxThresholdBytes;
+  // EWMA of historical member bytes in physical queue
+  10: i16 dynamicPhysicalQueueExponent;
 }
 
 /**

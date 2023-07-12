@@ -64,6 +64,7 @@ uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic) {
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_RAMON:
+    case cfg::AsicType::ASIC_TYPE_RAMON3:
       throw FbossError(
           "AsicType ", hwAsic->getAsicType(), " doesn't support queue feature");
   }
@@ -88,6 +89,7 @@ cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_RAMON:
+    case cfg::AsicType::ASIC_TYPE_RAMON3:
       throw FbossError(
           "AsicType ", hwAsic->getAsicType(), " doesn't support cpu action");
   }
@@ -348,6 +350,16 @@ uint64_t getQueueOutPacketsWithRetry(
      * Retrying a few times to avoid test noise.
      */
     XLOG(DBG0) << "Retry...";
+
+    for (auto i = 0;
+         i < utility::getCoppHighPriQueueId(hwSwitch->getPlatform()->getAsic());
+         i++) {
+      auto [qOutPkts, qOutBytes] =
+          utility::getCpuQueueOutPacketsAndBytes(hwSwitch, i);
+      XLOG(DBG2) << "QueueID: " << i << " qOutPkts: " << qOutPkts
+                 << " outBytes: " << qOutBytes;
+    }
+
     /* sleep override */
     sleep(1);
   } while (retryTimes-- > 0);

@@ -21,6 +21,8 @@
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/Transceiver.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 namespace facebook::fboss {
@@ -73,7 +75,7 @@ class WedgePort : public BcmPlatformPort {
 
   BcmPortGroup::LaneMode getLaneMode() const;
 
-  folly::Future<TransceiverInfo> getFutureTransceiverInfo() const override;
+  std::shared_ptr<TransceiverSpec> getTransceiverSpec() const override;
 
  protected:
   bool isControllingPort() const;

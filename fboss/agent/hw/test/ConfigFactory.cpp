@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
+#include "fboss/agent/hw/switch_asics/Ramon3Asic.h"
 #include "fboss/agent/hw/switch_asics/RamonAsic.h"
 #include "fboss/agent/hw/test/HwPortUtils.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
@@ -84,6 +85,14 @@ bool isRswPlatform(PlatformType type) {
 
 namespace facebook::fboss::utility {
 
+std::pair<int, int> getRetryCountAndDelay(const HwAsic* asic) {
+  if (asic->isSupported(HwAsic::Feature::SLOW_STAT_UPDATE)) {
+    return std::make_pair(50, 5000);
+  }
+  // default
+  return std::make_pair(30, 1000);
+}
+
 std::unordered_map<PortID, cfg::PortProfileID>& getPortToDefaultProfileIDMap() {
   static std::unordered_map<PortID, cfg::PortProfileID> portProfileIDMap;
   return portProfileIDMap;
@@ -112,6 +121,9 @@ cfg::DsfNode dsfNodeConfig(const HwAsic& myAsic, int64_t otherSwitchId) {
             fromAsic.getSwitchType(), switchId, systemPortRange, localMac);
       case cfg::AsicType::ASIC_TYPE_RAMON:
         return std::make_unique<RamonAsic>(
+            fromAsic.getSwitchType(), switchId, std::nullopt, localMac);
+      case cfg::AsicType::ASIC_TYPE_RAMON3:
+        return std::make_unique<Ramon3Asic>(
             fromAsic.getSwitchType(), switchId, std::nullopt, localMac);
       case cfg::AsicType::ASIC_TYPE_EBRO:
         return std::make_unique<EbroAsic>(

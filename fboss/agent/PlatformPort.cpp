@@ -93,13 +93,13 @@ phy::PortPinConfig PlatformPort::getPortXphyPinConfig(
     cfg::PortProfileID profileID) const {
   if (platform_->needTransceiverInfo()) {
     folly::EventBase evb;
-    auto transceiverInfo = getTransceiverInfo(&evb);
-    if (transceiverInfo) {
+    auto transceiverSpec = getTransceiverInfo();
+    if (transceiverSpec) {
       return platform_->getPlatformMapping()->getPortXphyPinConfig(
           PlatformPortProfileConfigMatcher(
               profileID,
               id_,
-              buildPlatformPortConfigOverrideFactor(*transceiverInfo)));
+              buildPlatformPortConfigOverrideFactorBySpec(*transceiverSpec)));
     }
   }
   return platform_->getPlatformMapping()->getPortXphyPinConfig(
@@ -201,12 +201,12 @@ const std::optional<phy::PortProfileConfig>
 PlatformPort::getPortProfileConfigIf(cfg::PortProfileID profileID) const {
   if (platform_->needTransceiverInfo()) {
     folly::EventBase evb;
-    std::optional<TransceiverInfo> transceiverInfo = getTransceiverInfo(&evb);
-    if (transceiverInfo.has_value()) {
+    auto transceiverSpec = getTransceiverInfo();
+    if (transceiverSpec) {
       return platform_->getPortProfileConfig(PlatformPortProfileConfigMatcher(
           profileID,
           id_,
-          buildPlatformPortConfigOverrideFactor(*transceiverInfo)));
+          buildPlatformPortConfigOverrideFactorBySpec(*transceiverSpec)));
     }
   }
   return platform_->getPortProfileConfig(
@@ -254,15 +254,14 @@ std::optional<int32_t> PlatformPort::getExternalPhyID() {
   }
 }
 
-std::optional<TransceiverInfo> PlatformPort::getTransceiverInfo(
-    folly::EventBase* evb) const {
+std::shared_ptr<TransceiverSpec> PlatformPort::getTransceiverInfo() const {
   auto transID = getTransceiverID();
   try {
-    return std::optional(getFutureTransceiverInfo().getVia(evb));
+    return getTransceiverSpec();
   } catch (const std::exception& e) {
     XLOG(DBG3) << "Error retrieving TransceiverInfo for transceiver "
                << *transID << " Exception: " << folly::exceptionStr(e);
-    return std::nullopt;
+    return nullptr;
   }
 }
 
@@ -279,6 +278,25 @@ std::vector<phy::PinID> PlatformPort::getTransceiverLanes(
 
 cfg::PortType PlatformPort::getPortType() const {
   return *getPlatformPortEntry().mapping()->portType();
+}
+
+cfg::PlatformPortConfigOverrideFactor
+PlatformPort::buildPlatformPortConfigOverrideFactorBySpec(
+    const TransceiverSpec& transceiverSpec) const {
+  cfg::PlatformPortConfigOverrideFactor factor;
+  if (auto cable = transceiverSpec.getCableLength(); cable.has_value()) {
+    factor.cableLengths() = {cable.value()};
+  }
+  if (auto mediaInterface = transceiverSpec.getMediaInterface();
+      mediaInterface.has_value()) {
+    // Use the first lane mediaInterface
+    factor.mediaInterfaceCode() = mediaInterface.value();
+  }
+  if (auto interface = transceiverSpec.getManagementInterface();
+      interface.has_value()) {
+    factor.transceiverManagementInterface() = interface.value();
+  }
+  return factor;
 }
 
 namespace {

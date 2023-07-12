@@ -281,4 +281,14 @@ std::map<PortID, HwPortStats> AgentEnsemble::getLatestPortStats(
 HwPortStats AgentEnsemble::getLatestPortStats(const PortID& port) {
   return getLatestPortStats(std::vector<PortID>{port})[port];
 }
+
+void AgentEnsemble::registerStateObserver(
+    StateObserver* observer,
+    const std::string& name) {
+  getSw()->registerStateObserver(observer, name);
+}
+
+void AgentEnsemble::unregisterStateObserver(StateObserver* observer) {
+  getSw()->unregisterStateObserver(observer);
+}
 } // namespace facebook::fboss

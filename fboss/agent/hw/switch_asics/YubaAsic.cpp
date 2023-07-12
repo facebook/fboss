@@ -64,7 +64,6 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
     case HwAsic::Feature::SAI_SAMPLEPACKET_TRAP:
     case HwAsic::Feature::QUEUE_ECN_COUNTER:
-    case HwAsic::Feature::TRAP_PRIORITY_LOWER_VAL_IS_LOWER_PRI:
     case HwAsic::Feature::SAI_CONFIGURE_SEVEN_TAP:
     case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
       return true;
@@ -144,6 +143,9 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK:
     case HwAsic::Feature::SAI_PORT_ETHER_STATS:
     case HwAsic::Feature::RX_LANE_SQUELCH_ENABLE:
+    case HwAsic::Feature::SLOW_STAT_UPDATE:
+    case HwAsic::Feature::LINK_STATE_BASED_ISOLATE:
+    case HwAsic::Feature::VOQ_DELETE_COUNTER:
       return false;
   }
   return false;

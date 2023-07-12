@@ -440,6 +440,11 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     interFrameGap = *portProfileConfig.interPacketGapBits();
   }
 #endif
+  std::optional<SaiPortTraits::Attributes::LinkTrainingEnable>
+      linkTrainingEnable;
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::LINK_TRAINING)) {
+    linkTrainingEnable = false;
+  }
   auto ptpStatusOpt = managerTable_->switchManager().getPtpTcEnabled();
   uint16_t vlanId = swPort->getIngressVlan();
   auto systemPortId = getSystemPortId(platform_, swPort->getID());
@@ -479,8 +484,12 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
         interFrameGap, // Inter Frame Gap
 #endif
-        std::nullopt, // Link Training Enable
+        linkTrainingEnable,
         std::nullopt, // Rx Lane Squelch Enable
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+        std::nullopt, // PFC Deadlock Detection Interval
+        std::nullopt, // PFC Deadlock Recovery Interval
+#endif
   };
 }
 
@@ -581,7 +590,10 @@ void SaiPortManager::programSerdes(
     !defined(SAI_VERSION_8_2_0_0_SIM_ODP) &&                                  \
     !defined(SAI_VERSION_9_0_EA_SIM_ODP) &&                                   \
     !defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) &&                              \
-    !defined(SAI_VERSION_9_0_EA_ODP) && !defined(SAI_VERSION_10_0_EA_DNX_ODP)
+    !defined(SAI_VERSION_9_2_0_0_ODP) &&                                      \
+    !defined(SAI_VERSION_10_0_EA_DNX_ODP) &&                                  \
+    !defined(SAI_VERSION_10_0_EA_ODP) && !defined(SAI_VERSION_10_0_EA_SIM_ODP)
+
     // serdes is not yet programmed or reloaded from adapter
     std::optional<SaiPortTraits::Attributes::SerdesId> serdesAttr{};
     auto serdesId = SaiApiTable::getInstance()->portApi().getAttribute(

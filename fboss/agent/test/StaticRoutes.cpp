@@ -38,6 +38,8 @@ auto kStaticClient = ClientID::STATIC_ROUTE;
 class StaticRouteTest : public ::testing::TestWithParam<bool> {
   cfg::SwitchConfig initialConfig() const {
     cfg::SwitchConfig config;
+    config.switchSettings()->switchIdToSwitchInfo() = {
+        {0, createSwitchInfo(cfg::SwitchType::NPU)}};
     config.vlans()->resize(1);
     config.vlans()[0].id() = 1;
     config.vlans()[0].name() = "Vlan1";
@@ -258,6 +260,8 @@ TEST_F(StaticRouteTest, configureUnconfigure) {
 
   // Now blow away the static routes from config.
   cfg::SwitchConfig emptyConfig;
+  emptyConfig.switchSettings()->switchIdToSwitchInfo() = {
+      {0, createSwitchInfo(cfg::SwitchType::NPU)}};
   this->sw_->applyConfig("Empty config", emptyConfig);
   auto [v4Routes, v6Routes] = getRouteCount(this->sw_->getState());
   // Only null routes remain

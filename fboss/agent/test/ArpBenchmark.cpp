@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/hw/sim/SimPlatform.h"
 #include "fboss/agent/hw/sim/SimSwitch.h"
+#include "fboss/agent/single/MonolithicHwSwitchHandler.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -40,7 +41,8 @@ unique_ptr<MockRxPacket> arpRequest_10_0_0_5;
 
 unique_ptr<SwSwitch> setupSwitch() {
   MacAddress localMac("02:00:01:00:00:01");
-  auto sw = make_unique<SwSwitch>(make_unique<SimPlatform>(localMac, 10));
+  auto sw = make_unique<SwSwitch>(std::make_unique<MonolinithicHwSwitchHandler>(
+      make_unique<SimPlatform>(localMac, 10)));
   sw->init(nullptr /* No custom TunManager */);
   auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
   auto updateFn = [&](const shared_ptr<SwitchState>& oldState) {
@@ -141,7 +143,8 @@ void init() {
 
 BENCHMARK(ArpRequest, numIters) {
   BENCHMARK_SUSPEND {
-    SimSwitch* sim = boost::polymorphic_downcast<SimSwitch*>(sw->getHw());
+    SimSwitch* sim =
+        boost::polymorphic_downcast<SimSwitch*>(sw->getHw_DEPRECATED());
     sim->resetTxCount();
   }
 
@@ -153,14 +156,16 @@ BENCHMARK(ArpRequest, numIters) {
   BENCHMARK_SUSPEND {
     // Make sure the SwSwitch sent out 1 packet for each iteration,
     // just to verify that it was actually sending ARP replies
-    SimSwitch* sim = boost::polymorphic_downcast<SimSwitch*>(sw->getHw());
+    SimSwitch* sim =
+        boost::polymorphic_downcast<SimSwitch*>(sw->getHw_DEPRECATED());
     CHECK_EQ(sim->getTxCount(), numIters);
   }
 }
 
 BENCHMARK(ArpRequestNotMine, numIters) {
   BENCHMARK_SUSPEND {
-    SimSwitch* sim = boost::polymorphic_downcast<SimSwitch*>(sw->getHw());
+    SimSwitch* sim =
+        boost::polymorphic_downcast<SimSwitch*>(sw->getHw_DEPRECATED());
     sim->resetTxCount();
   }
 
@@ -172,7 +177,8 @@ BENCHMARK(ArpRequestNotMine, numIters) {
   BENCHMARK_SUSPEND {
     // This request wasn't for one of our IPs, so no outgoing packets
     // should have been generated.
-    SimSwitch* sim = boost::polymorphic_downcast<SimSwitch*>(sw->getHw());
+    SimSwitch* sim =
+        boost::polymorphic_downcast<SimSwitch*>(sw->getHw_DEPRECATED());
     CHECK_EQ(sim->getTxCount(), 0);
   }
 }

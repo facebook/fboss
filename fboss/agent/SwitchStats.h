@@ -366,6 +366,12 @@ class SwitchStats : public boost::noncopyable {
   void ThreadHeartbeatMissCount() {
     threadHeartbeatMissCount_.addValue(1);
   }
+  void FabricReachabilityMissingCount() {
+    fabricReachabilityMissingCount_.addValue(1);
+  }
+  void FabricReachabilityMismatchCount() {
+    fabricReachabilityMismatchCount_.addValue(1);
+  }
 
   void localSystemPort(int value) {
     localSystemPort_.incrementValue(value);
@@ -402,6 +408,8 @@ class SwitchStats : public boost::noncopyable {
   typedef fb303::ThreadCachedServiceData::TLCounter TLCounter;
 
   void fillAgentStats(AgentStats& agentStats) const;
+  void fillFabricReachabilityStats(
+      FabricReachabilityStats& fabricReachabilityStats) const;
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -611,6 +619,10 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries pfcDeadlockRecoveryCount_;
   // Number of thread heartbeat misses
   TLTimeseries threadHeartbeatMissCount_;
+  // Number of missing data in neighbor reachability
+  TLTimeseries fabricReachabilityMissingCount_;
+  // Number of mismatching data in neighbor reachability
+  TLTimeseries fabricReachabilityMismatchCount_;
 
   // Number of system ports in switch state
   TLCounter localSystemPort_;

@@ -34,78 +34,15 @@ namespace facebook::fboss::platform {
 std::string getDarwinFSConfig();
 std::string getMokujinFSConfig();
 
-struct Zone {
- public:
-  fan_config_structs::ZoneType type;
-  std::string zoneName;
-  std::vector<std::string> sensorNames;
-  std::vector<std::string> fanNames;
-  // 0 means immediate
-  float slope{0};
-};
-
 class FanStatus {
  public:
   int rpm;
-  float currentPwm;
-  bool fanFailed;
-  bool fanAccessLost;
-  bool firstTimeLedAccess;
+  float currentPwm{0};
+  bool fanFailed{false};
+  bool fanAccessLost{false};
+  bool firstTimeLedAccess{true};
   uint64_t timeStamp;
-  FanStatus() {
-    fanFailed = false;
-    fanAccessLost = false;
-    firstTimeLedAccess = true;
-    currentPwm = 0;
-  }
 };
-
-class Fan {
- public:
-  std::string fanName;
-  std::string label;
-  // Fan RPM is read as a sensor, but referred here
-  // through the sensor name
-  std::string rpmSensorName;
-  fan_config_structs::AccessMethod pwm;
-  fan_config_structs::AccessMethod rpmAccess;
-  fan_config_structs::AccessMethod led;
-  fan_config_structs::AccessMethod presence;
-  unsigned int fanGoodLedVal;
-  unsigned int fanFailLedVal;
-  unsigned int fanPresentVal;
-  unsigned int fanMissingVal;
-  unsigned int pwmMin;
-  unsigned int pwmMax;
-  FanStatus fanStatus;
-  int fanFailThresholdInSec;
-
-  Fan() {
-    pwmMin = 0;
-    pwmMax = 255;
-    led.path() = "";
-    presence.path() = "";
-    fanGoodLedVal = 0;
-    fanFailLedVal = 0;
-    fanFailThresholdInSec = 300;
-  }
-};
-
-class Alarm {
- public:
-  float high_minor;
-  int high_minor_soak;
-  float high_major;
-  bool enabled;
-  Alarm() {
-    enabled = false;
-    high_minor = 0;
-    high_major = 0;
-    high_minor_soak = 300;
-  }
-};
-
-using opticThresholdTable = std::vector<std::pair<float, float>>;
 
 typedef enum {
   kRangeCheckActionNone,
@@ -201,7 +138,7 @@ class Sensor {
   std::string sensorName;
   fan_config_structs::AccessMethod access;
   std::vector<std::pair<float, float>> offsetTable;
-  Alarm alarm;
+  fan_config_structs::Alarm alarm;
   RangeCheck rangeCheck;
   fan_config_structs::SensorPwmCalcType calculationType;
   float scale;
@@ -217,29 +154,17 @@ class Sensor {
   }
 };
 
-class Optic {
- public:
-  std::string opticName;
-  fan_config_structs::AccessMethod access;
-  std::vector<int> instanceList;
-  fan_config_structs::OpticAggregationType aggregation;
-  std::vector<
-      std::pair<fan_config_structs::OpticTableType, opticThresholdTable>>
-      tables;
-  Optic() {
-    aggregation = fan_config_structs::OpticAggregationType::kOpticMax;
-  }
-};
-
 class ServiceConfig {
  public:
   //
   // Attribs
   //
-  std::vector<Zone> zones;
+  std::vector<fan_config_structs::Zone> zones;
   std::vector<Sensor> sensors;
-  std::vector<Optic> optics;
-  std::vector<Fan> fans;
+  std::vector<fan_config_structs::Optic> optics;
+  std::vector<fan_config_structs::Fan> fans;
+  std::map<std::string /* fanName */, FanStatus> fanStatuses;
+  std::optional<fan_config_structs::Watchdog> watchdog_{std::nullopt};
   // Number of broken fan required for pwm boost
   int pwmBoostOnDeadFan;
   // Number of broken fan required for pwm boost
@@ -266,12 +191,9 @@ class ServiceConfig {
   int getPwmLowerThreshold() const;
   float getPwmTransitionValue() const;
   int parseConfigString(std::string contents);
-  opticThresholdTable* FOLLY_NULLABLE getConfigOpticTable(
+  std::optional<fan_config_structs::TempToPwmMap> getConfigOpticTable(
       std::string name,
       fan_config_structs::OpticTableType dataType);
-  bool getWatchdogEnable();
-  fan_config_structs::AccessMethod getWatchdogAccess();
-  std::string getWatchdogValue();
 
  private:
   //
@@ -310,8 +232,7 @@ class ServiceConfig {
   std::string getConfigContents();
   fan_config_structs::AccessMethod parseAccessMethod(folly::dynamic value);
   std::vector<std::pair<float, float>> parseTable(folly::dynamic value);
-  std::vector<int> parseInstance(folly::dynamic value);
-  Alarm parseAlarm(folly::dynamic value);
+  fan_config_structs::Alarm parseAlarm(folly::dynamic value);
   RangeCheck parseRangeCheck(folly::dynamic value);
   void parseZonesChapter(folly::dynamic value);
   void parseFansChapter(folly::dynamic value);
@@ -320,6 +241,5 @@ class ServiceConfig {
   void parseWatchdogChapter(folly::dynamic values);
   void prepareDict();
   void parseBspType(std::string bspString);
-  std::vector<std::string> splitter(std::string str, char delimiter);
 };
 } // namespace facebook::fboss::platform

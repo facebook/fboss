@@ -21,6 +21,9 @@ using namespace facebook::fboss::utility;
 namespace {
 static folly::IPAddressV6 kAddr1{"2803:6080:d038:3063::"};
 folly::CIDRNetwork kAddr1Prefix{folly::IPAddress("2803:6080:d038:3063::"), 64};
+const int kScalingFactor = 100;
+const int kLoadWeight = 70;
+const int kQueueWeight = 30;
 } // namespace
 
 namespace facebook::fboss {
@@ -43,6 +46,23 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     auto flowletCfg = getFlowletSwitchingConfig();
     cfg.flowletSwitchingConfig() = flowletCfg;
     addLoadBalancerToConfig(cfg, getHwSwitch(), LBHash::FULL_HASH);
+
+    std::map<std::string, cfg::PortFlowletConfig> portFlowletCfgMap;
+    cfg::PortFlowletConfig portFlowletConfig;
+    portFlowletConfig.scalingFactor() = kScalingFactor;
+    portFlowletConfig.loadWeight() = kLoadWeight;
+    portFlowletConfig.queueWeight() = kQueueWeight;
+    portFlowletCfgMap.insert(std::make_pair("default", portFlowletConfig));
+    cfg.portFlowletConfigs() = portFlowletCfgMap;
+
+    auto allPorts = masterLogicalInterfacePortIds();
+    std::vector<PortID> ports(
+        allPorts.begin(), allPorts.begin() + allPorts.size());
+    for (auto portId : ports) {
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->flowletConfigName() = "default";
+    }
+
     return cfg;
   }
 
@@ -55,9 +75,9 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     flowletCfg.dynamicQueueMinThresholdBytes() = 100000;
     flowletCfg.dynamicQueueMaxThresholdBytes() = 200000;
     flowletCfg.dynamicSampleRate() = 100000;
-    flowletCfg.portScalingFactor() = 400;
-    flowletCfg.portLoadWeight() = 50;
-    flowletCfg.portQueueWeight() = 40;
+    flowletCfg.dynamicEgressMinThresholdBytes() = 1000;
+    flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
+    flowletCfg.dynamicPhysicalQueueExponent() = 3;
     return flowletCfg;
   }
 
@@ -77,6 +97,10 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
         {
             port,
         }));
+  }
+
+  void unresolveNextHop(PortDescriptor port) {
+    applyNewState(ecmpHelper_->unresolveNextHops(getProgrammedState(), {port}));
   }
 
   void addRoute(folly::IPAddressV6 prefix, uint8_t mask) {
@@ -108,6 +132,22 @@ TEST_F(HwFlowletSwitchingTest, VerifyFlowletSwitchingEnable) {
 
   auto verify = [&]() {
     auto flowletCfg = this->getFlowletSwitchingConfig();
+    EXPECT_TRUE(
+        utility::validateFlowletSwitchingEnabled(getHwSwitch(), flowletCfg));
+    EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
+        getHwSwitch(), kAddr1Prefix, flowletCfg));
+
+    // Shrink egress and verify
+    this->unresolveNextHop(PortDescriptor(masterLogicalPortIds()[3]));
+
+    EXPECT_TRUE(
+        utility::validateFlowletSwitchingEnabled(getHwSwitch(), flowletCfg));
+    EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
+        getHwSwitch(), kAddr1Prefix, flowletCfg));
+
+    // Expand egress and verify
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[3]));
+
     EXPECT_TRUE(
         utility::validateFlowletSwitchingEnabled(getHwSwitch(), flowletCfg));
     EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(

@@ -95,6 +95,8 @@ void BcmMultiPathNextHopTable::egressResolutionChangedHwLocked(
           ecmpEgress->pathReachableHwLocked(egrId);
           break;
         case BcmEcmpEgress::Action::SHRINK:
+          XLOG(DBG3) << "Removing the egressId= " << egrId
+                     << " from ECMP groups";
           ecmpEgress->pathUnreachableHwLocked(egrId);
           break;
         case BcmEcmpEgress::Action::SKIP:

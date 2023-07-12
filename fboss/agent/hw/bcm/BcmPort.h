@@ -238,6 +238,8 @@ class BcmPort {
 
   uint32_t getInterPacketGapBits() const;
 
+  cfg::PortFlowletConfig getPortFlowletConfig() const;
+
  private:
   class BcmPortStats {
     // All actions or instantiations of this class need to be done in a

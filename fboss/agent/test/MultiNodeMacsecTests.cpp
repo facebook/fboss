@@ -72,10 +72,6 @@ class MultiNodeMacsecTest : public MultiNodeTest {
     MultiNodeTest::setCmdLineFlagOverrides();
   }
 
-  folly::MacAddress getLocalMac() {
-    return sw()->getPlatform_DEPRECATED()->getLocalMac();
-  }
-
   void setupMkaClient() {
     checkWithRetry(
         [this] {
@@ -133,15 +129,18 @@ TEST_F(MultiNodeMacsecTest, verifyMkaSession) {
     auto secondaryCak = utils::makeCak(utils::getCak2(), utils::getCkn2());
     std::optional<MKATimers> timers = std::nullopt;
     bool dropUnencrypted = true;
-    for (auto p : ports) {
+    for (auto portName : ports) {
+      auto portId = getPortID(portName);
+      auto port = sw()->getState()->getPorts()->getNode(portId);
+      auto scope = sw()->getScopeResolver()->scope(port);
       auto config = utils::makeMKAConfig(
-          p,
+          portName,
           primaryCak,
           secondaryCak,
           timers,
           dropUnencrypted,
           isDUT(),
-          getLocalMac());
+          sw()->getLocalMac(scope.switchId()));
       mkaClient_->sync_updateKey(config);
     }
   };

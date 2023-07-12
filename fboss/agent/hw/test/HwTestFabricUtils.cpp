@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/test/HwTestFabricUtils.h"
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
 #include <gtest/gtest.h>
@@ -34,6 +35,24 @@ void checkFabricReachability(const HwSwitch* hw) {
     EXPECT_EQ(*endpoint.switchType(), hw->getSwitchType());
     EXPECT_EQ(*endpoint.portId(), expectedPortId);
   }
+
+  EXPECT_EQ(hw->getSwitchStats()->getFabricReachabilityMismatchCount(), 0);
+  EXPECT_EQ(hw->getSwitchStats()->getFabricReachabilityMissingCount(), 0);
+}
+
+void checkFabricReachabilityStats(const HwSwitch* hw) {
+  auto reachability = hw->getFabricReachability();
+  int count = 0;
+  for (auto [_, endpoint] : reachability) {
+    if (!*endpoint.isAttached()) {
+      continue;
+    }
+    // all interfaces which have reachability info collected
+    count++;
+  }
+  // expected all of interfaces to jump on mismatched and missing
+  EXPECT_EQ(hw->getSwitchStats()->getFabricReachabilityMismatchCount(), count);
+  EXPECT_EQ(hw->getSwitchStats()->getFabricReachabilityMissingCount(), count);
 }
 
 void populatePortExpectedNeighbors(

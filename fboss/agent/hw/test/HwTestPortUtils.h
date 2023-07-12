@@ -25,8 +25,9 @@ void setPortLoopbackMode(
 
 TransceiverInfo getTransceiverInfo(cfg::PortProfileID profileID);
 
-void setPortTxEnable(const HwSwitch* hw, PortID port, bool enable);
+void setCreditWatchdogAndPortTx(const HwSwitch* hw, PortID port, bool enable);
 
+void setPortTx(const HwSwitch* hw, PortID port, bool enable);
 void enableTransceiverProgramming(bool enable);
 int getLoopbackMode(cfg::PortLoopbackMode loopbackMode);
 

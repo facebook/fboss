@@ -16,12 +16,10 @@ include "fboss/agent/switch_config.thrift"
 include "fboss/agent/platform_config.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/agent/hw/hardware_stats.thrift"
-include "thrift/annotation/cpp.thrift"
 
-@cpp.Type{name = "::folly::fbstring"}
-typedef binary fbbinary
-@cpp.Type{name = "::folly::fbstring"}
-typedef string fbstring
+typedef common.fbbinary fbbinary
+typedef common.fbstring fbstring
+typedef common.ClientInformation ClientInformation
 
 const i32 DEFAULT_CTRL_PORT = 5909;
 const i32 NO_VLAN = -1;
@@ -37,15 +35,7 @@ enum AdminDistance {
   MAX_ADMIN_DISTANCE = 255,
 }
 
-// SwSwitch run states. SwSwitch moves forward from a
-// lower numbered state to the next
-enum SwitchRunState {
-  UNINITIALIZED = 0,
-  INITIALIZED = 1,
-  CONFIGURED = 2,
-  FIB_SYNCED = 3,
-  EXITING = 4,
-}
+typedef common.SwitchRunState SwitchRunState
 
 enum SSLType {
   DISABLED = 0,
@@ -587,11 +577,6 @@ struct AclEntryThrift {
   23: optional bool enabled;
 }
 
-struct ClientInformation {
-  1: optional fbstring username;
-  2: optional fbstring hostname;
-}
-
 enum HwObjectType {
   PORT = 0,
   LAG = 1,
@@ -1017,6 +1002,9 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   hardware_stats.CpuPortStats getCpuPortStats() throws (
     1: fboss.FbossBaseError error,
   );
+  hardware_stats.FabricReachabilityStats getFabricReachabilityStats() throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /* Return running config */
   string getRunningConfig() throws (1: fboss.FbossBaseError error);
@@ -1149,21 +1137,6 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
     1: i32 portNum,
     2: PortLedExternalState ledState,
   ) throws (1: fboss.FbossBaseError error);
-
-  /*
-   * Enables submitting diag cmds to the switch
-   */
-  fbstring diagCmd(
-    1: fbstring cmd,
-    2: ClientInformation client,
-    3: i16 serverTimeoutMsecs = 0,
-    4: bool bypassFilter = false,
-  );
-
-  /*
-   * Get formatted string for diag cmd filters configuration
-   */
-  fbstring cmdFiltersAsString() throws (1: fboss.FbossBaseError error);
 
   /*
   * Return the system's platform mapping (see platform_config.thrift)
@@ -1333,6 +1306,8 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   list<FsdbSubscriptionThrift> getDsfSubscriptions() throws (
     1: fboss.FbossBaseError error,
   );
+  string getDsfSubscriptionClientId() throws (1: fboss.FbossBaseError error);
+
   map<i64, SystemPortThrift> getSystemPorts() throws (
     1: fboss.FbossBaseError error,
   );

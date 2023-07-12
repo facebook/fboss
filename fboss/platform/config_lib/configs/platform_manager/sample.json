@@ -1,7 +1,7 @@
 {
     "___COMMENT___": "See the associated pastes to get a pictorial representation of this config",
     "platformName": "sample_platform",
-    "chassisFruConfig": {
+    "chassisFruTypeConfig": {
         "pluggedInSlotType": "CHASSIS",
         "i2cDeviceConfigs": [
             {

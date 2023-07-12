@@ -14,7 +14,6 @@
 #include "fboss/platform/weutil/prefdl/Prefdl.h"
 
 using namespace facebook::fboss::platform::helpers;
-DEFINE_bool(h, false, "Help");
 
 namespace {
 const std::string kPathPrefix = "/tmp/WeutilDarwin";
@@ -53,7 +52,7 @@ const std::unordered_map<std::string, std::string> kMapping{
 } // namespace
 
 namespace facebook::fboss::platform {
-WeutilDarwin::WeutilDarwin(std::string eeprom) : eeprom_(eeprom) {
+WeutilDarwin::WeutilDarwin(const std::string& eeprom) : eeprom_(eeprom) {
   std::transform(eeprom_.begin(), eeprom_.end(), eeprom_.begin(), ::tolower);
   if (eeprom_ == "" || eeprom_ == "chassis") {
     genSpiPrefdlFile();
@@ -124,7 +123,7 @@ void WeutilDarwin::genSpiPrefdlFile(void) {
 }
 
 std::vector<std::pair<std::string, std::string>> WeutilDarwin::getInfo(
-    __attribute__((unused)) std::string eeprom) {
+    const std::string&) {
   PrefdlBase prefdl(kPredfl);
 
   std::vector<std::pair<std::string, std::string>> ret;
@@ -205,10 +204,6 @@ void WeutilDarwin::printInfoJson() {
 }
 
 bool WeutilDarwin::verifyOptions(void) {
-  if (FLAGS_h) {
-    printUsage();
-    return false;
-  }
   if (eeprom_ != "") {
     if (eeprom_ != "pem" && eeprom_ != "fanspinner" && eeprom_ != "rackmon" &&
         eeprom_ != "chassis") {
@@ -221,7 +216,7 @@ bool WeutilDarwin::verifyOptions(void) {
 
 void WeutilDarwin::printUsage(void) {
   std::cout
-      << "weutil [--h] [-json] [--eeprom pem|fanspinner|rackmon|chassis(default)]"
+      << "weutil [--h] [--json] [--eeprom pem|fanspinner|rackmon|chassis(default)]"
       << std::endl;
 
   std::cout << "usage examples:" << std::endl;

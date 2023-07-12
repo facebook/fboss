@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/HwSwitchHandler.h"
 #include "fboss/agent/PacketObserver.h"
 #include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
@@ -84,6 +85,7 @@ class DsfSubscriber;
 class HwAsicTable;
 class MultiHwSwitchSyncer;
 class SwitchStatsObserver;
+struct HwSwitchHandler;
 
 enum class SwitchFlags : int {
   DEFAULT = 0,
@@ -121,7 +123,7 @@ inline bool operator&(SwitchFlags lhs, SwitchFlags rhs) {
  * must be used in conjunction with a HwSwitch object, which provides an
  * interface to the switch hardware.
  */
-class SwSwitch : public HwSwitch::Callback {
+class SwSwitch : public HwSwitchCallback {
  public:
   typedef std::function<std::shared_ptr<SwitchState>(
       const std::shared_ptr<SwitchState>&)>
@@ -132,26 +134,29 @@ class SwSwitch : public HwSwitch::Callback {
   using AllThreadsSwitchStats =
       folly::ThreadLocalPtr<SwitchStats, SwSwitch>::Accessor;
 
-  explicit SwSwitch(std::unique_ptr<Platform> platform);
+  explicit SwSwitch(std::unique_ptr<HwSwitchHandler> hwSwitchHandler);
   /*
    * Needed for mock platforms that do cannot initialize platform mapping
    * based on fruid file
    */
   SwSwitch(
-      std::unique_ptr<Platform> platform,
+      std::unique_ptr<HwSwitchHandler> hwSwitchHandler,
       std::unique_ptr<PlatformMapping> platformMapping,
       cfg::SwitchConfig* config);
   ~SwSwitch() override;
 
-  HwSwitch* getHw() const {
-    return hw_;
+  HwSwitch* getHw_DEPRECATED() const;
+
+  const Platform* getPlatform_DEPRECATED() const;
+
+  Platform* getPlatform_DEPRECATED();
+
+  HwSwitchHandler* getHwSwitchHandler() {
+    return hwSwitchHandler_.get();
   }
 
-  const Platform* getPlatform_DEPRECATED() const {
-    return platform_.get();
-  }
-  Platform* getPlatform_DEPRECATED() {
-    return platform_.get();
+  const HwSwitchHandler* getHwSwitchHandler() const {
+    return hwSwitchHandler_.get();
   }
 
   const PlatformMapping* getPlatformMapping() const {
@@ -200,7 +205,7 @@ class SwSwitch : public HwSwitch::Callback {
   // injected between HwSwitch and SwSwitch an ensemble must dispatch events to
   // SwSwitch as soon as it receives.
   void init(
-      HwSwitch::Callback* callback,
+      HwSwitchCallback* callback,
       std::unique_ptr<TunManager> tunMgr,
       SwitchFlags flags = SwitchFlags::DEFAULT);
 
@@ -347,8 +352,9 @@ class SwSwitch : public HwSwitch::Callback {
    * The only required method for observers is stateUpdated and observers can
    * count on this always being called from the update thread.
    */
-  void registerStateObserver(StateObserver* observer, const std::string name);
-  void unregisterStateObserver(StateObserver* observer);
+  void registerStateObserver(StateObserver* observer, const std::string& name)
+      override;
+  void unregisterStateObserver(StateObserver* observer) override;
 
   /*
    * Signal to the switch that initial config is applied.
@@ -486,7 +492,7 @@ class SwSwitch : public HwSwitch::Callback {
    */
   void packetReceivedThrowExceptionOnError(std::unique_ptr<RxPacket> pkt);
 
-  // HwSwitch::Callback methods
+  // HwSwitchCallback methods
   void packetReceived(std::unique_ptr<RxPacket> pkt) noexcept override;
   void linkStateChanged(
       PortID port,
@@ -794,6 +800,14 @@ class SwSwitch : public HwSwitch::Callback {
   InterfaceID getInterfaceIDForAggregatePort(
       AggregatePortID aggregatePortID) const;
 
+  void sentArpRequest(
+      const std::shared_ptr<Interface>& intf,
+      folly::IPAddressV4 ip);
+
+  void sentNeighborSolicitation(
+      const std::shared_ptr<Interface>& intf,
+      const folly::IPAddressV6& target);
+
   const SwitchInfoTable& getSwitchInfoTable() const {
     return switchInfoTable_;
   }
@@ -812,6 +826,14 @@ class SwSwitch : public HwSwitch::Callback {
       const std::unordered_map<TransceiverID, TransceiverInfo>& currentTcvrs,
       const PlatformMapping* platformMapping,
       const SwitchIdScopeResolver* scopeResolver);
+
+  folly::MacAddress getLocalMac(SwitchID switchId) const;
+
+  TransceiverIdxThrift getTransceiverIdxThrift(PortID port) const;
+
+  std::optional<uint32_t> getHwLogicalPortId(PortID port) const;
+
+  void switchRunStateChanged(SwitchRunState newState);
 
  private:
   std::optional<folly::MacAddress> getSourceMac(
@@ -851,7 +873,12 @@ class SwSwitch : public HwSwitch::Callback {
   void publishSwitchInfo(const HwInitResult& hwInitRet);
   void setSwitchRunState(SwitchRunState desiredState);
   SwitchStats* createSwitchStats();
+
   void handlePacket(std::unique_ptr<RxPacket> pkt);
+  template <typename VlanOrIntfT>
+  void handlePacketImpl(
+      std::unique_ptr<RxPacket> pkt,
+      const std::shared_ptr<VlanOrIntfT>& vlanOrIntf);
 
   void updatePtpTcCounter();
   static void handlePendingUpdatesHelper(SwSwitch* sw);
@@ -904,17 +931,14 @@ class SwSwitch : public HwSwitch::Callback {
       const StateDelta& delta,
       bool transaction) const;
 
-  fsdb::OperDelta stateChanged(const fsdb::OperDelta& delta, bool transaction)
-      const;
-
   template <typename FsdbFunc>
   void runFsdbSyncFunction(FsdbFunc&& fn);
   std::string curConfigStr_;
   cfg::SwitchConfig curConfig_;
 
   // The HwSwitch object.  This object is owned by the Platform.
-  HwSwitch* hw_;
-  std::unique_ptr<Platform> platform_;
+  std::unique_ptr<HwSwitchHandler> hwSwitchHandler_;
+  PlatformData platformData_;
   const std::unique_ptr<PlatformProductInfo> platformProductInfo_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};
   folly::ThreadLocalPtr<SwitchStats, SwSwitch> stats_;

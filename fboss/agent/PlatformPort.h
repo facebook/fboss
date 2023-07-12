@@ -15,6 +15,7 @@
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/state/Transceiver.h"
 #include "fboss/agent/types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
@@ -214,9 +215,8 @@ class PlatformPort {
    */
   virtual void externalState(PortLedExternalState) = 0;
 
-  virtual folly::Future<TransceiverInfo> getFutureTransceiverInfo() const = 0;
-  std::optional<TransceiverInfo> getTransceiverInfo(
-      folly::EventBase* evb) const;
+  virtual std::shared_ptr<TransceiverSpec> getTransceiverSpec() const = 0;
+  std::shared_ptr<TransceiverSpec> getTransceiverInfo() const;
 
   std::optional<int32_t> getExternalPhyID();
 
@@ -228,6 +228,10 @@ class PlatformPort {
   // Return non-empty vector to maintain the lanes of the transceivers
   std::vector<phy::PinID> getTransceiverLanes(
       std::optional<cfg::PortProfileID> profileID = std::nullopt) const;
+
+  cfg::PlatformPortConfigOverrideFactor
+  buildPlatformPortConfigOverrideFactorBySpec(
+      const TransceiverSpec& transceiverSpec) const;
 
  private:
   // Forbidden copy constructor and assignment operator

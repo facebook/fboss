@@ -10,21 +10,7 @@ namespace facebook::fboss {
  * MinipackLedManager constructor will just call based LedManager ctor() as of
  * now.
  */
-MinipackLedManager::MinipackLedManager() : LedManager() {}
-
-/*
- * calculateLedColor
- *
- * This function will return the LED color for a given port. This function will
- * act on LedManager struct portDisplayMap_ to find the color. This function
- * expects the port oprational values (ie: portDisplayMap_.operationalStateUp)
- * is already updated with latest.
- */
-led::LedColor MinipackLedManager::calculateLedColor(
-    uint32_t portId,
-    cfg::PortProfileID portProfile) const {
-  return led::LedColor::UNKNOWN;
-}
+MinipackLedManager::MinipackLedManager() : MinipackBaseLedManager() {}
 
 /*
  * setLedColor
@@ -34,7 +20,7 @@ led::LedColor MinipackLedManager::calculateLedColor(
  */
 void MinipackLedManager::setLedColor(
     uint32_t portId,
-    cfg::PortProfileID portProfile,
+    cfg::PortProfileID /* portProfile */,
     led::LedColor ledColor) {
   return;
 }

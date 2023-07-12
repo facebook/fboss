@@ -3,7 +3,9 @@
 #pragma once
 
 #include <type_traits>
+#include "folly/Conv.h"
 
+#include <fboss/thrift_cow/visitors/VisitorUtils.h>
 #include <thrift/lib/cpp2/Thrift.h>
 #include <thrift/lib/cpp2/TypeClass.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
@@ -362,30 +364,29 @@ struct PathVisitor<apache::thrift::type_class::variant> {
     // Get key
     auto key = *begin++;
 
-    fatal::trie_find<MemberTypes, fatal::get_type::name>(
-        key.begin(), key.end(), [&](auto tag) {
-          using descriptor = typename decltype(fatal::tag_type(tag))::member;
-          using name = typename descriptor::metadata::name;
-          using tc = typename descriptor::metadata::type_class;
+    visitMember<MemberTypes>(key, [&](auto tag) {
+      using descriptor = typename decltype(fatal::tag_type(tag))::member;
+      using name = typename descriptor::metadata::name;
+      using tc = typename descriptor::metadata::type_class;
 
-          if (fields.type() != descriptor::metadata::id::value) {
-            result = ThriftTraverseResult::INCORRECT_VARIANT_MEMBER;
-            return;
-          }
+      if (fields.type() != descriptor::metadata::id::value) {
+        result = ThriftTraverseResult::INCORRECT_VARIANT_MEMBER;
+        return;
+      }
 
-          auto& child = fields.template ref<name>();
+      auto& child = fields.template ref<name>();
 
-          // ensure we propagate constness, since children will have type
-          // const shared_ptr<T>, not shared_ptr<const T>.
-          if constexpr (std::is_const_v<Fields>) {
-            const auto& next = *child;
-            result = PathVisitor<tc>::visit(
-                next, begin, end, mode, std::forward<Func>(f));
-          } else {
-            result = PathVisitor<tc>::visit(
-                *child, begin, end, mode, std::forward<Func>(f));
-          }
-        });
+      // ensure we propagate constness, since children will have type
+      // const shared_ptr<T>, not shared_ptr<const T>.
+      if constexpr (std::is_const_v<Fields>) {
+        const auto& next = *child;
+        result = PathVisitor<tc>::visit(
+            next, begin, end, mode, std::forward<Func>(f));
+      } else {
+        result = PathVisitor<tc>::visit(
+            *child, begin, end, mode, std::forward<Func>(f));
+      }
+    });
 
     return result;
   }
@@ -432,34 +433,33 @@ struct PathVisitor<apache::thrift::type_class::structure> {
     // Get key
     auto key = *begin++;
 
-    // Perform linear search over all members for key
     ThriftTraverseResult result = ThriftTraverseResult::INVALID_STRUCT_MEMBER;
-    fatal::trie_find<Members, fatal::get_type::name>(
-        key.begin(), key.end(), [&](auto indexed) {
-          using member = decltype(fatal::tag_type(indexed));
-          using name = typename member::name;
-          using tc = typename member::type_class;
 
-          // Recurse further
-          auto& child = fields.template ref<name>();
+    visitMember<Members>(key, [&](auto indexed) {
+      using member = decltype(fatal::tag_type(indexed));
+      using name = typename member::name;
+      using tc = typename member::type_class;
 
-          if (!child) {
-            // child is unset, cannot traverse through missing optional child
-            result = ThriftTraverseResult::NON_EXISTENT_NODE;
-            return;
-          }
+      // Recurse further
+      auto& child = fields.template ref<name>();
 
-          // ensure we propagate constness, since children will have type
-          // const shared_ptr<T>, not shared_ptr<const T>.
-          if constexpr (std::is_const_v<Fields>) {
-            const auto& next = *child;
-            result = PathVisitor<tc>::visit(
-                next, begin, end, mode, std::forward<Func>(f));
-          } else {
-            result = PathVisitor<tc>::visit(
-                *child, begin, end, mode, std::forward<Func>(f));
-          }
-        });
+      if (!child) {
+        // child is unset, cannot traverse through missing optional child
+        result = ThriftTraverseResult::NON_EXISTENT_NODE;
+        return;
+      }
+
+      // ensure we propagate constness, since children will have type
+      // const shared_ptr<T>, not shared_ptr<const T>.
+      if constexpr (std::is_const_v<Fields>) {
+        const auto& next = *child;
+        result = PathVisitor<tc>::visit(
+            next, begin, end, mode, std::forward<Func>(f));
+      } else {
+        result = PathVisitor<tc>::visit(
+            *child, begin, end, mode, std::forward<Func>(f));
+      }
+    });
 
     return result;
   }

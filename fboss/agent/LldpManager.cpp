@@ -109,8 +109,6 @@ void LldpManager::handlePacket(
              << " port=" << neighbor->humanReadablePortId()
              << " name=" << neighbor->getSystemName();
 
-  auto plport =
-      sw_->getPlatform_DEPRECATED()->getPlatformPort(pkt->getSrcPort());
   auto port = sw_->getState()->getPorts()->getNodeIf(pkt->getSrcPort());
   PortID pid = pkt->getSrcPort();
 
@@ -132,11 +130,27 @@ void LldpManager::handlePacket(
             cfg::LLDPTag::PORT,
             neighbor->humanReadablePortId()))) {
     sw_->stats()->LldpValidateMisMatch();
-    // TODO(pjakma): Figure out how to mock plport
-    if (plport) {
-      plport->externalState(PortLedExternalState::CABLING_ERROR);
-    }
     XLOG(DBG4) << "LLDP expected/recvd value mismatch!";
+    auto updateFn = [&port](const shared_ptr<SwitchState>& state) {
+      auto newState = state->clone();
+      auto newPort = port->modify(&newState);
+      newPort->setLedPortExternalState(PortLedExternalState::CABLING_ERROR);
+      return newState;
+    };
+    sw_->updateStateBlocking("set port LED state from lldp", updateFn);
+  } else {
+    // clear the cabling error led state if needed
+    if (port->getLedPortExternalState().has_value() &&
+        port->getLedPortExternalState().value() ==
+            PortLedExternalState::CABLING_ERROR) {
+      auto updateFn = [&port](const shared_ptr<SwitchState>& state) {
+        auto newState = state->clone();
+        auto newPort = port->modify(&newState);
+        newPort->setLedPortExternalState(PortLedExternalState::NONE);
+        return newState;
+      };
+      sw_->updateStateBlocking("clear port LED state from lldp", updateFn);
+    }
   }
   db_.update(neighbor);
 }

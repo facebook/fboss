@@ -11,6 +11,7 @@
 #pragma once
 
 // Standard CPP include file
+#include <cstdint>
 #include <fstream>
 #include <sstream>
 
@@ -20,9 +21,6 @@
 
 // Auto-generated Thrift inteface headerfile (by Buck)
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
-
-// Use QsfpCache library
-#include "fboss/qsfp_service/lib/QsfpCache.h"
 
 // Coroutine BlockWait headerfile
 #include <folly/experimental/coro/BlockingWait.h>
@@ -34,6 +32,28 @@
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/platform/fan_service/FsdbSensorSubscriber.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_state_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_stats_types.h"
+
+namespace {
+struct TransceiverData {
+  int portID;
+  facebook::fboss::GlobalSensors sensor;
+  facebook::fboss::MediaInterfaceCode mediaInterfaceCode;
+  uint32_t timeCollected;
+
+  TransceiverData(
+      int portID_,
+      facebook::fboss::GlobalSensors sensor_,
+      facebook::fboss::MediaInterfaceCode mediaInterfaceCode_,
+      uint32_t timeCollected_) {
+    portID = portID_;
+    sensor = sensor_;
+    mediaInterfaceCode = mediaInterfaceCode_;
+    timeCollected = timeCollected_;
+  }
+};
+} // namespace
 
 namespace facebook::fboss::platform {
 
@@ -83,15 +103,14 @@ class Bsp {
       std::string tgt) const;
   // This attribute is accessed by internal function and Mock class (Mokujin)
   void setEmergencyState(bool state);
-  std::shared_ptr<QsfpCache> qsfpCache_;
 
  private:
   virtual int run(const std::string& cmd);
-  void getOpticsDataThrift(
-      Optic* opticsGroup,
+  void getOpticsDataFromQsfpSvc(
+      fan_config_structs::Optic* opticsGroup,
       std::shared_ptr<SensorData> pSensorData);
   void getOpticsDataSysfs(
-      Optic* opticsGroup,
+      fan_config_structs::Optic* opticsGroup,
       std::shared_ptr<SensorData> pSensorData);
   std::shared_ptr<std::thread> thread_{nullptr};
   // For communicating with qsfp_service
@@ -99,7 +118,6 @@ class Bsp {
   // For communicating with sensor_service
   folly::EventBase evbSensor_;
   bool emergencyShutdownState_{false};
-  bool qsfpCacheInitialized_{false};
 
   // Private Attributes
   int sensordThriftPort_{5970};
@@ -132,16 +150,13 @@ class Bsp {
       std::shared_ptr<ServiceConfig> pServiceConfig,
       std::shared_ptr<SensorData> pSensorData);
   void processOpticEntries(
-      Optic* opticsGroup,
+      fan_config_structs::Optic* opticsGroup,
       std::shared_ptr<SensorData> pSensorData,
       uint64_t& currentQsfpSvcTimestamp,
-      const std::map<int32_t, TransceiverInfo>& cacheTable,
+      const std::map<int32_t, TransceiverData>& cacheTable,
       OpticEntry* opticData);
 
   std::unique_ptr<FsdbSensorSubscriber> fsdbSensorSubscriber_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
-  folly::Synchronized<
-      std::map<std::string, fboss::platform::sensor_service::SensorData>>
-      subscribedSensorData;
 };
 } // namespace facebook::fboss::platform

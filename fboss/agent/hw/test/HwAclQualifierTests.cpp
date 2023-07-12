@@ -222,7 +222,9 @@ class HwAclQualifierTest : public HwTest {
  protected:
   cfg::SwitchConfig initialConfig() const {
     return utility::onePortPerInterfaceConfig(
-        getHwSwitch(), masterLogicalPortIds());
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackModes());
   }
 };
 

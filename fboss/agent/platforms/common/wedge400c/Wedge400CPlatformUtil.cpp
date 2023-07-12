@@ -17,6 +17,7 @@ bool isRackTypeGrandTeton(auto rackType) {
   if (rackType &&
       ((*rackType == facebook::netwhoami::RackType::GRAND_TETON) ||
        (*rackType == facebook::netwhoami::RackType::GRAND_TETON_INFERENCE) ||
+       (*rackType == facebook::netwhoami::RackType::GRAND_TETON_TRAINING_IB) ||
        (*rackType == facebook::netwhoami::RackType::GENOA_INFERENCE))) {
     return true;
   }

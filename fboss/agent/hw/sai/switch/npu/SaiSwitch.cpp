@@ -44,6 +44,14 @@ void SaiSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
       if (endpointOpt.has_value()) {
         fabricReachabilityManager_->processReachabilityInfoForPort(
             portsIter->second, *endpointOpt);
+        if (fabricReachabilityManager_->isReachabilityInfoMissing(
+                portsIter->second)) {
+          getSwitchStats()->fabricReachabilityMissingCount();
+        }
+        if (fabricReachabilityManager_->isReachabilityInfoMismatch(
+                portsIter->second)) {
+          getSwitchStats()->fabricReachabilityMismatchCount();
+        }
       }
     }
     ++portsIter;

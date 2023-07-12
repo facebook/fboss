@@ -51,6 +51,27 @@ TEST_F(HwFabricSwitchTest, init) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwFabricSwitchTest, checkFabricReachabilityStats) {
+  auto setup = [=]() {
+    auto newCfg = initialConfig();
+    // reset the neighbor reachability information
+    for (const auto& portID : masterLogicalPortIds()) {
+      auto portCfg = utility::findCfgPort(newCfg, portID);
+      if (portCfg->portType() == cfg::PortType::FABRIC_PORT) {
+        portCfg->expectedNeighborReachability() = {};
+      }
+    }
+    applyNewConfig(newCfg);
+  };
+  auto verify = [this]() {
+    EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
+    SwitchStats dummy;
+    getHwSwitch()->updateStats(&dummy);
+    checkFabricReachabilityStats(getHwSwitch());
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 TEST_F(HwFabricSwitchTest, collectStats) {
   auto verify = [this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);

@@ -1,11 +1,13 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include <chrono>
+
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 
 #include <folly/experimental/coro/BlockingWait.h>
 #include <folly/io/async/AsyncTimeout.h>
 #include <folly/logging/xlog.h>
-
+#include "common/time/Time.h"
 #ifndef IS_OSS
 #include "fboss/fsdb/client/facebook/Client.h"
 #endif
@@ -15,12 +17,22 @@ DEFINE_int32(
     1000,
     "reconnect to fsdb timer in milliseconds");
 
+DEFINE_int32(
+    fsdb_state_chunk_timeout,
+    0, // disabled by default for now
+    "Chunk timeout in seconds for FSDB State streams");
+DEFINE_int32(
+    fsdb_stat_chunk_timeout,
+    0, // disabled by default for now
+    "Chunk timeout in seconds for FSDB Stat streams");
+
 namespace facebook::fboss::fsdb {
 FsdbStreamClient::FsdbStreamClient(
     const std::string& clientId,
     folly::EventBase* streamEvb,
     folly::EventBase* connRetryEvb,
     const std::string& counterPrefix,
+    bool isStats,
     FsdbStreamStateChangeCb stateChangeCb)
     : clientId_(clientId),
       streamEvb_(streamEvb),
@@ -33,11 +45,20 @@ FsdbStreamClient::FsdbStreamClient(
       disconnectEvents_(
           counterPrefix_ + ".disconnects",
           fb303::SUM,
-          fb303::RATE) {
+          fb303::RATE),
+      isStats_(isStats) {
   if (!streamEvb_ || !connRetryEvb_) {
     throw std::runtime_error(
         "Must pass valid stream, connRetry evbs to ctor, but passed null");
   }
+  if (isStats && FLAGS_fsdb_stat_chunk_timeout) {
+    rpcOptions_.setChunkTimeout(
+        std::chrono::seconds(FLAGS_fsdb_stat_chunk_timeout));
+  } else if (!isStats && FLAGS_fsdb_state_chunk_timeout) {
+    rpcOptions_.setChunkTimeout(
+        std::chrono::seconds(FLAGS_fsdb_state_chunk_timeout));
+  }
+
   fb303::fbData->setCounter(getConnectedCounterName(), 0);
   connRetryEvb_->runInEventBaseThread(
       [this] { timer_->scheduleTimeout(FLAGS_fsdb_reconnect_ms); });

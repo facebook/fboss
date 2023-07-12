@@ -1,0 +1,40 @@
+{
+  "chassisEepromName" : "MCB" ,
+  "fruEepromList" : {
+    "BMC" : {
+      "path" : "/run/devmap/eeproms/BMC_EEPROM",
+      "offset" : 0,
+      "idEepromFormatVer" : 4
+    },
+    "FCB" : {
+      "path" : "/run/devmap/eeproms/FCB_EEPROM",
+      "offset" : 0,
+      "idEepromFormatVer" : 4
+    },
+    "MCB" : {
+      "path" : "/run/devmap/eeproms/MCB_EEPROM",
+      "offset" : 0,
+      "idEepromFormatVer" : 4
+    },
+    "SCM" : {
+      "path" : "/run/devmap/eeproms/SCM_EEPROM",
+      "offset" : 0,
+      "idEepromFormatVer" : 4
+    },
+    "SMB" : {
+      "path" : "/run/devmap/eeproms/SMB_EEPROM",
+      "offset" : 0,
+      "idEepromFormatVer" : 4
+    },
+    "PSU_1" : {
+      "path" : "/run/devmap/eeproms/PSU_1_EEPROM",
+      "offset" : 0,
+      "idEepromFormatVer" : 4
+    },
+    "PSU_2" : {
+      "path" : "/run/devmap/eeproms/PSU_2_EEPROM",
+      "offset" : 0,
+      "idEepromFormatVer" : 4
+    }
+  }
+}

@@ -139,8 +139,12 @@ class PackageFboss:
         qsfp_known_bad_tests_path = os.path.join(
             self._get_git_root(__file__), "fboss/oss/qsfp_known_bad_tests"
         )
+        link_known_bad_tests_path = os.path.join(
+            self._get_git_root(__file__), "fboss/oss/link_known_bad_tests"
+        )
         print(f"Copying {hw_known_bad_tests_path} to {tmp_dir_name}")
         print(f"Copying {qsfp_known_bad_tests_path} to {tmp_dir_name}")
+        print(f"Copying {link_known_bad_tests_path} to {tmp_dir_name}")
         shutil.copytree(
             "fboss/oss/hw_known_bad_tests",
             os.path.join(tmp_dir_name, PackageFboss.DATA, "hw_known_bad_tests"),
@@ -148,6 +152,10 @@ class PackageFboss:
         shutil.copytree(
             "fboss/oss/qsfp_known_bad_tests",
             os.path.join(tmp_dir_name, PackageFboss.DATA, "qsfp_known_bad_tests"),
+        )
+        shutil.copytree(
+            "fboss/oss/link_known_bad_tests",
+            os.path.join(tmp_dir_name, PackageFboss.DATA, "link_known_bad_tests"),
         )
 
     def _copy_binaries(self, tmp_dir_name):

@@ -2,9 +2,13 @@
 #include "fboss/agent/Main.h"
 #include "fboss/agent/test/agent_hw_test/ProdAgentTests.h"
 
+#include "fboss/agent/SetupThrift.h"
+
 class HwSwitch;
 
 namespace facebook::fboss {
+
+void verifyHwSwitchHandler();
 
 class ProdInvariantTest : public ProdAgentTests {
  protected:
@@ -20,6 +24,8 @@ class ProdInvariantTest : public ProdAgentTests {
   std::vector<PortDescriptor> ecmpPorts_{};
   bool checkBaseConfigPortsEmpty();
   cfg::SwitchConfig getConfigFromFlag();
+  void verifyThriftHandler();
+  void verifySwSwitchHandler();
 
  protected:
   std::optional<bool> useProdConfig_ = std::nullopt;

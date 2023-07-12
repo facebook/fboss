@@ -36,6 +36,7 @@ target_link_libraries(fsdb_pub_sub
 
 add_library(fsdb_syncer
   fboss/fsdb/client/FsdbSyncManager.h
+  fboss/fsdb/client/FsdbSyncManager.cpp
 )
 
 target_link_libraries(fsdb_syncer

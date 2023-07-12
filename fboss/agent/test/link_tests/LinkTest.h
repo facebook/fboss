@@ -91,7 +91,6 @@ class LinkTest : public AgentTest {
   void createL3DataplaneFlood() {
     createL3DataplaneFlood(getVlanOwningCabledPorts());
   }
-  PortID getPortID(const std::string& portName) const;
   std::string getPortName(PortID port) const;
 
   void waitForStateMachineState(

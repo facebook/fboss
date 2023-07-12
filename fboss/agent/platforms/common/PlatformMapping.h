@@ -111,6 +111,9 @@ class PlatformMapping {
     return chips_;
   }
 
+  std::map<std::string, phy::DataPlanePhyChip> getPortDataplaneChips(
+      PlatformPortProfileConfigMatcher matcher) const;
+
   int getPimID(PortID portID) const;
 
   int getPimID(const cfg::PlatformPortEntry& platformPort) const;
@@ -155,6 +158,10 @@ class PlatformMapping {
 
   std::map<phy::DataPlanePhyChip, std::vector<phy::PinConfig>>
   getCorePinMapping(const std::vector<cfg::Port>& ports) const;
+
+  virtual bool supportsInterPacketGapBits() const {
+    return false;
+  }
 
  protected:
   std::map<int32_t, cfg::PlatformPortEntry> platformPorts_;

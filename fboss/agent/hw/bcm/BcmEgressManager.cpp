@@ -155,24 +155,9 @@ void BcmEgressManager::processFlowletSwitchingConfigChanged(
         newFlowletSwitching->getInactivityIntervalUsecs();
     bcmFlowletConfig_.flowletTableSize =
         newFlowletSwitching->getFlowletTableSize();
-    if (newFlowletSwitching->getPortScalingFactor().has_value()) {
-      bcmFlowletConfig_.portScalingFactor =
-          newFlowletSwitching->getPortScalingFactor().value();
-    }
-    if (newFlowletSwitching->getPortLoadWeight().has_value()) {
-      bcmFlowletConfig_.portLoadWeight =
-          newFlowletSwitching->getPortLoadWeight().value();
-    }
-    if (newFlowletSwitching->getPortQueueWeight().has_value()) {
-      bcmFlowletConfig_.portQueueWeight =
-          newFlowletSwitching->getPortQueueWeight().value();
-    }
   } else {
     bcmFlowletConfig_.inactivityIntervalUsecs = 0;
     bcmFlowletConfig_.flowletTableSize = 0;
-    bcmFlowletConfig_.portScalingFactor = 0;
-    bcmFlowletConfig_.portLoadWeight = 0;
-    bcmFlowletConfig_.portQueueWeight = 0;
   }
 }
 } // namespace facebook::fboss

@@ -1,6 +1,7 @@
 // Copyright 2021- Facebook. All rights reserved.
 
 #include "fboss/led_service/LedService.h"
+#include "fboss/led_service/LedManagerInit.h"
 
 namespace facebook::fboss {
 
@@ -11,7 +12,11 @@ namespace facebook::fboss {
  * initialize the LED manager
  */
 void LedService::kickStart() {
-  pLedManager_ = std::make_unique<LedManager>();
+  pLedManager_ = createLedManager();
+  if (pLedManager_ == nullptr) {
+    throw FbossError("Could not create LED Manager for this platform");
+  }
+
   pLedManager_->initLedManager();
 }
 

@@ -19,7 +19,6 @@
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/led_service/FsdbSwitchStateSubscriber.h"
-#include "fboss/lib/bsp/BspSystemContainer.h"
 #include "fboss/lib/led/LedIO.h"
 #include "fboss/lib/led/gen-cpp2/led_mapping_types.h"
 
@@ -38,6 +37,7 @@ class LedManager {
     cfg::PortProfileID portProfileId;
     bool operationStateUp{false};
     bool neighborReachable{false};
+    bool cablingError{false};
     led::LedColor currentLedColor{led::LedColor::UNKNOWN};
   };
 
@@ -56,14 +56,15 @@ class LedManager {
     return eventBase_.get();
   }
 
+  fsdb::FsdbPubSubManager* pubSubMgr() const {
+    return fsdbPubSubMgr_.get();
+  }
+
   // Forbidden copy constructor and assignment operator
   LedManager(LedManager const&) = delete;
   LedManager& operator=(LedManager const&) = delete;
 
  protected:
-  // System container to get LED controller
-  BspSystemContainer* bspSystemContainer_{nullptr};
-
   // Platform mapping to get SW Port -> Lane mapping
   std::unique_ptr<PlatformMapping> platformMapping_;
 
@@ -74,26 +75,15 @@ class LedManager {
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
 
   virtual led::LedColor calculateLedColor(
-      uint32_t portId,
-      cfg::PortProfileID portProfile) const;
-
-  virtual led::LedColor getLedColorFromPortStatus(
-      bool anyPortUp,
-      bool allPortsUp,
-      bool allPortsReachable) const;
+      uint32_t /* portId */,
+      cfg::PortProfileID /* portProfiled */) const {
+    return led::LedColor::UNKNOWN;
+  }
 
   virtual void setLedColor(
-      uint32_t portId,
-      cfg::PortProfileID portProfile,
-      led::LedColor ledColor);
-
-  std::vector<int> getLedIdFromSwPort(
-      uint32_t portId,
-      cfg::PortProfileID portProfile) const;
-
-  std::vector<uint32_t> getCommonLedSwPorts(
-      uint32_t portId,
-      cfg::PortProfileID portProfile) const;
+      uint32_t /* portIdd */,
+      cfg::PortProfileID /* portProfiled */,
+      led::LedColor /* ledColord */) {}
 
  private:
   std::unique_ptr<std::thread> ledManagerThread_{nullptr};

@@ -15,9 +15,11 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/state/ArpEntry.h"
+#include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/NdpEntry.h"
+#include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 
@@ -429,11 +431,13 @@ void enableExactMatch(std::string& yamlCfg) {
 template std::shared_ptr<ArpEntry> getNeighborEntryForIP<ArpEntry>(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& intf,
-    const folly::IPAddress& ipAddr);
+    const folly::IPAddress& ipAddr,
+    bool use_intf_nbr_tables);
 template std::shared_ptr<NdpEntry> getNeighborEntryForIP<NdpEntry>(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& intf,
-    const folly::IPAddress& ipAddr);
+    const folly::IPAddress& ipAddr,
+    bool use_intf_nbr_tables);
 
 template <typename NeighborEntryT>
 std::shared_ptr<NeighborEntryT> getNeighborEntryForIPAndIntf(
@@ -458,8 +462,13 @@ template <typename NeighborEntryT>
 std::shared_ptr<NeighborEntryT> getNeighborEntryForIP(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& intf,
-    const folly::IPAddress& ipAddr) {
+    const folly::IPAddress& ipAddr,
+    bool use_intf_nbr_tables) {
   std::shared_ptr<NeighborEntryT> entry{nullptr};
+
+  if (use_intf_nbr_tables) {
+    return getNeighborEntryForIPAndIntf<NeighborEntryT>(intf, ipAddr);
+  }
 
   switch (intf->getType()) {
     case cfg::InterfaceType::VLAN: {
@@ -482,6 +491,63 @@ std::shared_ptr<NeighborEntryT> getNeighborEntryForIP(
 
   return entry;
 }
+
+template <typename VlanOrIntfT>
+std::optional<VlanID> getVlanIDFromVlanOrIntf(
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
+  std::optional<VlanID> vlanID{std::nullopt};
+
+  if (vlanOrIntf) {
+    if constexpr (std::is_same_v<VlanOrIntfT, Vlan>) {
+      vlanID = vlanOrIntf->getID();
+    } else {
+      vlanID = vlanOrIntf->getVlanIDIf();
+    }
+  }
+
+  return vlanID;
+}
+
+// Explicit instantiation to avoid linker errors
+// https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
+
+template std::optional<VlanID> getVlanIDFromVlanOrIntf<Vlan>(
+    const std::shared_ptr<Vlan>& vlanOrIntf);
+template std::optional<VlanID> getVlanIDFromVlanOrIntf<Interface>(
+    const std::shared_ptr<Interface>& vlanOrIntf);
+
+template <typename NTableT>
+std::shared_ptr<NTableT> getNeighborTableForVlan(
+    const std::shared_ptr<SwitchState>& state,
+    VlanID vlanID,
+    bool use_intf_nbr_tables) {
+  auto vlan = state->getVlans()->getNode(vlanID);
+  if (use_intf_nbr_tables) {
+    auto intf = state->getInterfaces()->getNode(vlan->getInterfaceID());
+    if constexpr (std::is_same_v<NTableT, ArpTable>) {
+      return intf->getArpTable();
+    } else {
+      return intf->getNdpTable();
+    }
+  } else {
+    if constexpr (std::is_same_v<NTableT, ArpTable>) {
+      return vlan->getArpTable();
+    } else {
+      return vlan->getNdpTable();
+    }
+  }
+}
+
+// Explicit instantiation to avoid linker errors
+// https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
+template std::shared_ptr<ArpTable> getNeighborTableForVlan(
+    const std::shared_ptr<SwitchState>& state,
+    VlanID vlanID,
+    bool use_intf_nbr_tables);
+template std::shared_ptr<NdpTable> getNeighborTableForVlan(
+    const std::shared_ptr<SwitchState>& state,
+    VlanID vlanID,
+    bool use_intf_nbr_tables);
 
 OperDeltaFilter::OperDeltaFilter(SwitchID switchId) : switchId_(switchId) {}
 

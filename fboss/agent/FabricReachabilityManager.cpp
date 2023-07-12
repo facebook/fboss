@@ -13,6 +13,7 @@
 #include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CFabricPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CVoqPlatformMapping.h"
 
@@ -92,6 +93,7 @@ static const PlatformMapping* FOLLY_NULLABLE getPlatformMappingForDsfNode(
   static Meru400biuPlatformMapping meru400biu;
   static Meru400biaPlatformMapping meru400bia;
   static Meru400bfuPlatformMapping meru400bfu;
+  static Meru800bfaPlatformMapping meru800bfa;
   static Wedge400CVoqPlatformMapping w400cVoq;
   static Wedge400CFabricPlatformMapping w400cFabric;
   static CloudRipperFabricPlatformMapping cloudRipperFabric;
@@ -116,6 +118,9 @@ static const PlatformMapping* FOLLY_NULLABLE getPlatformMappingForDsfNode(
       break;
     case PlatformType::PLATFORM_MERU400BFU:
       return &meru400bfu;
+      break;
+    case PlatformType::PLATFORM_MERU800BFA:
+      return &meru800bfa;
       break;
     default:
       break;
@@ -239,6 +244,91 @@ FabricEndpoint FabricReachabilityManager::processReachabilityInfoForPort(
   // update the cache
   actualNeighborReachability_[portId] = resEndpoint;
   return resEndpoint;
+}
+
+// mismatch info points to difference in expected vs
+// actual reachability. It points to potentially
+// cabling issues (no or wrong connection)
+bool FabricReachabilityManager::isReachabilityInfoMismatch(
+    const PortID& portId) {
+  const auto& iter = actualNeighborReachability_.find(portId);
+  if (iter != actualNeighborReachability_.end()) {
+    auto isStringMismatch =
+        [this](const std::string& nameA, const std::string& nameB) {
+          if (nameA != nameB) {
+            return true;
+          }
+          return false;
+        };
+
+    const auto& endpoint = iter->second;
+    if (!*endpoint.isAttached()) {
+      // endpoint not attached, points to cabling connectivity issues
+      return true;
+    }
+    if (endpoint.expectedSwitchId().has_value() &&
+        (endpoint.switchId() != endpoint.expectedSwitchId().value())) {
+      return true;
+    }
+    if (endpoint.expectedPortId().has_value() &&
+        (endpoint.portId() != endpoint.expectedPortId().value())) {
+      return true;
+    }
+
+    if (isStringMismatch(
+            endpoint.switchName().has_value() ? *endpoint.switchName() : "none",
+            endpoint.expectedSwitchName().has_value()
+                ? *endpoint.expectedSwitchName()
+                : "none")) {
+      // mismatch
+      return true;
+    }
+
+    if (isStringMismatch(
+            endpoint.portName().has_value() ? *endpoint.portName() : "none",
+            endpoint.expectedPortName().has_value()
+                ? *endpoint.expectedPortName()
+                : "none")) {
+      // mismatch
+      return true;
+    }
+  }
+
+  // no mismatch
+  return false;
+}
+
+// missing info points to cfg issues, where the configured
+// and expected reachability info is not found
+bool FabricReachabilityManager::isReachabilityInfoMissing(
+    const PortID& portId) {
+  const auto& iter = actualNeighborReachability_.find(portId);
+  if (iter == actualNeighborReachability_.end()) {
+    // specific port is missing from the reachability DB
+    // treat it like mimssing info
+    return true;
+  }
+
+  const auto& endpoint = iter->second;
+  if (!*endpoint.isAttached()) {
+    // absence of attached point implies issue with connectivity/cabling
+    // but can be tracked by mismatch check above
+    return false;
+  }
+
+  // if any of these parameters are not populated, we have missing
+  // reachability info
+  if (!(endpoint.expectedSwitchId().has_value() &&
+        endpoint.expectedPortId().has_value() &&
+        endpoint.switchName().has_value() &&
+        endpoint.expectedSwitchName().has_value() &&
+        endpoint.portName().has_value() &&
+        endpoint.expectedPortName().has_value())) {
+    return true;
+  }
+
+  // nothing missing
+  return false;
 }
 
 std::map<PortID, FabricEndpoint>

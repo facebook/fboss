@@ -391,6 +391,10 @@ class BcmSwitch : public BcmSwitchIf {
     return {};
   }
 
+  FabricReachabilityStats getFabricReachabilityStats() const override {
+    return {};
+  }
+
   CpuPortStats getCpuPortStats() const override {
     throw FbossError("Unsupported platform for retrieving cpuPort stats");
   }
@@ -844,6 +848,18 @@ class BcmSwitch : public BcmSwitchIf {
       const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching);
 
   void processDynamicSampleRateChanged(
+      const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitching,
+      const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching);
+
+  void processDynamicEgressMinThresholdBytesChanged(
+      const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitching,
+      const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching);
+
+  void processDynamicEgressMaxThresholdBytesChanged(
+      const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitching,
+      const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching);
+
+  void processDynamicPhysicalQueueExponentChanged(
       const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitching,
       const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching);
 

@@ -6,16 +6,17 @@
 namespace facebook::fboss::platform {
 class WeutilDarwin : public WeutilInterface {
  public:
-  WeutilDarwin(std::string eeprom = "");
+  WeutilDarwin(const std::string& eeprom = "");
   std::vector<std::pair<std::string, std::string>> getInfo(
-      std::string eeprom = "") override;
+      const std::string& eeprom = "") override;
   void printInfo() override;
   void printInfoJson() override;
   bool verifyOptions(void) override;
+  void printUsage(void) override;
 
  private:
   void genSpiPrefdlFile(void);
-  void printUsage(void);
+
   std::string eeprom_;
 };
 

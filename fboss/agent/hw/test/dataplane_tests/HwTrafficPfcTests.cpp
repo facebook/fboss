@@ -25,10 +25,12 @@ DEFINE_bool(
     "Skip stopping traffic after traffic test!");
 namespace {
 static constexpr auto kGlobalSharedBytes{20000};
-static constexpr auto kGlobalHeadroomBytes{4771136};
+static constexpr auto kGlobalHeadroomBytes{
+    5000}; // keep this lower than globalSharedBytes
 static constexpr auto kPgLimitBytes{2200};
 static constexpr auto kPgResumeOffsetBytes{1800};
-static constexpr auto kPgHeadroomBytes{293624};
+static constexpr auto kPgHeadroomBytes{
+    2200}; // keep this lower than kGlobalSharedBytes
 static constexpr auto kLosslessTrafficClass{2};
 static constexpr auto kLosslessPriority{2};
 static constexpr auto kNumberOfPortsToEnablePfcOn{2};

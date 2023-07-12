@@ -29,7 +29,7 @@ SimSwitch::SimSwitch(SimPlatform* platform, uint32_t numPorts)
     : platform_(platform), numPorts_(numPorts) {}
 
 HwInitResult SimSwitch::initImpl(
-    HwSwitch::Callback* callback,
+    HwSwitchCallback* callback,
     bool /*failHwCallsOnWarmboot*/,
     cfg::SwitchType /*switchType*/,
     std::optional<int64_t> /*switchId*/) {

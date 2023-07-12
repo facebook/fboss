@@ -10,7 +10,6 @@
 
 #include "fboss/agent/hw/sim/SimPlatform.h"
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/hw/sim/SimPlatformMapping.h"
 #include "fboss/agent/hw/sim/SimPlatformPort.h"
@@ -37,15 +36,11 @@ HwSwitch* SimPlatform::getHwSwitch() const {
   return hw_.get();
 }
 
-void SimPlatform::onHwInitialized(SwSwitch* /*sw*/) {}
+void SimPlatform::onHwInitialized(HwSwitchCallback* /*sw*/) {}
 
-void SimPlatform::onInitialConfigApplied(SwSwitch* /*sw*/) {}
+void SimPlatform::onInitialConfigApplied(HwSwitchCallback* /*sw*/) {}
 
 void SimPlatform::stop() {}
-
-unique_ptr<ThriftHandler> SimPlatform::createHandler(SwSwitch* sw) {
-  return std::make_unique<ThriftHandler>(sw);
-}
 
 std::string SimPlatform::getVolatileStateDir() const {
   FLAGS_volatile_state_dir = "/tmp/fboss_sim/volatile";

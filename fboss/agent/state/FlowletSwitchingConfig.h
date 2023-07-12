@@ -88,49 +88,34 @@ class FlowletSwitchingConfig : public ThriftStructNode<
     return get<switch_config_tags::dynamicSampleRate>()->cref();
   }
 
-  void setPortScalingFactor(std::optional<uint16_t> portScalingFactor) {
-    if (!portScalingFactor) {
-      ref<switch_config_tags::portScalingFactor>().reset();
-    } else {
-      set<switch_config_tags::portScalingFactor>(*portScalingFactor);
-    }
+  void setDynamicEgressMinThresholdBytes(
+      const uint32_t dynamicEgressMinThresholdBytes) {
+    set<switch_config_tags::dynamicEgressMinThresholdBytes>(
+        dynamicEgressMinThresholdBytes);
   }
 
-  std::optional<uint16_t> getPortScalingFactor() const {
-    if (auto portScalingFactor = get<switch_config_tags::portScalingFactor>()) {
-      return portScalingFactor->cref();
-    }
-    return std::nullopt;
+  uint32_t getDynamicEgressMinThresholdBytes() const {
+    return get<switch_config_tags::dynamicEgressMinThresholdBytes>()->cref();
   }
 
-  void setPortLoadWeight(std::optional<uint16_t> portLoadWeight) {
-    if (!portLoadWeight) {
-      ref<switch_config_tags::portLoadWeight>().reset();
-    } else {
-      set<switch_config_tags::portLoadWeight>(*portLoadWeight);
-    }
+  void setDynamicEgressMaxThresholdBytes(
+      const uint32_t dynamicEgressMaxThresholdBytes) {
+    set<switch_config_tags::dynamicEgressMaxThresholdBytes>(
+        dynamicEgressMaxThresholdBytes);
   }
 
-  std::optional<uint16_t> getPortLoadWeight() const {
-    if (auto portLoadWeight = get<switch_config_tags::portLoadWeight>()) {
-      return portLoadWeight->cref();
-    }
-    return std::nullopt;
+  uint32_t getDynamicEgressMaxThresholdBytes() const {
+    return get<switch_config_tags::dynamicEgressMaxThresholdBytes>()->cref();
   }
 
-  void setPortQueueWeight(std::optional<uint16_t> portQueueWeight) {
-    if (!portQueueWeight) {
-      ref<switch_config_tags::portQueueWeight>().reset();
-    } else {
-      set<switch_config_tags::portQueueWeight>(*portQueueWeight);
-    }
+  void setDynamicPhysicalQueueExponent(
+      const uint16_t dynamicPhysicalQueueExponent) {
+    set<switch_config_tags::dynamicPhysicalQueueExponent>(
+        dynamicPhysicalQueueExponent);
   }
 
-  std::optional<uint16_t> getPortQueueWeight() const {
-    if (auto portQueueWeight = get<switch_config_tags::portQueueWeight>()) {
-      return portQueueWeight->cref();
-    }
-    return std::nullopt;
+  uint16_t getDynamicPhysicalQueueExponent() const {
+    return get<switch_config_tags::dynamicPhysicalQueueExponent>()->cref();
   }
 
  private:

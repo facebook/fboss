@@ -38,4 +38,5 @@ struct PortHwStatsEntry {
   13: optional i64 inPausePackets;
   14: i64 ingressBytes;
   15: i64 egressBytes;
+  16: i64 inCongestionDiscards;
 }

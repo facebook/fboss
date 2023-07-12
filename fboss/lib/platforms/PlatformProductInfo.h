@@ -23,7 +23,7 @@ class PlatformProductInfo {
  public:
   explicit PlatformProductInfo(folly::StringPiece path);
 
-  void getInfo(ProductInfo& info) {
+  void getInfo(ProductInfo& info) const {
     info = productInfo_;
   }
   PlatformType getType() const {

@@ -109,6 +109,8 @@ struct PortFields {
   42: list<switch_config.PortNeighbor> expectedNeighborReachability;
   43: switch_config.PortDrainState drainState = switch_config.PortDrainState.UNDRAINED;
   44: optional string flowletConfigName;
+  45: optional PortFlowletFields flowletConfig;
+  46: optional ctrl.PortLedExternalState portLedExternalState;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -255,7 +257,7 @@ struct MirrorTunnel {
   4: string dstMac;
   5: optional i16 udpSrcPort;
   6: optional i16 udpDstPort;
-  7: i16 ttl = 255;
+  7: i16 ttl = 127;
 }
 
 struct MirrorFields {
@@ -325,6 +327,9 @@ struct SwitchSettingsFields {
   27: map<i64, switch_config.SwitchType> switchIdToSwitchType_DEPRECATED;
   28: switch_config.SwitchDrainState switchDrainState = switch_config.SwitchDrainState.UNDRAINED;
   29: map<i64, switch_config.SwitchInfo> switchIdToSwitchInfo;
+  30: optional i32 minLinksToRemainInVOQDomain;
+  31: optional i32 minLinksToJoinVOQDomain;
+  32: switch_config.SwitchDrainState desiredSwitchDrainState = switch_config.SwitchDrainState.UNDRAINED;
 }
 
 struct RoutePrefix {

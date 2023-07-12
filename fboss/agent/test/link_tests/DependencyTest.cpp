@@ -7,16 +7,15 @@ using namespace facebook::fboss;
 
 TEST_F(LinkTest, ecmpShrink) {
   auto setup = [this]() {
-    programDefaultRoute(
-        getVlanOwningCabledPorts(),
-        sw()->getPlatform_DEPRECATED()->getLocalMac());
+    const auto cabledPorts = getVlanOwningCabledPorts();
+    programDefaultRoute(cabledPorts, sw()->getLocalMac(scope(cabledPorts)));
   };
   auto verify = [this]() {
     auto ecmpPorts = getVlanOwningCabledPorts();
     EXPECT_NO_THROW(waitForAllCabledPorts(true));
     EXPECT_EQ(
         utility::getEcmpSizeInHw(
-            sw()->getHw(),
+            sw()->getHw_DEPRECATED(),
             {folly::IPAddress("::"), 0},
             RouterID(0),
             ecmpPorts.size()),
@@ -30,7 +29,7 @@ TEST_F(LinkTest, ecmpShrink) {
     EXPECT_NO_THROW(waitForLinkStatus(ports, false));
     EXPECT_EQ(
         utility::getEcmpSizeInHw(
-            sw()->getHw(),
+            sw()->getHw_DEPRECATED(),
             {folly::IPAddress("::"), 0},
             RouterID(0),
             ecmpPorts.size()),

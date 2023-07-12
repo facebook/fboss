@@ -31,6 +31,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/single/MonolithicHwSwitchHandler.h"
 
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
@@ -101,16 +102,16 @@ FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
 namespace facebook::fboss {
 
-void Initializer::start() {
+void MonolithicSwSwitchInitializer::start() {
   start(sw_);
 }
 
-void Initializer::start(HwSwitch::Callback* callback) {
-  std::thread t(&Initializer::initThread, this, callback);
+void MonolithicSwSwitchInitializer::start(HwSwitchCallback* callback) {
+  std::thread t(&MonolithicSwSwitchInitializer::initThread, this, callback);
   t.detach();
 }
 
-void Initializer::stopFunctionScheduler() {
+void MonolithicSwSwitchInitializer::stopFunctionScheduler() {
   std::unique_lock<std::mutex> lk(initLock_);
   initCondition_.wait(lk, [&] { return sw_->isFullyInitialized(); });
   if (fs_) {
@@ -118,12 +119,12 @@ void Initializer::stopFunctionScheduler() {
   }
 }
 
-void Initializer::waitForInitDone() {
+void MonolithicSwSwitchInitializer::waitForInitDone() {
   std::unique_lock<std::mutex> lk(initLock_);
   initCondition_.wait(lk, [&] { return sw_->isFullyInitialized(); });
 }
 
-void Initializer::initThread(HwSwitch::Callback* callback) {
+void MonolithicSwSwitchInitializer::initThread(HwSwitchCallback* callback) {
   try {
     initImpl(callback);
   } catch (const std::exception& ex) {
@@ -131,7 +132,7 @@ void Initializer::initThread(HwSwitch::Callback* callback) {
   }
 }
 
-SwitchFlags Initializer::setupFlags() {
+SwitchFlags MonolithicSwSwitchInitializer::setupFlags() {
   SwitchFlags flags = SwitchFlags::DEFAULT;
   if (FLAGS_enable_lacp) {
     flags |= SwitchFlags::ENABLE_LACP;
@@ -151,12 +152,13 @@ SwitchFlags Initializer::setupFlags() {
   return flags;
 }
 
-void Initializer::initImpl(HwSwitch::Callback* hwCallBack) {
+void MonolithicSwSwitchInitializer::initImpl(
+    HwSwitchCallback* hwSwitchCallback) {
   auto startTime = steady_clock::now();
   std::lock_guard<mutex> g(initLock_);
   // Initialize the switch.  This operation can take close to a minute
   // on some of our current platforms.
-  sw_->init(hwCallBack, nullptr, setupFlags());
+  sw_->init(hwSwitchCallback, nullptr, setupFlags());
 
   sw_->applyConfig("apply initial config");
   // Enable route update logging for all routes so that when we are told
@@ -232,7 +234,7 @@ void initFlagDefaults(const std::map<std::string, std::string>& defaults) {
   }
 }
 
-void AgentInitializer::createSwitch(
+void MonolithicAgentInitializer::createSwitch(
     int argc,
     char** argv,
     uint32_t hwFeaturesDesired,
@@ -268,30 +270,39 @@ void AgentInitializer::createSwitch(
   unique_ptr<Platform> platform =
       initPlatform(std::move(config), hwFeaturesDesired);
 
+  auto hwSwitchHandler =
+      std::make_unique<MonolinithicHwSwitchHandler>(std::move(platform));
+
   // Create the SwSwitch and thrift handler
-  sw_ = std::make_unique<SwSwitch>(std::move(platform));
-  initializer_ =
-      std::make_unique<Initializer>(sw_.get(), sw_->getPlatform_DEPRECATED());
+  sw_ = std::make_unique<SwSwitch>(std::move(hwSwitchHandler));
+  initializer_ = std::make_unique<MonolithicSwSwitchInitializer>(
+      sw_.get(), sw_->getPlatform_DEPRECATED());
 }
 
-int AgentInitializer::initAgent() {
+int MonolithicAgentInitializer::initAgent() {
   return initAgent(sw_.get());
 }
 
-int AgentInitializer::initAgent(HwSwitch::Callback* callback) {
-  auto handler =
-      std::shared_ptr<ThriftHandler>(platform()->createHandler(sw_.get()));
-  handler->setIdleTimeout(FLAGS_thrift_idle_timeout);
+int MonolithicAgentInitializer::initAgent(HwSwitchCallback* callback) {
+  std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
+      handlers{};
+  auto swHandler = std::make_shared<ThriftHandler>(sw_.get());
+  handlers.push_back(swHandler);
+  auto hwHandler = platform()->createHandler();
+  if (hwHandler) {
+    handlers.push_back(hwHandler);
+  }
+  swHandler->setIdleTimeout(FLAGS_thrift_idle_timeout);
   eventBase_ = new EventBase();
 
   // Start the thrift server
   server_ = setupThriftServer(
       *eventBase_,
-      handler,
+      handlers,
       {FLAGS_port, FLAGS_migrated_port},
       true /*setupSSL*/);
 
-  handler->setSSLPolicy(server_->getSSLPolicy());
+  swHandler->setSSLPolicy(server_->getSSLPolicy());
 
   // At this point, we are guaranteed no other agent process will initialize
   // the ASIC because such a process would have crashed attempting to bind to
@@ -315,7 +326,7 @@ int AgentInitializer::initAgent(HwSwitch::Callback* callback) {
   return 0;
 }
 
-void AgentInitializer::stopServices() {
+void MonolithicAgentInitializer::stopServices() {
   // stop Thrift server: stop all worker threads and
   // stop accepting new connections
   XLOG(DBG2) << "Stopping thrift server";
@@ -326,7 +337,7 @@ void AgentInitializer::stopServices() {
   fbossFinalize();
 }
 
-void AgentInitializer::stopAgent(bool setupWarmboot) {
+void MonolithicAgentInitializer::stopAgent(bool setupWarmboot) {
   stopServices();
   if (setupWarmboot) {
     sw_->gracefulExit();
@@ -349,7 +360,7 @@ int fbossMain(
     char** argv,
     uint32_t hwFeaturesDesired,
     PlatformInitFn initPlatform) {
-  AgentInitializer initializer;
+  MonolithicAgentInitializer initializer;
   initializer.createSwitch(argc, argv, hwFeaturesDesired, initPlatform);
   return initializer.initAgent();
 }

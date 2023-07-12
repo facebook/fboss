@@ -52,6 +52,7 @@ std::unique_ptr<std::vector<utility::EthFrame>> getFullHashedPackets(
       case cfg::AsicType::ASIC_TYPE_JERICHO2:
       case cfg::AsicType::ASIC_TYPE_JERICHO3:
       case cfg::AsicType::ASIC_TYPE_RAMON:
+      case cfg::AsicType::ASIC_TYPE_RAMON3:
         return nullptr;
     }
   } else {
@@ -76,6 +77,7 @@ std::unique_ptr<std::vector<utility::EthFrame>> getFullHashedPackets(
       case cfg::AsicType::ASIC_TYPE_JERICHO2:
       case cfg::AsicType::ASIC_TYPE_JERICHO3:
       case cfg::AsicType::ASIC_TYPE_RAMON:
+      case cfg::AsicType::ASIC_TYPE_RAMON3:
         return nullptr;
     }
   }

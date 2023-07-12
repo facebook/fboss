@@ -29,6 +29,8 @@ DEFINE_bool(
     true,
     "Enable route entry (ip-per-task/VIP) portion of Queue-per-host fix");
 
+DECLARE_bool(intf_nbr_tables);
+
 namespace {
 constexpr auto kQphMultiNextHopCounter = "qph.multinexthop.route";
 } // namespace
@@ -83,12 +85,18 @@ void LookupClassRouteUpdater::removeNextHopsForSubnet(
 
     if (vlanID == vlan->getID() && nextHop.inSubnet(ipAddress, mask)) {
       if (nextHop.isV6()) {
-        auto ndpEntry = vlan->getNdpTable()->getEntryIf(nextHop.asV6());
+        auto ndpEntry =
+            getNeighborTableForVlan<NdpTable>(
+                stateDelta.newState(), vlan->getID(), FLAGS_intf_nbr_tables)
+                ->getEntryIf(nextHop.asV6());
         if (ndpEntry) {
           processNeighborRemoved(stateDelta, vlan->getID(), ndpEntry);
         }
       } else if (nextHop.isV4()) {
-        auto arpEntry = vlan->getArpTable()->getEntryIf(nextHop.asV4());
+        auto arpEntry =
+            getNeighborTableForVlan<ArpTable>(
+                stateDelta.newState(), vlan->getID(), FLAGS_intf_nbr_tables)
+                ->getEntryIf(nextHop.asV4());
         if (arpEntry) {
           processNeighborRemoved(stateDelta, vlan->getID(), arpEntry);
         }
@@ -118,7 +126,9 @@ LookupClassRouteUpdater::getClassIDForLinkLocal(
    */
   auto mac = ipAddressV6.getMacAddressFromLinkLocal();
   if (!mac) {
-    auto ndpEntry = vlan->getNdpTable()->getNodeIf(ipAddressV6.str());
+    auto ndpEntry = getNeighborTableForVlan<NdpTable>(
+                        switchState, vlanID, FLAGS_intf_nbr_tables)
+                        ->getNodeIf(ipAddressV6.str());
     if (ndpEntry) {
       mac = ndpEntry->getMac();
     }
@@ -145,10 +155,14 @@ LookupClassRouteUpdater::getClassIDForNeighbor(
   }
 
   if (ipAddress.isV6()) {
-    auto ndpEntry = vlan->getNdpTable()->getEntryIf(ipAddress.asV6());
+    auto ndpEntry = getNeighborTableForVlan<NdpTable>(
+                        switchState, vlanID, FLAGS_intf_nbr_tables)
+                        ->getEntryIf(ipAddress.asV6());
     return ndpEntry ? ndpEntry->getClassID() : std::nullopt;
   } else if (ipAddress.isV4()) {
-    auto arpEntry = vlan->getArpTable()->getEntryIf(ipAddress.asV4());
+    auto arpEntry = getNeighborTableForVlan<ArpTable>(
+                        switchState, vlanID, FLAGS_intf_nbr_tables)
+                        ->getEntryIf(ipAddress.asV4());
     return arpEntry ? arpEntry->getClassID() : std::nullopt;
   }
 
@@ -1052,14 +1066,16 @@ void LookupClassRouteUpdater::processRouteRemoved(
       auto vlan = newState->getVlans()->getNodeIf(vlanID);
       if (vlan) {
         if (nextHop.addr().isV6()) {
-          auto ndpEntry =
-              vlan->getNdpTable()->getEntryIf(nextHop.addr().asV6());
+          auto ndpEntry = getNeighborTableForVlan<NdpTable>(
+                              newState, vlanID, FLAGS_intf_nbr_tables)
+                              ->getEntryIf(nextHop.addr().asV6());
           if (!ndpEntry) {
             nextHopAndVlan2Prefixes_.erase(it);
           }
         } else if (nextHop.addr().isV4()) {
-          auto arpEntry =
-              vlan->getArpTable()->getEntryIf(nextHop.addr().asV4());
+          auto arpEntry = getNeighborTableForVlan<ArpTable>(
+                              newState, vlanID, FLAGS_intf_nbr_tables)
+                              ->getEntryIf(nextHop.addr().asV4());
           if (!arpEntry) {
             nextHopAndVlan2Prefixes_.erase(it);
           }
@@ -1510,6 +1526,14 @@ void LookupClassRouteUpdater::processMacAddrsToBlockUpdates(
 }
 
 void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
+  // The current LookupClassRouteUpdater logic relies on VLANs, MAC learning
+  // callbacks etc. that are not supported on VOQ/Fabric switches. Thus, run
+  // this stateObserver for NPU switches only.
+  if (!sw_->getSwitchInfoTable().haveL3Switches() ||
+      sw_->getSwitchInfoTable().l3SwitchType() != cfg::SwitchType::NPU) {
+    return;
+  }
+
   /*
    * If FLAGS_queue_per_host_route_fix is false:
    *  - if inited_ is false i.e. first call to this state observer, disable

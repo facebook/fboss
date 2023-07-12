@@ -7,11 +7,41 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/test/HwTestEcmpUtils.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
+#include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
-#include "fboss/qsfp_service/lib/QsfpCache.h"
+
+#include "fboss/agent/platforms/common/PlatformMapping.h"
 
 using namespace ::testing;
 using namespace facebook::fboss;
+
+namespace {
+bool isEqual(
+    const TransceiverIdxThrift& left,
+    const TransceiverIdxThrift& right) {
+  auto getChannelId = [](const TransceiverIdxThrift& idx) {
+    if (!idx.channelId().has_value()) {
+      return std::optional<int32_t>();
+    }
+    return std::make_optional(static_cast<int>(*idx.channelId()));
+  };
+
+  auto getChannels = [](const TransceiverIdxThrift& idx) {
+    std::set<int32_t> channels;
+    if (!idx.channels().has_value()) {
+      return channels;
+    }
+    for (auto channel : *idx.channels()) {
+      channels.insert(channel);
+    }
+    return channels;
+  };
+
+  return *left.transceiverId() == *right.transceiverId() &&
+      getChannelId(left) == getChannelId(right) &&
+      getChannels(left) == getChannels(right);
+}
+} // namespace
 
 // Tests that the link comes up after a flap on the ASIC
 TEST_F(LinkTest, asicLinkFlap) {
@@ -45,8 +75,18 @@ TEST_F(LinkTest, getTransceivers) {
       for (const auto& port : ports) {
         auto transceiverId =
             platform()->getPlatformPort(port)->getTransceiverID().value();
-        EXPECT_EVENTUALLY_TRUE(platform()->getQsfpCache()->getIf(transceiverId))
-            << "TcvrId " << transceiverId;
+        auto transceiverSpec = utility::getTransceiverSpec(sw(), port);
+        EXPECT_EVENTUALLY_TRUE(transceiverSpec) << "TcvrId " << transceiverId;
+      }
+    })
+
+    WITH_RETRIES({
+      auto ports = getCabledPorts();
+      for (const auto& port : ports) {
+        auto speed = sw()->getState()->getPorts()->getNode(port)->getSpeed();
+        auto transceiverIndx0 = platform()->getPortMapping(port, speed);
+        auto transceiverIndx1 = sw()->getTransceiverIdxThrift(port);
+        EXPECT_EVENTUALLY_TRUE(isEqual(transceiverIndx0, transceiverIndx1));
       }
     })
   };
@@ -78,7 +118,7 @@ TEST_F(LinkTest, warmbootIsHitLess) {
         auto ecmpSizeInSw = getVlanOwningCabledPorts().size();
         EXPECT_EQ(
             utility::getEcmpSizeInHw(
-                sw()->getHw(),
+                sw()->getHw_DEPRECATED(),
                 {folly::IPAddress("::"), 0},
                 RouterID(0),
                 ecmpSizeInSw),
@@ -107,7 +147,7 @@ TEST_F(LinkTest, qsfpWarmbootIsHitLess) {
         auto ecmpSizeInSw = getVlanOwningCabledPorts().size();
         EXPECT_EQ(
             utility::getEcmpSizeInHw(
-                sw()->getHw(),
+                sw()->getHw_DEPRECATED(),
                 {folly::IPAddress("::"), 0},
                 RouterID(0),
                 ecmpSizeInSw),
@@ -146,7 +186,7 @@ TEST_F(LinkTest, ptpEnableIsHitless) {
   auto ecmpSizeInSw = getVlanOwningCabledPorts().size();
   EXPECT_EQ(
       utility::getEcmpSizeInHw(
-          sw()->getHw(),
+          sw()->getHw_DEPRECATED(),
           {folly::IPAddress("::"), 0},
           RouterID(0),
           ecmpSizeInSw),

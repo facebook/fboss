@@ -202,11 +202,18 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 HwSwitchMatcher SwitchIdScopeResolver::scope(
     const std::shared_ptr<Interface>& intf,
     const cfg::SwitchConfig& cfg) const {
-  switch (intf->getType()) {
+  return scope(intf->getType(), intf->getID(), cfg);
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const cfg::InterfaceType& type,
+    const InterfaceID& interfaceId,
+    const cfg::SwitchConfig& cfg) const {
+  switch (type) {
     case cfg::InterfaceType::SYSTEM_PORT:
-      return scope(SystemPortID(static_cast<int64_t>(intf->getID())));
+      return scope(SystemPortID(static_cast<int64_t>(interfaceId)));
     case cfg::InterfaceType::VLAN: {
-      int vlanId(static_cast<int>(intf->getID()));
+      int vlanId(static_cast<int>(interfaceId));
       auto vitr = std::find_if(
           cfg.vlans()->cbegin(),
           cfg.vlans()->cend(),
@@ -223,8 +230,7 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
       return scope(std::make_shared<Vlan>(&*vitr, vlanMembers));
     }
   }
-  throw FbossError(
-      "Unexpected interface type: ", static_cast<int>(intf->getType()));
+  throw FbossError("Unexpected interface type: ", static_cast<int>(type));
 }
 
 HwSwitchMatcher SwitchIdScopeResolver::scope(

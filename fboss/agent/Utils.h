@@ -278,12 +278,23 @@ template <typename NeighborEntryT>
 std::shared_ptr<NeighborEntryT> getNeighborEntryForIP(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& intf,
-    const folly::IPAddress& ipAddr);
+    const folly::IPAddress& ipAddr,
+    bool use_intf_nbr_tables);
 
 template <typename NeighborEntryT>
 std::shared_ptr<NeighborEntryT> getNeighborEntryForIPAndIntf(
     const std::shared_ptr<Interface>& intf,
     const folly::IPAddress& ipAddr);
+
+template <typename VlanOrIntfT>
+std::optional<VlanID> getVlanIDFromVlanOrIntf(
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf);
+
+template <typename NTableT>
+std::shared_ptr<NTableT> getNeighborTableForVlan(
+    const std::shared_ptr<SwitchState>& state,
+    VlanID vlanID,
+    bool use_intf_nbr_tables);
 
 class OperDeltaFilter {
  public:

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <fboss/thrift_cow/visitors/DeltaVisitor.h>
 #include <fboss/thrift_storage/CowStorage.h>
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
@@ -22,6 +23,39 @@ OperDeltaUnit buildOperDeltaUnit(
     unit.newState() = newNode->encode(protocol);
   }
   return unit;
+}
+
+OperDelta createDelta(std::vector<OperDeltaUnit>&& deltaUnits);
+
+template <typename Node>
+fsdb::OperDelta computeOperDelta(
+    const std::shared_ptr<Node>& oldNode,
+    const std::shared_ptr<Node>& newNode,
+    const std::vector<std::string>& basePath,
+    bool outputIdPaths = false) {
+  std::vector<fsdb::OperDeltaUnit> operDeltaUnits{};
+
+  auto processDelta = [basePath, &operDeltaUnits](
+                          const std::vector<std::string>& path,
+                          auto oldNode,
+                          auto newNode,
+                          thrift_cow::DeltaElemTag /* visitTag */) {
+    std::vector<std::string> fullPath;
+    fullPath.reserve(basePath.size() + path.size());
+    fullPath.insert(fullPath.end(), basePath.begin(), basePath.end());
+    fullPath.insert(fullPath.end(), path.begin(), path.end());
+    // TODO: metadata
+    operDeltaUnits.push_back(buildOperDeltaUnit(
+        fullPath, oldNode, newNode, fsdb::OperProtocol::BINARY));
+  };
+
+  thrift_cow::RootDeltaVisitor::visit(
+      oldNode,
+      newNode,
+      thrift_cow::DeltaVisitOptions(
+          thrift_cow::DeltaVisitMode::MINIMAL, outputIdPaths),
+      std::move(processDelta));
+  return createDelta(std::move(operDeltaUnits));
 }
 
 } // namespace facebook::fboss::fsdb

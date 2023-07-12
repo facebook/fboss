@@ -540,6 +540,13 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getHwPortStats) {
   handler.getHwPortStats(hwPortStats);
 }
 
+TYPED_TEST(ThriftTestAllSwitchTypes, getFabricReachabilityStats) {
+  ThriftHandler handler(this->sw_);
+  FabricReachabilityStats stats;
+  EXPECT_HW_CALL(this->sw_, getFabricReachabilityStats()).Times(1);
+  handler.getFabricReachabilityStats(stats);
+}
+
 TYPED_TEST(ThriftTestAllSwitchTypes, getCpuPortStats) {
   ThriftHandler handler(this->sw_);
   CpuPortStats cpuPortStats;
@@ -626,6 +633,17 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getDsfSubscriptions) {
     EXPECT_EQ(*subscriptions[0].name(), *dsfNodeCfg.name());
     EXPECT_EQ((*subscriptions[0].paths()).size(), 2);
     EXPECT_EQ(*subscriptions[0].state(), "DISCONNECTED");
+  }
+}
+
+TYPED_TEST(ThriftTestAllSwitchTypes, getDsfSubscriptionClientId) {
+  ThriftHandler handler(this->sw_);
+  std::string ret;
+  if (this->isNpu() || this->isFabric()) {
+    EXPECT_THROW(handler.getDsfSubscriptionClientId(ret), FbossError);
+  } else {
+    handler.getDsfSubscriptionClientId(ret);
+    EXPECT_TRUE(ret.find(":agent:") != std::string::npos);
   }
 }
 
@@ -2246,6 +2264,17 @@ TEST_F(ThriftTest, setLoopbackMode) {
     EXPECT_EQ(port2LoopbackMode.find(firstPort)->second, lbMode);
     otherPortsUnchanged();
   }
+}
+
+TEST_F(ThriftTest, programLedExternalState) {
+  ThriftHandler handler(sw_);
+  auto firstPort =
+      sw_->getState()->getPorts()->cbegin()->second->cbegin()->second->getID();
+  handler.setExternalLedState(
+      firstPort, PortLedExternalState::EXTERNAL_FORCE_ON);
+  auto port = sw_->getState()->getPorts()->getNode(firstPort);
+  EXPECT_EQ(
+      port->getLedPortExternalState(), PortLedExternalState::EXTERNAL_FORCE_ON);
 }
 
 TEST_F(ThriftTest, programInternalPhyPorts) {

@@ -131,12 +131,14 @@ void IPv6Handler::intfDeleted(const Interface* intf) {
   CHECK_EQ(numErased, 1);
 }
 
+template <typename VlanOrIntfT>
 void IPv6Handler::handlePacket(
     unique_ptr<RxPacket> pkt,
     MacAddress dst,
     MacAddress src,
-    Cursor cursor) {
-  auto vlanID = pkt->getSrcVlanIf();
+    Cursor cursor,
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
+  auto vlanID = getVlanIDFromVlanOrIntf(vlanOrIntf);
   auto vlanIDStr = vlanID.has_value()
       ? folly::to<std::string>(static_cast<int>(vlanID.value()))
       : "None";
@@ -168,7 +170,7 @@ void IPv6Handler::handlePacket(
                << " destination port: " << udpHdr.dstPort;
     if (DHCPv6Handler::isForDHCPv6RelayOrServer(udpHdr)) {
       DHCPv6Handler::handlePacket(
-          sw_, std::move(pkt), src, dst, ipv6, udpHdr, udpCursor);
+          sw_, std::move(pkt), src, dst, ipv6, udpHdr, udpCursor, vlanOrIntf);
       return;
     }
   }
@@ -248,7 +250,8 @@ void IPv6Handler::handlePacket(
       return;
     }
     if (ipv6.nextHeader == static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP)) {
-      pkt = handleICMPv6Packet(std::move(pkt), dst, src, ipv6, cursor);
+      pkt = handleICMPv6Packet(
+          std::move(pkt), dst, src, ipv6, cursor, vlanOrIntf);
       if (pkt == nullptr) {
         // packet has been handled
         return;
@@ -273,12 +276,30 @@ void IPv6Handler::handlePacket(
   }
 }
 
+// Explicit instantiation to avoid linker errors
+// https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
+template void IPv6Handler::handlePacket<Vlan>(
+    unique_ptr<RxPacket> pkt,
+    MacAddress dst,
+    MacAddress src,
+    Cursor cursor,
+    const std::shared_ptr<Vlan>& vlanOrIntf);
+
+template void IPv6Handler::handlePacket<Interface>(
+    unique_ptr<RxPacket> pkt,
+    MacAddress dst,
+    MacAddress src,
+    Cursor cursor,
+    const std::shared_ptr<Interface>& vlanOrIntf);
+
+template <typename VlanOrIntfT>
 unique_ptr<RxPacket> IPv6Handler::handleICMPv6Packet(
     unique_ptr<RxPacket> pkt,
     MacAddress dst,
     MacAddress src,
     const IPv6Hdr& ipv6,
-    Cursor cursor) {
+    Cursor cursor,
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
   ICMPHdr icmp6(cursor); // note: advances our cursor object
 
   // Validate the checksum, and drop the packet if it is not valid
@@ -298,10 +319,10 @@ unique_ptr<RxPacket> IPv6Handler::handleICMPv6Packet(
       handleRouterAdvertisement(std::move(pkt), hdr, cursor);
       return nullptr;
     case ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION:
-      handleNeighborSolicitation(std::move(pkt), hdr, cursor);
+      handleNeighborSolicitation(std::move(pkt), hdr, cursor, vlanOrIntf);
       return nullptr;
     case ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT:
-      handleNeighborAdvertisement(std::move(pkt), hdr, cursor);
+      handleNeighborAdvertisement(std::move(pkt), hdr, cursor, vlanOrIntf);
       return nullptr;
     case ICMPv6Type::ICMPV6_TYPE_NDP_REDIRECT_MESSAGE:
       sw_->portStats(pkt)->ipv6NdpPkt();
@@ -319,7 +340,6 @@ void IPv6Handler::handleRouterSolicitation(
     unique_ptr<RxPacket> pkt,
     const ICMPHeaders& hdr,
     Cursor cursor) {
-  auto vlanID = pkt->getSrcVlanIf();
   sw_->portStats(pkt)->ipv6NdpPkt();
   if (!checkNdpPacket(hdr, pkt.get())) {
     return;
@@ -327,15 +347,8 @@ void IPv6Handler::handleRouterSolicitation(
 
   cursor.skip(4); // 4 reserved bytes
 
-  auto state = sw_->getState();
-  auto vlan = state->getVlans()->getNodeIf(sw_->getVlanIDHelper(vlanID));
-  if (!vlan) {
-    sw_->portStats(pkt)->pktDropped();
-    return;
-  }
-
   auto intfID = sw_->getState()->getInterfaceIDForPort(pkt->getSrcPort());
-  auto intf = state->getInterfaces()->getNodeIf(intfID);
+  auto intf = sw_->getState()->getInterfaces()->getNodeIf(intfID);
   if (!intf) {
     sw_->portStats(pkt)->pktDropped();
     return;
@@ -396,11 +409,13 @@ void IPv6Handler::handleRouterAdvertisement(
   sw_->portStats(pkt)->pktDropped();
 }
 
+template <typename VlanOrIntfT>
 void IPv6Handler::handleNeighborSolicitation(
     unique_ptr<RxPacket> pkt,
     const ICMPHeaders& hdr,
-    Cursor cursor) {
-  auto vlanID = pkt->getSrcVlanIf();
+    Cursor cursor,
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
+  auto vlanID = getVlanIDFromVlanOrIntf(vlanOrIntf);
   auto vlanIDStr = vlanID.has_value()
       ? folly::to<std::string>(static_cast<int>(vlanID.value()))
       : "None";
@@ -422,11 +437,10 @@ void IPv6Handler::handleNeighborSolicitation(
   XLOG(DBG4) << "got neighbor solicitation for " << targetIP.str();
 
   auto state = sw_->getState();
-  auto vlan = state->getVlans()->getNodeIf(sw_->getVlanIDHelper(vlanID));
-  if (!vlan) {
-    // Hmm, we don't actually have this VLAN configured.
-    // Perhaps the state has changed since we received the packet.
-    XLOG(DBG5) << "invalid vlan " << vlan << ", drop the packet";
+
+  if (!vlanOrIntf) {
+    XLOG(DBG5) << "invalid vlan or interface " << vlanOrIntf->getID()
+               << ", drop the packet";
     sw_->portStats(pkt)->pktDropped();
     return;
   }
@@ -442,7 +456,6 @@ void IPv6Handler::handleNeighborSolicitation(
     return;
   }
 
-  auto updater = sw_->getNeighborUpdater();
   auto type = ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION;
 
   if ((!ndpOptions.sourceLinkLayerAddress.has_value() &&
@@ -467,7 +480,7 @@ void IPv6Handler::handleNeighborSolicitation(
     return;
   }
 
-  auto entry = vlan->getNdpResponseTable()->getEntry(targetIP);
+  auto entry = vlanOrIntf->getNdpResponseTable()->getEntry(targetIP);
   auto srcPortDescriptor = PortDescriptor::fromRxPacket(*pkt.get());
   if (ndpOptions.sourceLinkLayerAddress.has_value()) {
     /* rfc 4861 - if the source address is not the unspecified address and,
@@ -477,8 +490,8 @@ void IPv6Handler::handleNeighborSolicitation(
     */
     if (!entry) {
       // if this IP address not is in NDP response table.
-      updater->receivedNdpNotMine(
-          vlan->getID(),
+      receivedNdpNotMine(
+          vlanOrIntf,
           hdr.ipv6->srcAddr,
           ndpOptions.sourceLinkLayerAddress.value(),
           srcPortDescriptor,
@@ -487,8 +500,8 @@ void IPv6Handler::handleNeighborSolicitation(
       return;
     }
 
-    updater->receivedNdpMine(
-        vlan->getID(),
+    receivedNdpMine(
+        vlanOrIntf,
         hdr.ipv6->srcAddr,
         ndpOptions.sourceLinkLayerAddress.value(),
         srcPortDescriptor,
@@ -509,15 +522,12 @@ void IPv6Handler::handleNeighborSolicitation(
       srcPortDescriptor);
 }
 
+template <typename VlanOrIntfT>
 void IPv6Handler::handleNeighborAdvertisement(
     unique_ptr<RxPacket> pkt,
     const ICMPHeaders& hdr,
-    Cursor cursor) {
-  auto vlanID = pkt->getSrcVlanIf();
-  auto vlanIDStr = vlanID.has_value()
-      ? folly::to<std::string>(static_cast<int>(vlanID.value()))
-      : "None";
-
+    Cursor cursor,
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
   sw_->portStats(pkt)->ipv6NdpPkt();
   if (!checkNdpPacket(hdr, pkt.get())) {
     return;
@@ -545,9 +555,7 @@ void IPv6Handler::handleNeighborAdvertisement(
     return;
   }
 
-  auto state = sw_->getState();
-  auto vlan = state->getVlans()->getNodeIf(sw_->getVlanIDHelper(vlanID));
-  if (!vlan) {
+  if (!vlanOrIntf) {
     // Hmm, we don't actually have this VLAN configured.
     // Perhaps the state has changed since we received the packet.
     sw_->portStats(pkt)->pktDropped();
@@ -557,14 +565,13 @@ void IPv6Handler::handleNeighborAdvertisement(
   XLOG(DBG4) << "got neighbor advertisement for " << targetIP << " ("
              << targetMac << ")";
 
-  auto updater = sw_->getNeighborUpdater();
   auto type = ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT;
 
   // Check to see if this IP address is in our NDP response table.
-  auto entry = vlan->getNdpResponseTable()->getEntry(hdr.ipv6->dstAddr);
+  auto entry = vlanOrIntf->getNdpResponseTable()->getEntry(hdr.ipv6->dstAddr);
   if (!entry) {
-    updater->receivedNdpNotMine(
-        vlan->getID(),
+    receivedNdpNotMine(
+        vlanOrIntf,
         targetIP,
         hdr.src,
         PortDescriptor::fromRxPacket(*pkt.get()),
@@ -573,8 +580,8 @@ void IPv6Handler::handleNeighborAdvertisement(
     return;
   }
 
-  updater->receivedNdpMine(
-      vlan->getID(),
+  receivedNdpMine(
+      vlanOrIntf,
       targetIP,
       hdr.src,
       PortDescriptor::fromRxPacket(*pkt.get()),
@@ -884,20 +891,15 @@ void IPv6Handler::resolveDestAndHandlePacket(
         return;
       } else {
         // Check if destination is unknown, in which case trigger NDP
-        auto entry = getNeighborEntryForIP<NdpEntry>(state, intf, target);
+        auto entry = getNeighborEntryForIP<NdpEntry>(
+            state, intf, target, FLAGS_intf_nbr_tables);
 
         if (nullptr == entry) {
           // No entry in NDP table, create a neighbor solicitation packet
           sendMulticastNeighborSolicitation(
               sw_, target, intf->getMac(), intf->getVlanIDIf());
           // Notify the updater that we sent a solicitation out
-          if (FLAGS_intf_nbr_tables) {
-            sw_->getNeighborUpdater()->sentNeighborSolicitationForIntf(
-                intf->getID(), target);
-          } else {
-            sw_->getNeighborUpdater()->sentNeighborSolicitation(
-                sw_->getVlanIDHelper(vlanID), target);
-          }
+          sw_->sentNeighborSolicitation(intf, target);
         } else {
           XLOG(DBG5) << "not sending neighbor solicitation for " << target.str()
                      << ", " << ((entry->isPending()) ? "pending" : "")
@@ -1064,4 +1066,43 @@ void IPv6Handler::sendNeighborSolicitation(
       serializeBody);
   sw->sendNetworkControlPacketAsync(std::move(pkt), portDescriptor);
 }
+
+template <typename VlanOrIntfT>
+void IPv6Handler::receivedNdpNotMine(
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf,
+    IPAddressV6 ip,
+    MacAddress macAddr,
+    PortDescriptor port,
+    ICMPv6Type type,
+    uint32_t flags) {
+  auto updater = sw_->getNeighborUpdater();
+  if constexpr (std::is_same_v<VlanOrIntfT, Vlan>) {
+    updater->receivedNdpNotMine(
+        vlanOrIntf->getID(), ip, macAddr, port, type, flags);
+
+  } else {
+    updater->receivedNdpNotMineForIntf(
+        vlanOrIntf->getID(), ip, macAddr, port, type, flags);
+  }
+}
+
+template <typename VlanOrIntfT>
+void IPv6Handler::receivedNdpMine(
+    const std::shared_ptr<VlanOrIntfT>& vlanOrIntf,
+    IPAddressV6 ip,
+    MacAddress macAddr,
+    PortDescriptor port,
+    ICMPv6Type type,
+    uint32_t flags) {
+  auto updater = sw_->getNeighborUpdater();
+  if constexpr (std::is_same_v<VlanOrIntfT, Vlan>) {
+    updater->receivedNdpMine(
+        vlanOrIntf->getID(), ip, macAddr, port, type, flags);
+
+  } else {
+    updater->receivedNdpMineForIntf(
+        vlanOrIntf->getID(), ip, macAddr, port, type, flags);
+  }
+}
+
 } // namespace facebook::fboss

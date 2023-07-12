@@ -7,6 +7,7 @@
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/fsdb/common/Utils.h"
 
 namespace facebook::fboss {
 
@@ -48,10 +49,11 @@ struct BenchmarkHelperForRouteScale {
       state = helper.getState();                                    \
     }                                                               \
     for (size_t n = 0; n < numIters; ++n) {                         \
-      computeOperDelta(                                             \
+      fsdb::computeOperDelta(                                       \
           std::make_shared<SwitchState>(),                          \
           state,                                                    \
-          fsdbAgentDataSwitchStateRootPath());                      \
+          fsdbAgentDataSwitchStateRootPath(),                       \
+          true);                                                    \
     }                                                               \
   }
 

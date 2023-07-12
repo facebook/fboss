@@ -3,6 +3,8 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+if(BUILD_FBOSS_CLI)
+
 add_fbthrift_cpp_library(
   cli_model
   fboss/cli/fboss2/cli.thrift
@@ -324,14 +326,14 @@ add_executable(fboss2
   fboss/cli/fboss2/utils/CmdUtils.cpp
   fboss/cli/fboss2/utils/CLIParserUtils.cpp
   fboss/cli/fboss2/utils/CmdClientUtils.cpp
-  fboss/cli/fboss2/utils/CmdCommonUtils.cpp
+  fboss/cli/fboss2/utils/CmdUtilsCommon.cpp
   fboss/cli/fboss2/utils/Table.cpp
   fboss/cli/fboss2/utils/HostInfo.h
   fboss/cli/fboss2/utils/FilterOp.h
   fboss/cli/fboss2/utils/AggregateOp.h
   fboss/cli/fboss2/utils/AggregateUtils.h
   fboss/cli/fboss2/utils/CmdClientUtilsCommon.h
-  fboss/cli/fboss2/utils/CmdCommonUtils.h
+  fboss/cli/fboss2/utils/CmdUtilsCommon.h
   fboss/cli/fboss2/utils/FilterUtils.h
   fboss/cli/fboss2/utils/PrbsUtils.cpp
   fboss/cli/fboss2/utils/oss/CmdClientUtils.cpp
@@ -349,6 +351,7 @@ target_link_libraries(fboss2
   phy_cpp2
   hardware_stats_cpp2
   mka_structs_cpp2
+  fsdb_cpp2
   fsdb_oper_cpp2
   Folly::folly
   cli_model
@@ -413,3 +416,5 @@ add_library(tabulate
 set_target_properties(tabulate PROPERTIES LINKER_LANGUAGE CXX)
 
 install(TARGETS fboss2)
+
+endif()

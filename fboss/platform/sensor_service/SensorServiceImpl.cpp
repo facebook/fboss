@@ -41,7 +41,9 @@ const std::string kSensorFieldName = "name";
 
 const std::string kLmsensorCommand = "sensors -j";
 
-auto constexpr kSensorReadFailure = "sensor_read.{}.failure";
+auto constexpr kReadFailure = "sensor_read.{}.failure";
+auto constexpr kTotalReadFailure = "sensor_read.total.failures";
+auto constexpr kHasReadFailure = "sensor_read.has.failures";
 
 } // namespace
 namespace facebook::fboss::platform::sensor_service {
@@ -52,7 +54,7 @@ void SensorServiceImpl::init() {
   // Check if conf file name is set, if not, set the default name
   if (confFileName_.empty()) {
     XLOG(INFO) << "No config file was provided. Inferring from config_lib";
-    sensorConfJson = config_lib::getSensorServiceConfig();
+    sensorConfJson = ConfigLib().getSensorServiceConfig();
   } else {
     XLOG(INFO) << "Using config file: " << confFileName_;
     if (!folly::readFile(confFileName_.c_str(), sensorConfJson)) {
@@ -213,6 +215,7 @@ void SensorServiceImpl::fetchSensorData() {
 void SensorServiceImpl::getSensorDataFromPath() {
   liveDataTable_.withWLock([&](auto& liveDataTable) {
     auto now = helpers::nowInSecs();
+    auto readFailures{0};
     for (auto& [sensorName, sensorLiveData] : liveDataTable) {
       std::string sensorValue;
       if (folly::readFile(sensorLiveData.path.c_str(), sensorValue)) {
@@ -227,17 +230,18 @@ void SensorServiceImpl::getSensorDataFromPath() {
             sensorName,
             sensorLiveData.path,
             sensorLiveData.value);
-        fb303::fbData->setCounter(
-            fmt::format(kSensorReadFailure, sensorName), 0);
+        fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 0);
       } else {
         XLOG(INFO) << fmt::format(
             "Could not read data for {} from {}",
             sensorName,
             sensorLiveData.path);
-        fb303::fbData->setCounter(
-            fmt::format(kSensorReadFailure, sensorName), 1);
+        fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 1);
+        readFailures++;
       }
     }
+    fb303::fbData->setCounter(kTotalReadFailure, readFailures);
+    fb303::fbData->setCounter(kHasReadFailure, readFailures > 0 ? 1 : 0);
   });
 }
 

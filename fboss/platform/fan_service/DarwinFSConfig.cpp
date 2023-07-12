@@ -18,57 +18,60 @@ std::string getDarwinFSConfig() {
   "pwm_percent_lower_limit" : 24,
   "pwm_percent_upper_limit" : 100,
   "shutdown_command" : "wedge_power reset -s",
-  "optics" : {
-    "qsfp_group_1" : {
-      "instance" : "all",
-      "aggregation" : "max",
+  "optics" : [
+    {
+      "opticName" : "qsfp_group_1",
       "access" : {
-        "source" : "qsfp_service"
+        "accessType" : 5
       },
-      "speed_100" : [
-        [5, 24],
-        [38, 26],
-        [40, 28],
-        [41, 30],
-        [42, 32],
-        [44, 34],
-        [45, 36],
-        [48, 38],
-        [49, 40],
-        [52, 44],
-        [53, 46],
-        [54, 50]
-      ],
-      "speed_200" : [
-        [5, 26],
-        [43, 28],
-        [45, 30],
-        [47, 32],
-        [49, 34],
-        [50, 36],
-        [54, 40],
-        [56, 44],
-        [58, 46],
-        [61, 50]
-      ],
-      "speed_400" : [
-        [5, 36],
-        [59, 40],
-        [62, 42],
-        [66, 46],
-        [67, 48],
-        [68, 50],
-        [71, 52],
-        [73, 55],
-        [74, 60]
-      ]
+      "portList" : [],
+      "aggregationType" : 0,
+      "tempToPwmMaps" : {
+        "0" : {
+          "5" : 24,
+          "38" : 26,
+          "40" : 28,
+          "41" : 30,
+          "42" : 32,
+          "44" : 34,
+          "45" : 36,
+          "48" : 38,
+          "49" : 40,
+          "52" : 44,
+          "53" : 46,
+          "54" : 50
+        },
+        "1" : {
+          "5" : 26,
+          "43" : 28,
+          "45" : 30,
+          "47" : 32,
+          "49" : 34,
+          "50" : 36,
+          "54" : 40,
+          "56" : 44,
+          "58" : 46,
+          "61" : 50
+        },
+        "2" : {
+          "5" : 36,
+          "59" : 40,
+          "62" : 42,
+          "66" : 46,
+          "67" : 48,
+          "68" : 50,
+          "71" : 52,
+          "73" : 55,
+          "74" : 60
+        }
+      }
     }
-  },
+  ],
   "sensors" : {
     "SC_TH3_DIODE1_TEMP" : {
       "scale" : 1000.0,
       "access" : {
-        "source" : "thrift"
+        "accessType" : 2
       },
       "adjustment" : [
         [0,0]
@@ -91,15 +94,15 @@ std::string getDarwinFSConfig() {
         [110, 100]
       ],
       "alarm" : {
-        "alarm_major" : 105.0,
-        "alarm_minor" : 90.0,
-        "alarm_minor_soak" : 15
+        "highMajor" : 105.0,
+        "highMinor" : 90.0,
+        "minorSoakSeconds" : 15
       }
     },
     "SC_TH3_DIODE2_TEMP" : {
       "scale" : 1000.0,
       "access" : {
-        "source" : "thrift"
+        "accessType" : 2
       },
       "adjustment" : [
         [0,0]
@@ -122,153 +125,160 @@ std::string getDarwinFSConfig() {
         [110, 100]
       ],
       "alarm" : {
-        "alarm_major" : 105.0,
-        "alarm_minor" : 90.0,
-        "alarm_minor_soak" : 15
+        "highMajor" : 105.0,
+        "highMinor" : 90.0,
+        "minorSoakSeconds" : 15
       }
     }
   },
-  "fans" : {
-    "fan_1" : {
-      "rpm" : {
-        "source" : "sysfs",
+  "fans" : [
+    {
+      "fanName" : "fan_1",
+      "rpmAccess" : {
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan1_input"
       },
-      "pwm" : {
-        "source" : "sysfs",
+      "pwmAccess" : {
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/pwm1"
       },
-      "pwm_range_min" : 1,
-      "pwm_range_max" : 255,
-      "presence" : {
-        "source" : "sysfs",
+      "presenceAccess" : {
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan1_present"
       },
-      "fan_present_val" : 1,
-      "fan_missing_val" : 0,
-      "led" : {
-        "source" : "sysfs",
+      "ledAccess" : {
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan1_led"
       },
-      "fan_good_led_val" : 2,
-      "fan_fail_led_val" : 1
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 2,
+      "fanFailLedVal" : 1
     },
-    "fan_2" : {
-      "rpm" : {
-        "source" : "sysfs",
+    {
+      "fanName" : "fan_2",
+      "rpmAccess" : {
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan2_input"
       },
-      "pwm" : {
-        "source" : "sysfs",
+      "pwmAccess" : {
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/pwm2"
       },
-      "pwm_range_min" : 1,
-      "pwm_range_max" : 255,
-      "presence" : {
-        "source" : "sysfs",
+      "presenceAccess" : {
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan2_present"
       },
-      "fan_present_val" : 1,
-      "fan_missing_val" : 0,
-      "led" : {
-        "source" : "sysfs",
+      "ledAccess" : {
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan2_led"
       },
-      "fan_good_led_val" : 2,
-      "fan_fail_led_val" : 1
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 2,
+      "fanFailLedVal" : 1
     },
-    "fan_3" : {
-      "rpm" : {
-        "source" : "sysfs",
+    {
+      "fanName" : "fan_3",
+      "rpmAccess" : {
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan3_input"
       },
-      "pwm" : {
-        "source" : "sysfs",
+      "pwmAccess" : {
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/pwm3"
       },
-      "pwm_range_min" : 1,
-      "pwm_range_max" : 255,
-      "presence" : {
-        "source" : "sysfs",
+      "presenceAccess" : {
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan3_present"
       },
-      "fan_present_val" : 1,
-      "fan_missing_val" : 0,
-      "led" : {
-        "source" : "sysfs",
+      "ledAccess" : {
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan3_led"
       },
-      "fan_good_led_val" : 2,
-      "fan_fail_led_val" : 1
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 2,
+      "fanFailLedVal" : 1
     },
-    "fan_4" : {
-      "rpm" : {
-        "source" : "sysfs",
+    {
+      "fanName" : "fan_4",
+      "rpmAccess" : {
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan4_input"
       },
-      "pwm" : {
-        "source" : "sysfs",
+      "pwmAccess" : {
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/pwm4"
       },
-      "pwm_range_min" : 1,
-      "pwm_range_max" : 255,
-      "presence" : {
-        "source" : "sysfs",
+      "presenceAccess" : {
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan4_present"
       },
-      "fan_present_val" : 1,
-      "fan_missing_val" : 0,
-      "led" : {
-        "source" : "sysfs",
+      "ledAccess" : {
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan4_led"
       },
-      "fan_good_led_val" : 2,
-      "fan_fail_led_val" : 1
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 2,
+      "fanFailLedVal" : 1
     },
-    "fan_5" : {
-      "rpm" : {
-        "source" : "sysfs",
+    {
+      "fanName" : "fan_5",
+      "rpmAccess" : {
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan5_input"
       },
-      "pwm" : {
-        "source" : "sysfs",
+      "pwmAccess" : {
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/pwm5"
       },
-      "pwm_range_min" : 1,
-      "pwm_range_max" : 255,
-      "presence" : {
-        "source" : "sysfs",
+      "presenceAccess" : {
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan5_present"
       },
-      "fan_present_val" : 1,
-      "fan_missing_val" : 0,
-      "led" : {
-        "source" : "sysfs",
+      "ledAccess" : {
+        "accessType" : 0,
         "path" : "/run/devmap/sensors/FAN_CPLD/fan5_led"
       },
-      "fan_good_led_val" : 2,
-      "fan_fail_led_val" : 1
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 2,
+      "fanFailLedVal" : 1
+
     }
-  },
-  "zones": {
-    "zone1" : {
-      "zone_type" : "max",
-      "sensors" : [
+  ],
+  "zones": [
+    {
+      "zoneType" : 0,
+      "zoneName" : "zone1",
+      "sensorNames" : [
         "SC_TH3_DIODE1_TEMP",
         "SC_TH3_DIODE2_TEMP",
         "qsfp_group_1"
       ],
-      "slope" : 3,
-      "fans" : [
+      "fanNames" : [
         "fan_1",
         "fan_2",
         "fan_3",
         "fan_4",
         "fan_5",
         "fan_6"
-      ]
+      ],
+      "slope" : 3
     }
-  }
+  ]
 })";
 }
 } // namespace facebook::fboss::platform

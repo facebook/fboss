@@ -33,13 +33,11 @@ namespace {
 static constexpr int kTeAgentThriftPort{2022};
 static std::string kNhopAddrA("1::1");
 static std::string kNhopAddrB("2::2");
-static std::string kIfName1("eth1/25/1");
-static std::string kIfName2("eth1/26/1");
 static std::string kDstIpStart("103");
 static std::string kCounterId1("counterId1");
 static std::string kCounterId2("counterId2");
 static int kPrefixLength(59);
-static int kTeFlowEntries(10000);
+static int kTeFlowEntries(9000);
 } // namespace
 
 using namespace facebook::neteng::ai;
@@ -249,17 +247,21 @@ class TeAgentIntegrationTest : public AgentIntegrationTest {
 
 TEST_F(TeAgentIntegrationTest, teAgentRunning) {
   auto verify = [&]() { checkTeAgentState(); };
-  verifyAcrossWarmBoots(verify);
+  verifyAcrossWarmBoots([]() {}, verify);
 }
 
 TEST_F(TeAgentIntegrationTest, addDeleteTeFlows) {
+  auto ports = sw()->getState()->getPorts();
+  auto ifName0 = ports->getNodeIf(PortID(masterLogicalPortIds()[0]))->getName();
+  auto ifName1 = ports->getNodeIf(PortID(masterLogicalPortIds()[1]))->getName();
+
   auto setup = [&]() {
     checkTeAgentState();
     resolveNextHops();
     // Add 2 teflow entries
     syncState();
-    auto teFlowRoutes = makeFlowRoutes(
-        kNhopAddrA, kNhopAddrB, kIfName1, kIfName2, kPrefixLength);
+    auto teFlowRoutes =
+        makeFlowRoutes(kNhopAddrA, kNhopAddrB, ifName0, ifName1, kPrefixLength);
     syncTeFlows(*teFlowRoutes);
   };
 
@@ -287,15 +289,16 @@ TEST_F(TeAgentIntegrationTest, addDeleteTeFlows) {
 
     // Verify 2 teflow entries in wedge agent
     WITH_RETRIES({
-      EXPECT_EVENTUALLY_EQ(utility::getNumTeFlowEntries(sw()->getHw()), 2);
+      EXPECT_EVENTUALLY_EQ(
+          utility::getNumTeFlowEntries(sw()->getHw_DEPRECATED()), 2);
     });
     utility::checkSwHwTeFlowMatch(
-        sw()->getHw(),
+        sw()->getHw_DEPRECATED(),
         sw()->getState(),
         utility::makeFlowKey(
             "100::", masterLogicalPortIds()[0], kPrefixLength));
     utility::checkSwHwTeFlowMatch(
-        sw()->getHw(),
+        sw()->getHw_DEPRECATED(),
         sw()->getState(),
         utility::makeFlowKey(
             "101::", masterLogicalPortIds()[1], kPrefixLength));
@@ -303,8 +306,8 @@ TEST_F(TeAgentIntegrationTest, addDeleteTeFlows) {
     resolveNextHops();
 
     // Delete a flow and verify
-    auto teFlowRoutes = makeFlowRoutes(
-        kNhopAddrA, kNhopAddrB, kIfName1, kIfName2, kPrefixLength);
+    auto teFlowRoutes =
+        makeFlowRoutes(kNhopAddrA, kNhopAddrB, ifName0, ifName1, kPrefixLength);
     teFlowRoutes->pop_back();
     syncTeFlows(*teFlowRoutes);
 
@@ -317,17 +320,18 @@ TEST_F(TeAgentIntegrationTest, addDeleteTeFlows) {
 
     // Verify 1 teflow entry in wedge agent
     WITH_RETRIES({
-      EXPECT_EVENTUALLY_EQ(utility::getNumTeFlowEntries(sw()->getHw()), 1);
+      EXPECT_EVENTUALLY_EQ(
+          utility::getNumTeFlowEntries(sw()->getHw_DEPRECATED()), 1);
     });
     utility::checkSwHwTeFlowMatch(
-        sw()->getHw(),
+        sw()->getHw_DEPRECATED(),
         sw()->getState(),
         utility::makeFlowKey(
             "100::", masterLogicalPortIds()[0], kPrefixLength));
 
     // Add 2 teflow entries for warmboot verification
-    teFlowRoutes = makeFlowRoutes(
-        kNhopAddrA, kNhopAddrB, kIfName1, kIfName2, kPrefixLength);
+    teFlowRoutes =
+        makeFlowRoutes(kNhopAddrA, kNhopAddrB, ifName0, ifName1, kPrefixLength);
     syncTeFlows(*teFlowRoutes);
 
     syncState();
@@ -337,16 +341,21 @@ TEST_F(TeAgentIntegrationTest, addDeleteTeFlows) {
 }
 
 TEST_F(TeAgentIntegrationTest, addTeFlowsScale) {
+  auto ports = sw()->getState()->getPorts();
+  auto ifName0 = ports->getNodeIf(PortID(masterLogicalPortIds()[0]))->getName();
+  auto ifName1 = ports->getNodeIf(PortID(masterLogicalPortIds()[1]))->getName();
+
   auto setup = [&]() {
     checkTeAgentState();
     resolveNextHops();
     syncState();
-    // Add 10K teflow entries
+    // Add 9K teflow entries since in TH4 the flex counter is shared
+    // The Max flex counter can be allocated for TeFlow entries is 9216
     auto teFlowRoutes = makeFlowRoutesScale(
         kDstIpStart,
         kNhopAddrA,
-        kIfName1,
-        kIfName2,
+        ifName0,
+        ifName1,
         kPrefixLength,
         kTeFlowEntries);
     const auto startTs = std::chrono::steady_clock::now();
@@ -354,7 +363,7 @@ TEST_F(TeAgentIntegrationTest, addTeFlowsScale) {
     const auto endTs = std::chrono::steady_clock::now();
     auto elapsedMs =
         std::chrono::duration_cast<std::chrono::milliseconds>(endTs - startTs);
-    XLOG(DBG2) << "Adding 10K TeFlow entries took " << elapsedMs.count()
+    XLOG(DBG2) << "Adding 9K TeFlow entries took " << elapsedMs.count()
                << "ms.";
   };
 
@@ -373,16 +382,17 @@ TEST_F(TeAgentIntegrationTest, addTeFlowsScale) {
       XLOG(DBG2) << "Failed to connect to te agent";
     }
 
-    // Verify 10K teflow entries received by te_agent
+    // Verify 9K teflow entries received by te_agent
     std::unordered_map<std::string, teagent::FlowRoute> flowIDToFlowRoute;
     teClient->sync_getLastReceivedFlowRoutes(flowIDToFlowRoute);
     CHECK_EQ(flowIDToFlowRoute.size(), kTeFlowEntries);
 
     syncState();
-    // Verify 10K teflow entries in wedge agent
+    // Verify 9K teflow entries in wedge agent
     WITH_RETRIES({
       EXPECT_EVENTUALLY_EQ(
-          utility::getNumTeFlowEntries(sw()->getHw()), kTeFlowEntries);
+          utility::getNumTeFlowEntries(sw()->getHw_DEPRECATED()),
+          kTeFlowEntries);
     });
   };
 

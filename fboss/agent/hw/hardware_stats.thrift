@@ -83,6 +83,7 @@ struct HwSysPortStats {
   2: map<i16, i64> queueOutBytes_ = {};
   3: map<i16, i64> queueWatermarkBytes_ = {};
   4: map<i16, i64> queueWredDroppedPackets_ = {};
+  5: map<i16, i64> queueCreditWatchdogDeletedPackets_ = {};
 
   // seconds from epoch
   // Field index at a distance to allow for other stat additions
@@ -208,6 +209,11 @@ struct TeFlowStats {
   2: i64 timestamp;
 }
 
+struct FabricReachabilityStats {
+  1: i64 mismatchCount;
+  2: i64 missingCount;
+}
+
 struct HwRxReasonStats {
   1: map<i64, i64> rxReasonStats;
 }
@@ -225,4 +231,5 @@ struct CpuPortStats {
 struct HwSwitchDropStats {
   1: optional i64 globalDrops;
   2: optional i64 globalReachabilityDrops;
+  3: optional i64 packetIntegrityDrops;
 }

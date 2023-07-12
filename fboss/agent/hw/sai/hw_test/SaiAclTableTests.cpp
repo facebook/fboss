@@ -19,7 +19,9 @@ class SaiAclTableRecreateTests : public HwTest {
   }
   cfg::SwitchConfig initialConfig() const {
     return utility::onePortPerInterfaceConfig(
-        getHwSwitch(), masterLogicalPortIds());
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackModes());
   }
 };
 

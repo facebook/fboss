@@ -9,6 +9,7 @@
  */
 #include <CLI/CLI.hpp>
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
+#include "fboss/cli/fboss2/utils/HostInfo.h"
 
 namespace facebook::fboss::utils {
 
@@ -25,7 +26,7 @@ const std::string getOobNameFromHost(const std::string& /* host */) {
 
 void logUsage(const CmdLogInfo& /*Cmd Log Info*/) {}
 
-std::vector<std::string> getBgpDrainedInterafces(Const HostInfo& /*hostInfo*/) {
+std::vector<std::string> getBgpDrainedInterafces(const HostInfo& /*hostInfo*/) {
   return {};
 }
 

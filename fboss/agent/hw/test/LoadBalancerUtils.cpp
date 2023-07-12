@@ -146,8 +146,11 @@ std::shared_ptr<SwitchState> addLoadBalancers(
   auto newState{inputState->clone()};
   auto lbMap = newState->getLoadBalancers()->modify(&newState);
   for (const auto& loadBalancerCfg : loadBalancerCfgs) {
+    auto id = LoadBalancerConfigParser::parseLoadBalancerID(loadBalancerCfg);
     auto loadBalancer =
-        LoadBalancerConfigParser(platform).parse(loadBalancerCfg);
+        LoadBalancerConfigParser(
+            platform->getHwSwitch()->generateDeterministicSeed(id))
+            .parse(loadBalancerCfg);
     if (lbMap->getNodeIf(loadBalancer->getID())) {
       lbMap->updateNode(loadBalancer, resolver.scope(loadBalancer));
     } else {
@@ -155,6 +158,21 @@ std::shared_ptr<SwitchState> addLoadBalancers(
     }
   }
   return newState;
+}
+
+cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(void) {
+  cfg::FlowletSwitchingConfig flowletCfg;
+  flowletCfg.inactivityIntervalUsecs() = 16;
+  flowletCfg.flowletTableSize() = 2048;
+  flowletCfg.dynamicEgressLoadExponent() = 4;
+  flowletCfg.dynamicQueueExponent() = 4;
+  flowletCfg.dynamicQueueMinThresholdBytes() = 1000;
+  flowletCfg.dynamicQueueMaxThresholdBytes() = 10000;
+  flowletCfg.dynamicSampleRate() = 1000000;
+  flowletCfg.dynamicEgressMinThresholdBytes() = 1000;
+  flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
+  flowletCfg.dynamicPhysicalQueueExponent() = 4;
+  return flowletCfg;
 }
 
 cfg::UdfConfig addUdfConfig(void) {
@@ -586,6 +604,19 @@ void pumpTrafficAndVerifyLoadBalanced(
   } else {
     EXPECT_FALSE(isLoadBalanced());
   }
+}
+
+bool isHwDeterministicSeed(
+    HwSwitch* hwSwitch,
+    const std::shared_ptr<SwitchState>& state,
+    LoadBalancerID id) {
+  if (!hwSwitch->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
+    // hash seed is not programmed or configured
+    return true;
+  }
+  auto lb = state->getLoadBalancers()->getNode(id);
+  return lb->getSeed() == hwSwitch->generateDeterministicSeed(id);
 }
 
 } // namespace facebook::fboss::utility

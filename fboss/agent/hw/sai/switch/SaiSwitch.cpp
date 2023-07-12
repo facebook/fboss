@@ -254,10 +254,11 @@ HwInitResult SaiSwitch::initImpl(
     managerTable_->hashManager().removeUnclaimedDefaultHash();
 #if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
     defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
-    defined(SAI_VERSION_8_2_0_0_DNX_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
-    defined(SAI_VERSION_9_0_EA_SIM_ODP) ||                                     \
+    defined(SAI_VERSION_8_2_0_0_DNX_ODP) ||                                    \
+    defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP) || \
     defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) ||                                \
-    defined(SAI_VERSION_10_0_EA_DNX_ODP)
+    defined(SAI_VERSION_10_0_EA_DNX_ODP) ||                                    \
+    defined(SAI_VERSION_10_0_EA_ODP) || defined(SAI_VERSION_10_0_EA_SIM_ODP)
     // TODO(zecheng): Remove after devices warmbooted to 8.2.
     managerTable_->wredManager().removeUnclaimedWredProfile();
 #endif
@@ -396,6 +397,15 @@ void SaiSwitch::processLinkStateChangeDelta(
           auto platformPort = platform_->getPort(id);
           platformPort->linkStatusChanged(
               newPort->isUp(), newPort->isEnabled());
+        }
+
+        if (oldPort->getLedPortExternalState() !=
+            newPort->getLedPortExternalState()) {
+          if (newPort->getLedPortExternalState().has_value()) {
+            auto platformPort = platform_->getPort(id);
+            platformPort->externalState(
+                newPort->getLedPortExternalState().value());
+          }
         }
       });
 }
@@ -1115,6 +1125,11 @@ folly::F14FastMap<std::string, HwPortStats> SaiSwitch::getPortStatsLocked(
 std::map<std::string, HwSysPortStats> SaiSwitch::getSysPortStats() const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return getSysPortStatsLocked(lock);
+}
+
+FabricReachabilityStats SaiSwitch::getFabricReachabilityStats() const {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return getSwitchStats()->getFabricReachabilityStats();
 }
 
 std::map<std::string, HwSysPortStats> SaiSwitch::getSysPortStatsLocked(
@@ -2340,10 +2355,11 @@ void SaiSwitch::unregisterCallbacksLocked(
   if (isFeatureSetupLocked(FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED, lock)) {
 #if defined(SAI_VERSION_7_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_ODP) ||    \
     defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
-    defined(SAI_VERSION_8_2_0_0_DNX_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
-    defined(SAI_VERSION_9_0_EA_SIM_ODP) ||                                     \
+    defined(SAI_VERSION_8_2_0_0_DNX_ODP) ||                                    \
+    defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP) || \
     defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) ||                                \
-    defined(SAI_VERSION_10_0_EA_DNX_ODP)
+    defined(SAI_VERSION_10_0_EA_DNX_ODP) ||                                    \
+    defined(SAI_VERSION_10_0_EA_ODP) || defined(SAI_VERSION_10_0_EA_SIM_ODP)
     switchApi.unregisterParityErrorSwitchEventCallback(switchId_);
 #else
     switchApi.unregisterTamEventCallback(switchId_);
@@ -2642,10 +2658,11 @@ void SaiSwitch::switchRunStateChangedImplLocked(
         auto& switchApi = SaiApiTable::getInstance()->switchApi();
 #if defined(SAI_VERSION_7_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_ODP) ||    \
     defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
-    defined(SAI_VERSION_8_2_0_0_DNX_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
-    defined(SAI_VERSION_9_0_EA_SIM_ODP) ||                                     \
+    defined(SAI_VERSION_8_2_0_0_DNX_ODP) ||                                    \
+    defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP) || \
     defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) ||                                \
-    defined(SAI_VERSION_10_0_EA_DNX_ODP)
+    defined(SAI_VERSION_10_0_EA_DNX_ODP) ||                                    \
+    defined(SAI_VERSION_10_0_EA_ODP) || defined(SAI_VERSION_10_0_EA_SIM_ODP)
         switchApi.registerParityErrorSwitchEventCallback(
             switchId_, (void*)__gParityErrorSwitchEventCallback);
 #else

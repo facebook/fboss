@@ -7,6 +7,17 @@ namespace py.asyncio neteng.fboss.asyncio.common
 
 include "fboss/agent/if/mpls.thrift"
 include "common/network/if/Address.thrift"
+include "thrift/annotation/cpp.thrift"
+
+@cpp.Type{name = "::folly::fbstring"}
+typedef binary fbbinary
+@cpp.Type{name = "::folly::fbstring"}
+typedef string fbstring
+
+struct ClientInformation {
+  1: optional fbstring username;
+  2: optional fbstring hostname;
+}
 
 struct NextHopThrift {
   1: Address.BinaryAddress address;
@@ -75,4 +86,14 @@ union NamedRouteDestination {
   1: list<string> nextHopGroups;
   // traffic redirection policy name
   2: string policyName;
+}
+
+// SwSwitch run states. SwSwitch moves forward from a
+// lower numbered state to the next
+enum SwitchRunState {
+  UNINITIALIZED = 0,
+  INITIALIZED = 1,
+  CONFIGURED = 2,
+  FIB_SYNCED = 3,
+  EXITING = 4,
 }

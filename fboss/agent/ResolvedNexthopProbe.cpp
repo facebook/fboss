@@ -10,6 +10,8 @@
 
 #include <chrono>
 
+DECLARE_bool(intf_nbr_tables);
+
 namespace {
 const std::chrono::milliseconds kInitialBackoff{1000};
 const std::chrono::milliseconds kMaximumBackoff{10000};
@@ -45,23 +47,26 @@ void ResolvedNextHopProbe::timeoutExpired() noexcept {
     stop();
     return;
   }
-  auto vlanId = sw_->getVlanIDHelper(intf->getVlanIDIf());
-  auto vlan = state->getVlans()->getNodeIf(vlanId);
-  if (!vlan) {
-    XLOG(ERR) << "a spurios probe to " << nexthop_.addr() << " on vlan "
-              << vlanId << " exists!";
-    stop();
-    return;
+
+  if (!FLAGS_intf_nbr_tables) {
+    auto vlanId = sw_->getVlanIDHelper(intf->getVlanIDIf());
+    auto vlan = state->getVlans()->getNodeIf(vlanId);
+    if (!vlan) {
+      XLOG(ERR) << "a spurios probe to " << nexthop_.addr() << " on vlan "
+                << vlanId << " exists!";
+      stop();
+      return;
+    }
   }
 
   if (ip.isV4()) {
     // send arp request
     ArpHandler::sendArpRequest(sw_, ip.asV4());
-    sw_->getNeighborUpdater()->sentArpRequest(vlanId, ip.asV4());
+    sw_->sentArpRequest(intf, ip.asV4());
   } else {
     // send ndp request
     IPv6Handler::sendMulticastNeighborSolicitation(sw_, ip.asV6());
-    sw_->getNeighborUpdater()->sentNeighborSolicitation(vlanId, ip.asV6());
+    sw_->sentNeighborSolicitation(intf, ip.asV6());
   }
   // exponential back-off
   backoff_.reportError();

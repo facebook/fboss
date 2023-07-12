@@ -36,8 +36,6 @@ DECLARE_string(hw_config_file);
 namespace facebook::fboss {
 
 class SaiSwitch;
-class AutoInitQsfpCache;
-class QsfpCache;
 
 class SaiPlatform : public Platform, public StateObserver {
  public:
@@ -48,9 +46,10 @@ class SaiPlatform : public Platform, public StateObserver {
   ~SaiPlatform() override;
 
   HwSwitch* getHwSwitch() const override;
-  void onHwInitialized(SwSwitch* sw) override;
-  void onInitialConfigApplied(SwSwitch* sw) override;
-  std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) override;
+  void onHwInitialized(HwSwitchCallback* sw) override;
+  void onInitialConfigApplied(HwSwitchCallback* sw) override;
+  std::shared_ptr<apache::thrift::AsyncProcessorFactory> createHandler()
+      override;
   TransceiverIdxThrift getPortMapping(PortID port, cfg::PortSpeed speed)
       const override;
   virtual SaiPlatformPort* getPort(PortID id) const;
@@ -63,7 +62,6 @@ class SaiPlatform : public Platform, public StateObserver {
   void stop() override;
   HwSwitchWarmBootHelper* getWarmBootHelper() override;
   void stateUpdated(const StateDelta& delta) override;
-  QsfpCache* getQsfpCache() const override;
 
   virtual std::vector<PortID> getAllPortsInGroup(PortID portID) const = 0;
   virtual std::vector<FlexPortMode> getSupportedFlexPortModes() const = 0;
@@ -140,9 +138,7 @@ class SaiPlatform : public Platform, public StateObserver {
       const;
   void initImpl(uint32_t hwFeaturesDesired) override;
   void initSaiProfileValues();
-  void updateQsfpCache(const StateDelta& delta);
   std::unique_ptr<HwSwitchWarmBootHelper> wbHelper_;
-  std::unique_ptr<AutoInitQsfpCache> qsfpCache_;
   // List of controlling ports on platform. Each of these then
   // have subports that can be used when using flex ports
   std::vector<PortID> masterLogicalPortIds_;

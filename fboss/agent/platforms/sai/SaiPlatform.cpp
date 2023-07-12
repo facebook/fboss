@@ -10,7 +10,6 @@
 
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
-#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
@@ -35,13 +34,13 @@
 #include "fboss/agent/platforms/sai/SaiMeru400bfuPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMeru400biaPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMeru400biuPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiMeru800bfaPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMeru800biaPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMorgan800ccPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiSandiaPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
-#include "fboss/qsfp_service/lib/QsfpCache.h"
 
 #include "fboss/agent/hw/sai/switch/SaiHandler.h"
 
@@ -126,8 +125,7 @@ SaiPlatform::SaiPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     std::unique_ptr<PlatformMapping> platformMapping,
     folly::MacAddress localMac)
-    : Platform(std::move(productInfo), std::move(platformMapping), localMac),
-      qsfpCache_(std::make_unique<AutoInitQsfpCache>()) {
+    : Platform(std::move(productInfo), std::move(platformMapping), localMac) {
   const auto& portsByMasterPort =
       utility::getSubsidiaryPortIDs(getPlatformPorts());
   const auto& platPorts = getPlatformPorts();
@@ -160,41 +158,22 @@ HwSwitch* SaiPlatform::getHwSwitch() const {
   return saiSwitch_.get();
 }
 
-void SaiPlatform::onHwInitialized(SwSwitch* sw) {
+void SaiPlatform::onHwInitialized(HwSwitchCallback* sw) {
   initLEDs();
   sw->registerStateObserver(this, "SaiPlatform");
 }
 
-void SaiPlatform::updateQsfpCache(const StateDelta& delta) {
-  QsfpCache::PortMapThrift changedPorts;
-  auto portsDelta = delta.getPortsDelta();
-  for (const auto& entry : portsDelta) {
-    auto port = entry.getNew();
-    if (port) {
-      auto platformPort = getPort(port->getID());
-      PortStatus portStatus;
-      *portStatus.enabled() = port->isEnabled();
-      *portStatus.up() = port->isUp();
-      *portStatus.speedMbps() = static_cast<int64_t>(port->getSpeed());
-      portStatus.transceiverIdx() =
-          platformPort->getTransceiverMapping(port->getSpeed());
-      changedPorts.insert(std::make_pair(port->getID(), portStatus));
-    }
-  }
-  qsfpCache_->portsChanged(changedPorts);
-}
-
 void SaiPlatform::stateUpdated(const StateDelta& delta) {
   updatePorts(delta);
-  updateQsfpCache(delta);
 }
 
-void SaiPlatform::onInitialConfigApplied(SwSwitch* /* sw */) {}
+void SaiPlatform::onInitialConfigApplied(HwSwitchCallback* /* sw */) {}
 
 void SaiPlatform::stop() {}
 
-std::unique_ptr<ThriftHandler> SaiPlatform::createHandler(SwSwitch* sw) {
-  return std::make_unique<SaiHandler>(sw, saiSwitch_.get());
+std::shared_ptr<apache::thrift::AsyncProcessorFactory>
+SaiPlatform::createHandler() {
+  return std::make_shared<SaiHandler>(saiSwitch_.get());
 }
 
 TransceiverIdxThrift SaiPlatform::getPortMapping(
@@ -291,6 +270,8 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiMeru400biaPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_MERU400BFU) {
       saiPort = std::make_unique<SaiMeru400bfuPlatformPort>(portId, this);
+    } else if (platformMode == PlatformType::PLATFORM_MERU800BFA) {
+      saiPort = std::make_unique<SaiMeru800bfaPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_MONTBLANC) {
       saiPort = std::make_unique<SaiBcmMontblancPlatformPort>(portId, this);
     } else {
@@ -322,10 +303,6 @@ HwSwitchWarmBootHelper* SaiPlatform::getWarmBootHelper() {
         0, getWarmBootDir(), "sai_adaptor_state_");
   }
   return wbHelper_.get();
-}
-
-QsfpCache* SaiPlatform::getQsfpCache() const {
-  return qsfpCache_.get();
 }
 
 PortID SaiPlatform::findPortID(
@@ -384,6 +361,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   std::optional<SaiSwitchTraits::Attributes::SwitchType> switchType;
   std::optional<SaiSwitchTraits::Attributes::SwitchId> switchId;
   std::optional<SaiSwitchTraits::Attributes::MaxSystemCores> cores;
+  std::optional<SaiSwitchTraits::Attributes::MaxCores> maxCores;
   std::optional<SaiSwitchTraits::Attributes::SysPortConfigList> sysPortConfigs;
   if (swType == cfg::SwitchType::VOQ || swType == cfg::SwitchType::FABRIC) {
     switchType = swType == cfg::SwitchType::VOQ ? SAI_SWITCH_TYPE_VOQ
@@ -394,16 +372,25 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       CHECK(agentCfg) << " agent config must be set ";
       uint32_t systemCores = 0;
       auto localMac = getLocalMac();
-      const Jericho2Asic indus(cfg::SwitchType::VOQ, 0, std::nullopt, localMac);
       const EbroAsic ebro(cfg::SwitchType::VOQ, 0, std::nullopt, localMac);
+      const Jericho2Asic j2(cfg::SwitchType::VOQ, 0, std::nullopt, localMac);
+      const Jericho3Asic j3(cfg::SwitchType::VOQ, 0, std::nullopt, localMac);
       for (const auto& [id, dsfNode] : *agentCfg->thrift.sw()->dsfNodes()) {
         if (dsfNode.type() != cfg::DsfNodeType::INTERFACE_NODE) {
           continue;
         }
         switch (*dsfNode.asicType()) {
           case cfg::AsicType::ASIC_TYPE_JERICHO2:
+            systemCores += j2.getNumCores();
+            // for directly connected interface nodes we don't expect
+            // asic type to change across dsf nodes
+            maxCores = j2.getNumCores();
+            break;
           case cfg::AsicType::ASIC_TYPE_JERICHO3:
-            systemCores += indus.getNumCores();
+            systemCores += j3.getNumCores();
+            // for directly connected interface nodes we don't expect
+            // asic type to change across dsf nodes
+            maxCores = j3.getNumCores();
             break;
           case cfg::AsicType::ASIC_TYPE_EBRO:
             systemCores += ebro.getNumCores();
@@ -419,8 +406,9 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   }
   std::optional<SaiSwitchTraits::Attributes::DllPath> dllPath;
 #if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
-    defined(SAI_VERSION_8_2_0_0_SIM_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
-    defined(SAI_VERSION_9_0_EA_SIM_ODP)
+    defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
+    defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP) || \
+    defined(SAI_VERSION_10_0_EA_ODP) || defined(SAI_VERSION_10_0_EA_SIM_ODP)
   auto platformMode = getType();
   if (platformMode == PlatformType::PLATFORM_FUJI ||
       platformMode == PlatformType::PLATFORM_ELBERT) {
@@ -487,6 +475,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         std::nullopt, // Restart Issu
         std::nullopt, // Switch Isolate
         std::nullopt, // Credit Watchdog
+        maxCores, // Max cores
   };
 }
 

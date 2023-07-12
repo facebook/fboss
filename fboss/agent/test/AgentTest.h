@@ -10,7 +10,7 @@
 namespace facebook::fboss {
 class SwitchState;
 
-class AgentTest : public ::testing::Test, public AgentInitializer {
+class AgentTest : public ::testing::Test, public MonolithicAgentInitializer {
  public:
   virtual ~AgentTest();
   void SetUp() override {

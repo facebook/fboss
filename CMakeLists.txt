@@ -68,6 +68,13 @@ if ($ENV{BUILD_SAI_FAKE_LINK_TEST})
   set (BUILD_SAI_FAKE_LINK_TEST ON)
 endif()
 
+option(BUILD_FBOSS_CLI "Build FBOSS CLI" OFF)
+if ($ENV{BUILD_FBOSS_CLI})
+  message(STATUS "ENV BUILD_FBOSS_CLI is set")
+  set (BUILD_FBOSS_CLI ON)
+endif()
+
+
 if (BUILD_SAI_FAKE_LINK_TEST)
   message(STATUS "Configured to build SAI Fake Link Test binaries")
 endif()
@@ -78,7 +85,7 @@ if (SAI_BRCM_IMPL)
   add_definitions (-DIS_OSS_BRCM_SAI=true)
   # Build for BCM DNX by default. For XGS, set the ENV variable SAI_SDK_VERSION
   # to build for BCM XGS.
-  set(SAI_SDK_VERSION "SAI_VERSION_9_0_EA_DNX_ODP")
+  set(SAI_SDK_VERSION "SAI_VERSION_10_0_EA_DNX_ODP")
   set(SAI_VER_MAJOR "1")
   set(SAI_VER_MINOR "12")
   set(SAI_VER_RELEASE "0")
@@ -504,12 +511,22 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  hw_ctrl_cpp2
+  fboss/agent/if/hw_ctrl.thrift
+  SERVICES
+    FbossHwCtrl
+  DEPENDS
+    ctrl_cpp2
+)
+
+add_fbthrift_cpp_library(
   sai_ctrl_cpp2
   fboss/agent/hw/sai/switch/sai_ctrl.thrift
   SERVICES
     SaiCtrl
   DEPENDS
     ctrl_cpp2
+    hw_ctrl_cpp2
 )
 
 add_fbthrift_cpp_library(
@@ -565,10 +582,6 @@ enable_testing()
 # Build all cmake files under cmake/*cmake
 file(GLOB cmakeFiles ${CMAKE_CURRENT_SOURCE_DIR}/cmake/*.cmake)
 foreach(cmakeFile ${cmakeFiles})
-  if(${cmakeFile} MATCHES "CliFboss2")
-      message(status " Skipping FBOSS2 CLI  binaries")
-  else()
-    message(status " INCLUDE ${cmakeFile}")
-    INCLUDE(${cmakeFile})
-  endif()
+  message(status " INCLUDE ${cmakeFile}")
+  INCLUDE(${cmakeFile})
 endforeach(cmakeFile)

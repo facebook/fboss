@@ -306,13 +306,11 @@ struct ThriftStructFields {
 
   bool remove(const std::string& token) {
     bool ret{false}, found{false};
-
-    fatal::trie_find<Members, fatal::get_type::name>(
-        token.begin(), token.end(), [&](auto tag) {
-          using member = decltype(fatal::tag_type(tag));
-          found = true;
-          ret = this->remove_impl<member>();
-        });
+    visitMember<Members>(token, [&](auto tag) {
+      using member = decltype(fatal::tag_type(tag));
+      found = true;
+      ret = this->remove_impl<member>();
+    });
 
     if (!found) {
       // should we throw here?
@@ -501,11 +499,10 @@ class ThriftStructNode
   }
 
   void modify(const std::string& token) {
-    fatal::trie_find<typename Fields::Members, fatal::get_type::name>(
-        token.begin(), token.end(), [&](auto tag) {
-          using name = typename decltype(fatal::tag_type(tag))::name;
-          this->modify<name>();
-        });
+    visitMember<typename Fields::Members>(token, [&](auto tag) {
+      using name = typename decltype(fatal::tag_type(tag))::name;
+      this->modify<name>();
+    });
   }
 
   static void modify(std::shared_ptr<Derived>* node, std::string token) {

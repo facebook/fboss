@@ -101,8 +101,7 @@ TEST(RecurseVisitorTests, TestLeafRecurse) {
     visited.emplace(std::make_pair(path, node->toFollyDynamic()));
   };
 
-  RootRecurseVisitor::visit(
-      nodeA, RecurseVisitMode::LEAVES, std::move(processPath));
+  RootRecurseVisitor::visit(nodeA, RecurseVisitMode::LEAVES, processPath);
 
   std::map<std::vector<std::string>, folly::dynamic> expected = {
       {{"inlineBool"}, testDyn["inlineBool"]},
@@ -120,6 +119,33 @@ TEST(RecurseVisitorTests, TestLeafRecurse) {
        testDyn["mapOfEnumToStruct"][3]["max"]},
       {{"mapOfEnumToStruct", "3", "invert"},
        testDyn["mapOfEnumToStruct"][3]["invert"]}};
+
+  EXPECT_EQ(visited.size(), expected.size());
+  for (auto& [path, dyn] : expected) {
+    EXPECT_EQ(dyn, visited[path])
+        << "Path /" << folly::join('/', path) << " does not match expected";
+  }
+
+  visited.clear();
+  RootRecurseVisitor::visit(
+      nodeA,
+      RecurseVisitOptions(
+          RecurseVisitMode::LEAVES, RecurseVisitOrder::PARENTS_FIRST, true),
+      processPath);
+
+  expected = {
+      {{"1"}, testDyn["inlineBool"]},
+      {{"2"}, testDyn["inlineInt"]},
+      {{"3"}, testDyn["inlineString"]},
+      {{"22"}, testDyn["optionalString"]},
+      {{"23"}, testDyn["unsigned_int64"]},
+      {{"4", "1"}, 10},
+      {{"4", "2"}, 20},
+      {{"4", "3"}, false},
+      {{"21", "2"}, testDyn["inlineVariant"]["inlineInt"]},
+      {{"15", "3", "1"}, testDyn["mapOfEnumToStruct"][3]["min"]},
+      {{"15", "3", "2"}, testDyn["mapOfEnumToStruct"][3]["max"]},
+      {{"15", "3", "3"}, testDyn["mapOfEnumToStruct"][3]["invert"]}};
 
   EXPECT_EQ(visited.size(), expected.size());
   for (auto& [path, dyn] : expected) {

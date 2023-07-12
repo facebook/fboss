@@ -26,7 +26,10 @@ const std::vector<folly::StringPiece>& HwSysPortFb303Stats::kPortStatKeys()
 const std::vector<folly::StringPiece>& HwSysPortFb303Stats::kQueueStatKeys()
     const {
   static std::vector<folly::StringPiece> kQueueKeys{
-      kOutDiscards(), kOutBytes()};
+      kOutDiscards(),
+      kOutBytes(),
+      kWredDroppedPackets(),
+      kCreditWatchdogDeletedPackets()};
   return kQueueKeys;
 }
 
@@ -71,6 +74,18 @@ void HwSysPortFb303Stats::updateStats(
         *curPortStats.queueOutDiscardBytes_());
     updateQueueStat(
         kOutBytes(), queueIdAndName.first, *curPortStats.queueOutBytes_());
+    if (curPortStats.queueWredDroppedPackets_()->size()) {
+      updateQueueStat(
+          kWredDroppedPackets(),
+          queueIdAndName.first,
+          *curPortStats.queueWredDroppedPackets_());
+    }
+    if (curPortStats.queueCreditWatchdogDeletedPackets_()->size()) {
+      updateQueueStat(
+          kCreditWatchdogDeletedPackets(),
+          queueIdAndName.first,
+          *curPortStats.queueCreditWatchdogDeletedPackets_());
+    }
   }
   if (curPortStats.queueWatermarkBytes_()->size()) {
     updateQueueWatermarkStats(*curPortStats.queueWatermarkBytes_());

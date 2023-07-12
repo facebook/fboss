@@ -37,19 +37,19 @@ namespace facebook::fboss {
 class AgentConfig;
 class Platform;
 
-class Initializer {
+class MonolithicSwSwitchInitializer {
  public:
-  Initializer(SwSwitch* sw, Platform* platform)
+  MonolithicSwSwitchInitializer(SwSwitch* sw, Platform* platform)
       : sw_(sw), platform_(platform) {}
   void start();
-  void start(HwSwitch::Callback* callback);
+  void start(HwSwitchCallback* callback);
   void stopFunctionScheduler();
   void waitForInitDone();
 
  private:
-  void initThread(HwSwitch::Callback* callback);
+  void initThread(HwSwitchCallback* callback);
   SwitchFlags setupFlags();
-  void initImpl(HwSwitch::Callback* callback);
+  void initImpl(HwSwitchCallback* callback);
   SwSwitch* sw_;
   Platform* platform_;
   std::unique_ptr<folly::FunctionScheduler> fs_;
@@ -80,7 +80,7 @@ class SignalHandler : public folly::AsyncSignalHandler {
 typedef std::unique_ptr<Platform> (
     *PlatformInitFn)(std::unique_ptr<AgentConfig>, uint32_t featuresDesired);
 
-class AgentInitializer {
+class MonolithicAgentInitializer {
  public:
   SwSwitch* sw() const {
     return sw_.get();
@@ -88,11 +88,11 @@ class AgentInitializer {
   Platform* platform() const {
     return sw_->getPlatform_DEPRECATED();
   }
-  Initializer* initializer() const {
+  MonolithicSwSwitchInitializer* initializer() const {
     return initializer_.get();
   }
 
-  virtual ~AgentInitializer() = default;
+  virtual ~MonolithicAgentInitializer() = default;
   void stopServices();
   void createSwitch(
       int argc,
@@ -100,7 +100,7 @@ class AgentInitializer {
       uint32_t hwFeaturesDesired,
       PlatformInitFn initPlatform);
   int initAgent();
-  int initAgent(HwSwitch::Callback* callback);
+  int initAgent(HwSwitchCallback* callback);
   void stopAgent(bool setupWarmboot);
 
   /*
@@ -113,7 +113,7 @@ class AgentInitializer {
 
  private:
   std::unique_ptr<SwSwitch> sw_;
-  std::unique_ptr<Initializer> initializer_;
+  std::unique_ptr<MonolithicSwSwitchInitializer> initializer_;
   std::unique_ptr<apache::thrift::ThriftServer> server_;
   folly::EventBase* eventBase_;
 };

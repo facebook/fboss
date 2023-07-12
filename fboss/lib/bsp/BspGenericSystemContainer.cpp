@@ -3,6 +3,7 @@
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
 #include <folly/Singleton.h>
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
+#include "fboss/lib/bsp/meru400bia/Meru400biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
@@ -17,6 +18,15 @@ template <>
 std::shared_ptr<Meru400bfuSystemContainer>
 Meru400bfuSystemContainer::getInstance() {
   return _meru400bfuSystemContainer.try_get();
+}
+
+using Meru400biaSystemContainer =
+    BspGenericSystemContainer<Meru400biaBspPlatformMapping>;
+folly::Singleton<Meru400biaSystemContainer> _meru400biaSystemContainer;
+template <>
+std::shared_ptr<Meru400biaSystemContainer>
+Meru400biaSystemContainer::getInstance() {
+  return _meru400biaSystemContainer.try_get();
 }
 
 using Meru400biuSystemContainer =

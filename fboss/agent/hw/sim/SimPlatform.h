@@ -25,11 +25,14 @@ class SimPlatform : public Platform {
   ~SimPlatform() override;
 
   HwSwitch* getHwSwitch() const override;
-  void onHwInitialized(SwSwitch* sw) override;
-  void onInitialConfigApplied(SwSwitch* sw) override;
+  void onHwInitialized(HwSwitchCallback* sw) override;
+  void onInitialConfigApplied(HwSwitchCallback* sw) override;
   void stop() override;
 
-  std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) override;
+  std::shared_ptr<apache::thrift::AsyncProcessorFactory> createHandler()
+      override {
+    return nullptr;
+  }
 
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
@@ -45,9 +48,6 @@ class SimPlatform : public Platform {
   }
 
   void initPorts() override;
-  QsfpCache* getQsfpCache() const override {
-    return nullptr;
-  }
   HwSwitchWarmBootHelper* getWarmBootHelper() override {
     return nullptr;
   }

@@ -182,10 +182,8 @@ void getPortInfoHelper(
   for (auto entry : port->getVlans()) {
     portInfo.vlans()->push_back(entry.first);
   }
-  auto platformPort =
-      sw.getPlatform_DEPRECATED()->getPlatformPort(port->getID());
-  if (platformPort->getHwLogicalPortId().has_value()) {
-    portInfo.hwLogicalPortId() = platformPort->getHwLogicalPortId().value();
+  if (auto id = sw.getHwLogicalPortId(port->getID())) {
+    portInfo.hwLogicalPortId() = *id;
   }
 
   std::shared_ptr<QosPolicy> qosPolicy;
@@ -336,15 +334,19 @@ void getPortInfoHelper(
   *portInfo.profileID() = apache::thrift::util::enumName(port->getProfileID());
 
   if (port->isEnabled()) {
-    const auto pPort =
-        sw.getPlatform_DEPRECATED()->getPlatformPort(port->getID());
+    const auto pPort = sw.getPlatformMapping()->getPlatformPort(port->getID());
     PortHardwareDetails hw;
     hw.profile() = port->getProfileID();
-    hw.profileConfig() = pPort->getPortProfileConfigFromCache(*hw.profile());
-    hw.pinConfig() = pPort->getPortPinConfigs(*hw.profile());
+    auto matcher =
+        PlatformPortProfileConfigMatcher(port->getProfileID(), port->getID());
+    if (auto portProfileCfg =
+            sw.getPlatformMapping()->getPortProfileConfig(matcher)) {
+      hw.profileConfig() = *portProfileCfg;
+    }
+    hw.pinConfig() = sw.getPlatformMapping()->getPortXphyPinConfig(matcher);
     // Use SW Port pinConfig directly
     hw.pinConfig()->iphy() = port->getPinConfigs();
-    hw.chips() = pPort->getPortDataplaneChips(*hw.profile());
+    hw.chips() = sw.getPlatformMapping()->getPortDataplaneChips(matcher);
     portInfo.hw() = hw;
 
     auto fec = hw.profileConfig()->iphy()->fec().value();
@@ -365,8 +367,7 @@ void getPortInfoHelper(
     portInfo.pfc() = pc;
   }
   try {
-    portInfo.transceiverIdx() = sw.getPlatform_DEPRECATED()->getPortMapping(
-        port->getID(), port->getSpeed());
+    portInfo.transceiverIdx() = sw.getTransceiverIdxThrift(port->getID());
   } catch (const facebook::fboss::FbossError& err) {
     // No problem, we just don't set the other info
   }
@@ -1028,7 +1029,7 @@ void ThriftHandler::getArpTable(std::vector<ArpEntryThrift>& arpTable) {
 void ThriftHandler::getL2Table(std::vector<L2EntryThrift>& l2Table) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  sw_->getHw()->fetchL2Table(&l2Table);
+  sw_->getHw_DEPRECATED()->fetchL2Table(&l2Table);
   XLOG(DBG6) << "L2 Table size:" << l2Table.size();
 }
 
@@ -2299,12 +2300,14 @@ void ThriftHandler::setExternalLedState(
   ensureConfigured(__func__);
   PortID portId = PortID(portNum);
 
-  const auto plport = sw_->getPlatform_DEPRECATED()->getPlatformPort(portId);
-
-  if (!plport) {
-    throw FbossError("No such port ", portNum);
-  }
-  plport->externalState(ledState);
+  auto updateFn = [&portId, ledState](const shared_ptr<SwitchState>& state) {
+    auto newState = state->clone();
+    auto port = state->getPorts()->getNode(portId);
+    auto newPort = port->modify(&newState);
+    newPort->setLedPortExternalState(ledState);
+    return newState;
+  };
+  sw_->updateStateBlocking("set port LED state from thrift handler", updateFn);
 }
 
 void ThriftHandler::addMplsRoutes(
@@ -2571,7 +2574,7 @@ void ThriftHandler::getMplsRouteDetails(
 void ThriftHandler::getHwDebugDump(std::string& out) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  out = sw_->getHw()->getDebugDump();
+  out = sw_->getHw_DEPRECATED()->getDebugDump();
 }
 
 void ThriftHandler::getPlatformMapping(cfg::PlatformMapping& ret) {
@@ -2584,7 +2587,7 @@ void ThriftHandler::listHwObjects(
     bool cached) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  out = sw_->getHw()->listObjects(*hwObjects, cached);
+  out = sw_->getHw_DEPRECATED()->listObjects(*hwObjects, cached);
 }
 
 void ThriftHandler::getBlockedNeighbors(
@@ -2842,7 +2845,7 @@ void ThriftHandler::getFabricReachability(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureVoqOrFabric(__func__);
   // get cached data as stored in the fabric manager
-  auto portId2FabricEndpoint = sw_->getHw()->getFabricReachability();
+  auto portId2FabricEndpoint = sw_->getHw_DEPRECATED()->getFabricReachability();
   auto state = sw_->getState();
 
   for (auto [portId, fabricEndpoint] : portId2FabricEndpoint) {
@@ -2868,8 +2871,8 @@ void ThriftHandler::getSwitchReachability(
               switchNameSet.begin(), switchNameSet.end(), node->getName()) !=
           switchNameSet.end()) {
         std::vector<std::string> reachablePorts;
-        for (const auto& port :
-             sw_->getHw()->getSwitchReachability(node->getSwitchId())) {
+        for (const auto& port : sw_->getHw_DEPRECATED()->getSwitchReachability(
+                 node->getSwitchId())) {
           reachablePorts.push_back(
               sw_->getState()->getPorts()->getNodeIf(port)->getName());
         }
@@ -2897,7 +2900,7 @@ void ThriftHandler::getDsfSubscriptions(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureVoqOrFabric(__func__);
   // Build a map of <loopbackIp, switchName> from DsfNodes
-  std::unordered_map<std::string, std::string> loopbackIpToName;
+  std::unordered_map<IPAddressV6, std::string> loopbackIpToName;
   for (const auto& [_, dsfNodes] :
        std::as_const(*sw_->getState()->getDsfNodes())) {
     for (const auto& [_, node] : std::as_const(*dsfNodes)) {
@@ -2905,7 +2908,8 @@ void ThriftHandler::getDsfSubscriptions(
         const auto ipv6Loopback =
             (*node->getLoopbackIps()->cbegin())->toThrift();
         loopbackIpToName.emplace(
-            ipv6Loopback.substr(0, ipv6Loopback.find("/")), node->getName());
+            IPAddressV6(ipv6Loopback.substr(0, ipv6Loopback.find("/"))),
+            node->getName());
       }
     }
   }
@@ -2917,15 +2921,21 @@ void ThriftHandler::getDsfSubscriptions(
     subscriptionThrift.state() =
         fsdb::FsdbPubSubManager::subscriptionStateToString(
             subscriptionInfo.state);
-    if (loopbackIpToName.find(subscriptionInfo.server) !=
-        loopbackIpToName.end()) {
-      subscriptionThrift.name() = loopbackIpToName[subscriptionInfo.server];
+    auto serverIp = IPAddressV6(subscriptionInfo.server);
+    if (loopbackIpToName.find(serverIp) != loopbackIpToName.end()) {
+      subscriptionThrift.name() = loopbackIpToName[serverIp];
       subscriptions.push_back(subscriptionThrift);
     } else {
       XLOG(ERR) << "Unable to find loopback ip " << subscriptionInfo.server
                 << " from DsfSubscription in Dsf nodes";
     }
   }
+}
+
+void ThriftHandler::getDsfSubscriptionClientId(std::string& ret) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureVoqOrFabric(__func__);
+  ret = sw_->getDsfSubscriber()->getClientId();
 }
 
 void ThriftHandler::getSystemPorts(
@@ -2946,21 +2956,29 @@ void ThriftHandler::getSysPortStats(
     std::map<std::string, HwSysPortStats>& hwSysPortStats) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  hwSysPortStats = sw_->getHw()->getSysPortStats();
+  hwSysPortStats = sw_->getHw_DEPRECATED()->getSysPortStats();
 }
 
 void ThriftHandler::getCpuPortStats(CpuPortStats& cpuPortStats) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  cpuPortStats = sw_->getHw()->getCpuPortStats();
+  cpuPortStats = sw_->getHw_DEPRECATED()->getCpuPortStats();
 }
 
 void ThriftHandler::getHwPortStats(
     std::map<std::string, HwPortStats>& hwPortStats) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  const auto& portStats = sw_->getHw()->getPortStats();
+  const auto& portStats = sw_->getHw_DEPRECATED()->getPortStats();
   hwPortStats.insert(portStats.begin(), portStats.end());
+}
+
+void ThriftHandler::getFabricReachabilityStats(
+    FabricReachabilityStats& fabricReachabilityStats) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+  fabricReachabilityStats =
+      sw_->getHw_DEPRECATED()->getFabricReachabilityStats();
 }
 
 } // namespace facebook::fboss

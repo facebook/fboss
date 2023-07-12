@@ -164,8 +164,11 @@ class CmdShowMirror : public CmdHandler<CmdShowMirror, CmdShowMirrorTraits> {
         queriedMirrors.begin(), queriedMirrors.end());
     auto mirrorMapsEntries = folly::parseJson(mirrorMaps);
     // TODO: Handle NPU ID for Multi-NPU Cases
-    auto mirrorMapEntries = mirrorMapsEntries["id=0"];
-    for (const auto& mirrorMapEntryItem : mirrorMapEntries.items()) {
+    auto mirrorMapEntries = mirrorMapsEntries.find("id=0");
+    if (mirrorMapEntries == mirrorMapsEntries.items().end()) {
+      return model;
+    }
+    for (const auto& mirrorMapEntryItem : mirrorMapEntries->second.items()) {
       cli::ShowMirrorModelEntry mirrorDetails;
       const auto& mirrorMapEntry = mirrorMapEntryItem.second;
       auto mirrorName = mirrorMapEntry["name"].asString();

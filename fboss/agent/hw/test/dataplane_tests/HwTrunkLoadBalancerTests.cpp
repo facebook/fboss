@@ -286,6 +286,18 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       setupIPECMP(aggInfo);
       applyNewState(utility::addLoadBalancers(
           getPlatform(), getProgrammedState(), loadBalancers, scopeResolver()));
+      if (getProgrammedState()->getLoadBalancers()->getNodeIf(
+              LoadBalancerID::AGGREGATE_PORT)) {
+        EXPECT_TRUE(utility::isHwDeterministicSeed(
+            getHwSwitch(),
+            getProgrammedState(),
+            LoadBalancerID::AGGREGATE_PORT));
+      }
+      if (getProgrammedState()->getLoadBalancers()->getNodeIf(
+              LoadBalancerID::ECMP)) {
+        EXPECT_TRUE(utility::isHwDeterministicSeed(
+            getHwSwitch(), getProgrammedState(), LoadBalancerID::ECMP));
+      }
     };
     auto verify = [=]() {
       pumpIPTrafficAndVerifyLoadBalanced(

@@ -23,7 +23,6 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types_custom_protocol.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types_custom_protocol.h"
-#include "fboss/qsfp_service/lib/QsfpCache.h"
 
 DECLARE_bool(enable_macsec);
 
@@ -259,24 +258,22 @@ void LinkTest::disableTTLDecrements(
   for (const auto& nextHop : ecmp6.getNextHops()) {
     if (ecmpPorts.find(nextHop.portDesc) != ecmpPorts.end()) {
       utility::disableTTLDecrements(
-          sw()->getHw(), ecmp6.getRouterId(), nextHop);
+          sw()->getHw_DEPRECATED(), ecmp6.getRouterId(), nextHop);
     }
   }
 }
 void LinkTest::createL3DataplaneFlood(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
+  auto switchId = scope(ecmpPorts);
   utility::EcmpSetupTargetedPorts6 ecmp6(
-      sw()->getState(), sw()->getPlatform_DEPRECATED()->getLocalMac());
+      sw()->getState(), sw()->getLocalMac(switchId));
   programDefaultRoute(ecmpPorts, ecmp6);
   disableTTLDecrements(ecmpPorts);
   auto vlanID = util::getFirstMap(sw()->getState()->getVlans())
                     ->cbegin()
                     ->second->getID();
   utility::pumpTraffic(
-      true,
-      sw()->getHw(),
-      sw()->getPlatform_DEPRECATED()->getLocalMac(),
-      vlanID);
+      true, sw()->getHw_DEPRECATED(), sw()->getLocalMac(switchId), vlanID);
   // TODO: Assert that traffic reached a certain rate
   XLOG(DBG2) << "Created L3 Data Plane Flood";
 }
@@ -291,7 +288,8 @@ bool LinkTest::checkReachabilityOnAllCabledPorts() const {
       return false;
     }
     if (portType == cfg::PortType::FABRIC_PORT) {
-      auto fabricReachabilityEntries = sw()->getHw()->getFabricReachability();
+      auto fabricReachabilityEntries =
+          sw()->getHw_DEPRECATED()->getFabricReachability();
       auto fabricPortEndPoint = fabricReachabilityEntries.find(port);
       if (fabricPortEndPoint == fabricReachabilityEntries.end() ||
           !*fabricPortEndPoint->second.isAttached()) {
@@ -301,17 +299,6 @@ bool LinkTest::checkReachabilityOnAllCabledPorts() const {
     }
   }
   return true;
-}
-
-PortID LinkTest::getPortID(const std::string& portName) const {
-  for (auto portMap : std::as_const(*sw()->getState()->getPorts())) {
-    for (auto port : std::as_const(*portMap.second)) {
-      if (port.second->getName() == portName) {
-        return port.second->getID();
-      }
-    }
-  }
-  throw FbossError("No port named: ", portName);
 }
 
 std::string LinkTest::getPortName(PortID portId) const {

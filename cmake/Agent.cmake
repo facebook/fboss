@@ -168,6 +168,8 @@ add_library(core
   fboss/agent/SwitchInfoTable.cpp
   fboss/agent/SwitchStatsObserver.cpp
   fboss/agent/SwSwitch.cpp
+  fboss/agent/single/SwSwitch.cpp
+  fboss/agent/single/MonolithicHwSwitchHandler.cpp
   fboss/agent/SwSwitchRouteUpdateWrapper.cpp
   fboss/agent/TeFlowNexthopHandler.cpp
   fboss/agent/TunIntf.cpp
@@ -312,6 +314,7 @@ target_link_libraries(sflow_shim_utils
 
 add_library(fsdb_helper
   fboss/agent/oss/FsdbHelper.cpp
+  fboss/fsdb/common/Utils.cpp
 )
 
 target_link_libraries(fsdb_helper

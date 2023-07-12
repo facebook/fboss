@@ -20,9 +20,9 @@ class DiagCmdServer;
 class SaiSwitch;
 class StreamingDiagShellServer;
 
-class SaiHandler : virtual public SaiCtrlSvIf, public ThriftHandler {
+class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl> {
  public:
-  SaiHandler(SwSwitch* sw, const SaiSwitch* hw);
+  explicit SaiHandler(const SaiSwitch* hw);
   ~SaiHandler() override;
   apache::thrift::ResponseAndServerStream<std::string, std::string>
   startDiagShell() override;
@@ -36,6 +36,8 @@ class SaiHandler : virtual public SaiCtrlSvIf, public ThriftHandler {
       std::unique_ptr<ClientInformation> client,
       int16_t serverTimeoutMsecs = 0,
       bool bypassFilter = false) override;
+
+  SwitchRunState getHwSwitchRunState() override;
 
  private:
   const SaiSwitch* hw_;

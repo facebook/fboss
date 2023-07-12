@@ -5,12 +5,12 @@
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
+#include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
-#include "fboss/qsfp_service/lib/QsfpCache.h"
 
 using namespace ::testing;
 using namespace facebook::fboss;
@@ -24,10 +24,10 @@ struct TestPort {
 class PrbsTest : public LinkTest {
  public:
   bool checkValidMedia(PortID port, MediaInterfaceCode media) {
-    auto tcvr =
-        this->platform()->getPlatformPort(port)->getTransceiverID().value();
-    if (auto tcvrInfo = this->platform()->getQsfpCache()->getIf(tcvr)) {
-      if (auto mediaInterface = (*tcvrInfo).moduleMediaInterface()) {
+    auto tcvrSpec = utility::getTransceiverSpec(sw(), port);
+    this->platform()->getPlatformPort(port)->getTransceiverSpec();
+    if (tcvrSpec) {
+      if (auto mediaInterface = tcvrSpec->getMediaInterface()) {
         return *mediaInterface == media;
       }
     }
@@ -127,15 +127,15 @@ class PrbsTest : public LinkTest {
       EXPECT_EVENTUALLY_TRUE(checkPrbsStateOnAllInterfaces(enabledState));
     });
 
-    // 4. Let PRBS warm up for 30 seconds
-    /* sleep override */ std::this_thread::sleep_for(30s);
+    // 4. Let PRBS warm up for 10 seconds
+    /* sleep override */ std::this_thread::sleep_for(10s);
 
     // 5. Clear the PRBS stats to clear the instability at PRBS startup
     XLOG(DBG2) << "Clearing PRBS stats before monitoring BER";
     clearPrbsStatsOnAllInterfaces();
 
-    // 6. Let PRBS run for 30 seconds so that we can check the BER later
-    /* sleep override */ std::this_thread::sleep_for(30s);
+    // 6. Let PRBS run for 10 seconds so that we can check the BER later
+    /* sleep override */ std::this_thread::sleep_for(10s);
 
     // 7. Check PRBS stats, expect no loss of lock
     XLOG(DBG2) << "Verifying PRBS stats";
@@ -149,7 +149,6 @@ class PrbsTest : public LinkTest {
 
     // 9. Verify the last clear timestamp advanced and that there was no
     // impact on some of the other fields
-    /* sleep override */ std::this_thread::sleep_for(20s);
     XLOG(DBG2) << "Verifying PRBS stats after clear";
     checkPrbsStatsAfterClearOnAllInterfaces(
         timestampBeforeClear, true /* prbsEnabled */);

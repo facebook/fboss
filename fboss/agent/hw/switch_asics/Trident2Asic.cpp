@@ -48,7 +48,6 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
     case HwAsic::Feature::SAI_SAMPLEPACKET_TRAP:
-    case HwAsic::Feature::TRAP_PRIORITY_LOWER_VAL_IS_LOWER_PRI:
       return true;
 
     case HwAsic::Feature::ERSPANv6:
@@ -135,6 +134,9 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK:
     case HwAsic::Feature::RX_LANE_SQUELCH_ENABLE:
     case HwAsic::Feature::SAI_PORT_ETHER_STATS:
+    case HwAsic::Feature::SLOW_STAT_UPDATE:
+    case HwAsic::Feature::LINK_STATE_BASED_ISOLATE:
+    case HwAsic::Feature::VOQ_DELETE_COUNTER:
       return false;
   }
   return false;

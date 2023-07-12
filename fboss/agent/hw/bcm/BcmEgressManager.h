@@ -27,9 +27,6 @@ namespace facebook::fboss {
 struct BcmFlowletConfig {
   uint16_t flowletTableSize;
   uint16_t inactivityIntervalUsecs;
-  uint16_t portScalingFactor;
-  uint16_t portLoadWeight;
-  uint16_t portQueueWeight;
 };
 
 class BcmEgressManager {

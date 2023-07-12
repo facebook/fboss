@@ -40,6 +40,7 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiMeru400biaPlatform.cpp
   fboss/agent/platforms/sai/SaiMeru400biaPlatformPort.cpp
   fboss/agent/platforms/sai/SaiMeru400bfuPlatform.cpp
+  fboss/agent/platforms/sai/SaiMeru800bfaPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmMontblancPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmMontblancPlatformPort.cpp
 
@@ -66,7 +67,9 @@ add_library(sai_platform
   fboss/agent/platforms/sai/oss/SaiMeru800biaPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiMeru400biaPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiMeru400bfuPlatform.cpp
+  fboss/agent/platforms/sai/oss/SaiMeru800bfaPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiMeru400bfuPlatformPort.cpp
+  fboss/agent/platforms/sai/oss/SaiMeru800bfaPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiSandiaPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiMorgan800ccPlatformPort.cpp
 )
@@ -95,7 +98,6 @@ target_link_libraries(sai_platform
   morgan_platform_mapping
   sandia_platform_mapping
   wedge400c_ebb_lab_platform_mapping
-  qsfp_cache
   wedge_led_utils
   bcm_yaml_config
   cloud_ripper_platform_mapping
@@ -103,6 +105,7 @@ target_link_libraries(sai_platform
   meru400bia_platform_mapping
   meru400bfu_platform_mapping
   meru800bia_platform_mapping
+  meru800bfa_platform_mapping
   montblanc_platform_mapping
 )
 

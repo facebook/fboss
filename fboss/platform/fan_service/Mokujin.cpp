@@ -228,8 +228,8 @@ void Mokujin::getOpticsData(
   for (auto opticGroup = pServiceConfig->optics.begin();
        opticGroup != pServiceConfig->optics.end();
        ++opticGroup) {
-    std::string opticTypeKey = opticGroup->opticName + "TYPE";
-    std::string opticTempKey = opticGroup->opticName + "TEMP";
+    std::string opticTypeKey = *opticGroup->opticName() + "TYPE";
+    std::string opticTempKey = *opticGroup->opticName() + "TEMP";
     // If both key exists, then fetch the value, otherwise, just move on.
     if ((simulatedSensorRead_.find(opticTypeKey) !=
          simulatedSensorRead_.end()) &&
@@ -242,7 +242,7 @@ void Mokujin::getOpticsData(
       // Add the data, and set the timestamp
       pSensorData->setLastQsfpSvcTime(getCurrentTime());
       OpticEntry* opticData =
-          pSensorData->getOrCreateOpticEntry(opticGroup->opticName);
+          pSensorData->getOrCreateOpticEntry(*opticGroup->opticName());
       opticData->data.clear();
       opticData->data.push_back(prepData);
       opticData->lastOpticsUpdateTimeInSec = getCurrentTime();
