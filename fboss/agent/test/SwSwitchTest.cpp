@@ -93,7 +93,7 @@ ACTION(ThrowException) {
 TEST_F(SwSwitchTest, UpdateStatsExceptionCounter) {
   CounterCache counters(sw);
 
-  MockHwSwitch* hw = static_cast<MockHwSwitch*>(sw->getHw_DEPRECATED());
+  MockHwSwitch* hw = getMockHw(sw);
   EXPECT_CALL(*hw, updateStatsImpl(sw->stats()))
       .Times(1)
       .WillRepeatedly(ThrowException());

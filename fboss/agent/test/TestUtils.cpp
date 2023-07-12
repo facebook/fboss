@@ -572,21 +572,27 @@ unique_ptr<HwTestHandle> createTestHandle(
 }
 
 MockHwSwitch* getMockHw(SwSwitch* sw) {
-  return boost::polymorphic_downcast<MockHwSwitch*>(sw->getHw_DEPRECATED());
+  auto handler = boost::polymorphic_downcast<MonolinithicHwSwitchHandler*>(
+      sw->getHwSwitchHandler());
+  return boost::polymorphic_downcast<MockHwSwitch*>(handler->getHwSwitch());
 }
 
 MockPlatform* getMockPlatform(SwSwitch* sw) {
-  return boost::polymorphic_downcast<MockPlatform*>(
-      sw->getPlatform_DEPRECATED());
+  auto handler = boost::polymorphic_downcast<MonolinithicHwSwitchHandler*>(
+      sw->getHwSwitchHandler());
+  return boost::polymorphic_downcast<MockPlatform*>(handler->getPlatform());
 }
 
 MockHwSwitch* getMockHw(std::unique_ptr<SwSwitch>& sw) {
-  return boost::polymorphic_downcast<MockHwSwitch*>(sw->getHw_DEPRECATED());
+  auto handler = boost::polymorphic_downcast<MonolinithicHwSwitchHandler*>(
+      sw->getHwSwitchHandler());
+  return boost::polymorphic_downcast<MockHwSwitch*>(handler->getHwSwitch());
 }
 
 MockPlatform* getMockPlatform(std::unique_ptr<SwSwitch>& sw) {
-  return boost::polymorphic_downcast<MockPlatform*>(
-      sw->getPlatform_DEPRECATED());
+  auto handler = boost::polymorphic_downcast<MonolinithicHwSwitchHandler*>(
+      sw->getHwSwitchHandler());
+  return boost::polymorphic_downcast<MockPlatform*>(handler->getPlatform());
 }
 
 std::shared_ptr<SwitchState> waitForStateUpdates(SwSwitch* sw) {

@@ -51,7 +51,7 @@ class SwSwitchUpdateProcessingTest : public ::testing::TestWithParam<bool> {
 
  protected:
   void setStateChangedReturn(const std::shared_ptr<SwitchState>& state) {
-    if (sw->getHw_DEPRECATED()->transactionsSupported()) {
+    if (handle->getHwSwitch()->transactionsSupported()) {
       EXPECT_HW_CALL(sw, stateChangedTransaction(_))
           .WillRepeatedly(Return(state));
     } else {
@@ -62,7 +62,7 @@ class SwSwitchUpdateProcessingTest : public ::testing::TestWithParam<bool> {
   void setStateChangedReturn(
       std::function<std::shared_ptr<SwitchState>(const StateDelta& delta)>
           updateFn) {
-    if (sw->getHw_DEPRECATED()->transactionsSupported()) {
+    if (handle->getHwSwitch()->transactionsSupported()) {
       return setStateChangedTransactionReturn(updateFn);
     }
     EXPECT_HW_CALL(sw, stateChangedImpl(_))
@@ -122,7 +122,7 @@ TEST_P(SwSwitchUpdateProcessingTest, HwFailureProtectedUpdateAtEnd) {
   auto nonHwFailureProtectedUpdateState = startState->clone();
   nonHwFailureProtectedUpdateState->publish();
   auto protectedState = nonHwFailureProtectedUpdateState->clone();
-  bool transactionsSupported = sw->getHw_DEPRECATED()->transactionsSupported();
+  bool transactionsSupported = handle->getHwSwitch()->transactionsSupported();
 
   auto stateChangedImplCalls = 1 + (transactionsSupported ? 0 : 1);
   auto stateChangedTransactionCalls = transactionsSupported ? 1 : 0;
@@ -156,7 +156,7 @@ TEST_P(SwSwitchUpdateProcessingTest, BackToBackHwFailureProtectedUpdates) {
   auto protectedState1 = startState->clone();
   protectedState1->publish();
   auto protectedState2 = protectedState1->clone();
-  if (sw->getHw_DEPRECATED()->transactionsSupported()) {
+  if (handle->getHwSwitch()->transactionsSupported()) {
     EXPECT_STATE_UPDATE_TRANSACTION_TIMES(sw, 2);
   } else {
     EXPECT_STATE_UPDATE_TIMES(sw, 2);
@@ -184,7 +184,7 @@ TEST_P(SwSwitchUpdateProcessingTest, HwFailureProtectedUpdateAtStart) {
   auto protectedState = startState->clone();
   protectedState->publish();
   auto nonHwFailureProtectedUpdatealState = protectedState->clone();
-  bool transactionsSupported = sw->getHw_DEPRECATED()->transactionsSupported();
+  bool transactionsSupported = handle->getHwSwitch()->transactionsSupported();
   auto stateChangedImplCalls = 1 + (transactionsSupported ? 0 : 1);
   auto stateChangedTransactionCalls = transactionsSupported ? 1 : 0;
   if (FLAGS_enable_state_oper_delta) {

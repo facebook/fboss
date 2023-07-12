@@ -30,6 +30,9 @@ class HwTestHandle {
     return platform_;
   }
 
+  HwSwitch* getHwSwitch() const {
+    return platform_->getHwSwitch();
+  }
   virtual void prepareForTesting() {}
 
   // Useful helpers for testing low level events
