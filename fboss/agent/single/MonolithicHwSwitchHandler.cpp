@@ -210,4 +210,38 @@ std::shared_ptr<SwitchState> MonolinithicHwSwitchHandler::stateChanged(
   return transaction ? hw_->stateChangedTransaction(delta)
                      : hw_->stateChanged(delta);
 }
+
+CpuPortStats MonolinithicHwSwitchHandler::getCpuPortStats() const {
+  return hw_->getCpuPortStats();
+}
+
+std::map<PortID, FabricEndpoint>
+MonolinithicHwSwitchHandler::getFabricReachability() const {
+  return hw_->getFabricReachability();
+}
+
+std::vector<PortID> MonolinithicHwSwitchHandler::getSwitchReachability(
+    SwitchID switchId) const {
+  return hw_->getSwitchReachability(switchId);
+}
+
+std::string MonolinithicHwSwitchHandler::getDebugDump() const {
+  return hw_->getDebugDump();
+}
+
+void MonolinithicHwSwitchHandler::fetchL2Table(
+    std::vector<L2EntryThrift>* l2Table) const {
+  hw_->fetchL2Table(l2Table);
+}
+
+std::string MonolinithicHwSwitchHandler::listObjects(
+    const std::vector<HwObjectType>& types,
+    bool cached) const {
+  return hw_->listObjects(types, cached);
+}
+
+FabricReachabilityStats
+MonolinithicHwSwitchHandler::getFabricReachabilityStats() const {
+  return hw_->getFabricReachabilityStats();
+}
 } // namespace facebook::fboss

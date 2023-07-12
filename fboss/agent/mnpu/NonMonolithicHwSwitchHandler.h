@@ -94,6 +94,21 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
   std::shared_ptr<SwitchState> stateChanged(
       const StateDelta& delta,
       bool transaction) override;
+
+  CpuPortStats getCpuPortStats() const override;
+
+  std::map<PortID, FabricEndpoint> getFabricReachability() const override;
+
+  FabricReachabilityStats getFabricReachabilityStats() const override;
+
+  std::vector<PortID> getSwitchReachability(SwitchID switchId) const override;
+
+  std::string getDebugDump() const override;
+
+  void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const override;
+
+  std::string listObjects(const std::vector<HwObjectType>& types, bool cached)
+      const override;
 };
 
 } // namespace facebook::fboss

@@ -75,6 +75,8 @@ struct HwSwitchHandler {
 
   virtual folly::F14FastMap<std::string, HwPortStats> getPortStats() const = 0;
 
+  virtual CpuPortStats getCpuPortStats() const = 0;
+
   virtual std::map<std::string, HwSysPortStats> getSysPortStats() const = 0;
 
   virtual void updateStats(SwitchStats* switchStats) = 0;
@@ -118,6 +120,21 @@ struct HwSwitchHandler {
   virtual const AgentConfig* config() = 0;
 
   virtual const AgentConfig* reloadConfig() = 0;
+
+  virtual std::map<PortID, FabricEndpoint> getFabricReachability() const = 0;
+
+  virtual FabricReachabilityStats getFabricReachabilityStats() const = 0;
+
+  virtual std::vector<PortID> getSwitchReachability(
+      SwitchID switchId) const = 0;
+
+  virtual std::string getDebugDump() const = 0;
+
+  virtual void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const = 0;
+
+  virtual std::string listObjects(
+      const std::vector<HwObjectType>& types,
+      bool cached) const = 0;
 
  protected:
   virtual void initPlatformData() = 0;

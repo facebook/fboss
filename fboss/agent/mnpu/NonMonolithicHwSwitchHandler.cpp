@@ -198,4 +198,39 @@ std::shared_ptr<SwitchState> NonMonolithicHwSwitchHandler::stateChanged(
   // TODO: implement this
   return nullptr;
 }
+
+CpuPortStats NonMonolithicHwSwitchHandler::getCpuPortStats() const {
+  throw FbossError("getCpuPortStats not implemented");
+}
+
+std::map<PortID, FabricEndpoint>
+NonMonolithicHwSwitchHandler::getFabricReachability() const {
+  throw FbossError("getFabricReachability not implemented");
+}
+
+std::vector<PortID> NonMonolithicHwSwitchHandler::getSwitchReachability(
+    SwitchID /*switchId*/) const {
+  throw FbossError("getSwitchReachability not implemented");
+}
+
+std::string NonMonolithicHwSwitchHandler::getDebugDump() const {
+  throw FbossError("getDebugDump not implemented");
+}
+
+void NonMonolithicHwSwitchHandler::fetchL2Table(
+    std::vector<L2EntryThrift>* /*l2Table*/) const {
+  throw FbossError("fetchL2Table not implemented");
+}
+
+std::string NonMonolithicHwSwitchHandler::listObjects(
+    const std::vector<HwObjectType>& /*types*/,
+    bool /*cached*/) const {
+  throw FbossError("listObjects not implemented");
+}
+
+FabricReachabilityStats
+NonMonolithicHwSwitchHandler::getFabricReachabilityStats() const {
+  throw FbossError("getFabricReachabilityStats not implemented");
+}
+
 } // namespace facebook::fboss
