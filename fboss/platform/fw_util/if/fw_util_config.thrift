@@ -5,7 +5,7 @@ struct FwConfig {
   1: optional string preUpgradeCmd;
 
   // Command to be used to obtain the version of the firmware entity
-  2: string getVersion;
+  2: string getVersionCmd;
 
   // some platforms will (not all) have specific priority order in which firmware must be upgraded.
   // The lower the number, the higher the priority is

@@ -3,18 +3,24 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+add_fbthrift_cpp_library(
+  fw_util_config-cpp2-types
+  fboss/platform/fw_util/if/fw_util_config.thrift
+  OPTIONS
+    json
+    reflection
+)
+
 add_executable(fw_util
-  fboss/platform/fw_util/darwinFwUtil/FirmwareUpgradeDarwin.cpp
   fboss/platform/fw_util/fw_util.cpp
-  fboss/platform/fw_util/darwinFwUtil/UpgradeBinaryDarwin.cpp
-  fboss/platform/fw_util/oss/Utils.cpp
-  fboss/platform/fw_util/firmware_helpers/FirmwareUpgradeHelper.cpp
-  fboss/platform/fw_util/oss/FirmwareUpgradeHelper.cpp
+  fboss/platform/fw_util/Flags.cpp
+  fboss/platform/fw_util/FwUtilImpl.cpp
 )
 
 target_link_libraries(fw_util
   Folly::folly
-  common_file_utils
+  platform_config_lib
+  FBThrift::thriftcpp2
 )
 
 install(TARGETS fw_util)

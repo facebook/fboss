@@ -18,15 +18,26 @@ fw_util will read from the config json to upgrade and pull the version of severa
 ## Usage
 Below is an example of running fw_util on darwin
 
-Binary name (aka fw entities) will varies based on the platform and will be part of the provided json
+Firmware Target name (aka fw entities such as bios, cpld... etc) will varies based on the platform and will be part of the provided json
 
 ```
-[root@fboss315069332.snc1 ~]# /usr/local/bin/fw_util
-usage:
-fw_util <all|binary_name> <action> <binary_file>
-<binary_name> : cpu_cpld, sc_scd, sc_cpld, sc_sat_cpld0, sc_sat_cpld1, fan_cpld, bios
-<action> : program, verify, read, version
-<binary_file> : path to binary file which is NOT supported when pulling fw version
-all: only supported when pulling fw version. Ex:fw_util all version
+[root@fboss315069332.snc1 ~]# /tmp/fw_util --helpon=Flags
+fw_util: Warning: SetUsageMessage() never called
+
+  Flags from fbcode/dataflow_tracing/sdk/cpp/Flags.cpp:
+    -df_test_mode (At dev time, builds and displays the trace by inserting
+      placeholders. Generates a link to view the built trace.) type: bool
+      default: false
+
+
+
+  Flags from fbcode/fboss/platform/fw_util/Flags.cpp:
+    -config_file (Optional platform fw_util configuration file. If empty we
+      pick the platform default config) type: string default: ""
+    -fw_action (The firmware action (program, verify, read, version, list) that
+      must be taken for a specific fpd) type: string default: ""
+    -fw_binary_file (The binary file that needs to be programmed to the fpd)
+      type: string default: ""
+    -fw_target_name (The fpd name that needs to be programmed) type: string default: ""
 [root@fboss315069332.snc1 ~]#
 ```
