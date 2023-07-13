@@ -13,17 +13,6 @@ target_link_libraries(qsfp_service_client
     thrift_service_client
 )
 
-add_library(qsfp_cache
-    fboss/qsfp_service/lib/QsfpCache.cpp
-)
-
-target_link_libraries(qsfp_cache
-    qsfp_service_client
-    ctrl_cpp2
-    transceiver_cpp2
-    alert_logger
-)
-
 add_library(qsfp_config_parser
     fboss/qsfp_service/lib/QsfpConfigParserHelper.cpp
 )
