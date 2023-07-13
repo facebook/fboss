@@ -18,7 +18,6 @@ target_link_libraries(wedge_led_utils
   fboss_types
   transceiver_cpp2
   fboss_i2c_lib
-  qsfp_lib
 )
 
 add_library(bcm_yaml_config
