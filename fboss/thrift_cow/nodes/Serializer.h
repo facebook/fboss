@@ -63,6 +63,7 @@ struct Serializer {
   static folly::fbstring serialize(const TType& ttype) {
     folly::fbstring encoded;
     TSerializer::serialize(ttype, &encoded);
+    encoded.shrink_to_fit();
     return encoded;
   }
 
@@ -76,7 +77,9 @@ struct Serializer {
     writer.setOutput(&queue);
     apache::thrift::detail::pm::protocol_methods<TC, TType>::write(
         writer, ttype);
-    return queue.move()->moveToFbString();
+    auto str = queue.move()->moveToFbString();
+    str.shrink_to_fit();
+    return str;
   }
 
   template <
