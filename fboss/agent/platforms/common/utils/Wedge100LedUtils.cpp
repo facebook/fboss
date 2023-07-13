@@ -8,14 +8,6 @@
 #include <folly/Range.h>
 #include <folly/logging/xlog.h>
 
-namespace {
-constexpr auto kMaxSetLedTime = std::chrono::seconds(1);
-// These constants are from broadcom, see the attachments on T27619604
-constexpr uint8_t kSysCpldAddr = 0x32;
-constexpr uint8_t kLedModeReg = 0x3c;
-constexpr uint8_t kTwelveBitMode = 0x6;
-} // namespace
-
 namespace facebook::fboss {
 
 Wedge100LedUtils::LedColor
@@ -137,30 +129,5 @@ std::optional<uint32_t> Wedge100LedUtils::getLEDProcessorNumber(PortID port) {
   }
   // We only show link status for the main four pipes.
   return std::nullopt;
-}
-
-void Wedge100LedUtils::enableLedMode() {
-  // TODO: adding retries adds tolerance in case the i2c bus is
-  // busy. Long-term, we should think about having all i2c io go
-  // through qsfp_service, though this feels a bit out of place there.
-  auto expireTime = std::chrono::steady_clock::now() + kMaxSetLedTime;
-  uint8_t mode = kTwelveBitMode;
-  while (true) {
-    try {
-      auto i2cBus = std::make_unique<Wedge100I2CBus>();
-      WedgeI2CBusLock(std::move(i2cBus))
-          .write(kSysCpldAddr, kLedModeReg, 1, &mode);
-      XLOG(DBG2) << "Successfully set LED mode to '12-bit' mode";
-      return;
-    } catch (const std::exception& ex) {
-      if (std::chrono::steady_clock::now() > expireTime) {
-        XLOG(ERR) << __func__
-                  << ": failed to change LED mode: " << folly::exceptionStr(ex);
-        return;
-      }
-    }
-    /* sleep override */
-    usleep(100);
-  }
 }
 } // namespace facebook::fboss

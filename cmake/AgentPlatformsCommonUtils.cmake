@@ -7,6 +7,7 @@ add_library(wedge_led_utils
   fboss/agent/platforms/common/utils/GalaxyLedUtils.cpp
   fboss/agent/platforms/common/utils/MinipackLedUtils.cpp
   fboss/agent/platforms/common/utils/Wedge100LedUtils.cpp
+  fboss/agent/platforms/common/utils/oss/Wedge100LedUtils.cpp
   fboss/agent/platforms/common/utils/Wedge40LedUtils.cpp
   fboss/agent/platforms/common/utils/Wedge400LedUtils.cpp
 )
