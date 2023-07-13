@@ -104,4 +104,43 @@ void LedManager::updateLedStatus(
   }
 }
 
+/*
+ * setExternalLedState
+ *
+ * This function sets the LED forced mode (on/off) as told through thrift call.
+ * This function will also set the led color accordingly. The regular FSDB
+ * based update function will treat the user forced on/off as higher priority
+ * and they will not override it based on current port status
+ */
+void LedManager::setExternalLedState(
+    int32_t portNum,
+    PortLedExternalState ledState) {
+  // Set the Forced on/off values in portDisplayMap_
+  if (portDisplayMap_.find(portNum) == portDisplayMap_.end()) {
+    PortDisplayInfo portInfo;
+    portInfo.forcedOn = ledState == PortLedExternalState::EXTERNAL_FORCE_ON;
+    portInfo.forcedOff = ledState == PortLedExternalState::EXTERNAL_FORCE_OFF;
+    portInfo.currentLedColor = led::LedColor::UNKNOWN;
+    portDisplayMap_[portNum] = portInfo;
+  } else {
+    portDisplayMap_[portNum].forcedOn =
+        ledState == PortLedExternalState::EXTERNAL_FORCE_ON;
+    portDisplayMap_[portNum].forcedOff =
+        ledState == PortLedExternalState::EXTERNAL_FORCE_OFF;
+  }
+
+  // Step 2. Update LED color if required
+  auto portName = portDisplayMap_[portNum].portName;
+  auto portProfile = portDisplayMap_[portNum].portProfileId;
+  auto newLedColor = calculateLedColor(portNum, portProfile);
+  if (newLedColor != portDisplayMap_[portNum].currentLedColor) {
+    setLedColor(portNum, portProfile, newLedColor);
+    portDisplayMap_[portNum].currentLedColor = newLedColor;
+    XLOG(DBG2) << folly::sformat(
+        "Port {:s} LED color changed to {:s}",
+        portName,
+        enumToName<led::LedColor>(newLedColor));
+  }
+}
+
 } // namespace facebook::fboss

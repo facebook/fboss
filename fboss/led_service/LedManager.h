@@ -38,6 +38,8 @@ class LedManager {
     bool operationStateUp{false};
     bool neighborReachable{false};
     bool cablingError{false};
+    bool forcedOn{false};
+    bool forcedOff{false};
     led::LedColor currentLedColor{led::LedColor::UNKNOWN};
   };
 
@@ -59,6 +61,8 @@ class LedManager {
   fsdb::FsdbPubSubManager* pubSubMgr() const {
     return fsdbPubSubMgr_.get();
   }
+
+  void setExternalLedState(int32_t portNum, PortLedExternalState ledState);
 
   // Forbidden copy constructor and assignment operator
   LedManager(LedManager const&) = delete;

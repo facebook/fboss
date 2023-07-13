@@ -34,6 +34,10 @@ class LedService {
     pLedManager_->updateLedStatus(newSwitchState);
   }
 
+  void setExternalLedState(int32_t portNum, PortLedExternalState ledState) {
+    pLedManager_->setExternalLedState(portNum, ledState);
+  }
+
  private:
   // LED manager object
   std::unique_ptr<LedManager> pLedManager_;
