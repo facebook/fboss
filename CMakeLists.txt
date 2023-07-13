@@ -144,14 +144,6 @@ if (WITH_ASAN)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libasan")
 endif()
 
-# TODO (skhare) Once CMakeLists.txt is modified to follow buck hierarchy in
-# cmake/*, set BCM-specific flags for BCM libs only
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DINCLUDE_L3 -DLONGS_ARE_64BITS \
-    -DBCM_ESW_SUPPORT -DBCMDRD_INCLUDE_CUSTOM_CONFIG \
-    -DBCMDRD_CONFIG_INCLUDE_BCM56990_Bx=1 \
-    -DBCMDRD_CONFIG_INCLUDE_CHIP_DEFAULT=0 \
-    -DINCLUDE_PSTATS -DBCM_RPC_SUPPORT -DBC")
-
 include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${CMAKE_BUILD_DIR})
 
