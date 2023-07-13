@@ -248,4 +248,11 @@ MonolinithicHwSwitchHandler::getFabricReachabilityStats() const {
 bool MonolinithicHwSwitchHandler::needL2EntryForNeighbor() const {
   return hw_->needL2EntryForNeighbor();
 }
+
+fsdb::OperDelta MonolinithicHwSwitchHandler::stateChanged(
+    const fsdb::OperDelta& delta,
+    bool transaction) {
+  return transaction ? hw_->stateChanged(delta)
+                     : hw_->stateChangedTransaction(delta);
+}
 } // namespace facebook::fboss

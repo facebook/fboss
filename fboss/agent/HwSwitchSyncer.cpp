@@ -2,7 +2,7 @@
 
 #include "fboss/agent/HwSwitchSyncer.h"
 
-#include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/HwSwitchHandler.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "folly/futures/Promise.h"
@@ -21,10 +21,10 @@ HwSwitchStateUpdate::HwSwitchStateUpdate(
 }
 
 HwSwitchSyncer::HwSwitchSyncer(
-    HwSwitch* hwSwitch,
+    HwSwitchHandler* hwSwitchHandler,
     const SwitchID& switchId,
     const cfg::SwitchInfo& info)
-    : hwSwitch_(hwSwitch),
+    : hwSwitchHandler_(hwSwitchHandler),
       switchId_(switchId),
       info_(info),
       operDeltaFilter_(switchId) {}
@@ -71,8 +71,7 @@ std::shared_ptr<SwitchState> HwSwitchSyncer::stateChangedImpl(
     const HwSwitchStateUpdate& update) {
   if (!FLAGS_enable_state_oper_delta) {
     StateDelta stateDelta(update.oldState, update.newState);
-    return update.isTransaction ? hwSwitch_->stateChangedTransaction(stateDelta)
-                                : hwSwitch_->stateChanged(stateDelta);
+    return hwSwitchHandler_->stateChanged(stateDelta, update.isTransaction);
   }
   // filter out deltas that don't apply to this switch
   auto inDelta = operDeltaFilter_.filter(update.inDelta, 1);
@@ -94,8 +93,7 @@ std::shared_ptr<SwitchState> HwSwitchSyncer::stateChangedImpl(
 fsdb::OperDelta HwSwitchSyncer::stateChangedImpl(
     const fsdb::OperDelta& delta,
     bool transaction) {
-  return transaction ? hwSwitch_->stateChangedTransaction(delta)
-                     : hwSwitch_->stateChanged(delta);
+  return hwSwitchHandler_->stateChanged(delta, transaction);
 }
 
 } // namespace facebook::fboss

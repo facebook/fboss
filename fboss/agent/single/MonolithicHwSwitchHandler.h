@@ -105,6 +105,9 @@ class MonolinithicHwSwitchHandler : public HwSwitchHandler {
       const StateDelta& delta,
       bool transaction) override;
 
+  fsdb::OperDelta stateChanged(const fsdb::OperDelta& delta, bool transaction)
+      override;
+
   bool transactionsSupported() const override;
 
   /* TODO: remove this method */

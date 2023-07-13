@@ -12,7 +12,7 @@
 
 namespace facebook::fboss {
 
-class HwSwitch;
+struct HwSwitchHandler;
 class StateDelta;
 
 struct HwSwitchStateUpdate {
@@ -26,7 +26,7 @@ struct HwSwitchStateUpdate {
 class HwSwitchSyncer {
  public:
   HwSwitchSyncer(
-      HwSwitch* hwSwitch,
+      HwSwitchHandler* hwSwitch,
       const SwitchID& switchId,
       const cfg::SwitchInfo& info);
 
@@ -49,7 +49,7 @@ class HwSwitchSyncer {
 
   void stop();
 
-  HwSwitch* hwSwitch_;
+  HwSwitchHandler* hwSwitchHandler_;
   SwitchID switchId_;
   cfg::SwitchInfo info_;
   folly::EventBase hwSwitchManagerEvb_;

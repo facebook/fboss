@@ -6,12 +6,13 @@
 namespace facebook::fboss {
 
 MultiHwSwitchSyncer::MultiHwSwitchSyncer(
-    HwSwitch* hwSwitch,
+    HwSwitchHandler* hwSwitchHandler,
     const std::map<SwitchID, cfg::SwitchInfo>& switchInfoMap) {
   for (auto entry : switchInfoMap) {
     hwSwitchSyncers_.emplace(
         entry.first,
-        std::make_unique<HwSwitchSyncer>(hwSwitch, entry.first, entry.second));
+        std::make_unique<HwSwitchSyncer>(
+            hwSwitchHandler, entry.first, entry.second));
   }
 }
 

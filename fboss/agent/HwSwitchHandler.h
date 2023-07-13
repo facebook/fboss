@@ -110,6 +110,10 @@ struct HwSwitchHandler {
       const StateDelta& delta,
       bool transaction) = 0;
 
+  virtual fsdb::OperDelta stateChanged(
+      const fsdb::OperDelta& delta,
+      bool transaction) = 0;
+
   // platform access apis
   virtual void onHwInitialized(HwSwitchCallback* callback) = 0;
 

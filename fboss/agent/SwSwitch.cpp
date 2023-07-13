@@ -666,7 +666,7 @@ void SwSwitch::init(
   auto hwInitRet =
       hwSwitchHandler_->initHw(callback, false /*failHwCallsOnWarmboot*/);
   multiHwSwitchSyncer_ = std::make_unique<MultiHwSwitchSyncer>(
-      getHw_DEPRECATED(), switchInfoTable_.getSwitchIdToSwitchInfo());
+      getHwSwitchHandler(), switchInfoTable_.getSwitchIdToSwitchInfo());
   auto initialState = hwInitRet.switchState;
   bootType_ = hwInitRet.bootType;
   rib_ = std::move(hwInitRet.rib);

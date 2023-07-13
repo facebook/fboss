@@ -237,4 +237,10 @@ bool NonMonolithicHwSwitchHandler::needL2EntryForNeighbor() const {
   throw FbossError("listObjects not implemented");
 }
 
+fsdb::OperDelta NonMonolithicHwSwitchHandler::stateChanged(
+    const fsdb::OperDelta& /*delta*/,
+    bool /*transaction*/) {
+  throw FbossError("stateChanged not implemented");
+}
+
 } // namespace facebook::fboss

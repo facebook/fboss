@@ -95,6 +95,9 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
       const StateDelta& delta,
       bool transaction) override;
 
+  fsdb::OperDelta stateChanged(const fsdb::OperDelta& delta, bool transaction)
+      override;
+
   CpuPortStats getCpuPortStats() const override;
 
   std::map<PortID, FabricEndpoint> getFabricReachability() const override;
