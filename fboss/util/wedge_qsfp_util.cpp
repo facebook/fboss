@@ -1537,6 +1537,10 @@ void printManagementInterface(
   }
 }
 
+void printMediaInterfaceCode(MediaInterfaceCode media, const char* fmt) {
+  printf(fmt, apache::thrift::util::enumNameSafe(media).c_str());
+}
+
 void printVerboseInfo(const TransceiverInfo& transceiverInfo) {
   const TcvrState& tcvrState = *can_throw(transceiverInfo.tcvrState());
   const TcvrStats& tcvrStats = *can_throw(transceiverInfo.tcvrStats());
@@ -1649,9 +1653,12 @@ void printSff8472DetailService(
 
   printManagementInterface(
       transceiverInfo, "    Transceiver Management Interface: %s\n");
+  printMediaInterfaceCode(
+      can_throw(*tcvrState.moduleMediaInterface()),
+      "    Module Media Interface: %s\n");
   if (auto mediaInterfaceId = settings.mediaInterface()) {
     printf(
-        "  Media Interface: %s\n",
+        "  Current Media Interface: %s\n",
         apache::thrift::util::enumNameSafe(
             (*mediaInterfaceId)[0].media()->get_ethernet10GComplianceCode())
             .c_str());
@@ -1691,6 +1698,9 @@ void printSffDetailService(
     printf("    InterruptL: 0x%02x\n", *(status->interruptL()));
     printf("    Data_Not_Ready: 0x%02x\n", *(status->dataNotReady()));
   }
+  printMediaInterfaceCode(
+      can_throw(*tcvrState.moduleMediaInterface()),
+      "    Module Media Interface: %s\n");
   if (auto ext = tcvrState.extendedSpecificationComplianceCode()) {
     printf(
         "    Extended Specification Compliance Code: %s\n",
@@ -1991,6 +2001,9 @@ void printCmisDetailService(
         "    StateMachine State: %s\n",
         apache::thrift::util::enumNameSafe(*stateMachineState).c_str());
   }
+  printMediaInterfaceCode(
+      can_throw(*tcvrState.moduleMediaInterface()),
+      "  Module Media Interface: %s\n");
   if (auto mediaInterfaceId = settings.mediaInterface()) {
     std::string mediaInterface;
     if ((*mediaInterfaceId)[0].media()->getType() ==
@@ -2003,7 +2016,7 @@ void printCmisDetailService(
       mediaInterface = apache::thrift::util::enumNameSafe(
           (*mediaInterfaceId)[0].media()->get_passiveCuCode());
     }
-    printf("  Media Interface: %s\n", mediaInterface.c_str());
+    printf("  Current Media Interface: %s\n", mediaInterface.c_str());
   }
   printf(
       "  Power Control: %s\n",
