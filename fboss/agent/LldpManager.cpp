@@ -131,25 +131,25 @@ void LldpManager::handlePacket(
             neighbor->humanReadablePortId()))) {
     sw_->stats()->LldpValidateMisMatch();
     XLOG(DBG4) << "LLDP expected/recvd value mismatch!";
-    auto updateFn = [&port](const shared_ptr<SwitchState>& state) {
+    auto updateFn = [pid](const shared_ptr<SwitchState>& state) {
       auto newState = state->clone();
-      auto newPort = port->modify(&newState);
+      auto newPort = state->getPorts()->getNodeIf(pid)->modify(&newState);
       newPort->setLedPortExternalState(PortLedExternalState::CABLING_ERROR);
       return newState;
     };
-    sw_->updateStateBlocking("set port LED state from lldp", updateFn);
+    sw_->updateState("set port LED state from lldp", updateFn);
   } else {
     // clear the cabling error led state if needed
     if (port->getLedPortExternalState().has_value() &&
         port->getLedPortExternalState().value() ==
             PortLedExternalState::CABLING_ERROR) {
-      auto updateFn = [&port](const shared_ptr<SwitchState>& state) {
+      auto updateFn = [pid](const shared_ptr<SwitchState>& state) {
         auto newState = state->clone();
-        auto newPort = port->modify(&newState);
+        auto newPort = state->getPorts()->getNodeIf(pid)->modify(&newState);
         newPort->setLedPortExternalState(PortLedExternalState::NONE);
         return newState;
       };
-      sw_->updateStateBlocking("clear port LED state from lldp", updateFn);
+      sw_->updateState("clear port LED state from lldp", updateFn);
     }
   }
   db_.update(neighbor);
