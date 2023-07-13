@@ -139,6 +139,7 @@ led::LedColor BspLedManager::calculateLedColor(
   bool anyPortUp{false}, allPortsUp{true};
   bool anyPortReachable{false}, allPortsReachable{true};
   bool anyCablingError{false};
+  bool anyForcedOn{false}, anyForcedOff{false};
 
   for (auto swPort : commonSwPorts) {
     if (portDisplayMap_.find(swPort) == portDisplayMap_.end()) {
@@ -154,6 +155,23 @@ led::LedColor BspLedManager::calculateLedColor(
     allPortsReachable = allPortsReachable && thisPortReachable;
 
     anyCablingError |= portDisplayMap_.at(swPort).cablingError;
+    anyForcedOn |= portDisplayMap_.at(swPort).forcedOn;
+    anyForcedOff |= portDisplayMap_.at(swPort).forcedOff;
+  }
+
+  // Sanity check warning
+  if (anyForcedOn && anyForcedOff) {
+    XLOG(WARN) << fmt::format(
+        "Port {:d} LED is Forced inconsistently On and Off", portId);
+  }
+
+  // Foced LED value overrides the status
+  if (anyForcedOn) {
+    XLOG(DBG2) << fmt::format("Port {:d} Forced On", portId);
+    return led::LedColor::BLUE;
+  } else if (anyForcedOff) {
+    XLOG(DBG2) << fmt::format("Port {:d} Forced Off", portId);
+    return led::LedColor::OFF;
   }
 
   XLOG(DBG2) << fmt::format(
