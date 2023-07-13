@@ -5,6 +5,7 @@
 
 add_library(weutil_lib
   fboss/platform/weutil/WeutilDarwin.cpp
+  fboss/platform/weutil/WeutilImpl.cpp
   fboss/platform/weutil/prefdl/Prefdl.cpp
   fboss/platform/weutil/Weutil.cpp
 )
