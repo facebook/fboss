@@ -37,6 +37,7 @@ enum ModbusDeviceType {
   ORV3_PSU = 1,
   ORV3_RPU = 2,
   ORV3_BBU = 3,
+  ORV3_POWER_TETHER = 4,
 }
 
 /*
