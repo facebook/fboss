@@ -5,19 +5,21 @@
 #include <folly/futures/Future.h>
 #include "common/fb303/cpp/FacebookBase2.h"
 #include "fboss/led_service/LedService.h"
+#include "fboss/led_service/if/gen-cpp2/LedService.h"
 
 namespace facebook::fboss {
-class LedServiceHandler
-    : public ::facebook::fb303::FacebookBase2DeprecationMigration {
+class LedServiceHandler : public facebook::fboss::led_service::LedServiceSvIf {
  public:
   explicit LedServiceHandler(std::unique_ptr<LedService> ledService);
   ~LedServiceHandler() override = default;
 
-  facebook::fb303::cpp2::fb_status getStatus() override;
-
   LedService* getLedService() const {
     return service_.get();
   }
+
+  void setExternalLedState(
+      int32_t /* portNum */,
+      PortLedExternalState /* ledState */) override {}
 
  private:
   // Internal pointer for LedService
