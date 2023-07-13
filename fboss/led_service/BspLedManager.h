@@ -49,11 +49,6 @@ class BspLedManager : public LedManager {
       cfg::PortProfileID portProfile,
       led::LedColor ledColor) override;
 
-  led::LedColor getLedColorFromPortStatus(
-      bool anyPortUp,
-      bool allPortsUp,
-      bool allPortsReachable) const;
-
   std::set<int> getLedIdFromSwPort(
       uint32_t portId,
       cfg::PortProfileID portProfile) const;

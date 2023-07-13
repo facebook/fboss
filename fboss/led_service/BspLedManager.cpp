@@ -6,6 +6,11 @@
 #include "fboss/lib/CommonPortUtils.h"
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
 
+namespace {
+constexpr facebook::fboss::led::LedColor kCablingErrorLedColor =
+    facebook::fboss::led::LedColor::OFF;
+}
+
 namespace facebook::fboss {
 
 /*
@@ -133,6 +138,7 @@ led::LedColor BspLedManager::calculateLedColor(
 
   bool anyPortUp{false}, allPortsUp{true};
   bool anyPortReachable{false}, allPortsReachable{true};
+  bool anyCablingError{false};
 
   for (auto swPort : commonSwPorts) {
     if (portDisplayMap_.find(swPort) == portDisplayMap_.end()) {
@@ -146,41 +152,33 @@ led::LedColor BspLedManager::calculateLedColor(
     auto thisPortReachable = portDisplayMap_.at(swPort).neighborReachable;
     anyPortReachable = anyPortReachable || thisPortReachable;
     allPortsReachable = allPortsReachable && thisPortReachable;
+
+    anyCablingError |= portDisplayMap_.at(swPort).cablingError;
   }
 
   XLOG(DBG2) << fmt::format(
-      "Port {:d}, anyPortUp={:s} allPortsUp={:s} anyPortReachable={:s} allPortsReachable={:s}",
+      "Port {:d}, anyPortUp={:s} allPortsUp={:s} anyPortReachable={:s} \
+      allPortsReachable = {:s} anyCablingError = {:s} ",
       portId,
       (anyPortUp ? "True" : "False"),
       (allPortsUp ? "True" : "False"),
       (anyPortReachable ? "True" : "False"),
-      (allPortsReachable ? "True" : "False"));
+      (allPortsReachable ? "True" : "False"),
+      (anyCablingError ? "True" : "False"));
 
-  return getLedColorFromPortStatus(anyPortUp, allPortsUp, allPortsReachable);
-}
+  // BSP LED color scheme:
+  //  - ALL ports on a fiber are down                         --> LED OFF
+  //  - ALL ports are up and have proper reachability/cabling --> LED GREEN
+  //  - Any other state                                       --> LED YELLOW
 
-/*
- * getLedColorFromPortStatus
- *
- * Helper function to determine the LED color based on how many ports (attached
- * to the same LED) are Up and if all are reachable from neighbors.
- * Default LED scheme:
- *     All ports Up and neighbor reachable       -> Blue
- *     Some ports down or unreachable            -> Yellow
- *     All ports Down                            -> Off
- */
-led::LedColor BspLedManager::getLedColorFromPortStatus(
-    bool anyPortUp,
-    bool allPortsUp,
-    bool allPortsReachable) const {
   led::LedColor currPortColor{led::LedColor::UNKNOWN};
 
   if (!anyPortUp) {
     currPortColor = led::LedColor::OFF;
-  } else if (allPortsUp && allPortsReachable) {
-    currPortColor = led::LedColor::BLUE;
+  } else if (allPortsUp && allPortsReachable && !anyCablingError) {
+    currPortColor = led::LedColor::GREEN;
   } else {
-    currPortColor = led::LedColor::YELLOW;
+    currPortColor = kCablingErrorLedColor;
   }
   return currPortColor;
 }
