@@ -11,6 +11,18 @@ add_fbthrift_cpp_library(
     reflection
 )
 
+add_fbthrift_cpp_library(
+  led_service_types_cpp2
+  fboss/led_service/if/led_service.thrift
+  SERVICES
+    LedService
+  OPTIONS
+    json
+    reflection
+    fboss_cpp2
+    ctrl_cpp2
+)
+
 add_library(led_core_lib
   fboss/led_service/BspLedManager.cpp
   fboss/led_service/FsdbSwitchStateSubscriber.cpp
@@ -37,6 +49,7 @@ target_link_libraries(led_core_lib
   qsfp_bsp_core
   ledIO
   led_structs_types_cpp2
+  led_service_types_cpp2
   log_thrift_call
   montblanc_bsp
   darwin_platform_mapping
