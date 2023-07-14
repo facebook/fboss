@@ -22,6 +22,7 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/CommonInit.h"
 #include "fboss/agent/FbossInit.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/HwSwitch.h"
@@ -215,23 +216,6 @@ void SignalHandler::signalReceived(int /*signum*/) noexcept {
 #endif
 
   exit(0);
-}
-
-std::unique_ptr<AgentConfig> parseConfig(int argc, char** argv) {
-  // one pass over flags, but don't clear argc/argv. We only do this
-  // to extract the 'config' arg.
-  gflags::ParseCommandLineFlags(&argc, &argv, false);
-  return AgentConfig::fromDefaultFile();
-}
-
-void initFlagDefaults(const std::map<std::string, std::string>& defaults) {
-  for (auto item : defaults) {
-    // logging not initialized yet, need to use std::cerr
-    std::cerr << "Overriding default flag from config: " << item.first.c_str()
-              << "=" << item.second.c_str() << std::endl;
-    gflags::SetCommandLineOptionWithMode(
-        item.first.c_str(), item.second.c_str(), gflags::SET_FLAGS_DEFAULT);
-  }
 }
 
 void MonolithicAgentInitializer::createSwitch(

@@ -126,8 +126,5 @@ int fbossMain(
     char** argv,
     uint32_t hwFeaturesDesired,
     PlatformInitFn initPlatform);
-void fbossFinalize();
-void setVersionInfo();
-void initializeBitsflow();
 
 } // namespace facebook::fboss

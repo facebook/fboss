@@ -25,7 +25,7 @@ DECLARE_bool(hide_fabric_ports);
 
 namespace facebook::fboss {
 
-class AgentConfig;
+struct AgentConfig;
 class HwSwitch;
 class SwSwitch;
 class ThriftHandler;
