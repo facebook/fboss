@@ -252,7 +252,7 @@ bool MonolinithicHwSwitchHandler::needL2EntryForNeighbor() const {
 fsdb::OperDelta MonolinithicHwSwitchHandler::stateChanged(
     const fsdb::OperDelta& delta,
     bool transaction) {
-  return transaction ? hw_->stateChanged(delta)
-                     : hw_->stateChangedTransaction(delta);
+  return transaction ? hw_->stateChangedTransaction(delta)
+                     : hw_->stateChanged(delta);
 }
 } // namespace facebook::fboss
