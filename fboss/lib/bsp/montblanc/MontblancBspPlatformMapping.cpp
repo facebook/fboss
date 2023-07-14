@@ -35,7 +35,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "1",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_1"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_1"
               },
               "tcvrLaneToLedId": {
                 "1": 1,
@@ -68,7 +68,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "2",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_2"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_2"
               },
               "tcvrLaneToLedId": {
                 "1": 3,
@@ -101,7 +101,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "3",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_3"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_3"
               },
               "tcvrLaneToLedId": {
                 "1": 5,
@@ -134,7 +134,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "4",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_4"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_4"
               },
               "tcvrLaneToLedId": {
                 "1": 7,
@@ -167,7 +167,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "5",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_5"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_5"
               },
               "tcvrLaneToLedId": {
                 "1": 9,
@@ -200,7 +200,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "6",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_6"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_6"
               },
               "tcvrLaneToLedId": {
                 "1": 11,
@@ -233,7 +233,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "7",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_7"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_7"
               },
               "tcvrLaneToLedId": {
                 "1": 13,
@@ -266,7 +266,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "8",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_8"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_8"
               },
               "tcvrLaneToLedId": {
                 "1": 15,
@@ -299,7 +299,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "9",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_9"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_9"
               },
               "tcvrLaneToLedId": {
                 "1": 17,
@@ -332,7 +332,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "10",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_10"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_10"
               },
               "tcvrLaneToLedId": {
                 "1": 19,
@@ -365,7 +365,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "11",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_11"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_11"
               },
               "tcvrLaneToLedId": {
                 "1": 21,
@@ -398,7 +398,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "12",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_12"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_12"
               },
               "tcvrLaneToLedId": {
                 "1": 23,
@@ -431,7 +431,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "13",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_13"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_13"
               },
               "tcvrLaneToLedId": {
                 "1": 25,
@@ -464,7 +464,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "14",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_14"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_14"
               },
               "tcvrLaneToLedId": {
                 "1": 27,
@@ -497,7 +497,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "15",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_15"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_15"
               },
               "tcvrLaneToLedId": {
                 "1": 29,
@@ -530,7 +530,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "16",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_16"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_16"
               },
               "tcvrLaneToLedId": {
                 "1": 31,
@@ -563,7 +563,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "17",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_17"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_17"
               },
               "tcvrLaneToLedId": {
                 "1": 33,
@@ -596,7 +596,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "18",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_18"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_18"
               },
               "tcvrLaneToLedId": {
                 "1": 35,
@@ -629,7 +629,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "19",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_19"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_19"
               },
               "tcvrLaneToLedId": {
                 "1": 37,
@@ -662,7 +662,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "20",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_20"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_20"
               },
               "tcvrLaneToLedId": {
                 "1": 39,
@@ -695,7 +695,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "21",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_21"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_21"
               },
               "tcvrLaneToLedId": {
                 "1": 41,
@@ -728,7 +728,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "22",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_22"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_22"
               },
               "tcvrLaneToLedId": {
                 "1": 43,
@@ -761,7 +761,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "23",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_23"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_23"
               },
               "tcvrLaneToLedId": {
                 "1": 45,
@@ -794,7 +794,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "24",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_24"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_24"
               },
               "tcvrLaneToLedId": {
                 "1": 47,
@@ -827,7 +827,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "25",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_25"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_25"
               },
               "tcvrLaneToLedId": {
                 "1": 49,
@@ -860,7 +860,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "26",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_26"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_26"
               },
               "tcvrLaneToLedId": {
                 "1": 51,
@@ -893,7 +893,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "27",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_27"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_27"
               },
               "tcvrLaneToLedId": {
                 "1": 53,
@@ -926,7 +926,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "28",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_28"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_28"
               },
               "tcvrLaneToLedId": {
                 "1": 55,
@@ -959,7 +959,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "29",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_29"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_29"
               },
               "tcvrLaneToLedId": {
                 "1": 57,
@@ -992,7 +992,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "30",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_30"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_30"
               },
               "tcvrLaneToLedId": {
                 "1": 59,
@@ -1025,7 +1025,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "31",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_31"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_31"
               },
               "tcvrLaneToLedId": {
                 "1": 61,
@@ -1058,7 +1058,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "32",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_32"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_32"
               },
               "tcvrLaneToLedId": {
                 "1": 63,
@@ -1091,7 +1091,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "33",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_33"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_33"
               },
               "tcvrLaneToLedId": {
                 "1": 65,
@@ -1124,7 +1124,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "34",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_34"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_34"
               },
               "tcvrLaneToLedId": {
                 "1": 67,
@@ -1157,7 +1157,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "35",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_35"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_35"
               },
               "tcvrLaneToLedId": {
                 "1": 69,
@@ -1190,7 +1190,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "36",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_36"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_36"
               },
               "tcvrLaneToLedId": {
                 "1": 71,
@@ -1223,7 +1223,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "37",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_37"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_37"
               },
               "tcvrLaneToLedId": {
                 "1": 73,
@@ -1256,7 +1256,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "38",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_38"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_38"
               },
               "tcvrLaneToLedId": {
                 "1": 75,
@@ -1289,7 +1289,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "39",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_39"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_39"
               },
               "tcvrLaneToLedId": {
                 "1": 77,
@@ -1322,7 +1322,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "40",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_40"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_40"
               },
               "tcvrLaneToLedId": {
                 "1": 79,
@@ -1355,7 +1355,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "41",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_41"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_41"
               },
               "tcvrLaneToLedId": {
                 "1": 81,
@@ -1388,7 +1388,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "42",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_42"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_42"
               },
               "tcvrLaneToLedId": {
                 "1": 83,
@@ -1421,7 +1421,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "43",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_43"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_43"
               },
               "tcvrLaneToLedId": {
                 "1": 85,
@@ -1454,7 +1454,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "44",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_44"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_44"
               },
               "tcvrLaneToLedId": {
                 "1": 87,
@@ -1487,7 +1487,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "45",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_45"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_45"
               },
               "tcvrLaneToLedId": {
                 "1": 89,
@@ -1520,7 +1520,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "46",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_46"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_46"
               },
               "tcvrLaneToLedId": {
                 "1": 91,
@@ -1553,7 +1553,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "47",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_47"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_47"
               },
               "tcvrLaneToLedId": {
                 "1": 93,
@@ -1586,7 +1586,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "48",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_48"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_48"
               },
               "tcvrLaneToLedId": {
                 "1": 95,
@@ -1619,7 +1619,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "49",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_49"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_49"
               },
               "tcvrLaneToLedId": {
                 "1": 97,
@@ -1652,7 +1652,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "50",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_50"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_50"
               },
               "tcvrLaneToLedId": {
                 "1": 99,
@@ -1685,7 +1685,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "51",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_51"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_51"
               },
               "tcvrLaneToLedId": {
                 "1": 101,
@@ -1718,7 +1718,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "52",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_52"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_52"
               },
               "tcvrLaneToLedId": {
                 "1": 103,
@@ -1751,7 +1751,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "53",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_53"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_53"
               },
               "tcvrLaneToLedId": {
                 "1": 105,
@@ -1784,7 +1784,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "54",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_54"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_54"
               },
               "tcvrLaneToLedId": {
                 "1": 107,
@@ -1817,7 +1817,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "55",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_55"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_55"
               },
               "tcvrLaneToLedId": {
                 "1": 109,
@@ -1850,7 +1850,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "56",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_56"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_56"
               },
               "tcvrLaneToLedId": {
                 "1": 111,
@@ -1883,7 +1883,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "57",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_57"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_57"
               },
               "tcvrLaneToLedId": {
                 "1": 113,
@@ -1916,7 +1916,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "58",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_58"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_58"
               },
               "tcvrLaneToLedId": {
                 "1": 115,
@@ -1949,7 +1949,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "59",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_59"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_59"
               },
               "tcvrLaneToLedId": {
                 "1": 117,
@@ -1982,7 +1982,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "60",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_60"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_60"
               },
               "tcvrLaneToLedId": {
                 "1": 119,
@@ -2015,7 +2015,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "61",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_61"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_61"
               },
               "tcvrLaneToLedId": {
                 "1": 121,
@@ -2048,7 +2048,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "62",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_62"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_62"
               },
               "tcvrLaneToLedId": {
                 "1": 123,
@@ -2081,7 +2081,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "63",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_63"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_63"
               },
               "tcvrLaneToLedId": {
                 "1": 125,
@@ -2114,7 +2114,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "io": {
                 "controllerId": "64",
                 "type": 1,
-                "devicePath": "/run/devmap/i2c-busses/OPTICS_64"
+                "devicePath": "/run/devmap/i2c-busses/XCVR_64"
               },
               "tcvrLaneToLedId": {
                 "1": 127,
