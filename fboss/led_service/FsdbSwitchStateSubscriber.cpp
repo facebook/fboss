@@ -49,12 +49,10 @@ void FsdbSwitchStateSubscriber::subscribeToState(
       auto swPortMaps = newSwitchStateData.portMaps().value();
 
       if (ledManager) {
-        for (auto& oneSwPortMap : swPortMaps) {
-          auto switchPortMap = oneSwPortMap.second;
-          folly::via(ledManager->getEventBase()).thenValue([&](auto&&) {
-            ledManager->updateLedStatus(switchPortMap);
-          });
-        }
+        folly::via(ledManager->getEventBase()).thenValue([&](auto&&) {
+          ledManager->updateLedStatus(swPortMaps);
+        });
+
       } else {
         XLOG(ERR) << "Subscribed data came for invalid LED Manager";
       }
