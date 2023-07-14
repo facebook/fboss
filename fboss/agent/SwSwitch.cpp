@@ -19,7 +19,6 @@
 #include "fboss/agent/FibHelpers.h"
 
 #include "fboss/agent/HwAsicTable.h"
-#include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/IPv4Handler.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/L2Entry.h"
@@ -46,7 +45,6 @@
 #include "fboss/agent/PacketLogger.h"
 #include "fboss/agent/PacketObserver.h"
 #include "fboss/agent/PhySnapshotManager-defs.h"
-#include "fboss/agent/Platform.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/PortUpdateHandler.h"
 #include "fboss/agent/ResolvedNexthopMonitor.h"

@@ -9,7 +9,6 @@
  */
 #pragma once
 
-#include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/HwSwitchHandler.h"
 #include "fboss/agent/PacketObserver.h"
 #include "fboss/agent/RestartTimeTracker.h"
@@ -50,7 +49,8 @@ class LinkAggregationManager;
 class LldpManager;
 class MPLSHandler;
 class PktCaptureManager;
-class Platform;
+class PlatformMapping;
+class PlatformProductInfo;
 class Port;
 class PortDescriptor;
 class PortStats;

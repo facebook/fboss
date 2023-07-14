@@ -14,7 +14,6 @@
 #include "fboss/agent/LacpController.h"
 #include "fboss/agent/LacpTypes-defs.h"
 #include "fboss/agent/LacpTypes.h"
-#include "fboss/agent/Platform.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"

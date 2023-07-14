@@ -11,10 +11,13 @@
 
 #include <folly/io/IOBuf.h>
 
+#include "fboss/agent/Platform.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
+
+class Platform;
 
 class HwTestHandle {
  public:

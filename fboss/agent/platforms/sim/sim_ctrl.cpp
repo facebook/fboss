@@ -9,6 +9,7 @@
  */
 #include <folly/Memory.h>
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Main.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/sim/SimPlatform.h"

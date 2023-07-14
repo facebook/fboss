@@ -18,7 +18,6 @@
 #include "fboss/agent/DHCPv4OptionsOfInterest.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwAsicTable.h"
-#include "fboss/agent/Platform.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"

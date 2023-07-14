@@ -14,7 +14,6 @@
 #include <folly/io/Cursor.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PacketLogger.h"
 #include "fboss/agent/PortStats.h"

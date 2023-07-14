@@ -12,7 +12,6 @@
 #include <folly/io/async/AsyncTimeout.h>
 #include <memory>
 #include <unordered_map>
-#include "fboss/agent/Platform.h"
 #include "fboss/agent/lldp/LinkNeighborDB.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
@@ -28,6 +27,7 @@ namespace facebook::fboss {
 
 class RxPacket;
 class TxPacket;
+class SwSwitch;
 
 class LldpManager : private folly::AsyncTimeout {
   /*
