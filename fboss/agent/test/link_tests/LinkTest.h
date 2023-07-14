@@ -71,6 +71,9 @@ class LinkTest : public AgentTest {
     return cabledTransceivers_;
   }
   boost::container::flat_set<PortDescriptor> getVlanOwningCabledPorts() const;
+  const std::vector<PortID>& getCabledFabricPorts() const {
+    return cabledFabricPorts_;
+  }
   /*
    * Program default (v6) route over ports
    */
@@ -92,6 +95,8 @@ class LinkTest : public AgentTest {
     createL3DataplaneFlood(getVlanOwningCabledPorts());
   }
   std::string getPortName(PortID port) const;
+  std::vector<std::string> getPortName(
+      const std::vector<PortID>& portIDs) const;
 
   void waitForStateMachineState(
       const std::set<TransceiverID>& transceiversToCheck,
@@ -126,6 +131,7 @@ class LinkTest : public AgentTest {
   void logLinkDbgMessage(std::vector<PortID>& portIDs) const override;
 
   std::vector<PortID> cabledPorts_;
+  std::vector<PortID> cabledFabricPorts_;
   std::set<TransceiverID> cabledTransceivers_;
 };
 int linkTestMain(

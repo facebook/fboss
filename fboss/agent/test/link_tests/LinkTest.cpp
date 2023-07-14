@@ -160,6 +160,9 @@ void LinkTest::initializeCabledPorts() {
     if (!(*port.expectedLLDPValues()).empty()) {
       auto portID = *port.logicalID();
       cabledPorts_.push_back(PortID(portID));
+      if (*port.portType() == cfg::PortType::FABRIC_PORT) {
+        cabledFabricPorts_.push_back(PortID(portID));
+      }
       const auto platformPortEntry = platformPorts.find(portID);
       EXPECT_TRUE(platformPortEntry != platformPorts.end())
           << "Can't find port:" << portID << " in PlatformMapping";
@@ -310,6 +313,15 @@ std::string LinkTest::getPortName(PortID portId) const {
     }
   }
   throw FbossError("No port with ID: ", portId);
+}
+
+std::vector<std::string> LinkTest::getPortName(
+    const std::vector<PortID>& portIDs) const {
+  std::vector<std::string> portNames;
+  for (auto port : portIDs) {
+    portNames.push_back(getPortName(port));
+  }
+  return portNames;
 }
 
 std::set<std::pair<PortID, PortID>> LinkTest::getConnectedPairs() const {
