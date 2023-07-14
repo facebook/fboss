@@ -45,11 +45,16 @@ void FsdbSwitchStateSubscriber::subscribeToState(
       // Deserialize the FSDB update to switch state struct. This will be
       // used by LED manager thread later
       auto newSwitchStateData = apache::thrift::BinarySerializer::deserialize<
-          std::map<uint16_t, fboss::state::PortFields>>(*contents);
+          fboss::state::SwitchState>(*contents);
+      auto swPortMaps = newSwitchStateData.portMaps().value();
+
       if (ledManager) {
-        folly::via(ledManager->getEventBase()).thenValue([&](auto&&) {
-          ledManager->updateLedStatus(newSwitchStateData);
-        });
+        for (auto& oneSwPortMap : swPortMaps) {
+          auto switchPortMap = oneSwPortMap.second;
+          folly::via(ledManager->getEventBase()).thenValue([&](auto&&) {
+            ledManager->updateLedStatus(switchPortMap);
+          });
+        }
       } else {
         XLOG(ERR) << "Subscribed data came for invalid LED Manager";
       }
