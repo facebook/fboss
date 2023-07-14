@@ -466,9 +466,8 @@ void BcmEcmpEgress::program() {
                << numPaths << " paths";
   }
   CHECK_NE(id_, INVALID);
-  // TODO for Wide ECMP and TH4
-  // Enable each ECMP member to be DLB enabled
-  if (FLAGS_flowletSwitchingEnable && !useHsdk_) {
+  // Enable each ECMP member to be DLB enabled on TH3 and TH4
+  if (FLAGS_flowletSwitchingEnable) {
     setEgressEcmpMemberStatus(hw_, egressId2Weight_);
   }
 }
@@ -876,13 +875,6 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
         } else {
           XLOG(DBG1) << "Added " << toAdd << " to " << ecmpId;
         }
-        // TODO for Wide ECMP and TH4
-        if (FLAGS_flowletSwitchingEnable) {
-          XLOG(DBG2) << "Enabling DLB ecmp member on hw " << toAdd;
-          ret = bcm_l3_egress_ecmp_member_status_set(
-              unit, toAdd, BCM_L3_ECMP_DYNAMIC_MEMBER_HW);
-          bcmCheckError(ret, "Failed to enable DLB on egress member ", toAdd);
-        }
       }
     } else {
       if (!isWideEcmpEnabled(wideEcmpSupported)) {
@@ -894,7 +886,15 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
       activeMembers.emplace(toAdd);
       programWideEcmp(unit, ecmpId, egressId2WeightInSw, activeMembers);
       XLOG(DBG1) << "Added " << toAdd << " to wide ecmp " << ecmpId;
+      return true;
     }
+  }
+  // Enable DLB on ecmp newly added member on TH3 and TH4
+  if (FLAGS_flowletSwitchingEnable) {
+    XLOG(DBG2) << "Enabling DLB ecmp member on hw " << toAdd;
+    ret = bcm_l3_egress_ecmp_member_status_set(
+        unit, toAdd, BCM_L3_ECMP_DYNAMIC_MEMBER_HW);
+    bcmCheckError(ret, "Failed to enable DLB on egress member ", toAdd);
   }
   return true;
 }
