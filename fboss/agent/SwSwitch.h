@@ -145,12 +145,6 @@ class SwSwitch : public HwSwitchCallback {
       cfg::SwitchConfig* config);
   ~SwSwitch() override;
 
-  HwSwitch* getHw_DEPRECATED() const;
-
-  const Platform* getPlatform_DEPRECATED() const;
-
-  Platform* getPlatform_DEPRECATED();
-
   HwSwitchHandler* getHwSwitchHandler() {
     return hwSwitchHandler_.get();
   }

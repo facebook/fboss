@@ -45,6 +45,19 @@ target_link_libraries(main
   Folly::folly
   qsfp_cpp2
   qsfp_service_client
+  monolithic_switch_handler
+)
+
+add_library(monolithic_switch_handler
+  fboss/agent/single/MonolithicHwSwitchHandler.cpp
+)
+
+target_link_libraries(monolithic_switch_handler
+  hw_switch
+  packet
+  platform_base
+  hw_switch_fb303_stats
+  switch_asics
 )
 
 add_library(async_packet_transport
@@ -168,8 +181,6 @@ add_library(core
   fboss/agent/SwitchInfoTable.cpp
   fboss/agent/SwitchStatsObserver.cpp
   fboss/agent/SwSwitch.cpp
-  fboss/agent/single/SwSwitch.cpp
-  fboss/agent/single/MonolithicHwSwitchHandler.cpp
   fboss/agent/SwSwitchRouteUpdateWrapper.cpp
   fboss/agent/TeFlowNexthopHandler.cpp
   fboss/agent/TunIntf.cpp
