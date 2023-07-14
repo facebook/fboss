@@ -22,5 +22,6 @@ std::unique_ptr<AgentConfig> parseConfig(int argc, char** argv);
 void fbossFinalize();
 void setVersionInfo();
 void initializeBitsflow();
+std::unique_ptr<AgentConfig> fbossCommonInit(int argc, char** argv);
 
 } // namespace facebook::fboss

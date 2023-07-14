@@ -4,6 +4,7 @@
 #include <folly/gen/Base.h>
 #include <optional>
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/CommonInit.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/Main.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
@@ -28,9 +29,9 @@ DECLARE_string(config);
 namespace facebook::fboss {
 
 void AgentTest::setupAgent() {
+  auto config = fbossCommonInit(argCount, argVec);
   MonolithicAgentInitializer::createSwitch(
-      argCount,
-      argVec,
+      std::move(config),
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED),
       initPlatform);

@@ -9,7 +9,6 @@
  */
 #include "fboss/agent/Main.h"
 
-#include <fb303/ServiceData.h>
 #include <folly/MacAddress.h>
 #include <folly/ScopeGuard.h>
 #include <folly/SocketAddress.h>
@@ -218,39 +217,20 @@ void SignalHandler::signalReceived(int /*signum*/) noexcept {
   exit(0);
 }
 
-void MonolithicAgentInitializer::createSwitch(
-    int argc,
-    char** argv,
+MonolithicAgentInitializer::MonolithicAgentInitializer(
+    std::unique_ptr<AgentConfig> config,
     uint32_t hwFeaturesDesired,
     PlatformInitFn initPlatform) {
-  setVersionInfo();
+  createSwitch(std::move(config), hwFeaturesDesired, initPlatform);
+}
 
-  // Read the config and set default command line arguments
-  auto config = parseConfig(argc, argv);
-  initFlagDefaults(*config->thrift.defaultCommandLineArgs());
-
-  fbossInit(argc, argv);
+void MonolithicAgentInitializer::createSwitch(
+    std::unique_ptr<AgentConfig> config,
+    uint32_t hwFeaturesDesired,
+    PlatformInitFn initPlatform) {
   // Allow any flag overrides to kick in before we create SwSwitch
   setCmdLineFlagOverrides();
-  // Allow the fb303 setOption() call to update the command line flag
-  // settings.  This allows us to change the log levels on the fly using
-  // setOption().
-  fb303::fbData->setUseOptionsAsFlags(true);
 
-  // Redirect stdin to /dev/null. This is really a extra precaution
-  // we already disallow access to linux shell as a result of
-  // executing thrift calls. Redirecting to /dev/null is done so that
-  // if somehow a client did manage to get into the shell, the shell
-  // would read EOF immediately and exit.
-  if (!freopen("/dev/null", "r", stdin)) {
-    XLOG(DBG2) << "Could not open /dev/null ";
-  }
-
-  // Initialize Bitsflow for agent
-  initializeBitsflow();
-
-  // Now that we have parsed the command line flags, create the Platform
-  // object
   unique_ptr<Platform> platform =
       initPlatform(std::move(config), hwFeaturesDesired);
 
@@ -346,8 +326,9 @@ int fbossMain(
     char** argv,
     uint32_t hwFeaturesDesired,
     PlatformInitFn initPlatform) {
-  MonolithicAgentInitializer initializer;
-  initializer.createSwitch(argc, argv, hwFeaturesDesired, initPlatform);
+  auto config = fbossCommonInit(argc, argv);
+  MonolithicAgentInitializer initializer(
+      std::move(config), hwFeaturesDesired, initPlatform);
   return initializer.initAgent();
 }
 

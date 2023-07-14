@@ -8,7 +8,10 @@
  *
  */
 #include "fboss/agent/CommonInit.h"
+#include <fb303/ServiceData.h>
+#include <folly/logging/xlog.h>
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/FbossInit.h"
 
 #include <gflags/gflags.h>
 #include <cstdio>
@@ -34,6 +37,34 @@ std::unique_ptr<AgentConfig> parseConfig(int argc, char** argv) {
   // to extract the 'config' arg.
   gflags::ParseCommandLineFlags(&argc, &argv, false);
   return AgentConfig::fromDefaultFile();
+}
+
+std::unique_ptr<AgentConfig> fbossCommonInit(int argc, char** argv) {
+  setVersionInfo();
+
+  // Read the config and set default command line arguments
+  auto config = parseConfig(argc, argv);
+  initFlagDefaults(*config->thrift.defaultCommandLineArgs());
+
+  fbossInit(argc, argv);
+  // Allow the fb303 setOption() call to update the command line flag
+  // settings.  This allows us to change the log levels on the fly using
+  // setOption().
+  fb303::fbData->setUseOptionsAsFlags(true);
+
+  // Redirect stdin to /dev/null. This is really a extra precaution
+  // we already disallow access to linux shell as a result of
+  // executing thrift calls. Redirecting to /dev/null is done so that
+  // if somehow a client did manage to get into the shell, the shell
+  // would read EOF immediately and exit.
+  if (!freopen("/dev/null", "r", stdin)) {
+    XLOG(DBG2) << "Could not open /dev/null ";
+  }
+
+  // Initialize Bitsflow for agent
+  initializeBitsflow();
+
+  return config;
 }
 
 } // namespace facebook::fboss

@@ -6,6 +6,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
 
+#include "fboss/agent/CommonInit.h"
 #include "fboss/agent/EncapIndexAllocator.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
@@ -58,8 +59,9 @@ void AgentEnsemble::setupEnsemble(
     // creating a switch
     writeConfig(agentConf, FLAGS_config);
   }
+  auto config = fbossCommonInit(argc, argv);
   auto* initializer = agentInitializer();
-  initializer->createSwitch(argc, argv, hwFeaturesDesired, initPlatform);
+  initializer->createSwitch(std::move(config), hwFeaturesDesired, initPlatform);
 
   utility::setPortToDefaultProfileIDMap(
       std::make_shared<MultiSwitchPortMap>(), getPlatform());

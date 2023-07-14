@@ -85,6 +85,11 @@ typedef std::unique_ptr<Platform> (
 
 class MonolithicAgentInitializer {
  public:
+  MonolithicAgentInitializer() {}
+  MonolithicAgentInitializer(
+      std::unique_ptr<AgentConfig> config,
+      uint32_t hwFeaturesDesired,
+      PlatformInitFn initPlatform);
   SwSwitch* sw() const {
     return sw_.get();
   }
@@ -98,8 +103,7 @@ class MonolithicAgentInitializer {
   virtual ~MonolithicAgentInitializer() = default;
   void stopServices();
   void createSwitch(
-      int argc,
-      char** argv,
+      std::unique_ptr<AgentConfig> config,
       uint32_t hwFeaturesDesired,
       PlatformInitFn initPlatform);
   int initAgent();
