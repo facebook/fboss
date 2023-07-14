@@ -7133,6 +7133,32 @@
         "isVirtual": false,
         "isStateSyncDisabled": true,
         "type": 2
+      },
+      {
+        "intfID": 110,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2400::/64",
+          "10.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2
+      },
+      {
+        "intfID": 112,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2401::/64",
+          "11.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2
       }
     ],
     "arpTimeoutSeconds": 60,
