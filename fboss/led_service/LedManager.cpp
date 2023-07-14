@@ -40,12 +40,17 @@ LedManager::LedManager() {
  * Stop event base thread for Led Manager
  */
 LedManager::~LedManager() {
+  fsdbSwitchStateSubscriber_->removeSwitchStateSubscription();
+  XLOG(INFO) << "Removed LED manager subscription from FSDB";
+
   if (eventBase_) {
     eventBase_->terminateLoopSoon();
   }
   if (ledManagerThread_) {
     ledManagerThread_->join();
   }
+  XLOG(INFO)
+      << "Removed LED manager thread and deleting Led Manager object now";
 }
 
 /*
