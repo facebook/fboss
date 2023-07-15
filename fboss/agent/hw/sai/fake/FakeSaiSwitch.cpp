@@ -261,9 +261,11 @@ sai_status_t set_switch_attribute_fn(
       sw.setEcmpMemberCount(attr->value.u32);
       break;
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
     case SAI_SWITCH_ATTR_CREDIT_WD:
       sw.setCreditWatchdogEnable(attr->value.booldata);
       break;
+#endif
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -505,9 +507,11 @@ sai_status_t get_switch_attribute_fn(
       case SAI_SWITCH_ATTR_FABRIC_PORT_LIST:
         attr[i].value.objlist.count = 0;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
       case SAI_SWITCH_ATTR_CREDIT_WD:
         attr[i].value.booldata = sw.getCreditWatchdogEnable();
         break;
+#endif
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
