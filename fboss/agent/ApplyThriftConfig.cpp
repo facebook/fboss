@@ -4367,7 +4367,17 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
         mirrorToPort->getEgressMirror() != *mirrorConfig->name()) {
       mirrorEgressPort = PortID(mirrorToPort->getID());
     } else {
-      throw FbossError("Invalid port name or ID");
+      throw FbossError(
+          "MirrorConfig ",
+          *mirrorConfig->name(),
+          " doesn't match ingress ",
+          mirrorToPort && mirrorToPort->getIngressMirror().has_value()
+              ? mirrorToPort->getIngressMirror().value()
+              : "",
+          " or egress mirror ",
+          mirrorToPort && mirrorToPort->getEgressMirror().has_value()
+              ? mirrorToPort->getEgressMirror().value()
+              : "");
     }
   }
 
@@ -4382,7 +4392,9 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
       if (destinationIp->isV6() &&
           !hwAsicTable_->isFeatureSupportedOnAnyAsic(
               HwAsic::Feature::SFLOWv6)) {
-        throw FbossError("SFLOWv6 is not supported on this platform");
+        throw FbossError(
+            "SFLOWv6 is not supported on this platform for  ",
+            *mirrorConfig->name());
       }
       udpPorts = TunnelUdpPorts(
           *sflowTunnel->udpSrcPort(), *sflowTunnel->udpDstPort());
@@ -4391,7 +4403,9 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
       if (destinationIp->isV6() &&
           !hwAsicTable_->isFeatureSupportedOnAnyAsic(
               HwAsic::Feature::ERSPANv6)) {
-        throw FbossError("ERSPANv6 is not supported on this platform");
+        throw FbossError(
+            "ERSPANv6 is not supported on this platform ",
+            *mirrorConfig->name());
       }
     }
 
