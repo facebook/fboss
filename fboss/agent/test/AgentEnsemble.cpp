@@ -19,13 +19,6 @@ DEFINE_bool(
     "tests doing a full process warmboot and verifying expectations");
 
 namespace {
-void initFlagDefaults(const std::map<std::string, std::string>& defaults) {
-  for (auto item : defaults) {
-    gflags::SetCommandLineOptionWithMode(
-        item.first.c_str(), item.second.c_str(), gflags::SET_FLAGS_DEFAULT);
-  }
-}
-
 int kArgc;
 char** kArgv;
 facebook::fboss::PlatformInitFn kPlatformInitFn;
