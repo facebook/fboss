@@ -1197,7 +1197,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
         cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
         cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
 
-#if defined(TAJO_SDK_VERSION_1_62_0)
+#if defined(TAJO_SDK_VERSION_1_62_0) || defined(TAJO_SDK_VERSION_1_65_0)
     std::vector<cfg::AclTableQualifier> tajoExtraQualifierList = {
         cfg::AclTableQualifier::SRC_PORT,
         cfg::AclTableQualifier::L4_SRC_PORT,

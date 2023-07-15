@@ -350,7 +350,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
        */
       bool addTtlQualifier = false;
       resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
-#if defined(TAJO_SDK_VERSION_1_62_0)
+#if defined(TAJO_SDK_VERSION_1_62_0) || defined(TAJO_SDK_VERSION_1_65_0)
       addTtlQualifier = true;
 #endif
 

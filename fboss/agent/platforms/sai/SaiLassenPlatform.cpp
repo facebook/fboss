@@ -34,7 +34,7 @@ void SaiLassenPlatform::setupAsic(
     folly::MacAddress& mac) {
   asic_ =
       std::make_unique<EbroAsic>(switchType, switchId, systemPortRange, mac);
-#if defined(TAJO_SDK_VERSION_1_62_0)
+#if defined(TAJO_SDK_VERSION_1_62_0) || defined(TAJO_SDK_VERSION_1_65_0)
   asic_->setDefaultStreamType(cfg::StreamType::UNICAST);
 #endif
 }

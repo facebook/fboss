@@ -1153,7 +1153,7 @@ bool SaiPortManager::fecStatsSupported(PortID portId) const {
     defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
     defined(SAI_VERSION_9_0_EA_SIM_ODP) || defined(TAJO_SDK_VERSION_1_42_4) || \
     defined(SAI_VERSION_9_0_EA_ODP) || defined(TAJO_SDK_VERSION_1_42_8) ||     \
-    defined(TAJO_SDK_VERSION_1_62_0) ||                                        \
+    defined(TAJO_SDK_VERSION_1_62_0) || defined(TAJO_SDK_VERSION_1_65_0) ||    \
     defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) ||                                \
     defined(SAI_VERSION_10_0_EA_DNX_ODP)
     return true;
