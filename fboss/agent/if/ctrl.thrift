@@ -16,6 +16,7 @@ include "fboss/agent/switch_config.thrift"
 include "fboss/agent/platform_config.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/agent/hw/hardware_stats.thrift"
+include "thrift/annotation/python.thrift"
 
 typedef common.fbbinary fbbinary
 typedef common.fbstring fbstring
@@ -244,7 +245,8 @@ struct QueueStats {
  */
 struct PortCounters {
   // avoid typechecker error here as bytes is a py3 reserved keyword
-  1: i64 bytes (py3.name = "bytes_");
+  @python.Name{name = "bytes_"}
+  1: i64 bytes;
   2: i64 ucastPkts;
   3: i64 multicastPkts;
   4: i64 broadcastPkts;

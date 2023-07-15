@@ -13,6 +13,7 @@ include "fboss/agent/if/common.thrift"
 include "fboss/agent/if/mpls.thrift"
 include "fboss/lib/if/fboss_common.thrift"
 include "thrift/annotation/cpp.thrift"
+include "thrift/annotation/python.thrift"
 
 @cpp.Type{name = "uint64_t"}
 typedef i64 u64
@@ -264,7 +265,8 @@ struct MirrorTunnel {
 }
 
 union MirrorEgressPort {
-  1: string name (py3.name = "name_");
+  @python.Name{name = "name_"}
+  1: string name;
   2: i32 logicalID;
 }
 
