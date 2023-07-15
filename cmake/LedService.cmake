@@ -19,6 +19,7 @@ add_fbthrift_cpp_library(
   OPTIONS
     json
     reflection
+  DEPENDS
     fboss_cpp2
     ctrl_cpp2
 )
