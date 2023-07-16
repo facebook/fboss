@@ -599,7 +599,8 @@ TEST_F(HwVoqSwitchTest, trapPktsOnPort) {
     auto snooper = std::make_unique<HwTestPacketSnooper>(ensemble);
     auto entry = std::make_unique<HwTestPacketTrapEntry>(
         ensemble->getHwSwitch(), kPort.phyPortID());
-    sendPacketHelper(true /* front panel */, false /*checkAclCounter*/);
+    auto frontPanelPort = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
+    sendPacket(ecmpHelper.ip(kPort), frontPanelPort);
     WITH_RETRIES({
       auto frameRx = snooper->waitForPacket(1);
       EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
