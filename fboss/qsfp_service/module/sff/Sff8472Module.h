@@ -173,6 +173,8 @@ class Sff8472Module : public QsfpModule {
       uint8_t /* hostStartLane */) const override {
     return {0};
   }
+
+  bool domImplemented() const;
 };
 
 } // namespace fboss

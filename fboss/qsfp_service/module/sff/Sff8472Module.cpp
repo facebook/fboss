@@ -57,6 +57,8 @@ static QsfpFieldInfo<Sff8472Field, Sff8472Pages>::QsfpFieldMap sfpFields = {
      {TransceiverI2CApi::ADDR_QSFP, Sff8472Pages::LOWER, 68, 16}},
     {Sff8472Field::VENDOR_MFG_DATE,
      {TransceiverI2CApi::ADDR_QSFP, Sff8472Pages::LOWER, 84, 8}},
+    {Sff8472Field::DOM_TYPE,
+     {TransceiverI2CApi::ADDR_QSFP, Sff8472Pages::LOWER, 92, 1}},
 
     // Address A2h fields
     {Sff8472Field::ALARM_WARNING_THRESHOLDS,
@@ -288,6 +290,10 @@ double Sff8472Module::getSfpSensor(
 
 GlobalSensors Sff8472Module::getSensorInfo() {
   GlobalSensors info = GlobalSensors();
+  if (!domImplemented()) {
+    QSFP_LOG(INFO, this) << "DOM is not advertised";
+    return info;
+  }
   info.temp()->value() =
       getSfpSensor(Sff8472Field::TEMPERATURE, Sff8472FieldInfo::getTemp);
   info.vcc()->value() =
@@ -296,6 +302,10 @@ GlobalSensors Sff8472Module::getSensorInfo() {
 }
 
 bool Sff8472Module::getSensorsPerChanInfo(std::vector<Channel>& channels) {
+  if (!domImplemented()) {
+    QSFP_LOG(INFO, this) << "DOM is not advertised";
+    return false;
+  }
   int offset;
   int length;
   int dataAddress;
@@ -359,11 +369,20 @@ SignalFlags Sff8472Module::getSignalFlagInfo() {
   return signalFlags;
 }
 
+bool Sff8472Module::domImplemented() const {
+  return getSettingsValue(
+      Sff8472Field::DOM_TYPE, FieldMasks::DOM_IMPLEMENTED_MASK);
+}
+
 /*
  * Iterate through the media channels collecting appropriate data;
  */
 bool Sff8472Module::getSignalsPerMediaLane(
     std::vector<MediaLaneSignals>& signals) {
+  if (!domImplemented()) {
+    QSFP_LOG(INFO, this) << "DOM is not advertised";
+    return false;
+  }
   auto rxLos = getSettingsValue(
       Sff8472Field::STATUS_AND_CONTROL_BITS, FieldMasks::RX_LOS_MASK);
   auto txFault = getSettingsValue(
@@ -381,6 +400,10 @@ bool Sff8472Module::getSignalsPerMediaLane(
 
 bool Sff8472Module::getMediaLaneSettings(
     std::vector<MediaLaneSettings>& laneSettings) {
+  if (!domImplemented()) {
+    QSFP_LOG(INFO, this) << "DOM is not advertised";
+    return false;
+  }
   auto txDisable = getSettingsValue(
       Sff8472Field::STATUS_AND_CONTROL_BITS, FieldMasks::TX_DISABLE_STATE_MASK);
 

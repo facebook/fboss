@@ -41,6 +41,7 @@ enum class Sff8472Field {
   VENDOR_REVISION_NUMBER,
   VENDOR_SERIAL_NUMBER,
   VENDOR_MFG_DATE,
+  DOM_TYPE,
 
   PAGE_LOWER_A0,
   PAGE_LOWER_A2,
@@ -50,6 +51,7 @@ enum FieldMasks : uint8_t {
   RX_LOS_MASK = 1 << 1,
   TX_FAULT_MASK = 1 << 2,
   TX_DISABLE_STATE_MASK = 1 << 7,
+  DOM_IMPLEMENTED_MASK = 1 << 6,
 };
 
 class Sff8472FieldInfo : public QsfpFieldInfo<Sff8472Field, Sff8472Pages> {
