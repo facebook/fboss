@@ -612,6 +612,62 @@
           "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
         }
     ],
+    "montblanc/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_40G_4_NRZ_NOFEC.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_CL91_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_NOFEC_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_CL91_COPPER_RACK_YV3_T1.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwMacsecTest.*$"
+        },
+        {
+          "test_name_regex": "HwXphyPortInfoTest.*$"
+        },
+        {
+          "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
+        },
+        {
+          "test_name_regex": "HwXphyPrbsStatsCollectionTest.*$"
+        }
+    ],
     "wedge100s/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
