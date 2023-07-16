@@ -141,6 +141,7 @@
           "custom_feature_mesh_topology_sync_mode": "1",
           "dport_map_direct.BCM8879X": "1",
           "fabric_cell_fifo_dma_enable.BCM8879X": "1",
+          "fabric_connectivity_based_on_integrity": "0",
           "fabric_device_mode.BCM8879X": "SINGLE_STAGE_FE2",
           "fabric_load_balancing_mode.BCM8879X": "BALANCED_INPUT",
           "fabric_multicast_mode.BCM8879X": "DIRECT",
