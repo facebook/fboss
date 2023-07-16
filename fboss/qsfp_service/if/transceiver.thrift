@@ -196,6 +196,7 @@ enum MediaInterfaceCode {
   CR4_200G = 9,
   CR8_400G = 10,
   FR4_2x400G = 11,
+  BASE_T_10G = 12,
 }
 
 // The extended specification compliance code of the transceiver module.
@@ -209,6 +210,7 @@ enum ExtendedSpecComplianceCode {
   FR1_100G = 38,
   // 50GBASE-CR, 100GBASE-CR2, or 200GBASE-CR4
   CR_50G_CHANNELS = 64,
+  BASE_T_10G = 0x1C,
 }
 
 // Transceiver identifier as read from module page 0 reg 0

@@ -184,6 +184,7 @@ unsigned int QsfpModule::numHostLanes() const {
   switch (getModuleMediaInterface()) {
     case MediaInterfaceCode::LR_10G:
     case MediaInterfaceCode::SR_10G:
+    case MediaInterfaceCode::BASE_T_10G:
       return 1;
     case MediaInterfaceCode::CWDM4_100G:
     case MediaInterfaceCode::CR4_100G:
@@ -208,6 +209,7 @@ unsigned int QsfpModule::numMediaLanes() const {
     case MediaInterfaceCode::LR_10G:
     case MediaInterfaceCode::SR_10G:
     case MediaInterfaceCode::FR1_100G:
+    case MediaInterfaceCode::BASE_T_10G:
       return 1;
     case MediaInterfaceCode::CWDM4_100G:
     case MediaInterfaceCode::CR4_100G:
