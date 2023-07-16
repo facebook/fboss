@@ -244,7 +244,8 @@ std::optional<std::string> getMyHostname(const std::string& hostname) {
 std::string getSSHCmdPrefix(const std::string& hostname) {
   return hostname == "localhost"
       ? ""
-      : folly::to<std::string>("ssh -o LogLevel=error netops@", hostname, " ");
+      : folly::to<std::string>(
+            "sush2 -q --reason fboss2_cli netops@", hostname, " ");
 }
 
 std::string runCmd(const std::string& cmd) {
