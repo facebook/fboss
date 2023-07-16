@@ -625,22 +625,38 @@ TEST_F(HwVoqSwitchTest, rxPacketToCpuBgpSrcPort) {
       utility::getCoppHighPriQueueId(this->getAsic()));
 }
 
-TEST_F(HwVoqSwitchTest, AclQualifiers) {
-  auto setup = [=]() {
+TEST_F(HwVoqSwitchTest, AclQualifiersWithCounter) {
+  auto kAclName = "acl1";
+  auto kAclCounterName = "aclCounter1";
+
+  auto setup = [kAclName, kAclCounterName, this]() {
     auto newCfg = initialConfig();
-    auto* acl = utility::addAcl(&newCfg, "acl1", cfg::AclActionType::DENY);
+
+    auto* acl = utility::addAcl(&newCfg, kAclName);
     utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
     acl->srcIp() = "::ffff:c0a8:1"; // fails: CS00012270649
     acl->dstIp() = "2401:db00:3020:70e2:face:0:63:0/64"; // fails: CS00012270650
     acl->srcPort() = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
     acl->dscp() = 0x24;
+
+    utility::addAclStat(&newCfg, kAclName, kAclCounterName, kCounterTypes());
+
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [kAclName, kAclCounterName, this]() {
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
     EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
-    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), kAclName);
+
+    utility::checkAclEntryAndStatCount(
+        getHwSwitch(), /*ACLs*/ 1, /*stats*/ 1, /*counters*/ 2);
+    utility::checkAclStat(
+        getHwSwitch(),
+        getProgrammedState(),
+        {kAclName},
+        kAclCounterName,
+        kCounterTypes());
   };
 
   verifyAcrossWarmBoots(setup, verify);
