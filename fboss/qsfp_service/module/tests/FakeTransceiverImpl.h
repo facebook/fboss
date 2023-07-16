@@ -108,6 +108,11 @@ class Sfp10GTransceiver : public FakeTransceiverImpl {
   explicit Sfp10GTransceiver(int module);
 };
 
+class Sfp10GBaseTTransceiver : public FakeTransceiverImpl {
+ public:
+  explicit Sfp10GBaseTTransceiver(int module);
+};
+
 class Cmis400GCr8Transceiver : public FakeTransceiverImpl {
  public:
   explicit Cmis400GCr8Transceiver(int module);

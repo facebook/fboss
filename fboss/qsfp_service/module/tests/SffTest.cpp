@@ -377,6 +377,37 @@ TEST_F(SfpTest, sfp10GTransceiverInfoTest) {
   tests.verifyVendorName("FACETEST");
 }
 
+TEST_F(SfpTest, sfp10GBaseTTransceiverInfoTest) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideSfpModule<Sfp10GBaseTTransceiver>(xcvrID);
+
+  // Verify SffModule logic
+  EXPECT_EQ(xcvr->numHostLanes(), 1);
+  EXPECT_EQ(xcvr->numMediaLanes(), 1);
+
+  // Verify getTransceiverInfo() result
+  const auto& info = xcvr->getTransceiverInfo();
+  EXPECT_EQ((*info.settings()->mediaInterface()).size(), xcvr->numMediaLanes());
+  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::BASE_T_10G);
+  for (auto& media : *info.settings()->mediaInterface()) {
+    EXPECT_EQ(
+        media.media()->get_extendedSpecificationComplianceCode(),
+        ExtendedSpecComplianceCode::BASE_T_10G);
+    EXPECT_EQ(media.code(), MediaInterfaceCode::BASE_T_10G);
+  }
+
+  utility::HwTransceiverUtils::verifyDiagsCapability(
+      *info.tcvrState(),
+      transceiverManager_->getDiagsCapability(xcvrID),
+      false /* skipCheckingIndividualCapability */);
+
+  // Using TransceiverTestsHelper to verify TransceiverInfo
+  TransceiverTestsHelper tests(info);
+  tests.verifyVendorName("FACETEST");
+  // Verify DOM is not read
+  EXPECT_TRUE(info.tcvrStats()->channels()->empty());
+}
+
 TEST_F(SffTest, 200GCr4TransceiverInfoTest) {
   auto xcvrID = TransceiverID(1);
   auto xcvr = overrideSffModule<Sff200GCr4Transceiver>(xcvrID);
