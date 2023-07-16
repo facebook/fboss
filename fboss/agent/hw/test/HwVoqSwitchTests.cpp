@@ -532,16 +532,18 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
           maxRetryCount, std::chrono::milliseconds(sleepTimeMsecs), {
             auto afterVoQOutBytes = getVoQOutBytes();
             if (getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
-              auto queueOutPktsAndBytes = getQueueOutPktsBytes();
-              afterQueueOutPkts = queueOutPktsAndBytes.first;
-              afterQueueOutBytes = queueOutPktsAndBytes.second;
+              std::tie(afterQueueOutPkts, afterQueueOutBytes) =
+                  getQueueOutPktsBytes();
             }
             auto afterAclPkts = getAclPackets();
             auto portOutPktsAndBytes = getPortOutPktsBytes();
             auto afterOutPkts = portOutPktsAndBytes.first;
             auto afterOutBytes = portOutPktsAndBytes.second;
 
-            XLOG(DBG2) << "Stats:: beforeOutPkts: " << beforeOutPkts
+            XLOG(DBG2) << "Verifying: "
+                       << (isFrontPanel ? "Send Packet from Front Panel Port"
+                                        : "Send Packet from CPU Port")
+                       << " Stats:: beforeOutPkts: " << beforeOutPkts
                        << " beforeOutBytes: " << beforeOutBytes
                        << " beforeQueueOutPkts: " << beforeQueueOutPkts
                        << " beforeQueueOutBytes: " << beforeQueueOutBytes
