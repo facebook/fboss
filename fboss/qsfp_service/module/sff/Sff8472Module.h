@@ -162,6 +162,7 @@ class Sff8472Module : public QsfpModule {
   uint8_t getSettingsValue(Sff8472Field field, uint8_t mask = 0xff) const;
 
   Ethernet10GComplianceCode getEthernet10GComplianceCode() const;
+  ExtendedSpecComplianceCode getExtendedSpecComplianceCode() const;
 
   std::vector<uint8_t> configuredHostLanes(
       uint8_t /* hostStartLane */) const override {

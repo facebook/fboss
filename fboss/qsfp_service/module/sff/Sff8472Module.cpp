@@ -25,6 +25,12 @@ static std::map<Ethernet10GComplianceCode, MediaInterfaceCode>
         {Ethernet10GComplianceCode::SR_10G, MediaInterfaceCode::SR_10G},
 };
 
+static std::map<ExtendedSpecComplianceCode, MediaInterfaceCode>
+    mediaInterfaceMappingForExtSpec = {
+        {ExtendedSpecComplianceCode::BASE_T_10G,
+         MediaInterfaceCode::BASE_T_10G},
+};
+
 // As per SFF-8472
 static QsfpFieldInfo<Sff8472Field, Sff8472Pages>::QsfpFieldMap sfpFields = {
     // Fields for reading an entire page
@@ -39,6 +45,8 @@ static QsfpFieldInfo<Sff8472Field, Sff8472Pages>::QsfpFieldMap sfpFields = {
      {TransceiverI2CApi::ADDR_QSFP, Sff8472Pages::LOWER, 3, 1}},
     {Sff8472Field::VENDOR_NAME,
      {TransceiverI2CApi::ADDR_QSFP, Sff8472Pages::LOWER, 20, 16}},
+    {Sff8472Field::EXTENDED_SPEC_COMPLIANCE_CODE,
+     {TransceiverI2CApi::ADDR_QSFP, Sff8472Pages::LOWER, 36, 1}},
     {Sff8472Field::VENDOR_OUI,
      {TransceiverI2CApi::ADDR_QSFP, Sff8472Pages::LOWER, 37, 3}},
     {Sff8472Field::VENDOR_PART_NUMBER,
@@ -207,17 +215,25 @@ bool Sff8472Module::getMediaInterfaceId(
   CHECK_EQ(mediaInterface.size(), numMediaLanes());
 
   auto ethernet10GCompliance = getEthernet10GComplianceCode();
+  auto extSpecComplianceCode = getExtendedSpecComplianceCode();
   for (int lane = 0; lane < mediaInterface.size(); lane++) {
     mediaInterface[lane].lane() = lane;
     MediaInterfaceUnion media;
-    media.ethernet10GComplianceCode_ref() = ethernet10GCompliance;
+
     if (auto it = mediaInterfaceMapping.find(ethernet10GCompliance);
         it != mediaInterfaceMapping.end()) {
       mediaInterface[lane].code() = it->second;
+      media.ethernet10GComplianceCode_ref() = ethernet10GCompliance;
+    } else if (auto it =
+                   mediaInterfaceMappingForExtSpec.find(extSpecComplianceCode);
+               it != mediaInterfaceMappingForExtSpec.end()) {
+      mediaInterface[lane].code() = it->second;
+      media.extendedSpecificationComplianceCode_ref() = extSpecComplianceCode;
     } else {
-      QSFP_LOG(ERR, this) << "Unable to find MediaInterfaceCode for "
-                          << apache::thrift::util::enumNameSafe(
-                                 ethernet10GCompliance);
+      QSFP_LOG(ERR, this)
+          << "Unable to find MediaInterfaceCode for "
+          << apache::thrift::util::enumNameSafe(ethernet10GCompliance) << " or "
+          << apache::thrift::util::enumNameSafe(extSpecComplianceCode);
       mediaInterface[lane].code() = MediaInterfaceCode::UNKNOWN;
     }
     mediaInterface[lane].media() = media;
@@ -233,16 +249,30 @@ MediaInterfaceCode Sff8472Module::getModuleMediaInterface() const {
       it != mediaInterfaceMapping.end()) {
     return it->second;
   }
-  QSFP_LOG(ERR, this) << "Cannot find "
-                      << apache::thrift::util::enumNameSafe(
-                             ethernet10GCompliance)
-                      << " in mediaInterfaceMapping";
+
+  auto extSpecComplianceCode = getExtendedSpecComplianceCode();
+  if (auto it = mediaInterfaceMappingForExtSpec.find(extSpecComplianceCode);
+      it != mediaInterfaceMappingForExtSpec.end()) {
+    return it->second;
+  }
+
+  QSFP_LOG(ERR, this)
+      << "Cannot find "
+      << apache::thrift::util::enumNameSafe(ethernet10GCompliance) << " or "
+      << apache::thrift::util::enumNameSafe(extSpecComplianceCode)
+      << " in mediaInterfaceMapping";
   return MediaInterfaceCode::UNKNOWN;
 }
 
 Ethernet10GComplianceCode Sff8472Module::getEthernet10GComplianceCode() const {
   return Ethernet10GComplianceCode(
       getSettingsValue(Sff8472Field::ETHERNET_10G_COMPLIANCE_CODE));
+}
+
+ExtendedSpecComplianceCode Sff8472Module::getExtendedSpecComplianceCode()
+    const {
+  return ExtendedSpecComplianceCode(
+      getSettingsValue(Sff8472Field::EXTENDED_SPEC_COMPLIANCE_CODE));
 }
 
 double Sff8472Module::getSfpSensor(
