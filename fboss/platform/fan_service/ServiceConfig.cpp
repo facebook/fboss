@@ -12,7 +12,6 @@ namespace facebook::fboss::platform {
 
 ServiceConfig::ServiceConfig() {
   prepareDict();
-  jsonConfig_ = "";
   bspType = fan_config_structs::BspType::kBspGeneric;
   pwmBoostValue_ = 0;
   pwmBoostOnDeadFan = 0;
@@ -22,7 +21,6 @@ ServiceConfig::ServiceConfig() {
   controlFrequency_ = FSVC_DEFAULT_CONTROL_FREQUENCY;
   pwmLowerThreshold_ = FSVC_DEFAULT_PWM_LOWER_THRES;
   pwmUpperThreshold_ = FSVC_DEFAULT_PWM_UPPER_THRES;
-  watchdogEnable_ = false;
 }
 
 // This is one of the helper function for parse() method.
@@ -60,7 +58,7 @@ std::string ServiceConfig::getConfigContents() {
 // Config in string form is parsed here.
 int ServiceConfig::parseConfigString(std::string contents) {
   // Parse the string contents into json
-  jsonConfig_ = folly::parseJson(contents);
+  auto jsonConfig = folly::parseJson(contents);
 
   // Translate jsonConfig into the configuration parameters
   // Consider using jsonConfig.keys() or jsonConfig.values()
@@ -68,7 +66,7 @@ int ServiceConfig::parseConfigString(std::string contents) {
   //          then pair.first is key
   //          pair.second is the value
   //          In this case pair==items().end(), if no key found
-  for (auto& pair : jsonConfig_.items()) {
+  for (auto& pair : jsonConfig.items()) {
     std::string key = pair.first.asString();
     folly::dynamic value = pair.second;
     std::string bspString;

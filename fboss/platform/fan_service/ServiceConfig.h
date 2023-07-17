@@ -75,12 +75,6 @@ class ServiceConfig {
       fan_config_structs::OpticTableType dataType);
 
  private:
-  //
-  // Attribs
-  //
-  folly::dynamic jsonConfig_;
-  // SensorData Storage
-  SensorData sensorData_;
   // Shutdown Command
   std::string shutDownCommand_;
   // % Fan Boost upon fan failure
@@ -95,11 +89,6 @@ class ServiceConfig {
   // Frequency
   int sensorFetchFrequency_;
   int controlFrequency_;
-
-  // Eanble Watchdog
-  bool watchdogEnable_;
-  fan_config_structs::AccessMethod watchdogAccess_;
-  std::string watchdogValue_;
 
   // TODO - just use thrift enum names
   std::unordered_map<std::string, fan_config_structs::FsvcConfigDictIndex>
