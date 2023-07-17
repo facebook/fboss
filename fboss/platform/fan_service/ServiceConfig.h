@@ -91,7 +91,7 @@ class IncrementPid {
   float previousRead2 = 0;
   float minVal;
   float maxVal;
-  float i;
+  float integral;
   float last_error;
   IncrementPid() {
     previousTargetPwm = 0;
@@ -99,7 +99,7 @@ class IncrementPid {
     previousRead2 = 0;
     posHysteresis = 0;
     negHysteresis = 0;
-    i = 0;
+    integral = 0;
     last_error = 0;
   }
   void updateMinMaxVal() {

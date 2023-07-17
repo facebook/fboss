@@ -120,7 +120,7 @@ void ControlLogic::updateTargetPwm(Sensor* sensorItem) {
   bool accelerate, deadFanExists;
   float previousSensorValue, sensorValue, targetPwm;
   float value, lastPwm, kp, ki, kd, previousRead1, previousRead2, pwm;
-  float minVal, maxVal, error, d;
+  float minVal, maxVal, error;
   uint64_t dT;
   std::vector<std::pair<float, float>> tableToUse;
   switch (sensorItem->calculationType) {
@@ -203,14 +203,16 @@ void ControlLogic::updateTargetPwm(Sensor* sensorItem) {
       maxVal = sensorItem->incrementPid.maxVal;
 
       if (value < minVal) {
-        sensorItem->incrementPid.i = 0;
+        sensorItem->incrementPid.integral = 0;
         sensorItem->incrementPid.previousTargetPwm = 0;
       }
       if (value > maxVal) {
         error = maxVal - value;
-        sensorItem->incrementPid.i = sensorItem->incrementPid.i + error * dT;
-        d = (error - sensorItem->incrementPid.last_error);
-        pwm = kp * error + ki * sensorItem->incrementPid.i + kd * d;
+        sensorItem->incrementPid.integral =
+            sensorItem->incrementPid.integral + error * dT;
+        auto derivative = (error - sensorItem->incrementPid.last_error) / dT;
+        pwm = kp * error + ki * sensorItem->incrementPid.integral +
+            kd * derivative;
         sensorItem->processedData.targetPwmCache = pwm;
         sensorItem->incrementPid.previousTargetPwm = pwm;
         sensorItem->incrementPid.last_error = error;
