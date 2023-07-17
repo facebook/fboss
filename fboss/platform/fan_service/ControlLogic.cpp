@@ -116,18 +116,18 @@ void ControlLogic::getFanUpdate() {
   return;
 }
 
-void ControlLogic::updateTargetPwm(const Sensor& sensor) {
+void ControlLogic::updateTargetPwm(const fan_config_structs::Sensor& sensor) {
   bool accelerate, deadFanExists;
   float previousSensorValue, sensorValue, targetPwm;
   float value, lastPwm, kp, ki, kd, previousRead1, previousRead2, pwm;
   float error;
-  float minVal = sensor.setPoint - sensor.negHysteresis;
-  float maxVal = sensor.setPoint + sensor.posHysteresis;
+  float minVal = *sensor.setPoint() - *sensor.negHysteresis();
+  float maxVal = *sensor.setPoint() + *sensor.posHysteresis();
   uint64_t dT;
-  std::vector<std::pair<float, float>> tableToUse;
-  auto& readCache = pConfig_->sensorReadCaches[sensor.sensorName];
-  auto& pwmCalcCache = pConfig_->pwmCalcCaches[sensor.sensorName];
-  switch (sensor.calculationType) {
+  fan_config_structs::TempToPwmMap tableToUse;
+  auto& readCache = pConfig_->sensorReadCaches[*sensor.sensorName()];
+  auto& pwmCalcCache = pConfig_->pwmCalcCaches[*sensor.sensorName()];
+  switch (*sensor.calcType()) {
     case fan_config_structs::SensorPwmCalcType::kSensorPwmCalcFourLinearTable:
       accelerate = true;
       previousSensorValue = pwmCalcCache.previousSensorRead;
@@ -137,16 +137,16 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
       accelerate =
           ((previousSensorValue == 0) || (sensorValue > previousSensorValue));
       if (accelerate && !deadFanExists) {
-        tableToUse = sensor.normalUp;
+        tableToUse = *sensor.normalUpTable();
       } else if (!accelerate && !deadFanExists) {
-        tableToUse = sensor.normalDown;
+        tableToUse = *sensor.normalDownTable();
       } else if (accelerate && deadFanExists) {
-        tableToUse = sensor.failUp;
+        tableToUse = *sensor.failUpTable();
       } else {
-        tableToUse = sensor.failDown;
+        tableToUse = *sensor.failDownTable();
       }
       // Start with the lowest value
-      targetPwm = tableToUse[0].second;
+      targetPwm = tableToUse.begin()->second;
       for (const auto& [temp, pwm] : tableToUse) {
         if (sensorValue > temp) {
           targetPwm = pwm;
@@ -165,20 +165,20 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
       }
       pwmCalcCache.previousSensorRead = sensorValue;
       readCache.targetPwmCache = targetPwm;
-      XLOG(INFO) << "Control :: Sensor : " << sensor.sensorName
+      XLOG(INFO) << "Control :: Sensor : " << *sensor.sensorName()
                  << " Value : " << sensorValue << " [4CUV] Pwm : " << targetPwm;
       break;
 
     case fan_config_structs::SensorPwmCalcType::kSensorPwmCalcIncrementPid:
       value = readCache.adjustedReadCache;
       lastPwm = pwmCalcCache.previousTargetPwm;
-      kp = sensor.kp;
-      ki = sensor.ki;
-      kd = sensor.kd;
+      kp = *sensor.kp();
+      ki = *sensor.ki();
+      kd = *sensor.kd();
       previousRead1 = pwmCalcCache.previousRead1;
       previousRead2 = pwmCalcCache.previousRead2;
       pwm = lastPwm + (kp * (value - previousRead1)) +
-          (ki * (value - sensor.setPoint)) +
+          (ki * (value - *sensor.setPoint())) +
           (kd * (value - 2 * previousRead1 + previousRead2));
       // Even though the previous Target Pwm should be the zone pwm,
       // the best effort is made here. Zone should update this value.
@@ -186,7 +186,7 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
       readCache.targetPwmCache = pwm;
       pwmCalcCache.previousRead2 = previousRead1;
       pwmCalcCache.previousRead1 = value;
-      XLOG(INFO) << "Control :: Sensor : " << sensor.sensorName
+      XLOG(INFO) << "Control :: Sensor : " << *sensor.sensorName()
                  << " Value : " << value << " [IPID] Pwm : " << pwm;
       XLOG(INFO) << "           Prev1  : " << previousRead1
                  << " Prev2 : " << previousRead2;
@@ -197,9 +197,9 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
       value = readCache.adjustedReadCache;
       lastPwm = pwmCalcCache.previousTargetPwm;
       pwm = lastPwm;
-      kp = sensor.kp;
-      ki = sensor.ki;
-      kd = sensor.kd;
+      kp = *sensor.kp();
+      ki = *sensor.ki();
+      kd = *sensor.kd();
       previousRead1 = pwmCalcCache.previousRead1;
       previousRead2 = pwmCalcCache.previousRead2;
       dT = pBsp_->getCurrentTime() - lastControlUpdateSec_;
@@ -219,7 +219,7 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
       }
       pwmCalcCache.previousRead2 = previousRead1;
       pwmCalcCache.previousRead1 = value;
-      XLOG(INFO) << "Control :: Sensor : " << sensor.sensorName
+      XLOG(INFO) << "Control :: Sensor : " << *sensor.sensorName()
                  << " Value : " << value << " [PID] Pwm : " << pwm;
       XLOG(INFO) << "               dT : " << dT
                  << " Time : " << pBsp_->getCurrentTime()
@@ -229,12 +229,12 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
 
     case fan_config_structs::SensorPwmCalcType::kSensorPwmCalcDisable:
       // Do nothing
-      XLOG(WARN) << "Control :: Sensor : " << sensor.sensorName
+      XLOG(WARN) << "Control :: Sensor : " << *sensor.sensorName()
                  << "Do Nothing ";
       break;
     default:
       facebook::fboss::FbossError(
-          "Invalid PWM Calculation Type for sensor", sensor.sensorName);
+          "Invalid PWM Calculation Type for sensor", *sensor.sensorName());
       break;
   }
   // No matter what, PWM should be within
@@ -252,9 +252,9 @@ void ControlLogic::getSensorUpdate() {
   float rawValue = 0.0, adjustedValue;
   uint64_t calculatedTime = 0;
   for (auto& sensor : pConfig_->sensors) {
-    XLOG(INFO) << "Control :: Sensor Name : " << sensor.sensorName;
+    XLOG(INFO) << "Control :: Sensor Name : " << *sensor.sensorName();
     bool sensorAccessFail = false;
-    sensorItemName = sensor.sensorName;
+    sensorItemName = *sensor.sensorName();
     if (pSensor_->checkIfEntryExists(sensorItemName)) {
       XLOG(INFO) << "Control :: Sensor Exists. Getting the entry type";
       // 1.a Get the reading
@@ -262,11 +262,11 @@ void ControlLogic::getSensorUpdate() {
       switch (entryType) {
         case SensorEntryType::kSensorEntryInt:
           rawValue = pSensor_->getSensorDataInt(sensorItemName);
-          rawValue = rawValue / sensor.scale;
+          rawValue = rawValue / *sensor.scale();
           break;
         case SensorEntryType::kSensorEntryFloat:
           rawValue = pSensor_->getSensorDataFloat(sensorItemName);
-          rawValue = rawValue / sensor.scale;
+          rawValue = rawValue / *sensor.scale();
           break;
         default:
           facebook::fboss::FbossError(
@@ -297,11 +297,11 @@ void ControlLogic::getSensorUpdate() {
     }
 
     // 1.b If adjustment table exists, adjust the raw value
-    if (sensor.offsetTable.size() == 0) {
+    if (sensor.adjustmentTable()->size() == 0) {
       adjustedValue = rawValue;
     } else {
       float offset = 0;
-      for (const auto& [k, v] : sensor.offsetTable) {
+      for (const auto& [k, v] : *sensor.adjustmentTable()) {
         if (rawValue >= k) {
           offset = v;
         }
@@ -313,21 +313,21 @@ void ControlLogic::getSensorUpdate() {
     // 1.c Check and trigger alarm
     bool prevMajorAlarm = readCache.majorAlarmTriggered;
     readCache.majorAlarmTriggered =
-        (adjustedValue >= *sensor.alarm.highMajor());
+        (adjustedValue >= *sensor.alarm()->highMajor());
     // If major alarm was triggered, write it as a ERR log
     if (!prevMajorAlarm && readCache.majorAlarmTriggered) {
-      XLOG(ERR) << "Major Alarm Triggered on " << sensor.sensorName
+      XLOG(ERR) << "Major Alarm Triggered on " << *sensor.sensorName()
                 << " at value " << adjustedValue;
     } else if (prevMajorAlarm && !readCache.majorAlarmTriggered) {
-      XLOG(WARN) << "Major Alarm Cleared on " << sensor.sensorName
+      XLOG(WARN) << "Major Alarm Cleared on " << *sensor.sensorName()
                  << " at value " << adjustedValue;
     }
     bool prevMinorAlarm = readCache.minorAlarmTriggered;
-    if (adjustedValue >= *sensor.alarm.highMinor()) {
+    if (adjustedValue >= *sensor.alarm()->highMinor()) {
       if (readCache.soakStarted) {
         uint64_t timeDiffInSec =
             pBsp_->getCurrentTime() - readCache.soakStartedAt;
-        if (timeDiffInSec >= *sensor.alarm.minorSoakSeconds()) {
+        if (timeDiffInSec >= *sensor.alarm()->minorSoakSeconds()) {
           readCache.minorAlarmTriggered = true;
           readCache.soakStarted = false;
         }
@@ -341,32 +341,32 @@ void ControlLogic::getSensorUpdate() {
     }
     // If minor alarm was triggered, write it as a WARN log
     if (!prevMinorAlarm && readCache.minorAlarmTriggered) {
-      XLOG(WARN) << "Minor Alarm Triggered on " << sensor.sensorName
+      XLOG(WARN) << "Minor Alarm Triggered on " << *sensor.sensorName()
                  << " at value " << adjustedValue;
     }
     if (prevMinorAlarm && !readCache.minorAlarmTriggered) {
-      XLOG(WARN) << "Minor Alarm Cleared on " << sensor.sensorName
+      XLOG(WARN) << "Minor Alarm Cleared on " << *sensor.sensorName()
                  << " at value " << adjustedValue;
     }
     // 1.d Check the range (if required), and do emergency
     // shutdown, if the value is out of range for more than
     // the "tolerance" times
 
-    if (sensor.rangeCheck) {
-      if ((adjustedValue > *sensor.rangeCheck->high()) ||
-          (adjustedValue < *sensor.rangeCheck->low())) {
-        sensor.rangeCheck->invalidCount() =
-            *sensor.rangeCheck->invalidCount() + 1;
-        if (*sensor.rangeCheck->invalidCount() >=
-            *sensor.rangeCheck->tolerance()) {
+    if (sensor.rangeCheck()) {
+      if ((adjustedValue > *sensor.rangeCheck()->high()) ||
+          (adjustedValue < *sensor.rangeCheck()->low())) {
+        sensor.rangeCheck()->invalidCount() =
+            *sensor.rangeCheck()->invalidCount() + 1;
+        if (*sensor.rangeCheck()->invalidCount() >=
+            *sensor.rangeCheck()->tolerance()) {
           // ERR log only once.
-          if (*sensor.rangeCheck->invalidCount() ==
-              *sensor.rangeCheck->tolerance()) {
-            XLOG(ERR) << "Sensor " << sensor.sensorName
+          if (*sensor.rangeCheck()->invalidCount() ==
+              *sensor.rangeCheck()->tolerance()) {
+            XLOG(ERR) << "Sensor " << *sensor.sensorName()
                       << " out of range for too long!";
           }
           // If we are not yet in emergency state, do the emergency shutdown.
-          if ((*sensor.rangeCheck->invalidRangeAction() ==
+          if ((*sensor.rangeCheck()->invalidRangeAction() ==
                fan_config_structs::fan_config_structs_constants::
                    RANGE_CHECK_ACTION_SHUTDOWN()) &&
               (pBsp_->getEmergencyState() == false)) {
@@ -374,14 +374,14 @@ void ControlLogic::getSensorUpdate() {
           }
         }
       } else {
-        sensor.rangeCheck->invalidCount() = 0;
+        sensor.rangeCheck()->invalidCount() = 0;
       }
     }
     // 1.e Calculate the target pwm in percent
     //     (the table or incremental pid should produce
     //      percent as its output)
     updateTargetPwm(sensor);
-    XLOG(INFO) << sensor.sensorName << " has the target PWM of "
+    XLOG(INFO) << *sensor.sensorName() << " has the target PWM of "
                << readCache.targetPwmCache;
   }
   return;
@@ -437,9 +437,10 @@ void ControlLogic::getOpticsUpdate() {
   }
 }
 
-Sensor* ControlLogic::findSensorConfig(const std::string& sensorName) {
+fan_config_structs::Sensor* ControlLogic::findSensorConfig(
+    const std::string& sensorName) {
   for (auto& sensor : pConfig_->sensors) {
-    if (sensor.sensorName == sensorName) {
+    if (*sensor.sensorName() == sensorName) {
       return &sensor;
     }
   }

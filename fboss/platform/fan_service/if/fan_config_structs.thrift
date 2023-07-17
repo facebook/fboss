@@ -158,3 +158,23 @@ enum SensorPwmCalcType {
   kSensorPwmCalcPid = 2,
   kSensorPwmCalcDisable = 3,
 }
+
+struct Sensor {
+  1: string sensorName;
+  2: AccessMethod access;
+  3: map<i32, i32> adjustmentTable;
+  4: Alarm alarm;
+  5: optional RangeCheck rangeCheck;
+  6: SensorPwmCalcType calcType;
+  7: float scale;
+  8: TempToPwmMap normalUpTable;
+  9: TempToPwmMap normalDownTable;
+  10: TempToPwmMap failUpTable;
+  11: TempToPwmMap failDownTable;
+  12: float setPoint;
+  13: float posHysteresis;
+  14: float negHysteresis;
+  15: float kp;
+  16: float kd;
+  17: float ki;
+}

@@ -67,70 +67,67 @@ std::string getDarwinFSConfig() {
       }
     }
   ],
-  "sensors" : {
-    "SC_TH3_DIODE1_TEMP" : {
-      "scale" : 1000.0,
+  "sensors" : [
+    {
+      "sensorName" : "SC_TH3_DIODE1_TEMP",
       "access" : {
         "accessType" : 2
       },
-      "adjustment" : [
-        [0,0]
-      ],
-      "type" : "linear_four_curves",
-      "normal_up_table" : [
-        [15, 24],
-        [110, 100]
-      ],
-      "normal_down_table" : [
-        [15, 24],
-        [110, 100]
-      ],
-      "onefail_up_table" : [
-        [15, 24],
-        [110, 100]
-      ],
-      "onefail_down_table" : [
-        [15, 24],
-        [110, 100]
-      ],
       "alarm" : {
         "highMajor" : 105.0,
         "highMinor" : 90.0,
         "minorSoakSeconds" : 15
+      },
+      "calcType" : 0,
+      "scale" : 1000.0,
+      "normalUpTable" : {
+        "15" : 24,
+        "110" : 100
+      },
+      "normalDownTable" : {
+        "15" : 24,
+        "110" : 100
+      },
+      "failUpTable" : {
+        "15" : 24,
+        "110" : 100
+      },
+      "failDownTable" : {
+        "15" : 24,
+        "110" : 100
       }
     },
-    "SC_TH3_DIODE2_TEMP" : {
-      "scale" : 1000.0,
+    {
+      "sensorName" : "SC_TH3_DIODE2_TEMP",
       "access" : {
         "accessType" : 2
       },
-      "adjustment" : [
-        [0,0]
-      ],
-      "type" : "linear_four_curves",
-      "normal_up_table" : [
-        [15, 24],
-        [110, 100]
-      ],
-      "normal_down_table" : [
-        [15, 24],
-        [110, 100]
-      ],
-      "onefail_up_table" : [
-        [15, 24],
-        [110, 100]
-      ],
-      "onefail_down_table" : [
-        [15, 24],
-        [110, 100]
-      ],
       "alarm" : {
         "highMajor" : 105.0,
         "highMinor" : 90.0,
         "minorSoakSeconds" : 15
+      },
+      "calcType" : 0,
+      "scale" : 1000.0,
+      "type" : "linear_four_curves",
+      "normalUpTable" : {
+        "15" : 24,
+        "110" : 100
+      },
+      "normalDownTable" : {
+        "15" : 24,
+        "110" : 100
+      },
+      "failUpTable" : {
+        "15" : 24,
+        "110" : 100
+      },
+      "failDownTable" : {
+        "15" : 24,
+        "110" : 100
       }
     }
-  },
+  ],
   "fans" : [
     {
       "fanName" : "fan_1",

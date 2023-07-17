@@ -52,128 +52,131 @@ std::string getMokujinFSConfig() {
       }
     }
   ],
-  "sensors" : {
-    "test_sensor_1" : {
+  "sensors" : [
+    {
+      "sensorName" : "test_sensor_1",
       "scale" : 1000.0,
       "access" : {
         "accessType" : 2
       },
-      "adjustment" : [
-        [10,5],
-        [25,4],
-        [30,1]
-      ],
-      "type" : "linear_four_curves",
-      "normal_up_table" : [
-        [28.99, 30],
-        [29, 35],
-        [30, 40],
-        [31, 45],
-        [33, 50],
-        [34, 55],
-        [35, 60]
-      ],
-      "normal_down_table" : [
-        [26.99, 30],
-        [27, 35],
-        [28, 40],
-        [29, 45],
-        [30, 50],
-        [31, 55],
-        [33, 60]
-      ],
-      "onefail_up_table" : [
-        [27.99, 40],
-        [28, 45],
-        [29, 50],
-        [31, 55],
-        [33, 60],
-        [34, 65],
-        [35, 70]
-      ],
-      "onefail_down_table" : [
-        [25.99, 40],
-        [26, 45],
-        [27, 50],
-        [29, 55],
-        [31, 60],
-        [32, 65],
-        [33, 70]
-      ],
+      "adjustmentTable" : {
+        "10" : 5,
+        "25" : 4,
+        "30" : 1
+      },
+      "calcType" : 0,
+      "normalUpTable" : {
+        "28" : 30,
+        "29" : 35,
+        "30" : 40,
+        "31" : 45,
+        "33" : 50,
+        "34" : 55,
+        "35" : 60
+      },
+      "normalDownTable" : {
+        "26" : 30,
+        "27" : 35,
+        "28" : 40,
+        "29" : 45,
+        "30" : 50,
+        "31" : 55,
+        "33" : 60
+      },
+      "failUpTable" : {
+        "27" : 40,
+        "28" : 45,
+        "29" : 50,
+        "31" : 55,
+        "33" : 60,
+        "34" : 65,
+        "35" : 70
+      },
+      "failDownTable" : {
+        "25" : 40,
+        "26" : 45,
+        "27" : 50,
+        "29" : 55,
+        "31" : 60,
+        "32" : 65,
+        "33" : 70
+      },
       "alarm" : {
         "highMajor" : 70.0,
         "highMinor" : 65.0,
         "minorSoakSeconds" : 15
       }
     },
-    "test_sensor_2" : {
+    {
+      "sensorName" : "test_sensor_2",
       "scale" : 1000.0,
       "access" : {
         "accessType" : 2
       },
-      "adjustment" : [
-        [10,5],
-        [25,4],
-        [30,1]
-      ],
-      "type" : "linear_four_curves",
-      "normal_up_table" : [
-        [28.99, 30],
-        [29, 35],
-        [30, 40],
-        [31, 45],
-        [33, 50],
-        [34, 55],
-        [35, 60]
-      ],
-      "normal_down_table" : [
-        [26.99, 30],
-        [27, 35],
-        [28, 40],
-        [29, 45],
-        [30, 50],
-        [31, 55],
-        [33, 60]
-      ],
-      "onefail_up_table" : [
-        [27.99, 40],
-        [28, 45],
-        [29, 50],
-        [31, 55],
-        [33, 60],
-        [34, 65],
-        [35, 70]
-      ],
-      "onefail_down_table" : [
-        [25.99, 40],
-        [26, 45],
-        [27, 50],
-        [29, 55],
-        [31, 60],
-        [32, 65],
-        [33, 70]
-      ],
+      "adjustmentTable" : {
+        "10" : 5,
+        "25" : 4,
+        "30" : 1
+      },
+      "calcType" : 0,
+      "normalUpTable" : {
+        "28" : 30,
+        "29" : 35,
+        "30" : 40,
+        "31" : 45,
+        "33" : 50,
+        "34" : 55,
+        "35" : 60
+      },
+      "normalDownTable" : {
+        "26" : 30,
+        "27" : 35,
+        "28" : 40,
+        "29" : 45,
+        "30" : 50,
+        "31" : 55,
+        "33" : 60
+      },
+      "failUpTable" : {
+        "27" : 40,
+        "28" : 45,
+        "29" : 50,
+        "31" : 55,
+        "33" : 60,
+        "34" : 65,
+        "35" : 70
+      },
+      "failDownTable" : {
+        "25" : 40,
+        "26" : 45,
+        "27" : 50,
+        "29" : 55,
+        "31" : 60,
+        "32" : 65,
+        "33" : 70
+      },
       "alarm" : {
         "highMajor" : 70.0,
         "highMinor" : 65.0,
         "minorSoakSeconds" : 15
       }
     },
-    "test_sensor_3" : {
+    {
+      "sensorName" : "test_sensor_3",
       "scale" : 1000.0,
       "access" : {
         "accessType" : 1,
         "path" : "sensor-util --read --name:test_sensor_2"
       },
-      "adjustment" : [
-        [60,0],
-        [80,0],
-        [95,0]
-      ],
-      "type" : "pid",
-      "setpoint" : 92,
-      "positive_hysteresis" : 0,
-      "negative_hysteresis" : 3,
+      "adjustmentTable" : {
+        "60" : 0,
+        "80" : 0,
+        "95" : 0
+      },
+      "calcType" : 2,
+      "setPoint" : 92,
+      "posHysteresis" : 0,
+      "negHysteresis" : 3,
       "kp" : 2,
       "ki" : 0.1,
       "kd" : 0.1,
@@ -182,28 +185,29 @@ std::string getMokujinFSConfig() {
         "highMinor" : 105.0,
         "minorSoakSeconds" : 30
       },
-      "range_check" : {
+      "rangeCheck" : {
         "low" : 0,
         "high" : 130,
         "tolerance" : 10,
         "invalidRangeAction" : "shutdown"
       }
     },
-    "test_sensor_4" : {
+    {
+      "sensorName" : "test_sensor_4",
       "scale" : 1000.0,
       "access" : {
         "accessType" : 1,
         "path" : "sensor-util --read --name:test_sensor_2"
       },
-      "adjustment" : [
-        [60,0],
-        [80,0],
-        [95,0]
-      ],
-      "type" : "incrementpid",
-      "setpoint" : 92,
-      "positive_hysteresis" : 0,
-      "negative_hysteresis" : 3,
+      "adjustmentTable" : {
+        "60" : 0,
+        "80" : 0,
+        "95" : 0
+      },
+      "calcType" : 1,
+      "setPoint" : 92,
+      "posHysteresis" : 0,
+      "negHysteresis" : 3,
       "kp" : 2,
       "ki" : 0.5,
       "kd" : 0.5,
@@ -212,14 +216,14 @@ std::string getMokujinFSConfig() {
         "highMinor" : 105.0,
         "minorSoakSeconds" : 30
       },
-      "range_check" : {
+      "rangeCheck" : {
         "low" : 0,
         "high" : 130,
         "tolerance" : 10,
         "invalidRangeAction" : "shutdown"
       }
     }
-  },
+  ],
   "fans" : [
     {
       "fanName" : "fan_1",

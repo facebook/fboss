@@ -237,109 +237,14 @@ void ServiceConfig::parseWatchdogChapter(folly::dynamic watchdogDynamic) {
   watchdog_ = watchdog;
 }
 
-void ServiceConfig::parseSensorsChapter(folly::dynamic value) {
-  try {
-    std::string valStr;
-    for (auto& sensor : value.items()) {
-      Sensor newSensor;
-      std::string sensorName = sensor.first.asString();
-      newSensor.sensorName = sensorName;
-      // second element should be the nest json with zone attributes
-      auto sensorAttrib = sensor.second;
-      for (auto& pair : sensorAttrib.items()) {
-        auto key = pair.first.asString();
-        auto value = pair.second;
-        switch (convertKeywordToIndex(key)) {
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAccess:
-            newSensor.access = parseAccessMethod(value);
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::
-              kFsvcCfgSensorAdjustment:
-            newSensor.offsetTable = parseTable(value);
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgScale:
-            newSensor.scale = static_cast<float>(value.asDouble());
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorType:
-            valStr = value.asString();
-            if (convertKeywordToIndex(valStr) ==
-                fan_config_structs::FsvcConfigDictIndex::
-                    kFsvcCfgSensorType4Cuv) {
-              newSensor.calculationType = fan_config_structs::
-                  SensorPwmCalcType::kSensorPwmCalcFourLinearTable;
-            } else if (
-                convertKeywordToIndex(valStr) ==
-                fan_config_structs::FsvcConfigDictIndex::
-                    kFsvcCfgSensorTypeIncrementPid) {
-              newSensor.calculationType = fan_config_structs::
-                  SensorPwmCalcType::kSensorPwmCalcIncrementPid;
-            } else if (
-                convertKeywordToIndex(valStr) ==
-                fan_config_structs::FsvcConfigDictIndex::
-                    kFsvcCfgSensorTypePid) {
-              newSensor.calculationType =
-                  fan_config_structs::SensorPwmCalcType::kSensorPwmCalcPid;
-            } else {
-              facebook::fboss::FbossError(
-                  "Invalide Sensor PWM Calculation Type ", valStr);
-            }
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensor4CuvUp:
-            newSensor.normalUp = parseTable(value);
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensor4CuvDown:
-            newSensor.normalDown = parseTable(value);
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::
-              kFsvcCfgSensor4CuvFailUp:
-            newSensor.failUp = parseTable(value);
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::
-              kFsvcCfgSensor4CuvFailDown:
-            newSensor.failDown = parseTable(value);
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::
-              kFsvcCfgSensorIncrpidSetpoint:
-            newSensor.setPoint = (float)value.asDouble();
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::
-              kFsvcCfgSensorIncrpidPosHyst:
-            newSensor.posHysteresis = (float)value.asDouble();
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::
-              kFsvcCfgSensorIncrpidNegHyst:
-            newSensor.negHysteresis = (float)value.asDouble();
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorIncrpidKd:
-            newSensor.kd = (float)value.asDouble();
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorIncrpidKi:
-            newSensor.ki = (float)value.asDouble();
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorIncrpidKp:
-            newSensor.kp = (float)value.asDouble();
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorAlarm:
-            newSensor.alarm = parseAlarm(value);
-            break;
-          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgRangeCheck:
-            newSensor.rangeCheck = parseRangeCheck(value);
-            break;
-          default:
-            XLOG(ERR) << "Invalid Key in Sensor Chapter Config : " << key;
-            facebook::fboss::FbossError(
-                "Invalid Key in Sensor Chapter Config : ", key);
-            break;
-        }
-      }
-      sensors.insert(sensors.begin(), newSensor);
-    }
-  } catch (std::exception& e) {
-    XLOG(ERR) << "Config parsing failure during Sensor chapter parsing! "
-              << e.what();
-    throw e;
+void ServiceConfig::parseSensorsChapter(folly::dynamic sensorsDynamic) {
+  for (const auto& sensorDynamic : sensorsDynamic) {
+    fan_config_structs::Sensor sensor;
+    std::string sensorJson = folly::toJson(sensorDynamic);
+    apache::thrift::SimpleJSONSerializer::deserialize<
+        fan_config_structs::Sensor>(sensorJson, sensor);
+    sensors.insert(sensors.begin(), sensor);
   }
-  return;
 }
 
 float ServiceConfig::getPwmBoostValue() const {

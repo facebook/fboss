@@ -75,39 +75,19 @@ class PwmCalcCache {
   float last_error{0};
 };
 
-class Sensor {
- public:
-  std::string sensorName;
-  fan_config_structs::AccessMethod access;
-  std::vector<std::pair<float, float>> offsetTable;
-  fan_config_structs::Alarm alarm;
-  std::optional<fan_config_structs::RangeCheck> rangeCheck;
-  fan_config_structs::SensorPwmCalcType calculationType;
-  float scale;
-  std::vector<std::pair<float, float>> normalUp;
-  std::vector<std::pair<float, float>> normalDown;
-  std::vector<std::pair<float, float>> failUp;
-  std::vector<std::pair<float, float>> failDown;
-  float setPoint;
-  float posHysteresis;
-  float negHysteresis;
-  float kp;
-  float kd;
-  float ki;
-};
-
 class ServiceConfig {
  public:
   //
   // Attribs
   //
   std::vector<fan_config_structs::Zone> zones;
-  std::vector<Sensor> sensors;
+  std::vector<fan_config_structs::Sensor> sensors;
   std::map<std::string /* sensorName */, SensorReadCache> sensorReadCaches;
   std::map<std::string /* sensorName */, PwmCalcCache> pwmCalcCaches;
   std::vector<fan_config_structs::Optic> optics;
   std::vector<fan_config_structs::Fan> fans;
   std::map<std::string /* fanName */, FanStatus> fanStatuses;
+
   std::optional<fan_config_structs::Watchdog> watchdog_{std::nullopt};
   // Number of broken fan required for pwm boost
   int pwmBoostOnDeadFan;

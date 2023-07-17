@@ -66,14 +66,14 @@ void Mokujin::getSensorData(
   for (auto sensor = begin(pServiceConfig->sensors);
        sensor != end(pServiceConfig->sensors);
        ++sensor) {
-    std::string sensorName = sensor->sensorName;
+    std::string sensorName = *sensor->sensorName();
     if (simulatedSensorRead_.find(sensorName) != simulatedSensorRead_.end()) {
       pSensorData->updateEntryFloat(
           sensorName, simulatedSensorRead_[sensorName], currentTimeStampSec_);
       facebook::fboss::FbossError(
           "Mokujin sensor read failure simulated : ", sensorName);
     } else {
-      XLOG(ERR) << "Failed to read sensor : " << sensor->sensorName;
+      XLOG(ERR) << "Failed to read sensor : " << *sensor->sensorName();
     }
   }
   return;
