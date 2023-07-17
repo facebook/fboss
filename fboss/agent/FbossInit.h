@@ -15,6 +15,12 @@
 
 namespace facebook::fboss {
 
+struct AgentConfig;
+class Platform;
+
+using PlatformInitFn =
+    std::unique_ptr<Platform> (*)(std::unique_ptr<AgentConfig>, uint32_t);
+
 void fbossInit(int argc, char** argv);
 
 } // namespace facebook::fboss

@@ -355,3 +355,14 @@ target_link_libraries(switchid_scope_resolver
   hwswitch_matcher
   state
 )
+
+add_library(hwagent
+  fboss/agent/HwAgent.cpp
+)
+
+target_link_libraries(hwagent
+  fboss_init
+  hw_switch
+  platform_base
+  switch_asics
+)
