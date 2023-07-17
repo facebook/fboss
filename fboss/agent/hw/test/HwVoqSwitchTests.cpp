@@ -704,12 +704,8 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
     return cfg;
   }
 
-  const SwitchID kGetRemoteSwitchId() const {
-    if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
-      // with maxCores = 4 , remote switchId has to be atleast 4
-      return SwitchID(4);
-    }
-    return SwitchID(2);
+  const SwitchID getRemoteSwitchId() const {
+    return SwitchID(4);
   }
 
   std::optional<std::map<int64_t, cfg::DsfNode>> overrideDsfNodes(
@@ -726,7 +722,7 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
         *firstDsfNode.switchId(),
         *firstDsfNode.systemPortRange(),
         mac);
-    auto otherDsfNodeCfg = utility::dsfNodeConfig(*asic, kGetRemoteSwitchId());
+    auto otherDsfNodeCfg = utility::dsfNodeConfig(*asic, getRemoteSwitchId());
     dsfNodes.insert({*otherDsfNodeCfg.switchId(), otherDsfNodeCfg});
     return dsfNodes;
   }
@@ -740,7 +736,7 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
         newState->getRemoteSystemPorts()->modify(&newState);
     auto numPrevPorts = remoteSystemPorts->numNodes();
     auto remoteSysPort = std::make_shared<SystemPort>(portId);
-    remoteSysPort->setSwitchId(kGetRemoteSwitchId());
+    remoteSysPort->setSwitchId(getRemoteSwitchId());
     remoteSysPort->setNumVoqs(localPort->getNumVoqs());
     remoteSysPort->setCoreIndex(localPort->getCoreIndex());
     remoteSysPort->setCorePortIndex(localPort->getCorePortIndex());
