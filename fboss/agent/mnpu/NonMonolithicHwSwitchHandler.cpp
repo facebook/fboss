@@ -8,13 +8,6 @@ namespace facebook::fboss {
 
 NonMonolithicHwSwitchHandler::NonMonolithicHwSwitchHandler() {}
 
-HwInitResult NonMonolithicHwSwitchHandler::initHw(
-    HwSwitchCallback* /*callback*/,
-    bool /*failHwCallsOnWarmboot*/) {
-  // TODO: implement this
-  return HwInitResult{};
-}
-
 void NonMonolithicHwSwitchHandler::exitFatal() const {
   // TODO: implement this
 }

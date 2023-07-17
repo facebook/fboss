@@ -629,4 +629,5 @@ void addSwitchSettingsToState(
         std::make_shared<SwitchSettings>(),
     int64_t switchId = 0);
 
+HwSwitchInitFn mockHwSwitchInitFn(SwSwitch* sw);
 } // namespace facebook::fboss

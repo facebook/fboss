@@ -81,9 +81,9 @@ void initSwSwitchWithFlags(SwSwitch* sw, SwitchFlags flags) {
     auto mockTunMgr =
         std::make_unique<MockTunManager>(sw, sw->getBackgroundEvb());
     EXPECT_CALL(*mockTunMgr.get(), doProbe(_)).Times(1);
-    sw->init(std::move(mockTunMgr), flags);
+    sw->init(std::move(mockTunMgr), mockHwSwitchInitFn(sw), flags);
   } else {
-    sw->init(nullptr, flags);
+    sw->init(nullptr, mockHwSwitchInitFn(sw), flags);
   }
 }
 
@@ -1152,6 +1152,19 @@ void addSwitchSettingsToState(
           .matcherString(),
       switchSettings);
   state->resetSwitchSettings(std::move(multiSwitchSwitchSettings));
+}
+
+HwSwitchInitFn mockHwSwitchInitFn(SwSwitch* sw) {
+  return [sw](HwSwitchCallback* callback, bool failHwCallsOnWarmboot) {
+    return getMockHw(sw)->init(
+        callback,
+        failHwCallsOnWarmboot,
+        *(sw->getSwitchInfoTable()
+              .getSwitchIdToSwitchInfo()
+              .cbegin()
+              ->second.switchType()),
+        sw->getSwitchInfoTable().getSwitchIdToSwitchInfo().cbegin()->first);
+  };
 }
 
 } // namespace facebook::fboss

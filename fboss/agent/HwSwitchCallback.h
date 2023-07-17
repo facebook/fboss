@@ -65,4 +65,6 @@ class HwSwitchCallback {
   virtual void unregisterStateObserver(StateObserver* observer) = 0;
 };
 
+using HwSwitchInitFn = std::function<HwInitResult(HwSwitchCallback*, bool)>;
+
 } // namespace facebook::fboss

@@ -193,6 +193,7 @@ class SwSwitch : public HwSwitchCallback {
    */
   void init(
       std::unique_ptr<TunManager> tunMgr,
+      HwSwitchInitFn hwSwitchInitFn,
       SwitchFlags flags = SwitchFlags::DEFAULT);
 
   // can be used in the tests, where a test orchestrating ensemble can be
@@ -201,6 +202,7 @@ class SwSwitch : public HwSwitchCallback {
   void init(
       HwSwitchCallback* callback,
       std::unique_ptr<TunManager> tunMgr,
+      HwSwitchInitFn hwSwitchInitFn,
       SwitchFlags flags = SwitchFlags::DEFAULT);
 
   bool isFullyInitialized() const;

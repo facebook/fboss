@@ -17,9 +17,6 @@ class MonolinithicHwSwitchHandler : public HwSwitchHandler {
 
   virtual ~MonolinithicHwSwitchHandler() override {}
 
-  HwInitResult initHw(HwSwitchCallback* callback, bool failHwCallsOnWarmboot)
-      override;
-
   void exitFatal() const override;
 
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) const override;

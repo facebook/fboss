@@ -22,6 +22,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
+#include "fboss/agent/test/TestUtils.h"
 
 using namespace facebook::fboss;
 using folly::IPAddress;
@@ -46,7 +47,7 @@ unique_ptr<SwSwitch> setupSwitch() {
   auto hwSwitchHandler =
       std::make_unique<MonolinithicHwSwitchHandler>(simPlatform.get());
   auto sw = make_unique<SwSwitch>(std::move(hwSwitchHandler));
-  sw->init(nullptr /* No custom TunManager */);
+  sw->init(nullptr /* No custom TunManager */, mockHwSwitchInitFn(sw.get()));
   auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
   auto updateFn = [&](const shared_ptr<SwitchState>& oldState) {
     auto state = oldState->clone();

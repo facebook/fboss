@@ -15,16 +15,6 @@ MonolinithicHwSwitchHandler::MonolinithicHwSwitchHandler(Platform* platform)
   initPlatformData();
 }
 
-HwInitResult MonolinithicHwSwitchHandler::initHw(
-    HwSwitchCallback* callback,
-    bool failHwCallsOnWarmboot) {
-  return hw_->init(
-      callback,
-      failHwCallsOnWarmboot,
-      platform_->getAsic()->getSwitchType(),
-      platform_->getAsic()->getSwitchId());
-}
-
 void MonolinithicHwSwitchHandler::exitFatal() const {
   return hw_->exitFatal();
 }

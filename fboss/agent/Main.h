@@ -40,14 +40,14 @@ class Platform;
 
 class MonolithicSwSwitchInitializer {
  public:
-  MonolithicSwSwitchInitializer(SwSwitch* sw, Platform* platform)
-      : sw_(sw), platform_(platform) {}
+  MonolithicSwSwitchInitializer(SwSwitch* sw, HwAgent* hwAgent)
+      : sw_(sw), hwAgent_(hwAgent) {}
   void start();
   void start(HwSwitchCallback* callback);
   void stopFunctionScheduler();
   void waitForInitDone();
   Platform* platform() {
-    return platform_;
+    return hwAgent_->getPlatform();
   }
 
  private:
@@ -55,7 +55,7 @@ class MonolithicSwSwitchInitializer {
   SwitchFlags setupFlags();
   void initImpl(HwSwitchCallback* callback);
   SwSwitch* sw_;
-  Platform* platform_;
+  HwAgent* hwAgent_;
   std::unique_ptr<folly::FunctionScheduler> fs_;
   std::mutex initLock_;
   std::condition_variable initCondition_;

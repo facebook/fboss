@@ -158,7 +158,13 @@ void MonolithicSwSwitchInitializer::initImpl(
   std::lock_guard<mutex> g(initLock_);
   // Initialize the switch.  This operation can take close to a minute
   // on some of our current platforms.
-  sw_->init(hwSwitchCallback, nullptr, setupFlags());
+  sw_->init(
+      hwSwitchCallback,
+      nullptr,
+      [this](HwSwitchCallback* callback, bool failHwCallsOnWarmboot) {
+        return hwAgent_->initAgent(failHwCallsOnWarmboot, callback);
+      },
+      setupFlags());
 
   sw_->applyConfig("apply initial config");
   // Enable route update logging for all routes so that when we are told
@@ -241,8 +247,8 @@ void MonolithicAgentInitializer::createSwitch(
 
   // Create the SwSwitch and thrift handler
   sw_ = std::make_unique<SwSwitch>(std::move(hwSwitchHandler));
-  initializer_ =
-      std::make_unique<MonolithicSwSwitchInitializer>(sw_.get(), platform);
+  initializer_ = std::make_unique<MonolithicSwSwitchInitializer>(
+      sw_.get(), hwAgent_.get());
 }
 
 int MonolithicAgentInitializer::initAgent() {

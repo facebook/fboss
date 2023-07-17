@@ -658,11 +658,11 @@ void SwSwitch::publishTxPacket(TxPacket* pkt, uint16_t ethertype) {
 void SwSwitch::init(
     HwSwitchCallback* callback,
     std::unique_ptr<TunManager> tunMgr,
+    HwSwitchInitFn hwSwitchInitFn,
     SwitchFlags flags) {
   auto begin = steady_clock::now();
   flags_ = flags;
-  auto hwInitRet =
-      hwSwitchHandler_->initHw(callback, false /*failHwCallsOnWarmboot*/);
+  auto hwInitRet = hwSwitchInitFn(callback, false /*failHwCallsOnWarmboot*/);
   multiHwSwitchSyncer_ = std::make_unique<MultiHwSwitchSyncer>(
       getHwSwitchHandler(), switchInfoTable_.getSwitchIdToSwitchInfo());
   auto initialState = hwInitRet.switchState;
@@ -802,8 +802,11 @@ void SwSwitch::init(
   }
 }
 
-void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
-  this->init(this, std::move(tunMgr), flags);
+void SwSwitch::init(
+    std::unique_ptr<TunManager> tunMgr,
+    HwSwitchInitFn hwSwitchInitFn,
+    SwitchFlags flags) {
+  this->init(this, std::move(tunMgr), hwSwitchInitFn, flags);
 }
 
 void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {

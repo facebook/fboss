@@ -28,10 +28,6 @@ struct PlatformData {
 struct HwSwitchHandler {
   virtual ~HwSwitchHandler() = default;
 
-  virtual HwInitResult initHw(
-      HwSwitchCallback* callback,
-      bool failHwCallsOnWarmboot) = 0;
-
   virtual void exitFatal() const = 0;
 
   virtual std::unique_ptr<TxPacket> allocatePacket(uint32_t size) const = 0;
