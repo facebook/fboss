@@ -231,18 +231,18 @@ void MonolithicAgentInitializer::createSwitch(
   // Allow any flag overrides to kick in before we create SwSwitch
   setCmdLineFlagOverrides();
 
-  unique_ptr<Platform> platform =
-      initPlatform(std::move(config), hwFeaturesDesired);
+  hwAgent_ = std::make_unique<HwAgent>(
+      std::move(config), hwFeaturesDesired, initPlatform);
 
+  auto platform = hwAgent_->getPlatform();
   CHECK(platform);
   auto hwSwitchHandler =
-      std::make_unique<MonolinithicHwSwitchHandler>(std::move(platform));
-  auto platformPtr = hwSwitchHandler->getPlatform();
+      std::make_unique<MonolinithicHwSwitchHandler>(platform);
 
   // Create the SwSwitch and thrift handler
   sw_ = std::make_unique<SwSwitch>(std::move(hwSwitchHandler));
   initializer_ =
-      std::make_unique<MonolithicSwSwitchInitializer>(sw_.get(), platformPtr);
+      std::make_unique<MonolithicSwSwitchInitializer>(sw_.get(), platform);
 }
 
 int MonolithicAgentInitializer::initAgent() {
@@ -308,9 +308,11 @@ void MonolithicAgentInitializer::stopAgent(bool setupWarmboot) {
   if (setupWarmboot) {
     sw_->gracefulExit();
     __attribute__((unused)) auto leakedSw = sw_.release();
+    __attribute__((unused)) auto leakedHwAgent = hwAgent_.release();
 #ifndef IS_OSS
 #if __has_feature(address_sanitizer)
     __lsan_ignore_object(leakedSw);
+    __lsan_ignore_object(leakedHwAgent);
 #endif
 #endif
   } else {

@@ -42,7 +42,6 @@ class MockPlatform : public Platform {
   HwSwitch* getHwSwitch() const override;
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
-  std::unique_ptr<HwTestHandle> createTestHandle(std::unique_ptr<SwSwitch> sw);
   HwAsic* getAsic() const override;
   static const folly::MacAddress& getMockLocalMac();
   static const folly::IPAddressV6& getMockLinkLocalIp6();

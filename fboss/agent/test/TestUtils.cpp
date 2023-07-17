@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/hw/mock/MockPlatformMapping.h"
+#include "fboss/agent/hw/mock/MockTestHandle.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/RouteNextHop.h"
@@ -86,7 +87,7 @@ void initSwSwitchWithFlags(SwSwitch* sw, SwitchFlags flags) {
   }
 }
 
-std::pair<unique_ptr<SwSwitch>, MockPlatform*> createMockSw(
+std::pair<unique_ptr<SwSwitch>, unique_ptr<MockPlatform>> createMockSw(
     const shared_ptr<SwitchState>& state,
     SwitchFlags flags,
     cfg::SwitchConfig* config) {
@@ -100,9 +101,8 @@ std::pair<unique_ptr<SwSwitch>, MockPlatform*> createMockSw(
   } else {
     platform = createMockPlatform();
   }
-  MockPlatform* platformPtr = platform.get();
-  auto sw = setupMockSwitchWithoutHW(std::move(platform), state, flags, config);
-  return std::make_pair(std::move(sw), platformPtr);
+  auto sw = setupMockSwitchWithoutHW(platform.get(), state, flags, config);
+  return std::make_pair(std::move(sw), std::move(platform));
 }
 
 shared_ptr<SwitchState> setAllPortState(
@@ -459,7 +459,7 @@ shared_ptr<SwitchState> publishAndApplyConfig(
 }
 
 std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
-    std::unique_ptr<MockPlatform> platform,
+    MockPlatform* platform,
     const std::shared_ptr<SwitchState>& state,
     SwitchFlags flags,
     cfg::SwitchConfig* config) {
@@ -485,7 +485,7 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
     }
   }
   auto sw = make_unique<SwSwitch>(
-      std::make_unique<MonolinithicHwSwitchHandler>(std::move(platform)),
+      std::make_unique<MonolinithicHwSwitchHandler>(platform),
       std::move(platformMapping),
       config);
   HwInitResult ret;
@@ -518,7 +518,8 @@ unique_ptr<HwTestHandle> createTestHandle(
     SwitchFlags flags,
     cfg::SwitchConfig* config) {
   auto [sw, platform] = createMockSw(state, flags, config);
-  auto handle = platform->createTestHandle(std::move(sw));
+  auto handle =
+      std::make_unique<MockTestHandle>(std::move(sw), std::move(platform));
   handle->prepareForTesting();
   return handle;
 }

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/FbossInit.h"
 #include "fboss/agent/HwSwitchHandler.h"
 
 namespace facebook::fboss {
@@ -12,19 +13,9 @@ class TxPacket;
 
 class MonolinithicHwSwitchHandler : public HwSwitchHandler {
  public:
-  using PlatformInitFn = std::function<std::unique_ptr<Platform>(
-      std::unique_ptr<AgentConfig>,
-      uint32_t featuresDesired)>;
-
-  /* TODO: remove this constructor */
-  explicit MonolinithicHwSwitchHandler(std::unique_ptr<Platform> platform);
-
-  explicit MonolinithicHwSwitchHandler(PlatformInitFn initPlatformFn);
+  explicit MonolinithicHwSwitchHandler(Platform* platform);
 
   virtual ~MonolinithicHwSwitchHandler() override {}
-
-  void initPlatform(std::unique_ptr<AgentConfig> config, uint32_t features)
-      override;
 
   HwInitResult initHw(HwSwitchCallback* callback, bool failHwCallsOnWarmboot)
       override;
@@ -117,7 +108,7 @@ class MonolinithicHwSwitchHandler : public HwSwitchHandler {
 
   /* TODO: remove this method */
   Platform* getPlatform() const {
-    return platform_.get();
+    return platform_;
   }
 
   CpuPortStats getCpuPortStats() const override;
@@ -138,8 +129,7 @@ class MonolinithicHwSwitchHandler : public HwSwitchHandler {
   bool needL2EntryForNeighbor() const override;
 
  private:
-  PlatformInitFn initPlatformFn_;
-  std::unique_ptr<Platform> platform_;
+  Platform* platform_;
   HwSwitch* hw_;
 };
 

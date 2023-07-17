@@ -28,10 +28,6 @@ struct PlatformData {
 struct HwSwitchHandler {
   virtual ~HwSwitchHandler() = default;
 
-  virtual void initPlatform(
-      std::unique_ptr<AgentConfig> config,
-      uint32_t features) = 0;
-
   virtual HwInitResult initHw(
       HwSwitchCallback* callback,
       bool failHwCallsOnWarmboot) = 0;

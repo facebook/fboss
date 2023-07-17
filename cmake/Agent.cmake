@@ -42,6 +42,7 @@ target_link_libraries(main
   handler
 # base
   fboss_init
+  hwagent
   setup_thrift
   Folly::folly
   qsfp_cpp2

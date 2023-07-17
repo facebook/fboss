@@ -13,6 +13,7 @@
 #include <folly/experimental/FunctionScheduler.h>
 #include <folly/io/async/AsyncSignalHandler.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
+#include "fboss/agent/HwAgent.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TunManager.h"
 
@@ -94,7 +95,7 @@ class MonolithicAgentInitializer {
     return sw_.get();
   }
   Platform* platform() const {
-    return initializer_->platform();
+    return hwAgent_->getPlatform();
   }
   MonolithicSwSwitchInitializer* initializer() const {
     return initializer_.get();
@@ -119,6 +120,7 @@ class MonolithicAgentInitializer {
   virtual void setCmdLineFlagOverrides() const {}
 
  private:
+  std::unique_ptr<HwAgent> hwAgent_;
   std::unique_ptr<SwSwitch> sw_;
   std::unique_ptr<MonolithicSwSwitchInitializer> initializer_;
   std::unique_ptr<apache::thrift::ThriftServer> server_;

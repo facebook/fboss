@@ -10,21 +10,8 @@
 
 namespace facebook::fboss {
 
-MonolinithicHwSwitchHandler::MonolinithicHwSwitchHandler(
-    PlatformInitFn initPlatformFn)
-    : initPlatformFn_(std::move(initPlatformFn)) {}
-
-MonolinithicHwSwitchHandler::MonolinithicHwSwitchHandler(
-    std::unique_ptr<Platform> platform)
-    : platform_(std::move(platform)), hw_(platform_->getHwSwitch()) {
-  initPlatformData();
-}
-
-void MonolinithicHwSwitchHandler::initPlatform(
-    std::unique_ptr<AgentConfig> config,
-    uint32_t features) {
-  platform_ = initPlatformFn_(std::move(config), features);
-  hw_ = platform_->getHwSwitch();
+MonolinithicHwSwitchHandler::MonolinithicHwSwitchHandler(Platform* platform)
+    : platform_(platform), hw_(platform_->getHwSwitch()) {
   initPlatformData();
 }
 

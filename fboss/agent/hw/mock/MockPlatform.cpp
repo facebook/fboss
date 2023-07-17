@@ -92,11 +92,6 @@ string MockPlatform::getPersistentStateDir() const {
   return tmpDir_.path().string() + "/persist";
 }
 
-std::unique_ptr<HwTestHandle> MockPlatform::createTestHandle(
-    std::unique_ptr<SwSwitch> sw) {
-  return make_unique<MockTestHandle>(std::move(sw), this);
-}
-
 HwAsic* MockPlatform::getAsic() const {
   return asic_.get();
 }

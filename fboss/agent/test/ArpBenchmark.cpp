@@ -38,14 +38,13 @@ namespace {
 unique_ptr<SwSwitch> sw;
 unique_ptr<MockRxPacket> arpRequest_10_0_0_1;
 unique_ptr<MockRxPacket> arpRequest_10_0_0_5;
-SimPlatform* simPlatform;
+unique_ptr<SimPlatform> simPlatform;
 
 unique_ptr<SwSwitch> setupSwitch() {
   MacAddress localMac("02:00:01:00:00:01");
-  auto hwSwitchHandler = std::make_unique<MonolinithicHwSwitchHandler>(
-      make_unique<SimPlatform>(localMac, 10));
-  simPlatform =
-      boost::polymorphic_downcast<SimPlatform*>(hwSwitchHandler->getPlatform());
+  simPlatform = make_unique<SimPlatform>(localMac, 10);
+  auto hwSwitchHandler =
+      std::make_unique<MonolinithicHwSwitchHandler>(simPlatform.get());
   auto sw = make_unique<SwSwitch>(std::move(hwSwitchHandler));
   sw->init(nullptr /* No custom TunManager */);
   auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));

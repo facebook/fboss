@@ -20,8 +20,10 @@ namespace facebook::fboss {
 
 class MockTestHandle : public HwTestHandle {
  public:
-  MockTestHandle(std::unique_ptr<SwSwitch> sw, MockPlatform* platform)
-      : HwTestHandle(std::move(sw), platform), platform_(platform) {}
+  MockTestHandle(
+      std::unique_ptr<SwSwitch> sw,
+      std::unique_ptr<MockPlatform> platform)
+      : HwTestHandle(std::move(sw), std::move(platform)) {}
   ~MockTestHandle() {}
 
   void rxPacket(
@@ -36,8 +38,6 @@ class MockTestHandle : public HwTestHandle {
   // Forbidden copy constructor and assignment operator
   MockTestHandle(MockTestHandle const&) = delete;
   MockTestHandle& operator=(MockTestHandle const&) = delete;
-
-  MockPlatform* platform_{nullptr};
 };
 
 } // namespace facebook::fboss

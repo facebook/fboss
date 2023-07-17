@@ -21,8 +21,10 @@ class Platform;
 
 class HwTestHandle {
  public:
-  explicit HwTestHandle(std::unique_ptr<SwSwitch> sw, Platform* platform)
-      : sw_(std::move(sw)), platform_(platform) {}
+  explicit HwTestHandle(
+      std::unique_ptr<SwSwitch> sw,
+      std::unique_ptr<Platform> platform)
+      : platform_(std::move(platform)), sw_(std::move(sw)) {}
   virtual ~HwTestHandle() = default;
 
   SwSwitch* getSw() const {
@@ -30,7 +32,7 @@ class HwTestHandle {
   }
 
   Platform* getPlatform() const {
-    return platform_;
+    return platform_.get();
   }
 
   HwSwitch* getHwSwitch() const {
@@ -48,8 +50,8 @@ class HwTestHandle {
   virtual void forcePortFlap(const PortID port) = 0;
 
  private:
+  std::unique_ptr<Platform> platform_;
   std::unique_ptr<SwSwitch> sw_{nullptr};
-  Platform* platform_;
 };
 
 } // namespace facebook::fboss

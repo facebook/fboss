@@ -10,10 +10,6 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
 
   virtual ~NonMonolithicHwSwitchHandler() override = default;
 
-  void initPlatform(
-      std::unique_ptr<AgentConfig> /*config*/,
-      uint32_t /*features*/) override {}
-
   HwInitResult initHw(HwSwitchCallback* callback, bool failHwCallsOnWarmboot)
       override;
 
