@@ -3,7 +3,6 @@
 // This include file is used by both MetaHelper.cpp and OssHelper.cpp,
 // to define functions that are implemented differently in Meta in OSS.
 #include "fboss/platform/fan_service/SensorData.h"
-#include "fboss/platform/fan_service/ServiceConfig.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 
 void getTransceivers(

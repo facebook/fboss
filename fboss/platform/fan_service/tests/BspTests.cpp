@@ -9,7 +9,6 @@
  */
 
 #include "fboss/platform/fan_service/Bsp.h"
-#include "fboss/platform/fan_service/ServiceConfig.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
 
 #include <gtest/gtest.h>
@@ -21,32 +20,25 @@ class BspTest : public ::testing::Test {
   static auto constexpr kSensorName = "sensor";
 
  protected:
-  std::shared_ptr<ServiceConfig> makeServiceConfig(
+  fan_config_structs::FanServiceConfig makeConfig(
       fan_config_structs::AccessMethod accessMethod) const {
-    auto config = std::make_shared<ServiceConfig>();
+    auto config = fan_config_structs::FanServiceConfig{};
     fan_config_structs::Sensor sensor;
     sensor.sensorName() = kSensorName;
     sensor.access() = accessMethod;
-    config->sensors.push_back(sensor);
+    config.sensors()->push_back(sensor);
     return config;
   }
-
- public:
-  void getSensorOverRest() {
-    fan_config_structs::AccessMethod access;
-    access.accessType() = fan_config_structs::SourceType::kSrcRest;
-    bsp.getSensorData(
-        makeServiceConfig(access), std::make_shared<SensorData>());
-  }
-  Bsp bsp;
 };
 
 TEST_F(BspTest, getSensorOverRest) {
-  EXPECT_THROW(getSensorOverRest(), FbossError);
+  fan_config_structs::AccessMethod access;
+  access.accessType() = fan_config_structs::SourceType::kSrcRest;
+  auto bsp = Bsp(makeConfig(access));
+  EXPECT_THROW(bsp.getSensorData(std::make_shared<SensorData>()), FbossError);
 }
 
 TEST_F(BspTest, getSensorMethodUnset) {
-  EXPECT_THROW(
-      bsp.getSensorData(makeServiceConfig({}), std::make_shared<SensorData>()),
-      FbossError);
+  auto bsp = Bsp(makeConfig({}));
+  EXPECT_THROW(bsp.getSensorData(std::make_shared<SensorData>()), FbossError);
 }

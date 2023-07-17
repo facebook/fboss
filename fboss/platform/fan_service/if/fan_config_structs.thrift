@@ -177,3 +177,20 @@ struct Sensor {
   16: float kd;
   17: float ki;
 }
+
+struct FanServiceConfig {
+  1: BspType bspType;
+  2: string shutdownCmd;
+  3: list<Zone> zones;
+  4: list<Sensor> sensors;
+  5: list<Optic> optics;
+  6: list<Fan> fans;
+  7: optional Watchdog watchdog;
+  11: i16 pwmBoostOnNumDeadFan;
+  12: i16 pwmBoostOnNumDeadSensor;
+  13: i16 pwmBoostOnNoQsfpAfterInSec;
+  14: i32 pwmBoostValue;
+  15: i32 pwmTransitionValue;
+  16: i32 pwmUpperThreshold;
+  17: i32 pwmLowerThreshold;
+}

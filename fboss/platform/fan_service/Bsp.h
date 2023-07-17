@@ -17,7 +17,6 @@
 
 // Header file of the other classes used by this class
 #include "SensorData.h"
-#include "ServiceConfig.h"
 
 // Auto-generated Thrift inteface headerfile (by Buck)
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
@@ -59,21 +58,15 @@ namespace facebook::fboss::platform {
 
 class Bsp {
  public:
-  Bsp();
+  explicit Bsp(const fan_config_structs::FanServiceConfig& config);
   virtual ~Bsp();
   // getSensorData: Get sensor data from either cache or direct access
-  virtual void getSensorData(
-      std::shared_ptr<ServiceConfig> pServiceConfig,
-      std::shared_ptr<SensorData> pSensorData);
+  virtual void getSensorData(std::shared_ptr<SensorData> pSensorData);
   // getOpticsData: Get Optics temperature data
-  virtual void getOpticsData(
-      std::shared_ptr<ServiceConfig> pServiceConfig,
-      std::shared_ptr<SensorData> pSensorData);
+  virtual void getOpticsData(std::shared_ptr<SensorData> pSensorData);
   // emergencyShutdown: function to shutdown the platform upon overheat
-  virtual int emergencyShutdown(
-      std::shared_ptr<ServiceConfig> pServiceConfig,
-      bool enable);
-  int kickWatchdog(std::shared_ptr<ServiceConfig> pServiceConfig);
+  virtual int emergencyShutdown(bool enable);
+  int kickWatchdog();
   // setFanPwm... : Fan pwm set function. Used by Control Logic Class
   bool setFanPwmSysfs(std::string path, int pwm);
   bool setFanPwmShell(std::string command, std::string fanName, int pwm);
@@ -91,9 +84,7 @@ class Bsp {
   FsdbSensorSubscriber* fsdbSensorSubscriber() {
     return fsdbSensorSubscriber_.get();
   }
-  void getSensorDataThrift(
-      std::shared_ptr<ServiceConfig> pServiceConfig,
-      std::shared_ptr<SensorData> pSensorData);
+  void getSensorDataThrift(std::shared_ptr<SensorData> pSensorData);
 
  protected:
   // replaceAllString : String replace helper function
@@ -104,13 +95,15 @@ class Bsp {
   // This attribute is accessed by internal function and Mock class (Mokujin)
   void setEmergencyState(bool state);
 
+  const fan_config_structs::FanServiceConfig config_;
+
  private:
   virtual int run(const std::string& cmd);
   void getOpticsDataFromQsfpSvc(
-      fan_config_structs::Optic* opticsGroup,
+      const fan_config_structs::Optic& opticsGroup,
       std::shared_ptr<SensorData> pSensorData);
   void getOpticsDataSysfs(
-      fan_config_structs::Optic* opticsGroup,
+      const fan_config_structs::Optic& opticsGroup,
       std::shared_ptr<SensorData> pSensorData);
   std::shared_ptr<std::thread> thread_{nullptr};
   // For communicating with qsfp_service
@@ -135,22 +128,16 @@ class Bsp {
   // Private Methods
   // Various handlers to fetch sensor data from Thrift / Utility / Rest / Sysfs
   void getSensorDataThriftWithSensorList(
-      std::shared_ptr<ServiceConfig> pServiceConfig,
       std::shared_ptr<SensorData> pSensorData,
       std::vector<std::string> sensorList);
   void getSensorDataFb303WithSensorList(
-      std::shared_ptr<ServiceConfig> pServiceConfig,
       std::shared_ptr<SensorData> pSensorData,
       std::vector<std::string> sensorList);
-  void getSensorDataUtil(
-      std::shared_ptr<ServiceConfig> pServiceConfig,
-      std::shared_ptr<SensorData> pSensorData);
+  void getSensorDataUtil(std::shared_ptr<SensorData> pSensorData);
   float getSensorDataSysfs(std::string path);
-  void getSensorDataRest(
-      std::shared_ptr<ServiceConfig> pServiceConfig,
-      std::shared_ptr<SensorData> pSensorData);
+  void getSensorDataRest(std::shared_ptr<SensorData> pSensorData);
   void processOpticEntries(
-      fan_config_structs::Optic* opticsGroup,
+      const fan_config_structs::Optic& opticsGroup,
       std::shared_ptr<SensorData> pSensorData,
       uint64_t& currentQsfpSvcTimestamp,
       const std::map<int32_t, TransceiverData>& cacheTable,

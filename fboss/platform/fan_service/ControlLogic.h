@@ -46,7 +46,9 @@ struct PwmCalcCache {
 class ControlLogic {
  public:
   // Constructor / Destructor
-  ControlLogic(std::shared_ptr<ServiceConfig> pC, std::shared_ptr<Bsp> pB);
+  ControlLogic(
+      const fan_config_structs::FanServiceConfig& config,
+      std::shared_ptr<Bsp> pB);
   ~ControlLogic();
   // updateControl : Main entry for the control logic to process sensor
   //                 readings and set PWM value accordingly
@@ -56,7 +58,7 @@ class ControlLogic {
  private:
   // Private Attributess :
   // Pointer to other classes used by Control Logic
-  std::shared_ptr<ServiceConfig> pConfig_;
+  const fan_config_structs::FanServiceConfig config_;
   std::shared_ptr<Bsp> pBsp_;
   std::shared_ptr<SensorData> pSensor_;
   // Internal variable storing the number of failed sensors and fans

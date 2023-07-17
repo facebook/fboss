@@ -4,10 +4,12 @@
 // for function description
 
 #include "fboss/platform/fan_service/ControlLogic.h"
+
+#include <folly/logging/xlog.h>
+
+#include "common/time/Time.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_constants.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
-// Additional FB helper funtion
-#include "common/time/Time.h"
 
 namespace {
 auto constexpr kFanWriteFailure = "fan_write.{}.{}.failure";
@@ -31,9 +33,9 @@ std::optional<fan_config_structs::TempToPwmMap> getConfigOpticTable(
 
 namespace facebook::fboss::platform {
 ControlLogic::ControlLogic(
-    std::shared_ptr<ServiceConfig> pC,
-    std::shared_ptr<Bsp> pB) {
-  pConfig_ = pC;
+    const fan_config_structs::FanServiceConfig& config,
+    std::shared_ptr<Bsp> pB)
+    : config_(config) {
   pBsp_ = pB;
   numFanFailed_ = 0;
   numSensorFailed_ = 0;
@@ -46,7 +48,7 @@ void ControlLogic::getFanUpdate() {
   SensorEntryType entryType;
 
   // Zeroth, check Fan RPM and Status
-  for (const auto& fan : pConfig_->fans) {
+  for (const auto& fan : *config_.fans()) {
     std::string fanName = *fan.fanName();
     XLOG(INFO) << "Control :: Fan name " << *fan.fanName() << " Access type : "
                << static_cast<int>(*fan.rpmAccess()->accessType());
@@ -252,10 +254,10 @@ void ControlLogic::updateTargetPwm(const fan_config_structs::Sensor& sensor) {
   }
   // No matter what, PWM should be within
   // predefined upper and lower thresholds
-  if (readCache.targetPwmCache > pConfig_->getPwmUpperThreshold()) {
-    readCache.targetPwmCache = pConfig_->getPwmUpperThreshold();
-  } else if (readCache.targetPwmCache < pConfig_->getPwmLowerThreshold()) {
-    readCache.targetPwmCache = pConfig_->getPwmLowerThreshold();
+  if (readCache.targetPwmCache > *config_.pwmUpperThreshold()) {
+    readCache.targetPwmCache = *config_.pwmUpperThreshold();
+  } else if (readCache.targetPwmCache < *config_.pwmLowerThreshold()) {
+    readCache.targetPwmCache = *config_.pwmLowerThreshold();
   }
   return;
 }
@@ -264,7 +266,7 @@ void ControlLogic::getSensorUpdate() {
   std::string sensorItemName;
   float rawValue = 0.0, adjustedValue;
   uint64_t calculatedTime = 0;
-  for (auto& sensor : pConfig_->sensors) {
+  for (auto& sensor : *config_.sensors()) {
     XLOG(INFO) << "Control :: Sensor Name : " << *sensor.sensorName();
     bool sensorAccessFail = false;
     sensorItemName = *sensor.sensorName();
@@ -382,7 +384,7 @@ void ControlLogic::getSensorUpdate() {
                fan_config_structs::fan_config_structs_constants::
                    RANGE_CHECK_ACTION_SHUTDOWN()) &&
               (pBsp_->getEmergencyState() == false)) {
-            pBsp_->emergencyShutdown(pConfig_, true);
+            pBsp_->emergencyShutdown(true);
           }
         }
       } else {
@@ -403,7 +405,7 @@ void ControlLogic::getOpticsUpdate() {
   // For all optics entry
   // Read optics array and set calculated pwm
   // No need to worry about timestamp, but update it anyway
-  for (const auto& optic : pConfig_->optics) {
+  for (const auto& optic : *config_.optics()) {
     XLOG(INFO) << "Control :: Optics Group Name : " << *optic.opticName();
     std::string opticName = *optic.opticName();
 
@@ -449,7 +451,7 @@ void ControlLogic::getOpticsUpdate() {
 }
 
 bool ControlLogic::isSensorPresentInConfig(const std::string& sensorName) {
-  for (auto& sensor : pConfig_->sensors) {
+  for (auto& sensor : *config_.sensors()) {
     if (*sensor.sensorName() == sensorName) {
       return true;
     }
@@ -513,7 +515,7 @@ bool ControlLogic::isFanPresentInDevice(const fan_config_structs::Fan& fan) {
 void ControlLogic::programFan(
     const fan_config_structs::Zone& zone,
     float pwmSoFar) {
-  for (const auto& fan : pConfig_->fans) {
+  for (const auto& fan : *config_.fans()) {
     auto srcType = *fan.pwmAccess()->accessType();
     float pwmToProgram = 0;
     float currentPwm = fanStatuses_[*fan.fanName()].currentPwm;
@@ -633,7 +635,7 @@ void ControlLogic::setFanFailState(
 }
 
 void ControlLogic::adjustZoneFans(bool boostMode) {
-  for (const auto& zone : pConfig_->zones) {
+  for (const auto& zone : *config_.zones()) {
     float pwmSoFar = 0;
     XLOG(INFO) << "Zone : " << *zone.zoneName();
     // First, calculate the pwm value for this zone
@@ -680,8 +682,8 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
     }
     XLOG(INFO) << "  Final PWM : " << pwmSoFar;
     if (boostMode) {
-      if (pwmSoFar < pConfig_->getPwmBoostValue()) {
-        pwmSoFar = pConfig_->getPwmBoostValue();
+      if (pwmSoFar < *config_.pwmBoostValue()) {
+        pwmSoFar = *config_.pwmBoostValue();
       }
     }
     // Update the previous pwm value in each associated sensors,
@@ -697,8 +699,8 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
 }
 
 void ControlLogic::setTransitionValue() {
-  for (const auto& zone : pConfig_->zones) {
-    for (const auto& fan : pConfig_->fans) {
+  for (const auto& zone : *config_.zones()) {
+    for (const auto& fan : *config_.fans()) {
       // If this fan belongs to the zone, then write the transitional value
       if (std::find(
               zone.fanNames()->begin(),
@@ -707,10 +709,10 @@ void ControlLogic::setTransitionValue() {
         for (const auto& sensorName : *zone.sensorNames()) {
           if (isSensorPresentInConfig(sensorName)) {
             pwmCalcCaches_[sensorName].previousTargetPwm =
-                pConfig_->getPwmTransitionValue();
+                *config_.pwmTransitionValue();
           }
         }
-        programFan(zone, pConfig_->getPwmTransitionValue());
+        programFan(zone, *config_.pwmTransitionValue());
       }
     }
   }
@@ -729,7 +731,7 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   // do it now.
   if (!pBsp_->checkIfInitialSensorDataRead()) {
     XLOG(INFO) << "Control :: Reading sensors for the first time";
-    pBsp_->getSensorData(pConfig_, pSensor_);
+    pBsp_->getSensorData(pSensor_);
   }
 
   // Now, check if Fan is in good shape, based on the previously read
@@ -751,19 +753,19 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
 
   uint64_t secondsSinceLastOpticsUpdate =
       pBsp_->getCurrentTime() - pSensor_->getLastQsfpSvcTime();
-  if ((pConfig_->pwmBoostNoQsfpAfterInSec != 0) &&
-      (secondsSinceLastOpticsUpdate >= pConfig_->pwmBoostNoQsfpAfterInSec)) {
+  if ((*config_.pwmBoostOnNoQsfpAfterInSec() != 0) &&
+      (secondsSinceLastOpticsUpdate >= *config_.pwmBoostOnNoQsfpAfterInSec())) {
     boost_due_to_no_qsfp = true;
     XLOG(INFO) << "Control :: Boost mode condition for no optics update "
                << secondsSinceLastOpticsUpdate << " > "
-               << pConfig_->pwmBoostNoQsfpAfterInSec;
+               << *config_.pwmBoostOnNoQsfpAfterInSec();
   }
 
   boostMode =
-      (((pConfig_->pwmBoostOnDeadFan != 0) &&
-        (numFanFailed_ >= pConfig_->pwmBoostOnDeadFan)) ||
-       ((pConfig_->pwmBoostOnDeadSensor != 0) &&
-        (numSensorFailed_ >= pConfig_->pwmBoostOnDeadSensor)) ||
+      (((*config_.pwmBoostOnNumDeadFan() != 0) &&
+        (numFanFailed_ >= *config_.pwmBoostOnNumDeadFan())) ||
+       ((*config_.pwmBoostOnNumDeadSensor() != 0) &&
+        (numSensorFailed_ >= *config_.pwmBoostOnNumDeadSensor())) ||
        boost_due_to_no_qsfp);
   XLOG(INFO) << "Control :: Boost mode " << (boostMode ? "On" : "Off");
   XLOG(INFO) << "Control :: Updating Zones with new Fan value";

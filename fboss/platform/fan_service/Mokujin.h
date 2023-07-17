@@ -13,18 +13,13 @@
 namespace facebook::fboss::platform {
 class Mokujin : public Bsp {
  public:
+  explicit Mokujin(const fan_config_structs::FanServiceConfig& config);
   ~Mokujin();
   // Override some methods in Bsp class
-  void getSensorData(
-      std::shared_ptr<ServiceConfig> pServiceConfig,
-      std::shared_ptr<SensorData> pSensorData) override;
-  int emergencyShutdown(
-      std::shared_ptr<ServiceConfig> pServiceConfig,
-      bool enable) override;
+  void getSensorData(std::shared_ptr<SensorData> pSensorData) override;
+  int emergencyShutdown(bool enable) override;
   uint64_t getCurrentTime() const override;
-  void getOpticsData(
-      std::shared_ptr<ServiceConfig> pServiceConfig,
-      std::shared_ptr<SensorData> pSensorData) override;
+  void getOpticsData(std::shared_ptr<SensorData> pSensorData) override;
 
   // The following public methods are used by Fan Service to interact with
   // this Mock DSP, so that it will timewarp when there is no more current

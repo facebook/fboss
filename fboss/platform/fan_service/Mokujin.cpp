@@ -4,7 +4,12 @@
 // for functional description.
 #include "Mokujin.h"
 
+#include <folly/logging/xlog.h>
+
 namespace facebook::fboss::platform {
+
+Mokujin::Mokujin(const fan_config_structs::FanServiceConfig& config)
+    : Bsp(config) {}
 
 void Mokujin::openIOFiles(std::string iFileName, std::string oFileName) {
   try {
@@ -60,11 +65,9 @@ uint64_t Mokujin::getTimeStamp() {
 void Mokujin::updateSimulationData(std::string key, float value) {
   simulatedSensorRead_[key] = value;
 }
-void Mokujin::getSensorData(
-    std::shared_ptr<ServiceConfig> pServiceConfig,
-    std::shared_ptr<SensorData> pSensorData) {
-  for (auto sensor = begin(pServiceConfig->sensors);
-       sensor != end(pServiceConfig->sensors);
+void Mokujin::getSensorData(std::shared_ptr<SensorData> pSensorData) {
+  for (auto sensor = begin(*config_.sensors());
+       sensor != end(*config_.sensors());
        ++sensor) {
     std::string sensorName = *sensor->sensorName();
     if (simulatedSensorRead_.find(sensorName) != simulatedSensorRead_.end()) {
@@ -78,9 +81,7 @@ void Mokujin::getSensorData(
   }
   return;
 }
-int Mokujin::emergencyShutdown(
-    std::shared_ptr<ServiceConfig> pServiceConfig,
-    bool enable) {
+int Mokujin::emergencyShutdown(bool /* enable */) {
   int rc = 0;
   setEmergencyState(true);
   oFs_ << std::to_string(currentTimeStampSec_) << "::"
@@ -219,14 +220,12 @@ bool Mokujin::initializeQsfpService() {
   return true;
 }
 
-void Mokujin::getOpticsData(
-    std::shared_ptr<ServiceConfig> pServiceConfig,
-    std::shared_ptr<SensorData> pSensorData) {
+void Mokujin::getOpticsData(std::shared_ptr<SensorData> pSensorData) {
   // Basically, for each qsfpgroup if <name>Speed and <name>Temp both exists,
   // use this to fill up the table For each optics group, check if the key for
   // table type and table temperature
-  for (auto opticGroup = pServiceConfig->optics.begin();
-       opticGroup != pServiceConfig->optics.end();
+  for (auto opticGroup = config_.optics()->begin();
+       opticGroup != config_.optics()->end();
        ++opticGroup) {
     std::string opticTypeKey = *opticGroup->opticName() + "TYPE";
     std::string opticTempKey = *opticGroup->opticName() + "TEMP";

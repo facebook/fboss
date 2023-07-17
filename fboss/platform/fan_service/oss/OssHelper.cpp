@@ -5,6 +5,8 @@
 
 #include "fboss/platform/fan_service/HelperFunction.h"
 
+#include <folly/logging/xlog.h>
+
 using namespace facebook::fboss;
 using namespace facebook::fboss::platform;
 

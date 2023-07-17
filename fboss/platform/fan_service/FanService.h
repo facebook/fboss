@@ -7,7 +7,8 @@
 #include "ControlLogic.h"
 #include "Mokujin.h"
 #include "SensorData.h"
-#include "ServiceConfig.h"
+
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
 
 namespace folly {
 class EventBase;
@@ -18,7 +19,6 @@ namespace facebook::fboss::platform {
 //                 Instantiates the following classes.
 //
 //               - ControlLogic class : PWM control logic
-//               - ServiceConfig class : parse config file, and keep the info
 //               - Bsp class : All I/O functions including Thrift handler
 //                    - Mokujin class : A mock of Bsp class for unit testing
 //               - SensorData class : Stores sensor data and the timestamps
@@ -37,7 +37,7 @@ class FanService {
   int runMock(std::string mockInputFile, std::string mockOutputFile);
 
   void getSensorDataThrift(std::shared_ptr<SensorData> pSensorData) const {
-    return pBsp_->getSensorDataThrift(pConfig_, pSensorData);
+    return pBsp_->getSensorDataThrift(pSensorData);
   }
   const SensorData& sensorData() const {
     return *(pSensorData_.get());
@@ -51,8 +51,8 @@ class FanService {
   // Attributes
   // BSP contains platform specific I/O methonds
   std::shared_ptr<Bsp> pBsp_;
-  // ServiceConfig parses the configuration, and keep the data
-  std::shared_ptr<ServiceConfig> pConfig_;
+  // fan_service config
+  fan_config_structs::FanServiceConfig config_;
   // Control logic determines fan pwm based on config and sensor read
   std::shared_ptr<ControlLogic> pControlLogic_;
   // SensorData keeps all the latest sensor reading. Also provides

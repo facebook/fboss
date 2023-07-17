@@ -7,7 +7,7 @@ namespace facebook::fboss::platform {
 
 std::string getMokujinFSConfig() {
   return R"({
-  "bsp" : "mokujin",
+  "bspType" : 4,
   "watchdog" : {
     "access" : {
       "accessType" : 0,
@@ -15,13 +15,13 @@ std::string getMokujinFSConfig() {
     },
     "value" : 1
   },
-  "boost_on_dead_fan" : true,
-  "boost_on_dead_sensor" : false,
-  "boost_on_no_qsfp_after" : 90,
-  "pwm_boost_value" : 70,
-  "pwm_percent_lower_limit" : 10,
-  "pwm_percent_upper_limit" : 70,
-  "shutdown_command" : "wedge_power reset -s",
+  "pwmBoostOnNumDeadFan" : true,
+  "pwmBoostOnNumDeadSensor" : false,
+  "pwmBoostOnNoQsfpAfterInSec" : 90,
+  "pwmBoostValue" : 70,
+  "pwmLowerThreshold" : 10,
+  "pwmUpperThreshold" : 70,
+  "shutdownCmd" : "wedge_power reset -s",
   "optics" : [
     {
       "opticName" : "qsfp_group_1",

@@ -4,6 +4,8 @@
 // for functional description
 #include "FanServiceHandler.h"
 
+#include <folly/logging/xlog.h>
+
 namespace facebook::fboss::platform {
 facebook::fb303::cpp2::fb_status FanServiceHandler::getStatus() {
   return facebook::fb303::cpp2::fb_status::ALIVE;

@@ -11,14 +11,25 @@
 #include <gtest/gtest.h>
 
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/fan_service/Bsp.h"
 #include "fboss/platform/fan_service/SensorData.h"
 #include "fboss/platform/fan_service/ServiceConfig.h"
 #include "fboss/platform/helpers/Init.h"
 
+using namespace facebook::fboss::platform;
 namespace {
+
 class FanServiceTest : public ::testing::Test {};
+
+fan_config_structs::FanServiceConfig getConfig() {
+  auto config = fan_config_structs::FanServiceConfig{};
+  apache::thrift::SimpleJSONSerializer::deserialize<
+      fan_config_structs::FanServiceConfig>(
+      facebook::fboss::platform::getDarwinFSConfig(), config);
+  return config;
+}
 
 } // namespace
 
@@ -31,30 +42,18 @@ namespace facebook::fboss::platform {
 TEST_F(FanServiceTest, configParse) {
   // Check if the config file for this platform can be
   // parsed without an error.
-  ServiceConfig myConfig;
-  EXPECT_EQ(myConfig.parse(), 0);
+  EXPECT_NO_THROW(getConfig());
 }
 
 TEST_F(FanServiceTest, configShutdownCommand) {
   // Make sure that shutdown command is not empty
-  ServiceConfig myConfig;
-  ASSERT_EQ(myConfig.parse(), 0);
-  EXPECT_NE(myConfig.getShutDownCommand(), "");
-}
-
-TEST_F(FanServiceTest, configFrequencyCheck) {
-  // Check if sensor fetch logic and fan control logic are executed
-  // (meaning, frequency is not zero)
-  ServiceConfig myConfig;
-  ASSERT_EQ(myConfig.parse(), 0);
+  EXPECT_NE(*getConfig().shutdownCmd(), "");
 }
 
 TEST_F(FanServiceTest, configTransitionValue) {
   // Make sure transitional fan speed value (until the first sensor read)
   // is configured correctly.
-  ServiceConfig myConfig;
-  ASSERT_EQ(myConfig.parse(), 0);
-  EXPECT_GT(myConfig.getPwmTransitionValue(), 0.0);
+  EXPECT_GT(*getConfig().pwmTransitionValue(), 0.0);
 }
 
 /*
@@ -64,7 +63,7 @@ TEST_F(FanServiceTest, configTransitionValue) {
 TEST_F(FanServiceTest, bspInvalidWrite) {
   // Check BSP system write features by giving invalid parameter and
   // make sure the write fails
-  Bsp myBsp;
+  Bsp myBsp(fan_config_structs::FanServiceConfig{});
   EXPECT_EQ(myBsp.setFanPwmSysfs("/dev/null/fake", 1), false);
 }
 
@@ -72,13 +71,13 @@ TEST_F(FanServiceTest, bspTestSystemCommandFunction) {
   // Make sure BSP is capable of running shell command.
   // This feature is important for pwm configuration and
   // emergency command execution.
-  Bsp myBsp;
+  Bsp myBsp(fan_config_structs::FanServiceConfig{});
   EXPECT_EQ(myBsp.setFanPwmShell("ls", "", 0), true);
 }
 
 TEST_F(FanServiceTest, bspTestSystemTime) {
   // Make sure BSP's system time checking is working
-  Bsp myBsp;
+  Bsp myBsp(fan_config_structs::FanServiceConfig{});
   EXPECT_NE(myBsp.getCurrentTime(), 0);
 }
 
