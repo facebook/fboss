@@ -125,11 +125,13 @@ void ControlLogic::updateTargetPwm(Sensor* sensorItem) {
   float maxVal = sensorItem->setPoint + sensorItem->posHysteresis;
   uint64_t dT;
   std::vector<std::pair<float, float>> tableToUse;
+  auto& readCache = pConfig_->sensorReadCaches[sensorItem->sensorName];
+  auto& pwmCalcCache = pConfig_->pwmCalcCaches[sensorItem->sensorName];
   switch (sensorItem->calculationType) {
     case fan_config_structs::SensorPwmCalcType::kSensorPwmCalcFourLinearTable:
       accelerate = true;
-      previousSensorValue = sensorItem->pwmCalcCache.previousSensorRead;
-      sensorValue = sensorItem->processedData.adjustedReadCache;
+      previousSensorValue = pwmCalcCache.previousSensorRead;
+      sensorValue = readCache.adjustedReadCache;
       targetPwm = 0.0;
       deadFanExists = (numFanFailed_ > 0);
       accelerate =
@@ -152,38 +154,38 @@ void ControlLogic::updateTargetPwm(Sensor* sensorItem) {
       }
       if (accelerate) {
         // If accleration is needed, new pwm should be bigger than old value
-        if (targetPwm < sensorItem->processedData.targetPwmCache) {
-          targetPwm = sensorItem->processedData.targetPwmCache;
+        if (targetPwm < readCache.targetPwmCache) {
+          targetPwm = readCache.targetPwmCache;
         }
       } else {
         // If deceleration is needed, new pwm should be smaller than old one
-        if (targetPwm > sensorItem->processedData.targetPwmCache) {
-          targetPwm = sensorItem->processedData.targetPwmCache;
+        if (targetPwm > readCache.targetPwmCache) {
+          targetPwm = readCache.targetPwmCache;
         }
       }
-      sensorItem->pwmCalcCache.previousSensorRead = sensorValue;
-      sensorItem->processedData.targetPwmCache = targetPwm;
+      pwmCalcCache.previousSensorRead = sensorValue;
+      readCache.targetPwmCache = targetPwm;
       XLOG(INFO) << "Control :: Sensor : " << sensorItem->sensorName
                  << " Value : " << sensorValue << " [4CUV] Pwm : " << targetPwm;
       break;
 
     case fan_config_structs::SensorPwmCalcType::kSensorPwmCalcIncrementPid:
-      value = sensorItem->processedData.adjustedReadCache;
-      lastPwm = sensorItem->pwmCalcCache.previousTargetPwm;
+      value = readCache.adjustedReadCache;
+      lastPwm = pwmCalcCache.previousTargetPwm;
       kp = sensorItem->kp;
       ki = sensorItem->ki;
       kd = sensorItem->kd;
-      previousRead1 = sensorItem->pwmCalcCache.previousRead1;
-      previousRead2 = sensorItem->pwmCalcCache.previousRead2;
+      previousRead1 = pwmCalcCache.previousRead1;
+      previousRead2 = pwmCalcCache.previousRead2;
       pwm = lastPwm + (kp * (value - previousRead1)) +
           (ki * (value - sensorItem->setPoint)) +
           (kd * (value - 2 * previousRead1 + previousRead2));
       // Even though the previous Target Pwm should be the zone pwm,
       // the best effort is made here. Zone should update this value.
-      sensorItem->pwmCalcCache.previousTargetPwm = pwm;
-      sensorItem->processedData.targetPwmCache = pwm;
-      sensorItem->pwmCalcCache.previousRead2 = previousRead1;
-      sensorItem->pwmCalcCache.previousRead1 = value;
+      pwmCalcCache.previousTargetPwm = pwm;
+      readCache.targetPwmCache = pwm;
+      pwmCalcCache.previousRead2 = previousRead1;
+      pwmCalcCache.previousRead1 = value;
       XLOG(INFO) << "Control :: Sensor : " << sensorItem->sensorName
                  << " Value : " << value << " [IPID] Pwm : " << pwm;
       XLOG(INFO) << "           Prev1  : " << previousRead1
@@ -192,33 +194,31 @@ void ControlLogic::updateTargetPwm(Sensor* sensorItem) {
       break;
 
     case fan_config_structs::SensorPwmCalcType::kSensorPwmCalcPid:
-      value = sensorItem->processedData.adjustedReadCache;
-      lastPwm = sensorItem->pwmCalcCache.previousTargetPwm;
+      value = readCache.adjustedReadCache;
+      lastPwm = pwmCalcCache.previousTargetPwm;
       pwm = lastPwm;
       kp = sensorItem->kp;
       ki = sensorItem->ki;
       kd = sensorItem->kd;
-      previousRead1 = sensorItem->pwmCalcCache.previousRead1;
-      previousRead2 = sensorItem->pwmCalcCache.previousRead2;
+      previousRead1 = pwmCalcCache.previousRead1;
+      previousRead2 = pwmCalcCache.previousRead2;
       dT = pBsp_->getCurrentTime() - lastControlUpdateSec_;
 
       if (value < minVal) {
-        sensorItem->pwmCalcCache.integral = 0;
-        sensorItem->pwmCalcCache.previousTargetPwm = 0;
+        pwmCalcCache.integral = 0;
+        pwmCalcCache.previousTargetPwm = 0;
       }
       if (value > maxVal) {
         error = maxVal - value;
-        sensorItem->pwmCalcCache.integral =
-            sensorItem->pwmCalcCache.integral + error * dT;
-        auto derivative = (error - sensorItem->pwmCalcCache.last_error) / dT;
-        pwm = kp * error + ki * sensorItem->pwmCalcCache.integral +
-            kd * derivative;
-        sensorItem->processedData.targetPwmCache = pwm;
-        sensorItem->pwmCalcCache.previousTargetPwm = pwm;
-        sensorItem->pwmCalcCache.last_error = error;
+        pwmCalcCache.integral = pwmCalcCache.integral + error * dT;
+        auto derivative = (error - pwmCalcCache.last_error) / dT;
+        pwm = kp * error + ki * pwmCalcCache.integral + kd * derivative;
+        readCache.targetPwmCache = pwm;
+        pwmCalcCache.previousTargetPwm = pwm;
+        pwmCalcCache.last_error = error;
       }
-      sensorItem->pwmCalcCache.previousRead2 = previousRead1;
-      sensorItem->pwmCalcCache.previousRead1 = value;
+      pwmCalcCache.previousRead2 = previousRead1;
+      pwmCalcCache.previousRead1 = value;
       XLOG(INFO) << "Control :: Sensor : " << sensorItem->sensorName
                  << " Value : " << value << " [PID] Pwm : " << pwm;
       XLOG(INFO) << "               dT : " << dT
@@ -239,13 +239,10 @@ void ControlLogic::updateTargetPwm(Sensor* sensorItem) {
   }
   // No matter what, PWM should be within
   // predefined upper and lower thresholds
-  if (sensorItem->processedData.targetPwmCache >
-      pConfig_->getPwmUpperThreshold()) {
-    sensorItem->processedData.targetPwmCache = pConfig_->getPwmUpperThreshold();
-  } else if (
-      sensorItem->processedData.targetPwmCache <
-      pConfig_->getPwmLowerThreshold()) {
-    sensorItem->processedData.targetPwmCache = pConfig_->getPwmLowerThreshold();
+  if (readCache.targetPwmCache > pConfig_->getPwmUpperThreshold()) {
+    readCache.targetPwmCache = pConfig_->getPwmUpperThreshold();
+  } else if (readCache.targetPwmCache < pConfig_->getPwmLowerThreshold()) {
+    readCache.targetPwmCache = pConfig_->getPwmLowerThreshold();
   }
   return;
 }
@@ -282,19 +279,21 @@ void ControlLogic::getSensorUpdate() {
     }
     XLOG(INFO) << "Control :: Done raw sensor reading";
 
+    auto& readCache = pConfig_->sensorReadCaches[sensorItemName];
+
     if (sensorAccessFail) {
       // If the sensor data cache is stale for a while, we consider it as the
       // failure of such sensor
       uint64_t timeDiffInSec =
-          pBsp_->getCurrentTime() - sensor.processedData.lastUpdatedTime;
+          pBsp_->getCurrentTime() - readCache.lastUpdatedTime;
       if (timeDiffInSec >= kSensorFailThresholdInSec) {
-        sensor.processedData.sensorFailed = true;
+        readCache.sensorFailed = true;
         numSensorFailed_++;
       }
     } else {
       calculatedTime = pSensor_->getLastUpdated(sensorItemName);
-      sensor.processedData.lastUpdatedTime = calculatedTime;
-      sensor.processedData.sensorFailed = false;
+      readCache.lastUpdatedTime = calculatedTime;
+      readCache.sensorFailed = false;
     }
 
     // 1.b If adjustment table exists, adjust the raw value
@@ -309,43 +308,43 @@ void ControlLogic::getSensorUpdate() {
         adjustedValue = rawValue + offset;
       }
     }
-    sensor.processedData.adjustedReadCache = adjustedValue;
+    readCache.adjustedReadCache = adjustedValue;
     XLOG(INFO) << "Control :: Adjusted Value : " << adjustedValue;
     // 1.c Check and trigger alarm
-    bool prevMajorAlarm = sensor.processedData.majorAlarmTriggered;
-    sensor.processedData.majorAlarmTriggered =
+    bool prevMajorAlarm = readCache.majorAlarmTriggered;
+    readCache.majorAlarmTriggered =
         (adjustedValue >= *sensor.alarm.highMajor());
     // If major alarm was triggered, write it as a ERR log
-    if (!prevMajorAlarm && sensor.processedData.majorAlarmTriggered) {
+    if (!prevMajorAlarm && readCache.majorAlarmTriggered) {
       XLOG(ERR) << "Major Alarm Triggered on " << sensor.sensorName
                 << " at value " << adjustedValue;
-    } else if (prevMajorAlarm && !sensor.processedData.majorAlarmTriggered) {
+    } else if (prevMajorAlarm && !readCache.majorAlarmTriggered) {
       XLOG(WARN) << "Major Alarm Cleared on " << sensor.sensorName
                  << " at value " << adjustedValue;
     }
-    bool prevMinorAlarm = sensor.processedData.minorAlarmTriggered;
+    bool prevMinorAlarm = readCache.minorAlarmTriggered;
     if (adjustedValue >= *sensor.alarm.highMinor()) {
-      if (sensor.processedData.soakStarted) {
+      if (readCache.soakStarted) {
         uint64_t timeDiffInSec =
-            pBsp_->getCurrentTime() - sensor.processedData.soakStartedAt;
+            pBsp_->getCurrentTime() - readCache.soakStartedAt;
         if (timeDiffInSec >= *sensor.alarm.minorSoakSeconds()) {
-          sensor.processedData.minorAlarmTriggered = true;
-          sensor.processedData.soakStarted = false;
+          readCache.minorAlarmTriggered = true;
+          readCache.soakStarted = false;
         }
       } else {
-        sensor.processedData.soakStarted = true;
-        sensor.processedData.soakStartedAt = calculatedTime;
+        readCache.soakStarted = true;
+        readCache.soakStartedAt = calculatedTime;
       }
     } else {
-      sensor.processedData.minorAlarmTriggered = false;
-      sensor.processedData.soakStarted = false;
+      readCache.minorAlarmTriggered = false;
+      readCache.soakStarted = false;
     }
     // If minor alarm was triggered, write it as a WARN log
-    if (!prevMinorAlarm && sensor.processedData.minorAlarmTriggered) {
+    if (!prevMinorAlarm && readCache.minorAlarmTriggered) {
       XLOG(WARN) << "Minor Alarm Triggered on " << sensor.sensorName
                  << " at value " << adjustedValue;
     }
-    if (prevMinorAlarm && !sensor.processedData.minorAlarmTriggered) {
+    if (prevMinorAlarm && !readCache.minorAlarmTriggered) {
       XLOG(WARN) << "Minor Alarm Cleared on " << sensor.sensorName
                  << " at value " << adjustedValue;
     }
@@ -383,7 +382,7 @@ void ControlLogic::getSensorUpdate() {
     //      percent as its output)
     updateTargetPwm(&sensor);
     XLOG(INFO) << sensor.sensorName << " has the target PWM of "
-               << sensor.processedData.targetPwmCache;
+               << readCache.targetPwmCache;
   }
   return;
 }
@@ -637,7 +636,8 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
         float pwmForThisSensor;
         if (pSensorConfig_ != nullptr) {
           // If this is a sensor name
-          pwmForThisSensor = pSensorConfig_->processedData.targetPwmCache;
+          pwmForThisSensor =
+              pConfig_->sensorReadCaches[sensorName].targetPwmCache;
         } else {
           // If this is an optics name
           pwmForThisSensor = pSensor_->getOpticsPwm(sensorName);
@@ -680,7 +680,7 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
     for (const auto& sensorName : *zone.sensorNames()) {
       auto pSensorConfig_ = findSensorConfig(sensorName);
       if (pSensorConfig_ != nullptr) {
-        pSensorConfig_->pwmCalcCache.previousTargetPwm = pwmSoFar;
+        pConfig_->pwmCalcCaches[sensorName].previousTargetPwm = pwmSoFar;
       }
     }
     // Secondly, set Zone pwm value to all the fans in the zone
@@ -699,7 +699,7 @@ void ControlLogic::setTransitionValue() {
         for (const auto& sensorName : *zone.sensorNames()) {
           auto pSensorConfig_ = findSensorConfig(sensorName);
           if (pSensorConfig_ != nullptr) {
-            pSensorConfig_->pwmCalcCache.previousTargetPwm =
+            pConfig_->pwmCalcCaches[sensorName].previousTargetPwm =
                 pConfig_->getPwmTransitionValue();
           }
         }

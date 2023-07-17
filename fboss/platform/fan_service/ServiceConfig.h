@@ -94,8 +94,6 @@ class Sensor {
   float kp;
   float kd;
   float ki;
-  PwmCalcCache pwmCalcCache{};
-  SensorReadCache processedData{};
 };
 
 class ServiceConfig {
@@ -105,6 +103,8 @@ class ServiceConfig {
   //
   std::vector<fan_config_structs::Zone> zones;
   std::vector<Sensor> sensors;
+  std::map<std::string /* sensorName */, SensorReadCache> sensorReadCaches;
+  std::map<std::string /* sensorName */, PwmCalcCache> pwmCalcCaches;
   std::vector<fan_config_structs::Optic> optics;
   std::vector<fan_config_structs::Fan> fans;
   std::map<std::string /* fanName */, FanStatus> fanStatuses;
