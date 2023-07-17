@@ -437,14 +437,13 @@ void ControlLogic::getOpticsUpdate() {
   }
 }
 
-fan_config_structs::Sensor* ControlLogic::findSensorConfig(
-    const std::string& sensorName) {
+bool ControlLogic::isSensorPresentInConfig(const std::string& sensorName) {
   for (auto& sensor : pConfig_->sensors) {
     if (*sensor.sensorName() == sensorName) {
-      return &sensor;
+      return true;
     }
   }
-  return nullptr;
+  return false;
 }
 
 bool ControlLogic::checkIfFanPresent(const fan_config_structs::Fan& fan) {
@@ -630,12 +629,11 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
     auto zoneType = *zone.zoneType();
     int totalPwmConsidered = 0;
     for (const auto& sensorName : *zone.sensorNames()) {
-      auto pSensorConfig_ = findSensorConfig(sensorName);
-      if ((pSensorConfig_ != nullptr) ||
-          (pSensor_->checkIfOpticEntryExists(sensorName))) {
+      if (isSensorPresentInConfig(sensorName) ||
+          pSensor_->checkIfOpticEntryExists(sensorName)) {
         totalPwmConsidered++;
         float pwmForThisSensor;
-        if (pSensorConfig_ != nullptr) {
+        if (isSensorPresentInConfig(sensorName)) {
           // If this is a sensor name
           pwmForThisSensor =
               pConfig_->sensorReadCaches[sensorName].targetPwmCache;
@@ -679,8 +677,7 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
     // Update the previous pwm value in each associated sensors,
     // so that they may be used in the next calculation.
     for (const auto& sensorName : *zone.sensorNames()) {
-      auto pSensorConfig_ = findSensorConfig(sensorName);
-      if (pSensorConfig_ != nullptr) {
+      if (isSensorPresentInConfig(sensorName)) {
         pConfig_->pwmCalcCaches[sensorName].previousTargetPwm = pwmSoFar;
       }
     }
@@ -698,8 +695,7 @@ void ControlLogic::setTransitionValue() {
               zone.fanNames()->end(),
               *fan.fanName()) != zone.fanNames()->end()) {
         for (const auto& sensorName : *zone.sensorNames()) {
-          auto pSensorConfig_ = findSensorConfig(sensorName);
-          if (pSensorConfig_ != nullptr) {
+          if (isSensorPresentInConfig(sensorName)) {
             pConfig_->pwmCalcCaches[sensorName].previousTargetPwm =
                 pConfig_->getPwmTransitionValue();
           }
