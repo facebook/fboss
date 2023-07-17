@@ -34,47 +34,6 @@ namespace facebook::fboss::platform {
 std::string getDarwinFSConfig();
 std::string getMokujinFSConfig();
 
-class FanStatus {
- public:
-  int rpm;
-  float currentPwm{0};
-  bool fanFailed{false};
-  bool fanAccessLost{false};
-  bool firstTimeLedAccess{true};
-  uint64_t timeStamp;
-};
-
-class SensorReadCache {
- public:
-  float adjustedReadCache;
-  float targetPwmCache;
-  uint64_t lastUpdatedTime;
-  bool enabled;
-  bool soakStarted;
-  uint64_t sensorAccessLostAt;
-  bool sensorFailed;
-  bool minorAlarmTriggered;
-  bool majorAlarmTriggered;
-  uint64_t soakStartedAt;
-  SensorReadCache() {
-    enabled = false;
-    soakStarted = false;
-    targetPwmCache = 0;
-    minorAlarmTriggered = false;
-    majorAlarmTriggered = false;
-  }
-};
-
-class PwmCalcCache {
- public:
-  float previousSensorRead{0};
-  float previousTargetPwm{0};
-  float previousRead1{0};
-  float previousRead2{0};
-  float integral{0};
-  float last_error{0};
-};
-
 class ServiceConfig {
  public:
   //
@@ -82,12 +41,8 @@ class ServiceConfig {
   //
   std::vector<fan_config_structs::Zone> zones;
   std::vector<fan_config_structs::Sensor> sensors;
-  std::map<std::string /* sensorName */, SensorReadCache> sensorReadCaches;
-  std::map<std::string /* sensorName */, PwmCalcCache> pwmCalcCaches;
   std::vector<fan_config_structs::Optic> optics;
   std::vector<fan_config_structs::Fan> fans;
-  std::map<std::string /* fanName */, FanStatus> fanStatuses;
-
   std::optional<fan_config_structs::Watchdog> watchdog_{std::nullopt};
   // Number of broken fan required for pwm boost
   int pwmBoostOnDeadFan;

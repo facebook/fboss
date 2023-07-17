@@ -64,13 +64,13 @@ void ControlLogic::getFanUpdate() {
             break;
         }
         rpmTimeStamp = pSensor_->getLastUpdated(fanName);
-        if (rpmTimeStamp == pConfig_->fanStatuses[fanName].timeStamp) {
+        if (rpmTimeStamp == fanStatuses_[fanName].timeStamp) {
           // If read method is Thrift, but read time stamp is stale
           // , consider that as access failure
           fanAccessFail = true;
         } else {
-          pConfig_->fanStatuses[fanName].rpm = fanRpm;
-          pConfig_->fanStatuses[fanName].timeStamp = rpmTimeStamp;
+          fanStatuses_[fanName].rpm = fanRpm;
+          fanStatuses_[fanName].timeStamp = rpmTimeStamp;
         }
       } else {
         // If no entry in Thrift response, consider that as failure
@@ -80,9 +80,8 @@ void ControlLogic::getFanUpdate() {
         *fan.rpmAccess()->accessType() ==
         fan_config_structs::SourceType::kSrcSysfs) {
       try {
-        pConfig_->fanStatuses[fanName].rpm =
-            pBsp_->readSysfs(*fan.rpmAccess()->path());
-        pConfig_->fanStatuses[fanName].timeStamp = pBsp_->getCurrentTime();
+        fanStatuses_[fanName].rpm = pBsp_->readSysfs(*fan.rpmAccess()->path());
+        fanStatuses_[fanName].timeStamp = pBsp_->getCurrentTime();
       } catch (std::exception& e) {
         XLOG(ERR) << "Fan RPM access fail " << *fan.rpmAccess()->path();
         // Obvious. Sysfs fail means access fail
@@ -100,7 +99,7 @@ void ControlLogic::getFanUpdate() {
       setFanFailState(fan, true);
     } else if (fanAccessFail) {
       uint64_t timeDiffInSec =
-          pBsp_->getCurrentTime() - pConfig_->fanStatuses[fanName].timeStamp;
+          pBsp_->getCurrentTime() - fanStatuses_[fanName].timeStamp;
       if (timeDiffInSec >= kFanFailThresholdInSec) {
         setFanFailState(fan, true);
         numFanFailed_++;
@@ -108,9 +107,9 @@ void ControlLogic::getFanUpdate() {
     } else {
       setFanFailState(fan, false);
     }
-    XLOG(INFO) << "Control :: RPM :" << pConfig_->fanStatuses[fanName].rpm
+    XLOG(INFO) << "Control :: RPM :" << fanStatuses_[fanName].rpm
                << " Failed : "
-               << (pConfig_->fanStatuses[fanName].fanFailed ? "Yes" : "No");
+               << (fanStatuses_[fanName].fanFailed ? "Yes" : "No");
   }
   XLOG(INFO) << "Control :: Done checking Fans Status";
   return;
@@ -125,8 +124,8 @@ void ControlLogic::updateTargetPwm(const fan_config_structs::Sensor& sensor) {
   float maxVal = *sensor.setPoint() + *sensor.posHysteresis();
   uint64_t dT;
   fan_config_structs::TempToPwmMap tableToUse;
-  auto& readCache = pConfig_->sensorReadCaches[*sensor.sensorName()];
-  auto& pwmCalcCache = pConfig_->pwmCalcCaches[*sensor.sensorName()];
+  auto& readCache = sensorReadCaches_[*sensor.sensorName()];
+  auto& pwmCalcCache = pwmCalcCaches_[*sensor.sensorName()];
   switch (*sensor.calcType()) {
     case fan_config_structs::SensorPwmCalcType::kSensorPwmCalcFourLinearTable:
       accelerate = true;
@@ -279,7 +278,7 @@ void ControlLogic::getSensorUpdate() {
     }
     XLOG(INFO) << "Control :: Done raw sensor reading";
 
-    auto& readCache = pConfig_->sensorReadCaches[sensorItemName];
+    auto& readCache = sensorReadCaches_[sensorItemName];
 
     if (sensorAccessFail) {
       // If the sensor data cache is stale for a while, we consider it as the
@@ -505,7 +504,7 @@ void ControlLogic::programFan(
   for (const auto& fan : pConfig_->fans) {
     auto srcType = *fan.pwmAccess()->accessType();
     float pwmToProgram = 0;
-    float currentPwm = pConfig_->fanStatuses[*fan.fanName()].currentPwm;
+    float currentPwm = fanStatuses_[*fan.fanName()].currentPwm;
     bool writeSuccess{false};
     // If this fan does not belong to the current zone, do not do anything
     if (std::find(
@@ -563,7 +562,7 @@ void ControlLogic::programFan(
     fb303::fbData->setCounter(
         fmt::format(kFanWriteFailure, *zone.zoneName(), *fan.fanName()),
         !writeSuccess);
-    pConfig_->fanStatuses[*fan.fanName()].currentPwm = pwmToProgram;
+    fanStatuses_[*fan.fanName()].currentPwm = pwmToProgram;
   }
 }
 
@@ -572,16 +571,16 @@ void ControlLogic::setFanFailState(
     bool fanFailed) {
   XLOG(INFO) << "Control :: Enter LED for " << *fan.fanName();
   bool ledAccessNeeded = false;
-  if (pConfig_->fanStatuses[*fan.fanName()].firstTimeLedAccess) {
+  if (fanStatuses_[*fan.fanName()].firstTimeLedAccess) {
     ledAccessNeeded = true;
-    pConfig_->fanStatuses[*fan.fanName()].firstTimeLedAccess = false;
+    fanStatuses_[*fan.fanName()].firstTimeLedAccess = false;
   }
   if (fanFailed) {
     // Fan failed.
     // If the previous status was fan good, we need to set fan LED color
-    if (!pConfig_->fanStatuses[*fan.fanName()].fanFailed) {
+    if (!fanStatuses_[*fan.fanName()].fanFailed) {
       // We need to change internal state
-      pConfig_->fanStatuses[*fan.fanName()].fanFailed = true;
+      fanStatuses_[*fan.fanName()].fanFailed = true;
       // Also change led color to "FAIL", if Fan LED is available
       if (*fan.pwmAccess()->path() != "") {
         ledAccessNeeded = true;
@@ -590,9 +589,9 @@ void ControlLogic::setFanFailState(
   } else {
     // Fan did NOT fail (is in a good shape)
     // If the previous status was fan fail, we need to set fan LED color
-    if (pConfig_->fanStatuses[*fan.fanName()].fanFailed) {
+    if (fanStatuses_[*fan.fanName()].fanFailed) {
       // We need to change internal state
-      pConfig_->fanStatuses[*fan.fanName()].fanFailed = false;
+      fanStatuses_[*fan.fanName()].fanFailed = false;
       // Also change led color to "GOOD", if Fan LED is available
       ledAccessNeeded = true;
     }
@@ -635,8 +634,7 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
         float pwmForThisSensor;
         if (isSensorPresentInConfig(sensorName)) {
           // If this is a sensor name
-          pwmForThisSensor =
-              pConfig_->sensorReadCaches[sensorName].targetPwmCache;
+          pwmForThisSensor = sensorReadCaches_[sensorName].targetPwmCache;
         } else {
           // If this is an optics name
           pwmForThisSensor = pSensor_->getOpticsPwm(sensorName);
@@ -678,7 +676,7 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
     // so that they may be used in the next calculation.
     for (const auto& sensorName : *zone.sensorNames()) {
       if (isSensorPresentInConfig(sensorName)) {
-        pConfig_->pwmCalcCaches[sensorName].previousTargetPwm = pwmSoFar;
+        pwmCalcCaches_[sensorName].previousTargetPwm = pwmSoFar;
       }
     }
     // Secondly, set Zone pwm value to all the fans in the zone
@@ -696,7 +694,7 @@ void ControlLogic::setTransitionValue() {
               *fan.fanName()) != zone.fanNames()->end()) {
         for (const auto& sensorName : *zone.sensorNames()) {
           if (isSensorPresentInConfig(sensorName)) {
-            pConfig_->pwmCalcCaches[sensorName].previousTargetPwm =
+            pwmCalcCaches_[sensorName].previousTargetPwm =
                 pConfig_->getPwmTransitionValue();
           }
         }

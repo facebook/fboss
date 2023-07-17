@@ -7,6 +7,37 @@
 
 namespace facebook::fboss::platform {
 
+struct FanStatus {
+  int rpm;
+  float currentPwm{0};
+  bool fanFailed{false};
+  bool fanAccessLost{false};
+  bool firstTimeLedAccess{true};
+  uint64_t timeStamp;
+};
+
+struct SensorReadCache {
+  float adjustedReadCache{0};
+  float targetPwmCache{0};
+  uint64_t lastUpdatedTime;
+  bool enabled{false};
+  bool soakStarted{false};
+  uint64_t sensorAccessLostAt;
+  bool sensorFailed{false};
+  bool minorAlarmTriggered{false};
+  bool majorAlarmTriggered{false};
+  uint64_t soakStartedAt;
+};
+
+struct PwmCalcCache {
+  float previousSensorRead{0};
+  float previousTargetPwm{0};
+  float previousRead1{0};
+  float previousRead2{0};
+  float integral{0};
+  float last_error{0};
+};
+
 // ControlLogic class is a part of Fan Service
 // Role : This class contains the logics to detect sensor/fan failures and,
 //        the logics to calculate the PWM values from sensor reading.
@@ -43,5 +74,9 @@ class ControlLogic {
   void setFanFailState(const fan_config_structs::Fan& fan, bool fanFailed);
   bool isFanPresentInDevice(const fan_config_structs::Fan& fan);
   bool isSensorPresentInConfig(const std::string& sensorName);
+
+  std::map<std::string /* fanName */, FanStatus> fanStatuses_;
+  std::map<std::string /* sensorName */, SensorReadCache> sensorReadCaches_;
+  std::map<std::string /* sensorName */, PwmCalcCache> pwmCalcCaches_;
 };
 } // namespace facebook::fboss::platform
