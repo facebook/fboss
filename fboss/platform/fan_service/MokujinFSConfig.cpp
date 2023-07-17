@@ -180,10 +180,10 @@ std::string getMokujinFSConfig() {
         "minorSoakSeconds" : 30
       },
       "range_check" : {
-        "range_low" : 0,
-        "range_high" : 130,
-        "invalid_range_action" : "shutdown",
-        "tolerance" : 10
+        "low" : 0,
+        "high" : 130,
+        "tolerance" : 10,
+        "invalidRangeAction" : "shutdown"
       }
     },
     "test_sensor_4" : {
@@ -209,10 +209,10 @@ std::string getMokujinFSConfig() {
         "minorSoakSeconds" : 30
       },
       "range_check" : {
-        "range_low" : 0,
-        "range_high" : 130,
-        "invalid_range_action" : "shutdown",
-        "tolerance" : 10
+        "low" : 0,
+        "high" : 130,
+        "tolerance" : 10,
+        "invalidRangeAction" : "shutdown"
       }
     }
   },

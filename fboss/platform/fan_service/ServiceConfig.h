@@ -44,30 +44,6 @@ class FanStatus {
   uint64_t timeStamp;
 };
 
-typedef enum {
-  kRangeCheckActionNone,
-  kRangeCheckActionShutdown,
-  kRangeCheckActionInvalid
-} RangeCheckActionType;
-
-class RangeCheck {
- public:
-  float rangeLow;
-  float rangeHigh;
-  int tolerance;
-  bool enabled;
-  RangeCheckActionType action;
-  int invalidCount;
-  RangeCheck() {
-    invalidCount = 0;
-    enabled = false;
-    action = kRangeCheckActionInvalid;
-    rangeLow = 0.0;
-    rangeHigh = 0.0;
-    tolerance = 0;
-  }
-};
-
 class SensorReadCache {
  public:
   float adjustedReadCache;
@@ -139,7 +115,7 @@ class Sensor {
   fan_config_structs::AccessMethod access;
   std::vector<std::pair<float, float>> offsetTable;
   fan_config_structs::Alarm alarm;
-  RangeCheck rangeCheck;
+  std::optional<fan_config_structs::RangeCheck> rangeCheck;
   fan_config_structs::SensorPwmCalcType calculationType;
   float scale;
   IncrementPid incrementPid;
@@ -231,7 +207,7 @@ class ServiceConfig {
   fan_config_structs::AccessMethod parseAccessMethod(folly::dynamic value);
   std::vector<std::pair<float, float>> parseTable(folly::dynamic value);
   fan_config_structs::Alarm parseAlarm(folly::dynamic value);
-  RangeCheck parseRangeCheck(folly::dynamic value);
+  fan_config_structs::RangeCheck parseRangeCheck(folly::dynamic value);
   void parseZonesChapter(folly::dynamic value);
   void parseFansChapter(folly::dynamic value);
   void parseSensorsChapter(folly::dynamic value);

@@ -55,6 +55,8 @@ enum FsvcConfigDictIndex {
   kFsvcCfgBspSandia = 79,
 }
 
+const string RANGE_CHECK_ACTION_SHUTDOWN = "shutdown";
+
 enum ZoneType {
   kZoneMax = 0,
   kZoneMin = 1,
@@ -132,6 +134,14 @@ struct Fan {
 struct Watchdog {
   1: AccessMethod access;
   2: i32 value;
+}
+
+struct RangeCheck {
+  1: float low;
+  2: float high;
+  3: i32 tolerance;
+  4: string invalidRangeAction;
+  5: i32 invalidCount;
 }
 
 enum BspType {

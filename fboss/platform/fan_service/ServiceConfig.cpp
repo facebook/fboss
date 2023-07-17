@@ -181,54 +181,13 @@ std::vector<std::pair<float, float>> ServiceConfig::parseTable(
   return returnVal;
 }
 
-RangeCheck ServiceConfig::parseRangeCheck(folly::dynamic valueCluster) {
-  RangeCheck returnVal;
-  returnVal.enabled = true;
-  bool lowSet = false;
-  bool highSet = false;
-  for (auto& item : valueCluster.items()) {
-    std::string key = item.first.asString();
-    auto value = item.second;
-    switch (convertKeywordToIndex(key)) {
-      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgRangeLow:
-        returnVal.rangeLow = (float)value.asDouble();
-        lowSet = true;
-        break;
-      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgRangeHigh:
-        returnVal.rangeHigh = (float)value.asDouble();
-        highSet = true;
-        break;
-      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgInvalidRangeAction:
-        if (convertKeywordToIndex(value.asString()) ==
-            fan_config_structs::FsvcConfigDictIndex::
-                kFsvcCfgInvalidRangeActionShutdown)
-          returnVal.action = kRangeCheckActionShutdown;
-        else if (
-            convertKeywordToIndex(value.asString()) ==
-            fan_config_structs::FsvcConfigDictIndex::
-                kFsvcCfgInvalidRangeActionNone)
-          returnVal.action = kRangeCheckActionNone;
-        else
-          facebook::fboss::FbossError(
-              "Invalid Sensor-Out-Of-Range action-type : ", value.asString());
-        break;
-      case fan_config_structs::FsvcConfigDictIndex::
-          kFsvcCfgInvalidRangeTolerance:
-        returnVal.tolerance = value.asInt();
-        break;
-      default:
-        XLOG(ERR) << "Invalid Key in Alarm Parsing : " << key;
-        throw facebook::fboss::FbossError(
-            "Invalid Key in Alarm Parsing : ", key);
-        break;
-    }
-  }
-  if (!(lowSet && highSet)) {
-    XLOG(ERR) << "Sensor Range Check Definition is not complete for : ";
-    throw facebook::fboss::FbossError(
-        "Sensor Range Check Definition is not complete for : ");
-  }
-  return returnVal;
+fan_config_structs::RangeCheck ServiceConfig::parseRangeCheck(
+    folly::dynamic rangeCheckDynamic) {
+  fan_config_structs::RangeCheck rangeCheck;
+  std::string rangeCheckJson = folly::toJson(rangeCheckDynamic);
+  apache::thrift::SimpleJSONSerializer::deserialize<
+      fan_config_structs::RangeCheck>(rangeCheckJson, rangeCheck);
+  return rangeCheck;
 }
 
 fan_config_structs::Alarm ServiceConfig::parseAlarm(

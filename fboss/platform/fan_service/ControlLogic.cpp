@@ -4,6 +4,7 @@
 // for function description
 
 #include "fboss/platform/fan_service/ControlLogic.h"
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_constants.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
 // Additional FB helper funtion
 #include "common/time/Time.h"
@@ -349,24 +350,30 @@ void ControlLogic::getSensorUpdate() {
     // 1.d Check the range (if required), and do emergency
     // shutdown, if the value is out of range for more than
     // the "tolerance" times
-    if (sensor.rangeCheck.enabled) {
-      if ((adjustedValue > sensor.rangeCheck.rangeHigh) ||
-          (adjustedValue < sensor.rangeCheck.rangeLow)) {
-        sensor.rangeCheck.invalidCount += 1;
-        if (sensor.rangeCheck.invalidCount >= sensor.rangeCheck.tolerance) {
+
+    if (sensor.rangeCheck) {
+      if ((adjustedValue > *sensor.rangeCheck->high()) ||
+          (adjustedValue < *sensor.rangeCheck->low())) {
+        sensor.rangeCheck->invalidCount() =
+            *sensor.rangeCheck->invalidCount() + 1;
+        if (*sensor.rangeCheck->invalidCount() >=
+            *sensor.rangeCheck->tolerance()) {
           // ERR log only once.
-          if (sensor.rangeCheck.invalidCount == sensor.rangeCheck.tolerance) {
+          if (*sensor.rangeCheck->invalidCount() ==
+              *sensor.rangeCheck->tolerance()) {
             XLOG(ERR) << "Sensor " << sensor.sensorName
                       << " out of range for too long!";
           }
           // If we are not yet in emergency state, do the emergency shutdown.
-          if ((sensor.rangeCheck.action == kRangeCheckActionShutdown) &&
+          if ((*sensor.rangeCheck->invalidRangeAction() ==
+               fan_config_structs::fan_config_structs_constants::
+                   RANGE_CHECK_ACTION_SHUTDOWN()) &&
               (pBsp_->getEmergencyState() == false)) {
             pBsp_->emergencyShutdown(pConfig_, true);
           }
         }
       } else {
-        sensor.rangeCheck.invalidCount = 0;
+        sensor.rangeCheck->invalidCount() = 0;
       }
     }
     // 1.e Calculate the target pwm in percent
