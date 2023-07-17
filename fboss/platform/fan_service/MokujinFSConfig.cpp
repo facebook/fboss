@@ -54,6 +54,7 @@ std::string getMokujinFSConfig() {
   ],
   "sensors" : {
     "test_sensor_1" : {
+      "scale" : 1000.0,
       "access" : {
         "accessType" : 2
       },
@@ -106,6 +107,7 @@ std::string getMokujinFSConfig() {
       }
     },
     "test_sensor_2" : {
+      "scale" : 1000.0,
       "access" : {
         "accessType" : 2
       },
@@ -158,6 +160,7 @@ std::string getMokujinFSConfig() {
       }
     },
     "test_sensor_3" : {
+      "scale" : 1000.0,
       "access" : {
         "accessType" : 1,
         "path" : "sensor-util --read --name:test_sensor_2"
@@ -187,6 +190,7 @@ std::string getMokujinFSConfig() {
       }
     },
     "test_sensor_4" : {
+      "scale" : 1000.0,
       "access" : {
         "accessType" : 1,
         "path" : "sensor-util --read --name:test_sensor_2"

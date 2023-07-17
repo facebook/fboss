@@ -285,42 +285,39 @@ void ServiceConfig::parseSensorsChapter(folly::dynamic value) {
             }
             break;
           case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensor4CuvUp:
-            newSensor.fourCurves.normalUp = parseTable(value);
+            newSensor.normalUp = parseTable(value);
             break;
           case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensor4CuvDown:
-            newSensor.fourCurves.normalDown = parseTable(value);
+            newSensor.normalDown = parseTable(value);
             break;
           case fan_config_structs::FsvcConfigDictIndex::
               kFsvcCfgSensor4CuvFailUp:
-            newSensor.fourCurves.failUp = parseTable(value);
+            newSensor.failUp = parseTable(value);
             break;
           case fan_config_structs::FsvcConfigDictIndex::
               kFsvcCfgSensor4CuvFailDown:
-            newSensor.fourCurves.failDown = parseTable(value);
+            newSensor.failDown = parseTable(value);
             break;
           case fan_config_structs::FsvcConfigDictIndex::
               kFsvcCfgSensorIncrpidSetpoint:
-            newSensor.incrementPid.setPoint = (float)value.asDouble();
-            newSensor.incrementPid.updateMinMaxVal();
+            newSensor.setPoint = (float)value.asDouble();
             break;
           case fan_config_structs::FsvcConfigDictIndex::
               kFsvcCfgSensorIncrpidPosHyst:
-            newSensor.incrementPid.posHysteresis = (float)value.asDouble();
-            newSensor.incrementPid.updateMinMaxVal();
+            newSensor.posHysteresis = (float)value.asDouble();
             break;
           case fan_config_structs::FsvcConfigDictIndex::
               kFsvcCfgSensorIncrpidNegHyst:
-            newSensor.incrementPid.negHysteresis = (float)value.asDouble();
-            newSensor.incrementPid.updateMinMaxVal();
+            newSensor.negHysteresis = (float)value.asDouble();
             break;
           case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorIncrpidKd:
-            newSensor.incrementPid.kd = (float)value.asDouble();
+            newSensor.kd = (float)value.asDouble();
             break;
           case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorIncrpidKi:
-            newSensor.incrementPid.ki = (float)value.asDouble();
+            newSensor.ki = (float)value.asDouble();
             break;
           case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorIncrpidKp:
-            newSensor.incrementPid.kp = (float)value.asDouble();
+            newSensor.kp = (float)value.asDouble();
             break;
           case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorAlarm:
             newSensor.alarm = parseAlarm(value);

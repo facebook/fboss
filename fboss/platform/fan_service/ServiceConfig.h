@@ -65,48 +65,14 @@ class SensorReadCache {
   }
 };
 
-class FourCurves {
+class PwmCalcCache {
  public:
-  std::vector<std::pair<float, float>> normalUp;
-  std::vector<std::pair<float, float>> normalDown;
-  std::vector<std::pair<float, float>> failUp;
-  std::vector<std::pair<float, float>> failDown;
-  float previousSensorRead;
-  FourCurves() {
-    previousSensorRead = 0;
-  }
-  ~FourCurves() {} // Make unique_ptr happy
-};
-
-class IncrementPid {
- public:
-  float setPoint;
-  float posHysteresis;
-  float negHysteresis;
-  float kp;
-  float kd;
-  float ki;
-  float previousTargetPwm = 0;
-  float previousRead1 = 0;
-  float previousRead2 = 0;
-  float minVal;
-  float maxVal;
-  float integral;
-  float last_error;
-  IncrementPid() {
-    previousTargetPwm = 0;
-    previousRead1 = 0;
-    previousRead2 = 0;
-    posHysteresis = 0;
-    negHysteresis = 0;
-    integral = 0;
-    last_error = 0;
-  }
-  void updateMinMaxVal() {
-    minVal = setPoint - negHysteresis;
-    maxVal = setPoint + posHysteresis;
-  }
-  ~IncrementPid() {} // Make unique_ptr happy
+  float previousSensorRead{0};
+  float previousTargetPwm{0};
+  float previousRead1{0};
+  float previousRead2{0};
+  float integral{0};
+  float last_error{0};
 };
 
 class Sensor {
@@ -118,14 +84,18 @@ class Sensor {
   std::optional<fan_config_structs::RangeCheck> rangeCheck;
   fan_config_structs::SensorPwmCalcType calculationType;
   float scale;
-  IncrementPid incrementPid;
-  FourCurves fourCurves;
-  SensorReadCache processedData;
-  Sensor() {
-    scale = 1000.0;
-    calculationType =
-        fan_config_structs::SensorPwmCalcType::kSensorPwmCalcDisable;
-  }
+  std::vector<std::pair<float, float>> normalUp;
+  std::vector<std::pair<float, float>> normalDown;
+  std::vector<std::pair<float, float>> failUp;
+  std::vector<std::pair<float, float>> failDown;
+  float setPoint;
+  float posHysteresis;
+  float negHysteresis;
+  float kp;
+  float kd;
+  float ki;
+  PwmCalcCache pwmCalcCache{};
+  SensorReadCache processedData{};
 };
 
 class ServiceConfig {
