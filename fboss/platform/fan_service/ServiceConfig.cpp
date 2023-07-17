@@ -255,24 +255,6 @@ fan_config_structs::FsvcConfigDictIndex ServiceConfig::convertKeywordToIndex(
       : itr->second;
 }
 
-std::optional<fan_config_structs::TempToPwmMap>
-ServiceConfig::getConfigOpticTable(
-    std::string name,
-    fan_config_structs::OpticTableType dataType) {
-  for (auto optic = optics.begin(); optic != optics.end(); ++optic) {
-    if (*optic->opticName() == name) {
-      for (auto entry = optic->tempToPwmMaps()->begin();
-           entry != optic->tempToPwmMaps()->end();
-           ++entry) {
-        if (dataType == entry->first) {
-          return entry->second;
-        }
-      }
-    }
-  }
-  return std::nullopt;
-}
-
 std::string ServiceConfig::getShutDownCommand() const {
   return shutDownCommand_;
 }

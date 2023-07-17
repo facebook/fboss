@@ -66,9 +66,6 @@ class ServiceConfig {
   int getPwmLowerThreshold() const;
   float getPwmTransitionValue() const;
   int parseConfigString(std::string contents);
-  std::optional<fan_config_structs::TempToPwmMap> getConfigOpticTable(
-      std::string name,
-      fan_config_structs::OpticTableType dataType);
 
  private:
   // Shutdown Command

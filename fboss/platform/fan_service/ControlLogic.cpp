@@ -13,6 +13,20 @@ namespace {
 auto constexpr kFanWriteFailure = "fan_write.{}.{}.failure";
 auto constexpr kFanFailThresholdInSec = 300;
 auto constexpr kSensorFailThresholdInSec = 300;
+
+using namespace facebook::fboss::platform;
+
+std::optional<fan_config_structs::TempToPwmMap> getConfigOpticTable(
+    const fan_config_structs::Optic& optic,
+    fan_config_structs::OpticTableType dataType) {
+  for (const auto& [tableType, tempToPwmMap] : *optic.tempToPwmMaps()) {
+    if (tableType == dataType) {
+      return tempToPwmMap;
+    }
+  }
+  return std::nullopt;
+}
+
 } // namespace
 
 namespace facebook::fboss::platform {
@@ -409,8 +423,7 @@ void ControlLogic::getOpticsUpdate() {
       } else {
         for (const auto& [dataType, value] : opticData->data) {
           int pwmForThis = 0;
-          auto tablePointer =
-              pConfig_->getConfigOpticTable(opticName, dataType);
+          auto tablePointer = getConfigOpticTable(optic, dataType);
           // We have <type, value> pair. If we have table entry for this
           // optics type, get the matching pwm value using the optics value
           if (tablePointer) {
