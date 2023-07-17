@@ -779,7 +779,7 @@ class LinkTestRunner(TestRunner):
         return AGENT_WARMBOOT_CHECK_FILE
 
     def _get_test_run_args(self, conf_file):
-        return ["--config", conf_file]
+        return ["--config", conf_file, "--mgmt-if", args.mgmt_if]
 
     def _setup_coldboot_test(self):
         self.start_qsfp_service(False)
