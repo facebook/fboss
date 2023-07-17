@@ -610,6 +610,13 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedStats() const {
         stats.end(),
         SaiSwitchTraits::CounterIdsToRead.begin(),
         SaiSwitchTraits::CounterIdsToRead.end());
+    if (!platform_->getAsic()->isSupported(
+            HwAsic::Feature::PACKET_INTEGRITY_DROP_STATS)) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      stats.erase(std::find(
+          stats.begin(), stats.end(), SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP));
+#endif
+    }
   }
   return stats;
 }
