@@ -488,7 +488,9 @@ folly::MacAddress kLocalCpuMac() {
 
 const std::map<cfg::PortType, cfg::PortLoopbackMode>& kDefaultLoopbackMap() {
   static const std::map<cfg::PortType, cfg::PortLoopbackMode> kLoopbackMap = {
-      {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::NONE}};
+      {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::NONE},
+      {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::NONE},
+      {cfg::PortType::RECYCLE_PORT, cfg::PortLoopbackMode::NONE}};
   return kLoopbackMap;
 }
 
