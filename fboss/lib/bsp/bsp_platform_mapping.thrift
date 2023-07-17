@@ -63,12 +63,14 @@ struct BspResetPinInfo {
   1: optional string sysfsPath;
   2: optional i32 mask;
   3: optional i32 gpioOffset;
+  4: optional i32 resetHoldHi; // Bitmask held high to keep in reset state
 }
 
 struct BspPresencePinInfo {
   1: optional string sysfsPath;
   2: optional i32 mask;
   3: optional i32 gpioOffset;
+  4: optional i32 presentHoldHi; // Bitmask held high to indicate present
 }
 
 enum ResetAndPresenceAccessType {
