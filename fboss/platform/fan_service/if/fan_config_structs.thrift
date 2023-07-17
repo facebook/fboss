@@ -141,7 +141,6 @@ struct RangeCheck {
   2: float high;
   3: i32 tolerance;
   4: string invalidRangeAction;
-  5: i32 invalidCount;
 }
 
 enum BspType {

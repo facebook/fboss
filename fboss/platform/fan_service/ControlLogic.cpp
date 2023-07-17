@@ -354,12 +354,11 @@ void ControlLogic::getSensorUpdate() {
     if (sensor.rangeCheck()) {
       if ((adjustedValue > *sensor.rangeCheck()->high()) ||
           (adjustedValue < *sensor.rangeCheck()->low())) {
-        sensor.rangeCheck()->invalidCount() =
-            *sensor.rangeCheck()->invalidCount() + 1;
-        if (*sensor.rangeCheck()->invalidCount() >=
+        readCache.invalidRangeCheckCount++;
+        if (readCache.invalidRangeCheckCount >=
             *sensor.rangeCheck()->tolerance()) {
           // ERR log only once.
-          if (*sensor.rangeCheck()->invalidCount() ==
+          if (readCache.invalidRangeCheckCount ==
               *sensor.rangeCheck()->tolerance()) {
             XLOG(ERR) << "Sensor " << *sensor.sensorName()
                       << " out of range for too long!";
@@ -373,7 +372,7 @@ void ControlLogic::getSensorUpdate() {
           }
         }
       } else {
-        sensor.rangeCheck()->invalidCount() = 0;
+        readCache.invalidRangeCheckCount = 0;
       }
     }
     // 1.e Calculate the target pwm in percent

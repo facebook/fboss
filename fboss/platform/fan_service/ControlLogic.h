@@ -27,6 +27,7 @@ struct SensorReadCache {
   bool minorAlarmTriggered{false};
   bool majorAlarmTriggered{false};
   uint64_t soakStartedAt;
+  int32_t invalidRangeCheckCount{0};
 };
 
 struct PwmCalcCache {
