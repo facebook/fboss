@@ -116,18 +116,18 @@ void ControlLogic::getFanUpdate() {
   return;
 }
 
-void ControlLogic::updateTargetPwm(Sensor* sensorItem) {
+void ControlLogic::updateTargetPwm(const Sensor& sensor) {
   bool accelerate, deadFanExists;
   float previousSensorValue, sensorValue, targetPwm;
   float value, lastPwm, kp, ki, kd, previousRead1, previousRead2, pwm;
   float error;
-  float minVal = sensorItem->setPoint - sensorItem->negHysteresis;
-  float maxVal = sensorItem->setPoint + sensorItem->posHysteresis;
+  float minVal = sensor.setPoint - sensor.negHysteresis;
+  float maxVal = sensor.setPoint + sensor.posHysteresis;
   uint64_t dT;
   std::vector<std::pair<float, float>> tableToUse;
-  auto& readCache = pConfig_->sensorReadCaches[sensorItem->sensorName];
-  auto& pwmCalcCache = pConfig_->pwmCalcCaches[sensorItem->sensorName];
-  switch (sensorItem->calculationType) {
+  auto& readCache = pConfig_->sensorReadCaches[sensor.sensorName];
+  auto& pwmCalcCache = pConfig_->pwmCalcCaches[sensor.sensorName];
+  switch (sensor.calculationType) {
     case fan_config_structs::SensorPwmCalcType::kSensorPwmCalcFourLinearTable:
       accelerate = true;
       previousSensorValue = pwmCalcCache.previousSensorRead;
@@ -137,13 +137,13 @@ void ControlLogic::updateTargetPwm(Sensor* sensorItem) {
       accelerate =
           ((previousSensorValue == 0) || (sensorValue > previousSensorValue));
       if (accelerate && !deadFanExists) {
-        tableToUse = sensorItem->normalUp;
+        tableToUse = sensor.normalUp;
       } else if (!accelerate && !deadFanExists) {
-        tableToUse = sensorItem->normalDown;
+        tableToUse = sensor.normalDown;
       } else if (accelerate && deadFanExists) {
-        tableToUse = sensorItem->failUp;
+        tableToUse = sensor.failUp;
       } else {
-        tableToUse = sensorItem->failDown;
+        tableToUse = sensor.failDown;
       }
       // Start with the lowest value
       targetPwm = tableToUse[0].second;
@@ -165,20 +165,20 @@ void ControlLogic::updateTargetPwm(Sensor* sensorItem) {
       }
       pwmCalcCache.previousSensorRead = sensorValue;
       readCache.targetPwmCache = targetPwm;
-      XLOG(INFO) << "Control :: Sensor : " << sensorItem->sensorName
+      XLOG(INFO) << "Control :: Sensor : " << sensor.sensorName
                  << " Value : " << sensorValue << " [4CUV] Pwm : " << targetPwm;
       break;
 
     case fan_config_structs::SensorPwmCalcType::kSensorPwmCalcIncrementPid:
       value = readCache.adjustedReadCache;
       lastPwm = pwmCalcCache.previousTargetPwm;
-      kp = sensorItem->kp;
-      ki = sensorItem->ki;
-      kd = sensorItem->kd;
+      kp = sensor.kp;
+      ki = sensor.ki;
+      kd = sensor.kd;
       previousRead1 = pwmCalcCache.previousRead1;
       previousRead2 = pwmCalcCache.previousRead2;
       pwm = lastPwm + (kp * (value - previousRead1)) +
-          (ki * (value - sensorItem->setPoint)) +
+          (ki * (value - sensor.setPoint)) +
           (kd * (value - 2 * previousRead1 + previousRead2));
       // Even though the previous Target Pwm should be the zone pwm,
       // the best effort is made here. Zone should update this value.
@@ -186,7 +186,7 @@ void ControlLogic::updateTargetPwm(Sensor* sensorItem) {
       readCache.targetPwmCache = pwm;
       pwmCalcCache.previousRead2 = previousRead1;
       pwmCalcCache.previousRead1 = value;
-      XLOG(INFO) << "Control :: Sensor : " << sensorItem->sensorName
+      XLOG(INFO) << "Control :: Sensor : " << sensor.sensorName
                  << " Value : " << value << " [IPID] Pwm : " << pwm;
       XLOG(INFO) << "           Prev1  : " << previousRead1
                  << " Prev2 : " << previousRead2;
@@ -197,9 +197,9 @@ void ControlLogic::updateTargetPwm(Sensor* sensorItem) {
       value = readCache.adjustedReadCache;
       lastPwm = pwmCalcCache.previousTargetPwm;
       pwm = lastPwm;
-      kp = sensorItem->kp;
-      ki = sensorItem->ki;
-      kd = sensorItem->kd;
+      kp = sensor.kp;
+      ki = sensor.ki;
+      kd = sensor.kd;
       previousRead1 = pwmCalcCache.previousRead1;
       previousRead2 = pwmCalcCache.previousRead2;
       dT = pBsp_->getCurrentTime() - lastControlUpdateSec_;
@@ -219,7 +219,7 @@ void ControlLogic::updateTargetPwm(Sensor* sensorItem) {
       }
       pwmCalcCache.previousRead2 = previousRead1;
       pwmCalcCache.previousRead1 = value;
-      XLOG(INFO) << "Control :: Sensor : " << sensorItem->sensorName
+      XLOG(INFO) << "Control :: Sensor : " << sensor.sensorName
                  << " Value : " << value << " [PID] Pwm : " << pwm;
       XLOG(INFO) << "               dT : " << dT
                  << " Time : " << pBsp_->getCurrentTime()
@@ -229,12 +229,12 @@ void ControlLogic::updateTargetPwm(Sensor* sensorItem) {
 
     case fan_config_structs::SensorPwmCalcType::kSensorPwmCalcDisable:
       // Do nothing
-      XLOG(WARN) << "Control :: Sensor : " << sensorItem->sensorName
+      XLOG(WARN) << "Control :: Sensor : " << sensor.sensorName
                  << "Do Nothing ";
       break;
     default:
       facebook::fboss::FbossError(
-          "Invalid PWM Calculation Type for sensor", sensorItem->sensorName);
+          "Invalid PWM Calculation Type for sensor", sensor.sensorName);
       break;
   }
   // No matter what, PWM should be within
@@ -380,7 +380,7 @@ void ControlLogic::getSensorUpdate() {
     // 1.e Calculate the target pwm in percent
     //     (the table or incremental pid should produce
     //      percent as its output)
-    updateTargetPwm(&sensor);
+    updateTargetPwm(sensor);
     XLOG(INFO) << sensor.sensorName << " has the target PWM of "
                << readCache.targetPwmCache;
   }

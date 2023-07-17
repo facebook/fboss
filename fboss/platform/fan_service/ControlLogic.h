@@ -39,7 +39,7 @@ class ControlLogic {
   void getOpticsUpdate();
   void programFan(const fan_config_structs::Zone& zone, float pwmSoFar);
   void adjustZoneFans(bool boostMode);
-  void updateTargetPwm(Sensor* sensorItem);
+  void updateTargetPwm(const Sensor& sensorItem);
   void setFanFailState(const fan_config_structs::Fan& fan, bool fanFailed);
   bool checkIfFanPresent(const fan_config_structs::Fan& fan);
   Sensor* findSensorConfig(const std::string& sensorName);
