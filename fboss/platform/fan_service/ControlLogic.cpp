@@ -11,6 +11,7 @@
 namespace {
 auto constexpr kFanWriteFailure = "fan_write.{}.{}.failure";
 auto constexpr kFanFailThresholdInSec = 300;
+auto constexpr kSensorFailThresholdInSec = 300;
 } // namespace
 
 namespace facebook::fboss::platform {
@@ -283,7 +284,7 @@ void ControlLogic::getSensorUpdate() {
       // failure of such sensor
       uint64_t timeDiffInSec =
           pBsp_->getCurrentTime() - sensor.processedData.lastUpdatedTime;
-      if (timeDiffInSec >= sensor.sensorFailThresholdInSec) {
+      if (timeDiffInSec >= kSensorFailThresholdInSec) {
         sensor.processedData.sensorFailed = true;
         numSensorFailed_++;
       }
