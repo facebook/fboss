@@ -41,7 +41,7 @@ class ControlLogic {
   void adjustZoneFans(bool boostMode);
   void updateTargetPwm(const fan_config_structs::Sensor& sensorItem);
   void setFanFailState(const fan_config_structs::Fan& fan, bool fanFailed);
-  bool checkIfFanPresent(const fan_config_structs::Fan& fan);
+  bool isFanPresentInDevice(const fan_config_structs::Fan& fan);
   bool isSensorPresentInConfig(const std::string& sensorName);
 };
 } // namespace facebook::fboss::platform

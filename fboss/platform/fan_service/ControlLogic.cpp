@@ -45,7 +45,7 @@ void ControlLogic::getFanUpdate() {
         fan_config_structs::SourceType::kSrcThrift) {
       fanName = *fan.rpmAccess()->path();
     }
-    if (!checkIfFanPresent(fan)) {
+    if (!isFanPresentInDevice(fan)) {
       fanMissing = true;
     }
     // If source type is not specified (SRC_INVALID), we treat it as Thrift.
@@ -446,7 +446,7 @@ bool ControlLogic::isSensorPresentInConfig(const std::string& sensorName) {
   return false;
 }
 
-bool ControlLogic::checkIfFanPresent(const fan_config_structs::Fan& fan) {
+bool ControlLogic::isFanPresentInDevice(const fan_config_structs::Fan& fan) {
   unsigned int readVal;
   bool readSuccessful = false;
   uint64_t nowSec;
