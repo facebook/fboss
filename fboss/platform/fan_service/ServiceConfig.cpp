@@ -485,5 +485,6 @@ void ServiceConfig::prepareDict() {
   configDict_["boost_on_no_qsfp_after"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgNoQsfpBoostInSec;
   configDict_["value"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgValue;
+  configDict_["scale"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgScale;
 }
 } // namespace facebook::fboss::platform
