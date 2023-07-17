@@ -24,8 +24,6 @@
 #include "SensorData.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
 
-#define FSVC_DEFAULT_SENSOR_FETCH_FREQUENCY 30
-#define FSVC_DEFAULT_CONTROL_FREQUENCY 30
 #define FSVC_DEFAULT_PWM_LOWER_THRES 15
 #define FSVC_DEFAULT_PWM_UPPER_THRES 85
 
@@ -64,8 +62,6 @@ class ServiceConfig {
       std::string keyword) const;
   float getPwmBoostValue() const;
   std::string getShutDownCommand() const;
-  int getSensorFetchFrequency() const;
-  int getControlFrequency() const;
   int getPwmUpperThreshold() const;
   int getPwmLowerThreshold() const;
   float getPwmTransitionValue() const;
@@ -85,10 +81,6 @@ class ServiceConfig {
   // PWM Limit as percent
   int pwmUpperThreshold_;
   int pwmLowerThreshold_;
-
-  // Frequency
-  int sensorFetchFrequency_;
-  int controlFrequency_;
 
   // TODO - just use thrift enum names
   std::unordered_map<std::string, fan_config_structs::FsvcConfigDictIndex>

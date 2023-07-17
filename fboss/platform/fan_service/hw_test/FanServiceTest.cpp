@@ -47,8 +47,6 @@ TEST_F(FanServiceTest, configFrequencyCheck) {
   // (meaning, frequency is not zero)
   ServiceConfig myConfig;
   ASSERT_EQ(myConfig.parse(), 0);
-  EXPECT_GT(myConfig.getSensorFetchFrequency(), 0);
-  EXPECT_GT(myConfig.getControlFrequency(), 0);
 }
 
 TEST_F(FanServiceTest, configTransitionValue) {

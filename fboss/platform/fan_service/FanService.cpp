@@ -8,6 +8,11 @@
 // Additional FB helper funtion
 #include "common/time/Time.h"
 
+namespace {
+auto constexpr kDefaultSensorReadFrequencyInSec = 30;
+auto constexpr kDefaultFanControlFrequencyInSec = 30;
+} // namespace
+
 namespace facebook::fboss::platform {
 FanService::FanService() {
   lastControlExecutionTimeSec_ = 0;
@@ -19,16 +24,12 @@ FanService::FanService() {
   return;
 }
 
-void FanService::setControlFrequency(uint64_t sec) {
-  controlFrequencySec_ = sec;
-}
-
 unsigned int FanService::getControlFrequency() const {
-  return controlFrequencySec_;
+  return kDefaultFanControlFrequencyInSec;
 }
 
 unsigned int FanService::getSensorFetchFrequency() const {
-  return pConfig_->getSensorFetchFrequency();
+  return kDefaultSensorReadFrequencyInSec;
 }
 
 std::shared_ptr<Bsp> FanService::BspFactory() {
@@ -85,8 +86,7 @@ int FanService::controlFan(/*folly::EventBase* evb*/) {
     pControlLogic_->setTransitionValue();
   }
   // Update Sensor Value based according to fetch frequency
-  if ((currentTimeSec - lastSensorFetchTimeSec_) >=
-      pConfig_->getSensorFetchFrequency()) {
+  if ((currentTimeSec - lastSensorFetchTimeSec_) >= getSensorFetchFrequency()) {
     bool sensorReadOK = false;
     bool opticsReadOK = false;
 
@@ -117,7 +117,7 @@ int FanService::controlFan(/*folly::EventBase* evb*/) {
   }
   // Change Fan PWM as needed according to control execution frequency
   if ((currentTimeSec - lastControlExecutionTimeSec_) >=
-      pConfig_->getControlFrequency()) {
+      getControlFrequency()) {
     lastControlExecutionTimeSec_ = currentTimeSec;
     pControlLogic_->updateControl(pSensorData_);
   }
@@ -165,8 +165,7 @@ int FanService::runMock(std::string mockInputFile, std::string mockOutputFile) {
     XLOG(INFO)
         << "Done changing system state according to simulation scenario.";
     // Read sensor if needed
-    if ((currentTimeSec - lastSensorFetchTimeSec_) >=
-        pConfig_->getSensorFetchFrequency()) {
+    if ((currentTimeSec - lastSensorFetchTimeSec_) >= getControlFrequency()) {
       lastSensorFetchTimeSec_ = currentTimeSec;
       XLOG(INFO) << "Time to read sensor data";
       pBsp_->getSensorData(pConfig_, pSensorData_);
@@ -174,7 +173,7 @@ int FanService::runMock(std::string mockInputFile, std::string mockOutputFile) {
     }
     // Update fan as needed
     if ((currentTimeSec - lastControlExecutionTimeSec_) >=
-        pConfig_->getControlFrequency()) {
+        getControlFrequency()) {
       lastControlExecutionTimeSec_ = currentTimeSec;
       XLOG(INFO) << "Time for running fan control logic";
       pControlLogic_->updateControl(pSensorData_);
@@ -192,12 +191,10 @@ int FanService::runMock(std::string mockInputFile, std::string mockOutputFile) {
 
     // Figure out when is the next event,
     // so that we can jump to that time in the future.
-    timeToAdvanceSec =
-        lastSensorFetchTimeSec_ + pConfig_->getSensorFetchFrequency();
+    timeToAdvanceSec = lastSensorFetchTimeSec_ + getSensorFetchFrequency();
     if (timeToAdvanceSec >
-        lastControlExecutionTimeSec_ + pConfig_->getControlFrequency()) {
-      timeToAdvanceSec =
-          lastControlExecutionTimeSec_ + pConfig_->getControlFrequency();
+        lastControlExecutionTimeSec_ + getControlFrequency()) {
+      timeToAdvanceSec = lastControlExecutionTimeSec_ + getControlFrequency();
     }
     if (timeToAdvanceSec > pMokujin->getNextEventTime()) {
       timeToAdvanceSec = pMokujin->getNextEventTime();

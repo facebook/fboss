@@ -17,8 +17,6 @@ ServiceConfig::ServiceConfig() {
   pwmBoostOnDeadFan = 0;
   pwmBoostOnDeadSensor = 0;
   pwmBoostNoQsfpAfterInSec = 0;
-  sensorFetchFrequency_ = FSVC_DEFAULT_SENSOR_FETCH_FREQUENCY;
-  controlFrequency_ = FSVC_DEFAULT_CONTROL_FREQUENCY;
   pwmLowerThreshold_ = FSVC_DEFAULT_PWM_LOWER_THRES;
   pwmUpperThreshold_ = FSVC_DEFAULT_PWM_UPPER_THRES;
 }
@@ -277,13 +275,6 @@ ServiceConfig::getConfigOpticTable(
 
 std::string ServiceConfig::getShutDownCommand() const {
   return shutDownCommand_;
-}
-
-int ServiceConfig::getSensorFetchFrequency() const {
-  return sensorFetchFrequency_;
-}
-int ServiceConfig::getControlFrequency() const {
-  return controlFrequency_;
 }
 
 int ServiceConfig::getPwmUpperThreshold() const {

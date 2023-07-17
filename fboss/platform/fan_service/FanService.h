@@ -67,9 +67,6 @@ class FanService {
   // How often we run fan control logic?
   uint64_t controlFrequencySec_;
 
-  // Methods
-  // Control Logic Execution Frequency in seconds
-  void setControlFrequency(uint64_t sec);
   unsigned int getControlFrequency() const;
   // The factory method to return the proper BSP object,
   // based on the platform type specified in config file
