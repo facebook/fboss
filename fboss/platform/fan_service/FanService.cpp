@@ -8,7 +8,7 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "common/time/Time.h"
-#include "fboss/platform/fan_service/ServiceConfig.h"
+#include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
 
 namespace {
@@ -61,8 +61,11 @@ std::shared_ptr<Bsp> FanService::BspFactory() {
 
 void FanService::kickstart() {
   // Read Config
+  auto fanServiceConfJson = ConfigLib().getFanServiceConfig();
   apache::thrift::SimpleJSONSerializer::deserialize<
-      fan_config_structs::FanServiceConfig>(getDarwinFSConfig(), config_);
+      fan_config_structs::FanServiceConfig>(fanServiceConfJson, config_);
+  XLOG(INFO) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+      config_);
 
   // Get the proper BSP object from BSP factory,
   // according to the parsed config, then run init routine.

@@ -13,9 +13,9 @@
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
+#include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/fan_service/Bsp.h"
 #include "fboss/platform/fan_service/SensorData.h"
-#include "fboss/platform/fan_service/ServiceConfig.h"
 #include "fboss/platform/helpers/Init.h"
 
 using namespace facebook::fboss::platform;
@@ -25,9 +25,9 @@ class FanServiceTest : public ::testing::Test {};
 
 fan_config_structs::FanServiceConfig getConfig() {
   auto config = fan_config_structs::FanServiceConfig{};
+  auto fanServiceConfJson = ConfigLib().getFanServiceConfig();
   apache::thrift::SimpleJSONSerializer::deserialize<
-      fan_config_structs::FanServiceConfig>(
-      facebook::fboss::platform::getDarwinFSConfig(), config);
+      fan_config_structs::FanServiceConfig>(fanServiceConfJson, config);
   return config;
 }
 
