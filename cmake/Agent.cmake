@@ -289,6 +289,8 @@ target_link_libraries(platform_base
   fboss_types
   Folly::folly
   platform_mapping
+  switchid_scope_resolver
+  switchinfo_utils
 )
 
 add_library(hw_switch

@@ -34,9 +34,9 @@ const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig(
       if (switchInfo.switchType() == cfg::SwitchType::VOQ &&
           !switchInfo.systemPortRange()) {
         auto dsfItr =
-            *config->dsfNodes()->find(static_cast<int64_t>(entry.first));
-        if (dsfItr != *config->dsfNodes()->end()) {
-          auto localNode = dsfItr.second;
+            config->dsfNodes()->find(static_cast<int64_t>(entry.first));
+        if (dsfItr != config->dsfNodes()->end()) {
+          auto localNode = dsfItr->second;
           CHECK(localNode.systemPortRange().has_value());
           switchInfo.systemPortRange() = *localNode.systemPortRange();
         }

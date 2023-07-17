@@ -12,6 +12,7 @@
 
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 
@@ -66,7 +67,8 @@ Platform::Platform(
     folly::MacAddress localMac)
     : productInfo_(std::move(productInfo)),
       platformMapping_(std::move(platformMapping)),
-      localMac_(localMac) {}
+      localMac_(localMac),
+      scopeResolver_({}) {}
 Platform::~Platform() {}
 
 std::string Platform::getCrashHwStateFile() const {
@@ -89,12 +91,16 @@ const AgentConfig* Platform::config() {
 }
 
 const AgentConfig* Platform::reloadConfig() {
-  config_ = AgentConfig::fromDefaultFile();
+  auto agentConfig = AgentConfig::fromDefaultFile();
+  setConfig(std::move(agentConfig));
   return config_.get();
 }
 
 void Platform::setConfig(std::unique_ptr<AgentConfig> config) {
   config_ = std::move(config);
+  auto swConfig = config_->thrift.sw();
+  scopeResolver_ =
+      SwitchIdScopeResolver(getSwitchInfoFromConfig(&(swConfig.value())));
 }
 
 const std::map<int32_t, cfg::PlatformPortEntry>& Platform::getPlatformPorts()
@@ -130,7 +136,7 @@ void Platform::init(
     std::unique_ptr<AgentConfig> config,
     uint32_t hwFeaturesDesired) {
   // take ownership of the config if passed in
-  config_ = std::move(config);
+  setConfig(std::move(config));
   auto macStr = getPlatformAttribute(cfg::PlatformAttributes::MAC);
   const auto switchSettings = *config_->thrift.sw()->switchSettings();
   std::optional<int64_t> switchId;

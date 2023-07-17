@@ -16,6 +16,7 @@
 #include <memory>
 #include <unordered_map>
 #include "fboss/agent/PlatformPort.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/types.h"
@@ -303,6 +304,14 @@ class Platform {
   }
   virtual HwSwitchWarmBootHelper* getWarmBootHelper() = 0;
 
+  const SwitchIdScopeResolver* scopeResolver() const {
+    return &scopeResolver_;
+  }
+
+  SwitchIdScopeResolver* scopeResolver() {
+    return &scopeResolver_;
+  }
+
  private:
   /*
    * Subclasses can override this to do custom initialization. This is
@@ -327,6 +336,7 @@ class Platform {
   const std::unique_ptr<PlatformProductInfo> productInfo_;
   const std::unique_ptr<PlatformMapping> platformMapping_;
   folly::MacAddress localMac_;
+  SwitchIdScopeResolver scopeResolver_;
 
   // The map of override version of TransceiverInfo.
   // This is to be used only for HwTests under test environment,
