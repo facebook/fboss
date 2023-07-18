@@ -43,6 +43,7 @@ add_fbthrift_cpp_library(
 
 add_executable(platform_manager
   fboss/platform/platform_manager/Main.cpp
+  fboss/platform/platform_manager/PkgUtils.cpp
   fboss/platform/platform_manager/PlatformExplorer.cpp
   fboss/platform/platform_manager/PlatformI2cExplorer.cpp
   fboss/platform/platform_manager/PlatformValidator.cpp
