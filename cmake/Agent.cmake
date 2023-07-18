@@ -384,7 +384,6 @@ add_library(hwagent-main
 )
 
 target_link_libraries(hwagent
-  hwagent
   split_agent_hwswitch_callback_handler
   platform_base
 )
