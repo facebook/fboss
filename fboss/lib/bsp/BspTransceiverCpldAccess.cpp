@@ -27,16 +27,29 @@ BspTransceiverCpldAccess::BspTransceiverCpldAccess(
 void BspTransceiverCpldAccess::init(bool forceReset) {
   CHECK(tcvrMapping_.accessControl()->reset()->sysfsPath());
   CHECK(tcvrMapping_.accessControl()->reset()->mask());
+  CHECK(tcvrMapping_.accessControl()->reset()->resetHoldHi());
   auto resetPath = *tcvrMapping_.accessControl()->reset()->sysfsPath();
   uint8_t resetMask =
       static_cast<uint8_t>(*tcvrMapping_.accessControl()->reset()->mask());
+  uint8_t resetHoldHi = static_cast<uint8_t>(
+      *tcvrMapping_.accessControl()->reset()->resetHoldHi());
+
   try {
     auto status = std::stoi(readSysfs(resetPath), nullptr, 16);
     if (forceReset) {
-      status = status & ~resetMask;
+      if (resetHoldHi) {
+        status = status | resetMask;
+      } else {
+        status = status & ~resetMask;
+      }
       writeSysfs(resetPath, std::to_string(status));
     }
-    status = status | resetMask;
+    if (resetHoldHi) {
+      status = status & ~resetMask;
+    } else {
+      status = status | resetMask;
+    }
+
     writeSysfs(resetPath, std::to_string(status));
   } catch (std::exception& ex) {
     XLOG(ERR) << fmt::format(
@@ -49,11 +62,19 @@ bool BspTransceiverCpldAccess::isPresent() {
   bool retVal = false;
   CHECK(tcvrMapping_.accessControl()->presence()->sysfsPath());
   CHECK(tcvrMapping_.accessControl()->presence()->mask());
+  CHECK(tcvrMapping_.accessControl()->presence()->presentHoldHi());
   auto presencePath = *tcvrMapping_.accessControl()->presence()->sysfsPath();
   auto presenceMask = *tcvrMapping_.accessControl()->presence()->mask();
+  auto presentHoldHi =
+      *tcvrMapping_.accessControl()->presence()->presentHoldHi();
+
   try {
     auto status = std::stoi(readSysfs(presencePath), nullptr, 16);
-    retVal = !(status & presenceMask);
+    if (presentHoldHi) {
+      retVal = !(status & presenceMask);
+    } else {
+      retVal = status & presenceMask;
+    }
   } catch (std::exception& ex) {
     XLOG(ERR) << fmt::format(
         "BspTransceiverCpldAccessTrace: isPresent() failed to get Present status for TCVR {:d} (1 base)",
