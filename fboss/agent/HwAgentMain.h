@@ -14,26 +14,13 @@
 #include <string>
 
 #include "fboss/agent/FbossInit.h"
-#include "fboss/agent/HwSwitch.h"
 
 namespace facebook::fboss {
 
-class HwAgent {
- public:
-  HwAgent(
-      std::unique_ptr<AgentConfig> config,
-      uint32_t hwFeaturesDesired,
-      PlatformInitFn initPlatformFn);
-  virtual ~HwAgent() {}
-  Platform* getPlatform() const {
-    return platform_.get();
-  }
-  HwInitResult initAgent(
-      bool failHwCallsOnWarmboot,
-      HwSwitchCallback* callback);
-  void start();
+int hwAgentMain(
+    int argc,
+    char** argv,
+    uint32_t hwFeaturesDesired,
+    PlatformInitFn initPlatformFn);
 
- private:
-  std::unique_ptr<Platform> platform_;
-};
 } // namespace facebook::fboss

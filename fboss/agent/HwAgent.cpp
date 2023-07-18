@@ -30,4 +30,11 @@ HwInitResult HwAgent::initAgent(
   XLOG(DBG2) << "HwSwitch init done";
   return hwInitResult;
 }
+
+void HwAgent::start() {
+  auto eventBase = std::make_unique<folly::EventBase>();
+  XLOG(DBG2) << "HwAgent is ready and is waiting for events";
+  // TODO - Init thrift server and remove loop on init thread
+  eventBase->loopForever();
+}
 } // namespace facebook::fboss

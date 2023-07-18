@@ -371,3 +371,15 @@ target_link_libraries(hwagent
 add_library(split_agent_hwswitch_callback_handler
   fboss/agent/mnpu/SplitAgentHwSwitchCallbackHandler.cpp
 )
+
+add_library(hwagent-main
+  fboss/agent/HwAgentMain.cpp
+  fboss/agent/CommonInit.cpp
+  fboss/agent/oss/Main.cpp
+)
+
+target_link_libraries(hwagent
+  hwagent
+  split_agent_hwswitch_callback_handler
+  platform_base
+)
