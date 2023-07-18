@@ -6,6 +6,8 @@
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/test/HwTestEcmpUtils.h"
+#include "fboss/agent/hw/test/HwTestFabricUtils.h"
+#include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -296,4 +298,61 @@ TEST_F(LinkTest, qsfpColdbootAfterAgentUp) {
         EXPECT_NO_THROW(waitForAllCabledPorts(true));
         EXPECT_NO_THROW(waitForAllTransceiverStates(true, 60, 5s));
       });
+}
+
+TEST_F(LinkTest, fabricLinkHealth) {
+  //  Test for verifying fabric link health
+  //   1. Enable traffic spray over fabric
+  //   2. Generate traffic on the CPU and pump them out a front panel port. The
+  //   traffic should loop back in because of snake configuration and then spray
+  //   over the fabric.
+  //   3. Verify out counters on both NIF and Fabric Ports
+  //   4. TODO: Verify no in discards/in errors on NIF or Ports
+  //   5. TODO: Verify FEC UCW doesn't increment on both NIF and Fabric ports
+  //   6. TODO: Figure out other counters (pre-FEC BER, reassembly, packet
+  //   integrity etc) to verify and add those checks
+
+  auto fabricPorts = getPortName(getCabledFabricPorts());
+
+  setForceTrafficOverFabric(platform()->getHwSwitch(), true);
+
+  utility::EcmpSetupTargetedPorts6 ecmpHelper(sw()->getState());
+  const auto kDstPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
+  const auto kSrcPortDesc = ecmpHelper.ecmpPortDescriptorAt(1);
+  const auto kSrcPort = kSrcPortDesc.phyPortID();
+  const auto kSrcPortName = getPortName(kSrcPort);
+
+  auto beforeNifStats = getPortStats({kSrcPortName})[kSrcPortName];
+
+  utility::pumpTraffic(
+      platform()->getHwSwitch(), /* HwSwitch */
+      sw()->getLocalMac(scope({kDstPortDesc})), /* dstMac */
+      {ecmpHelper.ip(kSrcPortDesc)}, /* srcIps */
+      {ecmpHelper.ip(kDstPortDesc)}, /* dstIps */
+      8000, /* l4 srcPort */
+      8001, /* l4 dstPort */
+      1, /* streams */
+      std::nullopt, /* vlan */
+      kSrcPort, /* frontPanelPortToLoopTraffic */
+      255, /* hopLimit */
+      sw()->getLocalMac(scope({kSrcPortDesc})), /* srcMac */
+      10000 /* numPkts */);
+
+  WITH_RETRIES_N_TIMED(5, std::chrono::seconds(60), {
+    auto afterNifStats = getPortStats({kSrcPortName})[kSrcPortName];
+    auto fabricPortStats = getPortStats(fabricPorts);
+    XLOG(DBG2) << "Before pkts: " << beforeNifStats.get_outUnicastPkts_()
+               << " After pkts: " << afterNifStats.get_outUnicastPkts_();
+    EXPECT_EVENTUALLY_GE(
+        afterNifStats.get_outUnicastPkts_(),
+        beforeNifStats.get_outUnicastPkts_() + 10000);
+
+    auto fabricBytes = 0;
+    for (const auto& idAndStats : fabricPortStats) {
+      fabricBytes += idAndStats.second.get_outBytes_();
+    }
+    XLOG(DBG2) << "NIF bytes: " << afterNifStats.get_outBytes_()
+               << " Fabric bytes: " << fabricBytes;
+    EXPECT_EVENTUALLY_GE(fabricBytes, afterNifStats.get_outBytes_());
+  });
 }

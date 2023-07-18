@@ -5,6 +5,7 @@ function(BUILD_SAI_LINK_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
   message(STATUS "Building SAI_IMPL_NAME: ${SAI_IMPL_NAME} SAI_IMPL_ARG: ${SAI_IMPL_ARG}")
 
   add_executable(sai_link_test-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+    fboss/agent/hw/sai/hw_test/HwTestFabricUtils.cpp
     fboss/agent/test/link_tests/SaiLinkTest.cpp
   )
 
