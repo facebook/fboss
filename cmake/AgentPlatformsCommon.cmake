@@ -44,5 +44,6 @@ target_link_libraries(platform_mapping_utils
   montblanc_platform_mapping
   meru400bia_platform_mapping
   meru800bia_platform_mapping
+  meru800bfa_platform_mapping
   ${RE2}
 )
