@@ -47,6 +47,7 @@ add_executable(platform_manager
   fboss/platform/platform_manager/PlatformI2cExplorer.cpp
   fboss/platform/platform_manager/PlatformValidator.cpp
   fboss/platform/platform_manager/PlatformManagerHandler.cpp
+  fboss/platform/platform_manager/Utils.cpp
 )
 
 target_link_libraries(platform_manager

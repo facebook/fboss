@@ -5,6 +5,7 @@
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/platform_manager/PlatformExplorer.h"
 #include "fboss/platform/platform_manager/PlatformManagerHandler.h"
+#include "fboss/platform/platform_manager/Utils.h"
 
 using namespace facebook;
 using namespace facebook::fboss::platform;
@@ -27,8 +28,10 @@ int main(int argc, char** argv) {
   fb303::registerFollyLoggingOptionHandlers();
   helpers::init(argc, argv);
 
+  auto config = Utils().getConfig(FLAGS_config_file);
+
   PlatformExplorer platformExplorer(
-      std::chrono::seconds(FLAGS_explore_interval_s), FLAGS_config_file);
+      std::chrono::seconds(FLAGS_explore_interval_s), config);
 
   auto server = std::make_shared<apache::thrift::ThriftServer>();
   auto handler = std::make_shared<PlatformManagerHandler>();

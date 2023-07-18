@@ -5,7 +5,6 @@
 
 #include <folly/experimental/FunctionScheduler.h>
 
-#include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/platform_manager/PlatformI2cExplorer.h"
 #include "fboss/platform/platform_manager/PresenceDetector.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
@@ -15,8 +14,7 @@ class PlatformExplorer {
  public:
   explicit PlatformExplorer(
       std::chrono::seconds exploreInterval,
-      const std::string& configFile,
-      const ConfigLib& configLib = ConfigLib());
+      const PlatformConfig& config);
   void explore();
   void exploreFRU(
       const std::string& parentFruName,
