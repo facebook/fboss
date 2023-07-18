@@ -372,6 +372,11 @@ add_library(split_agent_hwswitch_callback_handler
   fboss/agent/mnpu/SplitAgentHwSwitchCallbackHandler.cpp
 )
 
+target_link_libraries(split_agent_hwswitch_callback_handler
+  Folly::folly
+  fboss_types
+)
+
 add_library(hwagent-main
   fboss/agent/HwAgentMain.cpp
   fboss/agent/CommonInit.cpp
