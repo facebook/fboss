@@ -1,8 +1,8 @@
 {
     "___COMMENT___": "See the associated pastes to get a pictorial representation of this config",
     "platformName": "sample_platform",
-    "chassisFruTypeConfig": {
-        "pluggedInSlotType": "CHASSIS",
+    "mainBoardFruTypeConfig": {
+        "pluggedInSlotType": "MAIN_BOARD",
         "i2cDeviceConfigs": [
             {
                 "busName": "INCOMING@7",
@@ -35,22 +35,22 @@
             }
         }
     },
-    "chassisSlotConfig": {
-        "slotType": "CHASSIS",
+    "mainBoardSlotConfig": {
+        "slotType": "MAIN_BOARD",
         "pathToPoll": "...",
         "outgoingI2cBusNames": [
-            "KERNEL@0",
-            "KERNEL@1",
-            "KERNEL@2",
-            "KERNEL@3",
-            "KERNEL@4",
-            "KERNEL@5",
-            "KERNEL@6",
-            "KERNEL@7"
+            "CPU@0",
+            "CPU@1",
+            "CPU@2",
+            "CPU@3",
+            "CPU@4",
+            "CPU@5",
+            "CPU@6",
+            "CPU@7"
         ]
     },
     "slotTypeConfigs": {
-        "CHASSIS": {
+        "MAIN_BOARD": {
             "numOutgoingI2cBuses": 8,
             "fruEeprom": {
                 "incomingBusIndex": 0,
@@ -177,15 +177,15 @@
             "outgoingSlotConfigs": {}
         }
     },
-    "i2cBussesFromMainBoard": [
-        "KERNEL@0",
-        "KERNEL@1",
-        "KERNEL@2",
-        "KERNEL@3",
-        "KERNEL@4",
-        "KERNEL@5",
-        "KERNEL@6",
-        "KERNEL@7"
+    "i2cBussesFromCPU": [
+        "CPU@0",
+        "CPU@1",
+        "CPU@2",
+        "CPU@3",
+        "CPU@4",
+        "CPU@5",
+        "CPU@6",
+        "CPU@7"
     ],
     "i2cPathToHumanFriendlyName": {}
 }

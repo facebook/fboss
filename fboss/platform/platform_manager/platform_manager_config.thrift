@@ -160,12 +160,13 @@ struct PlatformConfig {
   // Name of the platform.  Should match the name set in dmedicode
   1: string platformName;
 
-  // Each platform should have a Chassis FruTypeConfig defined.
-  2: FruTypeConfig chassisFruTypeConfig;
+  // Each platform should have a Main Board FruTypeConfig defined.
+  // This refers to the Switch Main Board (SMB)
+  2: FruTypeConfig mainBoardFruTypeConfig;
 
   // chassisSlotConfig describes the virtual Chassis slot where the Chassis is
   // plugged in.
-  3: SlotConfig chassisSlotConfig;
+  3: SlotConfig mainBoardSlotConfig;
 
   // Map from SlotType name to the global properties of the SlotType.
   4: map<SlotType, SlotTypeConfig> slotTypeConfigs;
@@ -173,8 +174,8 @@ struct PlatformConfig {
   // List of FRUs which the platform can support. Key is the FRU name.
   5: map<FruType, FruTypeConfig> fruTypeConfigs;
 
-  // List of the i2c busses created by the kerne/bsp and fed to the chassis.
-  6: list<string> i2cBussesFromMainBoard;
+  // List of the i2c busses created from the CPU / System Control Module (SCM)
+  6: list<string> i2cBussesFromCPU;
 
   // Global mapping from the i2c device paths to an application friendly sysfs
   // path.

@@ -52,13 +52,13 @@ PlatformExplorer::PlatformExplorer(
 void PlatformExplorer::explore() {
   XLOG(INFO) << "Exploring the device";
 
-  for (const auto& [busName, kernelBusName] : i2cExplorer_.getBusesfromBsp(
-           *platformConfig_.i2cBussesFromMainBoard())) {
+  for (const auto& [busName, kernelBusName] :
+       i2cExplorer_.getBusesfromBsp(*platformConfig_.i2cBussesFromCPU())) {
     updateKernelI2cBusNames("", busName, kernelBusName);
   }
 
   bool isChassisPresent = presenceDetector_.isPresent(
-      *platformConfig_.chassisSlotConfig()->presenceDetection());
+      *platformConfig_.mainBoardSlotConfig()->presenceDetection());
 
   if (!isChassisPresent) {
     XLOG(ERR) << "No chassis present";
@@ -68,9 +68,9 @@ void PlatformExplorer::explore() {
   exploreFRU(
       "",
       "Chassis_Slot@0",
-      *platformConfig_.chassisSlotConfig(),
+      *platformConfig_.mainBoardSlotConfig(),
       "CHASSIS",
-      *platformConfig_.chassisFruTypeConfig());
+      *platformConfig_.mainBoardFruTypeConfig());
 }
 
 void PlatformExplorer::exploreFRU(
