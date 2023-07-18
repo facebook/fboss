@@ -367,3 +367,7 @@ target_link_libraries(hwagent
   platform_base
   switch_asics
 )
+
+add_library(split_agent_hwswitch_callback_handler
+  fboss/agent/mnpu/SplitAgentHwSwitchCallbackHandler.cpp
+)
