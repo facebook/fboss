@@ -23,12 +23,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_1",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_1",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -56,12 +58,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_2",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_2",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -89,12 +93,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_3",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_3",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -122,12 +128,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_4",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_4",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -155,12 +163,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_5",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_5",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -188,12 +198,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_6",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_6",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -221,12 +233,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_7",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_7",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -254,12 +268,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_8",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_8",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -287,12 +303,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_9",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_9",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -320,12 +338,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_10",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_10",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -353,12 +373,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_11",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_11",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -386,12 +408,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_12",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_12",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -419,12 +443,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_13",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_13",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -452,12 +478,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_14",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_14",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -485,12 +513,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_15",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_15",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -518,12 +548,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_16",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_16",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -551,12 +583,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_17",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_17",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -584,12 +618,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_18",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_18",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -617,12 +653,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_19",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_19",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -650,12 +688,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_20",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_20",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -683,12 +723,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_21",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_21",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -716,12 +758,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_22",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_22",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -749,12 +793,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_23",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_23",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -782,12 +828,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_24",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_24",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -815,12 +863,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_25",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_25",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -848,12 +898,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_26",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_26",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -881,12 +933,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_27",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_27",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -914,12 +968,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_28",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_28",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -947,12 +1003,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_29",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_29",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -980,12 +1038,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_30",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_30",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1013,12 +1073,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_31",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_31",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1046,12 +1108,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_32",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_32",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1079,12 +1143,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_33",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_33",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1112,12 +1178,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_34",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_34",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1145,12 +1213,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_35",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_35",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1178,12 +1248,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_36",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_36",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1211,12 +1283,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_37",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_37",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1244,12 +1318,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_38",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_38",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1277,12 +1353,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_39",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_39",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1310,12 +1388,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_40",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_40",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1343,12 +1423,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_41",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_41",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1376,12 +1458,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_42",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_42",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1409,12 +1493,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_43",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_43",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1442,12 +1528,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_44",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_44",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1475,12 +1563,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_45",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_45",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1508,12 +1598,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_46",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_46",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1541,12 +1633,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_47",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_47",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1574,12 +1668,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_48",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_48",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1607,12 +1703,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_49",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_49",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1640,12 +1738,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_50",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_50",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1673,12 +1773,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_51",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_51",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1706,12 +1808,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_52",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_52",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1739,12 +1843,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_53",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_53",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1772,12 +1878,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_54",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_54",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1805,12 +1913,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_55",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_55",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1838,12 +1948,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_56",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_56",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1871,12 +1983,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_57",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_57",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1904,12 +2018,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_58",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_58",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1937,12 +2053,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_59",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_59",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1970,12 +2088,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_60",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_60",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -2003,12 +2123,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_61",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_61",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -2036,12 +2158,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_62",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_62",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -2069,12 +2193,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_63",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_63",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -2102,12 +2228,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_64",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 1
                 },
                 "presence": {
                   "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_64",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },

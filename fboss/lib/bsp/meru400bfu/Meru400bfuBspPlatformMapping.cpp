@@ -23,12 +23,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_config_0",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_0",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -49,12 +51,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_config_1",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_1",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -75,12 +79,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_config_2",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_2",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -101,12 +107,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_config_3",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_3",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -127,12 +135,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_config_4",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_4",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -153,12 +163,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_config_5",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_5",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -179,12 +191,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_config_6",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_6",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -205,12 +219,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_config_7",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_7",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -231,12 +247,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_config_8",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_8",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -257,12 +275,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_config_9",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_9",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -283,12 +303,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_config_10",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_10",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -309,12 +331,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_config_11",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_11",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -335,12 +359,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_config_0",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_0",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -361,12 +387,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_config_1",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_1",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -387,12 +415,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_config_2",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_2",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -413,12 +443,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_config_3",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_3",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -439,12 +471,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_config_4",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_4",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -465,12 +499,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_config_5",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_5",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -491,12 +527,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_config_6",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_6",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -517,12 +555,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_config_7",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_7",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -543,12 +583,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_config_8",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_8",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -569,12 +611,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_config_9",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_9",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -595,12 +639,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_config_10",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_10",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -621,12 +667,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_config_11",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_11",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -647,12 +695,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_config_0",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_0",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -673,12 +723,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_config_1",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_1",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -699,12 +751,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_config_2",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_2",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -725,12 +779,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_config_3",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_3",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -751,12 +807,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_config_4",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_4",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -777,12 +835,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_config_5",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_5",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -803,12 +863,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_config_6",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_6",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -829,12 +891,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_config_7",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_7",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -855,12 +919,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_config_8",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_8",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -881,12 +947,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_config_9",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_9",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -907,12 +975,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_config_10",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_10",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -933,12 +1003,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_config_11",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_11",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -959,12 +1031,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_config_0",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_0",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -985,12 +1059,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_config_1",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_1",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1011,12 +1087,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_config_2",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_2",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1037,12 +1115,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_config_3",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_3",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1063,12 +1143,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_config_4",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_4",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1089,12 +1171,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_config_5",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_5",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1115,12 +1199,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_config_6",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_6",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1141,12 +1227,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_config_7",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_7",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1167,12 +1255,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_config_8",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_8",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1193,12 +1283,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_config_9",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_9",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1219,12 +1311,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_config_10",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_10",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
@@ -1245,12 +1339,14 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "reset": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_config_11",
                   "mask": 1,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "resetHoldHi": 0
                 },
                 "presence": {
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_11",
                   "mask": 2,
-                  "gpioOffset": 0
+                  "gpioOffset": 0,
+                  "presentHoldHi": 1
                 },
                 "gpioChip": ""
               },
