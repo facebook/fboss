@@ -383,7 +383,8 @@ add_library(hwagent-main
   fboss/agent/oss/Main.cpp
 )
 
-target_link_libraries(hwagent
+target_link_libraries(hwagent-main
   split_agent_hwswitch_callback_handler
   platform_base
+  fboss_common_cpp2
 )
