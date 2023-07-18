@@ -17,6 +17,14 @@ from datetime import datetime
 # RUNNING HW TESTS:
 # -----------------
 #
+# Running Sanity Tests:
+#
+# 1. Run Jericho2 Sanity Tests
+#    ./run_test.py sai --config meru400biu.agent.materialized_JSON --coldboot_only --filter_file=/root/jericho2_sanity_tests
+#
+# 2. Run Ramon Sanity Tests
+#    ./run_test.py sai --config meru400bfu.agent.materialized_JSON --coldboot_only --filter_file=/root/ramon_sanity_tests
+#
 # Running HW Test Regression:
 #
 #  1. Run entire BCM SAI XGS Regression for a specific ASIC type and SDK
