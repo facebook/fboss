@@ -31,6 +31,8 @@ static constexpr auto kPgLimitBytes{2200};
 static constexpr auto kPgResumeOffsetBytes{1800};
 static constexpr auto kPgHeadroomBytes{
     2200}; // keep this lower than kGlobalSharedBytes
+static constexpr auto kGlobalIngressEgressBufferPoolSize{
+    5064760}; // Keep a high pool size for DNX
 static constexpr auto kLosslessTrafficClass{2};
 static constexpr auto kLosslessPriority{2};
 static constexpr auto kNumberOfPortsToEnablePfcOn{2};
@@ -176,8 +178,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
      * stages of init to setup common buffer pool for specific
      * asics like Jericho2.
      */
-    FLAGS_ingress_egress_buffer_pool_size =
-        kGlobalSharedBytes + kGlobalHeadroomBytes;
+    FLAGS_ingress_egress_buffer_pool_size = kGlobalIngressEgressBufferPoolSize;
     HwLinkStateDependentTest::SetUp();
   }
 
@@ -416,6 +417,12 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
           const std::vector<PortID>& portIds)> validateCounterFn =
           validatePfcCounters) {
     auto setup = [&]() {
+      if ((getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) ||
+          (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3)) {
+        // Keep low scaling factor so that headroom usage is attempted
+        // for Jericho family of ASICs.
+        testParams.buffer.scalingFactor = cfg::MMUScalingFactor::ONE_32768TH;
+      }
       setupBuffers(testParams.buffer, testParams.scale);
       setupEcmpTraffic();
       validateInitPfcCounters(
@@ -590,8 +597,7 @@ class HwTrafficPfcGenTest
      * stages of init to setup common buffer pool for specific
      * asics like Jericho2.
      */
-    FLAGS_ingress_egress_buffer_pool_size =
-        testParams.buffer.globalShared + testParams.buffer.globalHeadroom;
+    FLAGS_ingress_egress_buffer_pool_size = kGlobalIngressEgressBufferPoolSize;
     if (testParams.buffer.pgHeadroom == 0) {
       // Force headroom 0 for lossless PG
       FLAGS_allow_zero_headroom_for_lossless_pg = true;
@@ -639,12 +645,6 @@ TEST_P(HwTrafficPfcGenTest, verifyPfc) {
   const int trafficClass = kLosslessTrafficClass;
   const int pfcPriority = kLosslessPriority;
   TrafficTestParams trafficParams = GetParam();
-  if ((getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) ||
-      (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3)) {
-    // Keep low scaling factor so that headroom usage
-    // is attempted for this ASIC.
-    trafficParams.buffer.scalingFactor = cfg::MMUScalingFactor::ONE_32768TH;
-  }
   runTestWithCfg(trafficClass, pfcPriority, trafficParams);
 }
 
