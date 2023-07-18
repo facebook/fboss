@@ -1166,9 +1166,11 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
       rsFec.uncorrectedCodewords() = *((*portStats).fecUncorrectableErrors());
 
       phy::RsFecInfo lastRsFec;
-      if (auto lastPcs = lastPhyInfo_.line()->pcs()) {
-        if (auto lastFec = lastPcs->rsFec()) {
-          lastRsFec = *lastFec;
+      if (auto lastLine = lastPhyInfo_.line()) {
+        if (auto lastPcs = lastLine->pcs()) {
+          if (auto lastFec = lastPcs->rsFec()) {
+            lastRsFec = *lastFec;
+          }
         }
       }
       std::optional<uint64_t> correctedBitsFromHw;
@@ -1202,7 +1204,9 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
   phy::PmdState pmdState;
   phy::PmdStats pmdStats;
   int totalPmdLanes = numLanes_;
-  phy::PmdInfo lastPmd = *lastPhyInfo_.line()->pmd();
+  std::optional<phy::PmdInfo> lastPmd = lastPhyInfo_.line()
+      ? std::make_optional(*lastPhyInfo_.line()->pmd())
+      : std::nullopt;
   phy::PmdState lastPmdState;
   if (auto lastState = lastPhyInfo_.state()) {
     lastPmdState = *lastState->line()->pmd();
@@ -1256,8 +1260,10 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
         bool changed = lock_status.rx_lock_change_bmp & (1 << lane);
         pmd.lanes_ref()[lane].cdrLockChanged_ref() = changed;
         pmdState.lanes_ref()[lane].cdrLockChanged_ref() = changed;
-        utility::updateCdrLockChangedCount(
-            changed, lane, pmd.lanes_ref()[lane], lastPmd);
+        if (lastPmd) {
+          utility::updateCdrLockChangedCount(
+              changed, lane, pmd.lanes_ref()[lane], *lastPmd);
+        }
         utility::updateCdrLockChangedCount(
             changed, lane, pmdStats.lanes_ref()[lane], lastPmdStats);
       }
@@ -1284,8 +1290,10 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
         bool changed = sd_status.signal_detect_change_bmp & (1 << lane);
         pmd.lanes_ref()[lane].signalDetectChanged_ref() = changed;
         pmdState.lanes_ref()[lane].signalDetectChanged_ref() = changed;
-        utility::updateSignalDetectChangedCount(
-            changed, lane, pmd.lanes_ref()[lane], lastPmd);
+        if (lastPmd) {
+          utility::updateSignalDetectChangedCount(
+              changed, lane, pmd.lanes_ref()[lane], *lastPmd);
+        }
         utility::updateSignalDetectChangedCount(
             changed, lane, pmdStats.lanes_ref()[lane], lastPmdStats);
       }

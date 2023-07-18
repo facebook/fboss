@@ -59,7 +59,9 @@ ExternalPhyPortStats ExternalPhyPortStats::fromPhyInfo(const PhyInfo& phyInfo) {
   if (auto sysSideInfo = phyInfo.system()) {
     fillSideStatsFromInfo(phyStats.system, *sysSideInfo);
   }
-  fillSideStatsFromInfo(phyStats.line, phyInfo.get_line());
+  if (auto lineSideInfo = phyInfo.line()) {
+    fillSideStatsFromInfo(phyStats.line, *lineSideInfo);
+  }
 
   return phyStats;
 }

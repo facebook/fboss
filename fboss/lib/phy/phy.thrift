@@ -309,14 +309,14 @@ struct PrbsStats {
 
 // structs for Phy(both IPHY and XPHY) diagnostic info
 struct PhyInfo {
-  1: DataPlanePhyChip phyChip (deprecated = "Moved to state/stats");
+  1: optional DataPlanePhyChip phyChip (deprecated = "Moved to state/stats");
   2: optional PhyFwVersion fwVersion (deprecated = "Moved to state/stats");
   3: switch_config.PortSpeed speed (deprecated = "Moved to state/stats");
   4: string name (deprecated = "Moved to state/stats"); // port name
   5: optional bool linkState (deprecated = "Moved to state/stats");
   6: optional i64 linkFlapCount (deprecated = "Moved to state/stats");
   10: optional PhySideInfo system (deprecated = "Moved to state/stats");
-  11: PhySideInfo line (deprecated = "Moved to state/stats");
+  11: optional PhySideInfo line (deprecated = "Moved to state/stats");
   12: i32 timeCollected (deprecated = "Moved to state/stats"); // Time the diagnostic info was collected at
   13: optional i32 switchID (deprecated = "Moved to state/stats");
   // During the transition, the new state and states will be optional.
