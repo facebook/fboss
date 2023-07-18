@@ -180,4 +180,12 @@ struct PlatformConfig {
   // Global mapping from the i2c device paths to an application friendly sysfs
   // path.
   7: map<string, string> i2cPathToHumanFriendlyName;
+
+  // Name and version of the rpm containing the BSP kmods for this platform
+  11: string bspKmodsRpmName;
+  12: string bspKmodsRpmVersion;
+
+  // Name and version of the rpm containing the udev rules for this platform
+  13: string udevRpmName;
+  14: string udevRpmVersion;
 }
