@@ -24,6 +24,11 @@ DEFINE_int32(
     "How often we will read sensors and change fan pwm");
 DEFINE_string(mock_input, "", "Mock Input File");
 DEFINE_string(mock_output, "", "Mock Output File");
+DEFINE_string(
+    config_file,
+    "",
+    "Optional platform fan service configuration file. "
+    "If not specified, default platform config will be used");
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
@@ -34,12 +39,13 @@ int main(int argc, char** argv) {
   // If Mock configuration is enabled, run Fan Service in Mock mode, then quit.
   // No Thrift service will be created at all.
   if (FLAGS_mock_input != "") {
-    facebook::fboss::platform::FanService mockedFanService;
+    facebook::fboss::platform::FanService mockedFanService(FLAGS_config_file);
     mockedFanService.kickstart();
     return mockedFanService.runMock(FLAGS_mock_input, FLAGS_mock_output);
   }
 
-  auto serviceImpl = std::make_unique<facebook::fboss::platform::FanService>();
+  auto serviceImpl = std::make_unique<facebook::fboss::platform::FanService>(
+      FLAGS_config_file);
 
   auto server = std::make_shared<apache::thrift::ThriftServer>();
   auto handler = std::make_shared<FanServiceHandler>(std::move(serviceImpl));

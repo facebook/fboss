@@ -4,6 +4,7 @@
 // for functional description
 #include "fboss/platform/fan_service/FanService.h"
 
+#include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
@@ -18,7 +19,8 @@ auto constexpr kDefaultFanControlFrequencyInSec = 30;
 
 namespace facebook::fboss::platform {
 
-FanService::FanService() {
+FanService::FanService(const std::string& configFile)
+    : confFileName_(configFile) {
   lastControlExecutionTimeSec_ = 0;
   lastSensorFetchTimeSec_ = 0;
 
@@ -61,7 +63,18 @@ std::shared_ptr<Bsp> FanService::BspFactory() {
 
 void FanService::kickstart() {
   // Read Config
-  auto fanServiceConfJson = ConfigLib().getFanServiceConfig();
+  std::string fanServiceConfJson;
+  if (confFileName_.empty()) {
+    XLOG(INFO) << "No config file was provided. Inferring from config_lib";
+    fanServiceConfJson = ConfigLib().getFanServiceConfig();
+  } else {
+    XLOG(INFO) << "Using config file: " << confFileName_;
+    if (!folly::readFile(confFileName_.c_str(), fanServiceConfJson)) {
+      throw std::runtime_error(
+          "Can not find sensor config file: " + confFileName_);
+    }
+  }
+
   apache::thrift::SimpleJSONSerializer::deserialize<
       fan_config_structs::FanServiceConfig>(fanServiceConfJson, config_);
   XLOG(INFO) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(

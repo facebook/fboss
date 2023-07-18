@@ -25,8 +25,7 @@ namespace facebook::fboss::platform {
 
 class FanService {
  public:
-  // Constructor / destructor
-  FanService();
+  explicit FanService(const std::string& configFile);
   ~FanService() {} // Make compiler happy in handling smart pointers
   // Instantiates all classes used by Fan Service
   void kickstart();
@@ -66,6 +65,7 @@ class FanService {
   uint64_t lastSensorFetchTimeSec_;
   // How often we run fan control logic?
   uint64_t controlFrequencySec_;
+  std::string confFileName_{};
 
   unsigned int getControlFrequency() const;
   // The factory method to return the proper BSP object,
