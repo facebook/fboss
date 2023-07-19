@@ -194,12 +194,12 @@ void MonolithicSwSwitchInitializer::initImpl(
   initCondition_.notify_all();
 }
 
-void SignalHandler::signalReceived(int /*signum*/) noexcept {
+void MonolithicAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
   restart_time::mark(RestartEvent::SIGNAL_RECEIVED);
 
   XLOG(DBG2) << "[Exit] Signal received ";
   steady_clock::time_point begin = steady_clock::now();
-  stopServices_();
+  stopServices();
   steady_clock::time_point servicesStopped = steady_clock::now();
   XLOG(DBG2) << "[Exit] Services stop time "
              << duration_cast<duration<float>>(servicesStopped - begin).count();
@@ -289,7 +289,7 @@ int MonolithicAgentInitializer::initAgent(HwSwitchCallback* callback) {
   facebook::fb303::ThreadCachedServiceData::get()->startPublishThread(
       std::chrono::milliseconds(FLAGS_stat_publish_interval_ms));
 
-  SignalHandler signalHandler(
+  MonolithicAgentSignalHandler signalHandler(
       eventBase_, sw_.get(), [this]() { stopServices(); });
 
   XLOG(DBG2) << "serving on localhost on port " << FLAGS_port << " and "

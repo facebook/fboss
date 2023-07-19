@@ -9,9 +9,12 @@
  */
 #pragma once
 
+#include <csignal>
 #include <map>
 #include <memory>
 #include <string>
+
+#include <folly/io/async/AsyncSignalHandler.h>
 
 namespace facebook::fboss {
 
@@ -23,5 +26,24 @@ void fbossFinalize();
 void setVersionInfo();
 void initializeBitsflow();
 std::unique_ptr<AgentConfig> fbossCommonInit(int argc, char** argv);
+
+class SignalHandler : public folly::AsyncSignalHandler {
+ protected:
+  using StopServices = std::function<void()>;
+
+  void stopServices() {
+    stopServices_();
+  }
+
+ public:
+  SignalHandler(folly::EventBase* eventBase, StopServices stopServices)
+      : AsyncSignalHandler(eventBase), stopServices_(stopServices) {
+    registerSignalHandler(SIGINT);
+    registerSignalHandler(SIGTERM);
+  }
+
+ private:
+  StopServices stopServices_;
+};
 
 } // namespace facebook::fboss

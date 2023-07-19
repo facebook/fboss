@@ -11,8 +11,8 @@
 #include <memory>
 
 #include <folly/experimental/FunctionScheduler.h>
-#include <folly/io/async/AsyncSignalHandler.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
+#include "fboss/agent/CommonInit.h"
 #include "fboss/agent/HwAgent.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TunManager.h"
@@ -20,7 +20,6 @@
 #include <gflags/gflags.h>
 #include <chrono>
 #include <condition_variable>
-#include <csignal>
 #include <cstdio>
 #include <functional>
 #include <future>
@@ -61,24 +60,18 @@ class MonolithicSwSwitchInitializer {
   std::condition_variable initCondition_;
 };
 
-class SignalHandler : public folly::AsyncSignalHandler {
-  typedef std::function<void()> StopServices;
-
+class MonolithicAgentSignalHandler : public SignalHandler {
  public:
-  SignalHandler(
+  MonolithicAgentSignalHandler(
       folly::EventBase* eventBase,
       SwSwitch* sw,
-      StopServices stopServices)
-      : AsyncSignalHandler(eventBase), sw_(sw), stopServices_(stopServices) {
-    registerSignalHandler(SIGINT);
-    registerSignalHandler(SIGTERM);
-  }
+      SignalHandler::StopServices stopServices)
+      : SignalHandler(eventBase, stopServices), sw_(sw) {}
 
   void signalReceived(int /*signum*/) noexcept override;
 
  private:
   SwSwitch* sw_;
-  StopServices stopServices_;
 };
 
 class MonolithicAgentInitializer {
