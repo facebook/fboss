@@ -250,6 +250,7 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
       break;
 
     case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL:
+    case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL:
       verify400gProfile(mgmtInterface, mediaInterfaces);
       break;
 
