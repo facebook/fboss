@@ -99,8 +99,9 @@ std::unordered_map<PortID, cfg::PortProfileID>& getPortToDefaultProfileIDMap() {
 }
 
 cfg::DsfNode dsfNodeConfig(const HwAsic& myAsic, int64_t otherSwitchId) {
-  auto createAsic = [](const HwAsic& fromAsic,
-                       int64_t switchId) -> std::shared_ptr<HwAsic> {
+  auto createAsic =
+      [](const HwAsic& fromAsic,
+         int64_t switchId) -> std::pair<std::shared_ptr<HwAsic>, PlatformType> {
     std::optional<cfg::Range64> systemPortRange;
     auto fromAsicSystemPortRange = fromAsic.getSystemPortRange();
     if (fromAsicSystemPortRange.has_value()) {
@@ -114,25 +115,41 @@ cfg::DsfNode dsfNodeConfig(const HwAsic& myAsic, int64_t otherSwitchId) {
     auto localMac = utility::kLocalCpuMac();
     switch (fromAsic.getAsicType()) {
       case cfg::AsicType::ASIC_TYPE_JERICHO2:
-        return std::make_unique<Jericho2Asic>(
-            fromAsic.getSwitchType(), switchId, systemPortRange, localMac);
+        return std::pair(
+            std::make_unique<Jericho2Asic>(
+                fromAsic.getSwitchType(), switchId, systemPortRange, localMac),
+            PlatformType::PLATFORM_MERU400BIU);
       case cfg::AsicType::ASIC_TYPE_JERICHO3:
-        return std::make_unique<Jericho3Asic>(
-            fromAsic.getSwitchType(), switchId, systemPortRange, localMac);
+        return std::pair(
+            std::make_unique<Jericho3Asic>(
+                fromAsic.getSwitchType(), switchId, systemPortRange, localMac),
+            PlatformType::PLATFORM_MERU800BIA);
       case cfg::AsicType::ASIC_TYPE_RAMON:
-        return std::make_unique<RamonAsic>(
-            fromAsic.getSwitchType(), switchId, std::nullopt, localMac);
+        return std::pair(
+            std::make_unique<RamonAsic>(
+                fromAsic.getSwitchType(), switchId, std::nullopt, localMac),
+            PlatformType::PLATFORM_MERU400BFU);
       case cfg::AsicType::ASIC_TYPE_RAMON3:
-        return std::make_unique<Ramon3Asic>(
-            fromAsic.getSwitchType(), switchId, std::nullopt, localMac);
+        return std::pair(
+            std::make_unique<Ramon3Asic>(
+                fromAsic.getSwitchType(), switchId, std::nullopt, localMac),
+            PlatformType::PLATFORM_MERU800BFA);
       case cfg::AsicType::ASIC_TYPE_EBRO:
-        return std::make_unique<EbroAsic>(
-            fromAsic.getSwitchType(), switchId, systemPortRange, localMac);
+        PlatformType platformType;
+        if (fromAsic.getSwitchType() == cfg::SwitchType::FABRIC) {
+          platformType = PlatformType::PLATFORM_WEDGE400C_FABRIC;
+        } else {
+          platformType = PlatformType::PLATFORM_WEDGE400C_VOQ;
+        }
+        return std::pair(
+            std::make_unique<EbroAsic>(
+                fromAsic.getSwitchType(), switchId, systemPortRange, localMac),
+            platformType);
       default:
         throw FbossError("Unexpected asic type: ", fromAsic.getAsicTypeStr());
     }
   };
-  auto otherAsic = createAsic(myAsic, otherSwitchId);
+  auto [otherAsic, otherPlatformType] = createAsic(myAsic, otherSwitchId);
   cfg::DsfNode dsfNode;
   dsfNode.switchId() = *otherAsic->getSwitchId();
   dsfNode.name() = folly::sformat("hwTestSwitch{}", *dsfNode.switchId());
@@ -152,6 +169,7 @@ cfg::DsfNode dsfNodeConfig(const HwAsic& myAsic, int64_t otherSwitchId) {
       throw FbossError("Unexpected switch type: ", otherAsic->getSwitchType());
   }
   dsfNode.asicType() = otherAsic->getAsicType();
+  dsfNode.platformType() = otherPlatformType;
   return dsfNode;
 }
 
