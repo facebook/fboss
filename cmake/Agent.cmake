@@ -173,7 +173,6 @@ add_library(core
   fboss/agent/ResolvedNexthopMonitor.cpp
   fboss/agent/ResolvedNexthopProbe.cpp
   fboss/agent/ResolvedNexthopProbeScheduler.cpp
-  fboss/agent/RestartTimeTracker.cpp
   fboss/agent/RouteUpdateLogger.cpp
   fboss/agent/RouteUpdateLoggingPrefixTracker.cpp
   fboss/agent/RouteUpdateWrapper.cpp
@@ -214,6 +213,7 @@ target_link_libraries(core
   packet
   product_info
   platform_base
+  restart_time_tracker
   fib_updater
   network_to_route_map
   standalone_rib
@@ -389,4 +389,14 @@ target_link_libraries(hwagent-main
   platform_base
   fboss_common_cpp2
   setup_thrift
+)
+
+add_library(restart_time_tracker
+  fboss/agent/RestartTimeTracker.cpp
+)
+
+target_link_libraries(restart_time_tracker
+  utils
+  fb303::fb303
+  Folly::folly
 )
