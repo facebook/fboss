@@ -375,6 +375,7 @@ add_library(split_agent_hwswitch_callback_handler
 target_link_libraries(split_agent_hwswitch_callback_handler
   Folly::folly
   fboss_types
+  state
 )
 
 add_library(hwagent-main
