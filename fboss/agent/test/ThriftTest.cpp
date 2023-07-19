@@ -242,6 +242,20 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getHwDebugDump) {
   EXPECT_THROW(handler.getHwDebugDump(out), FbossError);
 }
 
+TYPED_TEST(ThriftTestAllSwitchTypes, getL2Table) {
+  ThriftHandler handler(this->sw_);
+  std::string out;
+  EXPECT_HW_CALL(this->sw_, fetchL2Table(testing::_))
+      .Times(this->isNpu() ? 1 : 0);
+
+  std::vector<L2EntryThrift> l2Entries;
+  if (this->isFabric()) {
+    EXPECT_THROW(handler.getL2Table(l2Entries), FbossError);
+  } else {
+    handler.getL2Table(l2Entries);
+  }
+}
+
 TEST(ThriftEnum, assertPortSpeeds) {
   // We rely on the exact value of the port speeds for some
   // logic, so we want to ensure that these values don't change.

@@ -1029,8 +1029,10 @@ void ThriftHandler::getArpTable(std::vector<ArpEntryThrift>& arpTable) {
 void ThriftHandler::getL2Table(std::vector<L2EntryThrift>& l2Table) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  sw_->getHwSwitchHandler()->fetchL2Table(&l2Table);
-  XLOG(DBG6) << "L2 Table size:" << l2Table.size();
+  if (sw_->getSwitchInfoTable().l3SwitchType() == cfg::SwitchType::NPU) {
+    sw_->getHwSwitchHandler()->fetchL2Table(&l2Table);
+    XLOG(DBG6) << "L2 Table size:" << l2Table.size();
+  }
 }
 
 void ThriftHandler::getAclTable(std::vector<AclEntryThrift>& aclTable) {
