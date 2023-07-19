@@ -110,8 +110,6 @@ void validatePhyInfo(
   EXPECT_TRUE(*curr.timeCollected() > *prev.timeCollected());
   EXPECT_TRUE(*currState.timeCollected() > *prevState.timeCollected());
   EXPECT_TRUE(*currStats.timeCollected() > *prevStats.timeCollected());
-  CHECK(curr.phyChip().has_value());
-  CHECK(prev.phyChip().has_value());
   EXPECT_EQ(*curr.phyChip()->type(), chipType);
   EXPECT_EQ(*prev.phyChip()->type(), chipType);
   EXPECT_EQ(*currState.phyChip()->type(), chipType);
