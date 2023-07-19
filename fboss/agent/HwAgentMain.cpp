@@ -12,9 +12,15 @@
 #include "fboss/agent/CommonInit.h"
 #include "fboss/agent/FbossInit.h"
 #include "fboss/agent/HwAgent.h"
+#include "fboss/agent/SetupThrift.h"
 #include "fboss/agent/mnpu/SplitAgentHwSwitchCallbackHandler.h"
 
 DEFINE_int32(switchIndex, 0, "Switch Index for Asic");
+
+DEFINE_int32(
+    hwagent_port_base,
+    5931,
+    "The first thrift server port reserved for HwAgent");
 
 namespace facebook::fboss {
 
@@ -34,7 +40,18 @@ int hwAgentMain(
   hwAgent->initAgent(
       true /* failHwCallsOnWarmboot */, hwSwitchCallbackHandler.get());
 
-  hwAgent->start();
+  folly::EventBase eventBase;
+  auto server = setupThriftServer(
+      eventBase,
+      {hwAgent->getPlatform()->createHandler()},
+      {FLAGS_hwagent_port_base + FLAGS_switchIndex},
+      true /*setupSSL*/);
+
+  // we are sharing thrift server setup with swswitch which uses legacy
+  // thrift server framework. This will be removed once the shared code
+  // is migrated to ServiceFramework.
+  // @lint-ignore CLANGTIDY
+  server->serve();
   return 0;
 }
 

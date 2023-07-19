@@ -32,7 +32,6 @@ class HwAgent {
   HwInitResult initAgent(
       bool failHwCallsOnWarmboot,
       HwSwitchCallback* callback);
-  void start();
 
  private:
   std::unique_ptr<Platform> platform_;

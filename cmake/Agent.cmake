@@ -388,4 +388,5 @@ target_link_libraries(hwagent-main
   split_agent_hwswitch_callback_handler
   platform_base
   fboss_common_cpp2
+  setup_thrift
 )
