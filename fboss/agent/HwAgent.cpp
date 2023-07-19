@@ -16,8 +16,10 @@ namespace facebook::fboss {
 HwAgent::HwAgent(
     std::unique_ptr<AgentConfig> config,
     uint32_t hwFeaturesDesired,
-    PlatformInitFn initPlatformFn)
-    : platform_(initPlatformFn(std::move(config), hwFeaturesDesired)) {}
+    PlatformInitFn initPlatformFn,
+    int16_t switchIndex)
+    : platform_(
+          initPlatformFn(std::move(config), hwFeaturesDesired, switchIndex)) {}
 
 HwInitResult HwAgent::initAgent(
     bool failHwCallsOnWarmboot,

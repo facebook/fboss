@@ -23,7 +23,8 @@ class HwAgent {
   HwAgent(
       std::unique_ptr<AgentConfig> config,
       uint32_t hwFeaturesDesired,
-      PlatformInitFn initPlatformFn);
+      PlatformInitFn initPlatformFn,
+      int16_t switchIndex);
   virtual ~HwAgent() {}
   Platform* getPlatform() const {
     return platform_.get();

@@ -51,9 +51,10 @@ std::unique_ptr<WedgePlatform> createWedgePlatform() {
 
 std::unique_ptr<Platform> initWedgePlatform(
     std::unique_ptr<AgentConfig> config,
-    uint32_t hwFeaturesDesired) {
+    uint32_t hwFeaturesDesired,
+    int16_t switchIndex) {
   auto platform = createWedgePlatform();
-  platform->init(std::move(config), hwFeaturesDesired);
+  platform->init(std::move(config), hwFeaturesDesired, switchIndex);
   return std::move(platform);
 }
 

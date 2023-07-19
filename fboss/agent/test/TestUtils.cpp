@@ -508,7 +508,8 @@ unique_ptr<MockPlatform> createMockPlatform(
   thrift.sw()->switchSettings()->switchIdToSwitchInfo() = {
       std::make_pair(switchId, createSwitchInfo(switchType))};
   auto agentCfg = std::make_unique<AgentConfig>(thrift, "");
-  mock->init(std::move(agentCfg), 0);
+  mock->init(
+      std::move(agentCfg), 0 /* features  desired*/, 0 /* switchIndex */);
   FLAGS_mac = mock->getLocalMac().toString();
   return std::move(mock);
 }

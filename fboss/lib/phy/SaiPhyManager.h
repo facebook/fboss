@@ -256,7 +256,8 @@ void SaiPhyManager::initializeSlotPhysImpl(PimID pimID) {
           std::make_pair(0, switchInfo)};
       saiPlatform->init(
           std::make_unique<AgentConfig>(config, ""),
-          0 /* No switch featured needed */);
+          0 /* No switch featured needed */,
+          0 /* switchIndex */);
 
       // Now call HwSwitch to create the switch object in hardware
       auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());

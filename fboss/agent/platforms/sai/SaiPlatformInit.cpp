@@ -127,7 +127,8 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
 
 std::unique_ptr<Platform> initSaiPlatform(
     std::unique_ptr<AgentConfig> config,
-    uint32_t hwFeaturesDesired) {
+    uint32_t hwFeaturesDesired,
+    int16_t switchIndex) {
   auto productInfo =
       std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
   productInfo->initialize();
@@ -144,7 +145,7 @@ std::unique_ptr<Platform> initSaiPlatform(
   }
   auto platform =
       chooseSaiPlatform(std::move(productInfo), localMac, platformMappingStr);
-  platform->init(std::move(config), hwFeaturesDesired);
+  platform->init(std::move(config), hwFeaturesDesired, switchIndex);
   return std::move(platform);
 }
 

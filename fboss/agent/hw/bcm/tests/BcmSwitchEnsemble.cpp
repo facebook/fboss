@@ -295,7 +295,7 @@ void BcmSwitchEnsemble::init(
     BcmAPI::init(cfg);
   }
   // TODO pass agent config to platform init
-  platform->init(std::move(agentConfig), getHwSwitchFeatures());
+  platform->init(std::move(agentConfig), getHwSwitchFeatures(), 0);
   if (auto tcvr = info.overrideTransceiverInfo) {
     platform->setOverrideTransceiverInfo(*tcvr);
   }

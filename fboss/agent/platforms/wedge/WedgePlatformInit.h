@@ -22,7 +22,8 @@ class PlatformProductInfo;
 std::unique_ptr<WedgePlatform> createWedgePlatform();
 std::unique_ptr<Platform> initWedgePlatform(
     std::unique_ptr<AgentConfig> config,
-    uint32_t hwFeaturesDesired);
+    uint32_t hwFeaturesDesired,
+    int16_t switchIndex = 0);
 
 /**
  * This function should return derived WedgePlatform which is still in dev.

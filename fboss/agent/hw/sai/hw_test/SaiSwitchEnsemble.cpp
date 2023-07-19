@@ -147,7 +147,7 @@ void SaiSwitchEnsemble::init(
   }
   initFlagDefaults(*agentConfig->thrift.defaultCommandLineArgs());
   auto platform =
-      initSaiPlatform(std::move(agentConfig), getHwSwitchFeatures());
+      initSaiPlatform(std::move(agentConfig), getHwSwitchFeatures(), 0);
   if (auto tcvr = info.overrideTransceiverInfo) {
     platform->setOverrideTransceiverInfo(*tcvr);
   }

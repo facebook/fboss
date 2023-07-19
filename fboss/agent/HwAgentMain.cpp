@@ -14,6 +14,8 @@
 #include "fboss/agent/HwAgent.h"
 #include "fboss/agent/mnpu/SplitAgentHwSwitchCallbackHandler.h"
 
+DEFINE_int32(switchIndex, 0, "Switch Index for Asic");
+
 namespace facebook::fboss {
 
 int hwAgentMain(
@@ -24,7 +26,7 @@ int hwAgentMain(
   auto config = fbossCommonInit(argc, argv);
 
   auto hwAgent = std::make_unique<HwAgent>(
-      std::move(config), hwFeaturesDesired, initPlatformFn);
+      std::move(config), hwFeaturesDesired, initPlatformFn, FLAGS_switchIndex);
 
   auto hwSwitchCallbackHandler =
       std::make_unique<SplitAgentHwSwitchCallbackHandler>();

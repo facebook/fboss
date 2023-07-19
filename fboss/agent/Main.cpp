@@ -238,7 +238,7 @@ void MonolithicAgentInitializer::createSwitch(
   setCmdLineFlagOverrides();
 
   hwAgent_ = std::make_unique<HwAgent>(
-      std::move(config), hwFeaturesDesired, initPlatform);
+      std::move(config), hwFeaturesDesired, initPlatform, 0 /*switchIndex*/);
 
   auto platform = hwAgent_->getPlatform();
   CHECK(platform);

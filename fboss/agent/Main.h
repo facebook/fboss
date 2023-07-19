@@ -81,9 +81,6 @@ class SignalHandler : public folly::AsyncSignalHandler {
   StopServices stopServices_;
 };
 
-typedef std::unique_ptr<Platform> (
-    *PlatformInitFn)(std::unique_ptr<AgentConfig>, uint32_t featuresDesired);
-
 class MonolithicAgentInitializer {
  public:
   MonolithicAgentInitializer() {}
