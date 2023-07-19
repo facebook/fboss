@@ -755,7 +755,7 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
     auto newState = getProgrammedState();
     auto newRemoteInterfaces =
         newState->getRemoteInterfaces()->modify(&newState);
-    auto numPrevIntfs = newRemoteInterfaces->size();
+    auto numPrevIntfs = newRemoteInterfaces->numNodes();
     auto newRemoteInterface = std::make_shared<Interface>(
         intfId,
         RouterID(0),
