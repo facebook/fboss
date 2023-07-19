@@ -13,9 +13,20 @@
 #include <gflags/gflags.h>
 #include <string>
 
+#include "fboss/agent/CommonInit.h"
 #include "fboss/agent/FbossInit.h"
 
 namespace facebook::fboss {
+
+class SplitHwAgentSignalHandler : public SignalHandler {
+ public:
+  SplitHwAgentSignalHandler(
+      folly::EventBase* eventBase,
+      SignalHandler::StopServices stopServices)
+      : SignalHandler(eventBase, std::move(stopServices)) {}
+
+  void signalReceived(int /*signum*/) noexcept override;
+};
 
 int hwAgentMain(
     int argc,

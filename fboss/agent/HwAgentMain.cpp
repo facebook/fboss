@@ -8,12 +8,16 @@
  *
  */
 #include "fboss/agent/HwAgentMain.h"
+#include <folly/logging/xlog.h>
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/CommonInit.h"
 #include "fboss/agent/FbossInit.h"
 #include "fboss/agent/HwAgent.h"
+#include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/SetupThrift.h"
 #include "fboss/agent/mnpu/SplitAgentHwSwitchCallbackHandler.h"
+
+#include <chrono>
 
 DEFINE_int32(switchIndex, 0, "Switch Index for Asic");
 
@@ -22,7 +26,22 @@ DEFINE_int32(
     5931,
     "The first thrift server port reserved for HwAgent");
 
+using namespace std::chrono;
+
 namespace facebook::fboss {
+
+void SplitHwAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
+  restart_time::mark(RestartEvent::SIGNAL_RECEIVED);
+
+  XLOG(DBG2) << "[Exit] Signal received ";
+  steady_clock::time_point begin = steady_clock::now();
+  stopServices();
+  steady_clock::time_point servicesStopped = steady_clock::now();
+  XLOG(DBG2) << "[Exit] Services stop time "
+             << duration_cast<duration<float>>(servicesStopped - begin).count();
+  restart_time::mark(RestartEvent::SHUTDOWN);
+  exit(0);
+}
 
 int hwAgentMain(
     int argc,
@@ -37,8 +56,12 @@ int hwAgentMain(
   auto hwSwitchCallbackHandler =
       std::make_unique<SplitAgentHwSwitchCallbackHandler>();
 
-  hwAgent->initAgent(
+  auto hwInitRet = hwAgent->initAgent(
       true /* failHwCallsOnWarmboot */, hwSwitchCallbackHandler.get());
+
+  restart_time::init(
+      hwAgent->getPlatform()->getWarmBootDir(),
+      hwInitRet.bootType == BootType::WARM_BOOT);
 
   folly::EventBase eventBase;
   auto server = setupThriftServer(
@@ -46,6 +69,10 @@ int hwAgentMain(
       {hwAgent->getPlatform()->createHandler()},
       {FLAGS_hwagent_port_base + FLAGS_switchIndex},
       true /*setupSSL*/);
+
+  SplitHwAgentSignalHandler signalHandler(&eventBase, []() {});
+
+  restart_time::mark(RestartEvent::INITIALIZED);
 
   // we are sharing thrift server setup with swswitch which uses legacy
   // thrift server framework. This will be removed once the shared code

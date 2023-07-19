@@ -388,7 +388,9 @@ target_link_libraries(hwagent-main
   split_agent_hwswitch_callback_handler
   platform_base
   fboss_common_cpp2
+  restart_time_tracker
   setup_thrift
+  Folly::folly
 )
 
 add_library(restart_time_tracker
