@@ -78,8 +78,30 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
       case MediaInterfaceCode::FR4_200G:
       case MediaInterfaceCode::FR4_400G:
       case MediaInterfaceCode::LR4_400G_10KM:
-      case MediaInterfaceCode::FR4_2x400G: // FIXME
         expectedMediaLanes = {0, 1, 2, 3};
+        break;
+      case MediaInterfaceCode::FR4_2x400G:
+        if (profile ==
+            cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL) {
+          if (std::find(
+                  hostLaneMap[portName].begin(),
+                  hostLaneMap[portName].end(),
+                  0) != hostLaneMap[portName].end()) {
+            // When lane 0 is one of the host lanes, the media lanes are
+            // expected to be 0,1,2,3.
+            expectedMediaLanes = {0, 1, 2, 3};
+          } else {
+            expectedMediaLanes = {4, 5, 6, 7};
+          }
+        } else if (
+            profile ==
+            cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_OPTICAL) {
+          expectedMediaLanes = {*hostLaneMap[portName].begin()};
+        } else {
+          throw FbossError(
+              "Unhandled profile ",
+              apache::thrift::util::enumNameSafe(profile));
+        }
         break;
       case MediaInterfaceCode::FR1_100G:
       case MediaInterfaceCode::LR_10G:
