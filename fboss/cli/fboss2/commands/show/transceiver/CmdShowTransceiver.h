@@ -182,6 +182,10 @@ class CmdShowTransceiver
     for (const auto& [portId, portEntry] : portStatusEntries) {
       cli::TransceiverDetail details;
       details.name() = portEntries[portId].get_name();
+      if (!portEntry.transceiverIdx().has_value()) {
+        // No transceiver information for this port. Skip printing
+        continue;
+      }
       const auto transceiverId =
           portEntry.transceiverIdx()->get_transceiverId();
       const auto& transceiver = transceiverEntries[transceiverId];
