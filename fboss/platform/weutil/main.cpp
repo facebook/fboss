@@ -20,8 +20,6 @@ using namespace facebook::fboss::platform;
 using namespace facebook::fboss;
 using namespace facebook;
 
-FOLLY_INIT_LOGGING_CONFIG(".=FATAL; default:async=true");
-
 // This utility program will output Chassis info for Darwin
 int main(int argc, char* argv[]) {
   std::unique_ptr<WeutilInterface> weutilInstance;

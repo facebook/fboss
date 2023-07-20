@@ -34,7 +34,7 @@ std::unique_ptr<WeutilInterface> get_plat_weutil(std::string eeprom) {
   }
 
   XLOG(INFO) << "The platform (" << toString(prodInfo.getType())
-             << ") is not supported" << std::endl;
+             << ") is not supported";
   return nullptr;
 }
 
