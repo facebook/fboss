@@ -307,8 +307,8 @@ TEST_F(LinkTest, fabricLinkHealth) {
   //   traffic should loop back in because of snake configuration and then spray
   //   over the fabric.
   //   3. Verify out counters on both NIF and Fabric Ports
-  //   4. TODO: Verify no in discards/in errors on NIF or Ports
-  //   5. TODO: Verify FEC UCW doesn't increment on both NIF and Fabric ports
+  //   4. Verify no in discards/in errors on NIF or Ports
+  //   5. Verify FEC UCW doesn't increment on both NIF and Fabric ports
   //   6. TODO: Figure out other counters (pre-FEC BER, reassembly, packet
   //   integrity etc) to verify and add those checks
 
@@ -323,6 +323,7 @@ TEST_F(LinkTest, fabricLinkHealth) {
   const auto kSrcPortName = getPortName(kSrcPort);
 
   auto beforeNifStats = getPortStats({kSrcPortName})[kSrcPortName];
+  auto beforeFabricStats = getPortStats(fabricPorts);
 
   utility::pumpTraffic(
       platform()->getHwSwitch(), /* HwSwitch */
@@ -354,5 +355,22 @@ TEST_F(LinkTest, fabricLinkHealth) {
     XLOG(DBG2) << "NIF bytes: " << afterNifStats.get_outBytes_()
                << " Fabric bytes: " << fabricBytes;
     EXPECT_EVENTUALLY_GE(fabricBytes, afterNifStats.get_outBytes_());
+
+    for (const auto& idAndStats : fabricPortStats) {
+      EXPECT_EQ(
+          idAndStats.second.get_inErrors_(),
+          beforeFabricStats[idAndStats.first].get_inErrors_())
+          << "InErrors incremented on " << idAndStats.first;
+      EXPECT_EQ(
+          beforeFabricStats[idAndStats.first].get_fecUncorrectableErrors(),
+          idAndStats.second.get_fecUncorrectableErrors())
+          << "FEC Uncorrectable erorrs incremented on " << idAndStats.first;
+    }
+    EXPECT_EQ(afterNifStats.get_inErrors_(), beforeNifStats.get_inErrors_())
+        << "InErrors incremented on " << kSrcPortName;
+    EXPECT_EQ(
+        beforeNifStats.get_fecUncorrectableErrors(),
+        afterNifStats.get_fecUncorrectableErrors())
+        << "FEC Uncorrectable errors incremented on " << kSrcPortName;
   });
 }
