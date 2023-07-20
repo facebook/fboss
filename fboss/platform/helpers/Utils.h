@@ -15,8 +15,7 @@ std::string execCommandUnchecked(const std::string& cmd, int& exitStatus);
  * status != 0)
  */
 std::string execCommand(const std::string& cmd);
-uint32_t mmap_read(uint32_t address, char acc_type);
-int mmap_write(uint32_t address, char acc_type, uint32_t val);
+
 void showDeviceInfo();
 
 /*
