@@ -81,6 +81,11 @@ SaiSwitchTraits::Attributes::AttributeMaxCoresWrapper::operator()() {
   return std::nullopt;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 void SwitchApi::registerParityErrorSwitchEventCallback(
     SwitchSaiId /*id*/,
     void* /*switch_event_cb*/) const {}
