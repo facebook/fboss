@@ -402,3 +402,12 @@ target_link_libraries(restart_time_tracker
   fb303::fb303
   Folly::folly
 )
+
+add_library(multiswitch_service
+  fboss/agent/MultiSwitchThriftHandler.cpp
+)
+
+target_link_libraries(multiswitch_service
+  core
+  multiswitch_ctrl_cpp2
+)

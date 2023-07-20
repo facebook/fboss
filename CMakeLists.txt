@@ -540,6 +540,16 @@ add_fbthrift_cpp_library(
     hw_test_ctrl_cpp2
 )
 
+add_fbthrift_cpp_library(
+  multiswitch_ctrl_cpp2
+  fboss/agent/if/multiswitch_ctrl.thrift
+  SERVICES
+    MultiSwitchCtrl
+  DEPENDS
+    ctrl_cpp2
+    fsdb_oper_cpp2
+)
+
 find_library(USB usb-1.0)
 find_path(USB_INCLUDE_DIR NAMES libusb-1.0/libusb.h)
 include_directories(${USB_INCLUDE_DIR})

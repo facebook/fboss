@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/Vlan.h"
 
@@ -16,11 +17,6 @@
 #include <string>
 
 namespace facebook::fboss {
-
-enum class L2EntryUpdateType : uint8_t {
-  L2_ENTRY_UPDATE_TYPE_DELETE = 0,
-  L2_ENTRY_UPDATE_TYPE_ADD,
-};
 
 std::string l2EntryUpdateTypeStr(L2EntryUpdateType updateType);
 /*

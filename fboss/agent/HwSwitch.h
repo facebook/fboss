@@ -42,8 +42,6 @@ class TxPacket;
 class L2Entry;
 class HwSwitchFb303Stats;
 
-enum class L2EntryUpdateType : uint8_t;
-
 template <typename Delta, typename Mgr>
 void checkUnsupportedDelta(const Delta& delta, Mgr& mgr) {
   DeltaFunctions::forEachChanged(

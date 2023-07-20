@@ -148,6 +148,11 @@ enum L2EntryType {
   L2_ENTRY_TYPE_VALIDATED = 1,
 }
 
+enum L2EntryUpdateType {
+  L2_ENTRY_UPDATE_TYPE_DELETE = 0,
+  L2_ENTRY_UPDATE_TYPE_ADD = 1,
+}
+
 struct L2EntryThrift {
   1: string mac;
   2: i32 port;
