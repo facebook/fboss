@@ -9,6 +9,7 @@
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 
+#include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/weutil/Flags.h"
 #include "fboss/platform/weutil/Weutil.h"
 #include "fboss/platform/weutil/WeutilDarwin.h"
@@ -19,10 +20,9 @@ using namespace facebook;
 
 // This utility program will output Chassis info for Darwin
 int main(int argc, char* argv[]) {
-  std::unique_ptr<WeutilInterface> weutilInstance;
-  folly::init(&argc, &argv, true);
+  helpers::init(argc, argv);
 
-  weutilInstance = get_plat_weutil(FLAGS_eeprom);
+  auto weutilInstance = get_plat_weutil(FLAGS_eeprom);
 
   if (weutilInstance) {
     if (FLAGS_h) {
