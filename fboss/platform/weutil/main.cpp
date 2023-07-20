@@ -21,8 +21,6 @@ using namespace facebook;
 int main(int argc, char* argv[]) {
   std::unique_ptr<WeutilInterface> weutilInstance;
   folly::init(&argc, &argv, true);
-  gflags::SetCommandLineOptionWithMode(
-      "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
 
   weutilInstance = get_plat_weutil(FLAGS_eeprom);
 
