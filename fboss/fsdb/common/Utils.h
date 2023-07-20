@@ -44,9 +44,12 @@ fsdb::OperDelta computeOperDelta(
     fullPath.reserve(basePath.size() + path.size());
     fullPath.insert(fullPath.end(), basePath.begin(), basePath.end());
     fullPath.insert(fullPath.end(), path.begin(), path.end());
-    // TODO: metadata
+    // 1. TODO: metadata
+    // 2. For each oper delta, hw agent only updates current state with newNode.
+    //    Passing in empty oldNode to reduce memory in operDelta.
+    decltype(oldNode) emptyOldNode;
     operDeltaUnits.push_back(buildOperDeltaUnit(
-        fullPath, oldNode, newNode, fsdb::OperProtocol::BINARY));
+        fullPath, emptyOldNode, newNode, fsdb::OperProtocol::BINARY));
   };
 
   thrift_cow::RootDeltaVisitor::visit(
