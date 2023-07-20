@@ -6,7 +6,6 @@
 add_library(platform_utils
   fboss/platform/helpers/Utils.cpp
   fboss/platform/helpers/oss/Init.cpp
-  fboss/platform/helpers/oss/Utils.cpp
 )
 
 target_link_libraries(platform_utils

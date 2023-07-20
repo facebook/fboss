@@ -1,7 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include <string.h>
-#include <sysexits.h>
 #include <memory>
 
 #include <folly/init/Init.h>
@@ -10,12 +9,10 @@
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 
-#include "fboss/platform/helpers/Utils.h"
 #include "fboss/platform/weutil/Flags.h"
 #include "fboss/platform/weutil/Weutil.h"
 #include "fboss/platform/weutil/WeutilDarwin.h"
 
-using namespace facebook::fboss::platform::helpers;
 using namespace facebook::fboss::platform;
 using namespace facebook::fboss;
 using namespace facebook;
@@ -38,8 +35,9 @@ int main(int argc, char* argv[]) {
       weutilInstance->printInfo();
     }
   } else {
-    showDeviceInfo();
+    XLOG(INFO) << "Exiting with error code";
+    return 1;
   }
 
-  return EX_OK;
+  return 0;
 }

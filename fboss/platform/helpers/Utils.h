@@ -16,8 +16,6 @@ std::string execCommandUnchecked(const std::string& cmd, int& exitStatus);
  */
 std::string execCommand(const std::string& cmd);
 
-void showDeviceInfo();
-
 /*
  * Search Flash Type from flashrom output, e.g. flashrom -p internal
  * If it can not find, return empty string
