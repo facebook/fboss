@@ -3,6 +3,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
@@ -359,6 +360,27 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, fabricIsolate) {
     applyNewState(newState);
     getHwSwitch()->updateStats(&dummy);
     checkPortFabricReachability(getHwSwitch(), fabricPortId);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwVoqSwitchTest, packetIntegrityError) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  auto port = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [=]() { addRemoveNeighbor(port, true /*add*/); };
+  auto verify = [=]() {
+    for (auto i = 0; i < 100; ++i) {
+      const auto dstIp = ecmpHelper.ip(port);
+      getHwSwitch()->printDiagCmd(
+          "m SPB_FORCE_CRC_ERROR FORCE_CRC_ERROR_ON_DATA=1 FORCE_CRC_ERROR_ON_CRC=1");
+      sendPacket(dstIp, std::nullopt);
+    }
+    WITH_RETRIES({
+      auto pktIntegrityDrops =
+          getHwSwitch()->getSwitchStats()->getPacketIntegrityDropsCount();
+      XLOG(INFO) << " Packet integrity drops: " << pktIntegrityDrops;
+      EXPECT_EVENTUALLY_GT(pktIntegrityDrops, 0);
+    });
   };
   verifyAcrossWarmBoots(setup, verify);
 }
