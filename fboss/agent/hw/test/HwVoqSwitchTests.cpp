@@ -371,8 +371,10 @@ TEST_F(HwVoqSwitchTest, packetIntegrityError) {
   auto verify = [=]() {
     for (auto i = 0; i < 100; ++i) {
       const auto dstIp = ecmpHelper.ip(port);
-      getHwSwitch()->printDiagCmd(
-          "m SPB_FORCE_CRC_ERROR FORCE_CRC_ERROR_ON_DATA=1 FORCE_CRC_ERROR_ON_CRC=1");
+      std::string out;
+      getHwSwitchEnsemble()->runDiagCommand(
+          "m SPB_FORCE_CRC_ERROR FORCE_CRC_ERROR_ON_DATA=1 FORCE_CRC_ERROR_ON_CRC=1\n",
+          out);
       sendPacket(dstIp, std::nullopt);
     }
     WITH_RETRIES({
