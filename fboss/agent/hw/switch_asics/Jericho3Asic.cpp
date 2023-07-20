@@ -70,6 +70,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_DROP_STATS:
     case HwAsic::Feature::PACKET_INTEGRITY_DROP_STATS:
     case HwAsic::Feature::LINK_STATE_BASED_ISOLATE:
+    case HwAsic::Feature::DRAM_ENQUE_DEQUE_STATS:
       return true;
 
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:

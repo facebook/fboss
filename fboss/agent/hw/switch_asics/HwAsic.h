@@ -148,6 +148,7 @@ class HwAsic {
     SLOW_STAT_UPDATE, // pending CS00012299308
     LINK_STATE_BASED_ISOLATE,
     VOQ_DELETE_COUNTER,
+    DRAM_ENQUE_DEQUE_STATS,
   };
 
   enum class AsicMode {

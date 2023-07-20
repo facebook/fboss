@@ -80,6 +80,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::RX_LANE_SQUELCH_ENABLE:
     case HwAsic::Feature::PACKET_INTEGRITY_DROP_STATS:
     case HwAsic::Feature::LINK_STATE_BASED_ISOLATE:
+    case HwAsic::Feature::DRAM_ENQUE_DEQUE_STATS:
       return true;
 
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:

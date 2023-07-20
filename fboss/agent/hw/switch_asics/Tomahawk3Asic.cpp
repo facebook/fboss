@@ -138,6 +138,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SLOW_STAT_UPDATE:
     case HwAsic::Feature::LINK_STATE_BASED_ISOLATE:
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
+    case HwAsic::Feature::DRAM_ENQUE_DEQUE_STATS:
       return false;
   }
   return false;
