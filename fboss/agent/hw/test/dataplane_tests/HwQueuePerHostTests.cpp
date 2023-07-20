@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
@@ -36,7 +37,7 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
-        masterLogicalPortIds(),
+        {masterLogicalPortIds()[0], masterLogicalPortIds()[1]},
         getAsic()->desiredLoopbackModes());
     return cfg;
   }
@@ -243,16 +244,27 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
       }
     }
 
-    auto statAfter = utility::getAclInOutPackets(
-        getHwSwitch(), this->getProgrammedState(), ttlAclName, ttlCounterName);
-
-    if (blockNeighbor) {
-      // if the neighbor is blocked, all pkts are dropped
-      EXPECT_EQ(statAfter - statBefore, 0);
-    } else {
-      // counts ttl >= 128 packet only
-      EXPECT_EQ(statAfter - statBefore, getIpToMacAndClassID().size());
-    }
+    auto aclStatsMatch = [&]() {
+      auto statAfter = utility::getAclInOutPackets(
+          getHwSwitch(),
+          this->getProgrammedState(),
+          ttlAclName,
+          ttlCounterName);
+      XLOG(DBG2) << " Acl stats : " << statAfter;
+      if (blockNeighbor) {
+        // if the neighbor is blocked, all pkts are dropped
+        return statAfter - statBefore == 0;
+      } else {
+        // counts ttl >= 128 packet only
+        return statAfter - statBefore == getIpToMacAndClassID().size();
+      }
+    };
+    auto updateStats = [&]() {
+      facebook::fboss::SwitchStats dummy;
+      getHwSwitch()->updateStats(&dummy);
+    };
+    EXPECT_TRUE(
+        getHwSwitchEnsemble()->waitStatsCondition(aclStatsMatch, updateStats));
   }
 
   void classIDAfterNeighborResolveHelper(bool blockNeighbor) {
