@@ -108,6 +108,7 @@ target_link_libraries(sai_platform
   meru800bfa_platform_mapping
   montblanc_platform_mapping
   led_structs_types_cpp2
+  led_mapping_cpp2
 )
 
 set_target_properties(sai_platform PROPERTIES COMPILE_FLAGS
