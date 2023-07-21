@@ -13,9 +13,9 @@ bool PlatformValidator::isValid(const PlatformConfig& platformConfig) {
     return false;
   }
   // TODO: Validate platformName matches what is set in dmedicode on BIOS
-  if (platformConfig.slotTypeConfigs()->find("CHASSIS") ==
+  if (platformConfig.slotTypeConfigs()->find("MAIN_BOARD") ==
       platformConfig.slotTypeConfigs()->end()) {
-    XLOG(ERR) << "CHASSIS SlotTypeConfig is not found";
+    XLOG(ERR) << "MAIN_BOARD SlotTypeConfig is not found";
     return false;
   }
   return true;

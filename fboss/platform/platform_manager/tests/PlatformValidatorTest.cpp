@@ -28,6 +28,6 @@ TEST(PlatformValidatorTest, MissingChassisSlotTypeConfig) {
 TEST(PlatformValidatorTest, ValidConfig) {
   auto config = PlatformConfig();
   config.platformName() = "meru";
-  config.slotTypeConfigs()["CHASSIS"] = SlotTypeConfig{};
+  config.slotTypeConfigs()["MAIN_BOARD"] = SlotTypeConfig{};
   EXPECT_TRUE(PlatformValidator().isValid(config));
 }
