@@ -275,8 +275,8 @@ class LinkNeighbor
         "{}_{}_{}_{}",
         getPortId(),
         getChassisId(),
-        getPortIdType(),
-        getChassisIdType());
+        fmt::underlying(getPortIdType()),
+        fmt::underlying(getChassisIdType()));
   }
 
  private:
