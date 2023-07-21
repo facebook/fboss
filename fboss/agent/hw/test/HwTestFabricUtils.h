@@ -7,10 +7,10 @@ namespace facebook::fboss {
 
 class HwSwitch;
 void setForceTrafficOverFabric(const HwSwitch* hw, bool force);
-void checkFabricReachability(const HwSwitch* hw);
-void checkFabricReachabilityStats(const HwSwitch* hw);
+void checkFabricReachability(HwSwitch* hw);
+void checkFabricReachabilityStats(HwSwitch* hw);
 void populatePortExpectedNeighbors(
     const std::vector<PortID>& ports,
     cfg::SwitchConfig& cfg);
-void checkPortFabricReachability(const HwSwitch* hw, PortID portId);
+void checkPortFabricReachability(HwSwitch* hw, PortID portId);
 } // namespace facebook::fboss

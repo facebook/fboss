@@ -1,14 +1,18 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/hw/test/HwTestFabricUtils.h"
+
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
 #include <gtest/gtest.h>
 
 namespace facebook::fboss {
-void checkFabricReachability(const HwSwitch* hw) {
+void checkFabricReachability(HwSwitch* hw) {
+  SwitchStats dummy;
+  hw->updateStats(&dummy);
   auto reachability = hw->getFabricReachability();
   EXPECT_GT(reachability.size(), 0);
   for (auto [port, endpoint] : reachability) {
@@ -40,7 +44,9 @@ void checkFabricReachability(const HwSwitch* hw) {
   EXPECT_EQ(hw->getSwitchStats()->getFabricReachabilityMissingCount(), 0);
 }
 
-void checkFabricReachabilityStats(const HwSwitch* hw) {
+void checkFabricReachabilityStats(HwSwitch* hw) {
+  SwitchStats dummy;
+  hw->updateStats(&dummy);
   auto reachability = hw->getFabricReachability();
   int count = 0;
   for (auto [_, endpoint] : reachability) {
@@ -76,7 +82,9 @@ void populatePortExpectedNeighbors(
   }
 }
 
-void checkPortFabricReachability(const HwSwitch* hw, PortID portId) {
+void checkPortFabricReachability(HwSwitch* hw, PortID portId) {
+  SwitchStats dummy;
+  hw->updateStats(&dummy);
   auto reachability = hw->getFabricReachability();
   auto itr = reachability.find(portId);
   ASSERT_TRUE(itr != reachability.end());
