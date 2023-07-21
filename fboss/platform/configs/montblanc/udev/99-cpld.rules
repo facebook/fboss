@@ -1,0 +1,2 @@
+SUBSYSTEM=="i2c", ATTR{name}=="scmcpld", RUN+="/bin/mkdir -p /run/devmap/cplds", RUN+="/bin/ln -sf %S/%p /run/devmap/cplds/SCM_CPLD"
+SUBSYSTEM=="i2c", ATTR{name}=="smbcpld", RUN+="/bin/mkdir -p /run/devmap/cplds", RUN+="/bin/ln -sf %S/%p /run/devmap/cplds/SMB_CPLD"

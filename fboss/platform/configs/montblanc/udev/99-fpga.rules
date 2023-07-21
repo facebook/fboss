@@ -1,0 +1,1 @@
+SUBSYSTEM=="pci", KERNEL=="0000:17:00.0", ATTRS{vendor}=="0x1d9b",  ATTRS{device}=="0x0011" , RUN+="/bin/mkdir -p /run/devmap/fpgas", RUN+="/bin/ln -sf %S%p /run/devmap/fpgas/IOB_FPGA"
