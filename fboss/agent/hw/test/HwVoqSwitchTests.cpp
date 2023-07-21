@@ -360,26 +360,15 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, fabricIsolate) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwVoqSwitchTest, packetIntegrityError) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-  auto port = ecmpHelper.ecmpPortDescriptorAt(0);
-  auto setup = [=]() { addRemoveNeighbor(port, true /*add*/); };
-  auto verify = [=]() {
-    const auto dstIp = ecmpHelper.ip(port);
-    std::string out;
-    getHwSwitchEnsemble()->runDiagCommand(
-        "m SPB_FORCE_CRC_ERROR FORCE_CRC_ERROR_ON_DATA=1 FORCE_CRC_ERROR_ON_CRC=1\n",
-        out);
-    sendPacket(dstIp, std::nullopt);
-    WITH_RETRIES({
-      SwitchStats dummy;
-      getHwSwitch()->updateStats(&dummy);
-      auto pktIntegrityDrops =
-          getHwSwitch()->getSwitchStats()->getPacketIntegrityDropsCount();
-      XLOG(INFO) << " Packet integrity drops: " << pktIntegrityDrops;
-      EXPECT_EVENTUALLY_GT(pktIntegrityDrops, 0);
-    });
+TEST_F(HwVoqSwitchWithFabricPortsTest, switchIsolate) {
+  auto setup = [=]() {
+    auto newCfg = initialConfig();
+    *newCfg.switchSettings()->switchDrainState() =
+        cfg::SwitchDrainState::DRAINED;
+    applyNewConfig(newCfg);
   };
+
+  auto verify = [=]() { checkFabricReachability(getHwSwitch()); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
@@ -711,6 +700,29 @@ TEST_F(HwVoqSwitchTest, voqDelete) {
       XLOG(INFO) << "Voq deleted pkts, before: " << voqDeletedPktsBefore
                  << " after: " << voqDeletedPktsAfter;
       EXPECT_EVENTUALLY_EQ(voqDeletedPktsBefore + 100, voqDeletedPktsAfter);
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwVoqSwitchTest, packetIntegrityError) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  auto port = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [=]() { addRemoveNeighbor(port, true /*add*/); };
+  auto verify = [=]() {
+    const auto dstIp = ecmpHelper.ip(port);
+    std::string out;
+    getHwSwitchEnsemble()->runDiagCommand(
+        "m SPB_FORCE_CRC_ERROR FORCE_CRC_ERROR_ON_DATA=1 FORCE_CRC_ERROR_ON_CRC=1\n",
+        out);
+    sendPacket(dstIp, std::nullopt);
+    WITH_RETRIES({
+      SwitchStats dummy;
+      getHwSwitch()->updateStats(&dummy);
+      auto pktIntegrityDrops =
+          getHwSwitch()->getSwitchStats()->getPacketIntegrityDropsCount();
+      XLOG(INFO) << " Packet integrity drops: " << pktIntegrityDrops;
+      EXPECT_EVENTUALLY_GT(pktIntegrityDrops, 0);
     });
   };
   verifyAcrossWarmBoots(setup, verify);
