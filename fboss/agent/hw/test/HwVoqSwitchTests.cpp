@@ -760,6 +760,38 @@ TEST_F(HwVoqSwitchTest, localForwardingPostIsolate) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwVoqSwitchTest, stressLocalForwardingPostIsolate) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [this, kPort]() {
+    auto newCfg = initialConfig();
+    *newCfg.switchSettings()->switchDrainState() =
+        cfg::SwitchDrainState::DRAINED;
+    applyNewConfig(newCfg);
+    addRemoveNeighbor(kPort, true /* add neighbor*/);
+  };
+
+  auto verify = [this, kPort, &ecmpHelper]() {
+    auto beforePkts =
+        getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+    for (auto i = 0; i < 10000; ++i) {
+      // CPU send
+      sendPacket(ecmpHelper.ip(kPort), std::nullopt);
+      // Front panel send
+      sendPacket(
+          ecmpHelper.ip(kPort), ecmpHelper.ecmpPortDescriptorAt(1).phyPortID());
+    }
+    WITH_RETRIES({
+      auto afterPkts =
+          getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+      XLOG(DBG2) << "Before pkts: " << beforePkts
+                 << " After pkts: " << afterPkts;
+      EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + 20000);
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
  public:
   cfg::SwitchConfig initialConfig() const override {
