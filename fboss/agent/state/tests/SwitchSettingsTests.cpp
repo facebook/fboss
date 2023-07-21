@@ -84,16 +84,9 @@ TEST(SwitchSettingsTest, applySwitchDrainState) {
       switchSettingsV2->getSwitchDrainState());
 }
 
-TEST(SwitchSettingsTest, applySwitchDrainOnNonFabricSwitch) {
+TEST(SwitchSettingsTest, applySwitchDrainOnNpuSwitch) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-
-  // VoQ switch config
-  cfg::SwitchConfig voqConfig = testConfigA(cfg::SwitchType::VOQ);
-  *voqConfig.switchSettings()->switchDrainState() =
-      cfg::SwitchDrainState::DRAINED;
-  EXPECT_THROW(
-      publishAndApplyConfig(stateV0, &voqConfig, platform.get()), FbossError);
 
   // NPU switch config
   cfg::SwitchConfig npuConfig;
