@@ -260,19 +260,21 @@ TEST_P(SwSwitchUpdateProcessingTest, HwFailureProtectedUpdatesDuringExit) {
   auto protectedStateUpdateFn = [&updatesPaused, protectedState, &startState](
                                     const std::shared_ptr<SwitchState>& state) {
     EXPECT_EQ(state, startState);
-    while (updatesPaused.load()) {
-    };
     return protectedState;
   };
   // Queue a few updates
   std::thread updateThread([&updatesPaused, this, &protectedStateUpdateFn]() {
     try {
+      while (updatesPaused.load()) {
+      };
       sw->updateStateWithHwFailureProtection(
           "HwFailureProtectedUpdate update ", protectedStateUpdateFn);
     } catch (const FbossHwUpdateError&) {
     }
   });
-  std::thread updateThread2([this, &protectedStateUpdateFn]() {
+  std::thread updateThread2([&updatesPaused, this, &protectedStateUpdateFn]() {
+    while (updatesPaused.load()) {
+    };
     sw->updateStateWithHwFailureProtection(
         "HwFailureProtectedUpdate update ", protectedStateUpdateFn);
   });
@@ -280,8 +282,8 @@ TEST_P(SwSwitchUpdateProcessingTest, HwFailureProtectedUpdatesDuringExit) {
   std::thread stopThread([&updatesPaused, this]() {
     sw->stop();
     // unblock updates
+    updatesPaused.store(false);
   });
-  updatesPaused.store(false);
   stopThread.join();
   updateThread.join();
   updateThread2.join();
