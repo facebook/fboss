@@ -193,6 +193,14 @@ std::shared_ptr<SwitchState> HwTest::applyNewStateImpl(
                      : hwSwitchEnsemble_->applyNewState(newState);
 }
 
+void HwTest::setSwitchDrainState(
+    const cfg::SwitchConfig& curConfig,
+    cfg::SwitchDrainState drainState) {
+  auto newCfg = curConfig;
+  *newCfg.switchSettings()->switchDrainState() = cfg::SwitchDrainState::DRAINED;
+  applyNewConfig(newCfg);
+}
+
 HwPortStats HwTest::getLatestPortStats(PortID port) {
   return getLatestPortStats(std::vector<PortID>{port})[port];
 }

@@ -161,6 +161,10 @@ class HwTest : public ::testing::Test,
   }
   std::shared_ptr<SwitchState> getProgrammedState() const;
 
+  void setSwitchDrainState(
+      const cfg::SwitchConfig& curConfig,
+      cfg::SwitchDrainState drainState);
+
   template <typename EcmpHelperT>
   void resolveNeigborAndProgramRoutes(const EcmpHelperT& ecmp, int width) {
     applyNewState(ecmp.resolveNextHops(getProgrammedState(), width));

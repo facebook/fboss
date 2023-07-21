@@ -112,10 +112,7 @@ TEST_F(HwFabricSwitchTest, fabricIsolate) {
 
 TEST_F(HwFabricSwitchTest, fabricSwitchIsolate) {
   auto setup = [=]() {
-    auto newCfg = initialConfig();
-    *newCfg.switchSettings()->switchDrainState() =
-        cfg::SwitchDrainState::DRAINED;
-    applyNewConfig(newCfg);
+    setSwitchDrainState(initialConfig(), cfg::SwitchDrainState::DRAINED);
   };
 
   auto verify = [=]() {
