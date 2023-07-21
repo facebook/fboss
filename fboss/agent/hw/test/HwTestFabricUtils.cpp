@@ -34,7 +34,7 @@ void checkFabricReachability(HwSwitch* hw) {
                << " got switch id: " << *endpoint.switchId()
                << " expected switch id: " << expectedSwitchId
                << " expected port id: " << expectedPortId
-               << "port id: " << *endpoint.portId();
+               << " got port id: " << *endpoint.portId();
     EXPECT_EQ(*endpoint.switchId(), expectedSwitchId);
     EXPECT_EQ(*endpoint.switchType(), hw->getSwitchType());
     EXPECT_EQ(*endpoint.portId(), expectedPortId);

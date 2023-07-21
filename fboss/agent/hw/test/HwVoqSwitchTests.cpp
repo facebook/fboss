@@ -335,11 +335,7 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, collectStats) {
 }
 
 TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricReachability) {
-  auto verify = [this]() {
-    SwitchStats dummy;
-    getHwSwitch()->updateStats(&dummy);
-    checkFabricReachability(getHwSwitch());
-  };
+  auto verify = [this]() { checkFabricReachability(getHwSwitch()); };
   verifyAcrossWarmBoots([] {}, verify);
 }
 
