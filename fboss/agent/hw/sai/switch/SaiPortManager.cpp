@@ -1356,15 +1356,15 @@ cfg::PortSpeed SaiPortManager::getMaxSpeed(PortID port) const {
 }
 
 std::shared_ptr<MultiSwitchPortMap> SaiPortManager::reconstructPortsFromStore(
-    cfg::SwitchType switchType,
-    const HwSwitchMatcher& matcher) const {
+    cfg::SwitchType switchType) const {
+  auto* scopeResolver = platform_->scopeResolver();
   auto& portStore = saiStore_->get<SaiPortTraits>();
   auto portMap = std::make_shared<MultiSwitchPortMap>();
   for (auto& iter : portStore.objects()) {
     auto saiPort = iter.second.lock();
     auto port = swPortFromAttributes(
         saiPort->attributes(), saiPort->adapterKey(), switchType);
-    portMap->addNode(port, matcher);
+    portMap->addNode(port, scopeResolver->scope(port));
   }
   return portMap;
 }

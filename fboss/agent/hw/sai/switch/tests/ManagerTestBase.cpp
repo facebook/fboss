@@ -45,6 +45,16 @@ facebook::fboss::cfg::AgentConfig getDummyConfig() {
   config.platform()->platformSettings()->insert(std::make_pair(
       facebook::fboss::cfg::PlatformAttributes::CONNECTION_HANDLE,
       "test connection handle"));
+  facebook::fboss::cfg::SwitchInfo info{};
+  info.switchType() = facebook::fboss::cfg::SwitchType::NPU;
+  info.asicType() = facebook::fboss::cfg::AsicType::ASIC_TYPE_MOCK;
+  facebook::fboss::cfg::Range64 portIdRange;
+  portIdRange.minimum() = 0;
+  portIdRange.maximum() = 0;
+  info.portIdRange() = portIdRange;
+  info.switchIndex() = 0;
+  info.connectionHandle() = "test connection handle";
+  config.sw()->switchSettings()->switchIdToSwitchInfo()->emplace(0, info);
   return config;
 }
 } // namespace

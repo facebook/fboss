@@ -1787,13 +1787,15 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
       : 0;
   auto matcher =
       HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(switchId)}));
+  auto scopeResolver = platform_->scopeResolver();
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
     // get cpu queue settings
     auto cpu = std::make_shared<ControlPlane>();
     auto cpuQueues = managerTable_->hostifManager().getQueueSettings();
     cpu->resetQueues(cpuQueues);
     auto multiSwitchControlPlane = std::make_shared<MultiControlPlane>();
-    multiSwitchControlPlane->addNode(matcher.matcherString(), cpu);
+    multiSwitchControlPlane->addNode(
+        scopeResolver->scope(cpu).matcherString(), cpu);
     state->resetControlPlane(multiSwitchControlPlane);
   }
   if (platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORTS)) {
@@ -1820,14 +1822,14 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
         : 0;
     HwSwitchMatcher matcher(std::unordered_set<SwitchID>({SwitchID(switchId)}));
     // reconstruct ports
-    auto portMaps = managerTable_->portManager().reconstructPortsFromStore(
-        switchType_, matcher);
+    auto portMaps =
+        managerTable_->portManager().reconstructPortsFromStore(switchType_);
     auto ports = std::make_shared<MultiSwitchPortMap>();
     if (FLAGS_hide_fabric_ports) {
       for (const auto& portMap : std::as_const(*portMaps)) {
         for (const auto& [id, port] : std::as_const(*portMap.second)) {
           if (port->getPortType() != cfg::PortType::FABRIC_PORT) {
-            ports->addNode(port, matcher);
+            ports->addNode(port, scopeResolver->scope(port));
           }
         }
       }
@@ -1840,19 +1842,22 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
   // For VOQ switch, create system ports for existing egress ports
   if (switchType_ == cfg::SwitchType::VOQ) {
     CHECK(getSwitchId().has_value());
-    auto sysPorts = std::make_shared<MultiSwitchSystemPortMap>();
-    sysPorts->addMapNode(
-        managerTable_->systemPortManager().constructSystemPorts(
-            state->getPorts(),
-            getSwitchId().value(),
-            platform_->getAsic()->getSystemPortRange()),
-        matcher);
-    state->resetSystemPorts(sysPorts);
+    auto multiSysPorts = std::make_shared<MultiSwitchSystemPortMap>();
+    auto sysPorts = managerTable_->systemPortManager().constructSystemPorts(
+        state->getPorts(),
+        getSwitchId().value(),
+        platform_->getAsic()->getSystemPortRange());
+
+    for (auto iter : std::as_const(*sysPorts)) {
+      multiSysPorts->addNode(iter.second, scopeResolver->scope(iter.second));
+    }
+    state->resetSystemPorts(multiSysPorts);
   }
 
   auto multiSwitchSwitchSettings = std::make_shared<MultiSwitchSettings>();
+  auto switchSettings = std::make_shared<SwitchSettings>();
   multiSwitchSwitchSettings->addNode(
-      matcher.matcherString(), std::make_shared<SwitchSettings>());
+      scopeResolver->scope(switchSettings).matcherString(), switchSettings);
   state->resetSwitchSettings(multiSwitchSwitchSettings);
   return state;
 }
