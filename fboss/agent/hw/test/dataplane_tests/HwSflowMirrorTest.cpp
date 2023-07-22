@@ -154,8 +154,10 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     }
   }
 
-  void resolveMirror() {
-    auto mac = utility::getFirstInterfaceMac(getProgrammedState());
+  void resolveMirror(int portIdx = 0, bool useRandomMac = false) {
+    auto mac = useRandomMac
+        ? macGenerator.getNext()
+        : utility::getFirstInterfaceMac(getProgrammedState());
     auto state = getProgrammedState()->clone();
     auto mirrors = state->getMirrors()->modify(&state);
     auto mirror = mirrors->getNodeIf("mirror")->clone();
@@ -178,7 +180,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
           mirror->getTunnelUdpPorts().value()));
     }
 
-    mirror->setEgressPort(getPortsForSampling()[0]);
+    mirror->setEgressPort(getPortsForSampling()[portIdx]);
     mirrors->updateNode(mirror, scopeResolver().scope(mirror));
     applyNewState(state);
   }
@@ -283,23 +285,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  constexpr static size_t kDefaultPayloadSize = 1400;
-  constexpr static size_t kDefaultPercentErrorThreshold = 5;
-  constexpr static auto kIpStr = "2401:db00:dead:beef:";
-};
-
-TEST_F(HwSflowMirrorTest, VerifySampledPacket) {
-  if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOW_SAMPLING)) {
-    return;
-  }
-  auto setup = [=]() {
-    auto config = initialConfig();
-    configMirror(&config, false);
-    configSampling(&config, 1);
-    applyNewConfig(config);
-    resolveMirror();
-  };
-  auto verify = [=]() {
+  void verifySampledPacket() {
     auto ports = getPortsForSampling();
     bringDownPorts(std::vector<PortID>(ports.begin() + 2, ports.end()));
     auto pkt = genPacket(1, 256);
@@ -343,7 +329,46 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacket) {
         EXPECT_EQ(shim.asic, utility::SflowShimAsic::SFLOW_SHIM_ASIC_TH3);
       }
     }
+  }
+
+  utility::MacAddressGenerator macGenerator = utility::MacAddressGenerator();
+  constexpr static size_t kDefaultPayloadSize = 1400;
+  constexpr static size_t kDefaultPercentErrorThreshold = 5;
+  constexpr static auto kIpStr = "2401:db00:dead:beef:";
+};
+
+TEST_F(HwSflowMirrorTest, StressMirrorSessionConfigUnconfig) {
+  if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOW_SAMPLING)) {
+    return;
+  }
+  auto setup = [=]() {
+    auto config = initialConfig();
+    configMirror(&config, false);
+    configSampling(&config, 1);
+    applyNewConfig(config);
+    for (auto i = 0; i < 500; i++) {
+      resolveMirror(
+          i % 5 /* Randomize monitor port */, true /* useRandomMac */);
+    }
+    // Setup regular mirror session to ensure traffic is good
+    resolveMirror();
   };
+  auto verify = [=]() { verifySampledPacket(); };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwSflowMirrorTest, VerifySampledPacket) {
+  if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOW_SAMPLING)) {
+    return;
+  }
+  auto setup = [=]() {
+    auto config = initialConfig();
+    configMirror(&config, false);
+    configSampling(&config, 1);
+    applyNewConfig(config);
+    resolveMirror();
+  };
+  auto verify = [=]() { verifySampledPacket(); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
