@@ -230,7 +230,18 @@ void BcmSwitchEnsemble::init(
     // Create an empty AgentConfig for now, once we fully roll out the new
     // platform config, we should generate a mock platform config for the fake
     // bcm test
-    agentConfig = createEmptyAgentConfig();
+    auto emptyAgentConfig = createEmptyAgentConfig()->thrift;
+    cfg::SwitchInfo switchInfo{};
+    switchInfo.switchType() = cfg::SwitchType::NPU;
+    switchInfo.asicType() = cfg::AsicType::ASIC_TYPE_FAKE;
+    fboss::cfg::Range64 portIdRange;
+    portIdRange.minimum() = 0;
+    portIdRange.maximum() = 0;
+    switchInfo.portIdRange() = portIdRange;
+    switchInfo.switchIndex() = 0;
+    emptyAgentConfig.sw()->switchSettings()->switchIdToSwitchInfo()->emplace(
+        0, switchInfo);
+    agentConfig = std::make_unique<AgentConfig>(emptyAgentConfig);
   } else {
     // Load from a local file
     agentConfig = loadCfgFromLocalFile(platform, bcmTestPlatform, yamlCfg, cfg);

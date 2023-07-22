@@ -80,4 +80,10 @@ std::unique_ptr<facebook::fboss::AgentConfig> createEmptyAgentConfig() {
       agentCfg,
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(agentCfg));
 }
+
+AgentConfig::AgentConfig(const cfg::AgentConfig& thriftConfig)
+    : thrift(thriftConfig),
+      raw(apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+          thriftConfig)) {}
+
 } // namespace facebook::fboss

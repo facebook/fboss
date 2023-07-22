@@ -646,17 +646,14 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   auto rv = bcm_vlan_default_get(getUnit(), &defaultVlan);
   bcmCheckError(rv, "Unable to get default VLAN");
 
+  auto* scopeResolver = platform_->scopeResolver();
   auto multiSwitchSwitchSettings = make_shared<MultiSwitchSettings>();
   auto switchSettings = make_shared<SwitchSettings>();
   switchSettings->setL2LearningMode(l2LearningMode);
   switchSettings->setDefaultVlan(VlanID(defaultVlan));
   multiSwitchSwitchSettings->addNode(
-      HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}))
-          .matcherString(),
-      switchSettings);
+      scopeResolver->scope(switchSettings).matcherString(), switchSettings);
   bootState->resetSwitchSettings(multiSwitchSwitchSettings);
-
-  HwSwitchMatcher scopeMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
 
   // get cpu queue settings
   auto cpu = make_shared<ControlPlane>();
@@ -665,7 +662,8 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   cpu->resetQueues(cpuQueues);
   cpu->resetRxReasonToQueue(rxReasonToQueue);
   auto multiSwitchControlPlane = std::make_shared<MultiControlPlane>();
-  multiSwitchControlPlane->addNode(scopeMatcher.matcherString(), cpu);
+  multiSwitchControlPlane->addNode(
+      scopeResolver->scope(cpu).matcherString(), cpu);
   bootState->resetControlPlane(multiSwitchControlPlane);
 
   // On cold boot all ports are in Vlan 1
@@ -698,12 +696,12 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
       auto queues = bcmPort->getCurrentQueueSettings();
       swPort->resetPortQueues(queues);
     }
-    bootState->getPorts()->addNode(swPort, scopeMatcher);
+    bootState->getPorts()->addNode(swPort, scopeResolver->scope(swPort));
 
     memberPorts.insert(make_pair(portID, false));
   }
   vlan->setPorts(memberPorts);
-  bootState->getVlans()->addNode(vlan, scopeMatcher);
+  bootState->getVlans()->addNode(vlan, scopeResolver->scope(vlan));
   bootState->publish();
   return bootState;
 }
