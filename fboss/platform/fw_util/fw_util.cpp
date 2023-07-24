@@ -1,16 +1,20 @@
 //  Copyright 2021-present Facebook. All Rights Reserved.
 
-#include <folly/init/Init.h>
-#include <folly/logging/xlog.h>
-#include <glog/logging.h>
 #include <string.h>
 #include <sysexits.h>
 #include <iostream>
 #include <memory>
+
+#include <folly/init/Init.h>
+#include <folly/logging/xlog.h>
+#include <glog/logging.h>
+
 #include "fboss/platform/fw_util/Flags.h"
 #include "fboss/platform/fw_util/FwUtilImpl.h"
+#include "fboss/platform/helpers/Init.h"
 
 using namespace facebook::fboss::platform::fw_util;
+using namespace facebook::fboss::platform;
 
 /*
  * This utility will perform firmware upgrade for
@@ -21,9 +25,8 @@ int main(int argc, char* argv[]) {
   // TODO: Add file lock to prevent multiple instance of fw-util from running
   // simultaneously.
 
-  auto init = folly::Init(&argc, &argv);
-  gflags::SetCommandLineOptionWithMode(
-      "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
+  helpers::init(argc, argv);
+
   FwUtilImpl fwUtilImpl(FLAGS_config_file);
 
   // TODO: To be removed once XFN change the commands in their codes
