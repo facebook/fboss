@@ -53,19 +53,23 @@ flat_map<InterfaceID, folly::CIDRNetwork> computeInterface2Subnet(
     const std::shared_ptr<SwitchState>& inputState,
     bool v6) {
   boost::container::flat_map<InterfaceID, folly::CIDRNetwork> intf2Network;
-  for (const auto& [_, intfMap] : std::as_const(*inputState->getInterfaces())) {
-    for (auto iter : std::as_const(*intfMap)) {
-      const auto& intf = iter.second;
-      for (const auto& cidrStr : intf->getAddressesCopy()) {
-        auto subnet = folly::IPAddress::createNetwork(cidrStr.first.str());
-        if (!v6 && subnet.first.isV4()) {
-          intf2Network[intf->getID()] = subnet;
-        } else if (v6 && subnet.first.isV6() && !subnet.first.isLinkLocal()) {
-          intf2Network[intf->getID()] = subnet;
+  auto getIntf2Network = [&](const auto& interfaces) {
+    for (const auto& [_, intfMap] : std::as_const(*interfaces)) {
+      for (auto iter : std::as_const(*intfMap)) {
+        const auto& intf = iter.second;
+        for (const auto& cidrStr : intf->getAddressesCopy()) {
+          auto subnet = folly::IPAddress::createNetwork(cidrStr.first.str());
+          if (!v6 && subnet.first.isV4()) {
+            intf2Network[intf->getID()] = subnet;
+          } else if (v6 && subnet.first.isV6() && !subnet.first.isLinkLocal()) {
+            intf2Network[intf->getID()] = subnet;
+          }
         }
       }
     }
-  }
+  };
+  getIntf2Network(inputState->getInterfaces());
+  getIntf2Network(inputState->getRemoteInterfaces());
   return intf2Network;
 }
 } // namespace
@@ -113,6 +117,19 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::computePortDesc2Interface(
       portDesc2Interface.insert(std::make_pair(portDesc, *intf));
     }
   }
+  // SystemPorts
+  auto findPortDesc2Interface = [&](const auto& systemPortMaps) {
+    for (const auto& systemPortMap : std::as_const(*systemPortMaps)) {
+      for (const auto& systemPort : std::as_const(*systemPortMap.second)) {
+        PortDescriptor portDesc = PortDescriptor(systemPort.second->getID());
+        if (auto intf = getInterface(portDesc, inputState)) {
+          portDesc2Interface.insert(std::make_pair(portDesc, *intf));
+        }
+      }
+    }
+  };
+  findPortDesc2Interface(inputState->getSystemPorts());
+  findPortDesc2Interface(inputState->getRemoteSystemPorts());
   return portDesc2Interface;
 }
 
@@ -305,11 +322,8 @@ std::optional<InterfaceID> BaseEcmpSetupHelper<AddrT, NextHopT>::getInterface(
     CHECK(intf->getType() == cfg::InterfaceType::VLAN);
     CHECK(intf->getVlanID() == *vlan);
     return intf->getID();
-  } else {
+  } else if (port.isPhysicalPort()) {
     // Look for port RIF
-    if (!port.isPhysicalPort()) {
-      return std::nullopt;
-    }
     auto sysPortRange = state->getAssociatedSystemPortRangeIf(port.phyPortID());
     if (!sysPortRange.has_value()) {
       return std::nullopt;
@@ -320,6 +334,14 @@ std::optional<InterfaceID> BaseEcmpSetupHelper<AddrT, NextHopT>::getInterface(
                            static_cast<int64_t>(port.intID()) + sysPortBase};
     if (auto intf = state->getInterfaces()->getNodeIf(
             InterfaceID(static_cast<int>(sysPortId)))) {
+      return intf->getID();
+    }
+  } else if (port.isSystemPort()) {
+    // Find systemPort on both local and remote interfaces
+    if (auto intf = state->getInterfaces()->getNodeIf(port.intID())) {
+      return intf->getID();
+    }
+    if (auto intf = state->getRemoteInterfaces()->getNodeIf(port.intID())) {
       return intf->getID();
     }
   }
