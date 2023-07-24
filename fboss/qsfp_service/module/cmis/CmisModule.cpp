@@ -814,15 +814,18 @@ bool CmisModule::getHostLaneSettings(
     laneSettings[lane].rxSquelch() = rxSquelchDisable & laneMask;
 
     uint8_t pre = (dataPre[lane / 2] >> ((lane % 2) * 4)) & 0x0f;
-    QSFP_LOG(DBG3, this) << "Pre = " << pre;
+    QSFP_LOG(DBG3, this) << folly::sformat(
+        "Lane = {:d}, Pre = {:d}", lane, pre);
     laneSettings[lane].rxOutputPreCursor() = pre;
 
     uint8_t post = (dataPost[lane / 2] >> ((lane % 2) * 4)) & 0x0f;
-    QSFP_LOG(DBG3, this) << "Post = " << post;
+    QSFP_LOG(DBG3, this) << folly::sformat(
+        "Lane = {:d}, Post = {:d}", lane, post);
     laneSettings[lane].rxOutputPostCursor() = post;
 
     uint8_t mainVal = (dataMain[lane / 2] >> ((lane % 2) * 4)) & 0x0f;
-    QSFP_LOG(DBG3, this) << "Main = " << mainVal;
+    QSFP_LOG(DBG3, this) << folly::sformat(
+        "Lane = {:d}, Main = {:d}", lane, mainVal);
     laneSettings[lane].rxOutputAmplitude() = mainVal;
   }
   return true;
@@ -2934,7 +2937,9 @@ void CmisModule::resetDataPathWithFunc(
   /* sleep override */
   usleep(kUsecBetweenLaneInit);
 
-  QSFP_LOG(INFO, this) << "DATA_PATH_DEINIT set and reset done for all lanes";
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "DATA_PATH_DEINIT set and reset done for host lane mask 0x{:#x}",
+      hostLaneMask);
 }
 
 void CmisModule::updateVdmCacheLocked() {
