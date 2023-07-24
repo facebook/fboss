@@ -146,7 +146,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SLOW_STAT_UPDATE:
     case HwAsic::Feature::LINK_STATE_BASED_ISOLATE:
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
-    case HwAsic::Feature::DRAM_ENQUE_DEQUE_STATS:
+    case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
       return false;
   }
   return false;
