@@ -22,10 +22,6 @@ std::string execCommandImpl(const std::string& cmd, int* exitStatus) {
 } // namespace
 namespace facebook::fboss::platform::helpers {
 
-std::string execCommand(const std::string& cmd) {
-  return execCommandImpl(cmd, nullptr);
-}
-
 std::string execCommandUnchecked(const std::string& cmd, int& exitStatus) {
   return execCommandImpl(cmd, &exitStatus);
 }
