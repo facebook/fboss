@@ -352,32 +352,41 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
       sendPacket(dstIP, frontPanel, 64 /* ttl < 128 */);
       size_t packetSize = sendPacket(dstIP, frontPanel, 128 /* ttl >= 128 */);
 
-      auto packetsAfter = utility::getAclInOutPackets(
-          getHwSwitch(),
-          this->getProgrammedState(),
-          ttlAclName,
-          ttlCounterName);
+      auto aclStatsMatch = [&]() {
+        auto packetsAfter = utility::getAclInOutPackets(
+            getHwSwitch(),
+            this->getProgrammedState(),
+            ttlAclName,
+            ttlCounterName);
 
-      auto bytesAfter = utility::getAclInOutBytes(
-          getHwSwitch(),
-          this->getProgrammedState(),
-          ttlAclName,
-          ttlCounterName);
+        auto bytesAfter = utility::getAclInOutBytes(
+            getHwSwitch(),
+            this->getProgrammedState(),
+            ttlAclName,
+            ttlCounterName);
 
-      XLOG(DBG2) << "\n"
-                 << "ttlAclPacketCounter: " << std::to_string(packetsBefore)
-                 << " -> " << std::to_string(packetsAfter) << "\n"
-                 << "ttlAclBytesCounter: " << std::to_string(bytesBefore)
-                 << " -> " << std::to_string(bytesAfter);
+        XLOG(DBG2) << "\n"
+                   << "ttlAclPacketCounter: " << std::to_string(packetsBefore)
+                   << " -> " << std::to_string(packetsAfter) << "\n"
+                   << "ttlAclBytesCounter: " << std::to_string(bytesBefore)
+                   << " -> " << std::to_string(bytesAfter);
 
-      // counts ttl >= 128 packet only
-      EXPECT_EQ(packetsAfter - packetsBefore, 1);
-      if (frontPanel) {
-        EXPECT_EQ(bytesAfter - bytesBefore, packetSize);
-      } else {
+        // counts ttl >= 128 packet only
+        if (packetsAfter - packetsBefore != 1) {
+          return false;
+        }
+        if (frontPanel) {
+          return bytesAfter - bytesBefore == packetSize;
+        }
         // TODO: Still need to debug why we get extra 4 bytes for CPU port
-        EXPECT_GE(bytesAfter - bytesBefore, packetSize);
-      }
+        return bytesAfter - bytesBefore >= packetSize;
+      };
+      auto updateStats = [&]() {
+        facebook::fboss::SwitchStats dummy;
+        getHwSwitch()->updateStats(&dummy);
+      };
+      EXPECT_TRUE(getHwSwitchEnsemble()->waitStatsCondition(
+          aclStatsMatch, updateStats));
     };
 
     verifyAcrossWarmBoots(setup, verify);
