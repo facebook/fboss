@@ -16,28 +16,4 @@ std::string execCommandUnchecked(const std::string& cmd, int& exitStatus);
  */
 std::string execCommand(const std::string& cmd);
 
-/*
- * Search Flash Type from flashrom output, e.g. flashrom -p internal
- * If it can not find, return empty string
- */
-std::string getFlashType(const std::string& str);
-
-uint64_t nowInSecs();
-
-/*
- * Calculate expression that may contain invalid symbol (for exprtk), e.g. "@",
- * but compatiable with lmsensor style expression
- * and to be replaced by parameter "symbol";
- * or valid variable (for exprtk) in the expression as indicated by
- * parameter "symbol". Those will be replaced by parameter "input" value to
- * calculate the expression.
- * For example: "expression" is "@*0.1", "input" is
- * 100f, invalid symbol is "@" which will get replaced by valid symbol "x",
- * thus the expression will be x*0.1 = 100f*0.1 = 10f
- */
-float computeExpression(
-    const std::string& expression,
-    float input,
-    const std::string& symbol = "x");
-
 } // namespace facebook::fboss::platform::helpers

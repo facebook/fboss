@@ -13,7 +13,7 @@
 #include "fboss/platform/weutil/WeutilDarwin.h"
 #include "fboss/platform/weutil/prefdl/Prefdl.h"
 
-using namespace facebook::fboss::platform::helpers;
+using namespace facebook::fboss::platform;
 
 namespace {
 const std::string kPathPrefix = "/tmp/WeutilDarwin";
@@ -49,6 +49,19 @@ const std::unordered_map<std::string, std::string> kMapping{
     {"Product Serial Number", "SerialNumber"},
 };
 
+const std::unordered_set<std::string> kFlashType = {
+    "MX25L12805D",
+    "N25Q128..3E"};
+
+std::string getFlashType(const std::string& str) {
+  for (auto& it : kFlashType) {
+    if (str.find(it) != std::string::npos) {
+      return it;
+    }
+  }
+  return "";
+}
+
 } // namespace
 
 namespace facebook::fboss::platform {
@@ -78,13 +91,13 @@ void WeutilDarwin::genSpiPrefdlFile(void) {
     }
   }
 
-  ret = execCommandUnchecked(kCreteLayout, retVal);
+  ret = helpers::execCommandUnchecked(kCreteLayout, retVal);
   if (retVal != 0) {
     throw std::runtime_error("Cannot create layout file with: " + kCreteLayout);
   }
 
   // Get flash type
-  ret = execCommandUnchecked(kFlashromGetFlashType + " 2>&1 ", retVal);
+  ret = helpers::execCommandUnchecked(kFlashromGetFlashType + " 2>&1 ", retVal);
 
   /* Since flashrom will return 1 for "flashrom -p internal"
    * we ignore retVal == 1
@@ -106,7 +119,7 @@ void WeutilDarwin::genSpiPrefdlFile(void) {
         folly::to<std::string>(kFlashromGetFlashType, kFlashromGetContent);
   }
 
-  ret = execCommandUnchecked(getPrefdl, retVal);
+  ret = helpers::execCommandUnchecked(getPrefdl, retVal);
   if (retVal != 0) {
     throw std::runtime_error(folly::to<std::string>(
         "Cannot create BIOS file with: ",
@@ -116,7 +129,7 @@ void WeutilDarwin::genSpiPrefdlFile(void) {
         std::to_string(retVal)));
   }
 
-  ret = execCommandUnchecked(kddComands, retVal);
+  ret = helpers::execCommandUnchecked(kddComands, retVal);
   if (retVal != 0) {
     throw std::runtime_error("Cannot create prefdl file with: " + kddComands);
   }

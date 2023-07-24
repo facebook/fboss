@@ -26,6 +26,7 @@ add_fbthrift_cpp_library(
 add_library(sensor_service_lib
   fboss/platform/sensor_service/FsdbSyncer.cpp
   fboss/platform/sensor_service/Flags.cpp
+  fboss/platform/sensor_service/Utils.cpp
   fboss/platform/sensor_service/SensorServiceImpl.cpp
   fboss/platform/sensor_service/SensorServiceThriftHandler.cpp
   fboss/platform/sensor_service/oss/FsdbSyncer.cpp

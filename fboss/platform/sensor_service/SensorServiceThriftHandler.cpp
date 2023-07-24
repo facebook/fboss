@@ -11,7 +11,7 @@
 #include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
 #include <folly/logging/xlog.h>
 #include "fboss/lib/LogThriftCall.h"
-#include "fboss/platform/helpers/Utils.h"
+#include "fboss/platform/sensor_service/Utils.h"
 
 namespace facebook::fboss::platform::sensor_service {
 
@@ -20,7 +20,7 @@ void SensorServiceThriftHandler::getSensorValuesByNames(
     std::unique_ptr<std::vector<std::string>> request) {
   auto log = LOG_THRIFT_CALL(DBG1);
 
-  response.timeStamp() = helpers::nowInSecs();
+  response.timeStamp() = Utils::nowInSecs();
 
   // Request list is not empty
   if (!request->empty()) {

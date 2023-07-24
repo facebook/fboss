@@ -3,8 +3,8 @@
 #include <folly/experimental/TestUtil.h>
 #include <gtest/gtest.h>
 
-#include "fboss/platform/helpers/Utils.h"
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
+#include "fboss/platform/sensor_service/Utils.h"
 #include "fboss/platform/sensor_service/test/TestUtils.h"
 
 using namespace facebook::fboss::platform::sensor_service;
@@ -24,7 +24,7 @@ class SensorServiceImplTest : public ::testing::Test {
 };
 
 TEST_F(SensorServiceImplTest, fetchAndCheckSensorData) {
-  auto now = platform::helpers::nowInSecs();
+  auto now = Utils::nowInSecs();
   impl_->fetchSensorData();
   auto sensorData = impl_->getAllSensorData();
   std::map<std::string, float> expectedSensors = {

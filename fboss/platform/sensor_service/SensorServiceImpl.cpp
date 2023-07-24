@@ -8,18 +8,21 @@
  *
  */
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
+
+#include <filesystem>
+
+#include <fb303/ServiceData.h>
 #include <folly/FileUtil.h>
 #include <folly/dynamic.h>
 #include <folly/json.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-#include <filesystem>
+
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/helpers/Utils.h"
 #include "fboss/platform/sensor_service/FsdbSyncer.h"
+#include "fboss/platform/sensor_service/Utils.h"
 #include "fboss/platform/sensor_service/gen-cpp2/sensor_service_stats_types.h"
-
-#include <fb303/ServiceData.h>
 
 DEFINE_int32(
     fsdb_statsStream_interval_seconds,
@@ -47,7 +50,6 @@ auto constexpr kHasReadFailure = "sensor_read.has.failures";
 
 } // namespace
 namespace facebook::fboss::platform::sensor_service {
-using namespace facebook::fboss::platform::helpers;
 
 void SensorServiceImpl::init() {
   std::string sensorConfJson;
@@ -188,7 +190,7 @@ void SensorServiceImpl::fetchSensorData() {
   };
   if (sensorSource_ == SensorSource::LMSENSOR) {
     int retVal = 0;
-    std::string ret = execCommandUnchecked(kLmsensorCommand, retVal);
+    std::string ret = helpers::execCommandUnchecked(kLmsensorCommand, retVal);
     if (retVal != 0) {
       throw std::runtime_error("Run " + kLmsensorCommand + " failed!");
     }
@@ -214,7 +216,7 @@ void SensorServiceImpl::fetchSensorData() {
 
 void SensorServiceImpl::getSensorDataFromPath() {
   liveDataTable_.withWLock([&](auto& liveDataTable) {
-    auto now = helpers::nowInSecs();
+    auto now = Utils::nowInSecs();
     auto readFailures{0};
     for (auto& [sensorName, sensorLiveData] : liveDataTable) {
       std::string sensorValue;
@@ -222,8 +224,8 @@ void SensorServiceImpl::getSensorDataFromPath() {
         sensorLiveData.value = folly::to<float>(sensorValue);
         sensorLiveData.timeStamp = now;
         if (sensorLiveData.compute != "") {
-          sensorLiveData.value =
-              computeExpression(sensorLiveData.compute, sensorLiveData.value);
+          sensorLiveData.value = Utils::computeExpression(
+              sensorLiveData.compute, sensorLiveData.value);
         }
         XLOG(INFO) << fmt::format(
             "{} ({}) : {}",
@@ -250,7 +252,7 @@ void SensorServiceImpl::parseSensorJsonData(const std::string& strJson) {
 
   auto dataTable = liveDataTable_.wlock();
 
-  auto now = helpers::nowInSecs();
+  auto now = Utils::nowInSecs();
   for (auto& firstPair : sensorJson.items()) {
     // Key is pair.first, value is pair.second
     if (firstPair.second.isObject()) {
