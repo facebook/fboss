@@ -60,7 +60,21 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap {
       SAI_ATTR_MAP(Port, RxSignalDetect), SAI_ATTR_MAP(Port, RxLockStatus),
       SAI_ATTR_MAP(Port, FecAlignmentLock), SAI_ATTR_MAP(Port, PcsRxLinkStatus),
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+      SAI_ATTR_MAP(Port, InterFrameGap),
+#endif
       SAI_ATTR_MAP(Port, LinkTrainingEnable),
+      SAI_ATTR_MAP(Port, FabricAttached),
+      SAI_ATTR_MAP(Port, FabricAttachedPortIndex),
+      SAI_ATTR_MAP(Port, FabricAttachedSwitchId),
+      SAI_ATTR_MAP(Port, FabricAttachedSwitchType),
+      SAI_ATTR_MAP(Port, FabricReachability),
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+      SAI_ATTR_MAP(Port, PfcTcDldInterval),
+      SAI_ATTR_MAP(Port, PfcTcDlrInterval),
+      SAI_ATTR_MAP(Port, PfcTcDldIntervalRange),
+      SAI_ATTR_MAP(Port, PfcTcDlrIntervalRange),
+#endif
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _PortSerdesMap{
@@ -82,6 +96,9 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortConnectorMap{
 
 void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, SystemPortId)
+  SAI_EXT_ATTR_MAP(Port, SerdesLaneList)
+  SAI_EXT_ATTR_MAP(Port, DiagModeEnable)
+  SAI_EXT_ATTR_MAP(Port, RxLaneSquelchEnable)
   SAI_EXT_ATTR_MAP(PortSerdes, RxCtleCode)
   SAI_EXT_ATTR_MAP(PortSerdes, RxDspMode)
   SAI_EXT_ATTR_MAP(PortSerdes, RxAfeTrim)
