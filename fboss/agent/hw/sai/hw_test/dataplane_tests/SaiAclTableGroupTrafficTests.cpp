@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
@@ -35,7 +36,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
-        masterLogicalPortIds(),
+        {masterLogicalPortIds()[0], masterLogicalPortIds()[1]},
         getAsic()->desiredLoopbackModes());
 
     utility::addAclTableGroup(
@@ -308,16 +309,28 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
       }
     }
 
-    auto statAfter = utility::getAclInOutPackets(
-        getHwSwitch(),
-        this->getProgrammedState(),
-        ttlAclName,
-        ttlCounterName,
-        kAclStage(),
-        utility::getTtlAclTableName());
+    auto updateStats = [&]() {
+      facebook::fboss::SwitchStats dummy;
+      getHwSwitch()->updateStats(&dummy);
+    };
 
-    // counts ttl >= 128 packet only
-    EXPECT_EQ(statAfter - statBefore, getIpToMacAndClassID<AddrT>().size());
+    auto aclStatsMatch = [&]() {
+      auto statAfter = utility::getAclInOutPackets(
+          getHwSwitch(),
+          this->getProgrammedState(),
+          ttlAclName,
+          ttlCounterName,
+          kAclStage(),
+          utility::getTtlAclTableName());
+
+      XLOG(DBG2) << "statBefore: " << statBefore << " statAfter: " << statAfter
+                 << " expected: " << getIpToMacAndClassID<AddrT>().size();
+      // counts ttl >= 128 packet only
+      return statAfter - statBefore == getIpToMacAndClassID<AddrT>().size();
+    };
+
+    EXPECT_TRUE(
+        getHwSwitchEnsemble()->waitStatsCondition(aclStatsMatch, updateStats));
   }
 
   template <typename AddrT>
@@ -420,60 +433,79 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
   template <typename AddrT>
   void _verifyHelperDscpTtlAclTables(bool frontPanel) {
     auto [testType, dstIP] = testTypeAndIpHelper<AddrT>();
+    XLOG(DBG2) << "TestType: " << testType;
 
-    auto [beforeDscpAclPkts, beforeTtlAclPkts] = pktCounterHelper();
+    auto beforeAclPkts = pktCounterHelper();
     sendAllPacketshelper<AddrT>(dstIP, frontPanel, 0);
-    auto [intermediateDscpAclPkts, intermediateTtlAclPkts] = pktCounterHelper();
+    auto updateStats = [&]() {
+      facebook::fboss::SwitchStats dummy;
+      getHwSwitch()->updateStats(&dummy);
+    };
+
+    auto intermediateAclStatsMatch = [&]() {
+      auto [dscpAclPkts, ttlAclPkts] = pktCounterHelper();
+      XLOG(DBG2) << "Before ICP pkts: " << beforeAclPkts.first
+                 << " Intermediate ICP pkts: " << dscpAclPkts;
+      XLOG(DBG2) << "Before Ttl pkts: " << beforeAclPkts.second
+                 << " Intermediate Ttl pkts: " << ttlAclPkts;
+      /* When packet egresses, DSCP is not marked and so ACL counter is not hit.
+       * It marks the DSCP instead. Since the port is in loopback mode, the same
+       * packet comes in and this time hits the counter and is incremented
+       */
+      bool dscpAclMatch =
+          (dscpAclPkts - beforeAclPkts.first ==
+           (1 /* ACL hit once */ * 2 /* Pkt sent twice with different TTL */ *
+            2 /*l4Srcport and l4DstPort */ *
+            (utility::kUdpPorts().size() +
+             utility::kTcpPorts()
+                 .size()) /* For each destIP, all ICP port pkts are sent */));
+
+      bool ttlAclMatch =
+          (ttlAclPkts - beforeAclPkts.second ==
+           (2 /*l4Srcport and l4DstPort */ *
+            (utility::kUdpPorts().size() + utility::kTcpPorts().size())));
+
+      return dscpAclMatch && ttlAclMatch;
+    };
+
+    EXPECT_TRUE(getHwSwitchEnsemble()->waitStatsCondition(
+        intermediateAclStatsMatch, updateStats));
+
+    auto intermediateAclPkts = pktCounterHelper();
     sendAllPacketshelper<AddrT>(
         dstIP, frontPanel, utility::kIcpDscp(getAsic()));
-    auto [afterDscpAclPkts, afterTtlAclPkts] = pktCounterHelper();
+    auto afterAclStatsMatch = [&]() {
+      auto [dscpAclPkts, ttlAclPkts] = pktCounterHelper();
+      XLOG(DBG2) << "Intermediate ICP pkts: " << intermediateAclPkts.first
+                 << " After ICP pkts: " << dscpAclPkts;
+      XLOG(DBG2) << "Intermediate Ttl pkts: " << intermediateAclPkts.second
+                 << " After Ttl pkts: " << ttlAclPkts;
+      /* counts ttl >= 128 packet only. We send twice with and without DSCP
+       * marking. Each time, we send to a list of dest ports.
+       * For each send, we send for all UDP and TCP ICP ports. so the expected
+       * value needs to account for that.
+       */
+      bool ttlAclMatch =
+          (ttlAclPkts - intermediateAclPkts.second ==
+           (2 /*l4Srcport and l4DstPort */ *
+            (utility::kUdpPorts().size() + utility::kTcpPorts().size())));
 
-    XLOG(DBG2) << "TestType: " << testType;
-    XLOG(DBG2) << "Before ICP pkts: " << beforeDscpAclPkts
-               << " Intermediate ICP pkts: " << intermediateDscpAclPkts
-               << " After ICP pkts: " << afterDscpAclPkts;
-    XLOG(DBG2) << "Before Ttl pkts: " << beforeTtlAclPkts
-               << " Intermediate Ttl pkts: " << intermediateTtlAclPkts
-               << " After Ttl pkts: " << afterTtlAclPkts;
+      /* Inject a pkt with dscp = ICP DSCP.
+       *   - The packet will match DSCP ACL, thus counter incremented.
+       *   - Packet egress via front panel port which is in loopback mode.
+       *   - Thus, packet gets looped back.
+       *   - Hits ACL again, and thus counter incremented twice.
+       */
+      bool dscpAclMatch =
+          (dscpAclPkts - intermediateAclPkts.first ==
+           (2 /* ACL hit twice */ * 2 /* Pkt sent twice with different TTL */ *
+            2 /*L4Srcport and L4DstPort */ *
+            (utility::kUdpPorts().size() + utility::kTcpPorts().size())));
+      return dscpAclMatch && ttlAclMatch;
+    };
 
-    /* When packet egresses, DSCP is not marked and so ACL counter is not hit.
-     * It marks the DSCP instead. Since the port is in loopback mode, the same
-     * packet comes in and this time hits the counter and is incremented
-     */
-    EXPECT_EQ(
-        intermediateDscpAclPkts - beforeDscpAclPkts,
-        (1 /* ACL hit once */ * 2 /* Pkt sent twice with different TTL */ *
-         2 /*l4Srcport and l4DstPort */ *
-         (utility::kUdpPorts().size() +
-          utility::kTcpPorts()
-              .size()) /* For each destIP, all ICP port pkts are sent */));
-
-    EXPECT_EQ(
-        intermediateTtlAclPkts - beforeTtlAclPkts,
-        (2 /*l4Srcport and l4DstPort */ *
-         (utility::kUdpPorts().size() + utility::kTcpPorts().size())));
-
-    /* counts ttl >= 128 packet only. We send twice with and without DSCP
-     * marking. Each time, we send to a list of dest ports.
-     * For each send, we send for all UDP and TCP ICP ports. so the expected
-     * value needs to account for that.
-     */
-    EXPECT_EQ(
-        afterTtlAclPkts - intermediateTtlAclPkts,
-        (2 /*l4Srcport and l4DstPort */ *
-         (utility::kUdpPorts().size() + utility::kTcpPorts().size())));
-
-    /* Inject a pkt with dscp = ICP DSCP.
-     *   - The packet will match DSCP ACL, thus counter incremented.
-     *   - Packet egress via front panel port which is in loopback mode.
-     *   - Thus, packet gets looped back.
-     *   - Hits ACL again, and thus counter incremented twice.
-     */
-    EXPECT_EQ(
-        afterDscpAclPkts - intermediateDscpAclPkts,
-        (2 /* ACL hit twice */ * 2 /* Pkt sent twice with different TTL */ *
-         2 /*L4Srcport and L4DstPort */ *
-         (utility::kUdpPorts().size() + utility::kTcpPorts().size())));
+    EXPECT_TRUE(getHwSwitchEnsemble()->waitStatsCondition(
+        afterAclStatsMatch, updateStats));
   }
 
   void verifyDscpTtlAclTablesHelper(bool frontPanel) {
