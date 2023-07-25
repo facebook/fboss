@@ -652,6 +652,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwI2CStressTest.testCmisPageChange$"
         }
     ],
     "montblanc/physdk-credo-0.7.2/credo-0.7.2": [
@@ -797,6 +800,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwI2CStressTest.testCmisPageChange$"
         }
     ],
     "wedge400/physdk-credo-0.7.2/credo-0.7.2": [
