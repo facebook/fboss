@@ -106,6 +106,7 @@ elseif (SAI_BRCM_IMPL)
 else()
   list(APPEND SAI_API_SRC
     fboss/agent/hw/sai/api/fake/FakeSaiExtensions.cpp
+    fboss/agent/hw/sai/api/oss/SwitchApi.cpp
   )
 endif()
 
