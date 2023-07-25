@@ -77,6 +77,10 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
         counterIds.emplace_back(SAI_PORT_STAT_ETHER_STATS_TX_NO_ERRORS);
         counterIds.emplace_back(SAI_PORT_STAT_ETHER_STATS_RX_NO_ERRORS);
       }
+      if (platform_->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
+        counterIds.emplace_back(managerTable_->debugCounterManager()
+                                    .getPortL3BlackHoleCounterStatId());
+      }
       counterIds.reserve(
           counterIds.size() + SaiPortTraits::PfcCounterIdsToRead.size());
       std::copy(
