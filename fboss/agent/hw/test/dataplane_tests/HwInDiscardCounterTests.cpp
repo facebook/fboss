@@ -17,6 +17,7 @@
 
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/lib/CommonUtils.h"
 
 using folly::IPAddress;
 using folly::IPAddressV6;
@@ -47,7 +48,7 @@ class HwInDiscardsCounterTest : public HwLinkStateDependentTest {
     auto dstIp = IPAddress(isV6 ? "100:100:100::1" : "100.100.100.1");
     auto pkt = utility::makeUDPTxPacket(
         getHwSwitch(), vlanId, intfMac, intfMac, srcIp, dstIp, 10000, 10001);
-    getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+    getHwSwitch()->sendPacketOutOfPortAsync(
         std::move(pkt), PortID(masterLogicalInterfacePortIds()[0]));
   }
 };
@@ -59,16 +60,18 @@ TEST_F(HwInDiscardsCounterTest, nullRouteHit) {
     auto portStatsBefore = getLatestPortStats(portId);
     pumpTraffic(true);
     pumpTraffic(false);
-    auto portStatsAfter = getLatestPortStats(portId);
-    EXPECT_EQ(
-        2,
-        *portStatsAfter.inDiscardsRaw_() - *portStatsBefore.inDiscardsRaw_());
-    EXPECT_EQ(
-        2,
-        *portStatsAfter.inDstNullDiscards_() -
-            *portStatsBefore.inDstNullDiscards_());
-    EXPECT_EQ(
-        0, *portStatsAfter.inDiscards_() - *portStatsBefore.inDiscards_());
+    WITH_RETRIES({
+      auto portStatsAfter = getLatestPortStats(portId);
+      EXPECT_EVENTUALLY_EQ(
+          2,
+          *portStatsAfter.inDiscardsRaw_() - *portStatsBefore.inDiscardsRaw_());
+      EXPECT_EVENTUALLY_EQ(
+          2,
+          *portStatsAfter.inDstNullDiscards_() -
+              *portStatsBefore.inDstNullDiscards_());
+      EXPECT_EVENTUALLY_EQ(
+          0, *portStatsAfter.inDiscards_() - *portStatsBefore.inDiscards_());
+    });
   };
   verifyAcrossWarmBoots(setup, verify);
 } // namespace facebook::fboss
