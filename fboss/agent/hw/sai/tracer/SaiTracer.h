@@ -641,25 +641,29 @@ class SaiTracer {
     return rv;                                                                 \
   }
 
-#define WRAP_GET_STATS_FUNC(obj_type, sai_obj_type, api_type)             \
-  sai_status_t wrap_get_##obj_type##_stats(                               \
-      sai_object_id_t obj_type##_id,                                      \
-      uint32_t num_of_counters,                                           \
-      const sai_stat_id_t* counter_ids,                                   \
-      uint64_t* counters) {                                               \
-    auto rv =                                                             \
-        SaiTracer::getInstance()->api_type##Api_->get_##obj_type##_stats( \
-            obj_type##_id, num_of_counters, counter_ids, counters);       \
-                                                                          \
-    SaiTracer::getInstance()->logGetStatsFn(                              \
-        "get_" #obj_type "_stats",                                        \
-        obj_type##_id,                                                    \
-        num_of_counters,                                                  \
-        counter_ids,                                                      \
-        counters,                                                         \
-        sai_obj_type,                                                     \
-        rv);                                                              \
-    return rv;                                                            \
+#define WRAP_GET_STATS_FUNC(obj_type, sai_obj_type, api_type)              \
+  sai_status_t wrap_get_##obj_type##_stats(                                \
+      sai_object_id_t obj_type##_id,                                       \
+      uint32_t num_of_counters,                                            \
+      const sai_stat_id_t* counter_ids,                                    \
+      uint64_t* counters) {                                                \
+    auto begin = FLAGS_enable_elapsed_time_log                             \
+        ? std::chrono::system_clock::now()                                 \
+        : std::chrono::system_clock::time_point::min();                    \
+    auto rv =                                                              \
+        SaiTracer::getInstance()->api_type##Api_->get_##obj_type##_stats(  \
+            obj_type##_id, num_of_counters, counter_ids, counters);        \
+                                                                           \
+    SaiTracer::getInstance()->logGetStatsFn(                               \
+        "get_" #obj_type "_stats",                                         \
+        obj_type##_id,                                                     \
+        num_of_counters,                                                   \
+        counter_ids,                                                       \
+        counters,                                                          \
+        sai_obj_type,                                                      \
+        rv);                                                               \
+    SaiTracer::getInstance()->logPostInvocation(rv, obj_type##_id, begin); \
+    return rv;                                                             \
   }
 
 #define WRAP_GET_STATS_EXT_FUNC(obj_type, sai_obj_type, api_type)             \
@@ -669,6 +673,9 @@ class SaiTracer {
       const sai_stat_id_t* counter_ids,                                       \
       sai_stats_mode_t mode,                                                  \
       uint64_t* counters) {                                                   \
+    auto begin = FLAGS_enable_elapsed_time_log                                \
+        ? std::chrono::system_clock::now()                                    \
+        : std::chrono::system_clock::time_point::min();                       \
     auto rv =                                                                 \
         SaiTracer::getInstance()->api_type##Api_->get_##obj_type##_stats_ext( \
             obj_type##_id, num_of_counters, counter_ids, mode, counters);     \
@@ -682,6 +689,7 @@ class SaiTracer {
         sai_obj_type,                                                         \
         rv,                                                                   \
         mode);                                                                \
+    SaiTracer::getInstance()->logPostInvocation(rv, obj_type##_id, begin);    \
     return rv;                                                                \
   }
 

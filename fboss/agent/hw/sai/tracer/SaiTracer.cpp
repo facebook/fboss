@@ -1172,9 +1172,6 @@ void SaiTracer::logGetStatsFn(
     lines.push_back(to<string>("counter_list[", i, "]=", counter_ids[i]));
   }
 
-  // Log current timestamp, object id and return value
-  lines.push_back(logTimeAndRv(rv, object_id));
-
   // Make clearStats call
   lines.push_back(to<string>(
       "rv=",
@@ -1189,10 +1186,7 @@ void SaiTracer::logGetStatsFn(
       mode ? to<string>("(sai_stats_mode_t)", mode, ",") : "",
       "(uint64_t*)&counter_vals)"));
 
-  // Check return value to be the same as the original run
-  lines.push_back(rvCheck(rv));
-
-  writeToFile(lines);
+  writeToFile(lines, /*linefeed*/ false);
 }
 
 void SaiTracer::logClearStatsFn(
