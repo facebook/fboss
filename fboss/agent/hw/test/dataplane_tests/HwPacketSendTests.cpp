@@ -36,7 +36,7 @@ class HwPacketSendTest : public HwLinkStateDependentTest {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
-        masterLogicalPortIds(),
+        {masterLogicalPortIds()[0]},
         getAsic()->desiredLoopbackModes());
     return cfg;
   }
