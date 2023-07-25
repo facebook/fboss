@@ -22,6 +22,23 @@ void HwLinkStateDependentTest::SetUp() {
     // recover back to the state the switch went down with prior
     // to warm boot
     getHwSwitchEnsemble()->applyInitialConfig(initialConfig());
+    if (isSupported(HwAsic::Feature::LINK_STATE_BASED_ISOLATE)) {
+      // For switches that support LINK_STATE_BASED_ISOLATE, force
+      // switch to come out of isolate post setup. This is required
+      // for data plane to work.
+      // TODO: write specialized tests that look at link status and
+      // and isolate, unisolate based on threshold.
+      auto undrainState = getProgrammedState()->clone();
+      auto multiSwitchSettings = undrainState->getSwitchSettings()->clone();
+      auto matcher =
+          HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
+      auto settings =
+          multiSwitchSettings->getNode(matcher.matcherString())->clone();
+      settings->setSwitchDrainState(cfg::SwitchDrainState::UNDRAINED);
+      multiSwitchSettings->updateNode(matcher.matcherString(), settings);
+      undrainState->resetSwitchSettings(multiSwitchSettings);
+      applyNewState(undrainState);
+    }
   }
 }
 
