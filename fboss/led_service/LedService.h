@@ -30,8 +30,7 @@ class LedService {
   void kickStart();
 
   void updateLedStatus(
-      std::map<std::string, std::map<short, fboss::state::PortFields>>&
-          newSwitchState) {
+      std::map<short, LedManager::LedSwitchStateUpdate>& newSwitchState) {
     pLedManager_->updateLedStatus(newSwitchState);
   }
 

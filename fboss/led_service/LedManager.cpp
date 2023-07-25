@@ -64,52 +64,45 @@ LedManager::~LedManager() {
  *    than existing one then set the new color on LED
  */
 void LedManager::updateLedStatus(
-    std::map<std::string, std::map<short, fboss::state::PortFields>>&
-        newSwitchState) {
+    std::map<short, LedSwitchStateUpdate> newSwitchState) {
   if (newSwitchState.empty()) {
     // No change in port info so return from here
     return;
   }
 
-  for (const auto& [switchIdStr, oneSwitchState] : newSwitchState) {
-    for (const auto& [portId, portFields] : oneSwitchState) {
-      // Step 1. Update all operational info
-      auto portName = portFields.portName().value();
-      auto portProfile = portFields.portProfileID().value();
-      auto portProfileEnumVal = nameToEnum<cfg::PortProfileID>(portProfile);
-
-      PortDisplayInfo portInfo;
-      portInfo.portName = portName;
-      portInfo.portProfileId = portProfileEnumVal;
-      portInfo.operationStateUp = portFields.portOperState().value();
-      if (portFields.portLedExternalState().has_value()) {
-        portInfo.cablingError = portFields.portLedExternalState().value() ==
-            PortLedExternalState::CABLING_ERROR;
-      }
-      portInfo.currentLedColor =
-          (portDisplayMap_.find(portId) == portDisplayMap_.end())
-          ? led::LedColor::UNKNOWN
-          : portDisplayMap_.at(portId).currentLedColor;
-      portDisplayMap_[portId] = portInfo;
+  for (const auto& [portId, switchStateUpdate] : newSwitchState) {
+    // Step 1. Update all operational info
+    auto portName = switchStateUpdate.portName;
+    auto portProfile = switchStateUpdate.portProfile;
+    auto portProfileEnumVal = nameToEnum<cfg::PortProfileID>(portProfile);
+    PortDisplayInfo portInfo;
+    portInfo.portName = portName;
+    portInfo.portProfileId = portProfileEnumVal;
+    portInfo.operationStateUp = switchStateUpdate.operState;
+    if (switchStateUpdate.ledExternalState.has_value()) {
+      portInfo.cablingError = switchStateUpdate.ledExternalState.value() ==
+          PortLedExternalState::CABLING_ERROR;
     }
+    portInfo.currentLedColor =
+        (portDisplayMap_.find(portId) == portDisplayMap_.end())
+        ? led::LedColor::UNKNOWN
+        : portDisplayMap_.at(portId).currentLedColor;
+    portDisplayMap_[portId] = portInfo;
   }
 
-  for (const auto& [switchIdStr, oneSwitchState] : newSwitchState) {
-    for (const auto& [portId, portFields] : oneSwitchState) {
-      // Step 2. Update LED color if required
-      auto portName = portFields.portName().value();
-      auto portProfile = portFields.portProfileID().value();
-      auto portProfileEnumVal = nameToEnum<cfg::PortProfileID>(portProfile);
-
-      auto newLedColor = calculateLedColor(portId, portProfileEnumVal);
-      if (newLedColor != portDisplayMap_[portId].currentLedColor) {
-        setLedColor(portId, portProfileEnumVal, newLedColor);
-        portDisplayMap_[portId].currentLedColor = newLedColor;
-        XLOG(DBG2) << folly::sformat(
-            "Port {:s} LED color changed to {:s}",
-            portName,
-            enumToName<led::LedColor>(newLedColor));
-      }
+  for (const auto& [portId, switchStateUpdate] : newSwitchState) {
+    // Step 2. Update LED color if required
+    auto portName = switchStateUpdate.portName;
+    auto portProfile = switchStateUpdate.portProfile;
+    auto portProfileEnumVal = nameToEnum<cfg::PortProfileID>(portProfile);
+    auto newLedColor = calculateLedColor(portId, portProfileEnumVal);
+    if (newLedColor != portDisplayMap_[portId].currentLedColor) {
+      setLedColor(portId, portProfileEnumVal, newLedColor);
+      portDisplayMap_[portId].currentLedColor = newLedColor;
+      XLOG(DBG2) << folly::sformat(
+          "Port {:s} LED color changed to {:s}",
+          portName,
+          enumToName<led::LedColor>(newLedColor));
     }
   }
 }

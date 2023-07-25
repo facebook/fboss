@@ -44,6 +44,14 @@ class LedManager {
   };
 
  public:
+  using LedSwitchStateUpdate = struct LedSwitchStateUpdate {
+    short swPortId;
+    std::string portName;
+    std::string portProfile;
+    bool operState;
+    std::optional<PortLedExternalState> ledExternalState;
+  };
+
   LedManager();
   virtual ~LedManager();
 
@@ -51,9 +59,7 @@ class LedManager {
   virtual void initLedManager() {}
 
   // On getting the update from FSDB, update portDisplayMap_
-  void updateLedStatus(
-      std::map<std::string, std::map<short, fboss::state::PortFields>>&
-          newSwitchState);
+  void updateLedStatus(std::map<short, LedSwitchStateUpdate> newSwitchState);
 
   folly::EventBase* getEventBase() {
     return eventBase_.get();

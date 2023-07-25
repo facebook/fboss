@@ -48,9 +48,27 @@ void FsdbSwitchStateSubscriber::subscribeToState(
           fboss::state::SwitchState>(*contents);
       auto swPortMaps = newSwitchStateData.portMaps().value();
 
+      std::map<short, LedManager::LedSwitchStateUpdate> ledSwitchStateUpdate;
+
+      for (auto& [switchStr, oneSwPortMap] : swPortMaps) {
+        for (auto& [onePortId, onePortInfo] : oneSwPortMap) {
+          ledSwitchStateUpdate[onePortId].swPortId = onePortId;
+          ledSwitchStateUpdate[onePortId].portName =
+              onePortInfo.portName().value();
+          ledSwitchStateUpdate[onePortId].portProfile =
+              onePortInfo.portProfileID().value();
+          ledSwitchStateUpdate[onePortId].operState =
+              onePortInfo.portOperState().value();
+          if (onePortInfo.portLedExternalState().has_value()) {
+            ledSwitchStateUpdate[onePortId].ledExternalState =
+                onePortInfo.portLedExternalState().value();
+          }
+        }
+      }
+
       if (ledManager) {
-        folly::via(ledManager->getEventBase()).thenValue([&](auto&&) {
-          ledManager->updateLedStatus(swPortMaps);
+        folly::via(ledManager->getEventBase()).thenValue([=](auto&&) {
+          ledManager->updateLedStatus(ledSwitchStateUpdate);
         });
 
       } else {
