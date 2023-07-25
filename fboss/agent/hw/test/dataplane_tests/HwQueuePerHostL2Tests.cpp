@@ -11,6 +11,7 @@
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/MacTableUtils.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
@@ -122,15 +123,26 @@ class HwQueuePerHostL2Test : public HwLinkStateDependentTest {
       }
     }
 
-    auto statAfter = utility::getAclInOutPackets(
-        getHwSwitch(), this->getProgrammedState(), ttlAclName, ttlCounterName);
+    auto aclStatsMatch = [&] {
+      auto statAfter = utility::getAclInOutPackets(
+          getHwSwitch(),
+          this->getProgrammedState(),
+          ttlAclName,
+          ttlCounterName);
 
-    /*
-     * counts ttl >= 128 packet only
-     * but L2 traffic (so TTL is not decremented, and thus looped back packet
-     * also has ttl >= 128, thus the count is 2.
-     */
-    EXPECT_EQ(statAfter - statBefore, 2);
+      /*
+       * counts ttl >= 128 packet only
+       * but L2 traffic (so TTL is not decremented, and thus looped back packet
+       * also has ttl >= 128, thus the count is 2.
+       */
+      return statAfter - statBefore == 2;
+    };
+    auto updateStats = [&]() {
+      facebook::fboss::SwitchStats dummy;
+      getHwSwitch()->updateStats(&dummy);
+    };
+    EXPECT_TRUE(
+        getHwSwitchEnsemble()->waitStatsCondition(aclStatsMatch, updateStats));
   }
 
   std::unique_ptr<facebook::fboss::TxPacket> createL3Pkt(uint8_t ttl) {

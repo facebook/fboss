@@ -417,18 +417,25 @@ void verifyQueuePerHostMapping(
     }
   }
 
-  auto statAfter = utility::getAclInOutPackets(
-      hwSwitch, swState, ttlAclName, ttlCounterName);
+  auto aclStatsMatch = [&]() {
+    auto statAfter = utility::getAclInOutPackets(
+        hwSwitch, swState, ttlAclName, ttlCounterName);
 
-  if (blockNeighbor) {
-    // if the neighbor is blocked, all pkts are dropped
-    EXPECT_EQ(statAfter - statBefore, 0);
-  } else {
+    if (blockNeighbor) {
+      // if the neighbor is blocked, all pkts are dropped
+      return statAfter - statBefore == 0;
+    }
     /*
      * counts ttl >= 128 packet only
      */
-    EXPECT_EQ(statAfter - statBefore, 1);
-  }
+    return statAfter - statBefore == 1;
+  };
+  auto updateStats = [&]() {
+    facebook::fboss::SwitchStats dummy;
+    hwSwitch->updateStats(&dummy);
+  };
+  EXPECT_TRUE(utility::waitStatsCondition(
+      aclStatsMatch, updateStats, 20, std::chrono::milliseconds(20)));
 }
 void updateRoutesClassID(
     const std::map<
