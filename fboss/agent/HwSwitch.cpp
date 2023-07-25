@@ -121,6 +121,7 @@ std::shared_ptr<SwitchState> HwSwitch::getProgrammedState() const {
 void HwSwitch::setProgrammedState(const std::shared_ptr<SwitchState>& state) {
   auto programmedState = programmedState_.wlock();
   *programmedState = state;
+  (*programmedState)->publish();
 }
 
 fsdb::OperDelta HwSwitch::stateChanged(const fsdb::OperDelta& delta) {
