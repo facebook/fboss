@@ -13,6 +13,20 @@ namespace fboss {
 BspPimContainer::BspPimContainer(BspPimMapping& bspPimMapping)
     : bspPimMapping_(bspPimMapping) {
   for (auto tcvrMapping : *bspPimMapping.tcvrMapping()) {
+    auto ioControllerId = *tcvrMapping.second.io()->controllerId();
+    // Create an event base and thread if not already created for this IO
+    // controller
+    if (ioToEvbThread_.find(ioControllerId) == ioToEvbThread_.end()) {
+      ioToEvbThread_[ioControllerId] = {};
+      ioToEvbThread_[ioControllerId].first =
+          std::make_unique<folly::EventBase>();
+      auto evb = ioToEvbThread_[ioControllerId].first.get();
+      ioToEvbThread_[ioControllerId].second =
+          std::make_unique<std::thread>([evb] { evb->loopForever(); });
+      XLOG(DBG3) << "Created EVB for " << ioControllerId;
+    }
+    tcvrToIOEvb_[tcvrMapping.first] =
+        ioToEvbThread_[ioControllerId].first.get();
     tcvrContainers_.emplace(
         tcvrMapping.first,
         std::make_unique<BspTransceiverContainer>(tcvrMapping.second));
@@ -127,6 +141,13 @@ void BspPimContainer::tcvrWrite(
 const I2cControllerStats BspPimContainer::getI2cControllerStats(
     int tcvrID) const {
   return getTransceiverContainer(tcvrID)->getI2cControllerStats();
+}
+
+BspPimContainer::~BspPimContainer() {
+  for (auto& evb : ioToEvbThread_) {
+    evb.second.first->terminateLoopSoon();
+    evb.second.second->join();
+  }
 }
 
 } // namespace fboss

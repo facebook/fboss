@@ -39,6 +39,13 @@ class BspPimContainer : public MultiPimPlatformPimContainer {
     return true;
   };
   virtual void initHW(bool forceReset = false) override{};
+  folly::EventBase* FOLLY_NULLABLE getIOEventBase(unsigned int tcvrID) const {
+    if (tcvrToIOEvb_.find(tcvrID) == tcvrToIOEvb_.end()) {
+      return nullptr;
+    }
+    return tcvrToIOEvb_.at(tcvrID);
+  }
+  virtual ~BspPimContainer() override;
 
  private:
   std::unordered_map<int, std::unique_ptr<BspTransceiverContainer>>
@@ -49,6 +56,12 @@ class BspPimContainer : public MultiPimPlatformPimContainer {
   // tcvrId to LED mapping
   std::unordered_map<int, std::unique_ptr<BspLedContainer>> ledContainers_;
   BspPimMapping bspPimMapping_;
+  std::unordered_map<
+      std::string /* ioControllerId*/,
+      std::
+          pair<std::unique_ptr<folly::EventBase>, std::unique_ptr<std::thread>>>
+      ioToEvbThread_;
+  std::unordered_map<unsigned int, folly::EventBase*> tcvrToIOEvb_;
 };
 
 } // namespace fboss
