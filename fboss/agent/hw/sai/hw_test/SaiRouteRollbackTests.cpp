@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/test/HwTestRouteUtils.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TrunkUtils.h"
 
 #include <folly/IPAddress.h>
 #include <folly/IPAddressV4.h>
@@ -117,7 +118,23 @@ class SaiRouteRollbackTest : public SaiRollbackTest {
   }
 
  protected:
-  void runTest(bool rollbackEcmp, bool rollbackNonEcmp, int numIters) {
+  void runTest(
+      bool rollbackEcmp,
+      bool rollbackNonEcmp,
+      int numIters,
+      bool setupTrunk = false) {
+    auto setup = [=]() {
+      if (setupTrunk) {
+        auto cfg = initialConfig();
+        utility::addAggPort(
+            std::numeric_limits<AggregatePortID>::max(),
+            {masterLogicalPortIds()[0]},
+            &cfg);
+        utility::addAggPort(1, {masterLogicalPortIds()[1]}, &cfg);
+        auto state = applyNewConfig(cfg);
+        applyNewState(utility::enableTrunkPorts(state));
+      }
+    };
     auto verify = [=]() {
       resolveNextHops(kEcmpWidth);
       // Cache rollback states
@@ -167,7 +184,7 @@ class SaiRouteRollbackTest : public SaiRollbackTest {
         }
       }
     };
-    verifyAcrossWarmBoots([]() {}, verify);
+    verifyAcrossWarmBoots(setup, verify);
   }
 
  private:
@@ -177,6 +194,10 @@ class SaiRouteRollbackTest : public SaiRollbackTest {
 
 TEST_F(SaiRouteRollbackTest, rollbackAll) {
   runTest(true, true, 1);
+}
+
+TEST_F(SaiRouteRollbackTest, rollbackAllWithTrunk) {
+  runTest(true, true, 1, true /*setupTrunk*/);
 }
 
 TEST_F(SaiRouteRollbackTest, rollbackNonEcmp) {
@@ -189,5 +210,9 @@ TEST_F(SaiRouteRollbackTest, rollbackEcmp) {
 
 TEST_F(SaiRouteRollbackTest, rollbackManyTimes) {
   runTest(true, true, 10);
+}
+
+TEST_F(SaiRouteRollbackTest, rollbackManyTimesWithTrunk) {
+  runTest(true, true, 10, true);
 }
 } // namespace facebook::fboss
