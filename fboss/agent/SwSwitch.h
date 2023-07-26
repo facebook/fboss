@@ -86,6 +86,7 @@ class HwAsicTable;
 class MultiHwSwitchSyncer;
 class SwitchStatsObserver;
 struct HwSwitchHandler;
+class MultiSwitchPacketStreamMap;
 
 enum class SwitchFlags : int {
   DEFAULT = 0,
@@ -831,6 +832,10 @@ class SwSwitch : public HwSwitchCallback {
 
   void switchRunStateChanged(SwitchRunState newState);
 
+  MultiSwitchPacketStreamMap* getPacketStreamMap() {
+    return packetStreamMap_.get();
+  }
+
  private:
   std::optional<folly::MacAddress> getSourceMac(
       const std::shared_ptr<Interface>& intf) const;
@@ -1082,6 +1087,7 @@ class SwSwitch : public HwSwitchCallback {
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>
       publishedStatsToFsdbAt_;
+  std::unique_ptr<MultiSwitchPacketStreamMap> packetStreamMap_;
 };
 
 } // namespace facebook::fboss

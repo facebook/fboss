@@ -165,6 +165,7 @@ add_library(core
   fboss/agent/MirrorManagerImpl.cpp
   fboss/agent/MPLSHandler.cpp
   fboss/agent/MultiHwSwitchSyncer.cpp
+  fboss/agent/MultiSwitchPacketStreamMap.cpp
   fboss/agent/NdpCache.cpp
   fboss/agent/NeighborUpdater.cpp
   fboss/agent/NeighborUpdaterImpl.cpp
@@ -209,6 +210,7 @@ target_link_libraries(core
   ctrl_cpp2
   fboss_cpp2
   lldp
+  multiswitch_ctrl_cpp2
   packet
   product_info
   platform_base

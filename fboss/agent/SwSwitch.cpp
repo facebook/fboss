@@ -42,6 +42,7 @@
 #include "fboss/agent/MacTableManager.h"
 #include "fboss/agent/MirrorManager.h"
 #include "fboss/agent/MultiHwSwitchSyncer.h"
+#include "fboss/agent/MultiSwitchPacketStreamMap.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PacketLogger.h"
 #include "fboss/agent/PacketObserver.h"
@@ -239,7 +240,8 @@ SwSwitch::SwSwitch(std::unique_ptr<HwSwitchHandler> hwSwitchHandler)
       hwAsicTable_(new HwAsicTable(getSwitchInfoFromConfig())),
       scopeResolver_(new SwitchIdScopeResolver(getSwitchInfoFromConfig())),
       multiHwSwitchSyncer_(nullptr),
-      switchStatsObserver_(new SwitchStatsObserver(this)) {
+      switchStatsObserver_(new SwitchStatsObserver(this)),
+      packetStreamMap_(new MultiSwitchPacketStreamMap()) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platformData_.volatileStateDir);
