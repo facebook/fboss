@@ -43,6 +43,11 @@ class HwSwitchWarmBootHelper {
   bool storeWarmBootState(
       const folly::dynamic& switchState,
       const state::WarmbootState& switchStateThrift);
+
+  bool storeSwSwitchWarmBootState(
+      const state::WarmbootState& switchStateThrift);
+  bool storeHwSwitchWarmBootState(const folly::dynamic& switchState);
+
   std::tuple<folly::dynamic, std::optional<state::WarmbootState>>
   getWarmBootState() const;
 
