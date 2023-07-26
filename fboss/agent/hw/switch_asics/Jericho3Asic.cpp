@@ -70,7 +70,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_DROP_STATS:
     case HwAsic::Feature::PACKET_INTEGRITY_DROP_STATS:
     case HwAsic::Feature::LINK_STATE_BASED_ISOLATE:
-    case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
       return true;
 
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
@@ -150,6 +149,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::RX_LANE_SQUELCH_ENABLE:
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
     case HwAsic::Feature::SEPARATE_BYTE_AND_PACKET_ACL_COUNTER:
+    case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
       return false;
   }
   return false;
