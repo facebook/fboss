@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "fboss/agent/MultiSwitchThriftHandler.h"
+#include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
@@ -86,8 +87,28 @@ MultiSwitchThriftHandler::co_notifyFdbEvent(int64_t switchId) {
 }
 
 folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::RxPacket, bool>>
-MultiSwitchThriftHandler::co_notifyRxPacket(int64_t /*switchId*/) {
-  co_return {};
+MultiSwitchThriftHandler::co_notifyRxPacket(int64_t switchId) {
+  ensureConfigured(__func__);
+  co_return apache::thrift::SinkConsumer<multiswitch::RxPacket, bool>{
+      [this, switchId](folly::coro::AsyncGenerator<multiswitch::RxPacket&&> gen)
+          -> folly::coro::Task<bool> {
+        while (auto item = co_await gen.next()) {
+          XLOG(DBG4) << "Got rx packet from switch " << switchId << " for port "
+                     << *item->port();
+          auto buf = IOBuf::copyBuffer(
+              reinterpret_cast<const uint8_t*>(item->data()->data()),
+              item->data()->size());
+          auto pkt = make_unique<MockRxPacket>(std::move(buf));
+          pkt->setSrcPort(PortID(*item->port()));
+          if (item->vlan()) {
+            pkt->setSrcVlan(VlanID(*item->vlan()));
+          }
+          sw_->packetReceived(std::move(pkt));
+        }
+        co_return true;
+      },
+      1000 /* buffer size */
+  };
 }
 
 folly::coro::Task<apache::thrift::ServerStream<fsdb::OperDelta>>

@@ -11,10 +11,13 @@
 #include "common/network/if/gen-cpp2/Address_types.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
+#include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
+#include "fboss/agent/test/TestPacketFactory.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -282,4 +285,30 @@ CO_TEST_F(ThriftServerTest, fdbEventTest) {
         verifyMacState(VlanID(1), "00:01:02:03:04:05", false);
       }());
   EXPECT_TRUE(ret);
+}
+
+CO_TEST_F(ThriftServerTest, receivePktHandler) {
+  // setup server and clients
+  setupServerAndClients();
+
+  CounterCache counters(sw_);
+  // Send packets to server using sink
+  auto result = co_await multiSwitchClient_->co_notifyRxPacket(100);
+  auto ret = co_await result.sink(
+      [&]() -> folly::coro::AsyncGenerator<multiswitch::RxPacket&&> {
+        auto pkt = createV4Packet(
+            folly::IPAddressV4("10.0.0.2"),
+            folly::IPAddressV4("10.0.0.1"),
+            MockPlatform::getMockLocalMac(),
+            MockPlatform::getMockLocalMac());
+        multiswitch::RxPacket rxPkt;
+        rxPkt.data()->append(
+            reinterpret_cast<const char*>(pkt.data()), pkt.length());
+        rxPkt.port() = 1;
+        rxPkt.vlan() = 1;
+        co_yield std::move(rxPkt);
+      }());
+  EXPECT_TRUE(ret);
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.mine.sum", 1);
 }

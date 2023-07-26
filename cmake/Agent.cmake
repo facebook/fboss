@@ -413,6 +413,7 @@ target_link_libraries(multiswitch_service
   core
   multiswitch_ctrl_cpp2
   state
+  packet
 )
 
 add_library(route_update_wrapper
