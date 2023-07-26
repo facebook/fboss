@@ -556,7 +556,9 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
           ? util::getFirstNodeIf(orig_->getSwitchSettings())
           : make_shared<SwitchSettings>();
       if ((newSwitchSettings->getSwitchIdToSwitchInfo() !=
-           origSwitchSettings->getSwitchIdToSwitchInfo())) {
+           origSwitchSettings->getSwitchIdToSwitchInfo()) ||
+          (newSwitchSettings->getDefaultVoqConfig() !=
+           origSwitchSettings->getDefaultVoqConfig())) {
         new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
             updateSystemPorts(new_->getPorts(), newSwitchSettings),
             scopeResolver_));
@@ -1244,14 +1246,6 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
 
   static const std::set<cfg::PortType> kCreateSysPortsFor = {
       cfg::PortType::INTERFACE_PORT, cfg::PortType::RECYCLE_PORT};
-  QueueConfig systemPortQueues;
-  if (cfg_->defaultVoqConfig()->size()) {
-    systemPortQueues = updatePortQueues(
-        QueueConfig(),
-        *cfg_->defaultVoqConfig(),
-        kNumVoqs,
-        cfg::StreamType::UNICAST);
-  }
   auto sysPorts = std::make_shared<SystemPortMap>();
   for (const auto& switchIdAndInfo :
        switchSettings->getSwitchIdToSwitchInfo()) {
@@ -1287,7 +1281,7 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
         sysPort->setNumVoqs(kNumVoqs);
         sysPort->setEnabled(port.second->isEnabled());
         sysPort->setQosPolicy(port.second->getQosPolicy());
-        sysPort->resetPortQueues(systemPortQueues);
+        sysPort->resetPortQueues(switchSettings->getDefaultVoqConfig());
         sysPorts->addSystemPort(std::move(sysPort));
       }
     }
@@ -3835,6 +3829,19 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
       cfgMacAddrsToBlock) {
     newSwitchSettings->setMacAddrsToBlock(cfgMacAddrsToBlock);
     switchSettingsChange = true;
+  }
+
+  if (cfg_->defaultVoqConfig()->size()) {
+    const auto kNumVoqs = 8;
+    auto defaultVoqConfig = updatePortQueues(
+        QueueConfig(),
+        *cfg_->defaultVoqConfig(),
+        kNumVoqs,
+        cfg::StreamType::UNICAST);
+    if (origSwitchSettings->getDefaultVoqConfig() != defaultVoqConfig) {
+      newSwitchSettings->setDefaultVoqConfig(defaultVoqConfig);
+      switchSettingsChange = true;
+    }
   }
 
   // TODO - Disallow changing any switchInfo parameter after first
