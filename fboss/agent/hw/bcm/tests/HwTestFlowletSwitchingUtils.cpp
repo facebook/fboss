@@ -73,6 +73,8 @@ bool validateFlowletSwitchingEnabled(
   utility::assertSwitchControl(
       bcmSwitchEcmpDynamicPhysicalQueuedBytesExponent,
       *flowletCfg.dynamicPhysicalQueueExponent());
+  utility::assertSwitchControl(bcmSwitchEcmpDynamicRandomSeed, 0x5555);
+
   verifyEgressEcmpEthertype(bcmSwitch);
   return true;
 }

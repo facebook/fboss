@@ -1349,7 +1349,7 @@ void BcmSwitch::processFlowletSwitchingConfigChanges(const StateDelta& delta) {
 
   XLOG(DBG2) << "Flowlet switching config enabled";
   if (newFlowletSwitching) {
-    XLOG(DBG2) << "Flowlet switching setting ether type";
+    XLOG(DBG3) << "Flowlet switching setting ether type";
     int ecmp_dlb_ethtypes[] = {0x0800, 0x86DD};
     auto rv = bcm_l3_egress_ecmp_ethertype_set(
         unit_,
@@ -1357,6 +1357,10 @@ void BcmSwitch::processFlowletSwitchingConfigChanges(const StateDelta& delta) {
         (sizeof(ecmp_dlb_ethtypes) / sizeof(ecmp_dlb_ethtypes[0])),
         ecmp_dlb_ethtypes);
     bcmCheckError(rv, "failed to set bcm_l3_egress_ecmp_ethertype_set");
+
+    // seed value is as recommended by BCM
+    rv = bcm_switch_control_set(unit_, bcmSwitchEcmpDynamicRandomSeed, 0x5555);
+    bcmCheckError(rv, "failed to set bcmSwitchEcmpDynamicRandomSeed");
   }
 
   processDynamicEgressLoadExponentChanged(
