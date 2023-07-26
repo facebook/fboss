@@ -13,6 +13,7 @@
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/ThriftHandler.h"
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/test/CounterCache.h"
@@ -296,14 +297,12 @@ CO_TEST_F(ThriftServerTest, receivePktHandler) {
   auto result = co_await multiSwitchClient_->co_notifyRxPacket(100);
   auto ret = co_await result.sink(
       [&]() -> folly::coro::AsyncGenerator<multiswitch::RxPacket&&> {
-        auto pkt = createV4Packet(
+        multiswitch::RxPacket rxPkt;
+        rxPkt.data() = std::make_unique<folly::IOBuf>(createV4Packet(
             folly::IPAddressV4("10.0.0.2"),
             folly::IPAddressV4("10.0.0.1"),
             MockPlatform::getMockLocalMac(),
-            MockPlatform::getMockLocalMac());
-        multiswitch::RxPacket rxPkt;
-        rxPkt.data()->append(
-            reinterpret_cast<const char*>(pkt.data()), pkt.length());
+            MockPlatform::getMockLocalMac()));
         rxPkt.port() = 1;
         rxPkt.vlan() = 1;
         co_yield std::move(rxPkt);
@@ -311,4 +310,30 @@ CO_TEST_F(ThriftServerTest, receivePktHandler) {
   EXPECT_TRUE(ret);
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.mine.sum", 1);
+}
+
+CO_TEST_F(ThriftServerTest, transmitPktHandler) {
+  // setup server and clients
+  setupServerAndClients();
+
+  std::string payloadPad(9216 * 2, 'f'); // jumbo pkt
+  auto pkt = createV4Packet(
+      folly::IPAddressV4("10.0.0.2"),
+      folly::IPAddressV4("10.0.0.1"),
+      MockPlatform::getMockLocalMac(),
+      MockPlatform::getMockLocalMac(),
+      payloadPad);
+
+  auto txPkt = createTxPacket(sw_, pkt);
+  auto origPktSize = txPkt->buf()->length();
+
+  auto gen =
+      (co_await multiSwitchClient_->co_getTxPackets(100)).toAsyncGenerator();
+
+  sw_->sendPacketOutViaThriftStream(std::move(txPkt), SwitchID(100), PortID(5));
+
+  const auto& val = co_await gen.next();
+  // got packet
+  EXPECT_EQ(5, *val->port());
+  EXPECT_EQ(origPktSize, (*val->data())->length());
 }

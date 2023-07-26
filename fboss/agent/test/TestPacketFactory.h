@@ -29,13 +29,15 @@ folly::IOBuf createV4Packet(
     folly::IPAddressV4 srcAddr,
     folly::IPAddressV4 dstAddr,
     folly::MacAddress srcMac,
-    folly::MacAddress dstMac);
+    folly::MacAddress dstMac,
+    const std::string& payloadPad = "");
 
 folly::IOBuf createV6Packet(
     const folly::IPAddressV6& srcAddr,
     const folly::IPAddressV6& dstAddr,
     folly::MacAddress srcMac,
-    folly::MacAddress dstMac);
+    folly::MacAddress dstMac,
+    const std::string& payloadPad = "");
 
 /* Convenience function to copy a buffer to a TxPacket.
  * L2 Header is advanced from RxPacket but headroom is provided in TxPacket.

@@ -1741,6 +1741,28 @@ void SwSwitch::sendPacketOutOfPortAsync(
              << ": aggregate port has no enabled physical ports";
 }
 
+void SwSwitch::sendPacketOutViaThriftStream(
+    std::unique_ptr<TxPacket> pkt,
+    SwitchID switchId,
+    std::optional<PortID> portID,
+    std::optional<uint8_t> queue) noexcept {
+  multiswitch::TxPacket txPacket;
+  if (portID) {
+    txPacket.port() = portID.value();
+  }
+  if (queue) {
+    txPacket.queue() = queue.value();
+  }
+  txPacket.data() = Packet::extractIOBuf(std::move(pkt));
+  try {
+    getPacketStreamMap()->getStream(switchId).next(std::move(txPacket));
+  } catch (const std::exception& e) {
+    stats()->pktDropped();
+    XLOG(DBG2) << "Error sending packet via thrift stream to switch "
+               << switchId;
+  }
+}
+
 void SwSwitch::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept {
   pcapMgr_->packetSent(pkt.get());
   if (!hwSwitchHandler_->sendPacketSwitchedAsync(std::move(pkt))) {

@@ -8,7 +8,7 @@ namespace py.asyncio neteng.fboss.asyncio.multiswitch_ctrl
 include "fboss/fsdb/if/fsdb_oper.thrift"
 include "fboss/agent/if/ctrl.thrift"
 
-typedef binary (cpp2.type = "::folly::fbstring") fbbinary
+typedef binary (cpp2.type = "std::unique_ptr<folly::IOBuf>") fbbinary
 
 struct LinkEvent {
   1: i32 port;

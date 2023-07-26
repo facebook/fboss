@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "fboss/agent/MultiSwitchPacketStreamMap.h"
 #include "fboss/agent/MultiSwitchThriftHandler.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -95,10 +96,7 @@ MultiSwitchThriftHandler::co_notifyRxPacket(int64_t switchId) {
         while (auto item = co_await gen.next()) {
           XLOG(DBG4) << "Got rx packet from switch " << switchId << " for port "
                      << *item->port();
-          auto buf = IOBuf::copyBuffer(
-              reinterpret_cast<const uint8_t*>(item->data()->data()),
-              item->data()->size());
-          auto pkt = make_unique<MockRxPacket>(std::move(buf));
+          auto pkt = make_unique<MockRxPacket>(std::move(*item->data()));
           pkt->setSrcPort(PortID(*item->port()));
           if (item->vlan()) {
             pkt->setSrcVlan(VlanID(*item->vlan()));
@@ -117,8 +115,19 @@ MultiSwitchThriftHandler::co_getStateUpdates(int64_t /*switchId*/) {
 }
 
 folly::coro::Task<apache::thrift::ServerStream<multiswitch::TxPacket>>
-MultiSwitchThriftHandler::co_getTxPackets(int64_t /*switchId*/) {
-  co_return apache::thrift::ServerStream<multiswitch::TxPacket>::createEmpty();
+MultiSwitchThriftHandler::co_getTxPackets(int64_t switchId) {
+  auto streamAndPublisher =
+      apache::thrift::ServerStream<multiswitch::TxPacket>::createPublisher(
+          [this, switchId] {
+            sw_->getPacketStreamMap()->removePacketStream(SwitchID(switchId));
+            XLOG(DBG2) << "Removed stream for switch " << switchId;
+          });
+  auto streamPublisher = std::make_unique<
+      apache::thrift::ServerStreamPublisher<multiswitch::TxPacket>>(
+      std::move(streamAndPublisher.second));
+  sw_->getPacketStreamMap()->addPacketStream(
+      SwitchID(switchId), std::move(streamPublisher));
+  co_return std::move(streamAndPublisher.first);
 }
 #endif
 } // namespace facebook::fboss

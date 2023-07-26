@@ -545,6 +545,14 @@ class SwSwitch : public HwSwitchCallback {
       std::optional<uint8_t> queue = std::nullopt) noexcept;
 
   /*
+   * Send a packet to HwSwitch using thrift stream
+   */
+  void sendPacketOutViaThriftStream(
+      std::unique_ptr<TxPacket> pkt,
+      SwitchID switchId,
+      std::optional<PortID> portID,
+      std::optional<uint8_t> queue = std::nullopt) noexcept;
+  /*
    * Send a packet, using switching logic to send it out the correct port(s)
    * for the specified VLAN and destination MAC.
    */

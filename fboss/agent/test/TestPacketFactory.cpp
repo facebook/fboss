@@ -86,9 +86,10 @@ folly::IOBuf createV4Packet(
     folly::IPAddressV4 srcAddr,
     folly::IPAddressV4 dstAddr,
     folly::MacAddress srcMac,
-    folly::MacAddress dstMac) {
-  auto pkt =
-      PktUtil::parseHexData(kL2PacketHeader + kIPv4PacketHeader + kPayload);
+    folly::MacAddress dstMac,
+    const std::string& payloadPad) {
+  auto pkt = PktUtil::parseHexData(
+      kL2PacketHeader + kIPv4PacketHeader + kPayload + payloadPad);
 
   // Write L2 header
   folly::io::RWPrivateCursor rwCursor(&pkt);
@@ -109,9 +110,10 @@ folly::IOBuf createV6Packet(
     const folly::IPAddressV6& srcAddr,
     const folly::IPAddressV6& dstAddr,
     folly::MacAddress srcMac,
-    folly::MacAddress dstMac) {
-  auto pkt =
-      PktUtil::parseHexData(kL2PacketHeader + kIPv6PacketHeader + kPayload);
+    folly::MacAddress dstMac,
+    const std::string& payloadPad) {
+  auto pkt = PktUtil::parseHexData(
+      kL2PacketHeader + kIPv6PacketHeader + kPayload + payloadPad);
 
   // Write L2 header
   folly::io::RWPrivateCursor rwCursor(&pkt);

@@ -46,6 +46,15 @@ class Packet {
     return buf_.get();
   }
 
+  /*
+   * Used for avoiding copy when sending packet over thrift transport.
+   * Packet is not valid after this.
+   */
+  static std::unique_ptr<folly::IOBuf> extractIOBuf(
+      std::unique_ptr<Packet> pkt) {
+    return std::move(pkt->buf_);
+  }
+
  protected:
   Packet() {}
 
