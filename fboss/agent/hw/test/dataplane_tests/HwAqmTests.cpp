@@ -293,36 +293,37 @@ class HwAqmTest : public HwLinkStateDependentTest {
    * However, AQM stats are collected either from queue or from port depending
    * on test requirement, specified using useQueueStatsForAqm.
    */
-  AqmTestStats extractAqmTestStats(
+  void extractAqmTestStats(
       const HwPortStats& portStats,
       const uint8_t queueId,
-      bool useQueueStatsForAqm) {
-    AqmTestStats stats{};
+      bool useQueueStatsForAqm,
+      AqmTestStats& stats) {
     if (useQueueStatsForAqm) {
       if (getPlatform()->getAsic()->isSupported(
               HwAsic::Feature::QUEUE_ECN_COUNTER)) {
-        stats.outEcnCounter =
+        stats.outEcnCounter +=
             portStats.get_queueEcnMarkedPackets_().find(queueId)->second;
       }
-      stats.wredDroppedPackets =
+      stats.wredDroppedPackets +=
           portStats.get_queueWredDroppedPackets_().find(queueId)->second;
     } else {
-      stats.outEcnCounter = portStats.get_outEcnCounter_();
-      stats.wredDroppedPackets = portStats.get_wredDroppedPackets_();
+      stats.outEcnCounter += portStats.get_outEcnCounter_();
+      stats.wredDroppedPackets += portStats.get_wredDroppedPackets_();
     }
     // Always populate outPackets
-    stats.outPackets = getPortOutPkts(portStats);
-    return stats;
+    stats.outPackets += getPortOutPkts(portStats);
   }
 
-  // For VoQ, all stats are collected per queue.
-  AqmTestStats extractAqmTestStats(
-      const HwSysPortStats& portStats,
-      const uint8_t& queueId) {
-    AqmTestStats stats{};
-    stats.wredDroppedPackets =
-        portStats.get_queueWredDroppedPackets_().find(queueId)->second;
-    return stats;
+  // For VoQ systems, WRED stat is collected from sysPorts and
+  // outpackets is from egress.
+  void extractAqmTestStats(
+      const HwSysPortStats& sysPortStats,
+      const HwPortStats& portStats,
+      const uint8_t& queueId,
+      AqmTestStats& stats) const {
+    stats.wredDroppedPackets +=
+        sysPortStats.get_queueWredDroppedPackets_().find(queueId)->second;
+    stats.outPackets += portStats.get_queueOutPackets_().at(queueId);
   }
 
   template <typename StatsT>
@@ -352,24 +353,25 @@ class HwAqmTest : public HwLinkStateDependentTest {
       const bool useQueueStatsForAqm) {
     AqmTestStats stats{};
     uint64_t queueWatermark{};
+    // Always collect port stats!
+    auto portStats = getHwSwitchEnsemble()->getLatestPortStats(portId);
+    if (isEct(ecnVal) ||
+        getPlatform()->getAsic()->getSwitchType() != cfg::SwitchType::VOQ) {
+      // Get ECNs marked packet stats for VoQ/non-voq switches and
+      // watermarks for non-voq switches.
+      extractAqmTestStats(portStats, queueId, useQueueStatsForAqm, stats);
+      if (getPlatform()->getAsic()->getSwitchType() != cfg::SwitchType::VOQ) {
+        queueWatermark = extractQueueWatermarkStats(portStats, queueId);
+      }
+    }
     if (getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ) {
       // Gets watermarks + WRED drops in case of non-ECN traffic and
       // watermarks for ECN traffic for VoQ switches.
       auto sysPortId = getSystemPortID(portId, getProgrammedState());
       auto sysPortStats =
           getHwSwitchEnsemble()->getLatestSysPortStats(sysPortId);
-      stats = extractAqmTestStats(sysPortStats, queueId);
+      extractAqmTestStats(sysPortStats, portStats, queueId, stats);
       queueWatermark = extractQueueWatermarkStats(sysPortStats, queueId);
-    }
-    if (isEct(ecnVal) ||
-        getPlatform()->getAsic()->getSwitchType() != cfg::SwitchType::VOQ) {
-      // Get ECNs marked packet stats for VoQ/non-voq switches and
-      // watermarks for non-voq switches.
-      auto portStats = getHwSwitchEnsemble()->getLatestPortStats(portId);
-      stats = extractAqmTestStats(portStats, queueId, useQueueStatsForAqm);
-      if (getPlatform()->getAsic()->getSwitchType() != cfg::SwitchType::VOQ) {
-        queueWatermark = extractQueueWatermarkStats(portStats, queueId);
-      }
     }
     XLOG(DBG0) << "Queue " << static_cast<int>(queueId)
                << ", watermark: " << queueWatermark
