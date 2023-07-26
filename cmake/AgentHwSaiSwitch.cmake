@@ -60,7 +60,7 @@ elseif (SAI_BRCM_IMPL)
     fboss/agent/hw/sai/switch/npu/bcm/SaiSwitch.cpp
     fboss/agent/hw/sai/switch/npu/bcm/SaiTamManager.cpp
     fboss/agent/hw/sai/switch/npu/bcm/SaiPortManager.cpp
-    fboss/agent/hw/sai/switch/npu/bcp/SaiSwitchManager.cpp
+    fboss/agent/hw/sai/switch/npu/bcm/SaiSwitchManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiAclTableManager.cpp
   )
 else()
