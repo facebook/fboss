@@ -640,14 +640,17 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDramStats() const {
 void SaiSwitchManager::updateStats() {
   auto switchDropStats = supportedDropStats();
   if (switchDropStats.size()) {
-    HwSwitchDropStats dropStats;
     switch_->updateStats(switchDropStats, SAI_STATS_MODE_READ);
+    HwSwitchDropStats dropStats;
     fillHwSwitchDropStats(switch_->getStats(), dropStats);
     platform_->getHwSwitch()->getSwitchStats()->update(dropStats);
   }
   auto switchDramStats = supportedDramStats();
   if (switchDramStats.size()) {
     switch_->updateStats(switchDramStats, SAI_STATS_MODE_READ_AND_CLEAR);
+    HwSwitchDramStats dramStats;
+    fillHwSwitchDramStats(switch_->getStats(), dramStats);
+    platform_->getHwSwitch()->getSwitchStats()->update(dramStats);
   }
 }
 

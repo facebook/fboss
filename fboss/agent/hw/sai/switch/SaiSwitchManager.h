@@ -113,7 +113,6 @@ class SaiSwitchManager {
   void resetLoadBalancer();
   const std::vector<sai_stat_id_t>& supportedDropStats() const;
   const std::vector<sai_stat_id_t>& supportedDramStats() const;
-
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   std::unique_ptr<SaiSwitchObj> switch_;
@@ -132,5 +131,9 @@ class SaiSwitchManager {
   // since this is an optional attribute in SAI
   std::optional<bool> isPtpTcEnabled_{std::nullopt};
 };
+
+void fillHwSwitchDramStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    HwSwitchDramStats& hwSwitchDramStats);
 
 } // namespace facebook::fboss
