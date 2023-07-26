@@ -175,7 +175,6 @@ add_library(core
   fboss/agent/ResolvedNexthopProbeScheduler.cpp
   fboss/agent/RouteUpdateLogger.cpp
   fboss/agent/RouteUpdateLoggingPrefixTracker.cpp
-  fboss/agent/RouteUpdateWrapper.cpp
   fboss/agent/StaticL2ForNeighborObserver.cpp
   fboss/agent/StaticL2ForNeighborUpdater.cpp
   fboss/agent/StaticL2ForNeighborSwSwitchUpdater.cpp
@@ -214,6 +213,7 @@ target_link_libraries(core
   product_info
   platform_base
   restart_time_tracker
+  route_update_wrapper
   fib_updater
   network_to_route_map
   standalone_rib
@@ -296,6 +296,7 @@ target_link_libraries(platform_base
 
 add_library(hw_switch
   fboss/agent/HwSwitch.cpp
+  fboss/agent/HwSwitchRouteUpdateWrapper.cpp
   fboss/agent/oss/HwSwitch.cpp
 )
 
@@ -305,6 +306,7 @@ target_link_libraries(hw_switch
   fboss_cpp2
   Folly::folly
   platform_base
+  route_update_wrapper
   hw_switch_fb303_stats
 )
 
@@ -410,4 +412,20 @@ add_library(multiswitch_service
 target_link_libraries(multiswitch_service
   core
   multiswitch_ctrl_cpp2
+)
+
+add_library(route_update_wrapper
+  fboss/agent/RouteUpdateWrapper.cpp
+)
+
+target_link_libraries(route_update_wrapper
+  address_utils
+  fboss_types
+  switch_config_cpp2
+  switchid_scope_resolver
+  ctrl_cpp2
+  fib_updater
+  standalone_rib
+  state
+  Folly::folly
 )
