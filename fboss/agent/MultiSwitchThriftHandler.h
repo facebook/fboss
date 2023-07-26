@@ -34,6 +34,8 @@ class MultiSwitchThriftHandler
 #endif
 
  private:
+  void ensureConfigured(folly::StringPiece function) const;
+
   SwSwitch* sw_;
 };
 } // namespace facebook::fboss

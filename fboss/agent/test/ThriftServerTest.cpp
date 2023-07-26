@@ -203,3 +203,37 @@ CO_TEST_F(ThriftServerTest, packetStreamAndSink) {
   }
   EXPECT_EQ(rxPktCount, txPktCount);
 }
+
+CO_TEST_F(ThriftServerTest, setPortStateSink) {
+  // setup server and clients
+  setupServerAndClients();
+
+  const PortID port5{5};
+  auto result = co_await multiSwitchClient_->co_notifyLinkEvent(100);
+  auto verifyOperState = [this](const PortID& portId, bool up) {
+    WITH_RETRIES({
+      auto port = this->sw_->getState()->getPorts()->getNodeIf(portId);
+      if (up) {
+        EXPECT_EVENTUALLY_TRUE(port->getOperState() == Port::OperState::UP);
+      } else {
+        EXPECT_EVENTUALLY_TRUE(port->getOperState() == Port::OperState::DOWN);
+      }
+    });
+  };
+  auto ret = co_await result.sink(
+      [&]() -> folly::coro::AsyncGenerator<multiswitch::LinkEvent&&> {
+        multiswitch::LinkEvent upEvent;
+        upEvent.port() = port5;
+        upEvent.up() = true;
+        co_yield std::move(upEvent);
+        verifyOperState(port5, true);
+
+        // set port oper state down
+        multiswitch::LinkEvent downEvent;
+        downEvent.port() = port5;
+        downEvent.up() = false;
+        co_yield std::move(downEvent);
+        verifyOperState(port5, false);
+      }());
+  EXPECT_TRUE(ret);
+}
