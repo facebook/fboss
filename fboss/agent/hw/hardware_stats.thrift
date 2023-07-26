@@ -233,3 +233,8 @@ struct HwSwitchDropStats {
   2: optional i64 globalReachabilityDrops;
   3: optional i64 packetIntegrityDrops;
 }
+
+struct HwSwitchDramStats {
+  1: optional i64 dramEnqueuedBytes;
+  2: optional i64 dramDequeuedBytes;
+}
