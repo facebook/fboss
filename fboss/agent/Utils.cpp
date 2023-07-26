@@ -23,6 +23,8 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+
 #include <folly/FileUtil.h>
 #include <folly/Subprocess.h>
 #include <folly/dynamic.h>
@@ -583,6 +585,29 @@ std::optional<fsdb::OperDelta> OperDeltaFilter::filter(
     return std::nullopt;
   }
   return result;
+}
+
+AdminDistance getAdminDistanceForClientId(
+    const cfg::SwitchConfig& config,
+    int clientId) {
+  auto distance = config.clientIdToAdminDistance()->find(clientId);
+  if (distance == config.clientIdToAdminDistance()->end()) {
+    // In case we get a client id we don't know about
+    XLOG(ERR) << "No admin distance mapping available for client id "
+              << clientId << ". Using default distance - MAX_ADMIN_DISTANCE";
+    return AdminDistance::MAX_ADMIN_DISTANCE;
+  }
+
+  if (XLOG_IS_ON(DBG3)) {
+    auto clientName = apache::thrift::util::enumNameSafe(ClientID(clientId));
+    auto distanceString = apache::thrift::util::enumNameSafe(
+        static_cast<AdminDistance>(distance->second));
+    XLOG(DBG3) << "Mapping client id " << clientId << " (" << clientName
+               << ") to admin distance " << distance->second << " ("
+               << distanceString << ").";
+  }
+
+  return static_cast<AdminDistance>(distance->second);
 }
 
 } // namespace facebook::fboss

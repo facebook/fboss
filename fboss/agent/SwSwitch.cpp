@@ -17,6 +17,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/Utils.h"
 
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/IPv4Handler.h"
@@ -2091,24 +2092,7 @@ bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
 }
 
 AdminDistance SwSwitch::clientIdToAdminDistance(int clientId) const {
-  auto distance = curConfig_.clientIdToAdminDistance()->find(clientId);
-  if (distance == curConfig_.clientIdToAdminDistance()->end()) {
-    // In case we get a client id we don't know about
-    XLOG(ERR) << "No admin distance mapping available for client id "
-              << clientId << ". Using default distance - MAX_ADMIN_DISTANCE";
-    return AdminDistance::MAX_ADMIN_DISTANCE;
-  }
-
-  if (XLOG_IS_ON(DBG3)) {
-    auto clientName = apache::thrift::util::enumNameSafe(ClientID(clientId));
-    auto distanceString = apache::thrift::util::enumNameSafe(
-        static_cast<AdminDistance>(distance->second));
-    XLOG(DBG3) << "Mapping client id " << clientId << " (" << clientName
-               << ") to admin distance " << distance->second << " ("
-               << distanceString << ").";
-  }
-
-  return static_cast<AdminDistance>(distance->second);
+  return getAdminDistanceForClientId(curConfig_, clientId);
 }
 
 void SwSwitch::clearPortStats(

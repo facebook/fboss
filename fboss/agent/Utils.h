@@ -44,6 +44,10 @@ struct dynamic;
 
 namespace facebook::fboss {
 
+namespace cfg {
+class SwitchConfig;
+}
+
 class SwitchState;
 class Interface;
 
@@ -312,4 +316,7 @@ class OperDeltaFilter {
   mutable std::map<std::string, HwSwitchMatcher> matchersCache_;
 };
 
+AdminDistance getAdminDistanceForClientId(
+    const cfg::SwitchConfig& config,
+    int clientId);
 } // namespace facebook::fboss
