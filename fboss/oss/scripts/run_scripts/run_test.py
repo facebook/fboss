@@ -107,7 +107,7 @@ from datetime import datetime
 #      desc: Instead of eth0, provide a custom mgmt-if
 #
 #  16. Running non-OSS Binary using run_test helper:
-#      ./run_test.py sai --config fuji.agent.materialized_JSON --filter HwVlanTest.VlanApplyConfig --sdk_logging /root/skhare/sai_replayer_logs --no-oss --sai-bin /root/skhare/sai_test-brcm-7.2.0.0_odp --mgmt-if eth0
+#      ./run_test.py sai --config fuji.agent.materialized_JSON --filter HwVlanTest.VlanApplyConfig --sdk_logging /root/skhare/sai_replayer_logs --no-oss --sai-bin /root/skhare/sai_test-brcm-8.2.0.0_odp --mgmt-if eth0
 #      desc: Runs tests but does not use OSS binary for testing
 #
 #
@@ -123,7 +123,7 @@ from datetime import datetime
 # The known bad list can be provided to run_test.py as an argument --skip-known-bad-tests $testConfig
 # which can be used to skip running known bad tests for specific platforms.
 # eg: To skip running bad tests on tomahawk asic on SDK 7.2, the test-config to be used is
-# "brcm/7.2.0.0_odp/7.2.0.0_odp/tomahawk"
+# "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk"
 #
 # Similarly, for QSFP HW tests, there is a consolidated JSON file under fboss.git/oss/qsfp_known_bad_tests/fboss_qsfp_known_bad_tests.materialized_JSON.
 # This file is also indexed based on $test-config format - platform/coldboot-phy-sdk-version-from/warmboot-phy-sdk-version-to.
@@ -865,7 +865,7 @@ if __name__ == "__main__":
         help=(
             "test config to specify which known bad tests to skip e.g. "
             + OPT_ARG_SKIP_KNOWN_BAD_TESTS
-            + "=brcm/7.2.0.0_odp/7.2.0.0_odp/tomahawk"
+            + "=brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk"
         ),
     )
     ap.add_argument(
