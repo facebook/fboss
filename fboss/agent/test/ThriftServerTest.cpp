@@ -24,6 +24,8 @@
 #include "fboss/agent/facebook/test/MultiSwitchTestServer.h"
 
 #include <folly/experimental/coro/GtestHelpers.h>
+#include <folly/experimental/coro/Timeout.h>
+#include <folly/experimental/coro/UnboundedQueue.h>
 #include <folly/portability/GTest.h>
 
 #include "common/thrift/cpp/server/code_frameworks/testing/Server.h"
@@ -41,6 +43,8 @@ using std::unique_ptr;
 using ::testing::_;
 using ::testing::Return;
 
+class MultiSwitchThriftHandlerMock;
+
 class ThriftServerTest : public ::testing::Test {
  public:
   void SetUp() override {
@@ -55,6 +59,21 @@ class ThriftServerTest : public ::testing::Test {
 
     // Setup test server
     swSwitchTestServer_ = std::make_unique<MultiSwitchTestServer>(sw_);
+
+    // setup clients
+    multiSwitchClient_ = setupSwSwitchClient<
+        apache::thrift::Client<multiswitch::MultiSwitchCtrl>>(
+        "testClient1", evbThread1_);
+    fbossCtlClient_ = setupSwSwitchClient<apache::thrift::Client<FbossCtrl>>(
+        "testClient2", evbThread2_);
+  }
+
+  void setupServerWithMockAndClients() {
+    XLOG(DBG2) << "Initializing thrift server";
+
+    // Setup test server
+    swSwitchTestServer_ = std::make_unique<MultiSwitchTestServer>(
+        sw_, std::make_shared<MultiSwitchThriftHandlerMock>(sw_));
 
     // setup clients
     multiSwitchClient_ = setupSwSwitchClient<
@@ -91,6 +110,46 @@ class ThriftServerTest : public ::testing::Test {
   std::unique_ptr<HwTestHandle> handle_;
 };
 
+class MultiSwitchThriftHandlerMock : public MultiSwitchThriftHandler {
+ public:
+  explicit MultiSwitchThriftHandlerMock(SwSwitch* sw)
+      : MultiSwitchThriftHandler(sw) {}
+
+  folly::coro::Task<apache::thrift::ServerStream<multiswitch::TxPacket>>
+  co_getTxPackets(int64_t /*switchId*/) override {
+    co_return folly::coro::co_invoke(
+        [this]() mutable
+        -> folly::coro::AsyncGenerator<multiswitch::TxPacket&&> {
+          while (receivedPktsQueue_.size()) {
+            multiswitch::TxPacket txPkt;
+            multiswitch::RxPacket rxPkt;
+            co_await folly::coro::timeout(
+                receivedPktsQueue_.dequeue(rxPkt), std::chrono::seconds(1));
+            txPkt.port() = rxPkt.port().value();
+            co_yield std::move(txPkt);
+          }
+        });
+  }
+
+  folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::RxPacket, bool>>
+  co_notifyRxPacket(int64_t /*switchId*/) override {
+    co_return apache::thrift::SinkConsumer<multiswitch::RxPacket, bool>{
+        [this](folly::coro::AsyncGenerator<multiswitch::RxPacket&&> gen)
+            -> folly::coro::Task<bool> {
+          while (auto item = co_await gen.next()) {
+            receivedPktsQueue_.enqueue(std::move(*item));
+          }
+          co_return true;
+        },
+        10 /* buffer size */
+    };
+  }
+
+ private:
+  folly::coro::UnboundedQueue<multiswitch::RxPacket, true, true>
+      receivedPktsQueue_;
+};
+
 TEST_F(ThriftServerTest, setPortStateBlocking) {
   // setup server and clients
   setupServerAndClients();
@@ -107,4 +166,40 @@ TEST_F(ThriftServerTest, setPortStateBlocking) {
 
   port = this->sw_->getState()->getPorts()->getNodeIf(port5);
   EXPECT_FALSE(port->isEnabled());
+}
+
+CO_TEST_F(ThriftServerTest, packetStreamAndSink) {
+  // setup server and clients
+  setupServerWithMockAndClients();
+
+  int rxPktCount = 10;
+  // Send packets to server using sink
+  auto result = co_await multiSwitchClient_->co_notifyRxPacket(100);
+  auto ret = co_await result.sink(
+      [&]() -> folly::coro::AsyncGenerator<multiswitch::RxPacket&&> {
+        for (int i = 0; i < rxPktCount; i++) {
+          multiswitch::RxPacket pkt;
+          pkt.port() = i;
+          co_yield std::move(pkt);
+        }
+      }());
+  EXPECT_TRUE(ret);
+
+  // Get packets from server using stream and verify
+  int expectedPort = 0;
+  int txPktCount = 0;
+  try {
+    auto gen =
+        (co_await multiSwitchClient_->co_getTxPackets(100)).toAsyncGenerator();
+    while (const auto& val = co_await gen.next()) {
+      // got value
+      EXPECT_EQ(expectedPort++, *val->port());
+      txPktCount++;
+    }
+    // server completed the stream
+  } catch (const std::exception& e) {
+    // server sent an exception, or there was a connection error
+    XLOG(DBG2) << "Unable to connect " << e.what();
+  }
+  EXPECT_EQ(rxPktCount, txPktCount);
 }
