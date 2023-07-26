@@ -65,6 +65,7 @@ class HwSwitchFb303Stats {
     fabricReachabilityMismatchCount_.addValue(1);
   }
 
+  void update(const HwSwitchDramStats& dramStats);
   void update(const HwSwitchDropStats& dropStats);
   // TODO: FSDB needs to support count() method on stats
 
@@ -143,6 +144,9 @@ class HwSwitchFb303Stats {
   // fabric reachability errors
   TLTimeseries fabricReachabilityMissingCount_;
   TLTimeseries fabricReachabilityMismatchCount_;
+  // Dram enqueue, dequeue bytes
+  TLTimeseries dramEnqueuedBytes_;
+  TLTimeseries dramDequeuedBytes_;
 };
 
 } // namespace facebook::fboss

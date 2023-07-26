@@ -101,6 +101,16 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           map,
           SwitchStats::kCounterPrefix + "fabric_reachability_mismatch",
           SUM,
+          RATE),
+      dramEnqueuedBytes_(
+          map,
+          SwitchStats::kCounterPrefix + "dram_enqueued_bytes",
+          SUM,
+          RATE),
+      dramDequeuedBytes_(
+          map,
+          SwitchStats::kCounterPrefix + "dram_dequeued_bytes",
+          SUM,
           RATE) {}
 
 void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
@@ -112,6 +122,15 @@ void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
   }
   if (dropStats.packetIntegrityDrops().has_value()) {
     packetIntegrityDrops_.addValue(*dropStats.packetIntegrityDrops());
+  }
+}
+
+void HwSwitchFb303Stats::update(const HwSwitchDramStats& dramStats) {
+  if (dramStats.dramEnqueuedBytes().has_value()) {
+    dramEnqueuedBytes_.addValue(*dramStats.dramEnqueuedBytes());
+  }
+  if (dramStats.dramDequeuedBytes().has_value()) {
+    dramDequeuedBytes_.addValue(*dramStats.dramDequeuedBytes());
   }
 }
 
