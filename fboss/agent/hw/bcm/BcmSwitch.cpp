@@ -651,6 +651,8 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   auto switchSettings = make_shared<SwitchSettings>();
   switchSettings->setL2LearningMode(l2LearningMode);
   switchSettings->setDefaultVlan(VlanID(defaultVlan));
+  switchSettings->setSwitchIdToSwitchInfo(
+      scopeResolver->switchIdToSwitchInfo());
   multiSwitchSwitchSettings->addNode(
       scopeResolver->scope(switchSettings).matcherString(), switchSettings);
   bootState->resetSwitchSettings(multiSwitchSwitchSettings);

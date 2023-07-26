@@ -1856,6 +1856,8 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
 
   auto multiSwitchSwitchSettings = std::make_shared<MultiSwitchSettings>();
   auto switchSettings = std::make_shared<SwitchSettings>();
+  switchSettings->setSwitchIdToSwitchInfo(
+      scopeResolver->switchIdToSwitchInfo());
   multiSwitchSwitchSettings->addNode(
       scopeResolver->scope(switchSettings).matcherString(), switchSettings);
   state->resetSwitchSettings(multiSwitchSwitchSettings);

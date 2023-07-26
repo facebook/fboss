@@ -191,9 +191,7 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewStateImpl(
   bool applyUpdateSuccess = true;
   {
     std::lock_guard<std::mutex> lk(updateStateMutex_);
-    applyUpdateSuccess = FLAGS_enable_state_oper_delta
-        ? applyUpdate(delta.getOperDelta(), lk, transaction)
-        : applyUpdate(delta, lk, transaction);
+    applyUpdateSuccess = applyUpdate(delta.getOperDelta(), lk, transaction);
     // We are about to give up the lock, cache programmedState
     // applied by this function invocation
     appliedState = programmedState_;
