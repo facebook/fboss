@@ -116,4 +116,71 @@ TEST_F(HwTest, i2cStressWrite) {
     }
   }
 }
+
+TEST_F(HwTest, cmisPageChange) {
+  // Switch between page 0x10 and page 0x11 on CMIS modules on all ports and
+  // ensure that page 0x10 reads back the same every time
+  auto transceivers = utility::legacyTransceiverIds(
+      utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
+  auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+  std::map<int32_t, TransceiverInfo> transceiversInfo;
+  getHwQsfpEnsemble()->getWedgeManager()->getTransceiversInfo(
+      transceiversInfo, std::make_unique<std::vector<int32_t>>(transceivers));
+
+  // Only work with optical CMIS transceivers.
+  auto testTransceivers =
+      folly::gen::from(transceivers) |
+      folly::gen::filter([&transceiversInfo](int32_t tcvrId) {
+        const auto& tcvrInfo = transceiversInfo[tcvrId];
+        const auto& tcvrState = *tcvrInfo.tcvrState();
+        auto transmitterTech =
+            *tcvrState.cable().value_or({}).transmitterTech();
+        auto mgmtInterface =
+            tcvrState.transceiverManagementInterface().value_or({});
+        return transmitterTech == TransmitterTechnology::OPTICAL &&
+            mgmtInterface == TransceiverManagementInterface::CMIS;
+      }) |
+      folly::gen::as<std::vector>();
+
+  EXPECT_TRUE(!testTransceivers.empty());
+
+  std::map<int /* page */, std::map<int32_t /* tcvrId */, ReadResponse>>
+      previousResponses;
+  previousResponses[0x10] = {};
+
+  for (auto iteration = 1; iteration <= kI2cStressTestIterations; iteration++) {
+    for (auto page : {0x10, 0x11}) {
+      std::unique_ptr<ReadRequest> readRequest =
+          std::make_unique<ReadRequest>();
+      TransceiverIOParameters params;
+      readRequest->ids() = testTransceivers;
+      params.offset() = 128; // Start of upper page
+      params.page() = page; // Page
+      params.length() = 128; // Read Entire page
+      readRequest->parameter() = params;
+
+      std::map<int32_t, ReadResponse> currentResponse;
+      wedgeManager->readTransceiverRegister(
+          currentResponse, std::move(readRequest));
+
+      // Only verify that page 0x10 has not changed. Contents of page 0x11 can
+      // change
+      if (page != 0x10) {
+        continue;
+      }
+      for (auto tcvrId : testTransceivers) {
+        if (previousResponses[page].find(tcvrId) ==
+            previousResponses[page].end()) {
+          previousResponses[page][tcvrId] = currentResponse[tcvrId];
+        }
+        for (int i = 0; i < 128; i++) {
+          // Expect the previous response and the new response to be the same
+          EXPECT_EQ(
+              *(previousResponses[page][tcvrId].data()->data() + i),
+              *(currentResponse[tcvrId].data()->data() + i));
+        }
+      }
+    }
+  }
+}
 } // namespace facebook::fboss
