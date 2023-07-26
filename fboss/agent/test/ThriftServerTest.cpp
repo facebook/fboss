@@ -8,6 +8,7 @@
  *
  */
 #include <thrift/lib/cpp2/async/PooledRequestChannel.h>
+#include <thrift/lib/cpp2/async/ServerStreamMultiPublisher.h>
 #include "common/network/if/gen-cpp2/Address_types.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/ApplyThriftConfig.h"
@@ -75,9 +76,12 @@ class ThriftServerTest : public ::testing::Test {
   void setupServerWithMockAndClients() {
     XLOG(DBG2) << "Initializing thrift server";
 
+    mockMultiSwitchHandler_ =
+        std::make_shared<MultiSwitchThriftHandlerMock>(sw_);
+
     // Setup test server
-    swSwitchTestServer_ = std::make_unique<MultiSwitchTestServer>(
-        sw_, std::make_shared<MultiSwitchThriftHandlerMock>(sw_));
+    swSwitchTestServer_ =
+        std::make_unique<MultiSwitchTestServer>(sw_, mockMultiSwitchHandler_);
 
     // setup clients
     multiSwitchClient_ = setupSwSwitchClient<
@@ -108,6 +112,7 @@ class ThriftServerTest : public ::testing::Test {
   std::unique_ptr<apache::thrift::Client<FbossCtrl>> fbossCtlClient_;
   std::unique_ptr<apache::thrift::Client<multiswitch::MultiSwitchCtrl>>
       multiSwitchClient_;
+  std::shared_ptr<MultiSwitchThriftHandlerMock> mockMultiSwitchHandler_;
   std::shared_ptr<folly::ScopedEventBaseThread> evbThread2_;
   std::shared_ptr<folly::ScopedEventBaseThread> evbThread1_;
   SwSwitch* sw_;
@@ -149,9 +154,21 @@ class MultiSwitchThriftHandlerMock : public MultiSwitchThriftHandler {
     };
   }
 
+  folly::coro::Task<apache::thrift::ServerStream<fsdb::OperDelta>>
+  co_getStateUpdates(int64_t switchId) override {
+    co_return multiPublisher_.addStream([switchId] {
+      XLOG(DBG2) << "Disconnecting stream for switchId " << switchId;
+    });
+  }
+
+  void sendOperDelta(fsdb::OperDelta operDelta) {
+    multiPublisher_.next(operDelta);
+  }
+
  private:
   folly::coro::UnboundedQueue<multiswitch::RxPacket, true, true>
       receivedPktsQueue_;
+  apache::thrift::ServerStreamMultiPublisher<fsdb::OperDelta> multiPublisher_;
 };
 
 TEST_F(ThriftServerTest, setPortStateBlocking) {
@@ -336,4 +353,41 @@ CO_TEST_F(ThriftServerTest, transmitPktHandler) {
   // got packet
   EXPECT_EQ(5, *val->port());
   EXPECT_EQ(origPktSize, (*val->data())->length());
+}
+
+CO_TEST_F(ThriftServerTest, operDeltaStream) {
+  // setup server and clients
+  setupServerWithMockAndClients();
+
+  // create another client to get operDelta
+  auto evbThreadSecond =
+      std::make_shared<folly::ScopedEventBaseThread>("AnotherTestClient");
+  auto multiSwitchClientSecond =
+      setupSwSwitchClient<apache::thrift::Client<multiswitch::MultiSwitchCtrl>>(
+          "AnotherTestClient", evbThreadSecond);
+
+  auto generatorClient1 =
+      (co_await multiSwitchClient_->co_getStateUpdates(100)).toAsyncGenerator();
+  auto generatorClient2 =
+      (co_await multiSwitchClientSecond->co_getStateUpdates(101))
+          .toAsyncGenerator();
+
+  fsdb::OperDelta delta;
+  delta.protocol() = fsdb::OperProtocol::BINARY;
+  mockMultiSwitchHandler_->sendOperDelta(delta);
+
+  auto gen1 =
+      folly::coro::co_invoke([&generatorClient1]() -> folly::coro::Task<bool> {
+        const auto& val = co_await generatorClient1.next();
+        EXPECT_EQ(val->protocol().value(), fsdb::OperProtocol::BINARY);
+        co_return true;
+      });
+  auto gen2 =
+      folly::coro::co_invoke([&generatorClient2]() -> folly::coro::Task<bool> {
+        const auto& val = co_await generatorClient2.next();
+        EXPECT_EQ(val->protocol().value(), fsdb::OperProtocol::BINARY);
+        co_return true;
+      });
+  EXPECT_TRUE((co_await folly::coro::co_awaitTry(std::move(gen1))).value());
+  EXPECT_TRUE((co_await folly::coro::co_awaitTry(std::move(gen2))).value());
 }
