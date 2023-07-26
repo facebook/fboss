@@ -162,32 +162,9 @@ sai_status_t wrap_get_switch_attribute(
       switch_id, attr_count, attr_list);
 }
 
-sai_status_t wrap_get_switch_stats(
-    sai_object_id_t switch_id,
-    uint32_t number_of_counters,
-    const sai_stat_id_t* counter_ids,
-    uint64_t* counters) {
-  return SaiTracer::getInstance()->switchApi_->get_switch_stats(
-      switch_id, number_of_counters, counter_ids, counters);
-}
-
-sai_status_t wrap_get_switch_stats_ext(
-    sai_object_id_t switch_id,
-    uint32_t number_of_counters,
-    const sai_stat_id_t* counter_ids,
-    sai_stats_mode_t mode,
-    uint64_t* counters) {
-  return SaiTracer::getInstance()->switchApi_->get_switch_stats_ext(
-      switch_id, number_of_counters, counter_ids, mode, counters);
-}
-
-sai_status_t wrap_clear_switch_stats(
-    sai_object_id_t switch_id,
-    uint32_t number_of_counters,
-    const sai_stat_id_t* counter_ids) {
-  return SaiTracer::getInstance()->switchApi_->clear_switch_stats(
-      switch_id, number_of_counters, counter_ids);
-}
+WRAP_GET_STATS_FUNC(switch, SAI_OBJECT_TYPE_SWITCH, switch);
+WRAP_GET_STATS_EXT_FUNC(switch, SAI_OBJECT_TYPE_SWITCH, switch);
+WRAP_CLEAR_STATS_FUNC(switch, SAI_OBJECT_TYPE_SWITCH, switch);
 
 sai_switch_api_t* wrappedSwitchApi() {
   handleExtensionAttributes();
