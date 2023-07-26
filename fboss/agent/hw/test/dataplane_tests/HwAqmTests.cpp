@@ -36,6 +36,7 @@ constexpr uint8_t kNotECT{0}; // Not ECN-Capable Transport, Not-ECT
 struct AqmTestStats {
   uint64_t wredDroppedPackets;
   uint64_t outEcnCounter;
+  uint64_t outPackets;
 };
 
 /*
@@ -309,6 +310,8 @@ class HwAqmTest : public HwLinkStateDependentTest {
       stats.outEcnCounter = portStats.get_outEcnCounter_();
       stats.wredDroppedPackets = portStats.get_wredDroppedPackets_();
     }
+    // Always populate outPackets
+    stats.outPackets = getPortOutPkts(portStats);
     return stats;
   }
 
@@ -370,6 +373,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
     }
     XLOG(DBG0) << "Queue " << static_cast<int>(queueId)
                << ", watermark: " << queueWatermark
+               << ", Out packets: " << stats.outPackets
                << ", WRED drops: " << stats.wredDroppedPackets
                << ", ECN marked: " << stats.outEcnCounter;
     return stats;
