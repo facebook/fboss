@@ -78,8 +78,14 @@ HwSwitchWarmBootHelper::~HwSwitchWarmBootHelper() {
   }
 }
 
-std::string HwSwitchWarmBootHelper::warmBootHwSwitchStateFile() const {
+std::string HwSwitchWarmBootHelper::warmBootHwSwitchStateFile_DEPRECATED()
+    const {
   return folly::to<std::string>(warmBootDir_, "/", FLAGS_switch_state_file);
+}
+
+std::string HwSwitchWarmBootHelper::warmBootHwSwitchStateFile() const {
+  return folly::to<std::string>(
+      warmBootDir_, "/", FLAGS_switch_state_file, "_", switchId_);
 }
 
 std::string HwSwitchWarmBootHelper::warmBootThriftSwitchStateFile() const {
@@ -135,6 +141,8 @@ bool HwSwitchWarmBootHelper::storeWarmBootState(
     const state::WarmbootState& thriftSwitchState) {
   /* dump hardware switch state */
   warmBootStateWritten_ =
+      dumpStateToFile(warmBootHwSwitchStateFile_DEPRECATED(), follySwitchState);
+  warmBootStateWritten_ &=
       dumpStateToFile(warmBootHwSwitchStateFile(), follySwitchState);
   /* dump software switch state */
   warmBootStateWritten_ &= dumpBinaryThriftToFile(
@@ -145,12 +153,16 @@ bool HwSwitchWarmBootHelper::storeWarmBootState(
 std::tuple<folly::dynamic, std::optional<state::WarmbootState>>
 HwSwitchWarmBootHelper::getWarmBootState() const {
   std::string warmBootJson;
-  auto ret = folly::readFile(warmBootHwSwitchStateFile().c_str(), warmBootJson);
+  auto ret = folly::readFile(
+      warmBootHwSwitchStateFile_DEPRECATED().c_str(), warmBootJson);
   sysCheckError(
-      ret, "Unable to read switch state from : ", warmBootHwSwitchStateFile());
+      ret,
+      "Unable to read switch state from : ",
+      warmBootHwSwitchStateFile_DEPRECATED());
   state::WarmbootState thriftState;
   if (!isValidThriftStateFile(
-          warmBootHwSwitchStateFile(), warmBootThriftSwitchStateFile())) {
+          warmBootHwSwitchStateFile_DEPRECATED(),
+          warmBootThriftSwitchStateFile())) {
     throw FbossError(
         "Invalid thrift state file: ", warmBootThriftSwitchStateFile());
   }
