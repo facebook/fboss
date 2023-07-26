@@ -21,6 +21,26 @@ void MultiSwitchThriftHandler::ensureConfigured(
       "fully configured yet");
 }
 
+L2Entry MultiSwitchThriftHandler::getL2Entry(L2EntryThrift thriftEntry) const {
+  PortDescriptor port = thriftEntry.trunk()
+      ? PortDescriptor(AggregatePortID(*thriftEntry.port()))
+      : PortDescriptor(PortID(*thriftEntry.port()));
+  std::optional<cfg::AclLookupClass> classID;
+  if (thriftEntry.classID()) {
+    classID = cfg::AclLookupClass(*thriftEntry.classID());
+  }
+  L2Entry::L2EntryType type =
+      *thriftEntry.l2EntryType() == L2EntryType::L2_ENTRY_TYPE_PENDING
+      ? L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING
+      : L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED;
+  return L2Entry(
+      folly::MacAddress(*thriftEntry.mac()),
+      VlanID(*thriftEntry.vlanID()),
+      port,
+      type,
+      classID);
+}
+
 #if FOLLY_HAS_COROUTINES
 folly::coro::Task<apache::thrift::SinkConsumer<fsdb::OperDelta, bool>>
 MultiSwitchThriftHandler::co_notifyStateUpdateResult(int64_t /*switchId*/) {
@@ -47,8 +67,22 @@ MultiSwitchThriftHandler::co_notifyLinkEvent(int64_t switchId) {
 }
 
 folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::FdbEvent, bool>>
-MultiSwitchThriftHandler::co_notifyFdbEvent(int64_t /*switchId*/) {
-  co_return {};
+MultiSwitchThriftHandler::co_notifyFdbEvent(int64_t switchId) {
+  ensureConfigured(__func__);
+  co_return apache::thrift::SinkConsumer<multiswitch::FdbEvent, bool>{
+      [this, switchId](folly::coro::AsyncGenerator<multiswitch::FdbEvent&&> gen)
+          -> folly::coro::Task<bool> {
+        while (auto item = co_await gen.next()) {
+          XLOG(DBG3) << "Got fdb event from switch " << switchId << " for port "
+                     << *item->entry()->port()
+                     << " mac :" << *item->entry()->mac();
+          auto l2Entry = getL2Entry(*item->entry());
+          sw_->l2LearningUpdateReceived(l2Entry, *item->updateType());
+        }
+        co_return true;
+      },
+      10 /* buffer size */
+  };
 }
 
 folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::RxPacket, bool>>

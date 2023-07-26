@@ -237,3 +237,49 @@ CO_TEST_F(ThriftServerTest, setPortStateSink) {
       }());
   EXPECT_TRUE(ret);
 }
+
+CO_TEST_F(ThriftServerTest, fdbEventTest) {
+  // setup server and clients
+  setupServerAndClients();
+
+  auto result = co_await multiSwitchClient_->co_notifyFdbEvent(100);
+  auto verifyMacState = [this](
+                            const VlanID vlanId, std::string mac, bool added) {
+    WITH_RETRIES({
+      auto vlan = this->sw_->getState()->getVlans()->getNodeIf(vlanId);
+      auto macTable = vlan->getMacTable();
+      auto node = macTable->getMacIf(folly::MacAddress(mac));
+      if (added) {
+        EXPECT_EVENTUALLY_NE(nullptr, node);
+      } else {
+        EXPECT_EVENTUALLY_EQ(nullptr, node);
+      }
+    });
+  };
+
+  auto createFdbEntry = [](L2EntryUpdateType updateType) {
+    multiswitch::FdbEvent fdbEvent;
+    PortID port5{5};
+    fdbEvent.entry()->port() = port5;
+    fdbEvent.entry()->vlanID() = 1;
+    fdbEvent.entry()->mac() = "00:01:02:03:04:05";
+    fdbEvent.entry()->l2EntryType() = L2EntryType::L2_ENTRY_TYPE_VALIDATED;
+    fdbEvent.updateType() = updateType;
+    return fdbEvent;
+  };
+  auto ret = co_await result.sink(
+      [&]() -> folly::coro::AsyncGenerator<multiswitch::FdbEvent&&> {
+        // add a new mac entry to the table
+        auto fdbEvent =
+            createFdbEntry(L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD);
+        co_yield std::move(fdbEvent);
+        verifyMacState(VlanID(1), "00:01:02:03:04:05", true);
+
+        // delete the mac entry
+        auto fdbEvent2 =
+            createFdbEntry(L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE);
+        co_yield std::move(fdbEvent2);
+        verifyMacState(VlanID(1), "00:01:02:03:04:05", false);
+      }());
+  EXPECT_TRUE(ret);
+}
