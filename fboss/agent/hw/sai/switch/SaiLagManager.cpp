@@ -181,9 +181,16 @@ void SaiLagManager::removeMember(AggregatePortID aggPort, PortID subPort) {
   membersIter->second.reset();
   handlesIter->second->members.erase(membersIter);
   concurrentIndices_->memberPort2AggregatePortIds.erase(saiPortId);
-  portHandle->bridgePort = managerTable_->bridgeManager().addBridgePort(
-      SaiPortDescriptor(subPort),
-      PortDescriptorSaiId(portHandle->port->adapterKey()));
+  // During rollback, all hw calls are skipped except creation will fail.
+  // For lags that are already created, rollback will not remove any of
+  // those in hardware. Lag and lag members will be reclaim when the
+  // lastGoodState is applied. Therefore, there's no need to create bridge port
+  // in this case.
+  if (getHwWriteBehavior() != HwWriteBehavior::SKIP) {
+    portHandle->bridgePort = managerTable_->bridgeManager().addBridgePort(
+        SaiPortDescriptor(subPort),
+        PortDescriptorSaiId(portHandle->port->adapterKey()));
+  }
 }
 
 SaiLagHandle* FOLLY_NULLABLE
