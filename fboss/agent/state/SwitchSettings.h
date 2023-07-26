@@ -15,6 +15,7 @@
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/FlowletSwitchingConfig.h"
 #include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/QcmConfig.h"
 #include "fboss/agent/state/QosPolicyMap.h"
 #include "fboss/agent/state/Thrifty.h"
@@ -434,6 +435,19 @@ class SwitchSettings
 
   void setSwitchIdToSwitchInfo(const SwitchIdToSwitchInfo& switchInfo) {
     set<switch_state_tags::switchIdToSwitchInfo>(switchInfo);
+  }
+
+  void setDefaultVoqConfig(const QueueConfig& queues) {
+    std::vector<PortQueueFields> queuesThrift{};
+    for (auto queue : queues) {
+      queuesThrift.push_back(queue->toThrift());
+    }
+    set<switch_state_tags::defaultVoqConfig>(std::move(queuesThrift));
+  }
+
+  const QueueConfig& getDefaultVoqConfig() const {
+    const auto& queues = cref<switch_state_tags::defaultVoqConfig>();
+    return queues->impl();
   }
 
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
