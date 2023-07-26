@@ -111,7 +111,8 @@ class SaiSwitchManager {
       SaiHashTraits::CreateAttributes& hashCreateAttrs);
   template <typename HashAttrT>
   void resetLoadBalancer();
-  const std::vector<sai_stat_id_t>& supportedStats() const;
+  const std::vector<sai_stat_id_t>& supportedDropStats() const;
+  const std::vector<sai_stat_id_t>& supportedDramStats() const;
 
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;

@@ -599,7 +599,7 @@ bool SaiSwitchManager::isMplsQoSMapSupported() const {
   return platform_->getAsic()->isSupported(HwAsic::Feature::SAI_MPLS_QOS);
 }
 
-const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedStats() const {
+const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
   static std::vector<sai_stat_id_t> stats;
   if (stats.size()) {
     // initialized
@@ -621,8 +621,24 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedStats() const {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDramStats() const {
+  static std::vector<sai_stat_id_t> stats;
+  if (stats.size()) {
+    // initialized
+    return stats;
+  }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::dramStats().begin(),
+        SaiSwitchTraits::dramStats().end());
+  }
+  return stats;
+}
+
 void SaiSwitchManager::updateStats() {
-  auto stats = supportedStats();
+  auto stats = supportedDropStats();
   if (stats.size()) {
     HwSwitchDropStats dropStats;
     switch_->updateStats(stats, SAI_STATS_MODE_READ);
