@@ -25,15 +25,11 @@ DEFINE_bool(can_warm_boot, true, "Enable/disable warm boot functionality");
 DEFINE_string(
     switch_state_file,
     "switch_state",
-    "File for dumping switch state JSON in on exit");
+    "File for dumping switch state JSON in on exit, it maintains only hardware switch");
 DEFINE_string(
     thrift_switch_state_file,
     "thrift_switch_state",
     "File for dumping switch state in serialized thrift format on exit");
-DEFINE_bool(
-    dump_thrift_state,
-    true,
-    "Whether to dump thrift state during warmboot exit");
 
 namespace {
 constexpr auto wbFlagPrefix = "can_warm_boot_";
@@ -82,7 +78,7 @@ HwSwitchWarmBootHelper::~HwSwitchWarmBootHelper() {
   }
 }
 
-std::string HwSwitchWarmBootHelper::warmBootFollySwitchStateFile() const {
+std::string HwSwitchWarmBootHelper::warmBootHwSwitchStateFile() const {
   return folly::to<std::string>(warmBootDir_, "/", FLAGS_switch_state_file);
 }
 
@@ -137,31 +133,32 @@ bool HwSwitchWarmBootHelper::checkAndClearWarmBootFlags() {
 bool HwSwitchWarmBootHelper::storeWarmBootState(
     const folly::dynamic& follySwitchState,
     const state::WarmbootState& thriftSwitchState) {
+  /* dump hardware switch state */
   warmBootStateWritten_ =
-      dumpStateToFile(warmBootFollySwitchStateFile(), follySwitchState);
-  if (FLAGS_dump_thrift_state) {
-    warmBootStateWritten_ &= dumpBinaryThriftToFile(
-        warmBootThriftSwitchStateFile(), thriftSwitchState);
-  }
+      dumpStateToFile(warmBootHwSwitchStateFile(), follySwitchState);
+  /* dump software switch state */
+  warmBootStateWritten_ &= dumpBinaryThriftToFile(
+      warmBootThriftSwitchStateFile(), thriftSwitchState);
   return warmBootStateWritten_;
 }
 
 std::tuple<folly::dynamic, std::optional<state::WarmbootState>>
 HwSwitchWarmBootHelper::getWarmBootState() const {
   std::string warmBootJson;
-  auto ret =
-      folly::readFile(warmBootFollySwitchStateFile().c_str(), warmBootJson);
+  auto ret = folly::readFile(warmBootHwSwitchStateFile().c_str(), warmBootJson);
   sysCheckError(
-      ret,
-      "Unable to read switch state from : ",
-      warmBootFollySwitchStateFile());
+      ret, "Unable to read switch state from : ", warmBootHwSwitchStateFile());
   state::WarmbootState thriftState;
-  if (isValidThriftStateFile(
-          warmBootFollySwitchStateFile(), warmBootThriftSwitchStateFile()) &&
-      readThriftFromBinaryFile(warmBootThriftSwitchStateFile(), thriftState)) {
-    return std::make_tuple(folly::parseJson(warmBootJson), thriftState);
+  if (!isValidThriftStateFile(
+          warmBootHwSwitchStateFile(), warmBootThriftSwitchStateFile())) {
+    throw FbossError(
+        "Invalid thrift state file: ", warmBootThriftSwitchStateFile());
   }
-  return std::make_tuple(folly::parseJson(warmBootJson), std::nullopt);
+  if (!readThriftFromBinaryFile(warmBootThriftSwitchStateFile(), thriftState)) {
+    throw FbossError(
+        "Failed to read thrift state from ", warmBootThriftSwitchStateFile());
+  }
+  return std::make_tuple(folly::parseJson(warmBootJson), thriftState);
 }
 
 void HwSwitchWarmBootHelper::setupWarmBootFile() {
