@@ -394,6 +394,7 @@ target_link_libraries(hwagent-main
   fboss_common_cpp2
   restart_time_tracker
   setup_thrift
+  split_agent_thrift_syncer
   Folly::folly
 )
 
@@ -431,5 +432,14 @@ target_link_libraries(route_update_wrapper
   fib_updater
   standalone_rib
   state
+  Folly::folly
+)
+
+add_library(split_agent_thrift_syncer
+  fboss/agent/mnpu/SplitAgentThriftSyncer.cpp
+)
+
+target_link_libraries(split_agent_thrift_syncer
+  multiswitch_service
   Folly::folly
 )

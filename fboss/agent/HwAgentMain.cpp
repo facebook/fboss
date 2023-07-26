@@ -16,6 +16,7 @@
 #include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/SetupThrift.h"
 #include "fboss/agent/mnpu/SplitAgentHwSwitchCallbackHandler.h"
+#include "fboss/agent/mnpu/SplitAgentThriftSyncer.h"
 
 #include <chrono>
 
@@ -25,6 +26,8 @@ DEFINE_int32(
     hwagent_port_base,
     5931,
     "The first thrift server port reserved for HwAgent");
+
+DEFINE_int32(swswitch_port, 5959, "Port for SwSwitch");
 
 using namespace std::chrono;
 
@@ -71,6 +74,9 @@ int hwAgentMain(
       true /*setupSSL*/);
 
   SplitHwAgentSignalHandler signalHandler(&eventBase, []() {});
+
+  auto thriftSyncer = std::make_unique<SplitAgentThriftSyncer>(
+      hwAgent->getPlatform()->getHwSwitch(), FLAGS_swswitch_port);
 
   restart_time::mark(RestartEvent::INITIALIZED);
 
