@@ -332,6 +332,33 @@ void SaiBufferManager::updateStats() {
   publishDeviceWatermark(deviceWatermarkBytes_);
 }
 
+const std::vector<sai_stat_id_t>&
+SaiBufferManager::supportedIngressPriorityGroupStats() const {
+  static std::vector<sai_stat_id_t> stats;
+  if (stats.size()) {
+    // initialized
+    return stats;
+  }
+  stats.insert(
+      stats.end(),
+      SaiIngressPriorityGroupTraits::CounterIdsToReadAndClear.begin(),
+      SaiIngressPriorityGroupTraits::CounterIdsToReadAndClear.end());
+  // TODO: Only DNX supports watermarks as of now, this would need
+  // modifications once XGS side support is in place.
+  if ((platform_->getAsic()->getAsicType() ==
+           cfg::AsicType::ASIC_TYPE_JERICHO2 ||
+       platform_->getAsic()->getAsicType() ==
+           cfg::AsicType::ASIC_TYPE_JERICHO3) &&
+      std::find(
+          stats.begin(),
+          stats.end(),
+          SAI_INGRESS_PRIORITY_GROUP_STAT_SHARED_WATERMARK_BYTES) ==
+          stats.end()) {
+    stats.emplace_back(SAI_INGRESS_PRIORITY_GROUP_STAT_SHARED_WATERMARK_BYTES);
+  }
+  return stats;
+}
+
 void SaiBufferManager::updateIngressPriorityGroupStats(
     const PortID& portId,
     const std::string& portName,
@@ -348,18 +375,8 @@ void SaiBufferManager::updateIngressPriorityGroupStats(
   }
   SaiPortHandle* portHandle =
       managerTable_->portManager().getPortHandle(portId);
-  static std::vector<sai_stat_id_t> ingressPriorityGroupWatermarkStats(
-      SaiIngressPriorityGroupTraits::CounterIdsToReadAndClear.begin(),
-      SaiIngressPriorityGroupTraits::CounterIdsToReadAndClear.end());
-  // TODO: Only DNX supports watermarks as of now, this would need
-  // modifications once XGS side support is in place.
-  if (platform_->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_JERICHO2 ||
-      platform_->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_JERICHO3) {
-    ingressPriorityGroupWatermarkStats.emplace_back(
-        SAI_INGRESS_PRIORITY_GROUP_STAT_SHARED_WATERMARK_BYTES);
-  }
+  const auto& ingressPriorityGroupWatermarkStats =
+      supportedIngressPriorityGroupStats();
   for (const auto& ipgInfo : portHandle->configuredIngressPriorityGroups) {
     const auto& ingressPriorityGroup =
         ipgInfo.second.pgHandle->ingressPriorityGroup;

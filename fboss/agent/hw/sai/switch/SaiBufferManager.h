@@ -108,6 +108,7 @@ class SaiBufferManager {
       uint64_t poolSize,
       std::optional<int32_t> newXoffSize);
   SaiBufferPoolHandle* getEgressBufferPoolHandle() const;
+  const std::vector<sai_stat_id_t>& supportedIngressPriorityGroupStats() const;
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
