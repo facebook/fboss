@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "fboss/agent/RouteUpdateWrapper.h"
+#include "fboss/agent/HwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 
@@ -25,7 +25,7 @@ void hwSwitchFibUpdate(
     const facebook::fboss::LabelToRouteMap& labelToRoute,
     void* cookie);
 
-class HwSwitchEnsembleRouteUpdateWrapper : public RouteUpdateWrapper {
+class HwSwitchEnsembleRouteUpdateWrapper : public HwSwitchRouteUpdateWrapper {
  public:
   HwSwitchEnsembleRouteUpdateWrapper(
       HwSwitchEnsemble* hwEnsemble,
@@ -57,9 +57,6 @@ class HwSwitchEnsembleRouteUpdateWrapper : public RouteUpdateWrapper {
       ClientID client,
       const utility::RouteDistributionGenerator::ThriftRouteChunks& routeChunks,
       bool add);
-  void updateStats(
-      const RoutingInformationBase::UpdateStatistics& /*stats*/) override {}
-  AdminDistance clientIdToAdminDistance(ClientID clientId) const override;
 
   HwSwitchEnsemble* hwEnsemble_;
 };

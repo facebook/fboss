@@ -44,24 +44,19 @@ std::shared_ptr<SwitchState> hwSwitchEnsembleFibUpdate(
 HwSwitchEnsembleRouteUpdateWrapper::HwSwitchEnsembleRouteUpdateWrapper(
     HwSwitchEnsemble* hwEnsemble,
     RoutingInformationBase* rib)
-    : RouteUpdateWrapper(
-          &(hwEnsemble->scopeResolver()),
+    : HwSwitchRouteUpdateWrapper(
+          hwEnsemble->getHwSwitch(),
           rib,
-          rib ? hwSwitchEnsembleFibUpdate : std::optional<FibUpdateFunction>(),
-          rib ? hwEnsemble : nullptr),
+          [hwEnsemble, rib](const StateDelta& delta) {
+            if (!rib) {
+              return delta.newState();
+            }
+            hwEnsemble->getHwSwitch()->transactionsSupported()
+                ? hwEnsemble->applyNewStateTransaction(delta.newState())
+                : hwEnsemble->applyNewState(delta.newState());
+            return hwEnsemble->getProgrammedState();
+          }),
       hwEnsemble_(hwEnsemble) {}
-
-AdminDistance HwSwitchEnsembleRouteUpdateWrapper::clientIdToAdminDistance(
-    ClientID clientId) const {
-  static const std::map<ClientID, AdminDistance> kClient2Admin = {
-      {ClientID::BGPD, AdminDistance::EBGP},
-      {ClientID::OPENR, AdminDistance::OPENR},
-      {ClientID::STATIC_ROUTE, AdminDistance::STATIC_ROUTE},
-  };
-  auto itr = kClient2Admin.find(clientId);
-  return itr == kClient2Admin.end() ? AdminDistance::MAX_ADMIN_DISTANCE
-                                    : itr->second;
-}
 
 void HwSwitchEnsembleRouteUpdateWrapper::programRoutesImpl(
     RouterID rid,
