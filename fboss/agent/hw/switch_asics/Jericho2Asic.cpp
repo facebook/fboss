@@ -145,6 +145,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
     case HwAsic::Feature::SEPARATE_BYTE_AND_PACKET_ACL_COUNTER:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
+    case HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES:
       return false;
   }
   return false;
