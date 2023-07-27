@@ -22,6 +22,17 @@ target_link_libraries(nodebase
   Folly::folly
 )
 
+add_library(lacp_types
+  fboss/agent/LacpTypes.cpp
+)
+
+target_link_libraries(lacp_types
+  switch_state_cpp2
+  Folly::folly
+  fboss_error
+  ctrl_cpp2
+)
+
 add_library(state
   fboss/agent/state/AclEntry.cpp
   fboss/agent/state/AclMap.cpp
@@ -115,6 +126,7 @@ target_link_libraries(state
   phy_cpp2
   thrift_cow_nodes
   Folly::folly
+  lacp_types
 )
 
 set_target_properties(state PROPERTIES COMPILE_FLAGS "-DENABLE_DYNAMIC_APIS")
