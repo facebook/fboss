@@ -89,7 +89,6 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
     case HwAsic::Feature::SFLOW_SAMPLING:
     case HwAsic::Feature::PFC:
-    case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
 
     case HwAsic::Feature::QCM:
@@ -104,6 +103,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::WIDE_ECMP:
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT: // CS00012066057
     case HwAsic::Feature::EMPTY_ACL_MATCHER:
+    case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
     case HwAsic::Feature::PORT_EYE_VALUES:
     case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
