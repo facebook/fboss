@@ -72,13 +72,11 @@ std::string FwUtilImpl::printFpdList() {
 }
 
 std::string FwUtilImpl::runVersionCmd(const std::string& cmd) {
-  int retVal = 0;
-  std::string version = execCommandUnchecked(cmd, retVal);
-  if (retVal != 0) {
+  auto [exitStatus, standardOut] = execCommand(cmd);
+  if (exitStatus != 0) {
     throw std::runtime_error("Run " + cmd + " failed!");
   }
-
-  return version;
+  return standardOut;
 }
 
 void FwUtilImpl::printVersion(const std::string& fpd) {
@@ -209,10 +207,9 @@ void FwUtilImpl::doFirmwareAction(
 void FwUtilImpl::storeFilePath(
     const std::string& fpd,
     const std::string& filePath) {
-  int exitStatus = 0;
   const std::string textFile = "/tmp/" + fpd + "_filename.txt";
   const std::string cmd = "echo " + filePath + " > " + textFile;
-  execCommandUnchecked(cmd, exitStatus);
+  auto [exitStatus, standardOut] = execCommand(cmd);
   if (exitStatus != 0) {
     throw std::runtime_error("Run" + cmd + " failed!");
   }

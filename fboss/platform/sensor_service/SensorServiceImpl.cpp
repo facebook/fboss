@@ -189,12 +189,11 @@ void SensorServiceImpl::fetchSensorData() {
     }
   };
   if (sensorSource_ == SensorSource::LMSENSOR) {
-    int retVal = 0;
-    std::string ret = helpers::execCommandUnchecked(kLmsensorCommand, retVal);
-    if (retVal != 0) {
+    auto [exitStatus, standardOut] = helpers::execCommand(kLmsensorCommand);
+    if (exitStatus != 0) {
       throw std::runtime_error("Run " + kLmsensorCommand + " failed!");
     }
-    parseSensorJsonData(ret);
+    parseSensorJsonData(standardOut);
   } else if (sensorSource_ == SensorSource::SYSFS) {
     getSensorDataFromPath();
   } else if (sensorSource_ == SensorSource::MOCK) {

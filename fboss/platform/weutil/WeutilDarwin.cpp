@@ -82,8 +82,8 @@ WeutilDarwin::WeutilDarwin(const std::string& eeprom) : eeprom_(eeprom) {
 }
 
 void WeutilDarwin::genSpiPrefdlFile(void) {
-  int retVal = 0;
-  std::string ret;
+  int exitStatus = 0;
+  std::string standardOut;
 
   if (!std::filesystem::exists(kPathPrefix)) {
     if (!std::filesystem::create_directory(kPathPrefix)) {
@@ -91,25 +91,26 @@ void WeutilDarwin::genSpiPrefdlFile(void) {
     }
   }
 
-  ret = helpers::execCommandUnchecked(kCreteLayout, retVal);
-  if (retVal != 0) {
+  std::tie(exitStatus, standardOut) = helpers::execCommand(kCreteLayout);
+  if (exitStatus != 0) {
     throw std::runtime_error("Cannot create layout file with: " + kCreteLayout);
   }
 
   // Get flash type
-  ret = helpers::execCommandUnchecked(kFlashromGetFlashType + " 2>&1 ", retVal);
+  std::tie(exitStatus, standardOut) =
+      helpers::execCommand(kFlashromGetFlashType + " 2>&1 ");
 
   /* Since flashrom will return 1 for "flashrom -p internal"
    * we ignore retVal == 1
    */
 
-  if ((retVal != 0) && (retVal != 1)) {
+  if ((exitStatus != 0) && (exitStatus != 1)) {
     throw std::runtime_error(
         "Cannot get flash type with: " + kFlashromGetFlashType);
   }
 
   std::string getPrefdl;
-  std::string flashType = getFlashType(ret);
+  std::string flashType = getFlashType(standardOut);
 
   if (!flashType.empty()) {
     getPrefdl = folly::to<std::string>(
@@ -119,18 +120,18 @@ void WeutilDarwin::genSpiPrefdlFile(void) {
         folly::to<std::string>(kFlashromGetFlashType, kFlashromGetContent);
   }
 
-  ret = helpers::execCommandUnchecked(getPrefdl, retVal);
-  if (retVal != 0) {
+  std::tie(exitStatus, standardOut) = helpers::execCommand(getPrefdl);
+  if (exitStatus != 0) {
     throw std::runtime_error(folly::to<std::string>(
         "Cannot create BIOS file with: ",
         getPrefdl,
         " ",
         ", return value: ",
-        std::to_string(retVal)));
+        std::to_string(exitStatus)));
   }
 
-  ret = helpers::execCommandUnchecked(kddComands, retVal);
-  if (retVal != 0) {
+  std::tie(exitStatus, standardOut) = helpers::execCommand(kddComands);
+  if (exitStatus != 0) {
     throw std::runtime_error("Cannot create prefdl file with: " + kddComands);
   }
 }

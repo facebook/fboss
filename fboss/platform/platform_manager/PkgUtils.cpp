@@ -6,20 +6,13 @@
 
 #include "fboss/platform/helpers/Utils.h"
 
-namespace {
-constexpr auto kHostKernelVersion = "`uname --kernel-release`";
-}
-
 namespace facebook::fboss::platform::platform_manager {
 
 void PkgUtils::run(const PlatformConfig& config) {
   XLOG(INFO) << "Installing BSP Kmods";
   runImpl(
       fmt::format(
-          "{}-{}-{}",
-          *config.bspKmodsRpmName(),
-          kHostKernelVersion,
-          *config.bspKmodsRpmVersion()),
+          "{}-{}", *config.bspKmodsRpmName(), *config.bspKmodsRpmVersion()),
       3 /* maxAttempts */);
 
   XLOG(INFO) << "Installing udev rules";
@@ -30,17 +23,19 @@ void PkgUtils::run(const PlatformConfig& config) {
 
 void PkgUtils::runImpl(const std::string& rpmFullName, int maxAttempts) {
   int exitStatus{0}, attempt{1};
+  std::string standardOut{};
   auto cmd = fmt::format("dnf install {} --assumeyes", rpmFullName);
   do {
     XLOG(INFO) << fmt::format(
-        "Running command ({}); Attempt: {}", cmd, attempt++);
-    XLOG(INFO) << helpers::execCommandUnchecked(cmd, exitStatus);
+        "Running command: `{}`; Attempt: {}", cmd, attempt++);
+    std::tie(exitStatus, standardOut) = helpers::execCommand(cmd);
+    XLOG(INFO) << standardOut;
   } while (attempt <= maxAttempts && exitStatus != 0);
   if (exitStatus != 0) {
     XLOG(ERR) << fmt::format(
-        "Command ({}) failed with exit code {}", cmd, exitStatus);
+        "Command `{}` failed with exit code {}", cmd, exitStatus);
     throw std::runtime_error(fmt::format(
-        "Failed to install rpm ({}) with exit code {}",
+        "Failed to install rpm `{}` with exit code {}",
         rpmFullName,
         exitStatus));
   }

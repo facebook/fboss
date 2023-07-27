@@ -6,9 +6,7 @@
 
 namespace facebook::fboss::platform::helpers {
 
-/*
- * exec command, return contents of stdout and fill in exit status
- */
-std::string execCommandUnchecked(const std::string& cmd, int& exitStatus);
+// Executes command and returns exit status and standard output.
+std::pair<int, std::string> execCommand(const std::string& cmd);
 
 } // namespace facebook::fboss::platform::helpers
