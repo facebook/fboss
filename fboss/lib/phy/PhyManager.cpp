@@ -614,6 +614,8 @@ void PhyManager::updatePortStats(
         // if PORT_INFO feature is supported, use getPortInfo instead
         if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_INFO)) {
           PhyInfo lastPhyInfo;
+          lastPhyInfo.phyChip().ensure();
+          lastPhyInfo.line().ensure();
           if (auto lastXphyInfo = getXphyInfo(portID)) {
             lastPhyInfo = *lastXphyInfo;
           }

@@ -1172,11 +1172,16 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     }
 
     phy::PhyInfo lastPhyInfo;
+    lastPhyInfo.phyChip().ensure();
+    lastPhyInfo.line().ensure();
     if (auto itr = lastPhyInfos_.find(swPort); itr != lastPhyInfos_.end()) {
       lastPhyInfo = itr->second;
     }
 
     phy::PhyInfo phyParams;
+    phyParams.phyChip().ensure();
+    phyParams.line().ensure();
+
     phyParams.state() = phy::PhyState();
     phyParams.stats() = phy::PhyStats();
     // LINE Side always exists

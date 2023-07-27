@@ -221,7 +221,10 @@ class PhyManager {
   virtual bool shouldInitializePimXphy(PimID pim) const;
 
   virtual phy::PhyInfo getPhyInfo(PortID /* swPort */) {
-    return phy::PhyInfo{};
+    phy::PhyInfo phyInfo;
+    phyInfo.phyChip().ensure();
+    phyInfo.line().ensure();
+    return phyInfo;
   }
 
   virtual std::string getPortInfoStr(PortID /* swPort */) {

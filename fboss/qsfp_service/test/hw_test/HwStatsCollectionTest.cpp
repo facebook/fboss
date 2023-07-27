@@ -140,6 +140,9 @@ class HwXphyPortInfoTest : public HwExternalPhyPortTest {
         }
 
         phy::PhyInfo lastPhyInfo;
+        lastPhyInfo.phyChip().ensure();
+        lastPhyInfo.line().ensure();
+
         auto portInfo = getHwQsfpEnsemble()
                             ->getPhyManager()
                             ->getExternalPhy(port)
@@ -155,10 +158,11 @@ class HwXphyPortInfoTest : public HwExternalPhyPortTest {
             EXPECT_EQ(lane, laneInfo.get_lane());
           }
         }
-        auto lineInfo = portInfo.get_line();
-        EXPECT_EQ(lineInfo.get_side(), phy::Side::LINE);
-        for (auto const& [lane, laneInfo] : lineInfo.get_pmd().get_lanes()) {
-          EXPECT_EQ(lane, laneInfo.get_lane());
+        if (auto lineInfo = portInfo.line()) {
+          EXPECT_EQ(lineInfo->get_side(), phy::Side::LINE);
+          for (auto const& [lane, laneInfo] : lineInfo->get_pmd().get_lanes()) {
+            EXPECT_EQ(lane, laneInfo.get_lane());
+          }
         }
         EXPECT_GT(portInfo.get_timeCollected(), 0);
       }

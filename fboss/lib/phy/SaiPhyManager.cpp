@@ -491,7 +491,11 @@ phy::PhyInfo SaiPhyManager::getPhyInfo(PortID swPort) {
   if (allPhyParams.find(swPort) != allPhyParams.end()) {
     return allPhyParams[swPort];
   }
-  return phy::PhyInfo{};
+
+  phy::PhyInfo phyInfo;
+  phyInfo.phyChip().ensure();
+  phyInfo.line().ensure();
+  return phyInfo;
 }
 
 std::string SaiPhyManager::getSaiPortInfo(PortID swPort) {

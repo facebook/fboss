@@ -63,7 +63,10 @@ class MacsecHandler {
    * Get the Phy port link information from Macsec handler
    */
   virtual phy::PhyInfo getPhyInfo(const std::string& /* portName */) {
-    return phy::PhyInfo{};
+    phy::PhyInfo phyInfo;
+    phyInfo.phyChip().ensure();
+    phyInfo.line().ensure();
+    return phyInfo;
   }
 
   /*
