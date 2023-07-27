@@ -1238,6 +1238,16 @@ void BcmSwitch::processDynamicQueueMinThresholdBytesChanged(
         newDynamicQueueMinThresholdBytes);
     bcmCheckError(
         rv, "Failed to set bcmSwitchEcmpDynamicQueuedBytesMinThreshold");
+
+    // this is per ITM and should be half of newDynamicQueueMinThresholdBytes
+    // above (as we have 2 ITMs)
+    rv = bcm_switch_control_set(
+        unit_,
+        bcmSwitchEcmpDynamicPhysicalQueuedBytesMinThreshold,
+        newDynamicQueueMinThresholdBytes >> 1);
+    bcmCheckError(
+        rv,
+        "Failed to set bcmSwitchEcmpDynamicPhysicalQueuedBytesMinThreshold");
   }
 }
 
@@ -1261,6 +1271,16 @@ void BcmSwitch::processDynamicQueueMaxThresholdBytesChanged(
         newDynamicQueueMaxThresholdBytes);
     bcmCheckError(
         rv, "Failed to set bcmSwitchEcmpDynamicQueuedBytesMaxThreshold");
+
+    // this is per ITM and should be half of
+    // bcmSwitchEcmpDynamicEgressBytesMaxThreshold above (as we have 2 ITMs)
+    rv = bcm_switch_control_set(
+        unit_,
+        bcmSwitchEcmpDynamicPhysicalQueuedBytesMaxThreshold,
+        newDynamicQueueMaxThresholdBytes >> 1);
+    bcmCheckError(
+        rv,
+        "Failed to set bcmSwitchEcmpDynamicPhysicalQueuedBytesMaxThreshold");
   }
 }
 

@@ -1734,8 +1734,10 @@ struct FlowletSwitchingConfig {
   // EWMA of historical member queued bytes
   4: i16 dynamicQueueExponent;
   // minimum threshold, in bytes, used to quantize historical member queued bytes
+  // cumulative across all memory buffers on chip
   5: i32 dynamicQueueMinThresholdBytes;
   // maximum threshold, in bytes, used to quantize historical member queued bytes
+  // cumulative across all memory buffers on chip
   6: i32 dynamicQueueMaxThresholdBytes;
   // number of times historical member load and queued bytes are computed in a second
   7: i32 dynamicSampleRate;

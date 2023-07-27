@@ -60,8 +60,14 @@ bool validateFlowletSwitchingEnabled(
       bcmSwitchEcmpDynamicQueuedBytesMinThreshold,
       *flowletCfg.dynamicQueueMinThresholdBytes());
   utility::assertSwitchControl(
+      bcmSwitchEcmpDynamicPhysicalQueuedBytesMinThreshold,
+      (*flowletCfg.dynamicQueueMinThresholdBytes() >> 1));
+  utility::assertSwitchControl(
       bcmSwitchEcmpDynamicQueuedBytesMaxThreshold,
       *flowletCfg.dynamicQueueMaxThresholdBytes());
+  utility::assertSwitchControl(
+      bcmSwitchEcmpDynamicPhysicalQueuedBytesMaxThreshold,
+      (*flowletCfg.dynamicQueueMaxThresholdBytes() >> 1));
   utility::assertSwitchControl(
       bcmSwitchEcmpDynamicSampleRate, *flowletCfg.dynamicSampleRate());
   utility::assertSwitchControl(
