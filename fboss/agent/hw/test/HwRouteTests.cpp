@@ -573,26 +573,41 @@ TYPED_TEST(HwRouteTest, AddHostRouteAndNeighbor) {
   using AddrT = typename TestFixture::Type;
   auto setup = [=]() {
     auto ip = this->kGetRoutePrefix3().network();
-    // add neighbor
+    auto portId = this->masterLogicalInterfacePortIds()[0];
+    auto port = this->getProgrammedState()->getPort(portId);
     auto state = this->getProgrammedState();
-    auto vlan = state->getVlans()->getNode(utility::kBaseVlanId);
-    auto portId = PortID(vlan->getPorts().cbegin()->first);
-    auto port = state->getPort(portId);
-    auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
-        vlan->getID(), &state);
+    auto getNeighborTable = [&]() {
+      auto switchType = this->getSwitchType();
+      if (switchType == cfg::SwitchType::NPU) {
+        auto vlanId = port->getVlans().begin()->first;
+        return state->getVlans()
+            ->getNode(vlanId)
+            ->template getNeighborEntryTable<AddrT>()
+            ->modify(vlanId, &state);
+      } else if (switchType == cfg::SwitchType::VOQ) {
+        auto intfId = port->getInterfaceID();
+        return state->getInterfaces()
+            ->getNode(intfId)
+            ->template getNeighborEntryTable<AddrT>()
+            ->modify(intfId, &state);
+      }
+      XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);
+    };
+    // add neighbor
+    auto nbrTable = getNeighborTable();
     folly::MacAddress neighborMac = folly::MacAddress("06:00:00:01:02:03");
     nbrTable->addEntry(
         ip,
         neighborMac,
         PortDescriptor(PortID(portId)),
-        vlan->getInterfaceID());
+        port->getInterfaceID());
     this->applyNewState(state);
 
     // add host route
     auto updater = this->getHwSwitchEnsemble()->getRouteUpdater();
     RouteNextHopSet nexthops;
     // @lint-ignore CLANGTIDY
-    nexthops.emplace(ResolvedNextHop(ip, vlan->getInterfaceID(), ECMP_WEIGHT));
+    nexthops.emplace(ResolvedNextHop(ip, port->getInterfaceID(), ECMP_WEIGHT));
     updater.addRoute(
         this->kRouterID(),
         ip,
