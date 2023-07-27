@@ -241,18 +241,8 @@ std::shared_ptr<SwitchState> HwSwitch::getMinAlpmState(
   }
   std::shared_ptr<SwitchState> minAlpmState{};
   HwSwitchRouteUpdateWrapper routeUpdater(
-      this,
-      rib,
-      [&minAlpmState, state](
-          const facebook::fboss::SwitchIdScopeResolver* resolver,
-          facebook::fboss::RouterID vrf,
-          const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
-          const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
-          const facebook::fboss::LabelToRouteMap& labelToRoute,
-          void* /*cookie*/) {
-        facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
-            resolver, vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute);
-        minAlpmState = fibUpdater(state);
+      this, rib, [&minAlpmState](const StateDelta& delta) {
+        minAlpmState = delta.newState();
         return minAlpmState;
       });
   routeUpdater.programMinAlpmState();

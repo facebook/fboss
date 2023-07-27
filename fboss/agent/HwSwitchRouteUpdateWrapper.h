@@ -7,12 +7,15 @@
 namespace facebook::fboss {
 
 class HwSwitch;
+class StateDelta;
+
 class HwSwitchRouteUpdateWrapper : public RouteUpdateWrapper {
  public:
   HwSwitchRouteUpdateWrapper(
       HwSwitch* hwSwitch,
       RoutingInformationBase* rib,
-      FibUpdateFunction fibUpdateFunction);
+      std::function<std::shared_ptr<SwitchState>(const StateDelta&)> apply =
+          nullptr);
 
  private:
   AdminDistance clientIdToAdminDistance(ClientID clientID) const override;
