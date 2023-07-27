@@ -611,8 +611,7 @@ bool BcmSwitch::isPortUp(PortID port) const {
 }
 
 std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
-  auto bootState = make_shared<SwitchState>();
-
+  auto bootState = getProgrammedState()->clone();
   uint32_t flags = 0;
   for (const auto& kv : std::as_const(*portTable_)) {
     uint32_t port_flags;
@@ -671,6 +670,7 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   // On cold boot all ports are in Vlan 1
   auto vlan = make_shared<Vlan>(VlanID(1), std::string("InitVlan"));
   Vlan::MemberPorts memberPorts;
+  auto ports = bootState->getPorts()->modify(&bootState);
   for (const auto& kv : std::as_const(*portTable_)) {
     PortID portID = kv.first;
     BcmPort* bcmPort = kv.second;
@@ -698,12 +698,13 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
       auto queues = bcmPort->getCurrentQueueSettings();
       swPort->resetPortQueues(queues);
     }
-    bootState->getPorts()->addNode(swPort, scopeResolver->scope(swPort));
+    ports->addNode(swPort, scopeResolver->scope(swPort));
 
     memberPorts.insert(make_pair(portID, false));
   }
   vlan->setPorts(memberPorts);
-  bootState->getVlans()->addNode(vlan, scopeResolver->scope(vlan));
+  auto vlans = bootState->getVlans()->modify(&bootState);
+  vlans->addNode(vlan, scopeResolver->scope(vlan));
   bootState->publish();
   return bootState;
 }
@@ -987,6 +988,19 @@ HwInitResult BcmSwitch::initImpl(
       }
     }
   } else {
+    std::map<int32_t, state::RouteTableFields> routeTables{};
+    routeTables.emplace(kDefaultVrf, state::RouteTableFields{});
+    ret.rib = RoutingInformationBase::fromThrift(routeTables);
+
+    auto bootState = std::make_shared<SwitchState>();
+    bootState->publish();
+    setProgrammedState(bootState);
+    programMinAlpmState(ret.rib.get(), [this, &g](const StateDelta& delta) {
+      auto newState = stateChangedImplLocked(delta, g);
+      setProgrammedState(newState);
+      return newState;
+    });
+
     ret.switchState = getColdBootSwitchState();
     CHECK(ret.switchState->getSwitchSettings()->size());
     auto switchSettings =

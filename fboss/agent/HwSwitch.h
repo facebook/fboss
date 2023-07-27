@@ -82,6 +82,8 @@ void checkUnsupportedDelta(const Delta& delta, Mgr& mgr) {
 class HwSwitch {
  public:
   using Callback = HwSwitchCallback;
+  using StateChangedFn =
+      std::function<std::shared_ptr<SwitchState>(const StateDelta& delta)>;
 
   enum FeaturesDesired : uint32_t {
     PACKET_RX_DESIRED = 0x01,
@@ -121,7 +123,6 @@ class HwSwitch {
     switchId_ = switchId;
     auto ret = initImpl(callback, failHwCallsOnWarmboot, switchType, switchId);
     ret.switchState = fillinPortInterfaces(ret.switchState);
-
     setProgrammedState(ret.switchState);
     return ret;
   }
@@ -367,6 +368,10 @@ class HwSwitch {
 
  protected:
   void setProgrammedState(const std::shared_ptr<SwitchState>& state);
+  std::shared_ptr<SwitchState> programMinAlpmState(RoutingInformationBase* rib);
+  std::shared_ptr<SwitchState> programMinAlpmState(
+      RoutingInformationBase* rib,
+      StateChangedFn func);
 
  private:
   virtual HwInitResult initImpl(
@@ -402,6 +407,10 @@ class HwSwitch {
   // fleet has migrated to Agent V2 or later.
   std::shared_ptr<SwitchState> fillinPortInterfaces(
       const std::shared_ptr<SwitchState>& oldState);
+
+  std::shared_ptr<SwitchState> getMinAlpmState(
+      RoutingInformationBase* rib,
+      const std::shared_ptr<SwitchState>& state);
 
   uint32_t featuresDesired_;
   SwitchRunState runState_{SwitchRunState::UNINITIALIZED};

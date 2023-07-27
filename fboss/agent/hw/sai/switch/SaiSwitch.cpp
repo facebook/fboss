@@ -1780,7 +1780,7 @@ SaiManagerTable* SaiSwitch::managerTable() {
 // Begin Locked functions with actual SaiSwitch functionality
 
 std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
-  auto state = std::make_shared<SwitchState>();
+  auto state = getProgrammedState()->clone();
 
   auto switchId = platform_->getAsic()->getSwitchId()
       ? *platform_->getAsic()->getSwitchId()
@@ -1935,6 +1935,17 @@ HwInitResult SaiSwitch::initLocked(
       adapterKeysJson.get(),
       adapterKeys2AdapterHostKeysJson.get());
   if (bootType_ != BootType::WARM_BOOT) {
+    setProgrammedState(std::make_shared<SwitchState>());
+    if (switchType == cfg::SwitchType::NPU ||
+        switchType == cfg::SwitchType::VOQ) {
+      std::map<int32_t, state::RouteTableFields> routeTables{};
+      routeTables.emplace(kDefaultVrf, state::RouteTableFields{});
+      ret.rib = RoutingInformationBase::fromThrift(routeTables);
+      programMinAlpmState(ret.rib.get(), [=](const StateDelta& delta) {
+        setProgrammedState(delta.newState());
+        return delta.newState();
+      });
+    }
     ret.switchState = getColdBootSwitchState();
     CHECK(ret.switchState->getSwitchSettings()->size());
     if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::MAC_AGING)) {

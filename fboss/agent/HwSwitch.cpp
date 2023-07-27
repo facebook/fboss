@@ -10,10 +10,12 @@
 #include "fboss/agent/HwSwitch.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/HwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/normalization/Normalizer.h"
+#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/TransceiverMap.h"
@@ -222,4 +224,53 @@ void HwSwitch::ensureConfigured(folly::StringPiece function) const {
       "switch is still initializing or is exiting and is not "
       "fully configured yet");
 }
+
+std::shared_ptr<SwitchState> HwSwitch::getMinAlpmState(
+    RoutingInformationBase* rib,
+    const std::shared_ptr<SwitchState>& state) {
+  CHECK(getRunState() < SwitchRunState::INITIALIZED) << "Invalid run state";
+  CHECK(getBootType() == BootType::COLD_BOOT);
+
+  if (!getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::ROUTE_PROGRAMMING)) {
+    return state;
+  }
+  if (getSwitchType() != cfg::SwitchType::VOQ &&
+      getSwitchType() != cfg::SwitchType::NPU) {
+    return state;
+  }
+  std::shared_ptr<SwitchState> minAlpmState{};
+  HwSwitchRouteUpdateWrapper routeUpdater(
+      this,
+      rib,
+      [&minAlpmState, state](
+          const facebook::fboss::SwitchIdScopeResolver* resolver,
+          facebook::fboss::RouterID vrf,
+          const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
+          const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
+          const facebook::fboss::LabelToRouteMap& labelToRoute,
+          void* /*cookie*/) {
+        facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
+            resolver, vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute);
+        minAlpmState = fibUpdater(state);
+        return minAlpmState;
+      });
+  routeUpdater.programMinAlpmState();
+  return minAlpmState;
+}
+
+std::shared_ptr<SwitchState> HwSwitch::programMinAlpmState(
+    RoutingInformationBase* rib) {
+  return programMinAlpmState(
+      rib, [=](const StateDelta& delta) { return stateChanged(delta); });
+}
+
+std::shared_ptr<SwitchState> HwSwitch::programMinAlpmState(
+    RoutingInformationBase* rib,
+    StateChangedFn func) {
+  auto state = getProgrammedState();
+  auto minAlpmState = getMinAlpmState(rib, state);
+  return func(StateDelta(state, minAlpmState));
+}
+
 } // namespace facebook::fboss

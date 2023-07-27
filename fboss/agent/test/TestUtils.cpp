@@ -491,7 +491,14 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
   HwInitResult ret;
   ret.switchState = state ? state : make_shared<SwitchState>();
   ret.bootType = BootType::COLD_BOOT;
-  ret.rib = std::make_unique<RoutingInformationBase>();
+  std::map<int32_t, state::RouteTableFields> routeTables{};
+  auto switchInfo =
+      config->switchSettings()->switchIdToSwitchInfo()->begin()->second;
+  if (*switchInfo.switchType() == cfg::SwitchType::NPU ||
+      *switchInfo.switchType() == cfg::SwitchType::VOQ) {
+    routeTables.emplace(kDefaultVrf, state::RouteTableFields{});
+  }
+  ret.rib = RoutingInformationBase::fromThrift(routeTables);
   getMockHw(sw)->setInitialState(ret.switchState);
   EXPECT_HW_CALL(sw, initImpl(_, false, _, _))
       .WillOnce(Return(ByMove(std::move(ret))));
