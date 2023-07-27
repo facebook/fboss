@@ -8,7 +8,7 @@
 
 namespace {
 constexpr facebook::fboss::led::LedColor kCablingErrorLedColor =
-    facebook::fboss::led::LedColor::OFF;
+    facebook::fboss::led::LedColor::YELLOW;
 }
 
 namespace facebook::fboss {
@@ -46,7 +46,7 @@ std::set<int> BspLedManager::getLedIdFromSwPort(
   std::set<int> ledIdSet;
   for (auto tcvrLane : tcvrHostLanes) {
     auto ledId = bspSystemContainer_->getBspPlatformMapping()->getLedId(
-        tcvrId, tcvrLane);
+        tcvrId + 1, tcvrLane + 1);
     ledIdSet.insert(ledId);
   }
   return ledIdSet;
@@ -220,7 +220,8 @@ void BspLedManager::setLedColor(
 
   auto tcvrId = platformMapping_->getTransceiverIdFromSwPort(PortID(portId));
 
-  for (auto& ledController : bspSystemContainer_->getLedController(tcvrId)) {
+  for (auto& ledController :
+       bspSystemContainer_->getLedController(tcvrId + 1)) {
     if (std::find(ledIds.begin(), ledIds.end(), ledController.first) !=
         ledIds.end()) {
       ledController.second->setColor(ledColor);
