@@ -382,6 +382,9 @@ TEST_F(
     // LACP watches on port down and change state
     state = disableTrunkPort(
         getProgrammedState(), kAggId, PortID(getTrunkMemberPorts()[0]));
+    // link state processing should remove neighbor
+    state = ecmpHelper_->unresolveNextHops(
+        state, {PortDescriptor(AggregatePortID(kAggId))});
     applyNewState(state);
     // bring up the member link
     bringUpPort(PortID(getTrunkMemberPorts()[0]));
