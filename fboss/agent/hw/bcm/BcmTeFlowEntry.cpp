@@ -42,6 +42,8 @@ void BcmTeFlowEntry::setRedirectNexthop(
     redirectNexthop =
         hw->writableMultiPathNextHopTable()->referenceOrEmplaceNextHop(
             BcmMultiPathNextHopKey(0, nexthops));
+  } else {
+    redirectNexthop = nullptr;
   }
 }
 
@@ -56,6 +58,15 @@ bcm_if_t BcmTeFlowEntry::getEgressId(
   }
 
   return egressId;
+}
+
+// getEnabled() check is needed for warmboot
+// since statEnabled field is not set in the old state
+// TODO remove the getEnabled() check once migrated to new state
+bool BcmTeFlowEntry::isStatEnabled(const std::shared_ptr<TeFlowEntry>& teFlow) {
+  return teFlow->getStatEnabled().has_value()
+      ? teFlow->getStatEnabled().value()
+      : (teFlow->getEnabled() && teFlow->getCounterID().has_value());
 }
 
 void BcmTeFlowEntry::createTeFlowQualifiers() {
@@ -84,9 +95,10 @@ void BcmTeFlowEntry::createTeFlowQualifiers() {
   }
 }
 
-void BcmTeFlowEntry::createTeFlowStat() {
+void BcmTeFlowEntry::createTeFlowStat(
+    const std::shared_ptr<TeFlowEntry>& teFlow) {
   auto teFlowTable = hw_->writableTeFlowTable();
-  auto counterName = teFlow_->getCounterID()->toThrift();
+  auto counterName = teFlow->getCounterID()->toThrift();
   const auto warmBootCache = hw_->getWarmBootCache();
   auto warmBootItr = warmBootCache->findTeFlowStat(handle_);
   if (warmBootItr != warmBootCache->TeFlowEntry2TeFlowStat_end()) {
@@ -103,9 +115,10 @@ void BcmTeFlowEntry::createTeFlowStat() {
   }
 }
 
-void BcmTeFlowEntry::deleteTeFlowStat() {
-  if (teFlow_->getCounterID().has_value() && teFlow_->getEnabled()) {
-    auto counterName = teFlow_->getCounterID()->toThrift();
+void BcmTeFlowEntry::deleteTeFlowStat(
+    const std::shared_ptr<TeFlowEntry>& teFlow) {
+  if (isStatEnabled(teFlow)) {
+    auto counterName = teFlow->getCounterID()->toThrift();
     auto teFlowTable = hw_->writableTeFlowTable();
     auto teFlowStat = teFlowTable->getTeFlowStat(counterName);
     teFlowStat->detach(handle_);
@@ -123,12 +136,14 @@ void BcmTeFlowEntry::createTeFlowActions() {
 }
 
 void BcmTeFlowEntry::removeTeFlowActions() {
+  XLOG(DBG3) << "Remove TeFlow action for handle :" << handle_;
   auto rv =
       bcm_field_action_remove(hw_->getUnit(), handle_, bcmFieldActionL3Switch);
   bcmCheckError(rv, teFlow_->str(), "failed to action remove ");
 }
 
 void BcmTeFlowEntry::installTeFlowEntry() {
+  XLOG(DBG3) << "Installing TeFlow entry for handle :" << handle_;
   auto rv = bcm_field_entry_install(hw_->getUnit(), handle_);
   bcmCheckError(rv, teFlow_->str(), "failed to install field group");
 }
@@ -154,15 +169,16 @@ void BcmTeFlowEntry::createTeFlowEntry() {
   try {
     if (enabled) {
       createTeFlowActions();
-      if (teFlow_->getCounterID().has_value()) {
-        createTeFlowStat();
-        statAllocated = true;
-      }
+    }
+    // Allocate stat entry if stat is enabled for teflow
+    if (isStatEnabled(teFlow_)) {
+      createTeFlowStat(teFlow_);
+      statAllocated = true;
     }
     installTeFlowEntry();
   } catch (const facebook::fboss::BcmError& error) {
     if (statAllocated) {
-      deleteTeFlowStat();
+      deleteTeFlowStat(teFlow_);
     }
     rv = bcm_field_entry_destroy(hw_->getUnit(), handle_);
     bcmLogFatal(rv, hw_, "failed to destroy TeFlow entry");
@@ -175,10 +191,38 @@ void BcmTeFlowEntry::createTeFlowEntry() {
   }
 }
 
+void BcmTeFlowEntry::updateStats(
+    const std::shared_ptr<TeFlowEntry>& oldTeFlow,
+    const std::shared_ptr<TeFlowEntry>& newTeFlow) {
+  if (!isStatEnabled(oldTeFlow) && !isStatEnabled(newTeFlow)) {
+    return;
+  }
+  if (!isStatEnabled(oldTeFlow) && isStatEnabled(newTeFlow)) {
+    createTeFlowStat(newTeFlow);
+    return;
+  }
+  if (isStatEnabled(oldTeFlow) && !isStatEnabled(newTeFlow)) {
+    deleteTeFlowStat(oldTeFlow);
+    return;
+  }
+  if (isStatEnabled(oldTeFlow) && isStatEnabled(newTeFlow)) {
+    bool isCounterIdSame =
+        (oldTeFlow->getCounterID() == newTeFlow->getCounterID());
+    if (isCounterIdSame) {
+      return;
+    }
+    deleteTeFlowStat(oldTeFlow);
+    createTeFlowStat(newTeFlow);
+  }
+}
+
 void BcmTeFlowEntry::updateTeFlowEntry(
     const std::shared_ptr<TeFlowEntry>& newTeFlow) {
+  const std::shared_ptr<TeFlowEntry> oldTeFlow = teFlow_;
   // Entry disabled
   if (!teFlow_->getEnabled() && !newTeFlow->getEnabled()) {
+    teFlow_ = newTeFlow;
+    updateStats(oldTeFlow, newTeFlow);
     return;
   }
 
@@ -186,9 +230,7 @@ void BcmTeFlowEntry::updateTeFlowEntry(
   if (!teFlow_->getEnabled() && newTeFlow->getEnabled()) {
     teFlow_ = newTeFlow;
     createTeFlowActions();
-    if (teFlow_->getCounterID()) {
-      createTeFlowStat();
-    }
+    updateStats(oldTeFlow, newTeFlow);
     installTeFlowEntry();
     return;
   }
@@ -197,24 +239,17 @@ void BcmTeFlowEntry::updateTeFlowEntry(
   if (teFlow_->getEnabled() && !newTeFlow->getEnabled()) {
     removeTeFlowActions();
     redirectNexthop_ = nullptr;
-    if (teFlow_->getCounterID().has_value()) {
-      deleteTeFlowStat();
-    }
     teFlow_ = newTeFlow;
+    updateStats(oldTeFlow, newTeFlow);
     installTeFlowEntry();
     return;
   }
 
   // enabled to enabled
-  if (teFlow_->getCounterID().has_value()) {
-    deleteTeFlowStat();
-  }
   removeTeFlowActions();
   teFlow_ = newTeFlow;
   createTeFlowActions();
-  if (teFlow_->getCounterID().has_value()) {
-    createTeFlowStat();
-  }
+  updateStats(oldTeFlow, newTeFlow);
   installTeFlowEntry();
 }
 
@@ -237,8 +272,9 @@ BcmTeFlowEntry::BcmTeFlowEntry(
       // check whether teflow in S/W and H/W in sync
       CHECK(BcmTeFlowEntry::isStateSame(hw_, gid_, handle_, teFlow_))
           << "Warmboot TeFlow doesn't match the one from H/W";
-      if (teFlow_->getEnabled() && teFlow_->getCounterID().has_value()) {
-        createTeFlowStat();
+      // if stat is enabled it will be recovered
+      if (isStatEnabled(teFlow_)) {
+        createTeFlowStat(teFlow_);
       }
       warmBootCache->programmed(warmbootItr);
     } else {
@@ -249,7 +285,7 @@ BcmTeFlowEntry::BcmTeFlowEntry(
 
 BcmTeFlowEntry::~BcmTeFlowEntry() {
   // Delete the TeFlow stat
-  deleteTeFlowStat();
+  deleteTeFlowStat(teFlow_);
 
   // Destroy the TeFlow entry
   auto rv = bcm_field_entry_destroy(hw_->getUnit(), handle_);
@@ -314,28 +350,27 @@ bool BcmTeFlowEntry::isStateSame(
   auto rv = bcm_field_action_get(
       hw->getUnit(), handle, bcmFieldActionL3Switch, &egressId, &param1);
   if (rv == BCM_E_NOT_FOUND) {
-    if (!enabled) {
-      return isSame;
-    }
+    // If the entry is disabled there is no nexthop
+    // hence egressId should not be found
+    isSame &= ((!enabled) ? 1 : 0);
+  } else {
     bcmCheckError(
         rv, teFlowMsg, " failed to get action=", bcmFieldActionL3Switch);
-    return false;
-  }
-
-  std::shared_ptr<BcmMultiPathNextHop> redirectNexthop;
-  setRedirectNexthop(hw, redirectNexthop, teFlow);
-  auto expectedEgressId = getEgressId(hw, redirectNexthop);
-  if (egressId != static_cast<uint32_t>(expectedEgressId)) {
-    XLOG(ERR) << teFlowMsg
-              << " redirect nexthop egressId mismatched. SW expected="
-              << expectedEgressId << " HW value=" << egressId;
-    return false;
+    std::shared_ptr<BcmMultiPathNextHop> redirectNexthop;
+    setRedirectNexthop(hw, redirectNexthop, teFlow);
+    auto expectedEgressId = getEgressId(hw, redirectNexthop);
+    if (egressId != static_cast<uint32_t>(expectedEgressId)) {
+      XLOG(ERR) << teFlowMsg
+                << " redirect nexthop egressId mismatched. SW expected="
+                << expectedEgressId << " HW value=" << egressId;
+      isSame = false;
+    }
   }
 
   // check flow stat
   auto teFlowStatHandle = BcmTeFlowStat::getAclStatHandleFromAttachedAcl(
       hw, getEMGroupID(gid), handle);
-  if (teFlowStatHandle && teFlow->getCounterID()) {
+  if (teFlowStatHandle && isStatEnabled(teFlow)) {
     cfg::TrafficCounter counter;
     counter.name() = teFlow->getCounterID()->toThrift();
     counter.types() = {cfg::CounterType::BYTES};

@@ -53,6 +53,7 @@ class BcmTeFlowEntry {
       std::shared_ptr<BcmMultiPathNextHop>& redirectNexthop,
       const std::shared_ptr<TeFlowEntry>& teFlow);
   void updateTeFlowEntry(const std::shared_ptr<TeFlowEntry>& newTeFlow);
+  static bool isStatEnabled(const std::shared_ptr<TeFlowEntry>& teFlow);
 
  private:
   void createTeFlowQualifiers();
@@ -60,8 +61,11 @@ class BcmTeFlowEntry {
   void removeTeFlowActions();
   void installTeFlowEntry();
   void createTeFlowEntry();
-  void createTeFlowStat();
-  void deleteTeFlowStat();
+  void createTeFlowStat(const std::shared_ptr<TeFlowEntry>& teFlow);
+  void deleteTeFlowStat(const std::shared_ptr<TeFlowEntry>& teFlow);
+  void updateStats(
+      const std::shared_ptr<TeFlowEntry>& oldTeFlow,
+      const std::shared_ptr<TeFlowEntry>& newTeFlow);
 
   BcmSwitch* hw_;
   int gid_;

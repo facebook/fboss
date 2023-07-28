@@ -111,6 +111,7 @@ std::shared_ptr<TeFlowEntry> makeFlowEntry(
   nhop.address()->ifName() = ifName;
   nexthops.push_back(nhop);
   flowEntry->setEnabled(true);
+  flowEntry->setStatEnabled(true);
   flowEntry->setCounterID(counterID);
   flowEntry->setNextHops(nexthops);
   flowEntry->setResolvedNextHops(nexthops);
@@ -258,6 +259,16 @@ void modifyFlowEntry(
     bool enable) {
   auto teFlows = hwEnsemble->getProgrammedState()->getTeFlowTable()->clone();
   newFlowEntry->setEnabled(enable);
+  if (newFlowEntry->getCounterID().has_value() &&
+      (enable || FLAGS_emStatOnlyMode)) {
+    newFlowEntry->setStatEnabled(true);
+  } else {
+    newFlowEntry->setStatEnabled(false);
+  }
+  if (!enable) {
+    std::vector<NextHopThrift> nexthops;
+    newFlowEntry->setResolvedNextHops(nexthops);
+  }
   teFlows->updateNode(
       newFlowEntry, hwEnsemble->scopeResolver().scope(newFlowEntry));
   auto newState = hwEnsemble->getProgrammedState()->clone();
