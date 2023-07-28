@@ -25,9 +25,15 @@ class HwRouteScaleTest : public HwTest {
   void runTest(const std::set<PlatformType>& applicablePlatforms) {
     if (applicablePlatforms.find(getPlatform()->getType()) ==
         applicablePlatforms.end()) {
+#if defined(GTEST_SKIP)
+      GTEST_SKIP();
+#endif
       return;
     }
     if (!getHwSwitchEnsemble()->isRouteScaleEnabled()) {
+#if defined(GTEST_SKIP)
+      GTEST_SKIP();
+#endif
       return;
     }
     auto setup = [this]() {

@@ -199,6 +199,9 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
       bool loadBalanceExpected = true,
       uint8_t deviation = 25) {
     if (skipTest()) {
+#if defined(GTEST_SKIP)
+      GTEST_SKIP();
+#endif
       return;
     }
     auto setup = [=]() { programECMP(ecmpWidth, loadBalancer, weights); };
@@ -218,6 +221,9 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
       const cfg::LoadBalancer& loadBalancer,
       uint8_t deviation = 25) {
     if (skipTest()) {
+#if defined(GTEST_SKIP)
+      GTEST_SKIP();
+#endif
       return;
     }
     unsigned int minLinksLoadbalanceTest = 1;

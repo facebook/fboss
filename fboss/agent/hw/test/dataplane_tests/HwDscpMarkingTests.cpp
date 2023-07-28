@@ -38,6 +38,9 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
 
   void verifyDscpMarking(bool frontPanel) {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
+#if defined(GTEST_SKIP)
+      GTEST_SKIP();
+#endif
       return;
     }
 

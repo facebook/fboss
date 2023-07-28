@@ -287,6 +287,9 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
 
   void runTest(int queueId) {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
+#if defined(GTEST_SKIP)
+      GTEST_SKIP();
+#endif
       return;
     }
 
@@ -376,6 +379,9 @@ TEST_F(HwWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
   };
   auto verify = [this]() {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
+#if defined(GTEST_SKIP)
+      GTEST_SKIP();
+#endif
       return;
     }
     auto queueIdGold =

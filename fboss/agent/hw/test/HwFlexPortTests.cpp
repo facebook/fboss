@@ -58,6 +58,9 @@ class HwFlexPortTest : public HwTest {
     auto modes = getHwSwitchEnsemble()->getSupportedFlexPortModes();
     if (find(modes.begin(), modes.end(), flexMode) == modes.end()) {
       XLOG(DBG2) << "Skipping flexport mode: " << configName;
+#if defined(GTEST_SKIP)
+      GTEST_SKIP();
+#endif
       return;
     }
     auto allPortsinGroup = getAllPortsInGroup(masterLogicalPortIds()[0]);

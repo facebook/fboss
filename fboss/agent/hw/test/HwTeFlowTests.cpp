@@ -76,6 +76,9 @@ class HwTeFlowTest : public HwLinkStateDependentTest {
 
 TEST_F(HwTeFlowTest, VerifyTeFlowGroupEnable) {
   if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
 
@@ -93,6 +96,9 @@ TEST_F(HwTeFlowTest, VerifyTeFlowGroupEnable) {
 
 TEST_F(HwTeFlowTest, validateAddDeleteTeFlow) {
   if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
 
@@ -166,6 +172,9 @@ TEST_F(HwTeFlowTest, validateAddDeleteTeFlow) {
 
 TEST_F(HwTeFlowTest, validateEnableDisableTeFlow) {
   if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
 
@@ -259,6 +268,9 @@ TEST_F(HwTeFlowTest, validateEnableDisableTeFlow) {
 
 TEST_F(HwTeFlowTest, validateExactMatchTableConfigs) {
   if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
 
@@ -329,6 +341,9 @@ TEST_F(HwTeFlowTest, validateHwProtection) {
   if (this->skipTest() ||
       getPlatform()->getAsic()->getAsicType() ==
           cfg::AsicType::ASIC_TYPE_FAKE) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
@@ -349,6 +364,9 @@ TEST_F(HwTeFlowTest, validateHwProtection) {
 
 TEST_F(HwTeFlowTest, verifyTeFlowScale) {
   if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
 

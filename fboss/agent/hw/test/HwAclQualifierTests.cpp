@@ -388,6 +388,9 @@ TEST_F(HwAclQualifierTest, AclVlanIDQualifier) {
     auto newCfg = initialConfig();
     if (getPlatform()->getAsic()->getAsicType() ==
         cfg::AsicType::ASIC_TYPE_TRIDENT2) {
+#if defined(GTEST_SKIP)
+      GTEST_SKIP();
+#endif
       return;
     }
     auto* acl = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);

@@ -386,6 +386,9 @@ TYPED_TEST_SUITE(HwMPLSTest, TestTypes);
 
 TYPED_TEST(HwMPLSTest, Push) {
   if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {
@@ -424,6 +427,9 @@ TYPED_TEST(HwMPLSTest, Push) {
 
 TYPED_TEST(HwMPLSTest, Swap) {
   if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {
@@ -457,6 +463,9 @@ TYPED_TEST(HwMPLSTest, Swap) {
 
 TYPED_TEST(HwMPLSTest, MplsNoMatchPktsToLowPriQ) {
   if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() { this->setup(); };
@@ -492,6 +501,9 @@ TYPED_TEST(HwMPLSTest, MplsNoMatchPktsToLowPriQ) {
 
 TYPED_TEST(HwMPLSTest, MplsMatchPktsNottrapped) {
   if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {
@@ -523,6 +535,9 @@ TYPED_TEST(HwMPLSTest, MplsMatchPktsNottrapped) {
 
 TYPED_TEST(HwMPLSTest, Pop) {
   if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {
@@ -552,6 +567,9 @@ TYPED_TEST(HwMPLSTest, Pop) {
 
 TYPED_TEST(HwMPLSTest, Php) {
   if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {
@@ -578,6 +596,9 @@ TYPED_TEST(HwMPLSTest, Php) {
 
 TYPED_TEST(HwMPLSTest, Pop2Cpu) {
   if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {
@@ -622,6 +643,9 @@ TYPED_TEST(HwMPLSTest, Pop2Cpu) {
 
 TYPED_TEST(HwMPLSTest, punt2Cpu) {
   if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {
@@ -665,6 +689,9 @@ TYPED_TEST(HwMPLSTest, ExpiringTTL) {
 
 TYPED_TEST(HwMPLSTest, AclRedirectToNexthop) {
   if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {
@@ -714,6 +741,9 @@ TYPED_TEST(HwMPLSTest, AclRedirectToNexthopDrop) {
   // Packets must be dropped if  there are no resolved nexthops
   // in the redirect ACL entry
   if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {
@@ -751,6 +781,9 @@ TYPED_TEST(HwMPLSTest, AclRedirectToNexthopDrop) {
 // Verfiy that redirect does not happen when ACL qualifiers do not match
 TYPED_TEST(HwMPLSTest, AclRedirectToNexthopMismatch) {
   if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {
@@ -799,6 +832,9 @@ TYPED_TEST(HwMPLSTest, AclRedirectToNexthopMismatch) {
 // Test ACL redirect to an ECMP nexthop
 TYPED_TEST(HwMPLSTest, AclRedirectToNexthopMultipleNexthops) {
   if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {

@@ -146,6 +146,9 @@ class HwRouteStatTest : public HwLinkStateDependentTest {
 
 TEST_F(HwRouteStatTest, RouteEntryTest) {
   if (skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {
@@ -186,6 +189,9 @@ TEST_F(HwRouteStatTest, RouteEntryTest) {
 // modify counter id
 TEST_F(HwRouteStatTest, CounterModify) {
   if (skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {

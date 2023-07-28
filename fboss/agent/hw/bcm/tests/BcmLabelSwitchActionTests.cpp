@@ -234,6 +234,9 @@ class BcmLabelSwitchActionTest : public BcmTest {
 
 TEST_F(BcmLabelSwitchActionTest, addLabelSwitchAction) {
   if (!isSupported(HwAsic::Feature::MPLS)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() { addAllTestLabelForwardingEntries(); };
@@ -245,6 +248,9 @@ TEST_F(BcmLabelSwitchActionTest, addLabelSwitchAction) {
 TEST_F(BcmLabelSwitchActionTest, addLabelSwitchActionWithL3Routes) {
   if (!isSupported(HwAsic::Feature::MPLS) ||
       !isSupported(HwAsic::Feature::MPLS_ECMP)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {
@@ -258,6 +264,9 @@ TEST_F(BcmLabelSwitchActionTest, addLabelSwitchActionWithL3Routes) {
 
 TEST_F(BcmLabelSwitchActionTest, removeLabelSwitchAction) {
   if (!isSupported(HwAsic::Feature::MPLS)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {

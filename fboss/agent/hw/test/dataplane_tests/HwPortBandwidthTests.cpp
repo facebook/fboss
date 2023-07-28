@@ -226,6 +226,9 @@ void HwPortBandwidthTest::verifyRate(
     uint32_t maxRate,
     GetQueueOutCntT getQueueOutCntFunc) {
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
 
@@ -265,6 +268,9 @@ void HwPortBandwidthTest::verifyRateDynamicChanges(
     uint8_t dscpVal,
     GetQueueOutCntT getQueueOutCntFunc) {
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
 
@@ -378,6 +384,9 @@ void HwPortBandwidthTest::verifyPortRateTraffic(cfg::PortSpeed portSpeed) {
 
 TEST_F(HwPortBandwidthTest, VerifyPps) {
   if (!isSupported(HwAsic::Feature::SCHEDULER_PPS)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto getPackets = [this]() {
@@ -404,6 +413,9 @@ TEST_F(HwPortBandwidthTest, VerifyKbps) {
 
 TEST_F(HwPortBandwidthTest, VerifyPpsDynamicChanges) {
   if (!isSupported(HwAsic::Feature::SCHEDULER_PPS)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto getPackets = [this]() {
@@ -428,6 +440,9 @@ TEST_F(HwPortBandwidthTest, VerifyKbpsDynamicChanges) {
 
 TEST_F(HwPortBandwidthTest, VerifyQueueShaper) {
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
 

@@ -737,6 +737,9 @@ TEST_F(HwMacSwLearningModeTest, VerifySwAgingForTrunk) {
 
 TEST_F(HwMacSwLearningModeTest, VerifyNbrMacInL2Table) {
   if (!getHwSwitch()->needL2EntryForNeighbor()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [this] {

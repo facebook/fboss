@@ -139,6 +139,9 @@ TYPED_TEST_SUITE(HwQueuePerHostRouteTest, IpTypes);
 
 TYPED_TEST(HwQueuePerHostRouteTest, VerifyHostToQueueMappingClassIDCpu) {
   if (!this->isSupported(HwAsic::Feature::L3_QOS)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
 
@@ -155,6 +158,9 @@ TYPED_TEST(HwQueuePerHostRouteTest, VerifyHostToQueueMappingClassIDCpu) {
 
 TYPED_TEST(HwQueuePerHostRouteTest, VerifyHostToQueueMappingClassIDFrontPanel) {
   if (!this->isSupported(HwAsic::Feature::L3_QOS)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
 
@@ -168,6 +174,9 @@ TYPED_TEST(HwQueuePerHostRouteTest, VerifyHostToQueueMappingClassIDFrontPanel) {
 
 TYPED_TEST(HwQueuePerHostRouteTest, VerifyHostToQueueMappingClassIDCpuBlock) {
   if (!this->isSupported(HwAsic::Feature::L3_QOS)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
 
@@ -186,6 +195,9 @@ TYPED_TEST(
     HwQueuePerHostRouteTest,
     VerifyHostToQueueMappingClassIDFrontPanelBlock) {
   if (!this->isSupported(HwAsic::Feature::L3_QOS)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
 

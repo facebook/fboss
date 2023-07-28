@@ -248,11 +248,17 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
       size_t percentErrorThreshold = kDefaultPercentErrorThreshold) {
     if (!getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::SFLOW_SAMPLING)) {
+#if defined(GTEST_SKIP)
+      GTEST_SKIP();
+#endif
       return;
     }
     if (payloadSize > kDefaultPayloadSize &&
         !getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::MIRROR_PACKET_TRUNCATION)) {
+#if defined(GTEST_SKIP)
+      GTEST_SKIP();
+#endif
       return;
     }
     auto setup = [=]() {
@@ -339,6 +345,9 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
 
 TEST_F(HwSflowMirrorTest, StressMirrorSessionConfigUnconfig) {
   if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOW_SAMPLING)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {
@@ -359,6 +368,9 @@ TEST_F(HwSflowMirrorTest, StressMirrorSessionConfigUnconfig) {
 
 TEST_F(HwSflowMirrorTest, VerifySampledPacket) {
   if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOW_SAMPLING)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {
@@ -376,6 +388,9 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV4) {
   if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOW_SAMPLING) ||
       !getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::MIRROR_PACKET_TRUNCATION)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {
@@ -418,6 +433,9 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV6) {
       !getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::MIRROR_PACKET_TRUNCATION) ||
       !getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOWv6)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {
@@ -474,6 +492,9 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithLagMemberAsEgressPort) {
       !getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::MIRROR_PACKET_TRUNCATION) ||
       !getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOWv6)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {

@@ -39,6 +39,9 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
 
   void verifyDscpQueueMappingHelper(bool frontPanel) {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
+#if defined(GTEST_SKIP)
+      GTEST_SKIP();
+#endif
       return;
     }
 
@@ -84,6 +87,9 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
 
   void verifyAclAndQosMapHelper(bool frontPanel) {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
+#if defined(GTEST_SKIP)
+      GTEST_SKIP();
+#endif
       return;
     }
 
@@ -133,6 +139,9 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
 
   void verifyAclAndQosMapConflictHelper(bool frontPanel) {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
+#if defined(GTEST_SKIP)
+      GTEST_SKIP();
+#endif
       return;
     }
 

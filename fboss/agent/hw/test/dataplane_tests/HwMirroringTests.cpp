@@ -325,6 +325,9 @@ TYPED_TEST(HwDataPlaneMirrorTest, SpanPortMirror) {
 
 TYPED_TEST(HwDataPlaneMirrorTest, ErspanPortMirror) {
   if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->testPortMirror(kErspan);
@@ -336,6 +339,9 @@ TYPED_TEST(HwDataPlaneMirrorTest, SpanAclMirror) {
 
 TYPED_TEST(HwDataPlaneMirrorTest, ErspanAclMirror) {
   if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->testAclMirror(kErspan);
@@ -345,6 +351,9 @@ TYPED_TEST(HwDataPlaneMirrorTest, TrucatePortErspanMirror) {
   if (this->skipTest() ||
       !this->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::MIRROR_PACKET_TRUNCATION)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->testPortMirrorWithLargePacket(kErspan);
@@ -352,6 +361,9 @@ TYPED_TEST(HwDataPlaneMirrorTest, TrucatePortErspanMirror) {
 
 TYPED_TEST(HwDataPlaneMirrorTest, ErspanMirrorWithLagMember) {
   if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {

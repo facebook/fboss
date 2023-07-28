@@ -134,6 +134,9 @@ class HwRouteCounterOverflowTest : public HwOverflowTest {
 
 TEST_F(HwRouteCounterOverflowTest, overflowRouteCounters) {
   if (!utility::isRouteCounterSupported(getHwSwitch())) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   applyNewState(

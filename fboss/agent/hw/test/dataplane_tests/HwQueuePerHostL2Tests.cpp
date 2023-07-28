@@ -217,6 +217,9 @@ class HwQueuePerHostL2Test : public HwLinkStateDependentTest {
 
 TEST_F(HwQueuePerHostL2Test, VerifyHostToQueueMappingClassIDCpu) {
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
 
@@ -232,6 +235,9 @@ TEST_F(HwQueuePerHostL2Test, VerifyHostToQueueMappingClassIDCpu) {
 
 TEST_F(HwQueuePerHostL2Test, VerifyHostToQueueMappingClassIDFrontPanel) {
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
 

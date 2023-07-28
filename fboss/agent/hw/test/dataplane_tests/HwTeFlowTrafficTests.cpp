@@ -163,6 +163,9 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
 
 TEST_F(HwTeFlowTrafficTest, validateTeFlow) {
   if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
 

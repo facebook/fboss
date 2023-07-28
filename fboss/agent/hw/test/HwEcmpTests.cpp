@@ -358,6 +358,9 @@ TEST_F(HwWideEcmpTest, WideUcmpUnderflow) {
   // skip unsupported platforms
   if (!getHwSwitch()->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::WIDE_ECMP)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
 
@@ -391,6 +394,9 @@ TEST_F(HwWideEcmpTest, WideUcmp256WidthUnderflow) {
   // skip unsupported platforms
   if (!getHwSwitch()->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::WIDE_ECMP)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
 
@@ -424,6 +430,9 @@ TEST_F(HwWideEcmpTest, WideUcmpCheckMultipleSlotUnderflow) {
   // skip unsupported platforms
   if (!getHwSwitch()->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::WIDE_ECMP)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
 

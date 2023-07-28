@@ -183,6 +183,9 @@ TYPED_TEST(HwLabelSwitchRouteTest, Swap) {
 
 TYPED_TEST(HwLabelSwitchRouteTest, EcmpPush) {
   if (!this->isSupported(HwAsic::Feature::MPLS_ECMP)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {
@@ -198,6 +201,9 @@ TYPED_TEST(HwLabelSwitchRouteTest, EcmpPush) {
 
 TYPED_TEST(HwLabelSwitchRouteTest, EcmpSwap) {
   if (!this->isSupported(HwAsic::Feature::MPLS_ECMP)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {
@@ -213,6 +219,9 @@ TYPED_TEST(HwLabelSwitchRouteTest, EcmpSwap) {
 
 TYPED_TEST(HwLabelSwitchRouteTest, EcmpModify) {
   if (!this->isSupported(HwAsic::Feature::MPLS_ECMP)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {
@@ -269,6 +278,9 @@ TYPED_TEST(HwLabelSwitchRouteTest, Pop) {
 
 TYPED_TEST(HwLabelSwitchRouteTest, ConfigPush) {
   if (!this->isSupported(HwAsic::Feature::MPLS_ECMP)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {
@@ -287,6 +299,9 @@ TYPED_TEST(HwLabelSwitchRouteTest, ConfigPush) {
 
 TYPED_TEST(HwLabelSwitchRouteTest, ConfigSwap) {
   if (!this->isSupported(HwAsic::Feature::MPLS_ECMP)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {
@@ -335,6 +350,9 @@ TYPED_TEST(HwLabelSwitchRouteTest, ConfigPop) {
 
 TYPED_TEST(HwLabelSwitchRouteTest, Swap2Php) {
   if (!this->isSupported(HwAsic::Feature::MPLS_ECMP)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {

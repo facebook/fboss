@@ -119,6 +119,9 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
 
 TEST_F(HwFlowletSwitchingTest, VerifyFlowletSwitchingEnable) {
   if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
 

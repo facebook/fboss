@@ -51,6 +51,9 @@ TEST_F(HwPtpTcTest, VerifyPtpTcEnable) {
   const auto& asic = getHwSwitchEnsemble()->getPlatform()->getAsic();
   if (!(asic->isSupported(HwAsic::Feature::PTP_TC) ||
         asic->isSupported(HwAsic::Feature::PTP_TC_PCS))) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
 
@@ -71,6 +74,9 @@ TEST_F(HwPtpTcTest, VerifyPtpTcToggle) {
   const auto& asic = getHwSwitchEnsemble()->getPlatform()->getAsic();
   if (!(asic->isSupported(HwAsic::Feature::PTP_TC) ||
         asic->isSupported(HwAsic::Feature::PTP_TC_PCS))) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
 

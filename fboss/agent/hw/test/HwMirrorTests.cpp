@@ -240,6 +240,9 @@ TYPED_TEST(HwMirrorTest, DscpHasSetValue) {
 TYPED_TEST(HwMirrorTest, MirrorWithTruncation) {
   if (!this->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::MIRROR_PACKET_TRUNCATION)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto setup = [=]() {
@@ -281,6 +284,9 @@ TYPED_TEST(HwMirrorTest, ResolvedErspanMirror) {
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };
   if (this->skipMirrorTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -313,6 +319,9 @@ TYPED_TEST(HwMirrorTest, ResolvedSflowMirror) {
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };
   if (this->skipMirrorTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -329,6 +338,9 @@ TYPED_TEST(HwMirrorTest, UnresolvedErspanMirror) {
     utility::verifyUnResolvedMirror(this->getHwSwitch(), mirror);
   };
   if (this->skipMirrorTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -354,6 +366,9 @@ TYPED_TEST(HwMirrorTest, MirrorRemoved) {
     utility::verifyUnResolvedMirror(this->getHwSwitch(), erspan);
   };
   if (this->skipMirrorTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -380,6 +395,9 @@ TYPED_TEST(HwMirrorTest, UnresolvedToUnresolvedUpdate) {
     utility::verifyUnResolvedMirror(this->getHwSwitch(), erspan);
   };
   if (this->skipMirrorTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -419,6 +437,9 @@ TYPED_TEST(HwMirrorTest, ResolvedToResolvedUpdate) {
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };
   if (this->skipMirrorTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -452,6 +473,9 @@ TYPED_TEST(HwMirrorTest, ResolvedToUnresolvedUpdate) {
     utility::verifyUnResolvedMirror(this->getHwSwitch(), mirror);
   };
   if (this->skipMirrorTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -479,6 +503,9 @@ TYPED_TEST(HwMirrorTest, NoPortMirroringIfUnResolved) {
         utility::getMirrorPortEgressFlags());
   };
   if (this->skipMirrorTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -524,6 +551,9 @@ TYPED_TEST(HwMirrorTest, PortMirroringIfResolved) {
         destinations[0]);
   };
   if (this->skipMirrorTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -575,6 +605,9 @@ TYPED_TEST(HwMirrorTest, PortMirrorUpdateIfMirrorUpdate) {
         destinations[0]);
   };
   if (this->skipMirrorTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -616,6 +649,9 @@ TYPED_TEST(HwMirrorTest, PortMirror) {
         destinations[0]);
   };
   if (this->skipMirrorTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -679,6 +715,9 @@ TYPED_TEST(HwMirrorTest, UpdatePortMirror) {
         destinations[0]);
   };
   if (this->skipMirrorTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -726,6 +765,9 @@ TYPED_TEST(HwMirrorTest, RemovePortMirror) {
         utility::getMirrorPortEgressFlags());
   };
   if (this->skipMirrorTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -745,6 +787,9 @@ TYPED_TEST(HwMirrorTest, HwMirrorStat) {
     EXPECT_EQ(*stats.mirrors_erspan(), 0);
   };
   if (this->skipMirrorTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -805,6 +850,9 @@ TYPED_TEST(HwMirrorTest, HwResolvedMirrorStat) {
     EXPECT_EQ(*stats.mirrors_sflow(), 1);
   };
   if (this->skipMirrorTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -875,6 +923,9 @@ TYPED_TEST(HwMirrorTest, HwUnresolvedMirrorStat) {
     EXPECT_EQ(*stats.mirrors_sflow(), 0);
   };
   if (this->skipMirrorTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -910,6 +961,9 @@ TYPED_TEST(HwMirrorTest, AclMirror) {
     utility::verifyAclMirrorDestination(this->getHwSwitch(), kErspan);
   };
   if (this->skipMirrorTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -959,6 +1013,9 @@ TYPED_TEST(HwMirrorTest, UpdateAclMirror) {
     utility::verifyAclMirrorDestination(this->getHwSwitch(), kSpan);
   };
   if (this->skipMirrorTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -1002,6 +1059,9 @@ TYPED_TEST(HwMirrorTest, RemoveAclMirror) {
     utility::verifyNoAclMirrorDestination(this->getHwSwitch(), kErspan);
   };
   if (this->skipMirrorTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -1009,6 +1069,9 @@ TYPED_TEST(HwMirrorTest, RemoveAclMirror) {
 
 TYPED_TEST(HwMirrorTest, HwMirrorLimitExceeded) {
   if (this->skipMirrorTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   auto cfg = this->initialConfig();
@@ -1070,6 +1133,9 @@ TYPED_TEST(HwMirrorTest, SampleOnePort) {
         destinations[0]);
   };
   if (this->skipMirrorTest() || this->skipSflowTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -1123,6 +1189,9 @@ TYPED_TEST(HwMirrorTest, SampleAllPorts) {
     }
   };
   if (this->skipMirrorTest() || this->skipSflowTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -1223,6 +1292,9 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirror) {
         erspan);
   };
   if (this->skipMirrorTest() || this->skipSflowTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -1329,6 +1401,9 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirrorOnePortSflow) {
         erspan);
   };
   if (this->skipMirrorTest() || this->skipSflowTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -1437,6 +1512,9 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirrorNoPortSflow) {
         erspan);
   };
   if (this->skipMirrorTest() || this->skipSflowTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -1501,6 +1579,9 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUnresolved) {
     }
   };
   if (this->skipMirrorTest() || this->skipSflowTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -1581,6 +1662,9 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUnresolvedResolved) {
     }
   };
   if (this->skipMirrorTest() || this->skipSflowTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -1668,6 +1752,9 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUpdate) {
     this->updateMirror(newMirror);
   };
   if (this->skipMirrorTest() || this->skipSflowTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify, setupPostWb, verify);
@@ -1722,6 +1809,9 @@ TYPED_TEST(HwMirrorTest, RemoveSampleAllPorts) {
     }
   };
   if (this->skipMirrorTest() || this->skipSflowTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -1790,6 +1880,9 @@ TYPED_TEST(HwMirrorTest, RemoveSampleAllPortsAfterWarmBoot) {
     }
   };
   if (this->skipMirrorTest() || this->skipSflowTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify, setupPostWb, verifyPostWb);
@@ -1846,6 +1939,9 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsReloadConfig) {
     }
   };
   if (this->skipMirrorTest() || this->skipSflowTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
@@ -1881,6 +1977,9 @@ TYPED_TEST(HwMirrorTest, ResolvedErspanMirrorOnTrunk) {
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };
   if (this->skipMirrorTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
     return;
   }
   this->verifyAcrossWarmBoots(setup, verify);
