@@ -73,18 +73,22 @@ BENCHMARK(HwStatsCollection) {
   std::vector<PortID> ports = ensemble->masterLogicalPortIds();
   ports.resize(std::min((int)ports.size(), numPortsToCollectStats));
 
-  auto updater = ensemble->getSw()->getRouteUpdater();
-  for (auto i = 0; i < numRouteCounters; i++) {
-    folly::CIDRNetwork nw{
-        folly::IPAddress(folly::sformat("2401:db00:0021:{:x}::", i)), 64};
-    std::optional<RouteCounterID> counterID(std::to_string(i));
-    UnicastRoute route = util::toUnicastRoute(
-        nw,
-        RouteNextHopEntry(
-            makeNextHops({"1::"}), AdminDistance::EBGP, counterID));
-    updater.addRoute(RouterID(0), ClientID::BGPD, route);
+  if (hwSwitch->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::ROUTE_COUNTERS)) {
+    auto updater = ensemble->getSw()->getRouteUpdater();
+    for (auto i = 0; i < numRouteCounters; i++) {
+      folly::CIDRNetwork nw{
+          folly::IPAddress(folly::sformat("2401:db00:0021:{:x}::", i)), 64};
+      std::optional<RouteCounterID> counterID(std::to_string(i));
+      UnicastRoute route = util::toUnicastRoute(
+          nw,
+          RouteNextHopEntry(
+              makeNextHops({"1::"}), AdminDistance::EBGP, counterID));
+      updater.addRoute(RouterID(0), ClientID::BGPD, route);
+    }
+    updater.program();
   }
-  updater.program();
+
   SwitchStats dummy;
   suspender.dismiss();
   for (auto i = 0; i < 10'000; ++i) {
