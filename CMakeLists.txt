@@ -86,14 +86,11 @@ if (SAI_BRCM_IMPL)
   # Build for BCM DNX by default. For XGS, set the ENV variable SAI_SDK_VERSION
   # to build for BCM XGS.
   set(SAI_SDK_VERSION "SAI_VERSION_10_0_EA_DNX_ODP")
-  set(SAI_VER_MAJOR "1")
-  set(SAI_VER_MINOR "12")
-  set(SAI_VER_RELEASE "0")
-else()
-  set(SAI_VER_MAJOR "1")
-  set(SAI_VER_MINOR "7")
-  set(SAI_VER_RELEASE "1")
 endif()
+
+set(SAI_VER_MAJOR "1")
+set(SAI_VER_MINOR "12")
+set(SAI_VER_RELEASE "0")
 
 if (NOT "$ENV{SAI_SDK_VERSION}" STREQUAL "")
   message(STATUS "ENV SAI_SDK_VERSION is set to $ENV{SAI_SDK_VERSION}")
@@ -180,6 +177,18 @@ include_directories(${Python3_INCLUDE_DIR})
 
 find_path(SAI_INCLUDE_DIR NAMES sai.h)
 include_directories(${SAI_INCLUDE_DIR})
+
+if (SAI_BRCM_IMPL)
+  find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES saiswitchextensions.h)
+  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
+  message(STATUS, "Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
+else()
+  find_path(SAI_EXPERIMENTAL_INCLUDE_DIR
+    NAMES
+    experimental/saiswitchextensions.h)
+  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental)
+  message(STATUS, "Experimental Dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
+endif()
 
 message(STATUS "Found SAI_INCLUDE_DIR: ${SAI_INCLUDE_DIR}")
 
