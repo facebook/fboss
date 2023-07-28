@@ -449,6 +449,11 @@ struct SaiSwitchTraits {
     };
     using MaxCores =
         SaiExtensionAttribute<sai_uint32_t, AttributeMaxCoresWrapper>;
+    using PfcDlrPacketAction = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_PFC_DLR_PACKET_ACTION,
+        sai_int32_t,
+        SaiPacketActionDefaultDrop>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -498,7 +503,8 @@ struct SaiSwitchTraits {
       std::optional<Attributes::RestartIssu>,
       std::optional<Attributes::SwitchIsolate>,
       std::optional<Attributes::CreditWd>,
-      std::optional<Attributes::MaxCores>>;
+      std::optional<Attributes::MaxCores>,
+      std::optional<Attributes::PfcDlrPacketAction>>;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   static constexpr std::array<sai_stat_id_t, 3> CounterIdsToRead = {
@@ -604,6 +610,7 @@ SAI_ATTRIBUTE_NAME(Switch, WarmBootTargetVersion)
 SAI_ATTRIBUTE_NAME(Switch, SwitchIsolate)
 SAI_ATTRIBUTE_NAME(Switch, CreditWd)
 SAI_ATTRIBUTE_NAME(Switch, MaxCores)
+SAI_ATTRIBUTE_NAME(Switch, PfcDlrPacketAction)
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};

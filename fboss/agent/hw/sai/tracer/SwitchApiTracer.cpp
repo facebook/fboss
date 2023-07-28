@@ -73,6 +73,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _SwitchMap {
       SAI_ATTR_MAP(Switch, MaxEcmpMemberCount),
       SAI_ATTR_MAP(Switch, EcmpMemberCount),
 #endif
+      SAI_ATTR_MAP(Switch, PfcDlrPacketAction),
 };
 
 void handleExtensionAttributes() {

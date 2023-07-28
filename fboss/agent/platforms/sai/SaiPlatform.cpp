@@ -476,6 +476,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         std::nullopt, // Switch Isolate
         std::nullopt, // Credit Watchdog
         maxCores, // Max cores
+        std::nullopt, // PFC DLR Packet Action
   };
 }
 
