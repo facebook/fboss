@@ -660,7 +660,7 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getDsfSubscriptionClientId) {
     EXPECT_THROW(handler.getDsfSubscriptionClientId(ret), FbossError);
   } else {
     handler.getDsfSubscriptionClientId(ret);
-    EXPECT_TRUE(ret.find(":agent:") != std::string::npos);
+    EXPECT_TRUE(ret.find(":agent") != std::string::npos);
   }
 }
 

@@ -214,10 +214,8 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
       sw_->getSwitchInfoTable().getSwitchIdsOfType(cfg::SwitchType::VOQ);
   if (voqSwitchIds.size()) {
     if (!fsdbPubSubMgr_) {
-      fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>(folly::sformat(
-          "{}:agent:{}",
-          getLocalHostname(),
-          fb303::ServiceData::get()->getAliveSince().count()));
+      fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>(
+          folly::sformat("{}:agent", getLocalHostname()));
     }
   } else {
     if (fsdbPubSubMgr_) {
