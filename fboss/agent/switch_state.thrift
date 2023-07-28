@@ -496,6 +496,7 @@ struct TeFlowEntryFields {
   4: list<common.NextHopThrift> resolvedNexthops;
   5: bool enabled;
   6: optional ctrl.TeCounterID counterID;
+  7: optional bool statEnabled;
 }
 
 struct AclTableFields {

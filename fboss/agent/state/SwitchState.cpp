@@ -77,6 +77,11 @@ DEFINE_bool(
     false,
     "Use Neighbor Tables from Interfaces instead of VLANs");
 
+DEFINE_bool(
+    emStatOnlyMode,
+    false,
+    "Flag to turn on EM entry programming with stat alone for FHTE");
+
 namespace facebook::fboss {
 
 template <typename MultiMapName, typename Map>

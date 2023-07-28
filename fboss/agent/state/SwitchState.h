@@ -52,6 +52,7 @@
 #include "fboss/agent/types.h"
 
 DECLARE_bool(enable_acl_table_group);
+DECLARE_bool(emStatOnlyMode);
 
 namespace facebook::fboss {
 
