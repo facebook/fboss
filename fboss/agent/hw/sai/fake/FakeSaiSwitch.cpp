@@ -266,6 +266,10 @@ sai_status_t set_switch_attribute_fn(
       sw.setCreditWatchdogEnable(attr->value.booldata);
       break;
 #endif
+    case SAI_SWITCH_ATTR_PFC_DLR_PACKET_ACTION:
+      sw.setPfcDlrPacketAction(
+          static_cast<sai_packet_action_t>(attr->value.s32));
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -512,6 +516,9 @@ sai_status_t get_switch_attribute_fn(
         attr[i].value.booldata = sw.getCreditWatchdogEnable();
         break;
 #endif
+      case SAI_SWITCH_ATTR_PFC_DLR_PACKET_ACTION:
+        attr[i].value.s32 = sw.getPfcDlrPacketAction();
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
