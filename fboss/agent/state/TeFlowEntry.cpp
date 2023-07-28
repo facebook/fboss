@@ -9,7 +9,11 @@ namespace facebook::fboss {
 std::shared_ptr<TeFlowEntry> TeFlowEntry::createTeFlowEntry(
     const FlowEntry& entry) {
   auto teFlowEntry = std::make_shared<TeFlowEntry>(*entry.flow());
-  teFlowEntry->setNextHops(*entry.nextHops());
+  if (entry.nexthops().has_value()) {
+    teFlowEntry->setNextHops(*entry.nexthops());
+  } else if (!(*entry.nextHops()).empty()) {
+    teFlowEntry->setNextHops(*entry.nextHops());
+  }
   if (entry.counterID().has_value()) {
     teFlowEntry->setCounterID(entry.counterID().value());
   }
@@ -84,8 +88,17 @@ void TeFlowEntry::resolve(const std::shared_ptr<SwitchState>& state) {
     }
     resolvedNextHops.emplace_back(nexthop);
   }
+  if (resolvedNextHops.size()) {
+    setEnabled(true);
+  } else {
+    setEnabled(false);
+  }
   setResolvedNextHops(std::move(resolvedNextHops));
-  setEnabled(true);
+  if (getCounterID().has_value() && (FLAGS_emStatOnlyMode || getEnabled())) {
+    setStatEnabled(true);
+  } else {
+    setStatEnabled(false);
+  }
 }
 
 std::string TeFlowEntry::str() const {
@@ -114,7 +127,10 @@ std::string TeFlowEntry::str() const {
   for (const auto& nhop : util::toRouteNextHopSet(resolvedNhops->toThrift())) {
     flowString.append(fmt::format("{},", nhop.str()));
   }
-  flowString.append(fmt::format("Enabled:{}", getEnabled()));
+  flowString.append(fmt::format("Enabled:{},", getEnabled()));
+  auto statEnabled =
+      getStatEnabled().has_value() ? getStatEnabled().value() : false;
+  flowString.append(fmt::format("statEnabled:{}", statEnabled));
   return flowString;
 }
 

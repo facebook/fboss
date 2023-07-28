@@ -56,6 +56,19 @@ class TeFlowEntry
   void setEnabled(bool enable) {
     set<switch_state_tags::enabled>(enable);
   }
+  std::optional<bool> getStatEnabled() const {
+    if (auto statEnabled = cref<switch_state_tags::statEnabled>()) {
+      return statEnabled->cref();
+    }
+    return std::nullopt;
+  }
+  void setStatEnabled(std::optional<bool> statEnabled) {
+    if (statEnabled.has_value()) {
+      set<switch_state_tags::statEnabled>(statEnabled.value());
+    } else {
+      ref<switch_state_tags::statEnabled>().reset();
+    }
+  }
 
   std::string str() const;
 
