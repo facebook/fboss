@@ -81,9 +81,12 @@ FlowEntry makeFlow(
   flowEntry.flow()->srcPort() = 100;
   flowEntry.flow()->dstPrefix() = ipPrefix(dstIp, 64);
   flowEntry.counterID() = counter;
-  flowEntry.nextHops()->resize(1);
-  flowEntry.nextHops()[0].address() = toBinaryAddress(IPAddress(nhip));
-  flowEntry.nextHops()[0].address()->ifName() = nhopAddr;
+  std::vector<NextHopThrift> nexthops;
+  NextHopThrift nexthop;
+  nexthop.address() = toBinaryAddress(IPAddress(nhip));
+  nexthop.address()->ifName() = nhopAddr;
+  nexthops.push_back(nexthop);
+  flowEntry.nexthops() = nexthops;
   return flowEntry;
 }
 } // unnamed namespace

@@ -95,19 +95,40 @@ class TeFlowTest : public ::testing::Test {
     return flowEntry;
   }
 
+  void
+  fillNexthops(FlowEntry& flowEntry, std::string& nhop, std::string& ifname) {
+    std::vector<NextHopThrift> nexthops;
+    NextHopThrift nexthop;
+    nexthop.address() = toBinaryAddress(IPAddress(nhop));
+    nexthop.address()->ifName() = ifname;
+    nexthops.push_back(nexthop);
+    flowEntry.nexthops() = nexthops;
+  }
+
+  // TODO remove this later
+  void
+  fillNextHops(FlowEntry& flowEntry, std::string& nhop, std::string& ifname) {
+    flowEntry.nextHops()->resize(1);
+    flowEntry.nextHops()[0].address() = toBinaryAddress(IPAddress(nhop));
+    flowEntry.nextHops()[0].address()->ifName() = ifname;
+  }
+
   FlowEntry makeFlow(
       std::string dstIp,
       std::string nhop = kNhopAddrA,
       std::string ifname = "fboss1",
       std::string counterID = kCounterID,
-      int prefixLength = 64) {
+      int prefixLength = 64,
+      bool useNewFormat = true) {
     FlowEntry flowEntry;
     flowEntry.flow()->srcPort() = 100;
     flowEntry.flow()->dstPrefix() = ipPrefix(dstIp, prefixLength);
     flowEntry.counterID() = counterID;
-    flowEntry.nextHops()->resize(1);
-    flowEntry.nextHops()[0].address() = toBinaryAddress(IPAddress(nhop));
-    flowEntry.nextHops()[0].address()->ifName() = ifname;
+    if (useNewFormat) {
+      fillNexthops(flowEntry, nhop, ifname);
+    } else {
+      fillNextHops(flowEntry, nhop, ifname);
+    }
     return flowEntry;
   }
 
@@ -118,6 +139,7 @@ class TeFlowTest : public ::testing::Test {
       std::string ifname = "fboss1") {
     EXPECT_NE(entry, nullptr);
     EXPECT_TRUE(entry->getEnabled());
+    EXPECT_TRUE(*entry->getStatEnabled());
     EXPECT_EQ(*entry->getCounterID(), counterID);
     EXPECT_EQ(entry->getNextHops()->size(), 1);
     auto expectedNhop = toBinaryAddress(IPAddress(nhop));
@@ -184,21 +206,29 @@ TEST_F(TeFlowTest, AddDeleteTeFlow) {
   verifyFlowEntry(teFlowEntry);
 
   // change flow entry
-  flowEntry.nextHops()[0].address() = toBinaryAddress(IPAddress(kNhopAddrB));
-  flowEntry.nextHops()[0].address()->ifName() = "fboss2000";
-  flowEntry.counterID() = "counter1";
-  teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
+  auto flowEntry1 = makeFlow("100::", kNhopAddrB, "fboss2000");
+  flowEntry1.counterID() = "counter1";
+  teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry1);
   EXPECT_THROW(teFlowEntry->resolve(state), FbossError);
 
   // change with interface which exists
-  flowEntry.nextHops()[0].address()->ifName() = "fboss55";
-  teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
+  auto flowEntry2 = makeFlow("100::", kNhopAddrB, "fboss55");
+  flowEntry2.counterID() = "counter1";
+  teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry2);
   teFlowEntry->resolve(state);
   EXPECT_NO_THROW(flowTable->updateNode(teFlowEntry, scope()));
   verifyFlowEntry(teFlowEntry, kNhopAddrB, "counter1", "fboss55");
   // delete the entry
   flowTable->removeNode(getTeFlowStr(flowId));
   EXPECT_EQ(flowTable->getNodeIf(getTeFlowStr(flowId)), nullptr);
+
+  // Add an entry with old format and check
+  auto flowEntry3 =
+      makeFlow("101::", kNhopAddrB, "fboss55", "counter1", 64, false);
+  teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry3);
+  teFlowEntry->resolve(state);
+  flowTable->addNode(teFlowEntry, scope());
+  verifyFlowEntry(teFlowEntry, kNhopAddrB, "counter1", "fboss55");
 }
 
 TEST_F(TeFlowTest, NextHopResolution) {
