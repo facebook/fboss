@@ -10,7 +10,7 @@
 
 #pragma once
 
-#ifndef IS_OSS_BRCM_SAI
+#ifndef IS_OSS
 
 #if !defined(SAI_VERSION)
 #define SAI_VERSION(major, minor, micro) \
