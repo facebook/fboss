@@ -293,7 +293,7 @@ class HwVoqSwitchWithFabricPortsTest : public HwVoqSwitchTest {
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes(),
         true, /*interfaceHasSubnet*/
-        false, /*setInterfaceMac*/
+        true, /*setInterfaceMac*/
         utility::kBaseVlanId,
         true /*enable fabric ports*/
     );
