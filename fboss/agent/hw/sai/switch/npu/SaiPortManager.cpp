@@ -453,6 +453,13 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   auto ptpStatusOpt = managerTable_->switchManager().getPtpTcEnabled();
   uint16_t vlanId = swPort->getIngressVlan();
   auto systemPortId = getSystemPortId(platform_, swPort->getID());
+
+  // Skip setting MTU for fabric ports if not supported
+  std::optional<SaiPortTraits::Attributes::Mtu> mtu{};
+  if (swPort->getPortType() != cfg::PortType::FABRIC_PORT ||
+      platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORT_MTU)) {
+    mtu = swPort->getMaxFrameSize();
+  }
   return SaiPortTraits::CreateAttributes {
     hwLaneList, static_cast<uint32_t>(speed), adminState, fecMode,
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
@@ -466,8 +473,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #else
         internalLoopbackMode,
 #endif
-        mediaType, globalFlowControlMode, vlanId, swPort->getMaxFrameSize(),
-        std::nullopt, std::nullopt, std::nullopt, interfaceType, std::nullopt,
+        mediaType, globalFlowControlMode, vlanId, mtu, std::nullopt,
+        std::nullopt, std::nullopt, interfaceType, std::nullopt,
         std::nullopt, // Ingress Mirror Session
         std::nullopt, // Egress Mirror Session
         std::nullopt, // Ingress Sample Packet
