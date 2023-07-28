@@ -1941,16 +1941,6 @@ HwInitResult SaiSwitch::initLocked(
       adapterKeys2AdapterHostKeysJson.get());
   if (bootType_ != BootType::WARM_BOOT) {
     setProgrammedState(std::make_shared<SwitchState>());
-    if (switchType == cfg::SwitchType::NPU ||
-        switchType == cfg::SwitchType::VOQ) {
-      std::map<int32_t, state::RouteTableFields> routeTables{};
-      routeTables.emplace(kDefaultVrf, state::RouteTableFields{});
-      ret.rib = RoutingInformationBase::fromThrift(routeTables);
-      programMinAlpmState(ret.rib.get(), [=](const StateDelta& delta) {
-        setProgrammedState(delta.newState());
-        return delta.newState();
-      });
-    }
     ret.switchState = getColdBootSwitchState();
     CHECK(ret.switchState->getSwitchSettings()->size());
     if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::MAC_AGING)) {

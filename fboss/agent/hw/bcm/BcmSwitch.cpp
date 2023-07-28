@@ -988,19 +988,9 @@ HwInitResult BcmSwitch::initImpl(
       }
     }
   } else {
-    std::map<int32_t, state::RouteTableFields> routeTables{};
-    routeTables.emplace(kDefaultVrf, state::RouteTableFields{});
-    ret.rib = RoutingInformationBase::fromThrift(routeTables);
-
     auto bootState = std::make_shared<SwitchState>();
     bootState->publish();
     setProgrammedState(bootState);
-    programMinAlpmState(ret.rib.get(), [this, &g](const StateDelta& delta) {
-      auto newState = stateChangedImplLocked(delta, g);
-      setProgrammedState(newState);
-      return newState;
-    });
-
     ret.switchState = getColdBootSwitchState();
     CHECK(ret.switchState->getSwitchSettings()->size());
     auto switchSettings =

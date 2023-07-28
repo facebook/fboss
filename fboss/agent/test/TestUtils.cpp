@@ -465,7 +465,6 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
     cfg::SwitchConfig* config) {
   // Since we are just applying a initial state and to created
   // switch, set initial config to empty.
-  platform->setConfig(createEmptyAgentConfig());
   auto platformMapping = std::make_unique<MockPlatformMapping>();
   cfg::SwitchConfig emptyConfig;
   if (!config) {
@@ -484,6 +483,9 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
           std::make_pair(0, createSwitchInfo(cfg::SwitchType::NPU))};
     }
   }
+  auto agentConfig = createEmptyAgentConfig()->thrift;
+  agentConfig.sw() = *config;
+  platform->setConfig(std::make_unique<AgentConfig>(agentConfig));
   auto sw = make_unique<SwSwitch>(
       std::make_unique<MonolinithicHwSwitchHandler>(platform),
       std::move(platformMapping),
@@ -502,6 +504,8 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
   getMockHw(sw)->setInitialState(ret.switchState);
   EXPECT_HW_CALL(sw, initImpl(_, false, _, _))
       .WillOnce(Return(ByMove(std::move(ret))));
+  // return same as ret.BootType
+  EXPECT_HW_CALL(sw, getBootType).WillRepeatedly(Return(BootType::COLD_BOOT));
   initSwSwitchWithFlags(sw.get(), flags);
   waitForStateUpdates(sw.get());
   return sw;

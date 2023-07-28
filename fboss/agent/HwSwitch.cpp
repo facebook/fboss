@@ -228,17 +228,18 @@ void HwSwitch::ensureConfigured(folly::StringPiece function) const {
 std::shared_ptr<SwitchState> HwSwitch::getMinAlpmState(
     RoutingInformationBase* rib,
     const std::shared_ptr<SwitchState>& state) {
-  CHECK(getRunState() < SwitchRunState::INITIALIZED) << "Invalid run state";
-  CHECK(getBootType() == BootType::COLD_BOOT);
+  CHECK(getRunState() < SwitchRunState::INITIALIZED)
+      << "Invalid run state for programming ALPM state";
+  CHECK(getBootType() == BootType::COLD_BOOT)
+      << "ALPM minimum state can only be programmed on cold boot";
+  CHECK(
+      getPlatform()->getAsic()->isSupported(HwAsic::Feature::ROUTE_PROGRAMMING))
+      << "Route programming is not supported";
+  CHECK(
+      getSwitchType() == cfg::SwitchType::VOQ ||
+      getSwitchType() == cfg::SwitchType::NPU)
+      << "ALPM minimum state can only be programmed on support VOQ or NPU switch";
 
-  if (!getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::ROUTE_PROGRAMMING)) {
-    return state;
-  }
-  if (getSwitchType() != cfg::SwitchType::VOQ &&
-      getSwitchType() != cfg::SwitchType::NPU) {
-    return state;
-  }
   std::shared_ptr<SwitchState> minAlpmState{};
   HwSwitchRouteUpdateWrapper routeUpdater(
       this, rib, [&minAlpmState](const StateDelta& delta) {
@@ -261,6 +262,34 @@ std::shared_ptr<SwitchState> HwSwitch::programMinAlpmState(
   auto state = getProgrammedState();
   auto minAlpmState = getMinAlpmState(rib, state);
   return func(StateDelta(state, minAlpmState));
+}
+
+HwInitResult HwSwitch::init(
+    Callback* callback,
+    bool failHwCallsOnWarmboot,
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId) {
+  switchType_ = switchType;
+  switchId_ = switchId;
+  auto ret = initImpl(callback, failHwCallsOnWarmboot, switchType, switchId);
+  ret.switchState = fillinPortInterfaces(ret.switchState);
+  setProgrammedState(ret.switchState);
+  if (ret.bootType == BootType::WARM_BOOT ||
+      !getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::ROUTE_PROGRAMMING) ||
+      (switchType_ != cfg::SwitchType::NPU &&
+       switchType != cfg::SwitchType::VOQ)) {
+    return ret;
+  }
+  // program min alpm state for npu and voq
+  std::map<int32_t, state::RouteTableFields> routeTables{};
+  routeTables.emplace(kDefaultVrf, state::RouteTableFields{});
+  ret.rib = RoutingInformationBase::fromThrift(routeTables);
+  programMinAlpmState(ret.rib.get(), [this](const StateDelta& delta) {
+    return stateChanged(delta);
+  });
+  ret.switchState = getProgrammedState();
+  return ret;
 }
 
 } // namespace facebook::fboss

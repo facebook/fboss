@@ -118,14 +118,7 @@ class HwSwitch {
       Callback* callback,
       bool failHwCallsOnWarmboot,
       cfg::SwitchType switchType = cfg::SwitchType::NPU,
-      std::optional<int64_t> switchId = std::nullopt) {
-    switchType_ = switchType;
-    switchId_ = switchId;
-    auto ret = initImpl(callback, failHwCallsOnWarmboot, switchType, switchId);
-    ret.switchState = fillinPortInterfaces(ret.switchState);
-    setProgrammedState(ret.switchState);
-    return ret;
-  }
+      std::optional<int64_t> switchId = std::nullopt);
 
   cfg::SwitchType getSwitchType() const {
     return switchType_;
@@ -368,10 +361,6 @@ class HwSwitch {
 
  protected:
   void setProgrammedState(const std::shared_ptr<SwitchState>& state);
-  std::shared_ptr<SwitchState> programMinAlpmState(RoutingInformationBase* rib);
-  std::shared_ptr<SwitchState> programMinAlpmState(
-      RoutingInformationBase* rib,
-      StateChangedFn func);
 
  private:
   virtual HwInitResult initImpl(
@@ -411,6 +400,11 @@ class HwSwitch {
   std::shared_ptr<SwitchState> getMinAlpmState(
       RoutingInformationBase* rib,
       const std::shared_ptr<SwitchState>& state);
+
+  std::shared_ptr<SwitchState> programMinAlpmState(RoutingInformationBase* rib);
+  std::shared_ptr<SwitchState> programMinAlpmState(
+      RoutingInformationBase* rib,
+      StateChangedFn func);
 
   uint32_t featuresDesired_;
   SwitchRunState runState_{SwitchRunState::UNINITIALIZED};
