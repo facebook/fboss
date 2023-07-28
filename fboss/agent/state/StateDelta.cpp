@@ -73,6 +73,14 @@ Delta getFirstMapDelta(
 }
 } // namespace
 
+// This template is expensive to compile. Extern it and compile as part of
+// another cpp file StateDeltaExternTemplates.cpp to parallelize the build
+extern template fsdb::OperDelta fsdb::computeOperDelta<SwitchState>(
+    const std::shared_ptr<SwitchState>&,
+    const std::shared_ptr<SwitchState>&,
+    const std::vector<std::string>&,
+    bool);
+
 StateDelta::StateDelta(
     std::shared_ptr<SwitchState> oldState,
     std::shared_ptr<SwitchState> newState)

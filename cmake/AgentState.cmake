@@ -88,6 +88,7 @@ add_library(state
   fboss/agent/state/SflowCollector.cpp
   fboss/agent/state/SflowCollectorMap.cpp
   fboss/agent/state/StateDelta.cpp
+  fboss/agent/state/StateDelta-computeOperDelta.cpp
   fboss/agent/state/StateUtils.cpp
   fboss/agent/state/SwitchSettings.cpp
   fboss/agent/state/SystemPort.cpp
