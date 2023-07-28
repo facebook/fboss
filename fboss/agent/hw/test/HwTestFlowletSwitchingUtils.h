@@ -23,4 +23,9 @@ bool verifyEcmpForFlowletSwitching(
     const folly::CIDRNetwork& routePrefix,
     const cfg::FlowletSwitchingConfig& flowletCfg);
 
+bool validatePortFlowletQuality(
+    const facebook::fboss::HwSwitch* hw,
+    const PortID& portId,
+    const cfg::PortFlowletConfig& portFlowletCfg);
+
 } // namespace facebook::fboss::utility

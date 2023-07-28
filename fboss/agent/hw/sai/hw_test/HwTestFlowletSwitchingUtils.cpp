@@ -34,4 +34,14 @@ bool verifyEcmpForFlowletSwitching(
   return false;
 }
 
+bool validatePortFlowletQuality(
+    const HwSwitch* /* unused */,
+    const PortID& /* unused */,
+    const cfg::PortFlowletConfig& /* unused */) {
+  // This function is not implemented yet.
+  // If the test is running on SAI Switches,
+  // it should throw an error.
+  return false;
+}
+
 } // namespace facebook::fboss::utility

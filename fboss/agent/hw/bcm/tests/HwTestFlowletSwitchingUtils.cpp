@@ -110,4 +110,19 @@ bool verifyEcmpForFlowletSwitching(
   }
   return true;
 }
+
+bool validatePortFlowletQuality(
+    const facebook::fboss::HwSwitch* hw,
+    const PortID& portId,
+    const cfg::PortFlowletConfig& cfg) {
+  bcm_l3_ecmp_dlb_port_quality_attr_t attr;
+  bcm_l3_ecmp_dlb_port_quality_attr_t_init(&attr);
+  const auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
+  bcm_l3_ecmp_dlb_port_quality_attr_get(bcmSwitch->getUnit(), portId, &attr);
+  CHECK_EQ(attr.scaling_factor, *cfg.scalingFactor());
+  CHECK_EQ(attr.load_weight, *cfg.loadWeight());
+  CHECK_EQ(attr.queue_size_weight, *cfg.queueWeight());
+  return true;
+}
+
 } // namespace facebook::fboss::utility
