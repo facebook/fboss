@@ -106,7 +106,10 @@ class HwProdInvariantsRswTest : public HwProdInvariantsTest {
  protected:
   cfg::SwitchConfig initConfigHelper() const override {
     auto config = utility::createProdRswConfig(
-        getHwSwitch(), masterLogicalPortIds(), getHwSwitchEnsemble()->isSai());
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getHwSwitchEnsemble()->isSai(),
+        false /* Strict priority disabled */);
     return config;
   }
 
@@ -129,6 +132,23 @@ class HwProdInvariantsRswTest : public HwProdInvariantsTest {
 };
 
 TEST_F(HwProdInvariantsRswTest, verifyInvariants) {
+  auto verify = [this]() { this->verifyInvariants(getInvariantOptions()); };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
+class HwProdInvariantsRswStrictPriorityTest : public HwProdInvariantsRswTest {
+ protected:
+  cfg::SwitchConfig initConfigHelper() const override {
+    auto config = utility::createProdRswConfig(
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getHwSwitchEnsemble()->isSai(),
+        true /* Strict priority enabled */);
+    return config;
+  }
+};
+
+TEST_F(HwProdInvariantsRswStrictPriorityTest, verifyInvariants) {
   auto verify = [this]() { this->verifyInvariants(getInvariantOptions()); };
   verifyAcrossWarmBoots([]() {}, verify);
 }
