@@ -189,6 +189,13 @@ cfg::Port createDefaultPortConfig(
   defaultConfig.ingressVlan() = kDefaultVlanId;
   defaultConfig.state() = cfg::PortState::DISABLED;
   defaultConfig.portType() = *entry.mapping()->portType();
+  auto switchType = platform->getAsic()->getSwitchType();
+  if (switchType == cfg::SwitchType::VOQ ||
+      switchType == cfg::SwitchType::FABRIC) {
+    defaultConfig.ingressVlan() = 0;
+  } else {
+    defaultConfig.ingressVlan() = kDefaultVlanId;
+  }
   return defaultConfig;
 }
 
