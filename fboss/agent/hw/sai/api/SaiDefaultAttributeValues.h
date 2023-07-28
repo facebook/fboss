@@ -143,6 +143,12 @@ struct SaiPrbsRxStateDefault {
 };
 #endif
 
+struct SaiPacketActionDefaultDrop {
+  sai_packet_action_t operator()() const {
+    return SAI_PACKET_ACTION_DROP;
+  }
+};
+
 using SaiObjectIdListDefault = SaiListDefault<sai_object_list_t>;
 using SaiU32ListDefault = SaiListDefault<sai_u32_list_t>;
 using SaiS8ListDefault = SaiListDefault<sai_s8_list_t>;
