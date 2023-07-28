@@ -64,9 +64,12 @@ FlowEntry makeFlow(
   flowEntry.flow()->srcPort() = srcPort;
   flowEntry.flow()->dstPrefix() = ipPrefix(dstIp, prefixLength);
   flowEntry.counterID() = counterID;
-  flowEntry.nextHops()->resize(1);
-  flowEntry.nextHops()[0].address() = toBinaryAddress(IPAddress(nhop));
-  flowEntry.nextHops()[0].address()->ifName() = ifname;
+  std::vector<NextHopThrift> nexthops;
+  NextHopThrift nexthop;
+  nexthop.address() = toBinaryAddress(IPAddress(nhop));
+  nexthop.address()->ifName() = ifname;
+  nexthops.push_back(nexthop);
+  flowEntry.nexthops() = nexthops;
   return flowEntry;
 }
 
@@ -99,22 +102,33 @@ std::shared_ptr<std::vector<TeFlow>> makeTeFlows(
 
 std::shared_ptr<TeFlowEntry> makeFlowEntry(
     std::string dstIp,
-    std::string nhopAdd,
-    std::string ifName,
+    std::optional<std::string> nhopAdd,
+    std::optional<std::string> ifName,
     uint16_t srcPort,
     std::string counterID) {
   auto flow = makeFlowKey(dstIp, srcPort);
   auto flowEntry = std::make_shared<TeFlowEntry>(flow);
-  std::vector<NextHopThrift> nexthops;
-  NextHopThrift nhop;
-  nhop.address() = toBinaryAddress(IPAddress(nhopAdd));
-  nhop.address()->ifName() = ifName;
-  nexthops.push_back(nhop);
-  flowEntry->setEnabled(true);
-  flowEntry->setStatEnabled(true);
+  if (nhopAdd.has_value() && ifName.has_value()) {
+    std::vector<NextHopThrift> nexthops;
+    NextHopThrift nhop;
+    nhop.address() = toBinaryAddress(IPAddress(*nhopAdd));
+    nhop.address()->ifName() = *ifName;
+    nexthops.push_back(nhop);
+    flowEntry->setNextHops(nexthops);
+    flowEntry->setResolvedNextHops(nexthops);
+  }
   flowEntry->setCounterID(counterID);
-  flowEntry->setNextHops(nexthops);
-  flowEntry->setResolvedNextHops(nexthops);
+  if (flowEntry->getResolvedNextHops()->size()) {
+    flowEntry->setEnabled(true);
+  } else {
+    flowEntry->setEnabled(false);
+  }
+  if (flowEntry->getCounterID().has_value() &&
+      (flowEntry->getEnabled() || FLAGS_emStatOnlyMode)) {
+    flowEntry->setStatEnabled(true);
+  } else {
+    flowEntry->setStatEnabled(false);
+  }
   return flowEntry;
 }
 

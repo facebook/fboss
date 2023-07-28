@@ -47,8 +47,8 @@ std::shared_ptr<std::vector<TeFlow>> makeTeFlows(
 
 std::shared_ptr<TeFlowEntry> makeFlowEntry(
     std::string dstIp,
-    std::string nhopAdd,
-    std::string ifName,
+    std::optional<std::string> nhopAdd,
+    std::optional<std::string> ifName,
     uint16_t srcPort,
     std::string counterID);
 
