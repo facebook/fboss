@@ -81,6 +81,28 @@ class SwSwitchUpdateProcessingTest : public ::testing::TestWithParam<bool> {
     }
   }
 
+  std::shared_ptr<SwitchState> addMirror(
+      const std::shared_ptr<SwitchState>& state) {
+    auto newState = state->clone();
+    auto mirrors = newState->getMirrors()->modify(&newState);
+    state::MirrorFields mirror{};
+    mirror.name() = "foo";
+    mirrors->addNode(
+        std::make_shared<Mirror>(mirror),
+        HwSwitchMatcher::defaultHwSwitchMatcher());
+    newState->publish();
+    return newState;
+  }
+
+  std::shared_ptr<SwitchState> changeMirror(
+      const std::shared_ptr<SwitchState>& state) {
+    auto newState = state->clone();
+    auto mirrors = newState->getMirrors()->modify(&newState);
+    auto mirror = mirrors->getNode("foo")->clone();
+    mirror->setEgressPort(PortID(1));
+    mirrors->updateNode(mirror, HwSwitchMatcher::defaultHwSwitchMatcher());
+    return newState;
+  }
   SwSwitch* sw{nullptr};
   std::unique_ptr<HwTestHandle> handle{nullptr};
 };
@@ -119,9 +141,8 @@ TEST_P(SwSwitchUpdateProcessingTest, HwRejectsUpdateThenAccepts) {
 TEST_P(SwSwitchUpdateProcessingTest, HwFailureProtectedUpdateAtEnd) {
   auto startState = sw->getState();
   startState->publish();
-  auto nonHwFailureProtectedUpdateState = startState->clone();
-  nonHwFailureProtectedUpdateState->publish();
-  auto protectedState = nonHwFailureProtectedUpdateState->clone();
+  auto nonHwFailureProtectedUpdateState = this->addMirror(startState);
+  auto protectedState = this->changeMirror(nonHwFailureProtectedUpdateState);
   bool transactionsSupported = handle->getHwSwitch()->transactionsSupported();
 
   auto stateChangedImplCalls = 1 + (transactionsSupported ? 0 : 1);
@@ -153,9 +174,9 @@ TEST_P(SwSwitchUpdateProcessingTest, HwFailureProtectedUpdateAtEnd) {
 TEST_P(SwSwitchUpdateProcessingTest, BackToBackHwFailureProtectedUpdates) {
   auto startState = sw->getState();
   startState->publish();
-  auto protectedState1 = startState->clone();
+  auto protectedState1 = this->addMirror(startState);
   protectedState1->publish();
-  auto protectedState2 = protectedState1->clone();
+  auto protectedState2 = this->changeMirror(protectedState1);
   if (handle->getHwSwitch()->transactionsSupported()) {
     EXPECT_STATE_UPDATE_TRANSACTION_TIMES(sw, 2);
   } else {
@@ -181,9 +202,9 @@ TEST_P(SwSwitchUpdateProcessingTest, BackToBackHwFailureProtectedUpdates) {
 TEST_P(SwSwitchUpdateProcessingTest, HwFailureProtectedUpdateAtStart) {
   auto startState = sw->getState();
   startState->publish();
-  auto protectedState = startState->clone();
+  auto protectedState = this->addMirror(startState);
   protectedState->publish();
-  auto nonHwFailureProtectedUpdatealState = protectedState->clone();
+  auto nonHwFailureProtectedUpdatealState = changeMirror(protectedState);
   bool transactionsSupported = handle->getHwSwitch()->transactionsSupported();
   auto stateChangedImplCalls = 1 + (transactionsSupported ? 0 : 1);
   auto stateChangedTransactionCalls = transactionsSupported ? 1 : 0;
