@@ -16,7 +16,10 @@
 
 namespace facebook::fboss::utility {
 
-void addOlympicQosToConfig(cfg::SwitchConfig& config, const HwSwitch* hwSwitch);
+void addOlympicQosToConfig(
+    cfg::SwitchConfig& config,
+    const HwSwitch* hwSwitch,
+    bool enableStrictPriority);
 void addNetworkAIQosToConfig(
     cfg::SwitchConfig& config,
     const HwSwitch* hwSwitch);
@@ -44,12 +47,14 @@ uint16_t uplinksCountFromSwitch(const HwSwitch* hwSwitch);
 cfg::SwitchConfig createProdRswConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& masterLogicalPortIds,
-    bool isSai = false);
+    bool isSai = false,
+    bool enableStrictPriority = false);
 
 cfg::SwitchConfig createProdFswConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& masterLogicalPortIds,
-    bool isSai = false);
+    bool isSai = false,
+    bool enableStrictPriority = false);
 
 cfg::PortSpeed getPortSpeed(const HwSwitch* hwSwitch);
 

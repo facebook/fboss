@@ -235,18 +235,19 @@ void addVoqQueueConfig(
 }
 
 // XXX This is FSW config, add RSW config. Prefix queue names with portName
-void addOlympicQueueConfig(
+void addOlympicQueueConfigWithSchedulingHelper(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
     const HwAsic* asic,
-    bool addWredConfig) {
+    bool addWredConfig,
+    cfg::QueueScheduling schedType) {
   std::vector<cfg::PortQueue> portQueues;
 
   cfg::PortQueue queue0;
   *queue0.id() = getOlympicQueueId(asic, OlympicQueueType::SILVER);
   queue0.name() = "queue0.silver";
   queue0.streamType() = streamType;
-  *queue0.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  *queue0.scheduling() = schedType;
   queue0.weight() = kOlympicSilverWeight;
   if (asic->scalingFactorBasedDynamicThresholdSupported()) {
     queue0.scalingFactor() = cfg::MMUScalingFactor::ONE;
@@ -260,7 +261,7 @@ void addOlympicQueueConfig(
   *queue1.id() = getOlympicQueueId(asic, OlympicQueueType::GOLD);
   queue1.name() = "queue1.gold";
   queue1.streamType() = streamType;
-  *queue1.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  *queue1.scheduling() = schedType;
   queue1.weight() = kOlympicGoldWeight;
   if (asic->scalingFactorBasedDynamicThresholdSupported()) {
     queue1.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
@@ -274,7 +275,7 @@ void addOlympicQueueConfig(
   *queue2.id() = getOlympicQueueId(asic, OlympicQueueType::ECN1);
   queue2.name() = "queue2.ecn1";
   queue2.streamType() = streamType;
-  *queue2.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  *queue2.scheduling() = schedType;
   queue2.weight() = kOlympicEcn1Weight;
   if (asic->scalingFactorBasedDynamicThresholdSupported()) {
     queue2.scalingFactor() = cfg::MMUScalingFactor::ONE;
@@ -290,7 +291,7 @@ void addOlympicQueueConfig(
   *queue4.id() = getOlympicQueueId(asic, OlympicQueueType::BRONZE);
   queue4.name() = "queue4.bronze";
   queue4.streamType() = streamType;
-  *queue4.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  *queue4.scheduling() = schedType;
   queue4.weight() = kOlympicBronzeWeight;
   portQueues.push_back(queue4);
 
@@ -325,6 +326,33 @@ void addOlympicQueueConfig(
   if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
     addVoqQueueConfig(config, streamType, asic, addWredConfig);
   }
+}
+
+void addOlympicQueueConfig(
+    cfg::SwitchConfig* config,
+    cfg::StreamType streamType,
+    const HwAsic* asic,
+    bool addWredConfig) {
+  addOlympicQueueConfigWithSchedulingHelper(
+      config,
+      streamType,
+      asic,
+      addWredConfig,
+      cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN);
+}
+
+// copied from addOlympicQueueConfig. RSWs might need a separate config
+void addFswRswAllSPOlympicQueueConfig(
+    cfg::SwitchConfig* config,
+    cfg::StreamType streamType,
+    const HwAsic* asic,
+    bool addWredConfig) {
+  addOlympicQueueConfigWithSchedulingHelper(
+      config,
+      streamType,
+      asic,
+      addWredConfig,
+      cfg::QueueScheduling::STRICT_PRIORITY);
 }
 
 // Configure two queues (silver and ecn) with the same weight but different drop

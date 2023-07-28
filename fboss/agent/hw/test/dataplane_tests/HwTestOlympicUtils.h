@@ -117,7 +117,18 @@ void addNetworkAIQueueConfig(
     cfg::StreamType streamType,
     const HwAsic* hwAsic);
 
+void addOlympicQueueConfigWithSchedulingHelper(
+    cfg::SwitchConfig* config,
+    cfg::StreamType streamType,
+    const HwAsic* asic,
+    bool addWredConfig,
+    cfg::QueueScheduling schedType);
 void addOlympicQueueConfig(
+    cfg::SwitchConfig* config,
+    cfg::StreamType streamType,
+    const HwAsic* asic,
+    bool addWredConfig = false);
+void addFswRswAllSPOlympicQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
     const HwAsic* asic,

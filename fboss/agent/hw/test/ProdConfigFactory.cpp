@@ -35,12 +35,17 @@ namespace facebook::fboss::utility {
  */
 void addOlympicQosToConfig(
     cfg::SwitchConfig& config,
-    const HwSwitch* hwSwitch) {
+    const HwSwitch* hwSwitch,
+    bool enableStrictPriority) {
   auto hwAsic = hwSwitch->getPlatform()->getAsic();
   addOlympicQosMaps(config, hwAsic);
   auto streamType =
       *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
-  addOlympicQueueConfig(&config, streamType, hwAsic);
+  if (enableStrictPriority) {
+    addFswRswAllSPOlympicQueueConfig(&config, streamType, hwAsic);
+  } else {
+    addOlympicQueueConfig(&config, streamType, hwAsic);
+  }
 }
 
 void addNetworkAIQosToConfig(
@@ -225,7 +230,8 @@ cfg::SwitchConfig createProdRtswConfig(
 cfg::SwitchConfig createProdRswConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& masterLogicalPortIds,
-    bool isSai) {
+    bool isSai,
+    bool enableStrictPriority) {
   auto platform = hwSwitch->getPlatform();
   auto hwAsic = platform->getAsic();
 
@@ -247,7 +253,7 @@ cfg::SwitchConfig createProdRswConfig(
   addCpuQueueConfig(config, hwAsic);
 
   if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
-    addOlympicQosToConfig(config, hwSwitch);
+    addOlympicQosToConfig(config, hwSwitch, enableStrictPriority);
   }
   setDefaultCpuTrafficPolicyConfig(config, hwAsic);
   if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
@@ -267,7 +273,8 @@ cfg::SwitchConfig createProdRswConfig(
 cfg::SwitchConfig createProdFswConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& masterLogicalPortIds,
-    bool isSai) {
+    bool isSai,
+    bool enableStrictPriority) {
   auto platform = hwSwitch->getPlatform();
   auto hwAsic = platform->getAsic();
 
@@ -287,7 +294,7 @@ cfg::SwitchConfig createProdFswConfig(
 
   addCpuQueueConfig(config, hwAsic);
   if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
-    addOlympicQosToConfig(config, hwSwitch);
+    addOlympicQosToConfig(config, hwSwitch, enableStrictPriority);
   }
   setDefaultCpuTrafficPolicyConfig(config, hwAsic);
   if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
