@@ -98,9 +98,9 @@ sai_status_t wrap_create_switch(
   auto begin = FLAGS_enable_elapsed_time_log
       ? std::chrono::system_clock::now()
       : std::chrono::system_clock::time_point::min();
+  SaiTracer::getInstance()->logSwitchCreateFn(switch_id, attr_count, attr_list);
   auto rv = SaiTracer::getInstance()->switchApi_->create_switch(
       switch_id, attr_count, attr_list);
-  SaiTracer::getInstance()->logSwitchCreateFn(switch_id, attr_count, attr_list);
   SaiTracer::getInstance()->logPostInvocation(rv, *switch_id, begin);
   return rv;
 }
