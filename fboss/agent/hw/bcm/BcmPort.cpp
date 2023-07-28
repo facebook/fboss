@@ -619,6 +619,24 @@ void BcmPort::enableLinkscan() {
   bcmCheckError(rv, "Failed to enable linkscan on port ", port_);
 }
 
+void BcmPort::programFlowletPortQuality(
+    std::optional<PortFlowletCfgPtr> portFlowlet) {
+  bcm_l3_ecmp_dlb_port_quality_attr_t quality_attr;
+  bcm_l3_ecmp_dlb_port_quality_attr_t_init(&quality_attr);
+
+  if (portFlowlet.has_value()) {
+    auto flowlet = portFlowlet.value();
+    quality_attr.scaling_factor = flowlet->getScalingFactor();
+    quality_attr.load_weight = flowlet->getLoadWeight();
+    quality_attr.queue_size_weight = flowlet->getQueueWeight();
+  }
+  int rv = bcm_l3_ecmp_dlb_port_quality_attr_set(unit_, port_, &quality_attr);
+  bcmCheckError(rv, "Failed to program flowlet cfg on port ", port_);
+
+  XLOG(DBG3) << "Flowlet port quality on port: " << port_
+             << "programmed: " << std::boolalpha << portFlowlet.has_value();
+}
+
 void BcmPort::program(const shared_ptr<Port>& port) {
   // This function must have two properties:
   // 1) idempotency
@@ -674,6 +692,11 @@ void BcmPort::program(const shared_ptr<Port>& port) {
       setCosqProfile(getDefaultProfileId());
     }
     ingressBufferManager_->programIngressBuffers(port);
+  }
+
+  if (hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
+    programFlowletPortQuality(port->getPortFlowletConfig());
   }
 
   // Update Tx Setting if needed.

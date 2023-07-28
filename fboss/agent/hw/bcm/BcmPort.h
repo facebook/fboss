@@ -348,6 +348,7 @@ class BcmPort {
       const int value,
       const std::string& controlStr);
   std::vector<PfcPriority> getLastConfiguredPfcPriorities();
+  void programFlowletPortQuality(std::optional<PortFlowletCfgPtr> portFlowlet);
 
   void setTxSetting(const std::shared_ptr<Port>& swPort);
   void setTxSettingViaPhyControl(
