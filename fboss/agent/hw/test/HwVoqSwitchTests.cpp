@@ -992,4 +992,48 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveRemoteObjects) {
   };
   verifyAcrossWarmBoots([] {}, verify);
 }
+
+TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
+  folly::IPAddressV6 kNeighborIp("100::2");
+  auto constexpr remotePortId = 401;
+  const SystemPortID kRemoteSysPortId(remotePortId);
+  auto setup = [=]() {
+    // Disable both port TX and credit watchdog
+    utility::setCreditWatchdogAndPortTx(
+        getHwSwitch(), masterLogicalInterfacePortIds()[0], false);
+    addRemoteSysPort(kRemoteSysPortId);
+    const InterfaceID kIntfId(remotePortId);
+    addRemoteInterface(
+        kIntfId,
+        {
+            {folly::IPAddress("100::1"), 64},
+            {folly::IPAddress("100.0.0.1"), 24},
+        });
+    uint64_t dummyEncapIndex = 401;
+    PortDescriptor kPort(kRemoteSysPortId);
+    // Add neighbor
+    addRemoveRemoteNeighbor(kNeighborIp, kIntfId, kPort, true, dummyEncapIndex);
+  };
+
+  auto verify = [=]() {
+    auto sendPkts = [=]() {
+      for (auto i = 0; i < 1000; ++i) {
+        sendPacket(kNeighborIp, std::nullopt);
+      }
+    };
+    auto voqDiscardBytes = 0;
+    WITH_RETRIES_N(100, {
+      sendPkts();
+      SwitchStats dummy;
+      getHwSwitch()->updateStats(&dummy);
+      voqDiscardBytes = getLatestSysPortStats(kRemoteSysPortId)
+                            .get_queueOutDiscardBytes_()
+                            .at(kDefaultQueue);
+      XLOG(INFO) << " VOQ discard bytes: " << voqDiscardBytes;
+      EXPECT_EVENTUALLY_GT(voqDiscardBytes, 0);
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+};
+
 } // namespace facebook::fboss
