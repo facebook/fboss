@@ -41,6 +41,10 @@ void setCreditWatchdogAndPortTx(const HwSwitch* hw, PortID port, bool enable) {
       << " VOQ switch types not supported in BCM layer";
 }
 
+void enableCreditWatchdog(const HwSwitch* /*hw*/, bool /*enable*/) {
+  XLOG(FATAL) << "Credit watchdog not supported bcm platform";
+}
+
 void setPortTx(const HwSwitch* hw, PortID port, bool enable) {
   auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
 

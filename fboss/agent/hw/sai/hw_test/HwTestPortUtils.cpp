@@ -53,13 +53,15 @@ void setPortLoopbackMode(
 
 void setCreditWatchdogAndPortTx(const HwSwitch* hw, PortID port, bool enable) {
   setPortTx(hw, port, enable);
-  // Disable credit WD for VoQ switches to avoid drop in queue when TX is
-  // disabled!
   if (hw->getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ) {
-    auto switchID = static_cast<const SaiSwitch*>(hw)->getSaiSwitchId();
-    SaiApiTable::getInstance()->switchApi().setAttribute(
-        switchID, SaiSwitchTraits::Attributes::CreditWd{enable});
+    enableCreditWatchdog(hw, enable);
   }
+}
+
+void enableCreditWatchdog(const HwSwitch* hw, bool enable) {
+  auto switchID = static_cast<const SaiSwitch*>(hw)->getSaiSwitchId();
+  SaiApiTable::getInstance()->switchApi().setAttribute(
+      switchID, SaiSwitchTraits::Attributes::CreditWd{enable});
 }
 
 void setPortTx(const HwSwitch* hw, PortID port, bool enable) {
