@@ -998,9 +998,8 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
   auto constexpr remotePortId = 401;
   const SystemPortID kRemoteSysPortId(remotePortId);
   auto setup = [=]() {
-    // Disable both port TX and credit watchdog
-    utility::setCreditWatchdogAndPortTx(
-        getHwSwitch(), masterLogicalInterfacePortIds()[0], false);
+    // Disable credit watchdog
+    utility::enableCreditWatchdog(getHwSwitch(), false);
     addRemoteSysPort(kRemoteSysPortId);
     const InterfaceID kIntfId(remotePortId);
     addRemoteInterface(
