@@ -411,7 +411,14 @@ std::map<SystemPortID, HwSysPortStats> HwSwitchEnsemble::getLatestSysPortStats(
   auto swState = getProgrammedState();
   auto stats = getHwSwitch()->getSysPortStats();
   for (auto [portName, stats] : stats) {
-    auto portId = swState->getSystemPorts()->getSystemPort(portName)->getID();
+    SystemPortID portId;
+    try {
+      portId = swState->getSystemPorts()->getSystemPort(portName)->getID();
+    } catch (const FbossError&) {
+      // Look in remote sys ports if we couldn't find in local sys ports
+      portId =
+          swState->getRemoteSystemPorts()->getSystemPort(portName)->getID();
+    }
     if (std::find(ports.begin(), ports.end(), portId) == ports.end()) {
       continue;
     }
