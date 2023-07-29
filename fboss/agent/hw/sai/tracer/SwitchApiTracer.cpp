@@ -73,6 +73,9 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _SwitchMap {
       SAI_ATTR_MAP(Switch, MaxEcmpMemberCount),
       SAI_ATTR_MAP(Switch, EcmpMemberCount),
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      SAI_ATTR_MAP(Switch, CreditWd),
+#endif
       SAI_ATTR_MAP(Switch, PfcDlrPacketAction),
 };
 
@@ -85,6 +88,15 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, WarmBootTargetVersion)
   SAI_EXT_ATTR_MAP(Switch, SwitchIsolate)
   SAI_EXT_ATTR_MAP(Switch, MaxCores)
+  SAI_EXT_ATTR_MAP(Switch, DllPath)
+  SAI_EXT_ATTR_MAP(Switch, RestartIssu)
+  SAI_EXT_ATTR_MAP(Switch, ForceTrafficOverFabric)
+  SAI_EXT_ATTR_MAP(Switch, WarmBootTargetVersion)
+  SAI_EXT_ATTR_MAP(Switch, SwitchIsolate)
+  SAI_EXT_ATTR_MAP(Switch, MaxCores)
+#if SAI_API_VERSION < SAI_VERSION(1, 12, 0)
+  SAI_EXT_ATTR_MAP(Switch, CreditWd)
+#endif
 }
 
 } // namespace
