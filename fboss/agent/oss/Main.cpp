@@ -13,6 +13,4 @@ namespace facebook::fboss {
 
 void setVersionInfo() {}
 
-void initializeBitsflow() {}
-
 } // namespace facebook::fboss

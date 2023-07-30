@@ -34,6 +34,7 @@ target_link_libraries(fboss_init
 add_library(main
   fboss/agent/Main.cpp
   fboss/agent/CommonInit.cpp
+  fboss/agent/oss/CommonInit.cpp
   fboss/agent/oss/Main.cpp
 )
 
