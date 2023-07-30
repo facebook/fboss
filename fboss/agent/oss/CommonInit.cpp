@@ -6,4 +6,5 @@ namespace facebook::fboss {
 
 void initializeBitsflow() {}
 
+void setVersionInfo(const std::string& /*version*/) {}
 } // namespace facebook::fboss

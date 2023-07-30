@@ -23,7 +23,7 @@ struct AgentConfig;
 void initFlagDefaults(const std::map<std::string, std::string>& defaults);
 std::unique_ptr<AgentConfig> parseConfig(int argc, char** argv);
 void fbossFinalize();
-void setVersionInfo();
+void setVersionInfo(const std::string& version);
 void initializeBitsflow();
 std::unique_ptr<AgentConfig> fbossCommonInit(int argc, char** argv);
 

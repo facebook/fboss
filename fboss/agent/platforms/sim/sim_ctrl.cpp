@@ -48,6 +48,7 @@ unique_ptr<Platform> initSimPlatform(
 } // namespace facebook::fboss
 
 int main(int argc, char* argv[]) {
+  setVersionInfo();
   auto config = fbossCommonInit(argc, argv);
   auto fbossInitializer = std::make_unique<MonolithicAgentInitializer>(
       std::move(config),

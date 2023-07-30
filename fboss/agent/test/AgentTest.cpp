@@ -29,6 +29,7 @@ DECLARE_string(config);
 namespace facebook::fboss {
 
 void AgentTest::setupAgent() {
+  setVersionInfo();
   auto config = fbossCommonInit(argCount, argVec);
   MonolithicAgentInitializer::createSwitch(
       std::move(config),

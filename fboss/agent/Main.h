@@ -118,6 +118,8 @@ class MonolithicAgentInitializer : public AgentInitializer {
   folly::EventBase* eventBase_;
 };
 
+void setVersionInfo();
+
 int fbossMain(
     int argc,
     char** argv,

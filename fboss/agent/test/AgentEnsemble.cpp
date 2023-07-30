@@ -52,6 +52,7 @@ void AgentEnsemble::setupEnsemble(
     // creating a switch
     writeConfig(agentConf, FLAGS_config);
   }
+  setVersionInfo();
   auto config = fbossCommonInit(argc, argv);
   auto* initializer = agentInitializer();
   initializer->createSwitch(std::move(config), hwFeaturesDesired, initPlatform);

@@ -40,8 +40,6 @@ std::unique_ptr<AgentConfig> parseConfig(int argc, char** argv) {
 }
 
 std::unique_ptr<AgentConfig> fbossCommonInit(int argc, char** argv) {
-  setVersionInfo();
-
   // Read the config and set default command line arguments
   auto config = parseConfig(argc, argv);
   initFlagDefaults(*config->thrift.defaultCommandLineArgs());
