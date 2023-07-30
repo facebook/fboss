@@ -74,7 +74,13 @@ class MonolithicAgentSignalHandler : public SignalHandler {
   SwSwitch* sw_;
 };
 
-class MonolithicAgentInitializer {
+struct AgentInitializer {
+  virtual ~AgentInitializer() = default;
+  virtual int initAgent() = 0;
+  virtual void stopAgent(bool setupWarmboot) = 0;
+};
+
+class MonolithicAgentInitializer : public AgentInitializer {
  public:
   MonolithicAgentInitializer() {}
   MonolithicAgentInitializer(
@@ -91,15 +97,15 @@ class MonolithicAgentInitializer {
     return initializer_.get();
   }
 
-  virtual ~MonolithicAgentInitializer() = default;
+  virtual ~MonolithicAgentInitializer() override {}
   void stopServices();
   void createSwitch(
       std::unique_ptr<AgentConfig> config,
       uint32_t hwFeaturesDesired,
       PlatformInitFn initPlatform);
-  int initAgent();
+  int initAgent() override;
   int initAgent(HwSwitchCallback* callback);
-  void stopAgent(bool setupWarmboot);
+  void stopAgent(bool setupWarmboot) override;
 
   /*
    * API to all flag overrides for individual tests. Primarily
@@ -120,7 +126,6 @@ class MonolithicAgentInitializer {
 int fbossMain(
     int argc,
     char** argv,
-    uint32_t hwFeaturesDesired,
-    PlatformInitFn initPlatform);
+    std::unique_ptr<AgentInitializer> initializer);
 
 } // namespace facebook::fboss

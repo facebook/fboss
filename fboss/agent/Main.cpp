@@ -332,12 +332,8 @@ void MonolithicAgentInitializer::stopAgent(bool setupWarmboot) {
 int fbossMain(
     int argc,
     char** argv,
-    uint32_t hwFeaturesDesired,
-    PlatformInitFn initPlatform) {
-  auto config = fbossCommonInit(argc, argv);
-  MonolithicAgentInitializer initializer(
-      std::move(config), hwFeaturesDesired, initPlatform);
-  return initializer.initAgent();
+    std::unique_ptr<AgentInitializer> initializer) {
+  return initializer->initAgent();
 }
 
 } // namespace facebook::fboss

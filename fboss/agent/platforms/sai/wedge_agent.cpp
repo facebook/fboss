@@ -17,11 +17,12 @@
 using namespace facebook::fboss;
 
 int main(int argc, char* argv[]) {
-  return facebook::fboss::fbossMain(
-      argc,
-      argv,
+  auto config = fbossCommonInit(argc, argv);
+  auto fbossInitializer = std::make_unique<MonolithicAgentInitializer>(
+      std::move(config),
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED |
        HwSwitch::FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED),
       initSaiPlatform);
+  return facebook::fboss::fbossMain(argc, argv, std::move(fbossInitializer));
 }
