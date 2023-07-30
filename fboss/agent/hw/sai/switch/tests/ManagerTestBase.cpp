@@ -596,8 +596,7 @@ std::shared_ptr<QosPolicy> ManagerTestBase::makeQosPolicy(
 
 void ManagerTestBase::applyNewState(
     const std::shared_ptr<SwitchState>& newState) {
-  auto oldState =
-      programmedState ? programmedState : std::make_shared<SwitchState>();
+  auto oldState = saiPlatform->getHwSwitch()->getProgrammedState();
   StateDelta delta(oldState, newState);
   EXPECT_TRUE(saiPlatform->getHwSwitch()->isValidStateUpdate(delta));
   saiPlatform->getHwSwitch()->stateChanged(delta);
