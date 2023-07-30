@@ -1211,6 +1211,20 @@ std::vector<PortDescriptor> getUplinksForEcmp(
   return ecmpPorts;
 }
 
+bool isEnabledPortWithSubnet(
+    const cfg::Port& port,
+    const cfg::SwitchConfig& config) {
+  auto ingressVlan = port.get_ingressVlan();
+  for (const auto& intf : *config.interfaces()) {
+    if (intf.get_vlanID() == ingressVlan) {
+      return (
+          !intf.get_ipAddresses().empty() &&
+          port.get_state() == cfg::PortState::ENABLED);
+    }
+  }
+  return false;
+}
+
 /*
  * Generic function to separate uplinks and downlinks, given a HwSwitch* and a
  * SwitchConfig.
@@ -1240,7 +1254,7 @@ UplinkDownlinkPair getAllUplinkDownlinkPorts(
   PortList masterPorts;
 
   for (const auto& port : *config.ports()) {
-    if (port.get_state() == cfg::PortState::ENABLED) {
+    if (isEnabledPortWithSubnet(port, config)) {
       masterPorts.push_back(PortID(port.get_logicalID()));
     }
   }
