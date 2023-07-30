@@ -40,6 +40,7 @@ add_library(main
 
 target_link_libraries(main
   core
+  fboss_common_init
   handler
 # base
   fboss_init
@@ -281,7 +282,6 @@ target_link_libraries(fboss_error
 )
 
 add_library(platform_base
-  fboss/agent/AgentConfig.cpp
   fboss/agent/Platform.cpp
   fboss/agent/PlatformPort.cpp
 )
@@ -292,6 +292,7 @@ target_link_libraries(platform_base
   error
   fboss_types
   Folly::folly
+  load_agent_config
   platform_mapping
   switchid_scope_resolver
   switchinfo_utils
@@ -385,11 +386,11 @@ target_link_libraries(split_agent_hwswitch_callback_handler
 
 add_library(hwagent-main
   fboss/agent/HwAgentMain.cpp
-  fboss/agent/CommonInit.cpp
   fboss/agent/oss/Main.cpp
 )
 
 target_link_libraries(hwagent-main
+  fboss_common_init
   split_agent_hwswitch_callback_handler
   platform_base
   fboss_common_cpp2
@@ -442,5 +443,28 @@ add_library(split_agent_thrift_syncer
 
 target_link_libraries(split_agent_thrift_syncer
   multiswitch_service
+  Folly::folly
+)
+
+add_library(load_agent_config
+    fboss/agent/AgentConfig.cpp
+)
+
+target_link_libraries(load_agent_config
+  agent_config_cpp2
+  fboss_error
+  switch_config_cpp2
+  Folly::folly
+)
+
+
+add_library(fboss_common_init
+  fboss/agent/CommonInit.cpp
+  fboss/agent/oss/CommonInit.cpp
+)
+
+target_link_libraries(fboss_common_init
+  fboss_init
+  load_agent_config
   Folly::folly
 )
