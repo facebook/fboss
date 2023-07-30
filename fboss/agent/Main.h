@@ -12,6 +12,7 @@
 
 #include <folly/experimental/FunctionScheduler.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
+#include "fboss/agent/AgentInitializer.h"
 #include "fboss/agent/CommonInit.h"
 #include "fboss/agent/HwAgent.h"
 #include "fboss/agent/SwSwitch.h"
@@ -72,12 +73,6 @@ class MonolithicAgentSignalHandler : public SignalHandler {
 
  private:
   SwSwitch* sw_;
-};
-
-struct AgentInitializer {
-  virtual ~AgentInitializer() = default;
-  virtual int initAgent() = 0;
-  virtual void stopAgent(bool setupWarmboot) = 0;
 };
 
 class MonolithicAgentInitializer : public AgentInitializer {
