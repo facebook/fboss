@@ -42,7 +42,7 @@ using std::shared_ptr;
 
 DEFINE_bool(
     enable_state_oper_delta,
-    false,
+    true,
     "Generate and process oper delta for state delta processing");
 
 DEFINE_bool(
