@@ -1003,7 +1003,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
   verifyAcrossWarmBoots(setup, [] {});
 }
 
-TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveRemoteObjects) {
+TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
   auto setup = [=]() {
     // Disable credit watchdog
     utility::enableCreditWatchdog(getHwSwitch(), false);
