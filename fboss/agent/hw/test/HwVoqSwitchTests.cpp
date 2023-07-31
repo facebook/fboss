@@ -985,31 +985,35 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
 
 TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveRemoteObjects) {
   auto verify = [this]() {
-    auto constexpr remotePortId = 401;
-    const SystemPortID kRemoteSysPortId(remotePortId);
-    addRemoteSysPort(kRemoteSysPortId);
-    const InterfaceID kIntfId(remotePortId);
-    addRemoteInterface(
-        kIntfId,
-        // TODO - following assumes we haven't
-        // already used up the subnets below for
-        // local interfaces. In that sense it
-        // has a implicit coupling with how ConfigFactory
-        // generates subnets for local interfaces
-        {
-            {folly::IPAddress("100::1"), 64},
-            {folly::IPAddress("100.0.0.1"), 24},
-        });
-    folly::IPAddressV6 kNeighborIp("100::2");
-    uint64_t dummyEncapIndex = 401;
-    PortDescriptor kPort(kRemoteSysPortId);
     for (auto i = 0; i < 1000; ++i) {
+      auto constexpr remotePortId = 401;
+      const SystemPortID kRemoteSysPortId(remotePortId);
+      addRemoteSysPort(kRemoteSysPortId);
+      const InterfaceID kIntfId(remotePortId);
+      addRemoteInterface(
+          kIntfId,
+          // TODO - following assumes we haven't
+          // already used up the subnets below for
+          // local interfaces. In that sense it
+          // has a implicit coupling with how ConfigFactory
+          // generates subnets for local interfaces
+          {
+              {folly::IPAddress("100::1"), 64},
+              {folly::IPAddress("100.0.0.1"), 24},
+          });
+      folly::IPAddressV6 kNeighborIp("100::2");
+      uint64_t dummyEncapIndex = 401;
+      PortDescriptor kPort(kRemoteSysPortId);
       // Add neighbor
       addRemoveRemoteNeighbor(
           kNeighborIp, kIntfId, kPort, true, dummyEncapIndex);
       // Remove neighbor
       addRemoveRemoteNeighbor(
           kNeighborIp, kIntfId, kPort, false, dummyEncapIndex);
+      // Remove rif
+      removeRemoteInterface(kIntfId);
+      // Remove sys port
+      removeRemoteSysPort(kRemoteSysPortId);
     }
   };
   verifyAcrossWarmBoots([] {}, verify);
