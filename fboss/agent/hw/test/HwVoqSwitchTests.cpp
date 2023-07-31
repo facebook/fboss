@@ -924,6 +924,26 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
         interface, scopeResolver().scope(interface, outState));
     applyNewState(outState);
   }
+  void assertVoqTailDrops(
+      const folly::IPAddressV6& nbrIp,
+      const SystemPortID& sysPortId) {
+    auto sendPkts = [=]() {
+      for (auto i = 0; i < 1000; ++i) {
+        sendPacket(nbrIp, std::nullopt);
+      }
+    };
+    auto voqDiscardBytes = 0;
+    WITH_RETRIES_N(100, {
+      sendPkts();
+      SwitchStats dummy;
+      getHwSwitch()->updateStats(&dummy);
+      voqDiscardBytes =
+          getLatestSysPortStats(sysPortId).get_queueOutDiscardBytes_().at(
+              kDefaultQueue);
+      XLOG(INFO) << " VOQ discard bytes: " << voqDiscardBytes;
+      EXPECT_EVENTUALLY_GT(voqDiscardBytes, 0);
+    });
+  }
 };
 
 TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, twoDsfNodes) {
@@ -1040,24 +1060,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
     addRemoveRemoteNeighbor(kNeighborIp, kIntfId, kPort, true, dummyEncapIndex);
   };
 
-  auto verify = [=]() {
-    auto sendPkts = [=]() {
-      for (auto i = 0; i < 1000; ++i) {
-        sendPacket(kNeighborIp, std::nullopt);
-      }
-    };
-    auto voqDiscardBytes = 0;
-    WITH_RETRIES_N(100, {
-      sendPkts();
-      SwitchStats dummy;
-      getHwSwitch()->updateStats(&dummy);
-      voqDiscardBytes = getLatestSysPortStats(kRemoteSysPortId)
-                            .get_queueOutDiscardBytes_()
-                            .at(kDefaultQueue);
-      XLOG(INFO) << " VOQ discard bytes: " << voqDiscardBytes;
-      EXPECT_EVENTUALLY_GT(voqDiscardBytes, 0);
-    });
-  };
+  auto verify = [=]() { assertVoqTailDrops(kNeighborIp, kRemoteSysPortId); };
   verifyAcrossWarmBoots(setup, verify);
 };
 
