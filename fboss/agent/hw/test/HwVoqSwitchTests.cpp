@@ -1013,7 +1013,12 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveRemoteObjects) {
     auto constexpr remotePortId = 401;
     const SystemPortID kRemoteSysPortId(remotePortId);
     folly::IPAddressV6 kNeighborIp("100::2");
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
     for (auto i = 0; i < numIterations; ++i) {
+      // add local neighbor
+      addRemoveNeighbor(kPort, true /* add neighbor*/);
+      // Remote objs
       addRemoteSysPort(kRemoteSysPortId);
       const InterfaceID kIntfId(remotePortId);
       addRemoteInterface(
@@ -1028,17 +1033,18 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveRemoteObjects) {
               {folly::IPAddress("100.0.0.1"), 24},
           });
       uint64_t dummyEncapIndex = 401;
-      PortDescriptor kPort(kRemoteSysPortId);
+      PortDescriptor kRemotePort(kRemoteSysPortId);
       // Add neighbor
       addRemoveRemoteNeighbor(
-          kNeighborIp, kIntfId, kPort, true, dummyEncapIndex);
+          kNeighborIp, kIntfId, kRemotePort, true, dummyEncapIndex);
       // Delete on all but the last iteration. In the last iteration
       // we will leave the entries intact and then forward pkts
       // to this VOQ
       if (i < numIterations - 1) {
+        addRemoveNeighbor(kPort, false /* remove neighbor*/);
         // Remove neighbor
         addRemoveRemoteNeighbor(
-            kNeighborIp, kIntfId, kPort, false, dummyEncapIndex);
+            kNeighborIp, kIntfId, kRemotePort, false, dummyEncapIndex);
         // Remove rif
         removeRemoteInterface(kIntfId);
         // Remove sys port
@@ -1046,6 +1052,17 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveRemoteObjects) {
       }
     }
     assertVoqTailDrops(kNeighborIp, kRemoteSysPortId);
+    auto beforePkts =
+        getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+    // CPU send
+    sendPacket(ecmpHelper.ip(kPort), std::nullopt);
+    auto frontPanelPort = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
+    sendPacket(ecmpHelper.ip(kPort), frontPanelPort);
+    WITH_RETRIES({
+      auto afterPkts =
+          getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+      EXPECT_EVENTUALLY_EQ(afterPkts, beforePkts + 2);
+    });
   };
   verifyAcrossWarmBoots(setup, verify);
 }
