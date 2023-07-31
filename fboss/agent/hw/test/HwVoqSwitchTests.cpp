@@ -845,6 +845,17 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
         getProgrammedState()->getRemoteSystemPorts()->numNodes(),
         numPrevPorts + 1);
   }
+  void removeRemoteSysPort(SystemPortID portId) {
+    auto newState = getProgrammedState()->clone();
+    auto remoteSystemPorts =
+        newState->getRemoteSystemPorts()->modify(&newState);
+    auto numPrevPorts = remoteSystemPorts->numNodes();
+    remoteSystemPorts->removeNode(portId);
+    applyNewState(newState);
+    EXPECT_EQ(
+        getProgrammedState()->getRemoteSystemPorts()->numNodes(),
+        numPrevPorts - 1);
+  }
   void addRemoteInterface(
       InterfaceID intfId,
       const Interface::Addresses& subnets) {
@@ -870,6 +881,17 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
     EXPECT_EQ(
         getProgrammedState()->getRemoteInterfaces()->numNodes(),
         numPrevIntfs + 1);
+  }
+  void removeRemoteInterface(InterfaceID intfId) {
+    auto newState = getProgrammedState();
+    auto newRemoteInterfaces =
+        newState->getRemoteInterfaces()->modify(&newState);
+    auto numPrevIntfs = newRemoteInterfaces->numNodes();
+    newRemoteInterfaces->removeNode(intfId);
+    applyNewState(newState);
+    EXPECT_EQ(
+        getProgrammedState()->getRemoteInterfaces()->numNodes(),
+        numPrevIntfs - 1);
   }
   void addRemoveRemoteNeighbor(
       const folly::IPAddressV6& neighborIp,
