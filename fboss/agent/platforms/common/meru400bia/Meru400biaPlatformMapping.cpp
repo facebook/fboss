@@ -42,14 +42,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   "lane": 0
                 }
               }
-            ],
-            "transceiver": [
-              {
-                "id": {
-                  "chip": "rcy1/1",
-                  "lane": 0
-                }
-              }
             ]
           }
         }
