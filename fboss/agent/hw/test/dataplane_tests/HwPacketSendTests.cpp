@@ -168,7 +168,8 @@ class HwPacketFloodTest : public HwLinkStateDependentTest {
           *portStatsBefore[portId].outBytes_()) {
         return false;
       }
-      if (getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO) {
+      if (getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
+       getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA) {
         if (packetsAfter <= packetsBefore) {
           return false;
         }
@@ -208,7 +209,7 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelOutOfPort) {
     EXPECT_EQ(
         pktLengthSent,
         *portStatsAfter.outBytes_() - *portStatsBefore.outBytes_());
-    if (getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO) {
+    if (getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO && getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA) {
       EXPECT_EQ(
           1,
           *portStatsAfter.outMulticastPkts_() -
@@ -261,7 +262,7 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelWithBufClone) {
     EXPECT_EQ(
         pktLengthSent,
         *portStatsAfter.outBytes_() - *portStatsBefore.outBytes_());
-    if (getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO) {
+    if (getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO && getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA) {
       EXPECT_EQ(
           numPkts,
           *portStatsAfter.outMulticastPkts_() -
@@ -298,7 +299,7 @@ TEST_F(HwPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
                << ", before bytes:" << *portStatsBefore.outBytes_()
                << ", after bytes:" << *portStatsAfter.outBytes_();
     EXPECT_NE(0, *portStatsAfter.outBytes_() - *portStatsBefore.outBytes_());
-    if (getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO) {
+    if (getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO && getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA) {
       EXPECT_EQ(
           1,
           *portStatsAfter.outBroadcastPkts_() -

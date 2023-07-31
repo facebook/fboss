@@ -37,6 +37,11 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::L2_LEARNING:
     case HwAsic::Feature::CPU_PORT:
     case HwAsic::Feature::ACL_COPY_TO_CPU:
+    case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
+    case HwAsic::Feature::MULTIPLE_ACL_TABLES:
+    case HwAsic::Feature::ACL_TABLE_GROUP:
+    case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
+    case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::VRF:
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::PTP_TC:
@@ -52,7 +57,6 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::FABRIC_PORTS:
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::ROUTE_METADATA:
-    case HwAsic::Feature::P4_WARMBOOT:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::FEC_AM_LOCK_STATUS:
@@ -66,6 +70,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_CONFIGURE_SEVEN_TAP:
     case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
     case HwAsic::Feature::SEPARATE_BYTE_AND_PACKET_ACL_COUNTER:
+    case HwAsic::Feature::L3_QOS:
       return true;
     // VOQ vs NPU mode dependent features
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
@@ -129,14 +134,8 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::PACKET_INTEGRITY_DROP_STATS:
     case HwAsic::Feature::SAI_UDF_HASH:
     case HwAsic::Feature::TRAFFIC_HASHING:
-    case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
-    case HwAsic::Feature::MULTIPLE_ACL_TABLES:
-    case HwAsic::Feature::ACL_TABLE_GROUP:
-    case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
-    case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::SAI_MPLS_QOS:
-    case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::MPLS:
@@ -149,6 +148,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES:
+    case HwAsic::Feature::P4_WARMBOOT:
       return false;
   }
   return false;
