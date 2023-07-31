@@ -65,6 +65,4 @@ std::unique_ptr<AgentConfig> fbossCommonInit(int argc, char** argv) {
   return config;
 }
 
-void fbossFinalize() {}
-
 } // namespace facebook::fboss
