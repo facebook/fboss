@@ -1004,10 +1004,16 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
 }
 
 TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveRemoteObjects) {
+  auto setup = [=]() {
+    // Disable credit watchdog
+    utility::enableCreditWatchdog(getHwSwitch(), false);
+  };
   auto verify = [this]() {
-    for (auto i = 0; i < 1000; ++i) {
-      auto constexpr remotePortId = 401;
-      const SystemPortID kRemoteSysPortId(remotePortId);
+    auto numIterations = 500;
+    auto constexpr remotePortId = 401;
+    const SystemPortID kRemoteSysPortId(remotePortId);
+    folly::IPAddressV6 kNeighborIp("100::2");
+    for (auto i = 0; i < numIterations; ++i) {
       addRemoteSysPort(kRemoteSysPortId);
       const InterfaceID kIntfId(remotePortId);
       addRemoteInterface(
@@ -1021,22 +1027,27 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveRemoteObjects) {
               {folly::IPAddress("100::1"), 64},
               {folly::IPAddress("100.0.0.1"), 24},
           });
-      folly::IPAddressV6 kNeighborIp("100::2");
       uint64_t dummyEncapIndex = 401;
       PortDescriptor kPort(kRemoteSysPortId);
       // Add neighbor
       addRemoveRemoteNeighbor(
           kNeighborIp, kIntfId, kPort, true, dummyEncapIndex);
-      // Remove neighbor
-      addRemoveRemoteNeighbor(
-          kNeighborIp, kIntfId, kPort, false, dummyEncapIndex);
-      // Remove rif
-      removeRemoteInterface(kIntfId);
-      // Remove sys port
-      removeRemoteSysPort(kRemoteSysPortId);
+      // Delete on all but the last iteration. In the last iteration
+      // we will leave the entries intact and then forward pkts
+      // to this VOQ
+      if (i < numIterations - 1) {
+        // Remove neighbor
+        addRemoveRemoteNeighbor(
+            kNeighborIp, kIntfId, kPort, false, dummyEncapIndex);
+        // Remove rif
+        removeRemoteInterface(kIntfId);
+        // Remove sys port
+        removeRemoteSysPort(kRemoteSysPortId);
+      }
     }
+    assertVoqTailDrops(kNeighborIp, kRemoteSysPortId);
   };
-  verifyAcrossWarmBoots([] {}, verify);
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
