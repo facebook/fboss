@@ -219,7 +219,9 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolvePortRifNextHop(
     nbr.encapIndex() = *encapIdx;
   }
   nbrTable.insert({*nbr.ipaddress(), nbr});
-  auto origIntf = outputState->getInterfaces()->getNode(intf->getID());
+  auto origIntf = outputState->getInterfaces()->getNodeIf(intf->getID())
+      ? outputState->getInterfaces()->getNode(intf->getID())
+      : outputState->getRemoteInterfaces()->getNode(intf->getID());
   auto interface = origIntf->modify(&outputState);
   interface->setNeighborEntryTable<AddrT>(nbrTable);
   return outputState;
@@ -266,7 +268,9 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolveNextHop(
     bool useLinkLocal,
     std::optional<int64_t> encapIdx) const {
   auto intfID = portDesc2Interface_.find(nhop.portDesc)->second;
-  auto intf = inputState->getInterfaces()->getNode(intfID);
+  auto intf = inputState->getInterfaces()->getNodeIf(intfID)
+      ? inputState->getInterfaces()->getNode(intfID)
+      : inputState->getRemoteInterfaces()->getNodeIf(intfID);
   switch (intf->getType()) {
     case cfg::InterfaceType::VLAN:
       CHECK(!encapIdx.has_value())
