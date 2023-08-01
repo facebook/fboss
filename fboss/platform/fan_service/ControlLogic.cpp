@@ -624,31 +624,24 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
           // If this is an optics name
           pwmForThisSensor = pSensor_->getOpticsPwm(sensorName);
         }
-        switch (zoneType) {
-          case ZoneType::kZoneMax:
-            if (pwmSoFar < pwmForThisSensor) {
-              pwmSoFar = pwmForThisSensor;
-            }
-            break;
-          case ZoneType::kZoneMin:
-            if (pwmSoFar > pwmForThisSensor) {
-              pwmSoFar = pwmForThisSensor;
-            }
-            break;
-          case ZoneType::kZoneAvg:
-            pwmSoFar += pwmForThisSensor;
-            break;
-          case ZoneType::kZoneInval:
-          default:
-            facebook::fboss::FbossError(
-                "Undefined Zone Type for zone : ", *zone.zoneName());
-            break;
+        if (zoneType == constants::ZONE_TYPE_MAX()) {
+          if (pwmSoFar < pwmForThisSensor) {
+            pwmSoFar = pwmForThisSensor;
+          }
+        } else if (zoneType == constants::ZONE_TYPE_MIN()) {
+          if (pwmSoFar > pwmForThisSensor) {
+            pwmSoFar = pwmForThisSensor;
+          }
+        } else if (zoneType == constants::ZONE_TYPE_AVG()) {
+          pwmSoFar += pwmForThisSensor;
+        } else {
+          XLOG(ERR) << "Undefined Zone Type for zone : ", *zone.zoneName();
         }
         XLOG(INFO) << "  Sensor/Optic " << sensorName << " : "
                    << pwmForThisSensor << " Overall so far : " << pwmSoFar;
       }
     }
-    if (zoneType == ZoneType::kZoneAvg) {
+    if (zoneType == constants::ZONE_TYPE_AVG()) {
       pwmSoFar /= (float)totalPwmConsidered;
     }
     XLOG(INFO) << "  Final PWM : " << pwmSoFar;

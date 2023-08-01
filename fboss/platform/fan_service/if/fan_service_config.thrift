@@ -6,13 +6,9 @@ const string ACCESS_TYPE_UTIL = "ACCESS_TYPE_UTIL";
 const string ACCESS_TYPE_THRIFT = "ACCESS_TYPE_THRIFT";
 const string ACCESS_TYPE_REST = "ACCESS_TYPE_REST";
 const string ACCESS_TYPE_QSFP = "ACCESS_TYPE_QSFP";
-
-enum ZoneType {
-  kZoneMax = 0,
-  kZoneMin = 1,
-  kZoneAvg = 2,
-  kZoneInval = 3,
-}
+const string ZONE_TYPE_MAX = "ZONE_TYPE_MAX";
+const string ZONE_TYPE_MIN = "ZONE_TYPE_MIN";
+const string ZONE_TYPE_AVG = "ZONE_TYPE_AVG";
 
 enum OpticAggregationType {
   kOpticMax = 0,
@@ -33,7 +29,7 @@ struct AccessMethod {
 }
 
 struct Zone {
-  1: ZoneType zoneType;
+  1: string zoneType;
   2: string zoneName;
   3: list<string> sensorNames;
   4: list<string> fanNames;

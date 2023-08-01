@@ -297,7 +297,7 @@ std::string getMokujinFSConfig() {
   ],
   "zones" : [
     {
-      "zoneType" : 0,
+      "zoneType" : "ZONE_TYPE_MAX",
       "zoneName" : "left_zone",
       "sensorNames" : [
         "test_sensor_1",
@@ -311,7 +311,7 @@ std::string getMokujinFSConfig() {
       "slope" : 3
     },
     {
-      "zoneType" : 2,
+      "zoneType" : "ZONE_TYPE_AVG",
       "zoneName" : "center_zone",
       "sensorNames" : [
         "test_sensor_3",
@@ -323,7 +323,7 @@ std::string getMokujinFSConfig() {
       "slope" : 3
     },
     {
-      "zoneType" : 1,
+      "zoneType" : "ZONE_TYPE_MIN",
       "zoneName" : "right_zone",
       "sensorNames" : [
         "test_sensor_4"

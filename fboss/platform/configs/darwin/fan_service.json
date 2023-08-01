@@ -248,7 +248,7 @@
   ],
   "zones": [
     {
-      "zoneType" : 0,
+      "zoneType" : "ZONE_TYPE_MAX",
       "zoneName" : "zone1",
       "sensorNames" : [
         "SC_TH3_DIODE1_TEMP",

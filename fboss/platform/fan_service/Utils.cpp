@@ -21,6 +21,11 @@ std::unordered_set<std::string> accessMethodTypes = {
     constants::ACCESS_TYPE_REST(),
     constants::ACCESS_TYPE_QSFP()};
 
+std::unordered_set<std::string> zoneTypes = {
+    constants::ZONE_TYPE_MAX(),
+    constants::ZONE_TYPE_MIN(),
+    constants::ZONE_TYPE_AVG()};
+
 } // namespace
 
 namespace facebook::fboss::platform::fan_service {
@@ -67,6 +72,13 @@ bool Utils::isValidConfig(const FanServiceConfig& config) {
     if (!accessMethodTypes.count(*fan.ledAccess()->accessType())) {
       XLOG(ERR) << "Invalid ledAccess method: "
                 << *fan.ledAccess()->accessType();
+      return false;
+    }
+  }
+
+  for (const auto& zone : *config.zones()) {
+    if (!zoneTypes.count(*zone.zoneType())) {
+      XLOG(ERR) << "Invalid zone type: " << *zone.zoneType();
       return false;
     }
   }
