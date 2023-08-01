@@ -478,3 +478,12 @@ target_link_libraries(monolithic_agent_initializer
   utils
   Folly::folly
 )
+
+
+add_library(split_agent_initializer
+  fboss/agent/mnpu/SwAgentInitializer.cpp
+)
+
+target_link_libraries(split_agent_initializer
+  Folly::folly
+)
