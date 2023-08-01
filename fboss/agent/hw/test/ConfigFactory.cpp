@@ -521,12 +521,12 @@ const std::map<cfg::PortType, cfg::PortLoopbackMode>& kDefaultLoopbackMap() {
 
 std::vector<std::string> getLoopbackIps(SwitchID switchId) {
   auto switchIdVal = static_cast<int64_t>(switchId);
-  CHECK_LT(switchIdVal, 10) << " Switch Id >= 10, not supported";
+  CHECK_LT(switchIdVal, 256) << " Switch Id >= 256, not supported";
 
-  auto v6 = FLAGS_nodeZ ? folly::sformat("20{}::2/64", switchIdVal)
-                        : folly::sformat("20{}::1/64", switchIdVal);
-  auto v4 = FLAGS_nodeZ ? folly::sformat("20{}.0.0.2/24", switchIdVal)
-                        : folly::sformat("20{}.0.0.1/24", switchIdVal);
+  auto v6 = FLAGS_nodeZ ? folly::sformat("200:{}::2/64", switchIdVal)
+                        : folly::sformat("200:{}::1/64", switchIdVal);
+  auto v4 = FLAGS_nodeZ ? folly::sformat("200.{}.0.2/24", switchIdVal)
+                        : folly::sformat("200.{}.0.1/24", switchIdVal);
   return {v6, v4};
 }
 
