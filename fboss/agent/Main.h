@@ -10,22 +10,7 @@
 #pragma once
 #include <memory>
 
-#include <folly/experimental/FunctionScheduler.h>
-#include <thrift/lib/cpp2/server/ThriftServer.h>
 #include "fboss/agent/AgentInitializer.h"
-#include "fboss/agent/CommonInit.h"
-#include "fboss/agent/HwAgent.h"
-#include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/TunManager.h"
-
-#include <gflags/gflags.h>
-#include <chrono>
-#include <condition_variable>
-#include <cstdio>
-#include <functional>
-#include <future>
-#include <mutex>
-#include <string>
 
 namespace facebook::fboss {
 

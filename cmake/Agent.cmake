@@ -39,17 +39,10 @@ add_library(main
 )
 
 target_link_libraries(main
-  core
   fboss_common_init
-  handler
 # base
   fboss_init
-  hwagent
-  setup_thrift
   Folly::folly
-  qsfp_cpp2
-  qsfp_service_client
-  monolithic_switch_handler
 )
 
 add_library(monolithic_switch_handler
