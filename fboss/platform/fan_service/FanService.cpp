@@ -7,9 +7,11 @@
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
+#include <stdexcept>
 
 #include "common/time/Time.h"
 #include "fboss/platform/config_lib/ConfigLib.h"
+#include "fboss/platform/fan_service/Utils.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
 
 namespace {
@@ -79,6 +81,11 @@ void FanService::kickstart() {
       fanServiceConfJson, config_);
   XLOG(INFO) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
       config_);
+
+  if (!Utils().isValidConfig(config_)) {
+    XLOG(ERR) << "Invalid config! Aborting...";
+    throw std::runtime_error("Invalid Config.  Aborting...");
+  }
 
   // Get the proper BSP object from BSP factory,
   // according to the parsed config, then run init routine.
