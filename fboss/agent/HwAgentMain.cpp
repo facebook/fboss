@@ -51,7 +51,6 @@ int hwAgentMain(
     char** argv,
     uint32_t hwFeaturesDesired,
     PlatformInitFn initPlatformFn) {
-  // TODO: invoke setVersionInfo
   auto config = fbossCommonInit(argc, argv);
 
   auto hwAgent = std::make_unique<HwAgent>(

@@ -28,6 +28,8 @@ class SplitHwAgentSignalHandler : public SignalHandler {
   void signalReceived(int /*signum*/) noexcept override;
 };
 
+std::string getSDKVersion();
+
 int hwAgentMain(
     int argc,
     char** argv,

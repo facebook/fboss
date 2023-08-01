@@ -17,6 +17,7 @@
 using namespace facebook::fboss;
 
 int main(int argc, char* argv[]) {
+  setVersionInfo(getSDKVersion());
   return facebook::fboss::hwAgentMain(
       argc,
       argv,
