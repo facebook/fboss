@@ -6,7 +6,7 @@
 // Additional FB helper funtion
 #include "common/time/Time.h"
 
-namespace facebook::fboss::platform {
+namespace facebook::fboss::platform::fan_service {
 
 void SensorData::setLastQsfpSvcTime(uint64_t t) {
   lastSuccessfulQsfpServiceContact_ = t;
@@ -117,7 +117,7 @@ OpticEntry* SensorData::getOpticEntry(const std::string& name) const {
 
 void SensorData::setOpticEntry(
     const std::string& name,
-    std::vector<std::pair<fan_config_structs::OpticTableType, float>> input,
+    std::vector<std::pair<OpticTableType, float>> input,
     uint64_t timestamp) {
   auto pEntry = getOrCreateOpticEntry(name);
   pEntry->data = input;
@@ -141,4 +141,4 @@ int SensorData::getOpticsPwm(const std::string& name) {
   return entry->calculatedPwm;
 }
 
-} // namespace facebook::fboss::platform
+} // namespace facebook::fboss::platform::fan_service

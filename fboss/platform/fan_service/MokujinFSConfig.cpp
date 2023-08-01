@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace facebook::fboss::platform {
+namespace facebook::fboss::platform::fan_service {
 
 std::string getMokujinFSConfig() {
   return R"({
@@ -336,4 +336,4 @@ std::string getMokujinFSConfig() {
   ]
 })";
 }
-} // namespace facebook::fboss::platform
+} // namespace facebook::fboss::platform::fan_service

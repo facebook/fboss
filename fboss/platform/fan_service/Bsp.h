@@ -19,7 +19,7 @@
 #include "SensorData.h"
 
 // Auto-generated Thrift inteface headerfile (by Buck)
-#include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
 
 // Coroutine BlockWait headerfile
 #include <folly/experimental/coro/BlockingWait.h>
@@ -54,11 +54,11 @@ struct TransceiverData {
 };
 } // namespace
 
-namespace facebook::fboss::platform {
+namespace facebook::fboss::platform::fan_service {
 
 class Bsp {
  public:
-  explicit Bsp(const fan_config_structs::FanServiceConfig& config);
+  explicit Bsp(const FanServiceConfig& config);
   virtual ~Bsp();
   // getSensorData: Get sensor data from either cache or direct access
   virtual void getSensorData(std::shared_ptr<SensorData> pSensorData);
@@ -95,15 +95,15 @@ class Bsp {
   // This attribute is accessed by internal function and Mock class (Mokujin)
   void setEmergencyState(bool state);
 
-  const fan_config_structs::FanServiceConfig config_;
+  const FanServiceConfig config_;
 
  private:
   virtual int run(const std::string& cmd);
   void getOpticsDataFromQsfpSvc(
-      const fan_config_structs::Optic& opticsGroup,
+      const Optic& opticsGroup,
       std::shared_ptr<SensorData> pSensorData);
   void getOpticsDataSysfs(
-      const fan_config_structs::Optic& opticsGroup,
+      const Optic& opticsGroup,
       std::shared_ptr<SensorData> pSensorData);
   std::shared_ptr<std::thread> thread_{nullptr};
   // For communicating with qsfp_service
@@ -137,7 +137,7 @@ class Bsp {
   float getSensorDataSysfs(std::string path);
   void getSensorDataRest(std::shared_ptr<SensorData> pSensorData);
   void processOpticEntries(
-      const fan_config_structs::Optic& opticsGroup,
+      const Optic& opticsGroup,
       std::shared_ptr<SensorData> pSensorData,
       uint64_t& currentQsfpSvcTimestamp,
       const std::map<int32_t, TransceiverData>& cacheTable,
@@ -146,4 +146,4 @@ class Bsp {
   std::unique_ptr<FsdbSensorSubscriber> fsdbSensorSubscriber_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
 };
-} // namespace facebook::fboss::platform
+} // namespace facebook::fboss::platform::fan_service

@@ -12,7 +12,7 @@
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/platform/fan_service/FsdbSensorSubscriber.h"
-#include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
 
 using namespace folly::literals::shell_literals;
@@ -50,9 +50,9 @@ std::optional<TransceiverData> getTransceiverData(
 }
 } // namespace
 
-namespace facebook::fboss::platform {
+namespace facebook::fboss::platform::fan_service {
 
-Bsp::Bsp(const fan_config_structs::FanServiceConfig& config) : config_(config) {
+Bsp::Bsp(const FanServiceConfig& config) : config_(config) {
   fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>("fan_service");
   fsdbSensorSubscriber_ =
       std::make_unique<FsdbSensorSubscriber>(fsdbPubSubMgr_.get());
@@ -86,20 +86,20 @@ void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
     float readVal;
     bool readSuccessful;
     switch (*sensor->access()->accessType()) {
-      case fan_config_structs::SourceType::kSrcThrift:
+      case SourceType::kSrcThrift:
         if (FLAGS_subscribe_to_stats_from_fsdb) {
           fetchFromFsdb = true;
         } else {
           fetchOverThrift = true;
         }
         break;
-      case fan_config_structs::SourceType::kSrcRest:
+      case SourceType::kSrcRest:
         fetchOverRest = true;
         break;
-      case fan_config_structs::SourceType::kSrcUtil:
+      case SourceType::kSrcUtil:
         fetchOverUtil = true;
         break;
-      case fan_config_structs::SourceType::kSrcSysfs:
+      case SourceType::kSrcSysfs:
         nowSec = facebook::WallClockUtil::NowInSecFast();
         readSuccessful = false;
         try {
@@ -112,8 +112,8 @@ void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
           pSensorData->updateEntryFloat(*sensor->sensorName(), readVal, nowSec);
         }
         break;
-      case fan_config_structs::SourceType::kSrcQsfpService:
-      case fan_config_structs::SourceType::kSrcInvalid:
+      case SourceType::kSrcQsfpService:
+      case SourceType::kSrcInvalid:
       default:
         throw facebook::fboss::FbossError(
             "Invalid way for fetching sensor data!");
@@ -172,14 +172,14 @@ int Bsp::kickWatchdog() {
   bool sysfsSuccess = false;
   std::string cmdLine;
   if (config_.watchdog()) {
-    fan_config_structs::AccessMethod access = *config_.watchdog()->access();
+    AccessMethod access = *config_.watchdog()->access();
     switch (*access.accessType()) {
-      case fan_config_structs::SourceType::kSrcUtil:
+      case SourceType::kSrcUtil:
         cmdLine =
             fmt::format("{} {}", *access.path(), *config_.watchdog()->value());
         rc = run(cmdLine.c_str());
         break;
-      case fan_config_structs::SourceType::kSrcSysfs:
+      case SourceType::kSrcSysfs:
         sysfsSuccess = writeSysfs(*access.path(), *config_.watchdog()->value());
         rc = sysfsSuccess ? 0 : -1;
         break;
@@ -195,16 +195,15 @@ int Bsp::kickWatchdog() {
 // the thrift response, then push the data back to the
 // end of opticData array.
 void Bsp::processOpticEntries(
-    const fan_config_structs::Optic& opticsGroup,
+    const Optic& opticsGroup,
     std::shared_ptr<SensorData> pSensorData,
     uint64_t& currentQsfpSvcTimestamp,
     const std::map<int32_t, TransceiverData>& cacheTable,
     OpticEntry* opticData) {
-  std::pair<fan_config_structs::OpticTableType, float> prepData;
+  std::pair<OpticTableType, float> prepData;
   for (auto& cacheEntry : cacheTable) {
     int xvrId = static_cast<int>(cacheEntry.first);
-    fan_config_structs::OpticTableType tableType =
-        fan_config_structs::OpticTableType::kOpticTableInval;
+    OpticTableType tableType = OpticTableType::kOpticTableInval;
     // Qsfp_service send the data as double, but fan service use float.
     // So, cast the data to float
     auto timeStamp = cacheEntry.second.timeCollected;
@@ -240,14 +239,14 @@ void Bsp::processOpticEntries(
       case MediaInterfaceCode::CWDM4_100G:
       case MediaInterfaceCode::CR4_100G:
       case MediaInterfaceCode::FR1_100G:
-        tableType = fan_config_structs::OpticTableType::kOpticTable100Generic;
+        tableType = OpticTableType::kOpticTable100Generic;
         break;
       case MediaInterfaceCode::FR4_200G:
-        tableType = fan_config_structs::OpticTableType::kOpticTable200Generic;
+        tableType = OpticTableType::kOpticTable200Generic;
         break;
       case MediaInterfaceCode::FR4_400G:
       case MediaInterfaceCode::LR4_400G_10KM:
-        tableType = fan_config_structs::OpticTableType::kOpticTable400Generic;
+        tableType = OpticTableType::kOpticTable400Generic;
         break;
       // No 800G optic yet
       default:
@@ -263,7 +262,7 @@ void Bsp::processOpticEntries(
 }
 
 void Bsp::getOpticsDataFromQsfpSvc(
-    const fan_config_structs::Optic& opticsGroup,
+    const Optic& opticsGroup,
     std::shared_ptr<SensorData> pSensorData) {
   // Here, we either use the subscribed data we got from FSDB or directly use
   // the QsfpClient to query data over thrift
@@ -314,7 +313,7 @@ void Bsp::getOpticsDataFromQsfpSvc(
   // optic entiry needs to be created manually,
   // as the data is vector of pairs)
   if (!pSensorData->checkIfOpticEntryExists(*opticsGroup.opticName())) {
-    std::vector<std::pair<fan_config_structs::OpticTableType, float>> empty;
+    std::vector<std::pair<OpticTableType, float>> empty;
     pSensorData->setOpticEntry(
         *opticsGroup.opticName(), empty, getCurrentTime());
   }
@@ -361,7 +360,7 @@ void Bsp::getOpticsDataFromQsfpSvc(
 }
 
 void Bsp::getOpticsDataSysfs(
-    const fan_config_structs::Optic& opticsGroup,
+    const Optic& opticsGroup,
     std::shared_ptr<SensorData> pSensorData) {
   float readVal;
   bool readSuccessful;
@@ -382,9 +381,9 @@ void Bsp::getOpticsDataSysfs(
         pSensorData->getOrCreateOpticEntry(*opticsGroup.opticName());
     // Use the very first table type to store the data, as we only have data,
     // but without any table type.
-    fan_config_structs::OpticTableType firstTableType;
+    OpticTableType firstTableType;
     firstTableType = opticsGroup.tempToPwmMaps()->begin()->first;
-    std::pair<fan_config_structs::OpticTableType, float> prepData = {
+    std::pair<OpticTableType, float> prepData = {
         firstTableType, static_cast<float>(readVal)};
     // Erase any old data, and store the new pair
     opticData->data.clear();
@@ -402,16 +401,16 @@ void Bsp::getOpticsData(std::shared_ptr<SensorData> pSensorData) {
        opticsGroup != config_.optics()->end();
        ++opticsGroup) {
     switch (*opticsGroup->access()->accessType()) {
-      case fan_config_structs::SourceType::kSrcQsfpService:
-      case fan_config_structs::SourceType::kSrcThrift:
+      case SourceType::kSrcQsfpService:
+      case SourceType::kSrcThrift:
         getOpticsDataFromQsfpSvc(*opticsGroup, pSensorData);
         break;
-      case fan_config_structs::SourceType::kSrcSysfs:
+      case SourceType::kSrcSysfs:
         getOpticsDataSysfs(*opticsGroup, pSensorData);
         break;
-      case fan_config_structs::SourceType::kSrcRest:
-      case fan_config_structs::SourceType::kSrcUtil:
-      case fan_config_structs::SourceType::kSrcInvalid:
+      case SourceType::kSrcRest:
+      case SourceType::kSrcUtil:
+      case SourceType::kSrcInvalid:
         throw facebook::fboss::FbossError(
             "Invalid way for fetching optics temperature!");
         break;
@@ -547,4 +546,4 @@ Bsp::~Bsp() {
   fsdbPubSubMgr_.reset();
 }
 
-} // namespace facebook::fboss::platform
+} // namespace facebook::fboss::platform::fan_service

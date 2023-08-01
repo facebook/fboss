@@ -6,10 +6,9 @@
 
 #include <folly/logging/xlog.h>
 
-namespace facebook::fboss::platform {
+namespace facebook::fboss::platform::fan_service {
 
-Mokujin::Mokujin(const fan_config_structs::FanServiceConfig& config)
-    : Bsp(config) {}
+Mokujin::Mokujin(const FanServiceConfig& config) : Bsp(config) {}
 
 void Mokujin::openIOFiles(std::string iFileName, std::string oFileName) {
   try {
@@ -236,8 +235,8 @@ void Mokujin::getOpticsData(std::shared_ptr<SensorData> pSensorData) {
          simulatedSensorRead_.end())) {
       int typeInt = static_cast<int>(simulatedSensorRead_[opticTypeKey]);
       float value = simulatedSensorRead_[opticTempKey];
-      std::pair<fan_config_structs::OpticTableType, float> prepData = {
-          static_cast<fan_config_structs::OpticTableType>(typeInt), value};
+      std::pair<OpticTableType, float> prepData = {
+          static_cast<OpticTableType>(typeInt), value};
       // Add the data, and set the timestamp
       pSensorData->setLastQsfpSvcTime(getCurrentTime());
       OpticEntry* opticData =
@@ -252,4 +251,4 @@ void Mokujin::getOpticsData(std::shared_ptr<SensorData> pSensorData) {
   return;
 }
 
-} // namespace facebook::fboss::platform
+} // namespace facebook::fboss::platform::fan_service

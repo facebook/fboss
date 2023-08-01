@@ -19,21 +19,23 @@
 #include "fboss/platform/helpers/Init.h"
 
 using namespace facebook::fboss::platform;
+using namespace facebook::fboss::platform::fan_service;
+
 namespace {
 
 class FanServiceTest : public ::testing::Test {};
 
-fan_config_structs::FanServiceConfig getConfig() {
-  auto config = fan_config_structs::FanServiceConfig{};
+FanServiceConfig getConfig() {
+  auto config = FanServiceConfig{};
   auto fanServiceConfJson = ConfigLib().getFanServiceConfig();
-  apache::thrift::SimpleJSONSerializer::deserialize<
-      fan_config_structs::FanServiceConfig>(fanServiceConfJson, config);
+  apache::thrift::SimpleJSONSerializer::deserialize<FanServiceConfig>(
+      fanServiceConfJson, config);
   return config;
 }
 
 } // namespace
 
-namespace facebook::fboss::platform {
+namespace facebook::fboss::platform::fan_service {
 
 /*
  * Group 1. Configuration related tests
@@ -63,7 +65,7 @@ TEST_F(FanServiceTest, configTransitionValue) {
 TEST_F(FanServiceTest, bspInvalidWrite) {
   // Check BSP system write features by giving invalid parameter and
   // make sure the write fails
-  Bsp myBsp(fan_config_structs::FanServiceConfig{});
+  Bsp myBsp(FanServiceConfig{});
   EXPECT_EQ(myBsp.setFanPwmSysfs("/dev/null/fake", 1), false);
 }
 
@@ -71,13 +73,13 @@ TEST_F(FanServiceTest, bspTestSystemCommandFunction) {
   // Make sure BSP is capable of running shell command.
   // This feature is important for pwm configuration and
   // emergency command execution.
-  Bsp myBsp(fan_config_structs::FanServiceConfig{});
+  Bsp myBsp(FanServiceConfig{});
   EXPECT_EQ(myBsp.setFanPwmShell("ls", "", 0), true);
 }
 
 TEST_F(FanServiceTest, bspTestSystemTime) {
   // Make sure BSP's system time checking is working
-  Bsp myBsp(fan_config_structs::FanServiceConfig{});
+  Bsp myBsp(FanServiceConfig{});
   EXPECT_NE(myBsp.getCurrentTime(), 0);
 }
 
@@ -106,7 +108,7 @@ TEST_F(FanServiceTest, sensorDataUpdateTime) {
   EXPECT_EQ(mySensorData.getLastUpdated("TEST3"), 30);
 }
 
-} // namespace facebook::fboss::platform
+} // namespace facebook::fboss::platform::fan_service
 
 int main(int argc, char* argv[]) {
   testing::InitGoogleTest(&argc, argv);

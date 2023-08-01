@@ -10,10 +10,10 @@
 //           the input with test scenario file, and the output with
 //           test output file describing when pwm changes and so on.
 
-namespace facebook::fboss::platform {
+namespace facebook::fboss::platform::fan_service {
 class Mokujin : public Bsp {
  public:
-  explicit Mokujin(const fan_config_structs::FanServiceConfig& config);
+  explicit Mokujin(const FanServiceConfig& config);
   ~Mokujin();
   // Override some methods in Bsp class
   void getSensorData(std::shared_ptr<SensorData> pSensorData) override;
@@ -60,4 +60,4 @@ class Mokujin : public Bsp {
       int pwm) override;
   int run(const std::string& cmd) override;
 };
-} // namespace facebook::fboss::platform
+} // namespace facebook::fboss::platform::fan_service

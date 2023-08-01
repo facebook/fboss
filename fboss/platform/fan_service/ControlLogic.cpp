@@ -8,19 +8,21 @@
 #include <folly/logging/xlog.h>
 
 #include "common/time/Time.h"
-#include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_constants.h"
-#include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_constants.h"
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
 
 namespace {
 auto constexpr kFanWriteFailure = "fan_write.{}.{}.failure";
 auto constexpr kFanFailThresholdInSec = 300;
 auto constexpr kSensorFailThresholdInSec = 300;
 
-using namespace facebook::fboss::platform;
+using namespace facebook::fboss::platform::fan_service;
+using constants =
+    facebook::fboss::platform::fan_service::fan_service_config_constants;
 
-std::optional<fan_config_structs::TempToPwmMap> getConfigOpticTable(
-    const fan_config_structs::Optic& optic,
-    fan_config_structs::OpticTableType dataType) {
+std::optional<TempToPwmMap> getConfigOpticTable(
+    const Optic& optic,
+    OpticTableType dataType) {
   for (const auto& [tableType, tempToPwmMap] : *optic.tempToPwmMaps()) {
     if (tableType == dataType) {
       return tempToPwmMap;
@@ -31,9 +33,9 @@ std::optional<fan_config_structs::TempToPwmMap> getConfigOpticTable(
 
 } // namespace
 
-namespace facebook::fboss::platform {
+namespace facebook::fboss::platform::fan_service {
 ControlLogic::ControlLogic(
-    const fan_config_structs::FanServiceConfig& config,
+    const FanServiceConfig& config,
     std::shared_ptr<Bsp> pB)
     : config_(config) {
   pBsp_ = pB;
@@ -57,18 +59,15 @@ void ControlLogic::getFanUpdate() {
     uint64_t rpmTimeStamp;
 
     // Check if RPM name in Thrift data is overridden
-    if (*fan.rpmAccess()->accessType() ==
-        fan_config_structs::SourceType::kSrcThrift) {
+    if (*fan.rpmAccess()->accessType() == SourceType::kSrcThrift) {
       fanName = *fan.rpmAccess()->path();
     }
     if (!isFanPresentInDevice(fan)) {
       fanMissing = true;
     }
     // If source type is not specified (SRC_INVALID), we treat it as Thrift.
-    if ((*fan.rpmAccess()->accessType() ==
-         fan_config_structs::SourceType::kSrcInvalid) ||
-        (*fan.rpmAccess()->accessType() ==
-         fan_config_structs::SourceType::kSrcThrift)) {
+    if ((*fan.rpmAccess()->accessType() == SourceType::kSrcInvalid) ||
+        (*fan.rpmAccess()->accessType() == SourceType::kSrcThrift)) {
       if (pSensor_->checkIfEntryExists(fanName)) {
         entryType = pSensor_->getSensorEntryType(fanName);
         switch (entryType) {
@@ -92,9 +91,7 @@ void ControlLogic::getFanUpdate() {
         // If no entry in Thrift response, consider that as failure
         fanAccessFail = true;
       }
-    } else if (
-        *fan.rpmAccess()->accessType() ==
-        fan_config_structs::SourceType::kSrcSysfs) {
+    } else if (*fan.rpmAccess()->accessType() == SourceType::kSrcSysfs) {
       try {
         fanStatuses_[fanName].rpm = pBsp_->readSysfs(*fan.rpmAccess()->path());
         fanStatuses_[fanName].timeStamp = pBsp_->getCurrentTime();
@@ -131,7 +128,7 @@ void ControlLogic::getFanUpdate() {
   return;
 }
 
-void ControlLogic::updateTargetPwm(const fan_config_structs::Sensor& sensor) {
+void ControlLogic::updateTargetPwm(const Sensor& sensor) {
   bool accelerate, deadFanExists;
   float previousSensorValue, sensorValue, targetPwm;
   float value, lastPwm, kp, ki, kd, previousRead1, previousRead2, pwm;
@@ -139,11 +136,11 @@ void ControlLogic::updateTargetPwm(const fan_config_structs::Sensor& sensor) {
   float minVal = *sensor.setPoint() - *sensor.negHysteresis();
   float maxVal = *sensor.setPoint() + *sensor.posHysteresis();
   uint64_t dT;
-  fan_config_structs::TempToPwmMap tableToUse;
+  TempToPwmMap tableToUse;
   auto& readCache = sensorReadCaches_[*sensor.sensorName()];
   auto& pwmCalcCache = pwmCalcCaches_[*sensor.sensorName()];
   switch (*sensor.calcType()) {
-    case fan_config_structs::SensorPwmCalcType::kSensorPwmCalcFourLinearTable:
+    case SensorPwmCalcType::kSensorPwmCalcFourLinearTable:
       accelerate = true;
       previousSensorValue = pwmCalcCache.previousSensorRead;
       sensorValue = readCache.adjustedReadCache;
@@ -184,7 +181,7 @@ void ControlLogic::updateTargetPwm(const fan_config_structs::Sensor& sensor) {
                  << " Value : " << sensorValue << " [4CUV] Pwm : " << targetPwm;
       break;
 
-    case fan_config_structs::SensorPwmCalcType::kSensorPwmCalcIncrementPid:
+    case SensorPwmCalcType::kSensorPwmCalcIncrementPid:
       value = readCache.adjustedReadCache;
       lastPwm = pwmCalcCache.previousTargetPwm;
       kp = *sensor.kp();
@@ -208,7 +205,7 @@ void ControlLogic::updateTargetPwm(const fan_config_structs::Sensor& sensor) {
 
       break;
 
-    case fan_config_structs::SensorPwmCalcType::kSensorPwmCalcPid:
+    case SensorPwmCalcType::kSensorPwmCalcPid:
       value = readCache.adjustedReadCache;
       lastPwm = pwmCalcCache.previousTargetPwm;
       pwm = lastPwm;
@@ -242,7 +239,7 @@ void ControlLogic::updateTargetPwm(const fan_config_structs::Sensor& sensor) {
                  << " Max : " << maxVal;
       break;
 
-    case fan_config_structs::SensorPwmCalcType::kSensorPwmCalcDisable:
+    case SensorPwmCalcType::kSensorPwmCalcDisable:
       // Do nothing
       XLOG(WARN) << "Control :: Sensor : " << *sensor.sensorName()
                  << "Do Nothing ";
@@ -381,8 +378,7 @@ void ControlLogic::getSensorUpdate() {
           }
           // If we are not yet in emergency state, do the emergency shutdown.
           if ((*sensor.rangeCheck()->invalidRangeAction() ==
-               fan_config_structs::fan_config_structs_constants::
-                   RANGE_CHECK_ACTION_SHUTDOWN()) &&
+               constants::RANGE_CHECK_ACTION_SHUTDOWN()) &&
               (pBsp_->getEmergencyState() == false)) {
             pBsp_->emergencyShutdown(true);
           }
@@ -459,7 +455,7 @@ bool ControlLogic::isSensorPresentInConfig(const std::string& sensorName) {
   return false;
 }
 
-bool ControlLogic::isFanPresentInDevice(const fan_config_structs::Fan& fan) {
+bool ControlLogic::isFanPresentInDevice(const Fan& fan) {
   unsigned int readVal;
   bool readSuccessful = false;
   uint64_t nowSec;
@@ -473,12 +469,12 @@ bool ControlLogic::isFanPresentInDevice(const fan_config_structs::Fan& fan) {
   std::string presenceKey = *fan.fanName() + "_presence";
   auto presenceAccessType = *fan.presenceAccess()->accessType();
   switch (presenceAccessType) {
-    case fan_config_structs::SourceType::kSrcThrift:
+    case SourceType::kSrcThrift:
       // In the case of Thrift, we use the last data from Thrift read
       readVal = pSensor_->getSensorDataFloat(presenceKey);
       readSuccessful = true;
       break;
-    case fan_config_structs::SourceType::kSrcSysfs:
+    case SourceType::kSrcSysfs:
       nowSec = facebook::WallClockUtil::NowInSecFast();
       try {
         readVal = static_cast<unsigned>(
@@ -493,9 +489,9 @@ bool ControlLogic::isFanPresentInDevice(const fan_config_structs::Fan& fan) {
       }
       readSuccessful = true;
       break;
-    case fan_config_structs::SourceType::kSrcInvalid:
-    case fan_config_structs::SourceType::kSrcRest:
-    case fan_config_structs::SourceType::kSrcUtil:
+    case SourceType::kSrcInvalid:
+    case SourceType::kSrcRest:
+    case SourceType::kSrcUtil:
     default:
       throw facebook::fboss::FbossError(
           "Only Thrift and sysfs are supported for fan presence detection!");
@@ -512,9 +508,7 @@ bool ControlLogic::isFanPresentInDevice(const fan_config_structs::Fan& fan) {
   return false;
 }
 
-void ControlLogic::programFan(
-    const fan_config_structs::Zone& zone,
-    float pwmSoFar) {
+void ControlLogic::programFan(const Zone& zone, float pwmSoFar) {
   for (const auto& fan : *config_.fans()) {
     auto srcType = *fan.pwmAccess()->accessType();
     float pwmToProgram = 0;
@@ -553,22 +547,22 @@ void ControlLogic::programFan(
       pwmInt = *fan.pwmMax();
     }
     switch (srcType) {
-      case fan_config_structs::SourceType::kSrcSysfs:
+      case SourceType::kSrcSysfs:
         writeSuccess = pBsp_->setFanPwmSysfs(*fan.pwmAccess()->path(), pwmInt);
         if (!writeSuccess) {
           setFanFailState(fan, true);
         }
         break;
-      case fan_config_structs::SourceType::kSrcUtil:
+      case SourceType::kSrcUtil:
         writeSuccess = pBsp_->setFanPwmShell(
             *fan.pwmAccess()->path(), *fan.fanName(), pwmInt);
         if (!writeSuccess) {
           setFanFailState(fan, true);
         }
         break;
-      case fan_config_structs::SourceType::kSrcThrift:
-      case fan_config_structs::SourceType::kSrcRest:
-      case fan_config_structs::SourceType::kSrcInvalid:
+      case SourceType::kSrcThrift:
+      case SourceType::kSrcRest:
+      case SourceType::kSrcInvalid:
       default:
         facebook::fboss::FbossError(
             "Unsupported PWM access type for : ", *fan.fanName());
@@ -580,9 +574,7 @@ void ControlLogic::programFan(
   }
 }
 
-void ControlLogic::setFanFailState(
-    const fan_config_structs::Fan& fan,
-    bool fanFailed) {
+void ControlLogic::setFanFailState(const Fan& fan, bool fanFailed) {
   XLOG(INFO) << "Control :: Enter LED for " << *fan.fanName();
   bool ledAccessNeeded = false;
   if (fanStatuses_[*fan.fanName()].firstTimeLedAccess) {
@@ -614,16 +606,16 @@ void ControlLogic::setFanFailState(
     unsigned int valueToWrite =
         (fanFailed ? *fan.fanFailLedVal() : *fan.fanGoodLedVal());
     switch (*fan.ledAccess()->accessType()) {
-      case fan_config_structs::SourceType::kSrcSysfs:
+      case SourceType::kSrcSysfs:
         pBsp_->setFanLedSysfs(*fan.ledAccess()->path(), valueToWrite);
         break;
-      case fan_config_structs::SourceType::kSrcUtil:
+      case SourceType::kSrcUtil:
         pBsp_->setFanLedShell(
             *fan.ledAccess()->path(), *fan.fanName(), valueToWrite);
         break;
-      case fan_config_structs::SourceType::kSrcThrift:
-      case fan_config_structs::SourceType::kSrcRest:
-      case fan_config_structs::SourceType::kSrcInvalid:
+      case SourceType::kSrcThrift:
+      case SourceType::kSrcRest:
+      case SourceType::kSrcInvalid:
       default:
         facebook::fboss::FbossError(
             "Unsupported LED access type for : ", *fan.fanName());
@@ -654,20 +646,20 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
           pwmForThisSensor = pSensor_->getOpticsPwm(sensorName);
         }
         switch (zoneType) {
-          case fan_config_structs::ZoneType::kZoneMax:
+          case ZoneType::kZoneMax:
             if (pwmSoFar < pwmForThisSensor) {
               pwmSoFar = pwmForThisSensor;
             }
             break;
-          case fan_config_structs::ZoneType::kZoneMin:
+          case ZoneType::kZoneMin:
             if (pwmSoFar > pwmForThisSensor) {
               pwmSoFar = pwmForThisSensor;
             }
             break;
-          case fan_config_structs::ZoneType::kZoneAvg:
+          case ZoneType::kZoneAvg:
             pwmSoFar += pwmForThisSensor;
             break;
-          case fan_config_structs::ZoneType::kZoneInval:
+          case ZoneType::kZoneInval:
           default:
             facebook::fboss::FbossError(
                 "Undefined Zone Type for zone : ", *zone.zoneName());
@@ -677,7 +669,7 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
                    << pwmForThisSensor << " Overall so far : " << pwmSoFar;
       }
     }
-    if (zoneType == fan_config_structs::ZoneType::kZoneAvg) {
+    if (zoneType == ZoneType::kZoneAvg) {
       pwmSoFar /= (float)totalPwmConsidered;
     }
     XLOG(INFO) << "  Final PWM : " << pwmSoFar;
@@ -778,4 +770,4 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   lastControlUpdateSec_ = pBsp_->getCurrentTime();
 }
 
-} // namespace facebook::fboss::platform
+} // namespace facebook::fboss::platform::fan_service

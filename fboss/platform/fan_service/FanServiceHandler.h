@@ -6,7 +6,7 @@
 #include "common/fb303/cpp/FacebookBase2.h"
 #include "fboss/platform/fan_service/FanService.h"
 
-namespace facebook::fboss::platform {
+namespace facebook::fboss::platform::fan_service {
 class FanServiceHandler
     : public ::facebook::fb303::FacebookBase2DeprecationMigration {
  public:
@@ -23,4 +23,4 @@ class FanServiceHandler
   // Internal pointer for FanService.
   std::unique_ptr<FanService> service_{nullptr};
 };
-} // namespace facebook::fboss::platform
+} // namespace facebook::fboss::platform::fan_service

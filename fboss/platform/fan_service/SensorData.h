@@ -11,11 +11,11 @@
 // We reuse the same facebook::fboss::FbossError
 // , for consistency
 #include "fboss/agent/FbossError.h"
-#include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
 
 #include <variant>
 
-namespace facebook::fboss::platform {
+namespace facebook::fboss::platform::fan_service {
 
 // Fundamental data type definition
 enum class SensorEntryType { kSensorEntryInt, kSensorEntryFloat };
@@ -32,7 +32,7 @@ struct SensorEntry {
 struct OpticEntry {
   // Last successful optics update time. Used for boost mode.
   std::string name;
-  std::vector<std::pair<fan_config_structs::OpticTableType, float>> data;
+  std::vector<std::pair<OpticTableType, float>> data;
   // Timestamp of this entry updated
   uint64_t lastOpticsUpdateTimeInSec{0};
   // Timestamp of the data, set by qsfp service
@@ -60,10 +60,10 @@ class SensorData {
   updateEntryFloat(const std::string& name, float data, uint64_t timeStampSec);
   void setOpticEntry(
       const std::string& name,
-      std::vector<std::pair<fan_config_structs::OpticTableType, float>> input,
+      std::vector<std::pair<OpticTableType, float>> input,
       uint64_t timestamp);
   /*
-  std::vector<std::pair<fan_config_structs::OpticTableType,float>>
+  std::vector<std::pair<OpticTableType,float>>
   getOpticEntry(std::string& name) const;
   */
   OpticEntry* getOpticEntry(const std::string& name) const;
@@ -97,4 +97,4 @@ class SensorData {
   uint64_t lastSuccessfulQsfpServiceContact_;
 };
 
-} // namespace facebook::fboss::platform
+} // namespace facebook::fboss::platform::fan_service

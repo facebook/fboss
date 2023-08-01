@@ -10,7 +10,7 @@
 
 DEFINE_bool(run_forever, false, "run the test forever");
 
-using namespace facebook::fboss::platform;
+using namespace facebook::fboss::platform::fan_service;
 
 namespace {
 
@@ -83,7 +83,7 @@ class FanSensorFsdbIntegrationTests : public ::testing::Test {
 
 } // namespace
 
-namespace facebook::fboss::platform {
+namespace facebook::fboss::platform::fan_service {
 
 TEST_F(FanSensorFsdbIntegrationTests, sensorUpdate) {
   SensorData prevSensorData;
@@ -248,7 +248,7 @@ TEST_F(FanSensorFsdbIntegrationTests, qsfpSync) {
   });
 }
 
-} // namespace facebook::fboss::platform
+} // namespace facebook::fboss::platform::fan_service
 
 int main(int argc, char* argv[]) {
   testing::InitGoogleTest(&argc, argv);

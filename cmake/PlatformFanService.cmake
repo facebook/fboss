@@ -4,8 +4,8 @@
 # cmake/FooBar.cmake
 
 add_fbthrift_cpp_library(
-  fan_config_structs_types_cpp2
-  fboss/platform/fan_service/if/fan_config_structs.thrift
+  fan_service_config_types_cpp2
+  fboss/platform/fan_service/if/fan_service_config.thrift
   OPTIONS
     json
     reflection
@@ -31,7 +31,7 @@ target_link_libraries(fan_service_lib
   common_file_utils
   platform_config_lib
   platform_utils
-  fan_config_structs_types_cpp2
+  fan_service_config_types_cpp2
   Folly::folly
   qsfp_service_client
   FBThrift::thriftcpp2

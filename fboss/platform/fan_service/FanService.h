@@ -8,12 +8,12 @@
 #include "Mokujin.h"
 #include "SensorData.h"
 
-#include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
 
 namespace folly {
 class EventBase;
 }
-namespace facebook::fboss::platform {
+namespace facebook::fboss::platform::fan_service {
 
 // FanService    : The main Class the represent the fan_service
 //                 Instantiates the following classes.
@@ -51,7 +51,7 @@ class FanService {
   // BSP contains platform specific I/O methonds
   std::shared_ptr<Bsp> pBsp_;
   // fan_service config
-  fan_config_structs::FanServiceConfig config_;
+  FanServiceConfig config_;
   // Control logic determines fan pwm based on config and sensor read
   std::shared_ptr<ControlLogic> pControlLogic_;
   // SensorData keeps all the latest sensor reading. Also provides
@@ -74,4 +74,4 @@ class FanService {
   // Main Loop for standalone execution
   int mainLoop();
 };
-} // namespace facebook::fboss::platform
+} // namespace facebook::fboss::platform::fan_service

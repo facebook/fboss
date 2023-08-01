@@ -9,21 +9,20 @@
  */
 
 #include "fboss/platform/fan_service/Bsp.h"
-#include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
 
 #include <gtest/gtest.h>
 
-using namespace facebook::fboss::platform;
+using namespace facebook::fboss::platform::fan_service;
 using facebook::fboss::FbossError;
 
 class BspTest : public ::testing::Test {
   static auto constexpr kSensorName = "sensor";
 
  protected:
-  fan_config_structs::FanServiceConfig makeConfig(
-      fan_config_structs::AccessMethod accessMethod) const {
-    auto config = fan_config_structs::FanServiceConfig{};
-    fan_config_structs::Sensor sensor;
+  FanServiceConfig makeConfig(AccessMethod accessMethod) const {
+    auto config = FanServiceConfig{};
+    Sensor sensor;
     sensor.sensorName() = kSensorName;
     sensor.access() = accessMethod;
     config.sensors()->push_back(sensor);
@@ -32,8 +31,8 @@ class BspTest : public ::testing::Test {
 };
 
 TEST_F(BspTest, getSensorOverRest) {
-  fan_config_structs::AccessMethod access;
-  access.accessType() = fan_config_structs::SourceType::kSrcRest;
+  AccessMethod access;
+  access.accessType() = SourceType::kSrcRest;
   auto bsp = Bsp(makeConfig(access));
   EXPECT_THROW(bsp.getSensorData(std::make_shared<SensorData>()), FbossError);
 }

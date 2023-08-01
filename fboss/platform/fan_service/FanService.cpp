@@ -10,14 +10,14 @@
 
 #include "common/time/Time.h"
 #include "fboss/platform/config_lib/ConfigLib.h"
-#include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
 
 namespace {
 auto constexpr kDefaultSensorReadFrequencyInSec = 30;
 auto constexpr kDefaultFanControlFrequencyInSec = 30;
 } // namespace
 
-namespace facebook::fboss::platform {
+namespace facebook::fboss::platform::fan_service {
 
 FanService::FanService(const std::string& configFile)
     : confFileName_(configFile) {
@@ -42,14 +42,14 @@ std::shared_ptr<Bsp> FanService::BspFactory() {
   Bsp* returnVal = NULL;
   switch (*config_.bspType()) {
     // In many cases, generic BSP is enough.
-    case fan_config_structs::BspType::kBspGeneric:
-    case fan_config_structs::BspType::kBspDarwin:
-    case fan_config_structs::BspType::kBspLassen:
-    case fan_config_structs::BspType::kBspMinipack3:
+    case BspType::kBspGeneric:
+    case BspType::kBspDarwin:
+    case BspType::kBspLassen:
+    case BspType::kBspMinipack3:
       returnVal = new Bsp(config_);
       break;
     // For unit testing, we use Mock (Mokujin) BSP.
-    case fan_config_structs::BspType::kBspMokujin:
+    case BspType::kBspMokujin:
       returnVal = static_cast<Bsp*>(new Mokujin(config_));
       break;
 
@@ -75,8 +75,8 @@ void FanService::kickstart() {
     }
   }
 
-  apache::thrift::SimpleJSONSerializer::deserialize<
-      fan_config_structs::FanServiceConfig>(fanServiceConfJson, config_);
+  apache::thrift::SimpleJSONSerializer::deserialize<FanServiceConfig>(
+      fanServiceConfJson, config_);
   XLOG(INFO) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
       config_);
 
@@ -154,7 +154,7 @@ int FanService::runMock(std::string mockInputFile, std::string mockOutputFile) {
   std::string simulationSensorName;
   float simulationSensorValue;
   // Make sure BSP is a mock bsp type
-  if (*config_.bspType() != fan_config_structs::BspType::kBspMokujin) {
+  if (*config_.bspType() != BspType::kBspMokujin) {
     XLOG(ERR) << "Mock mode is enabled, but BSP is not a Mock BSP!";
     return -1;
   }
@@ -230,4 +230,4 @@ int FanService::runMock(std::string mockInputFile, std::string mockOutputFile) {
   XLOG(INFO) << "File closed. Exiting...";
   return rc;
 }
-} // namespace facebook::fboss::platform
+} // namespace facebook::fboss::platform::fan_service

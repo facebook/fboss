@@ -12,5 +12,6 @@ void getTransceivers(
 void getSensorValueThroughThrift(
     int sensordThriftPort_,
     folly::EventBase& evb_,
-    std::shared_ptr<facebook::fboss::platform::SensorData>& pSensorData,
+    std::shared_ptr<facebook::fboss::platform::fan_service::SensorData>&
+        pSensorData,
     std::vector<std::string>& sensorList);

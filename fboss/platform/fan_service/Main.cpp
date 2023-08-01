@@ -16,6 +16,7 @@
 
 using namespace facebook;
 using namespace facebook::fboss::platform;
+using namespace facebook::fboss::platform::fan_service;
 
 DEFINE_int32(thrift_port, 5972, "Port for the thrift service");
 DEFINE_int32(
@@ -39,13 +40,12 @@ int main(int argc, char** argv) {
   // If Mock configuration is enabled, run Fan Service in Mock mode, then quit.
   // No Thrift service will be created at all.
   if (FLAGS_mock_input != "") {
-    facebook::fboss::platform::FanService mockedFanService(FLAGS_config_file);
+    FanService mockedFanService(FLAGS_config_file);
     mockedFanService.kickstart();
     return mockedFanService.runMock(FLAGS_mock_input, FLAGS_mock_output);
   }
 
-  auto serviceImpl = std::make_unique<facebook::fboss::platform::FanService>(
-      FLAGS_config_file);
+  auto serviceImpl = std::make_unique<FanService>(FLAGS_config_file);
 
   auto server = std::make_shared<apache::thrift::ThriftServer>();
   auto handler = std::make_shared<FanServiceHandler>(std::move(serviceImpl));

@@ -1,8 +1,4 @@
-namespace cpp2 facebook.fboss.platform.fan_config_structs
-namespace py neteng.fboss.platform.fan_config_structs
-namespace py3 neteng.fboss.platform.fan_config_structs
-namespace py.asyncio neteng.fboss.platform.asyncio.fan_config_structs
-namespace go neteng.fboss.platform.fan_config_structs
+namespace cpp2 facebook.fboss.platform.fan_service
 
 const string RANGE_CHECK_ACTION_SHUTDOWN = "shutdown";
 
