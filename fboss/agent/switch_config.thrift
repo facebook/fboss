@@ -1502,6 +1502,21 @@ struct SwitchInfo {
   5: optional Range64 systemPortRange;
   6: optional string switchMac;
   7: optional string connectionHandle;
+
+  /*
+   * Applicable for SwitchType == VOQ or SwitchType == FABRIC only
+   *
+   * DrainState is per SwitchId, thus a switchId can be drained individually.
+   *
+   * Note: today, our tooling treats switch as a whole, and thus its
+   * implementation will request to drain/undrain ALL switchIds. However, in
+   * future, we could enhance the tooling to selectively drain/undrain a subset
+   * of switchId(s).
+   *
+   * Note: actualDrainState can be different from the desiredDrainState (see
+   * switch_state for details) for VOQ switches.
+   */
+  8: SwitchDrainState desiredDrainState = SwitchDrainState.UNDRAINED;
 }
 
 /*
