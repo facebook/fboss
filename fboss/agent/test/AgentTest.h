@@ -5,6 +5,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Main.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/single/MonolithicAgentInitializer.h"
 #include "fboss/agent/state/PortDescriptor.h"
 
 #include <gtest/gtest.h>

@@ -12,6 +12,7 @@
 #include "fboss/agent/Main.h"
 
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
+#include "fboss/agent/single/MonolithicAgentInitializer.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 

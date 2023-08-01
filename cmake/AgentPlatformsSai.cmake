@@ -128,6 +128,7 @@ function(BUILD_SAI_WEDGE_AGENT SAI_IMPL_NAME SAI_IMPL_ARG)
   target_link_libraries(wedge_agent-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
     main
+    monolithic_agent_initializer
     sai_platform
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive

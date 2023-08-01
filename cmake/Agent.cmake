@@ -468,3 +468,20 @@ target_link_libraries(fboss_common_init
   load_agent_config
   Folly::folly
 )
+
+add_library(monolithic_agent_initializer
+  fboss/agent/single/MonolithicAgentInitializer.cpp
+)
+
+target_link_libraries(monolithic_agent_initializer
+  core
+  fboss_common_init
+  handler
+  hw_switch
+  load_agent_config
+  monolithic_switch_handler
+  setup_thrift
+  switch_asics
+  utils
+  Folly::folly
+)

@@ -14,6 +14,8 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/sim/SimPlatform.h"
 
+#include "fboss/agent/single/MonolithicAgentInitializer.h"
+
 #include <gflags/gflags.h>
 
 using namespace facebook::fboss;

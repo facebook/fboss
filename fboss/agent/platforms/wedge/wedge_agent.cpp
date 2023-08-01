@@ -11,6 +11,8 @@
 #include "fboss/agent/Main.h"
 #include "fboss/agent/platforms/wedge/WedgePlatformInit.h"
 
+#include "fboss/agent/single/MonolithicAgentInitializer.h"
+
 using namespace facebook::fboss;
 
 int main(int argc, char* argv[]) {

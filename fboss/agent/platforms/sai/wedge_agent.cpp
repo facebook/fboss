@@ -11,6 +11,7 @@
 
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/platforms/sai/SaiPlatformInit.h"
+#include "fboss/agent/single/MonolithicAgentInitializer.h"
 
 #include <memory>
 
