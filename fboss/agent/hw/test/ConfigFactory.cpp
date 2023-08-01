@@ -98,17 +98,20 @@ std::unordered_map<PortID, cfg::PortProfileID>& getPortToDefaultProfileIDMap() {
   return portProfileIDMap;
 }
 
-cfg::DsfNode dsfNodeConfig(const HwAsic& myAsic, int64_t otherSwitchId) {
-  auto createAsic =
-      [](const HwAsic& fromAsic,
-         int64_t switchId) -> std::pair<std::shared_ptr<HwAsic>, PlatformType> {
+cfg::DsfNode dsfNodeConfig(
+    const HwAsic& myAsic,
+    int64_t otherSwitchId,
+    std::optional<int> systemPortMin) {
+  auto createAsic = [&](const HwAsic& fromAsic, int64_t switchId)
+      -> std::pair<std::shared_ptr<HwAsic>, PlatformType> {
     std::optional<cfg::Range64> systemPortRange;
     auto fromAsicSystemPortRange = fromAsic.getSystemPortRange();
     if (fromAsicSystemPortRange.has_value()) {
       cfg::Range64 range;
       auto blockSize = *fromAsicSystemPortRange->maximum() -
           *fromAsicSystemPortRange->minimum();
-      range.minimum() = 100 + switchId * blockSize;
+      range.minimum() = systemPortMin.has_value() ? 100 + systemPortMin.value()
+                                                  : 100 + switchId * blockSize;
       range.maximum() = *range.minimum() + blockSize;
       systemPortRange = range;
     }

@@ -27,7 +27,8 @@
 
 namespace {
 constexpr uint8_t kDefaultQueue = 0;
-}
+constexpr auto kSystemPortCountPerNode = 15;
+} // namespace
 
 namespace facebook::fboss {
 class HwVoqSwitchTest : public HwLinkStateDependentTest {
@@ -800,7 +801,7 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
     return cfg;
   }
 
-  const SwitchID getRemoteSwitchId() const {
+  static SwitchID getRemoteSwitchId() {
     return SwitchID(4);
   }
 
@@ -824,7 +825,9 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
   }
 
  protected:
-  void addRemoteSysPort(SystemPortID portId) {
+  void addRemoteSysPort(
+      SystemPortID portId,
+      SwitchID remoteSwitchId = getRemoteSwitchId()) {
     auto newState = getProgrammedState()->clone();
     const auto& localPorts = newState->getSystemPorts()->cbegin()->second;
     auto localPort = localPorts->cbegin()->second;
@@ -832,7 +835,7 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
         newState->getRemoteSystemPorts()->modify(&newState);
     auto numPrevPorts = remoteSystemPorts->numNodes();
     auto remoteSysPort = std::make_shared<SystemPort>(portId);
-    remoteSysPort->setSwitchId(getRemoteSwitchId());
+    remoteSysPort->setSwitchId(remoteSwitchId);
     remoteSysPort->setNumVoqs(localPort->getNumVoqs());
     remoteSysPort->setCoreIndex(localPort->getCoreIndex());
     remoteSysPort->setCorePortIndex(localPort->getCorePortIndex());
@@ -1092,4 +1095,52 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
   verifyAcrossWarmBoots(setup, verify);
 };
 
+// FullScaleDsfNode Test sets up 128 remote DSF nodes for J2 and 256 for J3.
+class HwVoqSwitchFullScaleDsfNodesTest
+    : public HwVoqSwitchWithMultipleDsfNodesTest {
+ public:
+  cfg::SwitchConfig initialConfig() const override {
+    auto cfg = HwVoqSwitchTest::initialConfig();
+    cfg.dsfNodes() = *overrideDsfNodes(*cfg.dsfNodes());
+    return cfg;
+  }
+
+  std::optional<std::map<int64_t, cfg::DsfNode>> overrideDsfNodes(
+      const std::map<int64_t, cfg::DsfNode>& curDsfNodes) const override {
+    CHECK(!curDsfNodes.empty());
+    auto dsfNodes = curDsfNodes;
+    const auto& firstDsfNode = dsfNodes.begin()->second;
+    CHECK(firstDsfNode.systemPortRange().has_value());
+    CHECK(firstDsfNode.nodeMac().has_value());
+    folly::MacAddress mac(*firstDsfNode.nodeMac());
+    auto asic = HwAsic::makeAsic(
+        *firstDsfNode.asicType(),
+        cfg::SwitchType::VOQ,
+        *firstDsfNode.switchId(),
+        *firstDsfNode.systemPortRange(),
+        mac);
+    int numCores = asic->getNumCores();
+    for (int remoteSwitchId = numCores;
+         remoteSwitchId < getDsfNodeCount(asic.get()) * numCores;
+         remoteSwitchId += numCores) {
+      // Ideally there's no need to add extra offset if each dsfNode has 15
+      // ports. However, local switch already used 1 CPU, 1 recyle and 16 system
+      // ports. Adding an extra offset of 5 for remote system ports.
+      const auto systemPortMin =
+          (remoteSwitchId / numCores) * kSystemPortCountPerNode + 5;
+      cfg::Range64 systemPortRange;
+      systemPortRange.minimum() = systemPortMin;
+      systemPortRange.maximum() = systemPortMin + kSystemPortCountPerNode - 1;
+      auto remoteDsfNodeCfg = utility::dsfNodeConfig(
+          *asic, SwitchID(remoteSwitchId), systemPortMin);
+      dsfNodes.insert({remoteSwitchId, remoteDsfNodeCfg});
+    }
+    return dsfNodes;
+  }
+
+ private:
+  int getDsfNodeCount(HwAsic* asic) const {
+    return asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2 ? 128 : 256;
+  }
+};
 } // namespace facebook::fboss
