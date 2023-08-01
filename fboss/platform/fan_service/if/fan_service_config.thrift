@@ -9,11 +9,7 @@ const string ACCESS_TYPE_QSFP = "ACCESS_TYPE_QSFP";
 const string ZONE_TYPE_MAX = "ZONE_TYPE_MAX";
 const string ZONE_TYPE_MIN = "ZONE_TYPE_MIN";
 const string ZONE_TYPE_AVG = "ZONE_TYPE_AVG";
-
-enum OpticAggregationType {
-  kOpticMax = 0,
-  kOpticInval = 1,
-}
+const string OPTIC_AGGREGATION_TYPE_MAX = "OPTIC_AGGREGATION_TYPE_MAX";
 
 enum OpticTableType {
   kOpticTable100Generic = 0,
@@ -44,7 +40,7 @@ struct Optic {
   1: string opticName;
   2: AccessMethod access;
   3: list<i32> portList;
-  4: OpticAggregationType aggregationType;
+  4: string aggregationType;
   5: map<OpticTableType, TempToPwmMap> tempToPwmMaps;
 }
 

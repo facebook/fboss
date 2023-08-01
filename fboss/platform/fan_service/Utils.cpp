@@ -26,6 +26,8 @@ std::unordered_set<std::string> zoneTypes = {
     constants::ZONE_TYPE_MIN(),
     constants::ZONE_TYPE_AVG()};
 
+std::unordered_set<std::string> opticAggregationTypes = {
+    constants::OPTIC_AGGREGATION_TYPE_MAX()};
 } // namespace
 
 namespace facebook::fboss::platform::fan_service {
@@ -83,6 +85,15 @@ bool Utils::isValidConfig(const FanServiceConfig& config) {
     }
   }
 
+  for (const auto& optic : *config.optics()) {
+    if (!opticAggregationTypes.count(*optic.aggregationType())) {
+      XLOG(ERR) << "Invalid optic aggregation type: "
+                << *optic.aggregationType();
+      return false;
+    }
+  }
+
+  XLOG(INFO) << "The config is valid";
   return true;
 }
 

@@ -29,7 +29,7 @@ std::string getMokujinFSConfig() {
         "accessType" : "ACCESS_TYPE_QSFP"
       },
       "portList" : [],
-      "aggregationType" : 0,
+      "aggregationType" : "OPTIC_AGGREGATION_TYPE_MAX",
       "tempToPwmMaps" : {
         "0" : {
           "40" : 35,
