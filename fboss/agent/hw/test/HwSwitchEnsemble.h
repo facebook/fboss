@@ -279,10 +279,6 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       bool transaction,
       bool disableAppliedStateVerification = false);
   bool applyUpdate(
-      const StateDelta& delta,
-      const std::lock_guard<std::mutex>& lock,
-      bool transaction);
-  bool applyUpdate(
       const fsdb::OperDelta& operDelta,
       const std::lock_guard<std::mutex>& lock,
       bool transaction);

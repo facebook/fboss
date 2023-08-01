@@ -205,16 +205,6 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewStateImpl(
 }
 
 bool HwSwitchEnsemble::applyUpdate(
-    const StateDelta& delta,
-    const std::lock_guard<std::mutex>& /*lock*/,
-    bool transaction) {
-  programmedState_ = transaction ? getHwSwitch()->stateChangedTransaction(delta)
-                                 : getHwSwitch()->stateChanged(delta);
-  programmedState_->publish();
-  return (delta.newState() == programmedState_);
-}
-
-bool HwSwitchEnsemble::applyUpdate(
     const fsdb::OperDelta& operDelta,
     const std::lock_guard<std::mutex>& /*lock*/,
     bool transaction) {
