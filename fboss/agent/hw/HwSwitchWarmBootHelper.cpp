@@ -148,25 +148,9 @@ bool HwSwitchWarmBootHelper::storeWarmBootState(
 
 std::tuple<folly::dynamic, std::optional<state::WarmbootState>>
 HwSwitchWarmBootHelper::getWarmBootState() const {
-  std::string warmBootJson;
-  auto ret = folly::readFile(
-      warmBootHwSwitchStateFile_DEPRECATED().c_str(), warmBootJson);
-  sysCheckError(
-      ret,
-      "Unable to read switch state from : ",
-      warmBootHwSwitchStateFile_DEPRECATED());
-  state::WarmbootState thriftState;
-  if (!isValidThriftStateFile(
-          warmBootHwSwitchStateFile_DEPRECATED(),
-          warmBootThriftSwitchStateFile())) {
-    throw FbossError(
-        "Invalid thrift state file: ", warmBootThriftSwitchStateFile());
-  }
-  if (!readThriftFromBinaryFile(warmBootThriftSwitchStateFile(), thriftState)) {
-    throw FbossError(
-        "Failed to read thrift state from ", warmBootThriftSwitchStateFile());
-  }
-  return std::make_tuple(folly::parseJson(warmBootJson), thriftState);
+  folly::dynamic hwSwitchState = getHwSwitchWarmBootState();
+  state::WarmbootState thriftState = getSwSwitchWarmBootState();
+  return std::make_tuple(hwSwitchState, thriftState);
 }
 
 void HwSwitchWarmBootHelper::setupWarmBootFile() {
@@ -203,6 +187,40 @@ bool HwSwitchWarmBootHelper::storeHwSwitchWarmBootState(
       dumpStateToFileFn(warmBootHwSwitchStateFile_DEPRECATED(), switchState);
   rc &= dumpStateToFileFn(warmBootHwSwitchStateFile(), switchState);
   return rc;
+}
+
+state::WarmbootState HwSwitchWarmBootHelper::getSwSwitchWarmBootState() const {
+  state::WarmbootState thriftState;
+  if (!readThriftFromBinaryFile(warmBootThriftSwitchStateFile(), thriftState)) {
+    throw FbossError(
+        "Failed to read thrift state from ", warmBootThriftSwitchStateFile());
+  }
+  return thriftState;
+}
+
+folly::dynamic HwSwitchWarmBootHelper::getHwSwitchWarmBootState() const {
+  bool existsOld = checkFileExists(warmBootHwSwitchStateFile_DEPRECATED());
+  bool existsNew = checkFileExists(warmBootHwSwitchStateFile());
+  if (existsOld && existsNew) {
+    // prefer old one if both exists to support warm boot from old version to
+    // new version new version also dumps at old location.
+    return getHwSwitchWarmBootState(warmBootHwSwitchStateFile_DEPRECATED());
+  } else if (existsOld) {
+    return getHwSwitchWarmBootState(warmBootHwSwitchStateFile_DEPRECATED());
+  } else if (existsNew) {
+    return getHwSwitchWarmBootState(warmBootHwSwitchStateFile());
+  }
+  throw FbossError("No hw switch warm boot state file found");
+}
+
+folly::dynamic HwSwitchWarmBootHelper::getHwSwitchWarmBootState(
+    const std::string& fileName) const {
+  std::string warmBootJson;
+  XLOG(INFO) << "reading hw switch warm boot state from : " << fileName;
+  auto ret = folly::readFile(fileName.c_str(), warmBootJson);
+  sysCheckError(
+      ret, "Unable to read hw switch warm boot state from : ", fileName);
+  return folly::parseJson(warmBootJson);
 }
 
 } // namespace facebook::fboss

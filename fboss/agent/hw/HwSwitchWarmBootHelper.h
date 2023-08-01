@@ -51,6 +51,9 @@ class HwSwitchWarmBootHelper {
   std::tuple<folly::dynamic, std::optional<state::WarmbootState>>
   getWarmBootState() const;
 
+  state::WarmbootState getSwSwitchWarmBootState() const;
+  folly::dynamic getHwSwitchWarmBootState() const;
+
   std::string startupSdkDumpFile() const;
   std::string shutdownSdkDumpFile() const;
   bool warmBootStateWritten() const {
@@ -91,6 +94,8 @@ class HwSwitchWarmBootHelper {
    * or not the user wishes for another cold boot.
    */
   bool checkAndClearWarmBootFlags();
+
+  folly::dynamic getHwSwitchWarmBootState(const std::string& fileName) const;
 
   int switchId_{-1};
   std::string warmBootDir_;
