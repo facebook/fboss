@@ -1,6 +1,11 @@
 namespace cpp2 facebook.fboss.platform.fan_service
 
 const string RANGE_CHECK_ACTION_SHUTDOWN = "shutdown";
+const string ACCESS_TYPE_SYSFS = "ACCESS_TYPE_SYSFS";
+const string ACCESS_TYPE_UTIL = "ACCESS_TYPE_UTIL";
+const string ACCESS_TYPE_THRIFT = "ACCESS_TYPE_THRIFT";
+const string ACCESS_TYPE_REST = "ACCESS_TYPE_REST";
+const string ACCESS_TYPE_QSFP = "ACCESS_TYPE_QSFP";
 
 enum ZoneType {
   kZoneMax = 0,
@@ -22,17 +27,8 @@ enum OpticTableType {
   kOpticTableInval = 4,
 }
 
-enum SourceType {
-  kSrcSysfs = 0,
-  kSrcUtil = 1,
-  kSrcThrift = 2,
-  kSrcRest = 3,
-  kSrcInvalid = 4,
-  kSrcQsfpService = 5,
-}
-
 struct AccessMethod {
-  1: SourceType accessType = kSrcInvalid;
+  1: string accessType;
   2: string path;
 }
 

@@ -12,10 +12,13 @@
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/platform/fan_service/FsdbSensorSubscriber.h"
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_constants.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
 
 using namespace folly::literals::shell_literals;
+using constants =
+    facebook::fboss::platform::fan_service::fan_service_config_constants;
 
 DEFINE_bool(
     subscribe_to_qsfp_data_from_fsdb,
@@ -85,39 +88,32 @@ void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
     uint64_t nowSec;
     float readVal;
     bool readSuccessful;
-    switch (*sensor->access()->accessType()) {
-      case SourceType::kSrcThrift:
-        if (FLAGS_subscribe_to_stats_from_fsdb) {
-          fetchFromFsdb = true;
-        } else {
-          fetchOverThrift = true;
-        }
-        break;
-      case SourceType::kSrcRest:
-        fetchOverRest = true;
-        break;
-      case SourceType::kSrcUtil:
-        fetchOverUtil = true;
-        break;
-      case SourceType::kSrcSysfs:
-        nowSec = facebook::WallClockUtil::NowInSecFast();
-        readSuccessful = false;
-        try {
-          readVal = getSensorDataSysfs(*sensor->access()->path());
-          readSuccessful = true;
-        } catch (std::exception& e) {
-          XLOG(ERR) << "Failed to read sysfs " << *sensor->access()->path();
-        }
-        if (readSuccessful) {
-          pSensorData->updateEntryFloat(*sensor->sensorName(), readVal, nowSec);
-        }
-        break;
-      case SourceType::kSrcQsfpService:
-      case SourceType::kSrcInvalid:
-      default:
-        throw facebook::fboss::FbossError(
-            "Invalid way for fetching sensor data!");
-        break;
+    auto sensorAccessType = *sensor->access()->accessType();
+    if (sensorAccessType == constants::ACCESS_TYPE_THRIFT()) {
+      if (FLAGS_subscribe_to_stats_from_fsdb) {
+        fetchFromFsdb = true;
+      } else {
+        fetchOverThrift = true;
+      }
+    } else if (sensorAccessType == constants::ACCESS_TYPE_REST()) {
+      fetchOverRest = true;
+    } else if (sensorAccessType == constants::ACCESS_TYPE_UTIL()) {
+      fetchOverUtil = true;
+    } else if (sensorAccessType == constants::ACCESS_TYPE_SYSFS()) {
+      nowSec = facebook::WallClockUtil::NowInSecFast();
+      readSuccessful = false;
+      try {
+        readVal = getSensorDataSysfs(*sensor->access()->path());
+        readSuccessful = true;
+      } catch (std::exception& e) {
+        XLOG(ERR) << "Failed to read sysfs " << *sensor->access()->path();
+      }
+      if (readSuccessful) {
+        pSensorData->updateEntryFloat(*sensor->sensorName(), readVal, nowSec);
+      }
+    } else {
+      throw facebook::fboss::FbossError(
+          "Invalid way for fetching sensor data!");
     }
   }
   // Now, fetch data per different access type other than sysfs
@@ -173,19 +169,15 @@ int Bsp::kickWatchdog() {
   std::string cmdLine;
   if (config_.watchdog()) {
     AccessMethod access = *config_.watchdog()->access();
-    switch (*access.accessType()) {
-      case SourceType::kSrcUtil:
-        cmdLine =
-            fmt::format("{} {}", *access.path(), *config_.watchdog()->value());
-        rc = run(cmdLine.c_str());
-        break;
-      case SourceType::kSrcSysfs:
-        sysfsSuccess = writeSysfs(*access.path(), *config_.watchdog()->value());
-        rc = sysfsSuccess ? 0 : -1;
-        break;
-      default:
-        throw facebook::fboss::FbossError("Invalid watchdog access type!");
-        break;
+    if (*access.accessType() == constants::ACCESS_TYPE_UTIL()) {
+      cmdLine =
+          fmt::format("{} {}", *access.path(), *config_.watchdog()->value());
+      rc = run(cmdLine.c_str());
+    } else if (*access.accessType() == constants::ACCESS_TYPE_SYSFS()) {
+      sysfsSuccess = writeSysfs(*access.path(), *config_.watchdog()->value());
+      rc = sysfsSuccess ? 0 : -1;
+    } else {
+      throw facebook::fboss::FbossError("Invalid watchdog access type!");
     }
   }
   return rc;
@@ -400,20 +392,15 @@ void Bsp::getOpticsData(std::shared_ptr<SensorData> pSensorData) {
   for (auto opticsGroup = config_.optics()->begin();
        opticsGroup != config_.optics()->end();
        ++opticsGroup) {
-    switch (*opticsGroup->access()->accessType()) {
-      case SourceType::kSrcQsfpService:
-      case SourceType::kSrcThrift:
-        getOpticsDataFromQsfpSvc(*opticsGroup, pSensorData);
-        break;
-      case SourceType::kSrcSysfs:
-        getOpticsDataSysfs(*opticsGroup, pSensorData);
-        break;
-      case SourceType::kSrcRest:
-      case SourceType::kSrcUtil:
-      case SourceType::kSrcInvalid:
-        throw facebook::fboss::FbossError(
-            "Invalid way for fetching optics temperature!");
-        break;
+    auto accessType = *opticsGroup->access()->accessType();
+    if (accessType == constants::ACCESS_TYPE_QSFP() ||
+        accessType == constants::ACCESS_TYPE_THRIFT()) {
+      getOpticsDataFromQsfpSvc(*opticsGroup, pSensorData);
+    } else if (accessType == constants::ACCESS_TYPE_SYSFS()) {
+      getOpticsDataSysfs(*opticsGroup, pSensorData);
+    } else {
+      throw facebook::fboss::FbossError(
+          "Invalid way for fetching optics temperature!");
     }
   }
   return;

@@ -10,8 +10,17 @@
 namespace {
 using constants =
     facebook::fboss::platform::fan_service::fan_service_config_constants;
+
 std::unordered_set<std::string> rangeCheckActions = {
     constants::RANGE_CHECK_ACTION_SHUTDOWN()};
+
+std::unordered_set<std::string> accessMethodTypes = {
+    constants::ACCESS_TYPE_SYSFS(),
+    constants::ACCESS_TYPE_UTIL(),
+    constants::ACCESS_TYPE_THRIFT(),
+    constants::ACCESS_TYPE_REST(),
+    constants::ACCESS_TYPE_QSFP()};
+
 } // namespace
 
 namespace facebook::fboss::platform::fan_service {
@@ -25,7 +34,43 @@ bool Utils::isValidConfig(const FanServiceConfig& config) {
         return false;
       }
     }
+    if (!accessMethodTypes.count(*sensor.access()->accessType())) {
+      XLOG(ERR) << "Invalid access method: " << *sensor.access()->accessType();
+      return false;
+    }
   }
+
+  if (config.watchdog()) {
+    if (!accessMethodTypes.count(*config.watchdog()->access()->accessType())) {
+      XLOG(ERR) << "Invalid access method for watchdog config: "
+                << *config.watchdog()->access()->accessType();
+      return false;
+    }
+  }
+
+  for (const auto& fan : *config.fans()) {
+    if (!accessMethodTypes.count(*fan.rpmAccess()->accessType())) {
+      XLOG(ERR) << "Invalid rpmAccess method: "
+                << *fan.rpmAccess()->accessType();
+      return false;
+    }
+    if (!accessMethodTypes.count(*fan.pwmAccess()->accessType())) {
+      XLOG(ERR) << "Invalid pwmAccess method: "
+                << *fan.pwmAccess()->accessType();
+      return false;
+    }
+    if (!accessMethodTypes.count(*fan.presenceAccess()->accessType())) {
+      XLOG(ERR) << "Invalid presenceAccess method: "
+                << *fan.presenceAccess()->accessType();
+      return false;
+    }
+    if (!accessMethodTypes.count(*fan.ledAccess()->accessType())) {
+      XLOG(ERR) << "Invalid ledAccess method: "
+                << *fan.ledAccess()->accessType();
+      return false;
+    }
+  }
+
   return true;
 }
 

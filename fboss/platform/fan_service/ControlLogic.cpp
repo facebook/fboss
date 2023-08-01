@@ -52,22 +52,21 @@ void ControlLogic::getFanUpdate() {
   // Zeroth, check Fan RPM and Status
   for (const auto& fan : *config_.fans()) {
     std::string fanName = *fan.fanName();
-    XLOG(INFO) << "Control :: Fan name " << *fan.fanName() << " Access type : "
-               << static_cast<int>(*fan.rpmAccess()->accessType());
+    auto rpmAccessType = *fan.rpmAccess()->accessType();
+    XLOG(INFO) << "Control :: Fan name " << *fan.fanName()
+               << " Access type : " << rpmAccessType;
     bool fanAccessFail = false, fanMissing = false;
     int fanRpm;
     uint64_t rpmTimeStamp;
 
     // Check if RPM name in Thrift data is overridden
-    if (*fan.rpmAccess()->accessType() == SourceType::kSrcThrift) {
+    if (rpmAccessType == constants::ACCESS_TYPE_THRIFT()) {
       fanName = *fan.rpmAccess()->path();
     }
     if (!isFanPresentInDevice(fan)) {
       fanMissing = true;
     }
-    // If source type is not specified (SRC_INVALID), we treat it as Thrift.
-    if ((*fan.rpmAccess()->accessType() == SourceType::kSrcInvalid) ||
-        (*fan.rpmAccess()->accessType() == SourceType::kSrcThrift)) {
+    if (rpmAccessType == constants::ACCESS_TYPE_THRIFT()) {
       if (pSensor_->checkIfEntryExists(fanName)) {
         entryType = pSensor_->getSensorEntryType(fanName);
         switch (entryType) {
@@ -91,7 +90,7 @@ void ControlLogic::getFanUpdate() {
         // If no entry in Thrift response, consider that as failure
         fanAccessFail = true;
       }
-    } else if (*fan.rpmAccess()->accessType() == SourceType::kSrcSysfs) {
+    } else if (rpmAccessType == constants::ACCESS_TYPE_SYSFS()) {
       try {
         fanStatuses_[fanName].rpm = pBsp_->readSysfs(*fan.rpmAccess()->path());
         fanStatuses_[fanName].timeStamp = pBsp_->getCurrentTime();
@@ -468,34 +467,27 @@ bool ControlLogic::isFanPresentInDevice(const Fan& fan) {
 
   std::string presenceKey = *fan.fanName() + "_presence";
   auto presenceAccessType = *fan.presenceAccess()->accessType();
-  switch (presenceAccessType) {
-    case SourceType::kSrcThrift:
-      // In the case of Thrift, we use the last data from Thrift read
-      readVal = pSensor_->getSensorDataFloat(presenceKey);
+  if (presenceAccessType == constants::ACCESS_TYPE_THRIFT()) {
+    // In the case of Thrift, we use the last data from Thrift read
+    readVal = pSensor_->getSensorDataFloat(presenceKey);
+    readSuccessful = true;
+  } else if (presenceAccessType == constants::ACCESS_TYPE_SYSFS()) {
+    nowSec = facebook::WallClockUtil::NowInSecFast();
+    try {
+      readVal = static_cast<unsigned>(
+          pBsp_->readSysfs(*fan.presenceAccess()->path()));
       readSuccessful = true;
-      break;
-    case SourceType::kSrcSysfs:
-      nowSec = facebook::WallClockUtil::NowInSecFast();
-      try {
-        readVal = static_cast<unsigned>(
-            pBsp_->readSysfs(*fan.presenceAccess()->path()));
-        readSuccessful = true;
-      } catch (std::exception& e) {
-        XLOG(ERR) << "Failed to read sysfs " << *fan.presenceAccess()->path();
-      }
-      // If the read is successful, also update the SW state
-      if (readSuccessful) {
-        pSensor_->updateEntryFloat(presenceKey, readVal, nowSec);
-      }
-      readSuccessful = true;
-      break;
-    case SourceType::kSrcInvalid:
-    case SourceType::kSrcRest:
-    case SourceType::kSrcUtil:
-    default:
-      throw facebook::fboss::FbossError(
-          "Only Thrift and sysfs are supported for fan presence detection!");
-      break;
+    } catch (std::exception& e) {
+      XLOG(ERR) << "Failed to read sysfs " << *fan.presenceAccess()->path();
+    }
+    // If the read is successful, also update the SW state
+    if (readSuccessful) {
+      pSensor_->updateEntryFloat(presenceKey, readVal, nowSec);
+    }
+    readSuccessful = true;
+  } else {
+    throw facebook::fboss::FbossError(
+        "Only Thrift and sysfs are supported for fan presence detection!");
   }
   XLOG(INFO) << "Control :: " << presenceKey << " : " << readVal << " vs good "
              << *fan.fanPresentVal() << " - bad " << *fan.fanMissingVal();
@@ -546,26 +538,19 @@ void ControlLogic::programFan(const Zone& zone, float pwmSoFar) {
     } else if (pwmInt > *fan.pwmMax()) {
       pwmInt = *fan.pwmMax();
     }
-    switch (srcType) {
-      case SourceType::kSrcSysfs:
-        writeSuccess = pBsp_->setFanPwmSysfs(*fan.pwmAccess()->path(), pwmInt);
-        if (!writeSuccess) {
-          setFanFailState(fan, true);
-        }
-        break;
-      case SourceType::kSrcUtil:
-        writeSuccess = pBsp_->setFanPwmShell(
-            *fan.pwmAccess()->path(), *fan.fanName(), pwmInt);
-        if (!writeSuccess) {
-          setFanFailState(fan, true);
-        }
-        break;
-      case SourceType::kSrcThrift:
-      case SourceType::kSrcRest:
-      case SourceType::kSrcInvalid:
-      default:
-        facebook::fboss::FbossError(
-            "Unsupported PWM access type for : ", *fan.fanName());
+    if (srcType == constants::ACCESS_TYPE_SYSFS()) {
+      writeSuccess = pBsp_->setFanPwmSysfs(*fan.pwmAccess()->path(), pwmInt);
+      if (!writeSuccess) {
+        setFanFailState(fan, true);
+      }
+    } else if (srcType == constants::ACCESS_TYPE_UTIL()) {
+      writeSuccess = pBsp_->setFanPwmShell(
+          *fan.pwmAccess()->path(), *fan.fanName(), pwmInt);
+      if (!writeSuccess) {
+        setFanFailState(fan, true);
+      }
+    } else {
+      XLOG(ERR) << "Unsupported PWM access type for : ", *fan.fanName();
     }
     fb303::fbData->setCounter(
         fmt::format(kFanWriteFailure, *zone.zoneName(), *fan.fanName()),
@@ -605,20 +590,14 @@ void ControlLogic::setFanFailState(const Fan& fan, bool fanFailed) {
   if (ledAccessNeeded) {
     unsigned int valueToWrite =
         (fanFailed ? *fan.fanFailLedVal() : *fan.fanGoodLedVal());
-    switch (*fan.ledAccess()->accessType()) {
-      case SourceType::kSrcSysfs:
-        pBsp_->setFanLedSysfs(*fan.ledAccess()->path(), valueToWrite);
-        break;
-      case SourceType::kSrcUtil:
-        pBsp_->setFanLedShell(
-            *fan.ledAccess()->path(), *fan.fanName(), valueToWrite);
-        break;
-      case SourceType::kSrcThrift:
-      case SourceType::kSrcRest:
-      case SourceType::kSrcInvalid:
-      default:
-        facebook::fboss::FbossError(
-            "Unsupported LED access type for : ", *fan.fanName());
+    if (*fan.ledAccess()->accessType() == constants::ACCESS_TYPE_SYSFS()) {
+      pBsp_->setFanLedSysfs(*fan.ledAccess()->path(), valueToWrite);
+    } else if (
+        *fan.ledAccess()->accessType() == constants::ACCESS_TYPE_UTIL()) {
+      pBsp_->setFanLedShell(
+          *fan.ledAccess()->path(), *fan.fanName(), valueToWrite);
+    } else {
+      XLOG(ERR) << "Unsupported LED access type for : ", *fan.fanName();
     }
     XLOG(INFO) << "Control :: Set the LED of " << *fan.fanName() << " to "
                << (fanFailed ? "Fail" : "Good") << "(" << valueToWrite << ") "
