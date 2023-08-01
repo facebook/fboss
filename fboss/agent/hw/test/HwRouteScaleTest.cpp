@@ -62,6 +62,7 @@ TEST_F(HwRouteScaleTest, rswRouteScale) {
        PlatformType::PLATFORM_YAMP,
        PlatformType::PLATFORM_WEDGE400,
        PlatformType::PLATFORM_WEDGE400C,
+       PlatformType::PLATFORM_MORGAN800CC,
        PlatformType::PLATFORM_CLOUDRIPPER,
        PlatformType::PLATFORM_ELBERT,
        PlatformType::PLATFORM_FUJI});
@@ -76,6 +77,7 @@ TEST_F(HwRouteScaleTest, fswRouteScale) {
        PlatformType::PLATFORM_YAMP,
        PlatformType::PLATFORM_WEDGE400,
        PlatformType::PLATFORM_WEDGE400C,
+       PlatformType::PLATFORM_MORGAN800CC,
        PlatformType::PLATFORM_CLOUDRIPPER,
        PlatformType::PLATFORM_ELBERT,
        PlatformType::PLATFORM_FUJI});
@@ -87,6 +89,7 @@ TEST_F(HwRouteScaleTest, thAlpmScale) {
        PlatformType::PLATFORM_GALAXY_LC,
        PlatformType::PLATFORM_GALAXY_FC,
        PlatformType::PLATFORM_WEDGE400C,
+       PlatformType::PLATFORM_MORGAN800CC,
        PlatformType::PLATFORM_CLOUDRIPPER});
 }
 
@@ -96,6 +99,7 @@ TEST_F(HwRouteScaleTest, hgridDuScaleTest) {
        PlatformType::PLATFORM_YAMP,
        PlatformType::PLATFORM_WEDGE400,
        PlatformType::PLATFORM_WEDGE400C,
+       PlatformType::PLATFORM_MORGAN800CC,
        PlatformType::PLATFORM_CLOUDRIPPER,
        PlatformType::PLATFORM_ELBERT,
        PlatformType::PLATFORM_FUJI});
@@ -107,6 +111,7 @@ TEST_F(HwRouteScaleTest, hgridUuScaleTest) {
        PlatformType::PLATFORM_YAMP,
        PlatformType::PLATFORM_WEDGE400,
        PlatformType::PLATFORM_WEDGE400C,
+       PlatformType::PLATFORM_MORGAN800CC,
        PlatformType::PLATFORM_CLOUDRIPPER,
        PlatformType::PLATFORM_ELBERT,
        PlatformType::PLATFORM_FUJI});
@@ -117,6 +122,7 @@ TEST_F(HwRouteScaleTest, turboFabricScaleTest) {
       {PlatformType::PLATFORM_MINIPACK,
        PlatformType::PLATFORM_YAMP,
        PlatformType::PLATFORM_ELBERT,
+       PlatformType::PLATFORM_MORGAN800CC,
        PlatformType::PLATFORM_FUJI});
 }
 
@@ -126,6 +132,7 @@ TEST_F(HwRouteScaleTest, anticipatedRouteScaleGenerator) {
        PlatformType::PLATFORM_YAMP,
        PlatformType::PLATFORM_WEDGE400,
        PlatformType::PLATFORM_WEDGE400C,
+       PlatformType::PLATFORM_MORGAN800CC,
        PlatformType::PLATFORM_CLOUDRIPPER,
        PlatformType::PLATFORM_ELBERT,
        PlatformType::PLATFORM_FUJI});
