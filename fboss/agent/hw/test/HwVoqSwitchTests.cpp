@@ -1138,9 +1138,53 @@ class HwVoqSwitchFullScaleDsfNodesTest
     return dsfNodes;
   }
 
+ protected:
+  void setupRemoteIntfAndSysPorts() {
+    cfg::SwitchConfig initConfig = initialConfig();
+    for (const auto& [remoteSwitchId, dsfNode] : *initConfig.dsfNodes()) {
+      if (remoteSwitchId == 0) {
+        continue;
+      }
+      CHECK(dsfNode.systemPortRange().has_value());
+      const auto minPortID = *dsfNode.systemPortRange()->minimum();
+      // 0th port for CPU and 1st port for recycle port
+      for (int i = 2; i < kSystemPortCountPerNode; i++) {
+        const auto newSysPortId = minPortID + i;
+        const SystemPortID remoteSysPortId(newSysPortId);
+        const InterfaceID remoteIntfId(newSysPortId);
+        const PortDescriptor portDesc(remoteSysPortId);
+        const uint64_t encapEndx = newSysPortId;
+
+        // Use subnet 100:(dsfNodeId):(localIntfId)::1/64
+        // and 100.(dsfNodeId).(localIntfId).1/24
+        folly::IPAddressV6 neighborIp(
+            folly::to<std::string>("100:", remoteSwitchId, ":", i, "::2"));
+
+        addRemoteSysPort(remoteSysPortId, SwitchID(remoteSwitchId));
+        addRemoteInterface(
+            remoteIntfId,
+            {
+                {folly::IPAddress(folly::to<std::string>(
+                     "100:", remoteSwitchId, ":", i, "::1")),
+                 64},
+                {folly::IPAddress(folly::to<std::string>(
+                     "100.", remoteSwitchId, ".", i, ".1")),
+                 24},
+            });
+        addRemoveRemoteNeighbor(
+            neighborIp, remoteIntfId, portDesc, true /* add */, encapEndx);
+      }
+    }
+  }
+
  private:
   int getDsfNodeCount(HwAsic* asic) const {
     return asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2 ? 128 : 256;
   }
 };
+
+TEST_F(HwVoqSwitchFullScaleDsfNodesTest, systemPortScaleTest) {
+  auto setup = [this]() { setupRemoteIntfAndSysPorts(); };
+  verifyAcrossWarmBoots(setup, [] {});
+}
 } // namespace facebook::fboss
