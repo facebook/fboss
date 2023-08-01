@@ -64,7 +64,7 @@ std::string getMokujinFSConfig() {
         "25" : 4,
         "30" : 1
       },
-      "calcType" : 0,
+      "pwmCalcType" : "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable" : {
         "28" : 30,
         "29" : 35,
@@ -118,7 +118,7 @@ std::string getMokujinFSConfig() {
         "25" : 4,
         "30" : 1
       },
-      "calcType" : 0,
+      "pwmCalcType" : "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable" : {
         "28" : 30,
         "29" : 35,
@@ -173,7 +173,7 @@ std::string getMokujinFSConfig() {
         "80" : 0,
         "95" : 0
       },
-      "calcType" : 2,
+      "pwmCalcType" : "SENSOR_PWM_CALC_TYPE_PID",
       "setPoint" : 92,
       "posHysteresis" : 0,
       "negHysteresis" : 3,
@@ -204,7 +204,7 @@ std::string getMokujinFSConfig() {
         "80" : 0,
         "95" : 0
       },
-      "calcType" : 1,
+      "pwmCalcType" : "SENSOR_PWM_CALC_TYPE_INCREMENT_PID",
       "setPoint" : 92,
       "posHysteresis" : 0,
       "negHysteresis" : 3,

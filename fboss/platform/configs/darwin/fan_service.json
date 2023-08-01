@@ -68,7 +68,7 @@
         "highMinor" : 90.0,
         "minorSoakSeconds" : 15
       },
-      "calcType" : 0,
+      "pwmCalcType" : "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "scale" : 1000.0,
       "normalUpTable" : {
         "15" : 24,
@@ -97,7 +97,7 @@
         "highMinor" : 90.0,
         "minorSoakSeconds" : 15
       },
-      "calcType" : 0,
+      "pwmCalcType" : "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "scale" : 1000.0,
       "type" : "linear_four_curves",
       "normalUpTable" : {

@@ -28,6 +28,12 @@ std::unordered_set<std::string> zoneTypes = {
 
 std::unordered_set<std::string> opticAggregationTypes = {
     constants::OPTIC_AGGREGATION_TYPE_MAX()};
+
+std::unordered_set<std::string> sensorPwmCalcTypes = {
+    constants::SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE(),
+    constants::SENSOR_PWM_CALC_TYPE_INCREMENT_PID(),
+    constants::SENSOR_PWM_CALC_TYPE_PID()};
+
 } // namespace
 
 namespace facebook::fboss::platform::fan_service {
@@ -43,6 +49,10 @@ bool Utils::isValidConfig(const FanServiceConfig& config) {
     }
     if (!accessMethodTypes.count(*sensor.access()->accessType())) {
       XLOG(ERR) << "Invalid access method: " << *sensor.access()->accessType();
+      return false;
+    }
+    if (!sensorPwmCalcTypes.count(*sensor.pwmCalcType())) {
+      XLOG(ERR) << "Invalid PWM calculation type: " << *sensor.pwmCalcType();
       return false;
     }
   }

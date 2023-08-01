@@ -138,116 +138,106 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
   TempToPwmMap tableToUse;
   auto& readCache = sensorReadCaches_[*sensor.sensorName()];
   auto& pwmCalcCache = pwmCalcCaches_[*sensor.sensorName()];
-  switch (*sensor.calcType()) {
-    case SensorPwmCalcType::kSensorPwmCalcFourLinearTable:
-      accelerate = true;
-      previousSensorValue = pwmCalcCache.previousSensorRead;
-      sensorValue = readCache.adjustedReadCache;
-      targetPwm = 0.0;
-      deadFanExists = (numFanFailed_ > 0);
-      accelerate =
-          ((previousSensorValue == 0) || (sensorValue > previousSensorValue));
-      if (accelerate && !deadFanExists) {
-        tableToUse = *sensor.normalUpTable();
-      } else if (!accelerate && !deadFanExists) {
-        tableToUse = *sensor.normalDownTable();
-      } else if (accelerate && deadFanExists) {
-        tableToUse = *sensor.failUpTable();
-      } else {
-        tableToUse = *sensor.failDownTable();
-      }
-      // Start with the lowest value
-      targetPwm = tableToUse.begin()->second;
-      for (const auto& [temp, pwm] : tableToUse) {
-        if (sensorValue > temp) {
-          targetPwm = pwm;
-        }
-      }
-      if (accelerate) {
-        // If accleration is needed, new pwm should be bigger than old value
-        if (targetPwm < readCache.targetPwmCache) {
-          targetPwm = readCache.targetPwmCache;
-        }
-      } else {
-        // If deceleration is needed, new pwm should be smaller than old one
-        if (targetPwm > readCache.targetPwmCache) {
-          targetPwm = readCache.targetPwmCache;
-        }
-      }
-      pwmCalcCache.previousSensorRead = sensorValue;
-      readCache.targetPwmCache = targetPwm;
-      XLOG(INFO) << "Control :: Sensor : " << *sensor.sensorName()
-                 << " Value : " << sensorValue << " [4CUV] Pwm : " << targetPwm;
-      break;
+  const auto& pwmCalcType = *sensor.pwmCalcType();
 
-    case SensorPwmCalcType::kSensorPwmCalcIncrementPid:
-      value = readCache.adjustedReadCache;
-      lastPwm = pwmCalcCache.previousTargetPwm;
-      kp = *sensor.kp();
-      ki = *sensor.ki();
-      kd = *sensor.kd();
-      previousRead1 = pwmCalcCache.previousRead1;
-      previousRead2 = pwmCalcCache.previousRead2;
-      pwm = lastPwm + (kp * (value - previousRead1)) +
-          (ki * (value - *sensor.setPoint())) +
-          (kd * (value - 2 * previousRead1 + previousRead2));
-      // Even though the previous Target Pwm should be the zone pwm,
-      // the best effort is made here. Zone should update this value.
-      pwmCalcCache.previousTargetPwm = pwm;
-      readCache.targetPwmCache = pwm;
-      pwmCalcCache.previousRead2 = previousRead1;
-      pwmCalcCache.previousRead1 = value;
-      XLOG(INFO) << "Control :: Sensor : " << *sensor.sensorName()
-                 << " Value : " << value << " [IPID] Pwm : " << pwm;
-      XLOG(INFO) << "           Prev1  : " << previousRead1
-                 << " Prev2 : " << previousRead2;
-
-      break;
-
-    case SensorPwmCalcType::kSensorPwmCalcPid:
-      value = readCache.adjustedReadCache;
-      lastPwm = pwmCalcCache.previousTargetPwm;
-      pwm = lastPwm;
-      kp = *sensor.kp();
-      ki = *sensor.ki();
-      kd = *sensor.kd();
-      previousRead1 = pwmCalcCache.previousRead1;
-      previousRead2 = pwmCalcCache.previousRead2;
-      dT = pBsp_->getCurrentTime() - lastControlUpdateSec_;
-
-      if (value < minVal) {
-        pwmCalcCache.integral = 0;
-        pwmCalcCache.previousTargetPwm = 0;
+  if (pwmCalcType == constants::SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE()) {
+    accelerate = true;
+    previousSensorValue = pwmCalcCache.previousSensorRead;
+    sensorValue = readCache.adjustedReadCache;
+    targetPwm = 0.0;
+    deadFanExists = (numFanFailed_ > 0);
+    accelerate =
+        ((previousSensorValue == 0) || (sensorValue > previousSensorValue));
+    if (accelerate && !deadFanExists) {
+      tableToUse = *sensor.normalUpTable();
+    } else if (!accelerate && !deadFanExists) {
+      tableToUse = *sensor.normalDownTable();
+    } else if (accelerate && deadFanExists) {
+      tableToUse = *sensor.failUpTable();
+    } else {
+      tableToUse = *sensor.failDownTable();
+    }
+    // Start with the lowest value
+    targetPwm = tableToUse.begin()->second;
+    for (const auto& [temp, pwm] : tableToUse) {
+      if (sensorValue > temp) {
+        targetPwm = pwm;
       }
-      if (value > maxVal) {
-        error = maxVal - value;
-        pwmCalcCache.integral = pwmCalcCache.integral + error * dT;
-        auto derivative = (error - pwmCalcCache.last_error) / dT;
-        pwm = kp * error + ki * pwmCalcCache.integral + kd * derivative;
-        readCache.targetPwmCache = pwm;
-        pwmCalcCache.previousTargetPwm = pwm;
-        pwmCalcCache.last_error = error;
+    }
+    if (accelerate) {
+      // If accleration is needed, new pwm should be bigger than old value
+      if (targetPwm < readCache.targetPwmCache) {
+        targetPwm = readCache.targetPwmCache;
       }
-      pwmCalcCache.previousRead2 = previousRead1;
-      pwmCalcCache.previousRead1 = value;
-      XLOG(INFO) << "Control :: Sensor : " << *sensor.sensorName()
-                 << " Value : " << value << " [PID] Pwm : " << pwm;
-      XLOG(INFO) << "               dT : " << dT
-                 << " Time : " << pBsp_->getCurrentTime()
-                 << " LUD : " << lastControlUpdateSec_ << " Min : " << minVal
-                 << " Max : " << maxVal;
-      break;
-
-    case SensorPwmCalcType::kSensorPwmCalcDisable:
-      // Do nothing
-      XLOG(WARN) << "Control :: Sensor : " << *sensor.sensorName()
-                 << "Do Nothing ";
-      break;
-    default:
-      facebook::fboss::FbossError(
-          "Invalid PWM Calculation Type for sensor", *sensor.sensorName());
-      break;
+    } else {
+      // If deceleration is needed, new pwm should be smaller than old one
+      if (targetPwm > readCache.targetPwmCache) {
+        targetPwm = readCache.targetPwmCache;
+      }
+    }
+    pwmCalcCache.previousSensorRead = sensorValue;
+    readCache.targetPwmCache = targetPwm;
+    XLOG(INFO) << "Control :: Sensor : " << *sensor.sensorName()
+               << " Value : " << sensorValue << " [4CUV] Pwm : " << targetPwm;
   }
+
+  if (pwmCalcType == constants::SENSOR_PWM_CALC_TYPE_INCREMENT_PID()) {
+    value = readCache.adjustedReadCache;
+    lastPwm = pwmCalcCache.previousTargetPwm;
+    kp = *sensor.kp();
+    ki = *sensor.ki();
+    kd = *sensor.kd();
+    previousRead1 = pwmCalcCache.previousRead1;
+    previousRead2 = pwmCalcCache.previousRead2;
+    pwm = lastPwm + (kp * (value - previousRead1)) +
+        (ki * (value - *sensor.setPoint())) +
+        (kd * (value - 2 * previousRead1 + previousRead2));
+    // Even though the previous Target Pwm should be the zone pwm,
+    // the best effort is made here. Zone should update this value.
+    pwmCalcCache.previousTargetPwm = pwm;
+    readCache.targetPwmCache = pwm;
+    pwmCalcCache.previousRead2 = previousRead1;
+    pwmCalcCache.previousRead1 = value;
+    XLOG(INFO) << "Control :: Sensor : " << *sensor.sensorName()
+               << " Value : " << value << " [IPID] Pwm : " << pwm;
+    XLOG(INFO) << "           Prev1  : " << previousRead1
+               << " Prev2 : " << previousRead2;
+  }
+
+  if (pwmCalcType == constants::SENSOR_PWM_CALC_TYPE_PID()) {
+    value = readCache.adjustedReadCache;
+    lastPwm = pwmCalcCache.previousTargetPwm;
+    pwm = lastPwm;
+    kp = *sensor.kp();
+    ki = *sensor.ki();
+    kd = *sensor.kd();
+    previousRead1 = pwmCalcCache.previousRead1;
+    previousRead2 = pwmCalcCache.previousRead2;
+    dT = pBsp_->getCurrentTime() - lastControlUpdateSec_;
+
+    if (value < minVal) {
+      pwmCalcCache.integral = 0;
+      pwmCalcCache.previousTargetPwm = 0;
+    }
+    if (value > maxVal) {
+      error = maxVal - value;
+      pwmCalcCache.integral = pwmCalcCache.integral + error * dT;
+      auto derivative = (error - pwmCalcCache.last_error) / dT;
+      pwm = kp * error + ki * pwmCalcCache.integral + kd * derivative;
+      readCache.targetPwmCache = pwm;
+      pwmCalcCache.previousTargetPwm = pwm;
+      pwmCalcCache.last_error = error;
+    }
+    pwmCalcCache.previousRead2 = previousRead1;
+    pwmCalcCache.previousRead1 = value;
+    XLOG(INFO) << "Control :: Sensor : " << *sensor.sensorName()
+               << " Value : " << value << " [PID] Pwm : " << pwm;
+    XLOG(INFO) << "               dT : " << dT
+               << " Time : " << pBsp_->getCurrentTime()
+               << " LUD : " << lastControlUpdateSec_ << " Min : " << minVal
+               << " Max : " << maxVal;
+  }
+
   // No matter what, PWM should be within
   // predefined upper and lower thresholds
   if (readCache.targetPwmCache > *config_.pwmUpperThreshold()) {

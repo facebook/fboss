@@ -10,6 +10,9 @@ const string ZONE_TYPE_MAX = "ZONE_TYPE_MAX";
 const string ZONE_TYPE_MIN = "ZONE_TYPE_MIN";
 const string ZONE_TYPE_AVG = "ZONE_TYPE_AVG";
 const string OPTIC_AGGREGATION_TYPE_MAX = "OPTIC_AGGREGATION_TYPE_MAX";
+const string SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE = "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE";
+const string SENSOR_PWM_CALC_TYPE_INCREMENT_PID = "SENSOR_PWM_CALC_TYPE_INCREMENT_PID";
+const string SENSOR_PWM_CALC_TYPE_PID = "SENSOR_PWM_CALC_TYPE_PID";
 
 enum OpticTableType {
   kOpticTable100Generic = 0,
@@ -84,20 +87,13 @@ enum BspType {
   kBspMokujin = 4,
 }
 
-enum SensorPwmCalcType {
-  kSensorPwmCalcFourLinearTable = 0,
-  kSensorPwmCalcIncrementPid = 1,
-  kSensorPwmCalcPid = 2,
-  kSensorPwmCalcDisable = 3,
-}
-
 struct Sensor {
   1: string sensorName;
   2: AccessMethod access;
   3: map<i32, i32> adjustmentTable;
   4: Alarm alarm;
   5: optional RangeCheck rangeCheck;
-  6: SensorPwmCalcType calcType;
+  6: string pwmCalcType;
   7: float scale;
   8: TempToPwmMap normalUpTable;
   9: TempToPwmMap normalDownTable;
