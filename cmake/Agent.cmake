@@ -460,6 +460,7 @@ target_link_libraries(fboss_common_init
   fboss_init
   load_agent_config
   Folly::folly
+  fb303::fb303
 )
 
 add_library(monolithic_agent_initializer
@@ -487,3 +488,12 @@ add_library(split_agent_initializer
 target_link_libraries(split_agent_initializer
   Folly::folly
 )
+
+add_executable(fboss_sw_agent
+  fboss/agent/FbossSwAgent.cpp
+)
+
+  target_link_libraries(fboss_sw_agent
+    main
+    split_agent_initializer
+  )
