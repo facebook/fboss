@@ -8,8 +8,9 @@ namespace facebook::fboss::platform {
 
 class PlatformUtils {
  public:
+  virtual ~PlatformUtils() = default;
   // Executes command and returns exit status and standard output
-  std::pair<int, std::string> execCommand(const std::string& cmd);
+  virtual std::pair<int, std::string> execCommand(const std::string& cmd) const;
 };
 
 } // namespace facebook::fboss::platform
