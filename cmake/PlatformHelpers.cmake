@@ -4,7 +4,7 @@
 # cmake/FooBar.cmake
 
 add_library(platform_utils
-  fboss/platform/helpers/Utils.cpp
+  fboss/platform/helpers/PlatformUtils.cpp
   fboss/platform/helpers/oss/Init.cpp
 )
 

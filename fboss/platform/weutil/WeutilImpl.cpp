@@ -9,7 +9,7 @@
 #include <folly/logging/xlog.h>
 #include <filesystem>
 
-#include "fboss/platform/helpers/Utils.h"
+#include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/weutil/WeutilImpl.h"
 #include "fboss/platform/weutil/prefdl/Prefdl.h"
 

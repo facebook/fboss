@@ -21,10 +21,9 @@
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/fw_util/Flags.h"
 #include "fboss/platform/fw_util/FwUtilImpl.h"
-#include "fboss/platform/helpers/Utils.h"
+#include "fboss/platform/helpers/PlatformUtils.h"
 
 using namespace folly::literals::shell_literals;
-using namespace facebook::fboss::platform::helpers;
 namespace facebook::fboss::platform::fw_util {
 
 void FwUtilImpl::init() {
@@ -72,7 +71,7 @@ std::string FwUtilImpl::printFpdList() {
 }
 
 std::string FwUtilImpl::runVersionCmd(const std::string& cmd) {
-  auto [exitStatus, standardOut] = execCommand(cmd);
+  auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmd);
   if (exitStatus != 0) {
     throw std::runtime_error("Run " + cmd + " failed!");
   }
@@ -209,7 +208,7 @@ void FwUtilImpl::storeFilePath(
     const std::string& filePath) {
   const std::string textFile = "/tmp/" + fpd + "_filename.txt";
   const std::string cmd = "echo " + filePath + " > " + textFile;
-  auto [exitStatus, standardOut] = execCommand(cmd);
+  auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmd);
   if (exitStatus != 0) {
     throw std::runtime_error("Run" + cmd + " failed!");
   }

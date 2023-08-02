@@ -19,7 +19,7 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/config_lib/ConfigLib.h"
-#include "fboss/platform/helpers/Utils.h"
+#include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/sensor_service/FsdbSyncer.h"
 #include "fboss/platform/sensor_service/Utils.h"
 #include "fboss/platform/sensor_service/gen-cpp2/sensor_service_stats_types.h"
@@ -189,7 +189,8 @@ void SensorServiceImpl::fetchSensorData() {
     }
   };
   if (sensorSource_ == SensorSource::LMSENSOR) {
-    auto [exitStatus, standardOut] = helpers::execCommand(kLmsensorCommand);
+    auto [exitStatus, standardOut] =
+        PlatformUtils().execCommand(kLmsensorCommand);
     if (exitStatus != 0) {
       throw std::runtime_error("Run " + kLmsensorCommand + " failed!");
     }

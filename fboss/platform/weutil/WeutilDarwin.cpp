@@ -9,7 +9,7 @@
 #include <folly/json.h>
 #include <filesystem>
 
-#include "fboss/platform/helpers/Utils.h"
+#include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/weutil/WeutilDarwin.h"
 #include "fboss/platform/weutil/prefdl/Prefdl.h"
 
@@ -91,14 +91,14 @@ void WeutilDarwin::genSpiPrefdlFile(void) {
     }
   }
 
-  std::tie(exitStatus, standardOut) = helpers::execCommand(kCreteLayout);
+  std::tie(exitStatus, standardOut) = PlatformUtils().execCommand(kCreteLayout);
   if (exitStatus != 0) {
     throw std::runtime_error("Cannot create layout file with: " + kCreteLayout);
   }
 
   // Get flash type
   std::tie(exitStatus, standardOut) =
-      helpers::execCommand(kFlashromGetFlashType + " 2>&1 ");
+      PlatformUtils().execCommand(kFlashromGetFlashType + " 2>&1 ");
 
   /* Since flashrom will return 1 for "flashrom -p internal"
    * we ignore retVal == 1
@@ -120,7 +120,7 @@ void WeutilDarwin::genSpiPrefdlFile(void) {
         folly::to<std::string>(kFlashromGetFlashType, kFlashromGetContent);
   }
 
-  std::tie(exitStatus, standardOut) = helpers::execCommand(getPrefdl);
+  std::tie(exitStatus, standardOut) = PlatformUtils().execCommand(getPrefdl);
   if (exitStatus != 0) {
     throw std::runtime_error(folly::to<std::string>(
         "Cannot create BIOS file with: ",
@@ -130,7 +130,7 @@ void WeutilDarwin::genSpiPrefdlFile(void) {
         std::to_string(exitStatus)));
   }
 
-  std::tie(exitStatus, standardOut) = helpers::execCommand(kddComands);
+  std::tie(exitStatus, standardOut) = PlatformUtils().execCommand(kddComands);
   if (exitStatus != 0) {
     throw std::runtime_error("Cannot create prefdl file with: " + kddComands);
   }

@@ -4,7 +4,7 @@
 
 #include <folly/logging/xlog.h>
 
-#include "fboss/platform/helpers/Utils.h"
+#include "fboss/platform/helpers/PlatformUtils.h"
 
 namespace facebook::fboss::platform::platform_manager {
 
@@ -28,7 +28,7 @@ void PkgUtils::runImpl(const std::string& rpmFullName, int maxAttempts) {
   do {
     XLOG(INFO) << fmt::format(
         "Running command: `{}`; Attempt: {}", cmd, attempt++);
-    std::tie(exitStatus, standardOut) = helpers::execCommand(cmd);
+    std::tie(exitStatus, standardOut) = PlatformUtils().execCommand(cmd);
     XLOG(INFO) << standardOut;
   } while (attempt <= maxAttempts && exitStatus != 0);
   if (exitStatus != 0) {
