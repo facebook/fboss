@@ -278,7 +278,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       const std::shared_ptr<SwitchState>& newState,
       bool transaction,
       bool disableAppliedStateVerification = false);
-  bool applyUpdate(
+  fsdb::OperDelta applyUpdate(
       const fsdb::OperDelta& operDelta,
       const std::lock_guard<std::mutex>& lock,
       bool transaction);

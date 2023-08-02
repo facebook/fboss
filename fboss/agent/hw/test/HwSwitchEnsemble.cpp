@@ -191,9 +191,15 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewStateImpl(
   bool applyUpdateSuccess = true;
   {
     std::lock_guard<std::mutex> lk(updateStateMutex_);
-    applyUpdateSuccess = applyUpdate(delta.getOperDelta(), lk, transaction);
+    auto resultOperDelta = applyUpdate(delta.getOperDelta(), lk, transaction);
+    applyUpdateSuccess = resultOperDelta.changes()->empty();
     // We are about to give up the lock, cache programmedState
     // applied by this function invocation
+    if (applyUpdateSuccess) {
+      programmedState_ = toApply;
+    } else {
+      programmedState_ = StateDelta(toApply, resultOperDelta).newState();
+    }
     appliedState = programmedState_;
   }
   StaticL2ForNeighborHwSwitchUpdater updater(this);
@@ -204,16 +210,14 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewStateImpl(
   return appliedState;
 }
 
-bool HwSwitchEnsemble::applyUpdate(
+fsdb::OperDelta HwSwitchEnsemble::applyUpdate(
     const fsdb::OperDelta& operDelta,
     const std::lock_guard<std::mutex>& /*lock*/,
     bool transaction) {
   auto resultOperDelta = transaction
       ? getHwSwitch()->stateChangedTransaction(operDelta)
       : getHwSwitch()->stateChanged(operDelta);
-  programmedState_ = getHwSwitch()->getProgrammedState();
-  programmedState_->publish();
-  return resultOperDelta.changes()->empty();
+  return resultOperDelta;
 }
 
 void HwSwitchEnsemble::applyInitialConfig(const cfg::SwitchConfig& initCfg) {
