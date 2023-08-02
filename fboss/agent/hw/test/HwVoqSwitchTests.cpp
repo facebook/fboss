@@ -136,7 +136,9 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
 
   int sendPacket(
       const folly::IPAddressV6& dstIp,
-      std::optional<PortID> frontPanelPort) {
+      std::optional<PortID> frontPanelPort,
+      std::optional<std::vector<uint8_t>> payload =
+          std::optional<std::vector<uint8_t>>()) {
     folly::IPAddressV6 kSrcIp("1::1");
     const auto srcMac = utility::kLocalCpuMac();
     const auto dstMac = utility::kLocalCpuMac();
@@ -150,7 +152,9 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         dstIp,
         8000, // l4 src port
         8001, // l4 dst port
-        0x24 << 2); // dscp
+        0x24 << 2, // dscp
+        255, // hopLimit
+        payload);
     size_t txPacketSize = txPacket->buf()->length();
 
     XLOG(DBG5) << "\n"
