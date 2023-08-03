@@ -571,17 +571,26 @@ void IPv6Handler::handleNeighborAdvertisement(
 
   auto type = ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT;
 
-  // Check to see if this IP address is in our NDP response table.
-  auto entry = vlanOrIntf->getNdpResponseTable()->getEntry(hdr.ipv6->dstAddr);
-  if (!entry) {
-    receivedNdpNotMine(
-        vlanOrIntf,
-        targetIP,
-        hdr.src,
-        PortDescriptor::fromRxPacket(*pkt.get()),
-        type,
-        flags);
-    return;
+  const auto& dstIP = hdr.ipv6->dstAddr;
+  /*
+   * Unsolicited nbr adv are sent to mcast (typically all nodes mcast) address.
+   * RFC (rfc2461)  explicitly allows for unsolicited ndp advertisments
+   */
+  auto skipCheckMine =
+      FLAGS_accept_unsolicited_neighbor_adv && dstIP.isMulticast();
+  if (!skipCheckMine) {
+    // Check to see if this IP address is in our NDP response table.
+    auto entry = vlanOrIntf->getNdpResponseTable()->getEntry(hdr.ipv6->dstAddr);
+    if (!entry) {
+      receivedNdpNotMine(
+          vlanOrIntf,
+          targetIP,
+          hdr.src,
+          PortDescriptor::fromRxPacket(*pkt.get()),
+          type,
+          flags);
+      return;
+    }
   }
 
   receivedNdpMine(
