@@ -3,13 +3,22 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <stdexcept>
 #include <vector>
+
+#include "fboss/platform/helpers/PlatformUtils.h"
 
 namespace facebook::fboss::platform::platform_manager {
 
 class PlatformI2cExplorer {
  public:
+  virtual ~PlatformI2cExplorer() {}
+  PlatformI2cExplorer(
+      const std::shared_ptr<PlatformUtils>& platformUtils =
+          std::make_shared<PlatformUtils>())
+      : platformUtils_(platformUtils){};
+
   // This function takes as input the list of `i2cBussesFromMainBoard` defined
   // in the platform_manager_config.thrift, and outputs a map from
   // `i2cBussesFromMainBoard` to the corresponding i2c bus names assigned on the
@@ -42,6 +51,9 @@ class PlatformI2cExplorer {
 
   // Return sysfs path to the device at `addr` on `i2cBusName`.
   static std::string getI2cPath(const std::string& i2cBusName, uint8_t addr);
+
+ private:
+  std::shared_ptr<PlatformUtils> platformUtils_{};
 };
 
 } // namespace facebook::fboss::platform::platform_manager
