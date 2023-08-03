@@ -493,7 +493,20 @@ add_executable(fboss_sw_agent
   fboss/agent/FbossSwAgent.cpp
 )
 
-  target_link_libraries(fboss_sw_agent
-    main
-    split_agent_initializer
-  )
+target_link_libraries(fboss_sw_agent
+  main
+  split_agent_initializer
+)
+
+add_library(sw_switch_warmboot_helper
+  fboss/agent/SwSwitchWarmBootHelper.cpp
+)
+
+target_link_libraries(sw_switch_warmboot_helper
+  async_logger
+  fboss_error
+  utils
+  common_file_utils
+  Folly::folly
+  switch_state_cpp2
+)
