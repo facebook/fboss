@@ -2,10 +2,13 @@
 
 #include "fboss/platform/platform_manager/PlatformI2cExplorer.h"
 
+#include <folly/logging/xlog.h>
 #include <re2/re2.h>
 
-#include <folly/logging/xlog.h>
+#include <filesystem>
 #include <stdexcept>
+
+namespace fs = std::filesystem;
 
 namespace {
 
@@ -33,6 +36,12 @@ std::map<std::string, std::string> PlatformI2cExplorer::getBusesfromBsp(
 
 std::string PlatformI2cExplorer::getFruTypeName(const std::string&) {
   throw std::runtime_error("Not implemented yet.");
+}
+
+bool PlatformI2cExplorer::isI2cDevicePresent(
+    const std::string& busName,
+    uint8_t addr) {
+  return fs::exists(fs::path(getDeviceI2cPath(busName, addr)) / "name");
 }
 
 void PlatformI2cExplorer::createI2cDevice(
