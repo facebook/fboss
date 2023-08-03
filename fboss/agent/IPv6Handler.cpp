@@ -40,6 +40,11 @@
 
 DECLARE_bool(intf_nbr_tables);
 
+DEFINE_bool(
+    accept_unsolicited_neighbor_adv,
+    false,
+    "Accept unsolicited NDP advertisements sent to multicast address");
+
 using folly::IPAddressV6;
 using folly::MacAddress;
 using folly::io::Cursor;
