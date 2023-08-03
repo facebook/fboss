@@ -376,27 +376,6 @@ class HwSwitch {
       folly::dynamic& follySwitchState,
       state::WarmbootState& thriftSwitchState) = 0;
 
-  // Modify the state read by HwSwitch from the warmboot file before returning
-  // it to the SwSwitch.
-  // Example use case:
-  //  - Agent V2: adds new SwitchState fields, populates during config apply
-  //  - Agent V1: does not contain new fields
-  //  - Agent V1: warmboot exit, writes old SwitchState minus new fields.
-  //  - Agent V2: reads SwitchState minus populated values for new fields
-  // Agent V2 config application, which will populate these new fields, will
-  // happen later. But other Agent logic (e.g. state observers) can run before
-  // config application and could fail given these fields are not populated.
-  // Thus, populate new fields before returning the SwitchState to SwSwitch.
-  //
-  // For a given use case, the logic in this function:
-  //  - Should populate new fields while warmbooting from Agent V1 to Agent V2
-  //  - Should be no-op while warmbooting from Agent V2 to Agent V2 or later.
-  //
-  // The logic for a given use case could be safely removed once the entire
-  // fleet has migrated to Agent V2 or later.
-  std::shared_ptr<SwitchState> fillinPortInterfaces(
-      const std::shared_ptr<SwitchState>& oldState);
-
   std::shared_ptr<SwitchState> getMinAlpmState(
       RoutingInformationBase* rib,
       const std::shared_ptr<SwitchState>& state);

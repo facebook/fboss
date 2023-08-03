@@ -164,63 +164,6 @@ fsdb::OperDelta HwSwitch::stateChangedTransaction(
   return result;
 }
 
-std::shared_ptr<SwitchState> HwSwitch::fillinPortInterfaces(
-    const std::shared_ptr<SwitchState>& oldState) {
-  if (getBootType() != BootType::WARM_BOOT) {
-    return oldState;
-  }
-
-  // Populate newly added InterfaceIDs for port
-  auto newState = oldState->clone();
-  auto newPortMaps = newState->getPorts()->modify(&newState);
-  for (auto portMap : *newPortMaps) {
-    for (auto port : *portMap.second) {
-      auto newPort = port.second->clone();
-
-      if (newPort->getInterfaceIDs().size() != 0) {
-        continue;
-      }
-
-      std::vector<int32_t> interfaceIDs;
-      for (const auto& vlanMember : port.second->getVlans()) {
-        interfaceIDs.push_back(vlanMember.first);
-      }
-      newPort->setInterfaceIDs(interfaceIDs);
-      newPortMaps->updateNode(newPort, HwSwitchMatcher(portMap.first));
-    }
-  }
-
-  auto newAggregatePortMap = newState->getAggregatePorts()->modify(&newState);
-  for (const auto& [_, aggregatePorts] : *newAggregatePortMap) {
-    for (auto aggregatePort : *aggregatePorts) {
-      auto newAggregatePort = aggregatePort.second->clone();
-
-      if (newAggregatePort->getInterfaceIDs()->size() != 0) {
-        continue;
-      }
-      auto subports = newAggregatePort->sortedSubports();
-      if (subports.size() == 0) {
-        continue;
-      }
-
-      // all Aggregate member ports always belong to the same interface(s).
-      // Thus, pick the interface for any member port
-      auto portID = subports.front().portID;
-
-      std::vector<int32_t> intfIDs;
-      for (auto intfID :
-           newState->getPorts()->getNode(portID)->getInterfaceIDs()) {
-        intfIDs.push_back(intfID);
-      }
-
-      newAggregatePort->setInterfaceIDs(intfIDs);
-      aggregatePorts->updateNode(newAggregatePort);
-    }
-  }
-  newState->publish();
-  return newState;
-}
-
 bool HwSwitch::isFullyConfigured() const {
   auto state = getRunState();
   return state >= SwitchRunState::CONFIGURED &&
@@ -287,7 +230,6 @@ HwInitResult HwSwitch::init(
   switchType_ = switchType;
   switchId_ = switchId;
   auto ret = initImpl(callback, failHwCallsOnWarmboot, switchType, switchId);
-  ret.switchState = fillinPortInterfaces(ret.switchState);
   setProgrammedState(ret.switchState);
   if (ret.bootType == BootType::WARM_BOOT ||
       !getPlatform()->getAsic()->isSupported(
