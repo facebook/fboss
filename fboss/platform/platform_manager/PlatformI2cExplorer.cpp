@@ -27,13 +27,40 @@ int32_t getBusNum(const std::string& busName) {
   }
   return folly::to<int32_t>(busName.substr(busName.find_last_of("-") + 1));
 }
+
+std::string getBusName(const fs::path& busPath) {
+  auto busNameFile = busPath / "name";
+  if (!fs::exists(busNameFile)) {
+    throw std::runtime_error(
+        fmt::format("{} does not exist", busNameFile.string()));
+  }
+  std::string busName{};
+  if (!folly::readFile(busNameFile.string().c_str(), busName)) {
+    throw std::runtime_error(
+        fmt::format("Could not read {}", busNameFile.string()));
+  }
+  return folly::trimWhitespace(busName).str();
+}
+
 } // namespace
 
 namespace facebook::fboss::platform::platform_manager {
 
-std::map<std::string, std::string> PlatformI2cExplorer::getBusesfromBsp(
-    const std::vector<std::string>&) {
-  throw std::runtime_error("Not implemented yet.");
+std::map<std::string, std::string> PlatformI2cExplorer::getKernelAssignedNames(
+    const std::vector<std::string>& i2cBussesFromCpu) {
+  std::map<std::string, std::string> kernelAssignedNames;
+  auto deviceRoot = fs::path("/sys/bus/i2c/devices");
+  for (const auto& dirEntry : fs::directory_iterator(deviceRoot)) {
+    if (dirEntry.path().filename().string().starts_with("i2c-")) {
+      auto busName = getBusName(dirEntry.path());
+      if (std::find(
+              i2cBussesFromCpu.begin(), i2cBussesFromCpu.end(), busName) !=
+          i2cBussesFromCpu.end()) {
+        kernelAssignedNames[busName] = dirEntry.path().filename();
+      }
+    }
+  }
+  return kernelAssignedNames;
 }
 
 std::string PlatformI2cExplorer::getFruTypeName(const std::string&) {

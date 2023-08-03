@@ -20,12 +20,11 @@ class PlatformI2cExplorer {
           std::make_shared<PlatformUtils>())
       : platformUtils_(platformUtils){};
 
-  // This function takes as input the list of `i2cBussesFromMainBoard` defined
-  // in the platform_manager_config.thrift, and outputs a map from
-  // `i2cBussesFromMainBoard` to the corresponding i2c bus names assigned on the
-  // board by the kernel.
-  std::map<std::string, std::string> getBusesfromBsp(
-      const std::vector<std::string>& i2cBussesFromMainBoard);
+  // This function takes as input the list of `i2cBussesFromCpu` defined
+  // in the platform_manager_config.thrift, and provides the corresponding
+  // kernel assigned names for the buses.
+  std::map<std::string, std::string> getKernelAssignedNames(
+      const std::vector<std::string>& i2cBussesFromCpu);
 
   // Returns the FRU Type name based on the contents read from the EEPROM
   std::string getFruTypeName(const std::string& eepromPath);

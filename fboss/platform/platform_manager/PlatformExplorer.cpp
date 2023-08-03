@@ -21,7 +21,8 @@ void PlatformExplorer::explore() {
   XLOG(INFO) << "Exploring the device";
 
   for (const auto& [busName, kernelBusName] :
-       i2cExplorer_.getBusesfromBsp(*platformConfig_.i2cBussesFromCPU())) {
+       i2cExplorer_.getKernelAssignedNames(
+           *platformConfig_.i2cBussesFromCPU())) {
     updateKernelI2cBusNames("", busName, kernelBusName);
   }
 
