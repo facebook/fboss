@@ -67,17 +67,8 @@ DEFINE_int32(
     1000,
     "How frequently to publish thread-local stats back to the "
     "global store.  This should generally be less than 1 second.");
-DEFINE_bool(
-    tun_intf,
-    true,
-    "Create tun interfaces to allow other processes to "
-    "send and receive traffic via the switch ports");
-DEFINE_bool(enable_lacp, false, "Run LACP in agent");
-DEFINE_bool(enable_lldp, true, "Run LLDP protocol in agent");
-DEFINE_bool(publish_boot_type, true, "Publish boot type on startup");
 // @lint-ignore CLANGTIDY
 DECLARE_int32(thrift_idle_timeout);
-DEFINE_bool(enable_macsec, false, "Enable Macsec functionality");
 
 using facebook::fboss::SwSwitch;
 using facebook::fboss::ThriftHandler;
@@ -93,57 +84,6 @@ void updateStats(SwSwitch* swSwitch) {
 } // namespace
 
 namespace facebook::fboss {
-
-void MonolithicSwSwitchInitializer::start() {
-  start(sw_);
-}
-
-void MonolithicSwSwitchInitializer::start(HwSwitchCallback* callback) {
-  std::thread t(&MonolithicSwSwitchInitializer::initThread, this, callback);
-  // @lint-ignore CLANGTIDY
-  t.detach();
-}
-
-void MonolithicSwSwitchInitializer::stopFunctionScheduler() {
-  std::unique_lock<std::mutex> lk(initLock_);
-  initCondition_.wait(lk, [&] { return sw_->isFullyInitialized(); });
-  if (fs_) {
-    fs_->shutdown();
-  }
-}
-
-void MonolithicSwSwitchInitializer::waitForInitDone() {
-  std::unique_lock<std::mutex> lk(initLock_);
-  initCondition_.wait(lk, [&] { return sw_->isFullyInitialized(); });
-}
-
-void MonolithicSwSwitchInitializer::initThread(HwSwitchCallback* callback) {
-  try {
-    initImpl(callback);
-  } catch (const std::exception& ex) {
-    XLOG(FATAL) << "switch initialization failed: " << folly::exceptionStr(ex);
-  }
-}
-
-SwitchFlags MonolithicSwSwitchInitializer::setupFlags() {
-  SwitchFlags flags = SwitchFlags::DEFAULT;
-  if (FLAGS_enable_lacp) {
-    flags |= SwitchFlags::ENABLE_LACP;
-  }
-  if (FLAGS_tun_intf) {
-    flags |= SwitchFlags::ENABLE_TUN;
-  }
-  if (FLAGS_enable_lldp) {
-    flags |= SwitchFlags::ENABLE_LLDP;
-  }
-  if (FLAGS_publish_boot_type) {
-    flags |= SwitchFlags::PUBLISH_STATS;
-  }
-  if (FLAGS_enable_macsec) {
-    flags |= SwitchFlags::ENABLE_MACSEC;
-  }
-  return flags;
-}
 
 void MonolithicSwSwitchInitializer::initImpl(
     HwSwitchCallback* hwSwitchCallback) {

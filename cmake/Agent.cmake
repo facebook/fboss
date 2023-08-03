@@ -475,6 +475,7 @@ target_link_libraries(monolithic_agent_initializer
   load_agent_config
   monolithic_switch_handler
   setup_thrift
+  sw_agent_initializer
   switch_asics
   utils
   Folly::folly
@@ -509,4 +510,13 @@ target_link_libraries(sw_switch_warmboot_helper
   common_file_utils
   Folly::folly
   switch_state_cpp2
+)
+
+add_library(sw_agent_initializer
+  fboss/agent/SwAgentInitializer.cpp
+)
+
+target_link_libraries(sw_agent_initializer
+  core
+  Folly::folly
 )

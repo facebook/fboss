@@ -8,6 +8,7 @@
 #include "fboss/agent/AgentInitializer.h"
 #include "fboss/agent/CommonInit.h"
 #include "fboss/agent/HwAgent.h"
+#include "fboss/agent/SwAgentInitializer.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TunManager.h"
 
@@ -31,27 +32,17 @@ namespace facebook::fboss {
 struct AgentConfig;
 class Platform;
 
-class MonolithicSwSwitchInitializer {
+class MonolithicSwSwitchInitializer : public SwSwitchInitializer {
  public:
   MonolithicSwSwitchInitializer(SwSwitch* sw, HwAgent* hwAgent)
-      : sw_(sw), hwAgent_(hwAgent) {}
-  void start();
-  void start(HwSwitchCallback* callback);
-  void stopFunctionScheduler();
-  void waitForInitDone();
+      : SwSwitchInitializer(sw), hwAgent_(hwAgent) {}
   Platform* platform() {
     return hwAgent_->getPlatform();
   }
 
  private:
-  void initThread(HwSwitchCallback* callback);
-  SwitchFlags setupFlags();
-  void initImpl(HwSwitchCallback* callback);
-  SwSwitch* sw_;
+  void initImpl(HwSwitchCallback* callback) override;
   HwAgent* hwAgent_;
-  std::unique_ptr<folly::FunctionScheduler> fs_;
-  std::mutex initLock_;
-  std::condition_variable initCondition_;
 };
 
 class MonolithicAgentSignalHandler : public SignalHandler {
