@@ -1,5 +1,6 @@
 namespace cpp2 rackmonsvc
 namespace go rackmonsvc
+namespace py rackmonsvc.rackmonsvc
 
 include "fboss/agent/if/fboss.thrift"
 
