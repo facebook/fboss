@@ -31,3 +31,13 @@ TEST(PlatformI2cExplorerTest, createI2cDeviceFailure) {
   EXPECT_THROW(
       i2cExplorer.createI2cDevice("lm73", "i2c-4", 15), std::runtime_error);
 }
+
+TEST(PlatformI2cExplorerTest, getDeviceI2cPath) {
+  auto i2cExplorer = PlatformI2cExplorer();
+  EXPECT_EQ(
+      i2cExplorer.getDeviceI2cPath("i2c-4", 15), "/sys/bus/i2c/devices/4-0015");
+  EXPECT_THROW(i2cExplorer.getDeviceI2cPath("i2dc-4", 15), std::runtime_error);
+  EXPECT_THROW(i2cExplorer.getDeviceI2cPath("i2c--4", 15), std::runtime_error);
+  EXPECT_THROW(i2cExplorer.getDeviceI2cPath("i2c-4d", 15), std::runtime_error);
+  EXPECT_THROW(i2cExplorer.getDeviceI2cPath("i2c4", 15), std::runtime_error);
+}

@@ -72,8 +72,8 @@ void PlatformExplorer::exploreFRU(
         *fruEepromConfig.kernelDeviceName(),
         eepromI2cBusName,
         *fruEepromConfig.address());
-    auto eepromPath =
-        i2cExplorer_.getI2cPath(eepromI2cBusName, *fruEepromConfig.address());
+    auto eepromPath = i2cExplorer_.getDeviceI2cPath(
+        eepromI2cBusName, *fruEepromConfig.address());
     auto pluggedInFruTypeName = i2cExplorer_.getFruTypeName(eepromPath);
     exploreFRU(
         fruName,

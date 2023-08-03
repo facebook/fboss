@@ -2,7 +2,27 @@
 
 #include "fboss/platform/platform_manager/PlatformI2cExplorer.h"
 
+#include <re2/re2.h>
+
 #include <folly/logging/xlog.h>
+#include <stdexcept>
+
+namespace {
+
+const re2::RE2 kI2cBusNameRegex("i2c-\\d+");
+
+bool isInI2cBusNameFormat(const std::string& busName) {
+  return re2::RE2::FullMatch(busName, kI2cBusNameRegex);
+}
+
+int32_t getBusNum(const std::string& busName) {
+  if (!isInI2cBusNameFormat(busName)) {
+    XLOG(ERR) << "Invalid i2c bus name: " << busName;
+    throw std::runtime_error("Invalid i2c bus name: " + busName);
+  }
+  return folly::to<int32_t>(busName.substr(busName.find_last_of("-") + 1));
+}
+} // namespace
 
 namespace facebook::fboss::platform::platform_manager {
 
@@ -36,7 +56,10 @@ void PlatformI2cExplorer::createI2cDevice(
         exitStatus);
     throw std::runtime_error("Creation of i2c device failed");
   }
-  XLOG(INFO) << fmt::format("Created i2c device {} at {}", deviceName, busName);
+  XLOG(INFO) << fmt::format(
+      "Created i2c device {} at {}",
+      deviceName,
+      getDeviceI2cPath(busName, addr));
 }
 
 bool PlatformI2cExplorer::createI2cMux(
@@ -53,8 +76,10 @@ std::vector<std::string> PlatformI2cExplorer::getMuxChannelI2CBuses(
   throw std::runtime_error("Not implemented yet.");
 }
 
-std::string PlatformI2cExplorer::getI2cPath(const std::string&, uint8_t) {
-  throw std::runtime_error("Not implemented yet.");
+std::string PlatformI2cExplorer::getDeviceI2cPath(
+    const std::string& busName,
+    uint8_t addr) {
+  return fmt::format("/sys/bus/i2c/devices/{}-{:04}", getBusNum(busName), addr);
 }
 
 } // namespace facebook::fboss::platform::platform_manager

@@ -51,7 +51,9 @@ class PlatformI2cExplorer {
       uint8_t addr);
 
   // Return sysfs path to the device at `addr` on `i2cBusName`.
-  static std::string getI2cPath(const std::string& i2cBusName, uint8_t addr);
+  static std::string getDeviceI2cPath(
+      const std::string& i2cBusName,
+      uint8_t addr);
 
  private:
   std::shared_ptr<PlatformUtils> platformUtils_{};
