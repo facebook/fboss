@@ -52,9 +52,6 @@ HwSwitchWarmBootHelper::HwSwitchWarmBootHelper(
       canWarmBoot_ = false;
     }
 
-    // for monolithich agent, both sw-switch and hw-switch indicate same type of
-    // boot
-    CHECK_EQ(canWarmBoot_, swSwitchWarmBootHelper_.canWarmBoot());
     auto bootType = canWarmBoot_ ? "WARM" : "COLD";
     XLOG(DBG1) << "Will attempt " << bootType << " boot";
 
