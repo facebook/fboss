@@ -89,12 +89,11 @@ void PlatformExplorer::exploreI2cDevices(
     const std::string& fruName,
     const std::vector<I2cDeviceConfig>& i2cDeviceConfigs) {
   for (const auto& i2cDeviceConfig : i2cDeviceConfigs) {
+    i2cExplorer_.createI2cDevice(
+        *i2cDeviceConfig.kernelDeviceName(),
+        getKernelI2cBusName(fruName, *i2cDeviceConfig.busName()),
+        *i2cDeviceConfig.addr());
     if (i2cDeviceConfig.numOutgoingChannels()) {
-      i2cExplorer_.createI2cMux(
-          *i2cDeviceConfig.kernelDeviceName(),
-          getKernelI2cBusName(fruName, *i2cDeviceConfig.busName()),
-          *i2cDeviceConfig.addr(),
-          *i2cDeviceConfig.numOutgoingChannels());
       auto channelBusNames = i2cExplorer_.getMuxChannelI2CBuses(
           getKernelI2cBusName(fruName, *i2cDeviceConfig.busName()),
           *i2cDeviceConfig.addr());
@@ -105,11 +104,6 @@ void PlatformExplorer::exploreI2cDevices(
             fmt::format("{}@{}", *i2cDeviceConfig.fruScopedName(), i),
             channelBusNames[i]);
       }
-    } else {
-      i2cExplorer_.createI2cDevice(
-          *i2cDeviceConfig.kernelDeviceName(),
-          getKernelI2cBusName(fruName, *i2cDeviceConfig.busName()),
-          *i2cDeviceConfig.addr());
     }
   }
 }

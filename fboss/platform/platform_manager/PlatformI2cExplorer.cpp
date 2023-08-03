@@ -107,14 +107,6 @@ void PlatformI2cExplorer::createI2cDevice(
       getDeviceI2cPath(busName, addr));
 }
 
-bool PlatformI2cExplorer::createI2cMux(
-    const std::string&,
-    const std::string&,
-    uint8_t,
-    uint8_t) {
-  throw std::runtime_error("Not implemented yet.");
-}
-
 std::vector<std::string> PlatformI2cExplorer::getMuxChannelI2CBuses(
     const std::string& busName,
     uint8_t addr) {

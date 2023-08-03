@@ -44,12 +44,6 @@ class PlatformI2cExplorer {
       const std::string& busName,
       uint8_t addr);
 
-  bool createI2cMux(
-      const std::string& deviceName,
-      const std::string& busName,
-      uint8_t addr,
-      uint8_t numChannels);
-
   // Returns the I2C Buses whih were created for the channels behind the I2C Mux
   // at `busName`@`addr`. They are listed in the ascending order of channels. It
   // reads the children of /sys/bus/i2c/devices/`busName`-`addr`/ to obtain
