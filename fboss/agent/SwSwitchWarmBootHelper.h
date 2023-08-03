@@ -18,6 +18,9 @@ class SwSwitchWarmBootHelper {
   void storeWarmBootState(const state::WarmbootState& switchStateThrift);
   state::WarmbootState getWarmBootState() const;
   std::string warmBootThriftSwitchStateFile() const;
+  const std::string& warmBootDir() const {
+    return warmBootDir_;
+  }
 
  private:
   bool checkAndClearWarmBootFlags();

@@ -13,6 +13,8 @@
 #include <string>
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 
+#include "fboss/agent/SwSwitchWarmBootHelper.h"
+
 namespace facebook::fboss {
 
 /*
@@ -44,8 +46,6 @@ class HwSwitchWarmBootHelper {
       const folly::dynamic& switchState,
       const state::WarmbootState& switchStateThrift);
 
-  bool storeSwSwitchWarmBootState(
-      const state::WarmbootState& switchStateThrift);
   bool storeHwSwitchWarmBootState(const folly::dynamic& switchState);
 
   std::tuple<folly::dynamic, std::optional<state::WarmbootState>>
@@ -98,7 +98,7 @@ class HwSwitchWarmBootHelper {
   folly::dynamic getHwSwitchWarmBootState(const std::string& fileName) const;
 
   int switchId_{-1};
-  std::string warmBootDir_;
+  SwSwitchWarmBootHelper swSwitchWarmBootHelper_;
   std::string sdkWarmbootFilePrefix_;
   int warmBootFd_{-1};
   bool canWarmBoot_{false};
