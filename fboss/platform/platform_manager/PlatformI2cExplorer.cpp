@@ -66,6 +66,24 @@ void PlatformI2cExplorer::createI2cDevice(
     const std::string& deviceName,
     const std::string& busName,
     uint8_t addr) {
+  if (isI2cDevicePresent(busName, addr)) {
+    auto existingDeviceName = getI2cDeviceName(busName, addr);
+    if (existingDeviceName && existingDeviceName.value() == deviceName) {
+      XLOG(INFO) << fmt::format(
+          "Device {} already exists at bus: {}, addr: {}. Skipping creation.",
+          deviceName,
+          busName,
+          addr);
+      return;
+    }
+    XLOG(ERR) << fmt::format(
+        "Creation of i2c device {} at bus: {}, addr: {} failed. "
+        "Another device already present",
+        deviceName,
+        busName,
+        addr);
+    throw std::runtime_error("Creation of i2c device failed");
+  }
   auto cmd = fmt::format(
       "echo {} {} > /sys/bus/i2c/devices/{}/new_device",
       deviceName,
