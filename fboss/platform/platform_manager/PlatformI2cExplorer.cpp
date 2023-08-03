@@ -116,9 +116,27 @@ bool PlatformI2cExplorer::createI2cMux(
 }
 
 std::vector<std::string> PlatformI2cExplorer::getMuxChannelI2CBuses(
-    const std::string&,
-    uint8_t) {
-  throw std::runtime_error("Not implemented yet.");
+    const std::string& busName,
+    uint8_t addr) {
+  auto devicePath = fs::path(getDeviceI2cPath(busName, addr));
+  if (!fs::is_directory(devicePath)) {
+    throw std::runtime_error(
+        fmt::format("{} is not a directory.", devicePath.string()));
+  }
+  // This is an implementation of
+  // find [devicePath] -type l -name channel* -exec readlink -f {} \; |
+  // xargs --max-args 1 basename"
+  std::vector<std::string> channelBusNames;
+  for (const auto& dirEntry : fs::directory_iterator(devicePath)) {
+    if (dirEntry.path().filename().string().starts_with("channel-")) {
+      if (!dirEntry.is_symlink()) {
+        throw std::runtime_error(
+            fmt::format("{} is not a symlink.", dirEntry.path().string()));
+      }
+      channelBusNames.push_back(fs::read_symlink(dirEntry).filename().string());
+    }
+  }
+  return channelBusNames;
 }
 
 std::string PlatformI2cExplorer::getDeviceI2cPath(
