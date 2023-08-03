@@ -4,6 +4,7 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <vector>
 
@@ -31,6 +32,11 @@ class PlatformI2cExplorer {
 
   // Checks if a I2c devices is present at `addr` on `busName`.
   virtual bool isI2cDevicePresent(const std::string& busName, uint8_t addr);
+
+  // Returns the i2c device name if present at `addr` on `busName`.
+  virtual std::optional<std::string> getI2cDeviceName(
+      const std::string& busName,
+      uint8_t addr);
 
   // Creates an i2c device for `deviceName` on `busName` and `addr`.
   void createI2cDevice(

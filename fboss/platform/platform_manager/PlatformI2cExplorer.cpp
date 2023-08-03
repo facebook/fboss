@@ -2,6 +2,8 @@
 
 #include "fboss/platform/platform_manager/PlatformI2cExplorer.h"
 
+#include <folly/FileUtil.h>
+#include <folly/String.h>
 #include <folly/logging/xlog.h>
 #include <re2/re2.h>
 
@@ -42,6 +44,22 @@ bool PlatformI2cExplorer::isI2cDevicePresent(
     const std::string& busName,
     uint8_t addr) {
   return fs::exists(fs::path(getDeviceI2cPath(busName, addr)) / "name");
+}
+
+std::optional<std::string> PlatformI2cExplorer::getI2cDeviceName(
+    const std::string& busName,
+    uint8_t addr) {
+  std::string deviceName{};
+  auto deviceNameFile = fs::path(getDeviceI2cPath(busName, addr)) / "name";
+  if (!fs::exists(deviceNameFile)) {
+    XLOG(ERR) << fmt::format("{} does not exist", deviceNameFile.string());
+    return std::nullopt;
+  }
+  if (!folly::readFile(deviceNameFile.string().c_str(), deviceName)) {
+    XLOG(ERR) << fmt::format("Could not read {}", deviceNameFile.string());
+    return std::nullopt;
+  }
+  return folly::trimWhitespace(deviceName).str();
 }
 
 void PlatformI2cExplorer::createI2cDevice(
