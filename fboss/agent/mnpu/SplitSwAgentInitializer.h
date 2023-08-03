@@ -8,10 +8,10 @@
 
 namespace facebook::fboss {
 
-class SwAgentInitializer : public AgentInitializer {
+class SplitSwAgentInitializer : public AgentInitializer {
  public:
-  SwAgentInitializer() {}
-  ~SwAgentInitializer() override {}
+  SplitSwAgentInitializer() {}
+  ~SplitSwAgentInitializer() override {}
   int initAgent() override;
   void stopAgent(bool setupWarmboot) override;
 

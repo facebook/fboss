@@ -482,7 +482,7 @@ target_link_libraries(monolithic_agent_initializer
 
 
 add_library(split_agent_initializer
-  fboss/agent/mnpu/SwAgentInitializer.cpp
+  fboss/agent/mnpu/SplitSwAgentInitializer.cpp
 )
 
 target_link_libraries(split_agent_initializer
