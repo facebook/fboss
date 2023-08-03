@@ -168,24 +168,27 @@ struct PlatformConfig {
   // plugged in.
   3: SlotConfig mainBoardSlotConfig;
 
+  // The EEPROM which holds the chassis information
+  4: EepromConfig chassisEepromConfig;
+
   // Map from SlotType name to the global properties of the SlotType.
-  4: map<SlotType, SlotTypeConfig> slotTypeConfigs;
+  11: map<SlotType, SlotTypeConfig> slotTypeConfigs;
 
   // List of FRUs which the platform can support. Key is the FRU name.
-  5: map<FruType, FruTypeConfig> fruTypeConfigs;
+  12: map<FruType, FruTypeConfig> fruTypeConfigs;
 
   // List of the i2c busses created from the CPU / System Control Module (SCM)
-  6: list<string> i2cBussesFromCPU;
+  13: list<string> i2cBussesFromCPU;
 
   // Global mapping from the i2c device paths to an application friendly sysfs
   // path.
-  7: map<string, string> i2cPathToHumanFriendlyName;
+  14: map<string, string> i2cPathToHumanFriendlyName;
 
   // Name and version of the rpm containing the BSP kmods for this platform
-  11: string bspKmodsRpmName;
-  12: string bspKmodsRpmVersion;
+  21: string bspKmodsRpmName;
+  22: string bspKmodsRpmVersion;
 
   // Name and version of the rpm containing the udev rules for this platform
-  13: string udevRpmName;
-  14: string udevRpmVersion;
+  23: string udevRpmName;
+  24: string udevRpmVersion;
 }

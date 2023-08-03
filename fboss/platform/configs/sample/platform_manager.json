@@ -49,6 +49,11 @@
             "CPU@7"
         ]
     },
+    "chassisEepromConfig": {
+        "incomingBusIndex": 7,
+        "address": 11,
+        "kernelDeviceName": "24c02"
+    },
     "slotTypeConfigs": {
         "MAIN_BOARD": {
             "numOutgoingI2cBuses": 8,
