@@ -52,7 +52,7 @@
     "slotTypeConfigs": {
         "MAIN_BOARD": {
             "numOutgoingI2cBuses": 8,
-            "fruEeprom": {
+            "eepromConfig": {
                 "incomingBusIndex": 0,
                 "address": 11,
                 "kernelDeviceName": "24c02"
@@ -60,7 +60,7 @@
         },
         "PIM": {
             "numOutgoingI2cBuses": 1,
-            "fruEeprom": {
+            "eepromConfig": {
                 "incomingBusIndex": 0,
                 "address": 14,
                 "kernelDeviceName": "24c02"
@@ -68,7 +68,7 @@
         },
         "PSU": {
             "numOutgoingI2cBuses": 2,
-            "fruEeprom": {
+            "eepromConfig": {
                 "incomingBusIndex": 0,
                 "address": 12,
                 "kernelDeviceName": "24c64"
@@ -76,7 +76,7 @@
         },
         "YOLO": {
             "numOutgoingI2cBuses": 3,
-            "fruEeprom": {
+            "eepromConfig": {
                 "incomingBusIndex": 0,
                 "address": 5,
                 "kernelDeviceName": "24c64"

@@ -63,17 +63,18 @@ void PlatformExplorer::exploreFRU(
     if (!isChildFruPlugged) {
       continue;
     }
-    auto fruEepromConfig =
-        *platformConfig_.slotTypeConfigs()[*slotConfig.slotType()].fruEeprom();
+    auto eepromConfig =
+        *platformConfig_.slotTypeConfigs()[*slotConfig.slotType()]
+             .eepromConfig();
     auto eepromI2cBusName = getKernelI2cBusName(
         fruName,
-        slotConfig.outgoingI2cBusNames()[*fruEepromConfig.incomingBusIndex()]);
+        slotConfig.outgoingI2cBusNames()[*eepromConfig.incomingBusIndex()]);
     i2cExplorer_.createI2cDevice(
-        *fruEepromConfig.kernelDeviceName(),
+        *eepromConfig.kernelDeviceName(),
         eepromI2cBusName,
-        *fruEepromConfig.address());
+        *eepromConfig.address());
     auto eepromPath = i2cExplorer_.getDeviceI2cPath(
-        eepromI2cBusName, *fruEepromConfig.address());
+        eepromI2cBusName, *eepromConfig.address());
     auto pluggedInFruTypeName = i2cExplorer_.getFruTypeName(eepromPath);
     exploreFRU(
         fruName,

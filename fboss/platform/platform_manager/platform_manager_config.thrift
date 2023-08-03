@@ -95,14 +95,14 @@ struct I2cDeviceConfig {
   5: optional i32 numOutgoingChannels;
 }
 
-// The EEPROM in the FRU which contains information about the FRU
+// The EEPROM which contains information about the FRU or Chassis
 //
 // `incomingBusIndex`: One of the incoming buses into the FRU should directly
 // connect to the FRU. i.e., not a bus originating from a mux within the FRU.
 // Note, this bus can originate from a mux in an upstream FRU.
 //
 // `kernelDeviceName`: The device name used by kernel to identify the device
-struct FruEEPROMConfig {
+struct EepromConfig {
   1: i32 incomingBusIndex;
   2: i32 address;
   3: string kernelDeviceName;
@@ -116,10 +116,10 @@ typedef string FruType
 
 // The below struct holds the global properties for each SlotType within any
 // platform.  This means all slots of the same SlotType within a platform
-// should have the same number of outgoing I2C buses, and same FruEEPROMConfig
+// should have the same number of outgoing I2C buses, and same EepromConfig
 struct SlotTypeConfig {
   1: i32 numOutgoingI2cBuses;
-  2: FruEEPROMConfig fruEeprom;
+  2: EepromConfig eepromConfig;
 }
 
 // SlotConfig holds information specific to each slot.
