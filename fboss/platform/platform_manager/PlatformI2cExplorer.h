@@ -29,7 +29,8 @@ class PlatformI2cExplorer {
   // Returns the FRU Type name based on the contents read from the EEPROM
   std::string getFruTypeName(const std::string& eepromPath);
 
-  bool createI2cDevice(
+  // Creates an i2c device for `deviceName` on `busName` and `addr`.
+  void createI2cDevice(
       const std::string& deviceName,
       const std::string& busName,
       uint8_t addr);
