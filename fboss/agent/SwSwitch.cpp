@@ -450,9 +450,7 @@ void SwSwitch::setFibSyncTimeForClient(ClientID clientId) {
   }
 }
 
-std::tuple<folly::dynamic, state::WarmbootState> SwSwitch::gracefulExitState()
-    const {
-  folly::dynamic follySwitchState = folly::dynamic::object;
+state::WarmbootState SwSwitch::gracefulExitState() const {
   state::WarmbootState thriftSwitchState;
   if (rib_) {
     // For RIB we employ a optmization to serialize only unresolved routes
@@ -460,7 +458,7 @@ std::tuple<folly::dynamic, state::WarmbootState> SwSwitch::gracefulExitState()
     thriftSwitchState.routeTables() = rib_->warmBootState();
   }
   *thriftSwitchState.swSwitchState() = getAppliedState()->toThrift();
-  return std::make_tuple(follySwitchState, thriftSwitchState);
+  return thriftSwitchState;
 }
 
 void SwSwitch::gracefulExit() {
@@ -481,8 +479,7 @@ void SwSwitch::gracefulExit() {
                       stopThreadsAndHandlersDone - neighborFloodDone)
                       .count();
 
-    auto [follySwitchState, thriftSwitchState] = gracefulExitState();
-    std::ignore = follySwitchState;
+    auto thriftSwitchState = gracefulExitState();
     steady_clock::time_point switchStateToFollyDone = steady_clock::now();
     XLOG(DBG2) << "[Exit] Switch state to folly dynamic "
                << duration_cast<duration<float>>(

@@ -214,7 +214,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       const std::vector<AggregatePortID>& aggregatePorts) = 0;
   HwTrunkStats getLatestAggregatePortStats(AggregatePortID port);
 
-  std::tuple<folly::dynamic, state::WarmbootState> gracefulExitState() const;
+  state::WarmbootState gracefulExitState() const;
   /*
    * Initiate graceful exit
    */

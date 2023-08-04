@@ -222,7 +222,7 @@ class SwSwitch : public HwSwitchCallback {
 
   void updateStats();
 
-  std::tuple<folly::dynamic, state::WarmbootState> gracefulExitState() const;
+  state::WarmbootState gracefulExitState() const;
 
   /*
    * Get a pointer to the current switch state.
