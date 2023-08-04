@@ -524,12 +524,22 @@ const std::map<cfg::PortType, cfg::PortLoopbackMode>& kDefaultLoopbackMap() {
 
 std::vector<std::string> getLoopbackIps(SwitchID switchId) {
   auto switchIdVal = static_cast<int64_t>(switchId);
-  CHECK_LT(switchIdVal, 256) << " Switch Id >= 256, not supported";
+  // Use (200-255):(0-255) range for DSF node loopback IPs. Therefore, the max
+  // number of switchId can be accomodated will be 56 * 256 = 14366, which is
+  // more than what we need in both J2 and J3.
+  const auto switchIdLimit = 14366;
+  CHECK_LT(switchIdVal, switchIdLimit)
+      << " Switch Id >=" << switchIdLimit << " , not supported";
 
-  auto v6 = FLAGS_nodeZ ? folly::sformat("200:{}::2/64", switchIdVal)
-                        : folly::sformat("200:{}::1/64", switchIdVal);
-  auto v4 = FLAGS_nodeZ ? folly::sformat("200.{}.0.2/24", switchIdVal)
-                        : folly::sformat("200.{}.0.1/24", switchIdVal);
+  int firstOctet = 200 + switchIdVal / 256;
+  int secondOctet = switchIdVal % 256;
+
+  auto v6 = FLAGS_nodeZ
+      ? folly::sformat("{}:{}::2/64", firstOctet, secondOctet)
+      : folly::sformat("{}:{}::1/64", firstOctet, secondOctet);
+  auto v4 = FLAGS_nodeZ
+      ? folly::sformat("{}.{}.0.2/24", firstOctet, secondOctet)
+      : folly::sformat("{}.{}.0.1/24", firstOctet, secondOctet);
   return {v6, v4};
 }
 
