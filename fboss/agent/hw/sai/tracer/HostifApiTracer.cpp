@@ -23,6 +23,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _HostifTrapMap{
     SAI_ATTR_MAP(HostifTrap, PacketAction),
     SAI_ATTR_MAP(HostifTrap, TrapPriority),
     SAI_ATTR_MAP(HostifTrap, TrapGroup),
+    SAI_ATTR_MAP(HostifTrap, TrapCounterId),
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _HostifTrapGroupMap{

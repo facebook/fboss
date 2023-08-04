@@ -22,6 +22,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _SystemPortMap{
     SAI_ATTR_MAP(SystemPort, Type),
     SAI_ATTR_MAP(SystemPort, QosNumberOfVoqs),
     SAI_ATTR_MAP(SystemPort, QosVoqList),
+    SAI_ATTR_MAP(SystemPort, Port),
     SAI_ATTR_MAP(SystemPort, AdminState),
     SAI_ATTR_MAP(SystemPort, ConfigInfo),
     SAI_ATTR_MAP(SystemPort, QosTcToQueueMap),

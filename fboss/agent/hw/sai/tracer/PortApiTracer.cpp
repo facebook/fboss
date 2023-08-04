@@ -104,6 +104,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(PortSerdes, RxAfeTrim)
   SAI_EXT_ATTR_MAP(PortSerdes, RxAcCouplingByPass)
   SAI_EXT_ATTR_MAP(PortSerdes, RxAfeAdaptiveEnable)
+  SAI_EXT_ATTR_MAP(PortSerdes, TxLutMode)
 }
 
 } // namespace

@@ -18,10 +18,12 @@
 using folly::to;
 
 namespace {
-std::map<int32_t, std::pair<std::string, std::size_t>> _RouteEntryMap{
-    SAI_ATTR_MAP(Route, PacketAction),
-    SAI_ATTR_MAP(Route, NextHopId),
-    SAI_ATTR_MAP(Route, Metadata),
+std::map<int32_t, std::pair<std::string, std::size_t>> _RouteEntryMap {
+  SAI_ATTR_MAP(Route, PacketAction), SAI_ATTR_MAP(Route, NextHopId),
+      SAI_ATTR_MAP(Route, Metadata),
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+      SAI_ATTR_MAP(Route, CounterID),
+#endif
 };
 } // namespace
 
