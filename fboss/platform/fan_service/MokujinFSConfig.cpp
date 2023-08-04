@@ -31,19 +31,19 @@ std::string getMokujinFSConfig() {
       "portList" : [],
       "aggregationType" : "OPTIC_AGGREGATION_TYPE_MAX",
       "tempToPwmMaps" : {
-        "0" : {
+        "OPTIC_TYPE_100_GENERIC" : {
           "40" : 35,
           "42" : 50,
           "44" : 75,
           "50" : 100
         },
-        "1" : {
+        "OPTIC_TYPE_200_GENERIC" : {
           "42" : 35,
           "44" : 50,
           "46" : 75,
           "52" : 100
         },
-        "2" : {
+        "OPTIC_TYPE_400_GENERIC" : {
           "46" : 35,
           "48" : 50,
           "50" : 75,

@@ -17,7 +17,7 @@
       "portList" : [],
       "aggregationType" : "OPTIC_AGGREGATION_TYPE_MAX",
       "tempToPwmMaps" : {
-        "0" : {
+        "OPTIC_TYPE_100_GENERIC" : {
           "5" : 24,
           "38" : 26,
           "40" : 28,
@@ -31,7 +31,7 @@
           "53" : 46,
           "54" : 50
         },
-        "1" : {
+        "OPTIC_TYPE_200_GENERIC" : {
           "5" : 26,
           "43" : 28,
           "45" : 30,
@@ -43,7 +43,7 @@
           "58" : 46,
           "61" : 50
         },
-        "2" : {
+        "OPTIC_TYPE_400_GENERIC" : {
           "5" : 36,
           "59" : 40,
           "62" : 42,

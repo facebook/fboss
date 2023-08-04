@@ -233,10 +233,10 @@ void Mokujin::getOpticsData(std::shared_ptr<SensorData> pSensorData) {
          simulatedSensorRead_.end()) &&
         (simulatedSensorRead_.find(opticTempKey) !=
          simulatedSensorRead_.end())) {
-      int typeInt = static_cast<int>(simulatedSensorRead_[opticTypeKey]);
+      std::string opticType =
+          folly::to<std::string>(simulatedSensorRead_[opticTypeKey]);
       float value = simulatedSensorRead_[opticTempKey];
-      std::pair<OpticTableType, float> prepData = {
-          static_cast<OpticTableType>(typeInt), value};
+      std::pair<std::string, float> prepData = {opticType, value};
       // Add the data, and set the timestamp
       pSensorData->setLastQsfpSvcTime(getCurrentTime());
       OpticEntry* opticData =

@@ -9,18 +9,14 @@ const string ACCESS_TYPE_QSFP = "ACCESS_TYPE_QSFP";
 const string ZONE_TYPE_MAX = "ZONE_TYPE_MAX";
 const string ZONE_TYPE_MIN = "ZONE_TYPE_MIN";
 const string ZONE_TYPE_AVG = "ZONE_TYPE_AVG";
+const string OPTIC_TYPE_100_GENERIC = "OPTIC_TYPE_100_GENERIC";
+const string OPTIC_TYPE_200_GENERIC = "OPTIC_TYPE_200_GENERIC";
+const string OPTIC_TYPE_400_GENERIC = "OPTIC_TYPE_400_GENERIC";
+const string OPTIC_TYPE_800_GENERIC = "OPTIC_TYPE_800_GENERIC";
 const string OPTIC_AGGREGATION_TYPE_MAX = "OPTIC_AGGREGATION_TYPE_MAX";
 const string SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE = "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE";
 const string SENSOR_PWM_CALC_TYPE_INCREMENT_PID = "SENSOR_PWM_CALC_TYPE_INCREMENT_PID";
 const string SENSOR_PWM_CALC_TYPE_PID = "SENSOR_PWM_CALC_TYPE_PID";
-
-enum OpticTableType {
-  kOpticTable100Generic = 0,
-  kOpticTable200Generic = 1,
-  kOpticTable400Generic = 2,
-  kOpticTable800Generic = 3,
-  kOpticTableInval = 4,
-}
 
 struct AccessMethod {
   1: string accessType;
@@ -44,7 +40,7 @@ struct Optic {
   2: AccessMethod access;
   3: list<i32> portList;
   4: string aggregationType;
-  5: map<OpticTableType, TempToPwmMap> tempToPwmMaps;
+  5: map<string/* optic_type */ , TempToPwmMap> tempToPwmMaps;
 }
 
 struct Alarm {

@@ -192,10 +192,10 @@ void Bsp::processOpticEntries(
     uint64_t& currentQsfpSvcTimestamp,
     const std::map<int32_t, TransceiverData>& cacheTable,
     OpticEntry* opticData) {
-  std::pair<OpticTableType, float> prepData;
+  std::pair<std::string, float> prepData;
   for (auto& cacheEntry : cacheTable) {
     int xvrId = static_cast<int>(cacheEntry.first);
-    OpticTableType tableType = OpticTableType::kOpticTableInval;
+    std::string opticType{};
     // Qsfp_service send the data as double, but fan service use float.
     // So, cast the data to float
     auto timeStamp = cacheEntry.second.timeCollected;
@@ -226,19 +226,19 @@ void Bsp::processOpticEntries(
     switch (mediaInterfaceCode) {
       case MediaInterfaceCode::UNKNOWN:
         // Use the first table's type for unknown/missing media type
-        tableType = opticsGroup.tempToPwmMaps()->begin()->first;
+        opticType = opticsGroup.tempToPwmMaps()->begin()->first;
         break;
       case MediaInterfaceCode::CWDM4_100G:
       case MediaInterfaceCode::CR4_100G:
       case MediaInterfaceCode::FR1_100G:
-        tableType = OpticTableType::kOpticTable100Generic;
+        opticType = constants::OPTIC_TYPE_100_GENERIC();
         break;
       case MediaInterfaceCode::FR4_200G:
-        tableType = OpticTableType::kOpticTable200Generic;
+        opticType = constants::OPTIC_TYPE_200_GENERIC();
         break;
       case MediaInterfaceCode::FR4_400G:
       case MediaInterfaceCode::LR4_400G_10KM:
-        tableType = OpticTableType::kOpticTable400Generic;
+        opticType = constants::OPTIC_TYPE_400_GENERIC();
         break;
       // No 800G optic yet
       default:
@@ -248,7 +248,7 @@ void Bsp::processOpticEntries(
                   << "Ignoring this entry";
         break;
     }
-    prepData = {tableType, temp};
+    prepData = {opticType, temp};
     opticData->data.push_back(prepData);
   }
 }
@@ -305,9 +305,7 @@ void Bsp::getOpticsDataFromQsfpSvc(
   // optic entiry needs to be created manually,
   // as the data is vector of pairs)
   if (!pSensorData->checkIfOpticEntryExists(*opticsGroup.opticName())) {
-    std::vector<std::pair<OpticTableType, float>> empty;
-    pSensorData->setOpticEntry(
-        *opticsGroup.opticName(), empty, getCurrentTime());
+    pSensorData->setOpticEntry(*opticsGroup.opticName(), {}, getCurrentTime());
   }
   OpticEntry* opticData = pSensorData->getOpticEntry(*opticsGroup.opticName());
   // Clear any old data
@@ -371,12 +369,11 @@ void Bsp::getOpticsDataSysfs(
   if (readSuccessful) {
     OpticEntry* opticData =
         pSensorData->getOrCreateOpticEntry(*opticsGroup.opticName());
-    // Use the very first table type to store the data, as we only have data,
-    // but without any table type.
-    OpticTableType firstTableType;
-    firstTableType = opticsGroup.tempToPwmMaps()->begin()->first;
-    std::pair<OpticTableType, float> prepData = {
-        firstTableType, static_cast<float>(readVal)};
+    // Use the very first optic type to store the data, as we only have data,
+    // but without any optic type.
+    const auto& firstOpticType = opticsGroup.tempToPwmMaps()->begin()->first;
+    std::pair<std::string, float> prepData = {
+        firstOpticType, static_cast<float>(readVal)};
     // Erase any old data, and store the new pair
     opticData->data.clear();
     opticData->data.push_back(prepData);

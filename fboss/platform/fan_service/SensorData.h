@@ -32,7 +32,8 @@ struct SensorEntry {
 struct OpticEntry {
   // Last successful optics update time. Used for boost mode.
   std::string name;
-  std::vector<std::pair<OpticTableType, float>> data;
+  // Map from opticType to sensor reading
+  std::vector<std::pair<std::string, float>> data;
   // Timestamp of this entry updated
   uint64_t lastOpticsUpdateTimeInSec{0};
   // Timestamp of the data, set by qsfp service
@@ -60,12 +61,8 @@ class SensorData {
   updateEntryFloat(const std::string& name, float data, uint64_t timeStampSec);
   void setOpticEntry(
       const std::string& name,
-      std::vector<std::pair<OpticTableType, float>> input,
+      std::vector<std::pair<std::string, float>> input,
       uint64_t timestamp);
-  /*
-  std::vector<std::pair<OpticTableType,float>>
-  getOpticEntry(std::string& name) const;
-  */
   OpticEntry* getOpticEntry(const std::string& name) const;
   OpticEntry* getOrCreateOpticEntry(const std::string& name);
   void setOpticsPwm(const std::string& name, int v);

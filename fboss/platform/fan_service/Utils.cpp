@@ -26,6 +26,11 @@ std::unordered_set<std::string> zoneTypes = {
     constants::ZONE_TYPE_MIN(),
     constants::ZONE_TYPE_AVG()};
 
+std::unordered_set<std::string> opticTypes = {
+    constants::OPTIC_TYPE_100_GENERIC(),
+    constants::OPTIC_TYPE_200_GENERIC(),
+    constants::OPTIC_TYPE_400_GENERIC()};
+
 std::unordered_set<std::string> opticAggregationTypes = {
     constants::OPTIC_AGGREGATION_TYPE_MAX()};
 
@@ -96,6 +101,12 @@ bool Utils::isValidConfig(const FanServiceConfig& config) {
   }
 
   for (const auto& optic : *config.optics()) {
+    for (const auto& [opticType, tempToPwmMap] : *optic.tempToPwmMaps()) {
+      if (!opticTypes.count(opticType)) {
+        XLOG(ERR) << "Invalid optic type: " << opticType;
+        return false;
+      }
+    }
     if (!opticAggregationTypes.count(*optic.aggregationType())) {
       XLOG(ERR) << "Invalid optic aggregation type: "
                 << *optic.aggregationType();

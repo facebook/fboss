@@ -117,7 +117,7 @@ OpticEntry* SensorData::getOpticEntry(const std::string& name) const {
 
 void SensorData::setOpticEntry(
     const std::string& name,
-    std::vector<std::pair<OpticTableType, float>> input,
+    std::vector<std::pair<std::string, float>> input,
     uint64_t timestamp) {
   auto pEntry = getOrCreateOpticEntry(name);
   pEntry->data = input;

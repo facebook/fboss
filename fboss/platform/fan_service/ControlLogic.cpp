@@ -22,9 +22,9 @@ using constants =
 
 std::optional<TempToPwmMap> getConfigOpticTable(
     const Optic& optic,
-    OpticTableType dataType) {
+    const std::string& opticType) {
   for (const auto& [tableType, tempToPwmMap] : *optic.tempToPwmMaps()) {
-    if (tableType == dataType) {
+    if (tableType == opticType) {
       return tempToPwmMap;
     }
   }
@@ -408,9 +408,9 @@ void ControlLogic::getOpticsUpdate() {
         // This data set is empty, already processed. Ignore.
         continue;
       } else {
-        for (const auto& [dataType, value] : opticData->data) {
+        for (const auto& [opticType, value] : opticData->data) {
           int pwmForThis = 0;
-          auto tablePointer = getConfigOpticTable(optic, dataType);
+          auto tablePointer = getConfigOpticTable(optic, opticType);
           // We have <type, value> pair. If we have table entry for this
           // optics type, get the matching pwm value using the optics value
           if (tablePointer) {
