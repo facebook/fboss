@@ -73,22 +73,10 @@ DECLARE_int32(thrift_idle_timeout);
 using facebook::fboss::SwSwitch;
 using facebook::fboss::ThriftHandler;
 
-namespace {
-/*
- * This function is executed periodically by the UpdateStats thread.
- * It calls the hardware-specific function of the same name.
- */
-void updateStats(SwSwitch* swSwitch) {
-  swSwitch->updateStats();
-}
-} // namespace
-
 namespace facebook::fboss {
 
 void MonolithicSwSwitchInitializer::initImpl(
     HwSwitchCallback* hwSwitchCallback) {
-  auto startTime = steady_clock::now();
-  std::lock_guard<mutex> g(initLock_);
   // Initialize the switch.  This operation can take close to a minute
   // on some of our current platforms.
   sw_->init(
@@ -98,62 +86,6 @@ void MonolithicSwSwitchInitializer::initImpl(
         return hwAgent_->initAgent(failHwCallsOnWarmboot, callback);
       },
       setupFlags());
-
-  sw_->applyConfig("apply initial config");
-  // Enable route update logging for all routes so that when we are told
-  // the first set of routes after a warm boot, we can log any changes
-  // from what was programmed before the warm boot.
-  // e.g. any routes that were removed while the agent was restarting
-  if (sw_->getBootType() == BootType::WARM_BOOT) {
-    sw_->logRouteUpdates("::", 0, "fboss-agent-warmboot");
-    sw_->logRouteUpdates("0.0.0.0", 0, "fboss-agent-warmboot");
-  }
-  sw_->initialConfigApplied(startTime);
-
-  if (sw_->getBootType() == BootType::WARM_BOOT) {
-    sw_->stopLoggingRouteUpdates("fboss-agent-warmboot");
-  }
-  // Start the UpdateSwitchStatsThread
-  fs_ = std::make_unique<FunctionScheduler>();
-  fs_->setThreadName("UpdateStatsThread");
-  // steady will help even out the interval which will especially make
-  // aggregated counters more accurate with less spikes and dips
-  fs_->setSteady(true);
-  std::function<void()> callback(std::bind(updateStats, sw_));
-  auto timeInterval = std::chrono::seconds(1);
-  fs_->addFunction(callback, timeInterval, "updateStats");
-  fs_->start();
-  XLOG(DBG2) << "Started background thread: UpdateStatsThread";
-  initCondition_.notify_all();
-}
-
-void MonolithicAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
-  restart_time::mark(RestartEvent::SIGNAL_RECEIVED);
-
-  XLOG(DBG2) << "[Exit] Signal received ";
-  steady_clock::time_point begin = steady_clock::now();
-  stopServices();
-  steady_clock::time_point servicesStopped = steady_clock::now();
-  XLOG(DBG2) << "[Exit] Services stop time "
-             << duration_cast<duration<float>>(servicesStopped - begin).count();
-  sw_->gracefulExit();
-  steady_clock::time_point switchGracefulExit = steady_clock::now();
-  XLOG(DBG2)
-      << "[Exit] Switch Graceful Exit time "
-      << duration_cast<duration<float>>(switchGracefulExit - servicesStopped)
-             .count()
-      << std::endl
-      << "[Exit] Total graceful Exit time "
-      << duration_cast<duration<float>>(switchGracefulExit - begin).count();
-
-  restart_time::mark(RestartEvent::SHUTDOWN);
-#ifndef IS_OSS
-#if __has_feature(address_sanitizer)
-  __lsan_ignore_object(sw_);
-#endif
-#endif
-
-  exit(0);
 }
 
 MonolithicAgentInitializer::MonolithicAgentInitializer(
@@ -222,7 +154,7 @@ int MonolithicAgentInitializer::initAgent(HwSwitchCallback* callback) {
   facebook::fb303::ThreadCachedServiceData::get()->startPublishThread(
       std::chrono::milliseconds(FLAGS_stat_publish_interval_ms));
 
-  MonolithicAgentSignalHandler signalHandler(
+  SwAgentSignalHandler signalHandler(
       eventBase_, sw_.get(), [this]() { stopServices(); });
 
   XLOG(DBG2) << "serving on localhost on port " << FLAGS_port << " and "

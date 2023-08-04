@@ -45,20 +45,6 @@ class MonolithicSwSwitchInitializer : public SwSwitchInitializer {
   HwAgent* hwAgent_;
 };
 
-class MonolithicAgentSignalHandler : public SignalHandler {
- public:
-  MonolithicAgentSignalHandler(
-      folly::EventBase* eventBase,
-      SwSwitch* sw,
-      SignalHandler::StopServices stopServices)
-      : SignalHandler(eventBase, stopServices), sw_(sw) {}
-
-  void signalReceived(int /*signum*/) noexcept override;
-
- private:
-  SwSwitch* sw_;
-};
-
 class MonolithicAgentInitializer : public AgentInitializer {
  public:
   MonolithicAgentInitializer() {}

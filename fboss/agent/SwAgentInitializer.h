@@ -4,6 +4,7 @@
 
 #include <folly/experimental/FunctionScheduler.h>
 
+#include "fboss/agent/CommonInit.h"
 #include "fboss/agent/SwSwitch.h"
 
 #include <gflags/gflags.h>
@@ -26,6 +27,7 @@ class SwSwitchInitializer {
   void start(HwSwitchCallback* callback);
   void stopFunctionScheduler();
   void waitForInitDone();
+  void init(HwSwitchCallback* callback);
 
  protected:
   virtual void initImpl(HwSwitchCallback*) = 0;
@@ -36,6 +38,20 @@ class SwSwitchInitializer {
   std::unique_ptr<folly::FunctionScheduler> fs_;
   std::mutex initLock_;
   std::condition_variable initCondition_;
+};
+
+class SwAgentSignalHandler : public SignalHandler {
+ public:
+  SwAgentSignalHandler(
+      folly::EventBase* eventBase,
+      SwSwitch* sw,
+      SignalHandler::StopServices stopServices)
+      : SignalHandler(eventBase, std::move(stopServices)), sw_(sw) {}
+
+  void signalReceived(int /*signum*/) noexcept override;
+
+ private:
+  SwSwitch* sw_;
 };
 
 } // namespace facebook::fboss
