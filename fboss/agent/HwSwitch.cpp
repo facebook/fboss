@@ -81,11 +81,9 @@ uint32_t HwSwitch::generateDeterministicSeed(LoadBalancerID loadBalancerID) {
       loadBalancerID, getPlatform()->getLocalMac());
 }
 
-void HwSwitch::gracefulExit(
-    folly::dynamic& follySwitchState,
-    state::WarmbootState& thriftSwitchState) {
+void HwSwitch::gracefulExit(const state::WarmbootState& thriftSwitchState) {
   if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::WARMBOOT)) {
-    gracefulExitImpl(follySwitchState, thriftSwitchState);
+    gracefulExitImpl(thriftSwitchState);
   }
 }
 

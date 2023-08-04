@@ -51,9 +51,8 @@ void MonolinithicHwSwitchHandler::unregisterCallbacks() {
 }
 
 void MonolinithicHwSwitchHandler::gracefulExit(
-    folly::dynamic& follySwitchState,
     state::WarmbootState& thriftSwitchState) {
-  hw_->gracefulExit(follySwitchState, thriftSwitchState);
+  hw_->gracefulExit(thriftSwitchState);
 }
 
 bool MonolinithicHwSwitchHandler::getAndClearNeighborHit(

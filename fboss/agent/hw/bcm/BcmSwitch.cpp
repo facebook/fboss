@@ -502,8 +502,7 @@ void BcmSwitch::unregisterCallbacks() {
 }
 
 void BcmSwitch::gracefulExitImpl(
-    folly::dynamic& follySwitchState,
-    state::WarmbootState& thriftSwitchState) {
+    const state::WarmbootState& thriftSwitchState) {
   steady_clock::time_point begin = steady_clock::now();
   XLOG(DBG2) << "[Exit] Starting BCM Switch graceful exit";
   // Ideally, preparePortsForGracefulExit() would run in update EVB of the
@@ -519,6 +518,7 @@ void BcmSwitch::gracefulExitImpl(
   // the underlying bcm sdk state
   dumpState(platform_->getWarmBootHelper()->shutdownSdkDumpFile());
 
+  folly::dynamic follySwitchState = folly::dynamic::object;
   follySwitchState[kHwSwitch] = toFollyDynamic();
   unitObject_->writeWarmBootState(follySwitchState, thriftSwitchState);
   unitObject_.reset();

@@ -27,9 +27,7 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
 
   void unregisterCallbacks() override;
 
-  void gracefulExit(
-      folly::dynamic& follySwitchState,
-      state::WarmbootState& thriftSwitchState) override;
+  void gracefulExit(state::WarmbootState& thriftSwitchState) override;
 
   bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress& ip) override;
 

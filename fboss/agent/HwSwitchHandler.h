@@ -47,9 +47,7 @@ struct HwSwitchHandler {
 
   virtual void unregisterCallbacks() = 0;
 
-  virtual void gracefulExit(
-      folly::dynamic& follySwitchState,
-      state::WarmbootState& thriftSwitchState) = 0;
+  virtual void gracefulExit(state::WarmbootState& thriftSwitchState) = 0;
 
   virtual bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress& ip) = 0;
 

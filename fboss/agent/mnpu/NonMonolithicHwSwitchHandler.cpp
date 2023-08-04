@@ -49,7 +49,6 @@ void NonMonolithicHwSwitchHandler::unregisterCallbacks() {
 }
 
 void NonMonolithicHwSwitchHandler::gracefulExit(
-    folly::dynamic& /*follySwitchState*/,
     state::WarmbootState& /*thriftSwitchState*/) {
   // TODO: implement this
 }

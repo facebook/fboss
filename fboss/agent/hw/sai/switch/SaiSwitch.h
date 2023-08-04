@@ -209,9 +209,7 @@ class SaiSwitch : public HwSwitch {
   void rollbackInTest(const std::shared_ptr<SwitchState>& knownGoodState);
 
  private:
-  void gracefulExitImpl(
-      folly::dynamic& switchState,
-      state::WarmbootState& thriftSwitchState) override;
+  void gracefulExitImpl(const state::WarmbootState& thriftSwitchState) override;
 
   template <typename LockPolicyT>
   std::shared_ptr<SwitchState> stateChangedImplLocked(
@@ -279,8 +277,7 @@ class SaiSwitch : public HwSwitch {
 
   void gracefulExitLocked(
       const std::lock_guard<std::mutex>& lock,
-      folly::dynamic& follySwitchState,
-      state::WarmbootState& thriftSwitchState);
+      const state::WarmbootState& thriftSwitchState);
 
   folly::dynamic toFollyDynamicLocked(
       const std::lock_guard<std::mutex>& lock) const;
@@ -306,9 +303,6 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock) const;
   SaiManagerTable* managerTableLocked(const std::lock_guard<std::mutex>& lock);
 
-  void gracefulExitLocked(
-      folly::dynamic& switchState,
-      const std::lock_guard<std::mutex>& lock);
   void initLinkScanLocked(const std::lock_guard<std::mutex>& lock);
   void initRxLocked(const std::lock_guard<std::mutex>& lock);
 

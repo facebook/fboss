@@ -1116,10 +1116,9 @@ void SaiPhyManager::gracefulExit() {
 
       // Get the current SwitchState and ThriftState which will be used to call
       //  SaiSwitch::gracefulExit function
-      folly::dynamic follySwitchState = folly::dynamic::object;
       state::WarmbootState thriftSwitchState;
       *thriftSwitchState.swSwitchState() = switchState->toThrift();
-      saiSwitch->gracefulExit(follySwitchState, thriftSwitchState);
+      saiSwitch->gracefulExit(thriftSwitchState);
     }
   }
 }

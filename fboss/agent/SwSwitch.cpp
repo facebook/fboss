@@ -482,14 +482,14 @@ void SwSwitch::gracefulExit() {
                       .count();
 
     auto [follySwitchState, thriftSwitchState] = gracefulExitState();
-
+    std::ignore = follySwitchState;
     steady_clock::time_point switchStateToFollyDone = steady_clock::now();
     XLOG(DBG2) << "[Exit] Switch state to folly dynamic "
                << duration_cast<duration<float>>(
                       switchStateToFollyDone - stopThreadsAndHandlersDone)
                       .count();
     // Cleanup if we ever initialized
-    hwSwitchHandler_->gracefulExit(follySwitchState, thriftSwitchState);
+    hwSwitchHandler_->gracefulExit(thriftSwitchState);
     XLOG(DBG2)
         << "[Exit] SwSwitch Graceful Exit time "
         << duration_cast<duration<float>>(steady_clock::now() - begin).count();

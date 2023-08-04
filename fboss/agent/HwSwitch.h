@@ -236,9 +236,7 @@ class HwSwitch {
    * Allow hardware to perform any warm boot related cleanup
    * before we exit the application.
    */
-  void gracefulExit(
-      folly::dynamic& follySwitchState,
-      state::WarmbootState& thriftSwitchState);
+  void gracefulExit(const state::WarmbootState& thriftSwitchState);
 
   /*
    * Get Hw Switch state in a folly::dynamic
@@ -373,8 +371,7 @@ class HwSwitch {
   virtual void updateStatsImpl(SwitchStats* switchStats) = 0;
 
   virtual void gracefulExitImpl(
-      folly::dynamic& follySwitchState,
-      state::WarmbootState& thriftSwitchState) = 0;
+      const state::WarmbootState& thriftSwitchState) = 0;
 
   std::shared_ptr<SwitchState> getMinAlpmState(
       RoutingInformationBase* rib,

@@ -548,7 +548,8 @@ void HwSwitchEnsemble::gracefulExit() {
   getHwSwitch()->unregisterCallbacks();
   stopObservers();
   auto [follySwitchState, thriftSwitchState] = gracefulExitState();
-  getHwSwitch()->gracefulExit(follySwitchState, thriftSwitchState);
+  std::ignore = follySwitchState;
+  getHwSwitch()->gracefulExit(thriftSwitchState);
 }
 
 /*

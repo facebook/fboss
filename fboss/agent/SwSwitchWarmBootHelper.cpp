@@ -63,7 +63,7 @@ state::WarmbootState SwSwitchWarmBootHelper::getWarmBootState() const {
 
 bool SwSwitchWarmBootHelper::checkAndClearWarmBootFlags() {
   bool forceColdBoot = removeFile(forceColdBootOnceFlag(), true /*log*/);
-  if (!forceColdBoot) {
+  if (forceColdBoot) {
     // cold boot was enforced.
     return false;
   }

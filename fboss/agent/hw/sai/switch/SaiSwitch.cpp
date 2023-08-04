@@ -1570,16 +1570,14 @@ void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
 }
 
 void SaiSwitch::gracefulExitImpl(
-    folly::dynamic& follySwitchState,
-    state::WarmbootState& thriftSwitchState) {
+    const state::WarmbootState& thriftSwitchState) {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  gracefulExitLocked(lock, follySwitchState, thriftSwitchState);
+  gracefulExitLocked(lock, thriftSwitchState);
 }
 
 void SaiSwitch::gracefulExitLocked(
     const std::lock_guard<std::mutex>& lock,
-    folly::dynamic& follySwitchState,
-    state::WarmbootState& thriftSwitchState) {
+    const state::WarmbootState& thriftSwitchState) {
   std::chrono::steady_clock::time_point begin =
       std::chrono::steady_clock::now();
   XLOG(DBG2) << "[Exit] Starting SAI Switch graceful exit";
@@ -1596,6 +1594,7 @@ void SaiSwitch::gracefulExitLocked(
 #if defined(TAJO_SDK_VERSION_1_42_8)
   checkAndSetSdkDowngradeVersion();
 #endif
+  folly::dynamic follySwitchState = folly::dynamic::object;
   follySwitchState[kHwSwitch] = toFollyDynamicLocked(lock);
   platform_->getWarmBootHelper()->storeWarmBootState(
       follySwitchState, thriftSwitchState);
