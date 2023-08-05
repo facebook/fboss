@@ -114,11 +114,7 @@ class HwSwitch {
    * reload, the SwitchState should reflect the base configuration after the
    * hardware has been reinitialized.
    */
-  HwInitResult init(
-      Callback* callback,
-      bool failHwCallsOnWarmboot,
-      cfg::SwitchType switchType = cfg::SwitchType::NPU,
-      std::optional<int64_t> switchId = std::nullopt);
+  HwInitResult init(Callback* callback, bool failHwCallsOnWarmboot);
 
   cfg::SwitchType getSwitchType() const {
     return switchType_;

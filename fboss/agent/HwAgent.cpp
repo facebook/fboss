@@ -24,11 +24,8 @@ HwAgent::HwAgent(
 HwInitResult HwAgent::initAgent(
     bool failHwCallsOnWarmboot,
     HwSwitchCallback* callback) {
-  auto hwInitResult = getPlatform()->getHwSwitch()->init(
-      callback,
-      failHwCallsOnWarmboot,
-      getPlatform()->getAsic()->getSwitchType(),
-      getPlatform()->getAsic()->getSwitchId());
+  auto hwInitResult =
+      getPlatform()->getHwSwitch()->init(callback, failHwCallsOnWarmboot);
   XLOG(DBG2) << "HwSwitch init done";
   return hwInitResult;
 }

@@ -220,20 +220,16 @@ std::shared_ptr<SwitchState> HwSwitch::programMinAlpmState(
   return func(StateDelta(state, minAlpmState));
 }
 
-HwInitResult HwSwitch::init(
-    Callback* callback,
-    bool failHwCallsOnWarmboot,
-    cfg::SwitchType switchType,
-    std::optional<int64_t> switchId) {
-  switchType_ = switchType;
-  switchId_ = switchId;
-  auto ret = initImpl(callback, failHwCallsOnWarmboot, switchType, switchId);
+HwInitResult HwSwitch::init(Callback* callback, bool failHwCallsOnWarmboot) {
+  switchType_ = getPlatform()->getAsic()->getSwitchType();
+  switchId_ = getPlatform()->getAsic()->getSwitchId();
+  auto ret = initImpl(callback, failHwCallsOnWarmboot, switchType_, switchId_);
   setProgrammedState(ret.switchState);
   if (ret.bootType == BootType::WARM_BOOT ||
       !getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::ROUTE_PROGRAMMING) ||
       (switchType_ != cfg::SwitchType::NPU &&
-       switchType != cfg::SwitchType::VOQ)) {
+       switchType_ != cfg::SwitchType::VOQ)) {
     return ret;
   }
   // program min alpm state for npu and voq

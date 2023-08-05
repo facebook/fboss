@@ -448,11 +448,7 @@ void HwSwitchEnsemble::setupEnsemble(
       {{asic->getSwitchId() ? *asic->getSwitchId() : 0, switchInfo}});
   hwAsicTable_ = std::make_unique<HwAsicTable>(switchIdToSwitchInfo);
 
-  auto hwInitResult = getHwSwitch()->init(
-      this,
-      true /*failHwCallsOnWarmboot*/,
-      platform_->getAsic()->getSwitchType(),
-      platform_->getAsic()->getSwitchId());
+  auto hwInitResult = getHwSwitch()->init(this, true /*failHwCallsOnWarmboot*/);
 
   programmedState_ = hwInitResult.switchState;
   programmedState_ = programmedState_->clone();
