@@ -345,7 +345,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   std::optional<SaiSwitchTraits::Attributes::HwInfo> hwInfo = getHwInfo(this);
   std::optional<SaiSwitchTraits::Attributes::SrcMac> srcMac;
   std::optional<SaiSwitchTraits::Attributes::MacAgingTime> macAgingTime;
-  if (!mandatoryOnly) {
+  if (!mandatoryOnly && swType != cfg::SwitchType::FABRIC) {
     srcMac = getLocalMac();
     macAgingTime = getDefaultMacAgingTime();
   }

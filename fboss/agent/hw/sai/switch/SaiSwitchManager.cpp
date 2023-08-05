@@ -106,12 +106,14 @@ SaiSwitchManager::SaiSwitchManager(
         platform->getSwitchAttributes(true, switchType, switchId), swId);
     // Load all switch attributes
     switch_ = std::make_unique<SaiSwitchObj>(newSwitchId);
-    if (!FLAGS_skip_setting_src_mac) {
-      switch_->setOptionalAttribute(
-          SaiSwitchTraits::Attributes::SrcMac{platform->getLocalMac()});
+    if (switchType != cfg::SwitchType::FABRIC) {
+      if (!FLAGS_skip_setting_src_mac) {
+        switch_->setOptionalAttribute(
+            SaiSwitchTraits::Attributes::SrcMac{platform->getLocalMac()});
+      }
+      switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::MacAgingTime{
+          platform->getDefaultMacAgingTime()});
     }
-    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::MacAgingTime{
-        platform->getDefaultMacAgingTime()});
   } else {
     switch_ = std::make_unique<SaiSwitchObj>(
         std::monostate(),
