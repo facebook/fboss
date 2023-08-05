@@ -198,6 +198,11 @@ class QsfpServiceHandler
       phy::PortComponent component,
       bool setAdminUp) override;
 
+  void setInterfaceTxRx(
+      std::vector<phy::TxRxEnableResponse>& txRxEnableResponse,
+      std::unique_ptr<std::vector<phy::TxRxEnableRequest>> txRxEnableRequests)
+      override;
+
   void saiPhyRegisterAccess(
       std::string& out,
       std::unique_ptr<std::string> portName,

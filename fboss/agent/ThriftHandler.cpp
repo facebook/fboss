@@ -1600,6 +1600,13 @@ void ThriftHandler::getAllPortLoopbackMode(
   }
 }
 
+void ThriftHandler::setInterfaceTxRx(
+    std::vector<phy::TxRxEnableResponse>& /* txRxEnableResponse */,
+    std::unique_ptr<
+        std::vector<phy::TxRxEnableRequest>> /* txRxEnableRequests */) {
+  throw FbossError("setInterfaceTxRx not implemented for this service");
+}
+
 void ThriftHandler::programInternalPhyPorts(
     std::map<int32_t, cfg::PortProfileID>& programmedPorts,
     std::unique_ptr<TransceiverInfo> transceiver,

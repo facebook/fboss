@@ -472,6 +472,19 @@ union LinkSnapshot {
   2: PhyInfo phyInfo;
 }
 
+struct TxRxEnableRequest {
+  1: string portName;
+  2: PortComponent component;
+  3: bool txOrRx; // true = Transmit lanes(s), false = Receive lane(s)
+  4: bool enable;
+  5: optional i32 laneMask;
+}
+
+struct TxRxEnableResponse {
+  1: string portName;
+  2: bool success;
+}
+
 /*
  * This includes all the APIs that are common for internal PHYs (iphy),
  * external PHYs (xphy) and Optics. Any APIs that are specific to
@@ -532,5 +545,13 @@ service FbossCommonPhyCtrl extends fb303.FacebookService {
   void clearInterfacePrbsStats(
     1: string portName,
     2: PortComponent component,
+  ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Enable/Disable the port's channels Tx/Rx at ASIC/PHY/Transcciver on
+   * system/line side
+   */
+  list<TxRxEnableResponse> setInterfaceTxRx(
+    1: list<TxRxEnableRequest> txRxEnableRequests,
   ) throws (1: fboss.FbossBaseError error);
 }
