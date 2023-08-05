@@ -1584,6 +1584,8 @@ void SaiSwitch::gracefulExitLocked(
 
   SaiSwitchTraits::Attributes::SwitchRestartWarm restartWarm{true};
   SaiApiTable::getInstance()->switchApi().setAttribute(switchId_, restartWarm);
+  SaiSwitchTraits::Attributes::SwitchPreShutdown preShutdown{true};
+  SaiApiTable::getInstance()->switchApi().setAttribute(switchId_, preShutdown);
   if (platform_->getAsic()->isSupported(HwAsic::Feature::P4_WARMBOOT)) {
 #if defined(TAJO_SDK_VERSION_1_62_0) || defined(TAJO_SDK_VERSION_1_65_0)
     SaiSwitchTraits::Attributes::RestartIssu restartIssu{true};
