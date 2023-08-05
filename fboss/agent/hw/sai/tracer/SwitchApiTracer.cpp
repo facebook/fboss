@@ -28,6 +28,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _SwitchMap {
       SAI_ATTR_MAP(Switch, EcmpDefaultHashAlgorithm),
       SAI_ATTR_MAP(Switch, LagDefaultHashAlgorithm),
       SAI_ATTR_MAP(Switch, SwitchRestartWarm), SAI_ATTR_MAP(Switch, CpuPort),
+      SAI_ATTR_MAP(Switch, SwitchPreShutdown),
       SAI_ATTR_MAP(Switch, DefaultVlanId), SAI_ATTR_MAP(Switch, PortNumber),
       SAI_ATTR_MAP(Switch, PortList), SAI_ATTR_MAP(Switch, Default1QBridgeId),
       SAI_ATTR_MAP(Switch, DefaultVirtualRouterId),
