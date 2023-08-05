@@ -158,6 +158,11 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_RESTART_WARM,
         bool,
         SaiBoolDefaultFalse>;
+    using SwitchPreShutdown = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_PRE_SHUTDOWN,
+        bool,
+        SaiBoolDefaultFalse>;
     using QosDscpToTcMap = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_QOS_DSCP_TO_TC_MAP,
@@ -535,6 +540,7 @@ SAI_ATTRIBUTE_NAME(Switch, LagDefaultHashSeed)
 SAI_ATTRIBUTE_NAME(Switch, EcmpDefaultHashAlgorithm)
 SAI_ATTRIBUTE_NAME(Switch, LagDefaultHashAlgorithm)
 SAI_ATTRIBUTE_NAME(Switch, SwitchRestartWarm)
+SAI_ATTRIBUTE_NAME(Switch, SwitchPreShutdown)
 
 SAI_ATTRIBUTE_NAME(Switch, CpuPort)
 SAI_ATTRIBUTE_NAME(Switch, DefaultVlanId)
