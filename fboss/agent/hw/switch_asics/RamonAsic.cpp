@@ -20,6 +20,7 @@ bool RamonAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::SWITCH_DROP_STATS:
     case HwAsic::Feature::RX_LANE_SQUELCH_ENABLE:
+    case HwAsic::Feature::WARMBOOT:
       return true;
     default:
       return false;
