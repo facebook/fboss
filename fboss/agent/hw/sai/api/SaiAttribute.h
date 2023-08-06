@@ -723,7 +723,8 @@ struct SaiExtensionAttributeId {
 
 template <
     typename T,
-    typename SaiExtensionAttributeId = SaiExtensionAttributeId<T>>
+    typename SaiExtensionAttributeId = SaiExtensionAttributeId<T>,
+    typename DefaultGetterT = void>
 class SaiExtensionAttribute {
  public:
   using DataType = std::conditional_t<
@@ -731,9 +732,11 @@ class SaiExtensionAttribute {
       typename WrappedSaiType<T>::value,
       T>;
   using ValueType = T;
-  static constexpr bool HasDefaultGetter = false;
+  static constexpr bool HasDefaultGetter =
+      !std::is_same_v<DefaultGetterT, void>;
   using AttributeId = SaiExtensionAttributeId;
   using ExtractSelectionType = T;
+  using DefaultGetter = DefaultGetterT;
 
   SaiExtensionAttribute() {
     saiAttr_.id = kExtensionAttributeId();
@@ -794,6 +797,11 @@ class SaiExtensionAttribute {
     return v;
   }
 
+  static ValueType defaultValue() {
+    static_assert(HasDefaultGetter, "No default getter provided for attribute");
+    return DefaultGetterT{}();
+  }
+
   void realloc() {
     _realloc(data(), value_);
     _fill(value_, data());
@@ -852,7 +860,10 @@ template <typename T>
 struct IsSaiExtensionAttribute<
     T,
     std::enable_if_t<std::is_base_of_v<
-        SaiExtensionAttribute<typename T::ValueType, typename T::AttributeId>,
+        SaiExtensionAttribute<
+            typename T::ValueType,
+            typename T::AttributeId,
+            typename T::DefaultGetter>,
         T>>> : std::true_type {};
 
 // implement trait that detects SaiAttribute
