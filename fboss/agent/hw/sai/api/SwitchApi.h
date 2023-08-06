@@ -452,8 +452,10 @@ struct SaiSwitchTraits {
     struct AttributeMaxCoresWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
-    using MaxCores =
-        SaiExtensionAttribute<sai_uint32_t, AttributeMaxCoresWrapper>;
+    using MaxCores = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeMaxCoresWrapper,
+        SaiIntDefault<uint32_t>>;
     using PfcDlrPacketAction = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_PFC_DLR_PACKET_ACTION,
