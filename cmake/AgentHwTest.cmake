@@ -386,3 +386,16 @@ target_link_libraries(hw_linkstate_toggler
   state
   core
 )
+
+add_library(hw_voq_utils
+  fboss/agent/hw/test/HwVoqUtils.cpp
+)
+
+target_link_libraries(hw_voq_utils
+  config_factory
+  fboss_types
+  switchid_scope_resolver
+  switch_config_cpp2
+  state
+  Folly::folly
+)
