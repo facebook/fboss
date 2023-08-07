@@ -165,3 +165,10 @@ target_link_libraries(fpga_device
 add_library(pci_access
   fboss/lib/PciAccess.cpp
 )
+
+
+add_library(hw_write_behavior
+  fboss/lib/HwWriteBehavior.cpp
+)
+
+target_link_libraries(hw_write_behavior)

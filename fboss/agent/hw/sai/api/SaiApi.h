@@ -9,7 +9,6 @@
  */
 #pragma once
 
-#include "fboss/agent/hw/sai/api/HwWriteBehavior.h"
 #include "fboss/agent/hw/sai/api/LoggingUtil.h"
 #include "fboss/agent/hw/sai/api/SaiApiError.h"
 #include "fboss/agent/hw/sai/api/SaiApiLock.h"
@@ -17,6 +16,7 @@
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 #include "fboss/agent/hw/sai/api/Traits.h"
 #include "fboss/lib/FunctionCallTimeReporter.h"
+#include "fboss/lib/HwWriteBehavior.h"
 #include "fboss/lib/TupleUtils.h"
 
 #include <folly/Format.h>

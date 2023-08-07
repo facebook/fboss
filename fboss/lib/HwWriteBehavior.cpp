@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/hw/sai/api/HwWriteBehavior.h"
+#include "fboss/lib/HwWriteBehavior.h"
 
 #include <atomic>
 
