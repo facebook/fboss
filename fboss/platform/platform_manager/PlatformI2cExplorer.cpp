@@ -51,7 +51,7 @@ std::map<std::string, std::string> PlatformI2cExplorer::getKernelAssignedNames(
   std::map<std::string, std::string> kernelAssignedNames;
   auto deviceRoot = fs::path("/sys/bus/i2c/devices");
   for (const auto& dirEntry : fs::directory_iterator(deviceRoot)) {
-    if (dirEntry.path().filename().string().starts_with("i2c-")) {
+    if (dirEntry.path().filename().string().rfind("i2c-", 0) == 0) {
       auto busName = getBusName(dirEntry.path());
       if (std::find(
               i2cBussesFromCpu.begin(), i2cBussesFromCpu.end(), busName) !=
@@ -147,7 +147,7 @@ std::vector<std::string> PlatformI2cExplorer::getMuxChannelI2CBuses(
   // xargs --max-args 1 basename"
   std::vector<std::string> channelBusNames;
   for (const auto& dirEntry : fs::directory_iterator(devicePath)) {
-    if (dirEntry.path().filename().string().starts_with("channel-")) {
+    if (dirEntry.path().filename().string().rfind("channel-", 0) == 0) {
       if (!dirEntry.is_symlink()) {
         throw std::runtime_error(
             fmt::format("{} is not a symlink.", dirEntry.path().string()));
