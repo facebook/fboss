@@ -824,27 +824,9 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
     return cfg;
   }
 
-  static SwitchID getRemoteSwitchId() {
-    return SwitchID(4);
-  }
-
   std::optional<std::map<int64_t, cfg::DsfNode>> overrideDsfNodes(
       const std::map<int64_t, cfg::DsfNode>& curDsfNodes) const override {
-    CHECK(!curDsfNodes.empty());
-    auto dsfNodes = curDsfNodes;
-    const auto& firstDsfNode = dsfNodes.begin()->second;
-    CHECK(firstDsfNode.systemPortRange().has_value());
-    CHECK(firstDsfNode.nodeMac().has_value());
-    folly::MacAddress mac(*firstDsfNode.nodeMac());
-    auto asic = HwAsic::makeAsic(
-        *firstDsfNode.asicType(),
-        cfg::SwitchType::VOQ,
-        *firstDsfNode.switchId(),
-        *firstDsfNode.systemPortRange(),
-        mac);
-    auto otherDsfNodeCfg = utility::dsfNodeConfig(*asic, getRemoteSwitchId());
-    dsfNodes.insert({*otherDsfNodeCfg.switchId(), otherDsfNodeCfg});
-    return dsfNodes;
+    return utility::addRemoteDsfNodeCfg(curDsfNodes, 1);
   }
 
  protected:
@@ -1077,35 +1059,7 @@ class HwVoqSwitchFullScaleDsfNodesTest
 
   std::optional<std::map<int64_t, cfg::DsfNode>> overrideDsfNodes(
       const std::map<int64_t, cfg::DsfNode>& curDsfNodes) const override {
-    CHECK(!curDsfNodes.empty());
-    auto dsfNodes = curDsfNodes;
-    const auto& firstDsfNode = dsfNodes.begin()->second;
-    CHECK(firstDsfNode.systemPortRange().has_value());
-    CHECK(firstDsfNode.nodeMac().has_value());
-    folly::MacAddress mac(*firstDsfNode.nodeMac());
-    auto asic = HwAsic::makeAsic(
-        *firstDsfNode.asicType(),
-        cfg::SwitchType::VOQ,
-        *firstDsfNode.switchId(),
-        *firstDsfNode.systemPortRange(),
-        mac);
-    int numCores = asic->getNumCores();
-    for (int remoteSwitchId = numCores;
-         remoteSwitchId < getDsfNodeCount(asic.get()) * numCores;
-         remoteSwitchId += numCores) {
-      // Ideally there's no need to add extra offset if each dsfNode has 15
-      // ports. However, local switch already used 1 CPU, 1 recyle and 16 system
-      // ports. Adding an extra offset of 5 for remote system ports.
-      const auto systemPortMin =
-          (remoteSwitchId / numCores) * kSystemPortCountPerNode + 5;
-      cfg::Range64 systemPortRange;
-      systemPortRange.minimum() = systemPortMin;
-      systemPortRange.maximum() = systemPortMin + kSystemPortCountPerNode - 1;
-      auto remoteDsfNodeCfg = utility::dsfNodeConfig(
-          *asic, SwitchID(remoteSwitchId), systemPortMin);
-      dsfNodes.insert({remoteSwitchId, remoteDsfNodeCfg});
-    }
-    return dsfNodes;
+    return utility::addRemoteDsfNodeCfg(curDsfNodes);
   }
 
  protected:
