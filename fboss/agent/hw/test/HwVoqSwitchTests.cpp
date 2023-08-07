@@ -1199,14 +1199,75 @@ class HwVoqSwitchFullScaleDsfNodesTest
     }
   }
 
+  int getMaxEcmpWidth(const HwAsic* asic) const {
+    return asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2 ? 128 : 512;
+  }
+
+  int getMaxEcmpGroup() const {
+    return 64;
+  }
+
+  // Resolve and return list of remote nhops
+  std::vector<PortDescriptor> resolveRemoteNhops(
+      utility::EcmpSetupTargetedPorts6& ecmpHelper) {
+    auto remoteSysPorts =
+        getProgrammedState()->getRemoteSystemPorts()->getAllNodes();
+    std::vector<PortDescriptor> sysPortDescs;
+    std::for_each(
+        remoteSysPorts->begin(),
+        remoteSysPorts->end(),
+        [&sysPortDescs](const auto& idAndPort) {
+          sysPortDescs.push_back(
+              PortDescriptor(static_cast<SystemPortID>(idAndPort.first)));
+        });
+    auto currState = getProgrammedState();
+    for (const auto& sysPortDesc : sysPortDescs) {
+      currState = ecmpHelper.resolveNextHops(
+          currState,
+          {sysPortDesc},
+          false,
+          /* encapIndex */ sysPortDesc.sysPortID());
+    }
+    applyNewState(currState);
+    return sysPortDescs;
+  }
+
  private:
-  int getDsfNodeCount(HwAsic* asic) const {
+  int getDsfNodeCount(const HwAsic* asic) const {
     return asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2 ? 128 : 256;
   }
 };
 
 TEST_F(HwVoqSwitchFullScaleDsfNodesTest, systemPortScaleTest) {
   auto setup = [this]() { setupRemoteIntfAndSysPorts(); };
+  verifyAcrossWarmBoots(setup, [] {});
+}
+
+TEST_F(HwVoqSwitchFullScaleDsfNodesTest, remoteNeighborWithEcmpGroup) {
+  auto kEcmpWidth = getMaxEcmpWidth(getAsic());
+  FLAGS_ecmp_width = kEcmpWidth;
+  auto setup = [&]() {
+    setupRemoteIntfAndSysPorts();
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
+    // Trigger config apply to add remote interface routes as directly connected
+    // in RIB. This is to resolve ECMP members pointing to remote nexthops.
+    applyNewConfig(initialConfig());
+
+    // Resolve remote nhops and get a list of remote sysPort descriptors
+    auto sysPortDescs = resolveRemoteNhops(ecmpHelper);
+
+    for (int i = 0; i < getMaxEcmpGroup(); i++) {
+      auto prefix = RoutePrefixV6{
+          folly::IPAddressV6(folly::to<std::string>(i + 1, "::", i + 1)), 128};
+      ecmpHelper.programRoutes(
+          getRouteUpdater(),
+          flat_set<PortDescriptor>(
+              std::make_move_iterator(sysPortDescs.begin() + i),
+              std::make_move_iterator(sysPortDescs.begin() + i + kEcmpWidth)),
+          {prefix});
+    }
+  };
+  // TODO: Send and verify packets across voq drops.
   verifyAcrossWarmBoots(setup, [] {});
 }
 } // namespace facebook::fboss

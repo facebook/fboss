@@ -209,6 +209,8 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolvePortRifNextHop(
   auto outputState{inputState->clone()};
   auto nbrTable = intf->getNeighborEntryTable<AddrT>()->toThrift();
   auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
+  bool isLocal =
+      inputState->getInterfaces()->getNodeIf(intf->getID()) != nullptr;
   state::NeighborEntryFields nbr;
   nbr.mac() = nhop.mac.toString();
   nbr.interfaceId() = static_cast<int>(intf->getID());
@@ -218,8 +220,9 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolvePortRifNextHop(
   if (encapIdx) {
     nbr.encapIndex() = *encapIdx;
   }
+  nbr.isLocal() = isLocal;
   nbrTable.insert({*nbr.ipaddress(), nbr});
-  auto origIntf = outputState->getInterfaces()->getNodeIf(intf->getID())
+  auto origIntf = isLocal
       ? outputState->getInterfaces()->getNode(intf->getID())
       : outputState->getRemoteInterfaces()->getNode(intf->getID());
   auto interface = origIntf->modify(&outputState);
@@ -254,7 +257,9 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::unresolvePortRifNextHop(
   auto nbrTable = intf->getNeighborEntryTable<AddrT>()->toThrift();
   auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
   nbrTable.erase(nhopIp.str());
-  auto origIntf = outputState->getInterfaces()->getNode(intf->getID());
+  auto origIntf = outputState->getInterfaces()->getNodeIf(intf->getID())
+      ? outputState->getInterfaces()->getNode(intf->getID())
+      : outputState->getRemoteInterfaces()->getNode(intf->getID());
   auto interface = origIntf->modify(&outputState);
   interface->setNeighborEntryTable<AddrT>(nbrTable);
   return outputState;
