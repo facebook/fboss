@@ -48,9 +48,6 @@ void AgentTest::setupAgent() {
   setupConfigFlag();
   asyncInitThread_.reset(
       new std::thread([this] { MonolithicAgentInitializer::initAgent(); }));
-  // Cannot join the thread because initAgent starts a thrift server in the main
-  // thread and that runs for lifetime of the application.
-  asyncInitThread_->detach();
   initializer()->waitForInitDone();
   XLOG(DBG2) << "Agent has been setup and ready for the test";
 }
@@ -61,6 +58,8 @@ void AgentTest::TearDown() {
     runForever();
   }
   MonolithicAgentInitializer::stopAgent(FLAGS_setup_for_warmboot);
+  asyncInitThread_->join();
+  asyncInitThread_.reset();
 }
 
 std::map<std::string, HwPortStats> AgentTest::getPortStats(
