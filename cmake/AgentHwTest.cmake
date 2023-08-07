@@ -396,6 +396,7 @@ target_link_libraries(hw_voq_utils
   config_factory
   fboss_types
   switchid_scope_resolver
+  switch_asics
   switch_config_cpp2
   state
   Folly::folly

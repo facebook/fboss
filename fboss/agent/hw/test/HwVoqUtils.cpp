@@ -17,6 +17,48 @@ constexpr auto kSystemPortCountPerNode = 15;
 
 namespace facebook::fboss::utility {
 
+int getDsfNodeCount(const HwAsic* asic) {
+  return asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2 ? 128 : 256;
+}
+
+std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteDsfNodeCfg(
+    const std::map<int64_t, cfg::DsfNode>& curDsfNodes,
+    std::optional<int> numRemoteNodes) {
+  CHECK(!curDsfNodes.empty());
+  auto dsfNodes = curDsfNodes;
+  const auto& firstDsfNode = dsfNodes.begin()->second;
+  CHECK(firstDsfNode.systemPortRange().has_value());
+  CHECK(firstDsfNode.nodeMac().has_value());
+  folly::MacAddress mac(*firstDsfNode.nodeMac());
+  auto asic = HwAsic::makeAsic(
+      *firstDsfNode.asicType(),
+      cfg::SwitchType::VOQ,
+      *firstDsfNode.switchId(),
+      *firstDsfNode.systemPortRange(),
+      mac);
+  int numCores = asic->getNumCores();
+  CHECK(
+      !numRemoteNodes.has_value() ||
+      numRemoteNodes.value() < getDsfNodeCount(asic.get()));
+  int totalNodes = numRemoteNodes.has_value() ? numRemoteNodes.value() + 1
+                                              : getDsfNodeCount(asic.get());
+  for (int remoteSwitchId = numCores; remoteSwitchId < totalNodes * numCores;
+       remoteSwitchId += numCores) {
+    // Ideally there's no need to add extra offset if each dsfNode has 15
+    // ports. However, local switch already used 1 CPU, 1 recyle and 16 system
+    // ports. Adding an extra offset of 5 for remote system ports.
+    const auto systemPortMin =
+        (remoteSwitchId / numCores) * kSystemPortCountPerNode + 5;
+    cfg::Range64 systemPortRange;
+    systemPortRange.minimum() = systemPortMin;
+    systemPortRange.maximum() = systemPortMin + kSystemPortCountPerNode - 1;
+    auto remoteDsfNodeCfg =
+        dsfNodeConfig(*asic, SwitchID(remoteSwitchId), systemPortMin);
+    dsfNodes.insert({remoteSwitchId, remoteDsfNodeCfg});
+  }
+  return dsfNodes;
+}
+
 std::shared_ptr<SwitchState> addRemoteSysPort(
     std::shared_ptr<SwitchState> currState,
     const SwitchIdScopeResolver& scopeResolver,
