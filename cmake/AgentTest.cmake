@@ -93,6 +93,7 @@ target_link_libraries(agent_test_lib
   qsfp_cpp2
   qsfp_service_client
   fboss_config_utils
+  monolithic_agent_initializer
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
