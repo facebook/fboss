@@ -1095,11 +1095,6 @@ class HwVoqSwitchFullScaleDsfNodesTest
     applyNewState(currState);
     return sysPortDescs;
   }
-
- private:
-  int getDsfNodeCount(const HwAsic* asic) const {
-    return asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2 ? 128 : 256;
-  }
 };
 
 TEST_F(HwVoqSwitchFullScaleDsfNodesTest, systemPortScaleTest) {
