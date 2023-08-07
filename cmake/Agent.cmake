@@ -472,6 +472,7 @@ target_link_libraries(monolithic_agent_initializer
   fboss_common_init
   handler
   hw_switch
+  hwagent
   load_agent_config
   monolithic_switch_handler
   setup_thrift
