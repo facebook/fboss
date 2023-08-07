@@ -1270,4 +1270,40 @@ TEST_F(HwVoqSwitchFullScaleDsfNodesTest, remoteNeighborWithEcmpGroup) {
   // TODO: Send and verify packets across voq drops.
   verifyAcrossWarmBoots(setup, [] {});
 }
+
+TEST_F(HwVoqSwitchFullScaleDsfNodesTest, stressProgramEcmpRoutes) {
+  auto kEcmpWidth = getMaxEcmpWidth(getAsic());
+  FLAGS_ecmp_width = kEcmpWidth;
+  // Stress add/delete 100 iterations of 5 routes with ECMP width.
+  const auto routeScale = 5;
+  const auto numIterations = 100;
+  auto setup = [&]() {
+    setupRemoteIntfAndSysPorts();
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
+    // Trigger config apply to add remote interface routes as directly connected
+    // in RIB. This is to resolve ECMP members pointing to remote nexthops.
+    applyNewConfig(initialConfig());
+
+    // Resolve remote nhops and get a list of remote sysPort descriptors
+    auto sysPortDescs = resolveRemoteNhops(ecmpHelper);
+
+    for (int iter = 0; iter < numIterations; iter++) {
+      std::vector<RoutePrefixV6> routes;
+      for (int i = 0; i < routeScale; i++) {
+        auto prefix = RoutePrefixV6{
+            folly::IPAddressV6(folly::to<std::string>(i + 1, "::", i + 1)),
+            128};
+        ecmpHelper.programRoutes(
+            getRouteUpdater(),
+            flat_set<PortDescriptor>(
+                std::make_move_iterator(sysPortDescs.begin() + i),
+                std::make_move_iterator(sysPortDescs.begin() + i + kEcmpWidth)),
+            {prefix});
+        routes.push_back(prefix);
+      }
+      ecmpHelper.unprogramRoutes(getRouteUpdater(), routes);
+    }
+  };
+  verifyAcrossWarmBoots(setup, [] {});
+}
 } // namespace facebook::fboss
