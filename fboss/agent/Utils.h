@@ -50,6 +50,7 @@ class SwitchConfig;
 
 class SwitchState;
 class Interface;
+class SwitchSettings;
 
 template <typename T>
 inline T readBuffer(const uint8_t* buffer, uint32_t pos, size_t buffSize) {
@@ -324,5 +325,9 @@ size_t getNumUpPorts(
     const std::shared_ptr<SwitchState>& state,
     const HwSwitchMatcher& matcher,
     cfg::PortType portType);
+
+cfg::SwitchDrainState computeActualSwitchDrainState(
+    const std::shared_ptr<SwitchSettings>& switchSettings,
+    int numFabricPortsUp);
 
 } // namespace facebook::fboss
