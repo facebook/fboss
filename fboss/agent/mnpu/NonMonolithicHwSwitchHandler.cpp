@@ -173,12 +173,6 @@ NonMonolithicHwSwitchHandler::getPortGearboxPrbsStats(
   return {};
 }
 
-void NonMonolithicHwSwitchHandler::clearPortGearboxPrbsStats(
-    int32_t /*portId*/,
-    phy::Side /*side*/) {
-  // TODO: implement this
-}
-
 void NonMonolithicHwSwitchHandler::switchRunStateChanged(
     SwitchRunState /*newState*/) {
   // TODO: implement this

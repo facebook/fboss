@@ -92,8 +92,6 @@ struct HwSwitchHandler {
       int32_t portId,
       phy::Side side) = 0;
 
-  virtual void clearPortGearboxPrbsStats(int32_t portId, phy::Side side) = 0;
-
   virtual void switchRunStateChanged(SwitchRunState newState) = 0;
 
   virtual std::shared_ptr<SwitchState> stateChanged(

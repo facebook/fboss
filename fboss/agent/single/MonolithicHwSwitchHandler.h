@@ -72,8 +72,6 @@ class MonolinithicHwSwitchHandler : public HwSwitchHandler {
       int32_t portId,
       phy::Side side) override;
 
-  void clearPortGearboxPrbsStats(int32_t portId, phy::Side side) override;
-
   void switchRunStateChanged(SwitchRunState newState) override;
 
   // platform access apis

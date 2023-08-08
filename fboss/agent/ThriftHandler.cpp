@@ -1393,10 +1393,7 @@ void ThriftHandler::clearPortPrbsStats(
   } else if (
       component == phy::PortComponent::GB_SYSTEM ||
       component == phy::PortComponent::GB_LINE) {
-    phy::Side side = (component == phy::PortComponent::GB_SYSTEM)
-        ? phy::Side::SYSTEM
-        : phy::Side::LINE;
-    sw_->clearPortGearboxPrbsStats(portId, side);
+    throw FbossError("Clear gearbox prbs stats is not supported");
   } else {
     XLOG(DBG2) << "Unrecognized component to ClearPortPrbsStats: "
                << apache::thrift::util::enumNameSafe(component);

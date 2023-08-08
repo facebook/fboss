@@ -567,7 +567,6 @@ class BcmSwitch : public BcmSwitchIf {
   std::vector<phy::PrbsLaneStats> getPortGearboxPrbsStats(
       int32_t portId,
       phy::Side side) override;
-  void clearPortGearboxPrbsStats(int32_t portId, phy::Side side) override;
 
   std::vector<prbs::PrbsPolynomial> getPortPrbsPolynomials(
       int32_t /* portId */) override;

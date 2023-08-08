@@ -3245,11 +3245,6 @@ std::vector<PrbsLaneStats> BcmSwitch::getPortGearboxPrbsStats(
       side);
 }
 
-void BcmSwitch::clearPortGearboxPrbsStats(int32_t portId, phy::Side side) {
-  portTable_->getBcmPort(portId)->getPlatformPort()->clearGearboxPrbsStats(
-      side);
-}
-
 void BcmSwitch::dumpState(const std::string& path) const {
   auto stateString = gatherSdkState();
   if (stateString.length() > 0) {

@@ -57,7 +57,6 @@ class BcmPlatformPort : public PlatformPort {
       phy::Side /* side */) {
     return std::vector<phy::PrbsLaneStats>();
   }
-  virtual void clearGearboxPrbsStats(phy::Side /* side */) {}
 
  private:
   // Forbidden copy constructor and assignment operator

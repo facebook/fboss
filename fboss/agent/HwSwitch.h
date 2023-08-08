@@ -325,10 +325,6 @@ class HwSwitch {
     return prbs::InterfacePrbsState();
   }
 
-  virtual void clearPortGearboxPrbsStats(
-      int32_t /*portId*/,
-      phy::Side /* side */) {}
-
   virtual BootType getBootType() const = 0;
 
   virtual cfg::PortSpeed getPortMaxSpeed(PortID /* port */) const = 0;

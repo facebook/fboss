@@ -169,12 +169,6 @@ MonolinithicHwSwitchHandler::getPortGearboxPrbsStats(
   return hw_->getPortGearboxPrbsStats(portId, side);
 }
 
-void MonolinithicHwSwitchHandler::clearPortGearboxPrbsStats(
-    int32_t portId,
-    phy::Side side) {
-  hw_->clearPortGearboxPrbsStats(portId, side);
-}
-
 void MonolinithicHwSwitchHandler::switchRunStateChanged(
     SwitchRunState newState) {
   hw_->switchRunStateChanged(newState);
