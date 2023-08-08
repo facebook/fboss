@@ -449,6 +449,14 @@ class SwitchSettings
     return queues->impl();
   }
 
+  void setSwitchInfo(const cfg::SwitchInfo& switchInfo) {
+    set<switch_state_tags::switchInfo>(switchInfo);
+  }
+
+  const cfg::SwitchInfo getSwitchInfo() const {
+    return get<switch_state_tags::switchInfo>()->toThrift();
+  }
+
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
  private:
