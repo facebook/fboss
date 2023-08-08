@@ -4,6 +4,7 @@
 
 #include <folly/experimental/FunctionScheduler.h>
 
+#include <thrift/lib/cpp2/server/ThriftServer.h>
 #include "fboss/agent/AgentInitializer.h"
 #include "fboss/agent/CommonInit.h"
 #include "fboss/agent/SwSwitch.h"
@@ -59,6 +60,23 @@ class SwAgentSignalHandler : public SignalHandler {
 class SwAgentInitializer : public AgentInitializer {
  public:
   SwAgentInitializer() {}
+
+  SwSwitch* sw() const {
+    return sw_.get();
+  }
+
+  SwSwitchInitializer* initializer() const {
+    return initializer_.get();
+  }
+
+ protected:
+  virtual std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
+  getThrifthandlers() = 0;
+
+  std::unique_ptr<SwSwitch> sw_;
+  std::unique_ptr<SwSwitchInitializer> initializer_;
+  std::unique_ptr<apache::thrift::ThriftServer> server_;
+  folly::EventBase* eventBase_;
 };
 
 } // namespace facebook::fboss

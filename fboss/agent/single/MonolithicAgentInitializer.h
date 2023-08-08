@@ -51,14 +51,8 @@ class MonolithicAgentInitializer : public SwAgentInitializer {
       std::unique_ptr<AgentConfig> config,
       uint32_t hwFeaturesDesired,
       PlatformInitFn initPlatform);
-  SwSwitch* sw() const {
-    return sw_.get();
-  }
   Platform* platform() const {
     return hwAgent_->getPlatform();
-  }
-  MonolithicSwSwitchInitializer* initializer() const {
-    return initializer_.get();
   }
 
   virtual ~MonolithicAgentInitializer() override {}
@@ -81,12 +75,11 @@ class MonolithicAgentInitializer : public SwAgentInitializer {
 
   void handleExitSignal();
 
+  std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
+  getThrifthandlers() override;
+
  private:
   std::unique_ptr<HwAgent> hwAgent_;
-  std::unique_ptr<SwSwitch> sw_;
-  std::unique_ptr<MonolithicSwSwitchInitializer> initializer_;
-  std::unique_ptr<apache::thrift::ThriftServer> server_;
-  folly::EventBase* eventBase_;
 };
 
 } // namespace facebook::fboss

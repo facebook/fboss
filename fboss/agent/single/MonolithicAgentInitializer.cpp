@@ -121,15 +121,10 @@ int MonolithicAgentInitializer::initAgent() {
 }
 
 int MonolithicAgentInitializer::initAgent(HwSwitchCallback* callback) {
-  std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
-      handlers{};
   auto swHandler = std::make_shared<ThriftHandler>(sw_.get());
-  handlers.push_back(swHandler);
-  auto hwHandler = platform()->createHandler();
-  if (hwHandler) {
-    handlers.push_back(hwHandler);
-  }
   swHandler->setIdleTimeout(FLAGS_thrift_idle_timeout);
+  auto handlers = getThrifthandlers();
+  handlers.push_back(swHandler);
   eventBase_ = new EventBase();
 
   // Start the thrift server
@@ -218,6 +213,17 @@ void MonolithicAgentInitializer::handleExitSignal() {
 #endif
   initializer_.reset();
   exit(0);
+}
+
+std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
+MonolithicAgentInitializer::getThrifthandlers() {
+  std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
+      handlers{};
+  auto hwHandler = platform()->createHandler();
+  if (hwHandler) {
+    handlers.push_back(hwHandler);
+  }
+  return handlers;
 }
 
 } // namespace facebook::fboss
