@@ -19,6 +19,7 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/TransceiverMap.h"
+#include "fboss/lib/HwWriteBehavior.h"
 
 #include <fb303/ThreadCachedServiceData.h>
 #include <folly/FileUtil.h>
@@ -246,5 +247,4 @@ HwInitResult HwSwitch::init(Callback* callback, bool failHwCallsOnWarmboot) {
   ret.switchState = getProgrammedState();
   return ret;
 }
-
 } // namespace facebook::fboss

@@ -368,6 +368,8 @@ class HwSwitch {
  protected:
   void setProgrammedState(const std::shared_ptr<SwitchState>& state);
 
+  virtual void initialStateApplied() = 0;
+
  private:
   virtual HwInitResult initImpl(
       Callback* callback,

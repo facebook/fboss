@@ -235,6 +235,7 @@ target_link_libraries(core
   thread_heartbeat
   platform_mapping_utils
   sw_switch_warmboot_helper
+  hw_write_behavior
 )
 
 add_library(error
@@ -306,6 +307,7 @@ target_link_libraries(hw_switch
   platform_base
   route_update_wrapper
   hw_switch_fb303_stats
+  hw_write_behavior
 )
 
 add_library(async_logger

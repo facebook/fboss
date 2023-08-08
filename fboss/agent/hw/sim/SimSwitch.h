@@ -146,6 +146,8 @@ class SimSwitch : public HwSwitch {
 
   void gracefulExitImpl() override {}
 
+  void initialStateApplied() override {}
+
   // Forbidden copy constructor and assignment operator
   SimSwitch(SimSwitch const&) = delete;
   SimSwitch& operator=(SimSwitch const&) = delete;

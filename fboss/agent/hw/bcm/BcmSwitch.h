@@ -1096,6 +1096,8 @@ class BcmSwitch : public BcmSwitchIf {
   void processControlPlaneEntryRemoved(
       const std::shared_ptr<ControlPlane>& oldCPU);
 
+  void initialStateApplied() override {}
+
   /*
    * Member variables
    */
