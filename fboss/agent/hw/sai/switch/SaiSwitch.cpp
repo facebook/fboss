@@ -1804,10 +1804,6 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
   // Temporarily skip resetPorts for ASIC_TYPE_ELBERT_8DD
   if (platform_->getAsic()->getAsicType() !=
       cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
-    auto switchId = platform_->getAsic()->getSwitchId()
-        ? *platform_->getAsic()->getSwitchId()
-        : 0;
-    HwSwitchMatcher matcher(std::unordered_set<SwitchID>({SwitchID(switchId)}));
     // reconstruct ports
     auto portMaps =
         managerTable_->portManager().reconstructPortsFromStore(switchType_);
