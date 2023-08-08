@@ -82,13 +82,11 @@ void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
 
   // Only sysfs is read one by one. For other type of read,
   // we set the flags for each type, then read them in batch
-  for (auto sensor = config_.sensors()->begin();
-       sensor != config_.sensors()->end();
-       ++sensor) {
+  for (const auto& sensor : *config_.sensors()) {
     uint64_t nowSec;
     float readVal;
     bool readSuccessful;
-    auto sensorAccessType = *sensor->access()->accessType();
+    auto sensorAccessType = *sensor.access()->accessType();
     if (sensorAccessType == constants::ACCESS_TYPE_THRIFT()) {
       if (FLAGS_subscribe_to_stats_from_fsdb) {
         fetchFromFsdb = true;
@@ -103,13 +101,13 @@ void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
       nowSec = facebook::WallClockUtil::NowInSecFast();
       readSuccessful = false;
       try {
-        readVal = getSensorDataSysfs(*sensor->access()->path());
+        readVal = getSensorDataSysfs(*sensor.access()->path());
         readSuccessful = true;
       } catch (std::exception& e) {
-        XLOG(ERR) << "Failed to read sysfs " << *sensor->access()->path();
+        XLOG(ERR) << "Failed to read sysfs " << *sensor.access()->path();
       }
       if (readSuccessful) {
-        pSensorData->updateEntryFloat(*sensor->sensorName(), readVal, nowSec);
+        pSensorData->updateEntryFloat(*sensor.sensorName(), readVal, nowSec);
       }
     } else {
       throw facebook::fboss::FbossError(
@@ -132,8 +130,7 @@ void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
   if (fetchFromFsdb) {
     // Populate the last data that was received from FSDB into pSensorData
     auto subscribedData = fsdbSensorSubscriber_->getSensorData();
-    for (const auto& sensorIt : subscribedData) {
-      auto sensorData = sensorIt.second;
+    for (const auto& [sensorName, sensorData] : subscribedData) {
       pSensorData->updateEntryFloat(
           *sensorData.name(), *sensorData.value(), *sensorData.timeStamp());
     }
@@ -386,15 +383,13 @@ void Bsp::getOpticsDataSysfs(
 void Bsp::getOpticsData(std::shared_ptr<SensorData> pSensorData) {
   // Only sysfs is read one by one. For other type of read,
   // we set the flags for each type, then read them in batch
-  for (auto opticsGroup = config_.optics()->begin();
-       opticsGroup != config_.optics()->end();
-       ++opticsGroup) {
-    auto accessType = *opticsGroup->access()->accessType();
+  for (const auto& optic : *config_.optics()) {
+    auto accessType = *optic.access()->accessType();
     if (accessType == constants::ACCESS_TYPE_QSFP() ||
         accessType == constants::ACCESS_TYPE_THRIFT()) {
-      getOpticsDataFromQsfpSvc(*opticsGroup, pSensorData);
+      getOpticsDataFromQsfpSvc(optic, pSensorData);
     } else if (accessType == constants::ACCESS_TYPE_SYSFS()) {
-      getOpticsDataSysfs(*opticsGroup, pSensorData);
+      getOpticsDataSysfs(optic, pSensorData);
     } else {
       throw facebook::fboss::FbossError(
           "Invalid way for fetching optics temperature!");

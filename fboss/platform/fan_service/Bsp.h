@@ -6,30 +6,21 @@
 //        such as, emergency_shutdown, sysfs read, thrift read, util read
 //        A base class where it can be extended by platform specific class or
 //        overridden by mock Bsp (Mokujin)
-
-// Don't parse multiple times
 #pragma once
 
-// Standard CPP include file
 #include <cstdint>
 #include <fstream>
 #include <sstream>
 
-// Header file of the other classes used by this class
-#include "SensorData.h"
-
-// Auto-generated Thrift inteface headerfile (by Buck)
-#include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
-
-// Coroutine BlockWait headerfile
 #include <folly/experimental/coro/BlockingWait.h>
-
 #include <folly/io/async/EventBase.h>
 #include <folly/system/Shell.h>
-#include "fboss/platform/fan_service/HelperFunction.h"
 
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/platform/fan_service/FsdbSensorSubscriber.h"
+#include "fboss/platform/fan_service/HelperFunction.h"
+#include "fboss/platform/fan_service/SensorData.h"
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_state_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_stats_types.h"
