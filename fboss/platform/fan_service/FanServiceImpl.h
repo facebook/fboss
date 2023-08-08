@@ -3,10 +3,11 @@
 
 #include <gflags/gflags.h>
 #include <string>
-#include "Bsp.h"
-#include "ControlLogic.h"
-#include "Mokujin.h"
-#include "SensorData.h"
+
+#include "fboss/platform/fan_service/Bsp.h"
+#include "fboss/platform/fan_service/ControlLogic.h"
+#include "fboss/platform/fan_service/Mokujin.h"
+#include "fboss/platform/fan_service/SensorData.h"
 
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
 
@@ -15,23 +16,15 @@ class EventBase;
 }
 namespace facebook::fboss::platform::fan_service {
 
-// FanService    : The main Class the represent the fan_service
-//                 Instantiates the following classes.
-//
-//               - ControlLogic class : PWM control logic
-//               - Bsp class : All I/O functions including Thrift handler
-//                    - Mokujin class : A mock of Bsp class for unit testing
-//               - SensorData class : Stores sensor data and the timestamps
-
-class FanService {
+class FanServiceImpl {
  public:
-  explicit FanService(const std::string& configFile);
-  ~FanService() {} // Make compiler happy in handling smart pointers
-  // Instantiates all classes used by Fan Service
+  explicit FanServiceImpl(const std::string& configFile);
+  ~FanServiceImpl() {} // Make compiler happy in handling smart pointers
+  // Instantiates all classes used by FanServiceImpl
   void kickstart();
   // Runs Fan PWM control logic
   int controlFan();
-  // A special function to run Fan Service as a Mock
+  // A special function to run FanServiceImpl as a Mock
   // (simulation for unit testing)
   int runMock(std::string mockInputFile, std::string mockOutputFile);
 

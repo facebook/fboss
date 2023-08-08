@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 
 #include "fboss/lib/CommonUtils.h"
-#include "fboss/platform/fan_service/FanService.h"
+#include "fboss/platform/fan_service/FanServiceImpl.h"
 #include "fboss/platform/fan_service/HelperFunction.h"
 #include "fboss/platform/helpers/Init.h"
 
@@ -57,8 +57,8 @@ void restartSensorService() {
 class FanSensorFsdbIntegrationTests : public ::testing::Test {
  public:
   void SetUp() override {
-    fanService_ = std::make_unique<FanService>("");
-    fanService_->kickstart();
+    fanServiceImpl_ = std::make_unique<FanServiceImpl>("");
+    fanServiceImpl_->kickstart();
   }
 
   void TearDown() override {
@@ -73,12 +73,12 @@ class FanSensorFsdbIntegrationTests : public ::testing::Test {
     restartFsdbService();
   }
 
-  FanService* getFanService() {
-    return fanService_.get();
+  FanServiceImpl* getFanServiceImpl() {
+    return fanServiceImpl_.get();
   }
 
  private:
-  std::unique_ptr<FanService> fanService_{nullptr};
+  std::unique_ptr<FanServiceImpl> fanServiceImpl_{nullptr};
 };
 
 } // namespace
@@ -94,16 +94,16 @@ TEST_F(FanSensorFsdbIntegrationTests, sensorUpdate) {
   // confirm that the sensor service publishes its sensors to fsdb and the fan
   // service correctly subscribes to those sensors from fsdb
   std::shared_ptr<SensorData> thriftSensorData = std::make_shared<SensorData>();
-  getFanService()->getSensorDataThrift(thriftSensorData);
+  getFanServiceImpl()->getSensorDataThrift(thriftSensorData);
   // Expect non-zero sensors
   ASSERT_TRUE(thriftSensorData->size());
 
   WITH_RETRIES_N_TIMED(6, std::chrono::seconds(10), {
     // Kick off the control fan logic, which will try to fetch the sensor
     // data from sensor_service
-    getFanService()->controlFan();
-    beforeLastFetchTime = getFanService()->lastSensorFetchTimeSec();
-    prevSensorData = getFanService()->sensorData();
+    getFanServiceImpl()->controlFan();
+    beforeLastFetchTime = getFanServiceImpl()->lastSensorFetchTimeSec();
+    prevSensorData = getFanServiceImpl()->sensorData();
     // Confirm that the fan service received the same sensors from fsdb as
     // returned by sensor service via thrift
     ASSERT_EVENTUALLY_TRUE(prevSensorData.size() >= thriftSensorData->size());
@@ -115,9 +115,9 @@ TEST_F(FanSensorFsdbIntegrationTests, sensorUpdate) {
 
   // Fetch the sensor data again and expect the timestamps to advance
   WITH_RETRIES_N_TIMED(6, std::chrono::seconds(10), {
-    getFanService()->controlFan();
-    auto currSensorData = getFanService()->sensorData();
-    auto afterLastFetchTime = getFanService()->lastSensorFetchTimeSec();
+    getFanServiceImpl()->controlFan();
+    auto currSensorData = getFanServiceImpl()->sensorData();
+    auto afterLastFetchTime = getFanServiceImpl()->lastSensorFetchTimeSec();
     ASSERT_EVENTUALLY_TRUE(afterLastFetchTime > beforeLastFetchTime);
     ASSERT_EVENTUALLY_TRUE(currSensorData.size() == prevSensorData.size());
     for (auto it = thriftSensorData->begin(); it != thriftSensorData->end();
@@ -147,7 +147,7 @@ TEST_F(FanSensorFsdbIntegrationTests, fsdbRestart) {
   // Fetch the sensor data from sensor_service over thrift. This way we know
   // which sensors were explicitly published by sensor service
   std::shared_ptr<SensorData> thriftSensorData = std::make_shared<SensorData>();
-  getFanService()->getSensorDataThrift(thriftSensorData);
+  getFanServiceImpl()->getSensorDataThrift(thriftSensorData);
   // Expect non-zero sensors
   ASSERT_TRUE(thriftSensorData->size());
 
@@ -155,9 +155,9 @@ TEST_F(FanSensorFsdbIntegrationTests, fsdbRestart) {
   // fsdb. We should expect to sync all the sensors that were received from
   // thrift earlier
   WITH_RETRIES_N_TIMED(6, std::chrono::seconds(10), {
-    getFanService()->controlFan();
-    prevLastFetchTime = getFanService()->lastSensorFetchTimeSec();
-    prevSensorData = getFanService()->sensorData();
+    getFanServiceImpl()->controlFan();
+    prevLastFetchTime = getFanServiceImpl()->lastSensorFetchTimeSec();
+    prevSensorData = getFanServiceImpl()->sensorData();
     // Confirm that the fan service received the same sensors from fsdb as
     // returned by sensor service via thrift
     ASSERT_EVENTUALLY_TRUE(prevSensorData.size() >= thriftSensorData->size());
@@ -173,13 +173,13 @@ TEST_F(FanSensorFsdbIntegrationTests, fsdbRestart) {
   // With FSDB stopped, we shouldn't receive any new sensor updates. Fetch the
   // sensor data for two SensorFetchFrequency intervals and confirm that the
   // sensor timestamps don't advance
-  auto fetchFrequencyInSec = getFanService()->getSensorFetchFrequency();
+  auto fetchFrequencyInSec = getFanServiceImpl()->getSensorFetchFrequency();
   XLOG(INFO) << "Verifying that there are no sensor updates for "
              << (2 * fetchFrequencyInSec + 10) << " seconds";
   /* sleep override */
   sleep(2 * fetchFrequencyInSec + 10);
-  getFanService()->controlFan();
-  auto currSensorData = getFanService()->sensorData();
+  getFanServiceImpl()->controlFan();
+  auto currSensorData = getFanServiceImpl()->sensorData();
   for (auto it = thriftSensorData->begin(); it != thriftSensorData->end();
        it++) {
     ASSERT_TRUE(currSensorData.checkIfEntryExists(it->first));
@@ -194,9 +194,9 @@ TEST_F(FanSensorFsdbIntegrationTests, fsdbRestart) {
   // Expect the lastFetchTime to advance and number of sensors to be same as
   // last time
   WITH_RETRIES_N_TIMED(6, std::chrono::seconds(10), {
-    getFanService()->controlFan();
-    auto currSensorData = getFanService()->sensorData();
-    auto afterLastFetchTime = getFanService()->lastSensorFetchTimeSec();
+    getFanServiceImpl()->controlFan();
+    auto currSensorData = getFanServiceImpl()->sensorData();
+    auto afterLastFetchTime = getFanServiceImpl()->lastSensorFetchTimeSec();
     ASSERT_EVENTUALLY_TRUE(afterLastFetchTime > prevLastFetchTime);
     ASSERT_EVENTUALLY_TRUE(currSensorData.size() == prevSensorData.size());
     for (auto it = thriftSensorData->begin(); it != thriftSensorData->end();
@@ -227,8 +227,8 @@ TEST_F(FanSensorFsdbIntegrationTests, qsfpSync) {
   WITH_RETRIES_N_TIMED(9, std::chrono::seconds(10), {
     // Kick off the control fan logic, which will try to process the optics data
     // synced from fsdb
-    getFanService()->controlFan();
-    SensorData sensorData = getFanService()->sensorData();
+    getFanServiceImpl()->controlFan();
+    SensorData sensorData = getFanServiceImpl()->sensorData();
     // Ensure that the optic entry is not empty
     ASSERT_EVENTUALLY_TRUE(sensorData.opticEntrySize());
     for (const auto& [opticName, opticEntry] : sensorData.getOpticEntries()) {

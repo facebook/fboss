@@ -1,4 +1,5 @@
 namespace cpp2 facebook.fboss.platform.fan_service
+namespace py3 neteng.fboss.platform.fan_service
 
 const string RANGE_CHECK_ACTION_SHUTDOWN = "shutdown";
 const string ACCESS_TYPE_SYSFS = "ACCESS_TYPE_SYSFS";

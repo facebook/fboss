@@ -1,8 +1,8 @@
 // Copyright 2021- Facebook. All rights reserved.
 
-// Implementation of FanService class. Refer to .h file
+// Implementation of FanServiceImpl class. Refer to .h file
 // for functional description
-#include "fboss/platform/fan_service/FanService.h"
+#include "fboss/platform/fan_service/FanServiceImpl.h"
 
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
@@ -21,27 +21,27 @@ auto constexpr kDefaultFanControlFrequencyInSec = 30;
 
 namespace facebook::fboss::platform::fan_service {
 
-FanService::FanService(const std::string& configFile)
+FanServiceImpl::FanServiceImpl(const std::string& configFile)
     : confFileName_(configFile) {
   lastControlExecutionTimeSec_ = 0;
   lastSensorFetchTimeSec_ = 0;
 
-  pBsp_ = NULL;
-  pSensorData_ = NULL;
+  pBsp_ = nullptr;
+  pSensorData_ = nullptr;
 
   return;
 }
 
-unsigned int FanService::getControlFrequency() const {
+unsigned int FanServiceImpl::getControlFrequency() const {
   return kDefaultFanControlFrequencyInSec;
 }
 
-unsigned int FanService::getSensorFetchFrequency() const {
+unsigned int FanServiceImpl::getSensorFetchFrequency() const {
   return kDefaultSensorReadFrequencyInSec;
 }
 
-std::shared_ptr<Bsp> FanService::BspFactory() {
-  Bsp* returnVal = NULL;
+std::shared_ptr<Bsp> FanServiceImpl::BspFactory() {
+  Bsp* returnVal = nullptr;
   switch (*config_.bspType()) {
     // In many cases, generic BSP is enough.
     case BspType::kBspGeneric:
@@ -63,7 +63,7 @@ std::shared_ptr<Bsp> FanService::BspFactory() {
   return returnValShared;
 }
 
-void FanService::kickstart() {
+void FanServiceImpl::kickstart() {
   // Read Config
   std::string fanServiceConfJson;
   if (confFileName_.empty()) {
@@ -102,7 +102,7 @@ void FanService::kickstart() {
   pControlLogic_ = std::make_shared<ControlLogic>(config_, pBsp_);
 }
 
-int FanService::controlFan(/*folly::EventBase* evb*/) {
+int FanServiceImpl::controlFan(/*folly::EventBase* evb*/) {
   int rc = 0;
   uint64_t currentTimeSec = pBsp_->getCurrentTime();
   if (!transitionValueSet_) {
@@ -154,7 +154,9 @@ int FanService::controlFan(/*folly::EventBase* evb*/) {
   return rc;
 }
 
-int FanService::runMock(std::string mockInputFile, std::string mockOutputFile) {
+int FanServiceImpl::runMock(
+    std::string mockInputFile,
+    std::string mockOutputFile) {
   int rc = 0;
   uint64_t timeToAdvanceSec = 0, currentTimeSec = 0;
   bool loopControl = true;
