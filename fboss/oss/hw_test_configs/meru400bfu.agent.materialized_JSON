@@ -1629,7 +1629,6 @@
           "serdes_tx_taps_sfi99.1": "pam4:-16:128:0:0:0:0",
           "soc_family.BCM8879X": "BCM8879X",
           "srd_tx_drv_hv_disable.BCM8879X": "0",
-          "stable_filename.BCM8879X": "warmboot_data",
           "stable_location.BCM8879X": "3",
           "stable_size.BCM8879X": "350000",
           "sw_state_max_size.BCM8879X": "250000",
