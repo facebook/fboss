@@ -60,8 +60,6 @@ class MonolithicAgentInitializer : public SwAgentInitializer {
       std::unique_ptr<AgentConfig> config,
       uint32_t hwFeaturesDesired,
       PlatformInitFn initPlatform);
-  int initAgent() override;
-  int initAgent(HwSwitchCallback* callback);
 
   /*
    * API to all flag overrides for individual tests. Primarily

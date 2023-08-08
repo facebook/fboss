@@ -524,4 +524,7 @@ target_link_libraries(sw_agent_initializer
   core
   Folly::folly
   FBThrift::thriftcpp2
+  handler
+  setup_thrift
+  utils
 )

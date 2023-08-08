@@ -58,18 +58,6 @@ using std::unique_ptr;
 using std::chrono::seconds;
 using namespace std::chrono;
 
-DEFINE_int32(port, 5909, "The thrift server port");
-// current default 5909 is in conflict with VNC ports, need to
-// eventually migrate to 5959
-DEFINE_int32(migrated_port, 5959, "New thrift server port migrate to");
-DEFINE_int32(
-    stat_publish_interval_ms,
-    1000,
-    "How frequently to publish thread-local stats back to the "
-    "global store.  This should generally be less than 1 second.");
-// @lint-ignore CLANGTIDY
-DECLARE_int32(thrift_idle_timeout);
-
 using facebook::fboss::SwSwitch;
 using facebook::fboss::ThriftHandler;
 
@@ -114,49 +102,6 @@ void MonolithicAgentInitializer::createSwitch(
   sw_ = std::make_unique<SwSwitch>(std::move(hwSwitchHandler));
   initializer_ = std::make_unique<MonolithicSwSwitchInitializer>(
       sw_.get(), hwAgent_.get());
-}
-
-int MonolithicAgentInitializer::initAgent() {
-  return initAgent(sw_.get());
-}
-
-int MonolithicAgentInitializer::initAgent(HwSwitchCallback* callback) {
-  auto swHandler = std::make_shared<ThriftHandler>(sw_.get());
-  swHandler->setIdleTimeout(FLAGS_thrift_idle_timeout);
-  auto handlers = getThrifthandlers();
-  handlers.push_back(swHandler);
-  eventBase_ = new EventBase();
-
-  // Start the thrift server
-  server_ = setupThriftServer(
-      *eventBase_,
-      handlers,
-      {FLAGS_port, FLAGS_migrated_port},
-      true /*setupSSL*/);
-
-  swHandler->setSSLPolicy(server_->getSSLPolicy());
-
-  // At this point, we are guaranteed no other agent process will initialize
-  // the ASIC because such a process would have crashed attempting to bind to
-  // the Thrift port 5909
-  initializer_->start(callback);
-
-  /*
-   * Updating stats could be expensive as each update must acquire lock. To
-   * avoid this overhead, we use ThreadLocal version for updating stats, and
-   * start a publish thread to aggregate the counters periodically.
-   */
-  facebook::fb303::ThreadCachedServiceData::get()->startPublishThread(
-      std::chrono::milliseconds(FLAGS_stat_publish_interval_ms));
-
-  SwAgentSignalHandler signalHandler(
-      eventBase_, sw_.get(), [this]() { handleExitSignal(); });
-
-  XLOG(DBG2) << "serving on localhost on port " << FLAGS_port << " and "
-             << FLAGS_migrated_port;
-  // @lint-ignore CLANGTIDY
-  server_->serve();
-  return 0;
 }
 
 void MonolithicAgentInitializer::handleExitSignal() {
