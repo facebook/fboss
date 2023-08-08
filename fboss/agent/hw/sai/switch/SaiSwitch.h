@@ -173,7 +173,7 @@ class SaiSwitch : public HwSwitch {
       const sai_attribute_t* attr_list);
 
   SwitchSaiId getSaiSwitchId() const {
-    return switchId_;
+    return saiSwitchId_;
   }
   SaiPlatform* getPlatform() const override {
     return platform_;
@@ -508,7 +508,7 @@ class SaiSwitch : public HwSwitch {
   std::atomic<BootType> bootType_{BootType::UNINITIALIZED};
   Callback* callback_{nullptr};
 
-  SwitchSaiId switchId_;
+  SwitchSaiId saiSwitchId_;
 
   std::unique_ptr<std::thread> linkStateBottomHalfThread_;
   folly::EventBase linkStateBottomHalfEventBase_;

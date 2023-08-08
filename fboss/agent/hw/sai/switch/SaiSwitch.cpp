@@ -908,22 +908,25 @@ void SaiSwitch::updateResourceUsage(const LockPolicyT& lockPolicy) {
 
     auto& switchApi = SaiApiTable::getInstance()->switchApi();
     hwResourceStats_.lpm_ipv4_free() = switchApi.getAttribute(
-        switchId_, SaiSwitchTraits::Attributes::AvailableIpv4RouteEntry{});
+        saiSwitchId_, SaiSwitchTraits::Attributes::AvailableIpv4RouteEntry{});
     hwResourceStats_.lpm_ipv6_free() = switchApi.getAttribute(
-        switchId_, SaiSwitchTraits::Attributes::AvailableIpv6RouteEntry{});
+        saiSwitchId_, SaiSwitchTraits::Attributes::AvailableIpv6RouteEntry{});
     hwResourceStats_.l3_ipv4_nexthops_free() = switchApi.getAttribute(
-        switchId_, SaiSwitchTraits::Attributes::AvailableIpv4NextHopEntry{});
+        saiSwitchId_, SaiSwitchTraits::Attributes::AvailableIpv4NextHopEntry{});
     hwResourceStats_.l3_ipv6_nexthops_free() = switchApi.getAttribute(
-        switchId_, SaiSwitchTraits::Attributes::AvailableIpv6NextHopEntry{});
+        saiSwitchId_, SaiSwitchTraits::Attributes::AvailableIpv6NextHopEntry{});
     hwResourceStats_.l3_ecmp_groups_free() = switchApi.getAttribute(
-        switchId_, SaiSwitchTraits::Attributes::AvailableNextHopGroupEntry{});
+        saiSwitchId_,
+        SaiSwitchTraits::Attributes::AvailableNextHopGroupEntry{});
     hwResourceStats_.l3_ecmp_group_members_free() = switchApi.getAttribute(
-        switchId_,
+        saiSwitchId_,
         SaiSwitchTraits::Attributes::AvailableNextHopGroupMemberEntry{});
     hwResourceStats_.l3_ipv4_host_free() = switchApi.getAttribute(
-        switchId_, SaiSwitchTraits::Attributes::AvailableIpv4NeighborEntry{});
+        saiSwitchId_,
+        SaiSwitchTraits::Attributes::AvailableIpv4NeighborEntry{});
     hwResourceStats_.l3_ipv6_host_free() = switchApi.getAttribute(
-        switchId_, SaiSwitchTraits::Attributes::AvailableIpv6NeighborEntry{});
+        saiSwitchId_,
+        SaiSwitchTraits::Attributes::AvailableIpv6NeighborEntry{});
     hwResourceStats_.hw_table_stats_stale() = false;
   } catch (const SaiApiError& e) {
     XLOG(ERR) << " Failed to get resource usage hwResourceStats_: "
@@ -1536,14 +1539,16 @@ void SaiSwitch::gracefulExitLocked(const std::lock_guard<std::mutex>& lock) {
   XLOG(DBG2) << "[Exit] Starting SAI Switch graceful exit";
 
   SaiSwitchTraits::Attributes::SwitchRestartWarm restartWarm{true};
-  SaiApiTable::getInstance()->switchApi().setAttribute(switchId_, restartWarm);
+  SaiApiTable::getInstance()->switchApi().setAttribute(
+      saiSwitchId_, restartWarm);
   SaiSwitchTraits::Attributes::SwitchPreShutdown preShutdown{true};
-  SaiApiTable::getInstance()->switchApi().setAttribute(switchId_, preShutdown);
+  SaiApiTable::getInstance()->switchApi().setAttribute(
+      saiSwitchId_, preShutdown);
   if (platform_->getAsic()->isSupported(HwAsic::Feature::P4_WARMBOOT)) {
 #if defined(TAJO_SDK_VERSION_1_62_0) || defined(TAJO_SDK_VERSION_1_65_0)
     SaiSwitchTraits::Attributes::RestartIssu restartIssu{true};
     SaiApiTable::getInstance()->switchApi().setAttribute(
-        switchId_, restartIssu);
+        saiSwitchId_, restartIssu);
 #endif
   }
 #if defined(TAJO_SDK_VERSION_1_42_8)
@@ -1807,7 +1812,7 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
     // create viz. DRAINED
     auto& switchApi = SaiApiTable::getInstance()->switchApi();
     auto switchIsolate = switchApi.getAttribute(
-        switchId_, SaiSwitchTraits::Attributes::SwitchIsolate{});
+        saiSwitchId_, SaiSwitchTraits::Attributes::SwitchIsolate{});
     auto drainState = switchIsolate ? cfg::SwitchDrainState::DRAINED
                                     : cfg::SwitchDrainState::UNDRAINED;
     switchSettings->setActualSwitchDrainState(drainState);
@@ -1834,9 +1839,9 @@ HwInitResult SaiSwitch::initLocked(
   concurrentIndices_ = std::make_unique<ConcurrentIndices>();
   managerTable_ = std::make_unique<SaiManagerTable>(
       platform_, bootType_, switchType, switchId);
-  switchId_ = managerTable_->switchManager().getSwitchSaiId();
+  saiSwitchId_ = managerTable_->switchManager().getSwitchSaiId();
   callback_ = callback;
-  __gSaiIdToSwitch.insert_or_assign(switchId_, this);
+  __gSaiIdToSwitch.insert_or_assign(saiSwitchId_, this);
   SaiApiTable::getInstance()->enableLogging(FLAGS_enable_sai_log);
   if (bootType_ == BootType::WARM_BOOT) {
     auto [switchStateJson, switchStateThrift] =
@@ -1916,7 +1921,7 @@ void SaiSwitch::initStoreAndManagersLocked(
     HwWriteBehavior behavior,
     const folly::dynamic* adapterKeys,
     const folly::dynamic* adapterKeys2AdapterHostKeys) {
-  saiStore_->setSwitchId(switchId_);
+  saiStore_->setSwitchId(saiSwitchId_);
   saiStore_->reload(adapterKeys, adapterKeys2AdapterHostKeys);
   managerTable_->createSaiTableManagers(
       saiStore_.get(), platform_, concurrentIndices_.get());
@@ -1976,7 +1981,7 @@ void SaiSwitch::initStoreAndManagersLocked(
           switchType_ == cfg::SwitchType::VOQ) {
         auto& switchApi = SaiApiTable::getInstance()->switchApi();
         auto fabricPorts = switchApi.getAttribute(
-            switchId_, SaiSwitchTraits::Attributes::FabricPortList{});
+            saiSwitchId_, SaiSwitchTraits::Attributes::FabricPortList{});
         auto& portStore = saiStore_->get<SaiPortTraits>();
         for (auto& fid : fabricPorts) {
           // Add to warm boot handles so object has a reference and
@@ -1998,7 +2003,7 @@ void SaiSwitch::initLinkScanLocked(
   linkStateBottomHalfEventBase_.runInEventBaseThread([=]() {
     auto& switchApi = SaiApiTable::getInstance()->switchApi();
     switchApi.registerPortStateChangeCallback(
-        switchId_, __glinkStateChangedNotification);
+        saiSwitchId_, __glinkStateChangedNotification);
 
     /* report initial link status after registering link scan call back.  link
      * state changes after reporting initial link state and before registering
@@ -2323,10 +2328,10 @@ void SaiSwitch::unregisterCallbacksLocked(
     const std::lock_guard<std::mutex>& lock) noexcept {
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
   if (isFeatureSetupLocked(FeaturesDesired::LINKSCAN_DESIRED, lock)) {
-    switchApi.unregisterPortStateChangeCallback(switchId_);
+    switchApi.unregisterPortStateChangeCallback(saiSwitchId_);
   }
   if (isFeatureSetupLocked(FeaturesDesired::PACKET_RX_DESIRED, lock)) {
-    switchApi.unregisterRxCallback(switchId_);
+    switchApi.unregisterRxCallback(saiSwitchId_);
   }
   if (isFeatureSetupLocked(FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED, lock)) {
 #if defined(SAI_VERSION_7_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_ODP) ||    \
@@ -2336,12 +2341,12 @@ void SaiSwitch::unregisterCallbacksLocked(
     defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) ||                                \
     defined(SAI_VERSION_10_0_EA_DNX_ODP) ||                                    \
     defined(SAI_VERSION_10_0_EA_ODP) || defined(SAI_VERSION_10_0_EA_SIM_ODP)
-    switchApi.unregisterParityErrorSwitchEventCallback(switchId_);
+    switchApi.unregisterParityErrorSwitchEventCallback(saiSwitchId_);
 #else
-    switchApi.unregisterTamEventCallback(switchId_);
+    switchApi.unregisterTamEventCallback(saiSwitchId_);
 #endif
   }
-  switchApi.unregisterFdbEventCallback(switchId_);
+  switchApi.unregisterFdbEventCallback(saiSwitchId_);
 }
 
 bool SaiSwitch::isValidStateUpdateLocked(
@@ -2495,7 +2500,7 @@ bool SaiSwitch::sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept {
       reinterpret_cast<void*>(pkt->buf()->writableData()),
       pkt->buf()->length()};
   auto& hostifApi = SaiApiTable::getInstance()->hostifApi();
-  auto rv = hostifApi.send(attributes, switchId_, txPacket);
+  auto rv = hostifApi.send(attributes, saiSwitchId_, txPacket);
   if (rv != SAI_STATUS_SUCCESS) {
     saiLogError(
         rv, SAI_API_HOSTIF, "failed to send packet with pipeline lookup");
@@ -2555,7 +2560,7 @@ bool SaiSwitch::sendPacketOutOfPortSync(
   SaiTxPacketTraits::TxAttributes attributes{
       txType, egressPort, egressQueueIndex};
   auto& hostifApi = SaiApiTable::getInstance()->hostifApi();
-  auto rv = hostifApi.send(attributes, switchId_, txPacket);
+  auto rv = hostifApi.send(attributes, saiSwitchId_, txPacket);
   if (rv != SAI_STATUS_SUCCESS) {
     saiLogError(rv, SAI_API_HOSTIF, "failed to send packet pipeline bypass");
   }
@@ -2574,7 +2579,7 @@ folly::dynamic SaiSwitch::toFollyDynamicLocked(
   // Need to provide full namespace scope for toFollyDynamic to disambiguate
   // from member SaiSwitch::toFollyDynamic
   auto switchKeys = folly::dynamic::array(
-      facebook::fboss::toFollyDynamic<SaiSwitchTraits>(switchId_));
+      facebook::fboss::toFollyDynamic<SaiSwitchTraits>(saiSwitchId_));
   adapterKeys[saiObjectTypeToString(SaiSwitchTraits::ObjectType)] = switchKeys;
 
   folly::dynamic hwSwitch = folly::dynamic::object;
@@ -2603,7 +2608,7 @@ void SaiSwitch::switchRunStateChangedImplLocked(
         fdbEventBottomHalfEventBase_.loopForever();
       });
       auto& switchApi = SaiApiTable::getInstance()->switchApi();
-      switchApi.registerFdbEventCallback(switchId_, __gFdbEventCallback);
+      switchApi.registerFdbEventCallback(saiSwitchId_, __gFdbEventCallback);
     } break;
     case SwitchRunState::CONFIGURED: {
       if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
@@ -2628,7 +2633,7 @@ void SaiSwitch::switchRunStateChangedImplLocked(
       }
       if (getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED) {
         auto& switchApi = SaiApiTable::getInstance()->switchApi();
-        switchApi.registerRxCallback(switchId_, __gPacketRxCallback);
+        switchApi.registerRxCallback(saiSwitchId_, __gPacketRxCallback);
       }
       if (getFeaturesDesired() & FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED) {
         auto& switchApi = SaiApiTable::getInstance()->switchApi();
@@ -2640,9 +2645,9 @@ void SaiSwitch::switchRunStateChangedImplLocked(
     defined(SAI_VERSION_10_0_EA_DNX_ODP) ||                                    \
     defined(SAI_VERSION_10_0_EA_ODP) || defined(SAI_VERSION_10_0_EA_SIM_ODP)
         switchApi.registerParityErrorSwitchEventCallback(
-            switchId_, (void*)__gParityErrorSwitchEventCallback);
+            saiSwitchId_, (void*)__gParityErrorSwitchEventCallback);
 #else
-        switchApi.registerTamEventCallback(switchId_, __gTamEventCallback);
+        switchApi.registerTamEventCallback(saiSwitchId_, __gTamEventCallback);
 #endif
       }
     } break;

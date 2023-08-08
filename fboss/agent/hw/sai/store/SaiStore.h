@@ -76,7 +76,7 @@ class SaiObjectStore {
       SaiObject<SaiObjectTraits>>::type;
   using ObjectTraits = SaiObjectTraits;
 
-  explicit SaiObjectStore(sai_object_id_t switchId) : switchId_(switchId) {}
+  explicit SaiObjectStore(sai_object_id_t switchId) : saiSwitchId_(switchId) {}
   SaiObjectStore() {}
   ~SaiObjectStore() {
     for (auto iter : warmBootHandles_) {
@@ -85,7 +85,7 @@ class SaiObjectStore {
   }
 
   void setSwitchId(sai_object_id_t switchId) {
-    switchId_ = switchId;
+    saiSwitchId_ = switchId;
   }
 
   static folly::StringPiece objectTypeName() {
@@ -147,7 +147,7 @@ class SaiObjectStore {
   void reload(
       const folly::dynamic* adapterKeysJson,
       const folly::dynamic* adapterKeys2AdapterHostKey) {
-    if (!switchId_) {
+    if (!saiSwitchId_) {
       XLOG(FATAL)
           << "Attempted to reload() on a SaiObjectStore without a switchId";
     }
@@ -193,7 +193,7 @@ class SaiObjectStore {
     auto itr = warmBootHandles_.find(adapterHostKey);
     CHECK(itr == warmBootHandles_.end());
     auto object = std::make_shared<ObjectType>(
-        ObjectType(adapterHostKey, attributes, switchId_.value()));
+        ObjectType(adapterHostKey, attributes, saiSwitchId_.value()));
     warmBootHandles_.emplace(adapterHostKey, object);
   }
 
@@ -469,7 +469,7 @@ class SaiObjectStore {
         ? std::make_pair(existingObj, false)
         : objects_.refOrInsert(
               adapterHostKey,
-              ObjectType(adapterHostKey, attributes, switchId_.value()),
+              ObjectType(adapterHostKey, attributes, saiSwitchId_.value()),
               true /*force*/);
     if (!ins.second) {
       ins.first->setAttributes(attributes);
@@ -485,8 +485,9 @@ class SaiObjectStore {
 
   std::vector<typename SaiObjectTraits::AdapterKey> getAdapterKeys(
       const folly::dynamic* adapterKeysJson) const {
-    return adapterKeysJson ? adapterKeysFromFollyDynamic(*adapterKeysJson)
-                           : getObjectKeys<SaiObjectTraits>(switchId_.value());
+    return adapterKeysJson
+        ? adapterKeysFromFollyDynamic(*adapterKeysJson)
+        : getObjectKeys<SaiObjectTraits>(saiSwitchId_.value());
   }
 
   std::optional<typename SaiObjectTraits::AdapterHostKey> getAdapterHostKey(
@@ -502,7 +503,7 @@ class SaiObjectStore {
         iter->second);
   }
 
-  std::optional<sai_object_id_t> switchId_;
+  std::optional<sai_object_id_t> saiSwitchId_;
   UnorderedRefMap<typename SaiObjectTraits::AdapterHostKey, ObjectType>
       objects_;
   std::unordered_map<
@@ -574,7 +575,7 @@ class SaiStore {
   void printWarmbootHandles() const;
 
  private:
-  sai_object_id_t switchId_{};
+  sai_object_id_t saiSwitchId_{};
   std::tuple<
       SaiObjectStore<SaiAclTableGroupTraits>,
       SaiObjectStore<SaiAclTableGroupMemberTraits>,

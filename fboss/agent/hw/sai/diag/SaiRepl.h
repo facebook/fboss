@@ -26,7 +26,7 @@ class SaiSwitch;
 class SaiRepl : public Repl {
  public:
   explicit SaiRepl(SwitchSaiId switchId)
-      : switchId_(switchId), exited_(std::atomic<bool>(false)) {}
+      : saiSwitchId_(switchId), exited_(std::atomic<bool>(false)) {}
   ~SaiRepl() noexcept override;
   std::string getPrompt() const override;
   // Get the list of streams the repl expects the shell to dup2 with
@@ -36,7 +36,7 @@ class SaiRepl : public Repl {
  private:
   void doRun() override;
   std::unique_ptr<std::thread> shellThread_;
-  const SwitchSaiId switchId_;
+  const SwitchSaiId saiSwitchId_;
   std::atomic<bool> exited_;
 };
 

@@ -159,7 +159,7 @@ void SaiSwitch::checkAndSetSdkDowngradeVersion() const {
       downgradeVersion.c_str() + downgradeVersion.size() + 1,
       std::back_inserter(targetVersion));
   SaiApiTable::getInstance()->switchApi().setAttribute(
-      switchId_,
+      saiSwitchId_,
       SaiSwitchTraits::Attributes::WarmBootTargetVersion{targetVersion});
   XLOG(DBG2) << "Downgrade SDK version set as " << downgradeVersion;
 }

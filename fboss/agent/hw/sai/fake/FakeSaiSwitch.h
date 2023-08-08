@@ -89,7 +89,7 @@ class FakeSwitch {
     profileId_ = profileId;
   }
   void setSwitchId(sai_uint32_t switchId) {
-    switchId_ = switchId;
+    saiSwitchId_ = switchId;
   }
   void setMaxSystemCores(sai_uint32_t maxSystemCores) {
     maxSystemCores_ = maxSystemCores;
@@ -165,7 +165,7 @@ class FakeSwitch {
     return profileId_;
   }
   int32_t switchId() {
-    return switchId_;
+    return saiSwitchId_;
   }
   int32_t maxSystemCores() {
     return maxSystemCores_;
@@ -309,7 +309,7 @@ class FakeSwitch {
   int32_t hardwareAccessBus_;
   sai_uint64_t platformContext_;
   sai_uint32_t profileId_;
-  sai_uint32_t switchId_;
+  sai_uint32_t saiSwitchId_;
   sai_uint32_t maxSystemCores_;
   std::vector<sai_system_port_config_t> sysPortConfigList_;
   sai_uint32_t switchType_;

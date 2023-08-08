@@ -44,7 +44,7 @@ void ManagedFdbEntry::createObject(PublisherObjects objects) {
   auto vlan = SaiApiTable::getInstance()->routerInterfaceApi().getAttribute(
       std::get<RouterInterfaceSaiId>(saiPortAndIntf_),
       SaiVlanRouterInterfaceTraits::Attributes::VlanId{});
-  SaiFdbTraits::FdbEntry entry{switchId_, vlan, getMac()};
+  SaiFdbTraits::FdbEntry entry{saiSwitchId_, vlan, getMac()};
 
   auto bridgePort = std::get<BridgePortWeakPtr>(objects).lock();
   auto bridgePortId = bridgePort->adapterKey();
@@ -107,7 +107,7 @@ SaiFdbTraits::FdbEntry ManagedFdbEntry::makeFdbEntry(
       rifHandle->routerInterface);
   auto vlan =
       GET_ATTR(VlanRouterInterface, VlanId, vlanRouterInterface->attributes());
-  return SaiFdbTraits::FdbEntry{switchId_, vlan, getMac()};
+  return SaiFdbTraits::FdbEntry{saiSwitchId_, vlan, getMac()};
 }
 
 void ManagedFdbEntry::handleLinkDown() {

@@ -19,7 +19,7 @@ SaiStore::SaiStore(sai_object_id_t switchId) {
 }
 
 void SaiStore::setSwitchId(sai_object_id_t switchId) {
-  switchId_ = switchId;
+  saiSwitchId_ = switchId;
   tupleForEach(
       [switchId](auto& store) { store.setSwitchId(switchId); }, stores_);
 }

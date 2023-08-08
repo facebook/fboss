@@ -62,7 +62,7 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
       bool supportsPending)
       : Base(std::get<SaiPortDescriptor>(saiPortAndIntf)),
         manager_(manager),
-        switchId_(switchId),
+        saiSwitchId_(switchId),
         saiPortAndIntf_(saiPortAndIntf),
         intfIDAndMac_(intfIDAndMac),
         type_(type),
@@ -96,7 +96,7 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
 
  private:
   SaiFdbManager* manager_;
-  SwitchSaiId switchId_;
+  SwitchSaiId saiSwitchId_;
   std::tuple<SaiPortDescriptor, RouterInterfaceSaiId> saiPortAndIntf_;
   std::tuple<InterfaceID, folly::MacAddress> intfIDAndMac_;
   sai_fdb_entry_type_t type_;

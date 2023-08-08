@@ -26,7 +26,7 @@ void SaiRepl::doRun() {
   // singleton
   auto apiTable = SaiApiTable::getInstance().get();
   shellThread_ = std::make_unique<std::thread>(
-      [switchId = switchId_, exited = &exited_, apiTable]() {
+      [switchId = saiSwitchId_, exited = &exited_, apiTable]() {
         folly::setThreadName("SaiRepl");
         SaiSwitchTraits::Attributes::SwitchShellEnable shell{true};
         exited->store(false);
