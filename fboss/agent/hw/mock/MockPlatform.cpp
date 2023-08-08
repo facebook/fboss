@@ -55,7 +55,7 @@ MockPlatform::MockPlatform(
   ON_CALL(*hw_, stateChangedImpl(_))
       .WillByDefault(WithArg<0>(
           Invoke([=](const StateDelta& delta) { return delta.newState(); })));
-  ON_CALL(*hw_, stateChangedTransaction(_))
+  ON_CALL(*hw_, stateChangedTransaction(_, _))
       .WillByDefault(WithArg<0>(
           Invoke([=](const StateDelta& delta) { return delta.newState(); })));
   for (auto portEntry : getPlatformMapping()->getPlatformPorts()) {

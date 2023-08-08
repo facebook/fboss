@@ -18,6 +18,7 @@
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/HwWriteBehavior.h"
 
 #include "fboss/agent/HwSwitchCallback.h"
 
@@ -138,13 +139,18 @@ class HwSwitch {
    *
    * @ret   The actual state that was applied in the hardware.
    */
-  std::shared_ptr<SwitchState> stateChanged(const StateDelta& delta);
+  std::shared_ptr<SwitchState> stateChanged(
+      const StateDelta& delta,
+      const HwWriteBehaviorRAII& behavior =
+          HwWriteBehaviorRAII(HwWriteBehavior::WRITE));
 
   virtual std::shared_ptr<SwitchState> stateChangedImpl(
       const StateDelta& delta) = 0;
 
   virtual std::shared_ptr<SwitchState> stateChangedTransaction(
-      const StateDelta& delta);
+      const StateDelta& delta,
+      const HwWriteBehaviorRAII& behavior =
+          HwWriteBehaviorRAII(HwWriteBehavior::WRITE));
   virtual void rollback(
       const std::shared_ptr<SwitchState>& knownGoodState) noexcept;
 
@@ -346,8 +352,14 @@ class HwSwitch {
       folly::MacAddress mac) const = 0;
 
   std::shared_ptr<SwitchState> getProgrammedState() const;
-  fsdb::OperDelta stateChanged(const fsdb::OperDelta& delta);
-  fsdb::OperDelta stateChangedTransaction(const fsdb::OperDelta& delta);
+  fsdb::OperDelta stateChanged(
+      const fsdb::OperDelta& delta,
+      const HwWriteBehaviorRAII& behavior =
+          HwWriteBehaviorRAII(HwWriteBehavior::WRITE));
+  fsdb::OperDelta stateChangedTransaction(
+      const fsdb::OperDelta& delta,
+      const HwWriteBehaviorRAII& behavior =
+          HwWriteBehaviorRAII(HwWriteBehavior::WRITE));
 
   void ensureConfigured(folly::StringPiece function) const;
 

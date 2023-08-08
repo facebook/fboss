@@ -88,7 +88,8 @@ void HwSwitch::gracefulExit(const state::WarmbootState& thriftSwitchState) {
 }
 
 std::shared_ptr<SwitchState> HwSwitch::stateChangedTransaction(
-    const StateDelta& delta) {
+    const StateDelta& delta,
+    const HwWriteBehaviorRAII& behavior) {
   if (!FLAGS_enable_state_oper_delta) {
     // failback to move away from oper delta
     if (!transactionsSupported()) {
@@ -104,7 +105,7 @@ std::shared_ptr<SwitchState> HwSwitch::stateChangedTransaction(
     }
     return getProgrammedState();
   }
-  auto result = stateChangedTransaction(delta.getOperDelta());
+  auto result = stateChangedTransaction(delta.getOperDelta(), behavior);
   if (!result.changes()->empty()) {
     // changes have been rolled back to last good known state
     return delta.oldState();
@@ -129,7 +130,9 @@ void HwSwitch::setProgrammedState(const std::shared_ptr<SwitchState>& state) {
   (*programmedState)->publish();
 }
 
-fsdb::OperDelta HwSwitch::stateChanged(const fsdb::OperDelta& delta) {
+fsdb::OperDelta HwSwitch::stateChanged(
+    const fsdb::OperDelta& delta,
+    const HwWriteBehaviorRAII& /*behavior*/) {
   auto stateDelta = StateDelta(getProgrammedState(), delta);
   auto state = stateChangedImpl(stateDelta);
   setProgrammedState(state);
@@ -144,7 +147,8 @@ fsdb::OperDelta HwSwitch::stateChanged(const fsdb::OperDelta& delta) {
 }
 
 fsdb::OperDelta HwSwitch::stateChangedTransaction(
-    const fsdb::OperDelta& delta) {
+    const fsdb::OperDelta& delta,
+    const HwWriteBehaviorRAII& /*behavior*/) {
   if (!transactionsSupported()) {
     throw FbossError("Transactions not supported on this switch");
   }

@@ -6,7 +6,9 @@
 
 namespace facebook::fboss {
 
-std::shared_ptr<SwitchState> HwSwitch::stateChanged(const StateDelta& delta) {
+std::shared_ptr<SwitchState> HwSwitch::stateChanged(
+    const StateDelta& delta,
+    const HwWriteBehaviorRAII& /*behavior*/) {
   return stateChangedImpl(delta);
 }
 

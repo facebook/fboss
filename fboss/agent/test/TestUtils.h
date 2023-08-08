@@ -361,23 +361,23 @@ RoutePrefixV6 makePrefixV6(std::string str);
  * usage:
  *  EXPECT_STATE_UPDATE_TRANSACTION(sw)
  */
-#define EXPECT_STATE_UPDATE_TRANSACTION(sw)         \
-  if (!FLAGS_enable_state_oper_delta) {             \
-    EXPECT_HW_CALL(sw, stateChangedTransaction(_)); \
-  } else {                                          \
-    EXPECT_HW_CALL(sw, stateChangedImpl(_));        \
+#define EXPECT_STATE_UPDATE_TRANSACTION(sw)            \
+  if (!FLAGS_enable_state_oper_delta) {                \
+    EXPECT_HW_CALL(sw, stateChangedTransaction(_, _)); \
+  } else {                                             \
+    EXPECT_HW_CALL(sw, stateChangedImpl(_));           \
   }
 
-#define EXPECT_STATE_UPDATE_TRANSACTION_TIMES(sw, times)         \
-  if (!FLAGS_enable_state_oper_delta) {                          \
-    EXPECT_HW_CALL(sw, stateChangedTransaction(_)).Times(times); \
-  } else {                                                       \
-    EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(times);        \
+#define EXPECT_STATE_UPDATE_TRANSACTION_TIMES(sw, times)            \
+  if (!FLAGS_enable_state_oper_delta) {                             \
+    EXPECT_HW_CALL(sw, stateChangedTransaction(_, _)).Times(times); \
+  } else {                                                          \
+    EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(times);           \
   }
 
 #define EXPECT_STATE_UPDATE_TRANSACTION_TIMES_ATLEAST(sw, times)              \
   if (!FLAGS_enable_state_oper_delta) {                                       \
-    EXPECT_HW_CALL(sw, stateChangedTransaction(_))                            \
+    EXPECT_HW_CALL(sw, stateChangedTransaction(_, _))                         \
         .Times(::testing::AtLeast(times));                                    \
   } else {                                                                    \
     EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(::testing::AtLeast(times)); \

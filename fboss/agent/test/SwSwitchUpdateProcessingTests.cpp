@@ -52,7 +52,7 @@ class SwSwitchUpdateProcessingTest : public ::testing::TestWithParam<bool> {
  protected:
   void setStateChangedReturn(const std::shared_ptr<SwitchState>& state) {
     if (handle->getHwSwitch()->transactionsSupported()) {
-      EXPECT_HW_CALL(sw, stateChangedTransaction(_))
+      EXPECT_HW_CALL(sw, stateChangedTransaction(_, _))
           .WillRepeatedly(Return(state));
     } else {
       EXPECT_HW_CALL(sw, stateChangedImpl(_)).WillRepeatedly(Return(state));
@@ -73,7 +73,7 @@ class SwSwitchUpdateProcessingTest : public ::testing::TestWithParam<bool> {
       std::function<std::shared_ptr<SwitchState>(const StateDelta& delta)>
           updateFn) {
     if (!FLAGS_enable_state_oper_delta) {
-      EXPECT_HW_CALL(sw, stateChangedTransaction(_))
+      EXPECT_HW_CALL(sw, stateChangedTransaction(_, _))
           .WillRepeatedly(::testing::WithArg<0>(::testing::Invoke(updateFn)));
     } else {
       EXPECT_HW_CALL(sw, stateChangedImpl(_))
@@ -152,7 +152,7 @@ TEST_P(SwSwitchUpdateProcessingTest, HwFailureProtectedUpdateAtEnd) {
         .Times(stateChangedImplCalls + stateChangedTransactionCalls);
   } else {
     EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(stateChangedImplCalls);
-    EXPECT_HW_CALL(sw, stateChangedTransaction(_))
+    EXPECT_HW_CALL(sw, stateChangedTransaction(_, _))
         .Times(stateChangedTransactionCalls);
   }
   auto nonHwFailureProtectedUpdateStateUpdateFn =
@@ -213,7 +213,7 @@ TEST_P(SwSwitchUpdateProcessingTest, HwFailureProtectedUpdateAtStart) {
         .Times(stateChangedImplCalls + stateChangedTransactionCalls);
   } else {
     EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(stateChangedImplCalls);
-    EXPECT_HW_CALL(sw, stateChangedTransaction(_))
+    EXPECT_HW_CALL(sw, stateChangedTransaction(_, _))
         .Times(stateChangedTransactionCalls);
   }
   auto protectedStateUpdateFn = [=](const std::shared_ptr<SwitchState>& state) {

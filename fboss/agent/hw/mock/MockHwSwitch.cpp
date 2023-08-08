@@ -56,9 +56,11 @@ MockHwSwitch::MockHwSwitch(MockPlatform* platform) : platform_(platform) {
   ON_CALL(*this, stateChangedImpl(_))
       .WillByDefault(
           Invoke([](const StateDelta& delta) { return delta.newState(); }));
-  ON_CALL(*this, stateChangedTransaction(_))
+  ON_CALL(*this, stateChangedTransaction(_, _))
       .WillByDefault(
-          Invoke([](const StateDelta& delta) { return delta.newState(); }));
+          Invoke([](const StateDelta& delta, const HwWriteBehaviorRAII&) {
+            return delta.newState();
+          }));
   ON_CALL(*this, transactionsSupported()).WillByDefault(Return(false));
   ON_CALL(*this, isValidStateUpdate(_)).WillByDefault(Return(true));
   ON_CALL(*this, getAndClearNeighborHit(_, _)).WillByDefault(Return(true));
