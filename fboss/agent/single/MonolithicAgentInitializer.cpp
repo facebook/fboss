@@ -176,22 +176,15 @@ void MonolithicAgentInitializer::stopServices() {
 }
 
 void MonolithicAgentInitializer::stopAgent(bool setupWarmboot) {
-  stopServices();
   if (setupWarmboot) {
-    sw_->gracefulExit();
-    __attribute__((unused)) auto leakedSw = sw_.release();
-    __attribute__((unused)) auto leakedHwAgent = hwAgent_.release();
-#ifndef IS_OSS
-#if __has_feature(address_sanitizer)
-    __lsan_ignore_object(leakedSw);
-    __lsan_ignore_object(leakedHwAgent);
-#endif
-#endif
+    handleExitSignal();
   } else {
+    stopServices();
     auto revertToMinAlpmState =
         sw_->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
             HwAsic::Feature::ROUTE_PROGRAMMING);
     sw_->stop(revertToMinAlpmState);
+    initializer_.reset();
   }
 }
 
@@ -223,6 +216,7 @@ void MonolithicAgentInitializer::handleExitSignal() {
   __lsan_ignore_object(leakedHwAgent);
 #endif
 #endif
+  initializer_.reset();
   exit(0);
 }
 
