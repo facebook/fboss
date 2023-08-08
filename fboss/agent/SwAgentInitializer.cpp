@@ -124,4 +124,43 @@ void SwSwitchInitializer::init(HwSwitchCallback* hwSwitchCallback) {
 void SwAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
   stopServices();
 }
+
+void SwAgentInitializer::stopServices() {
+  // stop Thrift server: stop all worker threads and
+  // stop accepting new connections
+  XLOG(DBG2) << "Stopping thrift server";
+  server_->stop();
+  XLOG(DBG2) << "Stopped thrift server";
+  initializer_->stopFunctionScheduler();
+  XLOG(DBG2) << "Stopped stats FunctionScheduler";
+  fbossFinalize();
+}
+
+void SwAgentInitializer::handleExitSignal() {
+  restart_time::mark(RestartEvent::SIGNAL_RECEIVED);
+  XLOG(DBG2) << "[Exit] Signal received ";
+  steady_clock::time_point begin = steady_clock::now();
+  stopServices();
+  steady_clock::time_point servicesStopped = steady_clock::now();
+  XLOG(DBG2) << "[Exit] Services stop time "
+             << duration_cast<duration<float>>(servicesStopped - begin).count();
+  sw_->gracefulExit();
+  steady_clock::time_point switchGracefulExit = steady_clock::now();
+  XLOG(DBG2)
+      << "[Exit] Switch Graceful Exit time "
+      << duration_cast<duration<float>>(switchGracefulExit - servicesStopped)
+             .count()
+      << std::endl
+      << "[Exit] Total graceful Exit time "
+      << duration_cast<duration<float>>(switchGracefulExit - begin).count();
+
+  restart_time::mark(RestartEvent::SHUTDOWN);
+  __attribute__((unused)) auto leakedSw = sw_.release();
+#ifndef IS_OSS
+#if __has_feature(address_sanitizer)
+  __lsan_ignore_object(leakedSw);
+#endif
+#endif
+  initializer_.reset();
+}
 } // namespace facebook::fboss

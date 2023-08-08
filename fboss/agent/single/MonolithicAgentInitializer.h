@@ -56,7 +56,6 @@ class MonolithicAgentInitializer : public SwAgentInitializer {
   }
 
   virtual ~MonolithicAgentInitializer() override {}
-  void stopServices();
   void createSwitch(
       std::unique_ptr<AgentConfig> config,
       uint32_t hwFeaturesDesired,
@@ -73,7 +72,7 @@ class MonolithicAgentInitializer : public SwAgentInitializer {
    */
   virtual void setCmdLineFlagOverrides() const {}
 
-  void handleExitSignal();
+  void handleExitSignal() override;
 
   std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
   getThrifthandlers() override;
