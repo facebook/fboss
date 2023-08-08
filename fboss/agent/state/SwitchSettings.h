@@ -169,8 +169,9 @@ class SwitchSettings
   bool vlansSupported() const;
 
   bool isSwitchDrained() const {
-    return getSwitchDrainState() == cfg::SwitchDrainState::DRAINED;
+    return getActualSwitchDrainState() == cfg::SwitchDrainState::DRAINED;
   }
+
   cfg::SwitchDrainState getSwitchDrainState() const {
     return cref<switch_state_tags::switchDrainState>()->toThrift();
   }
