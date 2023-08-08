@@ -972,20 +972,7 @@ HwInitResult BcmSwitch::initImpl(
     }
     stateChangedImplLocked(
         StateDelta(make_shared<SwitchState>(), ret.switchState), g);
-    hostTable_->warmBootHostEntriesSynced();
-    // Done with warm boot, clear warm boot cache
-    warmBootCache_->clear();
-    if (getPlatform()->getAsic()->getAsicType() ==
-        cfg::AsicType::ASIC_TYPE_TRIDENT2) {
-      for (auto ip : {folly::IPAddress("0.0.0.0"), folly::IPAddress("::")}) {
-        bcm_l3_route_t rt;
-        bcm_l3_route_t_init(&rt);
-        rt.l3a_flags |= ip.isV6() ? BCM_L3_IP6 : 0;
-        bcm_l3_route_get(getUnit(), &rt);
-        rt.l3a_flags |= BCM_L3_REPLACE;
-        bcm_l3_route_add(getUnit(), &rt);
-      }
-    }
+    initialStateApplied();
   } else {
     auto bootState = std::make_shared<SwitchState>();
     bootState->publish();
@@ -3983,6 +3970,26 @@ uint32_t BcmSwitch::generateDeterministicSeed(
       break;
   }
   return seed;
+}
+
+void BcmSwitch::initialStateApplied() {
+  if (bootType_ != BootType::WARM_BOOT) {
+    return;
+  }
+  hostTable_->warmBootHostEntriesSynced();
+  // Done with warm boot, clear warm boot cache
+  warmBootCache_->clear();
+  if (getPlatform()->getAsic()->getAsicType() ==
+      cfg::AsicType::ASIC_TYPE_TRIDENT2) {
+    for (auto ip : {folly::IPAddress("0.0.0.0"), folly::IPAddress("::")}) {
+      bcm_l3_route_t rt;
+      bcm_l3_route_t_init(&rt);
+      rt.l3a_flags |= ip.isV6() ? BCM_L3_IP6 : 0;
+      bcm_l3_route_get(getUnit(), &rt);
+      rt.l3a_flags |= BCM_L3_REPLACE;
+      bcm_l3_route_add(getUnit(), &rt);
+    }
+  }
 }
 
 } // namespace facebook::fboss

@@ -250,52 +250,7 @@ HwInitResult SaiSwitch::initImpl(
     HwWriteBehaviorRAII writeBehavior{behavior};
     stateChangedImpl(
         StateDelta(std::make_shared<SwitchState>(), ret.switchState));
-    managerTable_->fdbManager().removeUnclaimedDynanicEntries();
-    managerTable_->hashManager().removeUnclaimedDefaultHash();
-#if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
-    defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
-    defined(SAI_VERSION_8_2_0_0_DNX_ODP) ||                                    \
-    defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP) || \
-    defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) ||                                \
-    defined(SAI_VERSION_10_0_EA_DNX_ODP) ||                                    \
-    defined(SAI_VERSION_10_0_EA_ODP) || defined(SAI_VERSION_10_0_EA_SIM_ODP)
-    // TODO(zecheng): Remove after devices warmbooted to 8.2.
-    managerTable_->wredManager().removeUnclaimedWredProfile();
-#endif
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
-    // Sai spec 1.10.2 introduces the new attribute of Label for Acl counter.
-    // Therefore, counters created before sai spec 1.10.2 will be treated as
-    // unclaimed since they have no label (and SDK gives default values to the
-    // label field).
-    managerTable_->aclTableManager().removeUnclaimedAclCounter();
-#endif
-    if (bootType_ == BootType::WARM_BOOT) {
-      saiStore_->printWarmbootHandles();
-      if (FLAGS_check_wb_handles == true) {
-        saiStore_->checkUnexpectedUnclaimedWarmbootHandles();
-      } else {
-        saiStore_->removeUnexpectedUnclaimedWarmbootHandles();
-      }
-
-      /* handle the case where warm boot happened before sw switch could be
-       * notified and process link down event. this retains objects such as
-       * static fdb entry and neighbor. reapplying warm boot state would expand
-       * ecmp group to a port that is down. rectify that as quick as possible to
-       * prevent drops. */
-      std::vector<sai_port_oper_status_notification_t> portStatus{};
-      for (auto entry : saiStore_->get<SaiPortTraits>()) {
-        auto port = entry.second.lock();
-        auto portOperStatus =
-            SaiApiTable::getInstance()->portApi().getAttribute(
-                port->adapterKey(), SaiPortTraits::Attributes::OperStatus{});
-        sai_port_oper_status_notification_t notification{};
-        notification.port_id = port->adapterKey();
-        notification.port_state =
-            static_cast<sai_port_oper_status_t>(portOperStatus);
-        portStatus.push_back(notification);
-      }
-      linkStateChangedCallbackBottomHalf(std::move(portStatus));
-    }
+    initialStateApplied();
   }
   return ret;
 }
@@ -3198,4 +3153,53 @@ void SaiSwitch::processAclTableGroupDelta(
     }
   }
 }
+
+void SaiSwitch::initialStateApplied() {
+  managerTable_->fdbManager().removeUnclaimedDynanicEntries();
+  managerTable_->hashManager().removeUnclaimedDefaultHash();
+#if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
+    defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
+    defined(SAI_VERSION_8_2_0_0_DNX_ODP) ||                                    \
+    defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP) || \
+    defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) ||                                \
+    defined(SAI_VERSION_10_0_EA_DNX_ODP) ||                                    \
+    defined(SAI_VERSION_10_0_EA_ODP) || defined(SAI_VERSION_10_0_EA_SIM_ODP)
+  // TODO(zecheng): Remove after devices warmbooted to 8.2.
+  managerTable_->wredManager().removeUnclaimedWredProfile();
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+  // Sai spec 1.10.2 introduces the new attribute of Label for Acl counter.
+  // Therefore, counters created before sai spec 1.10.2 will be treated as
+  // unclaimed since they have no label (and SDK gives default values to the
+  // label field).
+  managerTable_->aclTableManager().removeUnclaimedAclCounter();
+#endif
+  if (bootType_ == BootType::WARM_BOOT) {
+    saiStore_->printWarmbootHandles();
+    if (FLAGS_check_wb_handles == true) {
+      saiStore_->checkUnexpectedUnclaimedWarmbootHandles();
+    } else {
+      saiStore_->removeUnexpectedUnclaimedWarmbootHandles();
+    }
+
+    /* handle the case where warm boot happened before sw switch could be
+     * notified and process link down event. this retains objects such as
+     * static fdb entry and neighbor. reapplying warm boot state would expand
+     * ecmp group to a port that is down. rectify that as quick as possible to
+     * prevent drops. */
+    std::vector<sai_port_oper_status_notification_t> portStatus{};
+    for (auto entry : saiStore_->get<SaiPortTraits>()) {
+      auto port = entry.second.lock();
+      auto portOperStatus = SaiApiTable::getInstance()->portApi().getAttribute(
+          port->adapterKey(), SaiPortTraits::Attributes::OperStatus{});
+      sai_port_oper_status_notification_t notification{};
+      notification.port_id = port->adapterKey();
+      notification.port_state =
+          static_cast<sai_port_oper_status_t>(portOperStatus);
+      portStatus.push_back(notification);
+    }
+    linkStateChangedCallbackBottomHalf(std::move(portStatus));
+  }
+}
+
 } // namespace facebook::fboss

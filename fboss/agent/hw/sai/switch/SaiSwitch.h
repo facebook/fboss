@@ -472,7 +472,7 @@ class SaiSwitch : public HwSwitch {
       const AclTableGroupMap& aclTableGroupMap,
       const LockPolicyT& lockPolicy);
 
-  void initialStateApplied() override {}
+  void initialStateApplied() override;
 
   /*
    * SaiSwitch must support a few varieties of concurrent access:
