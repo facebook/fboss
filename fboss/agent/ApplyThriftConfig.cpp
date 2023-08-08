@@ -3936,6 +3936,15 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
     }
     newSwitchSettings->setSwitchDrainState(
         *cfg_->switchSettings()->switchDrainState());
+
+    auto newActualSwitchDrainState = computeActualSwitchDrainState(
+        newSwitchSettings,
+        getNumUpPorts(orig_, matcher, cfg::PortType::FABRIC_PORT));
+    if (newActualSwitchDrainState !=
+        origSwitchSettings->getSwitchDrainState()) {
+      newSwitchSettings->setActualSwitchDrainState(newActualSwitchDrainState);
+    }
+
     switchSettingsChange = true;
   }
 
