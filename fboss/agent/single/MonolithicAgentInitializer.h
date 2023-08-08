@@ -80,6 +80,8 @@ class MonolithicAgentInitializer : public AgentInitializer {
    */
   virtual void setCmdLineFlagOverrides() const {}
 
+  void handleExitSignal();
+
  private:
   std::unique_ptr<HwAgent> hwAgent_;
   std::unique_ptr<SwSwitch> sw_;

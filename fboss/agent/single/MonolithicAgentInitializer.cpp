@@ -155,7 +155,7 @@ int MonolithicAgentInitializer::initAgent(HwSwitchCallback* callback) {
       std::chrono::milliseconds(FLAGS_stat_publish_interval_ms));
 
   SwAgentSignalHandler signalHandler(
-      eventBase_, sw_.get(), [this]() { stopServices(); });
+      eventBase_, sw_.get(), [this]() { handleExitSignal(); });
 
   XLOG(DBG2) << "serving on localhost on port " << FLAGS_port << " and "
              << FLAGS_migrated_port;
@@ -193,6 +193,37 @@ void MonolithicAgentInitializer::stopAgent(bool setupWarmboot) {
             HwAsic::Feature::ROUTE_PROGRAMMING);
     sw_->stop(revertToMinAlpmState);
   }
+}
+
+void MonolithicAgentInitializer::handleExitSignal() {
+  restart_time::mark(RestartEvent::SIGNAL_RECEIVED);
+
+  XLOG(DBG2) << "[Exit] Signal received ";
+  steady_clock::time_point begin = steady_clock::now();
+  stopServices();
+  steady_clock::time_point servicesStopped = steady_clock::now();
+  XLOG(DBG2) << "[Exit] Services stop time "
+             << duration_cast<duration<float>>(servicesStopped - begin).count();
+  sw_->gracefulExit();
+  steady_clock::time_point switchGracefulExit = steady_clock::now();
+  XLOG(DBG2)
+      << "[Exit] Switch Graceful Exit time "
+      << duration_cast<duration<float>>(switchGracefulExit - servicesStopped)
+             .count()
+      << std::endl
+      << "[Exit] Total graceful Exit time "
+      << duration_cast<duration<float>>(switchGracefulExit - begin).count();
+
+  restart_time::mark(RestartEvent::SHUTDOWN);
+  __attribute__((unused)) auto leakedSw = sw_.release();
+  __attribute__((unused)) auto leakedHwAgent = hwAgent_.release();
+#ifndef IS_OSS
+#if __has_feature(address_sanitizer)
+  __lsan_ignore_object(leakedSw);
+  __lsan_ignore_object(leakedHwAgent);
+#endif
+#endif
+  exit(0);
 }
 
 } // namespace facebook::fboss
