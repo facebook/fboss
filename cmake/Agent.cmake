@@ -492,6 +492,8 @@ add_library(split_agent_initializer
 
 target_link_libraries(split_agent_initializer
   Folly::folly
+  sw_agent_initializer
+  multiswitch_service
 )
 
 add_executable(fboss_sw_agent
