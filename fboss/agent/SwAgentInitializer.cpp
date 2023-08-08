@@ -31,15 +31,21 @@ void updateStats(SwSwitch* swSwitch) {
 } // namespace
 
 SwSwitchInitializer::SwSwitchInitializer(SwSwitch* sw) : sw_(sw) {}
+SwSwitchInitializer::~SwSwitchInitializer() {
+  if (initThread_) {
+    initThread_->join();
+    initThread_.reset();
+  }
+  fs_.reset();
+}
 
 void SwSwitchInitializer::start() {
   start(sw_);
 }
 
 void SwSwitchInitializer::start(HwSwitchCallback* callback) {
-  std::thread t(&SwSwitchInitializer::initThread, this, callback);
-  // @lint-ignore CLANGTIDY
-  t.detach();
+  initThread_ = std::make_unique<std::thread>(
+      &SwSwitchInitializer::initThread, this, callback);
 }
 
 SwitchFlags SwSwitchInitializer::setupFlags() {

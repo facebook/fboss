@@ -22,7 +22,7 @@ namespace facebook::fboss {
 class SwSwitchInitializer {
  public:
   explicit SwSwitchInitializer(SwSwitch* sw);
-  virtual ~SwSwitchInitializer() = default;
+  virtual ~SwSwitchInitializer();
   void start();
   void start(HwSwitchCallback* callback);
   void stopFunctionScheduler();
@@ -38,6 +38,7 @@ class SwSwitchInitializer {
   std::unique_ptr<folly::FunctionScheduler> fs_;
   std::mutex initLock_;
   std::condition_variable initCondition_;
+  std::unique_ptr<std::thread> initThread_;
 };
 
 class SwAgentSignalHandler : public SignalHandler {
