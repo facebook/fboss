@@ -1847,6 +1847,20 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
       scopeResolver->switchIdToSwitchInfo());
   multiSwitchSwitchSettings->addNode(
       scopeResolver->scope(switchSettings).matcherString(), switchSettings);
+
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::LINK_STATE_BASED_ISOLATE)) {
+    CHECK(getSwitchId().has_value());
+    // In practice, this will read and populate the value set during switch
+    // create viz. DRAINED
+    auto& switchApi = SaiApiTable::getInstance()->switchApi();
+    auto switchIsolate = switchApi.getAttribute(
+        switchId_, SaiSwitchTraits::Attributes::SwitchIsolate{});
+    auto drainState = switchIsolate ? cfg::SwitchDrainState::DRAINED
+                                    : cfg::SwitchDrainState::UNDRAINED;
+    switchSettings->setSwitchDrainState(drainState);
+  }
+
   state->resetSwitchSettings(multiSwitchSwitchSettings);
   return state;
 }

@@ -431,6 +431,13 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         std::back_inserter(firmwarePathNameArray));
     firmwarePathName = firmwarePathNameArray;
   }
+
+  std::optional<SaiSwitchTraits::Attributes::SwitchIsolate> switchIsolate{
+      std::nullopt};
+  if (getAsic()->isSupported(HwAsic::Feature::LINK_STATE_BASED_ISOLATE)) {
+    switchIsolate = true;
+  }
+
   return {
     initSwitch,
         hwInfo, // hardware info
@@ -473,7 +480,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #endif
         dllPath,
         std::nullopt, // Restart Issu
-        std::nullopt, // Switch Isolate
+        switchIsolate,
         std::nullopt, // Credit Watchdog
         maxCores, // Max cores
         std::nullopt, // PFC DLR Packet Action
