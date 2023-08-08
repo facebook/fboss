@@ -12,6 +12,7 @@
 
 namespace {
 constexpr auto forceColdBootFlag = "sw_cold_boot_once";
+constexpr auto wbFlag = "can_warm_boot";
 } // namespace
 
 DEFINE_bool(can_warm_boot, true, "Enable/disable warm boot functionality");
@@ -50,6 +51,8 @@ void SwSwitchWarmBootHelper::storeWarmBootState(
     XLOG(FATAL) << "Error while storing switch state to thrift state file: "
                 << warmBootThriftSwitchStateFile();
   }
+  // mark that warm boot can happen
+  setCanWarmBoot();
 }
 
 state::WarmbootState SwSwitchWarmBootHelper::getWarmBootState() const {
@@ -63,8 +66,12 @@ state::WarmbootState SwSwitchWarmBootHelper::getWarmBootState() const {
 
 bool SwSwitchWarmBootHelper::checkAndClearWarmBootFlags() {
   bool forceColdBoot = removeFile(forceColdBootOnceFlag(), true /*log*/);
-  if (forceColdBoot) {
-    // cold boot was enforced.
+  forceColdBoot =
+      forceColdBoot || checkFileExists(forceColdBootOnceFlagLegacy());
+  bool canWarmBoot = removeFile(warmBootFlag(), true /*log*/);
+  canWarmBoot = canWarmBoot || checkFileExists(warmBootFlagLegacy());
+  if (forceColdBoot || !canWarmBoot) {
+    // cold boot was enforced or warm boot flag is absent
     return false;
   }
   // if warm boot state was dumped read it
@@ -85,4 +92,25 @@ std::string SwSwitchWarmBootHelper::warmBootThriftSwitchStateFile() const {
       warmBootDir_, "/", FLAGS_thrift_switch_state_file);
 }
 
+std::string SwSwitchWarmBootHelper::warmBootFlag() const {
+  return folly::to<std::string>(warmBootDir_, "/", wbFlag);
+}
+
+void SwSwitchWarmBootHelper::setCanWarmBoot() {
+  auto wbFlag = warmBootFlag();
+  auto updateFd = creat(wbFlag.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+  if (updateFd < 0) {
+    throw SysError(errno, "Unable to create ", wbFlag);
+  }
+  close(updateFd);
+  XLOG(DBG1) << "Wrote can warm boot flag: " << wbFlag;
+}
+
+std::string SwSwitchWarmBootHelper::warmBootFlagLegacy() const {
+  return folly::to<std::string>(warmBootFlag(), "_0");
+}
+
+std::string SwSwitchWarmBootHelper::forceColdBootOnceFlagLegacy() const {
+  return folly::to<std::string>(forceColdBootOnceFlag(), "_0");
+}
 } // namespace facebook::fboss

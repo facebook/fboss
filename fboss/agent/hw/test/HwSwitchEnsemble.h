@@ -270,6 +270,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   }
 
  private:
+  void storeWarmBootState(const state::WarmbootState& state);
   std::shared_ptr<SwitchState> updateEncapIndices(
       const std::shared_ptr<SwitchState>& in) const;
   // To update programmed state after rollback

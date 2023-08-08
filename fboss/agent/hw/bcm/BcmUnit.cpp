@@ -186,7 +186,7 @@ int bdeSpiWrite(soc_cm_dev_t* dev, uint32_t addr, uint8_t* buf, int len) {
 namespace facebook::fboss {
 void BcmUnit::writeWarmBootState(
     const folly::dynamic& follySwitchState,
-    const state::WarmbootState& thriftSwitchState) {
+    const state::WarmbootState& /*thriftSwitchState*/) {
   if (!BcmAPI::isHwUsingHSDK()) {
     XLOG(DBG2) << " [Exit] Syncing BRCM switch state to file";
     steady_clock::time_point bcmWarmBootSyncStart = steady_clock::now();
@@ -203,8 +203,7 @@ void BcmUnit::writeWarmBootState(
   // Now write our state to file
   XLOG(DBG2) << " [Exit] Syncing FBOSS switch state to file";
   steady_clock::time_point fbossWarmBootSyncStart = steady_clock::now();
-  if (!warmBootHelper()->storeWarmBootState(
-          follySwitchState, thriftSwitchState)) {
+  if (!warmBootHelper()->storeHwSwitchWarmBootState(follySwitchState)) {
     XLOG(FATAL) << "Unable to write switch state JSON and Thrift to file";
   }
   steady_clock::time_point fbossWarmBootSyncDone = steady_clock::now();

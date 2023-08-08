@@ -942,6 +942,9 @@ class SwSwitch : public HwSwitchCallback {
 
   template <typename FsdbFunc>
   void runFsdbSyncFunction(FsdbFunc&& fn);
+
+  void storeWarmBootState(const state::WarmbootState& state);
+
   std::string curConfigStr_;
   cfg::SwitchConfig curConfig_;
 

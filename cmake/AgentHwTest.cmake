@@ -141,6 +141,7 @@ target_link_libraries(hw_switch_ensemble
   core
   hw_test_utils
   test_ensemble_if
+  sw_switch_warmboot_helper
 )
 
 add_library(load_balancer_utils

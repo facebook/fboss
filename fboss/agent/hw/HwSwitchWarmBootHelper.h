@@ -54,11 +54,15 @@ class HwSwitchWarmBootHelper {
   state::WarmbootState getSwSwitchWarmBootState() const;
   folly::dynamic getHwSwitchWarmBootState() const;
 
+  // bcm switch specific
   std::string startupSdkDumpFile() const;
+  // bcm switch specific
   std::string shutdownSdkDumpFile() const;
+  // used in Bcm but hw switch specific
   bool warmBootStateWritten() const {
     return warmBootStateWritten_;
   }
+  // used only in sai
   std::string warmBootDataPath() const;
 
   int getSwitchId() const {

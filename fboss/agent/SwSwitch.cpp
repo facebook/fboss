@@ -56,6 +56,7 @@
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/StaticL2ForNeighborObserver.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/SwSwitchWarmBootHelper.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/SwitchStatsObserver.h"
@@ -480,6 +481,7 @@ void SwSwitch::gracefulExit() {
                       .count();
 
     auto thriftSwitchState = gracefulExitState();
+    // write exit state
     steady_clock::time_point switchStateToFollyDone = steady_clock::now();
     XLOG(DBG2) << "[Exit] Switch state to folly dynamic "
                << duration_cast<duration<float>>(
@@ -487,6 +489,8 @@ void SwSwitch::gracefulExit() {
                       .count();
     // Cleanup if we ever initialized
     hwSwitchHandler_->gracefulExit(thriftSwitchState);
+    // writing after hwSwitch state for backward compat
+    storeWarmBootState(thriftSwitchState);
     XLOG(DBG2)
         << "[Exit] SwSwitch Graceful Exit time "
         << duration_cast<duration<float>>(steady_clock::now() - begin).count();
@@ -2394,6 +2398,12 @@ std::optional<uint32_t> SwSwitch::getHwLogicalPortId(PortID portID) const {
 void SwSwitch::switchRunStateChanged(SwitchRunState newState) {
   // TODO (m-NPU): handle m-NPU support
   hwSwitchHandler_->switchRunStateChanged(newState);
+}
+
+void SwSwitch::storeWarmBootState(const state::WarmbootState& state) {
+  const auto& data = hwSwitchHandler_->getPlatformData();
+  SwSwitchWarmBootHelper warmBootHelper(data.warmBootDir);
+  warmBootHelper.storeWarmBootState(state);
 }
 
 } // namespace facebook::fboss

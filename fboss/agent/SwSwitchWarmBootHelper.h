@@ -25,6 +25,10 @@ class SwSwitchWarmBootHelper {
  private:
   bool checkAndClearWarmBootFlags();
   std::string forceColdBootOnceFlag() const;
+  std::string forceColdBootOnceFlagLegacy() const;
+  std::string warmBootFlag() const;
+  std::string warmBootFlagLegacy() const;
+  void setCanWarmBoot();
 
   const std::string warmBootDir_;
   bool canWarmBoot_{false};

@@ -1598,8 +1598,7 @@ void SaiSwitch::gracefulExitLocked(
 #endif
   folly::dynamic follySwitchState = folly::dynamic::object;
   follySwitchState[kHwSwitch] = toFollyDynamicLocked(lock);
-  platform_->getWarmBootHelper()->storeWarmBootState(
-      follySwitchState, thriftSwitchState);
+  platform_->getWarmBootHelper()->storeHwSwitchWarmBootState(follySwitchState);
   platform_->getWarmBootHelper()->setCanWarmBoot();
   std::chrono::steady_clock::time_point wbSaiSwitchWrite =
       std::chrono::steady_clock::now();

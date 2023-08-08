@@ -234,6 +234,7 @@ target_link_libraries(core
   ${NETLINKROUTE3}
   thread_heartbeat
   platform_mapping_utils
+  sw_switch_warmboot_helper
 )
 
 add_library(error

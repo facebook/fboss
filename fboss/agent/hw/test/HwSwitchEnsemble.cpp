@@ -20,6 +20,7 @@
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwSwitchWarmBootHelper.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -543,6 +544,8 @@ void HwSwitchEnsemble::gracefulExit() {
   stopObservers();
   auto thriftSwitchState = gracefulExitState();
   getHwSwitch()->gracefulExit(thriftSwitchState);
+  // store or dump sw switch state
+  storeWarmBootState(thriftSwitchState);
 }
 
 /*
@@ -704,5 +707,11 @@ void HwSwitchEnsemble::clearPfcWatchdogCounter(
 const SwitchIdScopeResolver& HwSwitchEnsemble::scopeResolver() const {
   CHECK(scopeResolver_);
   return *scopeResolver_;
+}
+
+void HwSwitchEnsemble::storeWarmBootState(const state::WarmbootState& state) {
+  SwSwitchWarmBootHelper warmBootHelper(
+      getHwSwitch()->getPlatform()->getWarmBootDir());
+  warmBootHelper.storeWarmBootState(state);
 }
 } // namespace facebook::fboss
