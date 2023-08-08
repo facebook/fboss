@@ -1854,7 +1854,7 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
         switchId_, SaiSwitchTraits::Attributes::SwitchIsolate{});
     auto drainState = switchIsolate ? cfg::SwitchDrainState::DRAINED
                                     : cfg::SwitchDrainState::UNDRAINED;
-    switchSettings->setSwitchDrainState(drainState);
+    switchSettings->setActualSwitchDrainState(drainState);
   }
 
   state->resetSwitchSettings(multiSwitchSwitchSettings);

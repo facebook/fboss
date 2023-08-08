@@ -34,9 +34,10 @@ void HwLinkStateDependentTest::SetUp() {
           HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
       auto settings =
           multiSwitchSettings->getNode(matcher.matcherString())->clone();
-      settings->setSwitchDrainState(cfg::SwitchDrainState::UNDRAINED);
+      settings->setActualSwitchDrainState(cfg::SwitchDrainState::UNDRAINED);
       multiSwitchSettings->updateNode(matcher.matcherString(), settings);
       undrainState->resetSwitchSettings(multiSwitchSettings);
+
       applyNewState(undrainState);
     }
   }
