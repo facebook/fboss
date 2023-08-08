@@ -248,9 +248,10 @@ HwInitResult SaiSwitch::initImpl(
 
   {
     HwWriteBehaviorRAII writeBehavior{behavior};
-    stateChangedImpl(
-        StateDelta(std::make_shared<SwitchState>(), ret.switchState));
-    initialStateApplied();
+    if (bootType_ != BootType::WARM_BOOT) {
+      stateChangedImpl(
+          StateDelta(std::make_shared<SwitchState>(), ret.switchState));
+    }
   }
   return ret;
 }
@@ -1737,7 +1738,7 @@ SaiManagerTable* SaiSwitch::managerTable() {
 // Begin Locked functions with actual SaiSwitch functionality
 
 std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
-  auto state = getProgrammedState()->clone();
+  auto state = std::make_shared<SwitchState>();
 
   auto switchId = platform_->getAsic()->getSwitchId()
       ? *platform_->getAsic()->getSwitchId()
@@ -1813,6 +1814,7 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
   }
 
   state->resetSwitchSettings(multiSwitchSwitchSettings);
+  state->publish();
   return state;
 }
 
@@ -1887,7 +1889,6 @@ HwInitResult SaiSwitch::initLocked(
       adapterKeysJson.get(),
       adapterKeys2AdapterHostKeysJson.get());
   if (bootType_ != BootType::WARM_BOOT) {
-    setProgrammedState(std::make_shared<SwitchState>());
     ret.switchState = getColdBootSwitchState();
     CHECK(ret.switchState->getSwitchSettings()->size());
     if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::MAC_AGING)) {

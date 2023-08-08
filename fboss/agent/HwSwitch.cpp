@@ -229,7 +229,15 @@ HwInitResult HwSwitch::init(Callback* callback, bool failHwCallsOnWarmboot) {
   switchType_ = getPlatform()->getAsic()->getSwitchType();
   switchId_ = getPlatform()->getAsic()->getSwitchId();
   auto ret = initImpl(callback, failHwCallsOnWarmboot, switchType_, switchId_);
+  if (ret.bootType == BootType::WARM_BOOT) {
+    // apply state only for warm boot. cold boot state is already applied.
+    auto writeBehavior = getWarmBootWriteBehavior(failHwCallsOnWarmboot);
+    setProgrammedState(std::make_shared<SwitchState>());
+    ret.switchState = stateChanged(
+        StateDelta(getProgrammedState(), ret.switchState), writeBehavior);
+  }
   setProgrammedState(ret.switchState);
+  initialStateApplied();
   if (ret.bootType == BootType::WARM_BOOT ||
       !getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::ROUTE_PROGRAMMING) ||
@@ -246,5 +254,15 @@ HwInitResult HwSwitch::init(Callback* callback, bool failHwCallsOnWarmboot) {
   });
   ret.switchState = getProgrammedState();
   return ret;
+}
+
+HwWriteBehaviorRAII HwSwitch::getWarmBootWriteBehavior(
+    bool failHwCallsOnWarmboot) const {
+  if (failHwCallsOnWarmboot &&
+      getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT)) {
+    return HwWriteBehaviorRAII(HwWriteBehavior::FAIL);
+  }
+  return HwWriteBehaviorRAII(HwWriteBehavior::WRITE);
 }
 } // namespace facebook::fboss

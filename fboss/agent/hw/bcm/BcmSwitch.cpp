@@ -970,9 +970,6 @@ HwInitResult BcmSwitch::initImpl(
           ret.switchState->getFibs(),
           ret.switchState->getLabelForwardingInformationBase());
     }
-    stateChangedImplLocked(
-        StateDelta(make_shared<SwitchState>(), ret.switchState), g);
-    initialStateApplied();
   } else {
     auto bootState = std::make_shared<SwitchState>();
     bootState->publish();

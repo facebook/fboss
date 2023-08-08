@@ -381,6 +381,8 @@ class HwSwitch {
       RoutingInformationBase* rib,
       StateChangedFn func);
 
+  HwWriteBehaviorRAII getWarmBootWriteBehavior(
+      bool failHwCallsOnWarmboot) const;
   uint32_t featuresDesired_;
   SwitchRunState runState_{SwitchRunState::UNINITIALIZED};
 
