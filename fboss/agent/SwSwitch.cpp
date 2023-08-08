@@ -1510,6 +1510,29 @@ void SwSwitch::linkStateChanged(
 
     if (port) {
       if (port->isUp() != up) {
+        auto matcher = getScopeResolver()->scope(portId);
+        auto numUpFabricPorts =
+            getNumUpPorts(newState, matcher, cfg::PortType::FABRIC_PORT);
+        auto switchSettings =
+            state->getSwitchSettings()->getNodeIf(matcher.matcherString());
+
+        // TODO(skhare)
+        // Once SwitchSettingsFields are made unique for HwSwitch,
+        // SwitchSettingsFields will carry switchInfo instead of
+        // switchIdToSwitchInfo. At that time, change the if-check to compare
+        // SwitchType to VOQ.
+        if (switchSettings->getSwitchIdsOfType(cfg::SwitchType::VOQ).size() !=
+            0) {
+          auto newActualSwitchDrainState =
+              computeActualSwitchDrainState(switchSettings, numUpFabricPorts);
+          if (newActualSwitchDrainState !=
+              switchSettings->getActualSwitchDrainState()) {
+            auto newSwitchSettings = switchSettings->modify(&newState);
+            newSwitchSettings->setActualSwitchDrainState(
+                newActualSwitchDrainState);
+          }
+        }
+
         XLOG(DBG2) << "SW Link state changed: " << port->getName() << " ["
                    << (port->isUp() ? "UP" : "DOWN") << "->"
                    << (up ? "UP" : "DOWN") << "]";
