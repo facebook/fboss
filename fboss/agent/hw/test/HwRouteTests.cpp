@@ -556,6 +556,79 @@ TYPED_TEST(HwRouteTest, verifyHostRouteChange) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(HwRouteTest, verifyCpuRouteChange) {
+  // Don't run this test on fake asic
+  if (this->getPlatform()->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_FAKE ||
+      this->getPlatform()->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_MOCK) {
+    GTEST_SKIP();
+    return;
+  }
+
+  using AddrT = typename TestFixture::Type;
+  auto ports = this->portDescs();
+
+  auto setup = [=]() {
+    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
+        this->getProgrammedState(), this->kRouterID());
+    // Next hops unresolved - route should point to CPU
+    ecmpHelper.programRoutes(
+        this->getRouteUpdater(), {ports[1]}, {this->kGetRoutePrefix3()});
+  };
+
+  auto verify = [=]() {
+    auto routePrefix = this->kGetRoutePrefix3();
+    auto cidr = folly::CIDRNetwork(routePrefix.network(), routePrefix.mask());
+    EXPECT_TRUE(
+        utility::isHwRouteToCpu(this->getHwSwitch(), this->kRouterID(), cidr));
+
+    // Resolve next hops
+    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
+        this->getProgrammedState(), this->kRouterID());
+    this->applyNewState(
+        ecmpHelper.resolveNextHops(this->getProgrammedState(), {ports[1]}));
+    EXPECT_TRUE(utility::isHwRouteToNextHop(
+        this->getHwSwitch(),
+        this->kRouterID(),
+        cidr,
+        ecmpHelper.nhop(ports[1]).ip));
+
+    // Verify routing
+    const auto egressPort = ports[1].phyPortID();
+    auto vlanId = utility::firstVlanID(this->initialConfig());
+    auto intfMac = utility::getFirstInterfaceMac(this->getProgrammedState());
+    auto beforeOutPkts =
+        *this->getLatestPortStats(egressPort).outUnicastPkts__ref();
+    auto v6TxPkt = utility::makeUDPTxPacket(
+        this->getHwSwitch(),
+        vlanId,
+        intfMac,
+        intfMac,
+        this->kGetRoutePrefix0().network(), // Randomly pick src IP
+        routePrefix.network(),
+        1234,
+        4321);
+    this->getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+        std::move(v6TxPkt), ports[0].phyPortID());
+    WITH_RETRIES({
+      auto afterOutPkts =
+          *this->getLatestPortStats(egressPort).outUnicastPkts__ref();
+      XLOG(DBG2) << "Stats:: beforeOutPkts: " << beforeOutPkts
+                 << " afterOutPkts: " << afterOutPkts;
+      EXPECT_EVENTUALLY_EQ(afterOutPkts - 1, beforeOutPkts);
+    });
+
+    // Unresolve next hops
+    this->applyNewState(
+        ecmpHelper.unresolveNextHops(this->getProgrammedState(), {ports[1]}));
+    EXPECT_TRUE(
+        utility::isHwRouteToCpu(this->getHwSwitch(), this->kRouterID(), cidr));
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 TYPED_TEST(HwRouteTest, VerifyDefaultRoute) {
   auto verify = [=]() {
     // default routes should exist always.
