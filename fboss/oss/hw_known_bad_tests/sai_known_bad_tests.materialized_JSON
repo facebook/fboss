@@ -778,6 +778,9 @@
           "test_name_regex": "HwRouteTest/[01].VerifyRouting"
         },
         {
+          "test_name_regex": "HwRouteTest/[01].verifyCpuRouteChange"
+        },
+        {
           "test_name_regex": "HwRxReasonTests.InsertAndRemoveRxReason"
         },
         {
