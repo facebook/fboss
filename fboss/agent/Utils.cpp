@@ -610,4 +610,21 @@ AdminDistance getAdminDistanceForClientId(
   return static_cast<AdminDistance>(distance->second);
 }
 
+size_t getNumUpPorts(
+    const std::shared_ptr<SwitchState>& state,
+    const HwSwitchMatcher& matcher,
+    cfg::PortType portType) {
+  auto portMap = state->getPorts()->getMapNodeIf(matcher);
+  if (!portMap) {
+    return 0;
+  }
+
+  return std::count_if(
+      std::begin(std::as_const(*portMap)),
+      std::end(std::as_const(*portMap)),
+      [portType](const auto& port) {
+        return port.second->getPortType() == portType && port.second->isUp();
+      });
+}
+
 } // namespace facebook::fboss
