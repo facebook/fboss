@@ -184,9 +184,7 @@ int bdeSpiWrite(soc_cm_dev_t* dev, uint32_t addr, uint8_t* buf, int len) {
 } // unnamed namespace
 
 namespace facebook::fboss {
-void BcmUnit::writeWarmBootState(
-    const folly::dynamic& follySwitchState,
-    const state::WarmbootState& /*thriftSwitchState*/) {
+void BcmUnit::writeWarmBootState(const folly::dynamic& follySwitchState) {
   if (!BcmAPI::isHwUsingHSDK()) {
     XLOG(DBG2) << " [Exit] Syncing BRCM switch state to file";
     steady_clock::time_point bcmWarmBootSyncStart = steady_clock::now();

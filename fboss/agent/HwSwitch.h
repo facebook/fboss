@@ -378,8 +378,7 @@ class HwSwitch {
 
   virtual void updateStatsImpl(SwitchStats* switchStats) = 0;
 
-  virtual void gracefulExitImpl(
-      const state::WarmbootState& thriftSwitchState) = 0;
+  virtual void gracefulExitImpl() = 0;
 
   std::shared_ptr<SwitchState> getMinAlpmState(
       RoutingInformationBase* rib,

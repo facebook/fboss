@@ -1569,15 +1569,12 @@ void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
   fetchL2TableLocked(lock, l2Table);
 }
 
-void SaiSwitch::gracefulExitImpl(
-    const state::WarmbootState& thriftSwitchState) {
+void SaiSwitch::gracefulExitImpl() {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  gracefulExitLocked(lock, thriftSwitchState);
+  gracefulExitLocked(lock);
 }
 
-void SaiSwitch::gracefulExitLocked(
-    const std::lock_guard<std::mutex>& lock,
-    const state::WarmbootState& thriftSwitchState) {
+void SaiSwitch::gracefulExitLocked(const std::lock_guard<std::mutex>& lock) {
   std::chrono::steady_clock::time_point begin =
       std::chrono::steady_clock::now();
   XLOG(DBG2) << "[Exit] Starting SAI Switch graceful exit";

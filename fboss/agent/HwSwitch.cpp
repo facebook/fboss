@@ -83,7 +83,7 @@ uint32_t HwSwitch::generateDeterministicSeed(LoadBalancerID loadBalancerID) {
 
 void HwSwitch::gracefulExit(const state::WarmbootState& thriftSwitchState) {
   if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::WARMBOOT)) {
-    gracefulExitImpl(thriftSwitchState);
+    gracefulExitImpl();
   }
 }
 

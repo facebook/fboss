@@ -209,7 +209,7 @@ class SaiSwitch : public HwSwitch {
   void rollbackInTest(const std::shared_ptr<SwitchState>& knownGoodState);
 
  private:
-  void gracefulExitImpl(const state::WarmbootState& thriftSwitchState) override;
+  void gracefulExitImpl() override;
 
   template <typename LockPolicyT>
   std::shared_ptr<SwitchState> stateChangedImplLocked(
@@ -275,9 +275,7 @@ class SaiSwitch : public HwSwitch {
 
   std::vector<PortID> getSwitchReachabilityLocked(SwitchID switchId) const;
 
-  void gracefulExitLocked(
-      const std::lock_guard<std::mutex>& lock,
-      const state::WarmbootState& thriftSwitchState);
+  void gracefulExitLocked(const std::lock_guard<std::mutex>& lock);
 
   folly::dynamic toFollyDynamicLocked(
       const std::lock_guard<std::mutex>& lock) const;

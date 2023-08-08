@@ -642,7 +642,7 @@ class BcmSwitch : public BcmSwitchIf {
    * state changes while we are calling cleanup
    * shutdown apis in the BCM sdk.
    */
-  void gracefulExitImpl(const state::WarmbootState& thriftSwitchState) override;
+  void gracefulExitImpl() override;
   /*
    * Handle SwitchRunState changes
    */

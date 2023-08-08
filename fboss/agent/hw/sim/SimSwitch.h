@@ -144,8 +144,7 @@ class SimSwitch : public HwSwitch {
   // TODO
   void updateStatsImpl(SwitchStats* /*switchStats*/) override {}
 
-  void gracefulExitImpl(
-      const state::WarmbootState& /*thriftSwitchState*/) override {}
+  void gracefulExitImpl() override {}
 
   // Forbidden copy constructor and assignment operator
   SimSwitch(SimSwitch const&) = delete;
