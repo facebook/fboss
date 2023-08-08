@@ -5,7 +5,6 @@
 
 #include <folly/experimental/FunctionScheduler.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
-#include "fboss/agent/AgentInitializer.h"
 #include "fboss/agent/CommonInit.h"
 #include "fboss/agent/HwAgent.h"
 #include "fboss/agent/SwAgentInitializer.h"
@@ -45,7 +44,7 @@ class MonolithicSwSwitchInitializer : public SwSwitchInitializer {
   HwAgent* hwAgent_;
 };
 
-class MonolithicAgentInitializer : public AgentInitializer {
+class MonolithicAgentInitializer : public SwAgentInitializer {
  public:
   MonolithicAgentInitializer() {}
   MonolithicAgentInitializer(

@@ -4,6 +4,7 @@
 
 #include <folly/experimental/FunctionScheduler.h>
 
+#include "fboss/agent/AgentInitializer.h"
 #include "fboss/agent/CommonInit.h"
 #include "fboss/agent/SwSwitch.h"
 
@@ -53,6 +54,11 @@ class SwAgentSignalHandler : public SignalHandler {
 
  private:
   SwSwitch* sw_;
+};
+
+class SwAgentInitializer : public AgentInitializer {
+ public:
+  SwAgentInitializer() {}
 };
 
 } // namespace facebook::fboss
