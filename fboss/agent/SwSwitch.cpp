@@ -1503,6 +1503,31 @@ void SwSwitch::linkStateChanged(
     return;
   }
 
+  auto getDrainStateChangedStr =
+      [](const std::shared_ptr<SwitchState>& oldState,
+         const std::shared_ptr<SwitchState>& newState,
+         const HwSwitchMatcher& matcher) {
+        auto oldActualSwitchDrainState =
+            oldState->getSwitchSettings()
+                ->getNodeIf(matcher.matcherString())
+                ->getActualSwitchDrainState();
+        auto newActualSwitchDrainState =
+            newState->getSwitchSettings()
+                ->getNodeIf(matcher.matcherString())
+                ->getActualSwitchDrainState();
+
+        return oldActualSwitchDrainState != newActualSwitchDrainState
+            ? folly::to<std::string>(
+                  "[",
+                  apache::thrift::util::enumNameSafe(oldActualSwitchDrainState),
+                  "->",
+                  apache::thrift::util::enumNameSafe(newActualSwitchDrainState),
+                  "]")
+            : folly::to<std::string>(
+                  apache::thrift::util::enumNameSafe(oldActualSwitchDrainState),
+                  "(UNCHANGED)");
+      };
+
   // Schedule an update for port's operational status
   auto updateOperStateFn = [=](const std::shared_ptr<SwitchState>& state) {
     std::shared_ptr<SwitchState> newState(state);
@@ -1535,7 +1560,12 @@ void SwSwitch::linkStateChanged(
 
         XLOG(DBG2) << "SW Link state changed: " << port->getName() << " ["
                    << (port->isUp() ? "UP" : "DOWN") << "->"
-                   << (up ? "UP" : "DOWN") << "]";
+                   << (up ? "UP" : "DOWN") << "]"
+                   << " SwitchIDs: " << matcher.matcherString()
+                   << " numUpFabricPorts: " << numUpFabricPorts
+                   << " Switch Drain state: "
+                   << getDrainStateChangedStr(getState(), newState, matcher);
+
         port = port->modify(&newState);
         port->setOperState(up);
         if (iPhyFaultStatus) {
