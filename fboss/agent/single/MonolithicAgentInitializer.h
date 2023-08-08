@@ -62,7 +62,6 @@ class MonolithicAgentInitializer : public SwAgentInitializer {
       PlatformInitFn initPlatform);
   int initAgent() override;
   int initAgent(HwSwitchCallback* callback);
-  void stopAgent(bool setupWarmboot) override;
 
   /*
    * API to all flag overrides for individual tests. Primarily

@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/SwAgentInitializer.h"
+#include "fboss/agent/HwAsicTable.h"
 
 #ifndef IS_OSS
 #if __has_feature(address_sanitizer)
@@ -162,5 +163,18 @@ void SwAgentInitializer::handleExitSignal() {
 #endif
 #endif
   initializer_.reset();
+}
+
+void SwAgentInitializer::stopAgent(bool setupWarmboot) {
+  if (setupWarmboot) {
+    handleExitSignal();
+  } else {
+    stopServices();
+    auto revertToMinAlpmState =
+        sw_->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+            HwAsic::Feature::ROUTE_PROGRAMMING);
+    sw_->stop(revertToMinAlpmState);
+    initializer_.reset();
+  }
 }
 } // namespace facebook::fboss

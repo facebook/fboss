@@ -71,6 +71,8 @@ class SwAgentInitializer : public AgentInitializer {
 
   void stopServices();
 
+  void stopAgent(bool setupWarmboot) override;
+
  protected:
   virtual std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
   getThrifthandlers() = 0;

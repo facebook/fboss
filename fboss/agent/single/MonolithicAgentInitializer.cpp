@@ -159,19 +159,6 @@ int MonolithicAgentInitializer::initAgent(HwSwitchCallback* callback) {
   return 0;
 }
 
-void MonolithicAgentInitializer::stopAgent(bool setupWarmboot) {
-  if (setupWarmboot) {
-    handleExitSignal();
-  } else {
-    stopServices();
-    auto revertToMinAlpmState =
-        sw_->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
-            HwAsic::Feature::ROUTE_PROGRAMMING);
-    sw_->stop(revertToMinAlpmState);
-    initializer_.reset();
-  }
-}
-
 void MonolithicAgentInitializer::handleExitSignal() {
   SwAgentInitializer::handleExitSignal();
   __attribute__((unused)) auto leakedHwAgent = hwAgent_.release();
