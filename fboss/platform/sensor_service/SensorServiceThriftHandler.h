@@ -22,8 +22,8 @@ namespace facebook::fboss::platform::sensor_service {
 class SensorServiceThriftHandler : public SensorServiceThriftSvIf {
  public:
   explicit SensorServiceThriftHandler(
-      std::shared_ptr<SensorServiceImpl> sensorService)
-      : sensorService_(sensorService) {}
+      std::shared_ptr<SensorServiceImpl> sensorServiceImpl)
+      : sensorServiceImpl_(std::move(sensorServiceImpl)) {}
 
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<std::unique_ptr<SensorReadResponse>>
@@ -51,10 +51,10 @@ class SensorServiceThriftHandler : public SensorServiceThriftSvIf {
       std::unique_ptr<std::vector<FruType>> request) override;
 
   SensorServiceImpl* getServiceImpl() {
-    return sensorService_.get();
+    return sensorServiceImpl_.get();
   }
 
  private:
-  std::shared_ptr<SensorServiceImpl> sensorService_;
+  std::shared_ptr<SensorServiceImpl> sensorServiceImpl_;
 };
 } // namespace facebook::fboss::platform::sensor_service
