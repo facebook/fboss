@@ -755,9 +755,6 @@ class SwSwitch : public HwSwitchCallback {
   std::vector<PrbsLaneStats> getPortAsicPrbsStats(int32_t portId);
   void clearPortAsicPrbsStats(int32_t portId);
 
-  std::vector<PrbsLaneStats> getPortGearboxPrbsStats(
-      int32_t portId,
-      phy::Side side);
   SwitchRunState getSwitchRunState() const;
 
   std::vector<prbs::PrbsPolynomial> getPortPrbsPolynomials(

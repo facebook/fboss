@@ -53,11 +53,6 @@ class BcmPlatformPort : public PlatformPort {
 
   virtual void updateStats() {}
 
-  virtual std::vector<phy::PrbsLaneStats> getGearboxPrbsStats(
-      phy::Side /* side */) {
-    return std::vector<phy::PrbsLaneStats>();
-  }
-
  private:
   // Forbidden copy constructor and assignment operator
   BcmPlatformPort(BcmPlatformPort const&) = delete;

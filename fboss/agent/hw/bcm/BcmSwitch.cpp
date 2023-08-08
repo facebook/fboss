@@ -3238,13 +3238,6 @@ void BcmSwitch::clearPortAsicPrbsStats(int32_t portId) {
   bcmStatUpdater_->clearPortAsicPrbsStats(portId);
 }
 
-std::vector<PrbsLaneStats> BcmSwitch::getPortGearboxPrbsStats(
-    int32_t portId,
-    phy::Side side) {
-  return portTable_->getBcmPort(portId)->getPlatformPort()->getGearboxPrbsStats(
-      side);
-}
-
 void BcmSwitch::dumpState(const std::string& path) const {
   auto stateString = gatherSdkState();
   if (stateString.length() > 0) {

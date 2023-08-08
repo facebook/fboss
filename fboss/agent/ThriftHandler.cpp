@@ -1419,15 +1419,7 @@ void ThriftHandler::getPortPrbsStats(
   } else if (
       component == phy::PortComponent::GB_SYSTEM ||
       component == phy::PortComponent::GB_LINE) {
-    phy::Side side = (component == phy::PortComponent::GB_SYSTEM)
-        ? phy::Side::SYSTEM
-        : phy::Side::LINE;
-    auto gearboxPrbsStats = sw_->getPortGearboxPrbsStats(portId, side);
-    prbsStats.portId() = portId;
-    prbsStats.component() = component;
-    for (const auto& lane : gearboxPrbsStats) {
-      prbsStats.laneStats()->push_back(lane);
-    }
+    throw FbossError("Get gearbox prbs stats is not supported");
   } else {
     XLOG(DBG2) << "Unrecognized component to GetPortPrbsStats: "
                << apache::thrift::util::enumNameSafe(component);

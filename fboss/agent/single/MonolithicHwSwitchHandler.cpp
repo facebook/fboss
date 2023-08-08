@@ -162,13 +162,6 @@ prbs::InterfacePrbsState MonolinithicHwSwitchHandler::getPortPrbsState(
   return hw_->getPortPrbsState(portId);
 }
 
-std::vector<phy::PrbsLaneStats>
-MonolinithicHwSwitchHandler::getPortGearboxPrbsStats(
-    int32_t portId,
-    phy::Side side) {
-  return hw_->getPortGearboxPrbsStats(portId, side);
-}
-
 void MonolinithicHwSwitchHandler::switchRunStateChanged(
     SwitchRunState newState) {
   hw_->switchRunStateChanged(newState);

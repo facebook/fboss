@@ -63,10 +63,6 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
 
   prbs::InterfacePrbsState getPortPrbsState(PortID portId) override;
 
-  std::vector<phy::PrbsLaneStats> getPortGearboxPrbsStats(
-      int32_t portId,
-      phy::Side side) override;
-
   void switchRunStateChanged(SwitchRunState newState) override;
 
   // platform access apis

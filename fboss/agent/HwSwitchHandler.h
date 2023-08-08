@@ -88,10 +88,6 @@ struct HwSwitchHandler {
 
   virtual prbs::InterfacePrbsState getPortPrbsState(PortID portId) = 0;
 
-  virtual std::vector<phy::PrbsLaneStats> getPortGearboxPrbsStats(
-      int32_t portId,
-      phy::Side side) = 0;
-
   virtual void switchRunStateChanged(SwitchRunState newState) = 0;
 
   virtual std::shared_ptr<SwitchState> stateChanged(

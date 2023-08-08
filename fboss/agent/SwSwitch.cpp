@@ -2195,12 +2195,6 @@ prbs::InterfacePrbsState SwSwitch::getPortPrbsState(PortID portId) {
   return hwSwitchHandler_->getPortPrbsState(portId);
 }
 
-std::vector<PrbsLaneStats> SwSwitch::getPortGearboxPrbsStats(
-    int32_t portId,
-    phy::Side side) {
-  return hwSwitchHandler_->getPortGearboxPrbsStats(portId, side);
-}
-
 template <typename AddressT>
 std::shared_ptr<Route<AddressT>> SwSwitch::longestMatch(
     std::shared_ptr<SwitchState> state,

@@ -165,14 +165,6 @@ prbs::InterfacePrbsState NonMonolithicHwSwitchHandler::getPortPrbsState(
   return prbs::InterfacePrbsState{};
 }
 
-std::vector<phy::PrbsLaneStats>
-NonMonolithicHwSwitchHandler::getPortGearboxPrbsStats(
-    int32_t /*portId*/,
-    phy::Side /*side*/) {
-  // TODO: implement this
-  return {};
-}
-
 void NonMonolithicHwSwitchHandler::switchRunStateChanged(
     SwitchRunState /*newState*/) {
   // TODO: implement this
