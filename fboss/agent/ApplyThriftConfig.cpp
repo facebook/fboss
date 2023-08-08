@@ -419,7 +419,11 @@ class ThriftConfigApplier {
   shared_ptr<SflowCollector> updateSflowCollector(
       const shared_ptr<SflowCollector>& orig,
       const cfg::SflowCollector* config);
-  shared_ptr<SwitchSettings> updateSwitchSettings();
+  shared_ptr<MultiSwitchSettings> updateMultiSwitchSettings();
+  shared_ptr<SwitchSettings> updateSwitchSettings(
+      HwSwitchMatcher matcher,
+      const std::shared_ptr<MultiSwitchSettings>& origSwitchSettings);
+
   // bufferPool specific configs
   shared_ptr<MultiSwitchBufferPoolCfgMap> updateBufferPoolConfigs(
       bool* changed);
@@ -549,25 +553,10 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     }
   }
 
-  {
-    auto newSwitchSettings = updateSwitchSettings();
-    if (newSwitchSettings) {
-      const auto& origSwitchSettings =
-          util::getFirstNodeIf(orig_->getSwitchSettings())
-          ? util::getFirstNodeIf(orig_->getSwitchSettings())
-          : make_shared<SwitchSettings>();
-      if ((newSwitchSettings->getSwitchIdToSwitchInfo() !=
-           origSwitchSettings->getSwitchIdToSwitchInfo()) ||
-          (newSwitchSettings->getDefaultVoqConfig() !=
-           origSwitchSettings->getDefaultVoqConfig())) {
-        new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
-            updateSystemPorts(new_->getPorts(), newSwitchSettings),
-            scopeResolver_));
-      }
-      new_->resetSwitchSettings(toMultiSwitchMap<MultiSwitchSettings>(
-          newSwitchSettings, scopeResolver_));
-      changed = true;
-    }
+  auto newMultiSwitchSettings = updateMultiSwitchSettings();
+  if (newMultiSwitchSettings) {
+    new_->resetSwitchSettings(newMultiSwitchSettings);
+    changed = true;
   }
 
   processInterfaceForPort();
@@ -3764,8 +3753,61 @@ ThriftConfigApplier::updateFlowletSwitchingConfig(bool* changed) {
   return newFlowletSwitchingConfig;
 }
 
-shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
-  auto origSwitchSettings = util::getFirstNodeIf(orig_->getSwitchSettings());
+shared_ptr<MultiSwitchSettings>
+ThriftConfigApplier::updateMultiSwitchSettings() {
+  bool multiSwitchSettingsChange = false;
+  auto origMultiSwitchSettings = orig_->getSwitchSettings();
+  auto newMultiSwitchSettings = origMultiSwitchSettings
+      ? origMultiSwitchSettings->clone()
+      : std::make_shared<MultiSwitchSettings>();
+
+  origMultiSwitchSettings = origMultiSwitchSettings
+      ? origMultiSwitchSettings
+      : std::make_shared<MultiSwitchSettings>();
+
+  for (auto& switchIdAndSwitchInfo :
+       *cfg_->switchSettings()->switchIdToSwitchInfo()) {
+    auto switchId = switchIdAndSwitchInfo.first;
+    auto matcher = HwSwitchMatcher(
+        std::unordered_set<SwitchID>({static_cast<SwitchID>(switchId)}));
+
+    auto origSwitchSettings =
+        origMultiSwitchSettings->getNodeIf(matcher.matcherString());
+
+    // If origmultiSwitchSettings is already populated, and if config carries
+    // switchId that is not present in origMultiSwitchSettings, throw error
+    if (origMultiSwitchSettings->size() != 0) {
+      if (!origSwitchSettings) {
+        throw FbossError("SwitchId cannot be changed on the fly");
+      }
+    }
+
+    auto newSwitchSettings =
+        updateSwitchSettings(matcher, origMultiSwitchSettings);
+    if (newSwitchSettings) {
+      if (origSwitchSettings) {
+        newMultiSwitchSettings->updateNode(
+            matcher.matcherString(), newSwitchSettings);
+      } else {
+        newMultiSwitchSettings->addNode(
+            matcher.matcherString(), newSwitchSettings);
+      }
+      multiSwitchSettingsChange = true;
+    }
+  }
+
+  if (multiSwitchSettingsChange) {
+    return newMultiSwitchSettings;
+  }
+
+  return nullptr;
+}
+
+shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
+    HwSwitchMatcher matcher,
+    const std::shared_ptr<MultiSwitchSettings>& origMultiSwitchSettings) {
+  auto origSwitchSettings =
+      origMultiSwitchSettings->getNodeIf(matcher.matcherString());
   bool switchSettingsChange = false;
   auto newSwitchSettings = origSwitchSettings
       ? origSwitchSettings->clone()
