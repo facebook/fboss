@@ -331,6 +331,7 @@ struct SwitchSettingsFields {
   31: optional i32 minLinksToJoinVOQDomain;
   32: switch_config.SwitchDrainState actualSwitchDrainState = switch_config.SwitchDrainState.UNDRAINED;
   33: list<ctrl.PortQueueFields> defaultVoqConfig;
+  34: switch_config.SwitchInfo switchInfo;
 }
 
 struct RoutePrefix {
