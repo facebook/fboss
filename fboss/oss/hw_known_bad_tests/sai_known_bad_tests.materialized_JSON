@@ -715,9 +715,6 @@
           "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnTtlHitFrontPanel"
         },
         {
-          "test_name_regex": "HwAclPriorityTest.AclsChanged.*"
-        },
-        {
           "test_name_regex": "HwCoppTest.*"
         },
         {
@@ -12092,6 +12089,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
+        },
+        {
+          "test_name_regex": "HwRouteTest/[01].verifyCpuRouteChange$"
         }
     ],
     "leaba/1.42.1/1.42.8/gibraltar": [
@@ -13466,6 +13466,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
+        },
+        {
+          "test_name_regex": "HwRouteTest/[01].verifyCpuRouteChange$"
         }
     ],
     "leaba/1.62.0/1.62.0/gibraltar": [
