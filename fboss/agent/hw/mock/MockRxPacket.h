@@ -11,6 +11,7 @@
 
 #include <folly/Range.h>
 #include "fboss/agent/RxPacket.h"
+#include "fboss/agent/SwRxPacket.h"
 
 namespace folly {
 class IOBuf;
@@ -18,7 +19,7 @@ class IOBuf;
 
 namespace facebook::fboss {
 
-class MockRxPacket : public RxPacket {
+class MockRxPacket : public SwRxPacket {
  public:
   static std::unique_ptr<MockRxPacket> fromHex(folly::StringPiece hex);
 
@@ -27,13 +28,6 @@ class MockRxPacket : public RxPacket {
   std::unique_ptr<MockRxPacket> clone() const;
 
   void padToLength(uint32_t size, uint8_t pad = 0);
-
-  void setSrcPort(PortID id) {
-    srcPort_ = id;
-  }
-  void setSrcVlan(std::optional<VlanID> srcVlan) {
-    srcVlan_ = srcVlan;
-  }
 
  private:
   // Forbidden copy constructor and assignment operator

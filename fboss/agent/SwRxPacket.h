@@ -1,0 +1,40 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+#pragma once
+
+#include "fboss/agent/RxPacket.h"
+
+namespace facebook::fboss {
+
+class SwRxPacket : public RxPacket {
+ public:
+  explicit SwRxPacket(std::unique_ptr<folly::IOBuf> buf) {
+    buf_ = std::move(buf);
+    len_ = buf_->computeChainDataLength();
+  }
+
+  void setSrcPort(PortID id) {
+    srcPort_ = id;
+  }
+  void setSrcVlan(std::optional<VlanID> srcVlan) {
+    srcVlan_ = srcVlan;
+  }
+  void setSrcAggregatePort(AggregatePortID srcAggregatePort) {
+    isFromAggregatePort_ = true;
+    srcAggregatePort_ = srcAggregatePort;
+  }
+
+ private:
+  // Forbidden copy constructor and assignment operator
+  SwRxPacket(SwRxPacket const&) = delete;
+  SwRxPacket& operator=(SwRxPacket const&) = delete;
+};
+
+} // namespace facebook::fboss

@@ -4,7 +4,7 @@
 
 #include "fboss/agent/MultiSwitchPacketStreamMap.h"
 #include "fboss/agent/MultiSwitchThriftHandler.h"
-#include "fboss/agent/hw/mock/MockRxPacket.h"
+#include "fboss/agent/SwRxPacket.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
@@ -96,10 +96,13 @@ MultiSwitchThriftHandler::co_notifyRxPacket(int64_t switchId) {
         while (auto item = co_await gen.next()) {
           XLOG(DBG4) << "Got rx packet from switch " << switchId << " for port "
                      << *item->port();
-          auto pkt = make_unique<MockRxPacket>(std::move(*item->data()));
+          auto pkt = make_unique<SwRxPacket>(std::move(*item->data()));
           pkt->setSrcPort(PortID(*item->port()));
           if (item->vlan()) {
             pkt->setSrcVlan(VlanID(*item->vlan()));
+          }
+          if (item->aggPort()) {
+            pkt->setSrcAggregatePort(AggregatePortID(*item->aggPort()));
           }
           sw_->packetReceived(std::move(pkt));
         }
