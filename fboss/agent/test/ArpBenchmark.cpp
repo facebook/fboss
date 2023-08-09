@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/hw/sim/SimPlatform.h"
 #include "fboss/agent/hw/sim/SimSwitch.h"
+#include "fboss/agent/single/MonolithicHwSwitchHandler.h"
 #include "fboss/agent/single/MonolithicHwSwitchHandlerDeprecated.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/Interface.h"
@@ -51,9 +52,10 @@ unique_ptr<SwSwitch> setupSwitch() {
   sw->init(
       nullptr /* No custom TunManager */,
       mockHwSwitchInitFn(sw.get()),
-      [platform = simPlatform.get()]() {
-        return std::make_unique<
-            facebook::fboss::MonolinithicHwSwitchHandlerDeprecated>(platform);
+      [platform = simPlatform.get()](
+          const SwitchID& switchId, const cfg::SwitchInfo& info) {
+        return std::make_unique<facebook::fboss::MonolithicHwSwitchHandler>(
+            platform, switchId, info);
       });
   auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
   auto updateFn = [&](const shared_ptr<SwitchState>& oldState) {

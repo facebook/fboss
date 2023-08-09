@@ -1,18 +1,15 @@
 #pragma once
 
-#include "fboss/agent/HwSwitchHandlerDeprecated.h"
 #include "fboss/agent/HwSwitchHandlerWIP.h"
 
 namespace facebook::fboss {
 
 class Platform;
 
-class NonMonolithicHwSwitchHandler : public HwSwitchHandlerDeprecated,
-                                     HwSwitchHandlerWIP {
+class NonMonolithicHwSwitchHandler : public HwSwitchHandlerWIP {
  public:
   NonMonolithicHwSwitchHandler(
       Platform* platform,
-      HwSwitchHandlerDeprecated* hwSwitch,
       const SwitchID& switchId,
       const cfg::SwitchInfo& info);
 

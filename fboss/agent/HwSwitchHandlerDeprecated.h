@@ -12,19 +12,6 @@ class StateDelta;
 class SwitchStats;
 class HwSwitchFb303Stats;
 
-struct PlatformData {
-  std::string volatileStateDir;
-  std::string persistentStateDir;
-  std::string crashSwitchStateFile;
-  std::string crashThriftSwitchStateFile;
-  std::string warmBootDir;
-  std::string crashBadStateUpdateDir;
-  std::string crashBadStateUpdateOldStateFile;
-  std::string crashBadStateUpdateNewStateFile;
-  std::string runningConfigDumpFile;
-  bool supportsAddRemovePort;
-};
-
 struct HwSwitchHandlerDeprecated {
   virtual ~HwSwitchHandlerDeprecated() = default;
 

@@ -3,7 +3,6 @@
 #pragma once
 
 #include "fboss/agent/FbossInit.h"
-#include "fboss/agent/HwSwitchHandlerDeprecated.h"
 #include "fboss/agent/HwSwitchHandlerWIP.h"
 
 namespace facebook::fboss {
@@ -12,12 +11,10 @@ class HwSwitch;
 class Platform;
 class TxPacket;
 
-class MonolithicHwSwitchHandler : public HwSwitchHandlerWIP,
-                                  HwSwitchHandlerDeprecated {
+class MonolithicHwSwitchHandler : public HwSwitchHandlerWIP {
  public:
   MonolithicHwSwitchHandler(
       Platform* platform,
-      HwSwitchHandlerDeprecated* hwSwitch,
       const SwitchID& switchId,
       const cfg::SwitchInfo& info);
 

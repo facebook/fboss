@@ -1,19 +1,17 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/MultiHwSwitchHandlerWIP.h"
+#include "fboss/agent/HwSwitchHandlerDeprecated.h"
 #include "fboss/agent/HwSwitchHandlerWIP.h"
 
 namespace facebook::fboss {
 
 MultiHwSwitchHandlerWIP::MultiHwSwitchHandlerWIP(
-    HwSwitchHandlerDeprecated* hwSwitchHandler,
     const std::map<SwitchID, cfg::SwitchInfo>& switchInfoMap,
-    HwSwitchHandlerInitFn /*hwSwitchHandlerInitFn*/) {
+    HwSwitchHandlerInitFn hwSwitchHandlerInitFn) {
   for (auto entry : switchInfoMap) {
     hwSwitchSyncers_.emplace(
-        entry.first,
-        std::make_unique<HwSwitchHandlerWIP>(
-            hwSwitchHandler, entry.first, entry.second));
+        entry.first, hwSwitchHandlerInitFn(entry.first, entry.second));
   }
 }
 

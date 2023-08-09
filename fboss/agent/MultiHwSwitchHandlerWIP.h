@@ -10,18 +10,17 @@
 namespace facebook::fboss {
 
 class HwSwitchHandlerWIP;
-struct HwSwitchHandlerDeprecated;
 class SwitchState;
 class StateDelta;
 struct HwSwitchStateUpdate;
 
-using HwSwitchHandlerInitFn =
-    std::function<std::unique_ptr<HwSwitchHandlerDeprecated>()>;
+using HwSwitchHandlerInitFn = std::function<std::unique_ptr<HwSwitchHandlerWIP>(
+    const SwitchID& switchId,
+    const cfg::SwitchInfo& info)>;
 
 class MultiHwSwitchHandlerWIP {
  public:
   MultiHwSwitchHandlerWIP(
-      HwSwitchHandlerDeprecated* hwSwitchHandler,
       const std::map<SwitchID, cfg::SwitchInfo>& switchInfoMap,
       HwSwitchHandlerInitFn hwSwitchHandlerInitFn);
 

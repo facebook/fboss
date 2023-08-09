@@ -1,8 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/HwSwitchHandlerWIP.h"
-
-#include "fboss/agent/HwSwitchHandlerDeprecated.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "folly/futures/Promise.h"
@@ -21,13 +19,9 @@ HwSwitchStateUpdate::HwSwitchStateUpdate(
 }
 
 HwSwitchHandlerWIP::HwSwitchHandlerWIP(
-    HwSwitchHandlerDeprecated* hwSwitchHandler,
     const SwitchID& switchId,
     const cfg::SwitchInfo& info)
-    : hwSwitchHandler_(hwSwitchHandler),
-      switchId_(switchId),
-      info_(info),
-      operDeltaFilter_(switchId) {}
+    : switchId_(switchId), info_(info), operDeltaFilter_(switchId) {}
 
 void HwSwitchHandlerWIP::start() {
   hwSwitchManagerThread_.reset(new std::thread([this]() { run(); }));
@@ -71,7 +65,7 @@ std::shared_ptr<SwitchState> HwSwitchHandlerWIP::stateChangedImpl(
     const HwSwitchStateUpdate& update) {
   if (!FLAGS_enable_state_oper_delta) {
     StateDelta stateDelta(update.oldState, update.newState);
-    return hwSwitchHandler_->stateChanged(stateDelta, update.isTransaction);
+    return stateChanged(stateDelta, update.isTransaction);
   }
   // filter out deltas that don't apply to this switch
   auto inDelta = operDeltaFilter_.filter(update.inDelta, 1);
@@ -93,7 +87,7 @@ std::shared_ptr<SwitchState> HwSwitchHandlerWIP::stateChangedImpl(
 fsdb::OperDelta HwSwitchHandlerWIP::stateChangedImpl(
     const fsdb::OperDelta& delta,
     bool transaction) {
-  return hwSwitchHandler_->stateChanged(delta, transaction);
+  return stateChanged(delta, transaction);
 }
 
 } // namespace facebook::fboss

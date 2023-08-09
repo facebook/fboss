@@ -24,6 +24,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/single/MonolithicHwSwitchHandler.h"
 #include "fboss/agent/single/MonolithicHwSwitchHandlerDeprecated.h"
 
 #include "fboss/agent/ThriftHandler.h"
@@ -73,9 +74,9 @@ void MonolithicSwSwitchInitializer::initImpl(
       [this](HwSwitchCallback* callback, bool failHwCallsOnWarmboot) {
         return hwAgent_->initAgent(failHwCallsOnWarmboot, callback);
       },
-      [this]() {
-        return std::make_unique<MonolinithicHwSwitchHandlerDeprecated>(
-            hwAgent_->getPlatform());
+      [this](const SwitchID& switchId, const cfg::SwitchInfo& info) {
+        return std::make_unique<MonolithicHwSwitchHandler>(
+            hwAgent_->getPlatform(), switchId, info);
       },
       setupFlags());
 }

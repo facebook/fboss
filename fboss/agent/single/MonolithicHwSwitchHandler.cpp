@@ -12,10 +12,9 @@ namespace facebook::fboss {
 
 MonolithicHwSwitchHandler::MonolithicHwSwitchHandler(
     Platform* platform,
-    HwSwitchHandlerDeprecated* hwSwitch,
     const SwitchID& switchId,
     const cfg::SwitchInfo& info)
-    : HwSwitchHandlerWIP(hwSwitch, switchId, info),
+    : HwSwitchHandlerWIP(switchId, info),
       platform_(platform),
       hw_(platform_->getHwSwitch()) {
   initPlatformData();

@@ -25,6 +25,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/RouteNextHop.h"
 
+#include "fboss/agent/single/MonolithicHwSwitchHandler.h"
 #include "fboss/agent/single/MonolithicHwSwitchHandlerDeprecated.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
@@ -72,10 +73,11 @@ void initSwSwitchWithFlags(
     SwSwitch* sw,
     SwitchFlags flags,
     Platform* platform) {
-  HwSwitchHandlerInitFn hwSwitchHandlerInitFn = [platform]() {
-    return std::make_unique<
-        facebook::fboss::MonolinithicHwSwitchHandlerDeprecated>(platform);
-  };
+  HwSwitchHandlerInitFn hwSwitchHandlerInitFn =
+      [platform](const SwitchID& switchId, const cfg::SwitchInfo& info) {
+        return std::make_unique<facebook::fboss::MonolithicHwSwitchHandler>(
+            platform, switchId, info);
+      };
   if (flags & SwitchFlags::ENABLE_TUN) {
     // TODO(aeckert): I don't think this should be a first class
     // argument to SwSwitch::init() as unit tests are the only place
@@ -91,10 +93,14 @@ void initSwSwitchWithFlags(
     sw->init(
         std::move(mockTunMgr),
         mockHwSwitchInitFn(sw),
-        hwSwitchHandlerInitFn,
+        std::move(hwSwitchHandlerInitFn),
         flags);
   } else {
-    sw->init(nullptr, mockHwSwitchInitFn(sw), hwSwitchHandlerInitFn, flags);
+    sw->init(
+        nullptr,
+        mockHwSwitchInitFn(sw),
+        std::move(hwSwitchHandlerInitFn),
+        flags);
   }
 }
 

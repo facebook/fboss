@@ -489,6 +489,7 @@ target_link_libraries(monolithic_agent_initializer
   hwagent
   load_agent_config
   monolithic_switch_handler
+  monolithic_switch_handler_wip
   setup_thrift
   sw_agent_initializer
   switch_asics

@@ -19,6 +19,21 @@ struct HwInitResult {
   float bootTime{0.0};
 };
 
+// TODO - move this back to HwSwitchHandler after migration
+// Done in stacked diffs
+struct PlatformData {
+  std::string volatileStateDir;
+  std::string persistentStateDir;
+  std::string crashSwitchStateFile;
+  std::string crashThriftSwitchStateFile;
+  std::string warmBootDir;
+  std::string crashBadStateUpdateDir;
+  std::string crashBadStateUpdateOldStateFile;
+  std::string crashBadStateUpdateNewStateFile;
+  std::string runningConfigDumpFile;
+  bool supportsAddRemovePort;
+};
+
 class StateObserver;
 
 class HwSwitchCallback {

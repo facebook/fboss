@@ -3,6 +3,7 @@
 #include "fboss/agent/mnpu/SplitSwAgentInitializer.h"
 #include "fboss/agent/MultiSwitchThriftHandler.h"
 #include "fboss/agent/TunManager.h"
+#include "fboss/agent/mnpu/NonMonolithicHwSwitchHandler.h"
 
 #include <thread>
 
@@ -17,8 +18,9 @@ void SplitSwSwitchInitializer::initImpl(HwSwitchCallback* callback) {
         // agent
         return HwInitResult{};
       },
-      []() { // TODO - return HwSwitchHandler for split sw-switch
-        return nullptr;
+      [this](const SwitchID& switchId, const cfg::SwitchInfo& info) {
+        return std::make_unique<NonMonolithicHwSwitchHandler>(
+            nullptr, switchId, info);
       },
       setupFlags());
 }
