@@ -46,7 +46,7 @@ target_link_libraries(main
 )
 
 add_library(monolithic_switch_handler
-  fboss/agent/single/MonolithicHwSwitchHandler.cpp
+  fboss/agent/single/MonolithicHwSwitchHandlerDeprecated.cpp
 )
 
 target_link_libraries(monolithic_switch_handler

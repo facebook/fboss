@@ -16,7 +16,7 @@
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/hw/sim/SimPlatform.h"
 #include "fboss/agent/hw/sim/SimSwitch.h"
-#include "fboss/agent/single/MonolithicHwSwitchHandler.h"
+#include "fboss/agent/single/MonolithicHwSwitchHandlerDeprecated.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -45,7 +45,8 @@ unique_ptr<SwSwitch> setupSwitch() {
   MacAddress localMac("02:00:01:00:00:01");
   simPlatform = make_unique<SimPlatform>(localMac, 10);
   auto hwSwitchHandler =
-      std::make_unique<MonolinithicHwSwitchHandler>(simPlatform.get());
+      std::make_unique<MonolinithicHwSwitchHandlerDeprecated>(
+          simPlatform.get());
   auto sw = make_unique<SwSwitch>(std::move(hwSwitchHandler));
   sw->init(nullptr /* No custom TunManager */, mockHwSwitchInitFn(sw.get()));
   auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));

@@ -2,7 +2,7 @@
 
 #include "fboss/agent/HwSwitchSyncer.h"
 
-#include "fboss/agent/HwSwitchHandler.h"
+#include "fboss/agent/HwSwitchHandlerDeprecated.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "folly/futures/Promise.h"
@@ -21,7 +21,7 @@ HwSwitchStateUpdate::HwSwitchStateUpdate(
 }
 
 HwSwitchSyncer::HwSwitchSyncer(
-    HwSwitchHandler* hwSwitchHandler,
+    HwSwitchHandlerDeprecated* hwSwitchHandler,
     const SwitchID& switchId,
     const cfg::SwitchInfo& info)
     : hwSwitchHandler_(hwSwitchHandler),

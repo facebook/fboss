@@ -24,7 +24,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/single/MonolithicHwSwitchHandler.h"
+#include "fboss/agent/single/MonolithicHwSwitchHandlerDeprecated.h"
 
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
@@ -96,7 +96,7 @@ void MonolithicAgentInitializer::createSwitch(
   auto platform = hwAgent_->getPlatform();
   CHECK(platform);
   auto hwSwitchHandler =
-      std::make_unique<MonolinithicHwSwitchHandler>(platform);
+      std::make_unique<MonolinithicHwSwitchHandlerDeprecated>(platform);
 
   // Create the SwSwitch and thrift handler
   sw_ = std::make_unique<SwSwitch>(std::move(hwSwitchHandler));

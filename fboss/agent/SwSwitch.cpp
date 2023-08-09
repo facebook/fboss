@@ -208,7 +208,7 @@ auto constexpr kHwUpdateFailures = "hw_update_failures";
 
 namespace facebook::fboss {
 
-SwSwitch::SwSwitch(std::unique_ptr<HwSwitchHandler> hwSwitchHandler)
+SwSwitch::SwSwitch(std::unique_ptr<HwSwitchHandlerDeprecated> hwSwitchHandler)
     : hwSwitchHandler_(std::move(hwSwitchHandler)),
       platformData_(hwSwitchHandler_->getPlatformData()),
       platformProductInfo_(
@@ -258,7 +258,7 @@ SwSwitch::SwSwitch(std::unique_ptr<HwSwitchHandler> hwSwitchHandler)
 }
 
 SwSwitch::SwSwitch(
-    std::unique_ptr<HwSwitchHandler> hwSwitchHandler,
+    std::unique_ptr<HwSwitchHandlerDeprecated> hwSwitchHandler,
     std::unique_ptr<PlatformMapping> platformMapping,
     cfg::SwitchConfig* config)
     : SwSwitch(std::move(hwSwitchHandler)) {
@@ -668,7 +668,8 @@ void SwSwitch::init(
   flags_ = flags;
   auto hwInitRet = hwSwitchInitFn(callback, false /*failHwCallsOnWarmboot*/);
   multiHwSwitchSyncer_ = std::make_unique<MultiHwSwitchSyncer>(
-      getHwSwitchHandler(), switchInfoTable_.getSwitchIdToSwitchInfo());
+      getHwSwitchHandlerDeprecated(),
+      switchInfoTable_.getSwitchIdToSwitchInfo());
   auto initialState = hwInitRet.switchState;
   bootType_ = hwInitRet.bootType;
   rib_ = std::move(hwInitRet.rib);

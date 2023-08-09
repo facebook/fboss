@@ -25,8 +25,8 @@ struct PlatformData {
   bool supportsAddRemovePort;
 };
 
-struct HwSwitchHandler {
-  virtual ~HwSwitchHandler() = default;
+struct HwSwitchHandlerDeprecated {
+  virtual ~HwSwitchHandlerDeprecated() = default;
 
   virtual void exitFatal() const = 0;
 

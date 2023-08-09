@@ -9,7 +9,7 @@
 namespace facebook::fboss {
 
 class HwSwitchSyncer;
-struct HwSwitchHandler;
+struct HwSwitchHandlerDeprecated;
 class SwitchState;
 class StateDelta;
 struct HwSwitchStateUpdate;
@@ -17,7 +17,7 @@ struct HwSwitchStateUpdate;
 class MultiHwSwitchSyncer {
  public:
   MultiHwSwitchSyncer(
-      HwSwitchHandler* hwSwitchHandler,
+      HwSwitchHandlerDeprecated* hwSwitchHandler,
       const std::map<SwitchID, cfg::SwitchInfo>& switchInfoMap);
 
   ~MultiHwSwitchSyncer();

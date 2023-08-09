@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "fboss/agent/HwSwitchHandler.h"
+#include "fboss/agent/HwSwitchHandlerDeprecated.h"
 #include "fboss/agent/PacketObserver.h"
 #include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
@@ -85,7 +85,7 @@ class DsfSubscriber;
 class HwAsicTable;
 class MultiHwSwitchSyncer;
 class SwitchStatsObserver;
-struct HwSwitchHandler;
+struct HwSwitchHandlerDeprecated;
 class MultiSwitchPacketStreamMap;
 
 enum class SwitchFlags : int {
@@ -135,22 +135,22 @@ class SwSwitch : public HwSwitchCallback {
   using AllThreadsSwitchStats =
       folly::ThreadLocalPtr<SwitchStats, SwSwitch>::Accessor;
 
-  explicit SwSwitch(std::unique_ptr<HwSwitchHandler> hwSwitchHandler);
+  explicit SwSwitch(std::unique_ptr<HwSwitchHandlerDeprecated> hwSwitchHandler);
   /*
    * Needed for mock platforms that do cannot initialize platform mapping
    * based on fruid file
    */
   SwSwitch(
-      std::unique_ptr<HwSwitchHandler> hwSwitchHandler,
+      std::unique_ptr<HwSwitchHandlerDeprecated> hwSwitchHandler,
       std::unique_ptr<PlatformMapping> platformMapping,
       cfg::SwitchConfig* config);
   ~SwSwitch() override;
 
-  HwSwitchHandler* getHwSwitchHandler() {
+  HwSwitchHandlerDeprecated* getHwSwitchHandlerDeprecated() {
     return hwSwitchHandler_.get();
   }
 
-  const HwSwitchHandler* getHwSwitchHandler() const {
+  const HwSwitchHandlerDeprecated* getHwSwitchHandlerDeprecated() const {
     return hwSwitchHandler_.get();
   }
 
@@ -945,7 +945,7 @@ class SwSwitch : public HwSwitchCallback {
   cfg::SwitchConfig curConfig_;
 
   // The HwSwitch object.  This object is owned by the Platform.
-  std::unique_ptr<HwSwitchHandler> hwSwitchHandler_;
+  std::unique_ptr<HwSwitchHandlerDeprecated> hwSwitchHandler_;
   PlatformData platformData_;
   const std::unique_ptr<PlatformProductInfo> platformProductInfo_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};

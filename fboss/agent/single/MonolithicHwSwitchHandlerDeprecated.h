@@ -1,14 +1,21 @@
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
 #pragma once
 
-#include "fboss/agent/HwSwitchHandler.h"
+#include "fboss/agent/FbossInit.h"
+#include "fboss/agent/HwSwitchHandlerDeprecated.h"
 
 namespace facebook::fboss {
 
-class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
- public:
-  NonMonolithicHwSwitchHandler();
+class HwSwitch;
+class Platform;
+class TxPacket;
 
-  virtual ~NonMonolithicHwSwitchHandler() override = default;
+class MonolinithicHwSwitchHandlerDeprecated : public HwSwitchHandlerDeprecated {
+ public:
+  explicit MonolinithicHwSwitchHandlerDeprecated(Platform* platform);
+
+  virtual ~MonolinithicHwSwitchHandlerDeprecated() override {}
 
   void exitFatal() const override;
 
@@ -36,8 +43,6 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
   std::optional<uint32_t> getHwLogicalPortId(PortID portID) const override;
 
   void initPlatformData() override;
-
-  bool transactionsSupported() const override;
 
   folly::F14FastMap<std::string, HwPortStats> getPortStats() const override;
 
@@ -83,6 +88,18 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
   fsdb::OperDelta stateChanged(const fsdb::OperDelta& delta, bool transaction)
       override;
 
+  bool transactionsSupported() const override;
+
+  /* TODO: remove this method */
+  HwSwitch* getHwSwitch() const {
+    return hw_;
+  }
+
+  /* TODO: remove this method */
+  Platform* getPlatform() const {
+    return platform_;
+  }
+
   CpuPortStats getCpuPortStats() const override;
 
   std::map<PortID, FabricEndpoint> getFabricReachability() const override;
@@ -99,6 +116,10 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
       const override;
 
   bool needL2EntryForNeighbor() const override;
+
+ private:
+  Platform* platform_;
+  HwSwitch* hw_;
 };
 
 } // namespace facebook::fboss
