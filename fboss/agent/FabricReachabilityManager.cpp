@@ -25,6 +25,12 @@ using facebook::fboss::DeltaFunctions::forEachRemoved;
 namespace facebook::fboss {
 
 void FabricReachabilityManager::addPort(const std::shared_ptr<Port>& swPort) {
+  if (swPort->getPortType() != cfg::PortType::FABRIC_PORT) {
+    // don't process reachability for non fabric ports such as DTSW
+    // since they will be handled by LLDP
+    return;
+  }
+
   FabricEndpoint expectedEndpoint;
   const auto& neighborReachabilityList =
       swPort->getExpectedNeighborValues()->toThrift();

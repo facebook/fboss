@@ -59,7 +59,9 @@ class FabricReachabilityManagerTest : public ::testing::Test {
     return dsfNode;
   }
 
-  std::shared_ptr<Port> makePort(const int portId) {
+  std::shared_ptr<Port> makePort(
+      const int portId,
+      const cfg::PortType portType = cfg::PortType::FABRIC_PORT) {
     state::PortFields portFields;
     portFields.portId() = portId;
     portFields.portName() = folly::sformat("port{}", portId);
@@ -67,6 +69,7 @@ class FabricReachabilityManagerTest : public ::testing::Test {
     swPort->setAdminState(cfg::PortState::ENABLED);
     swPort->setProfileId(
         cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER);
+    swPort->setPortType(portType);
     return swPort;
   }
 
@@ -274,6 +277,25 @@ TEST_F(FabricReachabilityManagerTest, validateUnexpectedNeighbors) {
       fabricReachabilityManager_->isReachabilityInfoMismatch(PortID(1)));
   EXPECT_FALSE(
       fabricReachabilityManager_->isReachabilityInfoMissing(PortID(1)));
+}
+
+TEST_F(FabricReachabilityManagerTest, nonFabricPorts) {
+  auto oldState = std::make_shared<SwitchState>();
+  auto newState = std::make_shared<SwitchState>();
+
+  // create port with neighbor reachability
+  std::shared_ptr<Port> swPort = makePort(1, cfg::PortType::INTERFACE_PORT);
+  swPort->setExpectedNeighborReachability(
+      createPortNeighbor("fab1/2/3", "fdswA"));
+  newState->getPorts()->addNode(swPort, getScope(swPort));
+
+  // update
+  StateDelta delta(oldState, newState);
+  fabricReachabilityManager_->stateUpdated(delta);
+
+  std::map<PortID, FabricEndpoint> hwReachabilityMap;
+  // ensure that no reachability info is created for non fabric port
+  EXPECT_EQ(fabricReachabilityManager_->getReachabilityInfo().size(), 0);
 }
 
 // test case below mimics both invalid cfg scenario and cabling issues
