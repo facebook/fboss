@@ -369,16 +369,6 @@ target_link_libraries(hwagent
   switch_asics
 )
 
-add_library(split_agent_hwswitch_callback_handler
-  fboss/agent/mnpu/SplitAgentHwSwitchCallbackHandler.cpp
-)
-
-target_link_libraries(split_agent_hwswitch_callback_handler
-  Folly::folly
-  fboss_types
-  state
-)
-
 add_library(hwagent-main
   fboss/agent/HwAgentMain.cpp
   fboss/agent/oss/Main.cpp
@@ -386,7 +376,6 @@ add_library(hwagent-main
 
 target_link_libraries(hwagent-main
   fboss_common_init
-  split_agent_hwswitch_callback_handler
   platform_base
   fboss_common_cpp2
   restart_time_tracker

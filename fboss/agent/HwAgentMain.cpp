@@ -15,7 +15,6 @@
 #include "fboss/agent/HwAgent.h"
 #include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/SetupThrift.h"
-#include "fboss/agent/mnpu/SplitAgentHwSwitchCallbackHandler.h"
 #include "fboss/agent/mnpu/SplitAgentThriftSyncer.h"
 
 #include <chrono>
@@ -56,11 +55,11 @@ int hwAgentMain(
   auto hwAgent = std::make_unique<HwAgent>(
       std::move(config), hwFeaturesDesired, initPlatformFn, FLAGS_switchIndex);
 
-  auto hwSwitchCallbackHandler =
-      std::make_unique<SplitAgentHwSwitchCallbackHandler>();
+  auto thriftSyncer = std::make_unique<SplitAgentThriftSyncer>(
+      hwAgent->getPlatform()->getHwSwitch(), FLAGS_swswitch_port);
 
-  auto hwInitRet = hwAgent->initAgent(
-      true /* failHwCallsOnWarmboot */, hwSwitchCallbackHandler.get());
+  auto hwInitRet =
+      hwAgent->initAgent(true /* failHwCallsOnWarmboot */, thriftSyncer.get());
 
   restart_time::init(
       hwAgent->getPlatform()->getWarmBootDir(),
@@ -74,9 +73,6 @@ int hwAgentMain(
       true /*setupSSL*/);
 
   SplitHwAgentSignalHandler signalHandler(&eventBase, []() {});
-
-  auto thriftSyncer = std::make_unique<SplitAgentThriftSyncer>(
-      hwAgent->getPlatform()->getHwSwitch(), FLAGS_swswitch_port);
 
   restart_time::mark(RestartEvent::INITIALIZED);
 

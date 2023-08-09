@@ -28,7 +28,6 @@
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/StaticL2ForNeighborHwSwitchUpdater.h"
-#include "fboss/agent/mnpu/SplitAgentHwSwitchCallbackHandler.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/Port.h"
@@ -37,6 +36,7 @@
 
 #include <folly/experimental/FunctionScheduler.h>
 #include <folly/gen/Base.h>
+#include <memory>
 #include <utility>
 
 DEFINE_bool(
@@ -489,7 +489,6 @@ void HwSwitchEnsemble::setupEnsemble(
       {{asic->getSwitchId() ? *asic->getSwitchId() : 0, switchInfo}});
   hwAsicTable_ = std::make_unique<HwAsicTable>(switchIdToSwitchInfo);
   if (haveFeature(MULTISWITCH_THRIFT_SERVER)) {
-    callbackHandler_ = std::make_unique<SplitAgentHwSwitchCallbackHandler>();
     std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
         handlers;
     handlers.emplace_back(
@@ -497,10 +496,14 @@ void HwSwitchEnsemble::setupEnsemble(
     swSwitchTestServer_ = std::make_unique<MultiSwitchTestServer>(handlers);
     XLOG(DBG2) << "Started thrift server on port "
                << swSwitchTestServer_->getPort();
+    thriftSyncer_ = std::make_unique<SplitAgentThriftSyncer>(
+        getPlatform()->getHwSwitch(), swSwitchTestServer_->getPort());
   }
 
   auto hwInitResult = getHwSwitch()->init(
-      haveFeature(MULTISWITCH_THRIFT_SERVER) ? callbackHandler_.get() : this,
+      haveFeature(MULTISWITCH_THRIFT_SERVER)
+          ? static_cast<HwSwitchCallback*>(thriftSyncer_.get())
+          : this,
       true /*failHwCallsOnWarmboot*/);
 
   programmedState_ = hwInitResult.switchState;
@@ -530,6 +533,9 @@ void HwSwitchEnsemble::setupEnsemble(
   }
 
   thriftThread_ = std::move(thriftThread);
+  if (haveFeature(MULTISWITCH_THRIFT_SERVER)) {
+    thriftSyncer_->connect();
+  }
   switchRunStateChanged(SwitchRunState::INITIALIZED);
   if (routingInformationBase_) {
     auto curProgrammedState = programmedState_;

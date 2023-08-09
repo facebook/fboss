@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/mnpu/SplitAgentThriftSyncer.h"
 #include "fboss/agent/platforms/tests/utils/TestPlatformTypes.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/test/MultiSwitchTestServer.h"
@@ -299,7 +300,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   std::shared_ptr<SwitchState> programmedState_{nullptr};
   std::unique_ptr<RoutingInformationBase> routingInformationBase_;
   std::unique_ptr<HwLinkStateToggler> linkToggler_;
-  std::unique_ptr<HwSwitchCallback> callbackHandler_{nullptr};
+  std::unique_ptr<SplitAgentThriftSyncer> thriftSyncer_{nullptr};
   std::unique_ptr<HwAgent> hwAgent_;
   const Features featuresDesired_;
   folly::Synchronized<std::set<HwSwitchEventObserverIf*>> hwEventObservers_;
