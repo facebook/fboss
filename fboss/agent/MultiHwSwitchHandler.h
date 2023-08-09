@@ -11,7 +11,7 @@
 
 namespace facebook::fboss {
 
-class HwSwitchHandlerWIP;
+class HwSwitchHandler;
 class SwitchState;
 class StateDelta;
 class TxPacket;
@@ -20,17 +20,17 @@ class HwSwitchFb303Stats;
 struct HwSwitchStateUpdate;
 struct PlatformData;
 
-using HwSwitchHandlerInitFn = std::function<std::unique_ptr<HwSwitchHandlerWIP>(
+using HwSwitchHandlerInitFn = std::function<std::unique_ptr<HwSwitchHandler>(
     const SwitchID& switchId,
     const cfg::SwitchInfo& info)>;
 
-class MultiHwSwitchHandlerWIP {
+class MultiHwSwitchHandler {
  public:
-  MultiHwSwitchHandlerWIP(
+  MultiHwSwitchHandler(
       const std::map<int64_t, cfg::SwitchInfo>& switchInfoMap,
       HwSwitchHandlerInitFn hwSwitchHandlerInitFn);
 
-  ~MultiHwSwitchHandlerWIP();
+  ~MultiHwSwitchHandler();
 
   void start();
 
@@ -121,10 +121,10 @@ class MultiHwSwitchHandlerWIP {
   bool needL2EntryForNeighbor();
 
   // For test purpose
-  std::map<SwitchID, HwSwitchHandlerWIP*> getHwSwitchHandlers();
+  std::map<SwitchID, HwSwitchHandler*> getHwSwitchHandlers();
 
  private:
-  HwSwitchHandlerWIP* getHwSwitchHandler(SwitchID id);
+  HwSwitchHandler* getHwSwitchHandler(SwitchID id);
 
   folly::Future<std::shared_ptr<SwitchState>> stateChanged(
       SwitchID switchId,
@@ -134,7 +134,7 @@ class MultiHwSwitchHandlerWIP {
       SwitchID switchId,
       folly::Future<std::shared_ptr<SwitchState>>&& future);
 
-  std::map<SwitchID, std::unique_ptr<HwSwitchHandlerWIP>> hwSwitchSyncers_;
+  std::map<SwitchID, std::unique_ptr<HwSwitchHandler>> hwSwitchSyncers_;
   std::atomic<bool> stopped_{true};
 };
 

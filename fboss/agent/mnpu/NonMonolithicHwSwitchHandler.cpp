@@ -10,7 +10,7 @@ NonMonolithicHwSwitchHandler::NonMonolithicHwSwitchHandler(
     Platform* /*platform*/,
     const SwitchID& switchId,
     const cfg::SwitchInfo& info)
-    : HwSwitchHandlerWIP(switchId, info) {}
+    : HwSwitchHandler(switchId, info) {}
 
 void NonMonolithicHwSwitchHandler::exitFatal() const {
   // TODO: implement this

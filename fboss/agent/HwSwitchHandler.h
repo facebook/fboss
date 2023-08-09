@@ -40,13 +40,13 @@ struct PlatformData {
   bool supportsAddRemovePort;
 };
 
-class HwSwitchHandlerWIP {
+class HwSwitchHandler {
  public:
-  HwSwitchHandlerWIP(const SwitchID& switchId, const cfg::SwitchInfo& info);
+  HwSwitchHandler(const SwitchID& switchId, const cfg::SwitchInfo& info);
 
   void start();
 
-  virtual ~HwSwitchHandlerWIP();
+  virtual ~HwSwitchHandler();
 
   folly::Future<std::shared_ptr<SwitchState>> stateChanged(
       HwSwitchStateUpdate update);

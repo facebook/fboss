@@ -45,11 +45,11 @@ target_link_libraries(main
   Folly::folly
 )
 
-add_library(monolithic_switch_handler_wip
+add_library(monolithic_switch_handler
   fboss/agent/single/MonolithicHwSwitchHandler.cpp
 )
 
-target_link_libraries(monolithic_switch_handler_wip
+target_link_libraries(monolithic_switch_handler
   hw_switch
   packet
   platform_base
@@ -138,7 +138,7 @@ add_library(core
   fboss/agent/FibHelpers.cpp
   fboss/agent/HwAsicTable.cpp
   fboss/agent/HwSwitch.cpp
-  fboss/agent/HwSwitchHandlerWIP.cpp
+  fboss/agent/HwSwitchHandler.cpp
   fboss/agent/IPHeaderV4.cpp
   fboss/agent/IPv4Handler.cpp
   fboss/agent/IPv6Handler.cpp
@@ -158,7 +158,7 @@ add_library(core
   fboss/agent/MirrorManager.cpp
   fboss/agent/MirrorManagerImpl.cpp
   fboss/agent/MPLSHandler.cpp
-  fboss/agent/MultiHwSwitchHandlerWIP.cpp
+  fboss/agent/MultiHwSwitchHandler.cpp
   fboss/agent/MultiSwitchPacketStreamMap.cpp
   fboss/agent/NdpCache.cpp
   fboss/agent/NeighborUpdater.cpp
@@ -476,7 +476,7 @@ target_link_libraries(monolithic_agent_initializer
   hw_switch
   hwagent
   load_agent_config
-  monolithic_switch_handler_wip
+  monolithic_switch_handler
   setup_thrift
   sw_agent_initializer
   switch_asics

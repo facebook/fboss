@@ -1,12 +1,12 @@
 #pragma once
 
-#include "fboss/agent/HwSwitchHandlerWIP.h"
+#include "fboss/agent/HwSwitchHandler.h"
 
 namespace facebook::fboss {
 
 class Platform;
 
-class NonMonolithicHwSwitchHandler : public HwSwitchHandlerWIP {
+class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
  public:
   NonMonolithicHwSwitchHandler(
       Platform* platform,

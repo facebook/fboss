@@ -14,7 +14,7 @@ MonolithicHwSwitchHandler::MonolithicHwSwitchHandler(
     Platform* platform,
     const SwitchID& switchId,
     const cfg::SwitchInfo& info)
-    : HwSwitchHandlerWIP(switchId, info),
+    : HwSwitchHandler(switchId, info),
       platform_(platform),
       hw_(platform_->getHwSwitch()) {
   initPlatformData();

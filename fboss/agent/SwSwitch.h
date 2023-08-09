@@ -9,8 +9,8 @@
  */
 #pragma once
 
-#include "fboss/agent/HwSwitchHandlerWIP.h"
-#include "fboss/agent/MultiHwSwitchHandlerWIP.h"
+#include "fboss/agent/HwSwitchHandler.h"
+#include "fboss/agent/MultiHwSwitchHandler.h"
 #include "fboss/agent/PacketObserver.h"
 #include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
@@ -84,7 +84,7 @@ class FsdbSyncer;
 class TeFlowNexthopHandler;
 class DsfSubscriber;
 class HwAsicTable;
-class MultiHwSwitchHandlerWIP;
+class MultiHwSwitchHandler;
 class SwitchStatsObserver;
 class MultiSwitchPacketStreamMap;
 
@@ -148,12 +148,12 @@ class SwSwitch : public HwSwitchCallback {
       cfg::SwitchConfig* config);
   ~SwSwitch() override;
 
-  MultiHwSwitchHandlerWIP* getHwSwitchHandler() {
-    return multiHwSwitchHandlerWIP_.get();
+  MultiHwSwitchHandler* getHwSwitchHandler() {
+    return multiHwSwitchHandler_.get();
   }
 
-  const MultiHwSwitchHandlerWIP* getHwSwitchHandler() const {
-    return multiHwSwitchHandlerWIP_.get();
+  const MultiHwSwitchHandler* getHwSwitchHandler() const {
+    return multiHwSwitchHandler_.get();
   }
 
   const PlatformMapping* getPlatformMapping() const {
@@ -946,7 +946,7 @@ class SwSwitch : public HwSwitchCallback {
   std::string curConfigStr_;
   cfg::SwitchConfig curConfig_;
 
-  std::unique_ptr<MultiHwSwitchHandlerWIP> multiHwSwitchHandlerWIP_;
+  std::unique_ptr<MultiHwSwitchHandler> multiHwSwitchHandler_;
   PlatformData platformData_;
   const std::unique_ptr<PlatformProductInfo> platformProductInfo_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};

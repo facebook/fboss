@@ -3,7 +3,7 @@
 #pragma once
 
 #include "fboss/agent/FbossInit.h"
-#include "fboss/agent/HwSwitchHandlerWIP.h"
+#include "fboss/agent/HwSwitchHandler.h"
 
 namespace facebook::fboss {
 
@@ -11,7 +11,7 @@ class HwSwitch;
 class Platform;
 class TxPacket;
 
-class MonolithicHwSwitchHandler : public HwSwitchHandlerWIP {
+class MonolithicHwSwitchHandler : public HwSwitchHandler {
  public:
   MonolithicHwSwitchHandler(
       Platform* platform,

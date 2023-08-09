@@ -1,6 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/agent/HwSwitchHandlerWIP.h"
+#include "fboss/agent/HwSwitchHandler.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "folly/futures/Promise.h"
@@ -18,21 +18,21 @@ HwSwitchStateUpdate::HwSwitchStateUpdate(
   }
 }
 
-HwSwitchHandlerWIP::HwSwitchHandlerWIP(
+HwSwitchHandler::HwSwitchHandler(
     const SwitchID& switchId,
     const cfg::SwitchInfo& info)
     : switchId_(switchId), info_(info), operDeltaFilter_(switchId) {}
 
-void HwSwitchHandlerWIP::start() {
+void HwSwitchHandler::start() {
   hwSwitchManagerThread_.reset(new std::thread([this]() { run(); }));
 }
 
-void HwSwitchHandlerWIP::run() {
-  initThread(folly::to<std::string>("HwSwitchHandlerWIP-", switchId_));
+void HwSwitchHandler::run() {
+  initThread(folly::to<std::string>("HwSwitchHandler-", switchId_));
   hwSwitchManagerEvb_.loopForever();
 }
 
-void HwSwitchHandlerWIP::stop() {
+void HwSwitchHandler::stop() {
   if (!hwSwitchManagerThread_) {
     return;
   }
@@ -42,11 +42,11 @@ void HwSwitchHandlerWIP::stop() {
   hwSwitchManagerThread_.reset();
 }
 
-HwSwitchHandlerWIP::~HwSwitchHandlerWIP() {
+HwSwitchHandler::~HwSwitchHandler() {
   stop();
 }
 
-folly::Future<std::shared_ptr<SwitchState>> HwSwitchHandlerWIP::stateChanged(
+folly::Future<std::shared_ptr<SwitchState>> HwSwitchHandler::stateChanged(
     HwSwitchStateUpdate update) {
   auto [promise, semiFuture] =
       folly::makePromiseContract<std::shared_ptr<SwitchState>>();
@@ -61,7 +61,7 @@ folly::Future<std::shared_ptr<SwitchState>> HwSwitchHandlerWIP::stateChanged(
   return future;
 }
 
-std::shared_ptr<SwitchState> HwSwitchHandlerWIP::stateChangedImpl(
+std::shared_ptr<SwitchState> HwSwitchHandler::stateChangedImpl(
     const HwSwitchStateUpdate& update) {
   if (!FLAGS_enable_state_oper_delta) {
     StateDelta stateDelta(update.oldState, update.newState);
@@ -84,7 +84,7 @@ std::shared_ptr<SwitchState> HwSwitchHandlerWIP::stateChangedImpl(
   return StateDelta(update.newState, outDelta).newState();
 }
 
-fsdb::OperDelta HwSwitchHandlerWIP::stateChangedImpl(
+fsdb::OperDelta HwSwitchHandler::stateChangedImpl(
     const fsdb::OperDelta& delta,
     bool transaction) {
   return stateChanged(delta, transaction);
