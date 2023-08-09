@@ -71,9 +71,10 @@ HwSwitchEnsemble::~HwSwitchEnsemble() {
   if (fs_) {
     fs_->shutdown();
   }
-  if (platform_ && getHwSwitch() &&
+  if (hwAgent_ && getPlatform() && getHwSwitch() &&
       getHwSwitch()->getRunState() >= SwitchRunState::INITIALIZED) {
-    if (platform_->getAsic()->isSupported(HwAsic::Feature::ROUTE_PROGRAMMING)) {
+    if (getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::ROUTE_PROGRAMMING)) {
       auto minRouteState = getMinAlpmRouteState(getProgrammedState());
       applyNewState(minRouteState);
     }
@@ -108,7 +109,7 @@ uint32_t HwSwitchEnsemble::getHwSwitchFeatures() const {
 }
 
 HwSwitch* HwSwitchEnsemble::getHwSwitch() {
-  return platform_->getHwSwitch();
+  return getPlatform()->getHwSwitch();
 }
 
 std::shared_ptr<SwitchState> HwSwitchEnsemble::getProgrammedState() const {
@@ -129,7 +130,7 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewConfig(
     const cfg::SwitchConfig& config) {
   // Mimic SwSwitch::applyConfig() to modifyTransceiverMap
   auto originalState = getProgrammedState();
-  auto overrideTcvrInfos = platform_->getOverrideTransceiverInfos();
+  auto overrideTcvrInfos = getPlatform()->getOverrideTransceiverInfos();
   if (overrideTcvrInfos) {
     const auto& currentTcvrs = *overrideTcvrInfos;
     auto tempState = SwSwitch::modifyTransceivers(
@@ -429,13 +430,13 @@ HwTrunkStats HwSwitchEnsemble::getLatestAggregatePortStats(
 }
 
 void HwSwitchEnsemble::setupEnsemble(
-    std::unique_ptr<Platform> platform,
+    std::unique_ptr<HwAgent> hwAgent,
     std::unique_ptr<HwLinkStateToggler> linkToggler,
     std::unique_ptr<std::thread> thriftThread,
     const HwSwitchEnsembleInitInfo& initInfo) {
-  platform_ = std::move(platform);
+  hwAgent_ = std::move(hwAgent);
   linkToggler_ = std::move(linkToggler);
-  auto asic = platform_->getAsic();
+  auto asic = getPlatform()->getAsic();
   cfg::SwitchInfo switchInfo;
   switchInfo.switchType() = asic->getSwitchType();
   switchInfo.asicType() = asic->getAsicType();
@@ -468,7 +469,8 @@ void HwSwitchEnsemble::setupEnsemble(
   updater.stateUpdated(
       StateDelta(std::make_shared<SwitchState>(), programmedState_));
 
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::ROUTE_PROGRAMMING)) {
+  if (getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::ROUTE_PROGRAMMING)) {
     // ALPM requires that default routes be programmed
     // before any other routes. We handle that setup here. Similarly ALPM
     // requires that default routes be deleted last. That aspect is handled

@@ -25,8 +25,12 @@ class HwAgent {
       uint32_t hwFeaturesDesired,
       PlatformInitFn initPlatformFn,
       int16_t switchIndex);
+  explicit HwAgent(std::unique_ptr<Platform> platform);
   virtual ~HwAgent() {}
-  Platform* getPlatform() const {
+  Platform* getPlatform() {
+    return platform_.get();
+  }
+  const Platform* getPlatform() const {
     return platform_.get();
   }
   HwInitResult initAgent(

@@ -323,7 +323,7 @@ void BcmSwitchEnsemble::init(
         createThriftThread(static_cast<BcmSwitch*>(platform->getHwSwitch()));
   }
   setupEnsemble(
-      std::move(platform),
+      std::make_unique<HwAgent>(std::move(platform)),
       std::move(linkToggler),
       std::move(thriftThread),
       info);

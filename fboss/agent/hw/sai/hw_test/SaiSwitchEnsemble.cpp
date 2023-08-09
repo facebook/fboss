@@ -162,7 +162,7 @@ void SaiSwitchEnsemble::init(
         createThriftThread(static_cast<SaiSwitch*>(platform->getHwSwitch()));
   }
   setupEnsemble(
-      std::move(platform),
+      std::make_unique<HwAgent>(std::move(platform)),
       std::move(linkToggler),
       std::move(thriftThread),
       info);

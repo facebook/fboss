@@ -11,6 +11,7 @@ add_library(config_factory
 target_link_libraries(config_factory
   fboss_types
   hw_switch
+  hwagent
   switch_config_cpp2
   Folly::folly
   fboss_config_utils

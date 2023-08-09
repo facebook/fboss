@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "fboss/agent/HwAgent.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/L2Entry.h"
@@ -117,10 +118,10 @@ class HwSwitchEnsemble : public TestEnsembleIf {
     return routingInformationBase_.get();
   }
   virtual Platform* getPlatform() {
-    return platform_.get();
+    return hwAgent_->getPlatform();
   }
   virtual const Platform* getPlatform() const {
-    return platform_.get();
+    return hwAgent_->getPlatform();
   }
   HwSwitch* getHwSwitch() override;
   const HwSwitch* getHwSwitch() const override {
@@ -260,7 +261,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
    * Setup ensemble
    */
   void setupEnsemble(
-      std::unique_ptr<Platform> platform,
+      std::unique_ptr<HwAgent> hwAgent,
       std::unique_ptr<HwLinkStateToggler> linkToggler,
       std::unique_ptr<std::thread> thriftThread,
       const HwSwitchEnsembleInitInfo& info);
@@ -296,7 +297,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   std::shared_ptr<SwitchState> programmedState_{nullptr};
   std::unique_ptr<RoutingInformationBase> routingInformationBase_;
   std::unique_ptr<HwLinkStateToggler> linkToggler_;
-  std::unique_ptr<Platform> platform_;
+  std::unique_ptr<HwAgent> hwAgent_;
   const Features featuresDesired_;
   folly::Synchronized<std::set<HwSwitchEventObserverIf*>> hwEventObservers_;
   std::unique_ptr<std::thread> thriftThread_;
