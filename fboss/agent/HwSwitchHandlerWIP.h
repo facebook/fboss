@@ -27,6 +27,19 @@ struct HwSwitchStateUpdate {
   bool isTransaction;
 };
 
+struct PlatformData {
+  std::string volatileStateDir;
+  std::string persistentStateDir;
+  std::string crashSwitchStateFile;
+  std::string crashThriftSwitchStateFile;
+  std::string warmBootDir;
+  std::string crashBadStateUpdateDir;
+  std::string crashBadStateUpdateOldStateFile;
+  std::string crashBadStateUpdateNewStateFile;
+  std::string runningConfigDumpFile;
+  bool supportsAddRemovePort;
+};
+
 class HwSwitchHandlerWIP {
  public:
   HwSwitchHandlerWIP(const SwitchID& switchId, const cfg::SwitchInfo& info);

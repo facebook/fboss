@@ -45,18 +45,6 @@ target_link_libraries(main
   Folly::folly
 )
 
-add_library(monolithic_switch_handler
-  fboss/agent/single/MonolithicHwSwitchHandlerDeprecated.cpp
-)
-
-target_link_libraries(monolithic_switch_handler
-  hw_switch
-  packet
-  platform_base
-  hw_switch_fb303_stats
-  switch_asics
-)
-
 add_library(monolithic_switch_handler_wip
   fboss/agent/single/MonolithicHwSwitchHandler.cpp
 )
