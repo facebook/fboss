@@ -57,6 +57,17 @@ target_link_libraries(monolithic_switch_handler
   switch_asics
 )
 
+add_library(monolithic_switch_handler_wip
+  fboss/agent/single/MonolithicHwSwitchHandler.cpp
+)
+
+target_link_libraries(monolithic_switch_handler_wip
+  hw_switch
+  packet
+  platform_base
+  hw_switch_fb303_stats
+  switch_asics
+)
 add_library(async_packet_transport
   fboss/agent/AsyncPacketTransport.h
 )
