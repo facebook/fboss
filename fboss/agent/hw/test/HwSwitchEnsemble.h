@@ -20,6 +20,7 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/tests/utils/TestPlatformTypes.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/test/MultiSwitchTestServer.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/types.h"
 
@@ -314,6 +315,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
 
   std::unique_ptr<HwAsicTable> hwAsicTable_;
   std::unique_ptr<SwitchIdScopeResolver> scopeResolver_;
+  std::unique_ptr<MultiSwitchTestServer> swSwitchTestServer_;
 };
 
 } // namespace facebook::fboss

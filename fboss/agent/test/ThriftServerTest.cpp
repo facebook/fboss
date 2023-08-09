@@ -26,7 +26,7 @@
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
-#include "fboss/agent/facebook/test/MultiSwitchTestServer.h"
+#include "fboss/agent/test/MultiSwitchTestServer.h"
 
 #include <folly/experimental/coro/GtestHelpers.h>
 #include <folly/experimental/coro/Timeout.h>
@@ -63,7 +63,11 @@ class ThriftServerTest : public ::testing::Test {
     XLOG(DBG2) << "Initializing thrift server";
 
     // Setup test server
-    swSwitchTestServer_ = std::make_unique<MultiSwitchTestServer>(sw_);
+    std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
+        handlers;
+    handlers.emplace_back(std::make_shared<MultiSwitchThriftHandler>(sw_));
+    handlers.emplace_back(std::make_shared<ThriftHandler>(sw_));
+    swSwitchTestServer_ = std::make_unique<MultiSwitchTestServer>(handlers);
 
     // setup clients
     multiSwitchClient_ = setupSwSwitchClient<
@@ -76,12 +80,14 @@ class ThriftServerTest : public ::testing::Test {
   void setupServerWithMockAndClients() {
     XLOG(DBG2) << "Initializing thrift server";
 
+    std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
+        handlers;
     mockMultiSwitchHandler_ =
         std::make_shared<MultiSwitchThriftHandlerMock>(sw_);
-
+    handlers.emplace_back(mockMultiSwitchHandler_);
+    handlers.emplace_back(std::make_shared<ThriftHandler>(sw_));
     // Setup test server
-    swSwitchTestServer_ =
-        std::make_unique<MultiSwitchTestServer>(sw_, mockMultiSwitchHandler_);
+    swSwitchTestServer_ = std::make_unique<MultiSwitchTestServer>(handlers);
 
     // setup clients
     multiSwitchClient_ = setupSwSwitchClient<

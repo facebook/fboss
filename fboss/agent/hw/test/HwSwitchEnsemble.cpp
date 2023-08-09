@@ -62,6 +62,43 @@ using namespace std::chrono_literals;
 
 namespace facebook::fboss {
 
+class HwEnsembleMultiSwitchThriftHandler
+    : public apache::thrift::ServiceHandler<multiswitch::MultiSwitchCtrl> {
+ public:
+#if FOLLY_HAS_COROUTINES
+  folly::coro::Task<apache::thrift::SinkConsumer<fsdb::OperDelta, bool>>
+  co_notifyStateUpdateResult(int64_t switchId) override {
+    co_return {};
+  }
+
+  folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::LinkEvent, bool>>
+  co_notifyLinkEvent(int64_t switchId) override {
+    co_return {};
+  }
+
+  folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::FdbEvent, bool>>
+  co_notifyFdbEvent(int64_t switchId) override {
+    co_return {};
+  }
+
+  folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::RxPacket, bool>>
+  co_notifyRxPacket(int64_t switchId) override {
+    co_return {};
+  }
+
+  folly::coro::Task<apache::thrift::ServerStream<fsdb::OperDelta>>
+  co_getStateUpdates(int64_t switchId) override {
+    co_return apache::thrift::ServerStream<fsdb::OperDelta>::createEmpty();
+  }
+
+  folly::coro::Task<apache::thrift::ServerStream<multiswitch::TxPacket>>
+  co_getTxPackets(int64_t switchId) override {
+    co_return apache::thrift::ServerStream<
+        multiswitch::TxPacket>::createEmpty();
+  }
+#endif
+};
+
 HwSwitchEnsemble::HwSwitchEnsemble(const Features& featuresDesired)
     : featuresDesired_(featuresDesired) {}
 
@@ -453,6 +490,13 @@ void HwSwitchEnsemble::setupEnsemble(
   hwAsicTable_ = std::make_unique<HwAsicTable>(switchIdToSwitchInfo);
   if (haveFeature(MULTISWITCH_THRIFT_SERVER)) {
     callbackHandler_ = std::make_unique<SplitAgentHwSwitchCallbackHandler>();
+    std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
+        handlers;
+    handlers.emplace_back(
+        std::make_shared<HwEnsembleMultiSwitchThriftHandler>());
+    swSwitchTestServer_ = std::make_unique<MultiSwitchTestServer>(handlers);
+    XLOG(DBG2) << "Started thrift server on port "
+               << swSwitchTestServer_->getPort();
   }
 
   auto hwInitResult = getHwSwitch()->init(

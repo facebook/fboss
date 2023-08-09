@@ -144,6 +144,7 @@ target_link_libraries(hw_switch_ensemble
   hw_test_utils
   test_ensemble_if
   sw_switch_warmboot_helper
+  multiswitch_test_server
   split_agent_hwswitch_callback_handler
 )
 
@@ -403,5 +404,16 @@ target_link_libraries(hw_voq_utils
   switch_asics
   switch_config_cpp2
   state
+  Folly::folly
+)
+
+add_library(multiswitch_test_server
+  fboss/agent/test/MultiSwitchTestServer.cpp
+)
+
+target_link_libraries(multiswitch_test_server
+  core
+  handler
+  multiswitch_service
   Folly::folly
 )
