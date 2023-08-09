@@ -136,7 +136,10 @@ class SwSwitch : public HwSwitchCallback {
   using AllThreadsSwitchStats =
       folly::ThreadLocalPtr<SwitchStats, SwSwitch>::Accessor;
 
-  explicit SwSwitch(std::unique_ptr<HwSwitchHandlerDeprecated> hwSwitchHandler);
+  explicit SwSwitch(
+      std::unique_ptr<HwSwitchHandlerDeprecated> hwSwitchHandler,
+      cfg::SwitchConfig* config = nullptr);
+
   /*
    * Needed for mock platforms that do cannot initialize platform mapping
    * based on fruid file

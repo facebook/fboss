@@ -15,7 +15,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 namespace facebook::fboss {
-const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig(
+const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfigImpl(
     const cfg::SwitchConfig* config) {
   std::map<int64_t, cfg::SwitchInfo> switchInfoMap;
   if (config && config->switchSettings()->switchIdToSwitchInfo()->size()) {
@@ -56,7 +56,15 @@ const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig() {
     return std::map<int64_t, cfg::SwitchInfo>();
   }
   auto swConfig = config->thrift.sw();
-  return getSwitchInfoFromConfig(&(swConfig.value()));
+  return getSwitchInfoFromConfigImpl(&(swConfig.value()));
 }
 
+const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig(
+    const cfg::SwitchConfig* config) {
+  if (!config) {
+    return getSwitchInfoFromConfig();
+  } else {
+    return getSwitchInfoFromConfigImpl(config);
+  }
+}
 } // namespace facebook::fboss

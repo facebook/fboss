@@ -208,7 +208,9 @@ auto constexpr kHwUpdateFailures = "hw_update_failures";
 
 namespace facebook::fboss {
 
-SwSwitch::SwSwitch(std::unique_ptr<HwSwitchHandlerDeprecated> hwSwitchHandler)
+SwSwitch::SwSwitch(
+    std::unique_ptr<HwSwitchHandlerDeprecated> hwSwitchHandler,
+    cfg::SwitchConfig* config)
     : hwSwitchHandler_(std::move(hwSwitchHandler)),
       platformData_(hwSwitchHandler_->getPlatformData()),
       platformProductInfo_(
@@ -237,9 +239,10 @@ SwSwitch::SwSwitch(std::unique_ptr<HwSwitchHandlerDeprecated> hwSwitchHandler)
       aclNexthopHandler_(new AclNexthopHandler(this)),
       teFlowNextHopHandler_(new TeFlowNexthopHandler(this)),
       dsfSubscriber_(new DsfSubscriber(this)),
-      switchInfoTable_(getSwitchInfoFromConfig()),
-      hwAsicTable_(new HwAsicTable(getSwitchInfoFromConfig())),
-      scopeResolver_(new SwitchIdScopeResolver(getSwitchInfoFromConfig())),
+      switchInfoTable_(getSwitchInfoFromConfig(config)),
+      hwAsicTable_(new HwAsicTable(getSwitchInfoFromConfig(config))),
+      scopeResolver_(
+          new SwitchIdScopeResolver(getSwitchInfoFromConfig(config))),
       multiHwSwitchHandlerWIP_(nullptr),
       switchStatsObserver_(new SwitchStatsObserver(this)),
       packetStreamMap_(new MultiSwitchPacketStreamMap()) {
@@ -261,15 +264,8 @@ SwSwitch::SwSwitch(
     std::unique_ptr<HwSwitchHandlerDeprecated> hwSwitchHandler,
     std::unique_ptr<PlatformMapping> platformMapping,
     cfg::SwitchConfig* config)
-    : SwSwitch(std::move(hwSwitchHandler)) {
+    : SwSwitch(std::move(hwSwitchHandler), config) {
   platformMapping_ = std::move(platformMapping);
-  if (config) {
-    switchInfoTable_ = SwitchInfoTable(getSwitchInfoFromConfig(config));
-    hwAsicTable_ =
-        std::make_unique<HwAsicTable>(getSwitchInfoFromConfig(config));
-    scopeResolver_ = std::make_unique<SwitchIdScopeResolver>(
-        getSwitchInfoFromConfig(config));
-  }
 }
 
 SwSwitch::~SwSwitch() {
