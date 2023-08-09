@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "fboss/agent/HwSwitchHandlerDeprecated.h"
+#include "fboss/agent/HwSwitchHandlerWIP.h"
 #include "fboss/agent/MultiHwSwitchHandlerWIP.h"
 #include "fboss/agent/PacketObserver.h"
 #include "fboss/agent/RestartTimeTracker.h"
@@ -86,7 +86,6 @@ class DsfSubscriber;
 class HwAsicTable;
 class MultiHwSwitchHandlerWIP;
 class SwitchStatsObserver;
-struct HwSwitchHandlerDeprecated;
 class MultiSwitchPacketStreamMap;
 
 enum class SwitchFlags : int {
@@ -137,7 +136,6 @@ class SwSwitch : public HwSwitchCallback {
       folly::ThreadLocalPtr<SwitchStats, SwSwitch>::Accessor;
 
   explicit SwSwitch(
-      std::unique_ptr<HwSwitchHandlerDeprecated> hwSwitchHandler,
       HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
       cfg::SwitchConfig* config = nullptr);
   /*
@@ -145,17 +143,16 @@ class SwSwitch : public HwSwitchCallback {
    * based on fruid file
    */
   SwSwitch(
-      std::unique_ptr<HwSwitchHandlerDeprecated> hwSwitchHandler,
       HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
       std::unique_ptr<PlatformMapping> platformMapping,
       cfg::SwitchConfig* config);
   ~SwSwitch() override;
 
-  MultiHwSwitchHandlerWIP* getHwSwitchHandlerDeprecated() {
+  MultiHwSwitchHandlerWIP* getHwSwitchHandler() {
     return multiHwSwitchHandlerWIP_.get();
   }
 
-  const MultiHwSwitchHandlerWIP* getHwSwitchHandlerDeprecated() const {
+  const MultiHwSwitchHandlerWIP* getHwSwitchHandler() const {
     return multiHwSwitchHandlerWIP_.get();
   }
 

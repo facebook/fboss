@@ -17,7 +17,6 @@
 #include "fboss/agent/hw/sim/SimPlatform.h"
 #include "fboss/agent/hw/sim/SimSwitch.h"
 #include "fboss/agent/single/MonolithicHwSwitchHandler.h"
-#include "fboss/agent/single/MonolithicHwSwitchHandlerDeprecated.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -45,11 +44,7 @@ unique_ptr<SimPlatform> simPlatform;
 unique_ptr<SwSwitch> setupSwitch() {
   MacAddress localMac("02:00:01:00:00:01");
   simPlatform = make_unique<SimPlatform>(localMac, 10);
-  auto hwSwitchHandler =
-      std::make_unique<MonolinithicHwSwitchHandlerDeprecated>(
-          simPlatform.get());
   auto sw = make_unique<SwSwitch>(
-      std::move(hwSwitchHandler),
       [platform = simPlatform.get()](
           const SwitchID& switchId, const cfg::SwitchInfo& info) {
         return std::make_unique<facebook::fboss::MonolithicHwSwitchHandler>(

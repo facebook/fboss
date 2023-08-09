@@ -1,7 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/MultiHwSwitchHandlerWIP.h"
-#include "fboss/agent/HwSwitchHandlerDeprecated.h"
 #include "fboss/agent/HwSwitchHandlerWIP.h"
 #include "fboss/agent/TxPacket.h"
 

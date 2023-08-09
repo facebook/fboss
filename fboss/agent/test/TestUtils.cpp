@@ -26,7 +26,6 @@
 #include "fboss/agent/state/RouteNextHop.h"
 
 #include "fboss/agent/single/MonolithicHwSwitchHandler.h"
-#include "fboss/agent/single/MonolithicHwSwitchHandlerDeprecated.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
@@ -493,10 +492,7 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
             platform, switchId, info);
       };
   auto sw = make_unique<SwSwitch>(
-      std::make_unique<MonolinithicHwSwitchHandlerDeprecated>(platform),
-      std::move(hwSwitchHandlerInitFn),
-      std::move(platformMapping),
-      config);
+      std::move(hwSwitchHandlerInitFn), std::move(platformMapping), config);
   HwInitResult ret;
   ret.switchState = state ? state : make_shared<SwitchState>();
   ret.bootType = BootType::COLD_BOOT;
@@ -593,37 +589,25 @@ unique_ptr<HwTestHandle> createTestHandle(
 
 MockHwSwitch* getMockHw(SwSwitch* sw) {
   auto handler = boost::polymorphic_downcast<MonolithicHwSwitchHandler*>(
-      sw->getHwSwitchHandlerDeprecated()
-          ->getHwSwitchHandlers()
-          .cbegin()
-          ->second);
+      sw->getHwSwitchHandler()->getHwSwitchHandlers().cbegin()->second);
   return boost::polymorphic_downcast<MockHwSwitch*>(handler->getHwSwitch());
 }
 
 MockPlatform* getMockPlatform(SwSwitch* sw) {
   auto handler = boost::polymorphic_downcast<MonolithicHwSwitchHandler*>(
-      sw->getHwSwitchHandlerDeprecated()
-          ->getHwSwitchHandlers()
-          .cbegin()
-          ->second);
+      sw->getHwSwitchHandler()->getHwSwitchHandlers().cbegin()->second);
   return boost::polymorphic_downcast<MockPlatform*>(handler->getPlatform());
 }
 
 MockHwSwitch* getMockHw(std::unique_ptr<SwSwitch>& sw) {
   auto handler = boost::polymorphic_downcast<MonolithicHwSwitchHandler*>(
-      sw->getHwSwitchHandlerDeprecated()
-          ->getHwSwitchHandlers()
-          .cbegin()
-          ->second);
+      sw->getHwSwitchHandler()->getHwSwitchHandlers().cbegin()->second);
   return boost::polymorphic_downcast<MockHwSwitch*>(handler->getHwSwitch());
 }
 
 MockPlatform* getMockPlatform(std::unique_ptr<SwSwitch>& sw) {
   auto handler = boost::polymorphic_downcast<MonolithicHwSwitchHandler*>(
-      sw->getHwSwitchHandlerDeprecated()
-          ->getHwSwitchHandlers()
-          .cbegin()
-          ->second);
+      sw->getHwSwitchHandler()->getHwSwitchHandlers().cbegin()->second);
   return boost::polymorphic_downcast<MockPlatform*>(handler->getPlatform());
 }
 

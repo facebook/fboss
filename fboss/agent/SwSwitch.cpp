@@ -209,7 +209,6 @@ auto constexpr kHwUpdateFailures = "hw_update_failures";
 namespace facebook::fboss {
 
 SwSwitch::SwSwitch(
-    std::unique_ptr<HwSwitchHandlerDeprecated> hwSwitchHandler,
     HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
     cfg::SwitchConfig* config)
     : multiHwSwitchHandlerWIP_(new MultiHwSwitchHandlerWIP(
@@ -263,14 +262,10 @@ SwSwitch::SwSwitch(
 }
 
 SwSwitch::SwSwitch(
-    std::unique_ptr<HwSwitchHandlerDeprecated> hwSwitchHandler,
     HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
     std::unique_ptr<PlatformMapping> platformMapping,
     cfg::SwitchConfig* config)
-    : SwSwitch(
-          std::move(hwSwitchHandler),
-          std::move(hwSwitchHandlerInitFn),
-          config) {
+    : SwSwitch(std::move(hwSwitchHandlerInitFn), config) {
   platformMapping_ = std::move(platformMapping);
 }
 
