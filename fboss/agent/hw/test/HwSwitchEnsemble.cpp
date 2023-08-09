@@ -28,6 +28,7 @@
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/StaticL2ForNeighborHwSwitchUpdater.h"
+#include "fboss/agent/mnpu/SplitAgentHwSwitchCallbackHandler.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/Port.h"
@@ -100,6 +101,7 @@ uint32_t HwSwitchEnsemble::getHwSwitchFeatures() const {
         features |= HwSwitch::TAM_EVENT_NOTIFY_DESIRED;
         break;
       case STATS_COLLECTION:
+      case MULTISWITCH_THRIFT_SERVER:
         // No HwSwitch feture need to turned on.
         // Handled by HwSwitchEnsemble
         break;
@@ -449,8 +451,13 @@ void HwSwitchEnsemble::setupEnsemble(
   auto switchIdToSwitchInfo = std::map<int64_t, cfg::SwitchInfo>(
       {{asic->getSwitchId() ? *asic->getSwitchId() : 0, switchInfo}});
   hwAsicTable_ = std::make_unique<HwAsicTable>(switchIdToSwitchInfo);
+  if (haveFeature(MULTISWITCH_THRIFT_SERVER)) {
+    callbackHandler_ = std::make_unique<SplitAgentHwSwitchCallbackHandler>();
+  }
 
-  auto hwInitResult = getHwSwitch()->init(this, true /*failHwCallsOnWarmboot*/);
+  auto hwInitResult = getHwSwitch()->init(
+      haveFeature(MULTISWITCH_THRIFT_SERVER) ? callbackHandler_.get() : this,
+      true /*failHwCallsOnWarmboot*/);
 
   programmedState_ = hwInitResult.switchState;
   programmedState_ = programmedState_->clone();

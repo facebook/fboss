@@ -12,6 +12,7 @@ target_link_libraries(config_factory
   fboss_types
   hw_switch
   hwagent
+  split_agent_hwswitch_callback_handler
   switch_config_cpp2
   Folly::folly
   fboss_config_utils
@@ -143,6 +144,7 @@ target_link_libraries(hw_switch_ensemble
   hw_test_utils
   test_ensemble_if
   sw_switch_warmboot_helper
+  split_agent_hwswitch_callback_handler
 )
 
 add_library(load_balancer_utils

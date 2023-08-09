@@ -92,6 +92,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
     LINKSCAN,
     STATS_COLLECTION,
     TAM_NOTIFY,
+    MULTISWITCH_THRIFT_SERVER, /* Start multiswitch service on test server */
   };
   using Features = std::set<Feature>;
 
@@ -297,6 +298,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   std::shared_ptr<SwitchState> programmedState_{nullptr};
   std::unique_ptr<RoutingInformationBase> routingInformationBase_;
   std::unique_ptr<HwLinkStateToggler> linkToggler_;
+  std::unique_ptr<HwSwitchCallback> callbackHandler_{nullptr};
   std::unique_ptr<HwAgent> hwAgent_;
   const Features featuresDesired_;
   folly::Synchronized<std::set<HwSwitchEventObserverIf*>> hwEventObservers_;
