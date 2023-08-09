@@ -32,6 +32,9 @@ class MultiSwitchThriftHandler
   folly::coro::Task<apache::thrift::ServerStream<multiswitch::TxPacket>>
   co_getTxPackets(int64_t switchId) override;
 #endif
+  void getNextStateOperDelta(
+      multiswitch::StateOperDelta& operDelta,
+      int64_t switchId) override;
 
  private:
   void ensureConfigured(folly::StringPiece function) const;

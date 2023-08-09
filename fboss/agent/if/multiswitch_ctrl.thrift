@@ -35,6 +35,11 @@ struct RxPacket {
   4: optional i16 vlan;
 }
 
+struct StateOperDelta {
+  1: fsdb_oper.OperDelta operDelta;
+  2: bool transaction;
+}
+
 service MultiSwitchCtrl {
   /* notify result of state update, that was last applied, through sink */
   sink<fsdb_oper.OperDelta, bool> notifyStateUpdateResult(1: i64 switchId);
@@ -53,4 +58,7 @@ service MultiSwitchCtrl {
 
   /* keep getting tx packet from SwSwitch, through stream */
   stream<TxPacket> getTxPackets(1: i64 switchId);
+
+  /* get next oper delta from SwSwitch */
+  StateOperDelta getNextStateOperDelta(1: i64 switchId);
 }

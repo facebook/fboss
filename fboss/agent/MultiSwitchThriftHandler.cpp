@@ -130,4 +130,10 @@ MultiSwitchThriftHandler::co_getTxPackets(int64_t switchId) {
   co_return std::move(streamAndPublisher.first);
 }
 #endif
+
+void MultiSwitchThriftHandler::getNextStateOperDelta(
+    multiswitch::StateOperDelta& /*operDelta*/,
+    int64_t /*switchId*/) {
+  // TODO - implement this
+}
 } // namespace facebook::fboss
