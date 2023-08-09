@@ -7,7 +7,8 @@ namespace facebook::fboss {
 
 MultiHwSwitchHandlerWIP::MultiHwSwitchHandlerWIP(
     HwSwitchHandlerDeprecated* hwSwitchHandler,
-    const std::map<SwitchID, cfg::SwitchInfo>& switchInfoMap) {
+    const std::map<SwitchID, cfg::SwitchInfo>& switchInfoMap,
+    HwSwitchHandlerInitFn /*hwSwitchHandlerInitFn*/) {
   for (auto entry : switchInfoMap) {
     hwSwitchSyncers_.emplace(
         entry.first,

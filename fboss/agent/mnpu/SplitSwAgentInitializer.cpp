@@ -17,6 +17,9 @@ void SplitSwSwitchInitializer::initImpl(HwSwitchCallback* callback) {
         // agent
         return HwInitResult{};
       },
+      []() { // TODO - return HwSwitchHandler for split sw-switch
+        return nullptr;
+      },
       setupFlags());
 }
 

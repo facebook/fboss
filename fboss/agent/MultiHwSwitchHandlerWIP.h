@@ -5,6 +5,7 @@
 #include "fboss/agent/types.h"
 
 #include <folly/futures/Future.h>
+#include <memory>
 
 namespace facebook::fboss {
 
@@ -14,11 +15,15 @@ class SwitchState;
 class StateDelta;
 struct HwSwitchStateUpdate;
 
+using HwSwitchHandlerInitFn =
+    std::function<std::unique_ptr<HwSwitchHandlerDeprecated>()>;
+
 class MultiHwSwitchHandlerWIP {
  public:
   MultiHwSwitchHandlerWIP(
       HwSwitchHandlerDeprecated* hwSwitchHandler,
-      const std::map<SwitchID, cfg::SwitchInfo>& switchInfoMap);
+      const std::map<SwitchID, cfg::SwitchInfo>& switchInfoMap,
+      HwSwitchHandlerInitFn hwSwitchHandlerInitFn);
 
   ~MultiHwSwitchHandlerWIP();
 

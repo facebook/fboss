@@ -73,6 +73,10 @@ void MonolithicSwSwitchInitializer::initImpl(
       [this](HwSwitchCallback* callback, bool failHwCallsOnWarmboot) {
         return hwAgent_->initAgent(failHwCallsOnWarmboot, callback);
       },
+      [this]() {
+        return std::make_unique<MonolinithicHwSwitchHandlerDeprecated>(
+            hwAgent_->getPlatform());
+      },
       setupFlags());
 }
 

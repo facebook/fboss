@@ -68,7 +68,14 @@ namespace {
 
 constexpr auto kSysPortRangeMin = 1000;
 
-void initSwSwitchWithFlags(SwSwitch* sw, SwitchFlags flags) {
+void initSwSwitchWithFlags(
+    SwSwitch* sw,
+    SwitchFlags flags,
+    Platform* platform) {
+  HwSwitchHandlerInitFn hwSwitchHandlerInitFn = [platform]() {
+    return std::make_unique<
+        facebook::fboss::MonolinithicHwSwitchHandlerDeprecated>(platform);
+  };
   if (flags & SwitchFlags::ENABLE_TUN) {
     // TODO(aeckert): I don't think this should be a first class
     // argument to SwSwitch::init() as unit tests are the only place
@@ -81,9 +88,13 @@ void initSwSwitchWithFlags(SwSwitch* sw, SwitchFlags flags) {
     auto mockTunMgr =
         std::make_unique<MockTunManager>(sw, sw->getBackgroundEvb());
     EXPECT_CALL(*mockTunMgr.get(), doProbe(_)).Times(1);
-    sw->init(std::move(mockTunMgr), mockHwSwitchInitFn(sw), flags);
+    sw->init(
+        std::move(mockTunMgr),
+        mockHwSwitchInitFn(sw),
+        hwSwitchHandlerInitFn,
+        flags);
   } else {
-    sw->init(nullptr, mockHwSwitchInitFn(sw), flags);
+    sw->init(nullptr, mockHwSwitchInitFn(sw), hwSwitchHandlerInitFn, flags);
   }
 }
 
@@ -506,7 +517,7 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
       .WillOnce(Return(ByMove(std::move(ret))));
   // return same as ret.BootType
   EXPECT_HW_CALL(sw, getBootType).WillRepeatedly(Return(BootType::COLD_BOOT));
-  initSwSwitchWithFlags(sw.get(), flags);
+  initSwSwitchWithFlags(sw.get(), flags, platform);
   waitForStateUpdates(sw.get());
   return sw;
 }

@@ -663,13 +663,15 @@ void SwSwitch::init(
     HwSwitchCallback* callback,
     std::unique_ptr<TunManager> tunMgr,
     HwSwitchInitFn hwSwitchInitFn,
+    HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
     SwitchFlags flags) {
   auto begin = steady_clock::now();
   flags_ = flags;
   auto hwInitRet = hwSwitchInitFn(callback, false /*failHwCallsOnWarmboot*/);
   multiHwSwitchHandlerWIP_ = std::make_unique<MultiHwSwitchHandlerWIP>(
       getHwSwitchHandlerDeprecated(),
-      switchInfoTable_.getSwitchIdToSwitchInfo());
+      switchInfoTable_.getSwitchIdToSwitchInfo(),
+      std::move(hwSwitchHandlerInitFn));
   auto initialState = hwInitRet.switchState;
   bootType_ = hwInitRet.bootType;
   rib_ = std::move(hwInitRet.rib);
@@ -810,8 +812,10 @@ void SwSwitch::init(
 void SwSwitch::init(
     std::unique_ptr<TunManager> tunMgr,
     HwSwitchInitFn hwSwitchInitFn,
+    HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
     SwitchFlags flags) {
-  this->init(this, std::move(tunMgr), hwSwitchInitFn, flags);
+  this->init(
+      this, std::move(tunMgr), hwSwitchInitFn, hwSwitchHandlerInitFn, flags);
 }
 
 void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {

@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/HwSwitchHandlerDeprecated.h"
+#include "fboss/agent/MultiHwSwitchHandlerWIP.h"
 #include "fboss/agent/PacketObserver.h"
 #include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
@@ -195,6 +196,7 @@ class SwSwitch : public HwSwitchCallback {
   void init(
       std::unique_ptr<TunManager> tunMgr,
       HwSwitchInitFn hwSwitchInitFn,
+      HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
       SwitchFlags flags = SwitchFlags::DEFAULT);
 
   // can be used in the tests, where a test orchestrating ensemble can be
@@ -204,6 +206,7 @@ class SwSwitch : public HwSwitchCallback {
       HwSwitchCallback* callback,
       std::unique_ptr<TunManager> tunMgr,
       HwSwitchInitFn hwSwitchInitFn,
+      HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
       SwitchFlags flags = SwitchFlags::DEFAULT);
 
   bool isFullyInitialized() const;
