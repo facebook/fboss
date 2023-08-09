@@ -354,4 +354,14 @@ std::optional<uint32_t> MultiHwSwitchHandlerWIP::getHwLogicalPortId(
   return hwSwitchSyncers_.begin()->second->getHwLogicalPortId(portID);
 }
 
+std::map<SwitchID, HwSwitchHandlerWIP*>
+MultiHwSwitchHandlerWIP::getHwSwitchHandlers() {
+  std::map<SwitchID, HwSwitchHandlerWIP*> handlers;
+  for (const auto& [switchId, syncer] : hwSwitchSyncers_) {
+    auto handler = static_cast<HwSwitchHandlerWIP*>(syncer.get());
+    handlers.emplace(switchId, handler);
+  }
+  return handlers;
+}
+
 } // namespace facebook::fboss

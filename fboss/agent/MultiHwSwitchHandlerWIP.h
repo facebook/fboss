@@ -120,6 +120,9 @@ class MultiHwSwitchHandlerWIP {
 
   bool needL2EntryForNeighbor();
 
+  // For test purpose
+  std::map<SwitchID, HwSwitchHandlerWIP*> getHwSwitchHandlers();
+
  private:
   HwSwitchHandlerWIP* getHwSwitchHandler(SwitchID id);
 

@@ -151,12 +151,12 @@ class SwSwitch : public HwSwitchCallback {
       cfg::SwitchConfig* config);
   ~SwSwitch() override;
 
-  HwSwitchHandlerDeprecated* getHwSwitchHandlerDeprecated() {
-    return hwSwitchHandler_.get();
+  MultiHwSwitchHandlerWIP* getHwSwitchHandlerDeprecated() {
+    return multiHwSwitchHandlerWIP_.get();
   }
 
-  const HwSwitchHandlerDeprecated* getHwSwitchHandlerDeprecated() const {
-    return hwSwitchHandler_.get();
+  const MultiHwSwitchHandlerWIP* getHwSwitchHandlerDeprecated() const {
+    return multiHwSwitchHandlerWIP_.get();
   }
 
   const PlatformMapping* getPlatformMapping() const {
@@ -949,8 +949,6 @@ class SwSwitch : public HwSwitchCallback {
   std::string curConfigStr_;
   cfg::SwitchConfig curConfig_;
 
-  // The HwSwitch object.  This object is owned by the Platform.
-  std::unique_ptr<HwSwitchHandlerDeprecated> hwSwitchHandler_;
   std::unique_ptr<MultiHwSwitchHandlerWIP> multiHwSwitchHandlerWIP_;
   PlatformData platformData_;
   const std::unique_ptr<PlatformProductInfo> platformProductInfo_;
