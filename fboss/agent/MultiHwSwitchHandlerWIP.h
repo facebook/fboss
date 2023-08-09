@@ -21,7 +21,7 @@ using HwSwitchHandlerInitFn = std::function<std::unique_ptr<HwSwitchHandlerWIP>(
 class MultiHwSwitchHandlerWIP {
  public:
   MultiHwSwitchHandlerWIP(
-      const std::map<SwitchID, cfg::SwitchInfo>& switchInfoMap,
+      const std::map<int64_t, cfg::SwitchInfo>& switchInfoMap,
       HwSwitchHandlerInitFn hwSwitchHandlerInitFn);
 
   ~MultiHwSwitchHandlerWIP();

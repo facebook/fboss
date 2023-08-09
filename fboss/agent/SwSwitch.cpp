@@ -210,8 +210,12 @@ namespace facebook::fboss {
 
 SwSwitch::SwSwitch(
     std::unique_ptr<HwSwitchHandlerDeprecated> hwSwitchHandler,
+    HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
     cfg::SwitchConfig* config)
     : hwSwitchHandler_(std::move(hwSwitchHandler)),
+      multiHwSwitchHandlerWIP_(new MultiHwSwitchHandlerWIP(
+          getSwitchInfoFromConfig(config),
+          std::move(hwSwitchHandlerInitFn))),
       platformData_(hwSwitchHandler_->getPlatformData()),
       platformProductInfo_(
           std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath)),
@@ -243,7 +247,6 @@ SwSwitch::SwSwitch(
       hwAsicTable_(new HwAsicTable(getSwitchInfoFromConfig(config))),
       scopeResolver_(
           new SwitchIdScopeResolver(getSwitchInfoFromConfig(config))),
-      multiHwSwitchHandlerWIP_(nullptr),
       switchStatsObserver_(new SwitchStatsObserver(this)),
       packetStreamMap_(new MultiSwitchPacketStreamMap()) {
   // Create the platform-specific state directories if they
@@ -262,9 +265,13 @@ SwSwitch::SwSwitch(
 
 SwSwitch::SwSwitch(
     std::unique_ptr<HwSwitchHandlerDeprecated> hwSwitchHandler,
+    HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
     std::unique_ptr<PlatformMapping> platformMapping,
     cfg::SwitchConfig* config)
-    : SwSwitch(std::move(hwSwitchHandler), config) {
+    : SwSwitch(
+          std::move(hwSwitchHandler),
+          std::move(hwSwitchHandlerInitFn),
+          config) {
   platformMapping_ = std::move(platformMapping);
 }
 
@@ -659,14 +666,10 @@ void SwSwitch::init(
     HwSwitchCallback* callback,
     std::unique_ptr<TunManager> tunMgr,
     HwSwitchInitFn hwSwitchInitFn,
-    HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
     SwitchFlags flags) {
   auto begin = steady_clock::now();
   flags_ = flags;
   auto hwInitRet = hwSwitchInitFn(callback, false /*failHwCallsOnWarmboot*/);
-  multiHwSwitchHandlerWIP_ = std::make_unique<MultiHwSwitchHandlerWIP>(
-      switchInfoTable_.getSwitchIdToSwitchInfo(),
-      std::move(hwSwitchHandlerInitFn));
   auto initialState = hwInitRet.switchState;
   bootType_ = hwInitRet.bootType;
   rib_ = std::move(hwInitRet.rib);
@@ -807,10 +810,8 @@ void SwSwitch::init(
 void SwSwitch::init(
     std::unique_ptr<TunManager> tunMgr,
     HwSwitchInitFn hwSwitchInitFn,
-    HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
     SwitchFlags flags) {
-  this->init(
-      this, std::move(tunMgr), hwSwitchInitFn, hwSwitchHandlerInitFn, flags);
+  this->init(this, std::move(tunMgr), hwSwitchInitFn, flags);
 }
 
 void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {

@@ -48,15 +48,14 @@ unique_ptr<SwSwitch> setupSwitch() {
   auto hwSwitchHandler =
       std::make_unique<MonolinithicHwSwitchHandlerDeprecated>(
           simPlatform.get());
-  auto sw = make_unique<SwSwitch>(std::move(hwSwitchHandler));
-  sw->init(
-      nullptr /* No custom TunManager */,
-      mockHwSwitchInitFn(sw.get()),
+  auto sw = make_unique<SwSwitch>(
+      std::move(hwSwitchHandler),
       [platform = simPlatform.get()](
           const SwitchID& switchId, const cfg::SwitchInfo& info) {
         return std::make_unique<facebook::fboss::MonolithicHwSwitchHandler>(
             platform, switchId, info);
       });
+  sw->init(nullptr /* No custom TunManager */, mockHwSwitchInitFn(sw.get()));
   auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
   auto updateFn = [&](const shared_ptr<SwitchState>& oldState) {
     auto state = oldState->clone();

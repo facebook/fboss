@@ -138,14 +138,15 @@ class SwSwitch : public HwSwitchCallback {
 
   explicit SwSwitch(
       std::unique_ptr<HwSwitchHandlerDeprecated> hwSwitchHandler,
+      HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
       cfg::SwitchConfig* config = nullptr);
-
   /*
    * Needed for mock platforms that do cannot initialize platform mapping
    * based on fruid file
    */
   SwSwitch(
       std::unique_ptr<HwSwitchHandlerDeprecated> hwSwitchHandler,
+      HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
       std::unique_ptr<PlatformMapping> platformMapping,
       cfg::SwitchConfig* config);
   ~SwSwitch() override;
@@ -199,7 +200,6 @@ class SwSwitch : public HwSwitchCallback {
   void init(
       std::unique_ptr<TunManager> tunMgr,
       HwSwitchInitFn hwSwitchInitFn,
-      HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
       SwitchFlags flags = SwitchFlags::DEFAULT);
 
   // can be used in the tests, where a test orchestrating ensemble can be
@@ -209,7 +209,6 @@ class SwSwitch : public HwSwitchCallback {
       HwSwitchCallback* callback,
       std::unique_ptr<TunManager> tunMgr,
       HwSwitchInitFn hwSwitchInitFn,
-      HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
       SwitchFlags flags = SwitchFlags::DEFAULT);
 
   bool isFullyInitialized() const;
@@ -952,6 +951,7 @@ class SwSwitch : public HwSwitchCallback {
 
   // The HwSwitch object.  This object is owned by the Platform.
   std::unique_ptr<HwSwitchHandlerDeprecated> hwSwitchHandler_;
+  std::unique_ptr<MultiHwSwitchHandlerWIP> multiHwSwitchHandlerWIP_;
   PlatformData platformData_;
   const std::unique_ptr<PlatformProductInfo> platformProductInfo_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};
@@ -1094,7 +1094,6 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<PlatformMapping> platformMapping_;
   std::unique_ptr<HwAsicTable> hwAsicTable_;
   std::unique_ptr<SwitchIdScopeResolver> scopeResolver_;
-  std::unique_ptr<MultiHwSwitchHandlerWIP> multiHwSwitchHandlerWIP_;
   std::unique_ptr<SwitchStatsObserver> switchStatsObserver_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;

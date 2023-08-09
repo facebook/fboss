@@ -74,10 +74,6 @@ void MonolithicSwSwitchInitializer::initImpl(
       [this](HwSwitchCallback* callback, bool failHwCallsOnWarmboot) {
         return hwAgent_->initAgent(failHwCallsOnWarmboot, callback);
       },
-      [this](const SwitchID& switchId, const cfg::SwitchInfo& info) {
-        return std::make_unique<MonolithicHwSwitchHandler>(
-            hwAgent_->getPlatform(), switchId, info);
-      },
       setupFlags());
 }
 
@@ -104,7 +100,12 @@ void MonolithicAgentInitializer::createSwitch(
       std::make_unique<MonolinithicHwSwitchHandlerDeprecated>(platform);
 
   // Create the SwSwitch and thrift handler
-  sw_ = std::make_unique<SwSwitch>(std::move(hwSwitchHandler));
+  sw_ = std::make_unique<SwSwitch>(
+      std::move(hwSwitchHandler),
+      [platform](const SwitchID& switchId, const cfg::SwitchInfo& info) {
+        return std::make_unique<MonolithicHwSwitchHandler>(
+            platform, switchId, info);
+      });
   initializer_ = std::make_unique<MonolithicSwSwitchInitializer>(
       sw_.get(), hwAgent_.get());
 }

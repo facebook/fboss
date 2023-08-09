@@ -18,10 +18,6 @@ void SplitSwSwitchInitializer::initImpl(HwSwitchCallback* callback) {
         // agent
         return HwInitResult{};
       },
-      [this](const SwitchID& switchId, const cfg::SwitchInfo& info) {
-        return std::make_unique<NonMonolithicHwSwitchHandler>(
-            nullptr, switchId, info);
-      },
       setupFlags());
 }
 

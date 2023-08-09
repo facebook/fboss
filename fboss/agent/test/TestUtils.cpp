@@ -69,15 +69,7 @@ namespace {
 
 constexpr auto kSysPortRangeMin = 1000;
 
-void initSwSwitchWithFlags(
-    SwSwitch* sw,
-    SwitchFlags flags,
-    Platform* platform) {
-  HwSwitchHandlerInitFn hwSwitchHandlerInitFn =
-      [platform](const SwitchID& switchId, const cfg::SwitchInfo& info) {
-        return std::make_unique<facebook::fboss::MonolithicHwSwitchHandler>(
-            platform, switchId, info);
-      };
+void initSwSwitchWithFlags(SwSwitch* sw, SwitchFlags flags) {
   if (flags & SwitchFlags::ENABLE_TUN) {
     // TODO(aeckert): I don't think this should be a first class
     // argument to SwSwitch::init() as unit tests are the only place
@@ -90,17 +82,9 @@ void initSwSwitchWithFlags(
     auto mockTunMgr =
         std::make_unique<MockTunManager>(sw, sw->getBackgroundEvb());
     EXPECT_CALL(*mockTunMgr.get(), doProbe(_)).Times(1);
-    sw->init(
-        std::move(mockTunMgr),
-        mockHwSwitchInitFn(sw),
-        std::move(hwSwitchHandlerInitFn),
-        flags);
+    sw->init(std::move(mockTunMgr), mockHwSwitchInitFn(sw), flags);
   } else {
-    sw->init(
-        nullptr,
-        mockHwSwitchInitFn(sw),
-        std::move(hwSwitchHandlerInitFn),
-        flags);
+    sw->init(nullptr, mockHwSwitchInitFn(sw), flags);
   }
 }
 
@@ -503,8 +487,14 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
   auto agentConfig = createEmptyAgentConfig()->thrift;
   agentConfig.sw() = *config;
   platform->setConfig(std::make_unique<AgentConfig>(agentConfig));
+  HwSwitchHandlerInitFn hwSwitchHandlerInitFn =
+      [platform](const SwitchID& switchId, const cfg::SwitchInfo& info) {
+        return std::make_unique<facebook::fboss::MonolithicHwSwitchHandler>(
+            platform, switchId, info);
+      };
   auto sw = make_unique<SwSwitch>(
       std::make_unique<MonolinithicHwSwitchHandlerDeprecated>(platform),
+      std::move(hwSwitchHandlerInitFn),
       std::move(platformMapping),
       config);
   HwInitResult ret;
@@ -523,7 +513,7 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
       .WillOnce(Return(ByMove(std::move(ret))));
   // return same as ret.BootType
   EXPECT_HW_CALL(sw, getBootType).WillRepeatedly(Return(BootType::COLD_BOOT));
-  initSwSwitchWithFlags(sw.get(), flags, platform);
+  initSwSwitchWithFlags(sw.get(), flags);
   waitForStateUpdates(sw.get());
   return sw;
 }
