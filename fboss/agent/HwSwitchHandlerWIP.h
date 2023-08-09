@@ -23,16 +23,16 @@ struct HwSwitchStateUpdate {
   bool isTransaction;
 };
 
-class HwSwitchSyncer {
+class HwSwitchHandlerWIP {
  public:
-  HwSwitchSyncer(
+  HwSwitchHandlerWIP(
       HwSwitchHandlerDeprecated* hwSwitch,
       const SwitchID& switchId,
       const cfg::SwitchInfo& info);
 
   void start();
 
-  ~HwSwitchSyncer();
+  ~HwSwitchHandlerWIP();
 
   folly::Future<std::shared_ptr<SwitchState>> stateChanged(
       HwSwitchStateUpdate update);

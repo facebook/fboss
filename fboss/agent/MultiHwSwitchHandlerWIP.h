@@ -8,19 +8,19 @@
 
 namespace facebook::fboss {
 
-class HwSwitchSyncer;
+class HwSwitchHandlerWIP;
 struct HwSwitchHandlerDeprecated;
 class SwitchState;
 class StateDelta;
 struct HwSwitchStateUpdate;
 
-class MultiHwSwitchSyncer {
+class MultiHwSwitchHandlerWIP {
  public:
-  MultiHwSwitchSyncer(
+  MultiHwSwitchHandlerWIP(
       HwSwitchHandlerDeprecated* hwSwitchHandler,
       const std::map<SwitchID, cfg::SwitchInfo>& switchInfoMap);
 
-  ~MultiHwSwitchSyncer();
+  ~MultiHwSwitchHandlerWIP();
 
   void start();
 
@@ -39,7 +39,7 @@ class MultiHwSwitchSyncer {
       SwitchID switchId,
       folly::Future<std::shared_ptr<SwitchState>>&& future);
 
-  std::map<SwitchID, std::unique_ptr<HwSwitchSyncer>> hwSwitchSyncers_;
+  std::map<SwitchID, std::unique_ptr<HwSwitchHandlerWIP>> hwSwitchSyncers_;
   std::atomic<bool> stopped_{true};
 };
 

@@ -1,6 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/agent/HwSwitchSyncer.h"
+#include "fboss/agent/HwSwitchHandlerWIP.h"
 
 #include "fboss/agent/HwSwitchHandlerDeprecated.h"
 #include "fboss/agent/Utils.h"
@@ -20,7 +20,7 @@ HwSwitchStateUpdate::HwSwitchStateUpdate(
   }
 }
 
-HwSwitchSyncer::HwSwitchSyncer(
+HwSwitchHandlerWIP::HwSwitchHandlerWIP(
     HwSwitchHandlerDeprecated* hwSwitchHandler,
     const SwitchID& switchId,
     const cfg::SwitchInfo& info)
@@ -29,16 +29,16 @@ HwSwitchSyncer::HwSwitchSyncer(
       info_(info),
       operDeltaFilter_(switchId) {}
 
-void HwSwitchSyncer::start() {
+void HwSwitchHandlerWIP::start() {
   hwSwitchManagerThread_.reset(new std::thread([this]() { run(); }));
 }
 
-void HwSwitchSyncer::run() {
-  initThread(folly::to<std::string>("HwSwitchSyncer-", switchId_));
+void HwSwitchHandlerWIP::run() {
+  initThread(folly::to<std::string>("HwSwitchHandlerWIP-", switchId_));
   hwSwitchManagerEvb_.loopForever();
 }
 
-void HwSwitchSyncer::stop() {
+void HwSwitchHandlerWIP::stop() {
   if (!hwSwitchManagerThread_) {
     return;
   }
@@ -48,11 +48,11 @@ void HwSwitchSyncer::stop() {
   hwSwitchManagerThread_.reset();
 }
 
-HwSwitchSyncer::~HwSwitchSyncer() {
+HwSwitchHandlerWIP::~HwSwitchHandlerWIP() {
   stop();
 }
 
-folly::Future<std::shared_ptr<SwitchState>> HwSwitchSyncer::stateChanged(
+folly::Future<std::shared_ptr<SwitchState>> HwSwitchHandlerWIP::stateChanged(
     HwSwitchStateUpdate update) {
   auto [promise, semiFuture] =
       folly::makePromiseContract<std::shared_ptr<SwitchState>>();
@@ -67,7 +67,7 @@ folly::Future<std::shared_ptr<SwitchState>> HwSwitchSyncer::stateChanged(
   return future;
 }
 
-std::shared_ptr<SwitchState> HwSwitchSyncer::stateChangedImpl(
+std::shared_ptr<SwitchState> HwSwitchHandlerWIP::stateChangedImpl(
     const HwSwitchStateUpdate& update) {
   if (!FLAGS_enable_state_oper_delta) {
     StateDelta stateDelta(update.oldState, update.newState);
@@ -90,7 +90,7 @@ std::shared_ptr<SwitchState> HwSwitchSyncer::stateChangedImpl(
   return StateDelta(update.newState, outDelta).newState();
 }
 
-fsdb::OperDelta HwSwitchSyncer::stateChangedImpl(
+fsdb::OperDelta HwSwitchHandlerWIP::stateChangedImpl(
     const fsdb::OperDelta& delta,
     bool transaction) {
   return hwSwitchHandler_->stateChanged(delta, transaction);

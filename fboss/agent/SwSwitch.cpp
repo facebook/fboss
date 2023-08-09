@@ -41,7 +41,7 @@
 #include "fboss/agent/MPLSHandler.h"
 #include "fboss/agent/MacTableManager.h"
 #include "fboss/agent/MirrorManager.h"
-#include "fboss/agent/MultiHwSwitchSyncer.h"
+#include "fboss/agent/MultiHwSwitchHandlerWIP.h"
 #include "fboss/agent/MultiSwitchPacketStreamMap.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PacketLogger.h"
@@ -240,7 +240,7 @@ SwSwitch::SwSwitch(std::unique_ptr<HwSwitchHandlerDeprecated> hwSwitchHandler)
       switchInfoTable_(getSwitchInfoFromConfig()),
       hwAsicTable_(new HwAsicTable(getSwitchInfoFromConfig())),
       scopeResolver_(new SwitchIdScopeResolver(getSwitchInfoFromConfig())),
-      multiHwSwitchSyncer_(nullptr),
+      multiHwSwitchHandlerWIP_(nullptr),
       switchStatsObserver_(new SwitchStatsObserver(this)),
       packetStreamMap_(new MultiSwitchPacketStreamMap()) {
   // Create the platform-specific state directories if they
@@ -667,7 +667,7 @@ void SwSwitch::init(
   auto begin = steady_clock::now();
   flags_ = flags;
   auto hwInitRet = hwSwitchInitFn(callback, false /*failHwCallsOnWarmboot*/);
-  multiHwSwitchSyncer_ = std::make_unique<MultiHwSwitchSyncer>(
+  multiHwSwitchHandlerWIP_ = std::make_unique<MultiHwSwitchHandlerWIP>(
       getHwSwitchHandlerDeprecated(),
       switchInfoTable_.getSwitchIdToSwitchInfo());
   auto initialState = hwInitRet.switchState;
@@ -710,7 +710,7 @@ void SwSwitch::init(
         StateDelta(std::make_shared<SwitchState>(), initialState));
   });
 
-  multiHwSwitchSyncer_->start();
+  multiHwSwitchHandlerWIP_->start();
   startThreads();
   XLOG(DBG2)
       << "Time to init switch and start all threads "
@@ -2337,7 +2337,7 @@ void SwSwitch::sentNeighborSolicitation(
 std::shared_ptr<SwitchState> SwSwitch::stateChanged(
     const StateDelta& delta,
     bool transaction) const {
-  return multiHwSwitchSyncer_->stateChanged(delta, transaction);
+  return multiHwSwitchHandlerWIP_->stateChanged(delta, transaction);
 }
 
 std::shared_ptr<SwitchState> SwSwitch::modifyTransceivers(

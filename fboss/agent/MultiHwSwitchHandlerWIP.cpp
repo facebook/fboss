@@ -1,26 +1,26 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/agent/MultiHwSwitchSyncer.h"
-#include "fboss/agent/HwSwitchSyncer.h"
+#include "fboss/agent/MultiHwSwitchHandlerWIP.h"
+#include "fboss/agent/HwSwitchHandlerWIP.h"
 
 namespace facebook::fboss {
 
-MultiHwSwitchSyncer::MultiHwSwitchSyncer(
+MultiHwSwitchHandlerWIP::MultiHwSwitchHandlerWIP(
     HwSwitchHandlerDeprecated* hwSwitchHandler,
     const std::map<SwitchID, cfg::SwitchInfo>& switchInfoMap) {
   for (auto entry : switchInfoMap) {
     hwSwitchSyncers_.emplace(
         entry.first,
-        std::make_unique<HwSwitchSyncer>(
+        std::make_unique<HwSwitchHandlerWIP>(
             hwSwitchHandler, entry.first, entry.second));
   }
 }
 
-MultiHwSwitchSyncer::~MultiHwSwitchSyncer() {
+MultiHwSwitchHandlerWIP::~MultiHwSwitchHandlerWIP() {
   stop();
 }
 
-void MultiHwSwitchSyncer::start() {
+void MultiHwSwitchHandlerWIP::start() {
   if (!stopped_.load()) {
     return;
   }
@@ -30,7 +30,7 @@ void MultiHwSwitchSyncer::start() {
   stopped_.store(false);
 }
 
-void MultiHwSwitchSyncer::stop() {
+void MultiHwSwitchHandlerWIP::stop() {
   if (stopped_.load()) {
     return;
   }
@@ -40,7 +40,7 @@ void MultiHwSwitchSyncer::stop() {
   stopped_.store(true);
 }
 
-std::shared_ptr<SwitchState> MultiHwSwitchSyncer::stateChanged(
+std::shared_ptr<SwitchState> MultiHwSwitchHandlerWIP::stateChanged(
     const StateDelta& delta,
     bool transaction) {
   if (stopped_.load()) {
@@ -55,7 +55,8 @@ std::shared_ptr<SwitchState> MultiHwSwitchSyncer::stateChanged(
   return getStateUpdateResult(switchId, std::move(future));
 }
 
-folly::Future<std::shared_ptr<SwitchState>> MultiHwSwitchSyncer::stateChanged(
+folly::Future<std::shared_ptr<SwitchState>>
+MultiHwSwitchHandlerWIP::stateChanged(
     SwitchID switchId,
     const HwSwitchStateUpdate& update) {
   auto iter = hwSwitchSyncers_.find(switchId);
@@ -65,7 +66,7 @@ folly::Future<std::shared_ptr<SwitchState>> MultiHwSwitchSyncer::stateChanged(
   return iter->second->stateChanged(update);
 }
 
-std::shared_ptr<SwitchState> MultiHwSwitchSyncer::getStateUpdateResult(
+std::shared_ptr<SwitchState> MultiHwSwitchHandlerWIP::getStateUpdateResult(
     SwitchID switchId,
     folly::Future<std::shared_ptr<SwitchState>>&& future) {
   auto result = std::move(future).getTry();

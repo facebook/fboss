@@ -83,7 +83,7 @@ class FsdbSyncer;
 class TeFlowNexthopHandler;
 class DsfSubscriber;
 class HwAsicTable;
-class MultiHwSwitchSyncer;
+class MultiHwSwitchHandlerWIP;
 class SwitchStatsObserver;
 struct HwSwitchHandlerDeprecated;
 class MultiSwitchPacketStreamMap;
@@ -1088,7 +1088,7 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<PlatformMapping> platformMapping_;
   std::unique_ptr<HwAsicTable> hwAsicTable_;
   std::unique_ptr<SwitchIdScopeResolver> scopeResolver_;
-  std::unique_ptr<MultiHwSwitchSyncer> multiHwSwitchSyncer_;
+  std::unique_ptr<MultiHwSwitchHandlerWIP> multiHwSwitchHandlerWIP_;
   std::unique_ptr<SwitchStatsObserver> switchStatsObserver_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;
