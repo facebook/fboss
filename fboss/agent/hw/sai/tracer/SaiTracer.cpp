@@ -1008,6 +1008,13 @@ void SaiTracer::logGetAttrFn(
   lines.push_back(
       to<string>("memset(get_attribute,0,ATTR_SIZE*", maxAttrCount_, ")"));
 
+  auto constexpr get_attribute = "get_attribute";
+
+  // Setup ids
+  for (int i = 0; i < attr_count; ++i) {
+    lines.push_back(to<string>(get_attribute, "[", i, "].id=", attr[i].id));
+  }
+
   // Make getAttribute call
   lines.push_back(to<string>(
       "rv=",
