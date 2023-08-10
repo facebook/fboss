@@ -162,6 +162,11 @@ class SwitchIdScopeResolver {
     return switchIdToSwitchInfo_;
   }
 
+  /* returns true if at least one switch supports l3 programming */
+  bool hasL3() const {
+    return l3SwitchMatcher_ != nullptr;
+  }
+
  private:
   void checkL3() const;
   void checkVoq() const;

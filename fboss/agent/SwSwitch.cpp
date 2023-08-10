@@ -788,14 +788,7 @@ void SwSwitch::init(
   heartbeatWatchdog_->start();
 
   setSwitchRunState(SwitchRunState::INITIALIZED);
-  const auto& switchInfo =
-      switchInfoTable_.getSwitchIdToSwitchInfo().begin()->second;
-  auto npuOrVoq =
-      (*switchInfo.switchType() == cfg::SwitchType::VOQ ||
-       *switchInfo.switchType() == cfg::SwitchType::NPU);
-  if (npuOrVoq &&
-      getHwAsicTable()->isFeatureSupportedOnAnyAsic(
-          HwAsic::Feature::ROUTE_PROGRAMMING)) {
+  if (scopeResolver_->hasL3()) {
     SwSwitchRouteUpdateWrapper(this, rib_.get()).programMinAlpmState();
   }
   if (FLAGS_log_all_fib_updates) {
