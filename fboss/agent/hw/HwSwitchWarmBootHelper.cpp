@@ -160,7 +160,7 @@ void HwSwitchWarmBootHelper::setupWarmBootFile() {
   }
 }
 
-bool HwSwitchWarmBootHelper::storeHwSwitchWarmBootState(
+void HwSwitchWarmBootHelper::storeHwSwitchWarmBootState(
     const folly::dynamic& switchState) {
   auto dumpStateToFileFn = [](const std::string& file,
                               const folly::dynamic& state) {
@@ -171,8 +171,7 @@ bool HwSwitchWarmBootHelper::storeHwSwitchWarmBootState(
   };
   dumpStateToFileFn(warmBootHwSwitchStateFile_DEPRECATED(), switchState);
   dumpStateToFileFn(warmBootHwSwitchStateFile(), switchState);
-  warmBootStateWritten_ = true;
-  return true;
+  setCanWarmBoot();
 }
 
 state::WarmbootState HwSwitchWarmBootHelper::getSwSwitchWarmBootState() const {

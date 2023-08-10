@@ -35,18 +35,8 @@ class HwSwitchWarmBootHelper {
   bool canWarmBoot() const {
     return canWarmBoot_;
   }
-  /*
-   * Sets a flag that can be read when we next start up that indicates that
-   * warm boot is possible. Since warm boot is not currently supported this is
-   * always a no-op for now.
-   */
-  void setCanWarmBoot();
 
-  bool storeWarmBootState(
-      const folly::dynamic& switchState,
-      const state::WarmbootState& switchStateThrift);
-
-  bool storeHwSwitchWarmBootState(const folly::dynamic& switchState);
+  void storeHwSwitchWarmBootState(const folly::dynamic& switchState);
 
   std::tuple<folly::dynamic, std::optional<state::WarmbootState>>
   getWarmBootState() const;
@@ -58,10 +48,6 @@ class HwSwitchWarmBootHelper {
   std::string startupSdkDumpFile() const;
   // bcm switch specific
   std::string shutdownSdkDumpFile() const;
-  // used in Bcm but hw switch specific
-  bool warmBootStateWritten() const {
-    return warmBootStateWritten_;
-  }
   // used only in sai
   std::string warmBootDataPath() const;
 
@@ -75,6 +61,13 @@ class HwSwitchWarmBootHelper {
   }
 
  private:
+  /*
+   * Sets a flag that can be read when we next start up that indicates that
+   * warm boot is possible. Since warm boot is not currently supported this is
+   * always a no-op for now.
+   */
+  void setCanWarmBoot();
+
   // Forbidden copy constructor and assignment operator
   HwSwitchWarmBootHelper(HwSwitchWarmBootHelper const&) = delete;
   HwSwitchWarmBootHelper& operator=(HwSwitchWarmBootHelper const&) = delete;
@@ -106,6 +99,5 @@ class HwSwitchWarmBootHelper {
   std::string sdkWarmbootFilePrefix_;
   int warmBootFd_{-1};
   bool canWarmBoot_{false};
-  bool warmBootStateWritten_{false};
 };
 } // namespace facebook::fboss

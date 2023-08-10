@@ -201,9 +201,7 @@ void BcmUnit::writeWarmBootState(const folly::dynamic& follySwitchState) {
   // Now write our state to file
   XLOG(DBG2) << " [Exit] Syncing FBOSS switch state to file";
   steady_clock::time_point fbossWarmBootSyncStart = steady_clock::now();
-  if (!warmBootHelper()->storeHwSwitchWarmBootState(follySwitchState)) {
-    XLOG(FATAL) << "Unable to write switch state JSON and Thrift to file";
-  }
+  warmBootHelper()->storeHwSwitchWarmBootState(follySwitchState);
   steady_clock::time_point fbossWarmBootSyncDone = steady_clock::now();
   XLOG(DBG2) << "[Exit] Fboss warm boot sync time "
              << duration_cast<duration<float>>(
@@ -257,10 +255,6 @@ void BcmUnit::deleteBcmUnitImpl() {
     XLOG(DBG2)
         << "[Exit] Bcm shut down time "
         << duration_cast<duration<float>>(bcmShutdownDone - begin).count();
-
-    if (warmBootHelper()->warmBootStateWritten()) {
-      warmBootHelper()->setCanWarmBoot();
-    }
 
     destroyHwUnit();
 
