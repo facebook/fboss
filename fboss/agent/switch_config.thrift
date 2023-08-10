@@ -1502,48 +1502,6 @@ struct SwitchInfo {
   5: optional Range64 systemPortRange;
   6: optional string switchMac;
   7: optional string connectionHandle;
-
-  /*
-   * Applicable for SwitchType == VOQ or SwitchType == FABRIC only
-   *
-   * DrainState is per SwitchId, thus a switchId can be drained individually.
-   *
-   * Note: today, our tooling treats switch as a whole, and thus its
-   * implementation will request to drain/undrain ALL switchIds. However, in
-   * future, we could enhance the tooling to selectively drain/undrain a subset
-   * of switchId(s).
-   *
-   * Note: actualDrainState can be different from the desiredDrainState (see
-   * switch_state for details) for VOQ switches.
-   */
-  8: SwitchDrainState desiredDrainState = SwitchDrainState.UNDRAINED;
-
-  /*
-   * Applicable for SwitchType == VOQ only
-   *
-   * These thresholds are per SwitchId, thus can be set individually for each
-   * VOQ switch.
-   *
-   * VOQ switch may use these thresholds as below:
-   *  - During init, create switch device Isolated.
-   *  - When numActiveLinks > minLinksToJoinVOQDomain => Unisolate device.
-   *  - When numActiveLinks < minLinksToRemainInVOQDomain => Isolate device.
-   *
-   * In practice, these thresholds will be configured to provide hysteresis:
-   *  - 0 < minLinksToRemainInVOQDomain < minLinksToJoinVOQDomain < maxActiveLinks
-   *  - numActiveLinks in [0, minLinksToRemainInVOQDomain) => device isolated.
-   *  - numActiveLinks in (minLinksToJoinVOQDomain, maxActiveLinks] => device unisolated
-   *  - numActiveLinks in [minLinksToRemainInVOQDomain, minLinksToJoinVOQDomain]
-   *    => Whether or not the device is isolated depends on how we got to this state.
-   *    => For example, during init, as links gradually turn active, the device
-   *       will be isolated for these numActiveLinks as minLinksToJoinVOQDomain is not
-   *       yet hit.
-   *    => On the other hand, if the links are active but start turning inactive,
-   *       the device will be unisolated for these numActiveLinks since
-   *       minLinksToRemainInVOQDomain is not yet thit.
-   */
-  9: optional i32 minLinksToRemainInVOQDomain;
-  10: optional i32 minLinksToJoinVOQDomain;
 }
 
 /*
