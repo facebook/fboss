@@ -260,8 +260,8 @@ void SaiPortManager::changePortImpl(
     platformPort->setCurrentProfile(newPort->getProfileID());
   }
 
-  changeSamplePacket(oldPort, newPort);
   changeMirror(oldPort, newPort);
+  changeSamplePacket(oldPort, newPort);
   changePfc(oldPort, newPort);
   programPfcBuffers(newPort);
 
