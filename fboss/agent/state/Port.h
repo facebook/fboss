@@ -246,6 +246,10 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
   }
   void setMacsecDesired(bool macsecDesired) {
     set<switch_state_tags::macsecDesired>(macsecDesired);
+    if (!macsecDesired) {
+      setRxSaksMap({});
+      setTxSak(std::nullopt);
+    }
   }
 
   bool getDropUnencrypted() const {

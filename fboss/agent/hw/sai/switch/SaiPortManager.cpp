@@ -1748,8 +1748,8 @@ void SaiPortManager::programMacsec(
   if (oldMacsecDesired && !newMacsecDesired) {
     XLOG(DBG2) << "programMacsec setting macsecDesired=false on port = "
                << newPort->getName() << ", Deleting all Rx and Tx SAK";
-    newPort->setRxSaksMap({});
-    newPort->setTxSak(std::nullopt);
+    CHECK(newPort->getRxSaksMap().empty());
+    CHECK(!newPort->getTxSak().has_value());
   } else if (
       newMacsecDesired &&
       (!oldMacsecDesired || (oldDropUnencrypted != newDropUnencrypted))) {
