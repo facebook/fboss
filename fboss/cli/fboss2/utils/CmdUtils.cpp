@@ -241,13 +241,6 @@ std::optional<std::string> getMyHostname(const std::string& hostname) {
   return utils::removeFbDomains(std::string(actualHostname));
 }
 
-std::string getSSHCmdPrefix(const std::string& hostname) {
-  return hostname == "localhost"
-      ? ""
-      : folly::to<std::string>(
-            "sush2 -q --reason fboss2_cli netops@", hostname, " ");
-}
-
 std::string getCmdToRun(const std::string& hostname, const std::string& cmd) {
   // For running on localhost
   //    return cmd as is.
