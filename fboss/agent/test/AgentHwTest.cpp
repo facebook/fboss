@@ -4,6 +4,7 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
@@ -47,23 +48,27 @@ void AgentHwTest::setupConfigFlag() {
 void AgentHwTest::SetUp() {
   AgentTest::SetUp();
   if (sw()->getBootType() != BootType::WARM_BOOT) {
-    // Set preempahsis to 0, so ports state can be manipulated by just setting
-    // loopback mode (lopbackMode::NONE == down), loopbackMode::{MAC, PHY} ==
-    // up)
-    sw()->updateStateBlocking("set port preemphasis 0", [&](const auto& state) {
-      std::shared_ptr<SwitchState> newState{state};
-      for (auto& portMap : std::as_const(*newState->getPorts())) {
-        for (auto& port : std::as_const(*portMap.second)) {
-          auto newPort = port.second->modify(&newState);
-          auto pinConfigs = newPort->getPinConfigs();
-          for (auto& pin : pinConfigs) {
-            pin.tx() = phy::TxSettings();
-          }
-          newPort->resetPinConfigs(pinConfigs);
-        }
-      }
-      return newState;
-    });
+    if (platform()->getAsic()->isSupported(
+            HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET)) {
+      // Set preempahsis to 0, so ports state can be manipulated by just setting
+      // loopback mode (lopbackMode::NONE == down), loopbackMode::{MAC, PHY} ==
+      // up)
+      sw()->updateStateBlocking(
+          "set port preemphasis 0", [&](const auto& state) {
+            std::shared_ptr<SwitchState> newState{state};
+            for (auto& portMap : std::as_const(*newState->getPorts())) {
+              for (auto& port : std::as_const(*portMap.second)) {
+                auto newPort = port.second->modify(&newState);
+                auto pinConfigs = newPort->getPinConfigs();
+                for (auto& pin : pinConfigs) {
+                  pin.tx() = phy::TxSettings();
+                }
+                newPort->resetPinConfigs(pinConfigs);
+              }
+            }
+            return newState;
+          });
+    }
 
     auto config = initialConfig();
     std::vector<PortID> enabledPorts =
