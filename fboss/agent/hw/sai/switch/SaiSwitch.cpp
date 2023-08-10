@@ -1902,15 +1902,6 @@ HwInitResult SaiSwitch::initLocked(
               ->second->getL2AgeTimerSeconds());
     }
   }
-  if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::L2_LEARNING)) {
-    // for both cold and warm boot, recover l2 learning mode
-    CHECK(ret.switchState->getSwitchSettings()->size());
-    managerTable_->bridgeManager().setL2LearningMode(
-        ret.switchState->getSwitchSettings()
-            ->cbegin()
-            ->second->getL2LearningMode());
-  }
-
   ret.switchState->publish();
   return ret;
 }
