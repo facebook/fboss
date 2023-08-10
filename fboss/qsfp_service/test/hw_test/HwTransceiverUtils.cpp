@@ -258,6 +258,7 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL:
+    case cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_OPTICAL:
       verify100gProfile(mgmtInterface, mediaInterfaces);
       break;
 
@@ -326,9 +327,13 @@ void HwTransceiverUtils::verify100gProfile(
           mediaId.code() == MediaInterfaceCode::FR1_100G ||
           mediaId.code() == MediaInterfaceCode::CR4_100G);
     } else if (mgmtInterface == TransceiverManagementInterface::CMIS) {
-      EXPECT_EQ(
-          *mediaId.media()->smfCode_ref(), SMFMediaInterfaceCode::CWDM4_100G);
-      EXPECT_EQ(*mediaId.code(), MediaInterfaceCode::CWDM4_100G);
+      EXPECT_TRUE(
+          *mediaId.media()->smfCode_ref() ==
+              SMFMediaInterfaceCode::CWDM4_100G ||
+          *mediaId.media()->smfCode_ref() == SMFMediaInterfaceCode::FR1_100G);
+      EXPECT_TRUE(
+          *mediaId.code() == MediaInterfaceCode::CWDM4_100G ||
+          *mediaId.code() == MediaInterfaceCode::FR1_100G);
     }
   }
 }

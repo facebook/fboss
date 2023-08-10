@@ -351,6 +351,8 @@ static SpeedApplicationMapping speedApplicationMapping = {
      {SMFMediaInterfaceCode::FR4_200G}},
     {cfg::PortSpeed::HUNDREDG,
      {SMFMediaInterfaceCode::CWDM4_100G, SMFMediaInterfaceCode::FR1_100G}},
+    {cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG,
+     {SMFMediaInterfaceCode::FR1_100G}},
     {cfg::PortSpeed::TWOHUNDREDG, {SMFMediaInterfaceCode::FR4_200G}},
     {cfg::PortSpeed::FOURHUNDREDG,
      {SMFMediaInterfaceCode::FR4_400G, SMFMediaInterfaceCode::LR4_10_400G}},
