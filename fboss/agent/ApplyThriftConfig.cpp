@@ -129,13 +129,8 @@ std::shared_ptr<MultiMap> toMultiSwitchMap(
     const std::shared_ptr<EntryT>& entry,
     const facebook::fboss::SwitchIdScopeResolver& resolver) {
   auto multiMap = std::make_shared<MultiMap>();
-  if constexpr (std::
-                    is_same_v<MultiMap, facebook::fboss::MultiSwitchSettings>) {
-    multiMap->addNode(resolver.scope(entry).matcherString(), entry);
-  } else {
-    for (const auto& idAndNode : *entry) {
-      multiMap->addNode(idAndNode.second, resolver.scope(idAndNode.second));
-    }
+  for (const auto& idAndNode : *entry) {
+    multiMap->addNode(idAndNode.second, resolver.scope(idAndNode.second));
   }
   return multiMap;
 }
