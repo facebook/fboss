@@ -246,7 +246,9 @@ SwSwitch::SwSwitch(
       scopeResolver_(
           new SwitchIdScopeResolver(getSwitchInfoFromConfig(config))),
       switchStatsObserver_(new SwitchStatsObserver(this)),
-      packetStreamMap_(new MultiSwitchPacketStreamMap()) {
+      packetStreamMap_(new MultiSwitchPacketStreamMap()),
+      swSwitchWarmbootHelper_(
+          new SwSwitchWarmBootHelper(platformData_.warmBootDir)) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platformData_.volatileStateDir);
@@ -2441,9 +2443,7 @@ void SwSwitch::switchRunStateChanged(SwitchRunState newState) {
 }
 
 void SwSwitch::storeWarmBootState(const state::WarmbootState& state) {
-  const auto& data = multiHwSwitchHandler_->getPlatformData();
-  SwSwitchWarmBootHelper warmBootHelper(data.warmBootDir);
-  warmBootHelper.storeWarmBootState(state);
+  swSwitchWarmbootHelper_->storeWarmBootState(state);
 }
 
 } // namespace facebook::fboss

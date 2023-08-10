@@ -87,6 +87,7 @@ class HwAsicTable;
 class MultiHwSwitchHandler;
 class SwitchStatsObserver;
 class MultiSwitchPacketStreamMap;
+class SwSwitchWarmBootHelper;
 
 enum class SwitchFlags : int {
   DEFAULT = 0,
@@ -1095,6 +1096,7 @@ class SwSwitch : public HwSwitchCallback {
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>
       publishedStatsToFsdbAt_;
   std::unique_ptr<MultiSwitchPacketStreamMap> packetStreamMap_;
+  std::unique_ptr<SwSwitchWarmBootHelper> swSwitchWarmbootHelper_;
 };
 
 } // namespace facebook::fboss
