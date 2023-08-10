@@ -50,9 +50,6 @@ class QsfpModuleTest : public TransceiverManagerTestHelper {
     gflags::SetCommandLineOptionWithMode(
         "customize_interval", "0", gflags::SET_FLAGS_DEFAULT);
 
-    gflags::SetCommandLineOptionWithMode(
-        "use_platform_mapping", "true", gflags::SET_FLAGS_DEFAULT);
-
     EXPECT_EQ(transImpl_->getName().toString(), qsfp_->getNameString());
     EXPECT_CALL(*transImpl_, detectTransceiver()).WillRepeatedly(Return(true));
     qsfp_->detectPresence();

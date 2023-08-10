@@ -25,9 +25,6 @@ void TransceiverManagerTestHelper::SetUp() {
   gflags::SetCommandLineOptionWithMode(
       "qsfp_data_refresh_interval", "0", gflags::SET_FLAGS_DEFAULT);
 
-  gflags::SetCommandLineOptionWithMode(
-      "use_platform_mapping", "true", gflags::SET_FLAGS_DEFAULT);
-
   // Create a wedge manager
   transceiverManager_ =
       std::make_unique<MockWedgeManager>(numModules, 8 /* portsPerModule */);
