@@ -248,6 +248,22 @@ std::string getSSHCmdPrefix(const std::string& hostname) {
             "sush2 -q --reason fboss2_cli netops@", hostname, " ");
 }
 
+std::string getCmdToRun(const std::string& hostname, const std::string& cmd) {
+  // For running on localhost
+  //    return cmd as is.
+  // For remote command request
+  //    need to login with right credentials,
+  //    enclose the command in double quotes
+  return hostname == "localhost" ? cmd
+                                 : folly::to<std::string>(
+                                       "sush2 -q --reason fboss2_cli netops@",
+                                       hostname,
+                                       " ",
+                                       "\"",
+                                       cmd,
+                                       "\"");
+}
+
 std::string runCmd(const std::string& cmd) {
   std::array<char, 1024> buffer;
   std::string result;
