@@ -15,6 +15,10 @@ import sys
 API_FILES_TO_SEARCH = "fboss/agent/hw/sai/api/*Api.h"
 TRACER_FILES_TO_SEARCH = "fboss/agent/hw/sai/tracer/*ApiTracer.cpp"
 
+# There are certain calls replayer don't wrap (e.g. RxPacket as it's callback from SDK).
+# Exclude these patterns when we audit the attributes.
+PATTERN_TO_EXCLUDE = ["RxPacket"]
+
 
 def get_used_attributes():
     grep_cmd = f"grep SAI_ATTRIBUTE_NAME {API_FILES_TO_SEARCH}"
@@ -25,7 +29,8 @@ def get_used_attributes():
     )
     used_attributes = set()
     for line in grep_output:
-        used_attributes.add(line.split("(")[1].split(")")[0])
+        if not any(exclude_pattern in line for exclude_pattern in PATTERN_TO_EXCLUDE):
+            used_attributes.add(line.split("(")[1].split(")")[0])
     return used_attributes
 
 
