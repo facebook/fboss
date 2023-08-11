@@ -262,6 +262,18 @@ void RegisterMapDatabase::load(const nlohmann::json& j) {
   regmaps.push_back(std::move(rmap));
 }
 
+time_t RegisterMapDatabase::minMonitorInterval() const {
+  time_t retVal = RegisterDescriptor::kDefaultInterval;
+  for (const auto& regmap : regmaps) {
+    for (const auto& desc : regmap->registerDescriptors) {
+      if (desc.second.interval < retVal) {
+        retVal = desc.second.interval;
+      }
+    }
+  }
+  return retVal;
+}
+
 void from_json(const json& j, AddrRange& a) {
   a.range = j;
 }

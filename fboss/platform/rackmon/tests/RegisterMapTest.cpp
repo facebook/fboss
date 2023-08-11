@@ -201,7 +201,8 @@ class RegisterMapDatabaseTest : public ::testing::Test {
             "begin": 0,
             "length": 8,
             "format": "STRING",
-            "name": "MFG_MODEL"
+            "name": "MFG_MODEL",
+            "interval": 40
           }
         ]
       })";
@@ -261,4 +262,5 @@ TEST_F(RegisterMapDatabaseTest, Load) {
   EXPECT_EQ(m6.name, "orv3_psu");
   const auto& m7 = db.at(120);
   EXPECT_EQ(m7.name, "orv3_psu");
+  EXPECT_EQ(db.minMonitorInterval(), 40);
 }

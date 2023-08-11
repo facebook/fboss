@@ -331,6 +331,8 @@ struct RegisterMapDatabase {
 
   // Loads a configuration JSON into the DB.
   void load(const nlohmann::json& j);
+
+  time_t minMonitorInterval() const;
 };
 
 // JSON conversion

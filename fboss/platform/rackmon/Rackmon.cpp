@@ -47,6 +47,7 @@ void Rackmon::loadRegisterMap(const nlohmann::json& config) {
     allPossibleDevAddrs_.push_back(uint8_t(addr));
   }
   nextDeviceToProbe_ = allPossibleDevAddrs_.begin();
+  monitorInterval_ = std::chrono::seconds(registerMapDB_.minMonitorInterval());
 }
 
 void Rackmon::load(const std::string& confPath, const std::string& regmapDir) {
@@ -212,7 +213,7 @@ void Rackmon::start(PollThreadTime interval) {
   }
   scanThread_ = makeThread(&Rackmon::scan, interval);
   scanThread_->start();
-  monitorThread_ = makeThread(&Rackmon::monitor, interval);
+  monitorThread_ = makeThread(&Rackmon::monitor, monitorInterval_);
   monitorThread_->start();
 }
 

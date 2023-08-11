@@ -56,6 +56,10 @@ class Rackmon {
   time_t lastScanTime_;
   time_t lastMonitorTime_;
 
+  // Interval at which we will monitor all the discovered
+  // devices.
+  PollThreadTime monitorInterval_ = std::chrono::minutes(3);
+
   // Probe an interface for the presence of the address.
   bool probe(Modbus& interface, uint8_t addr);
 
