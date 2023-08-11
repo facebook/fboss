@@ -31,7 +31,10 @@ class PollThread {
         return !started_.load() || tick_.load();
       });
       if (started_.load()) {
+        // Do not call function with lock held.
+        lk.unlock();
         func_(obj_);
+        lk.lock();
       }
       if (tick_.load()) {
         tick_ = false;

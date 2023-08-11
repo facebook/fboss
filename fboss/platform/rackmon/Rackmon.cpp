@@ -188,7 +188,7 @@ void Rackmon::fullScan() {
   // When scan is complete, request for a monitor.
   if (atLeastOne) {
     if (auto monThread = monitorThread_; monThread) {
-      monThread->tick();
+      monThread->tick(true);
     }
   }
   reqForceScan_ = false;
@@ -205,7 +205,7 @@ void Rackmon::scan() {
   if (!isDeviceKnown(*nextDeviceToProbe_)) {
     if (probe(*nextDeviceToProbe_)) {
       if (auto monThread = monitorThread_; monThread) {
-        monThread->tick();
+        monThread->tick(true);
       }
     }
     lastScanTime_ = std::time(nullptr);
@@ -263,7 +263,7 @@ void Rackmon::forceScan() {
   reqForceScan_ = true;
   auto scanThread = scanThread_;
   if (scanThread) {
-    scanThread->tick();
+    scanThread->tick(true);
   }
 }
 
