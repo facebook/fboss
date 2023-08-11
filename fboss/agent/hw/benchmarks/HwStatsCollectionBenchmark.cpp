@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
+#include "fboss/agent/hw/test/HwVoqUtils.h"
 
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
 
@@ -64,17 +65,41 @@ BENCHMARK(HwStatsCollection) {
             hwSwitch,
             portsNew,
             hwSwitch->getPlatform()->getAsic()->desiredLoopbackModes());
-        config.switchSettings()->maxRouteCounterIDs() = numRouteCounters;
+        cfg::SwitchType switchType;
+        for (const auto& [id, switchInfo] :
+             *(config.switchSettings()->switchIdToSwitchInfo())) {
+          switchType = *switchInfo.switchType();
+        }
+        // Currently route counters are only supported for NPU switches
+        if (switchType == cfg::SwitchType::NPU) {
+          config.switchSettings()->maxRouteCounterIDs() = numRouteCounters;
+        }
+        if (switchType == cfg::SwitchType::VOQ) {
+          config.dsfNodes() = *utility::addRemoteDsfNodeCfg(*config.dsfNodes());
+        }
         return config;
       };
   ensemble = createAgentEnsemble(initialConfigFn);
   auto hwSwitch = ensemble->getHw();
+  int iterations = 10'000;
+
+  // Setup Remote Intf and System Ports
+  if (ensemble->getSw()->getSwitchInfoTable().haveVoqSwitches()) {
+    ensemble->applyNewState(utility::setupRemoteIntfAndSysPorts(
+        ensemble->getProgrammedState(),
+        ensemble->scopeResolver(),
+        ensemble->getSw()->getConfig()));
+    // For VOQ switches we have 2K - 4K remote system ports (each with 4-8
+    // VOQs). This is >10x of local ports on NPU platforms. Therefore, only run
+    // 1000 iterations.
+    iterations = 1000;
+  }
 
   std::vector<PortID> ports = ensemble->masterLogicalPortIds();
   ports.resize(std::min((int)ports.size(), numPortsToCollectStats));
 
-  if (hwSwitch->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::ROUTE_COUNTERS)) {
+  // Currently route counters are only supported for NPU switches
+  if (ensemble->getSw()->getSwitchInfoTable().haveNpuSwitches()) {
     auto updater = ensemble->getSw()->getRouteUpdater();
     for (auto i = 0; i < numRouteCounters; i++) {
       folly::CIDRNetwork nw{
@@ -91,7 +116,7 @@ BENCHMARK(HwStatsCollection) {
 
   SwitchStats dummy;
   suspender.dismiss();
-  for (auto i = 0; i < 10'000; ++i) {
+  for (auto i = 0; i < iterations; ++i) {
     hwSwitch->updateStats(&dummy);
   }
   suspender.rehire();

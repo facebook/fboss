@@ -35,6 +35,7 @@ add_library(hw_stats_collection_speed
 target_link_libraries(hw_stats_collection_speed
   config_factory
   hw_packet_utils
+  hw_voq_utils
   ecmp_helper
   agent_ensemble
   agent_benchmarks
