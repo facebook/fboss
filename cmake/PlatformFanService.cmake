@@ -11,6 +11,15 @@ add_fbthrift_cpp_library(
     reflection
 )
 
+add_fbthrift_cpp_library(
+  fan_service_cpp2
+  fboss/platform/fan_service/if/fan_service.thrift
+  SERVICES
+    FanService
+  DEPENDS
+    fboss_cpp2
+)
+
 
 add_library(fan_service_lib
   fboss/platform/fan_service/Bsp.cpp
@@ -33,6 +42,7 @@ target_link_libraries(fan_service_lib
   platform_config_lib
   platform_utils
   fan_service_config_types_cpp2
+  fan_service_cpp2
   Folly::folly
   qsfp_service_client
   FBThrift::thriftcpp2
