@@ -298,10 +298,17 @@ void from_json(const json& j, RegisterDescriptor& i) {
   i.storeChangesOnly = j.value("changes_only", false);
   i.endian = j.value("endian", RegisterEndian::BIG);
   i.format = j.value("format", RegisterValueType::HEX);
+  if (j.contains("interval")) {
+    j.at("interval").get_to(i.interval);
+  }
   if (i.format == RegisterValueType::FLOAT) {
     j.at("precision").get_to(i.precision);
-    i.scale = j.value("scale", 1.0);
-    i.shift = j.value("shift", 0.0);
+    if (j.contains("scale")) {
+      j.at("scale").get_to(i.scale);
+    }
+    if (j.contains("shift")) {
+      j.at("shift").get_to(i.shift);
+    }
   } else if (i.format == RegisterValueType::FLAGS) {
     j.at("flags").get_to(i.flags);
     for (const auto& [pos, name] : i.flags) {

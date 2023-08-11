@@ -26,6 +26,7 @@ enum RegisterEndian { BIG, LITTLE };
 
 // Fully describes a Register (Retrieved from register map JSON)
 struct RegisterDescriptor {
+  static constexpr time_t kDefaultInterval = 3 * 60;
   using FlagDescType = std::tuple<uint8_t, std::string>;
   using FlagsDescType = std::vector<FlagDescType>;
   // Starting address of the Register
@@ -60,6 +61,9 @@ struct RegisterDescriptor {
 
   // If the register stores flags, this provides the desc.
   FlagsDescType flags{};
+
+  // Monitoring interval
+  time_t interval = kDefaultInterval;
 };
 
 struct FlagType {
@@ -244,6 +248,10 @@ struct RegisterStore {
 
   const std::string& name() const {
     return desc_.name;
+  }
+
+  time_t interval() const {
+    return desc_.interval;
   }
 
   // Returns a string formatted representation of the historical record.
