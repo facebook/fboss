@@ -59302,7 +59302,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "profileID": 42
       },
       "profile": {
-        "speed": 106250,
+        "speed": 100000,
         "iphy": {
           "numLanes": 1,
           "modulation": 2,
