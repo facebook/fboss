@@ -363,9 +363,8 @@ class HwSwitch {
  private:
   virtual HwInitResult initImpl(
       Callback* callback,
-      bool failHwCallsOnWarmboot,
-      cfg::SwitchType switchType,
-      std::optional<int64_t> switchId) = 0;
+      BootType bootType,
+      bool failHwCallsOnWarmboot) = 0;
   virtual void switchRunStateChangedImpl(SwitchRunState newState) = 0;
 
   virtual void updateStatsImpl(SwitchStats* switchStats) = 0;

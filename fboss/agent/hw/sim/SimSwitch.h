@@ -24,9 +24,8 @@ class SimSwitch : public HwSwitch {
 
   HwInitResult initImpl(
       Callback* callback,
-      bool failHwCallsOnWarmboot,
-      cfg::SwitchType switchType,
-      std::optional<int64_t> switchId) override;
+      BootType bootType,
+      bool failHwCallsOnWarmboot) override;
   std::shared_ptr<SwitchState> stateChangedImpl(
       const StateDelta& delta) override;
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) const override;

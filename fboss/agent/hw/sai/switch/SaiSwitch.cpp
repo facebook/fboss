@@ -227,13 +227,10 @@ SaiSwitch::~SaiSwitch() {}
 
 HwInitResult SaiSwitch::initImpl(
     Callback* callback,
-    bool failHwCallsOnWarmboot,
-    cfg::SwitchType switchType,
-    std::optional<int64_t> switchId) noexcept {
+    BootType bootType,
+    bool failHwCallsOnWarmboot) noexcept {
   asicType_ = platform_->getAsic()->getAsicType();
-  bootType_ = platform_->getWarmBootHelper()->canWarmBoot()
-      ? BootType::WARM_BOOT
-      : BootType::COLD_BOOT;
+  bootType_ = bootType;
   auto behavior{HwWriteBehavior::WRITE};
   if (bootType_ == BootType::WARM_BOOT && failHwCallsOnWarmboot &&
       platform_->getAsic()->isSupported(
@@ -243,7 +240,7 @@ HwInitResult SaiSwitch::initImpl(
   HwInitResult ret;
   {
     std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-    ret = initLocked(lock, behavior, callback, switchType, switchId);
+    ret = initLocked(lock, behavior, callback, getSwitchType(), getSwitchId());
   }
 
   {
@@ -544,8 +541,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
 
   // VOQ/Fabric switches require that the packets are not tagged with any VLAN.
   // Thus, no VLAN delta processing is needed for these switches
-  if (!(switchType_ == cfg::SwitchType::FABRIC ||
-        switchType_ == cfg::SwitchType::VOQ)) {
+  if (!(getSwitchType() == cfg::SwitchType::FABRIC ||
+        getSwitchType() == cfg::SwitchType::VOQ)) {
     processDelta(
         delta.getVlansDelta(),
         managerTable_->vlanManager(),
@@ -1768,7 +1765,7 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
       cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
     // reconstruct ports
     auto portMaps =
-        managerTable_->portManager().reconstructPortsFromStore(switchType_);
+        managerTable_->portManager().reconstructPortsFromStore(getSwitchType());
     auto ports = std::make_shared<MultiSwitchPortMap>();
     if (FLAGS_hide_fabric_ports) {
       for (const auto& portMap : std::as_const(*portMaps)) {
@@ -1785,7 +1782,7 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
   }
 
   // For VOQ switch, create system ports for existing egress ports
-  if (switchType_ == cfg::SwitchType::VOQ) {
+  if (getSwitchType() == cfg::SwitchType::VOQ) {
     CHECK(getSwitchId().has_value());
     auto multiSysPorts = std::make_shared<MultiSwitchSystemPortMap>();
     auto sysPorts = managerTable_->systemPortManager().constructSystemPorts(
@@ -1830,7 +1827,6 @@ HwInitResult SaiSwitch::initLocked(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId) noexcept {
   HwInitResult ret;
-  switchType_ = switchType;
   ret.rib = std::make_unique<RoutingInformationBase>();
   ret.bootType = bootType_;
   std::unique_ptr<folly::dynamic> adapterKeysJson;
@@ -1968,8 +1964,8 @@ void SaiSwitch::initStoreAndManagersLocked(
       managerTable_->switchManager().setupCounterRefreshInterval();
     }
     if (platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORTS)) {
-      if (switchType_ == cfg::SwitchType::FABRIC ||
-          switchType_ == cfg::SwitchType::VOQ) {
+      if (getSwitchType() == cfg::SwitchType::FABRIC ||
+          getSwitchType() == cfg::SwitchType::VOQ) {
         auto& switchApi = SaiApiTable::getInstance()->switchApi();
         auto fabricPorts = switchApi.getAttribute(
             saiSwitchId_, SaiSwitchTraits::Attributes::FabricPortList{});
@@ -2153,8 +2149,8 @@ void SaiSwitch::packetRxCallbackPort(
     bool allowMissingSrcPort,
     cfg::PacketRxReason rxReason) {
   PortID swPortId(0);
-  std::optional<VlanID> swVlanId = (switchType_ == cfg::SwitchType::VOQ ||
-                                    switchType_ == cfg::SwitchType::FABRIC)
+  std::optional<VlanID> swVlanId = (getSwitchType() == cfg::SwitchType::VOQ ||
+                                    getSwitchType() == cfg::SwitchType::FABRIC)
       ? std::nullopt
       : std::make_optional(VlanID(0));
   auto swVlanIdStr = [swVlanId]() {
@@ -2183,8 +2179,8 @@ void SaiSwitch::packetRxCallbackPort(
    * We use the cached cpu port id to avoid holding manager table locks in
    * the Rx path.
    */
-  if (!(switchType_ == cfg::SwitchType::VOQ ||
-        switchType_ == cfg::SwitchType::FABRIC)) {
+  if (!(getSwitchType() == cfg::SwitchType::VOQ ||
+        getSwitchType() == cfg::SwitchType::FABRIC)) {
     if (portSaiId == getCPUPortSaiId() ||
         (allowMissingSrcPort &&
          portItr == concurrentIndices_->portIds.cend())) {

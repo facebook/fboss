@@ -13,6 +13,7 @@
 #include "fboss/agent/HwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
+#include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/normalization/Normalizer.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
@@ -228,7 +229,16 @@ std::shared_ptr<SwitchState> HwSwitch::programMinAlpmState(
 HwInitResult HwSwitch::init(Callback* callback, bool failHwCallsOnWarmboot) {
   switchType_ = getPlatform()->getAsic()->getSwitchType();
   switchId_ = getPlatform()->getAsic()->getSwitchId();
-  auto ret = initImpl(callback, failHwCallsOnWarmboot, switchType_, switchId_);
+  BootType bootType = BootType::COLD_BOOT;
+  if (getPlatform()->getAsic()->getAsicType() !=
+      cfg::AsicType::ASIC_TYPE_MOCK) {
+    if (auto warmBootHelper = getPlatform()->getWarmBootHelper()) {
+      bootType = warmBootHelper->canWarmBoot() ? BootType::WARM_BOOT
+                                               : BootType::COLD_BOOT;
+    }
+  }
+  auto ret = initImpl(callback, bootType, failHwCallsOnWarmboot);
+  ret.bootType = bootType;
   if (ret.bootType == BootType::WARM_BOOT) {
     // apply state only for warm boot. cold boot state is already applied.
     auto writeBehavior = getWarmBootWriteBehavior(failHwCallsOnWarmboot);

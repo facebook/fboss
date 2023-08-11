@@ -307,6 +307,7 @@ target_link_libraries(hw_switch
   route_update_wrapper
   hw_switch_fb303_stats
   hw_write_behavior
+  hw_switch_warmboot_helper
 )
 
 add_library(async_logger

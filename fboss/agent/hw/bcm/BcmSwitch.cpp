@@ -802,10 +802,9 @@ void BcmSwitch::minimalInit() {
 
 HwInitResult BcmSwitch::initImpl(
     Callback* callback,
-    bool /*failHwCallsOnWarmboot*/,
-    cfg::SwitchType switchType,
-    std::optional<int64_t> switchId) {
-  CHECK(switchType == cfg::SwitchType::NPU)
+    BootType bootType,
+    bool /*failHwCallsOnWarmboot*/) {
+  CHECK(getSwitchType() == cfg::SwitchType::NPU)
       << " Only NPU switch type supported";
   HwInitResult ret;
   ret.rib = std::make_unique<RoutingInformationBase>();
@@ -814,9 +813,7 @@ HwInitResult BcmSwitch::initImpl(
 
   steady_clock::time_point begin = steady_clock::now();
 
-  bootType_ = platform_->getWarmBootHelper()->canWarmBoot()
-      ? BootType::WARM_BOOT
-      : BootType::COLD_BOOT;
+  bootType_ = bootType;
   auto warmBoot = bootType_ == BootType::WARM_BOOT;
   callback_ = callback;
 

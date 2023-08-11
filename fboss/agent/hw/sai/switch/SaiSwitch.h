@@ -70,9 +70,8 @@ class SaiSwitch : public HwSwitch {
 
   HwInitResult initImpl(
       Callback* callback,
-      bool failHwCallsOnWarmboot,
-      cfg::SwitchType switchType,
-      std::optional<int64_t> switchId) noexcept override;
+      BootType bootType,
+      bool failHwCallsOnWarmboot) noexcept override;
 
   void unregisterCallbacks() noexcept override;
   /*
@@ -85,7 +84,7 @@ class SaiSwitch : public HwSwitch {
    * port RIF is enough to get the egress port.
    */
   bool needL2EntryForNeighbor() const override {
-    return switchType_ == cfg::SwitchType::NPU;
+    return getSwitchType() == cfg::SwitchType::NPU;
   }
 
   std::shared_ptr<SwitchState> stateChangedImpl(
@@ -520,7 +519,6 @@ class SaiSwitch : public HwSwitch {
 
   int64_t watermarkStatsUpdateTime_{0};
   cfg::AsicType asicType_;
-  cfg::SwitchType switchType_{cfg::SwitchType::NPU};
 
   std::map<PortID, phy::PhyInfo> lastPhyInfos_;
   std::unique_ptr<FabricReachabilityManager> fabricReachabilityManager_;

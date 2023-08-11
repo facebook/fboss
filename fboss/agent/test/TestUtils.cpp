@@ -505,7 +505,7 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
   }
   ret.rib = RoutingInformationBase::fromThrift(routeTables);
   getMockHw(sw)->setInitialState(ret.switchState);
-  EXPECT_HW_CALL(sw, initImpl(_, false, _, _))
+  EXPECT_HW_CALL(sw, initImpl(_, _, false))
       .WillOnce(Return(ByMove(std::move(ret))));
   // return same as ret.BootType
   EXPECT_HW_CALL(sw, getBootType).WillRepeatedly(Return(BootType::COLD_BOOT));
