@@ -1,6 +1,7 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 #pragma once
 #include <array>
+#include <cstdint>
 #include <exception>
 #include <memory>
 #include <ostream>

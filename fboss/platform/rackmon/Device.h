@@ -1,5 +1,6 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 #pragma once
+#include <cstdint>
 #include <stdexcept>
 #include <string>
 
