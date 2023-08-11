@@ -133,7 +133,7 @@ class Rackmon {
   // Start the monitoring/scanning loops
   void start(PollThreadTime interval = std::chrono::minutes(3));
   // Stop the monitoring/scanning loops
-  void stop();
+  void stop(bool forceStop = true);
 
   // Force rackmond to do a full scan on the next scan loop.
   void forceScan() {

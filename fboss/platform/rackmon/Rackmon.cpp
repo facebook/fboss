@@ -167,19 +167,23 @@ void Rackmon::fullScan() {
         continue;
       }
       for (int i = 0; i < kScanNumRetry; i++) {
+        if (reqForceScan_.load() == false) {
+          logWarn << "Full scan aborted" << std::endl;
+          return;
+        }
         if (probe(*modbus, addr)) {
           break;
         }
       }
     }
   }
+  reqForceScan_ = false;
 }
 
 void Rackmon::scan() {
   // Circular iterator.
   if (reqForceScan_.load()) {
     fullScan();
-    reqForceScan_ = false;
     return;
   }
 
@@ -217,9 +221,12 @@ void Rackmon::start(PollThreadTime interval) {
   monitorThread_->start();
 }
 
-void Rackmon::stop() {
+void Rackmon::stop(bool forceStop) {
   for (auto& dev_it : devices_) {
     dev_it.second->setExclusiveMode(true);
+  }
+  if (forceStop) {
+    reqForceScan_ = false;
   }
   // TODO We probably need a timer to ensure we
   // are not waiting here forever.
