@@ -351,6 +351,26 @@ TEST_F(ModbusDeviceTest, MonitorInvalidRegOnce) {
   dev.reloadRegisters();
 }
 
+class ModbusDeviceMockTime : public ModbusDevice {
+  time_t currTime_ = 0;
+
+ public:
+  ModbusDeviceMockTime(
+      Modbus& interface,
+      uint8_t deviceAddress,
+      const RegisterMap& registerMap,
+      time_t baseTime,
+      int numCommandRetries = 5)
+      : ModbusDevice(interface, deviceAddress, registerMap, numCommandRetries),
+        currTime_(baseTime) {}
+  void incTime(time_t byTime) {
+    currTime_ += byTime;
+  }
+  time_t getCurrentTime() override {
+    return currTime_;
+  }
+};
+
 TEST_F(ModbusDeviceTest, MonitorDataValue) {
   EXPECT_CALL(
       get_modbus(),
@@ -373,7 +393,9 @@ TEST_F(ModbusDeviceTest, MonitorDataValue) {
       .WillOnce(SetMsgDecode<1>(0x32030462636465_EM))
       .WillOnce(SetMsgDecode<1>(0x32030463646566_EM));
 
-  ModbusDevice dev(get_modbus(), 0x32, get_regmap());
+  time_t baseTime = std::time(nullptr);
+  constexpr time_t monInterval = RegisterDescriptor::kDefaultInterval;
+  ModbusDeviceMockTime dev(get_modbus(), 0x32, get_regmap(), baseTime);
 
   dev.reloadRegisters();
   ModbusDeviceValueData data = dev.getValueData();
@@ -382,14 +404,14 @@ TEST_F(ModbusDeviceTest, MonitorDataValue) {
   EXPECT_EQ(data.crcErrors, 0);
   EXPECT_EQ(data.timeouts, 0);
   EXPECT_EQ(data.miscErrors, 0);
-  EXPECT_NEAR(data.lastActive, std::time(0), 10);
+  EXPECT_EQ(data.lastActive, baseTime);
   EXPECT_EQ(data.numConsecutiveFailures, 0);
   EXPECT_EQ(data.mode, ModbusDeviceMode::ACTIVE);
   EXPECT_EQ(data.registerList.size(), 1);
   EXPECT_EQ(data.registerList[0].regAddr, 0);
   EXPECT_EQ(data.registerList[0].name, "MFG_MODEL");
   EXPECT_EQ(data.registerList[0].history.size(), 1);
-  EXPECT_NEAR(data.registerList[0].history[0].timestamp, std::time(0), 10);
+  EXPECT_EQ(data.registerList[0].history[0].timestamp, baseTime);
   EXPECT_EQ(data.registerList[0].history[0].type, RegisterValueType::STRING);
   EXPECT_EQ(
       std::get<std::string>(data.registerList[0].history[0].value), "abcd");
@@ -419,6 +441,7 @@ TEST_F(ModbusDeviceTest, MonitorDataValue) {
   EXPECT_EQ(filterData4.deviceAddress, 0x32);
   EXPECT_EQ(filterData4.registerList.size(), 0);
 
+  dev.incTime(monInterval);
   dev.reloadRegisters();
   ModbusDeviceValueData data2 = dev.getValueData();
   EXPECT_EQ(data2.deviceAddress, 0x32);
@@ -426,7 +449,7 @@ TEST_F(ModbusDeviceTest, MonitorDataValue) {
   EXPECT_EQ(data2.crcErrors, 0);
   EXPECT_EQ(data2.timeouts, 0);
   EXPECT_EQ(data2.miscErrors, 0);
-  EXPECT_NEAR(data2.lastActive, std::time(0), 10);
+  EXPECT_EQ(data2.lastActive, baseTime + monInterval);
   EXPECT_EQ(data2.numConsecutiveFailures, 0);
   EXPECT_EQ(data2.mode, ModbusDeviceMode::ACTIVE);
   EXPECT_EQ(data2.registerList.size(), 1);
@@ -439,12 +462,13 @@ TEST_F(ModbusDeviceTest, MonitorDataValue) {
   EXPECT_EQ(data2.registerList[0].history[1].type, RegisterValueType::STRING);
   EXPECT_EQ(
       std::get<std::string>(data2.registerList[0].history[1].value), "bcde");
-  EXPECT_NEAR(data2.registerList[0].history[0].timestamp, std::time(0), 10);
-  EXPECT_NEAR(data2.registerList[0].history[1].timestamp, std::time(0), 10);
+  EXPECT_EQ(data2.registerList[0].history[0].timestamp, baseTime);
+  EXPECT_EQ(data2.registerList[0].history[1].timestamp, baseTime + monInterval);
   EXPECT_GE(
       data2.registerList[0].history[1].timestamp,
       data2.registerList[0].history[0].timestamp);
 
+  dev.incTime(monInterval);
   dev.reloadRegisters();
   ModbusDeviceValueData data3 = dev.getValueData();
   EXPECT_EQ(data3.registerList[0].history.size(), 2);
@@ -466,10 +490,12 @@ TEST_F(ModbusDeviceTest, MonitorDataValue) {
   EXPECT_TRUE(
       j["regList"][0]["history"].is_array() &&
       j["regList"][0]["history"].size() == 2);
-  EXPECT_NEAR(j["regList"][0]["history"][0]["timestamp"], std::time(0), 10);
+  EXPECT_EQ(
+      j["regList"][0]["history"][0]["timestamp"], baseTime + (monInterval * 2));
   EXPECT_EQ(j["regList"][0]["history"][0]["value"]["strValue"], "cdef");
   EXPECT_EQ(j["regList"][0]["history"][0]["type"], "STRING");
-  EXPECT_NEAR(j["regList"][0]["history"][1]["timestamp"], std::time(0), 10);
+  EXPECT_EQ(
+      j["regList"][0]["history"][1]["timestamp"], baseTime + (monInterval * 1));
   EXPECT_EQ(j["regList"][0]["history"][1]["value"]["strValue"], "bcde");
   EXPECT_EQ(j["regList"][0]["history"][1]["type"], "STRING");
 
@@ -501,7 +527,9 @@ TEST_F(ModbusDeviceTest, MonitorRawData) {
       .WillOnce(SetMsgDecode<1>(0x32030462636465_EM))
       .WillOnce(SetMsgDecode<1>(0x32030463646566_EM));
 
-  ModbusDevice dev(get_modbus(), 0x32, get_regmap());
+  constexpr time_t monInterval = RegisterDescriptor::kDefaultInterval;
+  time_t baseTime = std::time(nullptr);
+  ModbusDeviceMockTime dev(get_modbus(), 0x32, get_regmap(), baseTime);
 
   dev.reloadRegisters();
   nlohmann::json data = dev.getRawData();
@@ -510,15 +538,16 @@ TEST_F(ModbusDeviceTest, MonitorRawData) {
   EXPECT_EQ(data["timeouts"], 0);
   EXPECT_EQ(data["misc_fails"], 0);
   EXPECT_EQ(data["mode"], "ACTIVE");
-  EXPECT_NEAR(data["now"], std::time(0), 10);
+  EXPECT_NEAR(data["now"], baseTime, 10);
   EXPECT_TRUE(data["ranges"].is_array() && data["ranges"].size() == 1);
   EXPECT_EQ(data["ranges"][0]["begin"], 0);
   EXPECT_TRUE(
       data["ranges"][0]["readings"].is_array() &&
       data["ranges"][0]["readings"].size() == 1);
-  EXPECT_NEAR(data["ranges"][0]["readings"][0]["time"], std::time(0), 10);
+  EXPECT_NEAR(data["ranges"][0]["readings"][0]["time"], baseTime, 10);
   EXPECT_EQ(data["ranges"][0]["readings"][0]["data"], "61626364");
 
+  dev.incTime(monInterval);
   dev.reloadRegisters();
   nlohmann::json data2 = dev.getRawData();
   EXPECT_EQ(data2["addr"], 0x32);
@@ -526,25 +555,51 @@ TEST_F(ModbusDeviceTest, MonitorRawData) {
   EXPECT_EQ(data2["timeouts"], 0);
   EXPECT_EQ(data2["misc_fails"], 0);
   EXPECT_EQ(data2["mode"], "ACTIVE");
-  EXPECT_NEAR(data2["now"], std::time(0), 10);
+  EXPECT_NEAR(data2["now"], baseTime, 10);
   EXPECT_TRUE(data2["ranges"].is_array() && data2["ranges"].size() == 1);
   EXPECT_EQ(data2["ranges"][0]["begin"], 0);
   EXPECT_TRUE(
       data2["ranges"][0]["readings"].is_array() &&
       data2["ranges"][0]["readings"].size() == 2);
-  EXPECT_NEAR(data2["ranges"][0]["readings"][0]["time"], std::time(0), 10);
+  EXPECT_NEAR(data2["ranges"][0]["readings"][0]["time"], baseTime, 10);
   EXPECT_EQ(data2["ranges"][0]["readings"][0]["data"], "61626364");
-  EXPECT_NEAR(data2["ranges"][0]["readings"][1]["time"], std::time(0), 10);
+  EXPECT_NEAR(
+      data2["ranges"][0]["readings"][1]["time"], baseTime + monInterval, 10);
   EXPECT_EQ(data2["ranges"][0]["readings"][1]["data"], "62636465");
 
+  // Dont change time, just a single reload should not reload since
+  // time has not changed.
+  dev.reloadRegisters();
+  data2 = dev.getRawData();
+  EXPECT_TRUE(data2["ranges"].is_array() && data2["ranges"].size() == 1);
+  EXPECT_EQ(data2["ranges"][0]["begin"], 0);
+  EXPECT_TRUE(
+      data2["ranges"][0]["readings"].is_array() &&
+      data2["ranges"][0]["readings"].size() == 2);
+  EXPECT_NEAR(data2["ranges"][0]["readings"][0]["time"], baseTime, 10);
+  EXPECT_EQ(data2["ranges"][0]["readings"][0]["data"], "61626364");
+  EXPECT_NEAR(
+      data2["ranges"][0]["readings"][1]["time"], baseTime + monInterval, 10);
+  EXPECT_EQ(data2["ranges"][0]["readings"][1]["data"], "62636465");
+
+  // Enter and exit exclusive mode. This should
+  // force the next reload to happen even if our time has not incremented.
+  dev.setExclusiveMode(true);
+  dev.setExclusiveMode(false);
   dev.reloadRegisters();
   nlohmann::json data3 = dev.getRawData();
   EXPECT_TRUE(
       data3["ranges"][0]["readings"].is_array() &&
       data3["ranges"][0]["readings"].size() == 2);
-  EXPECT_NEAR(data3["ranges"][0]["readings"][0]["time"], std::time(0), 10);
+  EXPECT_NEAR(
+      data3["ranges"][0]["readings"][0]["time"],
+      baseTime + (monInterval * 1),
+      10);
   EXPECT_EQ(data3["ranges"][0]["readings"][0]["data"], "63646566");
-  EXPECT_NEAR(data3["ranges"][0]["readings"][1]["time"], std::time(0), 10);
+  EXPECT_NEAR(
+      data3["ranges"][0]["readings"][1]["time"],
+      baseTime + (monInterval * 1),
+      10);
   EXPECT_EQ(data3["ranges"][0]["readings"][1]["data"], "62636465");
 }
 

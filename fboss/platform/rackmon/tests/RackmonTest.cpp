@@ -396,7 +396,8 @@ TEST_F(RackmonTest, DormantRecovery) {
       {
         "begin": 0,
         "length": 1,
-        "name": "MFG_ID"
+        "name": "MFG_ID",
+        "interval": 0
       }
     ]
   })"_json;

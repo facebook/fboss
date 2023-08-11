@@ -88,6 +88,7 @@ class ModbusDevice {
   std::vector<ModbusSpecialHandler> specialHandlers_{};
   const BaudrateConfig& baudConfig_;
   bool setBaudEnabled_ = true;
+  bool singleShotReload_ = false;
   std::atomic<bool> exclusiveMode_{false};
 
   void handleCommandFailure(std::exception& baseException);
@@ -100,7 +101,12 @@ class ModbusDevice {
     setBaudrate(info_.preferredBaudrate);
   }
 
-  bool reloadRegister(RegisterStore& registerStore);
+  bool reloadRegister(RegisterStore& registerStore, bool singleShot);
+
+ protected:
+  virtual time_t getCurrentTime() {
+    return std::time(nullptr);
+  }
 
  public:
   ModbusDevice(
@@ -156,6 +162,9 @@ class ModbusDevice {
 
   void setExclusiveMode(bool enable) {
     exclusiveMode_ = enable;
+    // When disabling exclusive mode, enable
+    // single shot reload.
+    singleShotReload_ = !enable;
   }
 
   // Return structured information of the device.

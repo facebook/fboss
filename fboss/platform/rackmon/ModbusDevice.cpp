@@ -78,7 +78,7 @@ void ModbusDevice::command(Msg& req, Msg& resp, ModbusTime timeout) {
     try {
       interface_.command(req, resp, info_.baudrate, timeout, info_.parity);
       info_.numConsecutiveFailures = 0;
-      info_.lastActive = std::time(nullptr);
+      info_.lastActive = getCurrentTime();
       break;
     } catch (std::exception& ex) {
       handleCommandFailure(ex);
@@ -146,15 +146,23 @@ void ModbusDevice::setBaudrate(uint32_t baud) {
   }
 }
 
-bool ModbusDevice::reloadRegister(RegisterStore& registerStore) {
+bool ModbusDevice::reloadRegister(
+    RegisterStore& registerStore,
+    bool singleShot) {
   if (!registerStore.isEnabled()) {
+    return false;
+  }
+  const auto& lastReg = registerStore.back();
+  time_t reloadTime = getCurrentTime();
+  if (!singleShot && lastReg &&
+      (time_t)lastReg.timestamp + registerStore.interval() > reloadTime) {
     return false;
   }
   uint16_t registerOffset = registerStore.regAddr();
   try {
     std::vector<uint16_t>& value = registerStore.beginReloadRegister();
     readHoldingRegisters(registerOffset, value);
-    registerStore.endReloadRegister();
+    registerStore.endReloadRegister(reloadTime);
   } catch (ModbusError& e) {
     logInfo << "DEV:0x" << std::hex << int(info_.deviceAddress) << " ReadReg 0x"
             << std::hex << registerOffset << ' ' << registerStore.name()
@@ -189,12 +197,14 @@ void ModbusDevice::reloadRegisters() {
     }
     specialHandler.handle(*this);
   }
+  bool singleShot = singleShotReload_;
+  singleShotReload_ = false;
   for (auto& registerStore : info_.registerList) {
     // Break early, if we are entering exclusive mode
     if (exclusiveMode_) {
       break;
     }
-    if (reloadRegister(registerStore)) {
+    if (reloadRegister(registerStore, singleShot)) {
       // Release thread to allow for higher priority tasks to execute.
       std::this_thread::yield();
     }
@@ -212,6 +222,8 @@ void ModbusDevice::setActive() {
   // Clear the num failures so we consider it active.
   info_.numConsecutiveFailures = 0;
   info_.mode = ModbusDeviceMode::ACTIVE;
+  // Force read all registers on next reload
+  singleShotReload_ = true;
 }
 
 ModbusDeviceRawData ModbusDevice::getRawData() {
