@@ -73,11 +73,13 @@ void RegisterValue::makeInteger(
 
 void RegisterValue::makeFloat(
     const std::vector<uint16_t>& reg,
-    uint16_t precision) {
+    uint16_t precision,
+    float scale,
+    float shift) {
   makeInteger(reg, RegisterEndian::BIG);
   int32_t intValue = std::get<int32_t>(value);
-  // Y = X / 2^N
-  value = float(intValue) / float(1 << precision);
+  // Y = shift + scale * (X / 2^N)
+  value = shift + (scale * (float(intValue) / float(1 << precision)));
 }
 
 void RegisterValue::makeFlags(
@@ -110,7 +112,7 @@ RegisterValue::RegisterValue(
       makeInteger(reg, desc.endian);
       break;
     case RegisterValueType::FLOAT:
-      makeFloat(reg, desc.precision);
+      makeFloat(reg, desc.precision, desc.scale, desc.shift);
       break;
     case RegisterValueType::FLAGS:
       makeFlags(reg, desc.flags);
@@ -298,6 +300,8 @@ void from_json(const json& j, RegisterDescriptor& i) {
   i.format = j.value("format", RegisterValueType::HEX);
   if (i.format == RegisterValueType::FLOAT) {
     j.at("precision").get_to(i.precision);
+    i.scale = j.value("scale", 1.0);
+    i.shift = j.value("shift", 0.0);
   } else if (i.format == RegisterValueType::FLAGS) {
     j.at("flags").get_to(i.flags);
     for (const auto& [pos, name] : i.flags) {

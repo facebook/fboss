@@ -95,6 +95,14 @@ TEST(RegisterValueTest, FLOAT) {
   EXPECT_EQ(std::string(j["type"]), "FLOAT");
   EXPECT_EQ(j["timestamp"], 0x12345678);
   EXPECT_NEAR(j["value"]["floatValue"], 12.623, 0.001);
+
+  d.scale = 0.1;
+  d.shift = 10.0;
+  RegisterValue val2({0x64fc}, d, 0x12345678);
+  EXPECT_EQ(val2.type, RegisterValueType::FLOAT);
+  EXPECT_NEAR(std::get<float>(val2.value), 11.2623, 0.001);
+  j = val2;
+  EXPECT_NEAR(j["value"]["floatValue"], 11.2623, 0.001);
 }
 
 TEST(RegisterValueTest, FLAGS) {

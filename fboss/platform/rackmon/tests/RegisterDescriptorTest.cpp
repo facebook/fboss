@@ -97,6 +97,30 @@ TEST(RegisterDescriptorTest, JSONConversionFixed) {
   EXPECT_EQ(d.storeChangesOnly, false);
   EXPECT_EQ(d.format, RegisterValueType::FLOAT);
   EXPECT_EQ(d.precision, 6);
+  EXPECT_NEAR(d.scale, 1.0, 0.1);
+  EXPECT_NEAR(d.shift, 0.0, 0.1);
+}
+
+TEST(RegisterDescriptorTest, JSONConversionFixedScale) {
+  nlohmann::json desc = nlohmann::json::parse(R"({
+    "begin": 127,
+    "length": 1,
+    "format": "FLOAT",
+    "precision": 6,
+    "scale": 0.1,
+    "shift": 4.2,
+    "name": "Input VAC"
+  })");
+  RegisterDescriptor d = desc;
+  EXPECT_EQ(d.begin, 127);
+  EXPECT_EQ(d.length, 1);
+  EXPECT_EQ(d.name, "Input VAC");
+  EXPECT_EQ(d.keep, 1);
+  EXPECT_EQ(d.storeChangesOnly, false);
+  EXPECT_EQ(d.format, RegisterValueType::FLOAT);
+  EXPECT_EQ(d.precision, 6);
+  EXPECT_NEAR(d.scale, 0.1, 0.01);
+  EXPECT_NEAR(d.shift, 4.2, 0.01);
 }
 
 TEST(RegisterDescriptorTest, JSONConversionFixedMissingPrec) {

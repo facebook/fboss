@@ -52,6 +52,12 @@ struct RegisterDescriptor {
   // the precision.
   uint16_t precision = 0;
 
+  // Scale floating point value.
+  float scale = 1.0;
+
+  // Shift floating point value.
+  float shift = 0.0;
+
   // If the register stores flags, this provides the desc.
   FlagsDescType flags{};
 };
@@ -90,7 +96,11 @@ struct RegisterValue {
   void makeString(const std::vector<uint16_t>& reg);
   void makeHex(const std::vector<uint16_t>& reg);
   void makeInteger(const std::vector<uint16_t>& reg, RegisterEndian end);
-  void makeFloat(const std::vector<uint16_t>& reg, uint16_t precision);
+  void makeFloat(
+      const std::vector<uint16_t>& reg,
+      uint16_t precision,
+      float scale,
+      float shift);
   void makeFlags(
       const std::vector<uint16_t>& reg,
       const RegisterDescriptor::FlagsDescType& flagsDesc);
