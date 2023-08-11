@@ -205,6 +205,9 @@ enum RackmonControlRequest {
 
   /* Resume rackmond core loop. */
   RESUME_RACKMOND = 1,
+
+  /* Rescan immediately */
+  RESCAN = 2,
 }
 
 struct PowerPortStatus {

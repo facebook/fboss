@@ -357,6 +357,9 @@ RackmonStatusCode ThriftHandler::controlRackmond(
       case RackmonControlRequest::RESUME_RACKMOND:
         rackmond_.start();
         break;
+      case RackmonControlRequest::RESCAN:
+        rackmond_.forceScan();
+        break;
       default:
         return RackmonStatusCode::ERR_INVALID_ARGS;
     }
