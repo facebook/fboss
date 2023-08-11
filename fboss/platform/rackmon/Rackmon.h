@@ -72,8 +72,6 @@ class Rackmon {
 
   bool isDeviceKnown(uint8_t);
 
-  ModbusDevice& getModbusDevice(uint8_t addr);
-
   // Monitor loop. Blocks forever as long as req_stop is true.
   void monitor();
 
@@ -84,6 +82,9 @@ class Rackmon {
   void scan();
 
  protected:
+  // Return the device given address.
+  ModbusDevice& getModbusDevice(uint8_t addr);
+
   PollThread<Rackmon>& getScanThread() {
     if (!scanThread_) {
       throw std::runtime_error("Invalid scanThread state");
