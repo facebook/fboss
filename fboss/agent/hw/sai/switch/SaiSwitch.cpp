@@ -1801,8 +1801,7 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
   auto switchSettings = std::make_shared<SwitchSettings>();
   switchSettings->setSwitchIdToSwitchInfo(
       scopeResolver->switchIdToSwitchInfo());
-  multiSwitchSwitchSettings->addNode(
-      scopeResolver->scope(switchSettings).matcherString(), switchSettings);
+  multiSwitchSwitchSettings->addNode(matcher.matcherString(), switchSettings);
 
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::LINK_STATE_BASED_ISOLATE)) {
