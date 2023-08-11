@@ -23,6 +23,7 @@ DEFINE_bool(enable_lacp, false, "Run LACP in agent");
 DEFINE_bool(enable_lldp, true, "Run LLDP protocol in agent");
 DEFINE_bool(publish_boot_type, true, "Publish boot type on startup");
 DEFINE_bool(enable_macsec, false, "Enable Macsec functionality");
+DEFINE_bool(enable_stats_update_thread, true, "Run stats update thread");
 
 DEFINE_int32(port, 5909, "The thrift server port");
 // current default 5909 is in conflict with VNC ports, need to
@@ -125,17 +126,19 @@ void SwSwitchInitializer::init(HwSwitchCallback* hwSwitchCallback) {
   if (sw_->getBootType() == BootType::WARM_BOOT) {
     sw_->stopLoggingRouteUpdates("fboss-agent-warmboot");
   }
-  // Start the UpdateSwitchStatsThread
-  fs_ = std::make_unique<folly::FunctionScheduler>();
-  fs_->setThreadName("UpdateStatsThread");
-  // steady will help even out the interval which will especially make
-  // aggregated counters more accurate with less spikes and dips
-  fs_->setSteady(true);
-  std::function<void()> callback(std::bind(updateStats, sw_));
-  auto timeInterval = std::chrono::seconds(1);
-  fs_->addFunction(callback, timeInterval, "updateStats");
-  fs_->start();
-  XLOG(DBG2) << "Started background thread: UpdateStatsThread";
+  if (FLAGS_enable_stats_update_thread) {
+    // Start the UpdateSwitchStatsThread
+    fs_ = std::make_unique<folly::FunctionScheduler>();
+    fs_->setThreadName("UpdateStatsThread");
+    // steady will help even out the interval which will especially make
+    // aggregated counters more accurate with less spikes and dips
+    fs_->setSteady(true);
+    std::function<void()> callback(std::bind(updateStats, sw_));
+    auto timeInterval = std::chrono::seconds(1);
+    fs_->addFunction(callback, timeInterval, "updateStats");
+    fs_->start();
+    XLOG(DBG2) << "Started background thread: UpdateStatsThread";
+  }
   initCondition_.notify_all();
 }
 
