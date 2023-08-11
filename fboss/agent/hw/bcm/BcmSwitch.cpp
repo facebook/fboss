@@ -651,8 +651,14 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   switchSettings->setDefaultVlan(VlanID(defaultVlan));
   switchSettings->setSwitchIdToSwitchInfo(
       scopeResolver->switchIdToSwitchInfo());
-  multiSwitchSwitchSettings->addNode(
-      scopeResolver->scope(switchSettings).matcherString(), switchSettings);
+
+  auto switchId = platform_->getAsic()->getSwitchId()
+      ? *platform_->getAsic()->getSwitchId()
+      : 0;
+  auto matcher =
+      HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(switchId)}));
+  multiSwitchSwitchSettings->addNode(matcher.matcherString(), switchSettings);
+
   bootState->resetSwitchSettings(multiSwitchSwitchSettings);
 
   // get cpu queue settings
