@@ -21,6 +21,8 @@
 #include <folly/IPAddress.h>
 #include <folly/logging/xlog.h>
 
+DECLARE_bool(enable_stats_update_thread);
+
 namespace facebook::fboss {
 
 RouteNextHopSet makeNextHops(std::vector<std::string> ipsAsStrings) {
@@ -58,6 +60,9 @@ BENCHMARK(HwStatsCollection) {
   AgentEnsembleSwitchConfigFn initialConfigFn =
       [numPortsToCollectStats, numRouteCounters](
           HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
+        // Disable stats collection thread.
+        FLAGS_enable_stats_update_thread = false;
+
         auto portsNew = ports;
         portsNew.resize(std::min((int)ports.size(), numPortsToCollectStats));
 
