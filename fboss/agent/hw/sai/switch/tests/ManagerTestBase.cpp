@@ -249,7 +249,7 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
       break;
     case cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG:
       swPort->setProfileId(
-          cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_COPPER);
+          cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544_COPPER);
       break;
     case cfg::PortSpeed::TWOHUNDREDG:
       swPort->setProfileId(
