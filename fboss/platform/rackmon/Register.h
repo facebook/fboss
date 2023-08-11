@@ -225,7 +225,7 @@ struct RegisterStore {
   std::vector<uint16_t>& beginReloadRegister();
 
   // Request to commit the loaded register
-  void endReloadRegister();
+  void endReloadRegister(time_t reloadTime = std::time(nullptr));
 
   // Returns a reference to the last written value (Back of the list)
   Register& back();

@@ -197,9 +197,9 @@ std::vector<uint16_t>& RegisterStore::beginReloadRegister() {
   return front().getInactive().value;
 }
 
-void RegisterStore::endReloadRegister() {
+void RegisterStore::endReloadRegister(time_t reloadTime) {
   std::unique_lock lk(historyMutex_);
-  front().getInactive().timestamp = std::time(nullptr);
+  front().getInactive().timestamp = reloadTime;
   // Update the front and bump indexs.
   front().swapActive();
   // If we care about changes only and the values
