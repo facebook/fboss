@@ -8,38 +8,38 @@
   "sw": {
     "version": 0,
     "ports": [
-      
+
     ],
     "vlans": [
-      
+
     ],
     "vlanPorts": [
-      
+
     ],
     "defaultVlan": 0,
     "interfaces": [
-      
+
     ],
     "arpTimeoutSeconds": 60,
     "arpRefreshSeconds": 20,
     "arpAgerInterval": 5,
     "proactiveArp": false,
     "staticRoutesWithNhops": [
-      
+
     ],
     "staticRoutesToNull": [
-      
+
     ],
     "staticRoutesToCPU": [
-      
+
     ],
     "acls": [
-      
+
     ],
     "maxNeighborProbes": 300,
     "staleEntryInterval": 10,
     "aggregatePorts": [
-      
+
     ],
     "clientIdToAdminDistance": {
       "0": 20,
@@ -50,40 +50,40 @@
       "786": 10
     },
     "sFlowCollectors": [
-      
+
     ],
     "cpuQueues": [
-      
+
     ],
     "loadBalancers": [
-      
+
     ],
     "mirrors": [
-      
+
     ],
     "trafficCounters": [
-      
+
     ],
     "qosPolicies": [
-      
+
     ],
     "defaultPortQueues": [
-      
+
     ],
     "staticMplsRoutesWithNhops": [
-      
+
     ],
     "staticMplsRoutesToNull": [
-      
+
     ],
     "staticMplsRoutesToCPU": [
-      
+
     ],
     "staticIp2MplsRoutes": [
-      
+
     ],
     "portQueueConfigs": {
-      
+
     },
     "switchSettings": {
       "l2LearningMode": 0,
@@ -92,18 +92,18 @@
       "l2AgeTimerSeconds": 300,
       "maxRouteCounterIDs": 0,
       "blockNeighbors": [
-        
+
       ],
       "macAddrsToBlock": [
-        
+
       ],
       "switchType": 3,
       "switchId": 0,
       "exactMatchTableConfigs": [
-        
+
       ],
       "switchIdToSwitchType": {
-        
+
       },
       "switchDrainState": 0,
       "switchIdToSwitchInfo": {
@@ -119,10 +119,10 @@
       }
     },
     "dsfNodes": {
-      
+
     },
     "defaultVoqConfig": [
-      
+
     ]
   },
   "platform": {

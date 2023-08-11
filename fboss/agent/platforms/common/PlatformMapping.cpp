@@ -23,6 +23,11 @@ DEFINE_string(
     "",
     "The path to the Platform Mapping JSON file");
 
+DEFINE_bool(
+    multi_npu_platform_mapping,
+    false,
+    "use multi-npu platform mapping for applicable platforms");
+
 namespace {
 constexpr auto kFbossPortNameRegex = "eth(\\d+)/(\\d+)/(\\d+)";
 const re2::RE2 portNameRegex(kFbossPortNameRegex);

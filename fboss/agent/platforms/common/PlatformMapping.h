@@ -15,6 +15,7 @@
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 DECLARE_string(platform_mapping_override_path);
+DECLARE_bool(multi_npu_platform_mapping);
 
 namespace facebook {
 namespace fboss {
