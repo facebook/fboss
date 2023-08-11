@@ -351,8 +351,8 @@ TEST_F(RackmonTest, BasicScanFoundOneMon) {
 }
 
 TEST_F(RackmonTest, DormantRecovery) {
-  MockRackmon mon;
   bool commandTimeout = false;
+  MockRackmon mon;
   auto make_flaky = [&commandTimeout]() {
     json exp = R"({
       "device_path": "/tmp/blah",
