@@ -44,12 +44,15 @@ void verifyPktFromAggregatePort(
     const HwSwitchEnsemble* /*ensemble*/,
     AggregatePortID aggregatePortID) {
   std::array<char, 8> data{};
+  // TODO (T159867926): Set the right queue ID once the vendor
+  // set the right queue ID in the rx callback.
   auto rxPacket = std::make_unique<SaiRxPacket>(
       data.size(),
       data.data(),
       aggregatePortID,
       VlanID(1),
-      cfg::PacketRxReason::UNMATCHED);
+      cfg::PacketRxReason::UNMATCHED,
+      0 /* queue Id */);
   EXPECT_TRUE(rxPacket->isFromAggregatePort());
 }
 

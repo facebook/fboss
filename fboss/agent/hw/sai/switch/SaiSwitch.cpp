@@ -2173,7 +2173,7 @@ void SaiSwitch::packetRxCallbackPort(
   };
 
   auto rxPacket = std::make_unique<SaiRxPacket>(
-      buffer_size, buffer, PortID(0), VlanID(0), rxReason);
+      buffer_size, buffer, PortID(0), VlanID(0), rxReason, queueId);
   const auto portItr = concurrentIndices_->portIds.find(portSaiId);
   /*
    * When a packet is received with source port as cpu port, do the following:
@@ -2266,7 +2266,7 @@ void SaiSwitch::packetRxCallbackLag(
   PortID swPortId(0);
   VlanID swVlanId(0);
   auto rxPacket = std::make_unique<SaiRxPacket>(
-      buffer_size, buffer, PortID(0), VlanID(0), rxReason);
+      buffer_size, buffer, PortID(0), VlanID(0), rxReason, queueId);
 
   const auto aggPortItr = concurrentIndices_->aggregatePortIds.find(lagSaiId);
 

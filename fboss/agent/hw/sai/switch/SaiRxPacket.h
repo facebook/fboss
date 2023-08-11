@@ -23,14 +23,16 @@ class SaiRxPacket : public RxPacket {
       const void* buffer,
       PortID portID,
       VlanID vlanID,
-      cfg::PacketRxReason rxReason);
+      cfg::PacketRxReason rxReason,
+      uint8_t queueId);
 
   SaiRxPacket(
       size_t buffer_size,
       const void* buffer,
       AggregatePortID aggregatePortID,
       VlanID vlanID,
-      cfg::PacketRxReason rxReason);
+      cfg::PacketRxReason rxReason,
+      uint8_t queueId);
   /*
    * Set the port on which this packet was received.
    */
