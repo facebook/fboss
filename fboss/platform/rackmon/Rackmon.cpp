@@ -209,6 +209,7 @@ std::unique_ptr<PollThread<Rackmon>> Rackmon::makeThread(
 }
 
 void Rackmon::start(PollThreadTime interval) {
+  logInfo << "Start was requested" << std::endl;
   if (scanThread_ != nullptr || monitorThread_ != nullptr) {
     throw std::runtime_error("Already running");
   }
@@ -222,6 +223,7 @@ void Rackmon::start(PollThreadTime interval) {
 }
 
 void Rackmon::stop(bool forceStop) {
+  logInfo << "Stop was requested" << std::endl;
   for (auto& dev_it : devices_) {
     dev_it.second->setExclusiveMode(true);
   }
@@ -238,6 +240,11 @@ void Rackmon::stop(bool forceStop) {
     scanThread_->stop();
     scanThread_ = nullptr;
   }
+}
+
+void Rackmon::forceScan() {
+  logInfo << "Force Scan was requested" << std::endl;
+  reqForceScan_ = true;
 }
 
 void Rackmon::rawCmd(Request& req, Response& resp, ModbusTime timeout) {

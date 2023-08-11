@@ -136,9 +136,7 @@ class Rackmon {
   void stop(bool forceStop = true);
 
   // Force rackmond to do a full scan on the next scan loop.
-  void forceScan() {
-    reqForceScan_ = true;
-  }
+  void forceScan();
 
   // Executes the Raw command. Throws an exception on error.
   void rawCmd(Request& req, Response& resp, ModbusTime timeout);
