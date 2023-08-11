@@ -2065,6 +2065,7 @@ void SaiSwitch::packetRxCallback(
   std::optional<PortSaiId> portSaiIdOpt;
   std::optional<LagSaiId> lagSaiIdOpt;
   std::optional<HostifTrapSaiId> hostifTrapSaiIdOpt;
+  std::optional<uint8_t> hostifQueueIdOpt;
   for (uint32_t index = 0; index < attr_count; index++) {
     switch (attr_list[index].id) {
       case SAI_HOSTIF_PACKET_ATTR_INGRESS_PORT:
@@ -2075,6 +2076,9 @@ void SaiSwitch::packetRxCallback(
         break;
       case SAI_HOSTIF_PACKET_ATTR_HOSTIF_TRAP_ID:
         hostifTrapSaiIdOpt = attr_list[index].value.oid;
+        break;
+      case SAI_HOSTIF_PACKET_ATTR_EGRESS_QUEUE_INDEX:
+        hostifQueueIdOpt = attr_list[index].value.u8;
         break;
       default:
         XLOG(DBG2) << "invalid attribute received";
@@ -2128,9 +2132,16 @@ void SaiSwitch::packetRxCallback(
     }
   }
 
+  auto queueId = hostifQueueIdOpt.has_value() ? hostifQueueIdOpt.value() : 0;
+
   if (!lagSaiIdOpt) {
     packetRxCallbackPort(
-        buffer_size, buffer, portSaiId, allowMissingSrcPort, packetRxReason);
+        buffer_size,
+        buffer,
+        portSaiId,
+        allowMissingSrcPort,
+        packetRxReason,
+        queueId);
   } else {
     packetRxCallbackLag(
         buffer_size,
@@ -2138,7 +2149,8 @@ void SaiSwitch::packetRxCallback(
         lagSaiIdOpt.value(),
         portSaiId,
         allowMissingSrcPort,
-        packetRxReason);
+        packetRxReason,
+        queueId);
   }
 }
 
@@ -2147,7 +2159,8 @@ void SaiSwitch::packetRxCallbackPort(
     const void* buffer,
     PortSaiId portSaiId,
     bool allowMissingSrcPort,
-    cfg::PacketRxReason rxReason) {
+    cfg::PacketRxReason rxReason,
+    uint8_t queueId) {
   PortID swPortId(0);
   std::optional<VlanID> swVlanId = (getSwitchType() == cfg::SwitchType::VOQ ||
                                     getSwitchType() == cfg::SwitchType::FABRIC)
@@ -2247,7 +2260,8 @@ void SaiSwitch::packetRxCallbackLag(
     LagSaiId lagSaiId,
     PortSaiId portSaiId,
     bool allowMissingSrcPort,
-    cfg::PacketRxReason rxReason) {
+    cfg::PacketRxReason rxReason,
+    uint8_t queueId) {
   AggregatePortID swAggPortId(0);
   PortID swPortId(0);
   VlanID swVlanId(0);

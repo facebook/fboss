@@ -442,7 +442,8 @@ class SaiSwitch : public HwSwitch {
       const void* buffer,
       PortSaiId inPort,
       bool allowMissingSrcPort,
-      cfg::PacketRxReason rxReason);
+      cfg::PacketRxReason rxReason,
+      uint8_t queueId);
 
   void packetRxCallbackLag(
       sai_size_t buffer_size,
@@ -450,7 +451,8 @@ class SaiSwitch : public HwSwitch {
       LagSaiId inAggPort,
       PortSaiId inPort,
       bool allowMissingSrcPort,
-      cfg::PacketRxReason rxReason);
+      cfg::PacketRxReason rxReason,
+      uint8_t queueId);
 
   std::shared_ptr<SwitchState> getColdBootSwitchState();
 
