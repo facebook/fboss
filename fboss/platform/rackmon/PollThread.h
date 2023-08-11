@@ -66,11 +66,13 @@ class PollThread {
       threadID_.join();
     }
   }
-  void tick() {
+  void tick(bool nonBlocking = false) {
     std::unique_lock lk(eventMutex_);
     tick_ = true;
     eventCV_.notify_all();
-    ack_.wait(lk, [this]() { return !tick_.load(); });
+    if (!nonBlocking) {
+      ack_.wait(lk, [this]() { return !tick_.load(); });
+    }
   }
 };
 
