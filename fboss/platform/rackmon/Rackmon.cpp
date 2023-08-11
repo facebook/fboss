@@ -92,6 +92,15 @@ bool Rackmon::probe(Modbus& interface, uint8_t addr) {
   }
 }
 
+bool Rackmon::probe(uint8_t addr) {
+  // We do not support the same address
+  // on multiple interfaces.
+  return std::any_of(
+      interfaces_.begin(), interfaces_.end(), [this, addr](const auto& iface) {
+        return probe(*iface, addr);
+      });
+}
+
 std::vector<uint8_t> Rackmon::inspectDormant() {
   std::vector<uint8_t> ret{};
   std::shared_lock lock(devicesMutex_);
@@ -160,21 +169,26 @@ ModbusDevice& Rackmon::getModbusDevice(uint8_t addr) {
 
 void Rackmon::fullScan() {
   logInfo << "Starting scan of all devices" << std::endl;
-
-  for (auto& modbus : interfaces_) {
-    for (auto& addr : allPossibleDevAddrs_) {
-      if (isDeviceKnown(addr)) {
-        continue;
+  bool atLeastOne = false;
+  for (auto& addr : allPossibleDevAddrs_) {
+    if (isDeviceKnown(addr)) {
+      continue;
+    }
+    for (int i = 0; i < kScanNumRetry; i++) {
+      if (reqForceScan_.load() == false) {
+        logWarn << "Full scan aborted" << std::endl;
+        return;
       }
-      for (int i = 0; i < kScanNumRetry; i++) {
-        if (reqForceScan_.load() == false) {
-          logWarn << "Full scan aborted" << std::endl;
-          return;
-        }
-        if (probe(*modbus, addr)) {
-          break;
-        }
+      if (probe(addr)) {
+        atLeastOne = true;
+        break;
       }
+    }
+  }
+  // When scan is complete, request for a monitor.
+  if (atLeastOne) {
+    if (auto monThread = monitorThread_; monThread) {
+      monThread->tick();
     }
   }
   reqForceScan_ = false;
@@ -189,8 +203,10 @@ void Rackmon::scan() {
 
   // Probe for the address only if we already dont know it.
   if (!isDeviceKnown(*nextDeviceToProbe_)) {
-    for (auto& modbus : interfaces_) {
-      probe(*modbus, *nextDeviceToProbe_);
+    if (probe(*nextDeviceToProbe_)) {
+      if (auto monThread = monitorThread_; monThread) {
+        monThread->tick();
+      }
     }
     lastScanTime_ = std::time(nullptr);
   }
@@ -202,10 +218,10 @@ void Rackmon::scan() {
   }
 }
 
-std::unique_ptr<PollThread<Rackmon>> Rackmon::makeThread(
+std::shared_ptr<PollThread<Rackmon>> Rackmon::makeThread(
     std::function<void(Rackmon*)> func,
     PollThreadTime interval) {
-  return std::make_unique<PollThread<Rackmon>>(func, this, interval);
+  return std::make_shared<PollThread<Rackmon>>(func, this, interval);
 }
 
 void Rackmon::start(PollThreadTime interval) {
@@ -245,6 +261,10 @@ void Rackmon::stop(bool forceStop) {
 void Rackmon::forceScan() {
   logInfo << "Force Scan was requested" << std::endl;
   reqForceScan_ = true;
+  auto scanThread = scanThread_;
+  if (scanThread) {
+    scanThread->tick();
+  }
 }
 
 void Rackmon::rawCmd(Request& req, Response& resp, ModbusTime timeout) {

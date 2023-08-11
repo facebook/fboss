@@ -29,8 +29,8 @@ class Rackmon {
   static constexpr int kScanNumRetry = 3;
   static constexpr time_t kDormantMinInactiveTime = 300;
   static constexpr ModbusTime kProbeTimeout = std::chrono::milliseconds(50);
-  std::unique_ptr<PollThread<Rackmon>> monitorThread_;
-  std::unique_ptr<PollThread<Rackmon>> scanThread_;
+  std::shared_ptr<PollThread<Rackmon>> monitorThread_;
+  std::shared_ptr<PollThread<Rackmon>> scanThread_;
   // Has to be before defining active or dormant devices
   // to ensure users get destroyed before the interface.
   std::vector<std::unique_ptr<Modbus>> interfaces_{};
@@ -62,6 +62,9 @@ class Rackmon {
 
   // Probe an interface for the presence of the address.
   bool probe(Modbus& interface, uint8_t addr);
+
+  // Probe for the presence of an address
+  bool probe(uint8_t addr);
 
   // --------- Private Methods --------
 
@@ -126,7 +129,7 @@ class Rackmon {
   void load(const std::string& confPath, const std::string& regmapDir);
 
   // Create a worker thread
-  virtual std::unique_ptr<PollThread<Rackmon>> makeThread(
+  virtual std::shared_ptr<PollThread<Rackmon>> makeThread(
       std::function<void(Rackmon*)> func,
       PollThreadTime interval);
 
