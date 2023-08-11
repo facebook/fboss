@@ -377,7 +377,13 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
       ptpTcMgr_(new BcmPtpTcMgr(this)),
       sysPortMgr_(new UnsupportedFeatureManager("system ports")),
       remoteRifMgr_(new UnsupportedFeatureManager("remote RIF")),
-      udfManager_(new BcmUdfManager(this)) {}
+      udfManager_(new BcmUdfManager(this)) {
+  CHECK(!unitObject_);
+  unitObject_ = BcmAPI::createOnlyUnit(platform_);
+  unit_ = unitObject_->getNumber();
+  unitObject_->setCookie(this);
+  BcmAPI::initUnit(unit_, platform_);
+}
 
 BcmSwitch::~BcmSwitch() {
   XLOG(DBG2) << "Destroying BcmSwitch";
@@ -789,13 +795,6 @@ void BcmSwitch::setMacAging(std::chrono::seconds agingInterval) {
 void BcmSwitch::minimalInit() {
   std::lock_guard<std::mutex> g(lock_);
 
-  CHECK(!unitObject_);
-  unitObject_ = BcmAPI::createOnlyUnit(platform_);
-  unit_ = unitObject_->getNumber();
-  unitObject_->setCookie(this);
-
-  BcmAPI::initUnit(unit_, platform_);
-
   bootType_ = platform_->getWarmBootHelper()->canWarmBoot()
       ? BootType::WARM_BOOT
       : BootType::COLD_BOOT;
@@ -814,12 +813,6 @@ HwInitResult BcmSwitch::initImpl(
   std::lock_guard<std::mutex> g(lock_);
 
   steady_clock::time_point begin = steady_clock::now();
-  CHECK(!unitObject_);
-  unitObject_ = BcmAPI::createOnlyUnit(platform_);
-  unit_ = unitObject_->getNumber();
-  unitObject_->setCookie(this);
-
-  BcmAPI::initUnit(unit_, platform_);
 
   bootType_ = platform_->getWarmBootHelper()->canWarmBoot()
       ? BootType::WARM_BOOT
