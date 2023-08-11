@@ -275,13 +275,15 @@ void SaiSwitch::unregisterCallbacks() noexcept {
   // just need to block until the last event is processed
   if (runState_ >= SwitchRunState::CONFIGURED &&
       getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
-    linkStateBottomHalfEventBase_.terminateLoopSoon();
+    linkStateBottomHalfEventBase_.runInEventBaseThreadAndWait(
+        [this]() { linkStateBottomHalfEventBase_.terminateLoopSoon(); });
     linkStateBottomHalfThread_->join();
     // link scan is completely shut-off
   }
 
   if (runState_ >= SwitchRunState::INITIALIZED) {
-    fdbEventBottomHalfEventBase_.terminateLoopSoon();
+    fdbEventBottomHalfEventBase_.runInEventBaseThreadAndWait(
+        [this]() { fdbEventBottomHalfEventBase_.terminateLoopSoon(); });
     fdbEventBottomHalfThread_->join();
   }
 }
