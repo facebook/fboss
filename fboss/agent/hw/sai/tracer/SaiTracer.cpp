@@ -993,6 +993,18 @@ void SaiTracer::logInsegEntrySetAttrFn(
   writeToFile(lines);
 }
 
+// Prior to GET calls, log the attributes used for GET.
+void SaiTracer::logAttrPreGet(
+    uint32_t attr_count,
+    const sai_attribute_t* attr,
+    sai_object_type_t object_type) {
+  if (!FLAGS_enable_replayer || !FLAGS_enable_get_attr_log) {
+    return;
+  }
+
+  writeToFile(std::move(setAttrList(attr, attr_count, object_type, 0)), false);
+}
+
 void SaiTracer::logGetAttrFn(
     const string& fn_name,
     sai_object_id_t get_object_id,
@@ -1004,29 +1016,28 @@ void SaiTracer::logGetAttrFn(
     return;
   }
 
-  vector<string> lines = setAttrList(attr, attr_count, object_type, rv);
-  lines.push_back(
-      to<string>("memset(get_attribute,0,ATTR_SIZE*", maxAttrCount_, ")"));
+  // Make getAttribute call and copy results to get_attribute
+  vector<string> lines{
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              object_type,
+              "Unsupported Sai Object type in Sai Tracer"),
+          fn_name,
+          "(",
+          getVariable(get_object_id),
+          ",",
+          attr_count,
+          ",s_a)"),
+      to<string>("memcpy(get_attribute, s_a, ATTR_SIZE*", maxAttrCount_, ")")};
 
-  auto constexpr get_attribute = "get_attribute";
+  // Log the values retrieved at runtime
+  auto runtimeAttr = setAttrList(attr, attr_count, object_type, rv);
+  lines.insert(lines.end(), runtimeAttr.begin(), runtimeAttr.end());
 
-  // Setup ids
-  for (int i = 0; i < attr_count; ++i) {
-    lines.push_back(to<string>(get_attribute, "[", i, "].id=", attr[i].id));
-  }
-
-  // Make getAttribute call
-  lines.push_back(to<string>(
-      "rv=",
-      folly::get_or_throw(
-          fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
-      fn_name,
-      "(",
-      getVariable(get_object_id),
-      ",",
-      attr_count,
-      ",get_attribute)"));
-
+  // Compare values
+  lines.push_back(to<string>("attrCheck(get_attribute, s_a, ", numCalls_, ")"));
   writeToFile(lines, /*linefeed*/ false);
 }
 

@@ -138,6 +138,11 @@ class SaiTracer {
       const sai_attribute_t* attr,
       sai_status_t rv);
 
+  void logAttrPreGet(
+      uint32_t attr_count,
+      const sai_attribute_t* attr,
+      sai_object_type_t object_type);
+
   void logGetAttrFn(
       const std::string& fn_name,
       sai_object_id_t get_object_id,
@@ -517,6 +522,10 @@ class SaiTracer {
       "  else if (rv != 0) printf(\"Non 0 rv at %d with status %d\\n\", count, rv);\n"
       "}\n"
       "\n"
+      "inline void attrCheck(sai_attribute_t *expected, sai_attribute_t *actual, int count) {\n"
+      "  if (memcmp((void*)expected, (void*)actual, ATTR_SIZE * 1024)) printf(\"Diff in GET attribute %d\\n\", count);\n"
+      "}\n"
+      "\n"
       "sai_object_id_t assignObject(sai_object_key_t* object_list, int object_count, int i, sai_object_id_t default_id) {\n"
       "  if (i < object_count) {\n"
       "    return object_list[i].key.object_id;\n"
@@ -597,6 +606,8 @@ class SaiTracer {
       uint32_t attr_count,                                                   \
       sai_attribute_t* attr_list) {                                          \
     if (FLAGS_enable_replayer && FLAGS_enable_get_attr_log) {                \
+      SaiTracer::getInstance()->logAttrPreGet(                               \
+          attr_count, attr_list, sai_obj_type);                              \
       auto begin = FLAGS_enable_elapsed_time_log                             \
           ? std::chrono::system_clock::now()                                 \
           : std::chrono::system_clock::time_point::min();                    \
