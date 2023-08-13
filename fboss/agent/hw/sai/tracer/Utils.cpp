@@ -752,6 +752,19 @@ void u8ArrGenericAttr(
   attrLines.push_back(outStringStream.str());
 }
 
+void prbsRxStateAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
+  string prefix = to<string>("s_a", "[", i, "].value.rx_state.");
+  attrLines.push_back(
+      to<string>(prefix, "rx_status=", attr_list[i].value.rx_state.rx_status));
+  attrLines.push_back(to<string>(
+      prefix, "error_count=", attr_list[i].value.rx_state.error_count));
+#endif
+}
+
 std::string toCapital(const std::string& input) {
   std::string output;
   for (int i = 0; i < input.length(); ++i) {

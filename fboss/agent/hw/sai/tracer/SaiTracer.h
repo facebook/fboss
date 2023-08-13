@@ -275,6 +275,9 @@ class SaiTracer {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
         {TYPE_INDEX(sai_latch_status_t), &latchStatusAttr},
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
+        {TYPE_INDEX(sai_prbs_rx_state_t), &prbsRxStateAttr},
+#endif
   };
 
   std::unordered_map<std::size_t, ListFunction> listFuncMap_ {

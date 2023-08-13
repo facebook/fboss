@@ -36,6 +36,9 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap {
       SAI_ATTR_MAP(Port, IngressSampleMirrorSession),
       SAI_ATTR_MAP(Port, EgressSampleMirrorSession),
       SAI_ATTR_MAP(Port, PrbsPolynomial), SAI_ATTR_MAP(Port, PrbsConfig),
+#if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
+      SAI_ATTR_MAP(Port, PrbsRxState),
+#endif
       SAI_ATTR_MAP(Port, IngressMacSecAcl), SAI_ATTR_MAP(Port, EgressMacSecAcl),
       SAI_ATTR_MAP(Port, PtpMode), SAI_ATTR_MAP(Port, PortEyeValues),
       SAI_ATTR_MAP(Port, PriorityFlowControlMode),

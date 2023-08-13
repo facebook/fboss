@@ -117,6 +117,11 @@ void u32RangeAttr(
     int i,
     std::vector<std::string>& attrLines);
 
+void prbsRxStateAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines);
+
 /* List Types */
 
 void oidListAttr(
