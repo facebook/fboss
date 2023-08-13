@@ -622,7 +622,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     int baseIntfId,
     bool enableFabricPorts) {
   return multiplePortsPerIntfConfig(
-      hwSwitch,
+      hwSwitch->getPlatform()->getPlatformMapping(),
+      hwSwitch->getPlatform()->getAsic(),
       ports,
       lbModeMap,
       interfaceHasSubnet,
@@ -633,7 +634,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
 }
 
 cfg::SwitchConfig multiplePortsPerIntfConfig(
-    const HwSwitch* hwSwitch,
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
     const std::vector<PortID>& ports,
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
     bool interfaceHasSubnet,
@@ -646,11 +648,11 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
   std::vector<PortID> vlanPorts;
   auto idx = 0;
   auto vlan = baseVlanId;
-  auto switchType = hwSwitch->getPlatform()->getAsic()->getSwitchType();
+  auto switchType = asic->getSwitchType();
   for (auto port : ports) {
     vlanPorts.push_back(port);
     auto portType =
-        hwSwitch->getPlatform()->getPlatformPort(port)->getPortType();
+        *platformMapping->getPlatformPort(port).mapping()->portType();
     if (portType == cfg::PortType::FABRIC_PORT) {
       continue;
     }
@@ -670,8 +672,8 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     }
   }
   auto config = genPortVlanCfg(
-      hwSwitch->getPlatform()->getPlatformMapping(),
-      hwSwitch->getPlatform()->getAsic(),
+      platformMapping,
+      asic,
       vlanPorts,
       port2vlan,
       vlans,
@@ -720,8 +722,7 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
         std::nullopt);
   }
   // Create interfaces for local sys ports on VOQ switches
-  if (hwSwitch->getPlatform()->getAsic()->getSwitchType() ==
-      cfg::SwitchType::VOQ) {
+  if (switchType == cfg::SwitchType::VOQ) {
     CHECK_EQ(portsPerIntf, 1) << " For VOQ switches sys port to interface "
                                  "mapping must by 1:1";
     const std::set<cfg::PortType> kCreateIntfsFor = {

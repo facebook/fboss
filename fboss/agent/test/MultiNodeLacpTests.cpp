@@ -71,7 +71,8 @@ class MultiNodeLacpTest : public MultiNodeTest {
   cfg::SwitchConfig getConfigWithAggPort(
       cfg::LacpPortRate rate = cfg::LacpPortRate::SLOW) const {
     auto config = utility::multiplePortsPerIntfConfig(
-        platform()->getHwSwitch(),
+        platform()->getPlatformMapping(),
+        platform()->getAsic(),
         testPorts(),
         utility::kDefaultLoopbackMap(),
         true, /* interfaceHasSubnet */

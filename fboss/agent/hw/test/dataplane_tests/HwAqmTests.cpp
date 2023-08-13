@@ -135,7 +135,8 @@ class HwAqmTest : public HwLinkStateDependentTest {
 
   cfg::SwitchConfig multiplePortConfig() const {
     auto cfg = utility::multiplePortsPerIntfConfig(
-        getHwSwitch(),
+        getPlatform()->getPlatformMapping(),
+        getAsic(),
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes());
     if (isSupported(HwAsic::Feature::L3_QOS)) {

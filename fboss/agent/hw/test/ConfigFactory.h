@@ -96,7 +96,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     int baseVlanId = kBaseVlanId,
     bool enableFabricPorts = false);
 cfg::SwitchConfig multiplePortsPerIntfConfig(
-    const HwSwitch* hwSwitch,
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
     const std::vector<PortID>& ports,
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
         kDefaultLoopbackMap(),
