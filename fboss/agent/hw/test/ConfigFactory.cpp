@@ -633,6 +633,27 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       enableFabricPorts);
 }
 
+cfg::SwitchConfig onePortPerInterfaceConfig(
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
+    const std::vector<PortID>& ports,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
+    bool interfaceHasSubnet,
+    bool setInterfaceMac,
+    int baseIntfId,
+    bool enableFabricPorts) {
+  return multiplePortsPerIntfConfig(
+      platformMapping,
+      asic,
+      ports,
+      lbModeMap,
+      interfaceHasSubnet,
+      setInterfaceMac,
+      baseIntfId,
+      1, /* portPerIntf*/
+      enableFabricPorts);
+}
+
 cfg::SwitchConfig multiplePortsPerIntfConfig(
     const PlatformMapping* platformMapping,
     const HwAsic* asic,

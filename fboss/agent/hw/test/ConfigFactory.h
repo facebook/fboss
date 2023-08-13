@@ -95,6 +95,16 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     bool setInterfaceMac = true,
     int baseVlanId = kBaseVlanId,
     bool enableFabricPorts = false);
+cfg::SwitchConfig onePortPerInterfaceConfig(
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
+    const std::vector<PortID>& ports,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
+        kDefaultLoopbackMap(),
+    bool interfaceHasSubnet = true,
+    bool setInterfaceMac = true,
+    int baseIntfId = kBaseVlanId,
+    bool enableFabricPorts = false);
 cfg::SwitchConfig multiplePortsPerIntfConfig(
     const PlatformMapping* platformMapping,
     const HwAsic* asic,
