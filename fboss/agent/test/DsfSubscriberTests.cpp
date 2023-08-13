@@ -240,6 +240,17 @@ TEST_F(DsfSubscriberTest, addSubscription) {
     return false;
   };
 
+  auto verifyDsfSessionState = [&](cfg::DsfNode& nodeConfig,
+                                   const auto dsfSessionsThrift) {
+    for (const auto& dsfSession : dsfSessionsThrift) {
+      if (dsfSession.remoteName() == nodeConfig.name()) {
+        EXPECT_EQ(*dsfSession.state(), DsfSessionState::CONNECT);
+        return true;
+      }
+    }
+    return false;
+  };
+
   EXPECT_EQ(sw_->getDsfSubscriber()->getSubscriptionInfo().size(), 0);
 
   // Insert 2 IN nodes
@@ -256,6 +267,8 @@ TEST_F(DsfSubscriberTest, addSubscription) {
   EXPECT_EQ(sw_->getDsfSubscriber()->getSubscriptionInfo().size(), 1);
   EXPECT_TRUE(verifySubsriptionState(
       node5DsfConfig, sw_->getDsfSubscriber()->getSubscriptionInfo()));
+  EXPECT_TRUE(verifyDsfSessionState(
+      node5DsfConfig, sw_->getDsfSubscriber()->getDsfSessionsThrift()));
 
   auto node6DsfConfig = makeDsfNodeCfg(6);
   sw_->updateStateBlocking(
@@ -270,6 +283,8 @@ TEST_F(DsfSubscriberTest, addSubscription) {
   EXPECT_EQ(sw_->getDsfSubscriber()->getSubscriptionInfo().size(), 2);
   EXPECT_TRUE(verifySubsriptionState(
       node6DsfConfig, sw_->getDsfSubscriber()->getSubscriptionInfo()));
+  EXPECT_TRUE(verifyDsfSessionState(
+      node6DsfConfig, sw_->getDsfSubscriber()->getDsfSessionsThrift()));
 
   // Remove 2 IN nodes
   sw_->updateStateBlocking(
@@ -286,6 +301,7 @@ TEST_F(DsfSubscriberTest, addSubscription) {
         return newState;
       });
   EXPECT_EQ(sw_->getDsfSubscriber()->getSubscriptionInfo().size(), 0);
+  EXPECT_EQ(sw_->getDsfSubscriber()->getDsfSessionsThrift().size(), 0);
 }
 
 TEST_F(DsfSubscriberTest, failedDsfCounter) {

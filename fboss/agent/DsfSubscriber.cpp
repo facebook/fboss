@@ -414,4 +414,13 @@ std::vector<std::vector<std::string>> DsfSubscriber::getAllSubscribePaths(
       getDsfSubscriptionsPath(localNodeName)};
 }
 
+std::vector<DsfSessionThrift> DsfSubscriber::getDsfSessionsThrift() const {
+  auto lockedSessions = dsfSessions_.rlock();
+  std::vector<DsfSessionThrift> thriftSessions;
+  for (const auto& [key, value] : *lockedSessions) {
+    thriftSessions.emplace_back(value.toThrift());
+  }
+  return thriftSessions;
+}
+
 } // namespace facebook::fboss

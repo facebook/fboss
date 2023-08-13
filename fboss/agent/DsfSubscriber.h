@@ -51,6 +51,8 @@ class DsfSubscriber : public StateObserver {
     throw FbossError("DsfSubscriber: fsdbPubSubMgr_ is null");
   }
 
+  std::vector<DsfSessionThrift> getDsfSessionsThrift() const;
+
  private:
   void scheduleUpdate(
       const std::shared_ptr<SystemPortMap>& newSysPorts,

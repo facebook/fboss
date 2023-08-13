@@ -2938,9 +2938,10 @@ void ThriftHandler::getDsfSubscriptionClientId(std::string& ret) {
   ret = sw_->getDsfSubscriber()->getClientId();
 }
 
-void ThriftHandler::getDsfSessions(
-    std::vector<DsfSessionThrift>& /* dsfSessions */) {
-  // TODO
+void ThriftHandler::getDsfSessions(std::vector<DsfSessionThrift>& dsfSessions) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureVoqOrFabric(__func__);
+  dsfSessions = this->sw_->getDsfSubscriber()->getDsfSessionsThrift();
 }
 
 void ThriftHandler::getSystemPorts(

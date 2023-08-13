@@ -33,7 +33,7 @@ class DsfSession {
       fsdb::FsdbSubscriptionState::DISCONNECTED};
   fsdb::FsdbSubscriptionState remoteSubState_{
       fsdb::FsdbSubscriptionState::DISCONNECTED};
-  DsfSessionState state_{DsfSessionState::IDLE};
+  DsfSessionState state_{DsfSessionState::CONNECT};
   std::optional<uint64_t> lastEstablishedAt_;
   std::optional<uint64_t> lastDisconnectedAt_;
 };
