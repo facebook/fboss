@@ -62,6 +62,8 @@ class DsfSubscriber : public StateObserver {
   SwSwitch* sw_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
   std::shared_ptr<SwitchState> cachedState_;
+  std::string localNodeName_;
+
   FRIEND_TEST(DsfSubscriberTest, scheduleUpdate);
   FRIEND_TEST(DsfSubscriberTest, setupNeighbors);
 };

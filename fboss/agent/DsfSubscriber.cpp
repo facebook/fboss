@@ -31,8 +31,10 @@ using ThriftMapTypeClass = apache::thrift::type_class::map<
     apache::thrift::type_class::integral,
     apache::thrift::type_class::structure>;
 
-DsfSubscriber::DsfSubscriber(SwSwitch* sw) : sw_(sw) {
-  sw_->registerStateObserver(this, "DSFSubscriber");
+DsfSubscriber::DsfSubscriber(SwSwitch* sw)
+    : sw_(sw), localNodeName_(getLocalHostnameUqdn()) {
+  // TODO(aeckert): add dedicated config field for localNodeName
+  sw_->registerStateObserver(this, "DsfSubscriber");
 }
 
 DsfSubscriber::~DsfSubscriber() {
@@ -216,7 +218,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
   if (voqSwitchIds.size()) {
     if (!fsdbPubSubMgr_) {
       fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>(
-          folly::sformat("{}:agent", getLocalHostname()));
+          folly::sformat("{}:agent", localNodeName_));
     }
   } else {
     if (fsdbPubSubMgr_) {
