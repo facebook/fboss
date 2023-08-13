@@ -70,3 +70,8 @@ struct FqMetric {
 
 @cpp.Type{template = "folly::F14FastMap"}
 typedef map<PublisherId, Metrics> FqMetrics
+
+enum FsdbSubscriptionState {
+  DISCONNECTED = 1,
+  CONNECTED = 2,
+}
