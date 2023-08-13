@@ -11445,6 +11445,12 @@
         },
         {
           "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnTtlHitCpu$"
+        },
+        {
+          "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyOlympicToOlympicV2WRRWeights$"
+        },
+        {
+          "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         }
     ],
     "leaba/1.42.1/1.42.1/simulator": [
@@ -12457,6 +12463,12 @@
         },
         {
           "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnTtlHitCpu$"
+        },
+        {
+          "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyOlympicToOlympicV2WRRWeights$"
+        },
+        {
+          "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar": [
@@ -12822,6 +12834,12 @@
         },
         {
           "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnTtlHitCpu$"
+        },
+        {
+          "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyOlympicToOlympicV2WRRWeights$"
+        },
+        {
+          "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         }
     ],
     "leaba/1.42.8/1.42.8/simulator": [
@@ -13834,6 +13852,12 @@
         },
         {
           "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnTtlHitCpu$"
+        },
+        {
+          "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyOlympicToOlympicV2WRRWeights$"
+        },
+        {
+          "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         }
     ],
     "leaba/1.65.0/1.65.0/gibraltar": [
@@ -14199,6 +14223,12 @@
         },
         {
           "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnTtlHitCpu$"
+        },
+        {
+          "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyOlympicToOlympicV2WRRWeights$"
+        },
+        {
+          "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         }
     ]
   }
