@@ -648,7 +648,7 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getDsfSubscriptions) {
     handler.getDsfSubscriptions(subscriptions);
     EXPECT_EQ(subscriptions.size(), 1);
     EXPECT_EQ(*subscriptions[0].name(), *dsfNodeCfg.name());
-    EXPECT_EQ((*subscriptions[0].paths()).size(), 2);
+    EXPECT_EQ((*subscriptions[0].paths()).size(), 3);
     EXPECT_EQ(*subscriptions[0].state(), "DISCONNECTED");
   }
 }

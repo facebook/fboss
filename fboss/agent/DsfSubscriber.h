@@ -2,8 +2,10 @@
 
 #pragma once
 
+#include "fboss/agent/DsfSession.h"
 #include "fboss/agent/StateObserver.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
+#include "folly/Synchronized.h"
 
 #include <gtest/gtest.h>
 #include <memory>
@@ -59,10 +61,16 @@ class DsfSubscriber : public StateObserver {
   // Paths
   static std::vector<std::string> getSystemPortsPath();
   static std::vector<std::string> getInterfacesPath();
+  static std::vector<std::string> getDsfSubscriptionsPath(
+      const std::string& localNodeName);
+  static std::vector<std::vector<std::string>> getAllSubscribePaths(
+      const std::string& localNodeName);
+
   SwSwitch* sw_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
   std::shared_ptr<SwitchState> cachedState_;
   std::string localNodeName_;
+  folly::Synchronized<std::unordered_map<std::string, DsfSession>> dsfSessions_;
 
   FRIEND_TEST(DsfSubscriberTest, scheduleUpdate);
   FRIEND_TEST(DsfSubscriberTest, setupNeighbors);

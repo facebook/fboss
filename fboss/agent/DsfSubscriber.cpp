@@ -276,9 +276,11 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     auto nodeSwitchId = node->getSwitchId();
     // Subscription is not established until state becomes CONNECTED
     this->sw_->stats()->failedDsfSubscription(1);
+
+    dsfSessions_.wlock()->emplace(nodeName, nodeName);
     XLOG(DBG2) << " Setting up DSF subscriptions to : " << nodeName;
     fsdbPubSubMgr_->addStatePathSubscription(
-        {getSystemPortsPath(), getInterfacesPath()},
+        getAllSubscribePaths(localNodeName_),
         [this, nodeName](auto oldState, auto newState) {
           if (XLOG_IS_ON(DBG2)) {
             switch (newState) {
@@ -315,6 +317,11 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
 
             this->sw_->updateDsfSubscriberState(
                 nodeName, oldThriftState, newThriftState);
+            auto lockedDsfSessions = this->dsfSessions_.wlock();
+            if (auto it = lockedDsfSessions->find(nodeName);
+                it != lockedDsfSessions->end()) {
+              it->second.localSubStateChanged(newThriftState);
+            }
           }
         },
         [this, nodeName, nodeSwitchId](fsdb::OperSubPathUnit&& operStateUnit) {
@@ -337,6 +344,23 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
                                       MultiSwitchInterfaceMapThriftType>(
                   fsdb::OperProtocol::BINARY, *change.state()->contents()));
               newRifs = mswitchIntfs.getAllNodes();
+            } else if (
+                change.path()->path() ==
+                getDsfSubscriptionsPath(localNodeName_)) {
+              XLOG(DBG2) << " Got dsf sub update from : " << nodeName;
+
+              using targetType = fsdb::FsdbSubscriptionState;
+              using targetTypeClass = apache::thrift::type_class::enumeration;
+
+              auto newRemoteState =
+                  thrift_cow::deserialize<targetTypeClass, targetType>(
+                      fsdb::OperProtocol::BINARY, *change.state()->contents());
+
+              auto lockedDsfSessions = this->dsfSessions_.wlock();
+              if (auto it = lockedDsfSessions->find(nodeName);
+                  it != lockedDsfSessions->end()) {
+                it->second.remoteSubStateChanged(newRemoteState);
+              }
             } else {
               throw FbossError(
                   " Got unexpected state update for : ",
@@ -355,15 +379,17 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     if (isLocal(node->getSwitchId()) || !isInterfaceNode(node)) {
       return;
     }
-    XLOG(DBG2) << " Removing DSF subscriptions to : " << node->getName();
+    auto nodeName = node->getName();
+    XLOG(DBG2) << " Removing DSF subscriptions to : " << nodeName;
+    dsfSessions_.wlock()->erase(nodeName);
     if (fsdbPubSubMgr_->getStatePathSubsriptionState(
-            {getSystemPortsPath(), getInterfacesPath()}, getLoopbackIp(node)) !=
+            getAllSubscribePaths(localNodeName_), getLoopbackIp(node)) !=
         fsdb::FsdbStreamClient::State::CONNECTED) {
       // Subscription was not established - decrement failedDSF counter.
       this->sw_->stats()->failedDsfSubscription(-1);
     }
     fsdbPubSubMgr_->removeStatePathSubscription(
-        {getSystemPortsPath(), getInterfacesPath()}, getLoopbackIp(node));
+        getAllSubscribePaths(localNodeName_), getLoopbackIp(node));
   };
   DeltaFunctions::forEachChanged(
       stateDelta.getDsfNodesDelta(),
@@ -378,6 +404,14 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
 void DsfSubscriber::stop() {
   sw_->unregisterStateObserver(this);
   fsdbPubSubMgr_.reset();
+}
+
+std::vector<std::vector<std::string>> DsfSubscriber::getAllSubscribePaths(
+    const std::string& localNodeName) {
+  return {
+      getSystemPortsPath(),
+      getInterfacesPath(),
+      getDsfSubscriptionsPath(localNodeName)};
 }
 
 } // namespace facebook::fboss

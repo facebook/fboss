@@ -230,7 +230,7 @@ TEST_F(DsfSubscriberTest, addSubscription) {
     auto serverStr = ipv6Loopback.substr(0, ipv6Loopback.find("/"));
     for (const auto& subscriptionInfo : subscriptionInfoList) {
       if (subscriptionInfo.server == serverStr) {
-        EXPECT_EQ(subscriptionInfo.paths.size(), 2);
+        EXPECT_EQ(subscriptionInfo.paths.size(), 3);
         EXPECT_EQ(
             subscriptionInfo.state,
             fsdb::FsdbStreamClient::State::DISCONNECTED);
