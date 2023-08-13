@@ -22,6 +22,12 @@ class DsfSession {
   DsfSessionThrift toThrift() const;
 
  private:
+  static DsfSessionState calculateSessionState(
+      fsdb::FsdbSubscriptionState localState,
+      fsdb::FsdbSubscriptionState remoteState);
+
+  void changeSessionState(DsfSessionState newState);
+
   std::string nodeName_;
   fsdb::FsdbSubscriptionState localSubState_{
       fsdb::FsdbSubscriptionState::DISCONNECTED};
