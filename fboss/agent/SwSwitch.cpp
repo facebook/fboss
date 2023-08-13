@@ -2439,4 +2439,14 @@ void SwSwitch::storeWarmBootState(const state::WarmbootState& state) {
   swSwitchWarmbootHelper_->storeWarmBootState(state);
 }
 
+void SwSwitch::updateDsfSubscriberState(
+    const std::string& nodeName,
+    fsdb::FsdbSubscriptionState oldState,
+    fsdb::FsdbSubscriptionState newState) {
+  runFsdbSyncFunction(
+      [nodeName = nodeName, oldState, newState](auto& syncer) mutable {
+        syncer->updateDsfSubscriberState(nodeName, oldState, newState);
+      });
+}
+
 } // namespace facebook::fboss

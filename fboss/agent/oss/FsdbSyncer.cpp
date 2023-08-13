@@ -53,4 +53,9 @@ void FsdbSyncer::fsdbStatPublisherStateChanged(
     fsdb::FsdbStreamClient::State /*oldState*/,
     fsdb::FsdbStreamClient::State /*newState*/) {}
 
+void FsdbSyncer::updateDsfSubscriberState(
+    const std::string& /*nodeName*/,
+    fsdb::FsdbSubscriptionState /*oldState*/,
+    fsdb::FsdbSubscriptionState /*newState*/) {}
+
 } // namespace facebook::fboss

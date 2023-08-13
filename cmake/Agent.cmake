@@ -225,6 +225,7 @@ target_link_libraries(core
   Folly::folly
   normalizer
   bidirectional_packet_stream
+  fsdb_common_cpp2
   fsdb_stream_client
   fsdb_pub_sub
   fsdb_flags

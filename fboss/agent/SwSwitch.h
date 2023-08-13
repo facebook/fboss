@@ -89,6 +89,10 @@ class SwitchStatsObserver;
 class MultiSwitchPacketStreamMap;
 class SwSwitchWarmBootHelper;
 
+namespace fsdb {
+enum class FsdbSubscriptionState;
+}
+
 enum class SwitchFlags : int {
   DEFAULT = 0,
   ENABLE_TUN = 1,
@@ -842,6 +846,11 @@ class SwSwitch : public HwSwitchCallback {
   MultiSwitchPacketStreamMap* getPacketStreamMap() {
     return packetStreamMap_.get();
   }
+
+  void updateDsfSubscriberState(
+      const std::string& nodeName,
+      fsdb::FsdbSubscriptionState oldState,
+      fsdb::FsdbSubscriptionState newState);
 
  private:
   std::optional<folly::MacAddress> getSourceMac(

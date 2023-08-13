@@ -15,7 +15,8 @@ class StateDelta;
 
 namespace fsdb {
 class FsdbPubSubManager;
-}
+enum class FsdbSubscriptionState;
+} // namespace fsdb
 namespace cfg {
 class SwitchConfig;
 }
@@ -30,6 +31,11 @@ class FsdbSyncer {
   void cfgUpdated(
       const cfg::SwitchConfig& oldConfig,
       const cfg::SwitchConfig& newConfig);
+
+  void updateDsfSubscriberState(
+      const std::string& nodeName,
+      fsdb::FsdbSubscriptionState oldState,
+      fsdb::FsdbSubscriptionState newState);
 
   void stop();
 

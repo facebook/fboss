@@ -14,6 +14,7 @@
 #include "fboss/agent/state/SystemPortMap.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/fsdb/common/Flags.h"
+#include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
 
 #include <memory>
@@ -277,26 +278,41 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     fsdbPubSubMgr_->addStatePathSubscription(
         {getSystemPortsPath(), getInterfacesPath()},
         [this, nodeName](auto oldState, auto newState) {
-          switch (newState) {
-            case fsdb::FsdbStreamClient::State::CONNECTING:
-              XLOG(DBG2) << "Try connecting to " << nodeName;
-              break;
-            case fsdb::FsdbStreamClient::State::CONNECTED:
-              XLOG(DBG2) << "Connected to " << nodeName;
+          if (XLOG_IS_ON(DBG2)) {
+            switch (newState) {
+              case fsdb::FsdbStreamClient::State::CONNECTING:
+                XLOG(DBG2) << "Try connecting to " << nodeName;
+                break;
+              case fsdb::FsdbStreamClient::State::CONNECTED:
+                XLOG(DBG2) << "Connected to " << nodeName;
+                break;
+              case fsdb::FsdbStreamClient::State::DISCONNECTED:
+                XLOG(DBG2) << "Disconnected from " << nodeName;
+                break;
+              case fsdb::FsdbStreamClient::State::CANCELLED:
+                XLOG(DBG2) << "Cancelled " << nodeName;
+                break;
+            }
+          }
+
+          auto oldThriftState =
+              (oldState == fsdb::FsdbStreamClient::State::CONNECTED)
+              ? fsdb::FsdbSubscriptionState::CONNECTED
+              : fsdb::FsdbSubscriptionState::DISCONNECTED;
+          auto newThriftState =
+              (newState == fsdb::FsdbStreamClient::State::CONNECTED)
+              ? fsdb::FsdbSubscriptionState::CONNECTED
+              : fsdb::FsdbSubscriptionState::DISCONNECTED;
+
+          if (oldThriftState != newThriftState) {
+            if (newThriftState == fsdb::FsdbSubscriptionState::CONNECTED) {
               this->sw_->stats()->failedDsfSubscription(-1);
-              break;
-            case fsdb::FsdbStreamClient::State::DISCONNECTED:
-              XLOG(DBG2) << "Disconnected from " << nodeName;
-              if (oldState == fsdb::FsdbStreamClient::State::CONNECTED) {
-                this->sw_->stats()->failedDsfSubscription(1);
-              }
-              break;
-            case fsdb::FsdbStreamClient::State::CANCELLED:
-              XLOG(DBG2) << "Cancelled " << nodeName;
-              if (oldState == fsdb::FsdbStreamClient::State::CONNECTED) {
-                this->sw_->stats()->failedDsfSubscription(1);
-              }
-              break;
+            } else {
+              this->sw_->stats()->failedDsfSubscription(1);
+            }
+
+            this->sw_->updateDsfSubscriberState(
+                nodeName, oldThriftState, newThriftState);
           }
         },
         [this, nodeName, nodeSwitchId](fsdb::OperSubPathUnit&& operStateUnit) {
