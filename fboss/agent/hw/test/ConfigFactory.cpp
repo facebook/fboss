@@ -203,11 +203,12 @@ cfg::Port createDefaultPortConfig(
 }
 
 std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
-    const Platform* platform,
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
     const std::map<PortID, std::vector<PortID>>&
         controllingPortToSubsidaryPorts) {
   std::unordered_map<PortID, cfg::PortProfileID> portToProfileIDs;
-  const auto& plarformEntries = platform->getPlatformPorts();
+  const auto& plarformEntries = platformMapping->getPlatformPorts();
   for (const auto& group : controllingPortToSubsidaryPorts) {
     const auto& ports = group.second;
     // Find the safe profile to satisfy all the ports in the group
@@ -243,10 +244,9 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
       throw FbossError("Can't find safe profiles for ports:", portSetStr);
     }
 
-    bool isJericho2 =
-        platform->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2;
-    bool isJericho3 =
-        platform->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3;
+    auto asicType = asic->getAsicType();
+    bool isJericho2 = asicType == cfg::AsicType::ASIC_TYPE_JERICHO2;
+    bool isJericho3 = asicType == cfg::AsicType::ASIC_TYPE_JERICHO3;
 
     auto bestSpeed = cfg::PortSpeed::DEFAULT;
     if (isJericho2 || isJericho3) {
@@ -254,17 +254,16 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
       // speeds since that's what we have in hw chip config
       // and J2c does not support dynamic port speed change yet.
       auto portId = group.first;
-      auto platPortItr = platform->getPlatformPorts().find(portId);
-      if (platPortItr == platform->getPlatformPorts().end()) {
+      auto platPortItr = platformMapping->getPlatformPorts().find(portId);
+      if (platPortItr == platformMapping->getPlatformPorts().end()) {
         throw FbossError("Can't find platform port for:", portId);
       }
       switch (*platPortItr->second.mapping()->portType()) {
         case cfg::PortType::INTERFACE_PORT:
-          bestSpeed =
-              getDefaultInterfaceSpeed(platform->getAsic()->getAsicType());
+          bestSpeed = getDefaultInterfaceSpeed(asicType);
           break;
         case cfg::PortType::FABRIC_PORT:
-          bestSpeed = getDefaultFabricSpeed(platform->getAsic()->getAsicType());
+          bestSpeed = getDefaultFabricSpeed(asicType);
           break;
         case cfg::PortType::RECYCLE_PORT:
           bestSpeed = cfg::PortSpeed::XG;
@@ -297,7 +296,7 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
 }
 
 void securePortsInConfig(
-    const Platform* platform,
+    const PlatformMapping* platformMapping,
     const HwAsic* asic,
     cfg::SwitchConfig& config,
     const std::vector<PortID>& ports) {
@@ -309,7 +308,7 @@ void securePortsInConfig(
   // need to make sure these ports will be in the config, and what's the most
   // important, we also need to make sure these ports using a safe PortProfileID
   std::map<PortID, std::vector<PortID>> groupPortsByControllingPort;
-  const auto& plarformEntries = platform->getPlatformPorts();
+  const auto& plarformEntries = platformMapping->getPlatformPorts();
   for (const auto& portID : ports) {
     if (const auto& entry = plarformEntries.find(portID);
         entry != plarformEntries.end()) {
@@ -337,14 +336,14 @@ void securePortsInConfig(
   // Make sure all the ports in portGroups use the safe profile in the config
   if (portGroups.size() > 0) {
     for (const auto& [portID, profileID] :
-         getSafeProfileIDs(platform, portGroups)) {
+         getSafeProfileIDs(platformMapping, asic, portGroups)) {
       auto portCfg = findCfgPortIf(config, portID);
       if (portCfg != config.ports()->end()) {
         portCfg->profileID() = profileID;
         portCfg->speed() = getSpeed(profileID);
       } else {
-        config.ports()->push_back(createDefaultPortConfig(
-            platform->getPlatformMapping(), asic, portID, profileID));
+        config.ports()->push_back(
+            createDefaultPortConfig(platformMapping, asic, portID, profileID));
       }
     }
   }
@@ -360,7 +359,8 @@ std::vector<cfg::PortQueue> getFabTxQueueConfig() {
 }
 
 cfg::SwitchConfig genPortVlanCfg(
-    const HwSwitch* hwSwitch,
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
     const std::vector<PortID>& ports,
     const std::map<PortID, VlanID>& port2vlan,
     const std::vector<VlanID>& vlans,
@@ -368,8 +368,8 @@ cfg::SwitchConfig genPortVlanCfg(
     bool optimizePortProfile = true,
     bool enableFabricPorts = false) {
   cfg::SwitchConfig config;
-  auto asic = hwSwitch->getPlatform()->getAsic();
   auto switchType = asic->getSwitchType();
+  auto asicType = asic->getAsicType();
   int64_t switchId{0};
   if (asic->getSwitchId().has_value()) {
     switchId = *asic->getSwitchId();
@@ -388,7 +388,7 @@ cfg::SwitchConfig genPortVlanCfg(
   switchInfo.portIdRange() = portIdRange;
   switchInfo.switchIndex() = 0;
   switchInfo.switchType() = switchType;
-  switchInfo.asicType() = asic->getAsicType();
+  switchInfo.asicType() = asicType;
   if (asic->getSystemPortRange().has_value()) {
     switchInfo.systemPortRange() = *asic->getSystemPortRange();
   }
@@ -407,17 +407,14 @@ cfg::SwitchConfig genPortVlanCfg(
   const auto& portToDefaultProfileID = getPortToDefaultProfileIDMap();
   CHECK_GT(portToDefaultProfileID.size(), 0);
   for (auto const& [portID, profileID] : portToDefaultProfileID) {
-    config.ports()->push_back(createDefaultPortConfig(
-        hwSwitch->getPlatform()->getPlatformMapping(),
-        asic,
-        portID,
-        profileID));
+    config.ports()->push_back(
+        createDefaultPortConfig(platformMapping, asic, portID, profileID));
   }
   auto const kFabricTxQueueConfig = "FabricTxQueueConfig";
   config.portQueueConfigs()[kFabricTxQueueConfig] = getFabTxQueueConfig();
 
   // Secure all ports in `ports` vector in the config
-  securePortsInConfig(hwSwitch->getPlatform(), asic, config, ports);
+  securePortsInConfig(platformMapping, asic, config, ports);
 
   // Port config
   auto kPortMTU = 9412;
@@ -432,15 +429,12 @@ cfg::SwitchConfig genPortVlanCfg(
     portCfg->loopbackMode() = iter->second;
     if (portCfg->portType() == cfg::PortType::FABRIC_PORT) {
       portCfg->ingressVlan() = 0;
-      portCfg->maxFrameSize() = hwSwitch->getPlatform()->getAsic()->isSupported(
-                                    HwAsic::Feature::FABRIC_PORT_MTU)
-          ? kPortMTU
-          : 0;
+      portCfg->maxFrameSize() =
+          asic->isSupported(HwAsic::Feature::FABRIC_PORT_MTU) ? kPortMTU : 0;
       portCfg->state() = enableFabricPorts ? cfg::PortState::ENABLED
                                            : cfg::PortState::DISABLED;
 
-      if (hwSwitch->getPlatform()->getAsic()->isSupported(
-              HwAsic::Feature::FABRIC_TX_QUEUES)) {
+      if (asic->isSupported(HwAsic::Feature::FABRIC_TX_QUEUES)) {
         portCfg->portQueueConfigName() = kFabricTxQueueConfig;
       }
     } else {
@@ -505,7 +499,9 @@ void setPortToDefaultProfileIDMap(
     }
   } else {
     const auto& safeProfileIDs = getSafeProfileIDs(
-        platform, getSubsidiaryPortIDs(platform->getPlatformPorts()));
+        platform->getPlatformMapping(),
+        platform->getAsic(),
+        getSubsidiaryPortIDs(platform->getPlatformPorts()));
     getPortToDefaultProfileIDMap().insert(
         safeProfileIDs.begin(), safeProfileIDs.end());
   }
@@ -591,7 +587,13 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
     vlanPorts.push_back(port);
   }
   auto config = genPortVlanCfg(
-      hwSwitch, vlanPorts, port2vlan, vlans, lbModeMap, optimizePortProfile);
+      hwSwitch->getPlatform()->getPlatformMapping(),
+      hwSwitch->getPlatform()->getAsic(),
+      vlanPorts,
+      port2vlan,
+      vlans,
+      lbModeMap,
+      optimizePortProfile);
 
   config.interfaces()->resize(1);
   config.interfaces()[0].intfID() = baseVlanId;
@@ -668,7 +670,8 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     }
   }
   auto config = genPortVlanCfg(
-      hwSwitch,
+      hwSwitch->getPlatform()->getPlatformMapping(),
+      hwSwitch->getPlatform()->getAsic(),
       vlanPorts,
       port2vlan,
       vlans,
@@ -780,7 +783,13 @@ cfg::SwitchConfig twoL3IntfConfig(
       port2vlan[port] = VlanID(0);
     }
   }
-  auto config = genPortVlanCfg(hwSwitch, ports, port2vlan, vlans, lbModeMap);
+  auto config = genPortVlanCfg(
+      hwSwitch->getPlatform()->getPlatformMapping(),
+      hwSwitch->getPlatform()->getAsic(),
+      ports,
+      port2vlan,
+      vlans,
+      lbModeMap);
 
   auto computeIntfId = [&config, &ports, &switchType, &vlans](auto idx) {
     if (switchType == cfg::SwitchType::NPU) {
