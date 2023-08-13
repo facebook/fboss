@@ -143,6 +143,7 @@ std::vector<ClientID> AllClientIDs();
  * Report our hostname
  */
 std::string getLocalHostname();
+std::string getLocalHostnameUqdn();
 
 void initThread(folly::StringPiece name);
 

@@ -17,4 +17,9 @@ void initThread(folly::StringPiece name) {
   folly::setThreadName(name);
 }
 
+std::string getLocalHostnameUqdn() {
+  // TODO: actually implement
+  return getLocalHostname();
+}
+
 } // namespace facebook::fboss
