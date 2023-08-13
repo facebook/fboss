@@ -5,6 +5,8 @@
 #include "folly/logging/xlog.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
+#include <chrono>
+
 namespace facebook::fboss {
 
 using fsdb::FsdbSubscriptionState;
@@ -36,6 +38,19 @@ void DsfSession::changeSessionState(DsfSessionState newState) {
   }
   XLOG(DBG2) << nodeName_ << ": " << apache::thrift::util::enumNameSafe(state_)
              << " --> " << apache::thrift::util::enumNameSafe(newState);
+
+  if (newState == DsfSessionState::ESTABLISHED) {
+    lastEstablishedAt_ =
+        std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::system_clock::now().time_since_epoch())
+            .count();
+  } else if (state_ == DsfSessionState::ESTABLISHED) {
+    lastDisconnectedAt_ =
+        std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::system_clock::now().time_since_epoch())
+            .count();
+  }
+
   state_ = newState;
 }
 
