@@ -179,11 +179,12 @@ cfg::DsfNode dsfNodeConfig(
 namespace {
 
 cfg::Port createDefaultPortConfig(
-    const Platform* platform,
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
     PortID id,
     cfg::PortProfileID defaultProfileID) {
   cfg::Port defaultConfig;
-  const auto& entry = platform->getPlatformPort(id)->getPlatformPortEntry();
+  const auto& entry = platformMapping->getPlatformPort(id);
   defaultConfig.name() = *entry.mapping()->name();
   defaultConfig.speed() = getSpeed(defaultProfileID);
   defaultConfig.profileID() = defaultProfileID;
@@ -192,9 +193,8 @@ cfg::Port createDefaultPortConfig(
   defaultConfig.ingressVlan() = kDefaultVlanId;
   defaultConfig.state() = cfg::PortState::DISABLED;
   defaultConfig.portType() = *entry.mapping()->portType();
-  auto switchType = platform->getAsic()->getSwitchType();
-  if (switchType == cfg::SwitchType::VOQ ||
-      switchType == cfg::SwitchType::FABRIC) {
+  if (asic->getSwitchType() == cfg::SwitchType::VOQ ||
+      asic->getSwitchType() == cfg::SwitchType::FABRIC) {
     defaultConfig.ingressVlan() = 0;
   } else {
     defaultConfig.ingressVlan() = kDefaultVlanId;
@@ -298,6 +298,7 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
 
 void securePortsInConfig(
     const Platform* platform,
+    const HwAsic* asic,
     cfg::SwitchConfig& config,
     const std::vector<PortID>& ports) {
   // This function is to secure all ports in the input `ports` vector will be
@@ -342,8 +343,8 @@ void securePortsInConfig(
         portCfg->profileID() = profileID;
         portCfg->speed() = getSpeed(profileID);
       } else {
-        config.ports()->push_back(
-            createDefaultPortConfig(platform, portID, profileID));
+        config.ports()->push_back(createDefaultPortConfig(
+            platform->getPlatformMapping(), asic, portID, profileID));
       }
     }
   }
@@ -406,14 +407,17 @@ cfg::SwitchConfig genPortVlanCfg(
   const auto& portToDefaultProfileID = getPortToDefaultProfileIDMap();
   CHECK_GT(portToDefaultProfileID.size(), 0);
   for (auto const& [portID, profileID] : portToDefaultProfileID) {
-    config.ports()->push_back(
-        createDefaultPortConfig(hwSwitch->getPlatform(), portID, profileID));
+    config.ports()->push_back(createDefaultPortConfig(
+        hwSwitch->getPlatform()->getPlatformMapping(),
+        asic,
+        portID,
+        profileID));
   }
   auto const kFabricTxQueueConfig = "FabricTxQueueConfig";
   config.portQueueConfigs()[kFabricTxQueueConfig] = getFabTxQueueConfig();
 
   // Secure all ports in `ports` vector in the config
-  securePortsInConfig(hwSwitch->getPlatform(), config, ports);
+  securePortsInConfig(hwSwitch->getPlatform(), asic, config, ports);
 
   // Port config
   auto kPortMTU = 9412;
