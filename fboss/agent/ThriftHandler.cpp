@@ -2938,6 +2938,11 @@ void ThriftHandler::getDsfSubscriptionClientId(std::string& ret) {
   ret = sw_->getDsfSubscriber()->getClientId();
 }
 
+void ThriftHandler::getDsfSessions(
+    std::vector<DsfSessionThrift>& /* dsfSessions */) {
+  // TODO
+}
+
 void ThriftHandler::getSystemPorts(
     std::map<int64_t, SystemPortThrift>& sysPortsThrift) {
   auto log = LOG_THRIFT_CALL(DBG1);
