@@ -115,7 +115,10 @@ class HwSwitch {
    * reload, the SwitchState should reflect the base configuration after the
    * hardware has been reinitialized.
    */
-  HwInitResult init(Callback* callback, bool failHwCallsOnWarmboot);
+  HwInitResult init(
+      Callback* callback,
+      const std::shared_ptr<SwitchState>& state,
+      bool failHwCallsOnWarmboot);
 
   /* initialize hardware switch but do not apply warm boot state */
   BootType initLight(Callback* callback, bool failHwCallsOnWarmboot);

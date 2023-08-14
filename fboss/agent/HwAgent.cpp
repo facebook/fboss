@@ -27,8 +27,8 @@ HwAgent::HwAgent(std::unique_ptr<Platform> platform)
 HwInitResult HwAgent::initAgent(
     bool failHwCallsOnWarmboot,
     HwSwitchCallback* callback) {
-  auto hwInitResult =
-      getPlatform()->getHwSwitch()->init(callback, failHwCallsOnWarmboot);
+  auto hwInitResult = getPlatform()->getHwSwitch()->init(
+      callback, nullptr, failHwCallsOnWarmboot);
   XLOG(DBG2) << "HwSwitch init done";
   return hwInitResult;
 }

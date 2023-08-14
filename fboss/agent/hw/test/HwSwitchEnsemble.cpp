@@ -500,11 +500,8 @@ void HwSwitchEnsemble::setupEnsemble(
         getPlatform()->getHwSwitch(), swSwitchTestServer_->getPort());
   }
 
-  auto hwInitResult = getHwSwitch()->init(
-      haveFeature(MULTISWITCH_THRIFT_SERVER)
-          ? static_cast<HwSwitchCallback*>(thriftSyncer_.get())
-          : this,
-      true /*failHwCallsOnWarmboot*/);
+  auto hwInitResult =
+      getHwSwitch()->init(this, nullptr, true /*failHwCallsOnWarmboot*/);
 
   programmedState_ = hwInitResult.switchState;
   programmedState_ = programmedState_->clone();

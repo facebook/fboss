@@ -261,7 +261,7 @@ void SaiPhyManager::initializeSlotPhysImpl(PimID pimID) {
 
       // Now call HwSwitch to create the switch object in hardware
       auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
-      saiSwitch->init(xphy, true /* failHwCallsOnWarmboot */);
+      saiSwitch->init(xphy, nullptr, true /* failHwCallsOnWarmboot */);
       xphy->setSwitchId(saiSwitch->getSaiSwitchId());
       xphy->dump();
       XLOG(DBG2)

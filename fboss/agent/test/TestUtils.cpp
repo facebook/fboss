@@ -1171,7 +1171,7 @@ void addSwitchSettingsToState(
 
 HwSwitchInitFn mockHwSwitchInitFn(SwSwitch* sw) {
   return [sw](HwSwitchCallback* callback, bool failHwCallsOnWarmboot) {
-    return getMockHw(sw)->init(callback, failHwCallsOnWarmboot);
+    return getMockHw(sw)->init(callback, nullptr, failHwCallsOnWarmboot);
   };
 }
 

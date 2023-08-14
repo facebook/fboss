@@ -226,7 +226,10 @@ std::shared_ptr<SwitchState> HwSwitch::programMinAlpmState(
   return func(StateDelta(state, minAlpmState));
 }
 
-HwInitResult HwSwitch::init(Callback* callback, bool failHwCallsOnWarmboot) {
+HwInitResult HwSwitch::init(
+    Callback* callback,
+    const std::shared_ptr<SwitchState>& /*state*/,
+    bool failHwCallsOnWarmboot) {
   using std::chrono::duration;
   using std::chrono::duration_cast;
   using std::chrono::steady_clock;
