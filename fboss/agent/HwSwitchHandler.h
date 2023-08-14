@@ -11,6 +11,7 @@
 
 #include <folly/futures/Future.h>
 #include <folly/io/async/EventBase.h>
+#include "fboss/agent/if/gen-cpp2/MultiSwitchCtrl.h"
 
 namespace facebook::fboss {
 
@@ -148,6 +149,10 @@ class HwSwitchHandler {
       bool cached) const = 0;
 
   virtual bool needL2EntryForNeighbor() const = 0;
+
+  virtual multiswitch::StateOperDelta getNextStateOperDelta() = 0;
+
+  virtual void cancelOperDeltaRequest() = 0;
 
  protected:
   virtual void initPlatformData() = 0;

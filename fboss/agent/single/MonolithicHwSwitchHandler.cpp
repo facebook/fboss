@@ -222,4 +222,13 @@ fsdb::OperDelta MonolithicHwSwitchHandler::stateChanged(
   return transaction ? hw_->stateChangedTransaction(delta)
                      : hw_->stateChanged(delta);
 }
+
+multiswitch::StateOperDelta MonolithicHwSwitchHandler::getNextStateOperDelta() {
+  throw FbossError("Not supported");
+}
+
+void MonolithicHwSwitchHandler::cancelOperDeltaRequest() {
+  throw FbossError("Not supported");
+}
+
 } // namespace facebook::fboss

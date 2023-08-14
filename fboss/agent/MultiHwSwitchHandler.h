@@ -8,6 +8,7 @@
 #include <memory>
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/HwSwitchCallback.h"
+#include "fboss/agent/if/gen-cpp2/MultiSwitchCtrl.h"
 
 namespace facebook::fboss {
 
@@ -35,6 +36,14 @@ class MultiHwSwitchHandler {
   void start();
 
   void stop();
+
+  bool isRunning() const {
+    return !stopped_.load();
+  }
+
+  multiswitch::StateOperDelta getNextStateOperDelta(int64_t switchId);
+
+  void cancelOperDeltaRequest(int64_t switchId);
 
   std::shared_ptr<SwitchState> stateChanged(
       const StateDelta& delta,

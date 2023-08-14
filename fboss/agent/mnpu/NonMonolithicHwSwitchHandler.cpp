@@ -1,13 +1,11 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/mnpu/NonMonolithicHwSwitchHandler.h"
-
 #include "fboss/agent/TxPacket.h"
 
 namespace facebook::fboss {
 
 NonMonolithicHwSwitchHandler::NonMonolithicHwSwitchHandler(
-    Platform* /*platform*/,
     const SwitchID& switchId,
     const cfg::SwitchInfo& info)
     : HwSwitchHandler(switchId, info) {}
@@ -220,9 +218,72 @@ bool NonMonolithicHwSwitchHandler::needL2EntryForNeighbor() const {
 }
 
 fsdb::OperDelta NonMonolithicHwSwitchHandler::stateChanged(
-    const fsdb::OperDelta& /*delta*/,
-    bool /*transaction*/) {
-  throw FbossError("stateChanged not implemented");
+    const fsdb::OperDelta& delta,
+    bool transaction) {
+  multiswitch::StateOperDelta stateDelta;
+  stateDelta.operDelta() = delta;
+  stateDelta.transaction() = transaction;
+  // if HwSwitch is not connected, wait for connection
+  {
+    std::unique_lock<std::mutex> lk(stateUpdateMutex_);
+    if (!connected_) {
+      stateUpdateCV_.wait(lk, [this] { return connected_; });
+    }
+    nextOperDelta_ = &stateDelta;
+    ackReceived_ = false;
+    deltaReady_ = true;
+  }
+  // state update ready. notify waiting thread
+  stateUpdateCV_.notify_one();
+  {
+    std::unique_lock<std::mutex> lk(stateUpdateMutex_);
+    // wait for acknowledgement
+    stateUpdateCV_.wait(
+        lk, [this] { return ackReceived_ || deltaReadCancelled_; });
+    if (deltaReadCancelled_) {
+      // TODO - handle cancellation by HwSwitch
+      throw FbossError("client cancelled delta read during update");
+    }
+  }
+  // received ack. return empty delta to indicate success
+  return fsdb::OperDelta();
 }
 
+multiswitch::StateOperDelta
+NonMonolithicHwSwitchHandler::getNextStateOperDelta() {
+  // check whether it is a new connection.
+  {
+    std::unique_lock<std::mutex> lk(stateUpdateMutex_);
+    if (!connected_) {
+      connected_ = true;
+    } else {
+      // For existing connections, we treat a new get request
+      // as an ack to pending state update.
+      ackReceived_ = true;
+    }
+  }
+  stateUpdateCV_.notify_one();
+
+  // wait for new delta to be available or for cancellation.
+  {
+    std::unique_lock<std::mutex> lk(stateUpdateMutex_);
+    stateUpdateCV_.wait(
+        lk, [this] { return deltaReady_ || deltaReadCancelled_; });
+    if (deltaReadCancelled_) {
+      // return empty delta to HwSwitch incase of cancellation
+      return multiswitch::StateOperDelta();
+    }
+    deltaReady_ = false;
+    return *nextOperDelta_;
+  }
+}
+
+void NonMonolithicHwSwitchHandler::cancelOperDeltaRequest() {
+  {
+    std::unique_lock<std::mutex> lk(stateUpdateMutex_);
+    connected_ = false;
+    deltaReadCancelled_ = true;
+  }
+  stateUpdateCV_.notify_all();
+}
 } // namespace facebook::fboss
