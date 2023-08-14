@@ -61,6 +61,10 @@ using ::testing::_;
 namespace {
 const uint8_t kNCStrictPriorityQueue = 7;
 
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+
 unique_ptr<HwTestHandle> setupTestHandle(
     std::chrono::seconds arpTimeout = std::chrono::seconds(0),
     uint32_t maxProbes = 1,
@@ -104,8 +108,8 @@ unique_ptr<HwTestHandle> setupTestHandle(
         switchSettings->setMaxNeighborProbes(maxProbes);
         auto multiSwitchSwitchSettings = make_shared<MultiSwitchSettings>();
         multiSwitchSwitchSettings->addNode(
-            scopeResolver->scope(switchSettings).matcherString(),
-            switchSettings);
+            scope().matcherString(), switchSettings);
+
         inState->resetSwitchSettings(multiSwitchSwitchSettings);
         inState->publish();
         return inState;
