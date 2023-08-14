@@ -227,18 +227,29 @@ std::shared_ptr<SwitchState> HwSwitch::programMinAlpmState(
 }
 
 HwInitResult HwSwitch::init(Callback* callback, bool failHwCallsOnWarmboot) {
-  switchType_ = getPlatform()->getAsic()->getSwitchType();
-  switchId_ = getPlatform()->getAsic()->getSwitchId();
-  BootType bootType = BootType::COLD_BOOT;
-  if (getPlatform()->getAsic()->getAsicType() !=
-      cfg::AsicType::ASIC_TYPE_MOCK) {
-    if (auto warmBootHelper = getPlatform()->getWarmBootHelper()) {
-      bootType = warmBootHelper->canWarmBoot() ? BootType::WARM_BOOT
-                                               : BootType::COLD_BOOT;
-    }
+  using std::chrono::duration;
+  using std::chrono::duration_cast;
+  using std::chrono::steady_clock;
+
+  steady_clock::time_point begin = steady_clock::now();
+  HwInitResult ret{};
+  ret.initializedTime =
+      duration_cast<duration<float>>(steady_clock::now() - begin).count();
+  ret.bootType = initLight(callback, failHwCallsOnWarmboot);
+  if (ret.bootType == BootType::WARM_BOOT) {
+    auto wbState =
+        getPlatform()->getWarmBootHelper()->getSwSwitchWarmBootState();
+    ret.switchState = SwitchState::fromThrift(*(wbState.swSwitchState()));
+    const auto& routeTables = *(wbState.routeTables());
+    ret.rib = RoutingInformationBase::fromThrift(
+        routeTables,
+        ret.switchState->getFibs(),
+        ret.switchState->getLabelForwardingInformationBase());
+  } else {
+    // cold boot state is already programmed during initLight
+    ret.switchState = getProgrammedState();
+    ret.rib = std::make_unique<RoutingInformationBase>();
   }
-  auto ret = initImpl(callback, bootType, failHwCallsOnWarmboot);
-  ret.bootType = bootType;
   if (ret.bootType == BootType::WARM_BOOT) {
     // apply state only for warm boot. cold boot state is already applied.
     auto writeBehavior = getWarmBootWriteBehavior(failHwCallsOnWarmboot);
@@ -247,22 +258,9 @@ HwInitResult HwSwitch::init(Callback* callback, bool failHwCallsOnWarmboot) {
         StateDelta(getProgrammedState(), ret.switchState), writeBehavior);
     setProgrammedState(ret.switchState);
   }
+  ret.bootTime =
+      duration_cast<duration<float>>(steady_clock::now() - begin).count();
   initialStateApplied();
-  if (ret.bootType == BootType::WARM_BOOT ||
-      !getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::ROUTE_PROGRAMMING) ||
-      (switchType_ != cfg::SwitchType::NPU &&
-       switchType_ != cfg::SwitchType::VOQ)) {
-    return ret;
-  }
-  // program min alpm state for npu and voq
-  std::map<int32_t, state::RouteTableFields> routeTables{};
-  routeTables.emplace(kDefaultVrf, state::RouteTableFields{});
-  ret.rib = RoutingInformationBase::fromThrift(routeTables);
-  programMinAlpmState(ret.rib.get(), [this](const StateDelta& delta) {
-    return stateChanged(delta);
-  });
-  ret.switchState = getProgrammedState();
   return ret;
 }
 
@@ -274,5 +272,38 @@ HwWriteBehaviorRAII HwSwitch::getWarmBootWriteBehavior(
     return HwWriteBehaviorRAII(HwWriteBehavior::FAIL);
   }
   return HwWriteBehaviorRAII(HwWriteBehavior::WRITE);
+}
+
+BootType HwSwitch::initLight(Callback* callback, bool failHwCallsOnWarmboot) {
+  switchType_ = getPlatform()->getAsic()->getSwitchType();
+  switchId_ = getPlatform()->getAsic()->getSwitchId();
+  BootType bootType = BootType::COLD_BOOT;
+  if (getPlatform()->getAsic()->getAsicType() !=
+      cfg::AsicType::ASIC_TYPE_MOCK) {
+    if (auto warmBootHelper = getPlatform()->getWarmBootHelper()) {
+      bootType = warmBootHelper->canWarmBoot() ? BootType::WARM_BOOT
+                                               : BootType::COLD_BOOT;
+    }
+  }
+  // initialize hardware switch
+  initImpl(callback, bootType, failHwCallsOnWarmboot);
+  if (bootType == BootType::WARM_BOOT) {
+    // on warm boot, no need to apply minimum alpm state
+    return bootType;
+  }
+  if (switchType_ != cfg::SwitchType::NPU &&
+      switchType_ != cfg::SwitchType::VOQ) {
+    // no route programming, no need to apply minimum alpm state
+    return bootType;
+  }
+
+  // program min alpm state for npu and voq only on cold boot
+  std::map<int32_t, state::RouteTableFields> routeTables{};
+  routeTables.emplace(kDefaultVrf, state::RouteTableFields{});
+  auto rib = RoutingInformationBase::fromThrift(routeTables);
+  programMinAlpmState(rib.get(), [this](const StateDelta& delta) {
+    return stateChanged(delta);
+  });
+  return bootType;
 }
 } // namespace facebook::fboss

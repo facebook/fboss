@@ -117,6 +117,9 @@ class HwSwitch {
    */
   HwInitResult init(Callback* callback, bool failHwCallsOnWarmboot);
 
+  /* initialize hardware switch but do not apply warm boot state */
+  BootType initLight(Callback* callback, bool failHwCallsOnWarmboot);
+
   cfg::SwitchType getSwitchType() const {
     return switchType_;
   }
