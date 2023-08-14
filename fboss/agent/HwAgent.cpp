@@ -24,11 +24,21 @@ HwAgent::HwAgent(
 HwAgent::HwAgent(std::unique_ptr<Platform> platform)
     : platform_(std::move(platform)) {}
 
-HwInitResult HwAgent::initAgent(
+BootType HwAgent::initAgent(
     bool failHwCallsOnWarmboot,
     HwSwitchCallback* callback) {
+  auto bootType =
+      getPlatform()->getHwSwitch()->initLight(callback, failHwCallsOnWarmboot);
+  XLOG(DBG2) << "HwSwitch init done";
+  return bootType;
+}
+
+HwInitResult HwAgent::initMonolithicHwAgent(
+    bool failHwCallsOnWarmboot,
+    const std::shared_ptr<SwitchState>& state,
+    HwSwitchCallback* callback) {
   auto hwInitResult = getPlatform()->getHwSwitch()->init(
-      callback, nullptr, failHwCallsOnWarmboot);
+      callback, state, failHwCallsOnWarmboot);
   XLOG(DBG2) << "HwSwitch init done";
   return hwInitResult;
 }

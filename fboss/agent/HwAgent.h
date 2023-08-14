@@ -33,8 +33,11 @@ class HwAgent {
   const Platform* getPlatform() const {
     return platform_.get();
   }
-  HwInitResult initAgent(
+  BootType initAgent(bool failHwCallsOnWarmboot, HwSwitchCallback* callback);
+
+  HwInitResult initMonolithicHwAgent(
       bool failHwCallsOnWarmboot,
+      const std::shared_ptr<SwitchState>& state,
       HwSwitchCallback* callback);
 
  private:

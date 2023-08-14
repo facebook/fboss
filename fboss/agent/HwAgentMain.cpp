@@ -58,12 +58,12 @@ int hwAgentMain(
   auto thriftSyncer = std::make_unique<SplitAgentThriftSyncer>(
       hwAgent->getPlatform()->getHwSwitch(), FLAGS_swswitch_port);
 
-  auto hwInitRet =
+  auto bootType =
       hwAgent->initAgent(true /* failHwCallsOnWarmboot */, thriftSyncer.get());
 
   restart_time::init(
       hwAgent->getPlatform()->getWarmBootDir(),
-      hwInitRet.bootType == BootType::WARM_BOOT);
+      bootType == BootType::WARM_BOOT);
 
   folly::EventBase eventBase;
   auto server = setupThriftServer(

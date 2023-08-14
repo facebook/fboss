@@ -71,7 +71,8 @@ void MonolithicSwSwitchInitializer::initImpl(
       hwSwitchCallback,
       nullptr,
       [this](HwSwitchCallback* callback, bool failHwCallsOnWarmboot) {
-        return hwAgent_->initAgent(failHwCallsOnWarmboot, callback);
+        return hwAgent_->initMonolithicHwAgent(
+            failHwCallsOnWarmboot, nullptr, callback);
       },
       setupFlags());
 }
