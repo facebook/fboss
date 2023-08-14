@@ -114,10 +114,7 @@ class HwPortProfileTest : public HwTest {
         apache::thrift::SimpleJSONSerializer::serialize<std::string>(phyInfo);
     XLOG(DBG3) << "Snapshot for port " << portID << " = " << serializedSnapshot;
 
-    // Expect state field to be present
-    ASSERT_TRUE(phyInfo.state().has_value());
-    auto state = phyInfo.state().ensure();
-
+    auto& state = *phyInfo.state();
     // Verify PhyState fields
     EXPECT_EQ(state.phyChip()->type(), phy::DataPlanePhyChipType::IPHY);
     EXPECT_TRUE(state.linkState().has_value());
@@ -155,9 +152,7 @@ class HwPortProfileTest : public HwTest {
     }
 
     // Verify PhyStats
-    ASSERT_TRUE(phyInfo.stats().has_value());
-    auto stats = phyInfo.stats().ensure();
-    auto& lineStats = *stats.line();
+    auto& lineStats = *phyInfo.stats()->line();
 
     // Verify PmdStats
     if (expectPmdCdrLock || expectPmdSignalDetect) {

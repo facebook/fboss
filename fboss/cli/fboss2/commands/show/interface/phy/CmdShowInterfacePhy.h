@@ -53,8 +53,8 @@ class CmdShowInterfacePhy
       std::ostream& out,
       phy::PhyInfo& phyInfo,
       const std::string& ifName) {
-    auto& phyState = phyInfo.state().ensure();
-    auto& phyStats = phyInfo.stats().ensure();
+    auto& phyState = *phyInfo.state();
+    auto& phyStats = *phyInfo.stats();
     auto phyType =
         apache::thrift::util::enumNameSafe(*phyState.phyChip()->type());
     std::string prefix = phyType + "-";

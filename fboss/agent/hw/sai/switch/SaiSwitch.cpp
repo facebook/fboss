@@ -1181,13 +1181,11 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     // Update PMD Info
     phy::PmdInfo lastLinePmdInfo = *lastPhyInfo.line()->pmd();
     phy::PmdState lastLinePmdState;
-    if (auto lastState = lastPhyInfo.state()) {
-      lastLinePmdState = *lastState->line()->pmd();
-    }
+    auto lastState = lastPhyInfo.state();
+    lastLinePmdState = *lastState->line()->pmd();
     phy::PmdStats lastLinePmdStats;
-    if (auto lastStats = lastPhyInfo.stats()) {
-      lastLinePmdStats = *lastStats->line()->pmd();
-    }
+    auto lastStats = lastPhyInfo.stats();
+    lastLinePmdStats = *lastStats->line()->pmd();
     updatePmdInfo(
         *phyParams.line(),
         *phyParams.state()->line(),
@@ -1206,12 +1204,10 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
       if (auto lastSys = lastPhyInfo.system()) {
         lastSysPmdInfo = *lastSys->pmd();
       }
-      if (lastPhyInfo.state().has_value() &&
-          lastPhyInfo.state()->system().has_value()) {
+      if (lastPhyInfo.state()->system().has_value()) {
         lastSysPmdState = *lastPhyInfo.state()->system()->pmd();
       }
-      if (lastPhyInfo.stats().has_value() &&
-          lastPhyInfo.stats()->system().has_value()) {
+      if (lastPhyInfo.stats()->system().has_value()) {
         lastSysPmdStats = *lastPhyInfo.stats()->system()->pmd();
       }
       updatePmdInfo(

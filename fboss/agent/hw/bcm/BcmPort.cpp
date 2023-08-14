@@ -1234,13 +1234,11 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
       ? std::make_optional(*lastPhyInfo_.line()->pmd())
       : std::nullopt;
   phy::PmdState lastPmdState;
-  if (auto lastState = lastPhyInfo_.state()) {
-    lastPmdState = *lastState->line()->pmd();
-  }
+  auto lastState = lastPhyInfo_.state();
+  lastPmdState = *lastState->line()->pmd();
   phy::PmdStats lastPmdStats;
-  if (auto lastStats = lastPhyInfo_.stats()) {
-    lastPmdStats = *lastStats->line()->pmd();
-  }
+  auto lastStats = lastPhyInfo_.stats();
+  lastPmdStats = *lastStats->line()->pmd();
   bool readRxFreq = hw_->getPlatform()->getAsic()->isSupported(
       HwAsic::Feature::RX_FREQUENCY_PPM);
   // On TH4, BCM_PORT_PHY_CONTROL_RX_PPM is only supported from 6.5.28

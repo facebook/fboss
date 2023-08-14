@@ -319,15 +319,8 @@ struct PhyInfo {
   11: optional PhySideInfo line (deprecated = "Moved to state/stats");
   12: i32 timeCollected (deprecated = "Moved to state/stats"); // Time the diagnostic info was collected at
   13: optional i32 switchID (deprecated = "Moved to state/stats");
-  // During the transition, the new state and states will be optional.
-  // Both new and old fields will be filled in by QSFP service. Users
-  // should checked the new fields and use it if available but fall back
-  // to old fields if it's not. Once all users can understand the new
-  // fields, we can then remove the old fields and make the new fields
-  // non-optional. If making changes during this transition, please
-  // make sure to change both the new and the old structs.
-  14: optional PhyState state;
-  15: optional PhyStats stats;
+  14: PhyState state;
+  15: PhyStats stats;
 }
 
 struct PhySideInfo {
