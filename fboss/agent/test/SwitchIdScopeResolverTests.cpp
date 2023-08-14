@@ -242,7 +242,7 @@ TYPED_TEST(SwitchIdScopeResolverTest, sflowCollectors) {
 }
 
 TYPED_TEST(SwitchIdScopeResolverTest, switchSettingsScope) {
-  this->expectAll(std::shared_ptr<SwitchSettings>());
+  this->expectThrow(std::shared_ptr<SwitchSettings>());
 }
 
 TYPED_TEST(SwitchIdScopeResolverTest, portFlowletCfgScope) {

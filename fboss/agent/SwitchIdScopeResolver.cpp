@@ -249,6 +249,11 @@ const HwSwitchMatcher& SwitchIdScopeResolver::scope(
 }
 
 const HwSwitchMatcher& SwitchIdScopeResolver::scope(
+    const std::shared_ptr<SwitchSettings>& /*s*/) const {
+  throw FbossError("Scope is per HwSwitch, implemented during config apply");
+}
+
+const HwSwitchMatcher& SwitchIdScopeResolver::scope(
     const cfg::SflowCollector& /*entry*/) const {
   return l3SwitchMatcher();
 }
