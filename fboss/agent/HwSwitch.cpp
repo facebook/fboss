@@ -245,8 +245,8 @@ HwInitResult HwSwitch::init(Callback* callback, bool failHwCallsOnWarmboot) {
     setProgrammedState(std::make_shared<SwitchState>());
     ret.switchState = stateChanged(
         StateDelta(getProgrammedState(), ret.switchState), writeBehavior);
+    setProgrammedState(ret.switchState);
   }
-  setProgrammedState(ret.switchState);
   initialStateApplied();
   if (ret.bootType == BootType::WARM_BOOT ||
       !getPlatform()->getAsic()->isSupported(

@@ -971,6 +971,8 @@ HwInitResult BcmSwitch::initImpl(
     bootState->publish();
     setProgrammedState(bootState);
     ret.switchState = getColdBootSwitchState();
+    ret.switchState->publish();
+    setProgrammedState(ret.switchState);
     CHECK(ret.switchState->getSwitchSettings()->size());
     auto switchSettings =
         ret.switchState->getSwitchSettings()->cbegin()->second;
