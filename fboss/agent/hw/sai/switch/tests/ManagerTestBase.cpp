@@ -80,7 +80,7 @@ void ManagerTestBase::setupSaiPlatform() {
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED),
       0);
-  auto ret = saiPlatform->getHwSwitch()->init(nullptr, false);
+  auto ret = saiPlatform->getHwSwitch()->init(nullptr, nullptr, false);
   auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
   saiPlatform->initPorts();
   saiSwitch->switchRunStateChanged(SwitchRunState::INITIALIZED);

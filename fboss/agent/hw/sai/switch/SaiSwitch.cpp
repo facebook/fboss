@@ -1887,6 +1887,8 @@ HwInitResult SaiSwitch::initLocked(
       adapterKeys2AdapterHostKeysJson.get());
   if (bootType_ != BootType::WARM_BOOT) {
     ret.switchState = getColdBootSwitchState();
+    ret.switchState->publish();
+    setProgrammedState(ret.switchState);
     CHECK(ret.switchState->getSwitchSettings()->size());
     if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::MAC_AGING)) {
       managerTable_->switchManager().setMacAgingSeconds(
