@@ -75,6 +75,11 @@ constexpr uint32_t kOlympicGoldWeight = 80;
 constexpr uint32_t kOlympicEcn1Weight = 8;
 constexpr uint32_t kOlympicBronzeWeight = 5;
 
+constexpr uint32_t kOlympicV2NCNFWeight = 1;
+constexpr uint32_t kOlympicV2BronzeWeight = 5;
+constexpr uint32_t kOlympicV2SilverWeight = 15;
+constexpr uint32_t kOlympicV2GoldWeight = 79;
+
 constexpr int kOlympicHighestSPQueueId = kOlympicNCQueueId;
 
 /* Olympic ALL SP QoS queues */
@@ -128,6 +133,11 @@ void addOlympicQueueConfig(
     cfg::StreamType streamType,
     const HwAsic* asic,
     bool addWredConfig = false);
+void addOlympicV2WRRQueueConfig(
+    cfg::SwitchConfig* config,
+    cfg::StreamType streamType,
+    const HwAsic* asic,
+    bool addWredConfig = false);
 void addFswRswAllSPOlympicQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
@@ -145,8 +155,10 @@ std::string getOlympicCounterNameForDscp(uint8_t dscp);
 const std::map<int, std::vector<uint8_t>> kOlympicQueueToDscp(
     const HwAsic* hwAsic);
 const std::map<int, uint8_t> kOlympicWRRQueueToWeight(const HwAsic* hwAsic);
+const std::map<int, uint8_t> kOlympicV2WRRQueueToWeight(const HwAsic* hwAsic);
 
 const std::vector<int> kOlympicWRRQueueIds(const HwAsic* hwAsic);
+const std::vector<int> kOlympicV2WRRQueueIds(const HwAsic* hwAsic);
 const std::vector<int> kOlympicSPQueueIds(const HwAsic* hwAsic);
 const std::vector<int> kOlympicWRRAndICPQueueIds(const HwAsic* hwAsic);
 const std::vector<int> kOlympicWRRAndNCQueueIds(const HwAsic* hwAsic);
