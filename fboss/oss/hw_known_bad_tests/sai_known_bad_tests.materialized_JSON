@@ -11447,7 +11447,7 @@
           "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnTtlHitCpu$"
         },
         {
-          "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyOlympicToOlympicV2WRRWeights$"
+          "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
         },
         {
           "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
@@ -12465,7 +12465,7 @@
           "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnTtlHitCpu$"
         },
         {
-          "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyOlympicToOlympicV2WRRWeights$"
+          "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
         },
         {
           "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
@@ -12836,7 +12836,7 @@
           "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnTtlHitCpu$"
         },
         {
-          "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyOlympicToOlympicV2WRRWeights$"
+          "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
         },
         {
           "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
@@ -13854,7 +13854,7 @@
           "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnTtlHitCpu$"
         },
         {
-          "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyOlympicToOlympicV2WRRWeights$"
+          "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
         },
         {
           "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
