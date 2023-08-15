@@ -44,7 +44,7 @@ struct MirrorTunnel {
   std::optional<TunnelUdpPorts> udpPorts;
   uint8_t ttl;
   uint16_t greProtocol;
-  static constexpr auto kTTL = 255;
+  static constexpr auto kTTL = 127;
   static constexpr auto kGreProto = 0x88be;
 
   MirrorTunnel(
