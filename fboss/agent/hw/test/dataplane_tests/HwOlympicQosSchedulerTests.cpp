@@ -153,6 +153,17 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
         getHwSwitch(), ecmpHelper6.getRouterId(), ecmpHelper6.nhop(0));
   }
 
+  void _setupOlympicV2Queues() {
+    auto newCfg{initialConfig()};
+    auto streamType = *(getPlatform()
+                            ->getAsic()
+                            ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
+                            .begin());
+    utility::addOlympicV2WRRQueueConfig(&newCfg, streamType, getAsic());
+    utility::addOlympicV2QosMaps(newCfg, getAsic());
+    applyNewConfig(newCfg);
+  }
+
   void verifyWRRAndSP(const std::vector<int>& queueIds, int trafficQueueId) {
     utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
     auto setup = [=]() { _setup(ecmpHelper6, queueIds); };
@@ -187,6 +198,11 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
 
   void verifyWRRToAllSPDscpToQueue();
   void verifyWRRToAllSPTraffic();
+  void verifyDscpToQueueOlympicToOlympicV2();
+  void verifyWRRForOlympicToOlympicV2();
+  void verifyDscpToQueueOlympicV2ToOlympic();
+  void verifyOlympicV2WRRToAllSPTraffic();
+  void verifyOlympicV2AllSPTrafficToWRR();
 
  private:
   bool verifyWRRHelper(
@@ -350,6 +366,11 @@ void HwOlympicQosSchedulerTest::verifyWRRAndNC() {
                                                       // queues altogether
 }
 
+/*
+ * This test verifies the DSCP to queue mapping when transitioning from
+ * Olympic queue ids with WRR+SP to Olympic V2 queue ids with all SP
+ * over warmboot
+ */
 void HwOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
@@ -379,6 +400,11 @@ void HwOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
 
+/*
+ * This test verifies the traffic priority when transitioning from
+ * Olympic queue ids with WRR+SP to Olympic V2 queue ids with all SP
+ * over warmboot.
+ */
 void HwOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
@@ -408,6 +434,177 @@ void HwOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
         // should starve other SP queues
         // altogether
         utility::kOlympicAllSPHighestSPQueueId));
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
+
+/*
+ * This test verifies the dscp to queue mapping
+ * when transitioning from Olympic queue ids with WRR+SP to Olympic V2
+ * queue ids with WRR+SP over warmboot.
+ */
+void HwOlympicQosSchedulerTest::verifyDscpToQueueOlympicToOlympicV2() {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
+
+  auto setup = [=]() {
+    resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+  };
+
+  auto verify = [=]() {
+    _verifyDscpQueueMappingHelper(utility::kOlympicQueueToDscp(getAsic()));
+  };
+
+  auto setupPostWarmboot = [=]() { _setupOlympicV2Queues(); };
+
+  auto verifyPostWarmboot = [=]() {
+    // Verify DSCP to Queue mapping
+    _verifyDscpQueueMappingHelper(utility::kOlympicV2QueueToDscp(getAsic()));
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
+
+/*
+ * This test verifies the traffic priority interms of weights
+ * when transitioning from Olympic queue ids with WRR+SP to Olympic V2
+ * queue ids with WRR+SP over warmboot.
+ */
+void HwOlympicQosSchedulerTest::verifyWRRForOlympicToOlympicV2() {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
+
+  auto setup = [=]() {
+    _setup(ecmpHelper6, utility::kOlympicWRRQueueIds(getAsic()));
+  };
+
+  auto verify = [=]() {};
+
+  auto setupPostWarmboot = [=]() { _setupOlympicV2Queues(); };
+
+  auto verifyPostWarmboot = [=]() {
+    /*
+     * Verify whether the WRR weights are being honored
+     */
+    sendUdpPktsForAllQueues(
+        utility::kOlympicV2WRRQueueIds(getAsic()),
+        utility::kOlympicV2QueueToDscp(getAsic()));
+    EXPECT_TRUE(verifyWRRHelper(
+        utility::getMaxWeightWRRQueue(
+            utility::kOlympicV2WRRQueueToWeight(getAsic())),
+        utility::kOlympicV2WRRQueueToWeight(getAsic())));
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
+
+/*
+ * This test verifies the dscp to queue mapping when transitioning
+ * from Olympic V2 queue ids with WRR+SP to Olympic queue ids with
+ * WRR+SP over warmboot.
+ */
+void HwOlympicQosSchedulerTest::verifyDscpToQueueOlympicV2ToOlympic() {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
+
+  auto setup = [=]() {
+    resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+    _setupOlympicV2Queues();
+  };
+
+  auto verify = [=]() {
+    _verifyDscpQueueMappingHelper(utility::kOlympicV2QueueToDscp(getAsic()));
+  };
+
+  auto setupPostWarmboot = [=]() {
+    auto newCfg{initialConfig()};
+    auto streamType = *(getPlatform()
+                            ->getAsic()
+                            ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
+                            .begin());
+    utility::addOlympicQueueConfig(&newCfg, streamType, getAsic());
+    utility::addOlympicQosMaps(newCfg, getAsic());
+    applyNewConfig(newCfg);
+  };
+
+  auto verifyPostWarmboot = [=]() {
+    _verifyDscpQueueMappingHelper(utility::kOlympicQueueToDscp(getAsic()));
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
+
+/*
+ * This test verifies the traffic prioritization when transitioning
+ * from Olympic V2 WRR+SP QOS policy to Olympic V2 all SP qos policy
+ * over warmboot.
+ */
+void HwOlympicQosSchedulerTest::verifyOlympicV2WRRToAllSPTraffic() {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
+
+  auto setup = [=]() {
+    _setup(ecmpHelper6, utility::kOlympicV2WRRQueueIds(getAsic()));
+    _setupOlympicV2Queues();
+  };
+
+  auto verify = [=]() {};
+
+  auto setupPostWarmboot = [=]() {
+    auto newCfg{initialConfig()};
+    auto streamType = *(getPlatform()
+                            ->getAsic()
+                            ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
+                            .begin());
+    utility::addOlympicAllSPQueueConfig(&newCfg, streamType, getAsic());
+    utility::addOlympicV2QosMaps(newCfg, getAsic());
+    applyNewConfig(newCfg);
+  };
+
+  auto verifyPostWarmboot = [=]() {
+    sendUdpPktsForAllQueues(
+        utility::kOlympicAllSPQueueIds(getAsic()),
+        utility::kOlympicV2QueueToDscp(getAsic()));
+    EXPECT_TRUE(verifySPHelper(
+        // SP queue with highest queueId
+        // should starve other SP queues
+        // altogether
+        utility::kOlympicAllSPHighestSPQueueId));
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
+
+/*
+ * This test verifies the traffic prioritization when transitioning
+ * from Olympic V2 all SP QOS policy to Olympic V2 WRR+SP qos policy
+ * over warmboot.
+ */
+void HwOlympicQosSchedulerTest::verifyOlympicV2AllSPTrafficToWRR() {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
+
+  auto setup = [=]() {
+    _setup(ecmpHelper6, utility::kOlympicV2WRRQueueIds(getAsic()));
+    auto newCfg{initialConfig()};
+    auto streamType = *(getPlatform()
+                            ->getAsic()
+                            ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
+                            .begin());
+    utility::addOlympicAllSPQueueConfig(&newCfg, streamType, getAsic());
+    utility::addOlympicV2QosMaps(newCfg, getAsic());
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=]() {};
+
+  auto setupPostWarmboot = [=]() { _setupOlympicV2Queues(); };
+
+  auto verifyPostWarmboot = [=]() {
+    // Verify whether the WRR weights are being honored
+    sendUdpPktsForAllQueues(
+        utility::kOlympicV2WRRQueueIds(getAsic()),
+        utility::kOlympicV2QueueToDscp(getAsic()));
+    EXPECT_TRUE(verifyWRRHelper(
+        utility::getMaxWeightWRRQueue(
+            utility::kOlympicV2WRRQueueToWeight(getAsic())),
+        utility::kOlympicV2WRRQueueToWeight(getAsic())));
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
@@ -466,4 +663,23 @@ TEST_F(HwOlympicQosSchedulerTest, VerifyWRRToAllSPTraffic) {
   verifyWRRToAllSPTraffic();
 }
 
+TEST_F(HwOlympicQosSchedulerTest, VerifyDscpToQueueOlympicToOlympicV2) {
+  verifyDscpToQueueOlympicToOlympicV2();
+}
+
+TEST_F(HwOlympicQosSchedulerTest, VerifyWRRForOlympicToOlympicV2) {
+  verifyWRRForOlympicToOlympicV2();
+}
+
+TEST_F(HwOlympicQosSchedulerTest, VerifyDscpToQueueOlympicV2ToOlympic) {
+  verifyDscpToQueueOlympicV2ToOlympic();
+}
+
+TEST_F(HwOlympicQosSchedulerTest, VerifyOlympicV2WRRToAllSPTraffic) {
+  verifyOlympicV2WRRToAllSPTraffic();
+}
+
+TEST_F(HwOlympicQosSchedulerTest, VerifyOlympicV2AllSPTrafficToWRR) {
+  verifyOlympicV2AllSPTrafficToWRR();
+}
 } // namespace facebook::fboss
