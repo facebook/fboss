@@ -368,12 +368,12 @@ void HwOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
                             ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
                             .begin());
     utility::addOlympicAllSPQueueConfig(&newCfg, streamType, getAsic());
-    utility::addOlympicAllSPQosMaps(newCfg, getAsic());
+    utility::addOlympicV2QosMaps(newCfg, getAsic());
     applyNewConfig(newCfg);
   };
 
   auto verifyPostWarmboot = [=]() {
-    _verifyDscpQueueMappingHelper(utility::kOlympicAllSPQueueToDscp(getAsic()));
+    _verifyDscpQueueMappingHelper(utility::kOlympicV2QueueToDscp(getAsic()));
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
@@ -395,14 +395,14 @@ void HwOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
                             ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
                             .begin());
     utility::addOlympicAllSPQueueConfig(&newCfg, streamType, getAsic());
-    utility::addOlympicAllSPQosMaps(newCfg, getAsic());
+    utility::addOlympicV2QosMaps(newCfg, getAsic());
     applyNewConfig(newCfg);
   };
 
   auto verifyPostWarmboot = [=]() {
     sendUdpPktsForAllQueues(
         utility::kOlympicAllSPQueueIds(getAsic()),
-        utility::kOlympicAllSPQueueToDscp(getAsic()));
+        utility::kOlympicV2QueueToDscp(getAsic()));
     EXPECT_TRUE(verifySPHelper(
         // SP queue with highest queueId
         // should starve other SP queues

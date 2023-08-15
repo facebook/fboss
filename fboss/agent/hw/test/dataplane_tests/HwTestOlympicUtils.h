@@ -32,7 +32,7 @@ enum class OlympicQueueType {
   NC,
 };
 
-enum class AllSPOlympicQueueType { NCNF, BRONZE, SILVER, GOLD, ICP, NC };
+enum class OlympicV2QueueType { NCNF, BRONZE, SILVER, GOLD, ICP, NC };
 
 enum class NetworkAIQueueType { MONITORING, RDMA, NC };
 
@@ -157,9 +157,9 @@ void addOlympicAllSPQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
     const HwAsic* asic);
-void addOlympicAllSPQosMaps(cfg::SwitchConfig& cfg, const HwAsic* asic);
+void addOlympicV2QosMaps(cfg::SwitchConfig& cfg, const HwAsic* asic);
 
-const std::map<int, std::vector<uint8_t>> kOlympicAllSPQueueToDscp(
+const std::map<int, std::vector<uint8_t>> kOlympicV2QueueToDscp(
     const HwAsic* hwAsic);
 const std::vector<int> kOlympicAllSPQueueIds(const HwAsic* hwAsic);
 cfg::ActiveQueueManagement kGetOlympicEcnConfig(
@@ -195,7 +195,7 @@ void addQueueBurstSizeConfig(
 
 int getOlympicQueueId(const HwAsic* hwAsic, OlympicQueueType queueType);
 
-int getOlympicSPQueueId(const HwAsic* hwAsic, AllSPOlympicQueueType queueType);
+int getOlympicV2QueueId(const HwAsic* hwAsic, OlympicV2QueueType queueType);
 
 int getNetworkAIQueueId(const HwAsic* hwAsic, NetworkAIQueueType queueType);
 
