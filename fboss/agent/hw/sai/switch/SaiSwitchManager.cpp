@@ -644,14 +644,14 @@ void SaiSwitchManager::updateStats() {
   if (switchDropStats.size()) {
     switch_->updateStats(switchDropStats, SAI_STATS_MODE_READ);
     HwSwitchDropStats dropStats;
-    fillHwSwitchDropStats(switch_->getStats(), dropStats);
+    fillHwSwitchDropStats(switch_->getStats(switchDropStats), dropStats);
     platform_->getHwSwitch()->getSwitchStats()->update(dropStats);
   }
   auto switchDramStats = supportedDramStats();
   if (switchDramStats.size()) {
     switch_->updateStats(switchDramStats, SAI_STATS_MODE_READ_AND_CLEAR);
     HwSwitchDramStats dramStats;
-    fillHwSwitchDramStats(switch_->getStats(), dramStats);
+    fillHwSwitchDramStats(switch_->getStats(switchDramStats), dramStats);
     platform_->getHwSwitch()->getSwitchStats()->update(dramStats);
   }
 }
