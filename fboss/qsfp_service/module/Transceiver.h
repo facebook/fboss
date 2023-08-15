@@ -258,6 +258,12 @@ class Transceiver {
 
   virtual void setDiagsCapability() {}
 
+  virtual bool setTransceiverTx(
+      std::string /* portName */,
+      bool /* lineSide */,
+      std::optional<uint8_t> /* userChannelMask */,
+      bool /* enable */) = 0;
+
   time_t modulePauseRemediationUntil_{0};
   virtual void setModulePauseRemediation(int32_t timeout) = 0;
   virtual time_t getModulePauseRemediationUntil() = 0;

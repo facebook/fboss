@@ -283,10 +283,10 @@ void QsfpServiceHandler::setPortAdminState(
 }
 
 void QsfpServiceHandler::setInterfaceTxRx(
-    std::vector<phy::TxRxEnableResponse>& /* txRxEnableResponse */,
-    std::unique_ptr<
-        std::vector<phy::TxRxEnableRequest>> /* txRxEnableRequests */) {
+    std::vector<phy::TxRxEnableResponse>& txRxEnableResponse,
+    std::unique_ptr<std::vector<phy::TxRxEnableRequest>> txRxEnableRequests) {
   auto log = LOG_THRIFT_CALL(INFO);
+  txRxEnableResponse = manager_->setInterfaceTxRx(*txRxEnableRequests);
 }
 
 void QsfpServiceHandler::saiPhyRegisterAccess(

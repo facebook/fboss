@@ -212,6 +212,9 @@ class TransceiverManager {
       phy::PortComponent /* component */,
       bool /* setAdminUp */);
 
+  std::vector<phy::TxRxEnableResponse> setInterfaceTxRx(
+      const std::vector<phy::TxRxEnableRequest>& txRxEnableRequests);
+
   virtual std::string saiPhyRegisterAccess(
       std::string /* portName */,
       bool /* opRead */,

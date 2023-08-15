@@ -1874,7 +1874,7 @@ void TransceiverManager::setPortLoopbackState(
       component != phy::PortComponent::GB_LINE) {
     XLOG(INFO)
         << " TransceiverManager::setPortLoopbackState - component not supported "
-        << static_cast<int>(component);
+        << apache::thrift::util::enumNameSafe(component);
     return;
   }
 
@@ -1897,7 +1897,7 @@ void TransceiverManager::setPortAdminState(
       component != phy::PortComponent::GB_LINE) {
     XLOG(INFO)
         << " TransceiverManager::setPortAdminState - component not supported "
-        << static_cast<int>(component);
+        << apache::thrift::util::enumNameSafe(component);
     return;
   }
 
@@ -1905,6 +1905,75 @@ void TransceiverManager::setPortAdminState(
              << static_cast<int>(swPort.value());
   getPhyManager()->setPortAdminState(
       PortID(swPort.value()), component, setAdminUp);
+}
+
+/*
+ * setInterfaceTxRx
+ *
+ * Set the interface Tx/Rx output state as per the request. Currently this API
+ * supports the Transceiver system and line side control only. The lanes
+ * corresponding to the SW ports are disabled/enabled in transceiver. If the
+ * channel mask is explicitly specified then only those channels are
+ * enabled/disabled
+ */
+std::vector<phy::TxRxEnableResponse> TransceiverManager::setInterfaceTxRx(
+    const std::vector<phy::TxRxEnableRequest>& txRxEnableRequests) {
+  std::vector<phy::TxRxEnableResponse> txRxEnableResponses;
+  for (const auto& txRxEnableRequest : txRxEnableRequests) {
+    auto portName = txRxEnableRequest.portName().value();
+    auto component = txRxEnableRequest.component().value();
+    auto enable = txRxEnableRequest.enable().value();
+    auto channelMask = txRxEnableRequest.laneMask().to_optional();
+    auto txOrRx = txRxEnableRequest.txOrRx().value();
+
+    auto swPort = getPortIDByPortName(portName);
+    if (!swPort.has_value()) {
+      throw FbossError(
+          folly::sformat("setInterfaceTxRx: Invalid port {}", portName));
+    }
+    if (component != phy::PortComponent::TRANSCEIVER_LINE &&
+        component != phy::PortComponent::TRANSCEIVER_SYSTEM) {
+      throw FbossError(folly::sformat(
+          "TransceiverManager::setInterfaceTxRx - component not supported {}",
+          apache::thrift::util::enumNameSafe(component)));
+    }
+    if (!txOrRx) {
+      throw FbossError(folly::sformat(
+          "setInterfaceTxRx: Transceiver Rx lane control not implemented for {}",
+          portName));
+    }
+
+    XLOG(INFO) << folly::sformat(
+        "TransceiverManager::setInterfaceTxRx Port {:s}", portName);
+
+    // Get Transceiver ID for this SW Port
+    auto tcvrId = getTransceiverID(swPort.value());
+    if (!tcvrId.has_value()) {
+      throw FbossError(folly::sformat(
+          "setInterfaceTxRx: Transceiver not found for port {}", portName));
+    }
+
+    // Finally call the transceiver object with SW Port channel list and
+    // optionally user requested channel mask
+    auto lockedTransceivers = transceivers_.rlock();
+    if (auto it = lockedTransceivers->find(tcvrId.value());
+        it != lockedTransceivers->end()) {
+      std::optional<uint8_t> tcvrChannelMask{std::nullopt};
+      if (channelMask.has_value()) {
+        tcvrChannelMask = channelMask.value();
+      }
+
+      phy::TxRxEnableResponse response;
+      response.portName() = portName;
+      bool lineSide = (component == phy::PortComponent::TRANSCEIVER_LINE);
+      auto result = it->second->setTransceiverTx(
+          portName, lineSide, tcvrChannelMask, enable);
+      response.success() = result;
+
+      txRxEnableResponses.push_back(response);
+    }
+  }
+  return txRxEnableResponses;
 }
 
 /*

@@ -275,6 +275,14 @@ class QsfpModule : public Transceiver {
     return portNameToMediaLanes;
   }
 
+  virtual bool setTransceiverTx(
+      std::string /* portName */,
+      bool /* lineSide */,
+      std::optional<uint8_t> /* userChannelMask */,
+      bool /* enable */) override {
+    return false;
+  }
+
  protected:
   /* Qsfp Internal Implementation */
   std::unique_ptr<TransceiverImpl> qsfpImpl_;
