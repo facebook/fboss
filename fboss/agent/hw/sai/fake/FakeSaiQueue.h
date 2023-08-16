@@ -28,14 +28,16 @@ class FakeQueue {
       sai_object_id_t parentScheduler,
       sai_object_id_t schedulerProfileId = SAI_NULL_OBJECT_ID,
       sai_object_id_t wredProfileId = SAI_NULL_OBJECT_ID,
-      sai_object_id_t bufferProfileId = SAI_NULL_OBJECT_ID)
+      sai_object_id_t bufferProfileId = SAI_NULL_OBJECT_ID,
+      bool enablePfcDldr = false)
       : type(type),
         port(port),
         index(index),
         parentScheduler(parentScheduler),
         schedulerProfileId(schedulerProfileId),
         wredProfileId(wredProfileId),
-        bufferProfileId(bufferProfileId) {}
+        bufferProfileId(bufferProfileId),
+        enablePfcDldr(enablePfcDldr) {}
   sai_queue_type_t type;
   sai_object_id_t port;
   uint8_t index;
@@ -44,6 +46,7 @@ class FakeQueue {
   sai_object_id_t wredProfileId;
   sai_object_id_t bufferProfileId;
   sai_object_id_t id;
+  bool enablePfcDldr;
 };
 
 using FakeQueueManager = FakeManager<sai_object_id_t, FakeQueue>;

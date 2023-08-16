@@ -29,6 +29,7 @@ sai_status_t create_queue_fn(
   sai_object_id_t schedulerProfileId{SAI_NULL_OBJECT_ID};
   sai_object_id_t wredProfileId{SAI_NULL_OBJECT_ID};
   sai_object_id_t bufferProfileId{SAI_NULL_OBJECT_ID};
+  bool enablePfcDldr = false;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_QUEUE_ATTR_TYPE:
@@ -52,6 +53,9 @@ sai_status_t create_queue_fn(
       case SAI_QUEUE_ATTR_BUFFER_PROFILE_ID:
         bufferProfileId = attr_list[i].value.oid;
         break;
+      case SAI_QUEUE_ATTR_ENABLE_PFC_DLDR:
+        enablePfcDldr = attr_list[i].value.booldata;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -66,7 +70,8 @@ sai_status_t create_queue_fn(
       parentScheduler.value(),
       schedulerProfileId,
       wredProfileId,
-      bufferProfileId);
+      bufferProfileId,
+      enablePfcDldr);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -100,6 +105,10 @@ sai_status_t set_queue_attribute_fn(
       break;
     case SAI_QUEUE_ATTR_SCHEDULER_PROFILE_ID:
       queue.schedulerProfileId = attr->value.oid;
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_QUEUE_ATTR_ENABLE_PFC_DLDR:
+      queue.enablePfcDldr = attr->value.booldata;
       res = SAI_STATUS_SUCCESS;
       break;
     default:
@@ -137,6 +146,9 @@ sai_status_t get_queue_attribute_fn(
         break;
       case SAI_QUEUE_ATTR_SCHEDULER_PROFILE_ID:
         attr[i].value.oid = queue.schedulerProfileId;
+        break;
+      case SAI_QUEUE_ATTR_ENABLE_PFC_DLDR:
+        attr[i].value.booldata = queue.enablePfcDldr;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
