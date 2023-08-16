@@ -58,6 +58,7 @@ cli::ShowMirrorModel createExpectedMirrorWithoutTunnelModel() {
   modelEntry.dstIP() = "10.191.255.70";
   modelEntry.dstUDPPort() = "6346";
   modelEntry.dscp() = "42";
+  modelEntry.ttl() = "-";
 
   model.mirrorEntries()->push_back(modelEntry);
   return model;
@@ -79,6 +80,7 @@ cli::ShowMirrorModel createExpectedMirrorWithTunnelModel() {
   modelEntry.dstIP() = "1.2.3.4";
   modelEntry.dstUDPPort() = "-";
   modelEntry.dscp() = "10";
+  modelEntry.ttl() = "255";
 
   model.mirrorEntries()->push_back(modelEntry);
   return model;
@@ -123,9 +125,9 @@ TEST_F(CmdShowMirrorTestFixture, printOutputWithoutTunnel) {
 
   std::string output = ss.str();
   std::string expectedOutput =
-      " Mirror                 Status  Egress Port  Egress Port Name  Tunnel Type  Src MAC  Src IP          Src UDP Port  Dst MAC  Dst IP         Dst UDP Port  DSCP \n"
-      "---------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-      " mirror_without_tunnel  Active  1            eth1/5/1          -            -        10.163.128.190  12355         -        10.191.255.70  6346          42   \n\n";
+      " Mirror                 Status  Egress Port  Egress Port Name  Tunnel Type  Src MAC  Src IP          Src UDP Port  Dst MAC  Dst IP         Dst UDP Port  DSCP  TTL \n"
+      "---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+      " mirror_without_tunnel  Active  1            eth1/5/1          -            -        10.163.128.190  12355         -        10.191.255.70  6346          42    -   \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 }
@@ -150,9 +152,9 @@ TEST_F(CmdShowMirrorTestFixture, printOutputWithTunnel) {
 
   std::string output = ss.str();
   std::string expectedOutput =
-      " Mirror              Status  Egress Port  Egress Port Name  Tunnel Type  Src MAC            Src IP         Src UDP Port  Dst MAC            Dst IP   Dst UDP Port  DSCP \n"
-      "-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-      " mirror_with_tunnel  Active  5            eth1/2/1          GRE          b6:a9:fc:34:2d:a2  10.141.145.33  -             b6:a9:fc:34:31:20  1.2.3.4  -             10   \n\n";
+      " Mirror              Status  Egress Port  Egress Port Name  Tunnel Type  Src MAC            Src IP         Src UDP Port  Dst MAC            Dst IP   Dst UDP Port  DSCP  TTL \n"
+      "-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+      " mirror_with_tunnel  Active  5            eth1/2/1          GRE          b6:a9:fc:34:2d:a2  10.141.145.33  -             b6:a9:fc:34:31:20  1.2.3.4  -             10    255 \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 }

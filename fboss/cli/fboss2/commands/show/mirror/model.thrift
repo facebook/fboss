@@ -17,4 +17,5 @@ struct ShowMirrorModelEntry {
   10: string dstIP;
   11: string dstUDPPort;
   12: string dscp;
+  13: string ttl;
 }

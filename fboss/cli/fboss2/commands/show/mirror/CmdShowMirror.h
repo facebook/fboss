@@ -61,7 +61,8 @@ class CmdShowMirror : public CmdHandler<CmdShowMirror, CmdShowMirrorTraits> {
          "Dst MAC",
          "Dst IP",
          "Dst UDP Port",
-         "DSCP"});
+         "DSCP",
+         "TTL"});
     for (const auto& mirrorEntry : model.get_mirrorEntries()) {
       table.addRow(
           {mirrorEntry.get_mirror(),
@@ -75,7 +76,8 @@ class CmdShowMirror : public CmdHandler<CmdShowMirror, CmdShowMirrorTraits> {
            mirrorEntry.get_dstMAC(),
            mirrorEntry.get_dstIP(),
            mirrorEntry.get_dstUDPPort(),
-           mirrorEntry.get_dscp()});
+           mirrorEntry.get_dscp(),
+           mirrorEntry.get_ttl()});
     }
     out << table << std::endl;
   }
@@ -121,6 +123,7 @@ class CmdShowMirror : public CmdHandler<CmdShowMirror, CmdShowMirrorTraits> {
       isSFlow = false;
     }
     mirrorDetails.mirrorTunnelType() = isSFlow ? "sFlow" : "GRE";
+    mirrorDetails.ttl() = tunnel["ttl"].asString();
   }
 
   void processWithNoTunnel(
@@ -153,6 +156,7 @@ class CmdShowMirror : public CmdHandler<CmdShowMirror, CmdShowMirrorTraits> {
     } else {
       mirrorDetails.dstUDPPort() = "-";
     }
+    mirrorDetails.ttl() = "-";
   }
 
   RetType createModel(
