@@ -26,6 +26,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _QueueMap{
     SAI_ATTR_MAP(Queue, WredProfileId),
     SAI_ATTR_MAP(Queue, BufferProfileId),
     SAI_ATTR_MAP(Queue, SchedulerProfileId),
+    SAI_ATTR_MAP(Queue, EnablePfcDldr),
 };
 } // namespace
 

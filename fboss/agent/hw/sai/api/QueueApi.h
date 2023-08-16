@@ -57,6 +57,11 @@ struct SaiQueueTraits {
         SAI_QUEUE_ATTR_SCHEDULER_PROFILE_ID,
         SaiObjectIdT,
         SaiObjectIdDefault>;
+    using EnablePfcDldr = SaiAttribute<
+        EnumType,
+        SAI_QUEUE_ATTR_ENABLE_PFC_DLDR,
+        bool,
+        SaiBoolDefaultFalse>;
   };
   using AdapterKey = QueueSaiId;
   using AdapterHostKey =
@@ -128,6 +133,7 @@ SAI_ATTRIBUTE_NAME(Queue, ParentSchedulerNode)
 SAI_ATTRIBUTE_NAME(Queue, WredProfileId)
 SAI_ATTRIBUTE_NAME(Queue, BufferProfileId)
 SAI_ATTRIBUTE_NAME(Queue, SchedulerProfileId)
+SAI_ATTRIBUTE_NAME(Queue, EnablePfcDldr)
 
 template <>
 struct IsSaiObjectOwnedByAdapter<SaiQueueTraits> : public std::true_type {};
