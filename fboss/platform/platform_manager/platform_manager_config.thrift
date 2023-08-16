@@ -160,12 +160,8 @@ struct PlatformConfig {
   // Name of the platform.  Should match the name set in dmedicode
   1: string platformName;
 
-  // Each platform should have a Main Board FruTypeConfig defined.
-  // This refers to the Switch Main Board (SMB)
-  2: FruTypeConfig mainBoardFruTypeConfig;
-
-  // chassisSlotConfig describes the virtual Chassis slot where the Chassis is
-  // plugged in.
+  // mainBoardSlotConfig describes the virtual slot where the main board
+  // is plugged into the system.
   3: SlotConfig mainBoardSlotConfig;
 
   // The EEPROM which holds the chassis information

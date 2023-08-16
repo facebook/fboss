@@ -19,15 +19,28 @@ TEST(PlatformValidatorTest, InvalidPlatformName) {
   EXPECT_FALSE(PlatformValidator().isValid(config));
 }
 
-TEST(PlatformValidatorTest, MissingChassisSlotTypeConfig) {
+TEST(PlatformValidatorTest, MissingMainBoardSlotTypeConfig) {
   auto config = PlatformConfig();
-  config.platformName() = "meru";
+  config.platformName() = "MERU400BIU";
+  auto fruTypeConfig = FruTypeConfig();
+  fruTypeConfig.pluggedInSlotType() = "MAIN_BOARD";
+  config.fruTypeConfigs()["main_board"] = fruTypeConfig;
+  EXPECT_FALSE(PlatformValidator().isValid(config));
+}
+
+TEST(PlatformValidatorTest, MissingMainBoardFruTypeConfig) {
+  auto config = PlatformConfig();
+  config.platformName() = "MERU400BIU";
+  config.slotTypeConfigs()["MAIN_BOARD"] = SlotTypeConfig{};
   EXPECT_FALSE(PlatformValidator().isValid(config));
 }
 
 TEST(PlatformValidatorTest, ValidConfig) {
   auto config = PlatformConfig();
-  config.platformName() = "meru";
+  config.platformName() = "MERU400BIU";
   config.slotTypeConfigs()["MAIN_BOARD"] = SlotTypeConfig{};
+  auto fruTypeConfig = FruTypeConfig();
+  fruTypeConfig.pluggedInSlotType() = "MAIN_BOARD";
+  config.fruTypeConfigs()["main_board"] = fruTypeConfig;
   EXPECT_TRUE(PlatformValidator().isValid(config));
 }

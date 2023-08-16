@@ -19,26 +19,11 @@ PlatformExplorer::PlatformExplorer(
 
 void PlatformExplorer::explore() {
   XLOG(INFO) << "Exploring the device";
-
   for (const auto& [busName, busNum] :
        i2cExplorer_.getBusNums(*platformConfig_.i2cAdaptersFromCpu())) {
     updateI2cBusNum("", busName, busNum);
   }
-
-  bool isChassisPresent = presenceDetector_.isPresent(
-      *platformConfig_.mainBoardSlotConfig()->presenceDetection());
-
-  if (!isChassisPresent) {
-    XLOG(ERR) << "No chassis present";
-    throw std::runtime_error("No chassis present");
-  }
-
-  exploreFRU(
-      "",
-      "Chassis_Slot@0",
-      *platformConfig_.mainBoardSlotConfig(),
-      "CHASSIS",
-      *platformConfig_.mainBoardFruTypeConfig());
+  exploreSlot("", "MainBoard_Slot@0", *platformConfig_.mainBoardSlotConfig());
 }
 
 void PlatformExplorer::exploreFRU(
@@ -57,31 +42,37 @@ void PlatformExplorer::exploreFRU(
   exploreI2cDevices(fruName, *fruTypeConfig.i2cDeviceConfigs());
   for (const auto& [slotName, slotConfig] :
        *fruTypeConfig.outgoingSlotConfigs()) {
-    bool isChildFruPlugged =
-        presenceDetector_.isPresent(*slotConfig.presenceDetection());
-    if (!isChildFruPlugged) {
-      continue;
-    }
-    auto eepromConfig =
-        *platformConfig_.slotTypeConfigs()[*slotConfig.slotType()]
-             .eepromConfig();
-    auto eepromI2cBusNum = getI2cBusNum(
-        fruName,
-        slotConfig.outgoingI2cBusNames()[*eepromConfig.incomingBusIndex()]);
-    i2cExplorer_.createI2cDevice(
-        *eepromConfig.kernelDeviceName(),
-        eepromI2cBusNum,
-        *eepromConfig.address());
-    auto eepromPath =
-        i2cExplorer_.getDeviceI2cPath(eepromI2cBusNum, *eepromConfig.address());
-    auto pluggedInFruTypeName = i2cExplorer_.getFruTypeName(eepromPath);
-    exploreFRU(
-        fruName,
-        slotName,
-        slotConfig,
-        pluggedInFruTypeName,
-        platformConfig_.fruTypeConfigs()[pluggedInFruTypeName]);
+    exploreSlot(fruName, slotName, slotConfig);
   }
+}
+
+void PlatformExplorer::exploreSlot(
+    const std::string& fruName,
+    const std::string& slotName,
+    const SlotConfig& slotConfig) {
+  bool isChildFruPlugged =
+      presenceDetector_.isPresent(*slotConfig.presenceDetection());
+  if (!isChildFruPlugged) {
+    return;
+  }
+  auto eepromConfig =
+      *platformConfig_.slotTypeConfigs()[*slotConfig.slotType()].eepromConfig();
+  auto eepromI2cBusNum = getI2cBusNum(
+      fruName,
+      slotConfig.outgoingI2cBusNames()[*eepromConfig.incomingBusIndex()]);
+  i2cExplorer_.createI2cDevice(
+      *eepromConfig.kernelDeviceName(),
+      eepromI2cBusNum,
+      *eepromConfig.address());
+  auto eepromPath =
+      i2cExplorer_.getDeviceI2cPath(eepromI2cBusNum, *eepromConfig.address());
+  auto pluggedInFruTypeName = i2cExplorer_.getFruTypeName(eepromPath);
+  exploreFRU(
+      fruName,
+      slotName,
+      slotConfig,
+      pluggedInFruTypeName,
+      platformConfig_.fruTypeConfigs()[pluggedInFruTypeName]);
 }
 
 void PlatformExplorer::exploreI2cDevices(

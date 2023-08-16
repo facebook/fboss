@@ -1,40 +1,6 @@
 {
     "___COMMENT___": "See the associated pastes to get a pictorial representation of this config",
     "platformName": "sample_platform",
-    "mainBoardFruTypeConfig": {
-        "pluggedInSlotType": "MAIN_BOARD",
-        "i2cDeviceConfigs": [
-            {
-                "busName": "INCOMING@7",
-                "addr": 54,
-                "kernelDeviceName": "lm75",
-                "fruScopedName": "inlet_sensor"
-            },
-            {
-                "busName": "INCOMING@7",
-                "addr": 55,
-                "kernelDeviceName": "lm75",
-                "fruScopedName": "outlet_sensor"
-            },
-            {
-                "busName": "INCOMING@6",
-                "addr": 54,
-                "kernelDeviceName": "lm75",
-                "fruScopedName": "asic_sensor"
-            }
-        ],
-        "outgoingSlotConfigs": {
-            "yoloSlotOnChassis": {
-                "slotType": "YOLO",
-                "pathToPoll": "...",
-                "outgoingI2cBusNames": [
-                    "INCOMING@3",
-                    "INCOMING@4",
-                    "INCOMING@5"
-                ]
-            }
-        }
-    },
     "mainBoardSlotConfig": {
         "slotType": "MAIN_BOARD",
         "pathToPoll": "...",
@@ -89,6 +55,40 @@
         }
     },
     "platformFrus": {
+        "main_board": {
+            "pluggedInSlotType": "MAIN_BOARD",
+            "i2cDeviceConfigs": [
+                {
+                    "busName": "INCOMING@7",
+                    "addr": 54,
+                    "kernelDeviceName": "lm75",
+                    "fruScopedName": "inlet_sensor"
+                },
+                {
+                    "busName": "INCOMING@7",
+                    "addr": 55,
+                    "kernelDeviceName": "lm75",
+                    "fruScopedName": "outlet_sensor"
+                },
+                {
+                    "busName": "INCOMING@6",
+                    "addr": 54,
+                    "kernelDeviceName": "lm75",
+                    "fruScopedName": "asic_sensor"
+                }
+            ],
+            "outgoingSlotConfigs": {
+                "yoloSlotOnChassis": {
+                    "slotType": "YOLO",
+                    "pathToPoll": "...",
+                    "outgoingI2cBusNames": [
+                        "INCOMING@3",
+                        "INCOMING@4",
+                        "INCOMING@5"
+                    ]
+                }
+            }
+        },
         "yolo_max": {
             "pluggedInSlotType": "YOLO",
             "i2cDeviceConfigs": [
