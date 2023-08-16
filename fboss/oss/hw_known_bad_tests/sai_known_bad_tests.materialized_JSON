@@ -830,6 +830,9 @@
         },
         {
           "test_name_regex": "HwWatermarkTest.*"
+        },
+        {
+          "test_name_regex": "HwSplitAgentCallbackTest.txPacket"
         }
     ],
     "brcm/10.0_ea_odp/10.0_ea_odp/tomahawk5": [
