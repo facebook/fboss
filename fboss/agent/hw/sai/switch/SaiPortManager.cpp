@@ -607,6 +607,23 @@ void SaiPortManager::programPfcWatchdogTimers(
 #endif
 }
 
+void SaiPortManager::programPfcWatchdogPerQueueEnable(
+    const std::shared_ptr<Port>& swPort,
+    std::vector<PfcPriority>& enabledPfcPriorities,
+    const bool portPfcWdEnabled) {
+  // Enabled PFC priorities cannot be changed without a cold boot
+  // and hence in this flow, just take care of a case where PFC
+  // WD is being enabled or disabled for queues.
+  for (auto pfcPri : enabledPfcPriorities) {
+    // Assume 1:1 mapping b/w pfcPriority and queueId
+    auto queueHandle =
+        getQueueHandle(swPort->getID(), static_cast<uint8_t>(pfcPri));
+    SaiApiTable::getInstance()->queueApi().setAttribute(
+        queueHandle->queue->adapterKey(),
+        SaiQueueTraits::Attributes::EnablePfcDldr{portPfcWdEnabled});
+  }
+}
+
 void SaiPortManager::addPfc(const std::shared_ptr<Port>& swPort) {
   if (swPort->getPfc().has_value()) {
     // PFC is enabled for all priorities on a port
@@ -1184,6 +1201,20 @@ SaiQueueHandle* SaiPortManager::getQueueHandle(
     PortID swId,
     const SaiQueueConfig& saiQueueConfig) {
   return getQueueHandleImpl(swId, saiQueueConfig);
+}
+
+SaiQueueHandle* SaiPortManager::getQueueHandle(PortID swId, uint8_t queueId)
+    const {
+  auto portHandle = getPortHandleImpl(swId);
+  if (!portHandle) {
+    XLOG(FATAL) << "Invalid null SaiPortHandle for " << swId;
+  }
+  for (const auto& queue : portHandle->queues) {
+    if (queue.first.first == queueId) {
+      return queue.second.get();
+    }
+  }
+  XLOG(FATAL) << "Invalid queue ID " << queueId << " for port " << swId;
 }
 
 bool SaiPortManager::fecStatsSupported(PortID portId) const {

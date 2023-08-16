@@ -137,6 +137,7 @@ class SaiPortManager {
   SaiQueueHandle* getQueueHandle(
       PortID swId,
       const SaiQueueConfig& saiQueueConfig);
+  SaiQueueHandle* getQueueHandle(PortID swId, uint8_t queueId) const;
   std::map<PortID, HwPortStats> getPortStats() const;
   void changeQueue(
       const std::shared_ptr<Port>& swPort,
@@ -294,6 +295,10 @@ class SaiPortManager {
       sai_uint8_t txPfc,
       sai_uint8_t rxPfc);
   void programPfcWatchdogTimers(
+      const std::shared_ptr<Port>& swPort,
+      std::vector<PfcPriority>& enabledPfcPriorities,
+      const bool portPfcWdEnabled);
+  void programPfcWatchdogPerQueueEnable(
       const std::shared_ptr<Port>& swPort,
       std::vector<PfcPriority>& enabledPfcPriorities,
       const bool portPfcWdEnabled);
