@@ -816,6 +816,48 @@ TEST_F(HwVoqSwitchTest, localSystemPortEcmp) {
   verifyAcrossWarmBoots(setup, [] {});
 }
 
+TEST_F(HwVoqSwitchTest, dramEnqueueDequeueBytes) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [this, kPort]() {
+    addRemoveNeighbor(kPort, true /* add neighbor*/);
+    // Disable both port TX and credit watchdog
+    utility::setCreditWatchdogAndPortTx(
+        getHwSwitch(), kPort.phyPortID(), false);
+  };
+
+  auto verify = [this, kPort, &ecmpHelper]() {
+    auto sendPkts = [this, kPort, &ecmpHelper]() {
+      for (auto i = 0; i < 1000; ++i) {
+        sendPacket(ecmpHelper.ip(kPort), std::nullopt);
+      }
+    };
+    int64_t dramEnqueuedBytes = 0;
+    WITH_RETRIES({
+      sendPkts();
+      SwitchStats dummy;
+      getHwSwitch()->updateStats(&dummy);
+      fb303::ThreadCachedServiceData::get()->publishStats();
+      dramEnqueuedBytes =
+          getHwSwitch()->getSwitchStats()->getDramEnqueuedBytes();
+      XLOG(DBG2) << "Dram enqueued bytes : " << dramEnqueuedBytes;
+      EXPECT_EVENTUALLY_GT(dramEnqueuedBytes, 0);
+    });
+    // Enable port TX
+    utility::setPortTx(getHwSwitch(), kPort.phyPortID(), false);
+    WITH_RETRIES({
+      SwitchStats dummy;
+      getHwSwitch()->updateStats(&dummy);
+      fb303::ThreadCachedServiceData::get()->publishStats();
+      auto dramDequeuedBytes =
+          getHwSwitch()->getSwitchStats()->getDramDequeuedBytes();
+      XLOG(DBG2) << "Dram dequeued bytes : " << dramDequeuedBytes;
+      EXPECT_EVENTUALLY_GT(dramDequeuedBytes, 0);
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
  public:
   cfg::SwitchConfig initialConfig() const override {
