@@ -4,6 +4,7 @@
 # cmake/FooBar.cmake
 
 add_library(qsfp_module STATIC
+  fboss/qsfp_service/module/QsfpHelper.cpp
   fboss/qsfp_service/module/QsfpModule.cpp
   fboss/qsfp_service/module/oss/QsfpModule.cpp
   fboss/qsfp_service/module/sff/SffFieldInfo.cpp
