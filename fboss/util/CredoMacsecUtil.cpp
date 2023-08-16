@@ -458,7 +458,7 @@ void CredoMacsecUtil::printPhySerdesInfo(
   fbMacsecHandler->sync_getPhyInfo(phyInfo, FLAGS_port);
 
   printf("Printing Eye values for the port %s\n", FLAGS_port.c_str());
-  for (auto& laneEye : phyInfo.line()->pmd()->lanes().value()) {
+  for (auto& laneEye : phyInfo.stats()->line()->pmd()->lanes().value()) {
     if (!laneEye.second.eyes().has_value()) {
       continue;
     }
