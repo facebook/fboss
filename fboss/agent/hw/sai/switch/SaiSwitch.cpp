@@ -209,6 +209,19 @@ void __gTamEventCallback(
       tam_event_id, buffer_size, buffer, attr_count, attr_list);
 }
 
+void _gPfcDeadlockNotificationCallback(
+    uint32_t count,
+    const sai_queue_deadlock_notification_data_t* data) {
+  auto portSaiId = SaiApiTable::getInstance()->queueApi().getAttribute(
+      static_cast<QueueSaiId>(data->queue_id),
+      SaiQueueTraits::Attributes::Port{});
+  auto queueId = SaiApiTable::getInstance()->queueApi().getAttribute(
+      static_cast<QueueSaiId>(data->queue_id),
+      SaiQueueTraits::Attributes::Index{});
+  __gSaiIdToSwitch.begin()->second->pfcDeadlockNotificationCallback(
+      static_cast<PortSaiId>(portSaiId), queueId, data->event, count);
+}
+
 PortSaiId SaiSwitch::getCPUPortSaiId() const {
   return managerTable_->switchManager().getCpuPort();
 }
@@ -3207,4 +3220,65 @@ void SaiSwitch::initialStateApplied() {
   }
 }
 
+void SaiSwitch::processPfcDeadlockNotificationCallback(
+    std::optional<cfg::PfcWatchdogRecoveryAction> oldRecoveryAction,
+    std::optional<cfg::PfcWatchdogRecoveryAction> newRecoveryAction) {
+  // Needed if PFC watchdog enabled status changes at device level
+  if (oldRecoveryAction.has_value() == newRecoveryAction.has_value()) {
+    XLOG(DBG4) << "PFC deadlock notification callback unchanged!";
+    return;
+  }
+  auto& switchApi = SaiApiTable::getInstance()->switchApi();
+  if (newRecoveryAction.has_value()) {
+    // Register the PFC deadlock recovery callback function
+    switchApi.registerQueuePfcDeadlockNotificationCallback(
+        saiSwitchId_, _gPfcDeadlockNotificationCallback);
+  } else {
+    // Unregister the PFC deadlock recovery callback function
+    switchApi.unregisterQueuePfcDeadlockNotificationCallback(saiSwitchId_);
+  }
+  auto registration =
+      newRecoveryAction.has_value() ? "registered" : "unregistered";
+  XLOG(DBG2) << "PFC deadlock notification callback " << registration;
+}
+
+void SaiSwitch::processPfcWatchdogGlobalDelta(const StateDelta& delta) {
+  auto oldRecoveryAction = delta.oldState()->getPfcWatchdogRecoveryAction();
+  auto newRecoveryAction = delta.newState()->getPfcWatchdogRecoveryAction();
+
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    // Look for PFC watchdog only if PFC is supported on platform
+    return;
+  }
+
+  processPfcDeadlockNotificationCallback(oldRecoveryAction, newRecoveryAction);
+}
+
+void SaiSwitch::pfcDeadlockNotificationCallback(
+    PortSaiId portSaiId,
+    uint8_t queueId,
+    sai_queue_pfc_deadlock_event_type_t deadlockEvent,
+    uint32_t /* count */) {
+  const auto portItr = concurrentIndices_->portIds.find(portSaiId);
+  if (portItr == concurrentIndices_->portIds.cend()) {
+    XLOG(ERR) << "Unable to map Sai Port ID " << portSaiId
+              << " in PFC deadlock notification processing to a valid port!";
+    return;
+  }
+  PortID portId = portItr->second;
+  XLOG_EVERY_MS(WARNING, 5000)
+      << "PFC deadlock notification callback invoked for qid: " << queueId
+      << ", on port: " << portId << ", with event: " << deadlockEvent;
+  switch (deadlockEvent) {
+    case SAI_QUEUE_PFC_DEADLOCK_EVENT_TYPE_DETECTED:
+      callback_->pfcWatchdogStateChanged(portId, true);
+      break;
+    case SAI_QUEUE_PFC_DEADLOCK_EVENT_TYPE_RECOVERED:
+      callback_->pfcWatchdogStateChanged(portId, false);
+      break;
+    default:
+      XLOG(ERR) << "Unknown event " << deadlockEvent
+                << " in PFC deadlock notify callback";
+  }
+}
 } // namespace facebook::fboss

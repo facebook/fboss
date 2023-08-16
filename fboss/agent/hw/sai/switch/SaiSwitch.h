@@ -141,6 +141,11 @@ class SaiSwitch : public HwSwitch {
       sai_size_t buffer_size,
       const void* buffer,
       uint32_t event_type);
+  void pfcDeadlockNotificationCallback(
+      PortSaiId portSaiId,
+      uint8_t queueId,
+      sai_queue_pfc_deadlock_event_type_t deadlockEvent,
+      uint32_t count);
 
   /**
    * Runs a diag cmd on the corresponding unit
@@ -474,6 +479,11 @@ class SaiSwitch : public HwSwitch {
       const LockPolicyT& lockPolicy);
 
   void initialStateApplied() override;
+
+  void processPfcWatchdogGlobalDelta(const StateDelta& delta);
+  void processPfcDeadlockNotificationCallback(
+      std::optional<cfg::PfcWatchdogRecoveryAction> oldRecoveryAction,
+      std::optional<cfg::PfcWatchdogRecoveryAction> newRecoveryAction);
 
   /*
    * SaiSwitch must support a few varieties of concurrent access:
