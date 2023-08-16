@@ -34,7 +34,7 @@ TEST(PlatformI2cExplorerTest, createI2cDeviceSuccess) {
   EXPECT_CALL(i2cExplorer, isI2cDevicePresent(4, 15)).WillOnce(Return(false));
   EXPECT_CALL(
       *platformUtils,
-      execCommand("echo lm73 15 > /sys/bus/i2c/devices/i2c-4/new_device"))
+      execCommand("echo lm73 0xf > /sys/bus/i2c/devices/i2c-4/new_device"))
       .WillOnce(Return(std::pair(0, "")));
   EXPECT_NO_THROW(i2cExplorer.createI2cDevice("lm73", 4, 15));
 
@@ -51,7 +51,7 @@ TEST(PlatformI2cExplorerTest, createI2cDeviceFailure) {
   EXPECT_CALL(i2cExplorer, isI2cDevicePresent(4, 15)).WillOnce(Return(false));
   EXPECT_CALL(
       *platformUtils,
-      execCommand("echo lm73 15 > /sys/bus/i2c/devices/i2c-4/new_device"))
+      execCommand("echo lm73 0xf > /sys/bus/i2c/devices/i2c-4/new_device"))
       .WillOnce(Return(std::pair(-1, "")));
   EXPECT_THROW(i2cExplorer.createI2cDevice("lm73", 4, 15), std::runtime_error);
 
@@ -63,6 +63,7 @@ TEST(PlatformI2cExplorerTest, createI2cDeviceFailure) {
 
 TEST(PlatformI2cExplorerTest, getDeviceI2cPath) {
   auto i2cExplorer = PlatformI2cExplorer();
-  EXPECT_EQ(i2cExplorer.getDeviceI2cPath(4, 15), "/sys/bus/i2c/devices/4-0015");
-  EXPECT_EQ(i2cExplorer.getDeviceI2cPath(5, 16), "/sys/bus/i2c/devices/5-0016");
+  EXPECT_EQ(i2cExplorer.getDeviceI2cPath(4, 5), "/sys/bus/i2c/devices/4-0005");
+  EXPECT_EQ(i2cExplorer.getDeviceI2cPath(4, 15), "/sys/bus/i2c/devices/4-000f");
+  EXPECT_EQ(i2cExplorer.getDeviceI2cPath(5, 16), "/sys/bus/i2c/devices/5-0010");
 }

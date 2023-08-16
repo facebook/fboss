@@ -93,14 +93,14 @@ void PlatformI2cExplorer::createI2cDevice(
     auto existingDeviceName = getI2cDeviceName(busNum, addr);
     if (existingDeviceName && existingDeviceName.value() == deviceName) {
       XLOG(INFO) << fmt::format(
-          "Device {} already exists at bus: {}, addr: {}. Skipping creation.",
+          "Device {} already exists at bus: {}, addr: {:#x}. Skipping creation.",
           deviceName,
           busNum,
           addr);
       return;
     }
     XLOG(ERR) << fmt::format(
-        "Creation of i2c device {} at bus: {}, addr: {} failed. "
+        "Creation of i2c device {} at bus: {}, addr: {:#x} failed. "
         "Another device already present",
         deviceName,
         busNum,
@@ -108,7 +108,7 @@ void PlatformI2cExplorer::createI2cDevice(
     throw std::runtime_error("Creation of i2c device failed");
   }
   auto cmd = fmt::format(
-      "echo {} {} > /sys/bus/i2c/devices/i2c-{}/new_device",
+      "echo {} {:#x} > /sys/bus/i2c/devices/i2c-{}/new_device",
       deviceName,
       addr,
       busNum);
@@ -116,7 +116,7 @@ void PlatformI2cExplorer::createI2cDevice(
   XLOG_IF(INFO, !standardOut.empty()) << standardOut;
   if (exitStatus != 0) {
     XLOG(ERR) << fmt::format(
-        "Creation of i2c device for {} at bus: {}, addr: {} "
+        "Creation of i2c device for {} at bus: {}, addr: {:#x} "
         "failed with exit status {}",
         deviceName,
         busNum,
@@ -158,7 +158,7 @@ std::vector<uint16_t> PlatformI2cExplorer::getMuxChannelI2CBuses(
 std::string PlatformI2cExplorer::getDeviceI2cPath(
     uint16_t busNum,
     uint8_t addr) {
-  return fmt::format("/sys/bus/i2c/devices/{}-{:04}", busNum, addr);
+  return fmt::format("/sys/bus/i2c/devices/{}-{:04x}", busNum, addr);
 }
 
 } // namespace facebook::fboss::platform::platform_manager
