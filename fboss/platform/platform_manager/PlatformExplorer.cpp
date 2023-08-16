@@ -117,6 +117,12 @@ void PlatformExplorer::updateI2cBusNum(
     const std::string& fruName,
     const std::string& fruScopeBusName,
     uint16_t busNum) {
+  XLOG(INFO) << fmt::format(
+      "Updating bus `{}` in fru `{}` to bus number {} (i2c-{})",
+      fruScopeBusName,
+      fruName,
+      busNum,
+      busNum);
   i2cBusNamesToNums_[std::make_pair(fruName, fruScopeBusName)] = busNum;
 }
 
