@@ -6,11 +6,30 @@
     "udevRpmVersion" : "20230724-105050",
     "slotTypeConfigs": {
         "MAIN_BOARD": {
-            "numOutgoingI2cBuses": 2
+            "numOutgoingI2cBuses": 2,
+            "eepromConfig": {
+                "incomingBusIndex": 0,
+                "address": 83,
+                "kernelDeviceName": "24c02"
+            }
         }
     },
     "i2cAdaptersFromCpu": [
         "SMBus I801 adapter at 5000",
         "SMBus iSMT adapter at 20fffa7b000"
-    ]
+    ],
+    "mainBoardSlotConfig": {
+        "slotType": "MAIN_BOARD",
+        "outgoingI2cBusNames": [
+            "SMBus I801 adapter at 5000",
+            "SMBus iSMT adapter at 20fffa7b000"
+        ]
+    },
+    "fruTypeConfigs": {
+        "main_board": {
+            "pluggedInSlotType": "MAIN_BOARD",
+            "i2cDeviceConfigs": [],
+            "outgoingSlotConfigs": {}
+        }
+    }
 }

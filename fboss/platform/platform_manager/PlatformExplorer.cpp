@@ -34,6 +34,7 @@ void PlatformExplorer::exploreFRU(
     const FruTypeConfig& fruTypeConfig) {
   auto fruName =
       fmt::format("{}::{}/{}", parentFruName, parentSlotName, fruTypeName);
+  XLOG(INFO) << fmt::format("Exploring FRU {}", fruName);
   int i = 0;
   for (const auto& busName : *parentSlot.outgoingI2cBusNames()) {
     auto busNum = getI2cBusNum(parentFruName, busName);
@@ -50,9 +51,12 @@ void PlatformExplorer::exploreSlot(
     const std::string& fruName,
     const std::string& slotName,
     const SlotConfig& slotConfig) {
+  XLOG(INFO) << fmt::format("Exploring Slot {}::{}", fruName, slotName);
   bool isChildFruPlugged =
       presenceDetector_.isPresent(*slotConfig.presenceDetection());
   if (!isChildFruPlugged) {
+    XLOG(INFO) << fmt::format(
+        "No device detected at Slot {}::{}", fruName, slotName);
     return;
   }
   auto eepromConfig =
@@ -78,6 +82,10 @@ void PlatformExplorer::exploreSlot(
 void PlatformExplorer::exploreI2cDevices(
     const std::string& fruName,
     const std::vector<I2cDeviceConfig>& i2cDeviceConfigs) {
+  XLOG(INFO) << fmt::format(
+      "Exploring I2C Devices for FRU {}. Count {}",
+      fruName,
+      i2cDeviceConfigs.size());
   for (const auto& i2cDeviceConfig : i2cDeviceConfigs) {
     i2cExplorer_.createI2cDevice(
         *i2cDeviceConfig.kernelDeviceName(),
