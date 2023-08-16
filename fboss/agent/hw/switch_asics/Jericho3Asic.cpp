@@ -80,6 +80,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::VOQ:
     case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
     case HwAsic::Feature::FABRIC_TX_QUEUES:
+    case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
 
     case HwAsic::Feature::SAI_PORT_ETHER_STATS:
@@ -149,7 +150,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::RX_LANE_SQUELCH_ENABLE:
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
     case HwAsic::Feature::SEPARATE_BYTE_AND_PACKET_ACL_COUNTER:
-    case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES:
       return false;
   }
