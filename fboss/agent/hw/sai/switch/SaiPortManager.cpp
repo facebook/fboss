@@ -566,6 +566,47 @@ std::pair<sai_uint8_t, sai_uint8_t> SaiPortManager::preparePfcConfigs(
   return std::pair(txPfc, rxPfc);
 }
 
+std::vector<sai_map_t> SaiPortManager::preparePfcDeadlockQueueTimers(
+    std::vector<PfcPriority>& enabledPfcPriorities,
+    uint32_t timerVal) {
+  std::vector<sai_map_t> mapToValueList;
+  mapToValueList.reserve(enabledPfcPriorities.size());
+  for (const auto& pri : enabledPfcPriorities) {
+    sai_map_t mapping{};
+    mapping.key = pri;
+    mapping.value = timerVal;
+    mapToValueList.push_back(mapping);
+  }
+  return mapToValueList;
+}
+
+void SaiPortManager::programPfcWatchdogTimers(
+    const std::shared_ptr<Port>& swPort,
+    std::vector<PfcPriority>& enabledPfcPriorities,
+    const bool portPfcWdEnabled) {
+  auto portHandle = getPortHandle(swPort->getID());
+  CHECK(portHandle);
+  uint32_t recoveryTimeMsecs = 0;
+  uint32_t detectionTimeMsecs = 0;
+  if (portPfcWdEnabled) {
+    CHECK(swPort->getPfc()->watchdog().has_value());
+    recoveryTimeMsecs = *swPort->getPfc()->watchdog()->recoveryTimeMsecs();
+    detectionTimeMsecs = *swPort->getPfc()->watchdog()->detectionTimeMsecs();
+  }
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+  // Set deadlock detection timer interval for PFC queues
+  auto pfcDldTimerMap =
+      preparePfcDeadlockQueueTimers(enabledPfcPriorities, detectionTimeMsecs);
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::PfcTcDldInterval{pfcDldTimerMap});
+  // Set deadlock recovery timer interval for PFC queues
+  auto pfcDlrTimerMap =
+      preparePfcDeadlockQueueTimers(enabledPfcPriorities, recoveryTimeMsecs);
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::PfcTcDlrInterval{pfcDlrTimerMap});
+#endif
+}
+
 void SaiPortManager::addPfc(const std::shared_ptr<Port>& swPort) {
   if (swPort->getPfc().has_value()) {
     // PFC is enabled for all priorities on a port
