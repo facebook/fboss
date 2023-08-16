@@ -1,7 +1,7 @@
 {
     "platformName": "montblanc",
     "bspKmodsRpmName" : "fboss_bsp_kmods",
-    "bspKmodsRpmVersion" : "0.3.0-1",
+    "bspKmodsRpmVersion" : "0.5.0-1",
     "udevRpmName" : "fb-fboss-platform-montblanc-udev",
     "udevRpmVersion" : "20230724-105050",
     "slotTypeConfigs": {
