@@ -89,7 +89,7 @@ include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 //                    └──────────────────────────────────────────┘
 struct I2cDeviceConfig {
   1: string busName;
-  2: i32 addr;
+  2: i32 address;
   3: string kernelDeviceName;
   4: string fruScopedName;
   5: optional i32 numOutgoingChannels;

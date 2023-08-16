@@ -54,25 +54,25 @@
             }
         }
     },
-    "platformFrus": {
+    "fruTypeConfigs": {
         "main_board": {
             "pluggedInSlotType": "MAIN_BOARD",
             "i2cDeviceConfigs": [
                 {
                     "busName": "INCOMING@7",
-                    "addr": 54,
+                    "address": 54,
                     "kernelDeviceName": "lm75",
                     "fruScopedName": "inlet_sensor"
                 },
                 {
                     "busName": "INCOMING@7",
-                    "addr": 55,
+                    "address": 55,
                     "kernelDeviceName": "lm75",
                     "fruScopedName": "outlet_sensor"
                 },
                 {
                     "busName": "INCOMING@6",
-                    "addr": 54,
+                    "address": 54,
                     "kernelDeviceName": "lm75",
                     "fruScopedName": "asic_sensor"
                 }
@@ -94,27 +94,27 @@
             "i2cDeviceConfigs": [
                 {
                     "busName": "INCOMING@0",
-                    "addr": 54,
+                    "address": 54,
                     "kernelDeviceName": "pca9x42",
                     "fruScopedName": "yolo_mux1",
                     "numOutgoingChannels": 2
                 },
                 {
                     "busName": "INCOMING@1",
-                    "addr": 55,
+                    "address": 55,
                     "kernelDeviceName": "pca9x44",
                     "fruScopedName": "yolo_mux2",
                     "numOutgoingChannels": 4
                 },
                 {
                     "busName": "yolo_mux1@0",
-                    "addr": 12,
+                    "address": 12,
                     "kernelDeviceName": "lm75",
                     "fruScopedName": "yolo_sensor1"
                 },
                 {
                     "busName": "INCOMING@2",
-                    "addr": 12,
+                    "address": 12,
                     "kernelDeviceName": "lm75",
                     "fruScopedName": "yolo_sensor2"
                 }
@@ -157,7 +157,7 @@
             "i2cDeviceConfigs": [
                 {
                     "busName": "INCOMING@0",
-                    "addr": 15,
+                    "address": 15,
                     "kernelDeviceName": "pca9x42",
                     "fruScopedName": "pim_mux",
                     "numOutgoingChannels": 2
@@ -174,7 +174,7 @@
             "i2cDeviceConfigs": [
                 {
                     "busName": "INCOMING@1",
-                    "addr": 12,
+                    "address": 12,
                     "kernelDeviceName": "lm75",
                     "fruScopedName": "psu_2gh_sensor"
                 }

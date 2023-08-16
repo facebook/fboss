@@ -90,11 +90,11 @@ void PlatformExplorer::exploreI2cDevices(
     i2cExplorer_.createI2cDevice(
         *i2cDeviceConfig.kernelDeviceName(),
         getI2cBusNum(fruName, *i2cDeviceConfig.busName()),
-        *i2cDeviceConfig.addr());
+        *i2cDeviceConfig.address());
     if (i2cDeviceConfig.numOutgoingChannels()) {
       auto channelBusNums = i2cExplorer_.getMuxChannelI2CBuses(
           getI2cBusNum(fruName, *i2cDeviceConfig.busName()),
-          *i2cDeviceConfig.addr());
+          *i2cDeviceConfig.address());
       assert(channelBusNums.size() == i2cDeviceConfig.numOutgoingChannels());
       for (int i = 0; i < i2cDeviceConfig.numOutgoingChannels(); ++i) {
         updateI2cBusNum(
