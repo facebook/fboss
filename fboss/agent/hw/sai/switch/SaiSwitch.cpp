@@ -3242,6 +3242,39 @@ void SaiSwitch::processPfcDeadlockNotificationCallback(
   XLOG(DBG2) << "PFC deadlock notification callback " << registration;
 }
 
+void SaiSwitch::processPfcDeadlockRecoveryAction(
+    std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction) {
+  int currentPfcDlrPacketAction =
+      SaiApiTable::getInstance()->switchApi().getAttribute(
+          saiSwitchId_, SaiSwitchTraits::Attributes::PfcDlrPacketAction{});
+  std::optional<int> newPfcDlrPacketAction;
+  auto recoveryActionConfig = cfg::PfcWatchdogRecoveryAction::NO_DROP;
+  if (recoveryAction.has_value() &&
+      (*recoveryAction == cfg::PfcWatchdogRecoveryAction::DROP)) {
+    newPfcDlrPacketAction = SAI_PACKET_ACTION_DROP;
+    recoveryActionConfig = *recoveryAction;
+  } else {
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+    newPfcDlrPacketAction = SAI_PACKET_ACTION_DONOTDROP;
+#else
+    XLOG(ERR) << "PFC WD recovery action NO_DROP unsupported!";
+    return;
+#endif
+  }
+  CHECK(newPfcDlrPacketAction.has_value());
+  if (currentPfcDlrPacketAction != *newPfcDlrPacketAction) {
+    SaiApiTable::getInstance()->switchApi().setAttribute(
+        saiSwitchId_,
+        SaiSwitchTraits::Attributes::PfcDlrPacketAction{
+            *newPfcDlrPacketAction});
+    XLOG(DBG2) << "PFC watchdog deadlock recovery action "
+               << apache::thrift::util::enumNameSafe(recoveryActionConfig)
+               << " programmed!";
+  } else {
+    XLOG(DBG4) << "PFC deadlock recovery packet action unchanged!";
+  }
+}
+
 void SaiSwitch::processPfcWatchdogGlobalDelta(const StateDelta& delta) {
   auto oldRecoveryAction = delta.oldState()->getPfcWatchdogRecoveryAction();
   auto newRecoveryAction = delta.newState()->getPfcWatchdogRecoveryAction();
@@ -3252,6 +3285,7 @@ void SaiSwitch::processPfcWatchdogGlobalDelta(const StateDelta& delta) {
   }
 
   processPfcDeadlockNotificationCallback(oldRecoveryAction, newRecoveryAction);
+  processPfcDeadlockRecoveryAction(newRecoveryAction);
 }
 
 void SaiSwitch::pfcDeadlockNotificationCallback(

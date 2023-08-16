@@ -484,6 +484,8 @@ class SaiSwitch : public HwSwitch {
   void processPfcDeadlockNotificationCallback(
       std::optional<cfg::PfcWatchdogRecoveryAction> oldRecoveryAction,
       std::optional<cfg::PfcWatchdogRecoveryAction> newRecoveryAction);
+  void processPfcDeadlockRecoveryAction(
+      std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction);
 
   /*
    * SaiSwitch must support a few varieties of concurrent access:
