@@ -745,6 +745,9 @@
           "test_name_regex": "HwLoadBalancerTestV[46].*"
         },
         {
+          "test_name_regex": "HwVoqSwitchTest.dramEnqueueDequeueBytes"
+        },
+        {
           "test_name_regex": "HwL4PortBlackHolingTest.v[46]UDP"
         },
         {
