@@ -109,8 +109,8 @@ void PlatformExplorer::exploreI2cDevices(
 
 uint16_t PlatformExplorer::getI2cBusNum(
     const std::string& fruName,
-    const std::string& fruScopeBusName) {
-  return i2cBusNamesToNums_[std::make_pair(fruName, fruScopeBusName)];
+    const std::string& fruScopeBusName) const {
+  return i2cBusNamesToNums_.at(std::make_pair(fruName, fruScopeBusName));
 }
 
 void PlatformExplorer::updateI2cBusNum(

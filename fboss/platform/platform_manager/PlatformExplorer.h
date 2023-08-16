@@ -27,7 +27,7 @@ class PlatformExplorer {
       const std::vector<I2cDeviceConfig>& i2cDeviceConfigs);
   uint16_t getI2cBusNum(
       const std::string& fruName,
-      const std::string& fruScopeBusName);
+      const std::string& fruScopeBusName) const;
   void updateI2cBusNum(
       const std::string& fruName,
       const std::string& fruScopeBusName,
