@@ -18,6 +18,7 @@
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/lib/QsfpConfigParserHelper.h"
 #include "fboss/qsfp_service/module/QsfpFieldInfo.h"
+#include "fboss/qsfp_service/module/QsfpHelper.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 #include "fboss/qsfp_service/module/cmis/CmisFieldInfo.h"
 
@@ -3026,5 +3027,64 @@ void CmisModule::updateCmisStateChanged(
     moduleStatus.cmisStateChanged() = getModuleStateChanged();
   }
 }
+
+/*
+ * setTransceiverTx
+ *
+ * Set the Tx output enabled/disabled for the given channels of a transceiver
+ * in either line side or host side. For line side, this will cause LOS on the
+ * peer optics Rx. For host side, this will cause LOS on the corresponding
+ * IPHY lanes or the XPHY lanes in case of system with external PHY
+ */
+bool CmisModule::setTransceiverTxLocked(
+    const std::string& portName,
+    bool lineSide,
+    std::optional<uint8_t> userChannelMask,
+    bool enable) {
+  // Get the list of lanes to disable/enable the Tx output
+  std::set<uint8_t> tcvrLanes;
+  if (lineSide) {
+    auto portNameToMediaLanes = getPortNameToMediaLanes();
+    if (portNameToMediaLanes.find(portName) == portNameToMediaLanes.end()) {
+      XLOG(ERR) << fmt::format(
+          "Port name to media lanes not available for {:s}", portName);
+      return false;
+    }
+    tcvrLanes = portNameToMediaLanes.at(portName);
+  } else {
+    auto portNameToHostLanes = getPortNameToHostLanes();
+    if (portNameToHostLanes.find(portName) == portNameToHostLanes.end()) {
+      XLOG(ERR) << fmt::format(
+          "Port name to host lanes not available for {:s}", portName);
+      return false;
+    }
+    tcvrLanes = portNameToHostLanes.at(portName);
+  }
+
+  if (tcvrLanes.empty()) {
+    XLOG(ERR) << fmt::format("Empty lane list for port {:s}", portName);
+    return false;
+  }
+
+  // Set the Tx output register for these lanes in given direction
+  auto txDisableRegister =
+      lineSide ? CmisField::TX_DISABLE : CmisField::RX_DISABLE;
+  uint8_t txDisableVal;
+
+  readCmisField(txDisableRegister, &txDisableVal);
+
+  txDisableVal =
+      setTxChannelMask(tcvrLanes, userChannelMask, enable, txDisableVal);
+
+  writeCmisField(txDisableRegister, &txDisableVal);
+  return true;
+}
+
+/*
+ * setTransceiverRx
+ *
+ *
+ */
+
 } // namespace fboss
 } // namespace facebook

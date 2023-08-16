@@ -449,6 +449,29 @@ bool QsfpModule::setPortPrbs(
   return status;
 }
 
+bool QsfpModule::setTransceiverTx(
+    const std::string& portName,
+    bool lineSide,
+    std::optional<uint8_t> userChannelMask,
+    bool enable) {
+  // Lambda to call Locked function
+  auto setTcvrFn = [&]() -> bool {
+    lock_guard<std::mutex> g(qsfpModuleMutex_);
+    return setTransceiverTxLocked(portName, lineSide, userChannelMask, enable);
+  };
+
+  auto i2cEvb = qsfpImpl_->getI2cEventBase();
+  if (!i2cEvb) {
+    // In non-multithreaded environment, run the function in current thread
+    return setTcvrFn();
+  } else {
+    // In mulththreaded environment, run the function in event base thread
+    return via(i2cEvb)
+        .thenValue([setTcvrFn](auto&&) mutable { return setTcvrFn(); })
+        .get();
+  }
+}
+
 prbs::InterfacePrbsState QsfpModule::getPortPrbsState(phy::Side side) {
   prbs::InterfacePrbsState state;
   auto getPrbsStateLambda = [&state, side, this]() {

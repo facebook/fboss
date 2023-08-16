@@ -276,12 +276,10 @@ class QsfpModule : public Transceiver {
   }
 
   virtual bool setTransceiverTx(
-      std::string /* portName */,
-      bool /* lineSide */,
-      std::optional<uint8_t> /* userChannelMask */,
-      bool /* enable */) override {
-    return false;
-  }
+      const std::string& portName,
+      bool lineSide,
+      std::optional<uint8_t> userChannelMask,
+      bool enable) override;
 
  protected:
   /* Qsfp Internal Implementation */
@@ -547,6 +545,14 @@ class QsfpModule : public Transceiver {
 
   virtual std::optional<VdmDiagsStats> getVdmDiagsStatsInfo() {
     return std::nullopt;
+  }
+
+  virtual bool setTransceiverTxLocked(
+      const std::string& /* portName */,
+      bool /* lineSide */,
+      std::optional<uint8_t> /* userChannelMask */,
+      bool /* enable */) {
+    return false;
   }
 
   unsigned int moduleResetCounter_{0};

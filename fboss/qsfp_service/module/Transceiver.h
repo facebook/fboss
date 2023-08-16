@@ -259,7 +259,7 @@ class Transceiver {
   virtual void setDiagsCapability() {}
 
   virtual bool setTransceiverTx(
-      std::string /* portName */,
+      const std::string& /* portName */,
       bool /* lineSide */,
       std::optional<uint8_t> /* userChannelMask */,
       bool /* enable */) = 0;

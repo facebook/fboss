@@ -343,6 +343,15 @@ class CmisModule : public QsfpModule {
   std::vector<uint8_t> configuredMediaLanes(
       uint8_t startHostLane) const override;
 
+  /*
+   * Set the Transceiver Tx channel endbale/disable
+   */
+  virtual bool setTransceiverTxLocked(
+      const std::string& portName,
+      bool lineSide,
+      std::optional<uint8_t> userChannelMask,
+      bool enable) override;
+
  private:
   // no copy or assignment
   CmisModule(CmisModule const&) = delete;
