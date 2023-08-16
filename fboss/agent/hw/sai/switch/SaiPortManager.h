@@ -294,6 +294,10 @@ class SaiPortManager {
       const std::shared_ptr<Port>& swPort,
       sai_uint8_t txPfc,
       sai_uint8_t rxPfc);
+  void programPfcWatchdog(
+      const std::shared_ptr<Port>& swPort,
+      std::vector<PfcPriority>& enabledPfcPriorities,
+      const bool portPfcWdEnabled);
   void programPfcWatchdogTimers(
       const std::shared_ptr<Port>& swPort,
       std::vector<PfcPriority>& enabledPfcPriorities,
@@ -312,6 +316,11 @@ class SaiPortManager {
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
   void removePfc(const std::shared_ptr<Port>& swPort);
+  void addPfcWatchdog(const std::shared_ptr<Port>& swPort);
+  void changePfcWatchdog(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
+  void removePfcWatchdog(const std::shared_ptr<Port>& swPort);
   void setPortType(PortID portId, cfg::PortType portType);
   void programPfcBuffers(const std::shared_ptr<Port>& swPort);
   void removePfcBuffers(const std::shared_ptr<Port>& swPort);
