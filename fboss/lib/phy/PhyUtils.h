@@ -26,17 +26,6 @@ void updateCorrectedBitsAndPreFECBer(
 void updateSignalDetectChangedCount(
     int changedCount,
     int lane,
-    phy::LaneInfo& curr,
-    phy::PmdInfo& prev);
-void updateCdrLockChangedCount(
-    int changedCount,
-    int lane,
-    phy::LaneInfo& curr,
-    phy::PmdInfo& prev);
-
-void updateSignalDetectChangedCount(
-    int changedCount,
-    int lane,
     phy::LaneStats& curr,
     phy::PmdStats& prev);
 void updateCdrLockChangedCount(

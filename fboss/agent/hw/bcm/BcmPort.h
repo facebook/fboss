@@ -431,14 +431,7 @@ class BcmPort {
 
   std::atomic<int> numLanes_{0};
 
-  // TODO: remove this when removing the deprecated fields
-  phy::PhyInfo defaultPhyInfo() {
-    phy::PhyInfo phyInfo;
-    phyInfo.phyChip().ensure();
-    phyInfo.line().ensure();
-    return phyInfo;
-  }
-  phy::PhyInfo lastPhyInfo_ = defaultPhyInfo();
+  phy::PhyInfo lastPhyInfo_;
 };
 
 } // namespace facebook::fboss

@@ -1143,56 +1143,39 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     }
 
     phy::PhyInfo lastPhyInfo;
-    lastPhyInfo.phyChip().ensure();
-    lastPhyInfo.line().ensure();
     if (auto itr = lastPhyInfos_.find(swPort); itr != lastPhyInfos_.end()) {
       lastPhyInfo = itr->second;
     }
 
     phy::PhyInfo phyParams;
-    phyParams.phyChip().ensure();
-    phyParams.line().ensure();
-
     phyParams.state() = phy::PhyState();
     phyParams.stats() = phy::PhyStats();
     // LINE Side always exists
     phyParams.state()->line()->side() = phy::Side::LINE;
     phyParams.stats()->line()->side() = phy::Side::LINE;
 
-    phyParams.name() = fb303PortStat->portName();
-    phyParams.state()->name() = *phyParams.name();
-    phyParams.switchID() = getSaiSwitchId();
-    phyParams.state()->switchID() = *phyParams.switchID();
+    phyParams.state()->name() = fb303PortStat->portName();
+    phyParams.state()->switchID() = getSaiSwitchId();
     // Global phy parameters
     phy::DataPlanePhyChip phyChip;
     auto chipType = getPlatform()->getAsic()->getDataPlanePhyChipType();
     phyChip.type() = chipType;
     bool isXphy = *phyChip.type() == phy::DataPlanePhyChipType::XPHY;
-    phyParams.phyChip() = phyChip;
-    phyParams.state()->phyChip() = *phyParams.phyChip();
-    phyParams.linkState() = portManager.isUp(swPort);
-    phyParams.state()->linkState() = *phyParams.linkState();
-    phyParams.speed() = portManager.getSpeed(swPort);
-    phyParams.state()->speed() = *phyParams.speed();
-    phyParams.line()->side() = phy::Side::LINE;
+    phyParams.state()->phyChip() = phyChip;
+    phyParams.state()->linkState() = portManager.isUp(swPort);
+    phyParams.state()->speed() = portManager.getSpeed(swPort);
 
     if (isXphy) {
-      phyParams.system() = phy::PhySideInfo();
-      phyParams.system()->side() = phy::Side::SYSTEM;
-
       phyParams.state()->system() = phy::PhySideState();
       phyParams.state()->system()->side() = phy::Side::SYSTEM;
       phyParams.stats()->system() = phy::PhySideStats();
       phyParams.stats()->system()->side() = phy::Side::SYSTEM;
     }
 
-    phyParams.line()->interfaceType() = getInterfaceType(swPort, chipType);
     phyParams.state()->line()->interfaceType() =
-        *phyParams.line()->interfaceType();
-    phyParams.line()->medium() = portManager.getMedium(swPort);
-    phyParams.state()->line()->medium() = *phyParams.line()->medium();
+        getInterfaceType(swPort, chipType);
+    phyParams.state()->line()->medium() = portManager.getMedium(swPort);
     // Update PMD Info
-    phy::PmdInfo lastLinePmdInfo = *lastPhyInfo.line()->pmd();
     phy::PmdState lastLinePmdState;
     auto lastState = lastPhyInfo.state();
     lastLinePmdState = *lastState->line()->pmd();
@@ -1200,23 +1183,16 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     auto lastStats = lastPhyInfo.stats();
     lastLinePmdStats = *lastStats->line()->pmd();
     updatePmdInfo(
-        *phyParams.line(),
         *phyParams.state()->line(),
         *phyParams.stats()->line(),
         portHandle->port,
-        lastLinePmdInfo,
         lastLinePmdState,
         lastLinePmdStats);
     if (isXphy) {
-      CHECK(phyParams.system().has_value());
       CHECK(phyParams.state()->system().has_value());
       CHECK(phyParams.stats()->system().has_value());
-      phy::PmdInfo lastSysPmdInfo;
       phy::PmdState lastSysPmdState;
       phy::PmdStats lastSysPmdStats;
-      if (auto lastSys = lastPhyInfo.system()) {
-        lastSysPmdInfo = *lastSys->pmd();
-      }
       if (lastPhyInfo.state()->system().has_value()) {
         lastSysPmdState = *lastPhyInfo.state()->system()->pmd();
       }
@@ -1224,34 +1200,29 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
         lastSysPmdStats = *lastPhyInfo.stats()->system()->pmd();
       }
       updatePmdInfo(
-          *phyParams.system(),
           *phyParams.state()->system(),
           *phyParams.stats()->system(),
           portHandle->sysPort,
-          lastSysPmdInfo,
           lastSysPmdState,
           lastSysPmdStats);
     }
 
     // Update PCS Info
     updatePcsInfo(
-        *phyParams.line(),
         *(*phyParams.state()).line(),
         *(*phyParams.stats()).line(),
         swPort,
         phy::Side::LINE,
         lastPhyInfo,
         fb303PortStat,
-        *phyParams.speed(),
+        *phyParams.state()->speed(),
         portHandle->port);
 
     // Update Reconciliation Sublayer (RS) Info
-    updateRsInfo(
-        *phyParams.line(), *phyParams.state()->line(), portHandle->port);
+    updateRsInfo(*phyParams.state()->line(), portHandle->port);
 
     // PhyInfo update timestamp
     auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
-    phyParams.timeCollected() = now.count();
     phyParams.state()->timeCollected() = now.count();
     phyParams.stats()->timeCollected() = now.count();
     returnPhyParams[swPort] = phyParams;
@@ -1261,11 +1232,9 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
 }
 
 void SaiSwitch::updatePmdInfo(
-    phy::PhySideInfo& sideInfo,
     phy::PhySideState& sideState,
     phy::PhySideStats& sideStats,
     std::shared_ptr<SaiPort> port,
-    [[maybe_unused]] phy::PmdInfo& lastPmdInfo,
     [[maybe_unused]] phy::PmdState& lastPmdState,
     [[maybe_unused]] phy::PmdStats& lastPmdStats) {
   uint32_t numPmdLanes;
@@ -1282,7 +1251,6 @@ void SaiSwitch::updatePmdInfo(
     return;
   }
 
-  std::map<int, phy::LaneInfo> laneInfos;
   std::map<int, phy::LaneStats> laneStats;
   std::map<int, phy::LaneState> laneStates;
   auto eyeStatus =
@@ -1314,17 +1282,10 @@ void SaiSwitch::updatePmdInfo(
 
   for (auto eyeInfo : eyeInfos) {
     auto laneId = eyeInfo.first;
-    phy::LaneInfo laneInfo;
     phy::LaneStats laneStat;
-    if (laneInfos.find(laneId) != laneInfos.end()) {
-      laneInfo = laneInfos[laneId];
-    }
     if (laneStats.find(laneId) != laneStats.end()) {
       laneStat = laneStats[laneId];
     }
-    laneInfo.lane() = laneId;
-    laneInfo.eyes() = eyeInfo.second;
-    laneInfos[laneId] = laneInfo;
 
     laneStat.lane() = laneId;
     laneStat.eyes() = eyeInfo.second;
@@ -1336,12 +1297,8 @@ void SaiSwitch::updatePmdInfo(
       port->adapterKey(), numPmdLanes);
   for (auto pmd : pmdSignalDetect) {
     auto laneId = pmd.lane;
-    phy::LaneInfo laneInfo;
     phy::LaneStats laneStat;
     phy::LaneState laneState;
-    if (laneInfos.find(laneId) != laneInfos.end()) {
-      laneInfo = laneInfos[laneId];
-    }
     if (laneStats.find(laneId) != laneStats.end()) {
       laneStat = laneStats[laneId];
     }
@@ -1350,15 +1307,10 @@ void SaiSwitch::updatePmdInfo(
     }
     laneState.lane() = laneId;
     laneStat.lane() = laneId;
-    laneInfo.signalDetectLive() = pmd.value.current_status;
-    laneInfo.signalDetectChanged() = pmd.value.changed;
     laneState.signalDetectLive() = pmd.value.current_status;
     laneState.signalDetectChanged() = pmd.value.changed;
     utility::updateSignalDetectChangedCount(
-        pmd.value.changed, laneId, laneInfo, lastPmdInfo);
-    utility::updateSignalDetectChangedCount(
         pmd.value.changed, laneId, laneStat, lastPmdStats);
-    laneInfos[laneId] = laneInfo;
     laneStats[laneId] = laneStat;
     laneStates[laneId] = laneState;
   }
@@ -1367,12 +1319,8 @@ void SaiSwitch::updatePmdInfo(
       port->adapterKey(), numPmdLanes);
   for (auto pmd : pmdLockStatus) {
     auto laneId = pmd.lane;
-    phy::LaneInfo laneInfo;
     phy::LaneStats laneStat;
     phy::LaneState laneState;
-    if (laneInfos.find(laneId) != laneInfos.end()) {
-      laneInfo = laneInfos[laneId];
-    }
     if (laneStats.find(laneId) != laneStats.end()) {
       laneStat = laneStats[laneId];
     }
@@ -1381,23 +1329,15 @@ void SaiSwitch::updatePmdInfo(
     }
     laneState.lane() = laneId;
     laneStat.lane() = laneId;
-    laneInfo.cdrLockLive() = pmd.value.current_status;
     laneState.cdrLockLive() = pmd.value.current_status;
-    laneInfo.cdrLockChanged() = pmd.value.changed;
     laneState.cdrLockChanged() = pmd.value.changed;
     utility::updateCdrLockChangedCount(
-        pmd.value.changed, laneId, laneInfo, lastPmdInfo);
-    utility::updateCdrLockChangedCount(
         pmd.value.changed, laneId, laneStat, lastPmdStats);
-    laneInfos[laneId] = laneInfo;
     laneStats[laneId] = laneStat;
     laneStates[laneId] = laneState;
   }
 #endif
 
-  for (auto laneInfo : laneInfos) {
-    sideInfo.pmd()->lanes()[laneInfo.first] = laneInfo.second;
-  }
   for (auto laneStat : laneStats) {
     sideStats.pmd()->lanes()[laneStat.first] = laneStat.second;
   }
@@ -1407,7 +1347,6 @@ void SaiSwitch::updatePmdInfo(
 }
 
 void SaiSwitch::updatePcsInfo(
-    phy::PhySideInfo& sideInfo,
     phy::PhySideState& sideState,
     phy::PhySideStats& sideStats,
     PortID swPort,
@@ -1429,7 +1368,6 @@ void SaiSwitch::updatePcsInfo(
 
   if (utility::isReedSolomonFec(fecMode)) {
     phy::PcsStats pcsStats;
-    phy::PcsInfo pcsInfo;
     phy::RsFecInfo rsFec;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
@@ -1458,12 +1396,12 @@ void SaiSwitch::updatePcsInfo(
         *(fb303PortStat->portStats().fecUncorrectableErrors());
 
     phy::RsFecInfo lastRsFec;
-    std::optional<phy::PcsInfo> lastPcs;
+    std::optional<phy::PcsStats> lastPcs;
     if (side == phy::Side::LINE) {
-      if (auto pcs = lastPhyInfo.line()->pcs()) {
+      if (auto pcs = lastPhyInfo.stats()->line()->pcs()) {
         lastPcs = *pcs;
       }
-    } else if (auto sysSide = lastPhyInfo.system()) {
+    } else if (auto sysSide = lastPhyInfo.stats()->system()) {
       if (sysSide->pcs().has_value()) {
         lastPcs = *sysSide->pcs();
       }
@@ -1477,12 +1415,11 @@ void SaiSwitch::updatePcsInfo(
         rsFec, /* current RsFecInfo to update */
         lastRsFec, /* previous RsFecInfo */
         std::nullopt, /* counter not available from hardware */
-        now.count() - *lastPhyInfo.timeCollected(), /* timeDeltaInSeconds */
+        now.count() -
+            *lastPhyInfo.state()->timeCollected(), /* timeDeltaInSeconds */
         fecMode, /* operational FecMode */
         speed /* operational Speed */);
-    pcsInfo.rsFec() = rsFec;
     pcsStats.rsFec() = rsFec;
-    sideInfo.pcs() = pcsInfo;
     sideStats.pcs() = pcsStats;
   }
 
@@ -1490,7 +1427,6 @@ void SaiSwitch::updatePcsInfo(
 }
 
 void SaiSwitch::updateRsInfo(
-    phy::PhySideInfo& sideInfo,
     phy::PhySideState& sideState,
     std::shared_ptr<SaiPort> port) {
   auto errStatus =
@@ -1506,7 +1442,6 @@ void SaiSwitch::updateRsInfo(
   if (*faultStatus.localFault() || *faultStatus.remoteFault()) {
     phy::RsInfo rsInfo;
     rsInfo.faultStatus() = faultStatus;
-    sideInfo.rs() = rsInfo;
     sideState.rs() = rsInfo;
   }
 }

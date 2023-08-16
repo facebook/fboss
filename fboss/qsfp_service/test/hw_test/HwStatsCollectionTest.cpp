@@ -140,8 +140,6 @@ class HwXphyPortInfoTest : public HwExternalPhyPortTest {
         }
 
         phy::PhyInfo lastPhyInfo;
-        lastPhyInfo.phyChip().ensure();
-        lastPhyInfo.line().ensure();
 
         auto portInfo = getHwQsfpEnsemble()
                             ->getPhyManager()

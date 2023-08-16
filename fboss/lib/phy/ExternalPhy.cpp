@@ -37,31 +37,38 @@ ExternalPhyPortStats ExternalPhyPortStats::fromPhyInfo(const PhyInfo& phyInfo) {
   ExternalPhyPortStats phyStats;
 
   auto fillSideStatsFromInfo = [](ExternalPhyPortSideStats& sideStats,
-                                  const PhySideInfo& sideInfo) {
-    if (auto pcsInfo = sideInfo.pcs()) {
-      if (auto fecInfo = pcsInfo->rsFec()) {
-        sideStats.fecCorrectableErrors = fecInfo->get_correctedCodewords();
-        sideStats.fecUncorrectableErrors = fecInfo->get_uncorrectedCodewords();
+                                  const PhySideStats& phySideStats,
+                                  const PhySideState& phySideState) {
+    if (auto pcsStats = phySideStats.pcs()) {
+      if (auto fecStats = pcsStats->rsFec()) {
+        sideStats.fecCorrectableErrors = fecStats->get_correctedCodewords();
+        sideStats.fecUncorrectableErrors = fecStats->get_uncorrectedCodewords();
       }
     }
 
-    for (auto const& [lane, laneInfo] : sideInfo.get_pmd().get_lanes()) {
+    for (auto const& [lane, phyLaneState] : *phySideState.pmd()->lanes()) {
       ExternalPhyLaneStats laneStats;
-      laneStats.signalDetect = laneInfo.get_signalDetectLive();
-      laneStats.cdrLock = laneInfo.get_cdrLockLive();
-      if (auto snrInfo = laneInfo.snr()) {
+
+      auto phyLaneStats = phySideStats.pmd()->lanes()->at(lane);
+      if (auto snrInfo = phyLaneStats.snr()) {
         laneStats.signalToNoiseRatio = *snrInfo;
       }
+      laneStats.signalDetect = phyLaneState.get_signalDetectLive();
+      laneStats.cdrLock = phyLaneState.get_cdrLockLive();
+
       sideStats.lanes[lane] = laneStats;
     }
   };
 
-  if (auto sysSideInfo = phyInfo.system()) {
-    fillSideStatsFromInfo(phyStats.system, *sysSideInfo);
+  if (auto sysSideStats = phyInfo.stats()->system()) {
+    if (auto sysSideState = phyInfo.state()->system()) {
+      fillSideStatsFromInfo(phyStats.system, *sysSideStats, *sysSideState);
+    }
   }
-  if (auto lineSideInfo = phyInfo.line()) {
-    fillSideStatsFromInfo(phyStats.line, *lineSideInfo);
-  }
+
+  auto lineSideStats = phyInfo.stats()->line();
+  auto lineSideState = phyInfo.state()->line();
+  fillSideStatsFromInfo(phyStats.line, *lineSideStats, *lineSideState);
 
   return phyStats;
 }

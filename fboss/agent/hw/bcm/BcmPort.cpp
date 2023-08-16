@@ -1160,27 +1160,20 @@ std::string BcmPort::statName(
 
 phy::PhyInfo BcmPort::updateIPhyInfo() {
   phy::PhyInfo info;
-  info.phyChip().ensure();
-  info.line().ensure();
 
   phy::PhyState state;
   phy::PhyStats stats;
 
-  info.name() = getPortName();
-  state.name() = *info.name();
+  state.name() = getPortName();
 
   // Global phy parameters
   phy::DataPlanePhyChip phyChip;
   phyChip.type() = phy::DataPlanePhyChipType::IPHY;
-  info.phyChip() = phyChip;
   state.phyChip() = phyChip;
-  info.speed() = getSpeed();
-  state.speed() = *info.speed();
-  info.linkState() = isUp();
-  state.linkState() = *info.linkState();
+  state.speed() = getSpeed();
+  state.linkState() = isUp();
 
   // PCS parameters
-  phy::PcsInfo pcs;
   phy::PcsStats pcsStats;
   // FEC parameters
   if (auto portStats = getPortStats()) {
@@ -1192,11 +1185,9 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
       rsFec.uncorrectedCodewords() = *((*portStats).fecUncorrectableErrors());
 
       phy::RsFecInfo lastRsFec;
-      if (auto lastLine = lastPhyInfo_.line()) {
-        if (auto lastPcs = lastLine->pcs()) {
-          if (auto lastFec = lastPcs->rsFec()) {
-            lastRsFec = *lastFec;
-          }
+      if (auto lastPcs = lastPhyInfo_.stats()->line()->pcs()) {
+        if (auto lastFec = lastPcs->rsFec()) {
+          lastRsFec = *lastFec;
         }
       }
       std::optional<uint64_t> correctedBitsFromHw;
@@ -1217,22 +1208,18 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
           rsFec, /* current RsFecInfo to update */
           lastRsFec, /* previous RsFecInfo */
           correctedBitsFromHw, /* counter if available from hardware */
-          now.count() - *lastPhyInfo_.timeCollected(), /* timeDeltaInSeconds */
+          now.count() -
+              *lastPhyInfo_.state()->timeCollected(), /* timeDeltaInSeconds */
           fecMode, /* operational FecMode */
-          *info.speed() /* operational Speed */);
-      pcs.rsFec() = rsFec;
+          *state.speed() /* operational Speed */);
       pcsStats.rsFec() = rsFec;
     }
   }
 
   // PMD Parameters
-  phy::PmdInfo pmd;
   phy::PmdState pmdState;
   phy::PmdStats pmdStats;
   int totalPmdLanes = numLanes_;
-  std::optional<phy::PmdInfo> lastPmd = lastPhyInfo_.line()
-      ? std::make_optional(*lastPhyInfo_.line()->pmd())
-      : std::nullopt;
   phy::PmdState lastPmdState;
   auto lastState = lastPhyInfo_.state();
   lastPmdState = *lastState->line()->pmd();
@@ -1264,7 +1251,6 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
       laneInfo.rxFrequencyPPM() = value;
       laneState.rxFrequencyPPM() = value;
     }
-    pmd.lanes_ref()[lane] = laneInfo;
     pmdState.lanes_ref()[lane] = laneState;
   }
 #if defined(BCM_SDK_VERSION_GTE_6_5_24)
@@ -1274,20 +1260,12 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
     auto rv = bcm_port_pmd_rx_lock_status_get(unit_, port_, &lock_status);
     if (!BCM_FAILURE(rv)) {
       for (int lane = 0; lane < totalPmdLanes; lane++) {
-        pmd.lanes_ref()[lane].lane_ref() = lane;
         pmdState.lanes_ref()[lane].lane_ref() = lane;
         pmdStats.lanes_ref()[lane].lane_ref() = lane;
-        pmd.lanes_ref()[lane].cdrLockLive_ref() =
-            lock_status.rx_lock_bmp & (1 << lane);
         pmdState.lanes_ref()[lane].cdrLockLive_ref() =
             lock_status.rx_lock_bmp & (1 << lane);
         bool changed = lock_status.rx_lock_change_bmp & (1 << lane);
-        pmd.lanes_ref()[lane].cdrLockChanged_ref() = changed;
         pmdState.lanes_ref()[lane].cdrLockChanged_ref() = changed;
-        if (lastPmd) {
-          utility::updateCdrLockChangedCount(
-              changed, lane, pmd.lanes_ref()[lane], *lastPmd);
-        }
         utility::updateCdrLockChangedCount(
             changed, lane, pmdStats.lanes_ref()[lane], lastPmdStats);
       }
@@ -1304,20 +1282,12 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
     auto rv = bcm_port_phy_signal_detect_status_get(unit_, port_, &sd_status);
     if (!BCM_FAILURE(rv)) {
       for (int lane = 0; lane < totalPmdLanes; lane++) {
-        pmd.lanes_ref()[lane].lane_ref() = lane;
         pmdState.lanes_ref()[lane].lane_ref() = lane;
         pmdStats.lanes_ref()[lane].lane_ref() = lane;
-        pmd.lanes_ref()[lane].signalDetectLive_ref() =
-            sd_status.signal_detect_bmp & (1 << lane);
         pmdState.lanes_ref()[lane].signalDetectLive_ref() =
             sd_status.signal_detect_bmp & (1 << lane);
         bool changed = sd_status.signal_detect_change_bmp & (1 << lane);
-        pmd.lanes_ref()[lane].signalDetectChanged_ref() = changed;
         pmdState.lanes_ref()[lane].signalDetectChanged_ref() = changed;
-        if (lastPmd) {
-          utility::updateSignalDetectChangedCount(
-              changed, lane, pmd.lanes_ref()[lane], *lastPmd);
-        }
         utility::updateSignalDetectChangedCount(
             changed, lane, pmdStats.lanes_ref()[lane], lastPmdStats);
       }
@@ -1329,11 +1299,6 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
 #endif
 
   // Line side parameters
-  phy::PhySideInfo lineSideInfo;
-  lineSideInfo.side() = phy::Side::LINE;
-  lineSideInfo.pcs() = pcs;
-  lineSideInfo.pmd() = pmd;
-
   phy::PhySideState lineSideState;
   lineSideState.side() = phy::Side::LINE;
   lineSideState.pmd() = pmdState;
@@ -1348,22 +1313,20 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
   if (*faultStatusPtr) {
     phy::RsInfo rsInfo;
     rsInfo.faultStatus() = **faultStatusPtr;
-    lineSideInfo.rs() = rsInfo;
     lineSideState.rs() = rsInfo;
     // Reset the cached status back to nullopt. We want to only update
     // the fault status in PhyInfo when port state update happens
     *faultStatusPtr = std::nullopt;
   }
 
-  info.line() = lineSideInfo;
   state.line() = lineSideState;
   stats.line() = lineSideStats;
 
   // PhyInfo update timestamp
-  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
-  info.timeCollected() = now.count();
-  state.timeCollected() = now.count();
-  stats.timeCollected() = now.count();
+  auto now =
+      duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
+  state.timeCollected() = now;
+  stats.timeCollected() = now;
 
   info.state() = state;
   info.stats() = stats;
