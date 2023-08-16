@@ -207,6 +207,7 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_FDB_EVENT_NOTIFY:
     case SAI_SWITCH_ATTR_PACKET_EVENT_NOTIFY:
     case SAI_SWITCH_ATTR_TAM_EVENT_NOTIFY:
+    case SAI_SWITCH_ATTR_QUEUE_PFC_DEADLOCK_NOTIFY:
       // No callback implementation in SAI
       break;
     case SAI_SWITCH_ATTR_COUNTER_REFRESH_INTERVAL:

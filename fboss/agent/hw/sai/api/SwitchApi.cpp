@@ -72,4 +72,20 @@ void SwitchApi::registerTamEventCallback(
       " TAM event callback");
 }
 
+void SwitchApi::registerQueuePfcDeadlockNotificationCallback(
+    SwitchSaiId id,
+    sai_queue_pfc_deadlock_notification_fn queue_pfc_deadlock_notification_cb)
+    const {
+  sai_attribute_t attr;
+  attr.id = SAI_SWITCH_ATTR_QUEUE_PFC_DEADLOCK_NOTIFY;
+  attr.value.ptr = (void*)queue_pfc_deadlock_notification_cb;
+  auto rv = _setAttribute(id, &attr);
+  saiLogError(
+      rv,
+      ApiType,
+      "Unable to ",
+      queue_pfc_deadlock_notification_cb ? "register" : "unregister",
+      " Queue PFC deadlock notification callback");
+}
+
 } // namespace facebook::fboss

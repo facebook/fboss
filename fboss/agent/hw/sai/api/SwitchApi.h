@@ -650,6 +650,10 @@ class SwitchApi : public SaiApi<SwitchApi> {
   void registerParityErrorSwitchEventCallback(
       SwitchSaiId id,
       void* switch_event_cb) const;
+  void registerQueuePfcDeadlockNotificationCallback(
+      SwitchSaiId id,
+      sai_queue_pfc_deadlock_notification_fn queue_pfc_deadlock_notification_cb)
+      const;
   void unregisterRxCallback(SwitchSaiId switch_id) const {
     registerRxCallback(switch_id, nullptr);
   }
@@ -664,6 +668,9 @@ class SwitchApi : public SaiApi<SwitchApi> {
   }
   void unregisterParityErrorSwitchEventCallback(SwitchSaiId id) const {
     registerParityErrorSwitchEventCallback(id, nullptr);
+  }
+  void unregisterQueuePfcDeadlockNotificationCallback(SwitchSaiId id) const {
+    registerQueuePfcDeadlockNotificationCallback(id, nullptr);
   }
 
  private:
