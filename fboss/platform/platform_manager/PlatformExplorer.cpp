@@ -20,10 +20,9 @@ PlatformExplorer::PlatformExplorer(
 void PlatformExplorer::explore() {
   XLOG(INFO) << "Exploring the device";
 
-  for (const auto& [busName, kernelBusName] :
-       i2cExplorer_.getKernelAssignedNames(
-           *platformConfig_.i2cBussesFromCPU())) {
-    updateKernelI2cBusNames("", busName, kernelBusName);
+  for (const auto& [busName, busNum] :
+       i2cExplorer_.getBusNums(*platformConfig_.i2cAdaptersFromCpu())) {
+    updateI2cBusNum("", busName, busNum);
   }
 
   bool isChassisPresent = presenceDetector_.isPresent(
@@ -52,9 +51,8 @@ void PlatformExplorer::exploreFRU(
       fmt::format("{}::{}/{}", parentFruName, parentSlotName, fruTypeName);
   int i = 0;
   for (const auto& busName : *parentSlot.outgoingI2cBusNames()) {
-    auto kernelBusName = getKernelI2cBusName(parentFruName, busName);
-    updateKernelI2cBusNames(
-        fruName, fmt::format("INCOMING@{}", i++), kernelBusName);
+    auto busNum = getI2cBusNum(parentFruName, busName);
+    updateI2cBusNum(fruName, fmt::format("INCOMING@{}", i++), busNum);
   }
   exploreI2cDevices(fruName, *fruTypeConfig.i2cDeviceConfigs());
   for (const auto& [slotName, slotConfig] :
@@ -67,15 +65,15 @@ void PlatformExplorer::exploreFRU(
     auto eepromConfig =
         *platformConfig_.slotTypeConfigs()[*slotConfig.slotType()]
              .eepromConfig();
-    auto eepromI2cBusName = getKernelI2cBusName(
+    auto eepromI2cBusNum = getI2cBusNum(
         fruName,
         slotConfig.outgoingI2cBusNames()[*eepromConfig.incomingBusIndex()]);
     i2cExplorer_.createI2cDevice(
         *eepromConfig.kernelDeviceName(),
-        eepromI2cBusName,
+        eepromI2cBusNum,
         *eepromConfig.address());
-    auto eepromPath = i2cExplorer_.getDeviceI2cPath(
-        eepromI2cBusName, *eepromConfig.address());
+    auto eepromPath =
+        i2cExplorer_.getDeviceI2cPath(eepromI2cBusNum, *eepromConfig.address());
     auto pluggedInFruTypeName = i2cExplorer_.getFruTypeName(eepromPath);
     exploreFRU(
         fruName,
@@ -92,35 +90,34 @@ void PlatformExplorer::exploreI2cDevices(
   for (const auto& i2cDeviceConfig : i2cDeviceConfigs) {
     i2cExplorer_.createI2cDevice(
         *i2cDeviceConfig.kernelDeviceName(),
-        getKernelI2cBusName(fruName, *i2cDeviceConfig.busName()),
+        getI2cBusNum(fruName, *i2cDeviceConfig.busName()),
         *i2cDeviceConfig.addr());
     if (i2cDeviceConfig.numOutgoingChannels()) {
-      auto channelBusNames = i2cExplorer_.getMuxChannelI2CBuses(
-          getKernelI2cBusName(fruName, *i2cDeviceConfig.busName()),
+      auto channelBusNums = i2cExplorer_.getMuxChannelI2CBuses(
+          getI2cBusNum(fruName, *i2cDeviceConfig.busName()),
           *i2cDeviceConfig.addr());
-      assert(channelBusNames.size() == i2cDeviceConfig.numOutgoingChannels());
+      assert(channelBusNums.size() == i2cDeviceConfig.numOutgoingChannels());
       for (int i = 0; i < i2cDeviceConfig.numOutgoingChannels(); ++i) {
-        updateKernelI2cBusNames(
+        updateI2cBusNum(
             fruName,
             fmt::format("{}@{}", *i2cDeviceConfig.fruScopedName(), i),
-            channelBusNames[i]);
+            channelBusNums[i]);
       }
     }
   }
 }
 
-std::string PlatformExplorer::getKernelI2cBusName(
+uint16_t PlatformExplorer::getI2cBusNum(
     const std::string& fruName,
     const std::string& fruScopeBusName) {
-  return kernelI2cBusNames_[std::make_pair(fruName, fruScopeBusName)];
+  return i2cBusNamesToNums_[std::make_pair(fruName, fruScopeBusName)];
 }
 
-void PlatformExplorer::updateKernelI2cBusNames(
+void PlatformExplorer::updateI2cBusNum(
     const std::string& fruName,
     const std::string& fruScopeBusName,
-    const std::string& kernelI2cBusName) {
-  kernelI2cBusNames_[std::make_pair(fruName, fruScopeBusName)] =
-      kernelI2cBusName;
+    uint16_t busNum) {
+  i2cBusNamesToNums_[std::make_pair(fruName, fruScopeBusName)] = busNum;
 }
 
 } // namespace facebook::fboss::platform::platform_manager

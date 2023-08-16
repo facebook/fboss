@@ -40,8 +40,8 @@ struct Fru {
 
 struct PlatformSnapshot {
   1: string platformName;
-  2: Fru chassisFru;
-  3: Slot chassisSlot;
-  4: list<string> i2cBussesFromMainBoard;
+  2: Fru mainBoardFru;
+  3: Slot mainBoardSlot;
+  4: list<string> i2cAdaptersFromCpu;
   5: map<string, string> i2cPathToHumanFriendlyName;
 }

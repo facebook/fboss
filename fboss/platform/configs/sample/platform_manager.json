@@ -182,7 +182,7 @@
             "outgoingSlotConfigs": {}
         }
     },
-    "i2cBussesFromCPU": [
+    "i2cAdaptersFromCpu": [
         "CPU@0",
         "CPU@1",
         "CPU@2",

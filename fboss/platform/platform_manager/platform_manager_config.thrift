@@ -177,8 +177,11 @@ struct PlatformConfig {
   // List of FRUs which the platform can support. Key is the FRU name.
   12: map<FruType, FruTypeConfig> fruTypeConfigs;
 
-  // List of the i2c busses created from the CPU / System Control Module (SCM)
-  13: list<string> i2cBussesFromCPU;
+  // List of the i2c buses created from the CPU / System Control Module (SCM)
+  // We are assuming the i2c Adapter name (content of
+  // /sys/bus/i2c/devices/i2c-N/name) is unique for buses directly coming of
+  // CPU. We have to revisit this logic if this assumption changes.
+  13: list<string> i2cAdaptersFromCpu;
 
   // Global mapping from the i2c device paths to an application friendly sysfs
   // path.
