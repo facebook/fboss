@@ -3,17 +3,16 @@
 // Handler class handles Fan Service thrift calls.
 #pragma once
 #include <folly/futures/Future.h>
-#include "common/fb303/cpp/FacebookBase2.h"
+
 #include "fboss/platform/fan_service/FanServiceImpl.h"
+#include "fboss/platform/fan_service/if/gen-cpp2/FanService.h"
 
 namespace facebook::fboss::platform::fan_service {
-class FanServiceHandler
-    : public ::facebook::fb303::FacebookBase2DeprecationMigration {
+class FanServiceHandler : public apache::thrift::ServiceHandler<FanService> {
  public:
   explicit FanServiceHandler(std::unique_ptr<FanServiceImpl> fanServiceImpl);
   // Make compiler happy
   ~FanServiceHandler() override = default;
-  facebook::fb303::cpp2::fb_status getStatus() override;
   // Simple functions are just implemented here.
   FanServiceImpl* getFanServiceImpl() const {
     return fanServiceImpl_.get();
