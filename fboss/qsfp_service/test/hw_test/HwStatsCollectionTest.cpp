@@ -149,22 +149,33 @@ class HwXphyPortInfoTest : public HwExternalPhyPortTest {
                             ->getPortInfo(sysLanes, lineLanes, lastPhyInfo);
 
         // Sanity check the info we received
-        auto chipInfo = portInfo.phyChip();
+        auto chipInfo = portInfo.state()->phyChip();
         EXPECT_EQ(chipInfo->get_type(), phy::DataPlanePhyChipType::XPHY);
         EXPECT_FALSE(chipInfo->get_name().empty());
-        if (auto sysInfo = portInfo.system()) {
-          EXPECT_EQ(sysInfo->get_side(), phy::Side::SYSTEM);
-          for (auto const& [lane, laneInfo] : sysInfo->get_pmd().get_lanes()) {
+        if (auto sysState = portInfo.state()->system()) {
+          EXPECT_EQ(sysState->get_side(), phy::Side::SYSTEM);
+          for (auto const& [lane, laneInfo] : sysState->get_pmd().get_lanes()) {
             EXPECT_EQ(lane, laneInfo.get_lane());
           }
         }
-        if (auto lineInfo = portInfo.line()) {
-          EXPECT_EQ(lineInfo->get_side(), phy::Side::LINE);
-          for (auto const& [lane, laneInfo] : lineInfo->get_pmd().get_lanes()) {
+        if (auto sysStats = portInfo.stats()->system()) {
+          EXPECT_EQ(sysStats->get_side(), phy::Side::SYSTEM);
+          for (auto const& [lane, laneInfo] : sysStats->get_pmd().get_lanes()) {
             EXPECT_EQ(lane, laneInfo.get_lane());
           }
         }
-        EXPECT_GT(portInfo.get_timeCollected(), 0);
+        auto lineState = portInfo.state()->line();
+        EXPECT_EQ(lineState->get_side(), phy::Side::LINE);
+        for (auto const& [lane, laneInfo] : lineState->get_pmd().get_lanes()) {
+          EXPECT_EQ(lane, laneInfo.get_lane());
+        }
+        auto lineStats = portInfo.stats()->line();
+        EXPECT_EQ(lineStats->get_side(), phy::Side::LINE);
+        for (auto const& [lane, laneInfo] : lineStats->get_pmd().get_lanes()) {
+          EXPECT_EQ(lane, laneInfo.get_lane());
+        }
+        EXPECT_GT(portInfo.state()->get_timeCollected(), 0);
+        EXPECT_GT(portInfo.stats()->get_timeCollected(), 0);
       }
     };
     verifyAcrossWarmBoots(setup, verify);
