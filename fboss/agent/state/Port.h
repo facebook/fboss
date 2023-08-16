@@ -633,8 +633,6 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
 
   Port* modify(std::shared_ptr<SwitchState>* state);
 
-  void fillPhyInfo(phy::PhyInfo* phyInfo);
-
  private:
   auto getRxSaks() const {
     return safe_cref<switch_state_tags::rxSecureAssociationKeys>();

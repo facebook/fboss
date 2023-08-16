@@ -76,11 +76,6 @@ Port::Port(PortID id, const std::string& name) {
   set<switch_state_tags::portName>(name);
 }
 
-void Port::fillPhyInfo(phy::PhyInfo* phyInfo) {
-  phyInfo->name() = getName();
-  phyInfo->speed() = getSpeed();
-}
-
 InterfaceID Port::getInterfaceID() const {
   // On VOQ/Fabric switches, port and interface have 1:1 relation.
   // For non VOQ/Fabric switches, in practice, a port is always part of a
