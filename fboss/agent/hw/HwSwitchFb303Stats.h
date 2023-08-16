@@ -105,12 +105,9 @@ class HwSwitchFb303Stats {
   int64_t getPacketIntegrityDropsCount() const {
     return packetIntegrityDrops_.count();
   }
-  int64_t getDramEnqueuedBytes() const {
-    return dramEnqueuedBytes_.count();
-  }
-  int64_t getDramDequeuedBytes() const {
-    return dramDequeuedBytes_.count();
-  }
+  int64_t getDramEnqueuedBytes() const;
+  int64_t getDramDequeuedBytes() const;
+
   HwAsicErrors getHwAsicErrors() const;
   FabricReachabilityStats getFabricReachabilityStats() const;
 

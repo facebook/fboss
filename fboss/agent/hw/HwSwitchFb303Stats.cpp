@@ -134,6 +134,14 @@ void HwSwitchFb303Stats::update(const HwSwitchDramStats& dramStats) {
   }
 }
 
+int64_t HwSwitchFb303Stats::getDramEnqueuedBytes() const {
+  return getCumulativeValue(dramEnqueuedBytes_);
+}
+
+int64_t HwSwitchFb303Stats::getDramDequeuedBytes() const {
+  return getCumulativeValue(dramDequeuedBytes_);
+}
+
 HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   HwAsicErrors asicErrors;
   asicErrors.parityErrors() = getCumulativeValue(parityErrors_);
