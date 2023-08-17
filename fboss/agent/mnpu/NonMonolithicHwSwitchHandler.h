@@ -38,8 +38,6 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
 
   std::optional<uint32_t> getHwLogicalPortId(PortID portID) const override;
 
-  void initPlatformData() override;
-
   bool transactionsSupported() const override;
 
   folly::F14FastMap<std::string, HwPortStats> getPortStats() const override;

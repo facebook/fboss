@@ -133,12 +133,6 @@ folly::dynamic MultiHwSwitchHandler::toFollyDynamic() {
   return hwSwitchSyncers_.begin()->second->toFollyDynamic();
 }
 
-const PlatformData& MultiHwSwitchHandler::getPlatformData() const {
-  // Not supported with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
-  return hwSwitchSyncers_.begin()->second->getPlatformData();
-}
-
 bool MultiHwSwitchHandler::transactionsSupported() {
   for (auto& entry : hwSwitchSyncers_) {
     if (!entry.second->transactionsSupported()) {

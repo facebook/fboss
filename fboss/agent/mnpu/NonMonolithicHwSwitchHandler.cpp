@@ -72,10 +72,6 @@ std::optional<uint32_t> NonMonolithicHwSwitchHandler::getHwLogicalPortId(
   return std::nullopt;
 }
 
-void NonMonolithicHwSwitchHandler::initPlatformData() {
-  // TODO: implement this
-}
-
 void NonMonolithicHwSwitchHandler::onHwInitialized(
     HwSwitchCallback* /*callback*/) {
   // TODO: implement this

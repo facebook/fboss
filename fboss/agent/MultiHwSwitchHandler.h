@@ -19,7 +19,6 @@ class TxPacket;
 class SwitchStats;
 class HwSwitchFb303Stats;
 struct HwSwitchStateUpdate;
-struct PlatformData;
 
 using HwSwitchHandlerInitFn = std::function<std::unique_ptr<HwSwitchHandler>(
     const SwitchID& switchId,
@@ -73,8 +72,6 @@ class MultiHwSwitchHandler {
   folly::dynamic toFollyDynamic();
 
   std::optional<uint32_t> getHwLogicalPortId(PortID portID);
-
-  const PlatformData& getPlatformData() const;
 
   bool transactionsSupported();
 

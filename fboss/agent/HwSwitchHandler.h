@@ -28,19 +28,6 @@ struct HwSwitchStateUpdate {
   bool isTransaction;
 };
 
-struct PlatformData {
-  std::string volatileStateDir;
-  std::string persistentStateDir;
-  std::string crashSwitchStateFile;
-  std::string crashThriftSwitchStateFile;
-  std::string warmBootDir;
-  std::string crashBadStateUpdateDir;
-  std::string crashBadStateUpdateOldStateFile;
-  std::string crashBadStateUpdateNewStateFile;
-  std::string runningConfigDumpFile;
-  bool supportsAddRemovePort;
-};
-
 class HwSwitchHandler {
  public:
   HwSwitchHandler(const SwitchID& switchId, const cfg::SwitchInfo& info);
@@ -78,10 +65,6 @@ class HwSwitchHandler {
   virtual folly::dynamic toFollyDynamic() const = 0;
 
   virtual std::optional<uint32_t> getHwLogicalPortId(PortID portID) const = 0;
-
-  const PlatformData& getPlatformData() const {
-    return platformData_;
-  }
 
   virtual bool transactionsSupported() const = 0;
 
@@ -153,10 +136,6 @@ class HwSwitchHandler {
   virtual multiswitch::StateOperDelta getNextStateOperDelta() = 0;
 
   virtual void cancelOperDeltaRequest() = 0;
-
- protected:
-  virtual void initPlatformData() = 0;
-  PlatformData platformData_;
 
  private:
   std::shared_ptr<SwitchState> stateChangedImpl(

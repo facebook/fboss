@@ -16,9 +16,7 @@ MonolithicHwSwitchHandler::MonolithicHwSwitchHandler(
     const cfg::SwitchInfo& info)
     : HwSwitchHandler(switchId, info),
       platform_(platform),
-      hw_(platform_->getHwSwitch()) {
-  initPlatformData();
-}
+      hw_(platform_->getHwSwitch()) {}
 
 void MonolithicHwSwitchHandler::exitFatal() const {
   return hw_->exitFatal();
@@ -74,27 +72,6 @@ std::optional<uint32_t> MonolithicHwSwitchHandler::getHwLogicalPortId(
     PortID portID) const {
   auto platformPort = platform_->getPlatformPort(portID);
   return platformPort->getHwLogicalPortId();
-}
-
-void MonolithicHwSwitchHandler::initPlatformData() {
-  platformData_.volatileStateDir =
-      platform_->getDirectoryUtil()->getVolatileStateDir();
-  platformData_.persistentStateDir =
-      platform_->getDirectoryUtil()->getPersistentStateDir();
-  platformData_.crashSwitchStateFile =
-      platform_->getDirectoryUtil()->getCrashSwitchStateFile();
-  platformData_.crashThriftSwitchStateFile =
-      platform_->getDirectoryUtil()->getCrashThriftSwitchStateFile();
-  platformData_.warmBootDir = platform_->getDirectoryUtil()->getWarmBootDir();
-  platformData_.crashBadStateUpdateDir =
-      platform_->getDirectoryUtil()->getCrashBadStateUpdateDir();
-  platformData_.crashBadStateUpdateOldStateFile =
-      platform_->getDirectoryUtil()->getCrashBadStateUpdateOldStateFile();
-  platformData_.crashBadStateUpdateNewStateFile =
-      platform_->getDirectoryUtil()->getCrashBadStateUpdateNewStateFile();
-  platformData_.runningConfigDumpFile =
-      platform_->getDirectoryUtil()->getRunningConfigDumpFile();
-  platformData_.supportsAddRemovePort = platform_->supportsAddRemovePort();
 }
 
 void MonolithicHwSwitchHandler::onHwInitialized(HwSwitchCallback* callback) {
