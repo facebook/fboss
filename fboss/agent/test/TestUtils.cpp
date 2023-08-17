@@ -1084,10 +1084,12 @@ void addSwitchInfo(
     auto newSwitchSettings = switchSettings->modify(&state);
     newSwitchSettings->setSwitchIdToSwitchInfo(
         {std::make_pair(switchId, switchInfo)});
+    newSwitchSettings->setSwitchInfo(switchInfo);
   } else {
     auto newSwitchSettings = std::make_shared<SwitchSettings>();
     newSwitchSettings->setSwitchIdToSwitchInfo(
         {std::make_pair(switchId, switchInfo)});
+    newSwitchSettings->setSwitchInfo(switchInfo);
     addSwitchSettingsToState(state, newSwitchSettings, switchId);
   }
 }
