@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/qsfp_service/module/sff/SffModule.h"
+#include "fboss/qsfp_service/module/QsfpHelper.h"
 
 #include <assert.h>
 #include <boost/assign.hpp>
@@ -1701,5 +1702,42 @@ prbs::InterfacePrbsState SffModule::getPortPrbsStateLocked(Side side) {
   }
   return prbs::InterfacePrbsState();
 }
+
+/*
+ * setTransceiverTxLocked
+ *
+ * Set the Tx output enabled/disabled for the given channels of a transceiver
+ * in a given direction. For line side this will cause LOS on the peer optics
+ * Rx. For system side this will cause LOS on the corresponding IPHY lanes or
+ * the XPHY line side lanes in case of system with external PHY
+ */
+bool SffModule::setTransceiverTxLocked(
+    const std::string& portName,
+    bool lineSide,
+    std::optional<uint8_t> userChannelMask,
+    bool enable) {
+  // Get the list of lanes to disable/enable the Tx output
+  auto tcvrLanes = getTcvrLanesForPort(portName, lineSide);
+
+  if (tcvrLanes.empty()) {
+    XLOG(ERR) << fmt::format("No lanes available for port {:s}", portName);
+    return false;
+  }
+
+  auto txControlReg =
+      lineSide ? SffField::TX_DISABLE : SffField::TXRX_OUTPUT_CONTROL;
+  uint8_t txDisableVal, rxTxCtrl;
+
+  readSffField(txControlReg, &rxTxCtrl);
+  txDisableVal = lineSide ? rxTxCtrl : ((rxTxCtrl >> 4) & 0xF);
+
+  txDisableVal =
+      setTxChannelMask(tcvrLanes, userChannelMask, enable, txDisableVal);
+
+  rxTxCtrl = lineSide ? txDisableVal : ((txDisableVal << 4) | (rxTxCtrl & 0xF));
+  writeSffField(txControlReg, &rxTxCtrl);
+  return true;
+}
+
 } // namespace fboss
 } // namespace facebook

@@ -267,6 +267,15 @@ class SffModule : public QsfpModule {
 
   MediaInterfaceCode getModuleMediaInterface() const override;
 
+  /*
+   * Set the Transceiver Tx channel endbale/disable
+   */
+  virtual bool setTransceiverTxLocked(
+      const std::string& portName,
+      bool lineSide,
+      std::optional<uint8_t> userChannelMask,
+      bool enable) override;
+
  private:
   // no copy or assignment
   SffModule(SffModule const&) = delete;

@@ -1187,5 +1187,31 @@ time_t QsfpModule::getModulePauseRemediationUntil() {
   return modulePauseRemediationUntil_;
 }
 
+std::set<uint8_t> QsfpModule::getTcvrLanesForPort(
+    const std::string& portName,
+    bool lineSide) const {
+  std::set<uint8_t> tcvrLanes;
+
+  if (lineSide) {
+    auto portNameToMediaLanes = getPortNameToMediaLanes();
+    if (portNameToMediaLanes.find(portName) == portNameToMediaLanes.end()) {
+      XLOG(ERR) << fmt::format(
+          "Port name to line side lanes not available for {:s}", portName);
+    } else {
+      tcvrLanes = portNameToMediaLanes.at(portName);
+    }
+  } else {
+    auto portNameToHostLanes = getPortNameToHostLanes();
+    if (portNameToHostLanes.find(portName) == portNameToHostLanes.end()) {
+      XLOG(ERR) << fmt::format(
+          "Port name to lanes not available for {:s}", portName);
+    } else {
+      tcvrLanes = portNameToHostLanes.at(portName);
+    }
+  }
+
+  return tcvrLanes;
+}
+
 } // namespace fboss
 } // namespace facebook

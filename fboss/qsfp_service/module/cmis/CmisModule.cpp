@@ -3042,25 +3042,7 @@ bool CmisModule::setTransceiverTxLocked(
     std::optional<uint8_t> userChannelMask,
     bool enable) {
   // Get the list of lanes to disable/enable the Tx output
-  std::set<uint8_t> tcvrLanes;
-  if (lineSide) {
-    auto portNameToMediaLanes = getPortNameToMediaLanes();
-    if (portNameToMediaLanes.find(portName) == portNameToMediaLanes.end()) {
-      XLOG(ERR) << fmt::format(
-          "Port name to media lanes not available for {:s}", portName);
-      return false;
-    }
-    tcvrLanes = portNameToMediaLanes.at(portName);
-  } else {
-    auto portNameToHostLanes = getPortNameToHostLanes();
-    if (portNameToHostLanes.find(portName) == portNameToHostLanes.end()) {
-      XLOG(ERR) << fmt::format(
-          "Port name to host lanes not available for {:s}", portName);
-      return false;
-    }
-    tcvrLanes = portNameToHostLanes.at(portName);
-  }
-
+  auto tcvrLanes = getTcvrLanesForPort(portName, lineSide);
   if (tcvrLanes.empty()) {
     XLOG(ERR) << fmt::format("Empty lane list for port {:s}", portName);
     return false;

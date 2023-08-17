@@ -555,6 +555,13 @@ class QsfpModule : public Transceiver {
     return false;
   }
 
+  /*
+   * Returns a set of Transceiver lanes for a given SW port for a given side
+   */
+  std::set<uint8_t> getTcvrLanesForPort(
+      const std::string& portName,
+      bool lineSide) const;
+
   unsigned int moduleResetCounter_{0};
 
   // Due to the mismatch of ODS reporting frequency and the interval of us
