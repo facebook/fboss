@@ -579,8 +579,11 @@ unique_ptr<HwTestHandle> createTestHandle(
 
   auto switchSettings = std::make_shared<SwitchSettings>();
   switchSettings->setSwitchIdToSwitchInfo(switchIdToSwitchInfo);
-  addSwitchSettingsToState(
-      initialState, switchSettings, switchIdToSwitchInfo.begin()->first);
+  addSwitchInfo(
+      initialState,
+      *switchIdToSwitchInfo.begin()->second.switchType(),
+      switchIdToSwitchInfo.begin()->first);
+
   auto handle = createTestHandle(initialState, flags, config);
   auto sw = handle->getSw();
 
