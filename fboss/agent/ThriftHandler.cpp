@@ -2752,6 +2752,19 @@ bool ThriftHandler::isSwitchDrained() {
       cfg::SwitchDrainState::DRAINED;
 }
 
+void ThriftHandler::getActualSwitchDrainState(
+    std::map<int64_t, cfg::SwitchDrainState>& switchId2ActualSwitchDrainState) {
+  ensureConfigured(__func__);
+
+  for (auto& [matcherString, switchSettings] :
+       std::as_const(*sw_->getState()->getSwitchSettings())) {
+    auto matcher = HwSwitchMatcher(matcherString);
+    switchId2ActualSwitchDrainState.insert(
+        {static_cast<int64_t>(matcher.switchId()),
+         switchSettings->getActualSwitchDrainState()});
+  }
+}
+
 void ThriftHandler::addTeFlows(
     std::unique_ptr<std::vector<FlowEntry>> teFlowEntries) {
   auto log = LOG_THRIFT_CALL(DBG1);

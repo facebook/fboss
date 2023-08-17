@@ -399,6 +399,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::map<std::string, phy::PhyInfo>& phyInfos,
       std::unique_ptr<std::vector<std::string>> portNames) override;
   bool isSwitchDrained() override;
+  void getActualSwitchDrainState(std::map<int64_t, cfg::SwitchDrainState>&
+                                     switchId2ActualSwitchDrainState) override;
 
  protected:
   void addMplsRoutesImpl(

@@ -1347,6 +1347,15 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * Only applicable to DSF Fabric Switch
    */
   bool isSwitchDrained() throws (1: fboss.FbossBaseError error);
+
+  /*
+   * On VOQ switches, actual switch drain state is determined by the number of
+   * fabric ports UP and configured thresholds, so could be different from the
+   * configured desired switch drain state.
+   */
+  map<i64, switch_config.SwitchDrainState> getActualSwitchDrainState() throws (
+    1: fboss.FbossBaseError error,
+  );
 }
 
 service NeighborListenerClient extends fb303.FacebookService {
