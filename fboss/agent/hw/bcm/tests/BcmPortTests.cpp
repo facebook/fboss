@@ -423,7 +423,8 @@ TEST_F(BcmPortTest, AssertL3Enabled) {
   // Enable all master ports
   auto setup = [this]() {
     applyNewConfig(utility::oneL3IntfNPortConfig(
-        getHwSwitch(),
+        getHwSwitch()->getPlatform()->getPlatformMapping(),
+        getHwSwitch()->getPlatform()->getAsic(),
         masterLogicalPortIds(),
         getPlatform()->getAsic()->desiredLoopbackModes()));
   };
@@ -492,7 +493,8 @@ TEST_F(BcmPortTest, SetInterPacketGapBits) {
   // Enable all master ports
   auto setup = [this]() {
     applyNewConfig(utility::oneL3IntfNPortConfig(
-        getHwSwitch(),
+        getHwSwitch()->getPlatform()->getPlatformMapping(),
+        getHwSwitch()->getPlatform()->getAsic(),
         masterLogicalPortIds(),
         getPlatform()->getAsic()->desiredLoopbackModes()));
   };

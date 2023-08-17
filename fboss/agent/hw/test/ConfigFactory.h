@@ -78,7 +78,8 @@ cfg::SwitchConfig oneL3IntfTwoPortConfig(
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
         kDefaultLoopbackMap());
 cfg::SwitchConfig oneL3IntfNPortConfig(
-    const HwSwitch* hwSwitch,
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
     const std::vector<PortID>& ports,
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
         kDefaultLoopbackMap(),

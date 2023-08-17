@@ -40,7 +40,9 @@ class BcmQosMapTest : public BcmTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
     return utility::oneL3IntfNPortConfig(
-        getHwSwitch(), {masterLogicalPortIds()[0], masterLogicalPortIds()[1]});
+        getHwSwitch()->getPlatform()->getPlatformMapping(),
+        getHwSwitch()->getPlatform()->getAsic(),
+        {masterLogicalPortIds()[0], masterLogicalPortIds()[1]});
   }
 
   cfg::SwitchConfig setupDefaultQueueWithPfcMaps() {

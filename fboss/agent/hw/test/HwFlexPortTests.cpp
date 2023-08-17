@@ -71,7 +71,10 @@ class HwFlexPortTest : public HwTest {
       facebook::fboss::utility::cleanPortConfig(&cfg, allPortsinGroup);
       applyNewConfig(cfg);
 
-      cfg = utility::oneL3IntfNPortConfig(getHwSwitch(), allPortsinGroup);
+      cfg = utility::oneL3IntfNPortConfig(
+          getHwSwitch()->getPlatform()->getPlatformMapping(),
+          getHwSwitch()->getPlatform()->getAsic(),
+          allPortsinGroup);
       facebook::fboss::utility::cleanPortConfig(&cfg, allPortsinGroup);
 
       // Update all ports in the same group based on the flexMode

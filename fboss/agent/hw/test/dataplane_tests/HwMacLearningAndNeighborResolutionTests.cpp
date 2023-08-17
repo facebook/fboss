@@ -79,8 +79,10 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
 
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    auto inConfig =
-        utility::oneL3IntfNPortConfig(getHwSwitch(), allConfigPorts());
+    auto inConfig = utility::oneL3IntfNPortConfig(
+        getHwSwitch()->getPlatform()->getPlatformMapping(),
+        getHwSwitch()->getPlatform()->getAsic(),
+        allConfigPorts());
     return LearningModeAndPortT::initialConfig(inConfig);
   }
   PortDescriptor portDescriptor() const {

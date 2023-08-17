@@ -164,7 +164,10 @@ void initandExitBenchmarkHelper(
           HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
         auto numUplinks = getUplinksCount(hwSwitch, uplinkSpeed, downlinkSpeed);
         if (!numUplinks) {
-          return utility::oneL3IntfNPortConfig(hwSwitch, ports);
+          return utility::oneL3IntfNPortConfig(
+              hwSwitch->getPlatform()->getPlatformMapping(),
+              hwSwitch->getPlatform()->getAsic(),
+              ports);
         }
         /*
          * Based on the uplink/downlink speed, use the ConfigFactory to create

@@ -549,7 +549,13 @@ cfg::SwitchConfig oneL3IntfConfig(
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
     int baseVlanId) {
   std::vector<PortID> ports{port};
-  return oneL3IntfNPortConfig(hwSwitch, ports, lbModeMap, true, baseVlanId);
+  return oneL3IntfNPortConfig(
+      hwSwitch->getPlatform()->getPlatformMapping(),
+      hwSwitch->getPlatform()->getAsic(),
+      ports,
+      lbModeMap,
+      true,
+      baseVlanId);
 }
 
 cfg::SwitchConfig oneL3IntfNoIPAddrConfig(
@@ -558,7 +564,11 @@ cfg::SwitchConfig oneL3IntfNoIPAddrConfig(
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap) {
   std::vector<PortID> ports{port};
   return oneL3IntfNPortConfig(
-      hwSwitch, ports, lbModeMap, false /*interfaceHasSubnet*/);
+      hwSwitch->getPlatform()->getPlatformMapping(),
+      hwSwitch->getPlatform()->getAsic(),
+      ports,
+      lbModeMap,
+      false /*interfaceHasSubnet*/);
 }
 
 cfg::SwitchConfig oneL3IntfTwoPortConfig(
@@ -567,11 +577,16 @@ cfg::SwitchConfig oneL3IntfTwoPortConfig(
     PortID port2,
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap) {
   std::vector<PortID> ports{port1, port2};
-  return oneL3IntfNPortConfig(hwSwitch, ports, lbModeMap);
+  return oneL3IntfNPortConfig(
+      hwSwitch->getPlatform()->getPlatformMapping(),
+      hwSwitch->getPlatform()->getAsic(),
+      ports,
+      lbModeMap);
 }
 
 cfg::SwitchConfig oneL3IntfNPortConfig(
-    const HwSwitch* hwSwitch,
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
     const std::vector<PortID>& ports,
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
     bool interfaceHasSubnet,
@@ -587,8 +602,8 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
     vlanPorts.push_back(port);
   }
   auto config = genPortVlanCfg(
-      hwSwitch->getPlatform()->getPlatformMapping(),
-      hwSwitch->getPlatform()->getAsic(),
+      platformMapping,
+      asic,
       vlanPorts,
       port2vlan,
       vlans,

@@ -142,7 +142,10 @@ class HwPacketFloodTest : public HwLinkStateDependentTest {
   }
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfNPortConfig(
-        getHwSwitch(), getLogicalPortIDs(), getAsic()->desiredLoopbackModes());
+        getHwSwitch()->getPlatform()->getPlatformMapping(),
+        getHwSwitch()->getPlatform()->getAsic(),
+        getLogicalPortIDs(),
+        getAsic()->desiredLoopbackModes());
     utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
     utility::addCpuQueueConfig(cfg, getAsic());
     return cfg;
