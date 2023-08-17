@@ -284,6 +284,7 @@ add_library(platform_base
 
 target_link_libraries(platform_base
   agent_config_cpp2
+  agent_dir_util
   ctrl_cpp2
   error
   fboss_types

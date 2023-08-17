@@ -9,7 +9,18 @@
  */
 #pragma once
 
+#include <gflags/gflags.h>
 #include <memory>
+#include <string>
+
+DECLARE_string(crash_switch_state_file);
+DECLARE_string(crash_thrift_switch_state_file);
+DECLARE_string(crash_hw_state_file);
+DECLARE_string(hw_config_file);
+DECLARE_string(volatile_state_dir);
+DECLARE_string(persistent_state_dir);
+DECLARE_string(volatile_state_dir_phy);
+DECLARE_string(persistent_state_dir_phy);
 
 namespace facebook::fboss {
 class AgentDirectoryUtil {

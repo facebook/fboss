@@ -15,6 +15,7 @@
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include <memory>
 #include <unordered_map>
+#include "fboss/agent/AgentDirectoryUtil.h"
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
