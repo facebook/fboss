@@ -126,6 +126,8 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::LENGTH_OM3, {CmisPages::PAGE01, 135, 1}},
     {CmisField::LENGTH_OM2, {CmisPages::PAGE01, 136, 1}},
     {CmisField::VDM_DIAG_SUPPORT, {CmisPages::PAGE01, 142, 1}},
+    {CmisField::TX_CONTROL_SUPPORT, {CmisPages::PAGE01, 155, 1}},
+    {CmisField::RX_CONTROL_SUPPORT, {CmisPages::PAGE01, 156, 1}},
     {CmisField::TX_BIAS_MULTIPLIER, {CmisPages::PAGE01, 160, 1}},
     {CmisField::TX_SIG_INT_CONT_AD, {CmisPages::PAGE01, 161, 1}},
     {CmisField::RX_SIG_INT_CONT_AD, {CmisPages::PAGE01, 162, 1}},
@@ -2508,6 +2510,13 @@ void CmisModule::setDiagsCapability() {
 
     readFromCacheOrHw(CmisField::CDB_SUPPORT, &data);
     diags.cdb() = (data & FieldMasks::CDB_SUPPORT_MASK) ? true : false;
+
+    readFromCacheOrHw(CmisField::TX_CONTROL_SUPPORT, &data);
+    diags.txOutputControl() =
+        (data & FieldMasks::TX_DISABLE_SUPPORT_MASK) ? true : false;
+    readFromCacheOrHw(CmisField::RX_CONTROL_SUPPORT, &data);
+    diags.rxOutputControl() =
+        (data & FieldMasks::RX_DISABLE_SUPPORT_MASK) ? true : false;
 
     if (*diags.diagnostics()) {
       readFromCacheOrHw(CmisField::LOOPBACK_CAPABILITY, &data);

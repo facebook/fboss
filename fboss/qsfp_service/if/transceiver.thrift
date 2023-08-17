@@ -583,6 +583,8 @@ struct DiagsCapability {
   7: bool loopbackSystem = false;
   8: list<prbs.PrbsPolynomial> prbsSystemCapabilities = [];
   9: list<prbs.PrbsPolynomial> prbsLineCapabilities = [];
+  10: bool txOutputControl = false;
+  11: bool rxOutputControl = false;
 }
 
 enum TransceiverStateMachineState {
