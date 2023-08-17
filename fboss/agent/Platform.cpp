@@ -31,7 +31,10 @@ Platform::Platform(
     : productInfo_(std::move(productInfo)),
       platformMapping_(std::move(platformMapping)),
       localMac_(localMac),
-      scopeResolver_({}) {}
+      scopeResolver_({}),
+      agentDirUtil_(new AgentDirectoryUtil(
+          FLAGS_volatile_state_dir,
+          FLAGS_persistent_state_dir)) {}
 Platform::~Platform() {}
 
 std::string Platform::getCrashHwStateFile() const {

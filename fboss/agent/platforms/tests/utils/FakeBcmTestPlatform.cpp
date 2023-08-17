@@ -35,6 +35,9 @@ FakeBcmTestPlatform::FakeBcmTestPlatform()
     : BcmTestPlatform(
           fakeProductInfo(),
           std::make_unique<FakeTestPlatformMapping>(getControllingPortIDs())) {
+  agentDirUtil_ = std::make_unique<AgentDirectoryUtil>(
+      tmpDir_.path().string() + "/volatile",
+      tmpDir_.path().string() + "/persist");
   FLAGS_mac = "02:00:00:00:00:01";
 }
 

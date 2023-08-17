@@ -53,6 +53,10 @@ class SaiFakePlatform : public SaiPlatform {
 
   const std::set<sai_api_t>& getSupportedApiList() const override;
 
+  const AgentDirectoryUtil* getDirectoryUtil() const override {
+    return agentDirUtil_.get();
+  }
+
  private:
   void setupAsic(
       cfg::SwitchType switchType,
@@ -61,6 +65,7 @@ class SaiFakePlatform : public SaiPlatform {
       folly::MacAddress& mac) override;
   folly::test::TemporaryDirectory tmpDir_;
   std::unique_ptr<FakeAsic> asic_;
+  std::unique_ptr<AgentDirectoryUtil> agentDirUtil_;
 };
 
 } // namespace facebook::fboss

@@ -59,6 +59,10 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
 
   HwAsic* getAsic() const override;
 
+  const AgentDirectoryUtil* getDirectoryUtil() const override {
+    return agentDirUtil_.get();
+  }
+
  private:
   void setupAsic(
       cfg::SwitchType switchType,
@@ -73,6 +77,7 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
 
   folly::test::TemporaryDirectory tmpDir_;
   std::unique_ptr<FakeAsic> asic_;
+  std::unique_ptr<AgentDirectoryUtil> agentDirUtil_;
 };
 
 } // namespace facebook::fboss

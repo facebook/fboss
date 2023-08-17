@@ -89,7 +89,11 @@ SaiSandiaPhyPlatform::SaiSandiaPhyPlatform(
           std::make_unique<SandiaPlatformMapping>(""),
           localMac),
       pimId_(pimId),
-      phyId_(phyId) {}
+      phyId_(phyId),
+      agentDirUtil_(new AgentDirectoryUtil(
+          FLAGS_volatile_state_dir_phy + "/" + folly::to<std::string>(phyId_),
+          FLAGS_persistent_state_dir_phy + "/" +
+              folly::to<std::string>(phyId_))) {}
 
 void SaiSandiaPhyPlatform::setupAsic(
     cfg::SwitchType switchType,

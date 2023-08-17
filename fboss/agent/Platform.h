@@ -316,6 +316,10 @@ class Platform {
     return &scopeResolver_;
   }
 
+  virtual const AgentDirectoryUtil* getDirectoryUtil() const {
+    return agentDirUtil_.get();
+  }
+
  private:
   /*
    * Subclasses can override this to do custom initialization. This is
@@ -348,6 +352,7 @@ class Platform {
   // transceiver info data qsfp may returns
   std::optional<std::unordered_map<TransceiverID, TransceiverInfo>>
       overrideTransceiverInfos_;
+  std::unique_ptr<AgentDirectoryUtil> agentDirUtil_;
 };
 
 } // namespace facebook::fboss

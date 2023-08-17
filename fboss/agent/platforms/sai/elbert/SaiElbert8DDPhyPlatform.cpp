@@ -87,7 +87,11 @@ SaiElbert8DDPhyPlatform::SaiElbert8DDPhyPlatform(
               ->getPimPlatformMappingUniquePtr(pimId),
           localMac),
       pimId_(pimId),
-      phyId_(phyId) {}
+      phyId_(phyId),
+      agentDirUtil_(new AgentDirectoryUtil(
+          FLAGS_volatile_state_dir_phy + "/" + folly::to<std::string>(phyId_),
+          FLAGS_persistent_state_dir_phy + "/" +
+              folly::to<std::string>(phyId_))) {}
 
 void SaiElbert8DDPhyPlatform::setupAsic(
     cfg::SwitchType switchType,

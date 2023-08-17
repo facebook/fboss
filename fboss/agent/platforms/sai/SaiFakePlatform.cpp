@@ -36,7 +36,11 @@ SaiFakePlatform::SaiFakePlatform(
     : SaiPlatform(
           std::move(productInfo),
           std::make_unique<FakeTestPlatformMapping>(getControllingPortIDs()),
-          kLocalMac) {}
+          kLocalMac) {
+  agentDirUtil_ = std::make_unique<AgentDirectoryUtil>(
+      tmpDir_.path().string() + "/volatile",
+      tmpDir_.path().string() + "/persist");
+}
 
 void SaiFakePlatform::setupAsic(
     cfg::SwitchType switchType,

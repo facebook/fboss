@@ -52,6 +52,10 @@ class SimPlatform : public Platform {
     return nullptr;
   }
 
+  const AgentDirectoryUtil* getDirectoryUtil() const override {
+    return agentDirUtil_.get();
+  }
+
  private:
   void setupAsic(
       cfg::SwitchType /*switchType*/,
@@ -69,6 +73,7 @@ class SimPlatform : public Platform {
   std::unique_ptr<SimSwitch> hw_;
   uint32_t numPorts_;
   std::unordered_map<PortID, std::unique_ptr<SimPlatformPort>> portMapping_;
+  std::unique_ptr<AgentDirectoryUtil> agentDirUtil_;
 };
 
 } // namespace facebook::fboss

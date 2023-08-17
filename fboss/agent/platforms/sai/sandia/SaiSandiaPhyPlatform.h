@@ -64,6 +64,9 @@ class SaiSandiaPhyPlatform : public SaiHwPlatform {
   void setSwitchAttributes(SaiSwitchTraits::CreateAttributes attrs) {
     switchCreateAttrs_ = attrs;
   }
+  const AgentDirectoryUtil* getDirectoryUtil() const override {
+    return agentDirUtil_.get();
+  }
 
  private:
   void setupAsic(
@@ -75,6 +78,7 @@ class SaiSandiaPhyPlatform : public SaiHwPlatform {
   int phyId_{0};
   std::unique_ptr<MarvelPhyAsic> asic_;
   std::optional<SaiSwitchTraits::CreateAttributes> switchCreateAttrs_;
+  std::unique_ptr<AgentDirectoryUtil> agentDirUtil_;
 
   void initImpl(uint32_t hwFeaturesDesired) override;
   void initSandiaSaiProfileValues();

@@ -24,6 +24,9 @@ class FakeWedge40Platform : public Wedge40Platform {
   bool isBcmShellSupported() const override {
     return false;
   }
+  const AgentDirectoryUtil* getDirectoryUtil() const override {
+    return agentDirUtil_.get();
+  }
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -31,6 +34,9 @@ class FakeWedge40Platform : public Wedge40Platform {
   FakeWedge40Platform& operator=(FakeWedge40Platform const&) = delete;
 
   folly::test::TemporaryDirectory tmpDir_;
+  std::unique_ptr<AgentDirectoryUtil> agentDirUtil_{new AgentDirectoryUtil(
+      tmpDir_.path().string() + "/volatile",
+      tmpDir_.path().string() + "/persist")};
 };
 
 } // namespace facebook::fboss
