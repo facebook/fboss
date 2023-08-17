@@ -56,7 +56,9 @@ fsdb::OperDelta computeOperDelta(
       oldNode,
       newNode,
       thrift_cow::DeltaVisitOptions(
-          thrift_cow::DeltaVisitMode::MINIMAL, outputIdPaths),
+          thrift_cow::DeltaVisitMode::MINIMAL,
+          thrift_cow::DeltaVisitOrder::PARENTS_FIRST,
+          outputIdPaths),
       std::move(processDelta));
   return createDelta(std::move(operDeltaUnits));
 }

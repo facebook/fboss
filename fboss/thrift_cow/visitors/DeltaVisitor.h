@@ -73,11 +73,25 @@ enum class DeltaVisitMode {
   FULL
 };
 
+// Visit order for added/removed paths, not applicable for changed paths.
+// For changed paths, DeltaVisitor will always visit children first to
+// determine whether there is any delta and skip visiting parent if the
+// subtree is unchanged.
+enum class DeltaVisitOrder {
+  PARENTS_FIRST,
+
+  CHILDREN_FIRST
+};
+
 struct DeltaVisitOptions {
-  explicit DeltaVisitOptions(DeltaVisitMode mode, bool outputIdPaths = false)
-      : mode(mode), outputIdPaths(outputIdPaths) {}
+  explicit DeltaVisitOptions(
+      DeltaVisitMode mode,
+      DeltaVisitOrder order = DeltaVisitOrder::PARENTS_FIRST,
+      bool outputIdPaths = false)
+      : mode(mode), order(order), outputIdPaths(outputIdPaths) {}
 
   DeltaVisitMode mode;
+  DeltaVisitOrder order;
   bool outputIdPaths;
 };
 
@@ -189,12 +203,15 @@ void visitAddedOrRemovedNode(
   DCHECK(static_cast<bool>(oldNode) != static_cast<bool>(newNode));
 
   auto path = traverser.path();
-  invokeVisitorFnHelper(
-      traverser,
-      oldNode,
-      newNode,
-      DeltaElemTag::MINIMAL,
-      std::forward<Func>(f));
+  if (options.order == DeltaVisitOrder::PARENTS_FIRST) {
+    // for added/removed paths, visit parent first, then children
+    invokeVisitorFnHelper(
+        traverser,
+        oldNode,
+        newNode,
+        DeltaElemTag::MINIMAL,
+        std::forward<Func>(f));
+  }
 
   if (options.mode == DeltaVisitMode::FULL) {
     bool isAdd = static_cast<bool>(newNode);
@@ -227,14 +244,24 @@ void visitAddedOrRemovedNode(
       return;
     }
 
+    auto subtreeVisitOrder = (options.order == DeltaVisitOrder::PARENTS_FIRST)
+        ? RecurseVisitOrder::PARENTS_FIRST
+        : RecurseVisitOrder::CHILDREN_FIRST;
     RecurseVisitor<TC>::visit(
         traverser,
         target,
         RecurseVisitOptions(
-            RecurseVisitMode::FULL,
-            RecurseVisitOrder::PARENTS_FIRST,
-            options.outputIdPaths),
+            RecurseVisitMode::FULL, subtreeVisitOrder, options.outputIdPaths),
         std::move(processChange));
+  }
+
+  if (options.order != DeltaVisitOrder::PARENTS_FIRST) {
+    invokeVisitorFnHelper(
+        traverser,
+        oldNode,
+        newNode,
+        DeltaElemTag::MINIMAL,
+        std::forward<Func>(f));
   }
 }
 

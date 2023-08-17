@@ -61,7 +61,10 @@ TEST(DeltaVisitorTests, ChangeOneField) {
   result = RootDeltaVisitor::visit(
       nodeA,
       nodeB,
-      DeltaVisitOptions(DeltaVisitMode::PARENTS, true),
+      DeltaVisitOptions(
+          DeltaVisitMode::PARENTS,
+          thrift_cow::DeltaVisitOrder::PARENTS_FIRST,
+          true),
       processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
@@ -305,7 +308,10 @@ TEST(DeltaVisitorTests, UpdateMap) {
   result = RootDeltaVisitor::visit(
       nodeA,
       nodeB,
-      DeltaVisitOptions(DeltaVisitMode::MINIMAL, true),
+      DeltaVisitOptions(
+          DeltaVisitMode::MINIMAL,
+          thrift_cow::DeltaVisitOrder::PARENTS_FIRST,
+          true),
       processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
@@ -565,7 +571,10 @@ TEST(DeltaVisitorTests, EditVariantField) {
   result = RootDeltaVisitor::visit(
       nodeA,
       nodeB,
-      DeltaVisitOptions(DeltaVisitMode::FULL, true),
+      DeltaVisitOptions(
+          DeltaVisitMode::FULL,
+          thrift_cow::DeltaVisitOrder::PARENTS_FIRST,
+          true),
       processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
