@@ -119,6 +119,9 @@ HwSwitchEnsemble::~HwSwitchEnsemble() {
     // Unregister callbacks before we start destroying hwSwitch
     getHwSwitch()->unregisterCallbacks();
   }
+  if (routingInformationBase_) {
+    routingInformationBase_->stop();
+  }
   // HwSwitch is about to go away, stop observers to let them finish any
   // in flight events.
   stopObservers();
