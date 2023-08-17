@@ -20,6 +20,11 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 
+DEFINE_bool(
+    dedicated_queue_per_physical_host,
+    false,
+    "Flag to enable allocating dedicated queue per physical host. This flag is applicable only when Queue-Per-Host feature is enabled.");
+
 namespace facebook::fboss {
 
 LookupClassUpdater::LookupClassUpdater(SwSwitch* sw) : sw_(sw) {
@@ -968,6 +973,30 @@ void LookupClassUpdater::processMacAddrsToBlockUpdates(
   }
 }
 
+void LookupClassUpdater::processMacOuis(
+    const std::shared_ptr<SwitchState>& switchState) {
+  // TODO(daiweix): do class id re-assignment based on new mac ouis
+  std::set<uint64_t> newVendorMacOuis;
+  std::set<uint64_t> newMetaMacOuis;
+  for ([[maybe_unused]] const auto& [_, switchSettings] :
+       std::as_const(*switchState->getSwitchSettings())) {
+    for (const auto& iter : *(switchSettings->getVendorMacOuis())) {
+      auto macStr = iter->toThrift();
+      auto macAddress = folly::MacAddress(macStr);
+      newVendorMacOuis.insert(macAddress.u64HBO());
+      XLOG(DBG4) << "vendor mac OUI " << macStr;
+    }
+    for (const auto& iter : *(switchSettings->getMetaMacOuis())) {
+      auto macStr = iter->toThrift();
+      auto macAddress = folly::MacAddress(macStr);
+      newMetaMacOuis.insert(macAddress.u64HBO());
+      XLOG(DBG4) << "meta mac OUI " << macStr;
+    }
+    vendorMacOuis_ = newVendorMacOuis;
+    metaMacOuis_ = newMetaMacOuis;
+  }
+}
+
 void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
   // The current LookupClassUpdater logic relies on VLANs, MAC learning
   // callbacks etc. that are not supported on VOQ/Fabric switches. Thus, run
@@ -980,7 +1009,7 @@ void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
   if (!inited_) {
     updateStateObserverLocalCache(stateDelta.newState());
   }
-
+  processMacOuis(stateDelta.newState());
   NeighborTableDeltaCallbackGenerator::genCallbacks(stateDelta, *this);
   processPortUpdates(stateDelta);
   processBlockNeighborUpdates(stateDelta);

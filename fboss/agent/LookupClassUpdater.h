@@ -175,6 +175,8 @@ class LookupClassUpdater : public StateObserver {
 
   void processMacAddrsToBlockUpdates(const StateDelta& stateDelta);
 
+  void processMacOuis(const std::shared_ptr<SwitchState>& switchState);
+
   /*
    * Methods to iterate over MacTable, ArpTable or NdpTable or table deltas.
    */
@@ -269,6 +271,8 @@ class LookupClassUpdater : public StateObserver {
    *  traffic to.
    */
   std::set<std::pair<VlanID, folly::MacAddress>> macAddrsToBlock_;
+  std::set<uint64_t> vendorMacOuis_;
+  std::set<uint64_t> metaMacOuis_;
 
   friend class NeighborTableDeltaCallbackGenerator;
   bool inited_{false};

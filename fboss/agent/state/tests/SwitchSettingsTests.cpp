@@ -270,6 +270,40 @@ TEST(SwitchSettingsTest, applyMacAddrsToBlock) {
       macAddrToBlock.macAddress());
 }
 
+TEST(SwitchSettingsTest, applyMacOuis) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  addSwitchSettingsToState(stateV0);
+
+  // Check default value
+  auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
+  auto switchSettingsV0 =
+      stateV0->getSwitchSettings()->getNode(matcher.matcherString());
+  ASSERT_NE(nullptr, switchSettingsV0);
+  EXPECT_EQ(switchSettingsV0->getVendorMacOuis()->size(), 0);
+  EXPECT_EQ(switchSettingsV0->getMetaMacOuis()->size(), 0);
+
+  // Check if value is updated
+  cfg::SwitchConfig config;
+
+  config.switchSettings()->vendorMacOuis() = {"01:02:03:00:00:00"};
+  config.switchSettings()->metaMacOuis() = {"04:05:06:00:00:00"};
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto switchSettingsV1 =
+      stateV1->getSwitchSettings()->getNode(matcher.matcherString());
+  ASSERT_NE(nullptr, switchSettingsV1);
+  EXPECT_FALSE(switchSettingsV1->isPublished());
+  EXPECT_EQ(switchSettingsV1->getVendorMacOuis()->size(), 1);
+  EXPECT_EQ(switchSettingsV1->getMetaMacOuis()->size(), 1);
+  EXPECT_EQ(
+      switchSettingsV1->getVendorMacOuis()->at(0)->toThrift(),
+      "01:02:03:00:00:00");
+  EXPECT_EQ(
+      switchSettingsV1->getMetaMacOuis()->at(0)->toThrift(),
+      "04:05:06:00:00:00");
+}
+
 TEST(SwitchSettingsTest, ThrifyMigration) {
   folly::IPAddress ip("1.1.1.1");
   auto addr = facebook::network::toBinaryAddress(ip);

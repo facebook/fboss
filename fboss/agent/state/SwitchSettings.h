@@ -128,6 +128,14 @@ class SwitchSettings
     return safe_cref<switch_state_tags::macAddrsToBlock>();
   }
 
+  auto getVendorMacOuis() const {
+    return safe_cref<switch_state_tags::vendorMacOuis>();
+  }
+
+  auto getMetaMacOuis() const {
+    return safe_cref<switch_state_tags::metaMacOuis>();
+  }
+
   // THRIFT_COPY
   std::vector<std::pair<VlanID, folly::MacAddress>>
   getMacAddrsToBlock_DEPRECATED() const {
@@ -153,6 +161,14 @@ class SwitchSettings
       macAddrs.push_back(macAddr);
     }
     set<switch_state_tags::macAddrsToBlock>(macAddrs);
+  }
+
+  void setVendorMacOuis(const std::vector<std::string>& vendorMacOuis) {
+    set<switch_state_tags::vendorMacOuis>(vendorMacOuis);
+  }
+
+  void setMetaMacOuis(const std::vector<std::string>& metaMacOuis) {
+    set<switch_state_tags::metaMacOuis>(metaMacOuis);
   }
 
   cfg::SwitchType getSwitchType(int64_t switchId) const {

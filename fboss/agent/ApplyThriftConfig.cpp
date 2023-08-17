@@ -3872,6 +3872,18 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
     switchSettingsChange = true;
   }
 
+  if (origSwitchSettings->getVendorMacOuis()->toThrift() !=
+      *cfg_->switchSettings()->vendorMacOuis()) {
+    newSwitchSettings->setVendorMacOuis(
+        *cfg_->switchSettings()->vendorMacOuis());
+    switchSettingsChange = true;
+  }
+  if (origSwitchSettings->getMetaMacOuis()->toThrift() !=
+      *cfg_->switchSettings()->metaMacOuis()) {
+    newSwitchSettings->setMetaMacOuis(*cfg_->switchSettings()->metaMacOuis());
+    switchSettingsChange = true;
+  }
+
   if (cfg_->defaultVoqConfig()->size()) {
     const auto kNumVoqs = 8;
     auto defaultVoqConfig = updatePortQueues(

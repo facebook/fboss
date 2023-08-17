@@ -332,6 +332,12 @@ struct SwitchSettingsFields {
   32: switch_config.SwitchDrainState actualSwitchDrainState = switch_config.SwitchDrainState.UNDRAINED;
   33: list<ctrl.PortQueueFields> defaultVoqConfig;
   34: switch_config.SwitchInfo switchInfo;
+  // MAC OUIs (24-bit MAC address prefix) used by vendor NICs.
+  // When queue-per-host is enabled, MACs matching any OUI from this list will get a dedicated queue.
+  35: list<string> vendorMacOuis;
+  // MAC OUIs used by meta for VM purpose.
+  // When queue-per-host is enabled, MACs matching any OUI from this list could get any queue.
+  36: list<string> metaMacOuis;
 }
 
 struct RoutePrefix {
