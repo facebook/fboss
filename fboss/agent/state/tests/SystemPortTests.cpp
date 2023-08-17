@@ -101,6 +101,7 @@ TEST(SystemPort, Modify) {
 TEST(SystemPort, sysPortApplyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
@@ -131,6 +132,7 @@ TEST(SystemPort, sysPortApplyConfig) {
 TEST(SystemPort, sysPortNameApplyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
@@ -150,6 +152,7 @@ TEST(SystemPort, sysPortNameApplyConfig) {
 TEST(SystemPort, GetLocalSwitchPortsBySwitchId) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
@@ -163,6 +166,7 @@ TEST(SystemPort, GetLocalSwitchPortsBySwitchId) {
 TEST(SystemPort, GetRemoteSwitchPortsBySwitchId) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   int64_t remoteSwitchId = 100;

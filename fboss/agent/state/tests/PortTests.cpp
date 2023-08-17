@@ -928,6 +928,7 @@ TEST(Port, verifyInterfaceIDsForNonVoqSwitches) {
 TEST(Port, verifyInterfaceIDsForVoqSwitches) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
   auto config = testConfigA(cfg::SwitchType::VOQ);
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
@@ -963,6 +964,7 @@ TEST(Port, verifySysPortRangeForNonVoqSwitches) {
 TEST(Port, verifySwitchIdForVoqSwitches) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
   auto config = testConfigA(cfg::SwitchType::VOQ);
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
@@ -995,6 +997,8 @@ TEST(Port, verifySwitchIdForNonVoqSwitches) {
 TEST(Port, verifySysPortRangeForVoqSwitches) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
+
   auto config = testConfigA(cfg::SwitchType::VOQ);
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
@@ -1010,6 +1014,7 @@ TEST(Port, verifySysPortRangeForVoqSwitches) {
 TEST(Port, verifyNeighborReachability) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
   auto config = testConfigA(cfg::SwitchType::VOQ);
 
   cfg::PortNeighbor nbr;

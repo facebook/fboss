@@ -239,6 +239,7 @@ TEST(Interface, Modify) {
   {
     // VOQ
     auto state = std::make_shared<SwitchState>();
+    addSwitchInfo(state, cfg::SwitchType::VOQ, 1 /* switchId*/);
     auto platform = createMockPlatform();
     cfg::SwitchConfig config = testConfigA(cfg::SwitchType::VOQ);
     auto stateV1 = publishAndApplyConfig(state, &config, platform.get());
@@ -256,6 +257,7 @@ TEST(Interface, Modify) {
 TEST(Interface, RemoteInterfaceModify) {
   auto state = std::make_shared<SwitchState>();
   auto platform = createMockPlatform();
+  addSwitchInfo(state, cfg::SwitchType::VOQ, 1 /* switchId*/);
   cfg::SwitchConfig config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(state, &config, platform.get());
   auto remoteSysPorts = stateV1->getRemoteSystemPorts()->modify(&stateV1);
@@ -651,6 +653,7 @@ TEST(InterfaceMap, applyConfig) {
 TEST(Interface, getLocalInterfacesBySwitchId) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
@@ -664,6 +667,7 @@ TEST(Interface, getLocalInterfacesBySwitchId) {
 TEST(Interface, getRemoteInterfacesBySwitchId) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
@@ -700,6 +704,7 @@ TEST(Interface, getRemoteInterfacesBySwitchId) {
 TEST(Interface, getInterfaceSysPortIDVoqSwitch) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
@@ -725,6 +730,7 @@ TEST(Interface, getInterfaceSysPortID) {
 TEST(Interface, getInterfaceSysPortRangeVoqSwitch) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
@@ -749,6 +755,7 @@ TEST(Interface, getInterfaceSysPortRange) {
 TEST(Interface, getInterfacePortsVoqSwitch) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
@@ -771,6 +778,7 @@ TEST(Interface, getInterfacePorts) {
 TEST(Interface, verifyPseudoVlanProcessing) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
 
   auto verifyConfigPseudoVlansMatch = [](const auto& config,
                                          const auto& state) {
