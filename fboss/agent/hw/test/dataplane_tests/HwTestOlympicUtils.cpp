@@ -555,7 +555,7 @@ const std::map<int, std::vector<uint8_t>> kOlympicV2QueueToDscp(
       {getOlympicV2QueueId(hwAsic, OlympicV2QueueType::BRONZE),
        {10, 11, 16, 17, 19, 20, 21, 22, 23, 25, 60, 61, 62, 63}},
       {getOlympicV2QueueId(hwAsic, OlympicV2QueueType::SILVER),
-       {0,  1,  2,  3,  4,  6,  7,  8,  9,  12, 13,
+       {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  12, 13,
         14, 15, 40, 41, 42, 43, 44, 45, 46, 47, 49}},
       {getOlympicV2QueueId(hwAsic, OlympicV2QueueType::GOLD),
        {18, 24, 31, 33, 34, 36, 37, 38, 39}},
