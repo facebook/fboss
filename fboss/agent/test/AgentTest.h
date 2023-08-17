@@ -98,7 +98,8 @@ class AgentTest : public ::testing::Test, public MonolithicAgentInitializer {
   }
 
   std::string getAgentTestDir() const {
-    return platform()->getPersistentStateDir() + "/agent_test/";
+    return platform()->getDirectoryUtil()->getPersistentStateDir() +
+        "/agent_test/";
   }
 
   std::string getTestConfigPath() const {

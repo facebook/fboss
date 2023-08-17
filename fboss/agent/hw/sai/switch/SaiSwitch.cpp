@@ -232,8 +232,8 @@ SaiSwitch::SaiSwitch(SaiPlatform* platform, uint32_t featuresDesired)
       saiStore_(std::make_unique<SaiStore>()),
       fabricReachabilityManager_(
           std::make_unique<FabricReachabilityManager>()) {
-  utilCreateDir(platform_->getVolatileStateDir());
-  utilCreateDir(platform_->getPersistentStateDir());
+  utilCreateDir(platform_->getDirectoryUtil()->getVolatileStateDir());
+  utilCreateDir(platform_->getDirectoryUtil()->getPersistentStateDir());
 }
 
 SaiSwitch::~SaiSwitch() {}
@@ -1792,13 +1792,17 @@ HwInitResult SaiSwitch::initLocked(
             SwitchState::fromThrift(*switchStateThrift->swSwitchState());
       } catch (const FbossError& error) {
         if (!dumpBinaryThriftToFile(
-                platform_->getCrashThriftSwitchStateFile(),
+                platform_->getDirectoryUtil()->getCrashThriftSwitchStateFile(),
                 *switchStateThrift->swSwitchState())) {
           XLOG(ERR) << "failed to dump switch state to file: "
-                    << getPlatform()->getCrashThriftSwitchStateFile();
+                    << getPlatform()
+                           ->getDirectoryUtil()
+                           ->getCrashThriftSwitchStateFile();
         } else {
           XLOG(DBG2) << "dumped switch state to file: "
-                     << getPlatform()->getCrashThriftSwitchStateFile();
+                     << getPlatform()
+                            ->getDirectoryUtil()
+                            ->getCrashThriftSwitchStateFile();
         }
         XLOG(FATAL) << "Failed to recover switch state from thrift. "
                     << error.what();

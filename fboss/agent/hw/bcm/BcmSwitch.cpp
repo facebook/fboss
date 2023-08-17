@@ -3042,8 +3042,8 @@ bool BcmSwitch::getAndClearNeighborHit(
 }
 
 void BcmSwitch::exitFatal() const {
-  utilCreateDir(platform_->getCrashInfoDir());
-  dumpState(platform_->getCrashHwStateFile());
+  utilCreateDir(platform_->getDirectoryUtil()->getCrashInfoDir());
+  dumpState(platform_->getDirectoryUtil()->getCrashHwStateFile());
   callback_->exitFatal();
 }
 

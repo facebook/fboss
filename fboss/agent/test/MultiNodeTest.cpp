@@ -58,7 +58,8 @@ void MultiNodeTest::setupConfigFlag() {
   }
   utility::setPortToDefaultProfileIDMap(pMap, platform());
   parseTestPorts(FLAGS_multiNodeTestPorts);
-  auto testConfigDir = platform()->getPersistentStateDir() + "/multinode_test/";
+  auto testConfigDir = platform()->getDirectoryUtil()->getPersistentStateDir() +
+      "/multinode_test/";
   auto newCfgFile = "agent_multinode_test.conf";
 
   setupConfigFile(initialConfig(), testConfigDir, newCfgFile);

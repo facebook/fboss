@@ -519,13 +519,19 @@ void BcmWarmBootCache::populateFromWarmBootState(
           SwitchState::uniquePtrFromThrift(*thriftState->swSwitchState());
     } catch (const FbossError& error) {
       if (!dumpBinaryThriftToFile(
-              hw_->getPlatform()->getCrashThriftSwitchStateFile(),
+              hw_->getPlatform()
+                  ->getDirectoryUtil()
+                  ->getCrashThriftSwitchStateFile(),
               *thriftState->swSwitchState())) {
         XLOG(ERR) << "failed to dump switch state to file: "
-                  << hw_->getPlatform()->getCrashThriftSwitchStateFile();
+                  << hw_->getPlatform()
+                         ->getDirectoryUtil()
+                         ->getCrashThriftSwitchStateFile();
       } else {
         XLOG(DBG2) << "dumped switch state to file: "
-                   << hw_->getPlatform()->getCrashThriftSwitchStateFile();
+                   << hw_->getPlatform()
+                          ->getDirectoryUtil()
+                          ->getCrashThriftSwitchStateFile();
       }
       XLOG(FATAL) << "Failed to recover switch state from thrift. "
                   << error.what();

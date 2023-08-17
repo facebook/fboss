@@ -37,8 +37,9 @@ class LacpTest : public LinkTest {
     if (platform()->getWarmBootHelper()) {
       canWarmBoot = platform()->getWarmBootHelper()->canWarmBoot();
     } else {
-      canWarmBoot =
-          checkFileExists(platform()->getWarmBootDir() + "/can_warm_boot_0");
+      canWarmBoot = checkFileExists(
+          platform()->getDirectoryUtil()->getWarmBootDir() +
+          "/can_warm_boot_0");
     }
     if (canWarmBoot) {
       XLOG(DBG2) << "use previous running agent config for warmboot init";

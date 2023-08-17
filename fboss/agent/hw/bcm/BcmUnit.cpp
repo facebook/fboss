@@ -291,7 +291,7 @@ void BcmUnit::attachSDK6(bool warmBoot) {
 
   (static_cast<BcmSwitch*>(platform_->getHwSwitch()))
       ->runBcmScript(
-          platform_->getPersistentStateDir() + "/" +
+          platform_->getDirectoryUtil()->getPersistentStateDir() + "/" +
           FLAGS_script_pre_bcm_attach);
 
   rv = soc_mmu_init(unit_);

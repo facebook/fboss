@@ -102,7 +102,8 @@ void AgentEnsemble::writeConfig(const cfg::SwitchConfig& config) {
 void AgentEnsemble::writeConfig(const cfg::AgentConfig& agentConfig) {
   auto* initializer = agentInitializer();
   auto testConfigDir =
-      initializer->platform()->getPersistentStateDir() + "/agent_ensemble/";
+      initializer->platform()->getDirectoryUtil()->getPersistentStateDir() +
+      "/agent_ensemble/";
   utilCreateDir(testConfigDir);
   auto fileName = testConfigDir + configFile_;
   writeConfig(agentConfig, fileName);

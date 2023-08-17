@@ -62,7 +62,7 @@ int hwAgentMain(
       hwAgent->initAgent(true /* failHwCallsOnWarmboot */, thriftSyncer.get());
 
   restart_time::init(
-      hwAgent->getPlatform()->getWarmBootDir(),
+      hwAgent->getPlatform()->getDirectoryUtil()->getWarmBootDir(),
       bootType == BootType::WARM_BOOT);
 
   folly::EventBase eventBase;
