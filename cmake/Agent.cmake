@@ -487,6 +487,14 @@ target_link_libraries(split_agent_initializer
   multiswitch_service
 )
 
+add_library(agent_dir_util
+  fboss/agent/AgentDirectoryUtil.cpp
+)
+
+target_link_libraries(agent_dir_util
+  Folly::folly
+)
+
 add_executable(fboss_sw_agent
   fboss/agent/FbossSwAgent.cpp
 )
