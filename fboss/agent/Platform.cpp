@@ -34,7 +34,7 @@ Platform::Platform(
       scopeResolver_({}),
       agentDirUtil_(new AgentDirectoryUtil(
           FLAGS_volatile_state_dir,
-          FLAGS_persistent_state_dir_phy)) {}
+          FLAGS_persistent_state_dir)) {}
 Platform::~Platform() {}
 
 const AgentConfig* Platform::config() {
