@@ -3889,33 +3889,36 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
   // config apply. Currently we check only switchId and SwitchType
   // This is to allow rollout of new parameters - portIdRange and
   // switchIndex without breaking warmboot
-  auto validateSwitchInfoChange = [](const auto& oldSwitchInfo,
-                                     const auto& newSwitchInfo) {
-    if (oldSwitchInfo.size() != newSwitchInfo.size()) {
-      return false;
-    }
-    for (const auto& switchIdAndInfo : newSwitchInfo) {
-      const auto switchId = switchIdAndInfo.first;
-      const auto& switchInfo = switchIdAndInfo.second;
-      // Disallow SwitchId and SwitchType changes
-      if (oldSwitchInfo.find(switchId) == oldSwitchInfo.end() ||
-          switchInfo.switchType() != oldSwitchInfo.at(switchId).switchType()) {
-        return false;
-      }
-    }
-    return true;
-  };
+  auto validateSwitchIdToSwitchInfoChange =
+      [](const auto& oldSwitchIdToSwitchInfo,
+         const auto& newSwitchIdToSwitchInfo) {
+        if (oldSwitchIdToSwitchInfo.size() != newSwitchIdToSwitchInfo.size()) {
+          return false;
+        }
+        for (const auto& switchIdAndInfo : newSwitchIdToSwitchInfo) {
+          const auto switchId = switchIdAndInfo.first;
+          const auto& switchInfo = switchIdAndInfo.second;
+          // Disallow SwitchId and SwitchType changes
+          if (oldSwitchIdToSwitchInfo.find(switchId) ==
+                  oldSwitchIdToSwitchInfo.end() ||
+              switchInfo.switchType() !=
+                  oldSwitchIdToSwitchInfo.at(switchId).switchType()) {
+            return false;
+          }
+        }
+        return true;
+      };
 
-  SwitchIdToSwitchInfo switchIdtoSwitchInfo = getSwitchInfoFromConfig(cfg_);
-  if (origSwitchSettings->getSwitchIdToSwitchInfo() != switchIdtoSwitchInfo) {
+  SwitchIdToSwitchInfo switchIdToSwitchInfo = getSwitchInfoFromConfig(cfg_);
+  if (origSwitchSettings->getSwitchIdToSwitchInfo() != switchIdToSwitchInfo) {
     if (origSwitchSettings->getSwitchIdToSwitchInfo().size() &&
-        !validateSwitchInfoChange(
+        !validateSwitchIdToSwitchInfoChange(
             origSwitchSettings->getSwitchIdToSwitchInfo(),
-            switchIdtoSwitchInfo)) {
+            switchIdToSwitchInfo)) {
       throw FbossError(
           "SwitchId and SwitchInfo type cannot be changed on the fly");
     }
-    newSwitchSettings->setSwitchIdToSwitchInfo(switchIdtoSwitchInfo);
+    newSwitchSettings->setSwitchIdToSwitchInfo(switchIdToSwitchInfo);
     switchSettingsChange = true;
   }
 
