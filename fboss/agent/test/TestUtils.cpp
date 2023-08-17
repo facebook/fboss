@@ -492,7 +492,11 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
             platform, switchId, info);
       };
   auto sw = make_unique<SwSwitch>(
-      std::move(hwSwitchHandlerInitFn), std::move(platformMapping), config);
+      std::move(hwSwitchHandlerInitFn),
+      std::move(platformMapping),
+      platform->getDirectoryUtil(),
+      platform->supportsAddRemovePort(),
+      config);
   HwInitResult ret;
   ret.switchState = state ? state : make_shared<SwitchState>();
   ret.bootType = BootType::COLD_BOOT;

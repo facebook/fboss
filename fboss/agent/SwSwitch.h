@@ -88,6 +88,7 @@ class MultiHwSwitchHandler;
 class SwitchStatsObserver;
 class MultiSwitchPacketStreamMap;
 class SwSwitchWarmBootHelper;
+class AgentDirectoryUtil;
 
 namespace fsdb {
 enum class FsdbSubscriptionState;
@@ -142,6 +143,8 @@ class SwSwitch : public HwSwitchCallback {
 
   explicit SwSwitch(
       HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
+      const AgentDirectoryUtil* agentDirUtil,
+      bool supportsAddRemovePort,
       cfg::SwitchConfig* config = nullptr);
   /*
    * Needed for mock platforms that do cannot initialize platform mapping
@@ -150,6 +153,8 @@ class SwSwitch : public HwSwitchCallback {
   SwSwitch(
       HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
       std::unique_ptr<PlatformMapping> platformMapping,
+      const AgentDirectoryUtil* agentDirUtil,
+      bool supportsAddRemovePort,
       cfg::SwitchConfig* config);
   ~SwSwitch() override;
 
@@ -957,7 +962,8 @@ class SwSwitch : public HwSwitchCallback {
   cfg::SwitchConfig curConfig_;
 
   std::unique_ptr<MultiHwSwitchHandler> multiHwSwitchHandler_;
-  PlatformData platformData_;
+  const AgentDirectoryUtil* agentDirUtil_;
+  bool supportsAddRemovePort_;
   const std::unique_ptr<PlatformProductInfo> platformProductInfo_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};
   folly::ThreadLocalPtr<SwitchStats, SwSwitch> stats_;

@@ -10,6 +10,7 @@
 #include "fboss/agent/SwSwitch.h"
 
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/AgentDirectoryUtil.h"
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/ArpHandler.h"
@@ -210,11 +211,14 @@ namespace facebook::fboss {
 
 SwSwitch::SwSwitch(
     HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
+    const AgentDirectoryUtil* agentDirUtil,
+    bool supportsAddRemovePort,
     cfg::SwitchConfig* config)
     : multiHwSwitchHandler_(new MultiHwSwitchHandler(
           getSwitchInfoFromConfig(config),
           std::move(hwSwitchHandlerInitFn))),
-      platformData_(multiHwSwitchHandler_->getPlatformData()),
+      agentDirUtil_(agentDirUtil),
+      supportsAddRemovePort_(supportsAddRemovePort),
       platformProductInfo_(
           std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath)),
       pktObservers_(new PacketObservers()),
@@ -223,7 +227,7 @@ SwSwitch::SwSwitch(
       ipv6_(new IPv6Handler(this)),
       nUpdater_(new NeighborUpdater(this)),
       pcapMgr_(new PktCaptureManager(
-          platformData_.persistentStateDir,
+          agentDirUtil_->getPersistentStateDir(),
           pktObservers_.get())),
       mirrorManager_(new MirrorManager(this)),
       mplsHandler_(new MPLSHandler(this)),
@@ -248,11 +252,11 @@ SwSwitch::SwSwitch(
       switchStatsObserver_(new SwitchStatsObserver(this)),
       packetStreamMap_(new MultiSwitchPacketStreamMap()),
       swSwitchWarmbootHelper_(
-          new SwSwitchWarmBootHelper(platformData_.warmBootDir)) {
+          new SwSwitchWarmBootHelper(agentDirUtil_->getWarmBootDir())) {
   // Create the platform-specific state directories if they
   // don't exist already.
-  utilCreateDir(platformData_.volatileStateDir);
-  utilCreateDir(platformData_.persistentStateDir);
+  utilCreateDir(agentDirUtil_->getVolatileStateDir());
+  utilCreateDir(agentDirUtil_->getPersistentStateDir());
   try {
     platformProductInfo_->initialize();
     platformMapping_ =
@@ -266,8 +270,14 @@ SwSwitch::SwSwitch(
 SwSwitch::SwSwitch(
     HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
     std::unique_ptr<PlatformMapping> platformMapping,
+    const AgentDirectoryUtil* agentDirUtil,
+    bool supportsAddRemovePort,
     cfg::SwitchConfig* config)
-    : SwSwitch(std::move(hwSwitchHandlerInitFn), config) {
+    : SwSwitch(
+          std::move(hwSwitchHandlerInitFn),
+          agentDirUtil,
+          supportsAddRemovePort,
+          config) {
   platformMapping_ = std::move(platformMapping);
 }
 
@@ -629,9 +639,9 @@ void SwSwitch::exitFatal() const noexcept {
   switchState[kHwSwitch] = multiHwSwitchHandler_->toFollyDynamic();
   state::WarmbootState thriftSwitchState;
   *thriftSwitchState.swSwitchState() = getAppliedState()->toThrift();
-  if (!dumpStateToFile(platformData_.crashSwitchStateFile, switchState) ||
+  if (!dumpStateToFile(agentDirUtil_->getCrashSwitchStateFile(), switchState) ||
       !dumpBinaryThriftToFile(
-          platformData_.crashThriftSwitchStateFile, thriftSwitchState)) {
+          agentDirUtil_->getCrashThriftSwitchStateFile(), thriftSwitchState)) {
     XLOG(ERR) << "Unable to write switch state JSON or Thrift to file";
   }
 }
@@ -677,7 +687,7 @@ void SwSwitch::init(
              << " seconds; applying initial config";
 
   restart_time::init(
-      platformData_.warmBootDir, bootType_ == BootType::WARM_BOOT);
+      agentDirUtil_->getWarmBootDir(), bootType_ == BootType::WARM_BOOT);
 
   // Store the initial state
   initialState->publish();
@@ -1227,18 +1237,18 @@ void SwSwitch::dumpBadStateUpdate(
     const std::shared_ptr<SwitchState>& newState) const {
   // dump the previous state and target state to understand what led to the
   // crash
-  utilCreateDir(platformData_.crashBadStateUpdateDir);
+  utilCreateDir(agentDirUtil_->getCrashBadStateUpdateDir());
   if (!dumpBinaryThriftToFile(
-          platformData_.crashBadStateUpdateOldStateFile,
+          agentDirUtil_->getCrashBadStateUpdateOldStateFile(),
           oldState->toThrift())) {
     XLOG(ERR) << "Unable to write old switch state thrift to "
-              << platformData_.crashBadStateUpdateOldStateFile;
+              << agentDirUtil_->getCrashBadStateUpdateOldStateFile();
   }
   if (!dumpBinaryThriftToFile(
-          platformData_.crashBadStateUpdateNewStateFile,
+          agentDirUtil_->getCrashBadStateUpdateNewStateFile(),
           newState->toThrift())) {
     XLOG(ERR) << "Unable to write new switch state thrift to "
-              << platformData_.crashBadStateUpdateNewStateFile;
+              << agentDirUtil_->getCrashBadStateUpdateNewStateFile();
   }
 }
 
@@ -2018,7 +2028,7 @@ void SwSwitch::applyConfig(const std::string& reason, bool reload) {
                        : multiHwSwitchHandler_->config();
   const auto& newConfig = *target->thrift.sw();
   applyConfig(reason, newConfig);
-  target->dumpConfig(platformData_.runningConfigDumpFile);
+  target->dumpConfig(agentDirUtil_->getRunningConfigDumpFile());
 }
 
 void SwSwitch::applyConfig(
@@ -2034,7 +2044,7 @@ void SwSwitch::applyConfig(
         auto newState = rib_ ? applyThriftConfig(
                                    originalState,
                                    &newConfig,
-                                   platformData_.supportsAddRemovePort,
+                                   supportsAddRemovePort_,
                                    platformMapping_.get(),
                                    hwAsicTable_.get(),
                                    &routeUpdater,
@@ -2042,7 +2052,7 @@ void SwSwitch::applyConfig(
                              : applyThriftConfig(
                                    originalState,
                                    &newConfig,
-                                   platformData_.supportsAddRemovePort,
+                                   supportsAddRemovePort_,
                                    platformMapping_.get(),
                                    hwAsicTable_.get(),
                                    (RoutingInformationBase*)nullptr,
