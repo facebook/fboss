@@ -52,7 +52,6 @@ class SensorServiceImpl {
     init();
   }
 
-  std::optional<SensorData> getSensorData(const std::string& sensorName);
   std::vector<SensorData> getSensorsData(
       const std::vector<std::string>& sensorNames);
   std::map<std::string, SensorData> getAllSensorData();

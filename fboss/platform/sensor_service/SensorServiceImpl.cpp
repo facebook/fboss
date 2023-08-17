@@ -121,38 +121,20 @@ SensorServiceImpl::~SensorServiceImpl() {
   fsdbSyncer_.reset();
 }
 
-std::optional<SensorData> SensorServiceImpl::getSensorData(
-    const std::string& sensorName) {
-  SensorData d;
-  d.name() = "";
-
-  liveDataTable_.withRLock([&](auto& table) {
-    auto it = table.find(sensorName);
-
-    if (it != table.end()) {
-      d.name() = it->first;
-      d.value() = it->second.value;
-      d.timeStamp() = it->second.timeStamp;
-    }
-  });
-
-  return *d.name() == "" ? std::nullopt : std::optional<SensorData>{d};
-}
-
 std::vector<SensorData> SensorServiceImpl::getSensorsData(
     const std::vector<std::string>& sensorNames) {
   std::vector<SensorData> sensorDataVec;
-
   liveDataTable_.withRLock([&](auto& table) {
-    for (auto& pair : table) {
-      if (std::find(sensorNames.begin(), sensorNames.end(), pair.first) !=
-          sensorNames.end()) {
-        SensorData d;
-        d.name() = pair.first;
-        d.value() = pair.second.value;
-        d.timeStamp() = pair.second.timeStamp;
-        sensorDataVec.push_back(d);
+    for (const auto& sensorName : sensorNames) {
+      auto it = table.find(sensorName);
+      if (it == table.end()) {
+        continue;
       }
+      SensorData d;
+      d.name() = it->first;
+      d.value() = it->second.value;
+      d.timeStamp() = it->second.timeStamp;
+      sensorDataVec.push_back(d);
     }
   });
   return sensorDataVec;
