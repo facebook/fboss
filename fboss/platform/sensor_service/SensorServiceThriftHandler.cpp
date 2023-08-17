@@ -24,31 +24,13 @@ void SensorServiceThriftHandler::getSensorValuesByNames(
 
   // Request list is not empty
   if (!request->empty()) {
-    std::vector<SensorData> v;
+    response.sensorData() = sensorServiceImpl_->getSensorsData(*request);
+    return;
+  }
 
-    if (request->size() == 1) {
-      // Request is for a single sensor
-      std::optional<SensorData> sensor =
-          sensorServiceImpl_->getSensorData(request->at(0));
-      if (sensor) {
-        SensorData sa;
-        sa.name() = request->at(0);
-        sa.value() = *sensor->value();
-        sa.timeStamp() = *sensor->timeStamp();
-        v.push_back(sa);
-      }
-    } else {
-      v = sensorServiceImpl_->getSensorsData(*request);
-    }
-    response.sensorData() = v;
-
-  } else {
-    // Request list is empty, we send all the sensor data
-    std::vector<SensorData> sensorVec;
-    for (const auto& sensorDataItr : sensorServiceImpl_->getAllSensorData()) {
-      sensorVec.push_back(sensorDataItr.second);
-    }
-    response.sensorData() = sensorVec;
+  // Request list is empty, we send all the sensor data
+  for (const auto& sensorDataItr : sensorServiceImpl_->getAllSensorData()) {
+    response.sensorData()->push_back(sensorDataItr.second);
   }
 }
 

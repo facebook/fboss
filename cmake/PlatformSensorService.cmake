@@ -70,16 +70,17 @@ target_link_libraries(sensor_service_hw_test
 
 install(TARGETS sensor_service_hw_test)
 
-add_executable(sensor_service_impl_test
+add_executable(sensor_service_sw_test
   fboss/platform/sensor_service/test/SensorServiceImplTest.cpp
+  fboss/platform/sensor_service/test/SensorServiceThriftHandlerTest.cpp
   fboss/platform/sensor_service/test/TestUtils.cpp
 )
 
-target_link_libraries(sensor_service_impl_test
+target_link_libraries(sensor_service_sw_test
   platform_utils
   sensor_service_lib
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
 
-install(TARGETS sensor_service_impl_test)
+install(TARGETS sensor_service_sw_test)

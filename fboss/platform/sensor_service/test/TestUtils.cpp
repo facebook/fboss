@@ -88,3 +88,11 @@ std::unique_ptr<SensorServiceImpl> createSensorServiceImplForTest(
 std::string createMockSensorDataFile(const std::string& tmpDirPath) {
   return mockSensorData(tmpDirPath);
 }
+
+std::map<std::string, float> getDefaultMockSensorData() {
+  return std::map<std::string, float>{
+      {"MOCK_FRU_1_SENSOR_1", 25},
+      {"MOCK_FRU_1_SENSOR_2", 11152},
+      {"MOCK_FRU_2_SENSOR_1", 11.875},
+  };
+}
