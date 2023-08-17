@@ -45,16 +45,6 @@ void SimPlatform::onInitialConfigApplied(HwSwitchCallback* /*sw*/) {}
 
 void SimPlatform::stop() {}
 
-std::string SimPlatform::getVolatileStateDir() const {
-  FLAGS_volatile_state_dir = "/tmp/fboss_sim/volatile";
-  return FLAGS_volatile_state_dir;
-}
-
-std::string SimPlatform::getPersistentStateDir() const {
-  FLAGS_persistent_state_dir = "/tmp/fboss_sim/persistent";
-  return FLAGS_persistent_state_dir;
-}
-
 void SimPlatform::initPorts() {
   for (auto i = 0; i < numPorts_; i++) {
     auto portID = PortID(i);

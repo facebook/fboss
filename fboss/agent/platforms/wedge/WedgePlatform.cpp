@@ -119,16 +119,9 @@ HwSwitch* WedgePlatform::getHwSwitch() const {
   return hw_.get();
 }
 
-string WedgePlatform::getVolatileStateDir() const {
-  return FLAGS_volatile_state_dir;
-}
-
-string WedgePlatform::getPersistentStateDir() const {
-  return FLAGS_persistent_state_dir;
-}
-
 void WedgePlatform::onUnitCreate(int unit) {
-  warmBootHelper_ = std::make_unique<BcmWarmBootHelper>(unit, getWarmBootDir());
+  warmBootHelper_ = std::make_unique<BcmWarmBootHelper>(
+      unit, getDirectoryUtil()->getWarmBootDir());
 }
 
 void WedgePlatform::onUnitAttach(int /*unit*/) {}

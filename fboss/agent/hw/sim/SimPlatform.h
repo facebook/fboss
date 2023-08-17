@@ -34,8 +34,6 @@ class SimPlatform : public Platform {
     return nullptr;
   }
 
-  std::string getVolatileStateDir() const override;
-  std::string getPersistentStateDir() const override;
   TransceiverIdxThrift getPortMapping(
       PortID /* unused */,
       cfg::PortSpeed /* speed */) const override {

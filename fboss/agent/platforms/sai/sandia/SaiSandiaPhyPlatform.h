@@ -9,13 +9,13 @@
  */
 #pragma once
 
-#include "fboss/agent/platforms/sai/SaiHwPlatform.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 namespace facebook::fboss {
 
 class MarvelPhyAsic;
 
-class SaiSandiaPhyPlatform : public SaiHwPlatform {
+class SaiSandiaPhyPlatform : public SaiPlatform {
  public:
   static const std::string& getFirmwareDirectory();
 
@@ -30,13 +30,6 @@ class SaiSandiaPhyPlatform : public SaiHwPlatform {
     return pimId_;
   }
 
-  std::string getPersistentStateDir() const override {
-    return FLAGS_persistent_state_dir_phy + "/" +
-        folly::to<std::string>(phyId_);
-  }
-  std::string getVolatileStateDir() const override {
-    return FLAGS_volatile_state_dir_phy + "/" + folly::to<std::string>(phyId_);
-  }
   std::string getHwConfig() override;
   HwAsic* getAsic() const override;
   std::vector<PortID> getAllPortsInGroup(PortID portID) const override;

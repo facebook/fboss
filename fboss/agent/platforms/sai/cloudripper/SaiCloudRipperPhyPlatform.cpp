@@ -72,7 +72,7 @@ SaiCloudRipperPhyPlatform::SaiCloudRipperPhyPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     folly::MacAddress localMac,
     int phyId)
-    : SaiHwPlatform(
+    : SaiPlatform(
           std::move(productInfo),
           std::make_unique<CloudRipperPlatformMapping>(),
           localMac),

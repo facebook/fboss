@@ -183,7 +183,7 @@ TransceiverIdxThrift SaiPlatform::getPortMapping(
 }
 
 std::string SaiPlatform::getHwConfigDumpFile() {
-  return getVolatileStateDir() + "/" + FLAGS_hw_config_file;
+  return getDirectoryUtil()->getVolatileStateDir() + "/" + FLAGS_hw_config_file;
 }
 
 void SaiPlatform::generateHwConfigFile() {
@@ -300,7 +300,7 @@ sai_service_method_table_t* SaiPlatform::getServiceMethodTable() const {
 HwSwitchWarmBootHelper* SaiPlatform::getWarmBootHelper() {
   if (!wbHelper_) {
     wbHelper_ = std::make_unique<HwSwitchWarmBootHelper>(
-        0, getWarmBootDir(), "sai_adaptor_state_");
+        0, getDirectoryUtil()->getWarmBootDir(), "sai_adaptor_state_");
   }
   return wbHelper_.get();
 }

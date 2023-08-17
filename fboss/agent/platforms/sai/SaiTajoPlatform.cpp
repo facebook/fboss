@@ -17,7 +17,7 @@ SaiTajoPlatform::SaiTajoPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     std::unique_ptr<PlatformMapping> platformMapping,
     folly::MacAddress localMac)
-    : SaiHwPlatform(
+    : SaiPlatform(
           std::move(productInfo),
           std::move(platformMapping),
           localMac) {}

@@ -9,15 +9,15 @@
  */
 #pragma once
 
-#include "fboss/agent/platforms/sai/SaiHwPlatform.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include <folly/Range.h>
 
 namespace facebook::fboss {
 
-class SaiBcmPlatform : public SaiHwPlatform {
+class SaiBcmPlatform : public SaiPlatform {
  public:
-  using SaiHwPlatform::SaiHwPlatform;
+  using SaiPlatform::SaiPlatform;
   std::string getHwConfig() override;
   std::vector<PortID> getAllPortsInGroup(PortID portID) const override;
 

@@ -18,8 +18,6 @@ class SaiFakePlatform : public SaiPlatform {
  public:
   explicit SaiFakePlatform(std::unique_ptr<PlatformProductInfo> productInfo);
   ~SaiFakePlatform() override;
-  std::string getVolatileStateDir() const override;
-  std::string getPersistentStateDir() const override;
   std::string getHwConfig() override;
   HwAsic* getAsic() const override;
   std::vector<PortID> getAllPortsInGroup(PortID portID) const override {

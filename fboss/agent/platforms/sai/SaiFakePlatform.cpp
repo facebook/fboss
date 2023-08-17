@@ -51,14 +51,6 @@ void SaiFakePlatform::setupAsic(
       std::make_unique<FakeAsic>(switchType, switchId, systemPortRange, mac);
 }
 
-std::string SaiFakePlatform::getVolatileStateDir() const {
-  return tmpDir_.path().string() + "/volatile";
-}
-
-std::string SaiFakePlatform::getPersistentStateDir() const {
-  return tmpDir_.path().string() + "/persist";
-}
-
 std::string SaiFakePlatform::getHwConfig() {
   return {};
 }

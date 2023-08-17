@@ -54,9 +54,6 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   std::shared_ptr<apache::thrift::AsyncProcessorFactory> createHandler()
       override;
 
-  std::string getVolatileStateDir() const override;
-  std::string getPersistentStateDir() const override;
-
   void onUnitCreate(int unit) override;
   void onUnitAttach(int unit) override;
   void preWarmbootStateApplied() override;

@@ -22,9 +22,6 @@ class BcmTestWedgePlatform : public BcmTestPlatform {
       std::unique_ptr<PlatformProductInfo> productInfo,
       std::unique_ptr<PlatformMapping> platformMapping);
 
-  std::string getVolatileStateDir() const override;
-  std::string getPersistentStateDir() const override;
-
   bool hasLinkScanCapability() const override {
     return true;
   }

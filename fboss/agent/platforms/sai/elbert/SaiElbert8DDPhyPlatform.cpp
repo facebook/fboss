@@ -81,7 +81,7 @@ SaiElbert8DDPhyPlatform::SaiElbert8DDPhyPlatform(
     folly::MacAddress localMac,
     uint8_t pimId,
     int phyId)
-    : SaiHwPlatform(
+    : SaiPlatform(
           std::move(productInfo),
           std::make_unique<Elbert8DDPimPlatformMapping>()
               ->getPimPlatformMappingUniquePtr(pimId),

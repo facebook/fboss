@@ -9,11 +9,11 @@
  */
 #pragma once
 
-#include "fboss/agent/platforms/sai/SaiHwPlatform.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 namespace facebook::fboss {
 
-class SaiTajoPlatform : public SaiHwPlatform {
+class SaiTajoPlatform : public SaiPlatform {
  public:
   explicit SaiTajoPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,

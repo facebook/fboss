@@ -27,7 +27,7 @@ DEFINE_bool(
 namespace facebook::fboss {
 
 std::string BcmPlatform::getHwConfigDumpFile() const {
-  return getVolatileStateDir() + "/" + FLAGS_hw_config_file;
+  return getDirectoryUtil()->getVolatileStateDir() + "/" + FLAGS_hw_config_file;
 }
 
 bool BcmPlatform::isBcmShellSupported() const {

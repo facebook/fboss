@@ -31,8 +31,6 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
         FlexPortMode::FOURX10G};
   }
 
-  std::string getVolatileStateDir() const override;
-  std::string getPersistentStateDir() const override;
   bool hasLinkScanCapability() const override {
     return false;
   }

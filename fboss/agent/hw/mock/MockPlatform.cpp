@@ -87,14 +87,6 @@ HwSwitch* MockPlatform::getHwSwitch() const {
   return hw_.get();
 }
 
-string MockPlatform::getVolatileStateDir() const {
-  return tmpDir_.path().string() + "/volatile";
-}
-
-string MockPlatform::getPersistentStateDir() const {
-  return tmpDir_.path().string() + "/persist";
-}
-
 HwAsic* MockPlatform::getAsic() const {
   return asic_.get();
 }

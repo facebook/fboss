@@ -19,8 +19,6 @@ class FakeWedge40Platform : public Wedge40Platform {
  public:
   using Wedge40Platform::Wedge40Platform;
 
-  std::string getVolatileStateDir() const override;
-  std::string getPersistentStateDir() const override;
   bool isBcmShellSupported() const override {
     return false;
   }

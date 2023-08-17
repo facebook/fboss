@@ -13,7 +13,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
-#include "fboss/agent/platforms/sai/SaiHwPlatform.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/StateUpdate.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
@@ -69,8 +69,7 @@ void SaiPhyManager::PlatformInfo::applyUpdate(
 
 SaiPhyManager::~SaiPhyManager() {}
 
-SaiPhyManager::PlatformInfo::PlatformInfo(
-    std::unique_ptr<SaiHwPlatform> platform)
+SaiPhyManager::PlatformInfo::PlatformInfo(std::unique_ptr<SaiPlatform> platform)
     : saiPlatform_(std::move(platform)) {
   setState(std::make_shared<SwitchState>());
 }
@@ -82,11 +81,11 @@ SaiPhyManager::PlatformInfo* SaiPhyManager::getPlatformInfo(
   const auto& phyIDInfo = getPhyIDInfo(xphyID);
   auto pimPlatforms = saiPlatforms_.find(phyIDInfo.pimID);
   if (pimPlatforms == saiPlatforms_.end()) {
-    throw FbossError("No SaiHwPlatform is created for pimID:", phyIDInfo.pimID);
+    throw FbossError("No SaiPlatform is created for pimID:", phyIDInfo.pimID);
   }
   auto platformItr = pimPlatforms->second.find(xphyID);
   if (platformItr == pimPlatforms->second.end()) {
-    throw FbossError("SaiHwPlatform is not created for globalPhyID:", xphyID);
+    throw FbossError("SaiPlatform is not created for globalPhyID:", xphyID);
   }
   return platformItr->second.get();
 }
@@ -95,11 +94,11 @@ SaiPhyManager::PlatformInfo* SaiPhyManager::getPlatformInfo(PortID portID) {
   return getPlatformInfo(getGlobalXphyIDbyPortID(portID));
 }
 
-SaiHwPlatform* SaiPhyManager::getSaiPlatform(GlobalXphyID xphyID) {
+SaiPlatform* SaiPhyManager::getSaiPlatform(GlobalXphyID xphyID) {
   return getPlatformInfo(xphyID)->getPlatform();
 }
 
-SaiHwPlatform* SaiPhyManager::getSaiPlatform(PortID portID) {
+SaiPlatform* SaiPhyManager::getSaiPlatform(PortID portID) {
   return getSaiPlatform(getGlobalXphyIDbyPortID(portID));
 }
 
@@ -150,7 +149,7 @@ void SaiPhyManager::updateAllXphyPortsStats() {
 
 void SaiPhyManager::addSaiPlatform(
     GlobalXphyID xphyID,
-    std::unique_ptr<SaiHwPlatform> platform) {
+    std::unique_ptr<SaiPlatform> platform) {
   const auto phyIDInfo = getPhyIDInfo(xphyID);
   saiPlatforms_[phyIDInfo.pimID].emplace(std::make_pair(
       xphyID, std::make_unique<PlatformInfo>(std::move(platform))));
@@ -327,7 +326,7 @@ PortID SaiPhyManager::getPortId(std::string portName) const {
 std::shared_ptr<SwitchState> SaiPhyManager::portUpdateHelper(
     std::shared_ptr<SwitchState> in,
     PortID portId,
-    const SaiHwPlatform* saiPlatform,
+    const SaiPlatform* saiPlatform,
     const std::function<void(std::shared_ptr<Port>&)>& modify) const {
   auto newState = in->clone();
   auto newPorts = newState->getPorts()->modify(&newState);

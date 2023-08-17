@@ -56,14 +56,6 @@ std::unique_ptr<BcmTestPort> FakeBcmTestPlatform::createTestPort(PortID id) {
   return std::make_unique<FakeBcmTestPort>(id, this);
 }
 
-std::string FakeBcmTestPlatform::getVolatileStateDir() const {
-  return tmpDir_.path().string() + "/volatile";
-}
-
-std::string FakeBcmTestPlatform::getPersistentStateDir() const {
-  return tmpDir_.path().string() + "/persist";
-}
-
 HwAsic* FakeBcmTestPlatform::getAsic() const {
   return asic_.get();
 }

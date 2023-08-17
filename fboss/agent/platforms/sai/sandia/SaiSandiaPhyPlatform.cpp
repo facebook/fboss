@@ -84,7 +84,7 @@ SaiSandiaPhyPlatform::SaiSandiaPhyPlatform(
     folly::MacAddress localMac,
     uint8_t pimId,
     int phyId)
-    : SaiHwPlatform(
+    : SaiPlatform(
           std::move(productInfo),
           std::make_unique<SandiaPlatformMapping>(""),
           localMac),

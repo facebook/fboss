@@ -34,20 +34,8 @@ Platform::Platform(
       scopeResolver_({}),
       agentDirUtil_(new AgentDirectoryUtil(
           FLAGS_volatile_state_dir,
-          FLAGS_persistent_state_dir)) {}
+          FLAGS_persistent_state_dir_phy)) {}
 Platform::~Platform() {}
-
-std::string Platform::getCrashHwStateFile() const {
-  return getCrashInfoDir() + "/" + FLAGS_crash_hw_state_file;
-}
-
-std::string Platform::getCrashSwitchStateFile() const {
-  return getCrashInfoDir() + "/" + FLAGS_crash_switch_state_file;
-}
-
-std::string Platform::getCrashThriftSwitchStateFile() const {
-  return getCrashInfoDir() + "/" + FLAGS_crash_thrift_switch_state_file;
-}
 
 const AgentConfig* Platform::config() {
   if (!config_) {

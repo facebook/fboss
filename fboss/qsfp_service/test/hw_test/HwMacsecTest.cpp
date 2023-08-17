@@ -13,7 +13,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
-#include "fboss/agent/platforms/sai/SaiHwPlatform.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/lib/phy/SaiPhyManager.h"

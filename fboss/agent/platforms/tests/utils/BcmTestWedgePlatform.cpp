@@ -19,12 +19,4 @@ BcmTestWedgePlatform::BcmTestWedgePlatform(
     std::unique_ptr<PlatformMapping> platformMapping)
     : BcmTestPlatform(std::move(productInfo), std::move(platformMapping)) {}
 
-std::string BcmTestWedgePlatform::getVolatileStateDir() const {
-  return FLAGS_volatile_state_dir;
-}
-
-std::string BcmTestWedgePlatform::getPersistentStateDir() const {
-  return FLAGS_persistent_state_dir;
-}
-
 } // namespace facebook::fboss
