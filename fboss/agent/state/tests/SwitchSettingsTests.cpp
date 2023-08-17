@@ -58,6 +58,7 @@ TEST(SwitchSettingsTest, applyL2LearningConfig) {
 TEST(SwitchSettingsTest, applySwitchDrainState) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchInfo(stateV0, cfg::SwitchType::FABRIC, 2 /* switchId*/);
 
   cfg::SwitchConfig config = testConfigA(cfg::SwitchType::FABRIC);
   *config.switchSettings()->switchDrainState() = cfg::SwitchDrainState::DRAINED;
@@ -563,98 +564,117 @@ TEST(SwitchSettingsTest, applyMinLinksToRemainInVOQDomain) {
   constexpr auto kMinLinksToRemainInVOQDomain = 5;
   constexpr auto kMinLinksToRemainInVOQDomain2 = 7;
   auto platform = createMockPlatform();
-  auto stateV0 = make_shared<SwitchState>();
 
   // Setting minLinksToRemainInVOQDomain is not supported for NPU
-  cfg::SwitchConfig npuConfig = testConfigA(cfg::SwitchType::NPU);
-  npuConfig.switchSettings()->minLinksToRemainInVOQDomain() =
-      kMinLinksToRemainInVOQDomain;
-  EXPECT_THROW(
-      publishAndApplyConfig(stateV0, &npuConfig, platform.get()), FbossError);
+  {
+    auto stateV0 = make_shared<SwitchState>();
+    addSwitchInfo(stateV0, cfg::SwitchType::NPU, 0 /* switchId*/);
+    addSwitchInfo(stateV0, cfg::SwitchType::FABRIC, 2 /* switchId*/);
+    cfg::SwitchConfig npuConfig = testConfigA(cfg::SwitchType::NPU);
+    npuConfig.switchSettings()->minLinksToRemainInVOQDomain() =
+        kMinLinksToRemainInVOQDomain;
+    EXPECT_THROW(
+        publishAndApplyConfig(stateV0, &npuConfig, platform.get()), FbossError);
 
-  // Setting minLinksToRemainInVOQDomain is not supported for FABRIC
-  cfg::SwitchConfig fabricConfig = testConfigA(cfg::SwitchType::FABRIC);
-  fabricConfig.switchSettings()->minLinksToRemainInVOQDomain() =
-      kMinLinksToRemainInVOQDomain;
-  EXPECT_THROW(
-      publishAndApplyConfig(stateV0, &fabricConfig, platform.get()),
-      FbossError);
+    // Setting minLinksToRemainInVOQDomain is not supported for FABRIC
+    cfg::SwitchConfig fabricConfig = testConfigA(cfg::SwitchType::FABRIC);
+    fabricConfig.switchSettings()->minLinksToRemainInVOQDomain() =
+        kMinLinksToRemainInVOQDomain;
+    EXPECT_THROW(
+        publishAndApplyConfig(stateV0, &fabricConfig, platform.get()),
+        FbossError);
+  }
 
   // Setting minLinksToRemainInVOQDomain is supported for VOQ
-  cfg::SwitchConfig voqConfig = testConfigA(cfg::SwitchType::VOQ);
-  voqConfig.switchSettings()->minLinksToRemainInVOQDomain() =
-      kMinLinksToRemainInVOQDomain;
-  auto stateV1 = publishAndApplyConfig(stateV0, &voqConfig, platform.get());
-  EXPECT_NE(nullptr, stateV1);
+  {
+    auto stateV0 = make_shared<SwitchState>();
+    addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
+    cfg::SwitchConfig voqConfig = testConfigA(cfg::SwitchType::VOQ);
+    voqConfig.switchSettings()->minLinksToRemainInVOQDomain() =
+        kMinLinksToRemainInVOQDomain;
+    auto stateV1 = publishAndApplyConfig(stateV0, &voqConfig, platform.get());
+    EXPECT_NE(nullptr, stateV1);
 
-  auto switchSettingsV1 = util::getFirstNodeIf(stateV1->getSwitchSettings());
-  ASSERT_NE(nullptr, switchSettingsV1);
-  EXPECT_FALSE(switchSettingsV1->isPublished());
-  ASSERT_TRUE(switchSettingsV1->getMinLinksToRemainInVOQDomain().has_value());
-  EXPECT_EQ(
-      kMinLinksToRemainInVOQDomain,
-      switchSettingsV1->getMinLinksToRemainInVOQDomain().value());
+    auto switchSettingsV1 = util::getFirstNodeIf(stateV1->getSwitchSettings());
+    ASSERT_NE(nullptr, switchSettingsV1);
+    EXPECT_FALSE(switchSettingsV1->isPublished());
+    ASSERT_TRUE(switchSettingsV1->getMinLinksToRemainInVOQDomain().has_value());
+    EXPECT_EQ(
+        kMinLinksToRemainInVOQDomain,
+        switchSettingsV1->getMinLinksToRemainInVOQDomain().value());
 
-  voqConfig.switchSettings()->minLinksToRemainInVOQDomain() =
-      kMinLinksToRemainInVOQDomain2;
-  auto stateV2 = publishAndApplyConfig(stateV1, &voqConfig, platform.get());
-  EXPECT_NE(nullptr, stateV2);
+    voqConfig.switchSettings()->minLinksToRemainInVOQDomain() =
+        kMinLinksToRemainInVOQDomain2;
+    auto stateV2 = publishAndApplyConfig(stateV1, &voqConfig, platform.get());
+    EXPECT_NE(nullptr, stateV2);
 
-  auto switchSettingsV2 = util::getFirstNodeIf(stateV2->getSwitchSettings());
-  ASSERT_NE(nullptr, switchSettingsV2);
-  EXPECT_FALSE(switchSettingsV2->isPublished());
-  ASSERT_TRUE(switchSettingsV2->getMinLinksToRemainInVOQDomain().has_value());
-  EXPECT_EQ(
-      kMinLinksToRemainInVOQDomain2,
-      switchSettingsV2->getMinLinksToRemainInVOQDomain().value());
+    auto switchSettingsV2 = util::getFirstNodeIf(stateV2->getSwitchSettings());
+    ASSERT_NE(nullptr, switchSettingsV2);
+    EXPECT_FALSE(switchSettingsV2->isPublished());
+    ASSERT_TRUE(switchSettingsV2->getMinLinksToRemainInVOQDomain().has_value());
+    EXPECT_EQ(
+        kMinLinksToRemainInVOQDomain2,
+        switchSettingsV2->getMinLinksToRemainInVOQDomain().value());
+  }
 }
 
 TEST(SwitchSettingsTest, applyMinLinksToJoinVOQDomain) {
   constexpr auto kMinLinksToJoinVOQDomain = 5;
   constexpr auto kMinLinksToJoinVOQDomain2 = 7;
   auto platform = createMockPlatform();
-  auto stateV0 = make_shared<SwitchState>();
 
   // Setting minLinksToJoinVOQDomai is not supported for NPU
-  cfg::SwitchConfig npuConfig = testConfigA(cfg::SwitchType::NPU);
-  npuConfig.switchSettings()->minLinksToJoinVOQDomain() =
-      kMinLinksToJoinVOQDomain;
-  EXPECT_THROW(
-      publishAndApplyConfig(stateV0, &npuConfig, platform.get()), FbossError);
+  {
+    auto stateV0 = make_shared<SwitchState>();
+    addSwitchInfo(stateV0, cfg::SwitchType::NPU, 0 /* switchId*/);
+    cfg::SwitchConfig npuConfig = testConfigA(cfg::SwitchType::NPU);
+    npuConfig.switchSettings()->minLinksToJoinVOQDomain() =
+        kMinLinksToJoinVOQDomain;
+    EXPECT_THROW(
+        publishAndApplyConfig(stateV0, &npuConfig, platform.get()), FbossError);
+  }
 
   // Setting minLinksToJoinVOQDomai is not supported for FABRIC
-  cfg::SwitchConfig fabricConfig = testConfigA(cfg::SwitchType::FABRIC);
-  fabricConfig.switchSettings()->minLinksToJoinVOQDomain() =
-      kMinLinksToJoinVOQDomain;
-  EXPECT_THROW(
-      publishAndApplyConfig(stateV0, &fabricConfig, platform.get()),
-      FbossError);
+  {
+    auto stateV0 = make_shared<SwitchState>();
+    addSwitchInfo(stateV0, cfg::SwitchType::FABRIC, 2 /* switchId*/);
+    cfg::SwitchConfig fabricConfig = testConfigA(cfg::SwitchType::FABRIC);
+    fabricConfig.switchSettings()->minLinksToJoinVOQDomain() =
+        kMinLinksToJoinVOQDomain;
+    EXPECT_THROW(
+        publishAndApplyConfig(stateV0, &fabricConfig, platform.get()),
+        FbossError);
+  }
 
   // Setting minLinksToJoinVOQDomai is supported for VOQ
-  cfg::SwitchConfig voqConfig = testConfigA(cfg::SwitchType::VOQ);
-  voqConfig.switchSettings()->minLinksToJoinVOQDomain() =
-      kMinLinksToJoinVOQDomain;
-  auto stateV1 = publishAndApplyConfig(stateV0, &voqConfig, platform.get());
-  EXPECT_NE(nullptr, stateV1);
+  {
+    auto stateV0 = make_shared<SwitchState>();
+    addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
+    cfg::SwitchConfig voqConfig = testConfigA(cfg::SwitchType::VOQ);
+    voqConfig.switchSettings()->minLinksToJoinVOQDomain() =
+        kMinLinksToJoinVOQDomain;
+    auto stateV1 = publishAndApplyConfig(stateV0, &voqConfig, platform.get());
+    EXPECT_NE(nullptr, stateV1);
 
-  auto switchSettingsV1 = util::getFirstNodeIf(stateV1->getSwitchSettings());
-  ASSERT_NE(nullptr, switchSettingsV1);
-  EXPECT_FALSE(switchSettingsV1->isPublished());
-  ASSERT_TRUE(switchSettingsV1->getMinLinksToJoinVOQDomain().has_value());
-  EXPECT_EQ(
-      kMinLinksToJoinVOQDomain,
-      switchSettingsV1->getMinLinksToJoinVOQDomain().value());
+    auto switchSettingsV1 = util::getFirstNodeIf(stateV1->getSwitchSettings());
+    ASSERT_NE(nullptr, switchSettingsV1);
+    EXPECT_FALSE(switchSettingsV1->isPublished());
+    ASSERT_TRUE(switchSettingsV1->getMinLinksToJoinVOQDomain().has_value());
+    EXPECT_EQ(
+        kMinLinksToJoinVOQDomain,
+        switchSettingsV1->getMinLinksToJoinVOQDomain().value());
 
-  voqConfig.switchSettings()->minLinksToJoinVOQDomain() =
-      kMinLinksToJoinVOQDomain2;
-  auto stateV2 = publishAndApplyConfig(stateV1, &voqConfig, platform.get());
-  EXPECT_NE(nullptr, stateV2);
+    voqConfig.switchSettings()->minLinksToJoinVOQDomain() =
+        kMinLinksToJoinVOQDomain2;
+    auto stateV2 = publishAndApplyConfig(stateV1, &voqConfig, platform.get());
+    EXPECT_NE(nullptr, stateV2);
 
-  auto switchSettingsV2 = util::getFirstNodeIf(stateV2->getSwitchSettings());
-  ASSERT_NE(nullptr, switchSettingsV2);
-  EXPECT_FALSE(switchSettingsV2->isPublished());
-  ASSERT_TRUE(switchSettingsV2->getMinLinksToJoinVOQDomain().has_value());
-  EXPECT_EQ(
-      kMinLinksToJoinVOQDomain2,
-      switchSettingsV2->getMinLinksToJoinVOQDomain().value());
+    auto switchSettingsV2 = util::getFirstNodeIf(stateV2->getSwitchSettings());
+    ASSERT_NE(nullptr, switchSettingsV2);
+    EXPECT_FALSE(switchSettingsV2->isPublished());
+    ASSERT_TRUE(switchSettingsV2->getMinLinksToJoinVOQDomain().has_value());
+    EXPECT_EQ(
+        kMinLinksToJoinVOQDomain2,
+        switchSettingsV2->getMinLinksToJoinVOQDomain().value());
+  }
 }
