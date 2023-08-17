@@ -3931,15 +3931,15 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
     }
     newSwitchSettings->setSwitchDrainState(
         *cfg_->switchSettings()->switchDrainState());
+    switchSettingsChange = true;
+  }
 
-    auto newActualSwitchDrainState = computeActualSwitchDrainState(
-        newSwitchSettings,
-        getNumUpPorts(orig_, matcher, cfg::PortType::FABRIC_PORT));
-    if (newActualSwitchDrainState !=
-        origSwitchSettings->getSwitchDrainState()) {
-      newSwitchSettings->setActualSwitchDrainState(newActualSwitchDrainState);
-    }
-
+  auto newActualSwitchDrainState = computeActualSwitchDrainState(
+      newSwitchSettings,
+      getNumUpPorts(orig_, matcher, cfg::PortType::FABRIC_PORT));
+  if (newActualSwitchDrainState !=
+      origSwitchSettings->getActualSwitchDrainState()) {
+    newSwitchSettings->setActualSwitchDrainState(newActualSwitchDrainState);
     switchSettingsChange = true;
   }
 
