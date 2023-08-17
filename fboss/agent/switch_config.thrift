@@ -1556,6 +1556,12 @@ struct SwitchSettings {
    */
   14: optional i32 minLinksToRemainInVOQDomain;
   15: optional i32 minLinksToJoinVOQDomain;
+  // MAC OUIs (24-bit MAC address prefix) used by vendor NICs.
+  // When queue-per-host is enabled, MACs matching any OUI from this list will get a dedicated queue.
+  16: list<string> vendorMacOuis = [];
+  // MAC OUIs used by meta for VM purpose.
+  // When queue-per-host is enabled, MACs matching any OUI from this list could get any queue.
+  17: list<string> metaMacOuis = [];
 }
 
 // Global buffer pool shared by {port, pgs}
