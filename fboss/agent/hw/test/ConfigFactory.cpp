@@ -558,6 +558,17 @@ cfg::SwitchConfig oneL3IntfConfig(
       baseVlanId);
 }
 
+cfg::SwitchConfig oneL3IntfConfig(
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
+    PortID port,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
+    int baseVlanId) {
+  std::vector<PortID> ports{port};
+  return oneL3IntfNPortConfig(
+      platformMapping, asic, ports, lbModeMap, true, baseVlanId);
+}
+
 cfg::SwitchConfig oneL3IntfNoIPAddrConfig(
     const HwSwitch* hwSwitch,
     PortID port,
