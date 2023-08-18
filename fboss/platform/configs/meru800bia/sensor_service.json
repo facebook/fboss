@@ -1,0 +1,170 @@
+{
+  "source" : "sysfs",
+  "sensorMapList" : {
+    "SCM" : {
+      "CPU_PACKAGE_TEMP" :{
+        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp1_input",
+        "thresholds" : {
+          "upperCriticalVal" : 105
+        },
+        "type" : 3
+      },
+      "CPU_CORE0_TEMP" :{
+        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp2_input",
+        "thresholds" : {
+          "upperCriticalVal" : 105
+        },
+        "type" : 3
+      },
+      "CPU_CORE1_TEMP" :{
+        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp3_input",
+        "thresholds" : {
+          "upperCriticalVal" : 105
+        },
+        "type" : 3
+      },
+      "CPU_CORE2_TEMP" :{
+        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp4_input",
+        "thresholds" : {
+          "upperCriticalVal" : 105
+        },
+        "type" : 3
+      },
+      "CPU_CORE3_TEMP" :{
+        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp5_input",
+        "thresholds" : {
+          "upperCriticalVal" : 105
+        },
+        "type" : 3
+      },
+      "CPU_CORE4_TEMP" :{
+        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp6_input",
+        "thresholds" : {
+          "upperCriticalVal" : 105
+        },
+        "type" : 3
+      },
+      "CPU_CORE5_TEMP" :{
+        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp7_input",
+        "thresholds" : {
+          "upperCriticalVal" : 105
+        },
+        "type" : 3
+      },
+      "CPU_CORE6_TEMP" :{
+        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp8_input",
+        "thresholds" : {
+          "upperCriticalVal" : 105
+        },
+        "type" : 3
+      },
+      "CPU_CORE7_TEMP" :{
+        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp9_input",
+        "thresholds" : {
+          "upperCriticalVal" : 105
+        },
+        "type" : 3
+      },
+      "CPU_ECB_VIN" : {
+        "path" : "/run/devmap/sensors/CPU_MPS_PMBUS/in1_input",
+        "type" : 1
+      },
+      "CPU_ECB_VOUT" : {
+        "path" : "/run/devmap/sensors/CPU_MPS_PMBUS/in2_input",
+        "type" : 1
+      },
+      "CPU_ECB_TEMP" : {
+        "path" : "/run/devmap/sensors/CPU_MPS_PMBUS/temp1_input",
+        "type" : 3
+      },
+      "CPU_ECB_IOUT" : {
+        "path" : "/run/devmap/sensors/CPU_MPS_PMBUS/curr1_input",
+        "type" : 2
+      },
+      "CPU_VRM1_VIN1" : {
+        "path" : "/run/devmap/sensors/CPU_PXM1310_1/in1_input",
+        "type" : 1
+      },
+      "CPU_VRM1_VIN2" : {
+        "path" : "/run/devmap/sensors/CPU_PXM1310_1/in2_input",
+        "type" : 1
+      },
+      "CPU_VRM1_VOUT_VCCIN" : {
+        "path" : "/run/devmap/sensors/CPU_PXM1310_1/in3_input",
+        "type" : 1
+      },
+      "CPU_VRM1_VOUT_1V8_CPU" : {
+        "path" : "/run/devmap/sensors/CPU_PXM1310_1/in4_input",
+        "type" : 1
+      },
+      "CPU_VRM1_TEMP1" : {
+        "path" : "/run/devmap/sensors/CPU_PXM1310_1/temp1_input",
+        "type" : 3
+      },
+      "CPU_VRM1_TEMP2" : {
+        "path" : "/run/devmap/sensors/CPU_PXM1310_1/temp2_input",
+        "type" : 3
+      },
+      "CPU_VRM2_VIN1" : {
+        "path" : "/run/devmap/sensors/CPU_PXE1211/in1_input",
+        "type" : 1
+      },
+      "CPU_VRM2_VIN2" : {
+        "path" : "/run/devmap/sensors/CPU_PXE1211/in2_input",
+        "type" : 1
+      },
+      "CPU_VRM2_VIN3" : {
+        "path" : "/run/devmap/sensors/CPU_PXE1211/in3_input",
+        "type" : 1
+      },
+      "CPU_VRM2_VOUT_1V2_VDDQ" : {
+        "path" : "/run/devmap/sensors/CPU_PXE1211/in4_input",
+        "type" : 1
+      },
+      "CPU_VRM2_VOUT_VNN_NAC" : {
+        "path" : "/run/devmap/sensors/CPU_PXE1211/in5_input",
+        "type" : 1
+      },
+      "CPU_VRM2_VOUT_1V0_CPU" : {
+        "path" : "/run/devmap/sensors/CPU_PXE1211/in6_input",
+        "type" : 1
+      },
+      "CPU_VRM2_TEMP1" : {
+        "path" : "/run/devmap/sensors/CPU_PXE1211/temp1_input",
+        "type" : 3
+      },
+      "CPU_VRM2_TEMP2" : {
+        "path" : "/run/devmap/sensors/CPU_PXE1211/temp2_input",
+        "type" : 3
+      },
+      "CPU_VRM2_TEMP3" : {
+        "path" : "/run/devmap/sensors/CPU_PXE1211/temp3_input",
+        "type" : 3
+      },
+      "CPU_VRM3_VIN1" : {
+        "path" : "/run/devmap/sensors/CPU_PXM1310_2/in1_input",
+        "type" : 1
+      },
+      "CPU_VRM3_VIN2" : {
+        "path" : "/run/devmap/sensors/CPU_PXM1310_2/in2_input",
+        "type" : 1
+      },
+      "CPU_VRM3_VOUT_1V05_CPU" : {
+        "path" : "/run/devmap/sensors/CPU_PXM1310_2/in3_input",
+        "type" : 1
+      },
+      "CPU_VRM3_VOUT_VNN_PCH" : {
+        "path" : "/run/devmap/sensors/CPU_PXM1310_2/in4_input",
+        "type" : 1
+      },
+      "CPU_VRM3_TEMP1" : {
+        "path" : "/run/devmap/sensors/CPU_PXM1310_2/temp1_input",
+        "type" : 3
+      },
+      "CPU_VRM3_TEMP2" : {
+        "path" : "/run/devmap/sensors/CPU_PXM1310_2/temp2_input",
+        "type" : 3
+      }
+    }
+  }
+}
