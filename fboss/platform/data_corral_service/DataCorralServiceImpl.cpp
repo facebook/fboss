@@ -16,6 +16,7 @@
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/platform/data_corral_service/DataCorralServiceImpl.h"
 #include "fboss/platform/data_corral_service/darwin/DarwinChassisManager.h"
+#include "fboss/platform/data_corral_service/meru800bia/Meru800biaChassisManager.h"
 #include "fboss/platform/weutil/Weutil.h"
 
 namespace {
@@ -38,6 +39,9 @@ void DataCorralServiceImpl::init() {
   if (type == PlatformType::PLATFORM_DARWIN) {
     chassisManager_ =
         std::make_unique<DarwinChassisManager>(kRefreshIntervalInMs);
+  } else if (type == PlatformType::PLATFORM_MERU800BIA) {
+    chassisManager_ =
+        std::make_unique<Meru800biaChassisManager>(kRefreshIntervalInMs);
   } else {
     XLOG(WARN) << "Unable to instantiate ChassisManager for platform "
                << toString(type);

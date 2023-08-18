@@ -100,4 +100,12 @@ class ChassisManager {
   std::unique_ptr<ChassisMonitor> monitor_;
 };
 
+enum ChassisLedColor {
+  OFF = 0,
+  RED = 1,
+  GREEN = 2,
+  BLUE = 3,
+  AMBER = 4,
+};
+
 } // namespace facebook::fboss::platform::data_corral_service

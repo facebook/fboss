@@ -25,6 +25,9 @@ add_library(data_corral_service_lib
   fboss/platform/data_corral_service/darwin/DarwinChassisManager.cpp
   fboss/platform/data_corral_service/darwin/DarwinPlatformConfig.cpp
   fboss/platform/data_corral_service/darwin/DarwinFruModule.cpp
+  fboss/platform/data_corral_service/meru800bia/Meru800biaChassisManager.cpp
+  fboss/platform/data_corral_service/meru800bia/Meru800biaPlatformConfig.cpp
+  fboss/platform/data_corral_service/meru800bia/Meru800biaFruModule.cpp
 )
 
 target_link_libraries(data_corral_service_lib

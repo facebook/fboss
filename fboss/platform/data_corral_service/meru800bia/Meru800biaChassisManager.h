@@ -1,4 +1,4 @@
-// Copyright 2014-present Facebook. All Rights Reserved.
+// Copyright 2023-present Facebook. All Rights Reserved.
 
 #pragma once
 
@@ -6,9 +6,9 @@
 
 namespace facebook::fboss::platform::data_corral_service {
 
-class DarwinChassisLed {
+class Meru800biaChassisLed {
  public:
-  explicit DarwinChassisLed(const std::string& name)
+  explicit Meru800biaChassisLed(const std::string& name)
       : name_(name), color_(ChassisLedColor::OFF) {}
   void setColorPath(ChassisLedColor color, const std::string& path);
   const std::string& getName() {
@@ -23,17 +23,18 @@ class DarwinChassisLed {
   std::unordered_map<ChassisLedColor, std::string> paths_;
 };
 
-class DarwinChassisManager : public ChassisManager {
+class Meru800biaChassisManager : public ChassisManager {
  public:
-  explicit DarwinChassisManager(int refreshInterval)
+  explicit Meru800biaChassisManager(int refreshInterval)
       : ChassisManager(refreshInterval) {}
   virtual void initModules() override;
   virtual void programChassis() override;
 
  private:
-  std::unique_ptr<DarwinChassisLed> sysLed_;
-  std::unique_ptr<DarwinChassisLed> fanLed_;
-  std::unique_ptr<DarwinChassisLed> pemLed_;
+  std::unique_ptr<Meru800biaChassisLed> sysLed_;
+  std::unique_ptr<Meru800biaChassisLed> fanLed_;
+  std::unique_ptr<Meru800biaChassisLed> psuLed_;
+  std::unique_ptr<Meru800biaChassisLed> smbLed_;
 };
 
 } // namespace facebook::fboss::platform::data_corral_service
