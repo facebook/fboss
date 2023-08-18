@@ -24,6 +24,8 @@ class SaiMeru400biaPlatform : public SaiBcmPlatform {
       const std::string& platformMappingStr);
   ~SaiMeru400biaPlatform() override;
   HwAsic* getAsic() const override;
+  std::vector<sai_system_port_config_t> getInternalSystemPortConfig()
+      const override;
 
   uint32_t numLanesPerCore() const override {
     return 4;
@@ -58,8 +60,6 @@ class SaiMeru400biaPlatform : public SaiBcmPlatform {
   }
 
  private:
-  std::vector<sai_system_port_config_t> getInternalSystemPortConfig()
-      const override;
   void setupAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,

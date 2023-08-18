@@ -55,10 +55,10 @@ class SaiMeru800biaPlatform : public SaiBcmPlatform {
       cfg::PortSpeed /*speed*/) const override {
     return std::nullopt;
   }
-
- private:
   std::vector<sai_system_port_config_t> getInternalSystemPortConfig()
       const override;
+
+ private:
   void setupAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,

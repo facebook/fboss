@@ -123,6 +123,12 @@ class SaiPlatform : public Platform, public StateObserver {
   getSaiProfileVendorExtensionValues() const {
     return std::unordered_map<std::string, std::string>();
   }
+  /*
+   * Platform dependent internal {cpu, loopback} system ports. These must be
+   * provided as part of switch init
+   */
+  virtual std::vector<sai_system_port_config_t> getInternalSystemPortConfig()
+      const;
 
  protected:
   std::unique_ptr<SaiSwitch> saiSwitch_;
@@ -130,12 +136,6 @@ class SaiPlatform : public Platform, public StateObserver {
   std::unordered_map<PortID, std::unique_ptr<SaiPlatformPort>> portMapping_;
 
  private:
-  /*
-   * Platform dependent internal {cpu, loopback} system ports. These must be
-   * provided as part of switch init
-   */
-  virtual std::vector<sai_system_port_config_t> getInternalSystemPortConfig()
-      const;
   void initImpl(uint32_t hwFeaturesDesired) override;
   void initSaiProfileValues();
   std::unique_ptr<HwSwitchWarmBootHelper> wbHelper_;

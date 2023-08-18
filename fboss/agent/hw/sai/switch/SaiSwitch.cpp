@@ -1928,6 +1928,19 @@ void SaiSwitch::initStoreAndManagersLocked(
         }
       }
     }
+
+    // during warm boot, all default system ports created for the platform
+    // show up as unclaimed store objects. These obejcts are created once at
+    // init and not need to be removed during warm boot. Change ownership for
+    // them explicitly to adapter to remove it from unclaimed object
+    if (getSwitchType() == cfg::SwitchType::VOQ) {
+      auto& systemPortStore = saiStore_->get<SaiSystemPortTraits>();
+      for (auto& sysPort : platform_->getInternalSystemPortConfig()) {
+        SaiSystemPortTraits::Attributes::ConfigInfo confInfo{sysPort};
+        const auto& obj = systemPortStore.get(confInfo);
+        systemPortStore.loadObjectOwnedByAdapter(obj->adapterKey(), true);
+      }
+    }
   }
 } // namespace facebook::fboss
 
