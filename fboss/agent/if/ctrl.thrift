@@ -141,6 +141,7 @@ struct ArpEntryThrift {
   9: bool isLocal = true;
   10: optional i64 switchId;
   11: optional i64 resolvedSince;
+  12: i32 interfaceID;
 }
 
 enum L2EntryType {
@@ -412,6 +413,7 @@ struct NdpEntryThrift {
   9: bool isLocal = true;
   10: optional i64 switchId;
   11: optional i64 resolvedSince;
+  12: i32 interfaceID;
 }
 
 enum BootType {
