@@ -16,7 +16,6 @@
 #include "fboss/agent/LoadBalancerConfigApplier.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
@@ -61,68 +60,65 @@ cfg::Fields getFullHashUdf() {
 }
 
 cfg::LoadBalancer getHalfHashConfig(
-    const Platform* platform,
+    const HwAsic& asic,
     cfg::LoadBalancerID id) {
   cfg::LoadBalancer loadBalancer;
   *loadBalancer.id() = id;
-  if (platform->getAsic()->isSupported(
-          HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
+  if (asic.isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
     *loadBalancer.fieldSelection() = getHalfHashFields();
   }
   *loadBalancer.algorithm() = cfg::HashingAlgorithm::CRC16_CCITT;
   return loadBalancer;
 }
 cfg::LoadBalancer getFullHashConfig(
-    const Platform* platform,
+    const HwAsic& asic,
     cfg::LoadBalancerID id) {
   cfg::LoadBalancer loadBalancer;
   *loadBalancer.id() = id;
-  if (platform->getAsic()->isSupported(
-          HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
+  if (asic.isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
     *loadBalancer.fieldSelection() = getFullHashFields();
   }
   *loadBalancer.algorithm() = cfg::HashingAlgorithm::CRC16_CCITT;
   return loadBalancer;
 }
 cfg::LoadBalancer getFullHashUdfConfig(
-    const Platform* platform,
+    const HwAsic& asic,
     cfg::LoadBalancerID id) {
   cfg::LoadBalancer loadBalancer;
   *loadBalancer.id() = id;
-  if (platform->getAsic()->isSupported(
-          HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
+  if (asic.isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
     *loadBalancer.fieldSelection() = getFullHashUdf();
   }
   *loadBalancer.algorithm() = cfg::HashingAlgorithm::CRC16_CCITT;
   return loadBalancer;
 }
-cfg::LoadBalancer getTrunkHalfHashConfig(const Platform* platform) {
-  return getHalfHashConfig(platform, cfg::LoadBalancerID::AGGREGATE_PORT);
+cfg::LoadBalancer getTrunkHalfHashConfig(const HwAsic& asic) {
+  return getHalfHashConfig(asic, cfg::LoadBalancerID::AGGREGATE_PORT);
 }
-cfg::LoadBalancer getTrunkFullHashConfig(const Platform* platform) {
-  return getFullHashConfig(platform, cfg::LoadBalancerID::AGGREGATE_PORT);
+cfg::LoadBalancer getTrunkFullHashConfig(const HwAsic& asic) {
+  return getFullHashConfig(asic, cfg::LoadBalancerID::AGGREGATE_PORT);
 }
 } // namespace
-cfg::LoadBalancer getEcmpHalfHashConfig(const Platform* platform) {
-  return getHalfHashConfig(platform, cfg::LoadBalancerID::ECMP);
+cfg::LoadBalancer getEcmpHalfHashConfig(const HwAsic& asic) {
+  return getHalfHashConfig(asic, cfg::LoadBalancerID::ECMP);
 }
-cfg::LoadBalancer getEcmpFullHashConfig(const Platform* platform) {
-  return getFullHashConfig(platform, cfg::LoadBalancerID::ECMP);
+cfg::LoadBalancer getEcmpFullHashConfig(const HwAsic& asic) {
+  return getFullHashConfig(asic, cfg::LoadBalancerID::ECMP);
 }
-cfg::LoadBalancer getEcmpFullUdfHashConfig(const Platform* platform) {
-  return getFullHashUdfConfig(platform, cfg::LoadBalancerID::ECMP);
+cfg::LoadBalancer getEcmpFullUdfHashConfig(const HwAsic& asic) {
+  return getFullHashUdfConfig(asic, cfg::LoadBalancerID::ECMP);
 }
 std::vector<cfg::LoadBalancer> getEcmpFullTrunkHalfHashConfig(
-    const Platform* platform) {
-  return {getEcmpFullHashConfig(platform), getTrunkHalfHashConfig(platform)};
+    const HwAsic& asic) {
+  return {getEcmpFullHashConfig(asic), getTrunkHalfHashConfig(asic)};
 }
 std::vector<cfg::LoadBalancer> getEcmpHalfTrunkFullHashConfig(
-    const Platform* platform) {
-  return {getEcmpHalfHashConfig(platform), getTrunkFullHashConfig(platform)};
+    const HwAsic& asic) {
+  return {getEcmpHalfHashConfig(asic), getTrunkFullHashConfig(asic)};
 }
 std::vector<cfg::LoadBalancer> getEcmpFullTrunkFullHashConfig(
-    const Platform* platform) {
-  return {getEcmpFullHashConfig(platform), getTrunkFullHashConfig(platform)};
+    const HwAsic& asic) {
+  return {getEcmpFullHashConfig(asic), getTrunkFullHashConfig(asic)};
 }
 std::shared_ptr<SwitchState> setLoadBalancer(
     const Platform* platform,

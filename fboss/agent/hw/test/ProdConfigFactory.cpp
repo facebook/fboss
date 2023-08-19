@@ -77,10 +77,10 @@ void addLoadBalancerToConfig(
   }
   switch (hashType) {
     case LBHash::FULL_HASH:
-      config.loadBalancers()->push_back(getEcmpFullHashConfig(platform));
+      config.loadBalancers()->push_back(getEcmpFullHashConfig(*hwAsic));
       break;
     case LBHash::HALF_HASH:
-      config.loadBalancers()->push_back(getEcmpHalfHashConfig(platform));
+      config.loadBalancers()->push_back(getEcmpHalfHashConfig(*hwAsic));
       break;
     default:
       throw FbossError("invalid hashing option ", hashType);

@@ -11,6 +11,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/types.h"
@@ -39,15 +40,15 @@ inline const int kUdfFieldSizeInBytes(3);
 inline const int kUdfL4DstPort(4791);
 inline const int kRandomUdfL4SrcPort(62946);
 
-cfg::LoadBalancer getEcmpHalfHashConfig(const Platform* platform);
-cfg::LoadBalancer getEcmpFullHashConfig(const Platform* platform);
-cfg::LoadBalancer getEcmpFullUdfHashConfig(const Platform* platform);
+cfg::LoadBalancer getEcmpHalfHashConfig(const HwAsic& asic);
+cfg::LoadBalancer getEcmpFullHashConfig(const HwAsic& asic);
+cfg::LoadBalancer getEcmpFullUdfHashConfig(const HwAsic& asic);
 std::vector<cfg::LoadBalancer> getEcmpFullTrunkHalfHashConfig(
-    const Platform* platform);
+    const HwAsic& asic);
 std::vector<cfg::LoadBalancer> getEcmpHalfTrunkFullHashConfig(
-    const Platform* platform);
+    const HwAsic& asic);
 std::vector<cfg::LoadBalancer> getEcmpFullTrunkFullHashConfig(
-    const Platform* platform);
+    const HwAsic& asic);
 
 std::shared_ptr<SwitchState> setLoadBalancer(
     const Platform* platform,

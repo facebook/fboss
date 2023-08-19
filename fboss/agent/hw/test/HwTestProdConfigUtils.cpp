@@ -55,7 +55,7 @@ void addProdFeaturesToConfig(
    */
   if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
     config.loadBalancers()->push_back(
-        utility::getEcmpFullHashConfig(hwSwitch->getPlatform()));
+        utility::getEcmpFullHashConfig(*hwSwitch->getPlatform()->getAsic()));
   }
 
   if (hwAsic->isSupported(HwAsic::Feature::PFC) && mmuLossless) {

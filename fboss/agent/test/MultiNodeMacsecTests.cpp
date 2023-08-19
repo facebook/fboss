@@ -62,7 +62,8 @@ class MultiNodeMacsecTest : public MultiNodeTest {
         true /*interfaceHasSubnet*/,
         false /*setInterfaceMac*/);
     config.loadBalancers()->push_back(
-        facebook::fboss::utility::getEcmpFullHashConfig(platform()));
+        facebook::fboss::utility::getEcmpFullHashConfig(
+            *platform()->getAsic()));
     return config;
   }
 

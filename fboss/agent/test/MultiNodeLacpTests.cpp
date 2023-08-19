@@ -85,7 +85,7 @@ class MultiNodeLacpTest : public MultiNodeTest {
       addAggPort(aggId, {portList[idx++], portList[idx++]}, &config, rate);
     }
     config.loadBalancers() =
-        utility::getEcmpFullTrunkHalfHashConfig(platform());
+        utility::getEcmpFullTrunkHalfHashConfig(*platform()->getAsic());
 
     config.staticRoutesWithNhops()->clear();
     setupDefaultRoutes(&config, 2);

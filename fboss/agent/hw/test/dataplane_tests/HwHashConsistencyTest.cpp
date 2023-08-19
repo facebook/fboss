@@ -205,7 +205,8 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
   }
 
   void setupHashAndProgramRoute() {
-    auto hashes = utility::getEcmpFullTrunkHalfHashConfig(getPlatform());
+    auto hashes =
+        utility::getEcmpFullTrunkHalfHashConfig(*getPlatform()->getAsic());
     for (auto& hash : hashes) {
       setLoadBalancerSeed(hash);
     }
