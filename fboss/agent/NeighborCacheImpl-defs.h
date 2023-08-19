@@ -644,8 +644,16 @@ void NeighborCacheImpl<NTable>::flushEntry(AddressType ip, bool* flushed) {
       -> std::shared_ptr<SwitchState> {
     std::shared_ptr<SwitchState> newState{state};
 
-    auto* vlan = newState->getVlans()->getNode(vlanID_).get();
-    if (flushEntryFromSwitchState(&newState, ip, vlan)) {
+    bool flushedEntry;
+    if (FLAGS_intf_nbr_tables) {
+      auto* intf = newState->getInterfaces()->getNode(intfID_).get();
+      flushedEntry = flushEntryFromSwitchState(&newState, ip, intf);
+    } else {
+      auto* vlan = newState->getVlans()->getNode(vlanID_).get();
+      flushedEntry = flushEntryFromSwitchState(&newState, ip, vlan);
+    }
+
+    if (flushedEntry) {
       if (flushed) {
         *flushed = true;
       }
