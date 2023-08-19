@@ -1022,10 +1022,10 @@ void configurePortProfile(
 }
 
 std::vector<PortID> getAllPortsInGroup(
-    const HwSwitch* hwSwitch,
+    const PlatformMapping* platformMapping,
     PortID portID) {
   std::vector<PortID> allPortsinGroup;
-  if (const auto& platformPorts = hwSwitch->getPlatform()->getPlatformPorts();
+  if (const auto& platformPorts = platformMapping->getPlatformPorts();
       !platformPorts.empty()) {
     const auto& portList =
         utility::getPlatformPortsByControllingPort(platformPorts, portID);
@@ -1152,8 +1152,8 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
    */
   std::vector<PortID> allDownlinkPorts;
   for (auto masterDownlinkPort : downlinkMasterPorts) {
-    auto allDownlinkPortsInGroup =
-        utility::getAllPortsInGroup(hwSwitch, masterDownlinkPort);
+    auto allDownlinkPortsInGroup = utility::getAllPortsInGroup(
+        hwSwitch->getPlatform()->getPlatformMapping(), masterDownlinkPort);
     for (auto logicalPortId : allDownlinkPortsInGroup) {
       auto portConfig = findCfgPortIf(config, masterDownlinkPort);
       if (portConfig != config.ports()->end()) {
