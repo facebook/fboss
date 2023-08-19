@@ -153,9 +153,11 @@ class NeighborCacheImpl {
   // was actually flushed from the switch state
   void flushEntry(AddressType ip, bool* flushed = nullptr);
 
+  template <typename VlanOrIntfT>
   bool flushEntryFromSwitchState(
       std::shared_ptr<SwitchState>* state,
-      AddressType ip);
+      AddressType ip,
+      VlanOrIntfT* vlanOrIntf);
 
   Entry* getCacheEntry(AddressType ip) const;
   void setCacheEntry(std::shared_ptr<Entry> entry);

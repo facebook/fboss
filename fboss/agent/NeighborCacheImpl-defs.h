@@ -606,17 +606,18 @@ bool NeighborCacheImpl<NTable>::removeEntry(AddressType ip) {
 }
 
 template <typename NTable>
+template <typename VlanOrIntfT>
 bool NeighborCacheImpl<NTable>::flushEntryFromSwitchState(
     std::shared_ptr<SwitchState>* state,
-    AddressType ip) {
-  auto* vlan = (*state)->getVlans()->getNode(vlanID_).get();
-  auto* table = vlan->template getNeighborTable<NTable>().get();
+    AddressType ip,
+    VlanOrIntfT* vlanOrIntf) {
+  auto* table = vlanOrIntf->template getNeighborTable<NTable>().get();
   const auto& entry = table->getNodeIf(ip.str());
   if (!entry) {
     return false;
   }
 
-  table = table->modify(&vlan, state);
+  table = table->modify(&vlanOrIntf, state);
   table->removeNode(ip.str());
   return true;
 }
@@ -642,7 +643,9 @@ void NeighborCacheImpl<NTable>::flushEntry(AddressType ip, bool* flushed) {
   auto updateFn = [this, ip, flushed](const std::shared_ptr<SwitchState>& state)
       -> std::shared_ptr<SwitchState> {
     std::shared_ptr<SwitchState> newState{state};
-    if (flushEntryFromSwitchState(&newState, ip)) {
+
+    auto* vlan = newState->getVlans()->getNode(vlanID_).get();
+    if (flushEntryFromSwitchState(&newState, ip, vlan)) {
       if (flushed) {
         *flushed = true;
       }
