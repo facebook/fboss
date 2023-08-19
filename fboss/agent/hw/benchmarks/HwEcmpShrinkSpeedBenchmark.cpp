@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -32,11 +33,17 @@ BENCHMARK(HwEcmpGroupShrink) {
   folly::BenchmarkSuspender suspender;
   constexpr int kEcmpWidth = 4;
   AgentEnsembleSwitchConfigFn initialConfigFn =
-      [](HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
+      [](SwSwitch* swSwitch, const std::vector<PortID>& ports) {
+        // Before m-mpu agent test, use first Asic for initialization.
+        auto switchIds = swSwitch->getHwAsicTable()->getSwitchIDs();
+        CHECK_GE(switchIds.size(), 1);
+        auto asic = swSwitch->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
         return utility::onePortPerInterfaceConfig(
-            hwSwitch,
+            swSwitch->getPlatformMapping(),
+            asic,
             ports,
-            hwSwitch->getPlatform()->getAsic()->desiredLoopbackModes());
+            asic->desiredLoopbackModes());
+        ;
       };
   auto ensemble = createAgentEnsemble(initialConfigFn);
   auto hwSwitch = ensemble->getHw();

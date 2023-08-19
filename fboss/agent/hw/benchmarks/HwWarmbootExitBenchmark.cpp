@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -30,11 +31,20 @@
 namespace facebook::fboss {
 
 void runBenchmark() {
-  AgentEnsembleSwitchConfigFn initialConfig =
-      [](HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
-        return utility::onePortPerInterfaceConfig(hwSwitch, ports);
+  AgentEnsembleSwitchConfigFn initialConfigFn =
+      [](SwSwitch* swSwitch, const std::vector<PortID>& ports) {
+        // Before m-mpu agent test, use first Asic for initialization.
+        auto switchIds = swSwitch->getHwAsicTable()->getSwitchIDs();
+        CHECK_GE(switchIds.size(), 1);
+        auto asic = swSwitch->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
+        return utility::onePortPerInterfaceConfig(
+            swSwitch->getPlatformMapping(),
+            asic,
+            ports,
+            asic->desiredLoopbackModes());
+        ;
       };
-  auto ensemble = createAgentEnsemble(initialConfig);
+  auto ensemble = createAgentEnsemble(initialConfigFn);
 
   utility::RouteDistributionGenerator::ThriftRouteChunks routeChunks;
   if (ensemble->getPlatform()->getType() == PlatformType::PLATFORM_WEDGE) {

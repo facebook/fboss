@@ -59,33 +59,33 @@ BENCHMARK(HwStatsCollection) {
 
   AgentEnsembleSwitchConfigFn initialConfigFn =
       [numPortsToCollectStats, numRouteCounters](
-          HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
+          SwSwitch* swSwitch, const std::vector<PortID>& ports) {
         // Disable stats collection thread.
         FLAGS_enable_stats_update_thread = false;
+
+        // Before m-mpu agent test, use first Asic for initialization.
+        auto switchIds = swSwitch->getHwAsicTable()->getSwitchIDs();
+        CHECK_GE(switchIds.size(), 1);
+        auto asic = swSwitch->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
 
         auto portsNew = ports;
         portsNew.resize(std::min((int)ports.size(), numPortsToCollectStats));
 
         auto config = utility::onePortPerInterfaceConfig(
-            hwSwitch,
+            swSwitch->getPlatformMapping(),
+            asic,
             portsNew,
-            hwSwitch->getPlatform()->getAsic()->desiredLoopbackModes());
-        cfg::SwitchType switchType;
-        for (const auto& [id, switchInfo] :
-             *(config.switchSettings()->switchIdToSwitchInfo())) {
-          switchType = *switchInfo.switchType();
-        }
-        // Currently route counters are only supported for NPU switches
-        if (switchType == cfg::SwitchType::NPU) {
+            asic->desiredLoopbackModes());
+        if (asic->isSupported(HwAsic::Feature::ROUTE_COUNTERS)) {
           config.switchSettings()->maxRouteCounterIDs() = numRouteCounters;
         }
-        if (switchType == cfg::SwitchType::VOQ) {
+        if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
           config.dsfNodes() = *utility::addRemoteDsfNodeCfg(*config.dsfNodes());
         }
         return config;
       };
+
   ensemble = createAgentEnsemble(initialConfigFn);
-  auto hwSwitch = ensemble->getHw();
   int iterations = 10'000;
 
   // Setup Remote Intf and System Ports
@@ -103,8 +103,8 @@ BENCHMARK(HwStatsCollection) {
   std::vector<PortID> ports = ensemble->masterLogicalPortIds();
   ports.resize(std::min((int)ports.size(), numPortsToCollectStats));
 
-  // Currently route counters are only supported for NPU switches
-  if (ensemble->getSw()->getSwitchInfoTable().haveNpuSwitches()) {
+  if (ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::ROUTE_COUNTERS)) {
     auto updater = ensemble->getSw()->getRouteUpdater();
     for (auto i = 0; i < numRouteCounters; i++) {
       folly::CIDRNetwork nw{
@@ -119,10 +119,9 @@ BENCHMARK(HwStatsCollection) {
     updater.program();
   }
 
-  SwitchStats dummy;
   suspender.dismiss();
   for (auto i = 0; i < iterations; ++i) {
-    hwSwitch->updateStats(&dummy);
+    ensemble->getSw()->updateStats();
   }
   suspender.rehire();
 }

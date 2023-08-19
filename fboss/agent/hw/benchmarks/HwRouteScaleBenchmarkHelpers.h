@@ -37,11 +37,16 @@ template <typename RouteScaleGeneratorT>
 void routeAddDelBenchmarker(bool measureAdd) {
   folly::BenchmarkSuspender suspender;
   AgentEnsembleSwitchConfigFn initialConfigFn =
-      [](HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
+      [](SwSwitch* swSwitch, const std::vector<PortID>& ports) {
+        // Before m-mpu agent test, use first Asic for initialization.
+        auto switchIds = swSwitch->getHwAsicTable()->getSwitchIDs();
+        CHECK_GE(switchIds.size(), 1);
+        auto asic = swSwitch->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
         return utility::onePortPerInterfaceConfig(
-            hwSwitch,
+            swSwitch->getPlatformMapping(),
+            asic,
             ports,
-            hwSwitch->getPlatform()->getAsic()->desiredLoopbackModes());
+            asic->desiredLoopbackModes());
       };
   auto ensemble = createAgentEnsemble(initialConfigFn);
   auto* sw = ensemble->getSw();

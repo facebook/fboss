@@ -39,10 +39,9 @@ using namespace facebook::fboss;
 namespace facebook::fboss::utility {
 
 std::optional<uint16_t> getUplinksCount(
-    const HwSwitch* hwSwitch,
+    PlatformType platformType,
     cfg::PortSpeed uplinkSpeed,
     cfg::PortSpeed downlinkSpeed) {
-  auto platformType = hwSwitch->getPlatform()->getType();
   using ConfigType = std::tuple<PlatformType, cfg::PortSpeed, cfg::PortSpeed>;
   static const std::map<ConfigType, uint16_t> numUplinksMap = {
       {{PlatformType::PLATFORM_WEDGE,
@@ -161,13 +160,16 @@ void initandExitBenchmarkHelper(
 
   AgentEnsembleSwitchConfigFn initialConfig =
       [uplinkSpeed, downlinkSpeed](
-          HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
-        auto numUplinks = getUplinksCount(hwSwitch, uplinkSpeed, downlinkSpeed);
+          SwSwitch* swSwitch, const std::vector<PortID>& ports) {
+        auto numUplinks = getUplinksCount(
+            swSwitch->getPlatformType(), uplinkSpeed, downlinkSpeed);
+        // Before m-mpu agent test, use first Asic for initialization.
+        auto switchIds = swSwitch->getHwAsicTable()->getSwitchIDs();
+        CHECK_GE(switchIds.size(), 1);
+        auto asic = swSwitch->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
         if (!numUplinks) {
           return utility::oneL3IntfNPortConfig(
-              hwSwitch->getPlatform()->getPlatformMapping(),
-              hwSwitch->getPlatform()->getAsic(),
-              ports);
+              swSwitch->getPlatformMapping(), asic, ports);
         }
         /*
          * Based on the uplink/downlink speed, use the ConfigFactory to create
@@ -176,17 +178,16 @@ void initandExitBenchmarkHelper(
          */
 
         auto config = utility::createUplinkDownlinkConfig(
-            hwSwitch->getPlatform()->getPlatformMapping(),
-            hwSwitch->getPlatform()->getAsic(),
-            hwSwitch->getPlatform()->getType(),
-            hwSwitch->getPlatform()->supportsAddRemovePort(),
+            swSwitch->getPlatformMapping(),
+            asic,
+            swSwitch->getPlatformType(),
+            swSwitch->getPlatformSupportsAddRemovePort(),
             ports,
             numUplinks.value(),
             uplinkSpeed,
             downlinkSpeed,
-            hwSwitch->getPlatform()->getAsic()->desiredLoopbackModes());
-        utility::addProdFeaturesToConfig(
-            config, hwSwitch->getPlatform()->getAsic());
+            asic->desiredLoopbackModes());
+        utility::addProdFeaturesToConfig(config, asic);
         return config;
       };
 

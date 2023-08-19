@@ -65,7 +65,7 @@ void AgentEnsemble::setupEnsemble(
   for (const auto& port : portsByControllingPort) {
     masterLogicalPortIds_.push_back(port.first);
   }
-  initialConfig_ = initialConfigFn(getHw(), masterLogicalPortIds_);
+  initialConfig_ = initialConfigFn(getSw(), masterLogicalPortIds_);
   applyInitialConfig(initialConfig_);
   // reload the new config
   getPlatform()->reloadConfig();

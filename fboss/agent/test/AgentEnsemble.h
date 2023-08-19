@@ -23,7 +23,7 @@ namespace facebook::fboss {
 class StateObserver;
 
 using AgentEnsembleSwitchConfigFn = std::function<
-    cfg::SwitchConfig(HwSwitch* hwSwitch, const std::vector<PortID>&)>;
+    cfg::SwitchConfig(SwSwitch* swSwitch, const std::vector<PortID>&)>;
 using AgentEnsemblePlatformConfigFn = std::function<void(cfg::PlatformConfig&)>;
 
 class AgentEnsemble : public TestEnsembleIf {

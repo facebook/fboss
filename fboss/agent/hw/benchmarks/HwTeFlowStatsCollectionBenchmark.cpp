@@ -43,12 +43,18 @@ BENCHMARK(HwTeFlowStatsCollection) {
   std::unique_ptr<AgentEnsemble> ensemble{};
 
   AgentEnsembleSwitchConfigFn initialConfigFn =
-      [](HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
+      [](SwSwitch* swSwitch, const std::vector<PortID>& ports) {
         CHECK_GT(ports.size(), 0);
+
+        // Before m-mpu agent test, use first Asic for initialization.
+        auto switchIds = swSwitch->getHwAsicTable()->getSwitchIDs();
+        CHECK_GE(switchIds.size(), 1);
+        auto asic = swSwitch->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
         return utility::onePortPerInterfaceConfig(
-            hwSwitch,
-            {ports[0], ports[1]},
-            hwSwitch->getPlatform()->getAsic()->desiredLoopbackModes());
+            swSwitch->getPlatformMapping(),
+            asic,
+            ports,
+            asic->desiredLoopbackModes());
       };
 
   AgentEnsemblePlatformConfigFn platformConfigFn =
