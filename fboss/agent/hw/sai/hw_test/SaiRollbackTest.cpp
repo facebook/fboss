@@ -18,7 +18,8 @@ cfg::SwitchConfig SaiRollbackTest::initialConfig() const {
   auto cfg =
       utility::onePortPerInterfaceConfig(getHwSwitch(), masterLogicalPortIds());
   cfg.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
-  utility::addProdFeaturesToConfig(cfg, getHwSwitch());
+  utility::addProdFeaturesToConfig(
+      cfg, getHwSwitch()->getPlatform()->getAsic());
   return cfg;
 }
 

@@ -68,7 +68,8 @@ class HwProdInvariantsTest : public HwLinkStateDependentTest {
   virtual cfg::SwitchConfig initConfigHelper() const {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(), masterLogicalPortIds());
-    utility::addProdFeaturesToConfig(cfg, getHwSwitch());
+    utility::addProdFeaturesToConfig(
+        cfg, getHwSwitch()->getPlatform()->getAsic());
     return cfg;
   }
 
