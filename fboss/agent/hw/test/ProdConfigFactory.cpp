@@ -243,7 +243,10 @@ cfg::SwitchConfig createProdRswConfig(
 
   // Create initial config to which we can add the rest of the features.
   auto config = createUplinkDownlinkConfig(
-      hwSwitch,
+      hwSwitch->getPlatform()->getPlatformMapping(),
+      hwSwitch->getPlatform()->getAsic(),
+      hwSwitch->getPlatform()->getType(),
+      hwSwitch->getPlatform()->supportsAddRemovePort(),
       masterLogicalPortIds,
       numUplinks,
       uplinkSpeed,
@@ -285,7 +288,10 @@ cfg::SwitchConfig createProdFswConfig(
   auto downlinkSpeed = getPortSpeed(hwSwitch);
 
   auto config = createUplinkDownlinkConfig(
-      hwSwitch,
+      hwSwitch->getPlatform()->getPlatformMapping(),
+      hwSwitch->getPlatform()->getAsic(),
+      hwSwitch->getPlatform()->getType(),
+      hwSwitch->getPlatform()->supportsAddRemovePort(),
       masterLogicalPortIds,
       numUplinks,
       uplinkSpeed,
@@ -318,7 +324,10 @@ cfg::SwitchConfig createProdRswMhnicConfig(
   auto downlinkSpeed = getPortSpeed(hwSwitch);
 
   auto config = createUplinkDownlinkConfig(
-      hwSwitch,
+      hwSwitch->getPlatform()->getPlatformMapping(),
+      hwSwitch->getPlatform()->getAsic(),
+      hwSwitch->getPlatform()->getType(),
+      hwSwitch->getPlatform()->supportsAddRemovePort(),
       masterLogicalPortIds,
       numUplinks,
       uplinkSpeed,

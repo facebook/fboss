@@ -173,7 +173,10 @@ std::vector<PortDescriptor> getUplinksForEcmp(
     const bool mmu_lossless_mode = false);
 
 cfg::SwitchConfig createUplinkDownlinkConfig(
-    const HwSwitch* hwSwitch,
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
+    PlatformType platformType,
+    bool supportsAddRemovePort,
     const std::vector<PortID>& masterLogicalPortIds,
     uint16_t uplinksCount,
     cfg::PortSpeed uplinkPortSpeed,

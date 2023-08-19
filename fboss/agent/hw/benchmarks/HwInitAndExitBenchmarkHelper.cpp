@@ -176,7 +176,10 @@ void initandExitBenchmarkHelper(
          */
 
         auto config = utility::createUplinkDownlinkConfig(
-            hwSwitch,
+            hwSwitch->getPlatform()->getPlatformMapping(),
+            hwSwitch->getPlatform()->getAsic(),
+            hwSwitch->getPlatform()->getType(),
+            hwSwitch->getPlatform()->supportsAddRemovePort(),
             ports,
             numUplinks.value(),
             uplinkSpeed,

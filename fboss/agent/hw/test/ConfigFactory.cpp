@@ -1081,23 +1081,26 @@ cfg::SwitchConfig createRtswUplinkDownlinkConfig(
 }
 
 cfg::SwitchConfig createUplinkDownlinkConfig(
-    const HwSwitch* hwSwitch,
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
+    PlatformType platformType,
+    bool supportsAddRemovePort,
     const std::vector<PortID>& masterLogicalPortIds,
     uint16_t uplinksCount,
     cfg::PortSpeed uplinkPortSpeed,
     cfg::PortSpeed downlinkPortSpeed,
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
     bool interfaceHasSubnet) {
-  auto platform = hwSwitch->getPlatform();
   /*
    * For platforms which are not rsw, its always onePortPerInterfaceConfig
    * config with all uplinks and downlinks in same speed. Use the
    * config factory utility to generate the config, update the port
    * speed and return the config.
    */
-  if (!isRswPlatform(platform->getType())) {
+  if (!isRswPlatform(platformType)) {
     auto config = utility::onePortPerInterfaceConfig(
-        hwSwitch,
+        platformMapping,
+        asic,
         masterLogicalPortIds,
         lbModeMap,
         interfaceHasSubnet,
@@ -1105,8 +1108,8 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
         kUplinkBaseVlanId);
     for (auto portId : masterLogicalPortIds) {
       utility::updatePortSpeed(
-          platform->getPlatformMapping(),
-          platform->supportsAddRemovePort(),
+          platformMapping,
+          supportsAddRemovePort,
           config,
           portId,
           uplinkPortSpeed);
@@ -1129,7 +1132,8 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
    * speed update.
    */
   auto config = utility::onePortPerInterfaceConfig(
-      hwSwitch,
+      platformMapping,
+      asic,
       uplinkMasterPorts,
       lbModeMap,
       interfaceHasSubnet,
@@ -1137,8 +1141,8 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
       kUplinkBaseVlanId);
   for (auto portId : uplinkMasterPorts) {
     utility::updatePortSpeed(
-        hwSwitch->getPlatform()->getPlatformMapping(),
-        hwSwitch->getPlatform()->supportsAddRemovePort(),
+        platformMapping,
+        supportsAddRemovePort,
         config,
         portId,
         uplinkPortSpeed);
@@ -1152,8 +1156,8 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
    */
   std::vector<PortID> allDownlinkPorts;
   for (auto masterDownlinkPort : downlinkMasterPorts) {
-    auto allDownlinkPortsInGroup = utility::getAllPortsInGroup(
-        hwSwitch->getPlatform()->getPlatformMapping(), masterDownlinkPort);
+    auto allDownlinkPortsInGroup =
+        utility::getAllPortsInGroup(platformMapping, masterDownlinkPort);
     for (auto logicalPortId : allDownlinkPortsInGroup) {
       auto portConfig = findCfgPortIf(config, masterDownlinkPort);
       if (portConfig != config.ports()->end()) {
@@ -1161,8 +1165,8 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
       }
     }
     configurePortGroup(
-        hwSwitch->getPlatform()->getPlatformMapping(),
-        hwSwitch->getPlatform()->supportsAddRemovePort(),
+        platformMapping,
+        supportsAddRemovePort,
         config,
         downlinkPortSpeed,
         allDownlinkPortsInGroup);
