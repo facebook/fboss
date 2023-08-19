@@ -721,5 +721,47 @@ PlatformMapping::getPortDataplaneChips(
 
   return chips;
 }
+
+cfg::PortProfileID PlatformMapping::getProfileIDBySpeed(
+    PortID portID,
+    cfg::PortSpeed speed) const {
+  auto profile = getProfileIDBySpeedIf(portID, speed);
+  if (!profile.has_value()) {
+    throw FbossError(
+        "Platform port ",
+        portID,
+        " has no profile for speed ",
+        apache::thrift::util::enumNameSafe(speed));
+  }
+  return profile.value();
+}
+
+std::optional<cfg::PortProfileID> PlatformMapping::getProfileIDBySpeedIf(
+    PortID portID,
+    cfg::PortSpeed speed) const {
+  if (speed == cfg::PortSpeed::DEFAULT) {
+    return cfg::PortProfileID::PROFILE_DEFAULT;
+  }
+
+  const auto& platformPortEntry = getPlatformPort(portID);
+  for (auto profile : *platformPortEntry.supportedProfiles()) {
+    auto profileID = profile.first;
+    if (auto profileCfg = getPortProfileConfig(
+            PlatformPortProfileConfigMatcher(profileID, portID))) {
+      if (*profileCfg->speed() == speed) {
+        return profileID;
+      }
+    } else {
+      throw FbossError(
+          "Platform port ",
+          portID,
+          " has invalid profile ",
+          apache::thrift::util::enumNameSafe(profileID));
+    }
+  }
+  XLOG(DBG2) << "Can't find supported profile for port=" << portID
+             << ", speed=" << apache::thrift::util::enumNameSafe(speed);
+  return std::nullopt;
+}
 } // namespace fboss
 } // namespace facebook
