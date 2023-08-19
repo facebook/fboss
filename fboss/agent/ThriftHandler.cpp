@@ -632,6 +632,7 @@ void addRecylePortRifNeighbors(
       nbrThrift.mac() = entry->getMac().toString();
       nbrThrift.port() = kRecylePortId;
       nbrThrift.vlanName() = "--";
+      nbrThrift.interfaceID() = kRecylePortId;
       // Local recycle port for RIF, should always be STATIC
       CHECK(entry->getType() == state::NeighborEntryType::STATIC_ENTRY);
       nbrThrift.state() = "STATIC";
@@ -950,6 +951,7 @@ void ThriftHandler::addRemoteNeighbors(
         CHECK(rif->getSystemPortID().has_value());
         nbrThrift.port() = static_cast<int32_t>(*rif->getSystemPortID());
         nbrThrift.vlanName() = "--";
+        nbrThrift.interfaceID() = static_cast<int32_t>(*rif->getSystemPortID());
 
         switch (entry->getType()) {
           case state::NeighborEntryType::STATIC_ENTRY:
