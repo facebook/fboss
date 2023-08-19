@@ -360,7 +360,14 @@ void HwPortBandwidthTest::verifyPortRateTraffic(cfg::PortSpeed portSpeed) {
   auto setup = [&]() {
     auto newCfg{initialConfig()};
     utility::configurePortGroup(
-        *(getHwSwitchEnsemble()->getHwSwitch()),
+        getHwSwitchEnsemble()
+            ->getHwSwitch()
+            ->getPlatform()
+            ->getPlatformMapping(),
+        getHwSwitchEnsemble()
+            ->getHwSwitch()
+            ->getPlatform()
+            ->supportsAddRemovePort(),
         newCfg,
         portSpeed,
         getAllPortsInGroup(masterLogicalPortIds()[0]));

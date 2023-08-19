@@ -144,7 +144,8 @@ std::vector<cfg::Port>::iterator findCfgPortIf(
     cfg::SwitchConfig& cfg,
     PortID portID);
 void configurePortGroup(
-    const HwSwitch& hwSwitch,
+    const PlatformMapping* platformMapping,
+    bool supportsAddRemovePort,
     cfg::SwitchConfig& config,
     cfg::PortSpeed speed,
     std::vector<PortID> allPortsInGroup);

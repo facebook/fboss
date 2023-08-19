@@ -945,12 +945,11 @@ std::vector<cfg::Port>::iterator findCfgPortIf(
 // Set any ports in this port group to use the specified speed,
 // and disables any ports that don't support this speed.
 void configurePortGroup(
-    const HwSwitch& hwSwitch,
+    const PlatformMapping* platformMapping,
+    bool supportsAddRemovePort,
     cfg::SwitchConfig& config,
     cfg::PortSpeed speed,
     std::vector<PortID> allPortsInGroup) {
-  auto platform = hwSwitch.getPlatform();
-  auto supportsAddRemovePort = platform->supportsAddRemovePort();
   for (auto portID : allPortsInGroup) {
     // We might have removed a subsumed port already in a previous
     // iteration of the loop.
@@ -959,9 +958,8 @@ void configurePortGroup(
       continue;
     }
 
-    auto platformPort = platform->getPlatformPort(portID);
-    const auto& platPortEntry = platformPort->getPlatformPortEntry();
-    auto profileID = platformPort->getProfileIDBySpeedIf(speed);
+    const auto& platPortEntry = platformMapping->getPlatformPort(portID);
+    auto profileID = platformMapping->getProfileIDBySpeedIf(portID, speed);
     if (!profileID.has_value()) {
       XLOG(WARNING) << "Port " << static_cast<int>(portID)
                     << "Doesn't support speed " << static_cast<int>(speed)
@@ -1163,7 +1161,11 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
       }
     }
     configurePortGroup(
-        *hwSwitch, config, downlinkPortSpeed, allDownlinkPortsInGroup);
+        hwSwitch->getPlatform()->getPlatformMapping(),
+        hwSwitch->getPlatform()->supportsAddRemovePort(),
+        config,
+        downlinkPortSpeed,
+        allDownlinkPortsInGroup);
   }
 
   // Vlan config
