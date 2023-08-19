@@ -905,16 +905,14 @@ void delMatcher(cfg::SwitchConfig* config, const std::string& matcherName) {
 }
 
 void updatePortSpeed(
-    const HwSwitch& hwSwitch,
+    const PlatformMapping* platformMapping,
+    bool supportsAddRemovePort,
     cfg::SwitchConfig& cfg,
     PortID portID,
     cfg::PortSpeed speed) {
   auto cfgPort = findCfgPort(cfg, portID);
-  auto platform = hwSwitch.getPlatform();
-  auto supportsAddRemovePort = platform->supportsAddRemovePort();
-  auto platformPort = platform->getPlatformPort(portID);
-  const auto& platPortEntry = platformPort->getPlatformPortEntry();
-  auto profileID = platformPort->getProfileIDBySpeed(speed);
+  const auto& platPortEntry = platformMapping->getPlatformPort(portID);
+  auto profileID = platformMapping->getProfileIDBySpeed(portID, speed);
   const auto& supportedProfiles = *platPortEntry.supportedProfiles();
   auto profile = supportedProfiles.find(profileID);
   if (profile == supportedProfiles.end()) {
@@ -1057,10 +1055,20 @@ cfg::SwitchConfig createRtswUplinkDownlinkConfig(
   auto cfg = utility::onePortPerInterfaceConfig(
       hwSwitch, masterLogicalPortIds, lbModeMap, true, kUplinkBaseVlanId);
   for (auto portId : uplinks) {
-    utility::updatePortSpeed(*hwSwitch, cfg, portId, portSpeed);
+    utility::updatePortSpeed(
+        hwSwitch->getPlatform()->getPlatformMapping(),
+        hwSwitch->getPlatform()->supportsAddRemovePort(),
+        cfg,
+        portId,
+        portSpeed);
   }
   for (auto portId : downlinks) {
-    utility::updatePortSpeed(*hwSwitch, cfg, portId, portSpeed);
+    utility::updatePortSpeed(
+        hwSwitch->getPlatform()->getPlatformMapping(),
+        hwSwitch->getPlatform()->supportsAddRemovePort(),
+        cfg,
+        portId,
+        portSpeed);
   }
 
   // disable all ports other than uplinks/downlinks
@@ -1098,7 +1106,12 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
         true,
         kUplinkBaseVlanId);
     for (auto portId : masterLogicalPortIds) {
-      utility::updatePortSpeed(*hwSwitch, config, portId, uplinkPortSpeed);
+      utility::updatePortSpeed(
+          platform->getPlatformMapping(),
+          platform->supportsAddRemovePort(),
+          config,
+          portId,
+          uplinkPortSpeed);
     }
     return config;
   }
@@ -1125,7 +1138,12 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
       true /*setInterfaceMac*/,
       kUplinkBaseVlanId);
   for (auto portId : uplinkMasterPorts) {
-    utility::updatePortSpeed(*hwSwitch, config, portId, uplinkPortSpeed);
+    utility::updatePortSpeed(
+        hwSwitch->getPlatform()->getPlatformMapping(),
+        hwSwitch->getPlatform()->supportsAddRemovePort(),
+        config,
+        portId,
+        uplinkPortSpeed);
   }
 
   /*

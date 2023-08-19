@@ -152,7 +152,11 @@ TEST_F(BcmPortTest, PortLoopbackModeMAC40G) {
       auto portCfg = utility::findCfgPort(newCfg, portId);
       portCfg->loopbackMode() = cfg::PortLoopbackMode::MAC;
       utility::updatePortSpeed(
-          *getHwSwitch(), newCfg, portId, cfg::PortSpeed::FORTYG);
+          getHwSwitch()->getPlatform()->getPlatformMapping(),
+          getHwSwitch()->getPlatform()->supportsAddRemovePort(),
+          newCfg,
+          portId,
+          cfg::PortSpeed::FORTYG);
     }
     applyNewConfig(newCfg);
   };
@@ -180,7 +184,11 @@ TEST_F(BcmPortTest, PortLoopbackModePHY40G) {
       auto portCfg = utility::findCfgPort(newCfg, portId);
       portCfg->loopbackMode() = cfg::PortLoopbackMode::PHY;
       utility::updatePortSpeed(
-          *getHwSwitch(), newCfg, portId, cfg::PortSpeed::FORTYG);
+          getHwSwitch()->getPlatform()->getPlatformMapping(),
+          getHwSwitch()->getPlatform()->supportsAddRemovePort(),
+          newCfg,
+          portId,
+          cfg::PortSpeed::FORTYG);
     }
     applyNewConfig(newCfg);
   };
@@ -208,7 +216,11 @@ TEST_F(BcmPortTest, PortLoopbackModeMAC100G) {
       auto portCfg = utility::findCfgPort(newCfg, portId);
       portCfg->loopbackMode() = cfg::PortLoopbackMode::MAC;
       utility::updatePortSpeed(
-          *getHwSwitch(), newCfg, portId, cfg::PortSpeed::HUNDREDG);
+          getHwSwitch()->getPlatform()->getPlatformMapping(),
+          getHwSwitch()->getPlatform()->supportsAddRemovePort(),
+          newCfg,
+          portId,
+          cfg::PortSpeed::HUNDREDG);
     }
     applyNewConfig(newCfg);
   };
@@ -237,7 +249,11 @@ TEST_F(BcmPortTest, PortLoopbackModePHY100G) {
       auto portCfg = utility::findCfgPort(newCfg, portId);
       portCfg->loopbackMode() = cfg::PortLoopbackMode::PHY;
       utility::updatePortSpeed(
-          *getHwSwitch(), newCfg, portId, cfg::PortSpeed::HUNDREDG);
+          getHwSwitch()->getPlatform()->getPlatformMapping(),
+          getHwSwitch()->getPlatform()->supportsAddRemovePort(),
+          newCfg,
+          portId,
+          cfg::PortSpeed::HUNDREDG);
     }
     applyNewConfig(newCfg);
   };

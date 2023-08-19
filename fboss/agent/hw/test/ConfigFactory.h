@@ -132,7 +132,8 @@ cfg::SwitchConfig twoL3IntfConfig(
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
         kDefaultLoopbackMap());
 void updatePortSpeed(
-    const HwSwitch& hwSwitch,
+    const PlatformMapping* platformMapping,
+    bool supportsAddRemovePort,
     cfg::SwitchConfig& cfg,
     PortID port,
     cfg::PortSpeed speed);
