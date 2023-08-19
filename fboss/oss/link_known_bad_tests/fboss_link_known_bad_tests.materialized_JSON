@@ -539,6 +539,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
@@ -580,6 +583,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin/bcm/asicsdk-6.5.24/6.5.26": [
@@ -621,6 +627,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -662,6 +671,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin/bcm/asicsdk-6.5.24/6.5.28": [
@@ -703,6 +715,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -744,6 +759,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin/bcm/asicsdk-6.5.26/6.5.26": [
@@ -785,6 +803,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -826,6 +847,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin/bcm/asicsdk-6.5.28/6.5.28": [
@@ -867,6 +891,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -908,6 +935,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -1349,6 +1379,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin_mix/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
@@ -1390,6 +1423,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin_mix/bcm/asicsdk-6.5.24/6.5.26": [
@@ -1431,6 +1467,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin_mix/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -1472,6 +1511,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin_mix/bcm/asicsdk-6.5.24/6.5.28": [
@@ -1513,6 +1555,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin_mix/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -1554,6 +1599,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin_mix/bcm/asicsdk-6.5.26/6.5.26": [
@@ -1595,6 +1643,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin_mix/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -1636,6 +1687,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin_mix/bcm/asicsdk-6.5.28/6.5.28": [
@@ -1677,6 +1731,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin_mix/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -1718,6 +1775,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin_mix/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -2159,6 +2219,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin_original/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
@@ -2200,6 +2263,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin_original/bcm/asicsdk-6.5.24/6.5.26": [
@@ -2241,6 +2307,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin_original/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -2282,6 +2351,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin_original/bcm/asicsdk-6.5.24/6.5.28": [
@@ -2323,6 +2395,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin_original/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -2364,6 +2439,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin_original/bcm/asicsdk-6.5.26/6.5.26": [
@@ -2405,6 +2483,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin_original/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -2446,6 +2527,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin_original/bcm/asicsdk-6.5.28/6.5.28": [
@@ -2487,6 +2571,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin_original/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -2528,6 +2615,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "darwin_original/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -2966,6 +3056,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
@@ -3004,6 +3097,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.24/6.5.26": [
@@ -3042,6 +3138,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -3080,6 +3179,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.24/6.5.28": [
@@ -3118,6 +3220,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -3156,6 +3261,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.26/6.5.26": [
@@ -3194,6 +3302,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -3232,6 +3343,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.28/6.5.28": [
@@ -3270,6 +3384,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -3308,6 +3425,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_2x16Q_6x8DD/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -3722,6 +3842,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
@@ -3760,6 +3883,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.24/6.5.26": [
@@ -3798,6 +3924,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -3836,6 +3965,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.24/6.5.28": [
@@ -3874,6 +4006,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -3912,6 +4047,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.26/6.5.26": [
@@ -3950,6 +4088,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -3988,6 +4129,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.28/6.5.28": [
@@ -4026,6 +4170,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -4064,6 +4211,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_5x16Q_3x8DD/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -4487,6 +4637,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_8x16Q/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
@@ -4534,6 +4687,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_8x16Q/bcm/asicsdk-6.5.24/6.5.26": [
@@ -4581,6 +4737,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_8x16Q/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -4628,6 +4787,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_8x16Q/bcm/asicsdk-6.5.24/6.5.28": [
@@ -4675,6 +4837,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_8x16Q/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -4722,6 +4887,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_8x16Q/bcm/asicsdk-6.5.26/6.5.26": [
@@ -4769,6 +4937,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_8x16Q/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -4816,6 +4987,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_8x16Q/bcm/asicsdk-6.5.28/6.5.28": [
@@ -4863,6 +5037,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_8x16Q/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -4910,6 +5087,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "elbert_8x16Q/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -5393,6 +5573,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "fuji_8x16Q/bcm/asicsdk-6.5.24/6.5.24/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -5428,6 +5611,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "fuji_8x16Q/bcm/asicsdk-6.5.24/6.5.26": [
@@ -5463,6 +5649,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "fuji_8x16Q/bcm/asicsdk-6.5.24/6.5.26/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -5498,6 +5687,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "fuji_8x16Q/bcm/asicsdk-6.5.24/6.5.28": [
@@ -5533,6 +5725,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "fuji_8x16Q/bcm/asicsdk-6.5.24/6.5.28/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -5568,6 +5763,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "fuji_8x16Q/bcm/asicsdk-6.5.26/6.5.26": [
@@ -5603,6 +5801,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "fuji_8x16Q/bcm/asicsdk-6.5.26/6.5.26/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -5638,6 +5839,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "fuji_8x16Q/bcm/asicsdk-6.5.28/6.5.28": [
@@ -5673,6 +5877,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "fuji_8x16Q/bcm/asicsdk-6.5.28/6.5.28/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -5708,6 +5915,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "fuji_8x16Q/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -6846,6 +7056,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.24/6.5.24/physdk-millenio-5.5/millenio-5.5": [
@@ -6878,6 +7091,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.24/6.5.26": [
@@ -6910,6 +7126,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.24/6.5.26/physdk-millenio-5.5/millenio-5.5": [
@@ -6942,6 +7161,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.24/6.5.28": [
@@ -6974,6 +7196,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.24/6.5.28/physdk-millenio-5.5/millenio-5.5": [
@@ -7006,6 +7231,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.26/6.5.26": [
@@ -7038,6 +7266,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.26/6.5.26/physdk-millenio-5.5/millenio-5.5": [
@@ -7070,6 +7301,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.28/6.5.28": [
@@ -7102,6 +7336,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.28/6.5.28/physdk-millenio-5.5/millenio-5.5": [
@@ -7134,6 +7371,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "minipack_7x16Q_1x16O/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -7551,6 +7791,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "montblanc/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
@@ -7592,6 +7835,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "montblanc/bcm/asicsdk-6.5.24/6.5.26": [
@@ -7633,6 +7879,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "montblanc/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -7674,6 +7923,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "montblanc/bcm/asicsdk-6.5.24/6.5.28": [
@@ -7715,6 +7967,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "montblanc/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -7756,6 +8011,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "montblanc/bcm/asicsdk-6.5.26/6.5.26": [
@@ -7797,6 +8055,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "montblanc/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -7838,6 +8099,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "montblanc/bcm/asicsdk-6.5.28/6.5.28": [
@@ -7879,6 +8143,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "montblanc/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -7920,6 +8187,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "montblanc/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -10134,6 +10404,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "wedge100s/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
@@ -10178,6 +10451,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "wedge100s/bcm/asicsdk-6.5.24/6.5.26": [
@@ -10222,6 +10498,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "wedge100s/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -10266,6 +10545,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "wedge100s/bcm/asicsdk-6.5.24/6.5.28": [
@@ -10310,6 +10592,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "wedge100s/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -10354,6 +10639,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "wedge100s/bcm/asicsdk-6.5.26/6.5.26": [
@@ -10398,6 +10686,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "wedge100s/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -10442,6 +10733,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "wedge100s/bcm/asicsdk-6.5.28/6.5.28": [
@@ -10486,6 +10780,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "wedge100s/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -10530,6 +10827,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "wedge100s/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -11007,6 +11307,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "wedge400/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
@@ -11060,6 +11363,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "wedge400/bcm/asicsdk-6.5.24/6.5.26": [
@@ -11113,6 +11419,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "wedge400/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -11166,6 +11475,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "wedge400/bcm/asicsdk-6.5.24/6.5.28": [
@@ -11219,6 +11531,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "wedge400/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -11272,6 +11587,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "wedge400/bcm/asicsdk-6.5.26/6.5.26": [
@@ -11325,6 +11643,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "wedge400/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -11378,6 +11699,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "wedge400/bcm/asicsdk-6.5.28/6.5.28": [
@@ -11431,6 +11755,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "wedge400/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -11484,6 +11811,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "wedge400/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -12524,6 +12854,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "yamp_8x16Q/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
@@ -12568,6 +12901,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "yamp_8x16Q/bcm/asicsdk-6.5.24/6.5.26": [
@@ -12612,6 +12948,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "yamp_8x16Q/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -12656,6 +12995,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "yamp_8x16Q/bcm/asicsdk-6.5.24/6.5.28": [
@@ -12700,6 +13042,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "yamp_8x16Q/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -12744,6 +13089,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "yamp_8x16Q/bcm/asicsdk-6.5.26/6.5.26": [
@@ -12788,6 +13136,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "yamp_8x16Q/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -12832,6 +13183,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "yamp_8x16Q/bcm/asicsdk-6.5.28/6.5.28": [
@@ -12876,6 +13230,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "yamp_8x16Q/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -12920,6 +13277,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
         }
     ],
     "yamp_8x16Q/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
