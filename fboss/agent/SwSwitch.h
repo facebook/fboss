@@ -457,6 +457,16 @@ class SwSwitch : public HwSwitchCallback {
   void getProductInfo(ProductInfo& productInfo) const;
 
   /*
+   * Get Platform Type information.
+   */
+  PlatformType getPlatformType() const;
+
+  /*
+   * Get Platform data supportsAddRemovePort
+   */
+  bool getPlatformSupportsAddRemovePort() const;
+
+  /*
    * Get the PortStats for the ingress port of this packet.
    */
   PortStats* portStats(const RxPacket* pkt);

@@ -511,6 +511,15 @@ void SwSwitch::getProductInfo(ProductInfo& productInfo) const {
   platformProductInfo_->getInfo(productInfo);
 }
 
+PlatformType SwSwitch::getPlatformType() const {
+  CHECK(platformProductInfo_);
+  return platformProductInfo_->getType();
+}
+
+bool SwSwitch::getPlatformSupportsAddRemovePort() const {
+  return supportsAddRemovePort_;
+}
+
 void SwSwitch::publishPhyInfoSnapshots(PortID portID) const {
   phySnapshotManager_->publishSnapshots(portID);
 }
