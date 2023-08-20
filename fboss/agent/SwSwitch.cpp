@@ -364,9 +364,7 @@ void SwSwitch::stop(bool revertToMinAlpmState) {
   packetTxThreadHeartbeat_.reset();
   lacpThreadHeartbeat_.reset();
   neighborCacheThreadHeartbeat_.reset();
-  if (rib_) {
-    rib_->stop();
-  }
+  rib_->stop();
 
   lookupClassUpdater_.reset();
   lookupClassRouteUpdater_.reset();
@@ -462,11 +460,9 @@ void SwSwitch::setFibSyncTimeForClient(ClientID clientId) {
 
 state::WarmbootState SwSwitch::gracefulExitState() const {
   state::WarmbootState thriftSwitchState;
-  if (rib_) {
-    // For RIB we employ a optmization to serialize only unresolved routes
-    // and recover others from FIB
-    thriftSwitchState.routeTables() = rib_->warmBootState();
-  }
+  // For RIB we employ a optmization to serialize only unresolved routes
+  // and recover others from FIB
+  thriftSwitchState.routeTables() = rib_->warmBootState();
   *thriftSwitchState.swSwitchState() = getAppliedState()->toThrift();
   return thriftSwitchState;
 }
@@ -2050,22 +2046,14 @@ void SwSwitch::applyConfig(
       reason,
       [&](const shared_ptr<SwitchState>& state) -> shared_ptr<SwitchState> {
         auto originalState = state;
-        auto newState = rib_ ? applyThriftConfig(
-                                   originalState,
-                                   &newConfig,
-                                   supportsAddRemovePort_,
-                                   platformMapping_.get(),
-                                   hwAsicTable_.get(),
-                                   &routeUpdater,
-                                   aclNexthopHandler_.get())
-                             : applyThriftConfig(
-                                   originalState,
-                                   &newConfig,
-                                   supportsAddRemovePort_,
-                                   platformMapping_.get(),
-                                   hwAsicTable_.get(),
-                                   (RoutingInformationBase*)nullptr,
-                                   aclNexthopHandler_.get());
+        auto newState = applyThriftConfig(
+            originalState,
+            &newConfig,
+            supportsAddRemovePort_,
+            platformMapping_.get(),
+            hwAsicTable_.get(),
+            &routeUpdater,
+            aclNexthopHandler_.get());
 
         if (newState && !isValidStateUpdate(StateDelta(state, newState))) {
           throw FbossError("Invalid config passed in, skipping");
