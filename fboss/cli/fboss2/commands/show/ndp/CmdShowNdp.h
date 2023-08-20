@@ -55,14 +55,14 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
     constexpr auto fmtString =
-        "{:<45}{:<19}{:<12}{:<19}{:<14}{:<9}{:<12}{:<45}{:<21}\n";
+        "{:<45}{:<19}{:<12}{:<30}{:<14}{:<9}{:<12}{:<45}{:<21}\n";
 
     out << fmt::format(
         fmtString,
         "IP Address",
         "MAC Address",
         "Interface",
-        "VLAN",
+        "VLAN/InterfaceID",
         "State",
         "TTL",
         "CLASSID",
@@ -113,7 +113,13 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
           ndpDetails.port() = folly::to<std::string>(entry.get_port());
         }
         ndpDetails.vlanName() = entry.get_vlanName();
-        ndpDetails.vlanID() = entry.get_vlanID();
+        // TODO(skhare)
+        // Once FLAGS_intf_nbr_tables is enabled globally, interfaceID will be
+        // always populated to a valid value, and at that time, we could assign
+        // entry.get_interfaceID() without check for non-0.
+        ndpDetails.vlanID() = entry.get_interfaceID() != 0
+            ? entry.get_interfaceID()
+            : entry.get_vlanID();
         ndpDetails.state() = entry.get_state();
         ndpDetails.ttl() = entry.get_ttl();
         ndpDetails.classID() = entry.get_classID();

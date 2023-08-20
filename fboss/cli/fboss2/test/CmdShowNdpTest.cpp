@@ -123,9 +123,9 @@ TEST_F(CmdShowNdpTestFixture, printOutput) {
 
   std::string output = ss.str();
   std::string expectOutput =
-      "IP Address                                   MAC Address        Interface   VLAN               State         TTL      CLASSID     Voq Switch                                   Resolved Since       \n"
-      "fe80::526b:4bff:fe28:8fb0                    50:6b:4b:28:8f:b0  eth1/1/1    downlinks (2000)   REACHABLE     45013    0           --                                           1969-12-31 16:00:00  \n"
-      "fe80::464c:a8ff:fee4:1c3f                    44:4c:a8:e4:1c:3f  eth2/1/1    uplink_1 (4001)    REACHABLE     21045    0           --                                           --                   \n\n";
+      "IP Address                                   MAC Address        Interface   VLAN/InterfaceID              State         TTL      CLASSID     Voq Switch                                   Resolved Since       \n"
+      "fe80::526b:4bff:fe28:8fb0                    50:6b:4b:28:8f:b0  eth1/1/1    downlinks (2000)              REACHABLE     45013    0           --                                           1969-12-31 16:00:00  \n"
+      "fe80::464c:a8ff:fee4:1c3f                    44:4c:a8:e4:1c:3f  eth2/1/1    uplink_1 (4001)               REACHABLE     21045    0           --                                           --                   \n\n";
 
   EXPECT_EQ(output, expectOutput);
 }
