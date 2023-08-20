@@ -173,9 +173,18 @@ void IPv6Handler::handlePacket(
     XLOG(DBG4) << "DHCP UDP packet, source port :" << udpHdr.srcPort
                << " destination port: " << udpHdr.dstPort;
     if (DHCPv6Handler::isForDHCPv6RelayOrServer(udpHdr)) {
-      DHCPv6Handler::handlePacket(
-          sw_, std::move(pkt), src, dst, ipv6, udpHdr, udpCursor, vlanOrIntf);
-      return;
+      auto switchType = sw_->getSwitchInfoTable().l3SwitchType();
+      if (switchType == cfg::SwitchType::VOQ) {
+        // TODO(skhare)
+        // Support DHCP packets for VOQ switches
+        XLOG_EVERY_MS(DBG2, 5000)
+            << "Dropping DHCPv6 pkt for VOQ switches, Not Supported yet";
+        return;
+      } else {
+        DHCPv6Handler::handlePacket(
+            sw_, std::move(pkt), src, dst, ipv6, udpHdr, udpCursor, vlanOrIntf);
+        return;
+      }
     }
   }
 

@@ -160,9 +160,25 @@ void IPv4Handler::handlePacket(
     XLOG(DBG4) << "UDP packet, Source port :" << udpHdr.srcPort
                << " destination port: " << udpHdr.dstPort;
     if (DHCPv4Handler::isDHCPv4Packet(udpHdr)) {
-      DHCPv4Handler::handlePacket(
-          sw_, std::move(pkt), src, dst, v4Hdr, udpHdr, udpCursor, vlanOrIntf);
-      return;
+      auto switchType = sw_->getSwitchInfoTable().l3SwitchType();
+      if (switchType == cfg::SwitchType::VOQ) {
+        // TODO(skhare)
+        // Support DHCP packets for VOQ switches
+        XLOG_EVERY_MS(DBG2, 5000)
+            << "Dropping DHCPv4 pkt for VOQ switches, Not Supported yet";
+        return;
+      } else {
+        DHCPv4Handler::handlePacket(
+            sw_,
+            std::move(pkt),
+            src,
+            dst,
+            v4Hdr,
+            udpHdr,
+            udpCursor,
+            vlanOrIntf);
+        return;
+      }
     }
   }
 
