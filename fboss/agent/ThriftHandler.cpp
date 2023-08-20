@@ -109,6 +109,8 @@ DEFINE_bool(
     false,
     "Allow external mutations of running config");
 
+DECLARE_bool(intf_nbr_tables);
+
 namespace facebook::fboss {
 
 namespace util {
@@ -2110,8 +2112,17 @@ int32_t ThriftHandler::flushNeighborEntry(
   ensureConfigured(__func__);
 
   auto parsedIP = toIPAddress(*ip);
-  VlanID vlanID(vlan);
-  return sw_->getNeighborUpdater()->flushEntry(vlanID, parsedIP).get();
+
+  if (FLAGS_intf_nbr_tables) {
+    // VOQ switches don't support VLANs. The thrift client will pass interfaceID
+    // instead of VLAN.
+    // NPU switches support VLANs, but vlanID is identical to interfaceID.
+    InterfaceID intfID = InterfaceID(vlan);
+    return sw_->getNeighborUpdater()->flushEntryForIntf(intfID, parsedIP).get();
+  } else {
+    VlanID vlanID(vlan);
+    return sw_->getNeighborUpdater()->flushEntry(vlanID, parsedIP).get();
+  }
 }
 
 void ThriftHandler::getVlanAddresses(Addresses& addrs, int32_t vlan) {
