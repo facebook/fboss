@@ -45,16 +45,6 @@ namespace cfg {
 class SwitchConfig;
 }
 
-template <cfg::SwitchType type>
-struct SwitchTypeT {
-  static constexpr auto switchType = type;
-};
-
-using SwitchTypes = ::testing::Types<
-    SwitchTypeT<cfg::SwitchType::NPU>,
-    SwitchTypeT<cfg::SwitchType::VOQ>,
-    SwitchTypeT<cfg::SwitchType::FABRIC>>;
-
 template <cfg::SwitchType type, bool enableIntfNbrTable>
 struct SwitchTypeAndEnableIntfNbrTableT {
   static constexpr auto switchType = type;
