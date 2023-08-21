@@ -101,8 +101,6 @@ namespace {
 
 const uint8_t kV6LinkLocalAddrMask{64};
 
-facebook::fboss::VlanID kPseudoVlanID(0);
-
 // Only one buffer pool is supported systemwide. Variable to track the name
 // and validate during a config change.
 std::optional<std::string> sharedBufferPoolName;
@@ -331,9 +329,6 @@ class ThriftConfigApplier {
   std::pair<folly::MacAddress, uint16_t> getSystemLacpConfig();
   uint8_t computeMinimumLinkCount(const cfg::AggregatePort& cfg);
   std::shared_ptr<VlanMap> updateVlans();
-  std::shared_ptr<VlanMap> updatePseudoVlans();
-  shared_ptr<Vlan> createPseudoVlan();
-  shared_ptr<Vlan> updatePseudoVlan(const shared_ptr<Vlan>& orig);
   std::shared_ptr<Vlan> createVlan(const cfg::Vlan* config);
   std::shared_ptr<Vlan> updateVlan(
       const std::shared_ptr<Vlan>& orig,
@@ -773,23 +768,6 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
               util::getFirstNodeIf(new_->getSwitchSettings())),
           scopeResolver_));
       changed = true;
-    }
-  }
-
-  if (!FLAGS_intf_nbr_tables) {
-    // VOQ/Fabric switches require that the packets are not tagged with any
-    // VLAN. We are gradually enhancing wedge_agent to handle tagged as well as
-    // untagged packets. During this transition, we will use VlanID 0 as
-    // "pseudoVlan" to populate SwitchState/Neighbor cache etc. data structures.
-    // Once the wedge_agent changes are complete, we will no longer need
-    // pseudoVlan notion.
-    if (!util::getFirstNodeIf(new_->getSwitchSettings())->vlansSupported()) {
-      auto pseudoVlans = updatePseudoVlans();
-      if (pseudoVlans) {
-        new_->resetVlans(
-            toMultiSwitchMap<MultiSwitchVlanMap>(pseudoVlans, scopeResolver_));
-        changed = true;
-      }
     }
   }
 
@@ -2379,54 +2357,6 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(
   newVlan->setDhcpV4Relay(newDhcpV4Relay);
   newVlan->setDhcpV6Relay(newDhcpV6Relay);
   return newVlan;
-}
-
-shared_ptr<VlanMap> ThriftConfigApplier::updatePseudoVlans() {
-  const auto& switchSettings = util::getFirstNodeIf(new_->getSwitchSettings());
-  // Pseudo vlan only case of non vlan supporting configs
-  CHECK(!switchSettings->vlansSupported());
-
-  auto origVlans = orig_->getVlans();
-  auto origVlan = origVlans->getNodeIf(kPseudoVlanID);
-  VlanMap::NodeContainer newVlans;
-  bool changed = false;
-
-  shared_ptr<Vlan> newVlan;
-  if (origVlan) {
-    // update pseudo VLAN
-    newVlan = updatePseudoVlan(origVlan);
-  } else {
-    newVlan = createPseudoVlan();
-  }
-
-  changed |= updateMap(&newVlans, origVlan, newVlan);
-
-  if (!changed) {
-    return nullptr;
-  }
-
-  auto vlans = std::make_shared<VlanMap>(std::move(newVlans));
-  return vlans;
-}
-
-shared_ptr<Vlan> ThriftConfigApplier::updatePseudoVlan(
-    const shared_ptr<Vlan>& orig) {
-  auto newVlan = orig->clone();
-  bool changed_neighbor_table =
-      updateNbrResponseTablesFromAllIntfCfg(newVlan.get());
-
-  if (!changed_neighbor_table) {
-    return nullptr;
-  }
-
-  return newVlan;
-}
-
-shared_ptr<Vlan> ThriftConfigApplier::createPseudoVlan() {
-  auto vlan = make_shared<Vlan>(kPseudoVlanID, std::string("pseudoVlan"));
-  updateNbrResponseTablesFromAllIntfCfg(vlan.get());
-
-  return vlan;
 }
 
 std::shared_ptr<QosPolicyMap> ThriftConfigApplier::updateQosPolicies() {
