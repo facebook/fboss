@@ -56,6 +56,8 @@ std::array<std::string, 9> channelConfigErrorMsg = {
 namespace facebook {
 namespace fboss {
 
+using namespace facebook::fboss::phy;
+
 enum DiagnosticFeatureEncoding {
   NONE = 0x0,
   BER = 0x1,

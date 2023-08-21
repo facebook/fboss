@@ -22,14 +22,12 @@ constexpr auto kDefaultTimespanSeconds = 60;
 
 namespace facebook::fboss {
 
-using namespace fboss::phy;
-
 class SnapshotWrapper {
  public:
-  explicit SnapshotWrapper(LinkSnapshot snapshot) : snapshot_(snapshot) {}
+  explicit SnapshotWrapper(phy::LinkSnapshot snapshot) : snapshot_(snapshot) {}
   void publish(const std::set<std::string>& portNames);
 
-  LinkSnapshot snapshot_;
+  phy::LinkSnapshot snapshot_;
   bool published_{false};
 };
 
@@ -50,7 +48,7 @@ class SnapshotManager {
   static constexpr size_t length = timespanSeconds / intervalSeconds + 1;
 
   explicit SnapshotManager(std::set<std::string> portNames);
-  void addSnapshot(LinkSnapshot val);
+  void addSnapshot(phy::LinkSnapshot val);
   void publishAllSnapshots();
   const RingBuffer<SnapshotWrapper, length>& getSnapshots() const;
   void publishFutureSnapshots(int numToPublish);

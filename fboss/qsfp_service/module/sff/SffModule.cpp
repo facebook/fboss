@@ -45,6 +45,8 @@ constexpr int kUsecBetweenPowerModeFlap = 100000;
 namespace facebook {
 namespace fboss {
 
+using namespace facebook::fboss::phy;
+
 // As per SFF-8636
 static QsfpFieldInfo<SffField, SffPages>::QsfpFieldMap qsfpFields = {
     // Fields for reading an entire page

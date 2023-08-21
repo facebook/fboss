@@ -542,7 +542,7 @@ void PhyManager::updateAllXphyPortsStats() {
   for (const auto& portStatsInfo : portToStatsInfo_) {
     bool supportPortStats = false, supportPrbsStats = false;
     PimID pimID;
-    ExternalPhy* xphy;
+    phy::ExternalPhy* xphy;
     {
       const auto& rLockedCache = getRLockedCache(portStatsInfo.first);
       // If the port is not programmed yet, skip updating xphy stats for it
@@ -610,10 +610,10 @@ void PhyManager::updatePortStats(
         }
 
         steady_clock::time_point begin = steady_clock::now();
-        std::optional<ExternalPhyPortStats> stats;
+        std::optional<phy::ExternalPhyPortStats> stats;
         // if PORT_INFO feature is supported, use getPortInfo instead
         if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_INFO)) {
-          PhyInfo lastPhyInfo;
+          phy::PhyInfo lastPhyInfo;
           if (auto lastXphyInfo = getXphyInfo(portID)) {
             lastPhyInfo = *lastXphyInfo;
           }
@@ -621,7 +621,7 @@ void PhyManager::updatePortStats(
               xphy->getPortInfo(systemLanes, lineLanes, lastPhyInfo);
           xphyPortInfo.state()->name() = getPortName(portID);
           xphyPortInfo.state()->speed() = programmedSpeed;
-          stats = ExternalPhyPortStats::fromPhyInfo(xphyPortInfo);
+          stats = phy::ExternalPhyPortStats::fromPhyInfo(xphyPortInfo);
           updateXphyInfo(portID, std::move(xphyPortInfo));
         } else {
           stats = xphy->getPortStats(systemLanes, lineLanes);

@@ -3225,7 +3225,8 @@ prbs::InterfacePrbsState BcmSwitch::getPortPrbsState(PortID portId) {
   return getBcmPortPrbsState(unit_, portTable_->getBcmPortId(portId));
 }
 
-std::vector<PrbsLaneStats> BcmSwitch::getPortAsicPrbsStats(int32_t portId) {
+std::vector<phy::PrbsLaneStats> BcmSwitch::getPortAsicPrbsStats(
+    int32_t portId) {
   return bcmStatUpdater_->getPortAsicPrbsStats(portId);
 }
 

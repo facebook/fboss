@@ -353,11 +353,12 @@ class SffModule : public QsfpModule {
    * Provides the option to override the prbs state for certain transceivers
    */
   const std::optional<prbs::InterfacePrbsState> getPortPrbsStateOverrideLocked(
-      Side side);
+      phy::Side side);
   /*
    * 100G-FR1 modules have a proprietary method to get the prbs state
    */
-  const prbs::InterfacePrbsState getFr1PortPrbsStateOverrideLocked(Side side);
+  const prbs::InterfacePrbsState getFr1PortPrbsStateOverrideLocked(
+      phy::Side side);
 
   /*
    * Provides the option to override the implementation of setPortPrbs for
@@ -415,7 +416,7 @@ class SffModule : public QsfpModule {
   /*
    * Returns the current state of prbs (enabled/polynomial)
    */
-  prbs::InterfacePrbsState getPortPrbsStateLocked(Side side) override;
+  prbs::InterfacePrbsState getPortPrbsStateLocked(phy::Side side) override;
 
   /*
    * Set the PRBS Generator and Checker on a module for the desired side (Line
@@ -430,39 +431,39 @@ class SffModule : public QsfpModule {
    * Allows the option to override the implementation of getting total bit count
    */
   const std::optional<long long> getPrbsTotalBitCountOverrideLocked(
-      Side side,
+      phy::Side side,
       uint8_t lane);
   /*
    * Allows the option to override the implementation of getting total bit error
    * count
    */
   const std::optional<long long> getPrbsBitErrorCountOverrideLocked(
-      Side side,
+      phy::Side side,
       uint8_t lane);
   /*
    * Allows the option to override the implementation of getting prbs lock
    * status
    */
-  const std::optional<int> getPrbsLockStatusOverrideLocked(Side side);
+  const std::optional<int> getPrbsLockStatusOverrideLocked(phy::Side side);
   /*
    * 100G-FR1 modules have a proprietary method to read prbs lock status
    */
-  const std::optional<int> getFr1PrbsLockStatusOverrideLocked(Side side);
+  const std::optional<int> getFr1PrbsLockStatusOverrideLocked(phy::Side side);
   /*
    * Returns the total bit count
    * This function expects the caller to hold the qsfp module level lock
    */
-  long long getPrbsTotalBitCountLocked(Side side, uint8_t lane);
+  long long getPrbsTotalBitCountLocked(phy::Side side, uint8_t lane);
   /*
    * Returns the total PRBS bit error count
    * This function expects the caller to hold the qsfp module level lock
    */
-  long long getPrbsBitErrorCountLocked(Side side, uint8_t lane);
+  long long getPrbsBitErrorCountLocked(phy::Side side, uint8_t lane);
   /*
    * Returns the prbs lock status of lanes on the given side
    * This function expects the caller to hold the qsfp module level lock
    */
-  int getPrbsLockStatusLocked(Side side);
+  int getPrbsLockStatusLocked(phy::Side side);
 
   /*
    * Get the PRBS stats for a module

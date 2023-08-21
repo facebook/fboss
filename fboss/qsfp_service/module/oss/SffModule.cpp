@@ -12,6 +12,8 @@
 namespace facebook {
 namespace fboss {
 
+using namespace facebook::fboss::phy;
+
 const std::optional<QsfpModule::LengthAndGauge> SffModule::getDACCableOverride()
     const {
   return std::nullopt;

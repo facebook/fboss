@@ -103,7 +103,7 @@ class MockCmisModule : public CmisModule {
   MOCK_METHOD1(updateCachedTransceiverInfoLocked, void(ModuleStatus));
   MOCK_CONST_METHOD0(ensureOutOfReset, void());
   MOCK_METHOD0(ensureTransceiverReadyLocked, bool());
-  MOCK_METHOD1(getPortPrbsStateLocked, prbs::InterfacePrbsState(Side));
+  MOCK_METHOD1(getPortPrbsStateLocked, prbs::InterfacePrbsState(phy::Side));
 };
 
 /*

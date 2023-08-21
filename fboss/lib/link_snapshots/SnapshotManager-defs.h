@@ -22,7 +22,7 @@ SnapshotManager<intervalSeconds, timespanSeconds>::SnapshotManager(
 
 template <size_t intervalSeconds, size_t timespanSeconds>
 void SnapshotManager<intervalSeconds, timespanSeconds>::addSnapshot(
-    LinkSnapshot val) {
+    phy::LinkSnapshot val) {
   auto snapshot = SnapshotWrapper(val);
   buf_.write(snapshot);
 
