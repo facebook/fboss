@@ -23,7 +23,7 @@ class SwSwitchHandlerTest : public ::testing::Test {
  public:
   void SetUp() override {
     const std::map<int64_t, cfg::SwitchInfo> switchInfoMap = {
-        {0, cfg::SwitchInfo()}};
+        {0, cfg::SwitchInfo()}, {1, cfg::SwitchInfo()}};
     hwSwitchHandler_ = std::make_unique<MultiHwSwitchHandler>(
         switchInfoMap,
         [](const SwitchID& switchId, const cfg::SwitchInfo& info) {
@@ -38,10 +38,24 @@ class SwSwitchHandlerTest : public ::testing::Test {
 };
 
 TEST_F(SwSwitchHandlerTest, GetOperDelta) {
-  auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
   auto stateV1 = std::make_shared<SwitchState>();
-  addSwitchInfo(stateV1);
+  auto newSwitchSettings = std::make_shared<SwitchSettings>();
+  auto multiSwitchSwitchSettings = std::make_unique<MultiSwitchSettings>();
+  multiSwitchSwitchSettings->addNode(
+      HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}))
+          .matcherString(),
+      newSwitchSettings);
+  multiSwitchSwitchSettings->addNode(
+      HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(1)}))
+          .matcherString(),
+      newSwitchSettings);
+  stateV1->resetSwitchSettings(std::move(multiSwitchSwitchSettings));
+
+  auto config = testConfigA();
+  config.switchSettings()->switchIdToSwitchInfo() = {
+      {0, createSwitchInfo(cfg::SwitchType::NPU)},
+      {1, createSwitchInfo(cfg::SwitchType::NPU)}};
 
   auto addRandomDelay = []() {
     std::this_thread::sleep_for(std::chrono::milliseconds{random() % 100});
@@ -54,20 +68,28 @@ TEST_F(SwSwitchHandlerTest, GetOperDelta) {
     hwSwitchHandler_->stateChanged(delta, true);
     addRandomDelay();
     hwSwitchHandler_->cancelOperDeltaRequest(0);
+    hwSwitchHandler_->cancelOperDeltaRequest(1);
   });
 
-  std::thread clientRequestThread([this, &delta, &addRandomDelay]() {
+  auto clientThreadBody = [this, &delta, &addRandomDelay](int64_t switchId) {
+    OperDeltaFilter filter((SwitchID(switchId)));
     // connect and get next state delta
     addRandomDelay();
-    auto operDelta = hwSwitchHandler_->getNextStateOperDelta(0);
-    EXPECT_EQ(operDelta.operDelta(), delta.getOperDelta());
+    auto operDelta = hwSwitchHandler_->getNextStateOperDelta(switchId);
+    EXPECT_EQ(operDelta.operDelta(), *filter.filter(delta.getOperDelta(), 1));
     // request for next state delta. serves as ack for previous one
-    operDelta = hwSwitchHandler_->getNextStateOperDelta(0);
-    EXPECT_EQ(operDelta.operDelta(), delta.getOperDelta());
+    operDelta = hwSwitchHandler_->getNextStateOperDelta(switchId);
+    EXPECT_EQ(operDelta.operDelta(), *filter.filter(delta.getOperDelta(), 1));
     // this request will be cancelled
-    operDelta = hwSwitchHandler_->getNextStateOperDelta(0);
+    operDelta = hwSwitchHandler_->getNextStateOperDelta(switchId);
+    // this request will be cancelled
     EXPECT_EQ(operDelta.operDelta(), fsdb::OperDelta());
-  });
+  };
+
+  std::thread clientRequestThread1([&]() { clientThreadBody(0); });
+  std::thread clientRequestThread2([&]() { clientThreadBody(1); });
+
   stateUpdateThread.join();
-  clientRequestThread.join();
+  clientRequestThread1.join();
+  clientRequestThread2.join();
 }

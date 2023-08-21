@@ -137,8 +137,7 @@ class MultiHwSwitchHandler {
       const HwSwitchStateUpdate& update);
 
   std::shared_ptr<SwitchState> getStateUpdateResult(
-      SwitchID switchId,
-      folly::Future<std::shared_ptr<SwitchState>>&& future);
+      std::vector<folly::Future<std::shared_ptr<SwitchState>>>& futures);
 
   std::map<SwitchID, std::unique_ptr<HwSwitchHandler>> hwSwitchSyncers_;
   std::atomic<bool> stopped_{true};

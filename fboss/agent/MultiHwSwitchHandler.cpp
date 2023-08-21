@@ -44,16 +44,16 @@ void MultiHwSwitchHandler::stop() {
 std::shared_ptr<SwitchState> MultiHwSwitchHandler::stateChanged(
     const StateDelta& delta,
     bool transaction) {
+  std::vector<folly::Future<std::shared_ptr<SwitchState>>> futures;
   if (stopped_.load()) {
     throw FbossError("multi hw switch syncer not started");
   }
-  // TODO: support more than one switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
-  auto iter = hwSwitchSyncers_.begin();
-  auto switchId = iter->first;
-  auto update = HwSwitchStateUpdate(delta, transaction);
-  auto future = stateChanged(switchId, update);
-  return getStateUpdateResult(switchId, std::move(future));
+  for (const auto& entry : hwSwitchSyncers_) {
+    auto switchId = entry.first;
+    auto update = HwSwitchStateUpdate(delta, transaction);
+    futures.emplace_back(stateChanged(switchId, update));
+  }
+  return getStateUpdateResult(futures);
 }
 
 folly::Future<std::shared_ptr<SwitchState>> MultiHwSwitchHandler::stateChanged(
@@ -67,16 +67,21 @@ folly::Future<std::shared_ptr<SwitchState>> MultiHwSwitchHandler::stateChanged(
 }
 
 std::shared_ptr<SwitchState> MultiHwSwitchHandler::getStateUpdateResult(
-    SwitchID switchId,
-    folly::Future<std::shared_ptr<SwitchState>>&& future) {
-  auto result = std::move(future).getTry();
-  if (result.hasException()) {
-    XLOG(ERR) << "Failed to get state update result for switch id " << switchId
-              << ":" << result.exception().what();
-    result.exception().throw_exception();
+    std::vector<folly::Future<std::shared_ptr<SwitchState>>>& futures) {
+  auto results = folly::collectAll(futures).wait();
+  auto index{0};
+  for (const auto& entry : hwSwitchSyncers_) {
+    auto result = results.value().at(index);
+    if (result.hasException()) {
+      XLOG(ERR) << "Failed to get state update result for switch id "
+                << entry.first << ":" << result.exception().what();
+      result.exception().throw_exception();
+    }
+    CHECK(result.hasValue());
+    index++;
   }
-  CHECK(result.hasValue());
-  return result.value();
+  CHECK(results.value().size());
+  return results.value()[0].value();
 }
 
 HwSwitchHandler* MultiHwSwitchHandler::getHwSwitchHandler(SwitchID switchId) {
