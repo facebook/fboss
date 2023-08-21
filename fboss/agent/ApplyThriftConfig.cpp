@@ -774,21 +774,34 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
 }
 
 void ThriftConfigApplier::processUpdatedDsfNodes() {
-  const auto& switchSettings = util::getFirstNodeIf(new_->getSwitchSettings());
-  auto localSwitchIds = switchSettings->getSwitchIds();
-  for (auto localSwitchId : localSwitchIds) {
+  bool hasVoqSwitch = false;
+  std::unordered_set<SwitchID> localSwitchIds;
+
+  for (auto& [matcherString, switchSettings] :
+       std::as_const(*new_->getSwitchSettings())) {
+    auto localSwitchId = HwSwitchMatcher(matcherString).switchId();
+    localSwitchIds.insert(localSwitchId);
+
     auto origDsfNode = orig_->getDsfNodes()->getNodeIf(localSwitchId);
     if (origDsfNode &&
         origDsfNode->getType() !=
             new_->getDsfNodes()->getNodeIf(localSwitchId)->getType()) {
       throw FbossError("Change in DSF node type is not supported");
     }
+
+    if (switchSettings->l3SwitchType()) {
+      hasVoqSwitch |=
+          (switchSettings->l3SwitchType().value() == cfg::SwitchType::VOQ);
+    }
   }
 
-  if (switchSettings->getSwitchIdsOfType(cfg::SwitchType::VOQ).size() == 0) {
-    // DSF node processing only needed on VOQ Switches
+  // On VOQ switches, DSF nodes in the SwitchState are consumed by the DSF
+  // subscriber to subscribe to every other VOQ switch. Thus, process DSF
+  // nodes if at least one of the switchIDs is for VOQ switch.
+  if (!hasVoqSwitch) {
     return;
   }
+
   auto delta = StateDelta(orig_, new_).getDsfNodesDelta();
   auto getRecyclePortId = [](const std::shared_ptr<DsfNode>& node) {
     CHECK(node->getSystemPortRange().has_value());
