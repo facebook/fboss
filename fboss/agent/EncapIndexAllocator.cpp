@@ -7,7 +7,6 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/Vlan.h"
 
 namespace facebook::fboss {
 class HwAsic;
@@ -29,15 +28,6 @@ int64_t EncapIndexAllocator::getNextAvailableEncapIdx(
       }
     }
   };
-  for (const auto& vlanTable : std::as_const(*state->getVlans())) {
-    std::for_each(
-        vlanTable.second->cbegin(),
-        vlanTable.second->cend(),
-        [&](const auto& idAndVlan) {
-          extractIndices(idAndVlan.second->getArpTable());
-          extractIndices(idAndVlan.second->getNdpTable());
-        });
-  }
   for (const auto& [_, intfMap] : std::as_const(*state->getInterfaces())) {
     std::for_each(
         intfMap->cbegin(), intfMap->cend(), [&](const auto& idAndIntf) {
