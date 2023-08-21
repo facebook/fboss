@@ -43,11 +43,22 @@ std::string flushNeighborEntries(
     auto ip = folly::IPAddress::fromBinary(
         folly::ByteRange(folly::StringPiece(entry.get_ip().get_addr())));
     std::cout << fmt::format(
-        "Deleting {} entry ip: {} vlanID: {}\n",
+        "Deleting {} entry ip: {} interfaceID: {}\n",
         nbrTypeStr,
         ip.str(),
-        entry.get_vlanID());
-    agent->sync_flushNeighborEntry(entry.get_ip(), entry.get_vlanID());
+        entry.get_interfaceID());
+
+    /*
+     * Always pass interfaceID, because:
+     *
+     * NPU / VOQ  switch, FLAGS_intf_nbr_tables = true
+     *  => Agent deletes neighbor from interface's neighbor table.
+     *
+     *  NPU switch, FLAGS_intf_nbr_tables = false
+     *  => Agent treats supplied interfaceID as vlanID (vlanID always equals
+     *     interfaceID) and deletes neighbor from vlan's neighbor table.
+     */
+    agent->sync_flushNeighborEntry(entry.get_ip(), entry.get_interfaceID());
   }
 
   return folly::to<std::string>("Flushed ", entriesToFlush.size(), " entries");
