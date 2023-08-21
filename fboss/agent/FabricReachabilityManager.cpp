@@ -274,6 +274,13 @@ bool FabricReachabilityManager::isReachabilityInfoMismatch(
     const auto& endpoint = iter->second;
     if (!*endpoint.isAttached()) {
       // endpoint not attached, points to cabling connectivity issues
+      // unless in cfg also we don't expect it to be present
+      if (!endpoint.expectedSwitchId().has_value() &&
+          !endpoint.expectedPortId().has_value()) {
+        // not attached, not expected to be attached ..thse are fabric ports
+        // which are down and only contribute to the noise.
+        return false;
+      }
       return true;
     }
     if (endpoint.expectedSwitchId().has_value() &&

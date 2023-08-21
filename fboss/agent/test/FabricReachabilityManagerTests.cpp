@@ -226,6 +226,24 @@ TEST_F(FabricReachabilityManagerTest, validateUnattachedEndpoint) {
   // unattached port implies connectivity issues
   EXPECT_TRUE(
       fabricReachabilityManager_->isReachabilityInfoMismatch(PortID(1)));
+
+  // another case for unattached endpoint is where its not having
+  // neighbor reachability cfg as well ..this is case of down fabric ports
+  // and should be discounted
+  auto newState2 = std::make_shared<SwitchState>();
+  std::shared_ptr<Port> swPort2 = makePort(2);
+  newState->getPorts()->addNode(swPort2, getScope(swPort2));
+  FabricEndpoint endpoint2;
+  // dont set anything in the endpoint
+  endpoint2.isAttached() = false;
+  hwReachabilityMap.emplace(swPort2->getID(), endpoint2);
+
+  // update
+  StateDelta delta2(newState, newState2);
+  fabricReachabilityManager_->stateUpdated(delta2);
+
+  EXPECT_FALSE(
+      fabricReachabilityManager_->isReachabilityInfoMismatch(PortID(2)));
 }
 
 TEST_F(FabricReachabilityManagerTest, validateUnexpectedNeighbors) {
