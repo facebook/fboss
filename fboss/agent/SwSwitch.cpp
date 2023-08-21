@@ -205,6 +205,29 @@ facebook::fboss::PortStatus fillInPortStatus(
 
 auto constexpr kHwUpdateFailures = "hw_update_failures";
 
+std::string getDrainStateChangedStr(
+    const std::shared_ptr<facebook::fboss::SwitchState>& oldState,
+    const std::shared_ptr<facebook::fboss::SwitchState>& newState,
+    const facebook::fboss::HwSwitchMatcher& matcher) {
+  auto oldActualSwitchDrainState = oldState->getSwitchSettings()
+                                       ->getNodeIf(matcher.matcherString())
+                                       ->getActualSwitchDrainState();
+  auto newActualSwitchDrainState = newState->getSwitchSettings()
+                                       ->getNodeIf(matcher.matcherString())
+                                       ->getActualSwitchDrainState();
+
+  return oldActualSwitchDrainState != newActualSwitchDrainState
+      ? folly::to<std::string>(
+            "[",
+            apache::thrift::util::enumNameSafe(oldActualSwitchDrainState),
+            "->",
+            apache::thrift::util::enumNameSafe(newActualSwitchDrainState),
+            "]")
+      : folly::to<std::string>(
+            apache::thrift::util::enumNameSafe(oldActualSwitchDrainState),
+            "(UNCHANGED)");
+}
+
 } // anonymous namespace
 
 namespace facebook::fboss {
@@ -1509,31 +1532,6 @@ void SwSwitch::linkStateChanged(
         << "Ignore link state change event before we are fully initialized...";
     return;
   }
-
-  auto getDrainStateChangedStr =
-      [](const std::shared_ptr<SwitchState>& oldState,
-         const std::shared_ptr<SwitchState>& newState,
-         const HwSwitchMatcher& matcher) {
-        auto oldActualSwitchDrainState =
-            oldState->getSwitchSettings()
-                ->getNodeIf(matcher.matcherString())
-                ->getActualSwitchDrainState();
-        auto newActualSwitchDrainState =
-            newState->getSwitchSettings()
-                ->getNodeIf(matcher.matcherString())
-                ->getActualSwitchDrainState();
-
-        return oldActualSwitchDrainState != newActualSwitchDrainState
-            ? folly::to<std::string>(
-                  "[",
-                  apache::thrift::util::enumNameSafe(oldActualSwitchDrainState),
-                  "->",
-                  apache::thrift::util::enumNameSafe(newActualSwitchDrainState),
-                  "]")
-            : folly::to<std::string>(
-                  apache::thrift::util::enumNameSafe(oldActualSwitchDrainState),
-                  "(UNCHANGED)");
-      };
 
   // Schedule an update for port's operational status
   auto updateOperStateFn = [=](const std::shared_ptr<SwitchState>& state) {
