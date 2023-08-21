@@ -61,6 +61,10 @@ AgentDirectoryUtil::AgentDirectoryUtil(
     : volatileStateDir_(std::move(volatileStateDir)),
       persistentStateDir_(std::move(persistentStateDir)) {}
 
+AgentDirectoryUtil::AgentDirectoryUtil()
+    : AgentDirectoryUtil(FLAGS_volatile_state_dir, FLAGS_persistent_state_dir) {
+}
+
 string AgentDirectoryUtil::getVolatileStateDir() const {
   return volatileStateDir_;
 }

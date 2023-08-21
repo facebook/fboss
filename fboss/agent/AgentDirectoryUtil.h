@@ -25,6 +25,8 @@ DECLARE_string(persistent_state_dir_phy);
 namespace facebook::fboss {
 class AgentDirectoryUtil {
  public:
+  AgentDirectoryUtil();
+
   AgentDirectoryUtil(
       std::string volatileStateDir,
       std::string persistentStateDir);
