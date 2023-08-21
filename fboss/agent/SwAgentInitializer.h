@@ -84,6 +84,8 @@ class SwAgentInitializer : public AgentInitializer {
 
   std::unique_ptr<SwSwitch> sw_;
   std::unique_ptr<SwSwitchInitializer> initializer_;
+
+ private:
   std::unique_ptr<apache::thrift::ThriftServer> server_;
   folly::EventBase* eventBase_;
 };
