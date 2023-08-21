@@ -68,7 +68,6 @@ class TxPacket : public Packet {
       std::optional<VlanID> vlan,
       uint16_t protocol);
 
- protected:
   TxPacket() {}
 
  private:

@@ -15,9 +15,10 @@ void NonMonolithicHwSwitchHandler::exitFatal() const {
 }
 
 std::unique_ptr<TxPacket> NonMonolithicHwSwitchHandler::allocatePacket(
-    uint32_t /*size*/) const {
-  // TODO: implement this
-  return nullptr;
+    uint32_t size) const {
+  auto txPacket = std::make_unique<TxPacket>();
+  txPacket->buf()->reserve(0, size);
+  return txPacket;
 }
 
 bool NonMonolithicHwSwitchHandler::sendPacketOutOfPortAsync(
