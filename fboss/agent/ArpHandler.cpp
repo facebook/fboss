@@ -312,6 +312,20 @@ void ArpHandler::sendArpRequest(
   sw->getPacketLogger()->log(
       "ARP", "TX", vlanID, srcMac.toString(), senderIP.str(), targetIP.str());
   sw->stats()->arpRequestTx();
+
+  std::optional<PortDescriptor> portDescriptor{std::nullopt};
+  auto switchType = sw->getSwitchInfoTable().l3SwitchType();
+  if (switchType == cfg::SwitchType::VOQ) {
+    // VOQ switches don't use VLANs (no broadcast domain).
+    // Find the port to send out the pkt with pipeline bypass on.
+    auto portID = getInterfacePortToReach(sw->getState(), targetIP);
+    if (portID.has_value()) {
+      portDescriptor = PortDescriptor(portID.value());
+      XLOG(DBG4) << "Sending ARP request for " << targetIP.str()
+                 << " Using port: " << portDescriptor.value().str();
+    }
+  }
+
   sendArp(
       sw,
       vlanID,
@@ -319,7 +333,8 @@ void ArpHandler::sendArpRequest(
       srcMac,
       senderIP,
       MacAddress::BROADCAST,
-      targetIP);
+      targetIP,
+      portDescriptor);
 }
 
 void ArpHandler::sendArpRequest(
