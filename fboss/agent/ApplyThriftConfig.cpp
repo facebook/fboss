@@ -274,7 +274,7 @@ class ThriftConfigApplier {
       const std::shared_ptr<MultiSwitchTransceiverMap>& transceiverMap);
   std::shared_ptr<SystemPortMap> updateSystemPorts(
       const std::shared_ptr<MultiSwitchPortMap>& ports,
-      const std::shared_ptr<SwitchSettings>& switchSettings);
+      const std::shared_ptr<MultiSwitchSettings>& multiSwitchSettings);
   std::shared_ptr<Port> updatePort(
       const std::shared_ptr<Port>& orig,
       const cfg::Port* cfg,
@@ -557,9 +557,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       new_->resetPorts(
           toMultiSwitchMap<MultiSwitchPortMap>(newPorts, scopeResolver_));
       new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
-          updateSystemPorts(
-              new_->getPorts(),
-              util::getFirstNodeIf(new_->getSwitchSettings())),
+          updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()),
           scopeResolver_));
       changed = true;
     }
@@ -763,9 +761,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
           toMultiSwitchMap<MultiSwitchDsfNodeMap>(newDsfNodes, scopeResolver_));
       processUpdatedDsfNodes();
       new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
-          updateSystemPorts(
-              new_->getPorts(),
-              util::getFirstNodeIf(new_->getSwitchSettings())),
+          updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()),
           scopeResolver_));
       changed = true;
     }
@@ -1207,51 +1203,51 @@ void ThriftConfigApplier::updateVlanInterfaces(const Interface* intf) {
 
 shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
     const std::shared_ptr<MultiSwitchPortMap>& ports,
-    const std::shared_ptr<SwitchSettings>& switchSettings) {
+    const std::shared_ptr<MultiSwitchSettings>& multiSwitchSettings) {
   const auto kNumVoqs = 8;
 
   static const std::set<cfg::PortType> kCreateSysPortsFor = {
       cfg::PortType::INTERFACE_PORT, cfg::PortType::RECYCLE_PORT};
   auto sysPorts = std::make_shared<SystemPortMap>();
-  for (const auto& switchIdAndInfo :
-       switchSettings->getSwitchIdToSwitchInfo()) {
-    if (switchIdAndInfo.second.switchType() != cfg::SwitchType::VOQ) {
+
+  for (const auto& [matcherString, portMap] : std::as_const(*ports)) {
+    auto switchId = HwSwitchMatcher(matcherString).switchId();
+    auto switchSettings = multiSwitchSettings->getNodeIf(matcherString);
+    if (switchSettings->l3SwitchType() != cfg::SwitchType::VOQ) {
       continue;
     }
 
-    auto switchId = switchIdAndInfo.first;
     auto dsfNode = cfg_->dsfNodes()->find(switchId)->second;
     auto nodeName = *dsfNode.name();
     CHECK(dsfNode.systemPortRange());
     auto systemPortRange = *dsfNode.systemPortRange();
 
-    for (const auto& portMap : std::as_const(*ports)) {
-      for (const auto& port : std::as_const(*portMap.second)) {
-        if (kCreateSysPortsFor.find(port.second->getPortType()) ==
-            kCreateSysPortsFor.end()) {
-          continue;
-        }
-        auto sysPort = std::make_shared<SystemPort>(
-            SystemPortID{*systemPortRange.minimum() + port.second->getID()});
-        sysPort->setSwitchId(SwitchID(switchId));
-        sysPort->setPortName(
-            folly::sformat("{}:{}", nodeName, port.second->getName()));
-        auto platformPort =
-            platformMapping_->getPlatformPort(port.second->getID());
-        CHECK(platformPort.mapping()->attachedCoreId().has_value());
-        CHECK(platformPort.mapping()->attachedCorePortIndex().has_value());
-        sysPort->setCoreIndex(platformPort.mapping()->attachedCoreId().value());
-        sysPort->setCorePortIndex(
-            platformPort.mapping()->attachedCorePortIndex().value());
-        sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
-        sysPort->setNumVoqs(kNumVoqs);
-        sysPort->setEnabled(port.second->isEnabled());
-        sysPort->setQosPolicy(port.second->getQosPolicy());
-        sysPort->resetPortQueues(switchSettings->getDefaultVoqConfig());
-        sysPorts->addSystemPort(std::move(sysPort));
+    for (const auto& port : std::as_const(*portMap)) {
+      if (kCreateSysPortsFor.find(port.second->getPortType()) ==
+          kCreateSysPortsFor.end()) {
+        continue;
       }
+      auto sysPort = std::make_shared<SystemPort>(
+          SystemPortID{*systemPortRange.minimum() + port.second->getID()});
+      sysPort->setSwitchId(SwitchID(switchId));
+      sysPort->setPortName(
+          folly::sformat("{}:{}", nodeName, port.second->getName()));
+      auto platformPort =
+          platformMapping_->getPlatformPort(port.second->getID());
+      CHECK(platformPort.mapping()->attachedCoreId().has_value());
+      CHECK(platformPort.mapping()->attachedCorePortIndex().has_value());
+      sysPort->setCoreIndex(platformPort.mapping()->attachedCoreId().value());
+      sysPort->setCorePortIndex(
+          platformPort.mapping()->attachedCorePortIndex().value());
+      sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
+      sysPort->setNumVoqs(kNumVoqs);
+      sysPort->setEnabled(port.second->isEnabled());
+      sysPort->setQosPolicy(port.second->getQosPolicy());
+      sysPort->resetPortQueues(switchSettings->getDefaultVoqConfig());
+      sysPorts->addSystemPort(std::move(sysPort));
     }
   }
+
   return sysPorts;
 }
 
