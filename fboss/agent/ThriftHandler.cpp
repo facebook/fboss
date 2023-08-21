@@ -610,7 +610,6 @@ template <typename AddressT, typename NeighborThriftT>
 void addRecylePortRifNeighbors(
     const std::shared_ptr<SwitchState> state,
     std::vector<NeighborThriftT>& nbrs) {
-  CHECK(!state->getSwitchSettings()->empty());
   for (const auto& switchIdAndInfo :
        util::getFirstNodeIf(state->getSwitchSettings())
            ->getSwitchIdToSwitchInfo()) {
@@ -2605,7 +2604,6 @@ void ThriftHandler::getBlockedNeighbors(
     std::vector<cfg::Neighbor>& blockedNeighbors) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  CHECK(!sw_->getState()->getSwitchSettings()->empty());
   const auto& switchSettings =
       util::getFirstNodeIf(sw_->getState()->getSwitchSettings());
   for (const auto& iter : *(switchSettings->getBlockNeighbors())) {
@@ -2759,7 +2757,6 @@ void ThriftHandler::getInterfacePhyInfo(
 
 bool ThriftHandler::isSwitchDrained() {
   ensureConfigured(__func__);
-  CHECK(!sw_->getState()->getSwitchSettings()->empty());
   auto switchSettings = sw_->getState()->getSwitchSettings()->cbegin()->second;
   return switchSettings->getSwitchDrainState() ==
       cfg::SwitchDrainState::DRAINED;
