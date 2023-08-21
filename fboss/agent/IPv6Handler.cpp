@@ -979,12 +979,27 @@ void IPv6Handler::floodNeighborAdvertisements() {
         if (!addrEntry.isV6()) {
           continue;
         }
+
+        std::optional<PortDescriptor> portDescriptor{std::nullopt};
+        auto switchType = sw_->getSwitchInfoTable().l3SwitchType();
+        if (switchType == cfg::SwitchType::VOQ) {
+          // VOQ switches don't use VLANs (no broadcast domain).
+          // Find the port to send out the pkt with pipeline bypass on.
+          CHECK(intf->getSystemPortID().has_value());
+          portDescriptor = PortDescriptor(
+              getPortID(*intf->getSystemPortID(), sw_->getState()));
+          XLOG(DBG4) << "Sending neighbor advertisements for "
+                     << addrEntry.str()
+                     << " Using port: " << portDescriptor.value().str();
+        }
+
         sendNeighborAdvertisement(
             intf->getVlanIDIf(),
             intf->getMac(),
             addrEntry.asV6(),
             MacAddress::BROADCAST,
-            IPAddressV6());
+            IPAddressV6(),
+            portDescriptor);
       }
     }
   }
