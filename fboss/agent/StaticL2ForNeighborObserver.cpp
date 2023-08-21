@@ -22,6 +22,14 @@ StaticL2ForNeighborObserver::~StaticL2ForNeighborObserver() {
   sw_->unregisterStateObserver(this);
 }
 void StaticL2ForNeighborObserver::stateUpdated(const StateDelta& stateDelta) {
+  // The current StaticL2ForNeighborObserver logic relies on VLANs, MAC learning
+  // callbacks etc. that are not supported on VOQ/Fabric switches. Thus, run
+  // this stateObserver for NPU switches only.
+  if (!sw_->getSwitchInfoTable().haveL3Switches() ||
+      sw_->getSwitchInfoTable().l3SwitchType() != cfg::SwitchType::NPU) {
+    return;
+  }
+
   StaticL2ForNeighborSwSwitchUpdater updater(sw_);
   updater.stateUpdated(stateDelta);
 }
