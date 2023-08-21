@@ -761,31 +761,14 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
   XLOG(DBG4) << "sending neighbor solicitation for " << targetIP << " on vlan "
              << vlanIDStr << " solicitedNodeAddr: " << solicitedNodeAddr.str();
 
-  // If sendNetworkControlPacketAsync is called with empty portDescriptor, the
-  // packet will be switched. However, since VOQs don't use VLANs, the ASIC
-  // would not know which port(s) to send the neighbor solicitation on.
-  // Thus, for VOQ switches:
-  //  - determine the interface for the given targetIP
-  //  - get systemPortID for the interface
-  //  - compute corresponding portID
-  //  - inject packet with pipeline bypass on that port
   std::optional<PortDescriptor> portDescriptor{std::nullopt};
   auto switchType = sw->getSwitchInfoTable().l3SwitchType();
   if (switchType == cfg::SwitchType::VOQ) {
-    auto intf =
-        sw->getState()->getInterfaces()->getIntfToReach(RouterID(0), targetIP);
-    if (intf) {
-      CHECK(intf->getSystemPortID().has_value());
-      auto systemPort =
-          sw->getState()->getSystemPorts()->getNode(*intf->getSystemPortID());
-      CHECK(systemPort);
-      auto dsfNode =
-          sw->getState()->getDsfNodes()->getNodeIf(systemPort->getSwitchId());
-      CHECK(dsfNode);
-      CHECK(dsfNode->getSystemPortRange().has_value());
-      auto portID = intf->getSystemPortID().value() -
-          *dsfNode->getSystemPortRange()->minimum();
-      portDescriptor = PortDescriptor(PortID(portID));
+    // VOQ switches don't use VLANs (no broadcast domain).
+    // Find the port to send out the pkt with pipeline bypass on.
+    auto portID = getInterfacePortToReach(sw->getState(), targetIP);
+    if (portID.has_value()) {
+      portDescriptor = PortDescriptor(portID.value());
       XLOG(DBG4) << "Sending neighbor solicitation for " << targetIP.str()
                  << " Using port: " << portDescriptor.value().str();
     }
