@@ -39,28 +39,6 @@ class EncapIndexAllocatorTest : public ::testing::Test {
         EncapIndexAllocator::kEncapIdxReservedForLoopbacks;
   }
 
-  std::shared_ptr<SwitchState> addNeighborToVlan(
-      std::shared_ptr<SwitchState> state,
-      const folly::IPAddressV6& ip,
-      int64_t encapIdx) const {
-    auto firstVlan = util::getFirstMap(state->getVlans())->cbegin()->second;
-    state::NeighborEntryFields nbr;
-    nbr.mac() = "02:00:00:00:00:01";
-    nbr.interfaceId() = static_cast<int>(firstVlan->getInterfaceID());
-    nbr.ipaddress() = ip.str();
-    nbr.portId() =
-        PortDescriptor(util::getFirstMap(getSw()->getState()->getPorts())
-                           ->cbegin()
-                           ->second->getID())
-            .toThrift();
-    nbr.state() = state::NeighborState::Reachable;
-    nbr.encapIndex() = encapIdx;
-    auto nbrTable =
-        firstVlan->getNdpTable()->modify(firstVlan->getID(), &state);
-    nbrTable->addEntry(
-        NeighborEntryFields<folly::IPAddressV6>::fromThrift(nbr));
-    return state;
-  }
   std::shared_ptr<SwitchState> addNeighborToInterface(
       std::shared_ptr<SwitchState> state,
       const folly::IPAddressV6& ip,
