@@ -143,12 +143,17 @@ TEST_F(ThriftTest, getInterfaceDetail) {
   EXPECT_THROW(handler.getInterfaceDetail(info, 123), FbossError);
 }
 
-template <typename SwitchTypeT>
+template <typename SwitchTypeAndEnableIntfNbrTableT>
 class ThriftTestAllSwitchTypes : public ::testing::Test {
  public:
-  static auto constexpr switchType = SwitchTypeT::switchType;
+  static auto constexpr switchType =
+      SwitchTypeAndEnableIntfNbrTableT::switchType;
+  static auto constexpr intfNbrTable =
+      SwitchTypeAndEnableIntfNbrTableT::intfNbrTable;
+  ;
   void SetUp() override {
-    auto config = testConfigA(SwitchTypeT::switchType);
+    FLAGS_intf_nbr_tables = intfNbrTable;
+    auto config = testConfigA(switchType);
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
     sw_->initialConfigApplied(std::chrono::steady_clock::now());
@@ -187,7 +192,7 @@ class ThriftTestAllSwitchTypes : public ::testing::Test {
   std::unique_ptr<HwTestHandle> handle_;
 };
 
-TYPED_TEST_SUITE(ThriftTestAllSwitchTypes, SwitchTypes);
+TYPED_TEST_SUITE(ThriftTestAllSwitchTypes, SwitchTypeAndEnableIntfNbrTable);
 
 TYPED_TEST(ThriftTestAllSwitchTypes, checkSwitchId) {
   auto switchInfoTable = this->sw_->getSwitchInfoTable();
