@@ -3690,8 +3690,11 @@ ThriftConfigApplier::updateMultiSwitchSettings() {
       ? origMultiSwitchSettings
       : std::make_shared<MultiSwitchSettings>();
 
-  for (auto& switchIdAndSwitchInfo :
-       *cfg_->switchSettings()->switchIdToSwitchInfo()) {
+  if (scopeResolver_.switchIdToSwitchInfo().size() == 0) {
+    throw FbossError("SwitchIdToSwitchInfo cannot be empty");
+  }
+
+  for (auto& switchIdAndSwitchInfo : scopeResolver_.switchIdToSwitchInfo()) {
     auto switchId = switchIdAndSwitchInfo.first;
     auto matcher = HwSwitchMatcher(
         std::unordered_set<SwitchID>({static_cast<SwitchID>(switchId)}));
@@ -3722,6 +3725,9 @@ ThriftConfigApplier::updateMultiSwitchSettings() {
   }
 
   if (multiSwitchSettingsChange) {
+    if (newMultiSwitchSettings->empty()) {
+      throw FbossError("SwitchSettings cannot be empty");
+    }
     return newMultiSwitchSettings;
   }
 
