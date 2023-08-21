@@ -213,6 +213,27 @@ std::vector<PortID> getPortsForInterface(
     InterfaceID intf,
     const std::shared_ptr<SwitchState>& state);
 
+/*
+ * An NPU switch injects a broadcast message such as neighbor solicitation or
+ * advertisement via pipeline lookup. ASIC forwards these messages to all the
+ * ports in the broadcast domain viz. same VLAN.
+ *
+ * A VOQ switch does not use VLANs. If a broadcast message such as neighbor
+ * solicitation or advertisement is injected via pipeline lookup, ASIC would
+ * not know which port(s) to send it out on, and thus would drop the packet.
+ * Thus, for VOQ switch:
+ *  - determine the interface for the given IP address
+ *  - compute corresponding system port ID
+ *  - get corresponding portID
+ *
+ * This helper function takes the ipAddress as argument and returns
+ * PortDescriptor for the systemPort to send otu the packet with pipeline
+ * bypass on.
+ */
+std::optional<PortID> getInterfacePortToReach(
+    const std::shared_ptr<SwitchState>& state,
+    const folly::IPAddress& ipAddr);
+
 class StopWatch {
  public:
   StopWatch(std::optional<std::string> name, bool json);

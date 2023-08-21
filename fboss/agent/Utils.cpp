@@ -357,6 +357,18 @@ std::vector<PortID> getPortsForInterface(
   return ports;
 }
 
+std::optional<PortID> getInterfacePortToReach(
+    const std::shared_ptr<SwitchState>& state,
+    const folly::IPAddress& ipAddr) {
+  auto intf = state->getInterfaces()->getIntfToReach(RouterID(0), ipAddr);
+  if (intf) {
+    CHECK(intf->getSystemPortID().has_value());
+    return getPortID(*intf->getSystemPortID(), state);
+  }
+
+  return std::nullopt;
+}
+
 bool isAnyInterfacePortInLoopbackMode(
     std::shared_ptr<SwitchState> swState,
     const std::shared_ptr<Interface> interface) {
