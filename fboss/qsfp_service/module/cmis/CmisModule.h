@@ -319,9 +319,7 @@ class CmisModule : public QsfpModule {
    */
   void latchAndReadVdmDataLocked() override;
 
-  bool supportRemediate() override {
-    return true;
-  }
+  bool supportRemediate() override;
 
   void resetDataPath() override;
 

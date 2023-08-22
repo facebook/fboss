@@ -3039,6 +3039,16 @@ void CmisModule::updateCmisStateChanged(
   }
 }
 
+bool CmisModule::supportRemediate() {
+  if (getTransceiverManager()->getPlatformType() ==
+          PlatformType::PLATFORM_MERU400BIU ||
+      getTransceiverManager()->getPlatformType() ==
+          PlatformType::PLATFORM_MERU400BFU) {
+    return false;
+  }
+  return true;
+}
+
 /*
  * setTransceiverTx
  *
