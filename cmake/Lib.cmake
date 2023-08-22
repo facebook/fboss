@@ -172,3 +172,12 @@ add_library(hw_write_behavior
 )
 
 target_link_libraries(hw_write_behavior)
+
+add_library(common_thrift_utils
+  fboss/lib/CommonThriftUtils.cpp
+)
+
+target_link_libraries(common_thrift_utils
+  Folly::folly
+  fb303::fb303
+)
