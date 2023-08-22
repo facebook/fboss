@@ -701,14 +701,23 @@ void SwSwitch::publishTxPacket(TxPacket* pkt, uint16_t ethertype) {
 void SwSwitch::init(
     HwSwitchCallback* callback,
     std::unique_ptr<TunManager> tunMgr,
-    HwSwitchInitFn hwSwitchInitFn,
+    MonolithicHwSwitchInitFn hwSwitchInitFn,
     SwitchFlags flags) {
   auto begin = steady_clock::now();
   flags_ = flags;
-  auto hwInitRet = hwSwitchInitFn(callback, false /*failHwCallsOnWarmboot*/);
+  bootType_ = swSwitchWarmbootHelper_->canWarmBoot() ? BootType::WARM_BOOT
+                                                     : BootType::COLD_BOOT;
+  std::optional<state::WarmbootState> wbState{};
+  if (bootType_ == BootType::WARM_BOOT) {
+    wbState = swSwitchWarmbootHelper_->getWarmBootState();
+  }
+  auto [state, rib] = SwSwitchWarmBootHelper::reconstructStateAndRib(
+      wbState, scopeResolver_->hasL3());
+  rib_ = std::move(rib);
+  auto hwInitRet =
+      hwSwitchInitFn(callback, state, false /*failHwCallsOnWarmboot*/);
   auto initialState = hwInitRet.switchState;
-  bootType_ = hwInitRet.bootType;
-  rib_ = std::move(hwInitRet.rib);
+  CHECK(bootType_ == hwInitRet.bootType);
   fb303::fbData->setCounter(kHwUpdateFailures, 0);
 
   XLOG(DBG0) << "hardware initialized in " << hwInitRet.bootTime
@@ -838,7 +847,7 @@ void SwSwitch::init(
 
 void SwSwitch::init(
     std::unique_ptr<TunManager> tunMgr,
-    HwSwitchInitFn hwSwitchInitFn,
+    MonolithicHwSwitchInitFn hwSwitchInitFn,
     SwitchFlags flags) {
   this->init(this, std::move(tunMgr), hwSwitchInitFn, flags);
 }
@@ -2453,5 +2462,4 @@ void SwSwitch::updateDsfSubscriberState(
         syncer->updateDsfSubscriberState(nodeName, oldState, newState);
       });
 }
-
 } // namespace facebook::fboss

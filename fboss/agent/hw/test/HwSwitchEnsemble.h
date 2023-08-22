@@ -48,6 +48,7 @@ class SwitchState;
 class HwLinkStateToggler;
 class SwitchIdScopeResolver;
 class StateObserver;
+class SwSwitchWarmBootHelper;
 
 class HwSwitchEnsemble : public TestEnsembleIf {
  public:
@@ -317,6 +318,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   std::unique_ptr<HwAsicTable> hwAsicTable_;
   std::unique_ptr<SwitchIdScopeResolver> scopeResolver_;
   std::unique_ptr<MultiSwitchTestServer> swSwitchTestServer_;
+  std::unique_ptr<SwSwitchWarmBootHelper> swSwitchWarmBootHelper_;
 };
 
 } // namespace facebook::fboss

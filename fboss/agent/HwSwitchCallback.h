@@ -66,5 +66,7 @@ class HwSwitchCallback {
 };
 
 using HwSwitchInitFn = std::function<HwInitResult(HwSwitchCallback*, bool)>;
+using MonolithicHwSwitchInitFn = std::function<
+    HwInitResult(HwSwitchCallback*, const std::shared_ptr<SwitchState>&, bool)>;
 
 } // namespace facebook::fboss

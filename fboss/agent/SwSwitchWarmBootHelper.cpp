@@ -8,6 +8,8 @@
 #include "fboss/agent/AsyncLogger.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/lib/CommonFileUtils.h"
 
 namespace {
@@ -74,11 +76,8 @@ bool SwSwitchWarmBootHelper::checkAndClearWarmBootFlags() {
     // cold boot was enforced or warm boot flag is absent
     return false;
   }
-  // if warm boot state was dumped read it
-  if (!checkFileExists(warmBootThriftSwitchStateFile())) {
-    // it switch state was not dumped, enforce cold boot
-    return false;
-  }
+  // if warm boot flag is present, switch state must exist
+  CHECK(checkFileExists(warmBootThriftSwitchStateFile()));
   // command line override
   return FLAGS_can_warm_boot;
 }
@@ -112,5 +111,31 @@ std::string SwSwitchWarmBootHelper::warmBootFlagLegacy() const {
 
 std::string SwSwitchWarmBootHelper::forceColdBootOnceFlagLegacy() const {
   return folly::to<std::string>(forceColdBootOnceFlag(), "_0");
+}
+
+std::pair<std::shared_ptr<SwitchState>, std::unique_ptr<RoutingInformationBase>>
+SwSwitchWarmBootHelper::reconstructStateAndRib(
+    std::optional<state::WarmbootState> warmBootState,
+    bool hasL3) {
+  std::unique_ptr<RoutingInformationBase> rib{};
+  std::shared_ptr<SwitchState> state{nullptr};
+  if (warmBootState.has_value()) {
+    /* warm boot: reconstruct from warm boot state */
+    state = SwitchState::fromThrift(*(warmBootState->swSwitchState()));
+    rib = RoutingInformationBase::fromThrift(
+        *(warmBootState->routeTables()),
+        state->getFibs(),
+        state->getLabelForwardingInformationBase());
+  } else {
+    state = SwitchState::fromThrift(state::SwitchState{});
+    /* cold boot, setup default rib */
+    std::map<int32_t, state::RouteTableFields> routeTables{};
+    if (hasL3) {
+      /* at least one switch supports route programming, setup default vrf */
+      routeTables.emplace(kDefaultVrf, state::RouteTableFields{});
+    }
+    rib = RoutingInformationBase::fromThrift(routeTables);
+  }
+  return std::make_pair(state, std::move(rib));
 }
 } // namespace facebook::fboss

@@ -11,6 +11,9 @@ DECLARE_string(thrift_switch_state_file);
 
 namespace facebook::fboss {
 
+class SwitchState;
+class RoutingInformationBase;
+
 class SwSwitchWarmBootHelper {
  public:
   explicit SwSwitchWarmBootHelper(const std::string& warmBootDir);
@@ -21,6 +24,13 @@ class SwSwitchWarmBootHelper {
   const std::string& warmBootDir() const {
     return warmBootDir_;
   }
+
+  static std::pair<
+      std::shared_ptr<SwitchState>,
+      std::unique_ptr<RoutingInformationBase>>
+  reconstructStateAndRib(
+      std::optional<state::WarmbootState> wbState,
+      bool hasL3);
 
  private:
   bool checkAndClearWarmBootFlags();

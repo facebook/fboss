@@ -228,7 +228,7 @@ std::shared_ptr<SwitchState> HwSwitch::programMinAlpmState(
 
 HwInitResult HwSwitch::init(
     Callback* callback,
-    const std::shared_ptr<SwitchState>& /*state*/,
+    const std::shared_ptr<SwitchState>& state,
     bool failHwCallsOnWarmboot) {
   using std::chrono::duration;
   using std::chrono::duration_cast;
@@ -240,14 +240,8 @@ HwInitResult HwSwitch::init(
       duration_cast<duration<float>>(steady_clock::now() - begin).count();
   ret.bootType = initLight(callback, failHwCallsOnWarmboot);
   if (ret.bootType == BootType::WARM_BOOT) {
-    auto wbState =
-        getPlatform()->getWarmBootHelper()->getSwSwitchWarmBootState();
-    ret.switchState = SwitchState::fromThrift(*(wbState.swSwitchState()));
-    const auto& routeTables = *(wbState.routeTables());
-    ret.rib = RoutingInformationBase::fromThrift(
-        routeTables,
-        ret.switchState->getFibs(),
-        ret.switchState->getLabelForwardingInformationBase());
+    CHECK(state);
+    ret.switchState = state;
   } else {
     // cold boot state is already programmed during initLight
     ret.switchState = getProgrammedState();

@@ -512,6 +512,8 @@ add_library(sw_switch_warmboot_helper
 target_link_libraries(sw_switch_warmboot_helper
   async_logger
   fboss_error
+  state
+  standalone_rib
   utils
   common_file_utils
   Folly::folly

@@ -70,9 +70,12 @@ void MonolithicSwSwitchInitializer::initImpl(
   sw_->init(
       hwSwitchCallback,
       nullptr,
-      [this](HwSwitchCallback* callback, bool failHwCallsOnWarmboot) {
+      [this](
+          HwSwitchCallback* callback,
+          const std::shared_ptr<SwitchState>& state,
+          bool failHwCallsOnWarmboot) {
         return hwAgent_->initMonolithicHwAgent(
-            failHwCallsOnWarmboot, nullptr, callback);
+            failHwCallsOnWarmboot, state, callback);
       },
       setupFlags());
 }
