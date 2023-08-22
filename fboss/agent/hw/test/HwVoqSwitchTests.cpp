@@ -900,17 +900,29 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, twoDsfNodes) {
 
 TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, remoteSystemPort) {
   auto setup = [this]() {
+    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
+    // keeping remote switch id passed below in sync with it
+    int numCores = getAsic()->getNumCores();
     applyNewState(utility::addRemoteSysPort(
-        getProgrammedState(), scopeResolver(), SystemPortID(401)));
+        getProgrammedState(),
+        scopeResolver(),
+        SystemPortID(401),
+        static_cast<SwitchID>(numCores)));
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
 
 TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, remoteRouterInterface) {
   auto setup = [this]() {
+    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
+    // keeping remote switch id passed below in sync with it
+    int numCores = getAsic()->getNumCores();
     auto constexpr remotePortId = 401;
     applyNewState(utility::addRemoteSysPort(
-        getProgrammedState(), scopeResolver(), SystemPortID(remotePortId)));
+        getProgrammedState(),
+        scopeResolver(),
+        SystemPortID(remotePortId),
+        static_cast<SwitchID>(numCores)));
     applyNewState(utility::addRemoteInterface(
         getProgrammedState(),
         scopeResolver(),
@@ -930,10 +942,16 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, remoteRouterInterface) {
 
 TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
   auto setup = [this]() {
+    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
+    // keeping remote switch id passed below in sync with it
+    int numCores = getAsic()->getNumCores();
     auto constexpr remotePortId = 401;
     const SystemPortID kRemoteSysPortId(remotePortId);
     applyNewState(utility::addRemoteSysPort(
-        getProgrammedState(), scopeResolver(), kRemoteSysPortId));
+        getProgrammedState(),
+        scopeResolver(),
+        kRemoteSysPortId,
+        static_cast<SwitchID>(numCores)));
     const InterfaceID kIntfId(remotePortId);
     applyNewState(utility::addRemoteInterface(
         getProgrammedState(),
@@ -984,13 +1002,19 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
     const SystemPortID kRemoteSysPortId(remotePortId);
     folly::IPAddressV6 kNeighborIp("100::2");
     utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
+    // keeping remote switch id passed below in sync with it
+    int numCores = getAsic()->getNumCores();
     const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
     for (auto i = 0; i < numIterations; ++i) {
       // add local neighbor
       addRemoveNeighbor(kPort, true /* add neighbor*/);
       // Remote objs
       applyNewState(utility::addRemoteSysPort(
-          getProgrammedState(), scopeResolver(), kRemoteSysPortId));
+          getProgrammedState(),
+          scopeResolver(),
+          kRemoteSysPortId,
+          static_cast<SwitchID>(numCores)));
       const InterfaceID kIntfId(remotePortId);
       applyNewState(utility::addRemoteInterface(
           getProgrammedState(),
@@ -1059,10 +1083,16 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
   auto constexpr remotePortId = 401;
   const SystemPortID kRemoteSysPortId(remotePortId);
   auto setup = [=]() {
+    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
+    // keeping remote switch id passed below in sync with it
+    int numCores = getAsic()->getNumCores();
     // Disable credit watchdog
     utility::enableCreditWatchdog(getHwSwitch(), false);
     applyNewState(utility::addRemoteSysPort(
-        getProgrammedState(), scopeResolver(), kRemoteSysPortId));
+        getProgrammedState(),
+        scopeResolver(),
+        kRemoteSysPortId,
+        static_cast<SwitchID>(numCores)));
     const InterfaceID kIntfId(remotePortId);
     applyNewState(utility::addRemoteInterface(
         getProgrammedState(),
