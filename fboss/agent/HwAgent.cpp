@@ -27,10 +27,10 @@ HwAgent::HwAgent(std::unique_ptr<Platform> platform)
 BootType HwAgent::initAgent(
     bool failHwCallsOnWarmboot,
     HwSwitchCallback* callback) {
-  auto bootType =
+  auto ret =
       getPlatform()->getHwSwitch()->initLight(callback, failHwCallsOnWarmboot);
   XLOG(DBG2) << "HwSwitch init done";
-  return bootType;
+  return ret.bootType;
 }
 
 HwInitResult HwAgent::initMonolithicHwAgent(

@@ -121,7 +121,7 @@ class HwSwitch {
       bool failHwCallsOnWarmboot);
 
   /* initialize hardware switch but do not apply warm boot state */
-  BootType initLight(Callback* callback, bool failHwCallsOnWarmboot);
+  HwInitResult initLight(Callback* callback, bool failHwCallsOnWarmboot);
 
   cfg::SwitchType getSwitchType() const {
     return switchType_;
@@ -367,6 +367,7 @@ class HwSwitch {
   virtual void initialStateApplied() = 0;
 
  private:
+  HwInitResult initLightImpl(Callback* callback, bool failHwCallsOnWarmboot);
   virtual HwInitResult initImpl(
       Callback* callback,
       BootType bootType,

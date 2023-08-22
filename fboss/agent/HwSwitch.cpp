@@ -233,12 +233,8 @@ HwInitResult HwSwitch::init(
   using std::chrono::duration;
   using std::chrono::duration_cast;
   using std::chrono::steady_clock;
-
   steady_clock::time_point begin = steady_clock::now();
-  HwInitResult ret{};
-  ret.initializedTime =
-      duration_cast<duration<float>>(steady_clock::now() - begin).count();
-  ret.bootType = initLight(callback, failHwCallsOnWarmboot);
+  HwInitResult ret = initLight(callback, failHwCallsOnWarmboot);
   if (ret.bootType == BootType::WARM_BOOT) {
     CHECK(state);
     ret.switchState = state;
@@ -271,7 +267,26 @@ HwWriteBehaviorRAII HwSwitch::getWarmBootWriteBehavior(
   return HwWriteBehaviorRAII(HwWriteBehavior::WRITE);
 }
 
-BootType HwSwitch::initLight(Callback* callback, bool failHwCallsOnWarmboot) {
+HwInitResult HwSwitch::initLight(
+    Callback* callback,
+    bool failHwCallsOnWarmboot) {
+  using std::chrono::duration;
+  using std::chrono::duration_cast;
+  using std::chrono::steady_clock;
+  steady_clock::time_point begin = steady_clock::now();
+  auto ret = initLightImpl(callback, failHwCallsOnWarmboot);
+  ret.bootTime =
+      duration_cast<duration<float>>(steady_clock::now() - begin).count();
+  return ret;
+}
+
+HwInitResult HwSwitch::initLightImpl(
+    Callback* callback,
+    bool failHwCallsOnWarmboot) {
+  using std::chrono::duration;
+  using std::chrono::duration_cast;
+  using std::chrono::steady_clock;
+  steady_clock::time_point begin = steady_clock::now();
   switchType_ = getPlatform()->getAsic()->getSwitchType();
   switchId_ = getPlatform()->getAsic()->getSwitchId();
   BootType bootType = BootType::COLD_BOOT;
@@ -283,15 +298,18 @@ BootType HwSwitch::initLight(Callback* callback, bool failHwCallsOnWarmboot) {
     }
   }
   // initialize hardware switch
-  initImpl(callback, bootType, failHwCallsOnWarmboot);
-  if (bootType == BootType::WARM_BOOT) {
+  auto ret = initImpl(callback, bootType, failHwCallsOnWarmboot);
+  ret.bootType = bootType;
+  ret.initializedTime =
+      duration_cast<duration<float>>(steady_clock::now() - begin).count();
+  if (ret.bootType == BootType::WARM_BOOT) {
     // on warm boot, no need to apply minimum alpm state
-    return bootType;
+    return ret;
   }
   if (switchType_ != cfg::SwitchType::NPU &&
       switchType_ != cfg::SwitchType::VOQ) {
     // no route programming, no need to apply minimum alpm state
-    return bootType;
+    return ret;
   }
 
   // program min alpm state for npu and voq only on cold boot
@@ -301,6 +319,6 @@ BootType HwSwitch::initLight(Callback* callback, bool failHwCallsOnWarmboot) {
   programMinAlpmState(rib.get(), [this](const StateDelta& delta) {
     return stateChanged(delta);
   });
-  return bootType;
+  return ret;
 }
 } // namespace facebook::fboss
