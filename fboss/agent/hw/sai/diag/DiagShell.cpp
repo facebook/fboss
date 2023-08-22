@@ -33,6 +33,11 @@ DEFINE_bool(
     true,
     "Log SAI shell commands and output to scribe");
 
+namespace {
+// Commands such as 'port status' on DNX take longer than 1.2 seconds.
+constexpr int kReadOutputTimeoutMs = 2000;
+} // namespace
+
 namespace facebook::fboss {
 
 namespace detail {
@@ -259,7 +264,7 @@ std::string DiagShell::readOutput(int timeoutMs) {
   fd_set readSet;
   FD_ZERO(&readSet);
   FD_SET(fd, &readSet);
-  /* Set the timeout as 500 ms for each read.
+  /* Set the timeout for each read.
    * This is to check that a client has disconnected in the meantime.
    * If the client is still connected, will continue to wait.
    * If the client has disconnected, will clean up the client states.
@@ -343,12 +348,12 @@ void StreamingDiagShellServer::resetPublisher() {
 // TODO: Log command output to Scuba
 void StreamingDiagShellServer::streamOutput() {
   while (!shouldResetPublisher_) {
-    /* Set the timeout as 500 ms for each read.
+    /* Set the timeout for each read.
      * This is to check that a client has disconnected in the meantime.
      * If the client is still connected, will continue to wait.
      * If the client has disconnected, will clean up the client states.
      */
-    std::string toPublish = readOutput(500);
+    std::string toPublish = readOutput(kReadOutputTimeoutMs);
     if (toPublish.length() > 0) {
       // publish string on stream
       auto locked = publisher_.lock();
@@ -491,7 +496,7 @@ std::string DiagCmdServer::diagCmd(
       std::make_unique<std::string>(getDelimiterDiagCmd(uuid_)),
       std::move(client));
   // TODO: Look into requesting results that take a long time
-  std::string output = produceOutput(500);
+  std::string output = produceOutput(kReadOutputTimeoutMs);
   cleanUpOutput(output, inputStr);
   diagShell_->disconnect();
   return output;
