@@ -304,6 +304,24 @@ SwSwitch::SwSwitch(
   platformMapping_ = std::move(platformMapping);
 }
 
+SwSwitch::SwSwitch(
+    HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
+    std::unique_ptr<PlatformMapping> platformMapping,
+    const AgentDirectoryUtil* agentDirUtil,
+    bool supportsAddRemovePort,
+    cfg::SwitchConfig* config,
+    const std::shared_ptr<SwitchState>& initialState)
+    : SwSwitch(
+          std::move(hwSwitchHandlerInitFn),
+          std::move(platformMapping),
+          agentDirUtil,
+          supportsAddRemovePort,
+          config) {
+  initialState->publish();
+  setStateInternal(initialState);
+  CHECK(getAppliedState());
+}
+
 SwSwitch::~SwSwitch() {
   if (getSwitchRunState() < SwitchRunState::EXITING) {
     // If we didn't already stop (say via gracefulExit call), begin
@@ -716,8 +734,8 @@ void SwSwitch::init(
   rib_ = std::move(rib);
   auto hwInitRet =
       hwSwitchInitFn(callback, state, false /*failHwCallsOnWarmboot*/);
-  auto initialState = hwInitRet.switchState;
   CHECK(bootType_ == hwInitRet.bootType);
+  auto initialState = state;
   fb303::fbData->setCounter(kHwUpdateFailures, 0);
 
   XLOG(DBG0) << "hardware initialized in " << hwInitRet.bootTime
@@ -726,9 +744,14 @@ void SwSwitch::init(
   restart_time::init(
       agentDirUtil_->getWarmBootDir(), bootType_ == BootType::WARM_BOOT);
 
-  // Store the initial state
-  initialState->publish();
-  setStateInternal(initialState);
+  if (!getAppliedState()) {
+    // Store the initial state
+    initialState->publish();
+    setStateInternal(initialState);
+  } else {
+    // seeded by test
+    initialState = getAppliedState();
+  }
 
   // start LACP thread
   lacpThread_.reset(new std::thread(

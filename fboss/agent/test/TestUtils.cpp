@@ -508,15 +508,15 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
         return std::make_unique<facebook::fboss::MonolithicHwSwitchHandler>(
             platform, switchId, info);
       };
+  HwInitResult ret;
+  ret.switchState = state ? state : make_shared<SwitchState>();
   auto sw = make_unique<SwSwitch>(
       std::move(hwSwitchHandlerInitFn),
       std::move(platformMapping),
       platform->getDirectoryUtil(),
       platform->supportsAddRemovePort(),
-      config);
-  HwInitResult ret;
-  ret.switchState = state ? state : make_shared<SwitchState>();
-  addSwitchInfo(ret.switchState, switchType, switchId);
+      config,
+      ret.switchState);
   ret.bootType = BootType::COLD_BOOT;
   std::map<int32_t, state::RouteTableFields> routeTables{};
   auto switchInfo =

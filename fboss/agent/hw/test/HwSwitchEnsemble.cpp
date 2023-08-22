@@ -519,11 +519,26 @@ void HwSwitchEnsemble::setupEnsemble(
   auto hwInitResult =
       getHwSwitch()->init(this, initState, true /*failHwCallsOnWarmboot*/);
 
-  programmedState_ = hwInitResult.switchState;
-  programmedState_ = programmedState_->clone();
-  auto settings = util::getFirstNodeIf(programmedState_->getSwitchSettings());
-  auto newSettings = settings->modify(&programmedState_);
-  newSettings->setSwitchIdToSwitchInfo(switchIdToSwitchInfo);
+  programmedState_ = initState->clone();
+  if (bootType == BootType::WARM_BOOT) {
+    auto settings = util::getFirstNodeIf(programmedState_->getSwitchSettings());
+    auto newSettings = settings->modify(&programmedState_);
+    newSettings->setSwitchIdToSwitchInfo(switchIdToSwitchInfo);
+  } else {
+    /* setup scope info in switch settings */
+    auto multiSwitchSwitchSettings = std::make_shared<MultiSwitchSettings>();
+    auto switchSettings = std::make_shared<SwitchSettings>();
+    switchSettings->setSwitchIdToSwitchInfo(
+        scopeResolver_->switchIdToSwitchInfo());
+    // this is supporting single ASIC (or switch only)
+    for (auto& switchIdAndSwitchInfo : switchIdToSwitchInfo) {
+      auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>(
+          {static_cast<SwitchID>(switchIdAndSwitchInfo.first)}));
+      multiSwitchSwitchSettings->addNode(
+          matcher.matcherString(), switchSettings);
+    }
+    programmedState_->resetSwitchSettings(multiSwitchSwitchSettings);
+  }
   // HwSwitch::init() returns an unpublished programmedState_.  SwSwitch is
   // normally responsible for publishing it.  Go ahead and call publish now.
   // This will catch errors if test cases accidentally try to modify this
