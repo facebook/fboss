@@ -23,8 +23,6 @@ DEFINE_int32(
     control_interval,
     5,
     "How often we will read sensors and change fan pwm");
-DEFINE_string(mock_input, "", "Mock Input File");
-DEFINE_string(mock_output, "", "Mock Output File");
 DEFINE_string(
     config_file,
     "",
@@ -37,18 +35,9 @@ int main(int argc, char** argv) {
   fb303::registerFollyLoggingOptionHandlers();
   helpers::init(argc, argv);
 
-  // If Mock configuration is enabled, run FanServiceImpl in Mock mode, then
-  // quit. No Thrift service will be created at all.
-  if (FLAGS_mock_input != "") {
-    FanServiceImpl mockedFanServiceImpl(FLAGS_config_file);
-    mockedFanServiceImpl.kickstart();
-    return mockedFanServiceImpl.runMock(FLAGS_mock_input, FLAGS_mock_output);
-  }
-
   auto server = std::make_shared<apache::thrift::ThriftServer>();
   auto fanServiceImpl = std::make_unique<FanServiceImpl>(FLAGS_config_file);
   auto handler = std::make_shared<FanServiceHandler>(std::move(fanServiceImpl));
-  handler->getFanServiceImpl()->kickstart();
 
   folly::FunctionScheduler scheduler;
   scheduler.addFunction(

@@ -58,7 +58,6 @@ class FanSensorFsdbIntegrationTests : public ::testing::Test {
  public:
   void SetUp() override {
     fanServiceImpl_ = std::make_unique<FanServiceImpl>("");
-    fanServiceImpl_->kickstart();
   }
 
   void TearDown() override {
