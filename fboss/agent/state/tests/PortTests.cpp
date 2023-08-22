@@ -214,12 +214,11 @@ TEST(Port, emptyConfig) {
   }
   state->getPorts()->getNodeIf(portID)->resetPortQueues(queues);
 
-  // Applying same config should result in no change.
   cfg::SwitchConfig config;
   config.ports()->resize(1);
   preparedMockPortConfig(
       config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
-  EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, platform.get()));
+  EXPECT_NE(nullptr, publishAndApplyConfig(state, &config, platform.get()));
 
   // If platform does not support addRemovePort (by default),
   // empty config should throw exception.
@@ -340,11 +339,14 @@ TEST(Port, verifyPfcConfig) {
 
 TEST(Port, pauseConfig) {
   auto platform = createMockPlatform();
-  auto state = make_shared<SwitchState>();
+  cfg::SwitchConfig emptyCfg{};
+  auto state = publishAndApplyConfig(
+      std::make_shared<SwitchState>(), &emptyCfg, platform.get());
   addSwitchInfo(state);
+  auto ports = state->getPorts()->modify(&state);
   auto portID = PortID(1);
   registerPort(state, PortID(1), "port1", scope());
-  auto port = state->getPorts()->getNodeIf(portID);
+  auto port = ports->getNodeIf(portID);
   prepareDefaultSwPort(platform.get(), port);
   // Make sure we also update the port queues to default queue so that the
   // config change won't be triggered because of empty queue cfg
@@ -556,7 +558,6 @@ TEST(PortMap, applyConfig) {
   auto port3 = portsV0->getNodeIf(PortID(3));
   auto port4 = portsV0->getNodeIf(PortID(4));
 
-  // Applying an empty config shouldn't change a newly-constructed PortMap
   cfg::SwitchConfig config;
   config.ports()->resize(4);
   for (int i = 0; i < 4; ++i) {
@@ -566,7 +567,7 @@ TEST(PortMap, applyConfig) {
         fmt::format("port{}", i + 1),
         cfg::PortState::DISABLED);
   }
-  EXPECT_EQ(nullptr, publishAndApplyConfig(stateV0, &config, platform.get()));
+  EXPECT_NE(nullptr, publishAndApplyConfig(stateV0, &config, platform.get()));
 
   // Enable port 2
   *config.ports()[1].state() = cfg::PortState::ENABLED;

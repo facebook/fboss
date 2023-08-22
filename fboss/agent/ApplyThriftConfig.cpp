@@ -1644,12 +1644,11 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
          const std::shared_ptr<PortQueue>& q2) {
         return q1->getID() < q2->getID();
       });
-
   if (newQueues.size() > 0) {
     throw FbossError(
         "Port queue config listed for invalid queues. Maximum",
         " number of queues on this platform is ",
-        origPortQueues.size());
+        maxQueues);
   }
   return newPortQueues;
 }
@@ -1772,6 +1771,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           .switchIds();
   CHECK_EQ(switchIds.size(), 1);
   auto asic = hwAsicTable_->getHwAsicIf(*switchIds.begin());
+  CHECK(asic != nullptr);
   QueueConfig portQueues;
   for (auto streamType : asic->getQueueStreamTypes(*portConf->portType())) {
     auto maxQueues = asic->getDefaultNumPortQueues(streamType, false);
@@ -4168,21 +4168,30 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
 
   // check whether queue setting changed
   QueueConfig newQueues;
+  auto switchIds = scopeResolver_.scope(origCPU).switchIds();
+  CHECK(scopeResolver_.hasL3());
+  CHECK_GT(switchIds.size(), 0);
+  // all switches on a given box will have same ASIC, so just pick the first
+  auto asic = hwAsicTable_->getHwAsicIf(*switchIds.begin());
   for (auto streamType : hwAsicTable_->getCpuPortQueueStreamTypes()) {
     auto tmpPortQueues = updatePortQueues(
         origCPU->getQueuesConfig(),
         *cfg_->cpuQueues(),
-        origCPU->getQueues()->size(),
+        asic->getDefaultNumPortQueues(streamType, true),
         streamType,
         qosMap);
     newQueues.insert(
         newQueues.begin(), tmpPortQueues.begin(), tmpPortQueues.end());
   }
-  bool queuesUnchanged = newQueues.size() == origCPU->getQueues()->size();
-  for (int i = 0; i < newQueues.size() && queuesUnchanged; i++) {
-    if (*(newQueues.at(i)) != *(origCPU->getQueues()->at(i))) {
-      queuesUnchanged = false;
-      break;
+  bool queuesUnchanged = false;
+  if (origCPU->getQueues()->size() > 0) {
+    /* on cold boot original queues are 0 */
+    queuesUnchanged = (newQueues.size() == origCPU->getQueues()->size());
+    for (int i = 0; i < newQueues.size() && queuesUnchanged; i++) {
+      if (*(newQueues.at(i)) != *(origCPU->getQueues()->at(i))) {
+        queuesUnchanged = false;
+        break;
+      }
     }
   }
 

@@ -100,6 +100,12 @@ cfg::UdfConfig makeUdfCfg(
   return udf;
 }
 
+std::shared_ptr<SwitchState> getStateV0(Platform* platform) {
+  auto stateV0 = std::make_shared<SwitchState>();
+  cfg::SwitchConfig emptyCfg{};
+  return publishAndApplyConfig(stateV0, &emptyCfg, platform);
+}
+
 TEST(Udf, addUpdateRemove) {
   auto state = std::make_shared<SwitchState>();
   auto udfEntry1 = makeCfgUdfGroupEntry(kUdfGroupCfgName1.str());
@@ -247,7 +253,7 @@ TEST(Udf, addUpdate) {
 
 TEST(Udf, applyConfig) {
   auto platform = createMockPlatform();
-  auto stateV0 = std::make_shared<SwitchState>();
+  auto stateV0 = getStateV0(platform.get());
   addSwitchInfo(stateV0);
 
   cfg::SwitchConfig config;
@@ -284,7 +290,7 @@ TEST(Udf, applyConfig) {
 
 TEST(Udf, validateMissingPacketMatcherConfig) {
   auto platform = createMockPlatform();
-  auto stateV0 = std::make_shared<SwitchState>();
+  auto stateV0 = getStateV0(platform.get());
   addSwitchInfo(stateV0);
 
   cfg::SwitchConfig config;
@@ -367,7 +373,7 @@ TEST(Udf, validateMissingUdfGroupConfig) {
 
 TEST(Udf, removeUdfConfigStateDelta) {
   auto platform = createMockPlatform();
-  auto stateV0 = std::make_shared<SwitchState>();
+  auto stateV0 = getStateV0(platform.get());
   addSwitchInfo(stateV0);
 
   cfg::SwitchConfig config;

@@ -10,6 +10,7 @@ namespace facebook::fboss {
 
 class MockAsic : public HwAsic {
  public:
+  static auto constexpr kDefaultNumPortQueues = 10;
   MockAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
@@ -73,7 +74,7 @@ class MockAsic : public HwAsic {
   }
   int getDefaultNumPortQueues(cfg::StreamType /* streamType */, bool /*cpu*/)
       const override {
-    return 10;
+    return kDefaultNumPortQueues;
   }
   uint32_t getMaxLabelStackDepth() const override {
     // Copying TH3's max label stack depth

@@ -22,7 +22,7 @@ using std::make_shared;
 using std::shared_ptr;
 
 namespace {
-constexpr auto kNumCPUQueues = 48;
+constexpr auto kNumCPUQueues = MockAsic::kDefaultNumPortQueues;
 
 HwSwitchMatcher scope() {
   return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};

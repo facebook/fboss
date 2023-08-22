@@ -253,10 +253,13 @@ TEST(PortQueue, stateDelta) {
       queues3->size());
   EXPECT_EQ(1, queues3->at(3)->getWeight());
 
-  cfg::PortQueue queueExtra;
-  queueExtra.id() = 11;
-  queueExtra.weight() = 5;
-  config.portQueueConfigs()["queue_config"].push_back(queueExtra);
+  for (auto i = kStateTestNumPortQueues; i <= MockAsic::kDefaultNumPortQueues;
+       i++) {
+    cfg::PortQueue queueExtra;
+    queueExtra.id() = 11 + i;
+    queueExtra.weight() = 5;
+    config.portQueueConfigs()["queue_config"].push_back(queueExtra);
+  }
   EXPECT_THROW(
       publishAndApplyConfig(stateV3, &config, platform.get()), FbossError);
 }

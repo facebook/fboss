@@ -29,7 +29,9 @@ using std::shared_ptr;
 
 TEST(OperDeltaTests, OperDeltaCompute) {
   auto platform = createMockPlatform();
-  auto stateV0 = make_shared<SwitchState>();
+  auto emptyConfig = cfg::SwitchConfig();
+  auto stateV0 = publishAndApplyConfig(
+      make_shared<SwitchState>(), &emptyConfig, platform.get());
   addSwitchInfo(stateV0);
   auto config = testConfigA();
 

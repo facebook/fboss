@@ -657,7 +657,9 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   config.aclTableGroup_ref()->aclTables_ref()[0] = cfgTable1;
   config.aclTableGroup_ref()->aclTables_ref()[1] = cfgTable2;
 
-  auto stateV0 = make_shared<SwitchState>();
+  cfg::SwitchConfig emptyCfg{};
+  auto stateV0 = publishAndApplyConfig(
+      std::make_shared<SwitchState>(), &emptyCfg, platform.get());
   addSwitchInfo(stateV0);
   stateV0->resetAclTableGroups(tableGroups);
 
