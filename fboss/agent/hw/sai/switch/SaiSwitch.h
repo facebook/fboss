@@ -482,6 +482,7 @@ class SaiSwitch : public HwSwitch {
       std::optional<cfg::PfcWatchdogRecoveryAction> newRecoveryAction);
   void processPfcDeadlockRecoveryAction(
       std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction);
+  void setFabricPortOwnershipToAdapter();
 
   /*
    * SaiSwitch must support a few varieties of concurrent access:

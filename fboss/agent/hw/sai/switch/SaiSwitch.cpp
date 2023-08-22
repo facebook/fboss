@@ -1853,6 +1853,42 @@ HwInitResult SaiSwitch::initLocked(
   return ret;
 }
 
+void SaiSwitch::setFabricPortOwnershipToAdapter() {
+  if ((getSwitchType() == cfg::SwitchType::FABRIC) ||
+      (getSwitchType() == cfg::SwitchType::VOQ)) {
+    // only do this for fabric or voq switches
+    auto& switchApi = SaiApiTable::getInstance()->switchApi();
+    auto fabricPorts = switchApi.getAttribute(
+        saiSwitchId_, SaiSwitchTraits::Attributes::FabricPortList{});
+    auto& portStore = saiStore_->get<SaiPortTraits>();
+    for (auto& fid : fabricPorts) {
+      // Fabric ports are explicitly made to own by adapter because NOS
+      // can't remove/add fabric ports.
+      // Add to warm boot handles so object has a reference and
+      // is preserved in Port store
+      portStore.loadObjectOwnedByAdapter(
+          PortSaiId(fid), true /* add to warm boot handles*/);
+      if (FLAGS_hide_fabric_ports) {
+        // Fabric port serdes are owned by NOS. As part of this flag,
+        // we keep fabric ports explicitly disabled (for optimization) for tests
+        // and hence don't create fabric port serdes either. In that case, sdk
+        // will continue to load fabric port and serdes, but not claimed by NOS
+        // since its created by adapter. Hence we need to explicitly mark serdes
+        // objects as owned by adapter in that case.
+        auto& portSerdesStore = saiStore_->get<SaiPortSerdesTraits>();
+        std::optional<SaiPortTraits::Attributes::SerdesId> serdesAttr{};
+        auto serdesId = SaiApiTable::getInstance()->portApi().getAttribute(
+            PortSaiId(fid), serdesAttr);
+        if (serdesId.has_value()) {
+          portSerdesStore.loadObjectOwnedByAdapter(
+              static_cast<PortSerdesSaiId>(serdesId.value()),
+              true /* add to warm boot handles*/);
+        }
+      }
+    }
+  }
+}
+
 void SaiSwitch::initStoreAndManagersLocked(
     const std::lock_guard<std::mutex>& /*lock*/,
     HwWriteBehavior behavior,
@@ -1914,19 +1950,7 @@ void SaiSwitch::initStoreAndManagersLocked(
       managerTable_->switchManager().setupCounterRefreshInterval();
     }
     if (platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORTS)) {
-      if (getSwitchType() == cfg::SwitchType::FABRIC ||
-          getSwitchType() == cfg::SwitchType::VOQ) {
-        auto& switchApi = SaiApiTable::getInstance()->switchApi();
-        auto fabricPorts = switchApi.getAttribute(
-            saiSwitchId_, SaiSwitchTraits::Attributes::FabricPortList{});
-        auto& portStore = saiStore_->get<SaiPortTraits>();
-        for (auto& fid : fabricPorts) {
-          // Add to warm boot handles so object has a reference and
-          // is preserved in Port store
-          portStore.loadObjectOwnedByAdapter(
-              PortSaiId(fid), true /* add to warm boot handles*/);
-        }
-      }
+      setFabricPortOwnershipToAdapter();
     }
 
     // during warm boot, all default system ports created for the platform
