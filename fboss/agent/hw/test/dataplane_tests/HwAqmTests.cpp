@@ -779,6 +779,8 @@ class HwAqmTest : public HwLinkStateDependentTest {
         // ECN marked packets seen for the queue
         XLOG(DBG0) << "queue(" << queueId << "): " << deltaQueueEcnMarkedPackets
                    << " ECN marked packets seen!";
+        // Make sure that port ECN counters are working
+        EXPECT_TRUE(deltaPortEcnMarkedPackets > 0);
         return true;
       };
 
