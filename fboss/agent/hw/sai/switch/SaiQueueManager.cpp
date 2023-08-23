@@ -323,28 +323,32 @@ SaiQueueManager::voqNonWatermarkCounterIdsRead(
   static std::vector<sai_stat_id_t> baseCounterIds(
       SaiQueueTraits::VoqNonWatermarkCounterIdsToRead.begin(),
       SaiQueueTraits::VoqNonWatermarkCounterIdsToRead.end());
-  static std::vector<sai_stat_id_t> supportedCounterIds;
-  if (!supportedCounterIds.size()) {
-    supportedCounterIds.resize(
+  static std::vector<sai_stat_id_t> basePlusWredCounterIds;
+  if (!basePlusWredCounterIds.size()) {
+    // Any counter that needs to be added to base counter
+    // should be added first before base counter IDs are
+    // copied over to basePlusWredCounterIds.
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::VOQ_DELETE_COUNTER)) {
+      baseCounterIds.insert(
+          baseCounterIds.end(),
+          SaiQueueTraits::VoqWatchDogDeleteCounterIdsToRead.begin(),
+          SaiQueueTraits::VoqWatchDogDeleteCounterIdsToRead.end());
+    }
+    basePlusWredCounterIds.resize(
         baseCounterIds.size() + SaiQueueTraits::WredCounterIdsToRead.size());
     std::set_union(
         baseCounterIds.begin(),
         baseCounterIds.end(),
         SaiQueueTraits::WredCounterIdsToRead.begin(),
         SaiQueueTraits::WredCounterIdsToRead.end(),
-        supportedCounterIds.begin());
-    if (platform_->getAsic()->isSupported(
-            HwAsic::Feature::VOQ_DELETE_COUNTER)) {
-      supportedCounterIds.insert(
-          supportedCounterIds.end(),
-          SaiQueueTraits::VoqWatchDogDeleteCounterIdsToRead.begin(),
-          SaiQueueTraits::VoqWatchDogDeleteCounterIdsToRead.end());
-    }
+        basePlusWredCounterIds.begin());
   }
 
+  // If WRED is enabled on queue, return basePlusWredCounterIds
   if (queueHandle && queueHandle->wredProfile &&
       GET_ATTR(Wred, GreenEnable, queueHandle->wredProfile->attributes())) {
-    return supportedCounterIds;
+    return basePlusWredCounterIds;
   }
   return baseCounterIds;
 }
