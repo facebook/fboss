@@ -712,3 +712,78 @@ TEST(SwitchSettingsTest, applyMinLinksToJoinVOQDomain) {
         switchSettingsV2->getMinLinksToJoinVOQDomain().value());
   }
 }
+
+TEST(SwitchSettingsTest, applyDefaultVoqConfig) {
+  const auto kEcnQueueId{4};
+  auto aqmEcnConfigGet = [&](int minLength, int maxLength) {
+    cfg::ActiveQueueManagement ecnAQM;
+    cfg::LinearQueueCongestionDetection ecnLQCD;
+    ecnLQCD.minimumLength() = minLength;
+    ecnLQCD.maximumLength() = maxLength;
+    ecnAQM.detection()->linear_ref() = ecnLQCD;
+    ecnAQM.behavior() = cfg::QueueCongestionBehavior::ECN;
+    return ecnAQM;
+  };
+
+  auto verifyAqmsEcnState = [&](std::shared_ptr<SwitchState> state,
+                                int minLength,
+                                int maxLength) {
+    auto& defaultVoqConfig =
+        util::getFirstNodeIf(state->getSwitchSettings())->getDefaultVoqConfig();
+    for (const auto& voqConfig : defaultVoqConfig) {
+      if (voqConfig->getID() == kEcnQueueId) {
+        if (!voqConfig->getAqms() || voqConfig->getAqms()->empty()) {
+          continue;
+        }
+        for (const auto& aqm : std::as_const(*voqConfig->getAqms())) {
+          auto thresholds = aqm->cref<switch_config_tags::detection>()
+                                ->cref<switch_config_tags::linear>()
+                                ->toThrift();
+          EXPECT_EQ(*thresholds.minimumLength(), minLength);
+          EXPECT_EQ(*thresholds.maximumLength(), maxLength);
+          return;
+        }
+      }
+    }
+    throw FbossError("Could not find queueId ", kEcnQueueId, " in config!");
+  };
+
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  cfg::SwitchConfig config;
+
+  std::vector<cfg::PortQueue> voqConfig{};
+  const std::vector<int> kQueueIds = {0, 2, kEcnQueueId, 7};
+  for (const auto queueId : kQueueIds) {
+    cfg::PortQueue queue;
+    *queue.id() = queueId;
+    queue.streamType() = cfg::StreamType::UNICAST;
+    queue.name() = folly::to<std::string>("queue", queueId);
+    *queue.scheduling() = cfg::QueueScheduling::INTERNAL;
+    queue.scalingFactor() = cfg::MMUScalingFactor::ONE;
+    queue.reservedBytes() = 1500; // Set to possible MTU!
+
+    if (queueId == kEcnQueueId) {
+      queue.aqms() = {};
+      queue.aqms()->push_back(aqmEcnConfigGet(600000, 600000));
+    }
+    voqConfig.push_back(queue);
+  }
+  config.defaultVoqConfig() = voqConfig;
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  verifyAqmsEcnState(stateV1, 600000, 600000);
+
+  // Modify ECN threshold and make sure it takes effect
+  for (auto& queue : voqConfig) {
+    if (*queue.id() == kEcnQueueId) {
+      queue.aqms() = {};
+      queue.aqms()->push_back(aqmEcnConfigGet(300000, 300000));
+      break;
+    }
+  }
+  config.defaultVoqConfig() = voqConfig;
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  EXPECT_NE(nullptr, stateV2);
+  verifyAqmsEcnState(stateV2, 300000, 300000);
+}
