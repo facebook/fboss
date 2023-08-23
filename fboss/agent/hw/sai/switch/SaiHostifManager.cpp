@@ -58,17 +58,29 @@ SaiHostifManager::packetReasonToHostifTrap(
    * will generate an ARP/NdP which has to be flooded to the vlan members.
    * IP2ME, BGP and BGPV6 are destined to the switch and hence configured as
    * TRAP. LLDP and DHCP is link local and hence configured as TRAP.
+   *
+   * On DNX platforms, use action trap for arp/ndp only, because
+   * 1) there is no vlan member in DNX user case
+   * 2) two copies of packet would be punt to CPU if the ARP/NDP pkt is
+   * destined to the switch itself
    */
+  sai_packet_action_t ndpAction;
+  if ((platform->getAsic()->getAsicType() ==
+       cfg::AsicType::ASIC_TYPE_JERICHO2) ||
+      (platform->getAsic()->getAsicType() ==
+       cfg::AsicType::ASIC_TYPE_JERICHO3)) {
+    ndpAction = SAI_PACKET_ACTION_TRAP;
+  } else {
+    ndpAction = SAI_PACKET_ACTION_COPY;
+  }
   switch (reason) {
     case cfg::PacketRxReason::ARP:
-      return std::make_pair(
-          SAI_HOSTIF_TRAP_TYPE_ARP_REQUEST, SAI_PACKET_ACTION_COPY);
+      return std::make_pair(SAI_HOSTIF_TRAP_TYPE_ARP_REQUEST, ndpAction);
     case cfg::PacketRxReason::ARP_RESPONSE:
-      return std::make_pair(
-          SAI_HOSTIF_TRAP_TYPE_ARP_RESPONSE, SAI_PACKET_ACTION_COPY);
+      return std::make_pair(SAI_HOSTIF_TRAP_TYPE_ARP_RESPONSE, ndpAction);
     case cfg::PacketRxReason::NDP:
       return std::make_pair(
-          SAI_HOSTIF_TRAP_TYPE_IPV6_NEIGHBOR_DISCOVERY, SAI_PACKET_ACTION_COPY);
+          SAI_HOSTIF_TRAP_TYPE_IPV6_NEIGHBOR_DISCOVERY, ndpAction);
     case cfg::PacketRxReason::CPU_IS_NHOP:
       return std::make_pair(SAI_HOSTIF_TRAP_TYPE_IP2ME, SAI_PACKET_ACTION_TRAP);
     case cfg::PacketRxReason::DHCP:
