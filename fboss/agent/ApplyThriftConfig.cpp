@@ -478,6 +478,9 @@ class ThriftConfigApplier {
   folly::MacAddress getLocalMac(SwitchID switchId) const;
   SwitchID getSwitchId(const cfg::Interface& intfConfig) const;
   void addRemoteIntfRoute();
+  std::optional<SwitchID> getAnyVoqSwitchId();
+  std::optional<QueueConfig> getDefaultVoqConfigIfChanged(
+      std::shared_ptr<SwitchSettings> switchSettings);
 
   std::shared_ptr<SwitchState> orig_;
   std::shared_ptr<SwitchState> new_;
@@ -755,11 +758,26 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   }
 
   {
+    auto voqSwitchId = getAnyVoqSwitchId();
+    std::shared_ptr<SwitchSettings> origSwitchSettings{};
+    if (voqSwitchId.has_value()) {
+      auto matcher =
+          HwSwitchMatcher(std::unordered_set<SwitchID>({*voqSwitchId}));
+      origSwitchSettings =
+          orig_->getSwitchSettings()->getNodeIf(matcher.matcherString());
+    }
+
     auto newDsfNodes = updateDsfNodes();
     if (newDsfNodes) {
       new_->resetDsfNodes(
           toMultiSwitchMap<MultiSwitchDsfNodeMap>(newDsfNodes, scopeResolver_));
       processUpdatedDsfNodes();
+    }
+    // defaultVoqConfig is used to program VoQ (which is tied to system
+    // port) and hence needs updateSystemPorts() to be invoked if this
+    // changes in addition to DsfNodes itself.
+    if (newDsfNodes ||
+        getDefaultVoqConfigIfChanged(origSwitchSettings).has_value()) {
       new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
           updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()),
           scopeResolver_));
@@ -771,6 +789,38 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     return nullptr;
   }
   return new_;
+}
+
+std::optional<SwitchID> ThriftConfigApplier::getAnyVoqSwitchId() {
+  std::optional<SwitchID> switchId;
+  for (const auto& switchIdAndSwitchInfo :
+       *cfg_->switchSettings()->switchIdToSwitchInfo()) {
+    if (switchIdAndSwitchInfo.second.switchType() == cfg::SwitchType::VOQ) {
+      switchId = static_cast<SwitchID>(switchIdAndSwitchInfo.first);
+      break;
+    }
+  }
+  // Returns a switchId only if we have a VoQ switch in config!
+  return switchId;
+}
+
+// Return the new defaultVoqConfig if it is different from the
+// original config.
+std::optional<QueueConfig> ThriftConfigApplier::getDefaultVoqConfigIfChanged(
+    std::shared_ptr<SwitchSettings> origSwitchSettings) {
+  if (cfg_->defaultVoqConfig()->size()) {
+    const auto kNumVoqs = 8;
+    std::optional<QueueConfig> defaultVoqConfig = updatePortQueues(
+        QueueConfig(),
+        *cfg_->defaultVoqConfig(),
+        kNumVoqs,
+        cfg::StreamType::UNICAST);
+    if (!origSwitchSettings ||
+        (origSwitchSettings->getDefaultVoqConfig() != *defaultVoqConfig)) {
+      return defaultVoqConfig;
+    }
+  }
+  return std::nullopt;
 }
 
 void ThriftConfigApplier::processUpdatedDsfNodes() {
@@ -3829,17 +3879,10 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
     switchSettingsChange = true;
   }
 
-  if (cfg_->defaultVoqConfig()->size()) {
-    const auto kNumVoqs = 8;
-    auto defaultVoqConfig = updatePortQueues(
-        QueueConfig(),
-        *cfg_->defaultVoqConfig(),
-        kNumVoqs,
-        cfg::StreamType::UNICAST);
-    if (origSwitchSettings->getDefaultVoqConfig() != defaultVoqConfig) {
-      newSwitchSettings->setDefaultVoqConfig(defaultVoqConfig);
-      switchSettingsChange = true;
-    }
+  auto defaultVoqConfig = getDefaultVoqConfigIfChanged(origSwitchSettings);
+  if (defaultVoqConfig.has_value()) {
+    newSwitchSettings->setDefaultVoqConfig(*defaultVoqConfig);
+    switchSettingsChange = true;
   }
 
   // TODO - Disallow changing any switchInfo parameter after first
