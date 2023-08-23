@@ -173,7 +173,7 @@ TEST_F(QueueManagerTest, checkNonExistentQueues) {
   PortSaiId portSaiId = portHandle->port->adapterKey();
   auto streamType = cfg::StreamType::UNICAST;
   std::vector<uint8_t> queueIds = {1, 2, 3, 4};
-  std::vector<uint8_t> nonExistentQueueIds = {7, 8, 10};
+  std::vector<uint8_t> nonExistentQueueIds = {8, 10};
   auto queueConfig = makeQueueConfig({queueIds});
   auto queueSaiIds = getPortQueueSaiIds(portHandle);
   auto queueHandles = saiManagerTable->queueManager().loadQueues(queueSaiIds);
@@ -193,7 +193,7 @@ TEST_F(QueueManagerTest, getNonExistentQueues) {
   PortSaiId portSaiId = portHandle->port->adapterKey();
   auto streamType = cfg::StreamType::UNICAST;
   std::vector<uint8_t> queueIds = {1, 2, 3, 4};
-  std::vector<uint8_t> nonExistentQueueIds = {7, 8, 10};
+  std::vector<uint8_t> nonExistentQueueIds = {8, 10};
   auto queueConfig = makeQueueConfig({queueIds});
   auto queueSaiIds = getPortQueueSaiIds(portHandle);
   auto queueHandles = saiManagerTable->queueManager().loadQueues(queueSaiIds);
@@ -206,24 +206,6 @@ TEST_F(QueueManagerTest, getNonExistentQueues) {
         PortID(10), saiQueueConfig);
     EXPECT_FALSE(queueHandle);
   }
-}
-
-TEST_F(QueueManagerTest, loadUCMCQueueWithSameQueueId) {
-  auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(10));
-  PortSaiId portSaiId = portHandle->port->adapterKey();
-  // Fake has queue id 6 allocated for unicast and multicast
-  std::vector<uint8_t> queueIds = {6};
-  auto ucQueueConfig = makeQueueConfig({queueIds}, cfg::StreamType::UNICAST);
-  auto mcQueueConfig = makeQueueConfig({queueIds}, cfg::StreamType::MULTICAST);
-  auto queueSaiIds = getPortQueueSaiIds(portHandle);
-  auto ucQueueHandles = saiManagerTable->queueManager().loadQueues(queueSaiIds);
-  saiManagerTable->queueManager().ensurePortQueueConfig(
-      portSaiId, ucQueueHandles, ucQueueConfig);
-  auto mcQueueHandles = saiManagerTable->queueManager().loadQueues(queueSaiIds);
-  saiManagerTable->queueManager().ensurePortQueueConfig(
-      portSaiId, mcQueueHandles, mcQueueConfig);
-  checkQueue(ucQueueHandles, portSaiId, cfg::StreamType::UNICAST, {queueIds});
-  checkQueue(mcQueueHandles, portSaiId, cfg::StreamType::MULTICAST, {queueIds});
 }
 
 TEST_F(QueueManagerTest, changePortQueue) {

@@ -316,16 +316,10 @@ sai_status_t create_port_fn(
   port.disableTtlDecrement = disableTtlDecrement;
   port.txEnable = txEnable;
   // TODO: Use number of queues by querying SAI_SWITCH_ATTR_NUMBER_OF_QUEUES
-  for (uint8_t queueId = 0; queueId < 7; queueId++) {
+  for (uint8_t queueId = 0; queueId < 8; queueId++) {
     auto saiQueueId = fs->queueManager.create(
         SAI_QUEUE_TYPE_UNICAST, *port_id, queueId, *port_id);
     port.queueIdList.push_back(saiQueueId);
-    if (queueId == 6) {
-      // Create queue 6 for multicast also.
-      saiQueueId = fs->queueManager.create(
-          SAI_QUEUE_TYPE_MULTICAST, *port_id, queueId, *port_id);
-      port.queueIdList.push_back(saiQueueId);
-    }
   }
   port.interface_type = interface_type;
   if (priorityFlowControlMode.has_value()) {
