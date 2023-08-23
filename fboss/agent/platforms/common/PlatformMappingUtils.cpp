@@ -20,6 +20,7 @@
 #include "fboss/agent/platforms/common/darwin/DarwinPlatformMapping.h"
 #include "fboss/agent/platforms/common/ebb_lab/Wedge400CEbbLabPlatformMapping.h"
 #include "fboss/agent/platforms/common/elbert/ElbertPlatformMapping.h"
+#include "fboss/agent/platforms/common/fake_test/FakeTestPlatformMapping.h"
 #include "fboss/agent/platforms/common/fuji/FujiPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyFCPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyLCPlatformMapping.h"
@@ -178,6 +179,8 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<Morgan800ccPlatformMapping>()
           : std::make_unique<Morgan800ccPlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_FAKE_SAI:
+      return std::make_unique<FakeTestPlatformMapping>(std::vector<int>{});
   }
   return nullptr;
 }

@@ -25,6 +25,7 @@ target_link_libraries(platform_mapping_utils
   minipack_platform_mapping
   elbert_platform_mapping
   yamp_platform_mapping
+  fake_test_platform_mapping
   fuji_platform_mapping
   galaxy_platform_mapping
   wedge100_platform_mapping

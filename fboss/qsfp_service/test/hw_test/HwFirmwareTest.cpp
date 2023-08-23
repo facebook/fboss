@@ -30,6 +30,7 @@ TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
     case PlatformType::PLATFORM_GALAXY_FC:
     case PlatformType::PLATFORM_FAKE_WEDGE:
     case PlatformType::PLATFORM_FAKE_WEDGE40:
+    case PlatformType::PLATFORM_FAKE_SAI:
     case PlatformType::PLATFORM_WEDGE400C:
     case PlatformType::PLATFORM_WEDGE400C_SIM:
     case PlatformType::PLATFORM_WEDGE400C_VOQ:

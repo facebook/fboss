@@ -80,6 +80,8 @@ inline std::string toString(PlatformType mode) {
       return "MERU800BFA";
     case PlatformType::PLATFORM_MORGAN800CC:
       return "MORGAN800_CC";
+    case PlatformType::PLATFORM_FAKE_SAI:
+      return "FAKE_SAI";
   }
   throw std::runtime_error("Unknown mode");
   return "Unknown";

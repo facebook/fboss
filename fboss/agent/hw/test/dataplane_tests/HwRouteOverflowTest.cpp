@@ -69,6 +69,7 @@ TEST_F(HwOverflowTest, overflowRoutes) {
 
     case PlatformType::PLATFORM_FAKE_WEDGE:
     case PlatformType::PLATFORM_FAKE_WEDGE40:
+    case PlatformType::PLATFORM_FAKE_SAI:
       // No limits to overflow for fakes
       break;
     case PlatformType::PLATFORM_WEDGE400C:
