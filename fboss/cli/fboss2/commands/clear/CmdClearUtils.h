@@ -25,6 +25,11 @@ std::string flushNeighborEntries(
   std::vector<NeighborEntry> entriesToFlush;
 
   for (auto const& entry : allNeighbors) {
+    // STATIC or DYNAMIC entries cannot be flushed.
+    if (entry.get_state() == "STATIC" || entry.get_state() == "DYNAMIC") {
+      continue;
+    }
+
     auto ip = folly::IPAddress::fromBinary(
         folly::ByteRange(folly::StringPiece(entry.get_ip().get_addr())));
     auto shouldFlush = networkFilter.empty() ||
