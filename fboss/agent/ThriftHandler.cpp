@@ -2112,15 +2112,27 @@ int32_t ThriftHandler::flushNeighborEntry(
 
   auto parsedIP = toIPAddress(*ip);
 
-  if (FLAGS_intf_nbr_tables) {
-    // VOQ switches don't support VLANs. The thrift client will pass interfaceID
-    // instead of VLAN.
-    // NPU switches support VLANs, but vlanID is identical to interfaceID.
-    InterfaceID intfID = InterfaceID(vlan);
-    return sw_->getNeighborUpdater()->flushEntryForIntf(intfID, parsedIP).get();
-  } else {
-    VlanID vlanID(vlan);
-    return sw_->getNeighborUpdater()->flushEntry(vlanID, parsedIP).get();
+  try {
+    if (FLAGS_intf_nbr_tables) {
+      // VOQ switches don't support VLANs. The thrift client will pass
+      // interfaceID instead of VLAN. NPU switches support VLANs, but vlanID is
+      // identical to interfaceID.
+      InterfaceID intfID = InterfaceID(vlan);
+      return sw_->getNeighborUpdater()
+          ->flushEntryForIntf(intfID, parsedIP)
+          .get();
+    } else {
+      VlanID vlanID(vlan);
+      return sw_->getNeighborUpdater()->flushEntry(vlanID, parsedIP).get();
+    }
+  } catch (...) {
+    // TODO(skhare)
+    // Lookup IP in STATIC/DYNAMIC IPs. If present, print error.
+    // If absent, lookup in neighborUpdater(), and flush if present.
+    throw FbossError(
+        "Entry : ",
+        parsedIP,
+        " could not be deleted. Entry is either of type STATIC, DYNAMIC or does not exist");
   }
 }
 
