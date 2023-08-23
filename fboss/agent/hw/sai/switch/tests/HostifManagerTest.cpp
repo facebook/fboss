@@ -83,7 +83,7 @@ TEST_F(HostifManagerTest, addCpuQueueAndCheckStats) {
   auto newState = std::make_shared<SwitchState>();
   auto newControlPlane = std::make_shared<ControlPlane>();
   std::vector<uint8_t> queueIds = {1, 2, 3, 4};
-  auto queueConfig = makeQueueConfig({queueIds}, cfg::StreamType::ALL);
+  auto queueConfig = makeQueueConfig({queueIds}, cfg::StreamType::MULTICAST);
   newControlPlane->resetQueues(queueConfig);
   auto newMultiControlPlane = std::make_shared<MultiControlPlane>();
   newMultiControlPlane->addNode(scope().matcherString(), newControlPlane);
@@ -110,7 +110,7 @@ TEST_F(HostifManagerTest, addCpuQueueAndCheckStats) {
 TEST_F(HostifManagerTest, removeCpuQueueAndCheckStats) {
   auto newControlPlane = std::make_shared<ControlPlane>();
   std::vector<uint8_t> queueIds = {1, 2, 3, 4};
-  auto queueConfig = makeQueueConfig({queueIds}, cfg::StreamType::ALL);
+  auto queueConfig = makeQueueConfig({queueIds}, cfg::StreamType::MULTICAST);
   newControlPlane->resetQueues(queueConfig);
   auto prevState = std::make_shared<SwitchState>();
   auto newState = std::make_shared<SwitchState>();
@@ -123,7 +123,8 @@ TEST_F(HostifManagerTest, removeCpuQueueAndCheckStats) {
 
   auto newNewControlPlane = newControlPlane->clone();
   std::vector<uint8_t> newQueueIds = {1, 2};
-  auto newQueueConfig = makeQueueConfig({newQueueIds}, cfg::StreamType::ALL);
+  auto newQueueConfig =
+      makeQueueConfig({newQueueIds}, cfg::StreamType::MULTICAST);
   newNewControlPlane->resetQueues(newQueueConfig);
   auto newNewMultiSwitchControlPlane = std::make_shared<MultiControlPlane>();
   newNewMultiSwitchControlPlane->addNode(
@@ -158,7 +159,7 @@ TEST_F(HostifManagerTest, removeCpuQueueAndCheckStats) {
 
 TEST_F(HostifManagerTest, changeCpuQueueAndCheckStats) {
   auto newControlPlane = std::make_shared<ControlPlane>();
-  auto queueConfig = makeQueueConfig({1}, cfg::StreamType::ALL);
+  auto queueConfig = makeQueueConfig({1}, cfg::StreamType::MULTICAST);
   newControlPlane->resetQueues(queueConfig);
   auto prevState = std::make_shared<SwitchState>();
   auto newState = std::make_shared<SwitchState>();
@@ -170,7 +171,7 @@ TEST_F(HostifManagerTest, changeCpuQueueAndCheckStats) {
       delta0.getControlPlaneDelta());
 
   auto newNewControlPlane = newControlPlane->clone();
-  auto newQueueConfig = makeQueueConfig({1}, cfg::StreamType::ALL);
+  auto newQueueConfig = makeQueueConfig({1}, cfg::StreamType::MULTICAST);
   newQueueConfig[0]->setName("high");
   newNewControlPlane->resetQueues(newQueueConfig);
   auto newNewState = newState->clone();
@@ -258,7 +259,7 @@ TEST_F(HostifManagerTest, checkHostifPriority) {
 TEST_F(HostifManagerTest, resetSchedulerOid) {
   // Create queue 1 and a scheduler config with Stream Type ALL
   auto newControlPlane = std::make_shared<ControlPlane>();
-  auto queueConfig = makeQueueConfig({1}, cfg::StreamType::ALL);
+  auto queueConfig = makeQueueConfig({1}, cfg::StreamType::MULTICAST);
   newControlPlane->resetQueues(queueConfig);
   auto prevState = std::make_shared<SwitchState>();
   auto newState = std::make_shared<SwitchState>();
@@ -271,7 +272,7 @@ TEST_F(HostifManagerTest, resetSchedulerOid) {
   saiManagerTable->hostifManager().processHostifDelta(
       delta.getControlPlaneDelta());
   const auto queueHandle = saiManagerTable->hostifManager().getQueueHandle(
-      std::pair(1, cfg::StreamType::ALL));
+      std::pair(1, cfg::StreamType::MULTICAST));
 
   // Ensure scheduler is created with a valid OID.
   EXPECT_TRUE(queueHandle->scheduler);

@@ -77,9 +77,9 @@ void sai_create_cpu_port() {
   uint32_t cpuPortSpeed = 0;
   sai_object_id_t portId = fs->portManager.create(cpuPortLanes, cpuPortSpeed);
   auto& port = fs->portManager.get(portId);
-  for (uint8_t queueId = 0; queueId < 8; queueId++) {
-    auto saiQueueId =
-        fs->queueManager.create(SAI_QUEUE_TYPE_ALL, portId, queueId, portId);
+  for (uint8_t queueId = 0; queueId < 10; queueId++) {
+    auto saiQueueId = fs->queueManager.create(
+        SAI_QUEUE_TYPE_MULTICAST, portId, queueId, portId);
     port.queueIdList.push_back(saiQueueId);
   }
   fs->cpuPortId = portId;
