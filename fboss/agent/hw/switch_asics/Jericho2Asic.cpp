@@ -175,7 +175,7 @@ int Jericho2Asic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
       }
       return 8;
     case cfg::StreamType::MULTICAST:
-      return cpu ? 10 : 4;
+      return cpu ? 8 : 4;
     case cfg::StreamType::FABRIC_TX:
       if (cpu) {
         break;
