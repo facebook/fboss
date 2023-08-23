@@ -7,6 +7,8 @@
 
 #include <unordered_map>
 
+#include <folly/Synchronized.h>
+
 namespace facebook::fboss {
 
 class MultiSwitchPacketStreamMap {
@@ -20,10 +22,10 @@ class MultiSwitchPacketStreamMap {
       SwitchID switchId) const;
 
  private:
-  std::unordered_map<
+  folly::Synchronized<std::unordered_map<
       SwitchID,
       std::unique_ptr<
-          apache::thrift::ServerStreamPublisher<multiswitch::TxPacket>>>
+          apache::thrift::ServerStreamPublisher<multiswitch::TxPacket>>>>
       txPacketStreamMap_;
 };
 

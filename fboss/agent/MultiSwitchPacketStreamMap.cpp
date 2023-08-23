@@ -12,22 +12,18 @@ void MultiSwitchPacketStreamMap::addPacketStream(
     SwitchID switchId,
     std::unique_ptr<
         apache::thrift::ServerStreamPublisher<multiswitch::TxPacket>> stream) {
-  if (txPacketStreamMap_.find(switchId) != txPacketStreamMap_.end()) {
-    txPacketStreamMap_.erase(switchId);
-  }
-  txPacketStreamMap_.insert({switchId, std::move(stream)});
+  (*txPacketStreamMap_.wlock())[switchId] = std::move(stream);
 }
 
 void MultiSwitchPacketStreamMap::removePacketStream(SwitchID switchId) {
-  if (txPacketStreamMap_.find(switchId) != txPacketStreamMap_.end()) {
-    txPacketStreamMap_.erase(switchId);
-  }
+  (*txPacketStreamMap_.wlock()).erase(switchId);
 }
 
 ServerStreamPublisher<multiswitch::TxPacket>&
 MultiSwitchPacketStreamMap::getStream(SwitchID switchId) const {
-  auto it = txPacketStreamMap_.find(switchId);
-  if (it == txPacketStreamMap_.end()) {
+  auto& txPacketStreamMap = *txPacketStreamMap_.wlock();
+  auto it = txPacketStreamMap.find(switchId);
+  if (it == txPacketStreamMap.end()) {
     throw FbossError("No stream found for switchId ", switchId);
   }
   return *it->second;
