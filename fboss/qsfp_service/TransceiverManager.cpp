@@ -119,6 +119,23 @@ void TransceiverManager::init() {
   initExternalPhyMap();
   // Initialize the I2c bus
   initTransceiverMap();
+
+  if (!isSystemInitialized_) {
+    isSystemInitialized_ = true;
+  }
+}
+
+QsfpServiceRunState TransceiverManager::getRunState() const {
+  if (isExiting()) {
+    return QsfpServiceRunState::EXITING;
+  }
+  if (isFullyInitialized()) {
+    return QsfpServiceRunState::ACTIVE;
+  }
+  if (isSystemInitialized()) {
+    return QsfpServiceRunState::INITIALIZED;
+  }
+  return QsfpServiceRunState::UNINITIALIZED;
 }
 
 void TransceiverManager::restoreAgentConfigAppliedInfo() {
@@ -1044,6 +1061,10 @@ void TransceiverManager::refreshStateMachines() {
     }
   }
   triggerRemediateEvents(stableTcvrs);
+
+  if (!isFullyInitialized_) {
+    isFullyInitialized_ = true;
+  }
 }
 
 void TransceiverManager::triggerAgentConfigChangeEvent() {

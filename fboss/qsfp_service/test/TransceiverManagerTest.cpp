@@ -91,6 +91,34 @@ TEST_F(TransceiverManagerTest, warmBootTest) {
   EXPECT_TRUE(transceiverManager_->canWarmBoot());
 }
 
+TEST_F(TransceiverManagerTest, runState) {
+  resetTransceiverManager();
+  EXPECT_FALSE(transceiverManager_->isSystemInitialized());
+  EXPECT_FALSE(transceiverManager_->isFullyInitialized());
+  EXPECT_FALSE(transceiverManager_->isExiting());
+  EXPECT_EQ(
+      transceiverManager_->getRunState(), QsfpServiceRunState::UNINITIALIZED);
+
+  transceiverManager_->init();
+  EXPECT_TRUE(transceiverManager_->isSystemInitialized());
+  EXPECT_FALSE(transceiverManager_->isFullyInitialized());
+  EXPECT_FALSE(transceiverManager_->isExiting());
+  EXPECT_EQ(
+      transceiverManager_->getRunState(), QsfpServiceRunState::INITIALIZED);
+
+  transceiverManager_->refreshStateMachines();
+  EXPECT_TRUE(transceiverManager_->isSystemInitialized());
+  EXPECT_TRUE(transceiverManager_->isFullyInitialized());
+  EXPECT_FALSE(transceiverManager_->isExiting());
+  EXPECT_EQ(transceiverManager_->getRunState(), QsfpServiceRunState::ACTIVE);
+
+  transceiverManager_->gracefulExit();
+  EXPECT_TRUE(transceiverManager_->isSystemInitialized());
+  EXPECT_TRUE(transceiverManager_->isFullyInitialized());
+  EXPECT_TRUE(transceiverManager_->isExiting());
+  EXPECT_EQ(transceiverManager_->getRunState(), QsfpServiceRunState::EXITING);
+}
+
 ACTION(ThrowFbossError) {
   throw FbossError("Mock FbossError");
 }

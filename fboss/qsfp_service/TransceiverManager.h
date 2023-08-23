@@ -418,9 +418,18 @@ class TransceiverManager {
 
   std::optional<TransceiverID> getTransceiverID(PortID id);
 
-  QsfpServiceRunState getRunState() const {
-    // TODO: Remove hardcoding of ACTIVE here
-    return QsfpServiceRunState::ACTIVE;
+  QsfpServiceRunState getRunState() const;
+
+  bool isExiting() const {
+    return isExiting_;
+  }
+
+  bool isFullyInitialized() const {
+    return isFullyInitialized_;
+  }
+
+  bool isSystemInitialized() const {
+    return isSystemInitialized_;
   }
 
  protected:
@@ -636,6 +645,21 @@ class TransceiverManager {
   // A global flag to indicate whether the service is exiting.
   // If it is, we should not accept any state update
   bool isExiting_{false};
+
+  /*
+   * Flag that indicates whether the service has been fully initialized.
+   * Fully initialized = system, pim and phys initialized and atleast one
+   * successful iteration of refreshStateMachines is complete
+   */
+  bool isFullyInitialized_{false};
+
+  /*
+   * Flag that indicates whether the systema has been initialized.
+   * This is set at the end of transceiverManager_->init().
+   * By this time, systemContainer, pimContainer and the phy objects
+   * have been initialized.
+   */
+  bool isSystemInitialized_{false};
 
   /*
    * A map to maintain all transceivers(present and absent) state machines.
