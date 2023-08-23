@@ -8,6 +8,19 @@ namespace py.asyncio neteng.fboss.asyncio.transceiver
 include "fboss/lib/phy/prbs.thrift"
 include "thrift/annotation/cpp.thrift"
 
+/*
+ * UNINITIALIZED - when transceiverManager has just been created and init() is not yet called
+ * INITIALIZED - when transceiverManager->init() is complete i.e. systemContainer, pimContainer, phys are initialized
+ * ACTIVE - one run of refreshStateMachines is complete. Transceivers have been detected
+ * EXITING - when transceiverManager is going through a graceful exit
+ */
+enum QsfpServiceRunState {
+  UNINITIALIZED = 0,
+  INITIALIZED = 1,
+  ACTIVE = 2,
+  EXITING = 3,
+}
+
 struct Vendor {
   1: string name;
   2: binary oui;

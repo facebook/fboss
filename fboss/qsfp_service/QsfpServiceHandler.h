@@ -278,6 +278,8 @@ class QsfpServiceHandler
 
 #endif
 
+  QsfpServiceRunState getQsfpServiceRunState() override;
+
  private:
   // Forbidden copy constructor and assignment operator
   QsfpServiceHandler(QsfpServiceHandler const&) = delete;

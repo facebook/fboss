@@ -4,7 +4,6 @@ namespace py neteng.fboss.qsfp
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.qsfp
 
-include "common/fb303/if/fb303.thrift"
 include "fboss/agent/if/ctrl.thrift"
 include "fboss/agent/if/fboss.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
@@ -12,9 +11,10 @@ include "fboss/agent/switch_config.thrift"
 include "fboss/mka_service/if/mka_structs.thrift"
 include "fboss/agent/hw/hardware_stats.thrift"
 include "fboss/lib/phy/phy.thrift"
-include "fboss/lib/phy/prbs.thrift"
 
 service QsfpService extends phy.FbossCommonPhyCtrl {
+  transceiver.QsfpServiceRunState getQsfpServiceRunState();
+
   transceiver.TransceiverType getType(1: i32 idx);
 
   /*

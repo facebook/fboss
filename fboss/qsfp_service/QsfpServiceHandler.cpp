@@ -159,6 +159,11 @@ void QsfpServiceHandler::writeTransceiverRegister(
   manager_->writeTransceiverRegister(response, std::move(request));
 }
 
+QsfpServiceRunState QsfpServiceHandler::getQsfpServiceRunState() {
+  auto log = LOG_THRIFT_CALL(INFO);
+  return manager_->getRunState();
+}
+
 void QsfpServiceHandler::programXphyPort(
     int32_t portId,
     cfg::PortProfileID portProfileId) {

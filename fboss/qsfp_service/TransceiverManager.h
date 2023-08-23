@@ -418,6 +418,11 @@ class TransceiverManager {
 
   std::optional<TransceiverID> getTransceiverID(PortID id);
 
+  QsfpServiceRunState getRunState() const {
+    // TODO: Remove hardcoding of ACTIVE here
+    return QsfpServiceRunState::ACTIVE;
+  }
+
  protected:
   /*
    * Check to see if we can attempt a warm boot.
