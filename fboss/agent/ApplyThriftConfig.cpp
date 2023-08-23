@@ -387,7 +387,6 @@ class ThriftConfigApplier {
       IPAddr ip,
       InterfaceIpInfo addrInfo);
   bool updateNeighborResponseTables(Vlan* vlan, const cfg::Vlan* config);
-  bool updateNbrResponseTablesFromAllIntfCfg(Vlan* vlan);
   bool updateDhcpOverrides(Vlan* vlan, const cfg::Vlan* config);
   std::shared_ptr<InterfaceMap> updateInterfaces();
   shared_ptr<Interface> createInterface(
@@ -3176,60 +3175,6 @@ ThriftConfigApplier::updateNeighborResponseEntry(
     return std::make_shared<NeighborResponseEntry>(
         ip, addrInfo.mac, addrInfo.interfaceID);
   }
-}
-
-bool ThriftConfigApplier::updateNbrResponseTablesFromAllIntfCfg(Vlan* vlan) {
-  auto arpChanged = false, ndpChanged = false;
-  auto origArp = vlan->getArpResponseTable();
-  auto origNdp = vlan->getNdpResponseTable();
-  ArpResponseTable::NodeContainer arpTable;
-  NdpResponseTable::NodeContainer ndpTable;
-
-  std::set<std::pair<folly::IPAddress, uint8_t>> ipAddrsAdded;
-
-  // Add every interface IP address to neighbor response table for pseudo vlan.
-  for (const auto& interfaceCfg : *cfg_->interfaces()) {
-    auto mac = getInterfaceMac(&interfaceCfg);
-    auto intfID = InterfaceID(*interfaceCfg.intfID());
-    auto addresses = getInterfaceAddresses(&interfaceCfg);
-
-    for (const auto& [ip, mask] : addresses) {
-      auto ipAndMask = std::make_pair(ip, mask);
-      auto it = ipAddrsAdded.find(ipAndMask);
-      if (it != ipAddrsAdded.end()) {
-        continue;
-      }
-      ipAddrsAdded.insert(ipAndMask);
-
-      if (ip.isV4()) {
-        auto origNode = origArp->getEntry(ip.asV4());
-        auto newNode = updateNeighborResponseEntry(
-            origNode,
-            ip.asV4(),
-            ThriftConfigApplier::InterfaceIpInfo{mask, mac, intfID});
-        arpChanged |= updateMap(&arpTable, origNode, newNode);
-      } else {
-        auto origNode = origNdp->getEntry(ip.asV6());
-        auto newNode = updateNeighborResponseEntry(
-            origNode,
-            ip.asV6(),
-            ThriftConfigApplier::InterfaceIpInfo{mask, mac, intfID});
-        ndpChanged |= updateMap(&ndpTable, origNode, newNode);
-      }
-    }
-  }
-
-  arpChanged |= origArp->size() != arpTable.size();
-  ndpChanged |= origNdp->size() != ndpTable.size();
-
-  if (arpChanged) {
-    vlan->setArpResponseTable(origArp->clone(std::move(arpTable)));
-  }
-  if (ndpChanged) {
-    vlan->setNdpResponseTable(origNdp->clone(std::move(ndpTable)));
-  }
-
-  return arpChanged || ndpChanged;
 }
 
 bool ThriftConfigApplier::updateNeighborResponseTables(
