@@ -8,18 +8,22 @@
 
 using namespace facebook::fboss::platform::sensor_service;
 
-std::string mockSensorConfig(const std::string& tmpPath) {
+std::string mockSensorConfig(
+    const std::string& tmpPath,
+    const std::string& source) {
   SensorConfig config;
-  config.source_ref() = "mock";
+  config.source_ref() = source;
 
   Sensor mock_fru_1_sensor_1, mock_fru_1_sensor_2, mock_fru_2_sensor_1;
   mock_fru_1_sensor_1.path_ref() = tmpPath + "/mock_fru_1_sensor_1_path:temp1";
   mock_fru_1_sensor_2.path_ref() = tmpPath + "/mock_fru_1_sensor_2_path:fan1";
   mock_fru_2_sensor_1.path_ref() = tmpPath + "/mock_fru_2_sensor_1_path:vin";
-  std::string dummyData = "dummy";
-  folly::writeFile(dummyData, (*mock_fru_1_sensor_1.path()).c_str());
-  folly::writeFile(dummyData, (*mock_fru_1_sensor_2.path()).c_str());
-  folly::writeFile(dummyData, (*mock_fru_2_sensor_1.path()).c_str());
+  std::string value = "25";
+  folly::writeFile(value, (*mock_fru_1_sensor_1.path()).c_str());
+  value = "11152";
+  folly::writeFile(value, (*mock_fru_1_sensor_2.path()).c_str());
+  value = "11.875";
+  folly::writeFile(value, (*mock_fru_2_sensor_1.path()).c_str());
 
   Thresholds thresholds{};
   thresholds.lowerCriticalVal_ref() = 105;
@@ -80,9 +84,10 @@ std::string mockSensorData(const std::string& tmpPath) {
 }
 
 std::unique_ptr<SensorServiceImpl> createSensorServiceImplForTest(
-    const std::string& tmpDirPath) {
-  auto impl = std::make_unique<SensorServiceImpl>(mockSensorConfig(tmpDirPath));
-  return impl;
+    const std::string& tmpDirPath,
+    const std::string& source) {
+  return std::make_unique<SensorServiceImpl>(
+      mockSensorConfig(tmpDirPath, source));
 }
 
 std::string createMockSensorDataFile(const std::string& tmpDirPath) {

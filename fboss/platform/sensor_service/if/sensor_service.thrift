@@ -6,11 +6,17 @@ namespace py.asyncio neteng.fboss.platform.asyncio.sensor_service
 
 include "fboss/agent/if/fboss.thrift"
 
-// All timestamps are Epoch time in second
+// SensorData contains the observed data of a sensor device's output.
+//
+// `name`: Name of the sensor device
+//
+// `value`: Lastest value of sensor read. Not set if the last read failed.
+//
+// `timeStamp`: Lastest timestamp of sensor read. Not set if the last read failed.
 struct SensorData {
   1: string name;
-  2: float value;
-  3: i64 timeStamp;
+  2: optional float value;
+  3: optional i64 timeStamp;
 }
 
 // TODO: Add more FRU types

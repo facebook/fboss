@@ -47,7 +47,6 @@ const std::string kLmsensorCommand = "sensors -j";
 auto constexpr kReadFailure = "sensor_read.{}.failure";
 auto constexpr kTotalReadFailure = "sensor_read.total.failures";
 auto constexpr kHasReadFailure = "sensor_read.has.failures";
-
 } // namespace
 namespace facebook::fboss::platform::sensor_service {
 
@@ -132,8 +131,8 @@ std::vector<SensorData> SensorServiceImpl::getSensorsData(
       }
       SensorData d;
       d.name() = it->first;
-      d.value() = it->second.value;
-      d.timeStamp() = it->second.timeStamp;
+      d.value().from_optional(it->second.value);
+      d.timeStamp().from_optional(it->second.timeStamp);
       sensorDataVec.push_back(d);
     }
   });
@@ -147,8 +146,8 @@ std::map<std::string, SensorData> SensorServiceImpl::getAllSensorData() {
     for (auto& pair : table) {
       SensorData d;
       d.name() = pair.first;
-      d.value() = pair.second.value;
-      d.timeStamp() = pair.second.timeStamp;
+      d.value().from_optional(pair.second.value);
+      d.timeStamp().from_optional(pair.second.timeStamp);
       sensorDataMap[pair.first] = d;
     }
   });
@@ -205,17 +204,19 @@ void SensorServiceImpl::getSensorDataFromPath() {
       if (folly::readFile(sensorLiveData.path.c_str(), sensorValue)) {
         sensorLiveData.value = folly::to<float>(sensorValue);
         sensorLiveData.timeStamp = now;
-        if (sensorLiveData.compute != "") {
+        if (!sensorLiveData.compute.empty()) {
           sensorLiveData.value = Utils::computeExpression(
-              sensorLiveData.compute, sensorLiveData.value);
+              sensorLiveData.compute, *sensorLiveData.value);
         }
         XLOG(INFO) << fmt::format(
             "{} ({}) : {}",
             sensorName,
             sensorLiveData.path,
-            sensorLiveData.value);
+            *sensorLiveData.value);
         fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 0);
       } else {
+        sensorLiveData.value = std::nullopt;
+        sensorLiveData.timeStamp = std::nullopt;
         XLOG(INFO) << fmt::format(
             "Could not read data for {} from {}",
             sensorName,
@@ -253,9 +254,9 @@ void SensorServiceImpl::parseSensorJsonData(const std::string& strJson) {
               (*dataTable)[sensorNameMap_[sensorPath]].timeStamp = now;
 
               XLOG(INFO) << sensorNameMap_[sensorPath] << " : "
-                         << (*dataTable)[sensorNameMap_[sensorPath]].value
+                         << *(*dataTable)[sensorNameMap_[sensorPath]].value
                          << " >>>> "
-                         << (*dataTable)[sensorNameMap_[sensorPath]].timeStamp;
+                         << *(*dataTable)[sensorNameMap_[sensorPath]].timeStamp;
             }
           }
         }

@@ -35,8 +35,8 @@ enum class SensorSource {
 struct SensorLiveData {
   std::string fru;
   std::string path;
-  float value;
-  int64_t timeStamp;
+  std::optional<float> value;
+  std::optional<int64_t> timeStamp;
   std::string compute;
   Thresholds thresholds;
 };
@@ -76,13 +76,14 @@ class SensorServiceImpl {
   folly::Synchronized<std::unordered_map<SensorName, struct SensorLiveData>>
       liveDataTable_;
 
+  std::unique_ptr<FsdbSyncer> fsdbSyncer_;
+
+  std::optional<std::chrono::time_point<std::chrono::steady_clock>>
+      publishedStatsToFsdbAt_;
+
   void init();
   void parseSensorJsonData(const std::string&);
   void getSensorDataFromPath();
-
-  std::unique_ptr<FsdbSyncer> fsdbSyncer_;
-  std::optional<std::chrono::time_point<std::chrono::steady_clock>>
-      publishedStatsToFsdbAt_;
 };
 
 } // namespace facebook::fboss::platform::sensor_service
