@@ -5,7 +5,6 @@
     "mode": "meru800bia",
     "skip_transceiver_programming": "true",
     "enable_replayer": "true",
-    "enable_get_attr_log": "true",
     "sai_log": "/tmp/sai.log"
   },
   "sw": {
@@ -143,7 +142,7 @@
           "asicType": 14,
           "platformType": 18
       }
-    } 
+    }
   },
   "platform": {
     "chip": {
@@ -383,7 +382,7 @@
         "custom_feature_statdma_enable": "0",
         "rif_id_max": "0x6000",
         "sai_recycle_port_lane_base": "440",
-        "dpp_db_path": "/home/bcmsim/brcmsim/tools/sand/db", 
+        "dpp_db_path": "/home/bcmsim/brcmsim/tools/sand/db",
         "perform_system_reset_when_needed": "1",
         "bcm_stat_interval": "1000000",
         "sai_nos_reserved_l3_encap_range_begin": "0x200000",
