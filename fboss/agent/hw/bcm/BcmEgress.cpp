@@ -393,7 +393,7 @@ void BcmEcmpEgress::program() {
 
     if (useHsdk_) {
       if (ucmpEnabled_) {
-        obj.ecmp_group_flags = BCM_L3_ECMP_MEMBER_WEIGHTED;
+        obj.ecmp_group_flags |= BCM_L3_ECMP_MEMBER_WEIGHTED;
       }
       // @lint-ignore CLANGTIDY
       bcm_l3_ecmp_member_t ecmpMemberArray[numPaths];

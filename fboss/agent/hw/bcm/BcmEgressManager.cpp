@@ -111,7 +111,7 @@ int BcmEgressManager::removeAllEgressesFromEcmpCallback(
   auto egressesToRemove = std::get<0>(tuple);
   auto useHsdk = std::get<1>(tuple);
   auto wideEcmpSupported = std::get<2>(tuple);
-  auto ucmpEnabled = ecmp->ecmp_group_flags == BCM_L3_ECMP_MEMBER_WEIGHTED;
+  auto ucmpEnabled = ecmp->ecmp_group_flags & BCM_L3_ECMP_MEMBER_WEIGHTED;
   for (int i = 0; i < memberCount; ++i) {
     auto egressInHw = toEgressIdAndWeight<T>(memberArray[i]);
     if (egressesToRemove->find(egressInHw.first) != egressesToRemove->end()) {

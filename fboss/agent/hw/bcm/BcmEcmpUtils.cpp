@@ -29,7 +29,7 @@ getEcmpGroupInHw(const BcmSwitch* hw, bcm_if_t ecmp, int sizeInSw) {
     bcm_l3_ecmp_get(
         hw->getUnit(), &existing, sizeInSw, pathsInHw, &pathsInHwCount);
     for (size_t i = 0; i < pathsInHwCount; ++i) {
-      if (existing.ecmp_group_flags == BCM_L3_ECMP_MEMBER_WEIGHTED) {
+      if (existing.ecmp_group_flags & BCM_L3_ECMP_MEMBER_WEIGHTED) {
         for (size_t j = 0; j < pathsInHw[i].weight; j++) {
           ecmpGroup.insert(pathsInHw[i].egress_if);
         }
@@ -81,7 +81,7 @@ int bcm_l3_ecmp_traverse_cb(
           ->second;
   if (getMemberIds) {
     for (auto i = 0; i < memberCount; i++) {
-      if (ecmp->ecmp_group_flags == BCM_L3_ECMP_MEMBER_WEIGHTED) {
+      if (ecmp->ecmp_group_flags & BCM_L3_ECMP_MEMBER_WEIGHTED) {
         auto egress = toIntfId<T>(memberArray[i]);
         for (auto j = 0; j < egress.second; j++) {
           outvec->push_back(egress.first);
@@ -143,7 +143,7 @@ bool isNativeUcmpEnabled(const BcmSwitch* hw, bcm_if_t ecmp) {
   if (hw->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HSDK)) {
     // @lint-ignore CLANGTIDY
     bcm_l3_ecmp_get(hw->getUnit(), &existing, 0, NULL, &pathsInHwCount);
-    return existing.ecmp_group_flags == BCM_L3_ECMP_MEMBER_WEIGHTED;
+    return existing.ecmp_group_flags & BCM_L3_ECMP_MEMBER_WEIGHTED;
   }
   return false;
 }
