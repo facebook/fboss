@@ -719,12 +719,25 @@ void SwSwitch::publishTxPacket(TxPacket* pkt, uint16_t ethertype) {
 void SwSwitch::init(
     HwSwitchCallback* callback,
     std::unique_ptr<TunManager> tunMgr,
-    MonolithicHwSwitchInitFn hwSwitchInitFn,
+    HwSwitchInitFn hwSwitchInitFn,
     SwitchFlags flags) {
   auto begin = steady_clock::now();
   flags_ = flags;
+  auto hwInitRet = hwSwitchInitFn(callback, false /*failHwCallsOnWarmboot*/);
   bootType_ = swSwitchWarmbootHelper_->canWarmBoot() ? BootType::WARM_BOOT
                                                      : BootType::COLD_BOOT;
+  if (hwInitRet.bootType != bootType_) {
+    // this is being done for preprod2trunk migration. further until tooling is
+    // updated to affect both warm boot flags, HwSwitch will override SwSwitch
+    // boot flag (for monolithic agent).
+    auto bootStr = [](BootType type) {
+      return type == BootType::WARM_BOOT ? "WARM_BOOT" : "COLD_BOOT";
+    };
+    XLOG(INFO) << "Overriding boot type from " << bootStr(bootType_) << " to "
+               << bootStr(hwInitRet.bootType);
+    bootType_ = hwInitRet.bootType;
+  }
+  multiHwSwitchHandler_->start();
   std::optional<state::WarmbootState> wbState{};
   if (bootType_ == BootType::WARM_BOOT) {
     wbState = swSwitchWarmbootHelper_->getWarmBootState();
@@ -732,18 +745,7 @@ void SwSwitch::init(
   auto [state, rib] = SwSwitchWarmBootHelper::reconstructStateAndRib(
       wbState, scopeResolver_->hasL3());
   rib_ = std::move(rib);
-  auto hwInitRet =
-      hwSwitchInitFn(callback, state, false /*failHwCallsOnWarmboot*/);
-  CHECK(bootType_ == hwInitRet.bootType);
   auto initialState = state;
-  fb303::fbData->setCounter(kHwUpdateFailures, 0);
-
-  XLOG(DBG0) << "hardware initialized in " << hwInitRet.bootTime
-             << " seconds; applying initial config";
-
-  restart_time::init(
-      agentDirUtil_->getWarmBootDir(), bootType_ == BootType::WARM_BOOT);
-
   if (!getAppliedState()) {
     // Store the initial state
     initialState->publish();
@@ -752,6 +754,18 @@ void SwSwitch::init(
     // seeded by test
     initialState = getAppliedState();
   }
+  auto emptyState = std::make_shared<SwitchState>();
+  emptyState->publish();
+  multiHwSwitchHandler_->stateChanged(
+      StateDelta(emptyState, initialState), false);
+
+  fb303::fbData->setCounter(kHwUpdateFailures, 0);
+
+  XLOG(DBG0) << "hardware initialized in " << hwInitRet.bootTime
+             << " seconds; applying initial config";
+
+  restart_time::init(
+      agentDirUtil_->getWarmBootDir(), bootType_ == BootType::WARM_BOOT);
 
   // start LACP thread
   lacpThread_.reset(new std::thread(
@@ -778,7 +792,6 @@ void SwSwitch::init(
         StateDelta(std::make_shared<SwitchState>(), initialState));
   });
 
-  multiHwSwitchHandler_->start();
   startThreads();
   XLOG(DBG2)
       << "Time to init switch and start all threads "
@@ -870,7 +883,7 @@ void SwSwitch::init(
 
 void SwSwitch::init(
     std::unique_ptr<TunManager> tunMgr,
-    MonolithicHwSwitchInitFn hwSwitchInitFn,
+    HwSwitchInitFn hwSwitchInitFn,
     SwitchFlags flags) {
   this->init(this, std::move(tunMgr), hwSwitchInitFn, flags);
 }

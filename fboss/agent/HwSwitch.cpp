@@ -246,7 +246,6 @@ HwInitResult HwSwitch::init(
   if (ret.bootType == BootType::WARM_BOOT) {
     // apply state only for warm boot. cold boot state is already applied.
     auto writeBehavior = getWarmBootWriteBehavior(failHwCallsOnWarmboot);
-    setProgrammedState(std::make_shared<SwitchState>());
     ret.switchState = stateChanged(
         StateDelta(getProgrammedState(), ret.switchState), writeBehavior);
     setProgrammedState(ret.switchState);
@@ -304,6 +303,8 @@ HwInitResult HwSwitch::initLightImpl(
       duration_cast<duration<float>>(steady_clock::now() - begin).count();
   if (ret.bootType == BootType::WARM_BOOT) {
     // on warm boot, no need to apply minimum alpm state
+    // wait for state to be injected by SwSwitch
+    setProgrammedState(std::make_shared<SwitchState>());
     return ret;
   }
   if (switchType_ != cfg::SwitchType::NPU &&

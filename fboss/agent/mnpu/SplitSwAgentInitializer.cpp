@@ -13,9 +13,7 @@ void SplitSwSwitchInitializer::initImpl(HwSwitchCallback* callback) {
   sw_->init(
       callback,
       nullptr,
-      [](HwSwitchCallback* /*callback*/,
-         const std::shared_ptr<SwitchState>&,
-         bool /*failHwCallsOnWarmboot*/) {
+      [](HwSwitchCallback* /*callback*/, bool /*failHwCallsOnWarmboot*/) {
         // TODO: need a different init for split sw-switch, as it there is no hw
         // agent
         return HwInitResult{};

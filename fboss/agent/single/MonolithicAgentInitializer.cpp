@@ -70,12 +70,9 @@ void MonolithicSwSwitchInitializer::initImpl(
   sw_->init(
       hwSwitchCallback,
       nullptr,
-      [this](
-          HwSwitchCallback* callback,
-          const std::shared_ptr<SwitchState>& state,
-          bool failHwCallsOnWarmboot) {
-        return hwAgent_->initMonolithicHwAgent(
-            failHwCallsOnWarmboot, state, callback);
+      [this](HwSwitchCallback* callback, bool failHwCallsOnWarmboot) {
+        return hwAgent_->getPlatform()->getHwSwitch()->initLight(
+            callback, failHwCallsOnWarmboot);
       },
       setupFlags());
 }

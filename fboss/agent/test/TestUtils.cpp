@@ -1196,12 +1196,9 @@ void addSwitchSettingsToState(
   state->resetSwitchSettings(std::move(multiSwitchSwitchSettings));
 }
 
-MonolithicHwSwitchInitFn mockHwSwitchInitFn(SwSwitch* sw) {
-  return [sw](
-             HwSwitchCallback* callback,
-             const std::shared_ptr<SwitchState>& state,
-             bool failHwCallsOnWarmboot) {
-    return getMockHw(sw)->init(callback, state, failHwCallsOnWarmboot);
+HwSwitchInitFn mockHwSwitchInitFn(SwSwitch* sw) {
+  return [sw](HwSwitchCallback* callback, bool failHwCallsOnWarmboot) {
+    return getMockHw(sw)->initLight(callback, failHwCallsOnWarmboot);
   };
 }
 

@@ -24,23 +24,13 @@ HwAgent::HwAgent(
 HwAgent::HwAgent(std::unique_ptr<Platform> platform)
     : platform_(std::move(platform)) {}
 
-BootType HwAgent::initAgent(
+HwInitResult HwAgent::initAgent(
     bool failHwCallsOnWarmboot,
     HwSwitchCallback* callback) {
   auto ret =
       getPlatform()->getHwSwitch()->initLight(callback, failHwCallsOnWarmboot);
   XLOG(DBG2) << "HwSwitch init done";
-  return ret.bootType;
-}
-
-HwInitResult HwAgent::initMonolithicHwAgent(
-    bool failHwCallsOnWarmboot,
-    const std::shared_ptr<SwitchState>& state,
-    HwSwitchCallback* callback) {
-  auto hwInitResult = getPlatform()->getHwSwitch()->init(
-      callback, state, failHwCallsOnWarmboot);
-  XLOG(DBG2) << "HwSwitch init done";
-  return hwInitResult;
+  return ret;
 }
 
 } // namespace facebook::fboss

@@ -518,7 +518,17 @@ void HwSwitchEnsemble::setupEnsemble(
   routingInformationBase_ = std::move(rib);
   auto hwInitResult =
       getHwSwitch()->init(this, initState, true /*failHwCallsOnWarmboot*/);
-
+  if (hwInitResult.bootType != bootType) {
+    // this is being done for preprod2trunk migration. further until tooling is
+    // updated to affect both warm boot flags, HwSwitch will override SwSwitch
+    // boot flag (for monolithic agent).
+    auto bootStr = [](BootType type) {
+      return type == BootType::WARM_BOOT ? "WARM_BOOT" : "COLD_BOOT";
+    };
+    XLOG(INFO) << "Overriding boot type from " << bootStr(bootType) << " to "
+               << bootStr(hwInitResult.bootType);
+    bootType = hwInitResult.bootType;
+  }
   programmedState_ = initState->clone();
   if (bootType == BootType::WARM_BOOT) {
     auto settings = util::getFirstNodeIf(programmedState_->getSwitchSettings());

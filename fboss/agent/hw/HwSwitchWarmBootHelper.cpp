@@ -32,8 +32,6 @@ constexpr auto forceColdBootPrefix = "cold_boot_once_";
 constexpr auto shutdownDumpPrefix = "sdk_shutdown_dump_";
 constexpr auto startupDumpPrefix = "sdk_startup_dump_";
 
-constexpr auto softwareSwitchWarmBootFlag = "can_warm_boot";
-
 } // namespace
 
 namespace facebook::fboss {
@@ -131,26 +129,7 @@ bool HwSwitchWarmBootHelper::checkAndClearWarmBootFlags() {
   // canWarmBoot file exists
   bool canWarmBoot = removeFile(warmBootFlag(), true /*log*/);
   bool forceColdBoot = removeFile(forceColdBootOnceFlag(), true /*log*/);
-  auto wb = !forceColdBoot && canWarmBoot;
-  // TODO: remove this one software switch warm boot helper is in preprod
-  if (wb && !checkFileExists(swWbFlag())) {
-    /* hardware switch warm boot helper initializes before software switch warm
-     * boot helper in monolithic setup. when going from version which does not
-     * have software switch warm boot helper to this revision of code which has
-     * software switch warm boot helper, hardware switch will clear warm boot
-     * flag (also relied up on by software switch warm boot helper). software
-     * switch warm boot helper will assume cold boot, but hardware switch will
-     * try warm boot. to avoid this, check if software switch warm boot flag
-     * exists, if it does not, create it, it will be cleared by software switch
-     * warm boot helper once it is created.
-     * this is a hack which needs to be removed after revision with software
-     * switch boot helper becomes common.
-     */
-    createFile(swWbFlag());
-  } else if (!wb && checkFileExists(swWbFlag())) {
-    removeFile(swWbFlag());
-  }
-  return wb;
+  return !forceColdBoot && canWarmBoot;
 }
 
 std::tuple<folly::dynamic, std::optional<state::WarmbootState>>
@@ -215,10 +194,6 @@ folly::dynamic HwSwitchWarmBootHelper::getHwSwitchWarmBootState(
   sysCheckError(
       ret, "Unable to read hw switch warm boot state from : ", fileName);
   return folly::parseJson(warmBootJson);
-}
-
-std::string HwSwitchWarmBootHelper::swWbFlag() const {
-  return folly::to<std::string>(warmBootDir_, "/", softwareSwitchWarmBootFlag);
 }
 
 } // namespace facebook::fboss

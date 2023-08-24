@@ -94,8 +94,6 @@ class HwSwitchWarmBootHelper {
 
   folly::dynamic getHwSwitchWarmBootState(const std::string& fileName) const;
 
-  std::string swWbFlag() const;
-
   int switchId_{-1};
   std::string warmBootDir_;
   std::string sdkWarmbootFilePrefix_;
