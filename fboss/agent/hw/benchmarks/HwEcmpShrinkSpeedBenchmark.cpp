@@ -59,8 +59,7 @@ BENCHMARK(HwEcmpGroupShrink) {
       kEcmpWidth,
       getEcmpSizeInHw(hwSwitch, prefix, ecmpHelper.getRouterId(), kEcmpWidth));
   // Warm up the stats cache
-  SwitchStats dummy{};
-  ensemble->getHw()->updateStats(&dummy);
+  ensemble->getSw()->updateStats();
 
   // Toggle loopback mode via direct SDK calls rathe than going through
   // applyState interface. We want to start the clock ASAP post the link toggle,

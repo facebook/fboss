@@ -65,8 +65,7 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
       kEcmpWidth,
       getEcmpSizeInHw(hwSwitch, prefix, ecmpHelper.getRouterId(), kEcmpWidth));
   // Warm up the stats cache
-  SwitchStats dummy{};
-  ensemble->getHw()->updateStats(&dummy);
+  ensemble->getSw()->updateStats();
   auto routeChunks = utility::RouteDistributionGenerator(
                          ensemble->getSw()->getState(),
                          {{64, 10'000}},

@@ -129,7 +129,11 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
    * for wedge100, wedge100S and Galaxy. Hence, use FSW route scale for TH.
    */
   auto* swSwitch = ensemble->getSw();
-  auto asicType = ensemble->getHw()->getPlatform()->getAsic()->getAsicType();
+  // Before m-mpu agent test, use first Asic for initialization.
+  auto switchIds = swSwitch->getHwAsicTable()->getSwitchIDs();
+  CHECK_GE(switchIds.size(), 1);
+  auto asicType =
+      swSwitch->getHwAsicTable()->getHwAsic(*switchIds.cbegin())->getAsicType();
 
   if (asicType == cfg::AsicType::ASIC_TYPE_TRIDENT2) {
     return utility::RSWRouteScaleGenerator(swSwitch->getState())
