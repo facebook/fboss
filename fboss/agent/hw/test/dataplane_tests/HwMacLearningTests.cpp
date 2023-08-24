@@ -640,7 +640,9 @@ class HwMacLearningAndMyStationInteractionTest : public HwMacLearningTest {
         auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
         auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
         auto txPacket = utility::makeIpTxPacket(
-            getHwSwitch(),
+            [hwSwitch = getHwSwitch()](uint32_t size) {
+              return hwSwitch->allocatePacket(size);
+            },
             vlanId,
             intfMac,
             intfMac,

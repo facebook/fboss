@@ -41,6 +41,8 @@ class UDPHeader;
 
 namespace facebook::fboss::utility {
 
+using AllocatePktFn = std::function<std::unique_ptr<TxPacket>(uint32_t)>;
+
 folly::MacAddress getInterfaceMac(
     const std::shared_ptr<SwitchState>& state,
     VlanID vlan);
@@ -77,7 +79,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpPacket(
     const std::vector<uint8_t>& payload);
 
 std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
-    const HwSwitch* hw,
+    AllocatePktFn allocatePkt,
     std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
@@ -89,7 +91,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
         std::optional<std::vector<uint8_t>>());
 
 std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
-    const HwSwitch* hw,
+    AllocatePktFn allocatePkt,
     std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
@@ -101,7 +103,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
         std::optional<std::vector<uint8_t>>());
 
 std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
-    const HwSwitch* hw,
+    AllocatePktFn allocatePkt,
     std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,

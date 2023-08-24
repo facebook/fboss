@@ -151,14 +151,11 @@ std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
 }
 
 template <typename IPHDR>
-std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
-    const HwSwitch* hw,
+void makeIpTxPacket(
+    std::unique_ptr<facebook::fboss::TxPacket>& txPacket,
     const EthHdr& ethHdr,
     const IPHDR& ipHdr,
     const std::vector<uint8_t>& payload) {
-  auto txPacket =
-      hw->allocatePacket(EthHdr::SIZE + ipHdr.size() + payload.size());
-
   folly::io::RWPrivateCursor rwCursor(txPacket->buf());
   // Write EthHdr
   writeEthHeader(
@@ -172,11 +169,10 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
 
   folly::io::Cursor payloadStart(rwCursor);
   rwCursor.push(payload.data(), payload.size());
-  return txPacket;
 }
 
 std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
-    const HwSwitch* hw,
+    AllocatePktFn allocatePkt,
     std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
@@ -198,11 +194,14 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
   ipHdr.payloadLength = UDPHeader::size() + payloadBytes.size();
   ipHdr.hopLimit = hopLimit;
 
-  return makeIpTxPacket(hw, ethHdr, ipHdr, payloadBytes);
+  auto txPacket =
+      allocatePkt(EthHdr::SIZE + ipHdr.size() + payloadBytes.size());
+  makeIpTxPacket(txPacket, ethHdr, ipHdr, payloadBytes);
+  return txPacket;
 }
 
 std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
-    const HwSwitch* hw,
+    AllocatePktFn allocatePkt,
     std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
@@ -227,11 +226,14 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
   ipHdr.ttl = ttl;
   ipHdr.computeChecksum();
 
-  return makeIpTxPacket(hw, ethHdr, ipHdr, payloadBytes);
+  auto txPacket =
+      allocatePkt(EthHdr::SIZE + ipHdr.size() + payloadBytes.size());
+  makeIpTxPacket(txPacket, ethHdr, ipHdr, payloadBytes);
+  return txPacket;
 }
 
 std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
-    const HwSwitch* hw,
+    AllocatePktFn allocatePkt,
     std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
@@ -242,7 +244,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
     std::optional<std::vector<uint8_t>> payload) {
   CHECK_EQ(srcIp.isV6(), dstIp.isV6());
   return srcIp.isV6() ? makeIpTxPacket(
-                            hw,
+                            allocatePkt,
                             vlan,
                             srcMac,
                             dstMac,
@@ -252,7 +254,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
                             hopLimit,
                             payload)
                       : makeIpTxPacket(
-                            hw,
+                            allocatePkt,
                             vlan,
                             srcMac,
                             dstMac,

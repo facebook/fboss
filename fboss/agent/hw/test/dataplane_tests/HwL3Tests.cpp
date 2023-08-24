@@ -82,7 +82,9 @@ class HwL3Test : public HwLinkStateDependentTest {
 
       // Construct and send IPv4 packet
       auto pkt4 = utility::makeIpTxPacket(
-          getHwSwitch(),
+          [hwSwitch = getHwSwitch()](uint32_t size) {
+            return hwSwitch->allocatePacket(size);
+          },
           vlanId,
           intfMac,
           intfMac,
@@ -98,7 +100,9 @@ class HwL3Test : public HwLinkStateDependentTest {
 
       // Construct and send IPv6 packet
       auto pkt6 = utility::makeIpTxPacket(
-          getHwSwitch(),
+          [hwSwitch = getHwSwitch()](uint32_t size) {
+            return hwSwitch->allocatePacket(size);
+          },
           vlanId,
           intfMac,
           intfMac,
@@ -149,7 +153,9 @@ class HwL3Test : public HwLinkStateDependentTest {
 
       // Construct and send IPv4 packet
       auto pkt4 = utility::makeIpTxPacket(
-          getHwSwitch(),
+          [hwSwitch = getHwSwitch()](uint32_t size) {
+            return hwSwitch->allocatePacket(size);
+          },
           vlanId,
           intfMac,
           intfMac,
@@ -163,7 +169,9 @@ class HwL3Test : public HwLinkStateDependentTest {
 
       // Construct and send IPv6 packet
       auto pkt6 = utility::makeIpTxPacket(
-          getHwSwitch(),
+          [hwSwitch = getHwSwitch()](uint32_t size) {
+            return hwSwitch->allocatePacket(size);
+          },
           vlanId,
           intfMac,
           intfMac,

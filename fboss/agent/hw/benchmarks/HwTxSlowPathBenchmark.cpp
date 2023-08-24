@@ -60,7 +60,7 @@ BENCHMARK(runTxSlowPathBenchmark) {
       };
   ensemble = createAgentEnsemble(initialConfigFn);
 
-  auto hwSwitch = ensemble->getHw();
+  auto swSwitch = ensemble->getSw();
   auto state = ensemble->getSw()->getState();
   auto ecmpHelper = utility::EcmpSetupAnyNPorts6(state);
   auto portUsed = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
@@ -74,7 +74,7 @@ BENCHMARK(runTxSlowPathBenchmark) {
   auto cpuMac = ensemble->getPlatform()->getLocalMac();
   auto vlanId = utility::firstVlanID(ensemble->getProgrammedState());
   std::atomic<bool> packetTxDone{false};
-  std::thread t([cpuMac, vlanId, hwSwitch, &packetTxDone]() {
+  std::thread t([cpuMac, vlanId, swSwitch, &packetTxDone]() {
     const auto kSrcIp = folly::IPAddressV6("2620:0:1cfe:face:b00c::3");
     const auto kDstIp = folly::IPAddressV6("2620:0:1cfe:face:b00c::4");
     const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0c"};
@@ -82,8 +82,15 @@ BENCHMARK(runTxSlowPathBenchmark) {
       for (auto i = 0; i < 1'000; ++i) {
         // Send packet
         auto txPacket = utility::makeIpTxPacket(
-            hwSwitch, vlanId, kSrcMac, cpuMac, kSrcIp, kDstIp);
-        hwSwitch->sendPacketSwitchedAsync(std::move(txPacket));
+            [swSwitch](uint32_t size) {
+              return swSwitch->allocatePacket(size);
+            },
+            vlanId,
+            kSrcMac,
+            cpuMac,
+            kSrcIp,
+            kDstIp);
+        swSwitch->sendPacketSwitchedAsync(std::move(txPacket));
       }
     }
   });
