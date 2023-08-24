@@ -744,7 +744,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeNeighborSolicitation(
       folly::IPAddressV6::byteCount() + ndpOptions.computeTotalLength();
 
   IPv6Hdr ipv6(srcIp, solicitedNodeAddr);
-  ipv6.trafficClass = 0xe0; // CS7 precedence (network control)
+  ipv6.trafficClass =
+      kGetNetworkControlTrafficClass(); // CS6 precedence (network control)
   ipv6.payloadLength = ICMPHdr::SIZE + bodyLength;
   ipv6.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
   ipv6.hopLimit = 255;
@@ -793,7 +794,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeNeighborAdvertisement(
       folly::IPAddressV6::byteCount() + ndpOptions.computeTotalLength();
 
   IPv6Hdr ipv6(srcIp, dstIp);
-  ipv6.trafficClass = 0xe0; // CS7 precedence (network control)
+  ipv6.trafficClass =
+      kGetNetworkControlTrafficClass(); // CS6 precedence (network control)
   ipv6.payloadLength = ICMPHdr::SIZE + bodyLength;
   ipv6.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
   ipv6.hopLimit = 255;
