@@ -24,9 +24,9 @@ namespace facebook::fboss {
 
 class HwPortBandwidthTest : public HwLinkStateDependentTest {
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::oneL3IntfConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
-        masterLogicalPortIds()[0],
+        masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes());
 
     if (isSupported(HwAsic::Feature::L3_QOS)) {
@@ -59,16 +59,20 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
         utility::getRange(kMinKbps(), maxKbps);
   }
 
-  template <typename ECMP_HELPER>
-  void disableTTLDecrements(const ECMP_HELPER& ecmpHelper) {
-    for (const auto& nextHop : ecmpHelper.getNextHops()) {
-      utility::disableTTLDecrements(
-          getHwSwitch(), ecmpHelper.getRouterId(), nextHop);
-    }
+  void disableTTLDecrements(
+      const utility::EcmpSetupTargetedPorts6& ecmpHelper) {
+    utility::ttlDecrementHandlingForLoopbackTraffic(
+        getHwSwitch(),
+        ecmpHelper.getRouterId(),
+        ecmpHelper.nhop(PortDescriptor(masterLogicalInterfacePortIds()[0])));
   }
 
   MacAddress dstMac() const {
     return utility::getFirstInterfaceMac(initialConfig());
+  }
+
+  folly::IPAddressV6 kDestIp() const {
+    return folly::IPAddressV6("2620:0:1cfe:face:b00c::4");
   }
 
   void sendUdpPkt(uint8_t dscpVal, int payloadLen) {
@@ -83,7 +87,7 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
         srcMac,
         dstMac(),
         folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
-        folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
+        kDestIp(),
         8000,
         8001,
         static_cast<uint8_t>(dscpVal << 2),
@@ -100,9 +104,13 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
   }
 
   void setupHelper() {
-    auto kEcmpWidthForTest = 1;
-    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
-    resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6{
+        getProgrammedState(), dstMac()};
+    const auto& portDesc = PortDescriptor(masterLogicalInterfacePortIds()[0]);
+    applyNewState(
+        ecmpHelper6.resolveNextHops(getProgrammedState(), {portDesc}));
+    RoutePrefixV6 route{kDestIp(), 128};
+    ecmpHelper6.programRoutes(getRouteUpdater(), {portDesc}, {route});
     disableTTLDecrements(ecmpHelper6);
   }
 
@@ -254,8 +262,8 @@ void HwPortBandwidthTest::verifyRate(
 
     // Put port in non-loopback mode to drain the traffic.
     // New SDK expects buffer to be empty during teardown.
-    auto newCfg =
-        utility::oneL3IntfConfig(getHwSwitch(), masterLogicalPortIds()[0]);
+    auto newCfg = utility::onePortPerInterfaceConfig(
+        getHwSwitch(), masterLogicalPortIds());
     applyNewConfig(newCfg);
   };
 
@@ -344,11 +352,11 @@ void HwPortBandwidthTest::verifyQueueShaper() {
   auto verify = [=]() {
     constexpr auto kPayloadLength{1200};
     constexpr auto kWaitTimeForSpecificRate{30};
-    auto pktsToSend =
-        getHwSwitchEnsemble()->getMinPktsForLineRate(masterLogicalPortIds()[0]);
+    auto pktsToSend = getHwSwitchEnsemble()->getMinPktsForLineRate(
+        masterLogicalInterfacePortIds()[0]);
     sendUdpPkts(kQueueId0Dscp(getAsic()), pktsToSend, kPayloadLength);
     EXPECT_NO_THROW(getHwSwitchEnsemble()->waitForSpecificRateOnPort(
-        masterLogicalPortIds()[0],
+        masterLogicalInterfacePortIds()[0],
         kMhnicPerHostBandwidthKbps * 1000, // BW in bps
         kWaitTimeForSpecificRate));
   };
@@ -370,20 +378,20 @@ void HwPortBandwidthTest::verifyPortRateTraffic(cfg::PortSpeed portSpeed) {
             ->supportsAddRemovePort(),
         newCfg,
         portSpeed,
-        getAllPortsInGroup(masterLogicalPortIds()[0]));
-    XLOG(DBG0) << "Port " << masterLogicalPortIds()[0] << " speed set to "
-               << static_cast<int>(portSpeed) << " bps";
+        getAllPortsInGroup(masterLogicalInterfacePortIds()[0]));
+    XLOG(DBG0) << "Port " << masterLogicalInterfacePortIds()[0]
+               << " speed set to " << static_cast<int>(portSpeed) << " bps";
     applyNewConfig(newCfg);
     setupHelper();
 
-    auto pktsToSend =
-        getHwSwitchEnsemble()->getMinPktsForLineRate(masterLogicalPortIds()[0]);
+    auto pktsToSend = getHwSwitchEnsemble()->getMinPktsForLineRate(
+        masterLogicalInterfacePortIds()[0]);
     sendUdpPkts(kQueueId0Dscp(getAsic()), pktsToSend);
   };
 
   auto verify = [&]() {
     EXPECT_NO_THROW(getHwSwitchEnsemble()->waitForLineRateOnPort(
-        masterLogicalPortIds()[0]));
+        masterLogicalInterfacePortIds()[0]));
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -397,7 +405,7 @@ TEST_F(HwPortBandwidthTest, VerifyPps) {
     return;
   }
   auto getPackets = [this]() {
-    return getLatestPortStats(masterLogicalPortIds()[0])
+    return getLatestPortStats(masterLogicalInterfacePortIds()[0])
         .get_queueOutPackets_()
         .at(kQueueId0());
   };
@@ -408,7 +416,7 @@ TEST_F(HwPortBandwidthTest, VerifyPps) {
 
 TEST_F(HwPortBandwidthTest, VerifyKbps) {
   auto getKbits = [this]() {
-    auto outBytes = getLatestPortStats(masterLogicalPortIds()[0])
+    auto outBytes = getLatestPortStats(masterLogicalInterfacePortIds()[0])
                         .get_queueOutBytes_()
                         .at(kQueueId1());
     return (outBytes * 8) / 1000;
@@ -426,7 +434,7 @@ TEST_F(HwPortBandwidthTest, VerifyPpsDynamicChanges) {
     return;
   }
   auto getPackets = [this]() {
-    return getLatestPortStats(masterLogicalPortIds()[0])
+    return getLatestPortStats(masterLogicalInterfacePortIds()[0])
         .get_queueOutPackets_()
         .at(kQueueId0());
   };
@@ -436,7 +444,7 @@ TEST_F(HwPortBandwidthTest, VerifyPpsDynamicChanges) {
 
 TEST_F(HwPortBandwidthTest, VerifyKbpsDynamicChanges) {
   auto getKbits = [this]() {
-    auto outBytes = getLatestPortStats(masterLogicalPortIds()[0])
+    auto outBytes = getLatestPortStats(masterLogicalInterfacePortIds()[0])
                         .get_queueOutBytes_()
                         .at(kQueueId1());
     return (outBytes * 8) / 1000;
@@ -458,8 +466,8 @@ TEST_F(HwPortBandwidthTest, VerifyQueueShaper) {
 
 TEST_P(HwPortBandwidthParamTest, VerifyPortRateTraffic) {
   cfg::PortSpeed portSpeed = static_cast<cfg::PortSpeed>(GetParam());
-  auto platformPort =
-      getHwSwitch()->getPlatform()->getPlatformPort(masterLogicalPortIds()[0]);
+  auto platformPort = getHwSwitch()->getPlatform()->getPlatformPort(
+      masterLogicalInterfacePortIds()[0]);
   auto profileID = platformPort->getProfileIDBySpeedIf(portSpeed);
   if (!profileID.has_value()) {
     XLOG(DBG0) << "No profile supporting speed " << static_cast<int>(portSpeed)
