@@ -191,6 +191,10 @@ struct HwResourceStats {
   49: i32 em_counters_used = STAT_UNINITIALIZED;
   50: i32 em_counters_free = STAT_UNINITIALIZED;
   51: i32 em_counters_max = STAT_UNINITIALIZED;
+
+  // VOQ system resources
+  52: i32 system_ports_free = STAT_UNINITIALIZED;
+  53: i32 voqs_free = STAT_UNINITIALIZED;
 }
 
 struct HwAsicErrors {
