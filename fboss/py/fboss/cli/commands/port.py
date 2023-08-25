@@ -604,7 +604,7 @@ class PortStatusCmd(cmds.FbossCmd):
             )
 
 
-class PortStatusDetailCmd(object):
+class PortStatusDetailCmd:
     """Print detailed/verbose port status"""
 
     def __init__(self, client, ports, qsfp_client, verbose):

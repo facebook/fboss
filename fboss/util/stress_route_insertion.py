@@ -12,7 +12,7 @@ from fboss.thrift_clients import (
 from neteng.fboss.ctrl.ttypes import IpPrefix, UnicastRoute
 
 
-class StressRouteInsertion(object):
+class StressRouteInsertion:
     """Measure latency of bulk route thrashing.
 
     Algorithm:

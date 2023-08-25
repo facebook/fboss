@@ -22,7 +22,7 @@ class FlushType:
 
 
 # Parent Class for all commands
-class FbossCmd(object):
+class FbossCmd:
     def __init__(self, cli_opts):
         """initialize; client will be created in subclasses with the specific
         client they need"""

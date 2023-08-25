@@ -54,7 +54,7 @@ sys.path.insert(2, "../../../agent/if/gen-py")
 DEFAULT_CLIENTID = 1
 
 
-class CliOptions(object):
+class CliOptions:
     """Object for holding CLI state information"""
 
     def __init__(self, hostname, port, timeout):
@@ -63,7 +63,7 @@ class CliOptions(object):
         self.timeout = timeout
 
 
-class ArpCli(object):
+class ArpCli:
     """ARP Cli sub-commands"""
 
     def __init__(self):
@@ -102,7 +102,7 @@ class ArpCli(object):
         )
 
 
-class AggregatePortCli(object):
+class AggregatePortCli:
     """Aggregate Port sub-commands"""
 
     @click.command()
@@ -116,7 +116,7 @@ class AggregatePortCli(object):
         aggregate_port.AggregatePortCmd(cli_opts).run(port)
 
 
-class NicCli(object):
+class NicCli:
     """NIC Cli sub-commands"""
 
     def __init__(self):
@@ -136,7 +136,7 @@ class NicCli(object):
         nic.NicCmd(cli_opts).run(detail, verbose)
 
 
-class IpCli(object):
+class IpCli:
     """IP sub-commands"""
 
     @click.command()
@@ -153,7 +153,7 @@ class IpCli(object):
         ip.IpCmd(cli_opts).run(interface)
 
 
-class InterfaceCli(object):
+class InterfaceCli:
     """Interface sub-commands"""
 
     def __init__(self):
@@ -181,7 +181,7 @@ class InterfaceCli(object):
         interface.InterfaceSummaryCmd(cli_opts).run()
 
 
-class L2Cli(object):
+class L2Cli:
     """Show L2 sub-commands"""
 
     def __init__(self):
@@ -200,7 +200,7 @@ class L2Cli(object):
         l2.L2TableCmd(cli_opts).run()
 
 
-class LldpCli(object):
+class LldpCli:
     """Lldp sub-commands"""
 
     @click.command()
@@ -224,7 +224,7 @@ class LldpCli(object):
         lldp.LldpCmd(cli_opts).run(port, verbose)
 
 
-class NdpCli(object):
+class NdpCli:
     """Show NDP sub-commands"""
 
     def __init__(self):
@@ -283,7 +283,7 @@ class PortType(click.ParamType):
             self.fail("%s is not a valid Port" % value, param, ctx)
 
 
-class Stats(object):
+class Stats:
     """Port stats sub-commands"""
 
     def __init__(self):
@@ -315,7 +315,7 @@ class Stats(object):
         port.PortStatsClearCmd(cli_opts).run(ports)
 
 
-class PortState(object):
+class PortState:
     """Port state sub-commands"""
 
     def __init__(self):
@@ -391,7 +391,7 @@ class PrbsContext(CliOptions):  # noqa: B903
         )
 
 
-class PortPrbsCli(object):
+class PortPrbsCli:
     """Port prbs sub-commands"""
 
     def __init__(self):
@@ -487,7 +487,7 @@ class PortPrbsCli(object):
         port.PortPrbsCmd(obj, obj.component, ports).clear_prbs_stats()
 
 
-class PortTransceiver(object):
+class PortTransceiver:
     """Port transceiver sub-commands"""
 
     def __init__(self):
@@ -509,7 +509,7 @@ class PortTransceiver(object):
         )
 
 
-class PortCli(object):
+class PortCli:
     """Port sub-commands"""
 
     def __init__(self):
@@ -543,7 +543,7 @@ class PortCli(object):
         port.PortDescriptionCmd(cli_opts).run(ports)
 
 
-class ProductInfoCli(object):
+class ProductInfoCli:
     """Product Info sub-commands"""
 
     @click.command()
@@ -557,7 +557,7 @@ class ProductInfoCli(object):
         info.ProductInfoCmd(cli_opts).run(detail)
 
 
-class RouteCli(object):
+class RouteCli:
     """Route sub-commands"""
 
     def __init__(self):
@@ -682,7 +682,7 @@ class RouteCli(object):
         route.RouteTableSummaryCmd(cli_opt).run()
 
 
-class VerbosityCli(object):
+class VerbosityCli:
     """Change the verbosity of the fboss agent"""
 
     @click.command(name="verbosity")
@@ -692,7 +692,7 @@ class VerbosityCli(object):
         cmds.VerbosityCmd(cli_opt).run(verbosity)
 
 
-class AgentConfig(object):
+class AgentConfig:
     """Agent config sub-commands"""
 
     def __init__(self):
@@ -722,7 +722,7 @@ class AgentConfig(object):
         agent.AgentConfigCmd(cli_opts).run(KEYWORD_CONFIG_RELOAD)
 
 
-class AgentCli(object):
+class AgentCli:
     """Agent sub-commands"""
 
     def __init__(self):
@@ -734,7 +734,7 @@ class AgentCli(object):
         pass
 
 
-class AclCli(object):
+class AclCli:
     """Show Acl sub-commands"""
 
     def __init__(self):
@@ -753,7 +753,7 @@ class AclCli(object):
         acl.AclTableCmd(cli_opts).run()
 
 
-class ListHwObjectsCli(object):
+class ListHwObjectsCli:
     """Show list Hw obects sub-commands"""
 
     def __init__(self):
