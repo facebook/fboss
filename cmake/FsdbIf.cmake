@@ -18,12 +18,7 @@ add_fbthrift_cpp_library(
     json
     reflection
   DEPENDS
-    agent_config_cpp2
-    agent_stats_cpp2
     fsdb_common_cpp2
-    qsfp_state_cpp2
-    qsfp_stats_cpp2
-    sensor_service_stats_cpp2
 )
 
 
@@ -36,4 +31,19 @@ add_fbthrift_cpp_library(
   DEPENDS
     fsdb_common_cpp2
     fsdb_oper_cpp2
+)
+
+add_fbthrift_cpp_library(
+  fsdb_model_cpp2
+  fboss/fsdb/if/oss/fsdb_model.thrift
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    agent_config_cpp2
+    agent_stats_cpp2
+    switch_state_cpp2
+    qsfp_state_cpp2
+    qsfp_stats_cpp2
+    sensor_service_stats_cpp2
 )

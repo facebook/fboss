@@ -26,6 +26,7 @@ target_link_libraries(qsfp_lib
     fsdb_pub_sub
     fsdb_flags
     fsdb_syncer
+    fsdb_model_cpp2
     qsfp_bsp_core
 )
 

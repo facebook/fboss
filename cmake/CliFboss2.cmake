@@ -353,6 +353,7 @@ target_link_libraries(fboss2
   mka_structs_cpp2
   fsdb_cpp2
   fsdb_oper_cpp2
+  fsdb_model_cpp2
   Folly::folly
   cli_model
   show_acl_model
