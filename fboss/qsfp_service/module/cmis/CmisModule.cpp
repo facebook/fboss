@@ -1118,19 +1118,12 @@ bool CmisModule::getSignalsPerMediaLane(
  */
 
 bool CmisModule::getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) {
-  const uint8_t* data;
-  int offset;
-  int length;
-  int dataAddress;
-
   assert(signals.size() == numHostLanes());
   if (flatMem_) {
     return false;
   }
 
   auto dataPathDeInit = getSettingsValue(CmisField::DATA_PATH_DEINIT);
-  getQsfpFieldAddress(CmisField::DATA_PATH_STATE, dataAddress, offset, length);
-  data = getQsfpValuePtr(dataAddress, offset, length);
 
   auto txLos = getSettingsValue(CmisField::TX_LOS_FLAG);
   auto txLol = getSettingsValue(CmisField::TX_LOL_FLAG);
@@ -1140,9 +1133,7 @@ bool CmisModule::getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) {
     signals[lane].lane() = lane;
     signals[lane].dataPathDeInit() = dataPathDeInit & (1 << lane);
 
-    bool evenLane = (lane % 2 == 0);
-    signals[lane].cmisLaneState() =
-        (CmisLaneState)(evenLane ? data[lane / 2] & 0xF : (data[lane / 2] >> 4) & 0xF);
+    signals[lane].cmisLaneState() = getDatapathLaneStateLocked(lane);
 
     auto laneMask = (1 << lane);
     signals[lane].lane() = lane;
