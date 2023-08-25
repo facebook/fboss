@@ -6,6 +6,9 @@ namespace go facebook.fboss.fsdb
 include "fboss/agent/agent_config.thrift"
 include "fboss/agent/agent_stats.thrift"
 include "fboss/agent/switch_state.thrift"
+include "fboss/qsfp_service/if/qsfp_state.thrift"
+include "fboss/qsfp_service/if/qsfp_stats.thrift"
+include "fboss/platform/sensor_service/sensor_service_stats.thrift"
 
 // mirrors of structs fboss/fsdb/if/facebook/fsdb_model.thrift with oss only portions
 struct AgentData {
@@ -15,8 +18,11 @@ struct AgentData {
 
 struct FsdbOperStateRoot {
   1: AgentData agent;
+  4: qsfp_state.QsfpServiceData qsfp_service;
 } (thriftpath.root)
 
 struct FsdbOperStatsRoot {
   1: agent_stats.AgentStats agent;
+  3: qsfp_stats.QsfpStats qsfp_service;
+  4: sensor_service_stats.SensorServiceStats sensor_service;
 } (thriftpath.root)
