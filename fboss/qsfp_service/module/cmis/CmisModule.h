@@ -453,6 +453,10 @@ class CmisModule : public QsfpModule {
 
   // Returns the currently configured mediaInterfaceCode on a host lane
   uint8_t currentConfiguredMediaInterfaceCode(uint8_t hostLane) const;
+
+  CmisLaneState getDatapathLaneStateLocked(
+      uint8_t lane,
+      bool readFromCache = true);
 };
 
 } // namespace fboss

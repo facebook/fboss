@@ -2986,8 +2986,36 @@ void CmisModule::resetDataPathWithFunc(
   // First deactivate all the lanes
   uint8_t dataPathDeInit = dataPathDeInitReg | hostLaneMask;
   writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
-  /* sleep override */
-  usleep(kUsecBetweenLaneInit);
+
+  // Lambda to check if lanes datapath are deactivated
+  auto isDatapathDeactivated = [&](uint8_t laneMask) -> bool {
+    for (uint8_t lane = 0; lane < numHostLanes(); lane++) {
+      if (!((1 << lane) & laneMask)) {
+        continue;
+      }
+      if (getDatapathLaneStateLocked(lane, false) !=
+          CmisLaneState::DEACTIVATED) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // Wait for all datapath state machines to get Deactivated
+  auto maxRetries = 10;
+  auto retries = 0;
+  while (retries++ < maxRetries) {
+    /* sleep override */
+    usleep(kUsecBetweenLaneInit);
+    if (isDatapathDeactivated(hostLaneMask)) {
+      break;
+    }
+  }
+  if (retries >= maxRetries) {
+    XLOG(ERR) << fmt::format(
+        "Datapath could not deactivate even after waiting {:d} uSec",
+        kUsecBetweenLaneInit * maxRetries);
+  }
 
   // Call the afterDataPathDeinitFunc() after detactivate all lanes
   if (afterDataPathDeinitFunc) {
@@ -3003,6 +3031,38 @@ void CmisModule::resetDataPathWithFunc(
   QSFP_LOG(INFO, this) << folly::sformat(
       "DATA_PATH_DEINIT set and reset done for host lane mask 0x{:#x}",
       hostLaneMask);
+}
+
+/*
+ * getDatapathLaneStateLocked
+ *
+ * Reads the datapath state for a given lane of transceiver either from HW or
+ * from SW cache (default)
+ */
+CmisLaneState CmisModule::getDatapathLaneStateLocked(
+    uint8_t lane,
+    bool readFromCache) {
+  CHECK_LE(lane, 8);
+  if (!readFromCache) {
+    uint8_t dataPathStates[4];
+    readCmisField(CmisField::DATA_PATH_STATE, dataPathStates);
+    auto laneDatapathState = dataPathStates[lane / 2];
+    laneDatapathState = ((lane % 2) == 0) ? (laneDatapathState & 0xF)
+                                          : ((laneDatapathState >> 4) & 0xF);
+    return (CmisLaneState)laneDatapathState;
+  } else {
+    const uint8_t* data;
+    int offset;
+    int length;
+    int dataAddress;
+    getQsfpFieldAddress(
+        CmisField::DATA_PATH_STATE, dataAddress, offset, length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    auto laneDatapathState = data[lane / 2];
+    laneDatapathState = ((lane % 2) == 0) ? (laneDatapathState & 0xF)
+                                          : ((laneDatapathState >> 4) & 0xF);
+    return (CmisLaneState)laneDatapathState;
+  }
 }
 
 void CmisModule::updateVdmCacheLocked() {
@@ -3082,12 +3142,6 @@ bool CmisModule::setTransceiverTxLocked(
   writeCmisField(txDisableRegister, &txDisableVal);
   return true;
 }
-
-/*
- * setTransceiverRx
- *
- *
- */
 
 } // namespace fboss
 } // namespace facebook
