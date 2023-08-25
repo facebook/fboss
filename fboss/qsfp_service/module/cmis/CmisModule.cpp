@@ -39,6 +39,7 @@ namespace {
 constexpr int kUsecBetweenPowerModeFlap = 100000;
 constexpr int kUsecBetweenLaneInit = 10000;
 constexpr int kUsecVdmLatchHold = 100000;
+constexpr int kUsecDiagSelectLatchWait = 10000;
 
 std::array<std::string, 9> channelConfigErrorMsg = {
     "No status available, config under progress",
@@ -2934,7 +2935,7 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(
   uint8_t diagSel = 1; // Diag Sel 1 is to obtain BER values
   writeCmisField(CmisField::DIAG_SEL, &diagSel);
   /* sleep override */
-  usleep(kUsecBetweenLaneInit);
+  usleep(kUsecDiagSelectLatchWait);
 
   // Step 2.b: Read the BER values for all lanes
   cmisRegister = (side == phy::Side::LINE) ? CmisField::MEDIA_BER_HOST_SNR
