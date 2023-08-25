@@ -82,6 +82,9 @@ void HwResourceStatsPublisher::publish(const HwResourceStats& stats) const {
   publish(kEmCountersMax, *stats.em_counters_max());
   publish(kEmCountersUsed, *stats.em_counters_used());
   publish(kEmCountersFree, *stats.em_counters_free());
+  // VOQs
+  publish(kSystemPortsFree, *stats.system_ports_free());
+  publish(kVoqsFree, *stats.voqs_free());
 }
 
 } // namespace facebook::fboss
