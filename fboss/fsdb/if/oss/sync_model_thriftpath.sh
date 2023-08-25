@@ -12,5 +12,18 @@ FBCODE_ROOT="$FBSOURCE_ROOT/fbcode"
 SRC="$BUCK_DEFAULT_RUNTIME_RESOURCES/$TARGET_PATH_REL"
 DST="$FBCODE_ROOT/$TARGET_PATH_REL"
 
-echo "Copying $SRC to $DST"
-cp "$SRC" "$DST"
+if [[ "$1" == "verify" ]]; then
+    echo "Diff $SRC against $DST"
+    /bin/diff "$SRC" "$DST"
+    ret="$?"
+    if [ "$ret" != 0 ]; then
+        echo "##################################################################################"
+        echo "Error: Generated thriftpath does not match oss synced file at fboss/fsdb/if/oss/fsdb_model_thriftpath.h"
+        echo "Error: If you changed FSDB thrift model, trigger a resync using buck2 run //fboss/fsdb/if/oss:sync_model_thriftpath"
+        echo "##################################################################################"
+    fi
+    exit $ret
+else
+    echo "Copying $SRC to $DST"
+    cp "$SRC" "$DST"
+fi
