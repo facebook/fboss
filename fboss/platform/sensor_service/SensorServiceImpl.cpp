@@ -7,7 +7,6 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/platform/sensor_service/SensorServiceImpl.h"
 
 #include <filesystem>
 
@@ -21,6 +20,7 @@
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/sensor_service/FsdbSyncer.h"
+#include "fboss/platform/sensor_service/SensorServiceImpl.h"
 #include "fboss/platform/sensor_service/Utils.h"
 #include "fboss/platform/sensor_service/gen-cpp2/sensor_service_stats_types.h"
 
@@ -50,7 +50,8 @@ auto constexpr kHasReadFailure = "sensor_read.has.failures";
 } // namespace
 namespace facebook::fboss::platform::sensor_service {
 
-void SensorServiceImpl::init() {
+SensorServiceImpl::SensorServiceImpl(std::string confFileName)
+    : confFileName_(std::move(confFileName)) {
   std::string sensorConfJson;
   // Check if conf file name is set, if not, set the default name
   if (confFileName_.empty()) {
@@ -64,17 +65,10 @@ void SensorServiceImpl::init() {
     }
   }
 
-  // Clear everything before init
-  sensorNameMap_.clear();
-  sensorTable_.sensorMapList()->clear();
-
-  // folly::dynamic sensorConf;
+  XLOG(DBG2) << "Read sensor config: " << sensorConfJson;
 
   apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
       sensorConfJson, sensorTable_);
-
-  XLOG(INFO) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-      sensorTable_);
 
   if (sensorTable_.source() == kSourceMock) {
     sensorSource_ = SensorSource::MOCK;
@@ -88,23 +82,22 @@ void SensorServiceImpl::init() {
   }
 
   liveDataTable_.withWLock([&](auto& table) {
-    for (auto& sensor : *sensorTable_.sensorMapList()) {
-      for (auto& sensorIter : sensor.second) {
-        std::string path = *sensorIter.second.path();
+    for (const auto& [fruName, sensorMap] : *sensorTable_.sensorMapList()) {
+      for (const auto& [sensorName, sensor] : sensorMap) {
+        std::string path = *sensor.path();
         if (std::filesystem::exists(std::filesystem::path(path))) {
-          table[sensorIter.first].path = path;
-          sensorNameMap_[path] = sensorIter.first;
+          table[sensorName].path = path;
+          sensorNameMap_[path] = sensorName;
         }
-        table[sensorIter.first].fru = sensor.first;
-        if (sensorIter.second.compute().has_value()) {
-          table[sensorIter.first].compute = *sensorIter.second.compute();
+        table[sensorName].fru = fruName;
+        if (sensor.compute().has_value()) {
+          table[sensorName].compute = *sensor.compute();
         }
-        table[sensorIter.first].thresholds = *sensorIter.second.thresholds();
+        table[sensorName].thresholds = *sensor.thresholds();
 
-        XLOG(INFO) << sensorIter.first
-                   << "; path = " << table[sensorIter.first].path
-                   << "; compute = " << table[sensorIter.first].compute
-                   << "; fru = " << table[sensorIter.first].fru;
+        XLOG(INFO) << sensorName << "; path = " << table[sensorName].path
+                   << "; compute = " << table[sensorName].compute
+                   << "; fru = " << table[sensorName].fru;
       }
     }
   });

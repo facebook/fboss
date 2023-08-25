@@ -13,10 +13,12 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#include <folly/Synchronized.h>
+
 #include "fboss/platform/sensor_service/FsdbSyncer.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_config_types.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
-#include "folly/Synchronized.h"
 
 DECLARE_int32(fsdb_statsStream_interval_seconds);
 DECLARE_string(mock_lmsensor_json_data);
@@ -43,14 +45,8 @@ struct SensorLiveData {
 
 class SensorServiceImpl {
  public:
-  SensorServiceImpl() {
-    init();
-  }
+  explicit SensorServiceImpl(std::string confFileName);
   ~SensorServiceImpl();
-  explicit SensorServiceImpl(const std::string& confFileName)
-      : confFileName_{confFileName} {
-    init();
-  }
 
   std::vector<SensorData> getSensorsData(
       const std::vector<std::string>& sensorNames);
@@ -67,21 +63,20 @@ class SensorServiceImpl {
 
   SensorSource sensorSource_{SensorSource::LMSENSOR};
 
-  SensorConfig sensorTable_;
+  SensorConfig sensorTable_{};
 
   // Sensor Name map, sensor path -> sensor name
-  std::unordered_map<std::string, std::string> sensorNameMap_;
+  std::unordered_map<std::string, std::string> sensorNameMap_{};
 
   // Live sensor data table, sensor name -> sensor live data
   folly::Synchronized<std::unordered_map<SensorName, struct SensorLiveData>>
-      liveDataTable_;
+      liveDataTable_{};
 
   std::unique_ptr<FsdbSyncer> fsdbSyncer_;
 
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>
       publishedStatsToFsdbAt_;
 
-  void init();
   void parseSensorJsonData(const std::string&);
   void getSensorDataFromPath();
 };
