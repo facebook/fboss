@@ -47,3 +47,21 @@ add_fbthrift_cpp_library(
     qsfp_stats_cpp2
     sensor_service_stats_cpp2
 )
+
+add_library(thriftpath_lib
+  fboss/thriftpath_plugin/Path.cpp
+)
+
+target_link_libraries(thriftpath_lib
+  FBThrift::thriftcpp2
+  Folly::folly
+)
+
+add_library(fsdb_model_thriftpath_cpp2
+  fboss/fsdb/if/oss/fsdb_model_thriftpath.h
+)
+
+target_link_libraries(fsdb_model_thriftpath_cpp2
+  thriftpath_lib
+  fsdb_model_cpp2
+)
