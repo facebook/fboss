@@ -149,6 +149,18 @@ struct SaiPacketActionDefaultDrop {
   }
 };
 
+struct SaiHostifUserDefinedTrapDefaultType {
+  sai_hostif_user_defined_trap_type_t operator()() const {
+    return SAI_HOSTIF_USER_DEFINED_TRAP_TYPE_ACL;
+  }
+};
+
+struct SaiHostifUserDefinedTrapDefaultPriority {
+  sai_uint32_t operator()() const {
+    return SAI_SWITCH_ATTR_ACL_ENTRY_MINIMUM_PRIORITY;
+  }
+};
+
 using SaiObjectIdListDefault = SaiListDefault<sai_object_list_t>;
 using SaiU32ListDefault = SaiListDefault<sai_u32_list_t>;
 using SaiS8ListDefault = SaiListDefault<sai_s8_list_t>;

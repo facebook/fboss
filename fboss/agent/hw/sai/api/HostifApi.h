@@ -92,6 +92,45 @@ SAI_ATTRIBUTE_NAME(HostifTrap, TrapPriority)
 SAI_ATTRIBUTE_NAME(HostifTrap, TrapGroup)
 SAI_ATTRIBUTE_NAME(HostifTrap, TrapCounterId)
 
+// SAI_OBJECT_TYPE_HOSTIF_USER_DEFINED_TRAP is used by ACL to trap packet to
+// certain cpu queue. Here is the programming model:
+// ACL with some matcher and action to set
+// SAI_ACL_ENTRY_ATTR_ACTION_SET_USER_TRAP_ID to a specific value.
+// SAI_OBJECT_TYPE_HOSTIF_USER_DEFINED_TRAP matches on that specific value and
+// then runs specified action: copy to cpu or trap to cpu
+struct SaiHostifUserDefinedTrapTraits {
+  static constexpr sai_object_type_t ObjectType =
+      SAI_OBJECT_TYPE_HOSTIF_USER_DEFINED_TRAP;
+  using SaiApiT = HostifApi;
+  struct Attributes {
+    using EnumType = sai_hostif_user_defined_trap_attr_t;
+    using TrapGroup = SaiAttribute<
+        EnumType,
+        SAI_HOSTIF_USER_DEFINED_TRAP_ATTR_TRAP_GROUP,
+        SaiObjectIdT>;
+    using TrapPriority = SaiAttribute<
+        EnumType,
+        SAI_HOSTIF_USER_DEFINED_TRAP_ATTR_TRAP_PRIORITY,
+        sai_uint32_t,
+        SaiHostifUserDefinedTrapDefaultPriority>;
+    using TrapType = SaiAttribute<
+        EnumType,
+        SAI_HOSTIF_USER_DEFINED_TRAP_ATTR_TYPE,
+        sai_int32_t,
+        SaiHostifUserDefinedTrapDefaultType>;
+  };
+  using AdapterKey = HostifUserDefinedTrapSaiId;
+  using AdapterHostKey = Attributes::TrapGroup;
+  using CreateAttributes = std::tuple<
+      Attributes::TrapGroup,
+      std::optional<Attributes::TrapPriority>,
+      std::optional<Attributes::TrapType>>;
+};
+
+SAI_ATTRIBUTE_NAME(HostifUserDefinedTrap, TrapGroup)
+SAI_ATTRIBUTE_NAME(HostifUserDefinedTrap, TrapPriority)
+SAI_ATTRIBUTE_NAME(HostifUserDefinedTrap, TrapType)
+
 // TX and RX packets aren't proper SaiObjectTraits, but we'll follow the pattern
 // for defining their attributes
 struct SaiTxPacketTraits {
@@ -176,6 +215,14 @@ class HostifApi : public SaiApi<HostifApi> {
       sai_attribute_t* attr_list) const {
     return api_->create_hostif_trap(rawSaiId(id), switch_id, count, attr_list);
   }
+  sai_status_t _create(
+      HostifUserDefinedTrapSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) const {
+    return api_->create_hostif_user_defined_trap(
+        rawSaiId(id), switch_id, count, attr_list);
+  }
 
   sai_status_t _remove(HostifTrapGroupSaiId hostif_trap_group_id) const {
     return api_->remove_hostif_trap_group(hostif_trap_group_id);
@@ -183,12 +230,21 @@ class HostifApi : public SaiApi<HostifApi> {
   sai_status_t _remove(HostifTrapSaiId hostif_trap_id) const {
     return api_->remove_hostif_trap(hostif_trap_id);
   }
+  sai_status_t _remove(
+      HostifUserDefinedTrapSaiId hostif_user_defined_trap_id) const {
+    return api_->remove_hostif_user_defined_trap(hostif_user_defined_trap_id);
+  }
   sai_status_t _getAttribute(HostifTrapGroupSaiId id, sai_attribute_t* attr)
       const {
     return api_->get_hostif_trap_group_attribute(id, 1, attr);
   }
   sai_status_t _getAttribute(HostifTrapSaiId id, sai_attribute_t* attr) const {
     return api_->get_hostif_trap_attribute(id, 1, attr);
+  }
+  sai_status_t _getAttribute(
+      HostifUserDefinedTrapSaiId id,
+      sai_attribute_t* attr) const {
+    return api_->get_hostif_user_defined_trap_attribute(id, 1, attr);
   }
   sai_status_t _setAttribute(
       HostifTrapGroupSaiId id,
@@ -198,6 +254,11 @@ class HostifApi : public SaiApi<HostifApi> {
   sai_status_t _setAttribute(HostifTrapSaiId id, const sai_attribute_t* attr)
       const {
     return api_->set_hostif_trap_attribute(id, attr);
+  }
+  sai_status_t _setAttribute(
+      HostifUserDefinedTrapSaiId id,
+      const sai_attribute_t* attr) const {
+    return api_->set_hostif_user_defined_trap_attribute(id, attr);
   }
 
   sai_hostif_api_t* api_;

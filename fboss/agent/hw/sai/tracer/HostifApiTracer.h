@@ -17,6 +17,7 @@ namespace facebook::fboss {
 sai_hostif_api_t* wrappedHostifApi();
 
 SET_ATTRIBUTE_FUNC_DECLARATION(HostifTrap);
+SET_ATTRIBUTE_FUNC_DECLARATION(HostifUserDefinedTrap);
 SET_ATTRIBUTE_FUNC_DECLARATION(HostifTrapGroup);
 SET_ATTRIBUTE_FUNC_DECLARATION(HostifPacket);
 

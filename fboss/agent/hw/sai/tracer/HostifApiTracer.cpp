@@ -26,6 +26,13 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _HostifTrapMap{
     SAI_ATTR_MAP(HostifTrap, TrapCounterId),
 };
 
+std::map<int32_t, std::pair<std::string, std::size_t>>
+    _HostifUserDefinedTrapMap{
+        SAI_ATTR_MAP(HostifUserDefinedTrap, TrapType),
+        SAI_ATTR_MAP(HostifUserDefinedTrap, TrapPriority),
+        SAI_ATTR_MAP(HostifUserDefinedTrap, TrapGroup),
+    };
+
 std::map<int32_t, std::pair<std::string, std::size_t>> _HostifTrapGroupMap{
     SAI_ATTR_MAP(HostifTrapGroup, Queue),
     SAI_ATTR_MAP(HostifTrapGroup, Policer),
@@ -45,6 +52,23 @@ WRAP_CREATE_FUNC(hostif_trap, SAI_OBJECT_TYPE_HOSTIF_TRAP, hostif);
 WRAP_REMOVE_FUNC(hostif_trap, SAI_OBJECT_TYPE_HOSTIF_TRAP, hostif);
 WRAP_SET_ATTR_FUNC(hostif_trap, SAI_OBJECT_TYPE_HOSTIF_TRAP, hostif);
 WRAP_GET_ATTR_FUNC(hostif_trap, SAI_OBJECT_TYPE_HOSTIF_TRAP, hostif);
+
+WRAP_CREATE_FUNC(
+    hostif_user_defined_trap,
+    SAI_OBJECT_TYPE_HOSTIF_USER_DEFINED_TRAP,
+    hostif);
+WRAP_REMOVE_FUNC(
+    hostif_user_defined_trap,
+    SAI_OBJECT_TYPE_HOSTIF_USER_DEFINED_TRAP,
+    hostif);
+WRAP_SET_ATTR_FUNC(
+    hostif_user_defined_trap,
+    SAI_OBJECT_TYPE_HOSTIF_USER_DEFINED_TRAP,
+    hostif);
+WRAP_GET_ATTR_FUNC(
+    hostif_user_defined_trap,
+    SAI_OBJECT_TYPE_HOSTIF_USER_DEFINED_TRAP,
+    hostif);
 
 WRAP_CREATE_FUNC(hostif_trap_group, SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP, hostif);
 WRAP_REMOVE_FUNC(hostif_trap_group, SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP, hostif);
@@ -83,6 +107,16 @@ sai_hostif_api_t* wrappedHostifApi() {
   hostifWrappers.remove_hostif_trap = &wrap_remove_hostif_trap;
   hostifWrappers.set_hostif_trap_attribute = &wrap_set_hostif_trap_attribute;
   hostifWrappers.get_hostif_trap_attribute = &wrap_get_hostif_trap_attribute;
+
+  hostifWrappers.create_hostif_user_defined_trap =
+      &wrap_create_hostif_user_defined_trap;
+  hostifWrappers.remove_hostif_user_defined_trap =
+      &wrap_remove_hostif_user_defined_trap;
+  hostifWrappers.set_hostif_user_defined_trap_attribute =
+      &wrap_set_hostif_user_defined_trap_attribute;
+  hostifWrappers.get_hostif_user_defined_trap_attribute =
+      &wrap_get_hostif_user_defined_trap_attribute;
+
   hostifWrappers.create_hostif_trap_group = &wrap_create_hostif_trap_group;
   hostifWrappers.remove_hostif_trap_group = &wrap_remove_hostif_trap_group;
   hostifWrappers.set_hostif_trap_group_attribute =
@@ -95,6 +129,7 @@ sai_hostif_api_t* wrappedHostifApi() {
 }
 
 SET_SAI_ATTRIBUTES(HostifTrap)
+SET_SAI_ATTRIBUTES(HostifUserDefinedTrap)
 SET_SAI_ATTRIBUTES(HostifTrapGroup)
 SET_SAI_ATTRIBUTES(HostifPacket)
 
