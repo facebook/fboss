@@ -49,6 +49,7 @@ class HwLinkStateToggler;
 class SwitchIdScopeResolver;
 class StateObserver;
 class SwSwitchWarmBootHelper;
+class HwEnsembleMultiSwitchThriftHandler;
 
 class HwSwitchEnsemble : public TestEnsembleIf {
  public:
@@ -260,6 +261,10 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       const std::string& /*name*/) override {}
   void unregisterStateObserver(StateObserver* /*observer*/) override {}
 
+  MultiSwitchTestServer* getTestServer() const {
+    return swSwitchTestServer_.get();
+  }
+
  protected:
   /*
    * Setup ensemble
@@ -319,6 +324,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   std::unique_ptr<SwitchIdScopeResolver> scopeResolver_;
   std::unique_ptr<MultiSwitchTestServer> swSwitchTestServer_;
   std::unique_ptr<SwSwitchWarmBootHelper> swSwitchWarmBootHelper_;
+  HwEnsembleMultiSwitchThriftHandler* multiSwitchThriftHandler_{nullptr};
 };
 
 } // namespace facebook::fboss

@@ -65,6 +65,9 @@ namespace facebook::fboss {
 class HwEnsembleMultiSwitchThriftHandler
     : public apache::thrift::ServiceHandler<multiswitch::MultiSwitchCtrl> {
  public:
+  explicit HwEnsembleMultiSwitchThriftHandler(HwSwitchEnsemble* ensemble)
+      : ensemble_(ensemble) {}
+
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<apache::thrift::SinkConsumer<fsdb::OperDelta, bool>>
   co_notifyStateUpdateResult(int64_t switchId) override {
@@ -73,7 +76,20 @@ class HwEnsembleMultiSwitchThriftHandler
 
   folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::LinkEvent, bool>>
   co_notifyLinkEvent(int64_t switchId) override {
-    co_return {};
+    co_return apache::thrift::SinkConsumer<multiswitch::LinkEvent, bool>{
+        [switchId,
+         this](folly::coro::AsyncGenerator<multiswitch::LinkEvent&&> gen)
+            -> folly::coro::Task<bool> {
+          while (auto item = co_await gen.next()) {
+            XLOG(DBG3) << "Got link event from switch " << switchId
+                       << " for port " << *item->port()
+                       << " up :" << *item->up();
+            ensemble_->linkStateChanged(PortID(*item->port()), *item->up());
+          }
+          co_return true;
+        },
+        1000 /* buffer size */
+    };
   }
 
   folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::FdbEvent, bool>>
@@ -97,6 +113,8 @@ class HwEnsembleMultiSwitchThriftHandler
         multiswitch::TxPacket>::createEmpty();
   }
 #endif
+ private:
+  HwSwitchEnsemble* ensemble_;
 };
 
 HwSwitchEnsemble::HwSwitchEnsemble(const Features& featuresDesired)
@@ -498,8 +516,10 @@ void HwSwitchEnsemble::setupEnsemble(
   if (haveFeature(MULTISWITCH_THRIFT_SERVER)) {
     std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
         handlers;
-    handlers.emplace_back(
-        std::make_shared<HwEnsembleMultiSwitchThriftHandler>());
+    auto multiSwitchHandler =
+        std::make_shared<HwEnsembleMultiSwitchThriftHandler>(this);
+    multiSwitchThriftHandler_ = multiSwitchHandler.get();
+    handlers.emplace_back(multiSwitchHandler);
     swSwitchTestServer_ = std::make_unique<MultiSwitchTestServer>(handlers);
     XLOG(DBG2) << "Started thrift server on port "
                << swSwitchTestServer_->getPort();
@@ -516,8 +536,11 @@ void HwSwitchEnsemble::setupEnsemble(
   auto [initState, rib] = SwSwitchWarmBootHelper::reconstructStateAndRib(
       wbState, scopeResolver_->hasL3());
   routingInformationBase_ = std::move(rib);
+  HwSwitchCallback* callback = haveFeature(MULTISWITCH_THRIFT_SERVER)
+      ? static_cast<HwSwitchCallback*>(thriftSyncer_.get())
+      : this;
   auto hwInitResult =
-      getHwSwitch()->init(this, initState, true /*failHwCallsOnWarmboot*/);
+      getHwSwitch()->init(callback, initState, true /*failHwCallsOnWarmboot*/);
   if (hwInitResult.bootType != bootType) {
     // this is being done for preprod2trunk migration. further until tooling is
     // updated to affect both warm boot flags, HwSwitch will override SwSwitch

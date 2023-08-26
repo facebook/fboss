@@ -74,8 +74,7 @@ void HwLinkStateToggler::portStateChangeImpl(
     invokeLinkScanIfNeeded(port, up);
     XLOG(DBG2) << " Wait for port " << (up ? "up" : "down")
                << " event on : " << port;
-    std::unique_lock<std::mutex> lock{linkEventMutex_};
-    linkEventCV_.wait(lock, [this] { return desiredPortEventOccurred_; });
+    waitForPortEvent();
     XLOG(DBG2) << " Got port " << (up ? "up" : "down")
                << " event on : " << port;
 
@@ -85,6 +84,12 @@ void HwLinkStateToggler::portStateChangeImpl(
     newPort->setOperState(up);
     hwEnsemble_->applyNewState(newState);
   }
+}
+
+bool HwLinkStateToggler::waitForPortEvent() {
+  std::unique_lock<std::mutex> lock{linkEventMutex_};
+  linkEventCV_.wait(lock, [this] { return desiredPortEventOccurred_; });
+  return desiredPortEventOccurred_;
 }
 
 void HwLinkStateToggler::applyInitialConfig(const cfg::SwitchConfig& initCfg) {

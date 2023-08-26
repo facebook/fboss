@@ -49,6 +49,8 @@ class HwLinkStateToggler {
       const std::vector<PortID>& ports) {
     portStateChangeImpl(switchState, ports, false);
   }
+  void setPortIDAndStateToWaitFor(PortID port, bool waitForUp);
+  bool waitForPortEvent();
 
  protected:
   TestEnsembleIf* getHwSwitchEnsemble() const {
@@ -80,7 +82,6 @@ class HwLinkStateToggler {
       cfg::PortType /* portType */,
       bool /* enable */);
 
-  void setPortIDAndStateToWaitFor(PortID port, bool waitForUp);
   mutable std::mutex linkEventMutex_;
   std::optional<PortID> portIdToWaitFor_;
   bool waitForPortUp_{false};
