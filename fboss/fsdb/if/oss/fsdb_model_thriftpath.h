@@ -15436,7 +15436,9 @@ class ChildThriftPath<::facebook::fboss::HwResourceStats, ::facebook::fboss::fsd
    std::pair<strings::em_entries_max, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
    std::pair<strings::em_counters_used, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
    std::pair<strings::em_counters_free, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
-   std::pair<strings::em_counters_max, Child<::std::int32_t, ::apache::thrift::type_class::integral>>>;
+   std::pair<strings::em_counters_max, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
+   std::pair<strings::system_ports_free, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
+   std::pair<strings::voqs_free, Child<::std::int32_t, ::apache::thrift::type_class::integral>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<bool, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
@@ -15487,7 +15489,9 @@ class ChildThriftPath<::facebook::fboss::HwResourceStats, ::facebook::fboss::fsd
    std::pair<std::integral_constant<apache::thrift::field_id_t, 48>, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 49>, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 50>, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 51>, Child<::std::int32_t, ::apache::thrift::type_class::integral>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 51>, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 52>, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 53>, Child<::std::int32_t, ::apache::thrift::type_class::integral>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -15550,6 +15554,8 @@ class ChildThriftPath<::facebook::fboss::HwResourceStats, ::facebook::fboss::fsd
     STRUCT_CHILD_GETTERS(em_counters_used);
     STRUCT_CHILD_GETTERS(em_counters_free);
     STRUCT_CHILD_GETTERS(em_counters_max);
+    STRUCT_CHILD_GETTERS(system_ports_free);
+    STRUCT_CHILD_GETTERS(voqs_free);
 };
 
 template<typename Parent>
