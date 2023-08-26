@@ -109,12 +109,30 @@ class HwEnsembleMultiSwitchThriftHandler
 
   folly::coro::Task<apache::thrift::ServerStream<multiswitch::TxPacket>>
   co_getTxPackets(int64_t switchId) override {
-    co_return apache::thrift::ServerStream<
-        multiswitch::TxPacket>::createEmpty();
+    auto streamAndPublisher =
+        apache::thrift::ServerStream<multiswitch::TxPacket>::createPublisher(
+            [switchId] {
+              XLOG(DBG2) << "Removed stream for switch " << switchId;
+            });
+    auto streamPublisher = std::make_unique<
+        apache::thrift::ServerStreamPublisher<multiswitch::TxPacket>>(
+        std::move(streamAndPublisher.second));
+    // save publisher for serving the stream
+    txStream_ = std::move(streamPublisher);
+    // return stream to the client
+    co_return std::move(streamAndPublisher.first);
   }
 #endif
+
+  void enqueueTxPacket(multiswitch::TxPacket pkt) {
+    txStream_->next(std::move(pkt));
+  }
+
  private:
   HwSwitchEnsemble* ensemble_;
+
+  std::unique_ptr<apache::thrift::ServerStreamPublisher<multiswitch::TxPacket>>
+      txStream_{nullptr};
 };
 
 HwSwitchEnsemble::HwSwitchEnsemble(const Features& featuresDesired)
@@ -623,6 +641,10 @@ void HwSwitchEnsemble::switchRunStateChanged(SwitchRunState switchState) {
     fs_->addFunction(statsCollect, timeInterval, "updateStats");
     fs_->start();
   }
+}
+
+void HwSwitchEnsemble::enqueueTxPacket(multiswitch::TxPacket pkt) {
+  multiSwitchThriftHandler_->enqueueTxPacket(std::move(pkt));
 }
 
 state::WarmbootState HwSwitchEnsemble::gracefulExitState() const {

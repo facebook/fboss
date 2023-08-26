@@ -14,6 +14,8 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
+#include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
 
 namespace facebook::fboss {
 
@@ -85,5 +87,38 @@ TEST_F(HwSplitAgentCallbackTest, linkCallback) {
   setPortIDAndStateToWaitFor(masterLogicalInterfacePortIds()[0], true);
   bringUpPort(masterLogicalInterfacePortIds()[0]);
   EXPECT_TRUE(waitForPortEvent());
+}
+
+TEST_F(HwSplitAgentCallbackTest, txPacket) {
+  if (skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+
+  resolveNeigborAndProgramRoutes(
+      utility::EcmpSetupAnyNPorts4(getProgrammedState(), RouterID(0)), 1);
+
+  auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+  auto vlanId = utility::firstVlanID(initialConfig());
+  auto pkt = utility::makeIpTxPacket(
+      [hwSwitch = getHwSwitch()](uint32_t size) {
+        return hwSwitch->allocatePacket(size);
+      },
+      vlanId,
+      intfMac,
+      intfMac,
+      folly::IPAddressV4("1.0.0.1"),
+      folly::IPAddressV4("1.0.0.2"));
+  multiswitch::TxPacket txPacket;
+  txPacket.data() = Packet::extractIOBuf(std::move(pkt));
+
+  auto statBefore =
+      getPortOutPkts(getLatestPortStats(masterLogicalPortIds()[0]));
+  getHwSwitchEnsemble()->enqueueTxPacket(std::move(txPacket));
+  auto statAfter =
+      getPortOutPkts(getLatestPortStats(masterLogicalPortIds()[0]));
+  EXPECT_EQ(statAfter - statBefore, 1);
 }
 } // namespace facebook::fboss

@@ -265,6 +265,8 @@ class HwSwitchEnsemble : public TestEnsembleIf {
     return swSwitchTestServer_.get();
   }
 
+  void enqueueTxPacket(multiswitch::TxPacket);
+
  protected:
   /*
    * Setup ensemble
