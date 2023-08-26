@@ -121,4 +121,36 @@ TEST_F(HwSplitAgentCallbackTest, txPacket) {
       getPortOutPkts(getLatestPortStats(masterLogicalPortIds()[0]));
   EXPECT_EQ(statAfter - statBefore, 1);
 }
+
+TEST_F(HwSplitAgentCallbackTest, operDeltaUpdate) {
+  if (skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+  setPortIDAndStateToWaitFor(masterLogicalInterfacePortIds()[0], false);
+  auto state = getProgrammedState();
+  auto newState = state->clone();
+  auto port = newState->getPorts()
+                  ->getNodeIf(PortID(masterLogicalInterfacePortIds()[0]))
+                  ->modify(&newState);
+
+  // set port to down
+  port->setOperState(false);
+  port->setLoopbackMode(cfg::PortLoopbackMode::NONE);
+  multiswitch::StateOperDelta operDelta;
+  operDelta.transaction() = true;
+  operDelta.operDelta() = StateDelta(state, newState).getOperDelta();
+  getHwSwitchEnsemble()->enqueueOperDelta(operDelta);
+  EXPECT_TRUE(waitForPortEvent());
+
+  // Set port to up
+  setPortIDAndStateToWaitFor(masterLogicalInterfacePortIds()[0], true);
+  multiswitch::StateOperDelta operDelta2;
+  operDelta2.transaction() = true;
+  operDelta2.operDelta() = StateDelta(newState, state).getOperDelta();
+  getHwSwitchEnsemble()->enqueueOperDelta(operDelta2);
+  EXPECT_TRUE(waitForPortEvent());
+}
 } // namespace facebook::fboss

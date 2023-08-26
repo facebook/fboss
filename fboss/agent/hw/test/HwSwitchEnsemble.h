@@ -267,6 +267,8 @@ class HwSwitchEnsemble : public TestEnsembleIf {
 
   void enqueueTxPacket(multiswitch::TxPacket);
 
+  void enqueueOperDelta(multiswitch::StateOperDelta operDelta);
+
  protected:
   /*
    * Setup ensemble

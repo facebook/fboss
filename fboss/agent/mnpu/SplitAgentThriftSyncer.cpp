@@ -10,6 +10,7 @@
 #include "fboss/agent/mnpu/SplitAgentThriftSyncer.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/mnpu/LinkEventSyncer.h"
+#include "fboss/agent/mnpu/OperDeltaSyncer.h"
 #include "fboss/agent/mnpu/TxPktEventSyncer.h"
 
 namespace facebook::fboss {
@@ -19,10 +20,7 @@ SplitAgentThriftSyncer::SplitAgentThriftSyncer(
     uint16_t serverPort)
     : retryThread_(std::make_shared<folly::ScopedEventBaseThread>(
           "SplitAgentThriftRetryThread")),
-      hw_(hw),
-      switchId_(
-          hw_->getSwitchId() ? SwitchID(hw_->getSwitchId().value())
-                             : SwitchID(0)),
+      switchId_(hw->getSwitchID()),
       linkEventSinkClient_(std::make_unique<LinkEventSyncer>(
           serverPort,
           switchId_,
@@ -31,7 +29,9 @@ SplitAgentThriftSyncer::SplitAgentThriftSyncer(
           serverPort,
           switchId_,
           retryThread_->getEventBase(),
-          hw_)) {}
+          hw)),
+      operDeltaClient_(
+          std::make_unique<OperDeltaSyncer>(serverPort, switchId_, hw)) {}
 
 void SplitAgentThriftSyncer::packetReceived(
     std::unique_ptr<RxPacket> /* pkt */) noexcept {
@@ -80,12 +80,14 @@ void SplitAgentThriftSyncer::unregisterStateObserver(
 
 void SplitAgentThriftSyncer::start() {
   // Start any required services
+  operDeltaClient_->startOperSync();
 }
 
 void SplitAgentThriftSyncer::stop() {
-  // Stop services
+  // Stop any started services
   linkEventSinkClient_->cancel();
   txPktEventStreamClient_->cancel();
+  operDeltaClient_->stopOperSync();
 }
 
 SplitAgentThriftSyncer::~SplitAgentThriftSyncer() {

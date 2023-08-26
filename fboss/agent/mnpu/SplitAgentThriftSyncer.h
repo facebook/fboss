@@ -24,6 +24,7 @@ namespace facebook::fboss {
 class HwSwitch;
 class LinkEventSyncer;
 class TxPktEventSyncer;
+class OperDeltaSyncer;
 
 class SplitAgentThriftSyncer : public HwSwitchCallback {
  public:
@@ -51,9 +52,9 @@ class SplitAgentThriftSyncer : public HwSwitchCallback {
 
  private:
   std::shared_ptr<folly::ScopedEventBaseThread> retryThread_;
-  HwSwitch* hw_;
   SwitchID switchId_;
   std::unique_ptr<LinkEventSyncer> linkEventSinkClient_;
   std::unique_ptr<TxPktEventSyncer> txPktEventStreamClient_;
+  std::unique_ptr<OperDeltaSyncer> operDeltaClient_;
 };
 } // namespace facebook::fboss

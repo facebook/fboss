@@ -129,6 +129,12 @@ class HwSwitch {
   std::optional<int64_t> getSwitchId() const {
     return switchId_;
   }
+  SwitchID getSwitchID() const {
+    if (!switchId_) {
+      return SwitchID(0);
+    }
+    return SwitchID(*switchId_);
+  }
   /*
    * Tells the hw switch to unregister the callback and to stop calling
    * packetReceived and linkStateChanged. This is mainly used during exit

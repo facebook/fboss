@@ -427,6 +427,7 @@ target_link_libraries(route_update_wrapper
 
 add_library(split_agent_thrift_syncer
   fboss/agent/mnpu/LinkEventSyncer.cpp
+  fboss/agent/mnpu/OperDeltaSyncer.cpp
   fboss/agent/mnpu/SplitAgentThriftSyncer.cpp
   fboss/agent/mnpu/SplitAgentThriftSyncerClient.cpp
   fboss/agent/mnpu/TxPktEventSyncer.cpp

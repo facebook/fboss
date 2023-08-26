@@ -34,6 +34,7 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
+#include <folly/concurrency/UnboundedQueue.h>
 #include <folly/experimental/FunctionScheduler.h>
 #include <folly/gen/Base.h>
 #include <memory>
@@ -128,8 +129,30 @@ class HwEnsembleMultiSwitchThriftHandler
     txStream_->next(std::move(pkt));
   }
 
+  void getNextStateOperDelta(
+      multiswitch::StateOperDelta& operDelta,
+      int64_t /*switchId*/) override {
+    // use a timeout to prevent indefinte wait during shutdown in test. In
+    // swswitch this will be handled by cancellation on shutdown.
+    // TODO - replace this with an explcit signal to cancel blocking wait
+    auto gotOper = operQueue_.try_dequeue_for(std::chrono::seconds(5));
+    if (gotOper) {
+      operDelta = std::move(gotOper.value());
+    }
+  }
+
+  void enqueueOperDelta(multiswitch::StateOperDelta delta) {
+    operQueue_.enqueue(std::move(delta));
+  }
+
  private:
   HwSwitchEnsemble* ensemble_;
+  folly::UnboundedQueue<
+      multiswitch::StateOperDelta,
+      true /*SingleProducer*/,
+      true /* SingleConsumer */,
+      true /*MayBlock*/>
+      operQueue_;
 
   std::unique_ptr<apache::thrift::ServerStreamPublisher<multiswitch::TxPacket>>
       txStream_{nullptr};
@@ -645,6 +668,10 @@ void HwSwitchEnsemble::switchRunStateChanged(SwitchRunState switchState) {
 
 void HwSwitchEnsemble::enqueueTxPacket(multiswitch::TxPacket pkt) {
   multiSwitchThriftHandler_->enqueueTxPacket(std::move(pkt));
+}
+
+void HwSwitchEnsemble::enqueueOperDelta(multiswitch::StateOperDelta operDelta) {
+  multiSwitchThriftHandler_->enqueueOperDelta(std::move(operDelta));
 }
 
 state::WarmbootState HwSwitchEnsemble::gracefulExitState() const {
