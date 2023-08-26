@@ -569,7 +569,7 @@ void HwSwitchEnsemble::setupEnsemble(
 
   thriftThread_ = std::move(thriftThread);
   if (haveFeature(MULTISWITCH_THRIFT_SERVER)) {
-    thriftSyncer_->connect();
+    thriftSyncer_->start();
   }
   switchRunStateChanged(SwitchRunState::INITIALIZED);
   if (routingInformationBase_) {

@@ -8,19 +8,24 @@
  *
  */
 #include "fboss/agent/mnpu/SplitAgentThriftSyncer.h"
-
-#include <folly/IPAddress.h>
-#include <thrift/lib/cpp2/async/PooledRequestChannel.h>
-#include <thrift/lib/cpp2/async/RocketClientChannel.h>
-
-static constexpr folly::StringPiece kClientName = "mnpu-syncer-client";
+#include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/mnpu/LinkEventSyncer.h"
 
 namespace facebook::fboss {
 
 SplitAgentThriftSyncer::SplitAgentThriftSyncer(
     HwSwitch* hw,
     uint16_t serverPort)
-    : hw_(hw), serverPort_(serverPort) {}
+    : retryThread_(std::make_shared<folly::ScopedEventBaseThread>(
+          "SplitAgentThriftRetryThread")),
+      hw_(hw),
+      switchId_(
+          hw_->getSwitchId() ? SwitchID(hw_->getSwitchId().value())
+                             : SwitchID(0)),
+      linkEventSinkClient_(std::make_unique<LinkEventSyncer>(
+          serverPort,
+          switchId_,
+          retryThread_->getEventBase())) {}
 
 void SplitAgentThriftSyncer::packetReceived(
     std::unique_ptr<RxPacket> /* pkt */) noexcept {
@@ -28,10 +33,16 @@ void SplitAgentThriftSyncer::packetReceived(
 }
 
 void SplitAgentThriftSyncer::linkStateChanged(
-    PortID /* port */,
-    bool /* up */,
-    std::optional<phy::LinkFaultStatus> /* iPhyFaultStatus */) {
-  // TODO - Add handler
+    PortID port,
+    bool up,
+    std::optional<phy::LinkFaultStatus> iPhyFaultStatus) {
+  multiswitch::LinkEvent event;
+  event.port() = port;
+  event.up() = up;
+  if (iPhyFaultStatus) {
+    event.iPhyLinkFaultStatus() = *iPhyFaultStatus;
+  }
+  linkEventSinkClient_->enqueue(std::move(event));
 }
 
 void SplitAgentThriftSyncer::l2LearningUpdateReceived(
@@ -61,19 +72,16 @@ void SplitAgentThriftSyncer::unregisterStateObserver(
   // TODO - Add handler
 }
 
-void SplitAgentThriftSyncer::connect() {
-  evbThread_ = std::make_shared<folly::ScopedEventBaseThread>(kClientName);
-  auto channel = apache::thrift::PooledRequestChannel::newChannel(
-      evbThread_->getEventBase(),
-      evbThread_,
-      [this](folly::EventBase& evb) mutable {
-        return apache::thrift::RocketClientChannel::newChannel(
-            folly::AsyncSocket::UniquePtr(
-                new folly::AsyncSocket(&evb, "::1", serverPort_)));
-      });
-  multiSwitchClient_ =
-      std::make_unique<apache::thrift::Client<multiswitch::MultiSwitchCtrl>>(
-          std::move(channel));
+void SplitAgentThriftSyncer::start() {
+  // Start any required services
 }
 
+void SplitAgentThriftSyncer::stop() {
+  // Stop services
+  linkEventSinkClient_->cancel();
+}
+
+SplitAgentThriftSyncer::~SplitAgentThriftSyncer() {
+  stop();
+}
 } // namespace facebook::fboss

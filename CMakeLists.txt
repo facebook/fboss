@@ -557,6 +557,7 @@ add_fbthrift_cpp_library(
   DEPENDS
     ctrl_cpp2
     fsdb_oper_cpp2
+    phy_cpp2
 )
 
 find_library(USB usb-1.0)

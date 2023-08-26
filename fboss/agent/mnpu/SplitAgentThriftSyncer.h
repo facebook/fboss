@@ -10,6 +10,8 @@
 #pragma once
 #include <memory>
 
+#include "fboss/agent/mnpu/SplitAgentThriftSyncerClient.h"
+
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <gflags/gflags.h>
 #include <string>
@@ -20,10 +22,12 @@
 namespace facebook::fboss {
 
 class HwSwitch;
+class LinkEventSyncer;
 
 class SplitAgentThriftSyncer : public HwSwitchCallback {
  public:
   SplitAgentThriftSyncer(HwSwitch* hw, uint16_t serverPort);
+  ~SplitAgentThriftSyncer() override;
 
   void packetReceived(std::unique_ptr<RxPacket> pkt) noexcept override;
   void linkStateChanged(
@@ -41,13 +45,13 @@ class SplitAgentThriftSyncer : public HwSwitchCallback {
       override;
   void unregisterStateObserver(StateObserver* observer) override;
 
-  void connect();
+  void start();
+  void stop();
 
  private:
+  std::shared_ptr<folly::ScopedEventBaseThread> retryThread_;
   HwSwitch* hw_;
-  std::shared_ptr<folly::ScopedEventBaseThread> evbThread_;
-  std::unique_ptr<apache::thrift::Client<multiswitch::MultiSwitchCtrl>>
-      multiSwitchClient_;
-  uint16_t serverPort_{0};
+  SwitchID switchId_;
+  std::unique_ptr<LinkEventSyncer> linkEventSinkClient_;
 };
 } // namespace facebook::fboss

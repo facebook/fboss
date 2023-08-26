@@ -65,6 +65,8 @@ int hwAgentMain(
       hwAgent->getPlatform()->getDirectoryUtil()->getWarmBootDir(),
       ret.bootType == BootType::WARM_BOOT);
 
+  thriftSyncer->start();
+
   folly::EventBase eventBase;
   auto server = setupThriftServer(
       eventBase,
