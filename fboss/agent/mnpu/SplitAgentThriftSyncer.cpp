@@ -10,6 +10,7 @@
 #include "fboss/agent/mnpu/SplitAgentThriftSyncer.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/mnpu/LinkEventSyncer.h"
+#include "fboss/agent/mnpu/TxPktEventSyncer.h"
 
 namespace facebook::fboss {
 
@@ -25,7 +26,12 @@ SplitAgentThriftSyncer::SplitAgentThriftSyncer(
       linkEventSinkClient_(std::make_unique<LinkEventSyncer>(
           serverPort,
           switchId_,
-          retryThread_->getEventBase())) {}
+          retryThread_->getEventBase())),
+      txPktEventStreamClient_(std::make_unique<TxPktEventSyncer>(
+          serverPort,
+          switchId_,
+          retryThread_->getEventBase(),
+          hw_)) {}
 
 void SplitAgentThriftSyncer::packetReceived(
     std::unique_ptr<RxPacket> /* pkt */) noexcept {
@@ -79,6 +85,7 @@ void SplitAgentThriftSyncer::start() {
 void SplitAgentThriftSyncer::stop() {
   // Stop services
   linkEventSinkClient_->cancel();
+  txPktEventStreamClient_->cancel();
 }
 
 SplitAgentThriftSyncer::~SplitAgentThriftSyncer() {

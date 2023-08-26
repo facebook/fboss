@@ -23,6 +23,7 @@ namespace facebook::fboss {
 
 class HwSwitch;
 class LinkEventSyncer;
+class TxPktEventSyncer;
 
 class SplitAgentThriftSyncer : public HwSwitchCallback {
  public:
@@ -53,5 +54,6 @@ class SplitAgentThriftSyncer : public HwSwitchCallback {
   HwSwitch* hw_;
   SwitchID switchId_;
   std::unique_ptr<LinkEventSyncer> linkEventSinkClient_;
+  std::unique_ptr<TxPktEventSyncer> txPktEventStreamClient_;
 };
 } // namespace facebook::fboss

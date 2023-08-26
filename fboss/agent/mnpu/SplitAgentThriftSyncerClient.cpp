@@ -159,6 +159,69 @@ ThriftSinkClient<CallbackObjectT>::~ThriftSinkClient() {
   CHECK(isCancelled());
 }
 
+template <typename StreamObjectT>
+ThriftStreamClient<StreamObjectT>::ThriftStreamClient(
+    folly::StringPiece name,
+    uint16_t serverPort,
+    SwitchID switchId,
+#if FOLLY_HAS_COROUTINES
+    ThriftStreamConnectFn connectFn,
+#endif
+    EventHandlerFn eventHandlerFn,
+    HwSwitch* hw,
+    std::shared_ptr<folly::ScopedEventBaseThread> eventThread,
+    folly::EventBase* retryEvb)
+    : SplitAgentThriftClient(
+          std::string(name),
+          eventThread,
+          retryEvb,
+          std::string(name),
+          [](State, State) {},
+          serverPort,
+          switchId),
+#if FOLLY_HAS_COROUTINES
+      connectFn_(std::move(connectFn)),
+#endif
+      eventHandlerFn_(std::move(eventHandlerFn)),
+      hw_(hw) {
+}
+
+template <typename StreamObjectT>
+void ThriftStreamClient<StreamObjectT>::startClientService() {
+#if FOLLY_HAS_COROUTINES
+  streamClient_.reset(new EventNotifierStreamClient(
+      connectFn_(getSwitchId(), getThriftClient())));
+#endif
+}
+
+#if FOLLY_HAS_COROUTINES
+template <typename StreamObjectT>
+folly::coro::Task<void> ThriftStreamClient<StreamObjectT>::serveStream() {
+  while (const auto& event = co_await streamClient_->next()) {
+    if (isCancelled()) {
+      co_return;
+    }
+    auto eventObj = *event;
+    eventHandlerFn_(eventObj, hw_);
+  }
+  co_return;
+}
+#endif
+
+template <typename StreamObjectT>
+void ThriftStreamClient<StreamObjectT>::resetClient() {
+#if FOLLY_HAS_COROUTINES
+  streamClient_.reset();
+#endif
+  SplitAgentThriftClient::resetClient();
+}
+
+template <typename StreamObjectT>
+ThriftStreamClient<StreamObjectT>::~ThriftStreamClient() {
+  CHECK(isCancelled());
+}
+
 template class ThriftSinkClient<multiswitch::LinkEvent>;
+template class ThriftStreamClient<multiswitch::TxPacket>;
 
 } // namespace facebook::fboss

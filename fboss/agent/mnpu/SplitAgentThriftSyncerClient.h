@@ -103,4 +103,43 @@ class ThriftSinkClient : public SplitAgentThriftClient {
   ThriftSinkConnectFn connectFn_;
   int32_t serverPort_;
 };
+
+template <typename StreamObjectT>
+class ThriftStreamClient : public SplitAgentThriftClient {
+ public:
+#if FOLLY_HAS_COROUTINES
+  using EventNotifierStreamClient =
+      folly::coro::AsyncGenerator<StreamObjectT&&, StreamObjectT>;
+  using ThriftStreamConnectFn = std::function<EventNotifierStreamClient(
+      SwitchID,
+      apache::thrift::Client<multiswitch::MultiSwitchCtrl>*)>;
+#endif
+  using EventHandlerFn = std::function<void(StreamObjectT&, HwSwitch*)>;
+
+  ThriftStreamClient(
+      folly::StringPiece name,
+      uint16_t serverPort,
+      SwitchID switchId,
+#if FOLLY_HAS_COROUTINES
+      ThriftStreamConnectFn connectFn,
+#endif
+      EventHandlerFn eventHandlerFn,
+      HwSwitch* hw,
+      std::shared_ptr<folly::ScopedEventBaseThread> eventThread,
+      folly::EventBase* retryEvb);
+  ~ThriftStreamClient() override;
+  void resetClient() override;
+  void startClientService() override;
+
+ private:
+#if FOLLY_HAS_COROUTINES
+  folly::coro::Task<void> serveStream() override;
+
+  std::unique_ptr<EventNotifierStreamClient> streamClient_;
+  ThriftStreamConnectFn connectFn_;
+#endif
+
+  EventHandlerFn eventHandlerFn_;
+  HwSwitch* hw_;
+};
 } // namespace facebook::fboss
