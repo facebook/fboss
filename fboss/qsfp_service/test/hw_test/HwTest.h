@@ -11,6 +11,7 @@
 
 #include <gtest/gtest.h>
 #include "fboss/agent/types.h"
+#include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 
 #include <folly/logging/xlog.h>
 
@@ -18,7 +19,6 @@ DECLARE_bool(setup_for_warmboot);
 
 namespace facebook::fboss {
 
-class HwQsfpEnsemble;
 class MultiPimPlatformPimContainer;
 
 class HwTest : public ::testing::Test {

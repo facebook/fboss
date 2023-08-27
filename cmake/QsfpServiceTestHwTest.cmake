@@ -28,6 +28,7 @@ target_link_libraries(hw_transceiver_utils
 )
 
 add_executable(qsfp_hw_test
+  fboss/qsfp_service/test/hw_test/EmptyHwTest.cpp
   fboss/qsfp_service/test/hw_test/HwFirmwareTest.cpp
   fboss/qsfp_service/test/hw_test/HwPimTest.cpp
   fboss/qsfp_service/test/hw_test/HwPortProfileTest.cpp
