@@ -40,10 +40,10 @@ class HwFb303Stats {
   /*
    * Update queue stat
    */
-  stats::MonotonicCounter* getCounterIf(const std::string& statName);
-  const stats::MonotonicCounter* getCounterIf(
+  facebook::stats::MonotonicCounter* getCounterIf(const std::string& statName);
+  const facebook::stats::MonotonicCounter* getCounterIf(
       const std::string& statName) const;
 
-  folly::F14FastMap<std::string, stats::MonotonicCounter> counters_;
+  folly::F14FastMap<std::string, facebook::stats::MonotonicCounter> counters_;
 };
 } // namespace facebook::fboss
