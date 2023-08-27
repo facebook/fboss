@@ -277,3 +277,13 @@ sai_object_type_t sai_object_type_query(sai_object_id_t /*object_id*/) {
   // FIXME: implement this
   return SAI_OBJECT_TYPE_NEXT_HOP;
 }
+
+sai_status_t sai_object_type_get_availability(
+    sai_object_id_t /*switch_id*/,
+    sai_object_type_t /*object_type*/,
+    uint32_t /*attr_count*/,
+    const sai_attribute_t* /*attr_list*/,
+    uint64_t* count) {
+  *count = 10000;
+  return SAI_STATUS_SUCCESS;
+}
