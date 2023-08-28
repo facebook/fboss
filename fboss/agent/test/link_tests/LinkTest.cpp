@@ -70,6 +70,10 @@ void LinkTest::TearDown() {
       facebook::fb303::cpp2::fb_status::ALIVE,
       qsfpServiceClient.get()->sync_getStatus())
       << "QSFP Service no longer alive after the test";
+  EXPECT_EQ(
+      QsfpServiceRunState::ACTIVE,
+      qsfpServiceClient.get()->sync_getQsfpServiceRunState())
+      << "QSFP Service run state no longer active after the test";
   AgentTest::TearDown();
 }
 
