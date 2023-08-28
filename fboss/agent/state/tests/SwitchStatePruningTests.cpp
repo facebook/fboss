@@ -616,3 +616,93 @@ TEST(SwitchStatePruningTests, ModifyArpTableMultipleTimes) {
   ASSERT_EQ(state2, state3);
   ASSERT_EQ(state2->getVlans(), state3->getVlans());
 }
+
+shared_ptr<SwitchState> createSwitch() {
+  auto platform = createMockPlatform();
+  SwitchConfig config;
+  shared_ptr<SwitchState> state0 = make_shared<SwitchState>();
+
+  std::map<PortID, VlanID> port2VlanMap = {
+      {PortID(1), VlanID(21)},
+      {PortID(2), VlanID(21)},
+      {PortID(3), VlanID(21)}};
+  std::map<VlanID, MacAddress> vlan2OutgoingMac = {
+      {VlanID(21), MacAddress("fa:ce:b0:0c:21:00")}};
+
+  registerPortsAndPopulateConfig(
+      port2VlanMap, &vlan2OutgoingMac, state0, config);
+
+  auto state1 = publishAndApplyConfig(state0, &config, platform.get());
+  state1->publish();
+
+  return state1;
+}
+
+shared_ptr<SwitchState> addNeighbors(
+    shared_ptr<SwitchState> state1,
+    bool vlanNeighbors) {
+  shared_ptr<SwitchState> state2{state1};
+
+  auto host1Ip = IPAddressV4("10.0.21.1");
+  auto host1Mac = MacAddress("fa:ce:b0:0c:21:01");
+  auto host2Ip = IPAddressV6("face:b00c:0:21::2");
+  auto host2Mac = MacAddress("fa:ce:b0:0c:21:02");
+
+  auto hostVlan = VlanID(21);
+  auto hostIntf = InterfaceID(21);
+  auto hostPort = PortDescriptor(PortID(1));
+
+  if (vlanNeighbors) {
+    addNeighborEntry<ArpTable>(
+        &state2, &host1Ip, &host1Mac, &hostVlan, &hostPort);
+    addNeighborEntry<NdpTable>(
+        &state2, &host2Ip, &host2Mac, &hostVlan, &hostPort);
+  } else {
+    addNeighborEntryToIntfNeighborTable<ArpTable>(
+        &state2, &host1Ip, &host1Mac, &hostIntf, &hostPort);
+    addNeighborEntryToIntfNeighborTable<NdpTable>(
+        &state2, &host2Ip, &host2Mac, &hostIntf, &hostPort);
+  }
+
+  state2->publish();
+  return state2;
+}
+
+template <typename MultiMapT>
+void verifyNbrTablesEmpty(const shared_ptr<MultiMapT> multiMap) {
+  for (const auto& table : *multiMap) {
+    for (const auto& [_, vlanOrIntf] : *table.second) {
+      EXPECT_TRUE(
+          vlanOrIntf->getArpTable() == nullptr ||
+          vlanOrIntf->getArpTable()->size() == 0);
+      EXPECT_TRUE(
+          vlanOrIntf->getNdpTable() == nullptr ||
+          vlanOrIntf->getNdpTable()->size() == 0);
+      EXPECT_TRUE(
+          vlanOrIntf->getArpResponseTable() == nullptr ||
+          vlanOrIntf->getArpResponseTable()->size() == 0);
+      EXPECT_TRUE(
+          vlanOrIntf->getNdpResponseTable() == nullptr ||
+          vlanOrIntf->getNdpResponseTable()->size() == 0);
+    }
+  }
+}
+
+template <typename MultiMapT>
+void verifyNbrTablesNonEmpty(const shared_ptr<MultiMapT> multiMap) {
+  for (const auto& table : *multiMap) {
+    for (const auto& [_, vlanOrIntf] : *table.second) {
+      EXPECT_NE(vlanOrIntf->getArpTable(), nullptr);
+      EXPECT_EQ(vlanOrIntf->getArpTable()->size(), 1);
+      EXPECT_EQ(
+          vlanOrIntf->getArpTable()->cbegin()->second->getIP(),
+          IPAddressV4("10.0.21.1"));
+
+      EXPECT_NE(vlanOrIntf->getNdpTable(), nullptr);
+      EXPECT_EQ(vlanOrIntf->getNdpTable()->size(), 1);
+      EXPECT_EQ(
+          vlanOrIntf->getNdpTable()->cbegin()->second->getIP(),
+          IPAddressV6("face:b00c:0:21::2"));
+    }
+  }
+}
