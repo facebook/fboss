@@ -198,6 +198,14 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
   void setNdpTable(state::NeighborEntries ndpTable) {
     set<switch_state_tags::ndpTable>(std::move(ndpTable));
   }
+
+  void setArpTable(std::shared_ptr<ArpTable> table) {
+    ref<switch_state_tags::arpTable>() = std::move(table);
+  }
+  void setNdpTable(std::shared_ptr<NdpTable> table) {
+    ref<switch_state_tags::ndpTable>() = std::move(table);
+  }
+
   template <typename AddressType>
   void setNeighborEntryTable(state::NeighborEntries nbrTable) {
     if constexpr (std::is_same_v<AddressType, folly::IPAddressV4>) {
