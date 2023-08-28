@@ -716,3 +716,14 @@ TEST(SwitchStatePruningTests, VlanNbrTablesWbToVlanNbrTables) {
   verifyNbrTablesNonEmpty(thriftStateBack->getVlans());
   verifyNbrTablesEmpty(thriftStateBack->getInterfaces());
 }
+
+TEST(SwitchStatePruningTests, VlanNbrTablesWbToIntfNbrTables) {
+  FLAGS_intf_nbr_tables = false;
+  auto state = addNeighbors(createSwitch(), true /* vlan neighbors */);
+  auto thrifty = state->toThrift();
+
+  FLAGS_intf_nbr_tables = true;
+  auto thriftStateBack = SwitchState::fromThrift(thrifty);
+  verifyNbrTablesEmpty(thriftStateBack->getVlans());
+  verifyNbrTablesNonEmpty(thriftStateBack->getInterfaces());
+}
