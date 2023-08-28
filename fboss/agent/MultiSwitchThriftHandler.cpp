@@ -23,7 +23,7 @@ void MultiSwitchThriftHandler::ensureConfigured(
       "fully configured yet");
 }
 
-L2Entry MultiSwitchThriftHandler::getL2Entry(L2EntryThrift thriftEntry) const {
+L2Entry MultiSwitchThriftHandler::getL2Entry(L2EntryThrift thriftEntry) {
   PortDescriptor port = thriftEntry.trunk()
       ? PortDescriptor(AggregatePortID(*thriftEntry.port()))
       : PortDescriptor(PortID(*thriftEntry.port()));

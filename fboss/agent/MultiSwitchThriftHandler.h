@@ -37,9 +37,10 @@ class MultiSwitchThriftHandler
       int64_t switchId,
       std::unique_ptr<multiswitch::StateOperDelta> prevOperResult) override;
 
+  static L2Entry getL2Entry(L2EntryThrift thriftEntry);
+
  private:
   void ensureConfigured(folly::StringPiece function) const;
-  L2Entry getL2Entry(L2EntryThrift thriftEntry) const;
   SwSwitch* sw_;
 };
 } // namespace facebook::fboss

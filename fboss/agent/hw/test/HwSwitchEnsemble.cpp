@@ -95,7 +95,21 @@ class HwEnsembleMultiSwitchThriftHandler
 
   folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::FdbEvent, bool>>
   co_notifyFdbEvent(int64_t switchId) override {
-    co_return {};
+    co_return apache::thrift::SinkConsumer<multiswitch::FdbEvent, bool>{
+        [this,
+         switchId](folly::coro::AsyncGenerator<multiswitch::FdbEvent&&> gen)
+            -> folly::coro::Task<bool> {
+          while (auto item = co_await gen.next()) {
+            XLOG(DBG3) << "Got fdb event from switch " << switchId
+                       << " for port " << *item->entry()->port()
+                       << " mac :" << *item->entry()->mac();
+            auto l2Entry = MultiSwitchThriftHandler::getL2Entry(*item->entry());
+            ensemble_->l2LearningUpdateReceived(l2Entry, *item->updateType());
+          }
+          co_return true;
+        },
+        100 /* buffer size */
+    };
   }
 
   folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::RxPacket, bool>>

@@ -85,6 +85,13 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
         allConfigPorts());
     return LearningModeAndPortT::initialConfig(inConfig);
   }
+#ifndef IS_OSS
+  HwSwitchEnsemble::Features featuresDesired() const override {
+    return {
+        HwSwitchEnsemble::LINKSCAN,
+        HwSwitchEnsemble::MULTISWITCH_THRIFT_SERVER};
+  }
+#endif
   PortDescriptor portDescriptor() const {
     return kIsTrunk ? PortDescriptor(kAggID)
                     : PortDescriptor(masterLogicalPortIds()[0]);

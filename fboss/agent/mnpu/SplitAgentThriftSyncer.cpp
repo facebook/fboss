@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/mnpu/SplitAgentThriftSyncer.h"
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/mnpu/FdbEventSyncer.h"
 #include "fboss/agent/mnpu/LinkEventSyncer.h"
 #include "fboss/agent/mnpu/OperDeltaSyncer.h"
 #include "fboss/agent/mnpu/TxPktEventSyncer.h"
@@ -31,7 +32,11 @@ SplitAgentThriftSyncer::SplitAgentThriftSyncer(
           retryThread_->getEventBase(),
           hw)),
       operDeltaClient_(
-          std::make_unique<OperDeltaSyncer>(serverPort, switchId_, hw)) {}
+          std::make_unique<OperDeltaSyncer>(serverPort, switchId_, hw)),
+      fdbEventSinkClient_(std::make_unique<FdbEventSyncer>(
+          serverPort,
+          switchId_,
+          retryThread_->getEventBase())) {}
 
 void SplitAgentThriftSyncer::packetReceived(
     std::unique_ptr<RxPacket> /* pkt */) noexcept {
@@ -52,9 +57,28 @@ void SplitAgentThriftSyncer::linkStateChanged(
 }
 
 void SplitAgentThriftSyncer::l2LearningUpdateReceived(
-    L2Entry /* l2Entry */,
-    L2EntryUpdateType /* l2EntryUpdateType */) {
-  // TODO - Add handler
+    L2Entry l2Entry,
+    L2EntryUpdateType l2EntryUpdateType) {
+  multiswitch::FdbEvent event;
+  L2EntryThrift entry;
+  entry.mac() = l2Entry.getMac().toString();
+  entry.vlanID() = l2Entry.getVlanID();
+  entry.l2EntryType() =
+      (l2Entry.getType() == L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING)
+      ? L2EntryType::L2_ENTRY_TYPE_PENDING
+      : L2EntryType::L2_ENTRY_TYPE_VALIDATED;
+  if (l2Entry.getPort().isAggregatePort()) {
+    entry.trunk() = 1;
+    entry.port() = l2Entry.getPort().aggPortID();
+  } else {
+    entry.port() = l2Entry.getPort().phyPortID();
+  }
+  if (l2Entry.getClassID()) {
+    entry.classID() = static_cast<int>(l2Entry.getClassID().value());
+  }
+  event.entry() = std::move(entry);
+  event.updateType() = l2EntryUpdateType;
+  fdbEventSinkClient_->enqueue(std::move(event));
 }
 
 void SplitAgentThriftSyncer::exitFatal() const noexcept {
@@ -88,6 +112,7 @@ void SplitAgentThriftSyncer::stop() {
   linkEventSinkClient_->cancel();
   txPktEventStreamClient_->cancel();
   operDeltaClient_->stopOperSync();
+  fdbEventSinkClient_->cancel();
 }
 
 SplitAgentThriftSyncer::~SplitAgentThriftSyncer() {

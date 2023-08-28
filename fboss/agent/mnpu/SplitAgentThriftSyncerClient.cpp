@@ -222,6 +222,7 @@ ThriftStreamClient<StreamObjectT>::~ThriftStreamClient() {
 }
 
 template class ThriftSinkClient<multiswitch::LinkEvent>;
+template class ThriftSinkClient<multiswitch::FdbEvent>;
 template class ThriftStreamClient<multiswitch::TxPacket>;
 
 } // namespace facebook::fboss
