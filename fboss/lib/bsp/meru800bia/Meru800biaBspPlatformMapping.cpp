@@ -19,7 +19,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 1,
               "accessControl": {
                 "controllerId": "1",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp1_reset",
                   "mask": 1,
@@ -54,7 +54,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 2,
               "accessControl": {
                 "controllerId": "2",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp2_reset",
                   "mask": 1,
@@ -89,7 +89,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 3,
               "accessControl": {
                 "controllerId": "3",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp3_reset",
                   "mask": 1,
@@ -124,7 +124,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 4,
               "accessControl": {
                 "controllerId": "4",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp4_reset",
                   "mask": 1,
@@ -159,7 +159,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 5,
               "accessControl": {
                 "controllerId": "5",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp5_reset",
                   "mask": 1,
@@ -194,7 +194,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 6,
               "accessControl": {
                 "controllerId": "6",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp6_reset",
                   "mask": 1,
@@ -229,7 +229,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 7,
               "accessControl": {
                 "controllerId": "7",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp7_reset",
                   "mask": 1,
@@ -264,7 +264,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 8,
               "accessControl": {
                 "controllerId": "8",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp8_reset",
                   "mask": 1,
@@ -299,7 +299,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 9,
               "accessControl": {
                 "controllerId": "9",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp9_reset",
                   "mask": 1,
@@ -334,7 +334,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 10,
               "accessControl": {
                 "controllerId": "10",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp10_reset",
                   "mask": 1,
@@ -369,7 +369,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 11,
               "accessControl": {
                 "controllerId": "11",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp11_reset",
                   "mask": 1,
@@ -404,7 +404,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 12,
               "accessControl": {
                 "controllerId": "12",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp12_reset",
                   "mask": 1,
@@ -439,7 +439,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 13,
               "accessControl": {
                 "controllerId": "13",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp13_reset",
                   "mask": 1,
@@ -474,7 +474,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 14,
               "accessControl": {
                 "controllerId": "14",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp14_reset",
                   "mask": 1,
@@ -509,7 +509,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 15,
               "accessControl": {
                 "controllerId": "15",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp15_reset",
                   "mask": 1,
@@ -544,7 +544,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 16,
               "accessControl": {
                 "controllerId": "16",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp16_reset",
                   "mask": 1,
@@ -579,7 +579,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 17,
               "accessControl": {
                 "controllerId": "17",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp17_reset",
                   "mask": 1,
@@ -614,7 +614,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 18,
               "accessControl": {
                 "controllerId": "18",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp18_reset",
                   "mask": 1,
@@ -649,7 +649,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 19,
               "accessControl": {
                 "controllerId": "19",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp19_reset",
                   "mask": 1,
@@ -684,7 +684,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 20,
               "accessControl": {
                 "controllerId": "20",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp20_reset",
                   "mask": 1,
@@ -719,7 +719,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 21,
               "accessControl": {
                 "controllerId": "21",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp21_reset",
                   "mask": 1,
@@ -754,7 +754,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 22,
               "accessControl": {
                 "controllerId": "22",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp22_reset",
                   "mask": 1,
@@ -789,7 +789,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 23,
               "accessControl": {
                 "controllerId": "23",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp23_reset",
                   "mask": 1,
@@ -824,7 +824,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 24,
               "accessControl": {
                 "controllerId": "24",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp24_reset",
                   "mask": 1,
@@ -859,7 +859,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 25,
               "accessControl": {
                 "controllerId": "25",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp25_reset",
                   "mask": 1,
@@ -894,7 +894,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 26,
               "accessControl": {
                 "controllerId": "26",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp26_reset",
                   "mask": 1,
@@ -929,7 +929,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 27,
               "accessControl": {
                 "controllerId": "27",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp27_reset",
                   "mask": 1,
@@ -964,7 +964,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 28,
               "accessControl": {
                 "controllerId": "28",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp28_reset",
                   "mask": 1,
@@ -999,7 +999,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 29,
               "accessControl": {
                 "controllerId": "29",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp29_reset",
                   "mask": 1,
@@ -1034,7 +1034,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 30,
               "accessControl": {
                 "controllerId": "30",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp30_reset",
                   "mask": 1,
@@ -1069,7 +1069,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 31,
               "accessControl": {
                 "controllerId": "31",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp31_reset",
                   "mask": 1,
@@ -1104,7 +1104,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 32,
               "accessControl": {
                 "controllerId": "32",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp32_reset",
                   "mask": 1,
@@ -1139,7 +1139,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 33,
               "accessControl": {
                 "controllerId": "33",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp33_reset",
                   "mask": 1,
@@ -1174,7 +1174,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 34,
               "accessControl": {
                 "controllerId": "34",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp34_reset",
                   "mask": 1,
@@ -1209,7 +1209,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 35,
               "accessControl": {
                 "controllerId": "35",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp35_reset",
                   "mask": 1,
@@ -1244,7 +1244,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 36,
               "accessControl": {
                 "controllerId": "36",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp36_reset",
                   "mask": 1,
@@ -1279,7 +1279,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 37,
               "accessControl": {
                 "controllerId": "37",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp37_reset",
                   "mask": 1,
@@ -1314,7 +1314,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 38,
               "accessControl": {
                 "controllerId": "38",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp38_reset",
                   "mask": 1,
@@ -1349,7 +1349,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrId": 39,
               "accessControl": {
                 "controllerId": "39",
-                "type": 2,
+                "type": 1,
                 "reset": {
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/qsfp1_reset",
                   "mask": 1,
