@@ -49,6 +49,20 @@ std::shared_ptr<SwitchState> setupMinAlpmRouteState(
   CHECK(multiSwitchSwitchSettings->size());
   auto resolver = SwitchIdScopeResolver(
       multiSwitchSwitchSettings->cbegin()->second->getSwitchIdToSwitchInfo());
+
+  return setupMinAlpmRouteState(resolver, newState);
+}
+
+std::shared_ptr<SwitchState> setupMinAlpmRouteState(
+    const SwitchIdScopeResolver& resolver,
+    std::shared_ptr<SwitchState> curState) {
+  // In ALPM mode we need to make sure that the first route added is
+  // the default route and that the route table always contains a default
+  // route
+  if (!resolver.hasL3()) {
+    return curState;
+  }
+  auto newState = curState->clone();
   RouterID rid(0);
   RoutePrefixV4 defaultPrefix4{folly::IPAddressV4("0.0.0.0"), 0};
   RoutePrefixV6 defaultPrefix6{folly::IPAddressV6("::"), 0};
@@ -75,7 +89,6 @@ std::shared_ptr<SwitchState> setupMinAlpmRouteState(
   defaultVrf->getFibV6()->addNode(v6Route);
   return newState;
 }
-
 std::shared_ptr<SwitchState> getMinAlpmRouteState(
     const std::shared_ptr<SwitchState>& oldState) {
   // ALPM requires that the default routes (always required to be

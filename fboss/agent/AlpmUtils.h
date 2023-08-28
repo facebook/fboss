@@ -13,8 +13,13 @@
 namespace facebook::fboss {
 
 class SwitchState;
+class SwitchIdScopeResolver;
 
 std::shared_ptr<SwitchState> setupMinAlpmRouteState(
+    std::shared_ptr<SwitchState> curState);
+
+std::shared_ptr<SwitchState> setupMinAlpmRouteState(
+    const SwitchIdScopeResolver& resolver,
     std::shared_ptr<SwitchState> curState);
 
 std::shared_ptr<SwitchState> getMinAlpmRouteState(
