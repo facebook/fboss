@@ -131,8 +131,13 @@ void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
     // Populate the last data that was received from FSDB into pSensorData
     auto subscribedData = fsdbSensorSubscriber_->getSensorData();
     for (const auto& [sensorName, sensorData] : subscribedData) {
-      pSensorData->updateEntryFloat(
-          *sensorData.name(), *sensorData.value(), *sensorData.timeStamp());
+      // Skip adding an entry for this sensor if either the value or timestamp
+      // fields are not set
+      if (sensorData.value().has_value() &&
+          sensorData.timeStamp().has_value()) {
+        pSensorData->updateEntryFloat(
+            *sensorData.name(), *sensorData.value(), *sensorData.timeStamp());
+      }
     }
   }
 
