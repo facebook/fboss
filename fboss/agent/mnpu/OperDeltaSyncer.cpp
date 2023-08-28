@@ -81,6 +81,11 @@ void OperDeltaSyncer::operSyncLoop() {
       if (operSyncRunning_.load() &&
           stateOperDelta.operDelta()->changes()->size()) {
         lastUpdateResult = hw_->stateChanged(*stateOperDelta.operDelta());
+
+        // TODO - transition HwSwitch state based on notification from SwSwitch
+        if (hw_->getRunState() != SwitchRunState::CONFIGURED) {
+          hw_->switchRunStateChanged(SwitchRunState::CONFIGURED);
+        }
       }
     } catch (const std::exception& ex) {
       XLOG_EVERY_MS(ERR, 5000)
