@@ -35,6 +35,10 @@ void SwitchStatsObserver::updateSystemPortCounters(
 
 template <typename NTableT>
 int SwitchStatsObserver::getResolvedNeighborCount(const NTableT& ntable) {
+  if (!ntable) {
+    return 0;
+  }
+
   auto count = 0;
   for (const auto& [_, nbrEntry] : std::as_const(*ntable)) {
     if (nbrEntry->isReachable()) {
