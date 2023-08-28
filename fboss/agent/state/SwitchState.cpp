@@ -535,6 +535,17 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
       state->set<switch_state_tags::aclMaps>(multiSwitchAclMap->toThrift());
     }
   }
+
+  if (FLAGS_intf_nbr_tables) {
+    migrateNeighborTables(
+        state->getVlans().get() /* from */,
+        state->getInterfaces().get() /* to */);
+  } else {
+    migrateNeighborTables(
+        state->getInterfaces().get() /* from */,
+        state->getVlans().get() /* to */);
+  }
+
   return state;
 }
 
