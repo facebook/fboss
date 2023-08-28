@@ -19,6 +19,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/SwRxPacket.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwSwitchWarmBootHelper.h"
 #include "fboss/agent/SwitchStats.h"
@@ -114,7 +115,24 @@ class HwEnsembleMultiSwitchThriftHandler
 
   folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::RxPacket, bool>>
   co_notifyRxPacket(int64_t switchId) override {
-    co_return {};
+    co_return apache::thrift::SinkConsumer<multiswitch::RxPacket, bool>{
+        [this](folly::coro::AsyncGenerator<multiswitch::RxPacket&&> gen)
+            -> folly::coro::Task<bool> {
+          while (auto item = co_await gen.next()) {
+            auto pkt = make_unique<SwRxPacket>(std::move(*item->data()));
+            pkt->setSrcPort(PortID(*item->port()));
+            if (item->vlan()) {
+              pkt->setSrcVlan(VlanID(*item->vlan()));
+            }
+            if (item->aggPort()) {
+              pkt->setSrcAggregatePort(AggregatePortID(*item->aggPort()));
+            }
+            ensemble_->packetReceived(std::move(pkt));
+          }
+          co_return true;
+        },
+        1000 /* buffer size */
+    };
   }
 
   folly::coro::Task<apache::thrift::ServerStream<fsdb::OperDelta>>

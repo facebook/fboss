@@ -12,6 +12,7 @@
 #include "fboss/agent/mnpu/FdbEventSyncer.h"
 #include "fboss/agent/mnpu/LinkEventSyncer.h"
 #include "fboss/agent/mnpu/OperDeltaSyncer.h"
+#include "fboss/agent/mnpu/RxPktEventSyncer.h"
 #include "fboss/agent/mnpu/TxPktEventSyncer.h"
 
 namespace facebook::fboss {
@@ -36,11 +37,24 @@ SplitAgentThriftSyncer::SplitAgentThriftSyncer(
       fdbEventSinkClient_(std::make_unique<FdbEventSyncer>(
           serverPort,
           switchId_,
+          retryThread_->getEventBase())),
+      rxPktEventSinkClient_(std::make_unique<RxPktEventSyncer>(
+          serverPort,
+          switchId_,
           retryThread_->getEventBase())) {}
 
 void SplitAgentThriftSyncer::packetReceived(
-    std::unique_ptr<RxPacket> /* pkt */) noexcept {
-  // TODO - Add handler
+    std::unique_ptr<RxPacket> pkt) noexcept {
+  multiswitch::RxPacket rxPkt;
+  rxPkt.port() = pkt->getSrcPort();
+  if (pkt->getSrcVlan()) {
+    rxPkt.vlan() = pkt->getSrcVlan();
+  }
+  if (pkt->getSrcAggregatePort()) {
+    rxPkt.aggPort() = pkt->getSrcAggregatePort();
+  }
+  rxPkt.data() = Packet::extractIOBuf(std::move(pkt));
+  rxPktEventSinkClient_->enqueue(std::move(rxPkt));
 }
 
 void SplitAgentThriftSyncer::linkStateChanged(
@@ -113,6 +127,7 @@ void SplitAgentThriftSyncer::stop() {
   txPktEventStreamClient_->cancel();
   operDeltaClient_->stopOperSync();
   fdbEventSinkClient_->cancel();
+  rxPktEventSinkClient_->cancel();
 }
 
 SplitAgentThriftSyncer::~SplitAgentThriftSyncer() {
