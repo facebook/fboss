@@ -3353,6 +3353,11 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
 bool ThriftConfigApplier::updateNeighborResponseTablesForIntfs(
     Interface* intf,
     const Interface::Addresses& addrs) {
+  if (!FLAGS_intf_nbr_tables) {
+    // Neighbor response tables are consumed from VLANs
+    return false;
+  }
+
   auto arpChanged = false, ndpChanged = false;
   auto origArp = intf->getArpResponseTable();
   auto origNdp = intf->getNdpResponseTable();
