@@ -738,3 +738,13 @@ TEST(SwitchStatePruningTests, IntfNbrTablesWbVlanNbrTables) {
   verifyNbrTablesNonEmpty(thriftStateBack->getVlans());
   verifyNbrTablesEmpty(thriftStateBack->getInterfaces());
 }
+
+TEST(SwitchStatePruningTests, IntfNbrTablesWbToIntfNbrTables) {
+  FLAGS_intf_nbr_tables = true;
+  auto state = addNeighbors(createSwitch(), false /* intf neighbors */);
+  auto thrifty = state->toThrift();
+
+  auto thriftStateBack = SwitchState::fromThrift(thrifty);
+  verifyNbrTablesEmpty(thriftStateBack->getVlans());
+  verifyNbrTablesNonEmpty(thriftStateBack->getInterfaces());
+}
