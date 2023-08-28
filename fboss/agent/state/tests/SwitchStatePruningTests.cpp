@@ -185,6 +185,48 @@ void addNeighborEntry(
   }
 }
 
+// Add NeighborEntry to given state. The added entry can be pending or resolved
+// based on port value (nullptr indicates pending entry).
+template <typename NTable>
+void addNeighborEntryToIntfNeighborTable(
+    shared_ptr<SwitchState>* state, // published or unpublished
+    typename NTable::AddressType* ip,
+    MacAddress* mac,
+    InterfaceID* intfID,
+    PortDescriptor* port) { // null port indicates pending entry
+  CHECK(ip);
+  CHECK(intfID);
+
+  shared_ptr<NTable> newNeighborTable = make_shared<NTable>();
+  NTable* newNeighborTablePtr = newNeighborTable.get();
+
+  auto oldNeighborTable = (*state)
+                              ->getInterfaces()
+                              ->getNode(*intfID)
+                              ->template getNeighborTable<NTable>();
+
+  if (oldNeighborTable) {
+    newNeighborTablePtr = oldNeighborTable->modify(*intfID, state);
+  }
+
+  if (port) {
+    newNeighborTablePtr->addEntry(*ip, *mac, *port, *intfID);
+  } else {
+    newNeighborTablePtr->addPendingEntry(*ip, *intfID);
+  }
+
+  if (!oldNeighborTable) {
+    auto intfPtr = (*state)->getInterfaces()->getNode(*intfID).get();
+    intfPtr = intfPtr->modify(state);
+
+    if constexpr (std::is_same_v<NTable, ArpTable>) {
+      intfPtr->setArpTable(std::move(newNeighborTable));
+    } else {
+      intfPtr->setNdpTable(std::move(newNeighborTable));
+    }
+  }
+}
+
 // Test that we can add Arp and Ndp entries to a state and revert them from the
 // published state.
 TEST(SwitchStatePruningTests, AddNeighborEntry) {
