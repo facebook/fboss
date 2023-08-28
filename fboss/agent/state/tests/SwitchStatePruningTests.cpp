@@ -706,3 +706,13 @@ void verifyNbrTablesNonEmpty(const shared_ptr<MultiMapT> multiMap) {
     }
   }
 }
+
+TEST(SwitchStatePruningTests, VlanNbrTablesWbToVlanNbrTables) {
+  FLAGS_intf_nbr_tables = false;
+  auto state = addNeighbors(createSwitch(), true /* vlan neighbors */);
+  auto thrifty = state->toThrift();
+
+  auto thriftStateBack = SwitchState::fromThrift(thrifty);
+  verifyNbrTablesNonEmpty(thriftStateBack->getVlans());
+  verifyNbrTablesEmpty(thriftStateBack->getInterfaces());
+}
