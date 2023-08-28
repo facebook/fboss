@@ -62,5 +62,8 @@ service MultiSwitchCtrl {
   stream<TxPacket> getTxPackets(1: i64 switchId);
 
   /* get next oper delta from SwSwitch */
-  StateOperDelta getNextStateOperDelta(1: i64 switchId);
+  StateOperDelta getNextStateOperDelta(
+    1: i64 switchId,
+    2: StateOperDelta prevOperResult,
+  );
 }

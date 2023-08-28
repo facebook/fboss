@@ -131,7 +131,9 @@ class HwEnsembleMultiSwitchThriftHandler
 
   void getNextStateOperDelta(
       multiswitch::StateOperDelta& operDelta,
-      int64_t /*switchId*/) override {
+      int64_t /*switchId*/,
+      std::unique_ptr<multiswitch::StateOperDelta> /*prevOperResult*/)
+      override {
     // use a timeout to prevent indefinte wait during shutdown in test. In
     // swswitch this will be handled by cancellation on shutdown.
     // TODO - replace this with an explcit signal to cancel blocking wait

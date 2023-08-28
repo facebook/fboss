@@ -68,17 +68,19 @@ void OperDeltaSyncer::startOperSync() {
 }
 
 void OperDeltaSyncer::operSyncLoop() {
+  auto lastUpdateResult = fsdb::OperDelta();
   while (operSyncRunning_.load()) {
     try {
+      multiswitch::StateOperDelta lastOperDeltaResult;
+      lastOperDeltaResult.operDelta() = lastUpdateResult;
       multiswitch::StateOperDelta stateOperDelta;
-      operSyncClient_->sync_getNextStateOperDelta(stateOperDelta, switchId_);
+      operSyncClient_->sync_getNextStateOperDelta(
+          stateOperDelta, switchId_, lastOperDeltaResult);
       // SwSwitch can send empty operdelta when cancelling the service on
       // shutdown
       if (operSyncRunning_.load() &&
           stateOperDelta.operDelta()->changes()->size()) {
-        auto result = hw_->stateChanged(*stateOperDelta.operDelta());
-        CHECK(!result.changes()->size());
-        // TODO - propagate the failure to swswitch
+        lastUpdateResult = hw_->stateChanged(*stateOperDelta.operDelta());
       }
     } catch (const std::exception& ex) {
       XLOG_EVERY_MS(ERR, 5000)

@@ -34,7 +34,8 @@ class MultiSwitchThriftHandler
 #endif
   void getNextStateOperDelta(
       multiswitch::StateOperDelta& operDelta,
-      int64_t switchId) override;
+      int64_t switchId,
+      std::unique_ptr<multiswitch::StateOperDelta> prevOperResult) override;
 
  private:
   void ensureConfigured(folly::StringPiece function) const;
