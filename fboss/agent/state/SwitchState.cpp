@@ -538,6 +538,61 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   return state;
 }
 
+/*
+ * The warmboot cases to consider and desired action is listed below:
+ *
+ * (A) vlan nbrTables => vlan nbrTables :: No-Op
+ * (B) vlan nbrTables => intf nbrTables :: Populte intf nbrTables from vlan
+ * (C) intf nbrTables => intf nbrTables :: No-Op
+ * (D) intf nbrTables => vlan nbrTables :: Populate vlan nbrTables from intf
+ *
+ * See (A), (B), (C), (D) annotations below for how each of the case is
+ * handled.
+ */
+template <typename FromMultiMapT, typename ToMultiMapT>
+void SwitchState::migrateNeighborTables(
+    FromMultiMapT* fromMultiMap,
+    ToMultiMapT* toMultiMap) {
+  for (const auto& fromTable : *fromMultiMap) {
+    for (const auto& [_, fromEntry] : *fromTable.second) {
+      // During warmboot from vlan nbrTables => vlan nbrTables,
+      // fromEntry(intf)'s neighbor tables will be empty, and vice-versa.
+      if (fromEntry->getNdpTable()->size() == 0) {
+        // Case (A) or Case (C)
+        continue;
+      }
+
+      // Case (B) or Case (D)
+
+      // VlanID always numerically equals the InterfaceID. Thus,
+      // vlanID can be used to lookup InterfaceMap indexed by InterfaceID, and,
+      // interfaceID can be used to lookup VlanMap indexed by VlanID.
+
+      auto [toEntry, toMatcher] =
+          toMultiMap->getNodeAndScope(fromEntry->getID());
+      if (toEntry) {
+        auto fromMatcher = HwSwitchMatcher(fromTable.first);
+        CHECK(fromMatcher == toMatcher);
+
+        auto ndpTable = fromEntry->getNdpTable()->toThrift();
+        auto arpTable = fromEntry->getArpTable()->toThrift();
+
+        // Populate VLAN/Interface tables from Interface/VLAN Tables
+        toEntry->setNdpTable(std::move(ndpTable));
+        toEntry->setArpTable(std::move(arpTable));
+        toEntry->setArpResponseTable(fromEntry->getArpResponseTable());
+        toEntry->setNdpResponseTable(fromEntry->getNdpResponseTable());
+
+        // Clear old Neighbor Tables
+        fromEntry->setNdpTable(nullptr);
+        fromEntry->setArpTable(nullptr);
+        fromEntry->setNdpResponseTable(nullptr);
+        fromEntry->setArpResponseTable(nullptr);
+      }
+    }
+  }
+}
+
 VlanID SwitchState::getDefaultVlan() const {
   auto switchSettings = getSwitchSettings()->size()
       ? getSwitchSettings()->cbegin()->second
