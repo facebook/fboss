@@ -125,6 +125,13 @@ class Vlan : public ThriftStructNode<Vlan, state::VlanFields> {
     ref<switch_state_tags::ndpTable>() = std::move(table);
   }
 
+  void setArpTable(state::NeighborEntries arpTable) {
+    set<switch_state_tags::arpTable>(std::move(arpTable));
+  }
+  void setNdpTable(state::NeighborEntries ndpTable) {
+    set<switch_state_tags::ndpTable>(std::move(ndpTable));
+  }
+
   const std::shared_ptr<NdpResponseTable> getNdpResponseTable() const {
     return get<switch_state_tags::ndpResponseTable>();
   }
