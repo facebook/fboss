@@ -205,7 +205,8 @@ fsdb::OperDelta MonolithicHwSwitchHandler::stateChanged(
                      : hw_->stateChanged(delta);
 }
 
-multiswitch::StateOperDelta MonolithicHwSwitchHandler::getNextStateOperDelta() {
+multiswitch::StateOperDelta MonolithicHwSwitchHandler::getNextStateOperDelta(
+    std::unique_ptr<multiswitch::StateOperDelta> /*prevOperResult*/) {
   throw FbossError("Not supported");
 }
 

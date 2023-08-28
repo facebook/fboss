@@ -240,12 +240,13 @@ fsdb::OperDelta NonMonolithicHwSwitchHandler::stateChanged(
       throw FbossError("client cancelled delta read during update");
     }
   }
-  // received ack. return empty delta to indicate success
-  return fsdb::OperDelta();
+  // received ack. return result from HwSwitch
+  // TODO - handle failures and do rollback on succeeded switches
+  return *prevOperDeltaResult_->operDelta();
 }
 
-multiswitch::StateOperDelta
-NonMonolithicHwSwitchHandler::getNextStateOperDelta() {
+multiswitch::StateOperDelta NonMonolithicHwSwitchHandler::getNextStateOperDelta(
+    std::unique_ptr<multiswitch::StateOperDelta> prevOperResult) {
   // check whether it is a new connection.
   {
     std::unique_lock<std::mutex> lk(stateUpdateMutex_);
@@ -255,6 +256,7 @@ NonMonolithicHwSwitchHandler::getNextStateOperDelta() {
       // For existing connections, we treat a new get request
       // as an ack to pending state update.
       ackReceived_ = true;
+      prevOperDeltaResult_ = prevOperResult.get();
     }
   }
   stateUpdateCV_.notify_one();

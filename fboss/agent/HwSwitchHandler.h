@@ -133,7 +133,8 @@ class HwSwitchHandler {
 
   virtual bool needL2EntryForNeighbor() const = 0;
 
-  virtual multiswitch::StateOperDelta getNextStateOperDelta() = 0;
+  virtual multiswitch::StateOperDelta getNextStateOperDelta(
+      std::unique_ptr<multiswitch::StateOperDelta> prevOperResult) = 0;
 
   virtual void cancelOperDeltaRequest() = 0;
 

@@ -40,7 +40,9 @@ class MultiHwSwitchHandler {
     return !stopped_.load();
   }
 
-  multiswitch::StateOperDelta getNextStateOperDelta(int64_t switchId);
+  multiswitch::StateOperDelta getNextStateOperDelta(
+      int64_t switchId,
+      std::unique_ptr<multiswitch::StateOperDelta> prevOperResult);
 
   void cancelOperDeltaRequest(int64_t switchId);
 

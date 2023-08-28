@@ -101,7 +101,8 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
 
   bool needL2EntryForNeighbor() const override;
 
-  multiswitch::StateOperDelta getNextStateOperDelta() override;
+  multiswitch::StateOperDelta getNextStateOperDelta(
+      std::unique_ptr<multiswitch::StateOperDelta> prevOperResult) override;
 
   void cancelOperDeltaRequest(void) override;
 
@@ -109,6 +110,7 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
   std::condition_variable stateUpdateCV_;
   std::mutex stateUpdateMutex_;
   multiswitch::StateOperDelta* nextOperDelta_{nullptr};
+  multiswitch::StateOperDelta* prevOperDeltaResult_{nullptr};
   bool connected_{false};
   bool deltaReady_{false};
   bool ackReceived_{false};
