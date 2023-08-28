@@ -38,6 +38,7 @@ target_link_libraries(sensor_service_lib
   platform_config_lib
   platform_utils
   sensor_service_cpp2
+  sensor_service_stats_cpp2
   sensor_config_cpp2
   Folly::folly
   FBThrift::thriftcpp2
