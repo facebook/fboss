@@ -32,6 +32,7 @@ void SaiSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
     watermarkStatsUpdateTime_ = now;
   }
 
+  int64_t missingCount = 0, mismatchCount = 0;
   auto portsIter = concurrentIndices_->portIds.begin();
   while (portsIter != concurrentIndices_->portIds.end()) {
     {
@@ -46,16 +47,20 @@ void SaiSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
             portsIter->second, *endpointOpt);
         if (fabricReachabilityManager_->isReachabilityInfoMissing(
                 portsIter->second)) {
-          getSwitchStats()->fabricReachabilityMissingCount();
+          missingCount++;
         }
         if (fabricReachabilityManager_->isReachabilityInfoMismatch(
                 portsIter->second)) {
-          getSwitchStats()->fabricReachabilityMismatchCount();
+          mismatchCount++;
         }
       }
     }
     ++portsIter;
   }
+
+  getSwitchStats()->fabricReachabilityMissingCount(missingCount);
+  getSwitchStats()->fabricReachabilityMismatchCount(mismatchCount);
+
   auto sysPortsIter = concurrentIndices_->sysPortIds.begin();
   while (sysPortsIter != concurrentIndices_->sysPortIds.end()) {
     {

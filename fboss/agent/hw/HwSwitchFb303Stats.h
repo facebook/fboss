@@ -58,12 +58,8 @@ class HwSwitchFb303Stats {
     asicErrors_.addValue(1);
   }
 
-  void fabricReachabilityMissingCount() {
-    fabricReachabilityMissingCount_.addValue(1);
-  }
-  void fabricReachabilityMismatchCount() {
-    fabricReachabilityMismatchCount_.addValue(1);
-  }
+  void fabricReachabilityMissingCount(int64_t value);
+  void fabricReachabilityMismatchCount(int64_t value);
 
   void update(const HwSwitchDramStats& dramStats);
   void update(const HwSwitchDropStats& dropStats);
@@ -96,12 +92,8 @@ class HwSwitchFb303Stats {
   int64_t getAsicErrorCount() const {
     return asicErrors_.count();
   }
-  int64_t getFabricReachabilityMismatchCount() const {
-    return fabricReachabilityMismatchCount_.count();
-  }
-  int64_t getFabricReachabilityMissingCount() const {
-    return fabricReachabilityMissingCount_.count();
-  }
+  int64_t getFabricReachabilityMismatchCount() const;
+  int64_t getFabricReachabilityMissingCount() const;
   int64_t getPacketIntegrityDropsCount() const {
     return packetIntegrityDrops_.count();
   }
@@ -109,7 +101,7 @@ class HwSwitchFb303Stats {
   int64_t getDramDequeuedBytes() const;
 
   HwAsicErrors getHwAsicErrors() const;
-  FabricReachabilityStats getFabricReachabilityStats() const;
+  FabricReachabilityStats getFabricReachabilityStats();
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -144,12 +136,12 @@ class HwSwitchFb303Stats {
   TLTimeseries globalDrops_;
   TLTimeseries globalReachDrops_;
   TLTimeseries packetIntegrityDrops_;
-  // fabric reachability errors
-  TLTimeseries fabricReachabilityMissingCount_;
-  TLTimeseries fabricReachabilityMismatchCount_;
   // Dram enqueue, dequeue bytes
   TLTimeseries dramEnqueuedBytes_;
   TLTimeseries dramDequeuedBytes_;
+  // fabric reachability errors
+  TLCounter fabricReachabilityMissingCount_;
+  TLCounter fabricReachabilityMismatchCount_;
 };
 
 } // namespace facebook::fboss

@@ -92,16 +92,6 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           SwitchStats::kCounterPrefix + "packet_integrity_drops",
           SUM,
           RATE),
-      fabricReachabilityMissingCount_(
-          map,
-          SwitchStats::kCounterPrefix + "fabric_reachability_missing",
-          SUM,
-          RATE),
-      fabricReachabilityMismatchCount_(
-          map,
-          SwitchStats::kCounterPrefix + "fabric_reachability_mismatch",
-          SUM,
-          RATE),
       dramEnqueuedBytes_(
           map,
           SwitchStats::kCounterPrefix + "dram_enqueued_bytes",
@@ -111,7 +101,13 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           map,
           SwitchStats::kCounterPrefix + "dram_dequeued_bytes",
           SUM,
-          RATE) {}
+          RATE),
+      fabricReachabilityMissingCount_(
+          map,
+          SwitchStats::kCounterPrefix + "fabric_reachability_missing"),
+      fabricReachabilityMismatchCount_(
+          map,
+          SwitchStats::kCounterPrefix + "fabric_reachability_mismatch") {}
 
 void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
   if (dropStats.globalDrops().has_value()) {
@@ -152,11 +148,31 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   return asicErrors;
 }
 
-FabricReachabilityStats HwSwitchFb303Stats::getFabricReachabilityStats() const {
+FabricReachabilityStats HwSwitchFb303Stats::getFabricReachabilityStats() {
   FabricReachabilityStats stats;
-  stats.mismatchCount() = getCumulativeValue(fabricReachabilityMismatchCount_);
-  stats.missingCount() = getCumulativeValue(fabricReachabilityMissingCount_);
+  stats.mismatchCount() = getFabricReachabilityMismatchCount();
+  stats.missingCount() = getFabricReachabilityMissingCount();
   return stats;
+}
+
+void HwSwitchFb303Stats::fabricReachabilityMissingCount(int64_t value) {
+  fb303::fbData->setCounter(fabricReachabilityMissingCount_.name(), value);
+}
+
+void HwSwitchFb303Stats::fabricReachabilityMismatchCount(int64_t value) {
+  fb303::fbData->setCounter(fabricReachabilityMismatchCount_.name(), value);
+}
+
+int64_t HwSwitchFb303Stats::getFabricReachabilityMismatchCount() const {
+  auto counterVal = fb303::fbData->getCounterIfExists(
+      fabricReachabilityMismatchCount_.name());
+  return counterVal ? *counterVal : 0;
+}
+
+int64_t HwSwitchFb303Stats::getFabricReachabilityMissingCount() const {
+  auto counterVal =
+      fb303::fbData->getCounterIfExists(fabricReachabilityMissingCount_.name());
+  return counterVal ? *counterVal : 0;
 }
 
 } // namespace facebook::fboss
