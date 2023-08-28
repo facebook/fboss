@@ -42,6 +42,7 @@ target_link_libraries(fan_service_lib
   platform_config_lib
   platform_utils
   fan_service_config_types_cpp2
+  sensor_service_cpp2
   fan_service_cpp2
   Folly::folly
   qsfp_service_client
