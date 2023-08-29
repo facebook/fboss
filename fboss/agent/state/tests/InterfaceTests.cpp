@@ -303,6 +303,11 @@ TEST(Interface, applyConfig) {
   intfConfig->mac() = "00:02:00:11:22:33";
   intfConfig->dhcpRelayAddressV4() = "30.1.1.1";
   intfConfig->dhcpRelayAddressV6() = "2a03:2880:10:1f07:face:b00c:0:0";
+  intfConfig->dhcpRelayOverridesV4() = {};
+  (*intfConfig->dhcpRelayOverridesV4())["02:00:00:00:00:02"] = "1.2.3.4";
+  intfConfig->dhcpRelayOverridesV6() = {};
+  (*intfConfig->dhcpRelayOverridesV6())["02:00:00:00:00:02"] =
+      "2a03:2880:10:1f07:face:b00c:0:0";
 
   InterfaceID id(1);
   shared_ptr<SwitchState> oldState;
@@ -336,6 +341,15 @@ TEST(Interface, applyConfig) {
   EXPECT_EQ(
       folly::IPAddressV6("2a03:2880:10:1f07:face:b00c:0:0"),
       interface->getDhcpV6Relay());
+
+  auto map4 = interface->getDhcpV4RelayOverrides();
+  EXPECT_EQ(
+      folly::IPAddressV4("1.2.3.4"),
+      folly::IPAddressV4(map4[folly::MacAddress("02:00:00:00:00:02")]));
+  auto map6 = interface->getDhcpV6RelayOverrides();
+  EXPECT_EQ(
+      folly::IPAddressV6("2a03:2880:10:1f07:face:b00c:0:0"),
+      folly::IPAddressV6(map6[folly::MacAddress("02:00:00:00:00:02")]));
 
   // same configuration cause nothing changed
   EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, platform.get()));
