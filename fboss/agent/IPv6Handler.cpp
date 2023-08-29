@@ -452,8 +452,8 @@ void IPv6Handler::handleNeighborSolicitation(
   auto state = sw_->getState();
 
   if (!vlanOrIntf) {
-    XLOG(DBG5) << "invalid vlan or interface " << vlanOrIntf->getID()
-               << ", drop the packet";
+    XLOG(DBG5) << "invalid vlan or interface " << vlanIDStr
+               << ", drop the packet on port: " << pkt->getSrcPort();
     sw_->portStats(pkt)->pktDropped();
     return;
   }
