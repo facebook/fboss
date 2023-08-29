@@ -1023,10 +1023,10 @@ void QsfpModule::programTransceiver(
       // Cache has been updated, populate the host/mediaLane to port name
       // mapping
       // First clear the existing mappings
-      hostLaneToPortName.clear();
-      mediaLaneToPortName.clear();
-      portNameToHostLanes.clear();
-      portNameToMediaLanes.clear();
+      hostLaneToPortName_.clear();
+      mediaLaneToPortName_.clear();
+      portNameToHostLanes_.clear();
+      portNameToMediaLanes_.clear();
       for (auto portIt : programTcvrState.ports) {
         auto startHostLane = portIt.second.startHostLane;
         updateLaneToPortNameMapping(portIt.first, startHostLane);
@@ -1054,16 +1054,16 @@ void QsfpModule::updateLaneToPortNameMapping(
   auto mediaLanes = configuredMediaLanes(
       startHostLane); // assumption: startMediaLane = startHostLane
 
-  portNameToHostLanes[portName] = {};
+  portNameToHostLanes_[portName] = {};
   for (auto lane : hostLanes) {
-    hostLaneToPortName[lane] = portName;
-    portNameToHostLanes[portName].insert(lane);
+    hostLaneToPortName_[lane] = portName;
+    portNameToHostLanes_[portName].insert(lane);
   }
 
-  portNameToMediaLanes[portName] = {};
+  portNameToMediaLanes_[portName] = {};
   for (auto lane : mediaLanes) {
-    mediaLaneToPortName[lane] = portName;
-    portNameToMediaLanes[portName].insert(lane);
+    mediaLaneToPortName_[lane] = portName;
+    portNameToMediaLanes_[portName].insert(lane);
   }
 }
 

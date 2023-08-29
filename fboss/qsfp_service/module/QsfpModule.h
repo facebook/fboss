@@ -258,21 +258,21 @@ class QsfpModule : public Transceiver {
       uint8_t hostStartLane) const = 0;
 
   const std::map<uint8_t, std::string>& getHostLaneToPortName() const {
-    return hostLaneToPortName;
+    return hostLaneToPortName_;
   }
 
   const std::map<uint8_t, std::string>& getMediaLaneToPortName() const {
-    return mediaLaneToPortName;
+    return mediaLaneToPortName_;
   }
 
   const std::unordered_map<std::string, std::set<uint8_t>>&
   getPortNameToHostLanes() const {
-    return portNameToHostLanes;
+    return portNameToHostLanes_;
   }
 
   const std::unordered_map<std::string, std::set<uint8_t>>&
   getPortNameToMediaLanes() const {
-    return portNameToMediaLanes;
+    return portNameToMediaLanes_;
   }
 
   virtual bool setTransceiverTx(
@@ -670,15 +670,15 @@ class QsfpModule : public Transceiver {
 
   friend class TransceiverStateMachineTest;
 
-  std::map<uint8_t, std::string> hostLaneToPortName;
-  std::map<uint8_t, std::string> mediaLaneToPortName;
+  std::map<uint8_t, std::string> hostLaneToPortName_;
+  std::map<uint8_t, std::string> mediaLaneToPortName_;
 
   void updateLaneToPortNameMapping(
       const std::string& portName,
       uint8_t startHostLane);
 
-  std::unordered_map<std::string, std::set<uint8_t>> portNameToHostLanes;
-  std::unordered_map<std::string, std::set<uint8_t>> portNameToMediaLanes;
+  std::unordered_map<std::string, std::set<uint8_t>> portNameToHostLanes_;
+  std::unordered_map<std::string, std::set<uint8_t>> portNameToMediaLanes_;
 };
 } // namespace fboss
 } // namespace facebook
