@@ -201,37 +201,48 @@ void DHCPv6Handler::processDHCPv6Packet(
       : "None";
   auto state = sw->getState();
 
-  // TODO(skhare)
-  // Support DHCPv4 relay for VOQ switches
-  // This requires moving get/set Dhcpv6Relay, get/set DhcpV6RelayOverrides
-  // etc. to Interfaces.
-  CHECK(vlanId.has_value());
-  auto vlan = state->getVlans()->getNodeIf(vlanId.value());
-  if (!vlan) {
+  if (!vlanOrIntf) {
     sw->stats()->dhcpV6DropPkt();
     XLOG(DBG2) << "VLAN " << vlanIdStr << " is no longer present"
-               << "DHCPv6Packet dropped.";
+               << "DHCPv6Packet dropped on port " << pkt->getSrcPort();
     return;
   }
 
-  auto dhcp6ServerIp = vlan->getDhcpV6Relay();
+  auto dhcp6Server = vlanOrIntf->getDhcpV6Relay();
 
   // look in the override map, and use relevant destination
   XLOG(DBG4) << "srcMac: " << srcMac.toString();
-  auto dhcpOverrideMap = vlan->getDhcpV6RelayOverrides();
+  auto dhcpOverrideMap = vlanOrIntf->getDhcpV6RelayOverrides();
   for (auto o : dhcpOverrideMap) {
     if (MacAddress(o.first) == srcMac) {
-      dhcp6ServerIp = o.second;
-      XLOG(DBG4) << "dhcp6ServerIp: " << dhcp6ServerIp;
+      dhcp6Server = o.second;
+      if constexpr (std::is_same_v<VlanOrIntfT, Vlan>) {
+        XLOG(DBG4) << "dhcp6Server: " << dhcp6Server;
+      } else {
+        XLOG(DBG4) << "dhcp6Server: " << dhcp6Server.value();
+      }
       break;
     }
   }
 
-  if (dhcp6ServerIp.isZero()) {
-    XLOG(DBG4) << "No DHCPv6 relay configured for Vlan " << vlanIdStr
-               << " dropped DHCPv6 packet";
-    sw->stats()->dhcpV6DropPkt();
-    return;
+  IPAddressV6 dhcp6ServerIP;
+  if constexpr (std::is_same_v<VlanOrIntfT, Vlan>) {
+    if (dhcp6Server.isZero()) {
+      XLOG(DBG4) << "No DHCPv6 relay configured for Vlan " << vlanIdStr
+                 << " dropped DHCPv6 packet on port " << pkt->getSrcPort();
+      sw->stats()->dhcpV6DropPkt();
+      return;
+    }
+    dhcp6ServerIP = dhcp6Server;
+  } else {
+    if (!dhcp6Server.has_value() || dhcp6Server.value().isZero()) {
+      sw->stats()->dhcpV6DropPkt();
+      XLOG(DBG4) << "No DHCPv6 relay configured for Interface "
+                 << vlanOrIntf->getID() << " dropped DHCPv6 packet on port "
+                 << pkt->getSrcPort();
+      return;
+    }
+    dhcp6ServerIP = dhcp6Server.value();
   }
 
   auto switchIp = state->getDhcpV6RelaySrc();
@@ -260,8 +271,15 @@ void DHCPv6Handler::processDHCPv6Packet(
 
   // create the dhcpv6 packet
   // vlanIp -> ip src, ipHdr.dst -> ip dst, srcMac -> mac src, dstMac -> mac dst
-  auto switchId = sw->getScopeResolver()->scope(vlan).switchId();
-  MacAddress cpuMac = sw->getHwAsicTable()->getHwAsicIf(switchId)->getAsicMac();
+  SwitchID switchID;
+  if constexpr (std::is_same_v<VlanOrIntfT, Vlan>) {
+    switchID = sw->getScopeResolver()->scope(vlanOrIntf).switchId();
+  } else {
+    switchID =
+        sw->getScopeResolver()->scope(vlanOrIntf, sw->getState()).switchId();
+  }
+
+  MacAddress cpuMac = sw->getHwAsicTable()->getHwAsicIf(switchID)->getAsicMac();
   auto serializeBody = [&](RWPrivateCursor* sendCursor) {
     relayFwdPkt.write(sendCursor);
   };
@@ -271,7 +289,7 @@ void DHCPv6Handler::processDHCPv6Packet(
       cpuMac,
       cpuMac,
       vlanId,
-      dhcp6ServerIp,
+      dhcp6ServerIP,
       switchIp,
       DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT,
       DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT,
