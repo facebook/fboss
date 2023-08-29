@@ -6842,7 +6842,13 @@
             },
             "connectionHandle": "0c:00"
         }
-      }
+      },
+      "vendorMacOuis": [
+        
+      ],
+      "metaMacOuis": [
+        
+      ]
     },
     "dsfNodes": {
       
