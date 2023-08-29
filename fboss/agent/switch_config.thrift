@@ -1284,6 +1284,11 @@ struct Interface {
   10: bool isStateSyncDisabled = 0;
 
   11: InterfaceType type = InterfaceType.VLAN;
+
+  /* V4 DHCP relay address */
+  12: optional string dhcpRelayAddressV4;
+  /* V6 DHCP relay address */
+  13: optional string dhcpRelayAddressV6;
 }
 
 struct StaticRouteWithNextHops {

@@ -8983,7 +8983,9 @@ class ChildThriftPath<::facebook::fboss::cfg::Interface, ::facebook::fboss::fsdb
    std::pair<strings::mtu, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
    std::pair<strings::isVirtual, Child<bool, ::apache::thrift::type_class::integral>>,
    std::pair<strings::isStateSyncDisabled, Child<bool, ::apache::thrift::type_class::integral>>,
-   std::pair<strings::type, Child<::facebook::fboss::cfg::InterfaceType, ::apache::thrift::type_class::enumeration>>>;
+   std::pair<strings::type, Child<::facebook::fboss::cfg::InterfaceType, ::apache::thrift::type_class::enumeration>>,
+   std::pair<strings::dhcpRelayAddressV4, Child<::std::string, ::apache::thrift::type_class::string>>,
+   std::pair<strings::dhcpRelayAddressV6, Child<::std::string, ::apache::thrift::type_class::string>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
@@ -8994,7 +8996,9 @@ class ChildThriftPath<::facebook::fboss::cfg::Interface, ::facebook::fboss::fsdb
    std::pair<std::integral_constant<apache::thrift::field_id_t, 8>, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 9>, Child<bool, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 10>, Child<bool, ::apache::thrift::type_class::integral>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 11>, Child<::facebook::fboss::cfg::InterfaceType, ::apache::thrift::type_class::enumeration>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 11>, Child<::facebook::fboss::cfg::InterfaceType, ::apache::thrift::type_class::enumeration>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 12>, Child<::std::string, ::apache::thrift::type_class::string>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 13>, Child<::std::string, ::apache::thrift::type_class::string>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -9017,6 +9021,8 @@ class ChildThriftPath<::facebook::fboss::cfg::Interface, ::facebook::fboss::fsdb
     STRUCT_CHILD_GETTERS(isVirtual);
     STRUCT_CHILD_GETTERS(isStateSyncDisabled);
     STRUCT_CHILD_GETTERS(type);
+    STRUCT_CHILD_GETTERS(dhcpRelayAddressV4);
+    STRUCT_CHILD_GETTERS(dhcpRelayAddressV6);
 };
 
 template<typename Parent>
