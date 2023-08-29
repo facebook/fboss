@@ -270,6 +270,17 @@ TEST(Vlan, applyConfig) {
   ASSERT_NE(nullptr, stateV5);
   auto vlan100 = stateV5->getVlans()->getNode(VlanID(100));
   EXPECT_EQ(InterfaceID(100), vlan100->getInterfaceID());
+
+  // Change DHCP relay configuration
+  config.vlans()[0].dhcpRelayAddressV4() = "30.1.1.2";
+  config.vlans()[0].dhcpRelayAddressV6() = "2a03:2880:10:1f07:face:b00c:0:2";
+  auto stateV6 = publishAndApplyConfig(stateV5, &config, platform.get());
+  auto vlanV6 = stateV6->getVlans()->getNode(VlanID(1234));
+
+  EXPECT_EQ(folly::IPAddressV4("30.1.1.2"), vlanV6->getDhcpV4Relay());
+  EXPECT_EQ(
+      folly::IPAddressV6("2a03:2880:10:1f07:face:b00c:0:2"),
+      vlanV6->getDhcpV6Relay());
 }
 
 /*
