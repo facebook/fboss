@@ -301,7 +301,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
     if (transceiverEntries.count(transceiverId) == 0) {
       return "";
     }
-    auto isPresent = transceiverEntries[transceiverId].get_present();
+    auto isPresent = *transceiverEntries[transceiverId].tcvrState()->present();
     if (isPresent)
       return "Present";
     return "Absent";

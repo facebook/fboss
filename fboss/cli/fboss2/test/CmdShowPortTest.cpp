@@ -148,22 +148,22 @@ std::map<int, TransceiverInfo> createTransceiverEntries() {
   std::map<int, TransceiverInfo> transceiverMap;
 
   TransceiverInfo transceiverEntry1;
-  transceiverEntry1.present() = true;
+  transceiverEntry1.tcvrState()->present() = true;
 
   TransceiverInfo transceiverEntry2;
-  transceiverEntry2.present() = true;
+  transceiverEntry2.tcvrState()->present() = true;
 
   TransceiverInfo transceiverEntry3;
-  transceiverEntry3.present() = false;
+  transceiverEntry3.tcvrState()->present() = false;
 
   TransceiverInfo transceiverEntry4;
-  transceiverEntry4.present() = false;
+  transceiverEntry4.tcvrState()->present() = false;
 
   TransceiverInfo transceiverEntry5;
-  transceiverEntry5.present() = true;
+  transceiverEntry5.tcvrState()->present() = true;
 
   TransceiverInfo transceiverEntry6;
-  transceiverEntry6.present() = true;
+  transceiverEntry6.tcvrState()->present() = true;
 
   transceiverMap[0] = transceiverEntry1;
   transceiverMap[1] = transceiverEntry2;
