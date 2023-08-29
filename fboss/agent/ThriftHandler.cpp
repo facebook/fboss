@@ -2126,9 +2126,6 @@ int32_t ThriftHandler::flushNeighborEntry(
       return sw_->getNeighborUpdater()->flushEntry(vlanID, parsedIP).get();
     }
   } catch (...) {
-    // TODO(skhare)
-    // Lookup IP in STATIC/DYNAMIC IPs. If present, print error.
-    // If absent, lookup in neighborUpdater(), and flush if present.
     throw FbossError(
         "Entry : ",
         parsedIP,
