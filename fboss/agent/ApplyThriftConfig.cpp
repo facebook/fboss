@@ -387,7 +387,10 @@ class ThriftConfigApplier {
       IPAddr ip,
       InterfaceIpInfo addrInfo);
   bool updateNeighborResponseTables(Vlan* vlan, const cfg::Vlan* config);
-  bool updateDhcpOverrides(Vlan* vlan, const cfg::Vlan* config);
+  template <typename VlanOrIntfT, typename CfgVlanOrIntfT>
+  bool updateDhcpOverrides(
+      VlanOrIntfT* vlanOrIntf,
+      const CfgVlanOrIntfT* config);
   std::shared_ptr<InterfaceMap> updateInterfaces();
   shared_ptr<Interface> createInterface(
       const cfg::Interface* config,
@@ -3131,9 +3134,10 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   return newAcl;
 }
 
+template <typename VlanOrIntfT, typename CfgVlanOrIntfT>
 bool ThriftConfigApplier::updateDhcpOverrides(
-    Vlan* vlan,
-    const cfg::Vlan* config) {
+    VlanOrIntfT* vlanOrIntf,
+    const CfgVlanOrIntfT* config) {
   DhcpV4OverrideMap newDhcpV4OverrideMap;
   if (config->dhcpRelayOverridesV4()) {
     for (const auto& pair : *config->dhcpRelayOverridesV4()) {
@@ -3159,14 +3163,14 @@ bool ThriftConfigApplier::updateDhcpOverrides(
   }
 
   bool changed = false;
-  auto oldDhcpV4OverrideMap = vlan->getDhcpV4RelayOverrides();
+  auto oldDhcpV4OverrideMap = vlanOrIntf->getDhcpV4RelayOverrides();
   if (oldDhcpV4OverrideMap != newDhcpV4OverrideMap) {
-    vlan->setDhcpV4RelayOverrides(newDhcpV4OverrideMap);
+    vlanOrIntf->setDhcpV4RelayOverrides(newDhcpV4OverrideMap);
     changed = true;
   }
-  auto oldDhcpV6OverrideMap = vlan->getDhcpV6RelayOverrides();
+  auto oldDhcpV6OverrideMap = vlanOrIntf->getDhcpV6RelayOverrides();
   if (oldDhcpV6OverrideMap != newDhcpV6OverrideMap) {
-    vlan->setDhcpV6RelayOverrides(newDhcpV6OverrideMap);
+    vlanOrIntf->setDhcpV6RelayOverrides(newDhcpV6OverrideMap);
     changed = true;
   }
   return changed;
