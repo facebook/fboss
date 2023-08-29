@@ -485,6 +485,16 @@ TEST(Interface, applyConfig) {
   EXPECT_NE(oldInterface->getNdpConfig(), interface->getNdpConfig());
   EXPECT_EQ(0, interface->routerAdvertisementSeconds());
 
+  // Change DHCP relay configuration
+  config.interfaces()[1].dhcpRelayAddressV4() = "30.1.1.2";
+  config.interfaces()[1].dhcpRelayAddressV6() =
+      "2a03:2880:10:1f07:face:b00c:0:2";
+  updateState();
+  EXPECT_EQ(folly::IPAddressV4("30.1.1.2"), interface->getDhcpV4Relay());
+  EXPECT_EQ(
+      folly::IPAddressV6("2a03:2880:10:1f07:face:b00c:0:2"),
+      interface->getDhcpV6Relay());
+
   // Changing the ID creates a new interface
   *config.interfaces()[0].intfID() = 2;
   config.interfaces()[0].name() = "newName";
