@@ -133,7 +133,13 @@
             "switchMac": "02:00:00:00:00:01",
             "connectionHandle": "68:00"
         }
-      }
+      },
+      "vendorMacOuis": [
+        
+      ],
+      "metaMacOuis": [
+        
+      ]
     },
     "dsfNodes": {
       "0": {
@@ -2377,6 +2383,7 @@
           "sai_pkt_rx_cfg_ppc": "16",
           "sai_pkt_rx_custom_cfg": "1",
           "sai_pkt_rx_pkt_size": "16512",
+          "sai_port_attr_pvid_config": "0",
           "sai_recycle_port_lane_base": "220",
           "sai_uncached_port_stats": "0x1",
           "sai_vfp_smac_drop_filter_disable": "1",

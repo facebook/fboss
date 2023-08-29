@@ -114,7 +114,13 @@
               "maximum": 2047
             }
         }
-      }
+      },
+      "vendorMacOuis": [
+        
+      ],
+      "metaMacOuis": [
+        
+      ]
     },
     "dsfNodes": {
       
