@@ -30,7 +30,7 @@ class OperDeltaSyncer;
 
 class SplitAgentThriftSyncer : public HwSwitchCallback {
  public:
-  SplitAgentThriftSyncer(HwSwitch* hw, uint16_t serverPort);
+  SplitAgentThriftSyncer(HwSwitch* hw, uint16_t serverPort, SwitchID switchId);
   ~SplitAgentThriftSyncer() override;
 
   void packetReceived(std::unique_ptr<RxPacket> pkt) noexcept override;

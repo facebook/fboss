@@ -599,7 +599,9 @@ void HwSwitchEnsemble::setupEnsemble(
     XLOG(DBG2) << "Started thrift server on port "
                << swSwitchTestServer_->getPort();
     thriftSyncer_ = std::make_unique<SplitAgentThriftSyncer>(
-        getPlatform()->getHwSwitch(), swSwitchTestServer_->getPort());
+        getPlatform()->getHwSwitch(),
+        swSwitchTestServer_->getPort(),
+        asic->getSwitchId() ? SwitchID(*asic->getSwitchId()) : SwitchID(0));
   }
 
   auto bootType = swSwitchWarmBootHelper_->canWarmBoot() ? BootType::WARM_BOOT

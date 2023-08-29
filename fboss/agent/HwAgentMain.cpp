@@ -15,6 +15,7 @@
 #include "fboss/agent/HwAgent.h"
 #include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/SetupThrift.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/mnpu/SplitAgentThriftSyncer.h"
 
 #include <chrono>
@@ -56,7 +57,9 @@ int hwAgentMain(
       std::move(config), hwFeaturesDesired, initPlatformFn, FLAGS_switchIndex);
 
   auto thriftSyncer = std::make_unique<SplitAgentThriftSyncer>(
-      hwAgent->getPlatform()->getHwSwitch(), FLAGS_swswitch_port);
+      hwAgent->getPlatform()->getHwSwitch(),
+      FLAGS_swswitch_port,
+      SwitchID(*hwAgent->getPlatform()->getAsic()->getSwitchId()));
 
   auto ret =
       hwAgent->initAgent(true /* failHwCallsOnWarmboot */, thriftSyncer.get());

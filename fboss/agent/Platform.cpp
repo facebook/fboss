@@ -97,34 +97,40 @@ void Platform::init(
   std::optional<int64_t> switchId;
   std::optional<cfg::Range64> systemPortRange;
   auto switchType{cfg::SwitchType::NPU};
-  if (switchSettings.switchIdToSwitchInfo()->size()) {
+
+  auto getSwitchInfo = [&switchSettings](int64_t switchIndex) {
     for (const auto& switchInfo : *switchSettings.switchIdToSwitchInfo()) {
       if (switchInfo.second.switchIndex() == switchIndex) {
-        switchId = switchInfo.first;
-        switchType = *switchInfo.second.switchType();
-        auto asicType = *switchInfo.second.asicType();
-        if (switchType == cfg::SwitchType::VOQ) {
-          const auto& dsfNodesConfig = *config_->thrift.sw()->dsfNodes();
-          const auto& dsfNodeConfig = dsfNodesConfig.find(*switchId);
-          if (dsfNodeConfig != dsfNodesConfig.end() &&
-              dsfNodeConfig->second.systemPortRange().has_value()) {
-            systemPortRange = *dsfNodeConfig->second.systemPortRange();
-          }
-        }
-        // SwitchId not supported in fabric mode
-        if (switchType == cfg::SwitchType::FABRIC &&
-            (asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
-             asicType == cfg::AsicType::ASIC_TYPE_GARONNE)) {
-          switchId = std::nullopt;
-        }
-        if (switchInfo.second.switchMac()) {
-          macStr = *switchInfo.second.switchMac();
-        }
-        break;
+        return switchInfo;
       }
-      throw FbossError("No SwitchInfo found for switchIndex", switchIndex);
+    }
+    throw FbossError("No SwitchInfo found for switchIndex", switchIndex);
+  };
+
+  if (switchSettings.switchIdToSwitchInfo()->size()) {
+    auto switchInfo = getSwitchInfo(switchIndex);
+    switchId = std::optional<int64_t>(switchInfo.first);
+    switchType = *switchInfo.second.switchType();
+    auto asicType = *switchInfo.second.asicType();
+    if (switchType == cfg::SwitchType::VOQ) {
+      const auto& dsfNodesConfig = *config_->thrift.sw()->dsfNodes();
+      const auto& dsfNodeConfig = dsfNodesConfig.find(*switchId);
+      if (dsfNodeConfig != dsfNodesConfig.end() &&
+          dsfNodeConfig->second.systemPortRange().has_value()) {
+        systemPortRange = *dsfNodeConfig->second.systemPortRange();
+      }
+    }
+    // SwitchId not supported in fabric mode
+    if (switchType == cfg::SwitchType::FABRIC &&
+        (asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
+         asicType == cfg::AsicType::ASIC_TYPE_GARONNE)) {
+      switchId = std::nullopt;
+    }
+    if (switchInfo.second.switchMac()) {
+      macStr = *switchInfo.second.switchMac();
     }
   }
+
   // Override local mac from config if set
   if (macStr) {
     XLOG(DBG2) << " Setting platform mac to: " << macStr.value();

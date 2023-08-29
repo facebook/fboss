@@ -19,10 +19,11 @@ namespace facebook::fboss {
 
 SplitAgentThriftSyncer::SplitAgentThriftSyncer(
     HwSwitch* hw,
-    uint16_t serverPort)
+    uint16_t serverPort,
+    SwitchID switchId)
     : retryThread_(std::make_shared<folly::ScopedEventBaseThread>(
           "SplitAgentThriftRetryThread")),
-      switchId_(hw->getSwitchID()),
+      switchId_(switchId),
       linkEventSinkClient_(std::make_unique<LinkEventSyncer>(
           serverPort,
           switchId_,
