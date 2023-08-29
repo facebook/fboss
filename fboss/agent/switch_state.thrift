@@ -549,44 +549,6 @@ struct QcmCfgFields {
 typedef string SwitchIdList
 
 struct SwitchState {
-  1: map<i16, PortFields> portMap_DEPRECATED;
-  2: map<i16, VlanFields> vlanMap_DEPRECATED;
-  3: map<string, AclEntryFields> aclMap_DEPRECATED;
-  4: map<i16, TransceiverSpecFields> transceiverMap_DEPRECATED;
-  5: map<string, BufferPoolFields> bufferPoolCfgMap_DEPRECATED;
-  6: map<string, MirrorFields> mirrorMap_DEPRECATED;
-  7: ControlPlaneFields controlPlane_DEPRECATED;
-  8: SwitchSettingsFields switchSettings_DEPRECATED;
-  9: i16 defaultVlan_DEPRECATED;
-  10: i64 arpTimeout_DEPRECATED;
-  11: i64 ndpTimeout_DEPRECATED;
-  12: i32 arpAgerInterval_DEPRECATED;
-  13: i32 maxNeighborProbes_DEPRECATED;
-  14: i64 staleEntryInterval_DEPRECATED;
-  15: Address.BinaryAddress dhcpV4RelaySrc_DEPRECATED;
-  16: Address.BinaryAddress dhcpV6RelaySrc_DEPRECATED;
-  17: Address.BinaryAddress dhcpV4ReplySrc_DEPRECATED;
-  18: Address.BinaryAddress dhcpV6ReplySrc_DEPRECATED;
-  20: map<i64, SystemPortFields> systemPortMap_DEPRECATED;
-  21: map<i16, FibContainerFields> fibs_DEPRECATED;
-  22: map<i32, LabelForwardingEntryFields> labelFib_DEPRECATED;
-  23: map<string, QosPolicyFields> qosPolicyMap_DEPRECATED;
-  24: map<string, SflowCollectorFields> sflowCollectorMap_DEPRECATED;
-  25: map<string, IpTunnelFields> ipTunnelMap_DEPRECATED;
-  26: map<string, TeFlowEntryFields> teFlowTable_DEPRECATED;
-  27: map<i16, AggregatePortFields> aggregatePortMap_DEPRECATED;
-  28: map<
-    switch_config.LoadBalancerID,
-    LoadBalancerFields
-  > loadBalancerMap_DEPRECATED;
-  30: map<i32, InterfaceFields> interfaceMap_DEPRECATED;
-  33: map<i64, switch_config.DsfNode> dsfNodes_DEPRECATED;
-  34: switch_config.UdfConfig udfConfig_DEPRECATED;
-  // Remote objects
-  500: map<i64, SystemPortFields> remoteSystemPortMap_DEPRECATED;
-  501: map<i32, InterfaceFields> remoteInterfaceMap_DEPRECATED;
-
-  // Multi NPU table definitions
   100: map<SwitchIdList, map<i16, PortFields>> portMaps;
   101: map<SwitchIdList, map<i16, VlanFields>> vlanMaps;
   102: map<SwitchIdList, map<string, AclEntryFields>> aclMaps;
