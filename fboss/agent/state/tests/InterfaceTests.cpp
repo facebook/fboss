@@ -509,6 +509,24 @@ TEST(Interface, applyConfig) {
       folly::IPAddressV6("2a03:2880:10:1f07:face:b00c:0:2"),
       interface->getDhcpV6Relay());
 
+  // Change DHCP relay override configuration
+  config.interfaces()[1].dhcpRelayOverridesV4() = {};
+  (*config.interfaces()[1].dhcpRelayOverridesV4())["02:00:00:00:00:02"] =
+      "1.2.3.5";
+  config.interfaces()[1].dhcpRelayOverridesV6() = {};
+  (*config.interfaces()[1].dhcpRelayOverridesV6())["02:00:00:00:00:02"] =
+      "2a03:2880:10:1f07:face:b00c:0:2";
+  updateState();
+
+  auto map44 = interface->getDhcpV4RelayOverrides();
+  EXPECT_EQ(
+      folly::IPAddressV4("1.2.3.5"),
+      folly::IPAddressV4(map44[folly::MacAddress("02:00:00:00:00:02")]));
+  auto map66 = interface->getDhcpV6RelayOverrides();
+  EXPECT_EQ(
+      folly::IPAddressV6("2a03:2880:10:1f07:face:b00c:0:2"),
+      folly::IPAddressV6(map66[folly::MacAddress("02:00:00:00:00:02")]));
+
   // Changing the ID creates a new interface
   *config.interfaces()[0].intfID() = 2;
   config.interfaces()[0].name() = "newName";
