@@ -152,7 +152,19 @@
           "test_name_regex": "HwHashPolarizationTest*"
         },
         {
-          "test_name_regex": "HwAqmTest.*"
+          "test_name_regex": "HwAqmTest.verifyEcnThreshold"
+        },
+        {
+          "test_name_regex": "HwAqmTest.verifyEcnTrafficNoDrop"
+        },
+        {
+          "test_name_regex": "HwAqmTest.verifyPerQueueWredDropStats"
+        },
+        {
+          "test_name_regex": "HwAqmTest.verifyWredDrop"
+        },
+        {
+          "test_name_regex": "HwAqmTest.verifyWredThreshold"
         },
         {
           "test_name_regex": "HwTest_PROFILE*"
@@ -502,7 +514,19 @@
           "test_name_regex": "HwHashPolarizationTest*"
         },
         {
-          "test_name_regex": "HwAqmTest.*"
+          "test_name_regex": "HwAqmTest.verifyEcnThreshold"
+        },
+        {
+          "test_name_regex": "HwAqmTest.verifyEcnTrafficNoDrop"
+        },
+        {
+          "test_name_regex": "HwAqmTest.verifyPerQueueWredDropStats"
+        },
+        {
+          "test_name_regex": "HwAqmTest.verifyWredDrop"
+        },
+        {
+          "test_name_regex": "HwAqmTest.verifyWredThreshold"
         },
         {
           "test_name_regex": "HwTest_PROFILE*"
@@ -713,6 +737,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnTtlHitFrontPanel"
+        },
+        {
+          "test_name_regex": "HwAqmTest.*"
         },
         {
           "test_name_regex": "HwCoppTest.*"
