@@ -32,6 +32,9 @@ namespace facebook::fboss {
 
 class SwitchState;
 
+using DhcpV4OverrideMap = std::map<folly::MacAddress, folly::IPAddressV4>;
+using DhcpV6OverrideMap = std::map<folly::MacAddress, folly::IPAddressV6>;
+
 // both arp table and ndp table have same thrift type representation as map of
 // string to neighbor entry fields. define which of these two members of struct
 // resolves to which class.
@@ -256,6 +259,44 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
     } else {
       set<switch_state_tags::dhcpV6Relay>((*dhcpV6Relay).str());
     }
+  }
+
+  DhcpV4OverrideMap getDhcpV4RelayOverrides() const {
+    DhcpV4OverrideMap overrideMap{};
+    for (auto iter :
+         std::as_const(*get<switch_state_tags::dhcpRelayOverridesV4>())) {
+      overrideMap.emplace(
+          folly::MacAddress(iter.first),
+          folly::IPAddressV4(iter.second->cref()));
+    }
+    return overrideMap;
+  }
+
+  void setDhcpV4RelayOverrides(DhcpV4OverrideMap map) {
+    std::map<std::string, std::string> overrideMap{};
+    for (auto iter : map) {
+      overrideMap.emplace(iter.first.toString(), iter.second.str());
+    }
+    set<switch_state_tags::dhcpRelayOverridesV4>(std::move(overrideMap));
+  }
+
+  DhcpV6OverrideMap getDhcpV6RelayOverrides() const {
+    DhcpV6OverrideMap overrideMap{};
+    for (auto iter :
+         std::as_const(*get<switch_state_tags::dhcpRelayOverridesV6>())) {
+      overrideMap.emplace(
+          folly::MacAddress(iter.first),
+          folly::IPAddressV6(iter.second->cref()));
+    }
+    return overrideMap;
+  }
+
+  void setDhcpV6RelayOverrides(DhcpV6OverrideMap map) {
+    std::map<std::string, std::string> overrideMap{};
+    for (auto iter : map) {
+      overrideMap.emplace(iter.first.toString(), iter.second.str());
+    }
+    set<switch_state_tags::dhcpRelayOverridesV6>(std::move(overrideMap));
   }
 
   auto getAddresses() const {
