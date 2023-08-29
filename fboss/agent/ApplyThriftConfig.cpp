@@ -3304,6 +3304,16 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
     }
     intf->setNdpConfig(*ndp);
   }
+
+  auto dhcpV4Relay = config->dhcpRelayAddressV4()
+      ? IPAddressV4(*config->dhcpRelayAddressV4())
+      : IPAddressV4();
+  auto dhcpV6Relay = config->dhcpRelayAddressV6()
+      ? IPAddressV6(*config->dhcpRelayAddressV6())
+      : IPAddressV6("::");
+  intf->setDhcpV4Relay(dhcpV4Relay);
+  intf->setDhcpV6Relay(dhcpV6Relay);
+
   return intf;
 }
 
@@ -3320,6 +3330,15 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   auto name = getInterfaceName(config);
   auto mac = getInterfaceMac(config);
   auto mtu = config->mtu().value_or(Interface::kDefaultMtu);
+  auto oldDhcpV4Relay = orig->getDhcpV4Relay();
+  auto newDhcpV4Relay = config->dhcpRelayAddressV4()
+      ? IPAddressV4(*config->dhcpRelayAddressV4())
+      : IPAddressV4();
+  auto oldDhcpV6Relay = orig->getDhcpV6Relay();
+  auto newDhcpV6Relay = config->dhcpRelayAddressV6()
+      ? IPAddressV6(*config->dhcpRelayAddressV6())
+      : IPAddressV6("::");
+
   if (orig->getRouterID() == RouterID(*config->routerID()) &&
       (!orig->getVlanIDIf().has_value() ||
        orig->getVlanIDIf().value() == VlanID(*config->vlanID())) &&
@@ -3328,7 +3347,8 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
       orig->getNdpConfig()->toThrift() == ndp && orig->getMtu() == mtu &&
       orig->isVirtual() == *config->isVirtual() &&
       orig->isStateSyncDisabled() == *config->isStateSyncDisabled() &&
-      orig->getType() == *config->type()) {
+      orig->getType() == *config->type() && oldDhcpV4Relay == newDhcpV4Relay &&
+      oldDhcpV6Relay == newDhcpV6Relay) {
     // No change
     return nullptr;
   }
@@ -3346,6 +3366,8 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   newIntf->setMtu(mtu);
   newIntf->setIsVirtual(*config->isVirtual());
   newIntf->setIsStateSyncDisabled(*config->isStateSyncDisabled());
+  newIntf->setDhcpV4Relay(newDhcpV4Relay);
+  newIntf->setDhcpV6Relay(newDhcpV6Relay);
   updateNeighborResponseTablesForIntfs(newIntf.get(), addrs);
   return newIntf;
 }
