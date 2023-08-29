@@ -112,6 +112,15 @@ target_link_libraries(agent_hw_test_lib
   ${LIBGMOCK_LIBRARIES}
 )
 
+add_library(split_agent_test_lib
+  fboss/agent/test/SplitAgentTest.cpp
+)
+
+target_link_libraries(split_agent_test_lib
+  agent_ensemble
+  ${GTEST}
+)
+
 add_library(multinode_tests
   fboss/agent/test/MultiNodeTest.cpp
   fboss/agent/test/MultiNodeLacpTests.cpp
