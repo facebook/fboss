@@ -2367,6 +2367,16 @@ shared_ptr<Vlan> ThriftConfigApplier::createVlan(const cfg::Vlan* config) {
       vlan->setInterfaceID(*(entry.interfaces.begin()));
     }
   }
+
+  auto dhcpV4Relay = config->dhcpRelayAddressV4()
+      ? IPAddressV4(*config->dhcpRelayAddressV4())
+      : IPAddressV4();
+  auto dhcpV6Relay = config->dhcpRelayAddressV6()
+      ? IPAddressV6(*config->dhcpRelayAddressV6())
+      : IPAddressV6("::");
+  vlan->setDhcpV4Relay(dhcpV4Relay);
+  vlan->setDhcpV6Relay(dhcpV6Relay);
+
   return vlan;
 }
 
