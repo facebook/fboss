@@ -449,6 +449,8 @@ struct InterfaceFields {
   13: NeighborEntries ndpTable;
   14: map<string, NeighborResponseEntryFields> arpResponseTable;
   15: map<string, NeighborResponseEntryFields> ndpResponseTable;
+  16: optional string dhcpV4Relay;
+  17: optional string dhcpV6Relay;
 }
 
 enum LacpState {
