@@ -1289,6 +1289,10 @@ struct Interface {
   12: optional string dhcpRelayAddressV4;
   /* V6 DHCP relay address */
   13: optional string dhcpRelayAddressV6;
+
+  /* Override DHCPv4/6 relayer on a per host basis */
+  14: optional map<string, string> dhcpRelayOverridesV4;
+  15: optional map<string, string> dhcpRelayOverridesV6;
 }
 
 struct StaticRouteWithNextHops {
