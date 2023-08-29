@@ -228,6 +228,36 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
     ref<switch_state_tags::ndpResponseTable>() = std::move(table);
   }
 
+  std::optional<folly::IPAddressV4> getDhcpV4Relay() const {
+    if (auto dhcpV4Relay = cref<switch_state_tags::dhcpV4Relay>()) {
+      return folly::IPAddressV4(dhcpV4Relay->toThrift());
+    }
+    return std::nullopt;
+  }
+
+  void setDhcpV4Relay(std::optional<folly::IPAddressV4> dhcpV4Relay) {
+    if (!dhcpV4Relay) {
+      ref<switch_state_tags::dhcpV4Relay>().reset();
+    } else {
+      set<switch_state_tags::dhcpV4Relay>((*dhcpV4Relay).str());
+    }
+  }
+
+  std::optional<folly::IPAddressV6> getDhcpV6Relay() const {
+    if (auto dhcpV6Relay = cref<switch_state_tags::dhcpV6Relay>()) {
+      return folly::IPAddressV6(dhcpV6Relay->toThrift());
+    }
+    return std::nullopt;
+  }
+
+  void setDhcpV6Relay(std::optional<folly::IPAddressV6> dhcpV6Relay) {
+    if (!dhcpV6Relay) {
+      ref<switch_state_tags::dhcpV6Relay>().reset();
+    } else {
+      set<switch_state_tags::dhcpV6Relay>((*dhcpV6Relay).str());
+    }
+  }
+
   auto getAddresses() const {
     return get<switch_state_tags::addresses>();
   }
