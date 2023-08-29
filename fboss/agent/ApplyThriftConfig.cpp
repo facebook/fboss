@@ -3355,6 +3355,8 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
       : IPAddressV6("::");
 
   auto newIntf = orig->clone();
+  bool changed_neighbor_table =
+      updateNeighborResponseTablesForIntfs(newIntf.get(), addrs);
   bool changed_dhcp_overrides = updateDhcpOverrides(newIntf.get(), config);
 
   if (orig->getRouterID() == RouterID(*config->routerID()) &&
@@ -3366,7 +3368,8 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
       orig->isVirtual() == *config->isVirtual() &&
       orig->isStateSyncDisabled() == *config->isStateSyncDisabled() &&
       orig->getType() == *config->type() && oldDhcpV4Relay == newDhcpV4Relay &&
-      oldDhcpV6Relay == newDhcpV6Relay && !changed_dhcp_overrides) {
+      oldDhcpV6Relay == newDhcpV6Relay && !changed_neighbor_table &&
+      !changed_dhcp_overrides) {
     // No change
     return nullptr;
   }
@@ -3385,7 +3388,6 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   newIntf->setIsStateSyncDisabled(*config->isStateSyncDisabled());
   newIntf->setDhcpV4Relay(newDhcpV4Relay);
   newIntf->setDhcpV6Relay(newDhcpV6Relay);
-  updateNeighborResponseTablesForIntfs(newIntf.get(), addrs);
   return newIntf;
 }
 
