@@ -81,7 +81,10 @@ void MinipackBaseI2cBus::scanPresence(
     std::map<int32_t, ModulePresence>& presences) {
   std::set<uint8_t> pimsToScan;
   for (auto presence : presences) {
-    pimsToScan.insert(getPim(presence.first + 1));
+    auto pimID = getPim(presence.first + 1);
+    if (systemContainer_->isValidPimID(pimID)) {
+      pimsToScan.insert(pimID);
+    }
   }
 
   for (auto pim : pimsToScan) {

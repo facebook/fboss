@@ -53,6 +53,10 @@ class MultiPimPlatformSystemContainer {
     return pims_.size();
   }
 
+  bool isValidPimID(int pim) const {
+    return (pims_.find(pim) != pims_.end());
+  }
+
  protected:
   void setPimContainer(
       int pim,
