@@ -166,3 +166,18 @@ TEST(NeighborResponseTableTest, modifyForVlan) {
   auto vlan = std::make_shared<Vlan>(VlanID(2001), std::string("vlan1"));
   verifyNeighborResponseTableHelper(vlan);
 }
+
+TEST(NeighborResponseTableTest, modifyForIntf) {
+  auto intf = std::make_shared<Interface>(
+      InterfaceID(1001),
+      RouterID(0),
+      std::optional<VlanID>(std::nullopt),
+      folly::StringPiece("1001"),
+      folly::MacAddress{},
+      9000,
+      false,
+      false,
+      cfg::InterfaceType::VLAN);
+
+  verifyNeighborResponseTableHelper(intf);
+}
