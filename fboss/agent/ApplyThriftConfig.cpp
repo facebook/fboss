@@ -3307,6 +3307,7 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
       *config->isStateSyncDisabled(),
       *config->type());
   updateNeighborResponseTablesForIntfs(intf.get(), addrs);
+  updateDhcpOverrides(intf.get(), config);
   intf->setAddresses(addrs);
   if (auto ndp = config->ndp()) {
     if (ndp->routerAddress() &&
@@ -3353,6 +3354,9 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
       ? IPAddressV6(*config->dhcpRelayAddressV6())
       : IPAddressV6("::");
 
+  auto newIntf = orig->clone();
+  bool changed_dhcp_overrides = updateDhcpOverrides(newIntf.get(), config);
+
   if (orig->getRouterID() == RouterID(*config->routerID()) &&
       (!orig->getVlanIDIf().has_value() ||
        orig->getVlanIDIf().value() == VlanID(*config->vlanID())) &&
@@ -3362,12 +3366,11 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
       orig->isVirtual() == *config->isVirtual() &&
       orig->isStateSyncDisabled() == *config->isStateSyncDisabled() &&
       orig->getType() == *config->type() && oldDhcpV4Relay == newDhcpV4Relay &&
-      oldDhcpV6Relay == newDhcpV6Relay) {
+      oldDhcpV6Relay == newDhcpV6Relay && !changed_dhcp_overrides) {
     // No change
     return nullptr;
   }
 
-  auto newIntf = orig->clone();
   newIntf->setRouterID(RouterID(*config->routerID()));
   newIntf->setType(*config->type());
   if (newIntf->getType() == cfg::InterfaceType::VLAN) {
