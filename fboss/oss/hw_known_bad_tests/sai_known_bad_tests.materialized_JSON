@@ -1677,6 +1677,9 @@
         },
         {
           "test_name_regex": "HwProdInvariantsFswStrictPriorityTest.*"
+        },
+        {
+          "test_name_regex": "HwSplitAgentCallbackTest.txPacket"
         }
     ],
     "brcm/10.0_ea_sim_odp/10.0_ea_sim_odp/tomahawk5/simulator": [
@@ -2168,6 +2171,9 @@
         },
         {
           "test_name_regex": "HwProdInvariantsFswStrictPriorityTest.*"
+        },
+        {
+          "test_name_regex": "HwSplitAgentCallbackTest.txPacket"
         }
     ],
     "brcm/7.2.0.0_odp/7.2.0.0_odp/tomahawk": [
@@ -9158,6 +9164,9 @@
         },
         {
           "test_name_regex": "HwProdInvariantsFswStrictPriorityTest.*"
+        },
+        {
+          "test_name_regex": "HwSplitAgentCallbackTest.txPacket"
         }
     ],
     "brcm/9.2.0.0_odp/9.2.0.0_odp/tomahawk": [
@@ -10188,6 +10197,9 @@
         },
         {
           "test_name_regex": "HwIngressBufferTest.validateIngressPoolParamChange"
+        },
+        {
+          "test_name_regex": "HwWideEcmpTest.WideUcmp.*"
         }
     ],
     "brcm/9.2.0.0_odp/9.2.0.0_odp/tomahawk4": [
@@ -11033,6 +11045,9 @@
           "test_name_regex": "HwCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
         },
         {
+          "test_name_regex": "HwCoppTest/[01].NdpSolicitationToHighPriQ$"
+        },
+        {
           "test_name_regex": "HwCoppTest/1.JumboFramesToQueues$"
         },
         {
@@ -11402,6 +11417,9 @@
         },
         {
           "test_name_regex": "HwCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "HwCoppTest/[01].NdpSolicitationToHighPriQ$"
         },
         {
           "test_name_regex": "HwCoppTest/1.JumboFramesToQueues$"
@@ -12051,6 +12069,9 @@
           "test_name_regex": "HwCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
         },
         {
+          "test_name_regex": "HwCoppTest/[01].NdpSolicitationToHighPriQ$"
+        },
+        {
           "test_name_regex": "HwCoppTest/1.JumboFramesToQueues$"
         },
         {
@@ -12422,6 +12443,9 @@
           "test_name_regex": "HwCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
         },
         {
+          "test_name_regex": "HwCoppTest/[01].NdpSolicitationToHighPriQ$"
+        },
+        {
           "test_name_regex": "HwCoppTest/1.JumboFramesToQueues$"
         },
         {
@@ -12791,6 +12815,9 @@
         },
         {
           "test_name_regex": "HwCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "HwCoppTest/[01].NdpSolicitationToHighPriQ$"
         },
         {
           "test_name_regex": "HwCoppTest/1.JumboFramesToQueues$"
@@ -13438,6 +13465,9 @@
         },
         {
           "test_name_regex": "HwCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "HwCoppTest/[01].NdpSolicitationToHighPriQ$"
         },
         {
           "test_name_regex": "HwCoppTest/1.JumboFramesToQueues$"
