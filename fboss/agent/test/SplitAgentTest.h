@@ -67,6 +67,14 @@ class SplitAgentTest : public ::testing::Test {
     verifyAcrossWarmBoots([]() {}, verify, []() {}, []() {});
   }
 
+  void setupInitialConfig(AgentEnsembleSwitchConfigFn initialConfigFn) {
+    initialConfigFn_ = std::move(initialConfigFn);
+  }
+
+  void setupPlatformConfig(AgentEnsemblePlatformConfigFn platformConfigFn) {
+    platformConfigFn_ = std::move(platformConfigFn);
+  }
+
  private:
   /*
    * Derived classes have the option to not run verify on
@@ -76,6 +84,8 @@ class SplitAgentTest : public ::testing::Test {
     return true;
   }
 
+  AgentEnsembleSwitchConfigFn initialConfigFn_ = nullptr;
+  AgentEnsemblePlatformConfigFn platformConfigFn_ = nullptr;
   std::unique_ptr<AgentEnsemble> agentEnsemble_;
 };
 } // namespace facebook::fboss
