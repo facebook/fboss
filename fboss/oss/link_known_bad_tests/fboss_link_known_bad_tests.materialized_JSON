@@ -7415,12 +7415,6 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "LinkTest.warmbootIsHitLess$"
         }
     ],
     "minipack_7x16Q_1x16O/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-millenio-5.5/millenio-5.5": [
@@ -7462,12 +7456,6 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "LinkTest.warmbootIsHitLess$"
         }
     ],
     "minipack_7x16Q_1x16O/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
@@ -7509,12 +7497,6 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "LinkTest.warmbootIsHitLess$"
         }
     ],
     "minipack_7x16Q_1x16O/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-millenio-5.5/millenio-5.5": [
@@ -7556,12 +7538,6 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "LinkTest.warmbootIsHitLess$"
         }
     ],
     "minipack_7x16Q_1x16O/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp": [
@@ -7603,12 +7579,6 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "LinkTest.warmbootIsHitLess$"
         }
     ],
     "minipack_7x16Q_1x16O/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-millenio-5.5/millenio-5.5": [
@@ -7650,12 +7620,6 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "LinkTest.warmbootIsHitLess$"
         }
     ],
     "minipack_7x16Q_1x16O/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
@@ -7697,12 +7661,6 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "LinkTest.warmbootIsHitLess$"
         }
     ],
     "minipack_7x16Q_1x16O/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp/physdk-millenio-5.5/millenio-5.5": [
@@ -7744,12 +7702,6 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "LinkTest.warmbootIsHitLess$"
         }
     ],
     "montblanc/bcm/asicsdk-6.5.24/6.5.24": [
@@ -13333,12 +13285,6 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "LinkTest.warmbootIsHitLess$"
         }
     ],
     "yamp_8x16Q/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -13392,12 +13338,6 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "LinkTest.warmbootIsHitLess$"
         }
     ],
     "yamp_8x16Q/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
@@ -13451,12 +13391,6 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "LinkTest.warmbootIsHitLess$"
         }
     ],
     "yamp_8x16Q/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -13510,12 +13444,6 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "LinkTest.warmbootIsHitLess$"
         }
     ],
     "yamp_8x16Q/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp": [
@@ -13569,12 +13497,6 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "LinkTest.warmbootIsHitLess$"
         }
     ],
     "yamp_8x16Q/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -13628,12 +13550,6 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "LinkTest.warmbootIsHitLess$"
         }
     ],
     "yamp_8x16Q/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
@@ -13687,12 +13603,6 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "LinkTest.warmbootIsHitLess$"
         }
     ],
     "yamp_8x16Q/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -13746,12 +13656,6 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "LinkTest.warmbootIsHitLess$"
         }
     ]
   }
