@@ -301,6 +301,8 @@ TEST(Interface, applyConfig) {
   *intfConfig->vlanID() = 1;
   *intfConfig->routerID() = 0;
   intfConfig->mac() = "00:02:00:11:22:33";
+  intfConfig->dhcpRelayAddressV4() = "30.1.1.1";
+  intfConfig->dhcpRelayAddressV6() = "2a03:2880:10:1f07:face:b00c:0:0";
 
   InterfaceID id(1);
   shared_ptr<SwitchState> oldState;
@@ -330,6 +332,11 @@ TEST(Interface, applyConfig) {
   EXPECT_EQ(0, interface->routerAdvertisementSeconds());
   auto vlan1 = state->getVlans()->getNodeIf(VlanID(1));
   EXPECT_EQ(InterfaceID(1), vlan1->getInterfaceID());
+  EXPECT_EQ(folly::IPAddressV4("30.1.1.1"), interface->getDhcpV4Relay());
+  EXPECT_EQ(
+      folly::IPAddressV6("2a03:2880:10:1f07:face:b00c:0:0"),
+      interface->getDhcpV6Relay());
+
   // same configuration cause nothing changed
   EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, platform.get()));
 
