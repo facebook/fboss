@@ -67,7 +67,9 @@ class HwTransceiverUtils {
   static void verifyCopper53gProfile(
       const TcvrState& tcvrState,
       const std::vector<MediaInterfaceId>& mediaInterfaces);
-
+  static void verifyCopper400gProfile(
+      const TcvrState& tcvrState,
+      const std::vector<MediaInterfaceId>& mediaInterfaces);
   static void verifyDataPathEnabled(
       const TcvrState& tcvrState,
       const std::string& portName);

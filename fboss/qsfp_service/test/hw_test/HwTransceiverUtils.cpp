@@ -276,6 +276,10 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
       verify400gProfile(mgmtInterface, mediaInterfaces);
       break;
 
+    case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_COPPER:
+      verifyCopper400gProfile(tcvrState, mediaInterfaces);
+      break;
+
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_COPPER:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER:
       verifyCopper100gProfile(tcvrState, mediaInterfaces);
@@ -360,6 +364,21 @@ void HwTransceiverUtils::verify400gProfile(
     EXPECT_TRUE(
         *mediaId.code() == MediaInterfaceCode::FR4_400G ||
         *mediaId.code() == MediaInterfaceCode::LR4_400G_10KM);
+  }
+}
+
+void HwTransceiverUtils::verifyCopper400gProfile(
+    const TcvrState& tcvrState,
+    const std::vector<MediaInterfaceId>& mediaInterfaces) {
+  EXPECT_EQ(
+      tcvrState.transceiverManagementInterface().value_or({}),
+      TransceiverManagementInterface::CMIS);
+  EXPECT_EQ(
+      TransmitterTechnology::COPPER,
+      *(tcvrState.cable().value_or({}).transmitterTech()));
+
+  for (const auto& mediaId : mediaInterfaces) {
+    EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR8_400G);
   }
 }
 
