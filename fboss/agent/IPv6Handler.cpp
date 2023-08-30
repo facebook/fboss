@@ -1125,4 +1125,21 @@ void IPv6Handler::receivedNdpMine(
   }
 }
 
+std::optional<PortDescriptor> IPv6Handler::getInterfacePortDescriptorToReach(
+    SwSwitch* sw,
+    const folly::IPAddressV6& ipAddr) {
+  std::optional<PortDescriptor> portDescriptor{std::nullopt};
+
+  if (sw->getSwitchInfoTable().l3SwitchType() == cfg::SwitchType::VOQ) {
+    // VOQ switches don't use VLANs (no broadcast domain).
+    // Find the port to send out the pkt with pipeline bypass on.
+    auto portID = getInterfacePortToReach(sw->getState(), ipAddr);
+    if (portID.has_value()) {
+      portDescriptor = PortDescriptor(portID.value());
+    }
+  }
+
+  return portDescriptor;
+}
+
 } // namespace facebook::fboss

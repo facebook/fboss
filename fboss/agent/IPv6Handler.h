@@ -209,6 +209,10 @@ class IPv6Handler : public StateObserver {
       ICMPv6Type type,
       uint32_t flags);
 
+  static std::optional<PortDescriptor> getInterfacePortDescriptorToReach(
+      SwSwitch* sw,
+      const folly::IPAddressV6& ipAddr);
+
   SwSwitch* sw_{nullptr};
   RAMap routeAdvertisers_;
 };
