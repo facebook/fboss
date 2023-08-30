@@ -1771,7 +1771,26 @@ void SwSwitch::sendNetworkControlPacketAsync(
 void SwSwitch::sendPacketAsync(
     std::unique_ptr<TxPacket> pkt,
     std::optional<PortDescriptor> portDescriptor,
-    std::optional<uint8_t> queueId) noexcept {}
+    std::optional<uint8_t> queueId) noexcept {
+  if (portDescriptor.has_value()) {
+    switch (portDescriptor.value().type()) {
+      case PortDescriptor::PortType::PHYSICAL:
+        sendPacketOutOfPortAsync(
+            std::move(pkt), portDescriptor.value().phyPortID(), queueId);
+        break;
+      case PortDescriptor::PortType::AGGREGATE:
+        sendPacketOutOfPortAsync(
+            std::move(pkt), portDescriptor.value().aggPortID(), queueId);
+        break;
+      case PortDescriptor::PortType::SYSTEM_PORT:
+        XLOG(FATAL) << " Packet send over system ports not handled yet";
+        break;
+    };
+  } else {
+    CHECK(!queueId.has_value());
+    this->sendPacketSwitchedAsync(std::move(pkt));
+  }
+}
 
 void SwSwitch::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> pkt,
