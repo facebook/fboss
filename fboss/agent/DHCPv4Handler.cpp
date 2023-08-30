@@ -99,8 +99,12 @@ void sendDHCPPacket(
   auto txPacket = sw->allocatePacket(
       18 + // ethernet header
       ipHdr.size() + udpHdr.size() + dhcpPacket.size());
+
+  std::optional<VlanID> vlanID = std::nullopt;
   const auto& vlanTags = ethHdr.getVlanTags();
-  CHECK(!vlanTags.empty());
+  if (!vlanTags.empty()) {
+    vlanID = VlanID(vlanTags[0].vid());
+  }
 
   RWPrivateCursor rwCursor(txPacket->buf());
   // Write data to packet buffer
@@ -108,7 +112,7 @@ void sendDHCPPacket(
       &rwCursor,
       ethHdr.getDstMac(),
       ethHdr.getSrcMac(),
-      VlanID(vlanTags[0].vid()),
+      vlanID,
       ethHdr.getEtherType());
   ipHdr.write(&rwCursor);
   rwCursor.writeBE<uint16_t>(udpHdr.srcPort);
