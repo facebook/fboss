@@ -2314,12 +2314,13 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
                            kComplianceCode,
                            kManagementInterface](double cableLength) {
     auto tcvrInfo = std::make_unique<TransceiverInfo>();
-    tcvrInfo->port() = id;
-    tcvrInfo->present() = true;
+    tcvrInfo->tcvrState()->port() = id;
+    tcvrInfo->tcvrState()->present() = true;
     Cable cable;
     cable.length() = cableLength;
-    tcvrInfo->cable() = cable;
-    tcvrInfo->transceiverManagementInterface() = kManagementInterface;
+    tcvrInfo->tcvrState()->cable() = cable;
+    tcvrInfo->tcvrState()->transceiverManagementInterface() =
+        kManagementInterface;
     TransceiverSettings tcvrSettings;
     std::vector<MediaInterfaceId> mediaInterfaces;
     for (int i = 0; i < 4; i++) {
@@ -2329,7 +2330,7 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
       mediaInterfaces.push_back(intf);
     }
     tcvrSettings.mediaInterface() = std::move(mediaInterfaces);
-    tcvrInfo->settings() = tcvrSettings;
+    tcvrInfo->tcvrState()->settings() = tcvrSettings;
     return tcvrInfo;
   };
 
@@ -2412,8 +2413,8 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
 
   // Finally remove the transceiver
   auto unpresentTcvr = std::make_unique<TransceiverInfo>();
-  unpresentTcvr->port() = id;
-  unpresentTcvr->present() = false;
+  unpresentTcvr->tcvrState()->port() = id;
+  unpresentTcvr->tcvrState()->present() = false;
   std::map<int32_t, cfg::PortProfileID> programmedPorts3;
   handler.programInternalPhyPorts(
       programmedPorts3, std::move(unpresentTcvr), false);
@@ -2427,8 +2428,8 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
   beforeGen = sw_->getState()->getGeneration();
   programmedPorts3.clear();
   unpresentTcvr = std::make_unique<TransceiverInfo>();
-  unpresentTcvr->port() = id;
-  unpresentTcvr->present() = false;
+  unpresentTcvr->tcvrState()->port() = id;
+  unpresentTcvr->tcvrState()->present() = false;
   handler.programInternalPhyPorts(
       programmedPorts3, std::move(unpresentTcvr), false);
   // Still return programmed ports even though no transceiver there

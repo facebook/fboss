@@ -1603,7 +1603,7 @@ void ThriftHandler::programInternalPhyPorts(
     std::map<int32_t, cfg::PortProfileID>& programmedPorts,
     std::unique_ptr<TransceiverInfo> transceiver,
     bool force) {
-  int32_t id = *transceiver->port();
+  int32_t id = *transceiver->tcvrState()->port();
   auto log = LOG_THRIFT_CALL(DBG1, id, force);
   ensureConfigured(__func__);
 
