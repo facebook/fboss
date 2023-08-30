@@ -1751,6 +1751,15 @@ bool SffModule::setTransceiverTxLocked(
     return false;
   }
 
+  // Check if the module supports Tx control feature first
+  if (!isTransceiverFeatureSupported(
+          TransceiverFeature::TX_DISABLE, lineSide)) {
+    throw FbossError(fmt::format(
+        "Module {:s} does not support transceiver TX output control on {:s}",
+        portName,
+        (lineSide ? "Line" : "System")));
+  }
+
   auto txControlReg =
       lineSide ? SffField::TX_DISABLE : SffField::TXRX_OUTPUT_CONTROL;
   uint8_t txDisableVal, rxTxCtrl;

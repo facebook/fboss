@@ -3132,6 +3132,15 @@ bool CmisModule::setTransceiverTxLocked(
     return false;
   }
 
+  // Check if the module supports Tx control feature first
+  if (!isTransceiverFeatureSupported(
+          TransceiverFeature::TX_DISABLE, lineSide)) {
+    throw FbossError(fmt::format(
+        "Module {:s} does not support transceiver TX output control on {:s}",
+        portName,
+        (lineSide ? "Line" : "System")));
+  }
+
   // Set the Tx output register for these lanes in given direction
   auto txDisableRegister =
       lineSide ? CmisField::TX_DISABLE : CmisField::RX_DISABLE;
