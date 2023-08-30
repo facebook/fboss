@@ -244,33 +244,43 @@ void DHCPv4Handler::processRequest(
       ? folly::to<std::string>(static_cast<int>(vlanID.value()))
       : "None";
 
-  // TODO(skhare)
-  // Support DHCPv4 relay for VOQ switches
-  // This requires moving get/set Dhcpv4Relay, get/set DhcpV4RelayOverrides
-  // etc. to Interfaces.
-  CHECK(vlanID.has_value());
-  auto vlan = state->getVlans()->getNodeIf(vlanID.value());
-  if (!vlan) {
+  if (!vlanOrIntf) {
     sw->stats()->dhcpV4DropPkt();
     XLOG(DBG4) << " VLAN  " << vlanIDStr << " is no longer present "
-               << " dropped dhcp packet received on a port in this VLAN";
+               << " DHCPv4Packet dropped on port " << pkt->getSrcPort();
     return;
   }
-  auto dhcpServer = vlan->getDhcpV4Relay();
+  auto dhcpServer = vlanOrIntf->getDhcpV4Relay();
 
   XLOG(DBG4) << "srcMac: " << srcMac.toString();
   // look in the override map, and use relevant destination
-  auto dhcpOverrideMap = vlan->getDhcpV4RelayOverrides();
+  auto dhcpOverrideMap = vlanOrIntf->getDhcpV4RelayOverrides();
   if (dhcpOverrideMap.find(srcMac) != dhcpOverrideMap.end()) {
     dhcpServer = dhcpOverrideMap[srcMac];
-    XLOG(DBG4) << "dhcpServer: " << dhcpServer;
+    if constexpr (std::is_same_v<VlanOrIntfT, Vlan>) {
+      XLOG(DBG4) << "dhcpServer: " << dhcpServer;
+    } else {
+      XLOG(DBG4) << "dhcpServer: " << dhcpServer.value();
+    }
   }
 
-  if (dhcpServer.isZero()) {
-    sw->stats()->dhcpV4DropPkt();
-    XLOG(DBG4) << " No relay configured for VLAN : " << vlanIDStr
-               << " dropped dhcp packet ";
-    return;
+  IPAddressV4 dhcpServerIP;
+  if constexpr (std::is_same_v<VlanOrIntfT, Vlan>) {
+    if (dhcpServer.isZero()) {
+      sw->stats()->dhcpV4DropPkt();
+      XLOG(DBG4) << " No relay configured for VLAN : " << vlanIDStr
+                 << " dropped dhcp packet ";
+      return;
+    }
+    dhcpServerIP = dhcpServer;
+  } else {
+    if (!dhcpServer.has_value() || dhcpServer.value().isZero()) {
+      sw->stats()->dhcpV4DropPkt();
+      XLOG(DBG4) << " No relay configured for Interface: "
+                 << vlanOrIntf->getID() << " dropped dhcp packet ";
+      return;
+    }
+    dhcpServerIP = dhcpServer.value();
   }
 
   auto switchIp = state->getDhcpV4RelaySrc();
@@ -318,14 +328,21 @@ void DHCPv4Handler::processRequest(
   }
   dhcpPacketOut.giaddr = switchIp;
   // Look up cpu mac from HwAsicTable
-  auto switchId = sw->getScopeResolver()->scope(vlan).switchId();
-  MacAddress cpuMac = sw->getHwAsicTable()->getHwAsicIf(switchId)->getAsicMac();
+  SwitchID switchID;
+  if constexpr (std::is_same_v<VlanOrIntfT, Vlan>) {
+    switchID = sw->getScopeResolver()->scope(vlanOrIntf).switchId();
+  } else {
+    switchID =
+        sw->getScopeResolver()->scope(vlanOrIntf, sw->getState()).switchId();
+  }
+
+  MacAddress cpuMac = sw->getHwAsicTable()->getHwAsicIf(switchID)->getAsicMac();
 
   // Prepare the packet to be sent out
   EthHdr ethHdr = makeEthHdr(cpuMac, cpuMac, vlanID);
   auto ipHdr = makeIpv4Header(
       switchIp,
-      dhcpServer,
+      dhcpServerIP,
       origIPHdr.ttl - 1,
       IPv4Hdr::minSize() + UDPHeader::size() + dhcpPacketOut.size());
   UDPHeader udpHdr(
