@@ -569,6 +569,7 @@ void MuxMachine::selected(AggregatePortID selection) {
       XLOG(DBG4) << "MuxMachine[" << controller_.portID() << "]: SELECTED in "
                  << state_;
       attached();
+      break;
     case MuxState::ATTACHED:
     case MuxState::COLLECTING_DISTRIBUTING:
       XLOG(WARNING) << "MuxMachine[" << controller_.portID()
