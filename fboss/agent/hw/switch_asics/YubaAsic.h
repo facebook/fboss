@@ -83,7 +83,7 @@ class YubaAsic : public TajoAsic {
     return 512;
   }
   int getSystemPortIDOffset() const override {
-    return 1000;
+    return 500;
   }
   uint32_t getSflowShimHeaderSize() const override {
     return 9;
