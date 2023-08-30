@@ -564,7 +564,7 @@ class SwSwitch : public HwSwitchCallback {
    */
   void sendNetworkControlPacketAsync(
       std::unique_ptr<TxPacket> pkt,
-      std::optional<PortDescriptor> port) noexcept;
+      std::optional<PortDescriptor> portDescriptor) noexcept;
 
   /*
    * Pipeline bypass if portDescriptor it set.

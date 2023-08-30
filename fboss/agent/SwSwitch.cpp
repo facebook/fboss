@@ -1744,28 +1744,16 @@ std::unique_ptr<TxPacket> SwSwitch::allocateL3TxPacket(uint32_t l3Len) {
 
 void SwSwitch::sendNetworkControlPacketAsync(
     std::unique_ptr<TxPacket> pkt,
-    std::optional<PortDescriptor> port) noexcept {
-  if (port) {
-    // TODO(joseph5wu): Control this by distinguishing the highest priority
-    // queue from the config.
-    static const uint8_t kNCStrictPriorityQueue = 7;
-    auto portVal = *port;
-    switch (portVal.type()) {
-      case PortDescriptor::PortType::PHYSICAL:
-        sendPacketOutOfPortAsync(
-            std::move(pkt), portVal.phyPortID(), kNCStrictPriorityQueue);
-        break;
-      case PortDescriptor::PortType::AGGREGATE:
-        sendPacketOutOfPortAsync(
-            std::move(pkt), portVal.aggPortID(), kNCStrictPriorityQueue);
-        break;
-      case PortDescriptor::PortType::SYSTEM_PORT:
-        XLOG(FATAL) << " Packet send over system ports not handled yet";
-        break;
-    };
-  } else {
-    this->sendPacketSwitchedAsync(std::move(pkt));
-  }
+    std::optional<PortDescriptor> portDescriptor) noexcept {
+  // TODO(joseph5wu): Control this by distinguishing the highest priority
+  // queue from the config.
+  static const uint8_t kNCStrictPriorityQueue = 7;
+
+  sendPacketAsync(
+      std::move(pkt),
+      portDescriptor,
+      portDescriptor ? std::make_optional(kNCStrictPriorityQueue)
+                     : std::nullopt);
 }
 
 void SwSwitch::sendPacketAsync(
