@@ -164,7 +164,7 @@ void Platform::setOverrideTransceiverInfo(
       // Use the overrideTransceiverInfo_ as template to copy a new
       // TransceiverInfo with the corresponding TransceiverID
       auto tcvrInfo = TransceiverInfo(overrideTransceiverInfo);
-      tcvrInfo.port() = *transceiverID;
+      tcvrInfo.tcvrState()->port() = *transceiverID;
       overrideTcvrs.emplace(*transceiverID, tcvrInfo);
     }
   }

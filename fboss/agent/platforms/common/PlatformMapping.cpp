@@ -39,17 +39,19 @@ namespace fboss {
 cfg::PlatformPortConfigOverrideFactor buildPlatformPortConfigOverrideFactor(
     const TransceiverInfo& transceiverInfo) {
   cfg::PlatformPortConfigOverrideFactor factor;
-  if (auto cable = transceiverInfo.cable(); cable && cable->length()) {
+  if (auto cable = transceiverInfo.tcvrState()->cable();
+      cable && cable->length()) {
     factor.cableLengths() = {*cable->length()};
   }
-  if (auto settings = transceiverInfo.settings()) {
+  if (auto settings = transceiverInfo.tcvrState()->settings()) {
     if (auto mediaInterfaces = settings->mediaInterface();
         mediaInterfaces && !mediaInterfaces->empty()) {
       // Use the first lane mediaInterface
       factor.mediaInterfaceCode() = *(*mediaInterfaces)[0].code();
     }
   }
-  if (auto interface = transceiverInfo.transceiverManagementInterface()) {
+  if (auto interface =
+          transceiverInfo.tcvrState()->transceiverManagementInterface()) {
     factor.transceiverManagementInterface() = *interface;
   }
   return factor;
