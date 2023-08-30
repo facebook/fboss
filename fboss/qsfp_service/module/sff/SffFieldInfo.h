@@ -82,6 +82,8 @@ enum class SffField {
   TXRX_OUTPUT_CONTROL,
   EXTENDED_SPECIFICATION_COMPLIANCE,
   FR1_PRBS_SUPPORT,
+  TX_CONTROL_SUPPORT,
+  RX_CONTROL_SUPPORT,
 
   PAGE0_CSUM,
   PAGE0_EXTCSUM,
@@ -183,6 +185,11 @@ enum HalfByteMasks : uint8_t {
 
 enum FieldMasks : uint8_t {
   DATA_NOT_READY_MASK = 0x01,
+};
+
+enum DiagsCapabilityMask : uint8_t {
+  TX_DISABLE_SUPPORT_MASK = 0x10,
+  RX_DISABLE_SUPPORT_MASK = 0x04,
 };
 
 class SffFieldInfo : public QsfpFieldInfo<SffField, SffPages> {

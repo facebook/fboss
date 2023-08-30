@@ -506,6 +506,12 @@ void HwTransceiverUtils::verifyDiagsCapability(
         EXPECT_TRUE(*diagsCapability->prbsSystem());
         EXPECT_TRUE(*diagsCapability->loopbackLine());
         EXPECT_TRUE(*diagsCapability->loopbackSystem());
+        EXPECT_TRUE(*diagsCapability->txOutputControl());
+        if (*mediaIntfCode == MediaInterfaceCode::FR4_400G ||
+            *mediaIntfCode == MediaInterfaceCode::LR4_400G_10KM ||
+            *mediaIntfCode == MediaInterfaceCode::FR4_2x400G) {
+          EXPECT_TRUE(*diagsCapability->rxOutputControl());
+        }
       }
       return;
     case TransceiverManagementInterface::SFF:
@@ -515,9 +521,8 @@ void HwTransceiverUtils::verifyDiagsCapability(
         if (!skipCheckingIndividualCapability) {
           EXPECT_TRUE(*diagsCapability->prbsLine());
           EXPECT_TRUE(*diagsCapability->prbsSystem());
+          EXPECT_TRUE(*diagsCapability->txOutputControl());
         }
-      } else {
-        EXPECT_FALSE(diagsCapability.has_value());
       }
       return;
     case TransceiverManagementInterface::SFF8472:
