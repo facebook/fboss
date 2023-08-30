@@ -267,6 +267,7 @@ enum Ethernet10GComplianceCode {
 enum PassiveCuMediaInterfaceCode {
   UNKNOWN = 0x0,
   COPPER = 0x1,
+  COPPER_400G = 0x3,
   LOOPBACK = 0xBF,
 }
 

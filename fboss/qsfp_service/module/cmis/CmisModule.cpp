@@ -837,8 +837,13 @@ uint8_t CmisModule::currentConfiguredMediaInterfaceCode(
   uint8_t application = 0;
   if (mediaTypeEncoding == MediaTypeEncodings::OPTICAL_SMF) {
     application = static_cast<uint8_t>(getSmfMediaInterface(hostLane));
-  } else if (mediaTypeEncoding == MediaTypeEncodings::PASSIVE_CU) {
-    application = static_cast<uint8_t>(PassiveCuMediaInterfaceCode::COPPER);
+  } else if (
+      mediaTypeEncoding == MediaTypeEncodings::PASSIVE_CU &&
+      !moduleCapabilities_.empty()) {
+    // For Passive DAC cables that don't get programmed, just return the media
+    // interface code for the first capability.
+    auto firstModuleCapability = moduleCapabilities_.begin();
+    application = firstModuleCapability->moduleMediaInterface;
   }
   return application;
 }
@@ -986,11 +991,17 @@ bool CmisModule::getMediaInterfaceId(
       }
       mediaInterface[lane].media() = media;
     }
-  } else if (encoding == MediaTypeEncodings::PASSIVE_CU) {
+  } else if (
+      encoding == MediaTypeEncodings::PASSIVE_CU &&
+      !moduleCapabilities_.empty()) {
+    // For Passive DAC cables that don't get programmed, just return the media
+    // interface code for the first capability.
+    auto firstModuleCapability = moduleCapabilities_.begin();
     for (int lane = 0; lane < mediaInterface.size(); lane++) {
       mediaInterface[lane].lane() = lane;
       MediaInterfaceUnion media;
-      media.passiveCuCode_ref() = PassiveCuMediaInterfaceCode::COPPER;
+      media.passiveCuCode_ref() = static_cast<PassiveCuMediaInterfaceCode>(
+          firstModuleCapability->moduleMediaInterface);
       // FIXME: Remove CR8_400G hardcoding and derive this from number of
       // lanes/host electrical interface instead
       mediaInterface[lane].code() = MediaInterfaceCode::CR8_400G;
