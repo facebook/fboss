@@ -755,24 +755,16 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
   NDPOptions ndpOptions;
   ndpOptions.sourceLinkLayerAddress.emplace(srcMac);
 
+  auto portDescriptor = getInterfacePortDescriptorToReach(sw, targetIP);
+
+  auto portDescriptorStr =
+      portDescriptor.has_value() ? portDescriptor.value().str() : "None";
   auto vlanIDStr = vlanID.has_value()
       ? folly::to<std::string>(static_cast<int>(vlanID.value()))
       : "None";
   XLOG(DBG4) << "sending neighbor solicitation for " << targetIP << " on vlan "
-             << vlanIDStr << " solicitedNodeAddr: " << solicitedNodeAddr.str();
-
-  std::optional<PortDescriptor> portDescriptor{std::nullopt};
-  auto switchType = sw->getSwitchInfoTable().l3SwitchType();
-  if (switchType == cfg::SwitchType::VOQ) {
-    // VOQ switches don't use VLANs (no broadcast domain).
-    // Find the port to send out the pkt with pipeline bypass on.
-    auto portID = getInterfacePortToReach(sw->getState(), targetIP);
-    if (portID.has_value()) {
-      portDescriptor = PortDescriptor(portID.value());
-      XLOG(DBG4) << "Sending neighbor solicitation for " << targetIP.str()
-                 << " Using port: " << portDescriptor.value().str();
-    }
-  }
+             << vlanIDStr << " solicitedNodeAddr: " << solicitedNodeAddr.str()
+             << " using port: " << portDescriptorStr;
 
   sendNeighborSolicitation(
       sw,
