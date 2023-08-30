@@ -224,7 +224,7 @@ int main(int argc, char* argv[]) {
   }
 
   if (FLAGS_tx_disable || FLAGS_tx_enable) {
-    QsfpUtilTx txCtrl(bus, ports, evb);
+    QsfpUtilTx txCtrl(i2cInfo, portNames, evb);
     return txCtrl.setTxDisable();
   }
 

@@ -19,8 +19,8 @@ namespace facebook::fboss {
 class QsfpUtilTx {
  public:
   QsfpUtilTx(
-      TransceiverI2CApi* bus,
-      const std::vector<unsigned int>& ports,
+      DirectI2cInfo i2cInfo,
+      const std::vector<std::string>& portNames,
       folly::EventBase& evb);
   ~QsfpUtilTx() {}
   int setTxDisable();
@@ -34,17 +34,18 @@ class QsfpUtilTx {
       const TransceiverManagementInterface moduleType,
       uint8_t& data);
   int setTxDisableDirect();
-  bool setSffTxDisableDirect(unsigned int port);
-  bool setCmisTxDisableDirect(unsigned int port);
+  bool setSffTxDisableDirect(unsigned int module);
+  bool setCmisTxDisableDirect(unsigned int module);
   int setTxDisableViaService();
-  bool setCmisTxDisableViaService(const std::vector<int32_t>& ports);
-  bool setSffTxDisableViaService(const std::vector<int32_t>& ports);
+  bool setCmisTxDisableViaService(const std::vector<int32_t>& modules);
+  bool setSffTxDisableViaService(const std::vector<int32_t>& modules);
 
   static const uint8_t maxSffChannels = 4;
   static const uint8_t maxCmisChannels = 8;
 
   TransceiverI2CApi* bus_;
-  const std::vector<unsigned int>& ports_;
+  TransceiverManager* wedgeManager_;
+  std::vector<unsigned int> moduleIds_;
   folly::EventBase& evb_;
   bool disableTx_;
 };
