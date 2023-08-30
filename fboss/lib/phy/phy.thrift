@@ -109,6 +109,11 @@ enum Side {
   LINE = 2,
 }
 
+enum Direction {
+  TRANSMIT = 1,
+  RECEIVE = 2,
+}
+
 enum Loopback {
   ON = 1,
   OFF = 2,
@@ -468,7 +473,7 @@ union LinkSnapshot {
 struct TxRxEnableRequest {
   1: string portName;
   2: PortComponent component;
-  3: bool txOrRx; // true = Transmit lanes(s), false = Receive lane(s)
+  3: Direction direction;
   4: bool enable;
   5: optional i32 laneMask;
 }

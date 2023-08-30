@@ -1945,7 +1945,7 @@ std::vector<phy::TxRxEnableResponse> TransceiverManager::setInterfaceTxRx(
     auto component = txRxEnableRequest.component().value();
     auto enable = txRxEnableRequest.enable().value();
     auto channelMask = txRxEnableRequest.laneMask().to_optional();
-    auto txOrRx = txRxEnableRequest.txOrRx().value();
+    auto direction = txRxEnableRequest.direction().value();
 
     auto swPort = getPortIDByPortName(portName);
     if (!swPort.has_value()) {
@@ -1958,7 +1958,7 @@ std::vector<phy::TxRxEnableResponse> TransceiverManager::setInterfaceTxRx(
           "TransceiverManager::setInterfaceTxRx - component not supported {}",
           apache::thrift::util::enumNameSafe(component)));
     }
-    if (!txOrRx) {
+    if (direction == phy::Direction::RECEIVE) {
       throw FbossError(folly::sformat(
           "setInterfaceTxRx: Transceiver Rx lane control not implemented for {}",
           portName));
