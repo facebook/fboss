@@ -566,6 +566,20 @@ class SwSwitch : public HwSwitchCallback {
       std::unique_ptr<TxPacket> pkt,
       std::optional<PortDescriptor> port) noexcept;
 
+  /*
+   * Pipeline bypass if portDescriptor it set.
+   * Pipeline lookup otherwise.
+   *
+   * VOQ switches will use pipeline bypass (no VLANs, no bcast domain).
+   * NPU switches will use pipeline bypass or pipeline lookup.
+   *
+   * Egress queue to send the packet out from can be set for pipeline bypass.
+   */
+  void sendPacketAsync(
+      std::unique_ptr<TxPacket> pkt,
+      std::optional<PortDescriptor> portDescriptor = std::nullopt,
+      std::optional<uint8_t> queueId = std::nullopt) noexcept;
+
   void sendPacketOutOfPortAsync(
       std::unique_ptr<TxPacket> pkt,
       PortID portID,

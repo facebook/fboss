@@ -1768,6 +1768,11 @@ void SwSwitch::sendNetworkControlPacketAsync(
   }
 }
 
+void SwSwitch::sendPacketAsync(
+    std::unique_ptr<TxPacket> pkt,
+    std::optional<PortDescriptor> portDescriptor,
+    std::optional<uint8_t> queueId) noexcept {}
+
 void SwSwitch::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> pkt,
     PortID portID,
