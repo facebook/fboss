@@ -281,6 +281,10 @@ class QsfpModule : public Transceiver {
       std::optional<uint8_t> userChannelMask,
       bool enable) override;
 
+  bool isTransceiverFeatureSupported(TransceiverFeature feature);
+
+  bool isTransceiverFeatureSupported(TransceiverFeature feature, bool lineSide);
+
  protected:
   /* Qsfp Internal Implementation */
   std::unique_ptr<TransceiverImpl> qsfpImpl_;

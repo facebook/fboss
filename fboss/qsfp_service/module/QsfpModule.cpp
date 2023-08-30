@@ -472,6 +472,68 @@ bool QsfpModule::setTransceiverTx(
   }
 }
 
+/*
+ * isTransceiverFeatureSupported
+ *
+ * This function returns the supported status of transceiver features
+ */
+bool QsfpModule::isTransceiverFeatureSupported(TransceiverFeature feature) {
+  auto lockedDiagsCapability = diagsCapability_.rlock();
+  if (auto diagsCapability = *lockedDiagsCapability) {
+    switch (feature) {
+      case TransceiverFeature::NONE:
+        return false;
+      case TransceiverFeature::VDM:
+        return diagsCapability->vdm().value();
+      case TransceiverFeature::CDB:
+        return diagsCapability->cdb().value();
+      case TransceiverFeature::PRBS:
+      case TransceiverFeature::LOOPBACK:
+      case TransceiverFeature::TX_DISABLE:
+        throw FbossError(
+            "Line/System side info is needed to check feature support in Transceiver");
+      default:
+        return false;
+    }
+  }
+  return false;
+}
+
+/*
+ * isTransceiverFeatureSupported
+ *
+ * This function returns the supported status of transceiver features for line
+ * or system side
+ */
+bool QsfpModule::isTransceiverFeatureSupported(
+    TransceiverFeature feature,
+    bool lineSide) {
+  auto lockedDiagsCapability = diagsCapability_.rlock();
+  if (auto diagsCapability = *lockedDiagsCapability) {
+    switch (feature) {
+      case TransceiverFeature::NONE:
+        return false;
+      case TransceiverFeature::VDM:
+      case TransceiverFeature::CDB:
+        throw FbossError(
+            "Line/System side info is not needed to check Feature support in Transceiver");
+        return diagsCapability->cdb().value();
+      case TransceiverFeature::PRBS:
+        return lineSide ? diagsCapability->prbsLine().value()
+                        : diagsCapability->prbsSystem().value();
+      case TransceiverFeature::LOOPBACK:
+        return lineSide ? diagsCapability->loopbackLine().value()
+                        : diagsCapability->loopbackSystem().value();
+      case TransceiverFeature::TX_DISABLE:
+        return lineSide ? diagsCapability->txOutputControl().value()
+                        : diagsCapability->rxOutputControl().value();
+      default:
+        return false;
+    }
+  }
+  return false;
+}
+
 prbs::InterfacePrbsState QsfpModule::getPortPrbsState(phy::Side side) {
   prbs::InterfacePrbsState state;
   auto getPrbsStateLambda = [&state, side, this]() {

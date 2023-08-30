@@ -247,6 +247,15 @@ enum CmisModuleState {
   FAULT = 0x5,
 }
 
+enum TransceiverFeature {
+  NONE = 0,
+  VDM = 0x0001,
+  CDB = 0x0002,
+  PRBS = 0x0004,
+  LOOPBACK = 0x0008,
+  TX_DISABLE = 0x0010,
+}
+
 // TODO(joseph5wu) Will deprecate this enum and start using MediaInterfaceCode
 enum SMFMediaInterfaceCode {
   UNKNOWN = 0x0,
