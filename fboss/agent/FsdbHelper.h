@@ -13,4 +13,5 @@ std::vector<std::string> switchStateRootPath();
 
 std::string getOperPath(const std::vector<std::string>& tokens);
 void printOperDeltaPaths(const fsdb::OperDelta& operDelta);
+std::string getOperPath(const std::vector<std::string>& tokens);
 } // namespace facebook::fboss

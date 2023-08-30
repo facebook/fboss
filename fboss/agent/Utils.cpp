@@ -13,6 +13,7 @@
 #include <sys/syscall.h>
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/FsdbHelper.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/ArpTable.h"
@@ -36,6 +37,7 @@
 
 #include <re2/re2.h>
 #include <chrono>
+#include <exception>
 #include <iostream>
 
 using folly::IPAddressV4;
@@ -583,10 +585,16 @@ std::optional<fsdb::OperDelta> OperDeltaFilter::filter(
     auto iter = matchersCache_.find(matcherStr);
     if (iter == matchersCache_.end()) {
       // if matcher string is not found in cache, cache it.
-      HwSwitchMatcher matcher(matcherStr);
-      auto result =
-          matchersCache_.emplace(matcherStr, HwSwitchMatcher(matcherStr));
-      iter = result.first;
+      try {
+        HwSwitchMatcher matcher(matcherStr);
+        auto emplaced =
+            matchersCache_.emplace(matcherStr, HwSwitchMatcher(matcherStr));
+        iter = emplaced.first;
+      } catch (const FbossError& error) {
+        XLOG(ERR) << "Error while processing an oper delta token for path : "
+                  << getOperPath(path) << ": " << error.what();
+        continue;
+      }
     }
     CHECK(iter != matchersCache_.end());
     if (iter->second.has(switchId_)) {
