@@ -407,7 +407,7 @@ class TestRunner(abc.ABC):
                 filter = filter.replace(".*", "*")
                 filter = filter.replace("[46]", "?")
                 filter = filter.replace("[01]", "?")
-
+                filter = filter.replace("$", "")
                 output = subprocess.check_output(
                     [self._get_test_binary_name(), "--gtest_list_tests", filter]
                 )
@@ -427,6 +427,7 @@ class TestRunner(abc.ABC):
                 filter = filter.replace(".*", "*")
                 filter = filter.replace("[46]", "?")
                 filter = filter.replace("[01]", "?")
+                filter = filter.replace("$", "")
             output = subprocess.check_output(
                 [self._get_test_binary_name(), "--gtest_list_tests", filter]
             )
