@@ -1144,6 +1144,7 @@ class SwSwitch : public HwSwitchCallback {
       publishedStatsToFsdbAt_;
   std::unique_ptr<MultiSwitchPacketStreamMap> packetStreamMap_;
   std::unique_ptr<SwSwitchWarmBootHelper> swSwitchWarmbootHelper_;
+  std::atomic<std::chrono::time_point<std::chrono::steady_clock>>
+      lastPacketRxTime_{std::chrono::steady_clock::time_point::min()};
 };
-
 } // namespace facebook::fboss

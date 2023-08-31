@@ -1401,6 +1401,13 @@ void SwSwitch::setPortStatusCounter(PortID port, bool up) {
 void SwSwitch::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept {
   PortID port = pkt->getSrcPort();
   try {
+    auto now = steady_clock::now();
+    auto lastTime = lastPacketRxTime_.load();
+    if (lastTime != std::chrono::steady_clock::time_point::min()) {
+      auto delay = duration_cast<milliseconds>(now - lastPacketRxTime_.load());
+      stats()->packetRxHeartbeatDelay(delay.count());
+    }
+    lastPacketRxTime_ = now;
     handlePacket(std::move(pkt));
   } catch (const std::exception& ex) {
     portStats(port)->pktError();
