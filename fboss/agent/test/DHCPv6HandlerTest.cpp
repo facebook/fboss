@@ -504,125 +504,6 @@ TxMatchFn checkDHCPV6RelayForward(
 
 } // unnamed   namespace
 
-// Test to inject a DHCPV6 agent's Relay-Forward RX packet and validate the
-// relayed TX packet
-TEST(DHCPv6HandlerTest, DHCPV6RelayForward) {
-  // Setup SwitchState
-  auto handle = setupTestHandle();
-  auto sw = handle->getSw();
-
-  // Initialize the injection packet fields for a DHCPV6 server RelayForward
-
-  // Client VLAN
-  auto vlanID = kClientVlan;
-  const string vlan = kClientVlanStr;
-  // Router MAC (dummy)
-  auto senderMac = MockPlatform::getMockLocalMac().toString();
-  std::replace(senderMac.begin(), senderMac.end(), ':', ' ');
-  // Server IP
-  auto senderIP = kDhcpV6RelaySrcStr;
-  // Dest Router MAC
-  auto targetMac = MockPlatform::getMockLocalMac().toString();
-  std::replace(targetMac.begin(), targetMac.end(), ':', ' ');
-  // Relay VLAN IP
-  auto targetIP = kDhcpV6RelayStr;
-  // UDP Src and Dst ports for DHCPV6 relay forward
-  const string srcPort = "02 23";
-  const string dstPort = "02 23";
-  // DHCPV6 Relay-Forward Message Header
-  const string dhcpV6Hdr =
-      // DHCPV6 Relay-Forward Message: type (12), Hopcount (1)
-      "0c 01" +
-      // DHCPV6 Relay-Forward Message: LinkAddr
-      kVlanInterfaceIPStr +
-      // DHCPV6 Relay-Forward Message: PeerAddr
-      kDhcpV6ClientLocalIpStr;
-
-  // DHCPV6 Relay-Forward-Request Message Content
-  const string dhcpV6RequestMessage =
-      // DHCPV6 Request Message: type (3), txnId (dummy 0x571958)
-      "03 57 19 58"
-      // DHCPV6 Request Message options
-      // DHCPv6 Client Identifier: Option (0001),  Length (14 = 000e)
-      "00 01 00 0e"
-      // DHCPv6 Client Identifier: Value (dummy: 000100011c38262d080027fe8f95)
-      "00 01 00 01 1c 38 26 2d 08 00 27 fe 8f 95"
-      // DHCPv6 Server Identifier: Option (0002),  Length (14 = 000e)
-      "00 01 00 0e"
-      // DHCPv6 Server Identifier: Value (dummy: 000100011c3825e8080027d410bb)
-      "00 01 00 01 1c 38 25 e8 08 00 27 d4 10 bb"
-      // DHCPv6 IA for Non-temporary Address: Option (0003), Length (40 = 0028)
-      "00 03 00 28"
-      // DHCPv6 IA for Non-temporary Address: Value (dummy)
-      "11 88 88 d3 00 00 00 00 00 00 00 00 00 05 00 18 20 01 05 04 07 12"
-      "00 02 00 00 00 00 00 00 02 01 00 00 69 78 00 00 a8 c0"
-      // DHCPv6 DNS recursive name server: Option (0017), Length (32 = 0020)
-      "00 17 00 20"
-      // DHCPv6 DNS recursive name server: Value (dummy)
-      "fc 00 05 04 07 00 00 00 00 10 00 32 00 00 00 18 fc"
-      "00 05 04 07 00 00 00 00 10 00 32 00 00 00 20";
-
-  // DHCPV6 Relay-Forward Message options
-  const string dhcpV6RelayMessageOptions =
-      // InterfaceID: Option (18 = 0012),  Length (6 = 0006), Value (Client's
-      // MAC)
-      "00 12 00 06" + kClientMacStr +
-      // Relay Message: Option (9 = 0009),  Length (120= 0078), Value (DHCP
-      // Request)
-      "00 09 00 78" +
-      // Relay Message: Value (DHCP Request Message Content)
-      dhcpV6RequestMessage;
-
-  constexpr auto dhcpV6HdrSize = 168; // computed for hdr and options above
-
-  // Cache the current stats
-  CounterCache counters(sw);
-
-  // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
-
-  // Construct the DHCPV6 reply packet structure to pass into the validator
-  // routine
-  auto dhcp6RawPktBuf =
-      PktUtil::parseHexData(dhcpV6Hdr + dhcpV6RelayMessageOptions);
-  Cursor cDhcp(&dhcp6RawPktBuf);
-  DHCPv6Packet dhcp6RelayFwdMsg;
-  dhcp6RelayFwdMsg.parse(&cDhcp);
-
-  // Setup the validator function for the response packet
-  EXPECT_SWITCHED_PKT(
-      sw,
-      "DHCPV6 Relay Forward",
-      checkDHCPV6RelayForward(
-          MockPlatform::getMockLocalMac(),
-          MockPlatform::getMockLocalMac(),
-          kClientVlan,
-          kDhcpV6RelaySrc,
-          kDhcpV6Relay,
-          DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT,
-          DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT,
-          dhcp6RelayFwdMsg));
-
-  // Inject the test packet
-  sendDHCPV6Packet(
-      handle.get(),
-      senderMac,
-      targetMac,
-      vlan,
-      senderIP,
-      targetIP,
-      srcPort,
-      dstPort,
-      dhcpV6HdrSize,
-      dhcpV6Hdr,
-      dhcpV6RelayMessageOptions);
-
-  // Validate the counter cache update
-  counters.update();
-  counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV6.pkt.sum", 1);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
-}
-
 // Test to inject a bad DHCPV6 request RX packet and validate that it's
 // dropped and counted
 TEST(DHCPv6HandlerTest, DHCPV6BadRequest) {
@@ -1421,7 +1302,124 @@ TYPED_TEST(DHCPv6HandlerVlanIntfTest, SrcDHCPV6RelayReply) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
 }
 
-TYPED_TEST(DHCPv6HandlerVlanIntfTest, DHCPV6RelayForward) {}
+// Test to inject a DHCPV6 agent's Relay-Forward RX packet and validate the
+// relayed TX packet
+TYPED_TEST(DHCPv6HandlerVlanIntfTest, DHCPV6RelayForward) {
+  // Setup SwitchState
+  auto handle = setupTestHandle(this->isIntfNbrTable());
+  auto sw = handle->getSw();
+
+  // Initialize the injection packet fields for a DHCPV6 server RelayForward
+
+  // Client VLAN
+  auto vlanID = kClientVlan;
+  const string vlan = kClientVlanStr;
+  // Router MAC (dummy)
+  auto senderMac = MockPlatform::getMockLocalMac().toString();
+  std::replace(senderMac.begin(), senderMac.end(), ':', ' ');
+  // Server IP
+  auto senderIP = kDhcpV6RelaySrcStr;
+  // Dest Router MAC
+  auto targetMac = MockPlatform::getMockLocalMac().toString();
+  std::replace(targetMac.begin(), targetMac.end(), ':', ' ');
+  // Relay VLAN IP
+  auto targetIP = kDhcpV6RelayStr;
+  // UDP Src and Dst ports for DHCPV6 relay forward
+  const string srcPort = "02 23";
+  const string dstPort = "02 23";
+  // DHCPV6 Relay-Forward Message Header
+  const string dhcpV6Hdr =
+      // DHCPV6 Relay-Forward Message: type (12), Hopcount (1)
+      "0c 01" +
+      // DHCPV6 Relay-Forward Message: LinkAddr
+      kVlanInterfaceIPStr +
+      // DHCPV6 Relay-Forward Message: PeerAddr
+      kDhcpV6ClientLocalIpStr;
+
+  // DHCPV6 Relay-Forward-Request Message Content
+  const string dhcpV6RequestMessage =
+      // DHCPV6 Request Message: type (3), txnId (dummy 0x571958)
+      "03 57 19 58"
+      // DHCPV6 Request Message options
+      // DHCPv6 Client Identifier: Option (0001),  Length (14 = 000e)
+      "00 01 00 0e"
+      // DHCPv6 Client Identifier: Value (dummy: 000100011c38262d080027fe8f95)
+      "00 01 00 01 1c 38 26 2d 08 00 27 fe 8f 95"
+      // DHCPv6 Server Identifier: Option (0002),  Length (14 = 000e)
+      "00 01 00 0e"
+      // DHCPv6 Server Identifier: Value (dummy: 000100011c3825e8080027d410bb)
+      "00 01 00 01 1c 38 25 e8 08 00 27 d4 10 bb"
+      // DHCPv6 IA for Non-temporary Address: Option (0003), Length (40 = 0028)
+      "00 03 00 28"
+      // DHCPv6 IA for Non-temporary Address: Value (dummy)
+      "11 88 88 d3 00 00 00 00 00 00 00 00 00 05 00 18 20 01 05 04 07 12"
+      "00 02 00 00 00 00 00 00 02 01 00 00 69 78 00 00 a8 c0"
+      // DHCPv6 DNS recursive name server: Option (0017), Length (32 = 0020)
+      "00 17 00 20"
+      // DHCPv6 DNS recursive name server: Value (dummy)
+      "fc 00 05 04 07 00 00 00 00 10 00 32 00 00 00 18 fc"
+      "00 05 04 07 00 00 00 00 10 00 32 00 00 00 20";
+
+  // DHCPV6 Relay-Forward Message options
+  const string dhcpV6RelayMessageOptions =
+      // InterfaceID: Option (18 = 0012),  Length (6 = 0006), Value (Client's
+      // MAC)
+      "00 12 00 06" + kClientMacStr +
+      // Relay Message: Option (9 = 0009),  Length (120= 0078), Value (DHCP
+      // Request)
+      "00 09 00 78" +
+      // Relay Message: Value (DHCP Request Message Content)
+      dhcpV6RequestMessage;
+
+  constexpr auto dhcpV6HdrSize = 168; // computed for hdr and options above
+
+  // Cache the current stats
+  CounterCache counters(sw);
+
+  // Sending an DHCP request should not trigger state update
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+
+  // Construct the DHCPV6 reply packet structure to pass into the validator
+  // routine
+  auto dhcp6RawPktBuf =
+      PktUtil::parseHexData(dhcpV6Hdr + dhcpV6RelayMessageOptions);
+  Cursor cDhcp(&dhcp6RawPktBuf);
+  DHCPv6Packet dhcp6RelayFwdMsg;
+  dhcp6RelayFwdMsg.parse(&cDhcp);
+
+  // Setup the validator function for the response packet
+  EXPECT_SWITCHED_PKT(
+      sw,
+      "DHCPV6 Relay Forward",
+      checkDHCPV6RelayForward(
+          MockPlatform::getMockLocalMac(),
+          MockPlatform::getMockLocalMac(),
+          kClientVlan,
+          kDhcpV6RelaySrc,
+          kDhcpV6Relay,
+          DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT,
+          DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT,
+          dhcp6RelayFwdMsg));
+
+  // Inject the test packet
+  sendDHCPV6Packet(
+      handle.get(),
+      senderMac,
+      targetMac,
+      vlan,
+      senderIP,
+      targetIP,
+      srcPort,
+      dstPort,
+      dhcpV6HdrSize,
+      dhcpV6Hdr,
+      dhcpV6RelayMessageOptions);
+
+  // Validate the counter cache update
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV6.pkt.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
+}
 
 TYPED_TEST(DHCPv6HandlerVlanIntfTest, DHCPV6BadRequest) {}
 
