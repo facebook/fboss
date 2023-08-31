@@ -176,6 +176,35 @@ unique_ptr<HwTestHandle> setupTestHandle(bool isIntfNbrTable) {
   return createTestHandle(testState(isIntfNbrTable));
 }
 
+shared_ptr<SwitchState> testStateNAT(bool isIntfNbrTable) {
+  auto state = testState(isIntfNbrTable);
+  auto switchSettings = std::make_shared<SwitchSettings>();
+  switchSettings->setDhcpV4RelaySrc(kDhcpV4RelaySrc);
+  switchSettings->setDhcpV4ReplySrc(kDhcpV4ReplySrc);
+  auto multiSwitchSwitchSettings = std::make_shared<MultiSwitchSettings>();
+  multiSwitchSwitchSettings->addNode(
+      HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(0)})
+          .matcherString(),
+      switchSettings);
+  state->resetSwitchSettings(multiSwitchSwitchSettings);
+  addSwitchInfo(
+      state,
+      cfg::SwitchType::NPU,
+      0, /*SwitchId*/
+      cfg::AsicType::ASIC_TYPE_MOCK,
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
+      0, /* switchIndex*/
+      std::nullopt, /* sysPort min*/
+      std::nullopt, /*sysPort max()*/
+      MockPlatform::getMockLocalMac().toString());
+  return state;
+}
+
+unique_ptr<HwTestHandle> setupTestHandleNAT(bool isIntfNbrTable) {
+  return createTestHandle(testStateNAT(isIntfNbrTable));
+}
+
 void sendDHCPPacket(
     HwTestHandle* handle,
     string srcMac,
