@@ -474,46 +474,6 @@ TxMatchFn checkDHCPReply(
 
 } // unnamed   namespace
 
-TEST(DHCPv4HandlerTest, DHCPBadRequest) {
-  auto handle = setupTestHandle();
-  auto sw = handle->getSw();
-  VlanID vlanID(1);
-  const string senderIP = "00 00 00 00";
-  auto senderMac = "00 00 00 00 00 01";
-  const string targetMac = "ff ff ff ff ff ff";
-  const string targetIP = "ff ff ff ff";
-  const string bootpOp = "03"; // Bad bootp message type
-  const string vlan = "00 01";
-  const string srcPort = "00 43";
-  const string dstPort = "00 44";
-  // DHCP Message type (option = 53, len = 1, message type = DHCP discover
-  const string dhcpMsgTypeOpt = "35  01  01";
-  // Cache the current stats
-  CounterCache counters(sw);
-
-  // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
-  EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
-
-  sendDHCPPacket(
-      handle.get(),
-      senderMac,
-      targetMac,
-      vlan,
-      senderIP,
-      targetIP,
-      srcPort,
-      dstPort,
-      bootpOp,
-      dhcpMsgTypeOpt);
-
-  counters.update();
-  counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.pkt.sum", 1);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.bad_pkt.sum", 1);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.drop_pkt.sum", 1);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
-}
-
 template <bool enableIntfNbrTable>
 struct EnableIntfNbrTable {
   static constexpr auto intfNbrTable = enableIntfNbrTable;
@@ -755,4 +715,42 @@ TYPED_TEST(DHCPv4HandlerVlanIntfTest, RelaySrcDHCPReply) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
 }
 
-TYPED_TEST(DHCPv4HandlerVlanIntfTest, DHCPBadRequest) {}
+TYPED_TEST(DHCPv4HandlerVlanIntfTest, DHCPBadRequest) {
+  auto handle = setupTestHandle(this->isIntfNbrTable());
+  auto sw = handle->getSw();
+  VlanID vlanID(1);
+  const string senderIP = "00 00 00 00";
+  auto senderMac = "00 00 00 00 00 01";
+  const string targetMac = "ff ff ff ff ff ff";
+  const string targetIP = "ff ff ff ff";
+  const string bootpOp = "03"; // Bad bootp message type
+  const string vlan = "00 01";
+  const string srcPort = "00 43";
+  const string dstPort = "00 44";
+  // DHCP Message type (option = 53, len = 1, message type = DHCP discover
+  const string dhcpMsgTypeOpt = "35  01  01";
+  // Cache the current stats
+  CounterCache counters(sw);
+
+  // Sending an DHCP request should not trigger state update
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
+
+  sendDHCPPacket(
+      handle.get(),
+      senderMac,
+      targetMac,
+      vlan,
+      senderIP,
+      targetIP,
+      srcPort,
+      dstPort,
+      bootpOp,
+      dhcpMsgTypeOpt);
+
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.pkt.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.bad_pkt.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.drop_pkt.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
+}
