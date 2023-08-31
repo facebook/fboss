@@ -447,7 +447,7 @@ TxMatchFn checkDHCPV6RelayForward(
       dhcpV6ReqRelayFwdCheckPayload);
 }
 
-} // unnamed   namespace
+} // unnamed namespace
 
 template <bool enableIntfNbrTable>
 struct EnableIntfNbrTable {
@@ -457,8 +457,16 @@ struct EnableIntfNbrTable {
 using NbrTableTypes =
     ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
 
+/*
+ * DHCPv6HandlerTest tests validate DHCP relay with VLANs and Interfaces for
+ * NPU switches.
+ *
+ * TODO(skhare) Validate for VOQ switches as well. Since VOQ switches don't
+ * support VLAns. That will involve modifying the pkts in these tests to not
+ * carry VLANs.
+ */
 template <typename EnableIntfNbrTableT>
-class DHCPv6HandlerVlanIntfTest : public ::testing::Test {
+class DHCPv6HandlerTest : public ::testing::Test {
   static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
 
   void SetUp() override {
@@ -471,11 +479,11 @@ class DHCPv6HandlerVlanIntfTest : public ::testing::Test {
   }
 };
 
-TYPED_TEST_SUITE(DHCPv6HandlerVlanIntfTest, NbrTableTypes);
+TYPED_TEST_SUITE(DHCPv6HandlerTest, NbrTableTypes);
 
 // Test to inject a DHCPV6 client's Request RX packet and validate RelayForward
 // TX packet
-TYPED_TEST(DHCPv6HandlerVlanIntfTest, DHCPV6Request) {
+TYPED_TEST(DHCPv6HandlerTest, DHCPV6Request) {
   // Setup SwitchState
   auto handle = setupTestHandle(this->isIntfNbrTable());
   auto sw = handle->getSw();
@@ -565,7 +573,7 @@ TYPED_TEST(DHCPv6HandlerVlanIntfTest, DHCPV6Request) {
 
 // Test to inject a DHCPV6 client's RX Request packet with a override-MAC
 // and validate RelayForward TX packet
-TYPED_TEST(DHCPv6HandlerVlanIntfTest, RelayOverrideDHCPV6Request) {
+TYPED_TEST(DHCPv6HandlerTest, RelayOverrideDHCPV6Request) {
   // Setup SwitchState
   auto handle = setupTestHandle(this->isIntfNbrTable());
   auto sw = handle->getSw();
@@ -658,7 +666,7 @@ TYPED_TEST(DHCPv6HandlerVlanIntfTest, RelayOverrideDHCPV6Request) {
 
 // Test to inject a DHCPV6 client's RX Request packet with a NAT configuration
 // and validate RelayForward TX packet
-TYPED_TEST(DHCPv6HandlerVlanIntfTest, RelaySrcDHCPV6Request) {
+TYPED_TEST(DHCPv6HandlerTest, RelaySrcDHCPV6Request) {
   // Setup SwitchState for NAT scenario with translation addresses
   auto handle = setupTestHandleNAT(this->isIntfNbrTable());
   auto sw = handle->getSw();
@@ -751,7 +759,7 @@ TYPED_TEST(DHCPv6HandlerVlanIntfTest, RelaySrcDHCPV6Request) {
 
 // Test to inject a DHCPV6 server's Relay-Reply RX packet and validate the
 // relayed TX Reply packet to client
-TYPED_TEST(DHCPv6HandlerVlanIntfTest, DHCPV6RelayReply) {
+TYPED_TEST(DHCPv6HandlerTest, DHCPV6RelayReply) {
   // Setup SwitchState
   auto handle = setupTestHandle(this->isIntfNbrTable());
   auto sw = handle->getSw();
@@ -858,7 +866,7 @@ TYPED_TEST(DHCPv6HandlerVlanIntfTest, DHCPV6RelayReply) {
 
 // Test to inject a DHCPV6 server's Relay-Reply RX packet with a NAT
 // configuration and validate the relayed TX Reply packet to client
-TYPED_TEST(DHCPv6HandlerVlanIntfTest, SrcDHCPV6RelayReply) {
+TYPED_TEST(DHCPv6HandlerTest, SrcDHCPV6RelayReply) {
   // Setup SwitchState for NAT scenario with translation addresses
   auto handle = setupTestHandleNAT(this->isIntfNbrTable());
   auto sw = handle->getSw();
@@ -968,7 +976,7 @@ TYPED_TEST(DHCPv6HandlerVlanIntfTest, SrcDHCPV6RelayReply) {
 
 // Test to inject a DHCPV6 agent's Relay-Forward RX packet and validate the
 // relayed TX packet
-TYPED_TEST(DHCPv6HandlerVlanIntfTest, DHCPV6RelayForward) {
+TYPED_TEST(DHCPv6HandlerTest, DHCPV6RelayForward) {
   // Setup SwitchState
   auto handle = setupTestHandle(this->isIntfNbrTable());
   auto sw = handle->getSw();
@@ -1087,7 +1095,7 @@ TYPED_TEST(DHCPv6HandlerVlanIntfTest, DHCPV6RelayForward) {
 
 // Test to inject a bad DHCPV6 request RX packet and validate that it's
 // dropped and counted
-TYPED_TEST(DHCPv6HandlerVlanIntfTest, DHCPV6BadRequest) {
+TYPED_TEST(DHCPv6HandlerTest, DHCPV6BadRequest) {
   // Setup SwitchState
   auto handle = setupTestHandle(this->isIntfNbrTable());
   auto sw = handle->getSw();
@@ -1167,7 +1175,7 @@ TYPED_TEST(DHCPv6HandlerVlanIntfTest, DHCPV6BadRequest) {
 
 // Test to inject a bad DHCPV6 server's Relay-Reply RX packet and validate that
 // it's dropped and counted
-TYPED_TEST(DHCPv6HandlerVlanIntfTest, DHCPV6DropRelayReply) {
+TYPED_TEST(DHCPv6HandlerTest, DHCPV6DropRelayReply) {
   // Setup SwitchState
   auto handle = setupTestHandle(this->isIntfNbrTable());
   auto sw = handle->getSw();
@@ -1266,7 +1274,7 @@ TYPED_TEST(DHCPv6HandlerVlanIntfTest, DHCPV6DropRelayReply) {
 
 // Test to inject a bad DHCPV6 server's Relay-Forward RX packet and validate
 // that it's dropped and counted
-TYPED_TEST(DHCPv6HandlerVlanIntfTest, DHCPV6BadRelayForward) {
+TYPED_TEST(DHCPv6HandlerTest, DHCPV6BadRelayForward) {
   // Setup SwitchState
   auto handle = setupTestHandle(this->isIntfNbrTable());
   auto sw = handle->getSw();
