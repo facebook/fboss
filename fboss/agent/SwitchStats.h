@@ -278,6 +278,10 @@ class SwitchStats : public boost::noncopyable {
     neighborCacheHeartbeatDelay_.addValue(value);
   }
 
+  void packetRxHeartbeatDelay(int delay) {
+    packetRxHeartbeatDelay_.addValue(delay);
+  }
+
   void bgEventBacklog(int value) {
     bgEventBacklog_.addValue(value);
   }
@@ -528,6 +532,10 @@ class SwitchStats : public boost::noncopyable {
    * Fboss packet Tx thread heartbeat delay (ms)
    */
   TLHistogram packetTxHeartbeatDelay_;
+  /**
+   * Fboss packet Rx thread heartbeat delay (ms)
+   */
+  TLHistogram packetRxHeartbeatDelay_;
   /**
    * LACP thread heartbeat delay in milliseconds
    */

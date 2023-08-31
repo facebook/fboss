@@ -111,6 +111,15 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           AVG,
           50,
           100),
+      packetRxHeartbeatDelay_(
+          map,
+          kCounterPrefix + "packetRx_heartbeat_delay.ms",
+          100,
+          0,
+          30000,
+          AVG,
+          50,
+          100),
       lacpHeartbeatDelay_(
           map,
           kCounterPrefix + "lacp_heartbeat_delay.ms",
