@@ -474,41 +474,6 @@ TxMatchFn checkDHCPReply(
 
 } // unnamed   namespace
 
-TEST(DHCPv4HandlerOverrideTest, DHCPRequest) {
-  auto handle = setupTestHandle();
-  auto sw = handle->getSw();
-  VlanID vlanID(1);
-  const char* senderIP = "00 00 00 00";
-  // Client mac
-  auto senderMac = kClientMacOverride.toString();
-  std::replace(senderMac.begin(), senderMac.end(), ':', ' ');
-  const string targetMac = "ff ff ff ff ff ff";
-  const string targetIP = "ff ff ff ff";
-  const string bootpOp = "01";
-  const string vlan = "00 01";
-  const string srcPort = "00 43";
-  const string dstPort = "00 44";
-  // DHCP Message type (option = 53, len = 1, message type = DHCP discover
-  const string dhcpMsgTypeOpt = "35  01  01";
-
-  // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
-
-  EXPECT_SWITCHED_PKT(sw, "DHCP request", checkDHCPReq(kDhcpOverride));
-
-  sendDHCPPacket(
-      handle.get(),
-      senderMac,
-      targetMac,
-      vlan,
-      senderIP,
-      targetIP,
-      srcPort,
-      dstPort,
-      bootpOp,
-      dhcpMsgTypeOpt);
-}
-
 TEST(DHCPv4RelaySrcTest, DHCPRequest) {
   auto handle = setupTestHandleNAT();
   auto sw = handle->getSw();
@@ -755,7 +720,40 @@ TYPED_TEST(DHCPv4HandlerVlanIntfTest, DHCPRequest) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
 }
 
-TYPED_TEST(DHCPv4HandlerVlanIntfTest, RelayOverrideDHCPRequest) {}
+TYPED_TEST(DHCPv4HandlerVlanIntfTest, RelayOverrideDHCPRequest) {
+  auto handle = setupTestHandle(this->isIntfNbrTable());
+  auto sw = handle->getSw();
+  VlanID vlanID(1);
+  const char* senderIP = "00 00 00 00";
+  // Client mac
+  auto senderMac = kClientMacOverride.toString();
+  std::replace(senderMac.begin(), senderMac.end(), ':', ' ');
+  const string targetMac = "ff ff ff ff ff ff";
+  const string targetIP = "ff ff ff ff";
+  const string bootpOp = "01";
+  const string vlan = "00 01";
+  const string srcPort = "00 43";
+  const string dstPort = "00 44";
+  // DHCP Message type (option = 53, len = 1, message type = DHCP discover
+  const string dhcpMsgTypeOpt = "35  01  01";
+
+  // Sending an DHCP request should not trigger state update
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+
+  EXPECT_SWITCHED_PKT(sw, "DHCP request", checkDHCPReq(kDhcpOverride));
+
+  sendDHCPPacket(
+      handle.get(),
+      senderMac,
+      targetMac,
+      vlan,
+      senderIP,
+      targetIP,
+      srcPort,
+      dstPort,
+      bootpOp,
+      dhcpMsgTypeOpt);
+}
 
 TYPED_TEST(DHCPv4HandlerVlanIntfTest, RelaySrcDHCPRequest) {}
 
