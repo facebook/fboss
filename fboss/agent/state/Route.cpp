@@ -68,8 +68,8 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
     rd.counterID() = *fwd().getCounterID();
   }
   // add class id
-  if (fwd().getClassID().has_value()) {
-    rd.classID() = *fwd().getClassID();
+  if (getClassID().has_value()) {
+    rd.classID() = *getClassID();
   }
   return rd;
 }
