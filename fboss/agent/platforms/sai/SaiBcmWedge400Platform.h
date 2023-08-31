@@ -18,6 +18,7 @@ class SaiBcmWedge400Platform : public SaiBcmPlatform {
  public:
   explicit SaiBcmWedge400Platform(
       std::unique_ptr<PlatformProductInfo> productInfo,
+      PlatformType type,
       folly::MacAddress localMac,
       const std::string& platformMappingStr);
   ~SaiBcmWedge400Platform() override;
@@ -46,6 +47,7 @@ class SaiBcmWedge400Platform : public SaiBcmPlatform {
   void initLEDs() override;
 
   std::unique_ptr<PlatformMapping> createWedge400PlatformMapping(
+      PlatformType type,
       const std::string& platformMappingStr);
 
  private:

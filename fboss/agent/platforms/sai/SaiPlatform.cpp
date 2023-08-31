@@ -239,7 +239,9 @@ void SaiPlatform::initPorts() {
         platformMode == PlatformType::PLATFORM_GALAXY_LC ||
         platformMode == PlatformType::PLATFORM_GALAXY_FC) {
       saiPort = std::make_unique<SaiBcmGalaxyPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_WEDGE400) {
+    } else if (
+        platformMode == PlatformType::PLATFORM_WEDGE400 ||
+        platformMode == PlatformType::PLATFORM_WEDGE400_GRANDTETON) {
       saiPort = std::make_unique<SaiBcmWedge400PlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_DARWIN) {
       saiPort = std::make_unique<SaiBcmDarwinPlatformPort>(portId, this);

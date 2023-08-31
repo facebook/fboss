@@ -56,9 +56,12 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
   } else if (productInfo->getType() == PlatformType::PLATFORM_GALAXY_LC) {
     return std::make_unique<SaiBcmGalaxyLCPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
-  } else if (productInfo->getType() == PlatformType::PLATFORM_WEDGE400) {
+  } else if (
+      productInfo->getType() == PlatformType::PLATFORM_WEDGE400 ||
+      productInfo->getType() == PlatformType::PLATFORM_WEDGE400_GRANDTETON) {
+    auto type = productInfo->getType();
     return std::make_unique<SaiBcmWedge400Platform>(
-        std::move(productInfo), localMac, platformMappingStr);
+        std::move(productInfo), type, localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_DARWIN) {
     return std::make_unique<SaiBcmDarwinPlatform>(
         std::move(productInfo), localMac, platformMappingStr);

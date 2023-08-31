@@ -173,6 +173,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_FAKE_WEDGE40;
     } else if (FLAGS_mode == "wedge400") {
       type_ = PlatformType::PLATFORM_WEDGE400;
+    } else if (FLAGS_mode == "wedge400_grandteton") {
+      type_ = PlatformType::PLATFORM_WEDGE400_GRANDTETON;
     } else if (FLAGS_mode == "fuji") {
       type_ = PlatformType::PLATFORM_FUJI;
     } else if (FLAGS_mode == "elbert") {

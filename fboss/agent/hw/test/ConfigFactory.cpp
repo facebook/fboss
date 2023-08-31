@@ -77,6 +77,7 @@ bool isRswPlatform(PlatformType type) {
       PlatformType::PLATFORM_WEDGE,
       PlatformType::PLATFORM_WEDGE100,
       PlatformType::PLATFORM_WEDGE400,
+      PlatformType::PLATFORM_WEDGE400_GRANDTETON,
       PlatformType::PLATFORM_WEDGE400C};
   return rswPlatforms.find(type) != rswPlatforms.end();
 }
