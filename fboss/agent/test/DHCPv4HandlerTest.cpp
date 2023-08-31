@@ -70,66 +70,6 @@ const IPAddressV4 kDhcpV4RelaySrc("88.0.0.1");
 // have to match an interface (fboss55) IP address
 const IPAddressV4 kDhcpV4ReplySrc("10.0.55.1");
 
-shared_ptr<SwitchState> testState() {
-  auto state = testStateA();
-  const auto& vlans = state->getVlans();
-  // Set up an arp response entry for VLAN 1, 10.0.0.1,
-  // so that we can detect the packet to 10.0.0.1 is for myself
-  auto respTable1 = make_shared<ArpResponseTable>();
-  respTable1->setEntry(
-      kVlanInterfaceIP, MockPlatform::getMockLocalMac(), InterfaceID(1));
-  vlans->getNode(VlanID(1))->setArpResponseTable(respTable1);
-  vlans->getNode(VlanID(1))->setDhcpV4Relay(kDhcpV4Relay);
-  DhcpV4OverrideMap overrides;
-  overrides[kClientMacOverride] = kDhcpOverride;
-  vlans->getNode(VlanID(1))->setDhcpV4RelayOverrides(overrides);
-  addSwitchInfo(
-      state,
-      cfg::SwitchType::NPU,
-      0, /*SwitchId*/
-      cfg::AsicType::ASIC_TYPE_MOCK,
-      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
-      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
-      0, /* switchIndex*/
-      std::nullopt, /* sysPort min*/
-      std::nullopt, /*sysPort max()*/
-      MockPlatform::getMockLocalMac().toString());
-  return state;
-}
-
-shared_ptr<SwitchState> testStateNAT() {
-  auto state = testState();
-  auto switchSettings = std::make_shared<SwitchSettings>();
-  switchSettings->setDhcpV4RelaySrc(kDhcpV4RelaySrc);
-  switchSettings->setDhcpV4ReplySrc(kDhcpV4ReplySrc);
-  auto multiSwitchSwitchSettings = std::make_shared<MultiSwitchSettings>();
-  multiSwitchSwitchSettings->addNode(
-      HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(0)})
-          .matcherString(),
-      switchSettings);
-  state->resetSwitchSettings(multiSwitchSwitchSettings);
-  addSwitchInfo(
-      state,
-      cfg::SwitchType::NPU,
-      0, /*SwitchId*/
-      cfg::AsicType::ASIC_TYPE_MOCK,
-      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
-      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
-      0, /* switchIndex*/
-      std::nullopt, /* sysPort min*/
-      std::nullopt, /*sysPort max()*/
-      MockPlatform::getMockLocalMac().toString());
-  return state;
-}
-
-unique_ptr<HwTestHandle> setupTestHandle() {
-  return createTestHandle(testState());
-}
-
-unique_ptr<HwTestHandle> setupTestHandleNAT() {
-  return createTestHandle(testStateNAT());
-}
-
 template <typename VlansOrIntfsT, typename NodeIDT>
 shared_ptr<SwitchState> testStateHelper(
     std::shared_ptr<SwitchState> state,
