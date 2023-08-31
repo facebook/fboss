@@ -16,6 +16,9 @@ TransceiverInfo getTransceiverInfo(cfg::PortProfileID profileID) {
   info.present() = true;
   info.transceiver() = TransceiverType::QSFP;
 
+  info.tcvrState()->present() = true;
+  info.tcvrState()->transceiver() = TransceiverType::QSFP;
+
   Cable cable;
   auto mediaType = getMediaType(profileID);
   cable.transmitterTech() = mediaType;
@@ -25,6 +28,7 @@ TransceiverInfo getTransceiverInfo(cfg::PortProfileID profileID) {
     cable.length() = 2000;
   }
   info.cable() = cable;
+  info.tcvrState()->cable() = cable;
 
   // Prepare mediaInterface and managementInterface
   auto speed = getSpeed(profileID);
@@ -51,6 +55,7 @@ TransceiverInfo getTransceiverInfo(cfg::PortProfileID profileID) {
   }
 
   info.transceiverManagementInterface() = mgmtInterface;
+  info.tcvrState()->transceiverManagementInterface() = mgmtInterface;
   TransceiverSettings settings;
   std::vector<MediaInterfaceId> mediaInterfaces;
   for (auto i = 0; i < 4; i++) {
@@ -61,6 +66,7 @@ TransceiverInfo getTransceiverInfo(cfg::PortProfileID profileID) {
   }
   settings.mediaInterface() = mediaInterfaces;
   info.settings() = settings;
+  info.tcvrState()->settings() = settings;
 
   return info;
 }
