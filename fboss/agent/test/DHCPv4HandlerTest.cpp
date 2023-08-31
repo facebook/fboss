@@ -655,3 +655,39 @@ TEST(DHCPv4HandlerTest, DHCPBadRequest) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.drop_pkt.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
 }
+
+template <bool enableIntfNbrTable>
+struct EnableIntfNbrTable {
+  static constexpr auto intfNbrTable = enableIntfNbrTable;
+};
+
+using NbrTableTypes =
+    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
+
+template <typename EnableIntfNbrTableT>
+class DHCPv4HandlerVlanIntfTest : public ::testing::Test {
+  static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
+
+  void SetUp() override {
+    FLAGS_intf_nbr_tables = isIntfNbrTable();
+  }
+
+ public:
+  bool isIntfNbrTable() const {
+    return intfNbrTable == true;
+  }
+};
+
+TYPED_TEST_SUITE(DHCPv4HandlerVlanIntfTest, NbrTableTypes);
+
+TYPED_TEST(DHCPv4HandlerVlanIntfTest, DHCPRequest) {}
+
+TYPED_TEST(DHCPv4HandlerVlanIntfTest, RelayOverrideDHCPRequest) {}
+
+TYPED_TEST(DHCPv4HandlerVlanIntfTest, RelaySrcDHCPRequest) {}
+
+TYPED_TEST(DHCPv4HandlerVlanIntfTest, DHCPReply) {}
+
+TYPED_TEST(DHCPv4HandlerVlanIntfTest, RelaySrcDHCPReply) {}
+
+TYPED_TEST(DHCPv4HandlerVlanIntfTest, DHCPBadRequest) {}
