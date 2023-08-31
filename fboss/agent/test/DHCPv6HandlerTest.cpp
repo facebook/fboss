@@ -1327,3 +1327,45 @@ TEST(DHCPv6HandlerTest, DHCPV6BadRelayForward) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV6.drop_pkt.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
 }
+
+template <bool enableIntfNbrTable>
+struct EnableIntfNbrTable {
+  static constexpr auto intfNbrTable = enableIntfNbrTable;
+};
+
+using NbrTableTypes =
+    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
+
+template <typename EnableIntfNbrTableT>
+class DHCPv6HandlerVlanIntfTest : public ::testing::Test {
+  static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
+
+  void SetUp() override {
+    FLAGS_intf_nbr_tables = isIntfNbrTable();
+  }
+
+ public:
+  bool isIntfNbrTable() const {
+    return intfNbrTable == true;
+  }
+};
+
+TYPED_TEST_SUITE(DHCPv6HandlerVlanIntfTest, NbrTableTypes);
+
+TYPED_TEST(DHCPv6HandlerVlanIntfTest, DHCPV6Request) {}
+
+TYPED_TEST(DHCPv6HandlerVlanIntfTest, RelayOverrideDHCPV6Request) {}
+
+TYPED_TEST(DHCPv6HandlerVlanIntfTest, RelaySrcDHCPV6Request) {}
+
+TYPED_TEST(DHCPv6HandlerVlanIntfTest, DHCPV6RelayReply) {}
+
+TYPED_TEST(DHCPv6HandlerVlanIntfTest, SrcDHCPV6RelayReply) {}
+
+TYPED_TEST(DHCPv6HandlerVlanIntfTest, DHCPV6RelayForward) {}
+
+TYPED_TEST(DHCPv6HandlerVlanIntfTest, DHCPV6BadRequest) {}
+
+TYPED_TEST(DHCPv6HandlerVlanIntfTest, DHCPV6DropRelayReply) {}
+
+TYPED_TEST(DHCPv6HandlerVlanIntfTest, DHCPV6BadRelayForward) {}
