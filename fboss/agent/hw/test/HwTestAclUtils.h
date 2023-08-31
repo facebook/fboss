@@ -124,4 +124,6 @@ uint64_t getAclInOutBytes(
     cfg::AclStage aclStage = cfg::AclStage::INGRESS,
     const std::optional<std::string>& aclTableName = std::nullopt);
 
+std::vector<cfg::CounterType> getAclCounterTypes(const HwSwitch* hwSwitch);
+
 } // namespace facebook::fboss::utility

@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include "fboss/agent/state/SwitchState.h"
 
@@ -214,6 +215,21 @@ void renameAclStat(
     const std::string& newCounterName) {
   delAclStat(cfg, matcher, oldCounterName);
   addAclStat(cfg, matcher, newCounterName);
+}
+
+std::vector<cfg::CounterType> getAclCounterTypes(const HwSwitch* hwSwitch) {
+  // At times, it is non-trivial for SAI implementations to support enabling
+  // bytes counters only or packet counters only. In such cases, SAI
+  // implementations enable bytes as well as packet counters even if only
+  // one of the two is enabled. FBOSS use case does not require enabling
+  // only one, but always enables both packets and bytes counters. Thus,
+  // enable both in the test. Reference: CS00012271364
+  if (hwSwitch->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::SEPARATE_BYTE_AND_PACKET_ACL_COUNTER)) {
+    return {cfg::CounterType::PACKETS};
+  } else {
+    return {cfg::CounterType::BYTES, cfg::CounterType::PACKETS};
+  }
 }
 
 } // namespace facebook::fboss::utility
