@@ -362,6 +362,23 @@ class TestRunner(abc.ABC):
             test_summary.append(line)
         return test_summary
 
+    def _process_test_filter(self, filter):
+        if filter:
+            filter = "--gtest_filter=" + filter
+            # --gtest_filter matches based on wildcard, while our bad test list is
+            # using regular expression. So, probperly convert regular expressions
+            # like HwRouteTest/[01].StaticIp2MplsRoutes, HwLoadBalancerTestV[46].Ucmp.*
+            filter = filter.replace(".*", "*")
+            filter = filter.replace("[46]", "?")
+            filter = filter.replace("[01]", "?")
+            filter = filter.replace("$", "")
+        output = subprocess.check_output(
+            [self._get_test_binary_name(), "--gtest_list_tests", filter]
+        )
+        # Print all the matching tests
+        print(output.decode("utf-8"))
+        return self._parse_list_test_output(output)
+
     def _get_tests_to_run(self):
         # GTEST filter syntax is -
         #   --gtest_filter=<include_regexes>-<exclude_regexes>
@@ -400,40 +417,15 @@ class TestRunner(abc.ABC):
                     if (known_bad_tests_regex is not None)
                     else filter
                 )
-                filter = "--gtest_filter=" + filter
-                # --gtest_filter matches based on wildcard, while our bad test list is
-                # using regular expression. So, probperly convert regular expressions
-                # like HwRouteTest/[01].StaticIp2MplsRoutes, HwLoadBalancerTestV[46].Ucmp.*
-                filter = filter.replace(".*", "*")
-                filter = filter.replace("[46]", "?")
-                filter = filter.replace("[01]", "?")
-                filter = filter.replace("$", "")
-                output = subprocess.check_output(
-                    [self._get_test_binary_name(), "--gtest_list_tests", filter]
-                )
-
-                # Print all the matching tests
-                print(output.decode("utf-8"))
-                tests_to_run.extend(self._parse_list_test_output(output))
+                tests = self._process_test_filter(filter)
+                tests_to_run.extend(tests)
         else:
             known_bad_tests_regex = self._get_known_bad_test_regex()
             filter = ""
             if known_bad_tests_regex:
                 filter = "*:-" + known_bad_tests_regex
-                filter = "--gtest_filter=" + filter
-                # --gtest_filter matches based on wildcard, while our bad test list is
-                # using regular expression. So, probperly convert regular expressions
-                # like HwRouteTest/[01].StaticIp2MplsRoutes, HwLoadBalancerTestV[46].Ucmp.*
-                filter = filter.replace(".*", "*")
-                filter = filter.replace("[46]", "?")
-                filter = filter.replace("[01]", "?")
-                filter = filter.replace("$", "")
-            output = subprocess.check_output(
-                [self._get_test_binary_name(), "--gtest_list_tests", filter]
-            )
-            # Print all the matching tests
-            print(output.decode("utf-8"))
-            tests_to_run.extend(self._parse_list_test_output(output))
+            tests = self._process_test_filter(filter)
+            tests_to_run.extend(tests)
         return tests_to_run
 
     def _restart_bcmsim(self, asic):
