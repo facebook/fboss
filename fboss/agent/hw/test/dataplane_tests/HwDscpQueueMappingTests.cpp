@@ -51,8 +51,8 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
       auto kAclName = "acl1";
       auto newCfg{initialConfig()};
       utility::addDscpAclToCfg(&newCfg, kAclName, kDscp());
-      std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
-      utility::addTrafficCounter(&newCfg, kCounterName(), counterTypes);
+      utility::addTrafficCounter(
+          &newCfg, kCounterName(), utility::getAclCounterTypes(getHwSwitch()));
       utility::addQueueMatcher(&newCfg, kAclName, kQueueId(), kCounterName());
 
       applyNewConfig(newCfg);
@@ -108,7 +108,11 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
       cfg::Ttl ttl; // Match packets with hop limit > 127
       std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
       acl->ttl() = ttl;
-      utility::addAclStat(&newCfg, "acl0", kCounterName());
+      utility::addAclStat(
+          &newCfg,
+          "acl0",
+          kCounterName(),
+          utility::getAclCounterTypes(getHwSwitch()));
 
       applyNewConfig(newCfg);
     };
@@ -161,8 +165,8 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
 
       // ACL
       utility::addDscpAclToCfg(&newCfg, "acl0", kDscp());
-      std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
-      utility::addTrafficCounter(&newCfg, kCounterName(), counterTypes);
+      utility::addTrafficCounter(
+          &newCfg, kCounterName(), utility::getAclCounterTypes(getHwSwitch()));
       utility::addQueueMatcher(&newCfg, "acl0", kQueueIdAcl(), kCounterName());
 
       applyNewConfig(newCfg);
