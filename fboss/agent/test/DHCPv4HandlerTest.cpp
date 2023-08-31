@@ -412,7 +412,7 @@ TxMatchFn checkDHCPReply(
       dstMac, vlan, srcIp, dstIp, srcPort, dstPort, giaddr, optionsToCheck);
 }
 
-} // unnamed   namespace
+} // unnamed namespace
 
 template <bool enableIntfNbrTable>
 struct EnableIntfNbrTable {
@@ -422,8 +422,16 @@ struct EnableIntfNbrTable {
 using NbrTableTypes =
     ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
 
+/*
+ * DHCPv4HandlerTest tests validate DHCP relay with VLANs and Interfaces for
+ * NPU switches.
+ *
+ * TODO(skhare) Validate for VOQ switches as well. Since VOQ switches don't
+ * support VLAns. That will involve modifying the pkts in these tests to not
+ * carry VLANs.
+ */
 template <typename EnableIntfNbrTableT>
-class DHCPv4HandlerVlanIntfTest : public ::testing::Test {
+class DHCPv4HandlerTest : public ::testing::Test {
   static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
 
   void SetUp() override {
@@ -436,9 +444,9 @@ class DHCPv4HandlerVlanIntfTest : public ::testing::Test {
   }
 };
 
-TYPED_TEST_SUITE(DHCPv4HandlerVlanIntfTest, NbrTableTypes);
+TYPED_TEST_SUITE(DHCPv4HandlerTest, NbrTableTypes);
 
-TYPED_TEST(DHCPv4HandlerVlanIntfTest, DHCPRequest) {
+TYPED_TEST(DHCPv4HandlerTest, DHCPRequest) {
   auto handle = setupTestHandle(this->isIntfNbrTable());
   auto sw = handle->getSw();
 
@@ -480,7 +488,7 @@ TYPED_TEST(DHCPv4HandlerVlanIntfTest, DHCPRequest) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
 }
 
-TYPED_TEST(DHCPv4HandlerVlanIntfTest, RelayOverrideDHCPRequest) {
+TYPED_TEST(DHCPv4HandlerTest, RelayOverrideDHCPRequest) {
   auto handle = setupTestHandle(this->isIntfNbrTable());
   auto sw = handle->getSw();
   VlanID vlanID(1);
@@ -515,7 +523,7 @@ TYPED_TEST(DHCPv4HandlerVlanIntfTest, RelayOverrideDHCPRequest) {
       dhcpMsgTypeOpt);
 }
 
-TYPED_TEST(DHCPv4HandlerVlanIntfTest, RelaySrcDHCPRequest) {
+TYPED_TEST(DHCPv4HandlerTest, RelaySrcDHCPRequest) {
   auto handle = setupTestHandleNAT(this->isIntfNbrTable());
   auto sw = handle->getSw();
   VlanID vlanID(1);
@@ -551,7 +559,7 @@ TYPED_TEST(DHCPv4HandlerVlanIntfTest, RelaySrcDHCPRequest) {
       dhcpMsgTypeOpt);
 }
 
-TYPED_TEST(DHCPv4HandlerVlanIntfTest, DHCPReply) {
+TYPED_TEST(DHCPv4HandlerTest, DHCPReply) {
   auto handle = setupTestHandle(this->isIntfNbrTable());
   auto sw = handle->getSw();
   VlanID vlanID(55);
@@ -602,7 +610,7 @@ TYPED_TEST(DHCPv4HandlerVlanIntfTest, DHCPReply) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
 }
 
-TYPED_TEST(DHCPv4HandlerVlanIntfTest, RelaySrcDHCPReply) {
+TYPED_TEST(DHCPv4HandlerTest, RelaySrcDHCPReply) {
   auto handle = setupTestHandleNAT(this->isIntfNbrTable());
   auto sw = handle->getSw();
   VlanID vlanID(55);
@@ -655,7 +663,7 @@ TYPED_TEST(DHCPv4HandlerVlanIntfTest, RelaySrcDHCPReply) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
 }
 
-TYPED_TEST(DHCPv4HandlerVlanIntfTest, DHCPBadRequest) {
+TYPED_TEST(DHCPv4HandlerTest, DHCPBadRequest) {
   auto handle = setupTestHandle(this->isIntfNbrTable());
   auto sw = handle->getSw();
   VlanID vlanID(1);
