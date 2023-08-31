@@ -269,6 +269,7 @@
         "tm_port_header_type_in_241.BCM8886X": "INJECTED_2",
         "tm_port_header_type_out_241.BCM8886X": "ETH",
         "fabric_connect_mode.BCM8886X": "FE",
+        "fabric_distributed_system_enable": "1",
         "port_init_speed_fabric.BCM8886X": "106250",
         "port_init_speed_xe13.BCM8886X": "10000",
         "port_init_speed_xe14.BCM8886X": "10000",
