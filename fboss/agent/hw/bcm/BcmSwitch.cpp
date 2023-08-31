@@ -1470,7 +1470,14 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImplLocked(
 
   // Any neighbor removals, and modify appliedState if some changes fail to
   // apply
+  //
+  // If FLAGS_intf_nbr_table is false, intf nbr table processing is no-op
+  // If FLAGS_intf_nbr_table is true, vlan nbr table processing is no-op
+  //
+  // TODO(skhare) Once FLAGS_intf_nbr_table = true is rolled out, remove the
+  // vlan neighbor processing.
   processNeighborDelta(delta.getVlansDelta(), &appliedState, REMOVED);
+  processNeighborDelta(delta.getIntfsDelta(), &appliedState, REMOVED);
 
   // delete all interface not existing anymore. that should stop
   // all traffic on that interface now
@@ -1517,6 +1524,15 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImplLocked(
 
   // Any neighbor additions/changes, and modify appliedState if some changes
   // fail to apply
+  //
+  // If FLAGS_intf_nbr_table is false, intf nbr table processing is no-op
+  // If FLAGS_intf_nbr_table is true, vlan nbr table processing is no-op
+  //
+  // TODO(skhare) Once FLAGS_intf_nbr_table = true is rolled out, remove the
+  // vlan neighbor processing.
+  processNeighborDelta(delta.getIntfsDelta(), &appliedState, ADDED);
+  processNeighborDelta(delta.getIntfsDelta(), &appliedState, CHANGED);
+
   processNeighborDelta(delta.getVlansDelta(), &appliedState, ADDED);
   processNeighborDelta(delta.getVlansDelta(), &appliedState, CHANGED);
 
