@@ -146,6 +146,46 @@ unique_ptr<HwTestHandle> setupTestHandleNAT() {
   return createTestHandle(testStateNAT());
 }
 
+template <typename VlansOrIntfsT, typename NodeIDT>
+shared_ptr<SwitchState> testStateHelper(
+    std::shared_ptr<SwitchState> state,
+    VlansOrIntfsT vlansOrIntfs,
+    NodeIDT nodeId) {
+  // Configure DHCPV6 relay settings for the test VLAN / Intf
+  vlansOrIntfs->getNode(nodeId)->setDhcpV6Relay(kDhcpV6Relay);
+  DhcpV6OverrideMap overrides;
+  overrides[kClientMacOverride] = kDhcpV6RelayOverride;
+  vlansOrIntfs->getNode(nodeId)->setDhcpV6RelayOverrides(overrides);
+  addSwitchInfo(
+      state,
+      cfg::SwitchType::NPU,
+      0, /*SwitchId*/
+      cfg::AsicType::ASIC_TYPE_MOCK,
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
+      0, /* switchIndex*/
+      std::nullopt, /* sysPort min*/
+      std::nullopt, /*sysPort max()*/
+      MockPlatform::getMockLocalMac().toString());
+  return state;
+}
+
+shared_ptr<SwitchState> testState(bool isIntfNbrTable) {
+  auto state = testStateA();
+
+  if (isIntfNbrTable) {
+    const auto& intfs = state->getInterfaces();
+    return testStateHelper(state, intfs, InterfaceID(1));
+  } else {
+    const auto& vlans = state->getVlans();
+    return testStateHelper(state, vlans, VlanID(1));
+  }
+}
+
+unique_ptr<HwTestHandle> setupTestHandle(bool isIntfNbrTable) {
+  return createTestHandle(testState(isIntfNbrTable));
+}
+
 // Generic function to inject a RX DHCPV6 packet to the handler
 void sendDHCPV6Packet(
     HwTestHandle* handle,
