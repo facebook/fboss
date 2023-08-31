@@ -474,57 +474,6 @@ TxMatchFn checkDHCPReply(
 
 } // unnamed   namespace
 
-TEST(DHCPv4HandlerTest, DHCPReply) {
-  auto handle = setupTestHandle();
-  auto sw = handle->getSw();
-  VlanID vlanID(55);
-  // Client mac
-  auto senderMac = MockPlatform::getMockLocalMac().toString();
-  std::replace(senderMac.begin(), senderMac.end(), ':', ' ');
-  auto targetMac = kClientMac.toString();
-  std::replace(targetMac.begin(), targetMac.end(), ':', ' ');
-  // DHCP server IP
-  const char* senderIP = "14 14 14 14";
-  // Cpu IP
-  const string targetIP = "0a 00 00 01";
-  const string bootpOp = "02";
-  const string vlan = "00 01";
-  const string srcPort = "00 44";
-  const string dstPort = "00 43";
-  // DHCP Message type (option = 53, len = 1, message type = DHCP offer
-  const string dhcpMsgTypeOpt = "35  01  02";
-  // Client IP addr, should be used as destination IP for DHCP replies
-  const string yiaddr = "0a 00 00 0a";
-  // Agent option should get stripped from reply
-  const string agentOption = "52 02 00 00";
-
-  // Cache the current stats
-  CounterCache counters(sw);
-
-  // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
-
-  EXPECT_SWITCHED_PKT(sw, "DHCP reply", checkDHCPReply());
-
-  sendDHCPPacket(
-      handle.get(),
-      senderMac,
-      targetMac,
-      vlan,
-      senderIP,
-      targetIP,
-      srcPort,
-      dstPort,
-      bootpOp,
-      dhcpMsgTypeOpt,
-      agentOption,
-      yiaddr);
-
-  counters.update();
-  counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.pkt.sum", 1);
-  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
-}
-
 TEST(DHCPv4ReplySrcTest, DHCPReply) {
   auto handle = setupTestHandleNAT();
   auto sw = handle->getSw();
@@ -755,7 +704,56 @@ TYPED_TEST(DHCPv4HandlerVlanIntfTest, RelaySrcDHCPRequest) {
       dhcpMsgTypeOpt);
 }
 
-TYPED_TEST(DHCPv4HandlerVlanIntfTest, DHCPReply) {}
+TYPED_TEST(DHCPv4HandlerVlanIntfTest, DHCPReply) {
+  auto handle = setupTestHandle(this->isIntfNbrTable());
+  auto sw = handle->getSw();
+  VlanID vlanID(55);
+  // Client mac
+  auto senderMac = MockPlatform::getMockLocalMac().toString();
+  std::replace(senderMac.begin(), senderMac.end(), ':', ' ');
+  auto targetMac = kClientMac.toString();
+  std::replace(targetMac.begin(), targetMac.end(), ':', ' ');
+  // DHCP server IP
+  const char* senderIP = "14 14 14 14";
+  // Cpu IP
+  const string targetIP = "0a 00 00 01";
+  const string bootpOp = "02";
+  const string vlan = "00 01";
+  const string srcPort = "00 44";
+  const string dstPort = "00 43";
+  // DHCP Message type (option = 53, len = 1, message type = DHCP offer
+  const string dhcpMsgTypeOpt = "35  01  02";
+  // Client IP addr, should be used as destination IP for DHCP replies
+  const string yiaddr = "0a 00 00 0a";
+  // Agent option should get stripped from reply
+  const string agentOption = "52 02 00 00";
+
+  // Cache the current stats
+  CounterCache counters(sw);
+
+  // Sending an DHCP request should not trigger state update
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+
+  EXPECT_SWITCHED_PKT(sw, "DHCP reply", checkDHCPReply());
+
+  sendDHCPPacket(
+      handle.get(),
+      senderMac,
+      targetMac,
+      vlan,
+      senderIP,
+      targetIP,
+      srcPort,
+      dstPort,
+      bootpOp,
+      dhcpMsgTypeOpt,
+      agentOption,
+      yiaddr);
+
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.pkt.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
+}
 
 TYPED_TEST(DHCPv4HandlerVlanIntfTest, RelaySrcDHCPReply) {}
 
