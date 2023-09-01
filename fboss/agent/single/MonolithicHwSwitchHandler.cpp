@@ -210,7 +210,7 @@ multiswitch::StateOperDelta MonolithicHwSwitchHandler::getNextStateOperDelta(
   throw FbossError("Not supported");
 }
 
-void MonolithicHwSwitchHandler::cancelOperDeltaRequest() {
+void MonolithicHwSwitchHandler::notifyHwSwitchGracefulExit() {
   throw FbossError("Not supported");
 }
 

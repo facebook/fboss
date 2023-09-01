@@ -35,7 +35,6 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
-#include <folly/concurrency/UnboundedQueue.h>
 #include <folly/experimental/FunctionScheduler.h>
 #include <folly/gen/Base.h>
 #include <memory>
@@ -156,27 +155,46 @@ class HwEnsembleMultiSwitchThriftHandler
       int64_t /*switchId*/,
       std::unique_ptr<multiswitch::StateOperDelta> /*prevOperResult*/)
       override {
-    // use a timeout to prevent indefinte wait during shutdown in test. In
-    // swswitch this will be handled by cancellation on shutdown.
-    // TODO - replace this with an explcit signal to cancel blocking wait
-    auto gotOper = operQueue_.try_dequeue_for(std::chrono::seconds(5));
-    if (gotOper) {
-      operDelta = std::move(gotOper.value());
+    std::unique_lock<std::mutex> lk(operDeltaMutex_);
+    if (!nextOperReady_) {
+      operDeltaCV_.wait(
+          lk, [this] { return nextOperReady_ || operDeltaCancelled_; });
     }
+    if (nextOperReady_) {
+      operDelta = nextOperDelta_;
+      nextOperReady_ = false;
+      return;
+    }
+    // return empty delta if cancelled
+    operDelta.operDelta() = fsdb::OperDelta();
+    return;
   }
 
   void enqueueOperDelta(multiswitch::StateOperDelta delta) {
-    operQueue_.enqueue(std::move(delta));
+    {
+      std::unique_lock<std::mutex> lk(operDeltaMutex_);
+      if (nextOperReady_) {
+        operDeltaCV_.wait(lk, [this] { return !nextOperReady_; });
+      }
+      nextOperDelta_ = std::move(delta);
+      nextOperReady_ = true;
+    }
+    operDeltaCV_.notify_one();
+  }
+
+  void gracefulExit(int64_t /*switchId*/) override {
+    std::unique_lock<std::mutex> lk(operDeltaMutex_);
+    operDeltaCancelled_ = true;
+    operDeltaCV_.notify_one();
   }
 
  private:
   HwSwitchEnsemble* ensemble_;
-  folly::UnboundedQueue<
-      multiswitch::StateOperDelta,
-      true /*SingleProducer*/,
-      true /* SingleConsumer */,
-      true /*MayBlock*/>
-      operQueue_;
+  multiswitch::StateOperDelta nextOperDelta_;
+  bool nextOperReady_{false};
+  bool operDeltaCancelled_{false};
+  std::mutex operDeltaMutex_;
+  std::condition_variable operDeltaCV_;
 
   std::unique_ptr<apache::thrift::ServerStreamPublisher<multiswitch::TxPacket>>
       txStream_{nullptr};
@@ -186,6 +204,9 @@ HwSwitchEnsemble::HwSwitchEnsemble(const Features& featuresDesired)
     : featuresDesired_(featuresDesired) {}
 
 HwSwitchEnsemble::~HwSwitchEnsemble() {
+  if (thriftSyncer_) {
+    thriftSyncer_->stop();
+  }
   if (thriftThread_) {
     thriftThread_->join();
   }

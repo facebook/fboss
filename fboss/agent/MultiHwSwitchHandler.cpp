@@ -367,13 +367,17 @@ multiswitch::StateOperDelta MultiHwSwitchHandler::getNextStateOperDelta(
   return iter->second->getNextStateOperDelta(std::move(prevOperResult));
 }
 
-void MultiHwSwitchHandler::cancelOperDeltaRequest(int64_t switchId) {
+void MultiHwSwitchHandler::notifyHwSwitchGracefulExit(int64_t switchId) {
   if (!isRunning()) {
     throw FbossError("multi hw switch syncer not started");
   }
   auto iter = hwSwitchSyncers_.find(SwitchID(switchId));
   CHECK(iter != hwSwitchSyncers_.end());
-  return iter->second->cancelOperDeltaRequest();
+
+  // cancel any pending long poll request
+  iter->second->notifyHwSwitchGracefulExit();
+
+  // TODO - remove hwswitch from switch state update list
 }
 
 } // namespace facebook::fboss

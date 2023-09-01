@@ -104,7 +104,7 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
   multiswitch::StateOperDelta getNextStateOperDelta(
       std::unique_ptr<multiswitch::StateOperDelta> prevOperResult) override;
 
-  void cancelOperDeltaRequest(void) override;
+  void notifyHwSwitchGracefulExit() override;
 
  private:
   std::condition_variable stateUpdateCV_;

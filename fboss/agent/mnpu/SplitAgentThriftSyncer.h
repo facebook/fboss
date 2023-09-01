@@ -60,5 +60,6 @@ class SplitAgentThriftSyncer : public HwSwitchCallback {
   std::unique_ptr<OperDeltaSyncer> operDeltaClient_;
   std::unique_ptr<FdbEventSyncer> fdbEventSinkClient_;
   std::unique_ptr<RxPktEventSyncer> rxPktEventSinkClient_;
+  bool isRunning_{false};
 };
 } // namespace facebook::fboss

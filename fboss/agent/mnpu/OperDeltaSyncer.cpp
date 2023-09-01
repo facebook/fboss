@@ -97,6 +97,10 @@ void OperDeltaSyncer::operSyncLoop() {
 void OperDeltaSyncer::stopOperSync() {
   // stop any new requests
   operSyncRunning_.store(false);
+  // send exit notification to server with short timeout
+  apache::thrift::RpcOptions options;
+  options.setTimeout(std::chrono::milliseconds(1000));
+  operSyncClient_->sync_gracefulExit(options, switchId_);
   if (operSyncThread_) {
     operSyncThread_->join();
   }

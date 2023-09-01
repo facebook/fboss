@@ -44,7 +44,7 @@ class MultiHwSwitchHandler {
       int64_t switchId,
       std::unique_ptr<multiswitch::StateOperDelta> prevOperResult);
 
-  void cancelOperDeltaRequest(int64_t switchId);
+  void notifyHwSwitchGracefulExit(int64_t switchId);
 
   std::shared_ptr<SwitchState> stateChanged(
       const StateDelta& delta,

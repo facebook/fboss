@@ -121,7 +121,7 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
   multiswitch::StateOperDelta getNextStateOperDelta(
       std::unique_ptr<multiswitch::StateOperDelta> prevOperResult) override;
 
-  void cancelOperDeltaRequest() override;
+  void notifyHwSwitchGracefulExit() override;
 
  private:
   Platform* platform_;

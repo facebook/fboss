@@ -77,7 +77,8 @@ int hwAgentMain(
       {FLAGS_hwagent_port_base + FLAGS_switchIndex},
       true /*setupSSL*/);
 
-  SplitHwAgentSignalHandler signalHandler(&eventBase, []() {});
+  SplitHwAgentSignalHandler signalHandler(
+      &eventBase, [&thriftSyncer]() { thriftSyncer->stop(); });
 
   restart_time::mark(RestartEvent::INITIALIZED);
 

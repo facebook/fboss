@@ -120,6 +120,7 @@ void SplitAgentThriftSyncer::unregisterStateObserver(
 void SplitAgentThriftSyncer::start() {
   // Start any required services
   operDeltaClient_->startOperSync();
+  isRunning_ = true;
 }
 
 void SplitAgentThriftSyncer::stop() {
@@ -129,9 +130,12 @@ void SplitAgentThriftSyncer::stop() {
   operDeltaClient_->stopOperSync();
   fdbEventSinkClient_->cancel();
   rxPktEventSinkClient_->cancel();
+  isRunning_ = false;
 }
 
 SplitAgentThriftSyncer::~SplitAgentThriftSyncer() {
-  stop();
+  if (isRunning_) {
+    stop();
+  }
 }
 } // namespace facebook::fboss

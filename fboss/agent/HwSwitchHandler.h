@@ -136,7 +136,7 @@ class HwSwitchHandler {
   virtual multiswitch::StateOperDelta getNextStateOperDelta(
       std::unique_ptr<multiswitch::StateOperDelta> prevOperResult) = 0;
 
-  virtual void cancelOperDeltaRequest() = 0;
+  virtual void notifyHwSwitchGracefulExit() = 0;
 
  private:
   std::shared_ptr<SwitchState> stateChangedImpl(

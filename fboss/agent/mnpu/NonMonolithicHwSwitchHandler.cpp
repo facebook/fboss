@@ -275,7 +275,7 @@ multiswitch::StateOperDelta NonMonolithicHwSwitchHandler::getNextStateOperDelta(
   }
 }
 
-void NonMonolithicHwSwitchHandler::cancelOperDeltaRequest() {
+void NonMonolithicHwSwitchHandler::notifyHwSwitchGracefulExit() {
   {
     std::unique_lock<std::mutex> lk(stateUpdateMutex_);
     connected_ = false;

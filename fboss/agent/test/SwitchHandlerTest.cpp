@@ -69,8 +69,8 @@ TEST_F(SwSwitchHandlerTest, GetOperDelta) {
     stateReturned = hwSwitchHandler_->stateChanged(delta, true);
     EXPECT_EQ(stateReturned, stateV1);
     addRandomDelay();
-    hwSwitchHandler_->cancelOperDeltaRequest(0);
-    hwSwitchHandler_->cancelOperDeltaRequest(1);
+    hwSwitchHandler_->notifyHwSwitchGracefulExit(0);
+    hwSwitchHandler_->notifyHwSwitchGracefulExit(1);
   });
 
   auto clientThreadBody = [this, &delta, &addRandomDelay](int64_t switchId) {
