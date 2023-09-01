@@ -11,7 +11,7 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
       const SwitchID& switchId,
       const cfg::SwitchInfo& info);
 
-  virtual ~NonMonolithicHwSwitchHandler() override = default;
+  virtual ~NonMonolithicHwSwitchHandler() override;
 
   void exitFatal() const override;
 
@@ -105,6 +105,7 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
       std::unique_ptr<multiswitch::StateOperDelta> prevOperResult) override;
 
   void notifyHwSwitchGracefulExit() override;
+  void cancelOperDeltaSync();
 
  private:
   std::condition_variable stateUpdateCV_;

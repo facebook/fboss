@@ -221,8 +221,13 @@ fsdb::OperDelta NonMonolithicHwSwitchHandler::stateChanged(
   // if HwSwitch is not connected, wait for connection
   {
     std::unique_lock<std::mutex> lk(stateUpdateMutex_);
-    if (!connected_) {
-      stateUpdateCV_.wait(lk, [this] { return connected_; });
+    if (!connected_ && !deltaReadCancelled_) {
+      stateUpdateCV_.wait(
+          lk, [this] { return connected_ || deltaReadCancelled_; });
+    }
+    if (deltaReadCancelled_) {
+      // return incoming delta to indicate that none of the changes were applied
+      return delta;
     }
     nextOperDelta_ = &stateDelta;
     ackReceived_ = false;
@@ -236,8 +241,8 @@ fsdb::OperDelta NonMonolithicHwSwitchHandler::stateChanged(
     stateUpdateCV_.wait(
         lk, [this] { return ackReceived_ || deltaReadCancelled_; });
     if (deltaReadCancelled_) {
-      // TODO - handle cancellation by HwSwitch
-      throw FbossError("client cancelled delta read during update");
+      // return incoming delta to indicate that none of the changes were applied
+      return delta;
     }
   }
   // received ack. return result from HwSwitch
@@ -276,6 +281,11 @@ multiswitch::StateOperDelta NonMonolithicHwSwitchHandler::getNextStateOperDelta(
 }
 
 void NonMonolithicHwSwitchHandler::notifyHwSwitchGracefulExit() {
+  // cancel any pending operations.
+  cancelOperDeltaSync();
+}
+
+void NonMonolithicHwSwitchHandler::cancelOperDeltaSync() {
   {
     std::unique_lock<std::mutex> lk(stateUpdateMutex_);
     connected_ = false;
@@ -283,4 +293,9 @@ void NonMonolithicHwSwitchHandler::notifyHwSwitchGracefulExit() {
   }
   stateUpdateCV_.notify_all();
 }
+
+NonMonolithicHwSwitchHandler::~NonMonolithicHwSwitchHandler() {
+  cancelOperDeltaSync();
+}
+
 } // namespace facebook::fboss

@@ -69,8 +69,10 @@ TEST_F(SwSwitchHandlerTest, GetOperDelta) {
     stateReturned = hwSwitchHandler_->stateChanged(delta, true);
     EXPECT_EQ(stateReturned, stateV1);
     addRandomDelay();
+    // Switch 1 cancels request
     hwSwitchHandler_->notifyHwSwitchGracefulExit(0);
-    hwSwitchHandler_->notifyHwSwitchGracefulExit(1);
+    // Switch 2 has pending request but server stops
+    hwSwitchHandler_->stop();
   });
 
   auto clientThreadBody = [this, &delta, &addRandomDelay](int64_t switchId) {
