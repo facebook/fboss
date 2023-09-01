@@ -527,6 +527,7 @@ class TestRunner(abc.ABC):
             self.ENV_VAR["SOC_BOOT_FLAGS"] = "0x1020000"
             self.ENV_VAR["ADAPTER_DEVID_0"] = "8860"
             self.ENV_VAR["ADAPTER_REVID_0"] = "1"
+            self.ENV_VAR["ADAPTER_SERVER_MODE"] = "1"
             self.ENV_VAR["CMODEL_DEVID_0"] = "8860"
             self.ENV_VAR["CMODEL_REVID_0"] = "1"
             self.ENV_VAR["CMODEL_MEMORY_PORT_0"] = "1222"
