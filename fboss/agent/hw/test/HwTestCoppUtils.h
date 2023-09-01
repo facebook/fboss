@@ -175,5 +175,7 @@ void verifyCoppInvariantHelper(
     std::shared_ptr<SwitchState> swState,
     PortID srcPort);
 
+void setTTLZeroCpuConfig(const HwAsic* hwAsic, cfg::SwitchConfig& config);
+
 } // namespace utility
 } // namespace facebook::fboss

@@ -494,4 +494,18 @@ void verifyCoppInvariantHelper(
       srcPort);
 }
 
+void setTTLZeroCpuConfig(const HwAsic* hwAsic, cfg::SwitchConfig& config) {
+  if (!hwAsic->isSupported(HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE)) {
+    // don't configure if not supported
+    return;
+  }
+
+  auto ttlRxReasonToQueue = cfg::PacketRxReasonToQueue();
+  ttlRxReasonToQueue.rxReason() = cfg::PacketRxReason::TTL_0;
+  ttlRxReasonToQueue.queueId() = 0;
+
+  cfg::CPUTrafficPolicyConfig cpuConfig;
+  cpuConfig.rxReasonToQueueOrderedList() = {std::move(ttlRxReasonToQueue)};
+  config.cpuTrafficPolicy() = cpuConfig;
+}
 } // namespace facebook::fboss::utility
