@@ -14,9 +14,6 @@ class MultiSwitchThriftHandler
   explicit MultiSwitchThriftHandler(SwSwitch* sw) : sw_(sw) {}
 
 #if FOLLY_HAS_COROUTINES
-  folly::coro::Task<apache::thrift::SinkConsumer<fsdb::OperDelta, bool>>
-  co_notifyStateUpdateResult(int64_t switchId) override;
-
   folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::LinkEvent, bool>>
   co_notifyLinkEvent(int64_t switchId) override;
 
@@ -25,9 +22,6 @@ class MultiSwitchThriftHandler
 
   folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::RxPacket, bool>>
   co_notifyRxPacket(int64_t switchId) override;
-
-  folly::coro::Task<apache::thrift::ServerStream<fsdb::OperDelta>>
-  co_getStateUpdates(int64_t switchId) override;
 
   folly::coro::Task<apache::thrift::ServerStream<multiswitch::TxPacket>>
   co_getTxPackets(int64_t switchId) override;

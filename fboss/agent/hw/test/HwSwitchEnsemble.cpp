@@ -71,11 +71,6 @@ class HwEnsembleMultiSwitchThriftHandler
       : ensemble_(ensemble) {}
 
 #if FOLLY_HAS_COROUTINES
-  folly::coro::Task<apache::thrift::SinkConsumer<fsdb::OperDelta, bool>>
-  co_notifyStateUpdateResult(int64_t switchId) override {
-    co_return {};
-  }
-
   folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::LinkEvent, bool>>
   co_notifyLinkEvent(int64_t switchId) override {
     co_return apache::thrift::SinkConsumer<multiswitch::LinkEvent, bool>{
@@ -133,11 +128,6 @@ class HwEnsembleMultiSwitchThriftHandler
         },
         1000 /* buffer size */
     };
-  }
-
-  folly::coro::Task<apache::thrift::ServerStream<fsdb::OperDelta>>
-  co_getStateUpdates(int64_t switchId) override {
-    co_return apache::thrift::ServerStream<fsdb::OperDelta>::createEmpty();
   }
 
   folly::coro::Task<apache::thrift::ServerStream<multiswitch::TxPacket>>

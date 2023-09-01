@@ -43,12 +43,6 @@ struct StateOperDelta {
 }
 
 service MultiSwitchCtrl {
-  /* notify result of state update, that was last applied, through sink */
-  sink<fsdb_oper.OperDelta, bool> notifyStateUpdateResult(1: i64 switchId);
-
-  /* keep getting state updates from SwSwitch, through stream */
-  stream<fsdb_oper.OperDelta> getStateUpdates(1: i64 switchId);
-
   /* notify link event through sink */
   sink<LinkEvent, bool> notifyLinkEvent(1: i64 switchId);
 

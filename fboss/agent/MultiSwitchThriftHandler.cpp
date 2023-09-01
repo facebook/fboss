@@ -44,11 +44,6 @@ L2Entry MultiSwitchThriftHandler::getL2Entry(L2EntryThrift thriftEntry) {
 }
 
 #if FOLLY_HAS_COROUTINES
-folly::coro::Task<apache::thrift::SinkConsumer<fsdb::OperDelta, bool>>
-MultiSwitchThriftHandler::co_notifyStateUpdateResult(int64_t /*switchId*/) {
-  co_return {};
-}
-
 folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::LinkEvent, bool>>
 MultiSwitchThriftHandler::co_notifyLinkEvent(int64_t switchId) {
   ensureConfigured(__func__);
@@ -114,11 +109,6 @@ MultiSwitchThriftHandler::co_notifyRxPacket(int64_t switchId) {
       },
       1000 /* buffer size */
   };
-}
-
-folly::coro::Task<apache::thrift::ServerStream<fsdb::OperDelta>>
-MultiSwitchThriftHandler::co_getStateUpdates(int64_t /*switchId*/) {
-  co_return apache::thrift::ServerStream<fsdb::OperDelta>::createEmpty();
 }
 
 folly::coro::Task<apache::thrift::ServerStream<multiswitch::TxPacket>>
