@@ -60,4 +60,7 @@ service MultiSwitchCtrl {
     1: i64 switchId,
     2: StateOperDelta prevOperResult,
   );
+
+  /* HwAgent graceful shutdown notification */
+  void gracefulExit(1: i64 switchId);
 }

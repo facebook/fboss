@@ -31,6 +31,8 @@ class MultiSwitchThriftHandler
       int64_t switchId,
       std::unique_ptr<multiswitch::StateOperDelta> prevOperResult) override;
 
+  void gracefulExit(int64_t switchId) override;
+
   static L2Entry getL2Entry(L2EntryThrift thriftEntry);
 
  private:

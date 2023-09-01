@@ -135,4 +135,9 @@ void MultiSwitchThriftHandler::getNextStateOperDelta(
   operDelta = sw_->getHwSwitchHandler()->getNextStateOperDelta(
       switchId, std::move(prevOperResult));
 }
+
+void MultiSwitchThriftHandler::gracefulExit(int64_t /*switchId*/) {
+  // TODO - notify swswitch
+}
+
 } // namespace facebook::fboss
