@@ -1571,6 +1571,7 @@ struct SwitchSettings {
   // MAC OUIs used by meta for VM purpose.
   // When queue-per-host is enabled, MACs matching any OUI from this list could get any queue.
   17: list<string> metaMacOuis = [];
+  18: bool needL2EntryForNeighbor;
 }
 
 // Global buffer pool shared by {port, pgs}
