@@ -170,7 +170,7 @@ std::shared_ptr<SwitchState> setupRemoteIntfAndSysPorts(
       const SystemPortID remoteSysPortId(newSysPortId);
       const InterfaceID remoteIntfId(newSysPortId);
       const PortDescriptor portDesc(remoteSysPortId);
-      const uint64_t encapEndx = newSysPortId;
+      const uint64_t encapEndx = 0x200001 + i;
 
       // Use subnet 100:(dsfNodeId):(localIntfId)::1/64
       // and 100.(dsfNodeId).(localIntfId).1/24

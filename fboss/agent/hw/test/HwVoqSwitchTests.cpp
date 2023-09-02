@@ -965,7 +965,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
             {folly::IPAddress("100.0.0.1"), 24},
         }));
     folly::IPAddressV6 kNeighborIp("100::2");
-    uint64_t dummyEncapIndex = 401;
+    uint64_t dummyEncapIndex = 0x200001;
     PortDescriptor kPort(kRemoteSysPortId);
     // Add neighbor
     applyNewState(utility::addRemoveRemoteNeighbor(
@@ -1027,7 +1027,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
               {folly::IPAddress("100::1"), 64},
               {folly::IPAddress("100.0.0.1"), 24},
           }));
-      uint64_t dummyEncapIndex = 401;
+      uint64_t dummyEncapIndex = 0x200001;
       PortDescriptor kRemotePort(kRemoteSysPortId);
       // Add neighbor
       applyNewState(utility::addRemoveRemoteNeighbor(
@@ -1100,7 +1100,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
             {folly::IPAddress("100::1"), 64},
             {folly::IPAddress("100.0.0.1"), 24},
         }));
-    uint64_t dummyEncapIndex = 401;
+    uint64_t dummyEncapIndex = 0x200001;
     PortDescriptor kPort(kRemoteSysPortId);
     // Add neighbor
     applyNewState(utility::addRemoveRemoteNeighbor(
@@ -1160,7 +1160,7 @@ class HwVoqSwitchFullScaleDsfNodesTest
           currState,
           {sysPortDesc},
           false,
-          /* encapIndex */ sysPortDesc.sysPortID());
+          /* encapIndex */ 0x200001);
     }
     applyNewState(currState);
     return sysPortDescs;
