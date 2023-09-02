@@ -85,6 +85,7 @@ bcm_rx_reasons_t configRxReasonToBcmReasons(cfg::PacketRxReason reason) {
     case cfg::PacketRxReason::DHCPV6:
     case cfg::PacketRxReason::SAMPLEPACKET:
     case cfg::PacketRxReason::TTL_0:
+    case cfg::PacketRxReason::EAPOL:
       break;
   }
   throw FbossError(

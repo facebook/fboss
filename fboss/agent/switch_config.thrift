@@ -827,6 +827,7 @@ enum PacketRxReason {
   DHCPV6 = 17, // DHCPv6
   SAMPLEPACKET = 18, // Sample Packet
   TTL_0 = 19, // Packets with TTL as 0
+  EAPOL = 20, // EAPOL for Macsec
 }
 
 enum PortLoopbackMode {
