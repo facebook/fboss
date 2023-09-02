@@ -159,8 +159,9 @@ std::map<int32_t, TransceiverInfo> LinkTest::waitForTransceiverInfo(
 void LinkTest::initializeCabledPorts() {
   const auto& platformPorts = sw()->getPlatformMapping()->getPlatformPorts();
 
+  auto swConfig = sw()->getConfig();
   const auto& chips = sw()->getPlatformMapping()->getChips();
-  for (const auto& port : *sw()->getConfig().ports()) {
+  for (const auto& port : *swConfig.ports()) {
     if (!(*port.expectedLLDPValues()).empty()) {
       auto portID = *port.logicalID();
       cabledPorts_.push_back(PortID(portID));

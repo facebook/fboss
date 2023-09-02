@@ -247,18 +247,6 @@ void MultiHwSwitchHandler::platformStop() {
   }
 }
 
-const AgentConfig* MultiHwSwitchHandler::config() {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
-  return hwSwitchSyncers_.begin()->second->config();
-}
-
-const AgentConfig* MultiHwSwitchHandler::reloadConfig() {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
-  return hwSwitchSyncers_.begin()->second->reloadConfig();
-}
-
 std::map<PortID, FabricEndpoint> MultiHwSwitchHandler::getFabricReachability() {
   // TODO - support with multiple switches
   CHECK_EQ(hwSwitchSyncers_.size(), 1);

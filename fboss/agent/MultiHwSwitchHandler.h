@@ -110,10 +110,6 @@ class MultiHwSwitchHandler {
 
   void platformStop();
 
-  const AgentConfig* config();
-
-  const AgentConfig* reloadConfig();
-
   std::map<PortID, FabricEndpoint> getFabricReachability();
 
   FabricReachabilityStats getFabricReachabilityStats();

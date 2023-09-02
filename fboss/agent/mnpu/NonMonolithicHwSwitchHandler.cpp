@@ -85,18 +85,6 @@ void NonMonolithicHwSwitchHandler::platformStop() {
   // TODO: implement this
 }
 
-const AgentConfig* NonMonolithicHwSwitchHandler::config() {
-  // TODO: implement this
-  // @lint-ignore CLANGTIDY
-  return nullptr;
-}
-
-const AgentConfig* NonMonolithicHwSwitchHandler::reloadConfig() {
-  // TODO: implement this
-  // @lint-ignore CLANGTIDY
-  return nullptr;
-}
-
 bool NonMonolithicHwSwitchHandler::transactionsSupported() const {
   // TODO: implement this
   return false;

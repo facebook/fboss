@@ -515,8 +515,9 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
       std::move(platformMapping),
       platform->getDirectoryUtil(),
       platform->supportsAddRemovePort(),
-      config,
+      platform->config(),
       ret.switchState);
+  sw->setConfig(std::make_unique<AgentConfig>(agentConfig));
   ret.bootType = BootType::COLD_BOOT;
   std::map<int32_t, state::RouteTableFields> routeTables{};
   auto switchInfo =

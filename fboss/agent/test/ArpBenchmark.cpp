@@ -51,7 +51,8 @@ unique_ptr<SwSwitch> setupSwitch() {
             platform, switchId, info);
       },
       simPlatform->getDirectoryUtil(),
-      simPlatform->supportsAddRemovePort());
+      simPlatform->supportsAddRemovePort(),
+      nullptr);
   sw->init(nullptr /* No custom TunManager */, mockHwSwitchInitFn(sw.get()));
   auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
   auto updateFn = [&](const shared_ptr<SwitchState>& oldState) {

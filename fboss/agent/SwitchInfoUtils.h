@@ -20,9 +20,13 @@
 
 namespace facebook::fboss {
 
+struct AgentConfig;
 /*
  * Get switch info from config
  */
+const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig(
+    const AgentConfig* config);
+
 const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig(
     const cfg::SwitchConfig* config);
 

@@ -67,4 +67,13 @@ const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig(
     return getSwitchInfoFromConfigImpl(config);
   }
 }
+
+const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig(
+    const AgentConfig* config) {
+  if (!config) {
+    return getSwitchInfoFromConfig();
+  }
+  auto& swConfig = config->thrift.sw().value();
+  return getSwitchInfoFromConfig(&swConfig);
+}
 } // namespace facebook::fboss

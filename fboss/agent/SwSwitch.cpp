@@ -236,7 +236,7 @@ SwSwitch::SwSwitch(
     HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
     const AgentDirectoryUtil* agentDirUtil,
     bool supportsAddRemovePort,
-    cfg::SwitchConfig* config)
+    const AgentConfig* config)
     : multiHwSwitchHandler_(new MultiHwSwitchHandler(
           getSwitchInfoFromConfig(config),
           std::move(hwSwitchHandlerInitFn))),
@@ -295,12 +295,12 @@ SwSwitch::SwSwitch(
     std::unique_ptr<PlatformMapping> platformMapping,
     const AgentDirectoryUtil* agentDirUtil,
     bool supportsAddRemovePort,
-    cfg::SwitchConfig* config)
+    const AgentConfig* config)
     : SwSwitch(
           std::move(hwSwitchHandlerInitFn),
           agentDirUtil,
           supportsAddRemovePort,
-          config) {
+          std::move(config)) {
   platformMapping_ = std::move(platformMapping);
 }
 
@@ -309,14 +309,14 @@ SwSwitch::SwSwitch(
     std::unique_ptr<PlatformMapping> platformMapping,
     const AgentDirectoryUtil* agentDirUtil,
     bool supportsAddRemovePort,
-    cfg::SwitchConfig* config,
+    const AgentConfig* config,
     const std::shared_ptr<SwitchState>& initialState)
     : SwSwitch(
           std::move(hwSwitchHandlerInitFn),
           std::move(platformMapping),
           agentDirUtil,
           supportsAddRemovePort,
-          config) {
+          std::move(config)) {
   initialState->publish();
   setStateInternal(initialState);
   CHECK(getAppliedState());
@@ -2091,11 +2091,19 @@ bool SwSwitch::sendPacketToHost(
 }
 
 void SwSwitch::applyConfig(const std::string& reason, bool reload) {
-  auto target = reload ? multiHwSwitchHandler_->reloadConfig()
-                       : multiHwSwitchHandler_->config();
-  const auto& newConfig = *target->thrift.sw();
-  applyConfig(reason, newConfig);
-  target->dumpConfig(agentDirUtil_->getRunningConfigDumpFile());
+  auto applyAgentConfig = [=](const AgentConfig* agentConfig) {
+    const auto& newConfig = *agentConfig->thrift.sw();
+    applyConfig(reason, newConfig);
+    agentConfig->dumpConfig(agentDirUtil_->getRunningConfigDumpFile());
+  };
+  if (!agentConfig_ || reload) {
+    auto agentConfig = loadConfig();
+    applyAgentConfig(agentConfig.get());
+    // set agent config applying it
+    agentConfig_ = std::move(agentConfig);
+  } else {
+    applyAgentConfig(agentConfig_.get());
+  }
 }
 
 void SwSwitch::applyConfig(
@@ -2120,13 +2128,6 @@ void SwSwitch::applyConfig(
         if (newState && !isValidStateUpdate(StateDelta(state, newState))) {
           throw FbossError("Invalid config passed in, skipping");
         }
-
-        // Update config cached in SwSwitch. Update this even if the config did
-        // not change (as this might be during warmboot).
-        curConfig_ = newConfig;
-        curConfigStr_ =
-            apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-                newConfig);
 
         if (!newState) {
           // if config is not updated, the new state will return null
@@ -2231,7 +2232,7 @@ bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
 }
 
 AdminDistance SwSwitch::clientIdToAdminDistance(int clientId) const {
-  return getAdminDistanceForClientId(curConfig_, clientId);
+  return getAdminDistanceForClientId(getConfig(), clientId);
 }
 
 void SwSwitch::clearPortStats(
@@ -2517,4 +2518,31 @@ void SwSwitch::updateDsfSubscriberState(
         syncer->updateDsfSubscriberState(nodeName, oldState, newState);
       });
 }
+
+std::string SwSwitch::getConfigStr() const {
+  return apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+      getConfig());
+}
+
+cfg::SwitchConfig SwSwitch::getConfig() const {
+  if (!agentConfig_) {
+    return cfg::SwitchConfig();
+  }
+  return agentConfig_->thrift.sw().value();
+}
+
+std::unique_ptr<AgentConfig> SwSwitch::loadConfig() {
+  try {
+    return AgentConfig::fromDefaultFile();
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Couldn't load agent config from default file";
+    throw;
+  }
+}
+
+void SwSwitch::setConfig(std::unique_ptr<AgentConfig> config) {
+  // used only for tests
+  agentConfig_ = std::move(config);
+}
+
 } // namespace facebook::fboss

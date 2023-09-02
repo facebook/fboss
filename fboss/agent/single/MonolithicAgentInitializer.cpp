@@ -104,7 +104,8 @@ void MonolithicAgentInitializer::createSwitch(
             platform, switchId, info);
       },
       platform->getDirectoryUtil(),
-      platform->supportsAddRemovePort());
+      platform->supportsAddRemovePort(),
+      platform->config());
   initializer_ = std::make_unique<MonolithicSwSwitchInitializer>(
       sw_.get(), hwAgent_.get());
 }

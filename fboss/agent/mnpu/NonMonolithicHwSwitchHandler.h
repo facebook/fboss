@@ -73,10 +73,6 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
 
   void platformStop() override;
 
-  const AgentConfig* config() override;
-
-  const AgentConfig* reloadConfig() override;
-
   std::shared_ptr<SwitchState> stateChanged(
       const StateDelta& delta,
       bool transaction) override;

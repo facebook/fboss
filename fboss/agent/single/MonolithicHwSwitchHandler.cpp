@@ -87,14 +87,6 @@ void MonolithicHwSwitchHandler::platformStop() {
   platform_->stop();
 }
 
-const AgentConfig* MonolithicHwSwitchHandler::config() {
-  return platform_->config();
-}
-
-const AgentConfig* MonolithicHwSwitchHandler::reloadConfig() {
-  return platform_->reloadConfig();
-}
-
 bool MonolithicHwSwitchHandler::transactionsSupported() const {
   return hw_->transactionsSupported();
 }
