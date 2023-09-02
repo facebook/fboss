@@ -550,6 +550,7 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
     }
     cfg.cpuTrafficPolicy()->rxReasonToQueueOrderedList() = rxReasons;
     addCustomCpuQueueConfig(cfg, getAsic());
+    utility::setTTLZeroCpuConfig(getAsic(), cfg);
     return cfg;
   }
 

@@ -5,6 +5,7 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
@@ -187,6 +188,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
         getHwSwitch(),
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes());
+    utility::setTTLZeroCpuConfig(getAsic(), cfg);
     return cfg;
   }
   folly::IPAddressV6 kDestIp1() const {

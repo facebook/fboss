@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
+#include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestAqmUtils.h"
@@ -46,6 +47,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
           &cfg, streamType, getPlatform()->getAsic());
       utility::addOlympicQosMaps(cfg, getPlatform()->getAsic());
     }
+    utility::setTTLZeroCpuConfig(getAsic(), cfg);
     return cfg;
   }
 

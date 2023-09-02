@@ -49,14 +49,4 @@ void disableTTLDecrements(HwSwitch* hw, const PortDescriptor& port) {
   SaiApiTable::getInstance()->portApi().setAttribute(
       portHandle->port->adapterKey(), disableTtl);
 }
-
-void enableTtlZeroPacketForwarding(HwSwitch* hw) {
-  static HostifTrapSaiId hostIfTrap;
-  if (!hostIfTrap) {
-    auto managerTable = static_cast<SaiSwitch*>(hw)->managerTable();
-    hostIfTrap = managerTable->hostifManager().addHostifTrap(
-        cfg::PacketRxReason::TTL_0, 0 /*queueId*/, 1 /*priority*/);
-  }
-}
-
 } // namespace facebook::fboss::utility

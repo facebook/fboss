@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwPortUtils.h"
+#include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
@@ -40,6 +41,7 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
                             .begin());
     utility::addOlympicQueueConfig(&cfg, streamType, getPlatform()->getAsic());
     utility::addOlympicQosMaps(cfg, getPlatform()->getAsic());
+    utility::setTTLZeroCpuConfig(getAsic(), cfg);
     return cfg;
   }
   MacAddress dstMac() const {

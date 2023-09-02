@@ -69,17 +69,14 @@ void disableTTLDecrements(
   }
 }
 
-void enableTtlZeroPacketForwarding(HwSwitch* hw);
-
 template <typename EcmpNhopT>
 void ttlDecrementHandlingForLoopbackTraffic(
     HwSwitch* hw,
     RouterID routerId,
     const EcmpNhopT& nhop) {
   auto asic = hw->getPlatform()->getAsic();
-  if (asic->isSupported(HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE)) {
-    enableTtlZeroPacketForwarding(hw);
-  } else {
+  // for TTL0 supported devices we need to go through cfg change
+  if (!asic->isSupported(HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE)) {
     disableTTLDecrements(hw, routerId, nhop);
   }
 }

@@ -39,7 +39,7 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
           &cfg, streamType, getPlatform()->getAsic());
       utility::addOlympicQosMaps(cfg, getPlatform()->getAsic());
     }
-
+    utility::setTTLZeroCpuConfig(getAsic(), cfg);
     return cfg;
   }
 

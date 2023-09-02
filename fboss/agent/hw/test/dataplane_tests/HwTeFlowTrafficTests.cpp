@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTeFlowTestUtils.h"
+#include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestTeFlowUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
@@ -56,6 +57,7 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
     };
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(), std::move(ports), getAsic()->desiredLoopbackModes());
+    utility::setTTLZeroCpuConfig(getAsic(), cfg);
     return cfg;
   }
 

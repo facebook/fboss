@@ -11,6 +11,7 @@
 #include <fboss/agent/hw/switch_asics/HwAsic.h>
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
@@ -94,6 +95,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
           &cfg, streamType, getPlatform()->getAsic());
       utility::addOlympicQosMaps(cfg, getPlatform()->getAsic());
     }
+    utility::setTTLZeroCpuConfig(getAsic(), cfg);
     return cfg;
   }
 
