@@ -142,11 +142,13 @@ class SwSwitch : public HwSwitchCallback {
   using AllThreadsSwitchStats =
       folly::ThreadLocalPtr<SwitchStats, SwSwitch>::Accessor;
 
-  explicit SwSwitch(
+  SwSwitch(
       HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
       const AgentDirectoryUtil* agentDirUtil,
       bool supportsAddRemovePort,
-      const AgentConfig* config);
+      const AgentConfig* config,
+      const std::shared_ptr<SwitchState>& initialState = nullptr);
+
   /*
    * Needed for mock platforms that do cannot initialize platform mapping
    * based on fruid file
@@ -165,7 +167,7 @@ class SwSwitch : public HwSwitchCallback {
       const AgentDirectoryUtil* agentDirUtil,
       bool supportsAddRemovePort,
       const AgentConfig* config,
-      const std::shared_ptr<SwitchState>& initialState);
+      const std::shared_ptr<SwitchState>& initialState = nullptr);
 
   ~SwSwitch() override;
 

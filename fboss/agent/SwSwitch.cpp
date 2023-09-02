@@ -236,7 +236,8 @@ SwSwitch::SwSwitch(
     HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
     const AgentDirectoryUtil* agentDirUtil,
     bool supportsAddRemovePort,
-    const AgentConfig* config)
+    const AgentConfig* config,
+    const std::shared_ptr<SwitchState>& initialState)
     : multiHwSwitchHandler_(new MultiHwSwitchHandler(
           getSwitchInfoFromConfig(config),
           std::move(hwSwitchHandlerInitFn))),
@@ -288,20 +289,11 @@ SwSwitch::SwSwitch(
     // Expected when fruid file is not of a switch (eg: on devservers)
     XLOG(INFO) << "Couldn't initialize platform mapping " << ex.what();
   }
-}
-
-SwSwitch::SwSwitch(
-    HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
-    std::unique_ptr<PlatformMapping> platformMapping,
-    const AgentDirectoryUtil* agentDirUtil,
-    bool supportsAddRemovePort,
-    const AgentConfig* config)
-    : SwSwitch(
-          std::move(hwSwitchHandlerInitFn),
-          agentDirUtil,
-          supportsAddRemovePort,
-          std::move(config)) {
-  platformMapping_ = std::move(platformMapping);
+  if (initialState) {
+    initialState->publish();
+    setStateInternal(initialState);
+    CHECK(getAppliedState());
+  }
 }
 
 SwSwitch::SwSwitch(
@@ -313,13 +305,11 @@ SwSwitch::SwSwitch(
     const std::shared_ptr<SwitchState>& initialState)
     : SwSwitch(
           std::move(hwSwitchHandlerInitFn),
-          std::move(platformMapping),
           agentDirUtil,
           supportsAddRemovePort,
-          std::move(config)) {
-  initialState->publish();
-  setStateInternal(initialState);
-  CHECK(getAppliedState());
+          config,
+          initialState) {
+  platformMapping_ = std::move(platformMapping);
 }
 
 SwSwitch::~SwSwitch() {
