@@ -383,6 +383,8 @@ folly::StringPiece packetRxReasonToString(cfg::PacketRxReason rxReason) {
       return "dhcpv6";
     case cfg::PacketRxReason::SAMPLEPACKET:
       return "samplepacket";
+    case cfg::PacketRxReason::EAPOL:
+      return "eapol";
     default:
       return "unknown-trap";
   }

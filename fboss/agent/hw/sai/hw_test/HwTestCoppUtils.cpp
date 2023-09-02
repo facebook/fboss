@@ -92,6 +92,11 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
           cfg::PacketRxReason::DHCPV6, kCoppMidPriQueueId),
   };
 
+  if (hwAsic->isSupported(HwAsic::Feature::SAI_EAPOL_TRAP)) {
+    rxReasonToQueues.push_back(ControlPlane::makeRxReasonToQueueEntry(
+        cfg::PacketRxReason::EAPOL, coppHighPriQueueId));
+  }
+
   if (hwAsic->isSupported(HwAsic::Feature::SAI_MPLS_TTL_1_TRAP)) {
 #if !defined(TAJO_SDK_VERSION_1_42_1) && !defined(TAJO_SDK_VERSION_1_42_8)
     rxReasonToQueues.push_back(ControlPlane::makeRxReasonToQueueEntry(
