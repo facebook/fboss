@@ -160,6 +160,9 @@ target_link_libraries(qsfp_handler
   Folly::folly
   transceiver_manager
   log_thrift_call
+  fsdb_stream_client
+  fsdb_pub_sub
+  fsdb_flags
 )
 
 add_library(qsfp_core

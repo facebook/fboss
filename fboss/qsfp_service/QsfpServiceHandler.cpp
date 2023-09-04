@@ -2,6 +2,8 @@
 
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/fsdb/client/FsdbPubSubManager.h"
+#include "fboss/fsdb/common/Flags.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 
@@ -47,8 +49,20 @@ QsfpServiceHandler::QsfpServiceHandler(
   XLOG(INFO) << "FbossPhyMacsecService inside QsfpServiceHandler Started";
 }
 
+QsfpServiceHandler::~QsfpServiceHandler() {
+  if (fsdbSubscriber_) {
+    fsdbSubscriber_->removeSwitchStatePortMapSubscription();
+  }
+}
+
 void QsfpServiceHandler::init() {
   manager_->init();
+  if (FLAGS_subscribe_to_state_from_fsdb) {
+    fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>("qsfp_service");
+    fsdbSubscriber_ =
+        std::make_unique<QsfpFsdbSubscriber>(fsdbPubSubMgr_.get());
+    fsdbSubscriber_->subscribeToSwitchStatePortMap(manager_.get());
+  }
 }
 
 facebook::fb303::cpp2::fb_status QsfpServiceHandler::getStatus() {
