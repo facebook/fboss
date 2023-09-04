@@ -151,6 +151,7 @@ target_link_libraries(transceiver_manager
   thread_heartbeat
   utils
   product_info
+  fsdb_flags
 )
 
 add_library(qsfp_handler

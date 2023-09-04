@@ -10,6 +10,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/fsdb/common/Flags.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
@@ -836,23 +837,28 @@ void TransceiverManager::updateNpuPortStatusCache(
 void TransceiverManager::updateTransceiverPortStatus() noexcept {
   steady_clock::time_point begin = steady_clock::now();
   std::map<int32_t, NpuPortStatus> newPortToPortStatus;
-  try {
-    // Then call wedge_agent getPortStatus() to get current port status
-    auto wedgeAgentClient = utils::createWedgeAgentClient();
-    std::map<int32_t, PortStatus> portStatus;
-    wedgeAgentClient->sync_getPortStatus(portStatus, {});
-    newPortToPortStatus = getNpuPortStatus(portStatus);
-  } catch (const std::exception& ex) {
-    // We have retry mechanism to handle failure. No crash here
-    XLOG(WARN) << "Failed to call wedge_agent getPortStatus(). "
-               << folly::exceptionStr(ex);
-    if (overrideAgentPortStatusForTesting_.empty()) {
-      return;
-    } else {
-      XLOG(WARN) << "[TEST ONLY] Use overrideAgentPortStatusForTesting_ "
-                 << "for wedge_agent getPortStatus()";
-      newPortToPortStatus = overrideAgentPortStatusForTesting_;
+  if (!overrideAgentPortStatusForTesting_.empty()) {
+    XLOG(WARN) << "[TEST ONLY] Use overrideAgentPortStatusForTesting_ "
+               << "for wedge_agent getPortStatus()";
+    newPortToPortStatus = overrideAgentPortStatusForTesting_;
+  } else if (FLAGS_subscribe_to_state_from_fsdb) {
+    newPortToPortStatus = *npuPortStatusCache_.rlock();
+  } else {
+    try {
+      // Then call wedge_agent getPortStatus() to get current port status
+      auto wedgeAgentClient = utils::createWedgeAgentClient();
+      std::map<int32_t, PortStatus> portStatus;
+      wedgeAgentClient->sync_getPortStatus(portStatus, {});
+      newPortToPortStatus = getNpuPortStatus(portStatus);
+    } catch (const std::exception& ex) {
+      // We have retry mechanism to handle failure. No crash here
+      XLOG(WARN) << "Failed to call wedge_agent getPortStatus(). "
+                 << folly::exceptionStr(ex);
     }
+  }
+  if (newPortToPortStatus.empty()) {
+    XLOG(WARN) << "No port status to process in updateTransceiverPortStatus";
+    return;
   }
 
   int numResetToDiscovered{0}, numResetToNotPresent{0}, numPortStatusChanged{0};
@@ -900,8 +906,8 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
           if (cachedPortInfoIt == portToPortInfoWithLock->end()) {
             continue;
           } else {
-            // Agent remove such port, we need to trigger a state machine reset
-            // to trigger programming to get the new sw ports
+            // Agent remove such port, we need to trigger a state machine
+            // reset to trigger programming to get the new sw ports
             portToPortInfoWithLock->erase(cachedPortInfoIt);
             genStateMachineResetEvent(event, isTcvrPresent);
           }
@@ -1021,8 +1027,8 @@ void TransceiverManager::updateTransceiverActiveState(
               // No need to do the transceiverRefresh() in this code path
               // because that will again enqueue state machine update on i2c
               // event base. That will result in deadlock with
-              // stateMachineRefresh() generated update which also runs in same
-              // i2c event base
+              // stateMachineRefresh() generated update which also runs in
+              // same i2c event base
             }
             // And also update the cached port status
             tcvrPortInfo.status = portStatusIt->second;
@@ -1261,8 +1267,8 @@ std::optional<PortID> TransceiverManager::getPortIDByPortName(
 /*
  * getPortNameByPortId
  *
- * This function takes the software port id and returns corresponding port name
- * string (ie: eth2/1/1)
+ * This function takes the software port id and returns corresponding port
+ * name string (ie: eth2/1/1)
  */
 std::optional<std::string> TransceiverManager::getPortNameByPortId(
     PortID portId) const {
@@ -1370,16 +1376,17 @@ void TransceiverManager::triggerRemediateEvents(
     }
 
     auto curState = getCurrentState(tcvrID);
-    // If we are not in the active or inactive state, don't try to remediate yet
+    // If we are not in the active or inactive state, don't try to remediate
+    // yet
     if (curState != TransceiverStateMachineState::ACTIVE &&
         curState != TransceiverStateMachineState::INACTIVE) {
       continue;
     }
 
-    // If we are here because we are in active state, check if any of the ports
-    // are down. If yes, try to remediate (partial). If we are here because we
-    // are in inactive state, areAllPortsDown will return a non-empty list of
-    // down ports anyways, so we will try to remediate
+    // If we are here because we are in active state, check if any of the
+    // ports are down. If yes, try to remediate (partial). If we are here
+    // because we are in inactive state, areAllPortsDown will return a
+    // non-empty list of down ports anyways, so we will try to remediate
     if (areAllPortsDown(tcvrID).second.empty()) {
       continue;
     }
@@ -1490,7 +1497,8 @@ bool TransceiverManager::verifyEepromChecksums(TransceiverID id) {
 }
 
 bool TransceiverManager::checkWarmBootFlags() {
-  // Return true if coldBootOnceFile does not exist and canWarmBoot file exists
+  // Return true if coldBootOnceFile does not exist and canWarmBoot file
+  // exists
   const auto& forceColdBootFile = forceColdBootFileName();
   bool forceColdBoot = removeFile(forceColdBootFile);
   if (forceColdBoot) {
@@ -1847,8 +1855,8 @@ std::vector<TransceiverID> TransceiverManager::refreshTransceivers(
 
     for (const auto& transceiver : *lockedTransceivers) {
       TransceiverID id = TransceiverID(transceiver.second->getID());
-      // If we're trying to refresh a subset and this transceiver is not in that
-      // subset, skip it.
+      // If we're trying to refresh a subset and this transceiver is not in
+      // that subset, skip it.
       if (!transceivers.empty() &&
           transceivers.find(id) == transceivers.end()) {
         continue;
