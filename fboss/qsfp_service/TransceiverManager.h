@@ -439,6 +439,12 @@ class TransceiverManager {
     return isSystemInitialized_;
   }
 
+  /*
+   * Sync the NpuPortStatus' received from FSDB
+   */
+  void syncNpuPortStatusUpdate(
+      std::map<int, facebook::fboss::NpuPortStatus>& portStatus);
+
  protected:
   /*
    * Check to see if we can attempt a warm boot.
@@ -714,6 +720,17 @@ class TransceiverManager {
    * was missed. This counter is periodically published to ODS by StatsPublisher
    */
   std::atomic<long> stateMachineThreadHeartbeatMissedCount_{0};
+
+  void updateNpuPortStatusCache(
+      std::map<int, facebook::fboss::NpuPortStatus>& portStatus);
+
+  /*
+   * This cache is updated from the FSDB subscription thread and read by the
+   * main thread
+   */
+  folly::Synchronized<
+      std::map<int /* agent logical port id */, facebook::fboss::NpuPortStatus>>
+      npuPortStatusCache_;
 
   friend class TransceiverStateMachineTest;
 };

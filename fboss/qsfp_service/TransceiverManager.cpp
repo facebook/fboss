@@ -822,6 +822,17 @@ bool TransceiverManager::supportRemediateTransceiver(TransceiverID id) {
   return tcvrIt->second->supportRemediate();
 }
 
+void TransceiverManager::syncNpuPortStatusUpdate(
+    std::map<int, facebook::fboss::NpuPortStatus>& portStatus) {
+  XLOG(INFO) << "Syncing NPU port status update";
+  updateNpuPortStatusCache(portStatus);
+}
+
+void TransceiverManager::updateNpuPortStatusCache(
+    std::map<int, facebook::fboss::NpuPortStatus>& portStatus) {
+  npuPortStatusCache_.wlock()->swap(portStatus);
+}
+
 void TransceiverManager::updateTransceiverPortStatus() noexcept {
   steady_clock::time_point begin = steady_clock::now();
   std::map<int32_t, NpuPortStatus> newPortToPortStatus;
