@@ -19,3 +19,7 @@ DEFINE_bool(
     subscribe_to_stats_from_fsdb,
     false,
     "Whether to subscribe to stats from fsdb");
+DEFINE_bool(
+    subscribe_to_state_from_fsdb,
+    false,
+    "Whether to subscribe to state from fsdb");
