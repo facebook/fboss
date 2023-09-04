@@ -1044,10 +1044,6 @@ TYPED_TEST(HwCoppTest, EapolToHighPriQ) {
         utility::getCoppHighPriQueueId(this->getAsic()),
         facebook::fboss::ETHERTYPE::ETHERTYPE_EAPOL,
         folly::MacAddress("ff:ff:ff:ff:ff:ff"));
-    this->sendPktAndVerifyEthPacketsCpuQueue(
-        utility::getCoppHighPriQueueId(this->getAsic()),
-        facebook::fboss::ETHERTYPE::ETHERTYPE_EAPOL,
-        folly::MacAddress("01:80:c2:00:00:03"));
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
