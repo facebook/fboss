@@ -48,6 +48,20 @@ constexpr auto kAgentConfigLastColdbootAppliedInMsKey =
     "agentConfigLastColdbootAppliedInMs";
 static constexpr auto kStateMachineThreadHeartbeatMissed =
     "state_machine_thread_heartbeat_missed";
+
+std::map<int, facebook::fboss::NpuPortStatus> getNpuPortStatus(
+    const std::map<int32_t, facebook::fboss::PortStatus>& portStatus) {
+  std::map<int, facebook::fboss::NpuPortStatus> npuPortStatus;
+  for (const auto& [portId, status] : portStatus) {
+    facebook::fboss::NpuPortStatus npuStatus;
+    npuStatus.portId = portId;
+    npuStatus.operState = status.get_up();
+    npuStatus.portEnabled = status.get_enabled();
+    npuStatus.profileID = status.get_profileID();
+    npuPortStatus.emplace(portId, npuStatus);
+  }
+  return npuPortStatus;
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -810,11 +824,13 @@ bool TransceiverManager::supportRemediateTransceiver(TransceiverID id) {
 
 void TransceiverManager::updateTransceiverPortStatus() noexcept {
   steady_clock::time_point begin = steady_clock::now();
-  std::map<int32_t, PortStatus> newPortToPortStatus;
+  std::map<int32_t, NpuPortStatus> newPortToPortStatus;
   try {
     // Then call wedge_agent getPortStatus() to get current port status
     auto wedgeAgentClient = utils::createWedgeAgentClient();
-    wedgeAgentClient->sync_getPortStatus(newPortToPortStatus, {});
+    std::map<int32_t, PortStatus> portStatus;
+    wedgeAgentClient->sync_getPortStatus(portStatus, {});
+    newPortToPortStatus = getNpuPortStatus(portStatus);
   } catch (const std::exception& ex) {
     // We have retry mechanism to handle failure. No crash here
     XLOG(WARN) << "Failed to call wedge_agent getPortStatus(). "
@@ -882,14 +898,14 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
           // But if the port is disabled, we don't need disabled ports in the
           // cache, since we only store enabled ports as we do in the
           // programInternalPhyPorts()
-          if (!(*portStatusIt->second.enabled())) {
+          if (!(portStatusIt->second.portEnabled)) {
             if (cachedPortInfoIt != portToPortInfoWithLock->end()) {
               portToPortInfoWithLock->erase(cachedPortInfoIt);
               genStateMachineResetEvent(event, isTcvrPresent);
             }
           } else {
             // Only care about enabled port status
-            anyPortUp = anyPortUp || *portStatusIt->second.up();
+            anyPortUp = anyPortUp || portStatusIt->second.operState;
             // Agent create such port, we need to trigger a state machine
             // reset to trigger programming to get the new sw ports
             if (cachedPortInfoIt == portToPortInfoWithLock->end()) {
@@ -901,8 +917,8 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
               // Both agent and cache here have such port, update the cached
               // status
               if (!cachedPortInfoIt->second.status ||
-                  *cachedPortInfoIt->second.status->up() !=
-                      *portStatusIt->second.up()) {
+                  cachedPortInfoIt->second.status->operState !=
+                      portStatusIt->second.operState) {
                 statusChangedPorts.insert(portID);
               }
               cachedPortInfoIt->second.status.emplace(portStatusIt->second);
@@ -956,6 +972,7 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
 void TransceiverManager::updateTransceiverActiveState(
     const std::set<TransceiverID>& tcvrs,
     const std::map<int32_t, PortStatus>& portStatus) noexcept {
+  std::map<int32_t, NpuPortStatus> npuPortStatus = getNpuPortStatus(portStatus);
   int numPortStatusChanged{0};
   BlockingStateUpdateResultList results;
   for (auto tcvrID : tcvrs) {
@@ -975,19 +992,20 @@ void TransceiverManager::updateTransceiverActiveState(
       auto portToPortInfoWithLock = tcvrToPortInfoIt->second->wlock();
       for (auto& [portID, tcvrPortInfo] : *portToPortInfoWithLock) {
         // Check whether there's a new port status for such port
-        auto portStatusIt = portStatus.find(portID);
+        auto portStatusIt = npuPortStatus.find(portID);
         // If port doesn't need to be updated, use the current cached status
         // to indicate whether we need a state update
-        if (portStatusIt == portStatus.end()) {
+        if (portStatusIt == npuPortStatus.end()) {
           if (tcvrPortInfo.status) {
-            anyPortUp = anyPortUp || *tcvrPortInfo.status->up();
+            anyPortUp = anyPortUp || tcvrPortInfo.status->operState;
           }
         } else {
           // Only care about enabled port status
-          if (*portStatusIt->second.enabled()) {
-            anyPortUp = anyPortUp || *portStatusIt->second.up();
+          if (portStatusIt->second.portEnabled) {
+            anyPortUp = anyPortUp || portStatusIt->second.operState;
             if (!tcvrPortInfo.status ||
-                *tcvrPortInfo.status->up() != *portStatusIt->second.up()) {
+                tcvrPortInfo.status->operState !=
+                    portStatusIt->second.operState) {
               statusChangedPorts.insert(portID);
               // No need to do the transceiverRefresh() in this code path
               // because that will again enqueue state machine update on i2c
@@ -1278,10 +1296,10 @@ void TransceiverManager::setOverrideAgentPortStatusForTesting(
   }
   for (const auto& it : overrideTcvrToPortAndProfileForTest_) {
     for (const auto& [portID, profileID] : it.second) {
-      PortStatus status;
-      status.enabled() = enabled;
-      status.up() = up;
-      status.profileID() = apache::thrift::util::enumNameSafe(profileID);
+      NpuPortStatus status;
+      status.portEnabled = enabled;
+      status.operState = up;
+      status.profileID = apache::thrift::util::enumNameSafe(profileID);
       overrideAgentPortStatusForTesting_.emplace(portID, std::move(status));
     }
   }
@@ -1314,7 +1332,7 @@ std::pair<bool, std::vector<std::string>> TransceiverManager::areAllPortsDown(
       // disruptive event
       return {false, {}};
     }
-    if (*portInfo.status->up()) {
+    if (portInfo.status->operState) {
       anyPortUp = true;
     } else {
       auto portName = getPortNameByPortId(portID);
