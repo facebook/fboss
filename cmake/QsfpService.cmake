@@ -4,6 +4,7 @@
 # cmake/FooBar.cmake
 
 add_library(qsfp_lib
+  fboss/qsfp_service/fsdb/QsfpFsdbSubscriber.cpp
   fboss/qsfp_service/fsdb/QsfpFsdbSyncManager.cpp
   fboss/qsfp_service/fsdb/oss/QsfpFsdbSyncManager.cpp
   fboss/qsfp_service/oss/StatsPublisher.cpp
@@ -28,6 +29,7 @@ target_link_libraries(qsfp_lib
     fsdb_syncer
     fsdb_model_cpp2
     qsfp_bsp_core
+    thriftpath_lib
 )
 
 add_library(qsfp_config
