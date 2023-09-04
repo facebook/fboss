@@ -8,15 +8,45 @@
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
+#include "fboss/thrift_cow/nodes/Serializer.h"
 
 namespace facebook::fboss {
 
 void QsfpFsdbSubscriber::subscribeToSwitchStatePortMap(
-    TransceiverManager* /* tcvrManager */) {
+    TransceiverManager* tcvrManager) {
   auto path = getSwitchStatePortMapPath();
   auto stateCb = [](fsdb::FsdbStreamClient::State /*old*/,
                     fsdb::FsdbStreamClient::State /*new*/) {};
-  auto dataCb = [=](fsdb::OperState&& /* state */) {};
+  auto dataCb = [=](fsdb::OperState&& state) {
+    if (auto contents = state.contents()) {
+      using TC = apache::thrift::type_class::map<
+          apache::thrift::type_class::string, // SwitchIdList
+          apache::thrift::type_class::map<
+              apache::thrift::type_class::integral,
+              apache::thrift::type_class::structure>>;
+      using T = std::map<
+          fboss::state::SwitchIdList,
+          std::map<int16_t, fboss::state::PortFields>>;
+      auto swPortMaps = facebook::fboss::thrift_cow::deserialize<TC, T>(
+          *state.protocol(), *state.contents());
+
+      std::map<int, facebook::fboss::NpuPortStatus> newPortStatus;
+      for (auto& [switchStr, oneSwPortMap] : swPortMaps) {
+        for (auto& [onePortId, onePortInfo] : oneSwPortMap) {
+          facebook::fboss::NpuPortStatus portStatus;
+          portStatus.portId = onePortId;
+          // TODO: We should not do the string comparison when portState is
+          // changed to enum in switch_state
+          portStatus.portEnabled =
+              onePortInfo.portState().value() != "DISABLED";
+          portStatus.operState = onePortInfo.portOperState().value();
+          portStatus.profileID = onePortInfo.portProfileID().value();
+          newPortStatus.emplace(onePortId, portStatus);
+        }
+      }
+      tcvrManager->syncNpuPortStatusUpdate(newPortStatus);
+    }
+  };
   pubSubMgr()->addStatePathSubscription(path, stateCb, dataCb);
   XLOG(INFO) << "Subscribed to switch state " << folly::join("/", path);
 }

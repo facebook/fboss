@@ -29,6 +29,7 @@ target_link_libraries(qsfp_lib
     fsdb_syncer
     fsdb_model_cpp2
     qsfp_bsp_core
+    thrift_cow_serializer
     thriftpath_lib
 )
 
