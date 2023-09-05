@@ -159,4 +159,5 @@ target_link_libraries(agent_ensemble
   config_factory
   fboss_config_utils
   test_ensemble_if
+  ${GTEST}
 )

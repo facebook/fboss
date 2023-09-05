@@ -11,6 +11,8 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
+#include <gtest/gtest.h>
+
 DECLARE_bool(tun_intf);
 DEFINE_bool(
     setup_for_warmboot,
@@ -227,10 +229,11 @@ std::string AgentEnsemble::getInputConfigFile() {
   return kInputConfigFile;
 }
 
-void ensembleMain(int argc, char* argv[], PlatformInitFn initPlatform) {
+int ensembleMain(int argc, char* argv[], PlatformInitFn initPlatform) {
   kArgc = argc;
   kArgv = argv;
   kPlatformInitFn = std::move(initPlatform);
+  return RUN_ALL_TESTS();
 }
 
 std::unique_ptr<AgentEnsemble> createAgentEnsemble(
