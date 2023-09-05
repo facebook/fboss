@@ -56,6 +56,14 @@ const HwAsic* HwAsicTable::getHwAsic(SwitchID switchID) const {
   return asic;
 }
 
+const std::map<SwitchID, HwAsic*> HwAsicTable::getHwAsics() const {
+  std::map<SwitchID, HwAsic*> hwAsicsMap;
+  for (const auto& [id, asic] : hwAsics_) {
+    hwAsicsMap.emplace(id, asic.get());
+  }
+  return hwAsicsMap;
+}
+
 std::unordered_set<SwitchID> HwAsicTable::getSwitchIDs() const {
   std::unordered_set<SwitchID> swIds;
   for (const auto& [swId, _] : hwAsics_) {
@@ -78,6 +86,15 @@ bool HwAsicTable::isFeatureSupportedOnAnyAsic(HwAsic::Feature feature) const {
     }
   }
   return false;
+}
+
+bool HwAsicTable::isFeatureSupportedOnAllAsic(HwAsic::Feature feature) const {
+  for (const auto& entry : hwAsics_) {
+    if (!isFeatureSupported(entry.first, feature)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 std::vector<std::string> HwAsicTable::asicNames() const {

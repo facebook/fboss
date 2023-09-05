@@ -15,8 +15,10 @@ class HwAsicTable {
   const HwAsic* getHwAsicIf(SwitchID switchID) const;
   HwAsic* getHwAsicIf(SwitchID switchID);
   const HwAsic* getHwAsic(SwitchID switchID) const;
+  const std::map<SwitchID, HwAsic*> getHwAsics() const;
   bool isFeatureSupported(SwitchID switchId, HwAsic::Feature feature) const;
   bool isFeatureSupportedOnAnyAsic(HwAsic::Feature feature) const;
+  bool isFeatureSupportedOnAllAsic(HwAsic::Feature feature) const;
   std::vector<std::string> asicNames() const;
   std::set<cfg::StreamType> getCpuPortQueueStreamTypes() const;
   std::set<cfg::StreamType> getQueueStreamTypes(
