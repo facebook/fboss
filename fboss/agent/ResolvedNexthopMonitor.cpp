@@ -87,14 +87,8 @@ void ResolvedNexthopMonitor::stateUpdated(const StateDelta& delta) {
       &ResolvedNexthopMonitor::processRemovedLabelFibEntry,
       this);
 
-  for (const auto& vlanDelta : delta.getVlansDelta()) {
-    auto arpDelta = vlanDelta.getArpDelta();
-    auto ndpDelta = vlanDelta.getNdpDelta();
-    if (arpDelta.getNew() || arpDelta.getOld() || ndpDelta.getNew() ||
-        ndpDelta.getOld()) {
-      scheduleProbes_ = true;
-      break;
-    }
+  if (processNeighborDelta(delta.getVlansDelta())) {
+    scheduleProbes_ = true;
   }
 
   if (!added_.empty() || !removed_.empty()) {
@@ -153,6 +147,23 @@ void ResolvedNexthopMonitor::processRemovedLabelFibEntry(
   for (auto nhop : fwd.normalizedNextHops()) {
     removed_.emplace_back(nhop.addr(), nhop.intf(), 0);
   }
+}
+
+template <typename MapDeltaT>
+bool ResolvedNexthopMonitor::processNeighborDelta(const MapDeltaT& mapDelta) {
+  bool scheduleProbes = false;
+
+  for (const auto& delta : mapDelta) {
+    auto arpDelta = delta.getArpDelta();
+    auto ndpDelta = delta.getNdpDelta();
+    if (arpDelta.getNew() || arpDelta.getOld() || ndpDelta.getNew() ||
+        ndpDelta.getOld()) {
+      scheduleProbes = true;
+      break;
+    }
+  }
+
+  return scheduleProbes;
 }
 
 } // namespace facebook::fboss

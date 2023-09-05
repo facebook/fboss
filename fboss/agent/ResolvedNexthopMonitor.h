@@ -106,6 +106,9 @@ class ResolvedNexthopMonitor : public StateObserver {
     return false;
   }
 
+  template <typename MapDeltaT>
+  bool processNeighborDelta(const MapDeltaT& mapDelta);
+
   bool skipLabelFibEntry(
       const std::shared_ptr<LabelForwardingEntry>& entry) const;
   void processChangedLabelFibEntry(
