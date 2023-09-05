@@ -87,7 +87,17 @@ void ResolvedNexthopMonitor::stateUpdated(const StateDelta& delta) {
       &ResolvedNexthopMonitor::processRemovedLabelFibEntry,
       this);
 
+  // If FLAGS_intf_nbr_table is false, intf nbr table processing is no-op
+  // If FLAGS_intf_nbr_table is true, vlan nbr table processing is no-op
+  //
+  // TODO(skhare) Once FLAGS_intf_nbr_table = true is rolled out, remove the
+  // vlan neighbor processing.
+
   if (processNeighborDelta(delta.getVlansDelta())) {
+    scheduleProbes_ = true;
+  }
+
+  if (processNeighborDelta(delta.getIntfsDelta())) {
     scheduleProbes_ = true;
   }
 
