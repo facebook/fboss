@@ -48,7 +48,7 @@ void SplitAgentThriftSyncer::packetReceived(
     std::unique_ptr<RxPacket> pkt) noexcept {
   multiswitch::RxPacket rxPkt;
   rxPkt.port() = pkt->getSrcPort();
-  if (pkt->getSrcVlan()) {
+  if (pkt->getSrcVlanIf()) {
     rxPkt.vlan() = pkt->getSrcVlan();
   }
   if (pkt->getSrcAggregatePort()) {
