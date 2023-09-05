@@ -124,6 +124,4 @@ class StateDelta {
   mutable std::optional<fsdb::OperDelta> operDelta_;
 };
 
-std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta);
-
 } // namespace facebook::fboss
