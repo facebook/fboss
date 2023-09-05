@@ -827,6 +827,8 @@ void TransceiverManager::syncNpuPortStatusUpdate(
     std::map<int, facebook::fboss::NpuPortStatus>& portStatus) {
   XLOG(INFO) << "Syncing NPU port status update";
   updateNpuPortStatusCache(portStatus);
+  // Update state machine after receiving a new port status update
+  updateTransceiverPortStatus();
 }
 
 void TransceiverManager::updateNpuPortStatusCache(
