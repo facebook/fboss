@@ -75,6 +75,7 @@ rm -rf $scratch_dir # remove existing build dir if any
 # stable commit hash
 rm -rf build/deps/github_hashes/facebook
 rm -rf build/deps/github_hashes/facebookincubator
+rm -rf build/fbcode_builder/manifests
 tar -xvf fboss/oss/stable_commits/latest_stable_hashes.tar.gz
 ```
 
