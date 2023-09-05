@@ -118,6 +118,8 @@ add_library(split_agent_test_lib
 
 target_link_libraries(split_agent_test_lib
   agent_ensemble
+  core
+  switch_asics
   ${GTEST}
 )
 

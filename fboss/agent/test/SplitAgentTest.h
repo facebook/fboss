@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 
 #include <gtest/gtest.h>
@@ -21,6 +22,7 @@ class SplitAgentTest : public ::testing::Test {
   ~SplitAgentTest() override = default;
   void SetUp() override;
   void TearDown() override;
+  void tearDownAgentEnsemble(bool doWarmboot = false);
 
  protected:
   template <
@@ -55,6 +57,11 @@ class SplitAgentTest : public ::testing::Test {
         verifyPostWarmboot();
       }
     }
+    if (FLAGS_setup_for_warmboot &&
+        isSupportedOnAllAsics(HwAsic::Feature::WARMBOOT)) {
+      XLOG(DBG2) << "tearDownAgentEnsemble() for warmboot";
+      tearDownAgentEnsemble(true);
+    }
   }
 
   template <typename SETUP_FN, typename VERIFY_FN>
@@ -74,6 +81,10 @@ class SplitAgentTest : public ::testing::Test {
   void setupPlatformConfig(AgentEnsemblePlatformConfigFn platformConfigFn) {
     platformConfigFn_ = std::move(platformConfigFn);
   }
+
+  void runForever() const;
+  const std::map<SwitchID, HwAsic*> getAsics() const;
+  bool isSupportedOnAllAsics(HwAsic::Feature feature) const;
 
  private:
   /*
