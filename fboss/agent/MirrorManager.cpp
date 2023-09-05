@@ -78,11 +78,19 @@ bool MirrorManager::hasMirrorChanges(const StateDelta& delta) {
   if (!isEmpty(delta.getMirrorsDelta()) || !isEmpty(delta.getFibsDelta())) {
     return true;
   }
+
   for (const auto& entry : delta.getVlansDelta()) {
     if (!isEmpty(entry.getArpDelta()) || !isEmpty(entry.getNdpDelta())) {
       return true;
     }
   }
+
+  for (const auto& entry : delta.getIntfsDelta()) {
+    if (!isEmpty(entry.getArpDelta()) || !isEmpty(entry.getNdpDelta())) {
+      return true;
+    }
+  }
+
   return false;
 }
 
