@@ -127,6 +127,7 @@ class MirrorManagerTest : public ::testing::Test {
   }
 
   void SetUp() override {
+    FLAGS_intf_nbr_tables = isIntfNbrTable();
     auto config = testConfigA();
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
@@ -203,15 +204,9 @@ class MirrorManagerTest : public ::testing::Test {
       const AddrT& ip,
       const MacAddress mac,
       PortID port) {
-    auto newState = state->isPublished() ? state->clone() : state;
-    VlanID vlanId =
-        newState->getInterfaces()->getNode(interfaceId)->getVlanID();
-    Vlan* vlan = newState->getVlans()->getNodeIf(VlanID(vlanId)).get();
-    auto* neighborTable =
-        vlan->template getNeighborEntryTable<AddrT>().get()->modify(
-            &vlan, &newState);
-    neighborTable->addEntry(ip, mac, PortDescriptor(port), interfaceId);
-    return newState;
+    return isIntfNbrTable()
+        ? addNeighborToIntfTable(state, interfaceId, ip, mac, port)
+        : addNeighborToVlanTable(state, interfaceId, ip, mac, port);
   }
 
   std::shared_ptr<SwitchState> delNeighborFromIntfTable(
@@ -246,15 +241,8 @@ class MirrorManagerTest : public ::testing::Test {
       const std::shared_ptr<SwitchState>& state,
       InterfaceID interfaceId,
       const AddrT& ip) {
-    auto newState = state->isPublished() ? state->clone() : state;
-    VlanID vlanId =
-        newState->getInterfaces()->getNode(interfaceId)->getVlanID();
-    Vlan* vlan = newState->getVlans()->getNodeIf(VlanID(vlanId)).get();
-    auto* neighborTable =
-        vlan->template getNeighborEntryTable<AddrT>().get()->modify(
-            &vlan, &newState);
-    neighborTable->removeEntry(ip);
-    return newState;
+    return isIntfNbrTable() ? delNeighborFromIntfTable(state, interfaceId, ip)
+                            : delNeighborFromVlanTable(state, interfaceId, ip);
   }
 
   void addRoute(const RoutePrefix<AddrT>& prefix, RouteNextHopSet nexthops) {
