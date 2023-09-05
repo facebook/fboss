@@ -152,6 +152,8 @@ class HwAsic {
     SEPARATE_BYTE_AND_PACKET_ACL_COUNTER,
     FLOWLET_PORT_ATTRIBUTES,
     SAI_EAPOL_TRAP,
+    // pending CS00012311423
+    L3_MTU_ERROR_TRAP,
   };
 
   enum class AsicMode {

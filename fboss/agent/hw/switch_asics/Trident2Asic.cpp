@@ -49,6 +49,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
     case HwAsic::Feature::SAI_SAMPLEPACKET_TRAP:
     case HwAsic::Feature::SEPARATE_BYTE_AND_PACKET_ACL_COUNTER:
+    case HwAsic::Feature::L3_MTU_ERROR_TRAP:
       return true;
 
     case HwAsic::Feature::ERSPANv6:

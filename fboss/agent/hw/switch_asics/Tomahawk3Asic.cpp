@@ -82,6 +82,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK:
     case HwAsic::Feature::SEPARATE_BYTE_AND_PACKET_ACL_COUNTER:
     case HwAsic::Feature::SAI_EAPOL_TRAP:
+    case HwAsic::Feature::L3_MTU_ERROR_TRAP:
       return true;
 
     case HwAsic::Feature::QCM:
