@@ -101,17 +101,39 @@ MirrorManagerTestParams<AddressT> getParams() {
 }
 } // namespace
 
-template <typename AddressT>
+template <typename AddrType, bool enableIntfNbrTable>
+struct IpAddrAndEnableIntfNbrTableT {
+  using IPAddrT = AddrType;
+  static constexpr auto intfNbrTable = enableIntfNbrTable;
+};
+
+using TestTypes = ::testing::Types<
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, false>,
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, true>,
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>,
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, true>>;
+
+template <typename IpAddrAndEnableIntfNbrTableT>
 class MirrorManagerTest : public ::testing::Test {
  public:
   using Func = folly::Function<void()>;
   using StateUpdateFn = SwSwitch::StateUpdateFn;
-  using AddrT = AddressT;
+  using AddrT = typename IpAddrAndEnableIntfNbrTableT::IPAddrT;
+  static auto constexpr intfNbrTable =
+      IpAddrAndEnableIntfNbrTableT::intfNbrTable;
+
+  bool isIntfNbrTable() const {
+    return intfNbrTable == true;
+  }
 
   void SetUp() override {
     auto config = testConfigA();
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
+  }
+
+  MirrorManagerTestParams<AddrT> getParamsHelper() {
+    return getParams<AddrT>();
   }
 
   void verifyStateUpdate(Func func) {
@@ -313,12 +335,10 @@ class MirrorManagerTest : public ::testing::Test {
   SwSwitch* sw_;
 };
 
-using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
-
 TYPED_TEST_SUITE(MirrorManagerTest, TestTypes);
 
 TYPED_TEST(MirrorManagerTest, CanNotUpdateMirrors) {
-  auto params = getParams<TypeParam>();
+  auto params = this->getParamsHelper();
 
   this->updateState(
       "CanNotUpdateMirrors", [=](const std::shared_ptr<SwitchState>& state) {
@@ -335,7 +355,7 @@ TYPED_TEST(MirrorManagerTest, CanNotUpdateMirrors) {
 }
 
 TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithoutRoutes) {
-  auto params = getParams<TypeParam>();
+  auto params = this->getParamsHelper();
   this->updateState(
       "ResolveNoMirrorWithoutRoutes",
       [=](const std::shared_ptr<SwitchState>& state) {
@@ -358,7 +378,7 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithoutRoutes) {
 }
 
 TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithoutArpEntry) {
-  auto params = getParams<TypeParam>();
+  auto params = this->getParamsHelper();
   this->updateState(
       "ResolveNoMirrorWithoutArpEntry",
       [=](const std::shared_ptr<SwitchState>& state) {
@@ -392,7 +412,7 @@ TYPED_TEST(MirrorManagerTest, LocalMirrorAlreadyResolved) {
 }
 
 TYPED_TEST(MirrorManagerTest, ResolveMirrorWithoutEgressPort) {
-  const auto params = getParams<TypeParam>();
+  const auto params = this->getParamsHelper();
 
   this->updateState(
       "ResolveMirrorWithoutEgressPort",
@@ -431,7 +451,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithoutEgressPort) {
 }
 
 TYPED_TEST(MirrorManagerTest, ResolveMirrorWithEgressPort) {
-  const auto params = getParams<TypeParam>();
+  const auto params = this->getParamsHelper();
 
   this->updateState(
       "ResolveMirrorWithEgressPort",
@@ -484,7 +504,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithEgressPort) {
 }
 
 TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithEgressPort) {
-  const auto params = getParams<TypeParam>();
+  const auto params = this->getParamsHelper();
 
   this->updateState(
       "ResolveNoMirrorWithEgressPort",
@@ -521,7 +541,7 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithEgressPort) {
 }
 
 TYPED_TEST(MirrorManagerTest, ResolveMirrorWithDirectlyConnectedRoute) {
-  const auto params = getParams<TypeParam>();
+  const auto params = this->getParamsHelper();
 
   this->updateState(
       "ResolveMirrorWithDirectlyConnectedRoute",
@@ -560,7 +580,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithDirectlyConnectedRoute) {
 }
 
 TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithDirectlyConnectedRoute) {
-  const auto params = getParams<TypeParam>();
+  const auto params = this->getParamsHelper();
   this->updateState(
       "ResolveNoMirrorWithDirectlyConnectedRoute",
       [=](const std::shared_ptr<SwitchState>& state) {
@@ -579,7 +599,7 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithDirectlyConnectedRoute) {
 }
 
 TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteDelete) {
-  const auto params = getParams<TypeParam>();
+  const auto params = this->getParamsHelper();
   this->updateState(
       "UpdateMirrorOnRouteDelete: addNode",
       [=](const std::shared_ptr<SwitchState>& state) {
@@ -655,7 +675,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteDelete) {
 }
 
 TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteAdd) {
-  const auto params = getParams<TypeParam>();
+  const auto params = this->getParamsHelper();
   this->updateState(
       "UpdateMirrorOnRouteAdd: addNode",
       [=](const std::shared_ptr<SwitchState>& state) {
@@ -734,7 +754,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteAdd) {
 }
 
 TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteDel) {
-  const auto params = getParams<TypeParam>();
+  const auto params = this->getParamsHelper();
 
   this->updateState(
       "UpdateNoMirrorWithEgressPortOnRouteDel",
@@ -799,7 +819,7 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteDel) {
 }
 
 TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteAdd) {
-  const auto params = getParams<TypeParam>();
+  const auto params = this->getParamsHelper();
 
   this->updateState(
       "UpdateNoMirrorWithEgressPortOnRouteAdd",
@@ -840,7 +860,7 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteAdd) {
 }
 
 TYPED_TEST(MirrorManagerTest, UpdateMirrorOnNeighborChange) {
-  const auto params = getParams<TypeParam>();
+  const auto params = this->getParamsHelper();
   this->updateState(
       "UpdateMirrorOnNeighborChange: addNode",
       [=](const std::shared_ptr<SwitchState>& state) {
@@ -935,7 +955,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnNeighborChange) {
 }
 
 TYPED_TEST(MirrorManagerTest, EmptyDelta) {
-  const auto params = getParams<TypeParam>();
+  const auto params = this->getParamsHelper();
 
   const auto oldState = this->sw_->getState();
 
@@ -964,7 +984,7 @@ TYPED_TEST(MirrorManagerTest, EmptyDelta) {
 
 // test for gre src ip resolved
 TYPED_TEST(MirrorManagerTest, GreMirrorWithSrcIp) {
-  const auto params = getParams<TypeParam>();
+  const auto params = this->getParamsHelper();
 
   this->updateState(
       "GreMirrorWithSrcIp", [=](const std::shared_ptr<SwitchState>& state) {
@@ -1007,7 +1027,7 @@ TYPED_TEST(MirrorManagerTest, GreMirrorWithSrcIp) {
 }
 
 TYPED_TEST(MirrorManagerTest, SflowMirrorWithSrcIp) {
-  const auto params = getParams<TypeParam>();
+  const auto params = this->getParamsHelper();
 
   this->updateState(
       "GreMirrorWithSrcIp", [=](const std::shared_ptr<SwitchState>& state) {
@@ -1053,7 +1073,7 @@ TYPED_TEST(MirrorManagerTest, SflowMirrorWithSrcIp) {
 }
 
 TYPED_TEST(MirrorManagerTest, ResolveMirrorOnMirrorUpdate) {
-  const auto params = getParams<TypeParam>();
+  const auto params = this->getParamsHelper();
 
   this->updateState(
       "add sflowMirror", [=](const std::shared_ptr<SwitchState>& state) {
@@ -1115,7 +1135,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorOnMirrorUpdate) {
 }
 
 TYPED_TEST(MirrorManagerTest, ConfigHasEgressPort) {
-  const auto params = getParams<TypeParam>();
+  const auto params = this->getParamsHelper();
 
   this->updateState(
       "add sflowMirror", [=](const std::shared_ptr<SwitchState>& state) {
@@ -1171,7 +1191,7 @@ TYPED_TEST(MirrorManagerTest, ConfigHasEgressPort) {
 }
 
 TYPED_TEST(MirrorManagerTest, NeighborUpdates) {
-  const auto params = getParams<TypeParam>();
+  const auto params = this->getParamsHelper();
 
   this->updateState(
       "GreMirrorWithOutPort-0", [=](const std::shared_ptr<SwitchState>& state) {
@@ -1259,7 +1279,7 @@ TYPED_TEST(MirrorManagerTest, NeighborUpdates) {
 }
 
 TYPED_TEST(MirrorManagerTest, UpdateRoute) {
-  const auto params = getParams<TypeParam>();
+  const auto params = this->getParamsHelper();
 
   this->updateState(
       "add mirror", [=](const std::shared_ptr<SwitchState>& state) {
