@@ -271,6 +271,15 @@ class SaiApi {
             SAI_STATUS_IS_ATTR_NOT_IMPLEMENTED(status) ||
             SAI_STATUS_IS_ATTR_NOT_SUPPORTED(status);
         if (fallbackToDefault) {
+          if constexpr (IsVector<decltype(attr.defaultValue())>::value) {
+            // if the object is not supported and is type list/vector
+            // default getter will try to set it to empty list
+            // which is incorrect. We need to treat it like nullopt, so
+            // during warm boot object can be claimed by NOS
+            if (attr.defaultValue().empty()) {
+              return std::optional<typename AttrT::ValueType>();
+            }
+          }
           return std::optional<typename AttrT::ValueType>{attr.defaultValue()};
         }
       }
