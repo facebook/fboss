@@ -549,8 +549,17 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
 }
 
 TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredV6) {
-  auto ndpTable =
-      this->sw_->getState()->getVlans()->getNode(VlanID(1))->getNdpTable();
+  std::shared_ptr<NdpTable> ndpTable;
+  if (this->isIntfNbrTable()) {
+    ndpTable = this->sw_->getState()
+                   ->getInterfaces()
+                   ->getNode(InterfaceID(1))
+                   ->getNdpTable();
+  } else {
+    ndpTable =
+        this->sw_->getState()->getVlans()->getNode(VlanID(1))->getNdpTable();
+  }
+
   EXPECT_EQ(
       ndpTable->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22")),
       nullptr);
@@ -600,13 +609,25 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredV6) {
   this->schedulePendingStateUpdates();
   this->waitForBackgroundAndNeighborCacheThreads();
   this->schedulePendingStateUpdates();
-  // pending entry must be created
-  ndpTable =
-      this->sw_->getState()->getVlans()->getNode(VlanID(1))->getNdpTable();
-  auto entry =
-      ndpTable->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
-  ASSERT_NE(entry, nullptr);
-  EXPECT_EQ(entry->isPending(), true);
+
+  if (this->isIntfNbrTable()) {
+    // pending entry is not created for intf neighbors
+    auto entry =
+        this->sw_->getState()
+            ->getInterfaces()
+            ->getNode(InterfaceID(1))
+            ->getNdpTable()
+            ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
+    EXPECT_EQ(entry, nullptr);
+  } else {
+    // pending entry is not created for vlan neighbors
+    auto ndpTable =
+        this->sw_->getState()->getVlans()->getNode(VlanID(1))->getNdpTable();
+    auto entry =
+        ndpTable->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
+    ASSERT_NE(entry, nullptr);
+    EXPECT_EQ(entry->isPending(), true);
+  }
 }
 
 TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV6) {
