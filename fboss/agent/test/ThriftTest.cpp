@@ -2527,6 +2527,14 @@ TEST_F(ThriftTest, getCurrentStateJSON) {
       FbossError);
 }
 
+template <bool enableIntfNbrTable>
+struct EnableIntfNbrTable {
+  static constexpr auto intfNbrTable = enableIntfNbrTable;
+};
+
+using NbrTableTypes = ::testing::Types<EnableIntfNbrTable<false>>;
+
+template <typename EnableIntfNbrTableT>
 class ThriftTeFlowTest : public ::testing::Test {
  public:
   void SetUp() override {
@@ -2561,13 +2569,15 @@ class ThriftTeFlowTest : public ::testing::Test {
   std::unique_ptr<HwTestHandle> handle_;
 };
 
-TEST_F(ThriftTeFlowTest, addRemoveTeFlow) {
-  ThriftHandler handler(sw_);
+TYPED_TEST_SUITE(ThriftTeFlowTest, NbrTableTypes);
+
+TYPED_TEST(ThriftTeFlowTest, addRemoveTeFlow) {
+  ThriftHandler handler(this->sw_);
   auto teFlowEntries = std::make_unique<std::vector<FlowEntry>>();
   auto flowEntry = makeFlow("100::1");
   teFlowEntries->emplace_back(flowEntry);
   handler.addTeFlows(std::move(teFlowEntries));
-  auto state = sw_->getState();
+  auto state = this->sw_->getState();
   auto teFlowTable = state->getTeFlowTable();
   auto verifyEntry = [&teFlowTable](
                          const auto& flow,
@@ -2595,14 +2605,14 @@ TEST_F(ThriftTeFlowTest, addRemoveTeFlow) {
   auto newFlowEntries = std::make_unique<std::vector<FlowEntry>>();
   newFlowEntries->emplace_back(flowEntry2);
   handler.addTeFlows(std::move(newFlowEntries));
-  state = sw_->getState();
+  state = this->sw_->getState();
   teFlowTable = state->getTeFlowTable();
   verifyEntry(*flowEntry.flow(), kNhopAddrB, "counter1", "fboss55");
 
   auto teFlows = std::make_unique<std::vector<TeFlow>>();
   teFlows->emplace_back(*flowEntry.flow());
   handler.deleteTeFlows(std::move(teFlows));
-  state = sw_->getState();
+  state = this->sw_->getState();
   teFlowTable = state->getTeFlowTable();
   auto tableEntry = teFlowTable->getNodeIf(getTeFlowStr(*flowEntry.flow()));
   EXPECT_EQ(tableEntry, nullptr);
@@ -2614,7 +2624,7 @@ TEST_F(ThriftTeFlowTest, addRemoveTeFlow) {
     bulkEntries->emplace_back(makeFlow(prefix));
   }
   handler.addTeFlows(std::move(bulkEntries));
-  state = sw_->getState();
+  state = this->sw_->getState();
   teFlowTable = state->getTeFlowTable();
   EXPECT_EQ(teFlowTable->numNodes(), 4);
 
@@ -2628,7 +2638,7 @@ TEST_F(ThriftTeFlowTest, addRemoveTeFlow) {
     deletionFlows->emplace_back(flow);
   }
   handler.deleteTeFlows(std::move(deletionFlows));
-  state = sw_->getState();
+  state = this->sw_->getState();
   teFlowTable = state->getTeFlowTable();
   EXPECT_EQ(teFlowTable->numNodes(), 2);
   for (const auto& prefix : flowsToDelete) {
@@ -2639,16 +2649,16 @@ TEST_F(ThriftTeFlowTest, addRemoveTeFlow) {
   }
 }
 
-TEST_F(ThriftTeFlowTest, syncTeFlows) {
+TYPED_TEST(ThriftTeFlowTest, syncTeFlows) {
   auto initalPrefixes = {"100::1", "101::1", "102::1", "103::1"};
-  ThriftHandler handler(sw_);
+  ThriftHandler handler(this->sw_);
   auto teFlowEntries = std::make_unique<std::vector<FlowEntry>>();
   for (const auto& prefix : initalPrefixes) {
     auto flowEntry = makeFlow(prefix);
     teFlowEntries->emplace_back(flowEntry);
   }
   handler.addTeFlows(std::move(teFlowEntries));
-  auto state = sw_->getState();
+  auto state = this->sw_->getState();
   auto teFlowTable = state->getTeFlowTable();
   EXPECT_EQ(teFlowTable->numNodes(), 4);
 
@@ -2672,7 +2682,7 @@ TEST_F(ThriftTeFlowTest, syncTeFlows) {
     syncFlowEntries->emplace_back(flowEntry);
   }
   handler.syncTeFlows(std::move(syncFlowEntries));
-  state = sw_->getState();
+  state = this->sw_->getState();
   teFlowTable = state->getTeFlowTable();
   EXPECT_EQ(teFlowTable->numNodes(), 3);
   // Ensure that newly added entries are present
@@ -2702,7 +2712,7 @@ TEST_F(ThriftTeFlowTest, syncTeFlows) {
     syncFlowEntries2->emplace_back(flowEntry);
   }
   handler.syncTeFlows(std::move(syncFlowEntries2));
-  state = sw_->getState();
+  state = this->sw_->getState();
   auto teFlowTableAfterSync = state->getTeFlowTable();
   // Ensure teflow table pointers and contents are same
   EXPECT_EQ(teFlowTable, teFlowTableAfterSync);
@@ -2717,7 +2727,7 @@ TEST_F(ThriftTeFlowTest, syncTeFlows) {
   updateEntries->emplace_back(flowEntry1);
   updateEntries->emplace_back(flowEntry2);
   handler.syncTeFlows(std::move(updateEntries));
-  state = sw_->getState();
+  state = this->sw_->getState();
   teFlowTable = state->getTeFlowTable();
   teflowEntryAfterSync = teFlowTable->getNodeIf(getTeFlowStr(flow));
   // Ensure that pointer to entries and contents are different
@@ -2726,21 +2736,21 @@ TEST_F(ThriftTeFlowTest, syncTeFlows) {
   // sync flows with no entries
   auto nullFlowEntries = std::make_unique<std::vector<FlowEntry>>();
   handler.syncTeFlows(std::move(nullFlowEntries));
-  state = sw_->getState();
+  state = this->sw_->getState();
   teFlowTable = state->getTeFlowTable();
   EXPECT_EQ(teFlowTable->numNodes(), 0);
 }
 
-TEST_F(ThriftTeFlowTest, getTeFlowDetails) {
+TYPED_TEST(ThriftTeFlowTest, getTeFlowDetails) {
   auto testPrefixes = {"100::1", "101::1", "102::1", "103::1"};
-  ThriftHandler handler(sw_);
+  ThriftHandler handler(this->sw_);
   auto teFlowEntries = std::make_unique<std::vector<FlowEntry>>();
   for (const auto& prefix : testPrefixes) {
     auto flowEntry = makeFlow(prefix);
     teFlowEntries->emplace_back(flowEntry);
   }
   handler.addTeFlows(std::move(teFlowEntries));
-  auto state = sw_->getState();
+  auto state = this->sw_->getState();
   auto teFlowTable = state->getTeFlowTable();
   EXPECT_EQ(teFlowTable->numNodes(), 4);
 
@@ -2764,18 +2774,19 @@ TEST_F(ThriftTeFlowTest, getTeFlowDetails) {
   }
 }
 
-TEST_F(ThriftTeFlowTest, teFlowUpdateHwProtection) {
-  ThriftHandler handler(sw_);
+TYPED_TEST(ThriftTeFlowTest, teFlowUpdateHwProtection) {
+  ThriftHandler handler(this->sw_);
   auto teFlowEntries = std::make_unique<std::vector<FlowEntry>>();
   auto flowEntry = makeFlow("100::1");
   teFlowEntries->emplace_back(flowEntry);
 
   // wait for any neighbour updates
-  sw_->getNeighborUpdater()->waitForPendingUpdates();
-  waitForBackgroundThread(sw_);
-  waitForStateUpdates(sw_);
+  this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+  waitForBackgroundThread(this->sw_);
+  waitForStateUpdates(this->sw_);
   // Fail HW update by returning current state
-  EXPECT_HW_CALL(sw_, stateChangedImpl(_)).WillOnce(Return(sw_->getState()));
+  EXPECT_HW_CALL(this->sw_, stateChangedImpl(_))
+      .WillOnce(Return(this->sw_->getState()));
 
   EXPECT_THROW(
       {
@@ -2792,13 +2803,14 @@ TEST_F(ThriftTeFlowTest, teFlowUpdateHwProtection) {
       FbossTeUpdateError);
 }
 
-TEST_F(ThriftTeFlowTest, teFlowSyncUpdateHwProtection) {
-  ThriftHandler handler(sw_);
+TYPED_TEST(ThriftTeFlowTest, teFlowSyncUpdateHwProtection) {
+  ThriftHandler handler(this->sw_);
   auto teFlowEntries = std::make_unique<std::vector<FlowEntry>>();
   auto flowEntry = makeFlow("100::1");
   teFlowEntries->emplace_back(flowEntry);
   // Fail HW update by returning current state
-  EXPECT_HW_CALL(sw_, stateChangedImpl(_)).WillOnce(Return(sw_->getState()));
+  EXPECT_HW_CALL(this->sw_, stateChangedImpl(_))
+      .WillOnce(Return(this->sw_->getState()));
 
   EXPECT_THROW(
       {
