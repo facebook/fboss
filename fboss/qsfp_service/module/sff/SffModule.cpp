@@ -1623,12 +1623,13 @@ bool SffModule::supportRemediate() {
   // have side effect on the neighbor port as well. So we don't do
   // remediation as suggested by our HW optic team.
   const auto& cachedTcvrInfo = getTransceiverInfo();
-  if (cachedTcvrInfo.vendor().has_value() &&
-      *cachedTcvrInfo.vendor()->partNumber() == kMiniphotonPartNumber) {
+  if (cachedTcvrInfo.tcvrState()->vendor().has_value() &&
+      *cachedTcvrInfo.tcvrState()->vendor()->partNumber() ==
+          kMiniphotonPartNumber) {
     return false;
   } else if (
-      cachedTcvrInfo.cable() &&
-      *cachedTcvrInfo.cable()->transmitterTech() ==
+      cachedTcvrInfo.tcvrState()->cable() &&
+      *cachedTcvrInfo.tcvrState()->cable()->transmitterTech() ==
           TransmitterTechnology::COPPER) {
     return false;
   }
