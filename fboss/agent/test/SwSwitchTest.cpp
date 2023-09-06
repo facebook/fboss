@@ -231,7 +231,8 @@ struct EnableIntfNbrTable {
   static constexpr auto intfNbrTable = enableIntfNbrTable;
 };
 
-using NbrTableTypes = ::testing::Types<EnableIntfNbrTable<false>>;
+using NbrTableTypes =
+    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
 
 template <typename EnableIntfNbrTableT>
 class SwSwitchTestNbrs : public SwSwitchTest {
@@ -240,6 +241,11 @@ class SwSwitchTestNbrs : public SwSwitchTest {
  public:
   bool isIntfNbrTable() const {
     return intfNbrTable == true;
+  }
+
+  void SetUp() override {
+    FLAGS_intf_nbr_tables = intfNbrTable;
+    SwSwitchTest::SetUp();
   }
 };
 
