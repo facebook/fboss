@@ -124,7 +124,7 @@ class MultiHwSwitchHandler {
 
   std::string listObjects(const std::vector<HwObjectType>& types, bool cached);
 
-  bool needL2EntryForNeighbor();
+  bool needL2EntryForNeighbor(const cfg::SwitchConfig* config) const;
 
   // For test purpose
   std::map<SwitchID, HwSwitchHandler*> getHwSwitchHandlers();

@@ -28,7 +28,7 @@ bool isReachable(const std::shared_ptr<NeighborEntryT>& entry) {
 }
 } // namespace
 void StaticL2ForNeighborUpdater::stateUpdated(const StateDelta& stateDelta) {
-  if (!needL2EntryForNeighbor_) {
+  if (!this->needL2EntryForNeighbor()) {
     return;
   }
   NeighborTableDeltaCallbackGenerator::genCallbacks(stateDelta, *this);

@@ -20,9 +20,7 @@ namespace facebook::fboss {
 
 StaticL2ForNeighborHwSwitchUpdater::StaticL2ForNeighborHwSwitchUpdater(
     HwSwitchEnsemble* hwSwitchEnsemble)
-    : StaticL2ForNeighborUpdater(
-          hwSwitchEnsemble->getHwSwitch()->needL2EntryForNeighbor()),
-      hwSwitchEnsemble_(hwSwitchEnsemble) {}
+    : StaticL2ForNeighborUpdater(), hwSwitchEnsemble_(hwSwitchEnsemble) {}
 
 template <typename NeighborEntryT>
 void StaticL2ForNeighborHwSwitchUpdater::ensureMacEntry(
@@ -85,5 +83,9 @@ void StaticL2ForNeighborHwSwitchUpdater::ensureMacEntryIfNeighborExists(
   auto newState = MacTableUtils::updateOrAddStaticEntryIfNbrExists(
       hwSwitchEnsemble_->getProgrammedState(), vlan, mac);
   hwSwitchEnsemble_->applyNewState(newState);
+}
+
+bool StaticL2ForNeighborHwSwitchUpdater::needL2EntryForNeighbor() const {
+  return hwSwitchEnsemble_->getHwSwitch()->needL2EntryForNeighbor();
 }
 } // namespace facebook::fboss

@@ -894,6 +894,8 @@ class SwSwitch : public HwSwitchCallback {
   // used by tests to avoid having to reload config from disk
   void setConfig(std::unique_ptr<AgentConfig> config);
 
+  bool needL2EntryForNeighbor() const;
+
  private:
   std::optional<folly::MacAddress> getSourceMac(
       const std::shared_ptr<Interface>& intf) const;

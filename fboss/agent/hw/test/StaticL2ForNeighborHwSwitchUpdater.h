@@ -50,6 +50,8 @@ class StaticL2ForNeighborHwSwitchUpdater : public StaticL2ForNeighborUpdater {
       VlanID vlan,
       const std::shared_ptr<MacEntry>& macEntry) override;
 
+  bool needL2EntryForNeighbor() const override;
+
   HwSwitchEnsemble* hwSwitchEnsemble_;
 };
 } // namespace facebook::fboss

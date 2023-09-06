@@ -196,8 +196,14 @@ NonMonolithicHwSwitchHandler::getFabricReachabilityStats() const {
   throw FbossError("getFabricReachabilityStats not implemented");
 }
 
-bool NonMonolithicHwSwitchHandler::needL2EntryForNeighbor() const {
-  throw FbossError("listObjects not implemented");
+bool NonMonolithicHwSwitchHandler::needL2EntryForNeighbor(
+    const cfg::SwitchConfig* config) const {
+  // if config is not present, fall back to true
+  // if sdk version is not set (for test configs), fall back to true
+  // if sai, return true else false
+  // falling back to true as assumption is split mode is for SAI alone
+  return !config || !config->sdkVersion().has_value() ||
+      config->sdkVersion()->saiSdk().has_value();
 }
 
 fsdb::OperDelta NonMonolithicHwSwitchHandler::stateChanged(

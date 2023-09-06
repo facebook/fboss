@@ -186,7 +186,8 @@ FabricReachabilityStats MonolithicHwSwitchHandler::getFabricReachabilityStats()
   return hw_->getFabricReachabilityStats();
 }
 
-bool MonolithicHwSwitchHandler::needL2EntryForNeighbor() const {
+bool MonolithicHwSwitchHandler::needL2EntryForNeighbor(
+    const cfg::SwitchConfig* /*config*/) const {
   return hw_->needL2EntryForNeighbor();
 }
 

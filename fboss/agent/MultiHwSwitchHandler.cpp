@@ -286,9 +286,10 @@ std::string MultiHwSwitchHandler::listObjects(
   return hwSwitchSyncers_.begin()->second->listObjects(types, cached);
 }
 
-bool MultiHwSwitchHandler::needL2EntryForNeighbor() {
+bool MultiHwSwitchHandler::needL2EntryForNeighbor(
+    const cfg::SwitchConfig* config) const {
   for (auto& entry : hwSwitchSyncers_) {
-    if (entry.second->needL2EntryForNeighbor()) {
+    if (entry.second->needL2EntryForNeighbor(config)) {
       return true;
     }
   }

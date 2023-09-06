@@ -20,9 +20,7 @@ namespace facebook::fboss {
 
 StaticL2ForNeighborSwSwitchUpdater::StaticL2ForNeighborSwSwitchUpdater(
     SwSwitch* sw)
-    : StaticL2ForNeighborUpdater(
-          sw->getHwSwitchHandler()->needL2EntryForNeighbor()),
-      sw_(sw) {}
+    : StaticL2ForNeighborUpdater(), sw_(sw) {}
 
 template <typename NeighborEntryT>
 void StaticL2ForNeighborSwSwitchUpdater::ensureMacEntry(
@@ -107,4 +105,9 @@ void StaticL2ForNeighborSwSwitchUpdater::ensureMacEntryIfNeighborExists(
   sw_->updateState(
       "ensure static MAC for nbr: " + macEntry->str(), std::move(ensureMac));
 }
+
+bool StaticL2ForNeighborSwSwitchUpdater::needL2EntryForNeighbor() const {
+  return sw_->needL2EntryForNeighbor();
+}
+
 } // namespace facebook::fboss

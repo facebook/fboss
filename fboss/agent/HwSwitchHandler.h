@@ -127,7 +127,8 @@ class HwSwitchHandler {
       const std::vector<HwObjectType>& types,
       bool cached) const = 0;
 
-  virtual bool needL2EntryForNeighbor() const = 0;
+  virtual bool needL2EntryForNeighbor(
+      const cfg::SwitchConfig* config) const = 0;
 
   virtual multiswitch::StateOperDelta getNextStateOperDelta(
       std::unique_ptr<multiswitch::StateOperDelta> prevOperResult) = 0;

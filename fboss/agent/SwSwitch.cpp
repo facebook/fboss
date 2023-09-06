@@ -2535,4 +2535,11 @@ void SwSwitch::setConfig(std::unique_ptr<AgentConfig> config) {
   agentConfig_ = std::move(config);
 }
 
+bool SwSwitch::needL2EntryForNeighbor() const {
+  if (!isFullyConfigured()) {
+    return getHwSwitchHandler()->needL2EntryForNeighbor(nullptr);
+  }
+  const auto& config = getConfig();
+  return getHwSwitchHandler()->needL2EntryForNeighbor(&config);
+}
 } // namespace facebook::fboss
