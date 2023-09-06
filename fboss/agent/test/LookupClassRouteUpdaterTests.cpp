@@ -42,7 +42,9 @@ struct IpAddrAndEnableIntfNbrTableT {
 
 using TypeTypesLookupClassRouteUpdater = ::testing::Types<
     IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, false>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>>;
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, true>,
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>,
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, true>>;
 
 template <typename IpAddrAndEnableIntfNbrTableT>
 class LookupClassRouteUpdaterTest : public ::testing::Test {
@@ -62,6 +64,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
   }
 
   void SetUp() override {
+    FLAGS_intf_nbr_tables = this->isIntfNbrTable();
     auto config = getConfig();
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
