@@ -805,50 +805,6 @@ void LookupClassRouteUpdater::processNeighborUpdates(
   }
 }
 
-template <typename AddrT>
-void LookupClassRouteUpdater::processNeighborUpdates(
-    const StateDelta& stateDelta) {
-  for (const auto& vlanDelta : stateDelta.getVlansDelta()) {
-    auto newVlan = vlanDelta.getNew();
-    if (!newVlan) {
-      auto oldVlan = vlanDelta.getOld();
-
-      for (auto iter :
-           std::as_const(*NeighborTableDeltaCallbackGenerator::getTable<AddrT>(
-               stateDelta.oldState(), oldVlan))) {
-        auto entry = iter.second;
-        processNeighborRemoved(stateDelta, oldVlan->getID(), entry);
-      }
-      continue;
-    }
-
-    auto vlan = newVlan->getID();
-
-    for (const auto& delta :
-         NeighborTableDeltaCallbackGenerator::getTableDelta<AddrT>(vlanDelta)) {
-      auto oldNeighbor = delta.getOld();
-      auto newNeighbor = delta.getNew();
-
-      /*
-       * At this point in time, queue-per-host fix is needed (and thus
-       * supported) for physical link only.
-       */
-      if ((oldNeighbor && !oldNeighbor->getPort().isPhysicalPort()) ||
-          (newNeighbor && !newNeighbor->getPort().isPhysicalPort())) {
-        continue;
-      }
-
-      if (!oldNeighbor) {
-        processNeighborAdded(stateDelta, vlan, newNeighbor);
-      } else if (!newNeighbor) {
-        processNeighborRemoved(stateDelta, vlan, oldNeighbor);
-      } else {
-        processNeighborChanged(stateDelta, vlan, oldNeighbor, newNeighbor);
-      }
-    }
-  }
-}
-
 template <typename RouteT>
 bool LookupClassRouteUpdater::addRouteToMultiNextHopMap(
     const std::shared_ptr<SwitchState>& newState,

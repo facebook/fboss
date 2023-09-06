@@ -130,9 +130,6 @@ class LookupClassRouteUpdater : public StateObserver {
       const std::shared_ptr<ChangedNeighborT>& oldNeighbor,
       const std::shared_ptr<ChangedNeighborT>& newNeighbor);
 
-  template <typename AddrT>
-  void processNeighborUpdates(const StateDelta& stateDelta);
-
   template <typename AddrT, typename MapDeltaT>
   void processNeighborUpdates(
       const StateDelta& stateDelta,
