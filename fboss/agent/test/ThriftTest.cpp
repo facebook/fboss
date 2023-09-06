@@ -2534,7 +2534,8 @@ struct EnableIntfNbrTable {
   static constexpr auto intfNbrTable = enableIntfNbrTable;
 };
 
-using NbrTableTypes = ::testing::Types<EnableIntfNbrTable<false>>;
+using NbrTableTypes =
+    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
 
 template <typename EnableIntfNbrTableT>
 class ThriftTeFlowTest : public ::testing::Test {
@@ -2546,6 +2547,7 @@ class ThriftTeFlowTest : public ::testing::Test {
   }
 
   void SetUp() override {
+    FLAGS_intf_nbr_tables = isIntfNbrTable();
     auto config = testConfigA();
     cfg::ExactMatchTableConfig tableConfig;
     tableConfig.name() = "TeFlowTable";
