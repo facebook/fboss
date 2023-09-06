@@ -34,12 +34,22 @@ constexpr auto kQphMultiNextHopCounter = "qph.multinexthop.route";
 
 namespace facebook::fboss {
 
-template <typename AddressT>
+template <typename AddrType, bool enableIntfNbrTable>
+struct IpAddrAndEnableIntfNbrTableT {
+  using AddrT = AddrType;
+  static constexpr auto intfNbrTable = enableIntfNbrTable;
+};
+
+using TypeTypesLookupClassRouteUpdater = ::testing::Types<
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, false>,
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>>;
+
+template <typename IpAddrAndEnableIntfNbrTableT>
 class LookupClassRouteUpdaterTest : public ::testing::Test {
  public:
   using Func = std::function<void()>;
   using StateUpdateFn = SwSwitch::StateUpdateFn;
-  using AddrT = AddressT;
+  using AddrT = typename IpAddrAndEnableIntfNbrTableT::AddrT;
 
   virtual cfg::SwitchConfig getConfig() const {
     return testConfigAWithLookupClasses();
@@ -855,9 +865,6 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
   SwSwitch* sw_;
 };
 
-using TypeTypesLookupClassRouteUpdater =
-    ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
-
 TYPED_TEST_CASE(LookupClassRouteUpdaterTest, TypeTypesLookupClassRouteUpdater);
 
 // Test cases verifying Route changes
@@ -1418,9 +1425,9 @@ TYPED_TEST(LookupClassRouteUpdaterTest, BlockMacThenIPResolveToSameMac) {
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 }
 
-template <typename AddressT>
+template <typename IpAddrAndEnableIntfNbrTableT>
 class LookupClassRouteUpdaterNoLookupClassTest
-    : public LookupClassRouteUpdaterTest<AddressT> {
+    : public LookupClassRouteUpdaterTest<IpAddrAndEnableIntfNbrTableT> {
   cfg::SwitchConfig getConfig() const override {
     return testConfigA();
   }
