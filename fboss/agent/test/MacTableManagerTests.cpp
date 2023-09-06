@@ -39,10 +39,6 @@ class MacTableManagerTest : public ::testing::Test {
     schedulePendingTestStateUpdates();
   }
 
-  void updateState(folly::StringPiece name, StateUpdateFn func) {
-    sw_->updateStateBlocking(name, func);
-  }
-
   VlanID kVlan() const {
     return VlanID(1);
   }
