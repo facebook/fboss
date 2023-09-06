@@ -46,6 +46,12 @@ class StaticL2ForNeighorObserverTest : public ::testing::Test {
   using Func = folly::Function<void()>;
   using StateUpdateFn = SwSwitch::StateUpdateFn;
   using AddrT = typename IpAddrAndEnableIntfNbrTableT::AddrT;
+  static auto constexpr intfNbrTable =
+      IpAddrAndEnableIntfNbrTableT::intfNbrTable;
+
+  bool isIntfNbrTable() const {
+    return intfNbrTable == true;
+  }
 
   void SetUp() override {
     handle_ = createTestHandle(testStateAWithPortsUp());
