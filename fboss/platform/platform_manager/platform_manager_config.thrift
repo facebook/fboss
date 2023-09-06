@@ -115,6 +115,23 @@ struct IdpromConfig {
   3: string kernelDeviceName;
 }
 
+// `vendorId`: PCIe Vendor ID, and it must be a 4-digit heximal value, such as
+// “1d9b”
+//
+// `deviceId`: PCIe Device ID, and it must be a 4-digit heximal value, such as
+// “0011”
+//
+// `i2CAdapterNameToOffset`: This is a mapping from `i2cAdapterName` to its
+// `offset` inside the FPGA memory. The `i2CAdapterName` is the name that will
+// be eventually assigned to the i2c controller created at the corresponding
+// `offset`. It should be string output for the corresponding
+// /sys/bus/i2c/devices/i2c-#/name
+struct PciDevice {
+  1: string vendorId;
+  2: string deviceId;
+  3: map<string, i32> i2CAdapterNameToOffset;
+}
+
 // These are the FRU Slot types. Examples: "PIM", "PSU", "CHASSIS" and "FAN".
 typedef string SlotType
 
@@ -169,6 +186,7 @@ struct FruTypeConfig {
   1: SlotType pluggedInSlotType;
   2: list<I2cDeviceConfig> i2cDeviceConfigs;
   3: map<string, SlotConfig> outgoingSlotConfigs;
+  4: list<PciDevice> pciDevices;
 }
 
 // Defines the whole Platform. The top level struct.
