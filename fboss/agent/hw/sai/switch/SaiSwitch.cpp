@@ -1488,7 +1488,7 @@ void SaiSwitch::gracefulExitLocked(const std::lock_guard<std::mutex>& lock) {
   SaiApiTable::getInstance()->switchApi().setAttribute(
       saiSwitchId_, preShutdown);
   if (platform_->getAsic()->isSupported(HwAsic::Feature::P4_WARMBOOT)) {
-#if defined(TAJO_SDK_VERSION_1_62_0) || defined(TAJO_SDK_VERSION_1_65_0)
+#if defined(TAJO_SDK_VERSION_1_65_0)
     SaiSwitchTraits::Attributes::RestartIssu restartIssu{true};
     SaiApiTable::getInstance()->switchApi().setAttribute(
         saiSwitchId_, restartIssu);
