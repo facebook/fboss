@@ -320,6 +320,39 @@ TEST(ThriftySwitchState, InterfaceMap) {
   verifySwitchStateSerialization(state);
 }
 
+TEST(ThriftySwitchState, InterfaceMapNbrTables) {
+  FLAGS_intf_nbr_tables = true;
+
+  auto intf1 = make_shared<Interface>(
+      InterfaceID(1),
+      RouterID(0),
+      std::optional<VlanID>(1),
+      folly::StringPiece("fboss1"),
+      MacAddress("00:02:00:00:00:01"),
+      9000,
+      false, /* is virtual */
+      false /* is state_sync disabled */);
+  auto intf2 = make_shared<Interface>(
+      InterfaceID(2),
+      RouterID(0),
+      std::optional<VlanID>(2),
+      folly::StringPiece("fboss2"),
+      MacAddress("00:02:00:00:00:01"),
+      9000,
+      false, /* is virtual */
+      false /* is state_sync disabled */);
+
+  setNeighborTablesAndDHCPRelay(intf1, intf2);
+
+  auto intfMap = std::make_shared<MultiSwitchInterfaceMap>();
+  intfMap->addNode(intf1, scope());
+  intfMap->addNode(intf2, scope());
+
+  auto state = SwitchState();
+  state.resetIntfs(intfMap);
+  verifySwitchStateSerialization(state);
+}
+
 TEST(ThriftySwitchState, IpAddressConversion) {
   for (auto ipStr : {"212.12.45.89", "2401:ab:de::30"}) {
     auto ip_0 = folly::IPAddress(ipStr);
