@@ -38,7 +38,9 @@ struct IpAddrAndEnableIntfNbrTableT {
 
 using TestTypes = ::testing::Types<
     IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, false>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>>;
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, true>,
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>,
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, true>>;
 
 template <typename IpAddrAndEnableIntfNbrTableT>
 class StaticL2ForNeighorObserverTest : public ::testing::Test {
@@ -54,6 +56,7 @@ class StaticL2ForNeighorObserverTest : public ::testing::Test {
   }
 
   void SetUp() override {
+    FLAGS_intf_nbr_tables = this->isIntfNbrTable();
     handle_ = createTestHandle(testStateAWithPortsUp());
     sw_ = handle_->getSw();
   }
