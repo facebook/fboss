@@ -30,11 +30,22 @@ using folly::MacAddress;
 
 namespace facebook::fboss {
 
-template <typename AddrT>
+template <typename AddrType, bool enableIntfNbrTable>
+struct IpAddrAndEnableIntfNbrTableT {
+  using AddrT = AddrType;
+  static constexpr auto intfNbrTable = enableIntfNbrTable;
+};
+
+using TestTypes = ::testing::Types<
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, false>,
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>>;
+
+template <typename IpAddrAndEnableIntfNbrTableT>
 class StaticL2ForNeighorObserverTest : public ::testing::Test {
  public:
   using Func = folly::Function<void()>;
   using StateUpdateFn = SwSwitch::StateUpdateFn;
+  using AddrT = typename IpAddrAndEnableIntfNbrTableT::AddrT;
 
   void SetUp() override {
     handle_ = createTestHandle(testStateAWithPortsUp());
@@ -227,8 +238,6 @@ class StaticL2ForNeighorObserverTest : public ::testing::Test {
   std::unique_ptr<HwTestHandle> handle_;
   SwSwitch* sw_;
 };
-
-using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
 
 TYPED_TEST_SUITE(StaticL2ForNeighorObserverTest, TestTypes);
 
