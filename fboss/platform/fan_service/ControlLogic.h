@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "Bsp.h"
-#include "SensorData.h"
+#include "fboss/platform/fan_service/Bsp.h"
+#include "fboss/platform/fan_service/SensorData.h"
 
 namespace facebook::fboss::platform::fan_service {
 
@@ -47,7 +47,7 @@ class ControlLogic {
  public:
   // Constructor / Destructor
   ControlLogic(const FanServiceConfig& config, std::shared_ptr<Bsp> pB);
-  ~ControlLogic();
+  ~ControlLogic() = default;
   // updateControl : Main entry for the control logic to process sensor
   //                 readings and set PWM value accordingly
   void updateControl(std::shared_ptr<SensorData> pS);
@@ -60,8 +60,8 @@ class ControlLogic {
   std::shared_ptr<Bsp> pBsp_;
   std::shared_ptr<SensorData> pSensor_;
   // Internal variable storing the number of failed sensors and fans
-  int numFanFailed_;
-  int numSensorFailed_;
+  int numFanFailed_ = 0;
+  int numSensorFailed_ = 0;
   // Last control update time. Used for dT calculation
   uint64_t lastControlUpdateSec_;
 

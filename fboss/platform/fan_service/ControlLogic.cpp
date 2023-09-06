@@ -37,14 +37,9 @@ namespace facebook::fboss::platform::fan_service {
 ControlLogic::ControlLogic(
     const FanServiceConfig& config,
     std::shared_ptr<Bsp> pB)
-    : config_(config) {
-  pBsp_ = pB;
-  numFanFailed_ = 0;
-  numSensorFailed_ = 0;
-  lastControlUpdateSec_ = pBsp_->getCurrentTime();
-}
-
-ControlLogic::~ControlLogic() {}
+    : config_(config),
+      pBsp_(pB),
+      lastControlUpdateSec_(pBsp_->getCurrentTime()) {}
 
 void ControlLogic::getFanUpdate() {
   SensorEntryType entryType;
