@@ -50,6 +50,12 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
   using Func = std::function<void()>;
   using StateUpdateFn = SwSwitch::StateUpdateFn;
   using AddrT = typename IpAddrAndEnableIntfNbrTableT::AddrT;
+  static auto constexpr intfNbrTable =
+      IpAddrAndEnableIntfNbrTableT::intfNbrTable;
+
+  bool isIntfNbrTable() const {
+    return intfNbrTable == true;
+  }
 
   virtual cfg::SwitchConfig getConfig() const {
     return testConfigAWithLookupClasses();
