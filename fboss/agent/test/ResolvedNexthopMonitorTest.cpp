@@ -352,9 +352,21 @@ TYPED_TEST(ResolvedNexthopMonitorTest, RouteSharingProbeOneUpdate) {
 }
 
 TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredV4) {
-  auto arpTable =
-      this->sw_->getState()->getVlans()->getNode(VlanID(1))->getArpTable();
-  EXPECT_EQ(arpTable->getEntryIf(folly::IPAddressV4("10.0.0.22")), nullptr);
+  if (this->isIntfNbrTable()) {
+    auto entry = this->sw_->getState()
+                     ->getInterfaces()
+                     ->getNode(InterfaceID(1))
+                     ->getArpTable()
+                     ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
+    EXPECT_EQ(entry, nullptr);
+  } else {
+    auto entry = this->sw_->getState()
+                     ->getVlans()
+                     ->getNode(VlanID(1))
+                     ->getArpTable()
+                     ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
+    EXPECT_EQ(entry, nullptr);
+  }
 
   EXPECT_SWITCHED_PKT(this->sw_, "ARP request", [](const TxPacket* pkt) {
     const auto* buf = pkt->buf();
@@ -387,12 +399,25 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredV4) {
   this->schedulePendingStateUpdates();
   this->waitForBackgroundAndNeighborCacheThreads();
   this->schedulePendingStateUpdates();
-  // pending entry must be created
-  arpTable =
-      this->sw_->getState()->getVlans()->getNode(VlanID(1))->getArpTable();
-  auto entry = arpTable->getEntryIf(folly::IPAddressV4("10.0.0.22"));
-  ASSERT_NE(entry, nullptr);
-  EXPECT_EQ(entry->isPending(), true);
+
+  if (this->isIntfNbrTable()) {
+    // pending entry is not created for inf neighbors
+    auto entry = this->sw_->getState()
+                     ->getInterfaces()
+                     ->getNode(InterfaceID(1))
+                     ->getArpTable()
+                     ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
+    EXPECT_EQ(entry, nullptr);
+  } else {
+    // pending entry is created for vlan neighbors
+    auto entry = this->sw_->getState()
+                     ->getVlans()
+                     ->getNode(VlanID(1))
+                     ->getArpTable()
+                     ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
+    ASSERT_NE(entry, nullptr);
+    EXPECT_EQ(entry->isPending(), true);
+  }
 }
 
 TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
