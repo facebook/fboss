@@ -272,7 +272,7 @@ void QsfpCache::syncAllPresentTransceivers() {
         auto writableTcvrs = this->tcvrs_.wlock();
         for (auto& [id, info] : tcvrs) {
           // Only store present transceivers
-          if (*info.present()) {
+          if (*info.tcvrState()->present()) {
             writableTcvrs->emplace(TransceiverID(id), info);
           }
         }
