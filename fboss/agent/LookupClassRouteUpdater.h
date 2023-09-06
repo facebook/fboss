@@ -133,6 +133,11 @@ class LookupClassRouteUpdater : public StateObserver {
   template <typename AddrT>
   void processNeighborUpdates(const StateDelta& stateDelta);
 
+  template <typename AddrT, typename MapDeltaT>
+  void processNeighborUpdates(
+      const StateDelta& stateDelta,
+      const MapDeltaT& mapDelta);
+
   // Methods for handling route updates
   template <typename RouteT>
   std::optional<cfg::AclLookupClass> addRouteAndFindClassID(

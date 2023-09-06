@@ -733,6 +733,78 @@ void LookupClassRouteUpdater::processNeighborChanged(
   }
 }
 
+// VOQ switches don't use VLANs. Thus, neighbor tables are being migrated
+// from VLANs to Interfaces.
+// However, LookupClassUpdater heavily uses VLANs and is enabled only for NPU
+// switches today.
+// Thus, this function works as follows:
+// - Compute neighbor table delta for VLAN neighbor tables or Interface
+//   neighbor tables depending on the feature flag.
+// - For the old/new interface, derive corresponding VLAN ID.
+//   There is always 1:1 between interface and VLAN for NPU switches.
+// Use the VLAN ID to pass to other methods in LookupClassUpdater.
+template <typename AddrT, typename MapDeltaT>
+void LookupClassRouteUpdater::processNeighborUpdates(
+    const StateDelta& stateDelta,
+    const MapDeltaT& mapDelta) {
+  for (const auto& mapDeltaEntry : mapDelta) {
+    auto newVlanOrIntf = mapDeltaEntry.getNew();
+    if (!newVlanOrIntf) {
+      auto oldVlanOrIntf = mapDeltaEntry.getOld();
+
+      std::shared_ptr<Vlan> oldVlan;
+      if constexpr (std::is_same_v<MapDeltaT, MultiSwitchInterfaceMapDelta>) {
+        // Lookup VLAN corresponding to the interface
+        oldVlan = stateDelta.oldState()->getVlans()->getNodeIf(
+            oldVlanOrIntf->getVlanID());
+      } else {
+        oldVlan = oldVlanOrIntf;
+      }
+
+      for (auto iter :
+           std::as_const(*NeighborTableDeltaCallbackGenerator::getTable<AddrT>(
+               stateDelta.oldState(), oldVlan))) {
+        auto entry = iter.second;
+        processNeighborRemoved(stateDelta, oldVlan->getID(), entry);
+      }
+
+      continue;
+    }
+
+    VlanID vlanID;
+    if constexpr (std::is_same_v<MapDeltaT, MultiSwitchInterfaceMapDelta>) {
+      // Lookup VLAN corresponding to the interface
+      vlanID = newVlanOrIntf->getVlanID();
+    } else {
+      vlanID = newVlanOrIntf->getID();
+    }
+
+    for (const auto& delta :
+         NeighborTableDeltaCallbackGenerator::getTableDelta<AddrT>(
+             mapDeltaEntry)) {
+      auto oldNeighbor = delta.getOld();
+      auto newNeighbor = delta.getNew();
+
+      /*
+       * At this point in time, queue-per-host fix is needed (and thus
+       * supported) for physical link only.
+       */
+      if ((oldNeighbor && !oldNeighbor->getPort().isPhysicalPort()) ||
+          (newNeighbor && !newNeighbor->getPort().isPhysicalPort())) {
+        continue;
+      }
+
+      if (!oldNeighbor) {
+        processNeighborAdded(stateDelta, vlanID, newNeighbor);
+      } else if (!newNeighbor) {
+        processNeighborRemoved(stateDelta, vlanID, oldNeighbor);
+      } else {
+        processNeighborChanged(stateDelta, vlanID, oldNeighbor, newNeighbor);
+      }
+    }
+  }
+}
+
 template <typename AddrT>
 void LookupClassRouteUpdater::processNeighborUpdates(
     const StateDelta& stateDelta) {
