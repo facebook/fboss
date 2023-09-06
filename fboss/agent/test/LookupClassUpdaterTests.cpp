@@ -30,11 +30,23 @@ using folly::MacAddress;
 
 namespace facebook::fboss {
 
-template <typename AddrT>
+template <typename AddrType, bool enableIntfNbrTable>
+struct IpAddrAndEnableIntfNbrTableT {
+  using AddrT = AddrType;
+  static constexpr auto intfNbrTable = enableIntfNbrTable;
+};
+
+using TestTypes = ::testing::Types<
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, false>,
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>,
+    IpAddrAndEnableIntfNbrTableT<folly::MacAddress, false>>;
+
+template <typename IpAddrAndEnableIntfNbrTableT>
 class LookupClassUpdaterTest : public ::testing::Test {
  public:
   using Func = folly::Function<void()>;
   using StateUpdateFn = SwSwitch::StateUpdateFn;
+  using AddrT = typename IpAddrAndEnableIntfNbrTableT::AddrT;
 
   void SetUp() override {
     handle_ = createTestHandle(testStateAWithLookupClasses());
@@ -416,10 +428,9 @@ class LookupClassUpdaterTest : public ::testing::Test {
   SwSwitch* sw_;
 };
 
-using TestTypes =
-    ::testing::Types<folly::IPAddressV4, folly::IPAddressV6, folly::MacAddress>;
-using TestTypesNeighbor =
-    ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
+using TestTypesNeighbor = ::testing::Types<
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, false>,
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>>;
 
 TYPED_TEST_SUITE(LookupClassUpdaterTest, TestTypes);
 
@@ -457,12 +468,21 @@ TYPED_TEST(LookupClassUpdaterTest, VerifyClassIDPortDown) {
    *  - L2 entries should get pruned with neighbor dereference
    */
   this->verifyStateUpdate([=]() {
-    if constexpr (std::is_same_v<TypeParam, folly::MacAddress>) {
+    if constexpr (std::is_same_v<
+                      TypeParam,
+                      IpAddrAndEnableIntfNbrTableT<folly::MacAddress, false>>) {
       this->verifyMacClassIDHelper(
           this->kMacAddress(),
           cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
           MacEntryType::DYNAMIC_ENTRY);
-
+    } else if constexpr (
+        std::is_same_v<
+            TypeParam,
+            IpAddrAndEnableIntfNbrTableT<folly::MacAddress, true>>) {
+      this->verifyMacClassIDHelper(
+          this->kMacAddress(),
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+          MacEntryType::DYNAMIC_ENTRY);
     } else {
       this->verifyClassIDHelper(
           this->getIpAddress(),
@@ -569,8 +589,9 @@ TYPED_TEST(LookupClassUpdaterTest, MacMove) {
 /*
  * Tests that are valid for arp/ndp neighbors only and not for Mac addresses
  */
-template <typename AddrT>
-class LookupClassUpdaterNeighborTest : public LookupClassUpdaterTest<AddrT> {
+template <typename IpAddrAndEnableIntfNbrTableT>
+class LookupClassUpdaterNeighborTest
+    : public LookupClassUpdaterTest<IpAddrAndEnableIntfNbrTableT> {
  public:
   void verifySameMacDifferentIpsHelper() {
     auto lookupClassUpdater = this->sw_->getLookupClassUpdater();
@@ -653,11 +674,6 @@ TYPED_TEST_SUITE(LookupClassUpdaterNeighborTest, TestTypesNeighbor);
 TYPED_TEST(
     LookupClassUpdaterNeighborTest,
     ResolveUnresolveResolveVerifyClassID) {
-  using NeighborTableT = std::conditional_t<
-      std::is_same<TypeParam, folly::IPAddressV4>::value,
-      ArpTable,
-      NdpTable>;
-
   auto verifyClassIDs = [this]() {
     this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
       this->verifyClassIDHelper(
@@ -691,14 +707,26 @@ TYPED_TEST(
 
   auto state = this->sw_->getState();
   auto vlan = state->getVlans()->getNode(this->kVlan());
-  auto neighborTable = vlan->template getNeighborTable<NeighborTableT>();
 
-  if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
+  if constexpr (std::is_same_v<
+                    TypeParam,
+                    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, false>>) {
+    auto neighborTable = vlan->getArpTable();
+    EXPECT_EQ(neighborTable->getEntryIf(this->getIpAddress().asV4()), nullptr);
+    for (const auto& ip : this->getLinkLocalIpAddresses()) {
+      EXPECT_EQ(neighborTable->getEntryIf(ip.asV4()), nullptr);
+    }
+  } else if constexpr (
+      std::is_same_v<
+          TypeParam,
+          IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, true>>) {
+    auto neighborTable = vlan->getArpTable();
     EXPECT_EQ(neighborTable->getEntryIf(this->getIpAddress().asV4()), nullptr);
     for (const auto& ip : this->getLinkLocalIpAddresses()) {
       EXPECT_EQ(neighborTable->getEntryIf(ip.asV4()), nullptr);
     }
   } else {
+    auto neighborTable = vlan->getNdpTable();
     EXPECT_EQ(neighborTable->getEntryIf(this->getIpAddress().asV6()), nullptr);
     for (const auto& ip : this->getLinkLocalIpAddresses()) {
       EXPECT_EQ(neighborTable->getEntryIf(ip.asV6()), nullptr);
@@ -871,19 +899,25 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, ResolveUnresolveResolve) {
 
   this->unresolveNeighbor(this->getIpAddress());
   this->verifyStateUpdate([=]() {
-    using NeighborTableT = std::conditional_t<
-        std::is_same<TypeParam, folly::IPAddressV4>::value,
-        ArpTable,
-        NdpTable>;
-
     auto state = this->sw_->getState();
     auto vlan = state->getVlans()->getNode(this->kVlan());
-    auto neighborTable = vlan->template getNeighborTable<NeighborTableT>();
 
-    if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
+    if constexpr (
+        std::is_same_v<
+            TypeParam,
+            IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, false>>) {
+      auto neighborTable = vlan->getArpTable();
+      EXPECT_EQ(
+          neighborTable->getEntryIf(this->getIpAddress().asV4()), nullptr);
+    } else if constexpr (
+        std::is_same_v<
+            TypeParam,
+            IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, true>>) {
+      auto neighborTable = vlan->getArpTable();
       EXPECT_EQ(
           neighborTable->getEntryIf(this->getIpAddress().asV4()), nullptr);
     } else {
+      auto neighborTable = vlan->getNdpTable();
       EXPECT_EQ(
           neighborTable->getEntryIf(this->getIpAddress().asV6()), nullptr);
     }
@@ -1362,9 +1396,12 @@ TYPED_TEST(
   this->verifyMultipleBlockedMacsHelper({}, std::nullopt, std::nullopt);
 }
 
-template <typename AddrT>
-class LookupClassUpdaterWarmbootTest : public LookupClassUpdaterTest<AddrT> {
+template <typename IpAddrAndEnableIntfNbrTableT>
+class LookupClassUpdaterWarmbootTest
+    : public LookupClassUpdaterTest<IpAddrAndEnableIntfNbrTableT> {
  public:
+  using AddrT = typename IpAddrAndEnableIntfNbrTableT::AddrT;
+
   void SetUp() override {
     using NeighborTableT = std::conditional_t<
         std::is_same<AddrT, folly::IPAddressV4>::value,
