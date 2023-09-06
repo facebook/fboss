@@ -2083,7 +2083,7 @@ bool SwSwitch::sendPacketToHost(
 void SwSwitch::applyConfig(const std::string& reason, bool reload) {
   auto applyAgentConfig = [=](const AgentConfig* agentConfig) {
     const auto& newConfig = *agentConfig->thrift.sw();
-    applyConfig(reason, newConfig);
+    applyConfigImpl(reason, newConfig);
     agentConfig->dumpConfig(agentDirUtil_->getRunningConfigDumpFile());
   };
   if (!agentConfig_ || reload) {
@@ -2097,6 +2097,19 @@ void SwSwitch::applyConfig(const std::string& reason, bool reload) {
 }
 
 void SwSwitch::applyConfig(
+    const std::string& reason,
+    const cfg::SwitchConfig& newConfig) {
+  CHECK(agentConfig_);
+  /* apply and reset software switch config in the already applied agent config
+   */
+  auto agentConfigThrift = agentConfig_->thrift;
+  agentConfigThrift.sw_ref() = newConfig;
+  auto newAgentConfig = std::make_unique<AgentConfig>(agentConfigThrift);
+  applyConfigImpl(reason, newConfig);
+  agentConfig_ = std::move(newAgentConfig);
+}
+
+void SwSwitch::applyConfigImpl(
     const std::string& reason,
     const cfg::SwitchConfig& newConfig) {
   // We don't need to hold a lock here. updateStateBlocking() does that for us.
