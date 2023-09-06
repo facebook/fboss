@@ -213,12 +213,26 @@ class RoutingFixture : public ::testing::Test {
     // as well.
     auto updateFn = [=](const std::shared_ptr<SwitchState>& state) {
       std::shared_ptr<SwitchState> newState{state};
-      auto* vlan1 = newState->getVlans()->getNodeIf(VlanID(1)).get();
-      auto* vlan2 = newState->getVlans()->getNodeIf(VlanID(2)).get();
-      auto* arpTable1 = vlan1->getArpTable().get()->modify(&vlan1, &newState);
-      auto* ndpTable1 = vlan1->getNdpTable().get()->modify(&vlan1, &newState);
-      auto* arpTable2 = vlan2->getArpTable().get()->modify(&vlan2, &newState);
-      auto* ndpTable2 = vlan2->getNdpTable().get()->modify(&vlan2, &newState);
+
+      ArpTable *arpTable1, *arpTable2;
+      NdpTable *ndpTable1, *ndpTable2;
+      if (isIntfNbrTable()) {
+        auto* intf1 =
+            newState->getInterfaces()->getNodeIf(InterfaceID(1)).get();
+        auto* intf2 =
+            newState->getInterfaces()->getNodeIf(InterfaceID(2)).get();
+        arpTable1 = intf1->getArpTable().get()->modify(&intf1, &newState);
+        ndpTable1 = intf1->getNdpTable().get()->modify(&intf1, &newState);
+        arpTable2 = intf2->getArpTable().get()->modify(&intf2, &newState);
+        ndpTable2 = intf2->getNdpTable().get()->modify(&intf2, &newState);
+      } else {
+        auto* vlan1 = newState->getVlans()->getNodeIf(VlanID(1)).get();
+        auto* vlan2 = newState->getVlans()->getNodeIf(VlanID(2)).get();
+        arpTable1 = vlan1->getArpTable().get()->modify(&vlan1, &newState);
+        ndpTable1 = vlan1->getNdpTable().get()->modify(&vlan1, &newState);
+        arpTable2 = vlan2->getArpTable().get()->modify(&vlan2, &newState);
+        ndpTable2 = vlan2->getNdpTable().get()->modify(&vlan2, &newState);
+      }
 
       arpTable1->addEntry(
           kIPv4NbhAddr1,
