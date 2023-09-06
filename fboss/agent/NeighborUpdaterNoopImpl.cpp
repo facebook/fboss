@@ -165,6 +165,16 @@ void NeighborUpdaterNoopImpl::updateNdpEntryClassID(
     folly::IPAddressV6 /*ip*/,
     std::optional<cfg::AclLookupClass> /*classID*/) {}
 
+void NeighborUpdaterNoopImpl::updateArpEntryClassIDForIntf(
+    InterfaceID /*intfID*/,
+    folly::IPAddressV4 /*ip*/,
+    std::optional<cfg::AclLookupClass> /*classID*/) {}
+
+void NeighborUpdaterNoopImpl::updateNdpEntryClassIDForIntf(
+    InterfaceID /*intfID*/,
+    folly::IPAddressV6 /*ip*/,
+    std::optional<cfg::AclLookupClass> /*classID*/) {}
+
 void NeighborUpdaterNoopImpl::interfaceAdded(
     InterfaceID intfID,
     std::shared_ptr<SwitchState> state) {}
