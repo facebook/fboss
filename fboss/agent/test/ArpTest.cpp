@@ -715,12 +715,6 @@ TYPED_TEST(ArpTest, TableUpdates) {
 }
 
 TYPED_TEST(ArpTest, NotMine) {
-  if (this->isIntfNbrTable()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-  }
-
   auto handle = setupTestHandle();
   auto sw = handle->getSw();
 
@@ -760,12 +754,6 @@ TYPED_TEST(ArpTest, NotMine) {
 }
 
 TYPED_TEST(ArpTest, BadHlen) {
-  if (this->isIntfNbrTable()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-  }
-
   auto handle = setupTestHandle();
   auto sw = handle->getSw();
 
@@ -842,15 +830,6 @@ void sendArpReply(
 }
 
 TYPED_TEST(ArpTest, FlushEntry) {
-  /*
-   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
-   */
-  if (this->isIntfNbrTable()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-  }
-
   auto handle = setupTestHandle();
   auto sw = handle->getSw();
 
