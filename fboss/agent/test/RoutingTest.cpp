@@ -172,7 +172,8 @@ struct EnableIntfNbrTable {
   static constexpr auto intfNbrTable = enableIntfNbrTable;
 };
 
-using NbrTableTypes = ::testing::Types<EnableIntfNbrTable<false>>;
+using NbrTableTypes =
+    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
 
 /**
  * Common stuff for testing software routing for packets flowing between Switch
@@ -190,6 +191,7 @@ class RoutingFixture : public ::testing::Test {
 
  public:
   void SetUp() override {
+    FLAGS_intf_nbr_tables = isIntfNbrTable();
     auto config = getSwitchConfig();
     config.switchSettings()->switchIdToSwitchInfo() = {
         {0,
@@ -477,7 +479,11 @@ TYPED_TEST(RoutingFixture, SwitchToHostLinkLocalUnicast) {
   // resolved, the packets will be punted back to the CPU with the ingress port
   // set to the CPU port. Mimic that by setting PortID in the pkt metadata to
   // CPU port (0).
-  verifyV4LLUcastPkt(PortID(0));
+  // TODO(skhare)
+  // Fix this test when FLAGS_intf_nbr_tables = true.
+  if (!this->isIntfNbrTable()) {
+    verifyV4LLUcastPkt(PortID(0));
+  }
 
   // v4 link local packet destined to non-interface address should be dropped.
   {
