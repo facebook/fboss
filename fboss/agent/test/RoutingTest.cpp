@@ -181,6 +181,13 @@ using NbrTableTypes = ::testing::Types<EnableIntfNbrTable<false>>;
  */
 template <typename EnableIntfNbrTableT>
 class RoutingFixture : public ::testing::Test {
+  static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
+
+ public:
+  bool isIntfNbrTable() const {
+    return intfNbrTable == true;
+  }
+
  public:
   void SetUp() override {
     auto config = getSwitchConfig();
