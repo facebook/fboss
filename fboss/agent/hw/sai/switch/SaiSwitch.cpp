@@ -939,6 +939,18 @@ void SaiSwitch::updateResourceUsage(const LockPolicyT& lockPolicy) {
     hwResourceStats_.l3_ipv6_host_free() = switchApi.getAttribute(
         saiSwitchId_,
         SaiSwitchTraits::Attributes::AvailableIpv6NeighborEntry{});
+    if (getSwitchType() == cfg::SwitchType::VOQ) {
+      uint64_t sysPortsFree, voqsFree;
+      saiCheckError(sai_object_type_get_availability(
+          saiSwitchId_, SAI_OBJECT_TYPE_SYSTEM_PORT, 0, NULL, &sysPortsFree));
+      hwResourceStats_.system_ports_free() = sysPortsFree;
+      std::array<sai_attribute_t, 1> attr;
+      attr[0].id = SAI_QUEUE_ATTR_TYPE;
+      attr[0].value.u32 = SAI_QUEUE_TYPE_ALL;
+      sai_object_type_get_availability(
+          saiSwitchId_, SAI_OBJECT_TYPE_QUEUE, 1, attr.data(), &voqsFree);
+      hwResourceStats_.voqs_free() = voqsFree;
+    }
     hwResourceStats_.hw_table_stats_stale() = false;
   } catch (const SaiApiError& e) {
     XLOG(ERR) << " Failed to get resource usage hwResourceStats_: "
