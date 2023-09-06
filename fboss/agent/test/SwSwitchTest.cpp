@@ -250,26 +250,44 @@ TYPED_TEST(SwSwitchTestNbrs, TestStateNonCoalescing) {
 
   const PortID kPort1{1};
   const VlanID kVlan1{1};
+  const InterfaceID kInterfaceID1{1};
 
-  auto verifyReachableCnt = [kVlan1, this](int expectedReachableNbrCnt) {
-    auto getReachableCount = [](auto nbrTable) {
-      auto reachableCnt = 0;
-      for (auto iter : std::as_const(*nbrTable)) {
-        auto entry = iter.second;
-        if (entry->getState() == NeighborState::REACHABLE) {
-          ++reachableCnt;
+  auto verifyReachableCnt =
+      [kVlan1, kInterfaceID1, this](int expectedReachableNbrCnt) {
+        auto getReachableCount = [](auto nbrTable) {
+          auto reachableCnt = 0;
+          for (auto iter : std::as_const(*nbrTable)) {
+            auto entry = iter.second;
+            if (entry->getState() == NeighborState::REACHABLE) {
+              ++reachableCnt;
+            }
+          }
+          return reachableCnt;
+        };
+
+        std::shared_ptr<ArpTable> arpTable;
+        std::shared_ptr<NdpTable> ndpTable;
+
+        if (this->isIntfNbrTable()) {
+          arpTable = this->sw->getState()
+                         ->getInterfaces()
+                         ->getNode(kInterfaceID1)
+                         ->getArpTable();
+          ndpTable = this->sw->getState()
+                         ->getInterfaces()
+                         ->getNode(kInterfaceID1)
+                         ->getNdpTable();
+        } else {
+          arpTable =
+              this->sw->getState()->getVlans()->getNode(kVlan1)->getArpTable();
+          ndpTable =
+              this->sw->getState()->getVlans()->getNode(kVlan1)->getNdpTable();
         }
-      }
-      return reachableCnt;
-    };
-    auto arpTable =
-        this->sw->getState()->getVlans()->getNode(kVlan1)->getArpTable();
-    auto ndpTable =
-        this->sw->getState()->getVlans()->getNode(kVlan1)->getNdpTable();
-    auto reachableCnt =
-        getReachableCount(arpTable) + getReachableCount(ndpTable);
-    EXPECT_EQ(expectedReachableNbrCnt, reachableCnt);
-  };
+
+        auto reachableCnt =
+            getReachableCount(arpTable) + getReachableCount(ndpTable);
+        EXPECT_EQ(expectedReachableNbrCnt, reachableCnt);
+      };
   // No neighbor entries expected
   verifyReachableCnt(0);
   auto origState = sw->getState();
@@ -277,19 +295,41 @@ TYPED_TEST(SwSwitchTestNbrs, TestStateNonCoalescing) {
     return bringAllPortsUp(state);
   };
   sw->updateState("Bring Ports Up", bringPortsUpUpdateFn);
-  sw->getNeighborUpdater()->receivedArpMine(
-      kVlan1,
-      IPAddressV4("10.0.0.2"),
-      MacAddress("01:02:03:04:05:06"),
-      PortDescriptor(kPort1),
-      ArpOpCode::ARP_OP_REPLY);
-  sw->getNeighborUpdater()->receivedNdpMine(
-      kVlan1,
-      IPAddressV6("2401:db00:2110:3001::0002"),
-      MacAddress("01:02:03:04:05:06"),
-      PortDescriptor(kPort1),
-      ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-      0);
+
+  if (this->isIntfNbrTable()) {
+    sw->getNeighborUpdater()->receivedArpMineForIntf(
+        kInterfaceID1,
+        IPAddressV4("10.0.0.2"),
+        MacAddress("01:02:03:04:05:06"),
+        PortDescriptor(kPort1),
+        ArpOpCode::ARP_OP_REPLY);
+  } else {
+    sw->getNeighborUpdater()->receivedArpMine(
+        kVlan1,
+        IPAddressV4("10.0.0.2"),
+        MacAddress("01:02:03:04:05:06"),
+        PortDescriptor(kPort1),
+        ArpOpCode::ARP_OP_REPLY);
+  }
+
+  if (this->isIntfNbrTable()) {
+    sw->getNeighborUpdater()->receivedNdpMineForIntf(
+        kInterfaceID1,
+        IPAddressV6("2401:db00:2110:3001::0002"),
+        MacAddress("01:02:03:04:05:06"),
+        PortDescriptor(kPort1),
+        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+        0);
+  } else {
+    sw->getNeighborUpdater()->receivedNdpMine(
+        kVlan1,
+        IPAddressV6("2401:db00:2110:3001::0002"),
+        MacAddress("01:02:03:04:05:06"),
+        PortDescriptor(kPort1),
+        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+        0);
+  }
+
   sw->getNeighborUpdater()->waitForPendingUpdates();
   waitForStateUpdates(sw);
   // 2 neighbor entries expected
