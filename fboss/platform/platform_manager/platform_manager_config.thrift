@@ -12,6 +12,9 @@ include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 // FRU's perspective the origin of the bus can be external (coming directly
 // from the slot), or can be a mux within a FRU.
 //
+// If the I2C Adapter name is known, then that should be used as bus name.
+// If not, use the below logic.
+//
 // If the source of the bus is the slot where the FRU is plugged in, then the
 // bus is named INCOMING@<incoming_index>.  In the below example, FRU A has two
 // incoming buses falling into this category.  Similarly FRU B has three
@@ -97,13 +100,17 @@ struct I2cDeviceConfig {
 
 // The EEPROM which contains information about the FRU or Chassis
 //
-// `incomingBusIndex`: One of the incoming buses into the FRU should directly
-// connect to the FRU. i.e., not a bus originating from a mux within the FRU.
-// Note, this bus can originate from a mux in an upstream FRU.
+// `busName`: This bus should be directly from the CPU, or an incoming bus into
+// the FRU (i.e., there should not be any mux or fpga in between).  In the case
+// of former, the I2C Adapter name should be used, and in the case of latter,
+// the INCOMING@ notation should be used. Note, this bus can originate from a
+// mux/fpga in an upstream FRU.
+//
+// `address`: I2C address of the IDPROM.
 //
 // `kernelDeviceName`: The device name used by kernel to identify the device
 struct EepromConfig {
-  1: i32 incomingBusIndex;
+  1: string busName;
   2: i32 address;
   3: string kernelDeviceName;
 }
@@ -160,12 +167,9 @@ struct PlatformConfig {
   // Name of the platform.  Should match the name set in dmedicode
   1: string platformName;
 
-  // mainBoardSlotConfig describes the virtual slot where the main board
-  // is plugged into the system.
-  3: SlotConfig mainBoardSlotConfig;
-
-  // The EEPROM which holds the chassis information
-  4: EepromConfig chassisEepromConfig;
+  // This is the FRU from which the exploration will begin. The IDPROM of this
+  // FRU should be directly connected to the CPU SMBus.
+  2: FruType rootFruType;
 
   // Map from SlotType name to the global properties of the SlotType.
   11: map<SlotType, SlotTypeConfig> slotTypeConfigs;

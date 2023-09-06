@@ -18,12 +18,17 @@ PlatformExplorer::PlatformExplorer(
 }
 
 void PlatformExplorer::explore() {
-  XLOG(INFO) << "Exploring the device";
+  XLOG(INFO) << "Exploring the platform";
   for (const auto& [busName, busNum] :
        i2cExplorer_.getBusNums(*platformConfig_.i2cAdaptersFromCpu())) {
     updateI2cBusNum("", busName, busNum);
   }
-  exploreSlot("", "MainBoard_Slot@0", *platformConfig_.mainBoardSlotConfig());
+  const std::string& rootFruTypeName = *platformConfig_.rootFruType();
+  const FruTypeConfig& rootFruTypeConfig =
+      platformConfig_.fruTypeConfigs_ref()->at(rootFruTypeName);
+  SlotConfig rootSlotConfig{};
+  rootSlotConfig.slotType_ref() = *rootFruTypeConfig.pluggedInSlotType_ref();
+  exploreSlot("", "", rootSlotConfig);
 }
 
 void PlatformExplorer::exploreFRU(
@@ -59,11 +64,10 @@ void PlatformExplorer::exploreSlot(
         "No device detected at Slot {}::{}", fruName, slotName);
     return;
   }
-  auto eepromConfig =
-      *platformConfig_.slotTypeConfigs()[*slotConfig.slotType()].eepromConfig();
-  auto eepromI2cBusNum = getI2cBusNum(
-      fruName,
-      slotConfig.outgoingI2cBusNames()[*eepromConfig.incomingBusIndex()]);
+  auto eepromConfig = *platformConfig_.slotTypeConfigs_ref()
+                           ->at(*slotConfig.slotType())
+                           .eepromConfig();
+  auto eepromI2cBusNum = getI2cBusNum(fruName, *eepromConfig.busName());
   i2cExplorer_.createI2cDevice(
       *eepromConfig.kernelDeviceName(),
       eepromI2cBusNum,
@@ -76,7 +80,7 @@ void PlatformExplorer::exploreSlot(
       slotName,
       slotConfig,
       pluggedInFruTypeName,
-      platformConfig_.fruTypeConfigs()[pluggedInFruTypeName]);
+      platformConfig_.fruTypeConfigs_ref()->at(pluggedInFruTypeName));
 }
 
 void PlatformExplorer::exploreI2cDevices(

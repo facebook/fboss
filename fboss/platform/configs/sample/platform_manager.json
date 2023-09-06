@@ -1,62 +1,79 @@
 {
     "___COMMENT___": "See the associated pastes to get a pictorial representation of this config",
     "platformName": "sample_platform",
-    "mainBoardSlotConfig": {
-        "slotType": "MAIN_BOARD",
-        "pathToPoll": "...",
-        "outgoingI2cBusNames": [
-            "CPU@0",
-            "CPU@1",
-            "CPU@2",
-            "CPU@3",
-            "CPU@4",
-            "CPU@5",
-            "CPU@6",
-            "CPU@7"
-        ]
-    },
-    "chassisEepromConfig": {
-        "incomingBusIndex": 7,
-        "address": 11,
-        "kernelDeviceName": "24c02"
-    },
+    "rootFruType": "SCM",
     "slotTypeConfigs": {
-        "MAIN_BOARD": {
+        "SCM_SLOT": {
+            "numOutgoingI2cBuses": 0,
+            "eepromConfig": {
+                "busName": "CPU@7",
+                "address": 12,
+                "kernelDeviceName": "24c02"
+            }
+        },
+        "SMB_SLOT": {
             "numOutgoingI2cBuses": 8,
             "eepromConfig": {
-                "incomingBusIndex": 0,
+                "busName": "INCOMING@0",
                 "address": 11,
                 "kernelDeviceName": "24c02"
             }
         },
-        "PIM": {
+        "CHASSIS_SLOT": {
             "numOutgoingI2cBuses": 1,
             "eepromConfig": {
-                "incomingBusIndex": 0,
+                "busName": "CPU@7",
+                "address": 11,
+                "kernelDeviceName": "24c02"
+            }
+        },
+        "PIM_SLOT": {
+            "numOutgoingI2cBuses": 1,
+            "eepromConfig": {
+                "busName": "INCOMING@0",
                 "address": 14,
                 "kernelDeviceName": "24c02"
             }
         },
-        "PSU": {
+        "PSU_SLOT": {
             "numOutgoingI2cBuses": 2,
             "eepromConfig": {
-                "incomingBusIndex": 0,
+                "busName": "INCOMING@0",
                 "address": 12,
                 "kernelDeviceName": "24c64"
             }
         },
-        "YOLO": {
+        "YOLO_SLOT": {
             "numOutgoingI2cBuses": 3,
             "eepromConfig": {
-                "incomingBusIndex": 0,
+                "busName": "INCOMING@0",
                 "address": 5,
                 "kernelDeviceName": "24c64"
             }
         }
     },
     "fruTypeConfigs": {
-        "main_board": {
-            "pluggedInSlotType": "MAIN_BOARD",
+        "SCM": {
+            "pluggedInSlotType": "SCM_SLOT",
+            "outgoingSlotConfigs": {
+                "SMB_SLOT@0": {
+                    "slotType": "SMB_SLOT",
+                    "pathToPoll": "...",
+                    "outgoingI2cBusNames": [
+                        "CPU@0",
+                        "CPU@1",
+                        "CPU@2",
+                        "CPU@3",
+                        "CPU@4",
+                        "CPU@5",
+                        "CPU@6",
+                        "CPU@7"
+                    ]
+                }
+            }
+        },
+        "SMB": {
+            "pluggedInSlotType": "SMB_SLOT",
             "i2cDeviceConfigs": [
                 {
                     "busName": "INCOMING@7",
@@ -78,8 +95,8 @@
                 }
             ],
             "outgoingSlotConfigs": {
-                "yoloSlotOnChassis": {
-                    "slotType": "YOLO",
+                "YOLO_SLOT@0": {
+                    "slotType": "YOLO_SLOT",
                     "pathToPoll": "...",
                     "outgoingI2cBusNames": [
                         "INCOMING@3",
@@ -89,8 +106,8 @@
                 }
             }
         },
-        "yolo_max": {
-            "pluggedInSlotType": "YOLO",
+        "YOLO_MAX": {
+            "pluggedInSlotType": "YOLO_SLOT",
             "i2cDeviceConfigs": [
                 {
                     "busName": "INCOMING@0",
@@ -120,30 +137,30 @@
                 }
             ],
             "outgoingSlotConfigs": {
-                "psuSlot1onYolo": {
-                    "slotType": "PIM",
+                "PIM_SLOT@0": {
+                    "slotType": "PIM_SLOT",
                     "pathToPoll": "...",
                     "outgoingI2cBusNames": [
                         "yolo_mux1@0"
                     ]
                 },
-                "psuSlot2onYolo": {
-                    "slotType": "PIM",
+                "PIM_SLOT@1": {
+                    "slotType": "PIM_SLOT",
                     "pathToPoll": "...",
                     "outgoingI2cBusNames": [
                         "yolo_mux1@1"
                     ]
                 },
-                "pimSlot1onYolo": {
-                    "slotType": "PSU",
+                "PSU_SLOT@0": {
+                    "slotType": "PSU_SLOT",
                     "pathToPoll": "...",
                     "outgoingI2cBusNames": [
                         "yolo_mux2@0",
                         "yolo_mux2@1"
                     ]
                 },
-                "pimSlot2onYolo": {
-                    "slotType": "PSU",
+                "PSU_SLOT@1": {
+                    "slotType": "PSU_SLOT",
                     "pathToPoll": "...",
                     "outgoingI2cBusNames": [
                         "yolo_mux2@2",
@@ -152,8 +169,8 @@
                 }
             }
         },
-        "pim_16q": {
-            "pluggedInSlotType": "PIM",
+        "PIM_16Q": {
+            "pluggedInSlotType": "PIM_SLOT",
             "i2cDeviceConfigs": [
                 {
                     "busName": "INCOMING@0",
@@ -165,12 +182,12 @@
             ],
             "outgoingSlotConfigs": {}
         },
-        "pim_8dd": {
-            "pluggedInSlotType": "PIM",
+        "PIM_8DD": {
+            "pluggedInSlotType": "PIM_SLOT",
             "outgoingSlotConfigs": {}
         },
-        "psu_2gh": {
-            "pluggedInSlotType": "PSU",
+        "PSU_2GH": {
+            "pluggedInSlotType": "PSU_SLOT",
             "i2cDeviceConfigs": [
                 {
                     "busName": "INCOMING@1",
@@ -191,6 +208,5 @@
         "CPU@5",
         "CPU@6",
         "CPU@7"
-    ],
-    "i2cPathToHumanFriendlyName": {}
+    ]
 }
