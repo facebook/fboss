@@ -55,6 +55,8 @@ static std::string kNhopAddrB("2401:db00:2110:3055::0002");
 static folly::MacAddress kMacAddress("01:02:03:04:05:06");
 static VlanID kVlanA(1);
 static VlanID kVlanB(55);
+static InterfaceID kInterfaceA(1);
+static InterfaceID kInterfaceB(55);
 static PortID kPortIDA(1);
 static PortID kPortIDB(11);
 
@@ -2552,20 +2554,42 @@ class ThriftTeFlowTest : public ::testing::Test {
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
     sw_->initialConfigApplied(std::chrono::steady_clock::now());
-    sw_->getNeighborUpdater()->receivedNdpMine(
-        kVlanA,
-        folly::IPAddressV6(kNhopAddrA),
-        kMacAddress,
-        PortDescriptor(kPortIDA),
-        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-        0);
-    sw_->getNeighborUpdater()->receivedNdpMine(
-        kVlanB,
-        folly::IPAddressV6(kNhopAddrB),
-        kMacAddress,
-        PortDescriptor(kPortIDB),
-        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-        0);
+
+    if (isIntfNbrTable()) {
+      sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+          kInterfaceA,
+          folly::IPAddressV6(kNhopAddrA),
+          kMacAddress,
+          PortDescriptor(kPortIDA),
+          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+          0);
+    } else {
+      sw_->getNeighborUpdater()->receivedNdpMine(
+          kVlanA,
+          folly::IPAddressV6(kNhopAddrA),
+          kMacAddress,
+          PortDescriptor(kPortIDA),
+          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+          0);
+    }
+
+    if (isIntfNbrTable()) {
+      sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+          kInterfaceB,
+          folly::IPAddressV6(kNhopAddrB),
+          kMacAddress,
+          PortDescriptor(kPortIDB),
+          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+          0);
+    } else {
+      sw_->getNeighborUpdater()->receivedNdpMine(
+          kVlanB,
+          folly::IPAddressV6(kNhopAddrB),
+          kMacAddress,
+          PortDescriptor(kPortIDB),
+          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+          0);
+    }
 
     sw_->getNeighborUpdater()->waitForPendingUpdates();
     waitForBackgroundThread(sw_);
