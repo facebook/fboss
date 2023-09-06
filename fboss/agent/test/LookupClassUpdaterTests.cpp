@@ -1460,22 +1460,27 @@ class LookupClassUpdaterWarmbootTest
 
     auto newState = testStateAWithLookupClasses();
 
-    auto vlanID = VlanID(1);
-    auto vlan = newState->getVlans()->getNodeIf(vlanID);
-    auto neighborTable = vlan->template getNeighborTable<NeighborTableT>();
+    std::shared_ptr<NeighborTableT> neighborTable;
+    if (this->isIntfNbrTable()) {
+      auto intf = newState->getInterfaces()->getNodeIf(this->kInterfaceID());
+      neighborTable = intf->template getNeighborTable<NeighborTableT>();
+    } else {
+      auto vlan = newState->getVlans()->getNodeIf(this->kVlan());
+      neighborTable = vlan->template getNeighborTable<NeighborTableT>();
+    }
 
     neighborTable->addEntry(NeighborEntryFields(
         this->getIpAddr(),
         this->kMacAddress(),
         PortDescriptor(this->kPortID()),
-        InterfaceID(1),
+        this->kInterfaceID(),
         NeighborState::PENDING));
 
     neighborTable->updateEntry(
         this->getIpAddr(),
         this->kMacAddress(),
         PortDescriptor(this->kPortID()),
-        InterfaceID(1),
+        this->kInterfaceID(),
         NeighborState::REACHABLE,
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 
