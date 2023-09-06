@@ -38,8 +38,11 @@ struct IpAddrAndEnableIntfNbrTableT {
 
 using TestTypes = ::testing::Types<
     IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, false>,
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, true>,
     IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>,
-    IpAddrAndEnableIntfNbrTableT<folly::MacAddress, false>>;
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, true>,
+    IpAddrAndEnableIntfNbrTableT<folly::MacAddress, false>,
+    IpAddrAndEnableIntfNbrTableT<folly::MacAddress, true>>;
 
 template <typename IpAddrAndEnableIntfNbrTableT>
 class LookupClassUpdaterTest : public ::testing::Test {
@@ -55,6 +58,7 @@ class LookupClassUpdaterTest : public ::testing::Test {
   }
 
   void SetUp() override {
+    FLAGS_intf_nbr_tables = this->isIntfNbrTable();
     handle_ = createTestHandle(testStateAWithLookupClasses());
     sw_ = handle_->getSw();
   }
@@ -470,7 +474,9 @@ class LookupClassUpdaterTest : public ::testing::Test {
 
 using TestTypesNeighbor = ::testing::Types<
     IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, false>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>>;
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, true>,
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>,
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, true>>;
 
 TYPED_TEST_SUITE(LookupClassUpdaterTest, TestTypes);
 
@@ -1453,6 +1459,7 @@ class LookupClassUpdaterWarmbootTest
   using AddrT = typename IpAddrAndEnableIntfNbrTableT::AddrT;
 
   void SetUp() override {
+    FLAGS_intf_nbr_tables = this->isIntfNbrTable();
     using NeighborTableT = std::conditional_t<
         std::is_same<AddrT, folly::IPAddressV4>::value,
         ArpTable,
