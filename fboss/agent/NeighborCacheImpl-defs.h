@@ -43,14 +43,16 @@ template <typename NTable>
 bool checkVlanAndIntf(
     const std::shared_ptr<SwitchState>& state,
     const typename NeighborCacheEntry<NTable>::EntryFields& fields,
-    VlanID vlanID) {
-  // Make sure vlan exists
-  auto* vlan = state->getVlans()->getNodeIf(vlanID).get();
-  if (!vlan) {
-    // This VLAN no longer exists.  Just ignore the entry update.
-    XLOG(DBG3) << "VLAN " << vlanID << " deleted before entry " << fields.ip
-               << " --> " << fields.mac << " could be updated";
-    return false;
+    std::optional<VlanID> vlanID) {
+  if (vlanID.has_value()) {
+    // Make sure vlan exists
+    auto* vlan = state->getVlans()->getNodeIf(vlanID.value()).get();
+    if (!vlan) {
+      // This VLAN no longer exists.  Just ignore the entry update.
+      XLOG(DBG3) << "VLAN " << vlanID.value() << " deleted before entry "
+                 << fields.ip << " --> " << fields.mac << " could be updated";
+      return false;
+    }
   }
 
   // In case the interface subnets have changed, make sure the IP address
@@ -178,6 +180,12 @@ SwSwitch::StateUpdateFn NeighborCacheImpl<NTable>::getUpdateFnToProgramEntry(
       -> std::shared_ptr<SwitchState> {
     InterfaceID interfaceID;
     std::optional<SystemPortID> systemPortID;
+
+    if (!ncachehelpers::checkVlanAndIntf<NTable>(
+            state, fields, std::nullopt /* vlanID */)) {
+      // intf is no longer valid.
+      return nullptr;
+    }
 
     if (switchType == cfg::SwitchType::VOQ) {
       auto switchIds =
@@ -350,6 +358,12 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
     if (port.isPhysicalPort() && port.phyPortID() == PortID(0)) {
       // If the entry is pointing to the CPU port, it is not programmed in the
       // hardware, thus no-op.
+      return nullptr;
+    }
+
+    if (!ncachehelpers::checkVlanAndIntf<NTable>(
+            state, fields, std::nullopt /* vlanID */)) {
+      // intf is no longer valid.
       return nullptr;
     }
 
