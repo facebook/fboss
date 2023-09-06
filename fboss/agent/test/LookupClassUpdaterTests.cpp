@@ -633,6 +633,8 @@ template <typename IpAddrAndEnableIntfNbrTableT>
 class LookupClassUpdaterNeighborTest
     : public LookupClassUpdaterTest<IpAddrAndEnableIntfNbrTableT> {
  public:
+  using AddrT = typename IpAddrAndEnableIntfNbrTableT::AddrT;
+
   void verifySameMacDifferentIpsHelper() {
     auto lookupClassUpdater = this->sw_->getLookupClassUpdater();
 
@@ -707,6 +709,38 @@ class LookupClassUpdaterNeighborTest
           classID2 /* macClassID */);
     });
   }
+
+  void verifyNoNeighborEntryHelper() const {
+    using NeighborTableT = std::conditional_t<
+        std::is_same<AddrT, folly::IPAddressV4>::value,
+        ArpTable,
+        NdpTable>;
+
+    auto state = this->sw_->getState();
+
+    std::shared_ptr<NeighborTableT> neighborTable;
+    if (this->isIntfNbrTable()) {
+      auto intf = state->getInterfaces()->getNode(this->kInterfaceID());
+      neighborTable = intf->template getNeighborTable<NeighborTableT>();
+    } else {
+      auto vlan = state->getVlans()->getNode(this->kVlan());
+      neighborTable = vlan->template getNeighborTable<NeighborTableT>();
+    }
+
+    if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
+      EXPECT_EQ(
+          neighborTable->getEntryIf(this->getIpAddress().asV4()), nullptr);
+      for (const auto& ip : this->getLinkLocalIpAddresses()) {
+        EXPECT_EQ(neighborTable->getEntryIf(ip.asV4()), nullptr);
+      }
+    } else {
+      EXPECT_EQ(
+          neighborTable->getEntryIf(this->getIpAddress().asV6()), nullptr);
+      for (const auto& ip : this->getLinkLocalIpAddresses()) {
+        EXPECT_EQ(neighborTable->getEntryIf(ip.asV6()), nullptr);
+      }
+    }
+  }
 };
 
 TYPED_TEST_SUITE(LookupClassUpdaterNeighborTest, TestTypesNeighbor);
@@ -746,32 +780,8 @@ TYPED_TEST(
   this->unresolveNeighbor(this->getNonMacLinkLocalIpAddress());
 
   auto state = this->sw_->getState();
-  auto vlan = state->getVlans()->getNode(this->kVlan());
 
-  if constexpr (std::is_same_v<
-                    TypeParam,
-                    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, false>>) {
-    auto neighborTable = vlan->getArpTable();
-    EXPECT_EQ(neighborTable->getEntryIf(this->getIpAddress().asV4()), nullptr);
-    for (const auto& ip : this->getLinkLocalIpAddresses()) {
-      EXPECT_EQ(neighborTable->getEntryIf(ip.asV4()), nullptr);
-    }
-  } else if constexpr (
-      std::is_same_v<
-          TypeParam,
-          IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, true>>) {
-    auto neighborTable = vlan->getArpTable();
-    EXPECT_EQ(neighborTable->getEntryIf(this->getIpAddress().asV4()), nullptr);
-    for (const auto& ip : this->getLinkLocalIpAddresses()) {
-      EXPECT_EQ(neighborTable->getEntryIf(ip.asV4()), nullptr);
-    }
-  } else {
-    auto neighborTable = vlan->getNdpTable();
-    EXPECT_EQ(neighborTable->getEntryIf(this->getIpAddress().asV6()), nullptr);
-    for (const auto& ip : this->getLinkLocalIpAddresses()) {
-      EXPECT_EQ(neighborTable->getEntryIf(ip.asV6()), nullptr);
-    }
-  }
+  this->verifyNoNeighborEntryHelper();
 
   this->resolve(this->getIpAddress(), this->kMacAddress());
   this->resolveLinkLocals(this->kMacAddress());
