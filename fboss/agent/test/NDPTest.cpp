@@ -423,8 +423,27 @@ void sendNeighborAdvertisement(
 
 } // unnamed namespace
 
+template <bool enableIntfNbrTable>
+struct EnableIntfNbrTable {
+  static constexpr auto intfNbrTable = enableIntfNbrTable;
+};
+
+using NbrTableTypes =
+    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
+
+template <typename EnableIntfNbrTableT>
 class NdpTest : public ::testing::Test {
+  static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
+
  public:
+  bool isIntfNbrTable() const {
+    return intfNbrTable == true;
+  }
+
+  void SetUp() override {
+    FLAGS_intf_nbr_tables = isIntfNbrTable();
+  }
+
   unique_ptr<HwTestHandle> setupTestHandle(
       seconds raInterval = seconds(0),
       seconds ndpInterval = seconds(0),
@@ -470,7 +489,18 @@ class NdpTest : public ::testing::Test {
   SwSwitch* sw_;
 };
 
-TEST_F(NdpTest, UnsolicitedRequest) {
+TYPED_TEST_SUITE(NdpTest, NbrTableTypes);
+
+TYPED_TEST(NdpTest, UnsolicitedRequest) {
+  /*
+   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
+   */
+  if (this->isIntfNbrTable()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+  }
+
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
@@ -529,7 +559,16 @@ TEST_F(NdpTest, UnsolicitedRequest) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ndp.sum", 1);
 }
 
-TEST_F(NdpTest, TriggerSolicitation) {
+TYPED_TEST(NdpTest, TriggerSolicitation) {
+  /*
+   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
+   */
+  if (this->isIntfNbrTable()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+  }
+
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
@@ -665,7 +704,9 @@ TEST_F(NdpTest, TriggerSolicitation) {
       sw, IPAddressV6("2401:db00:2110:3004::2"), VlanID(5));
 }
 
-void NdpTest::validateRouterAdv(std::optional<std::string> configuredRouterIp) {
+template <typename EnableIntfNbrTableT>
+void NdpTest<EnableIntfNbrTableT>::validateRouterAdv(
+    std::optional<std::string> configuredRouterIp) {
   seconds raInterval(1);
   auto config =
       createSwitchConfig(raInterval, seconds(0), false, configuredRouterIp);
@@ -811,21 +852,57 @@ void NdpTest::validateRouterAdv(std::optional<std::string> configuredRouterIp) {
   EXPECT_GT(counters.value("PrimaryInterface.router_advertisements.sum"), 0);
 }
 
-TEST_F(NdpTest, RouterAdvertisement) {
-  validateRouterAdv(std::nullopt);
+TYPED_TEST(NdpTest, RouterAdvertisement) {
+  /*
+   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
+   */
+  if (this->isIntfNbrTable()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+  }
+
+  this->validateRouterAdv(std::nullopt);
 }
 
-TEST_F(NdpTest, BrokenRouterAdvConfig) {
+TYPED_TEST(NdpTest, BrokenRouterAdvConfig) {
+  /*
+   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
+   */
+  if (this->isIntfNbrTable()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+  }
+
   seconds raInterval(1);
   auto config = createSwitchConfig(raInterval, seconds(0), false, "2::2");
   EXPECT_THROW(createTestHandle(&config), FbossError);
 }
 
-TEST_F(NdpTest, RouterAdvConfigWithRouterAddress) {
-  validateRouterAdv("fe80::face:b00c");
+TYPED_TEST(NdpTest, RouterAdvConfigWithRouterAddress) {
+  /*
+   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
+   */
+  if (this->isIntfNbrTable()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+  }
+
+  this->validateRouterAdv("fe80::face:b00c");
 }
 
-TEST_F(NdpTest, receiveNeighborAdvertisementUnsolicited) {
+TYPED_TEST(NdpTest, receiveNeighborAdvertisementUnsolicited) {
+  /*
+   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
+   */
+  if (this->isIntfNbrTable()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+  }
+
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
@@ -844,7 +921,16 @@ TEST_F(NdpTest, receiveNeighborAdvertisementUnsolicited) {
   EXPECT_EQ(numFlushed, 1);
 }
 
-TEST_F(NdpTest, FlushEntry) {
+TYPED_TEST(NdpTest, FlushEntry) {
+  /*
+   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
+   */
+  if (this->isIntfNbrTable()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+  }
+
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
@@ -916,7 +1002,16 @@ TEST_F(NdpTest, FlushEntry) {
 
 // Ensure that NDP entries learned against a port are
 // flushed when the port become part of Aggregate
-TEST_F(NdpTest, FlushOnAggPortTransition) {
+TYPED_TEST(NdpTest, FlushOnAggPortTransition) {
+  /*
+   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
+   */
+  if (this->isIntfNbrTable()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+  }
+
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
@@ -988,7 +1083,16 @@ TEST_F(NdpTest, FlushOnAggPortTransition) {
       PortDescriptor(PortID(static_cast<uint16_t>(kAggregatePortID))));
 }
 
-TEST_F(NdpTest, PendingNdp) {
+TYPED_TEST(NdpTest, PendingNdp) {
+  /*
+   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
+   */
+  if (this->isIntfNbrTable()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+  }
+
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
@@ -1084,7 +1188,16 @@ TEST_F(NdpTest, PendingNdp) {
   EXPECT_EQ(entry->isPending(), false);
 };
 
-TEST_F(NdpTest, PendingNdpCleanup) {
+TYPED_TEST(NdpTest, PendingNdpCleanup) {
+  /*
+   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
+   */
+  if (this->isIntfNbrTable()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+  }
+
   seconds ndpTimeout(1);
   auto handle = this->setupTestHandleWithNdpTimeout(ndpTimeout);
   auto sw = handle->getSw();
@@ -1258,7 +1371,16 @@ TEST_F(NdpTest, PendingNdpCleanup) {
   EXPECT_NE(sw, nullptr);
 };
 
-TEST_F(NdpTest, NdpExpiration) {
+TYPED_TEST(NdpTest, NdpExpiration) {
+  /*
+   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
+   */
+  if (this->isIntfNbrTable()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+  }
+
   seconds ndpTimeout(1);
   auto handle = this->setupTestHandleWithNdpTimeout(ndpTimeout);
   auto sw = handle->getSw();
@@ -1529,7 +1651,16 @@ TEST_F(NdpTest, NdpExpiration) {
   EXPECT_EQ(entry, nullptr);
 }
 
-TEST_F(NdpTest, FlushEntryWithConcurrentUpdate) {
+TYPED_TEST(NdpTest, FlushEntryWithConcurrentUpdate) {
+  /*
+   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
+   */
+  if (this->isIntfNbrTable()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+  }
+
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
   ThriftHandler thriftHandler(sw);
@@ -1594,7 +1725,16 @@ TEST_F(NdpTest, FlushEntryWithConcurrentUpdate) {
   ndpReplies.join();
 }
 
-TEST_F(NdpTest, PortFlapRecover) {
+TYPED_TEST(NdpTest, PortFlapRecover) {
+  /*
+   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
+   */
+  if (this->isIntfNbrTable()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+  }
+
   auto handle = this->setupTestHandleWithNdpTimeout(seconds(0));
   auto sw = handle->getSw();
 
