@@ -20,12 +20,14 @@ class PlatformExplorer {
       const std::string& parentFruName,
       const std::string& parentSlotName,
       const SlotConfig& parentSlot,
-      const std::string& fruTypeName,
-      const FruTypeConfig& fruTypeConfig);
+      const std::string& fruTypeName);
   void exploreSlot(
       const std::string& fruName,
       const std::string& slotName,
       const SlotConfig& slotConfig);
+  std::optional<std::string> getFruTypeNameFromSlot(
+      const SlotConfig& slotConfig,
+      const std::string& fruName);
   void exploreI2cDevices(
       const std::string& fruName,
       const std::vector<I2cDeviceConfig>& i2cDeviceConfigs);

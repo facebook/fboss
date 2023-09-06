@@ -4,13 +4,15 @@
     "slotTypeConfigs": {
         "MCB_SLOT": {
             "numOutgoingI2cBuses": 0,
-            "eepromConfig": {
+            "idpromConfig": {
                 "busName": "SMBus I801 adapter at 5000",
                 "address": 83,
                 "kernelDeviceName": "24c02"
-            }
+            },
+            "fruType": "MCB"
         },
         "CHASSIS_SLOT": {
+            "fruType": "CHASSIS"
         }
     },
     "i2cAdaptersFromCpu": [

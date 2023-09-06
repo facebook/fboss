@@ -9,6 +9,7 @@ namespace facebook::fboss::platform::platform_manager {
 class PlatformValidator {
  public:
   bool isValid(const PlatformConfig& platformConfig);
+  bool isValidSlotTypeConfig(const SlotTypeConfig& slotTypeConfig);
 };
 
 } // namespace facebook::fboss::platform::platform_manager

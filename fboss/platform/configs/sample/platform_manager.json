@@ -5,7 +5,7 @@
     "slotTypeConfigs": {
         "SCM_SLOT": {
             "numOutgoingI2cBuses": 0,
-            "eepromConfig": {
+            "idpromConfig": {
                 "busName": "CPU@7",
                 "address": 12,
                 "kernelDeviceName": "24c02"
@@ -13,7 +13,7 @@
         },
         "SMB_SLOT": {
             "numOutgoingI2cBuses": 8,
-            "eepromConfig": {
+            "idpromConfig": {
                 "busName": "INCOMING@0",
                 "address": 11,
                 "kernelDeviceName": "24c02"
@@ -21,7 +21,7 @@
         },
         "CHASSIS_SLOT": {
             "numOutgoingI2cBuses": 1,
-            "eepromConfig": {
+            "idpromConfig": {
                 "busName": "CPU@7",
                 "address": 11,
                 "kernelDeviceName": "24c02"
@@ -29,7 +29,7 @@
         },
         "PIM_SLOT": {
             "numOutgoingI2cBuses": 1,
-            "eepromConfig": {
+            "idpromConfig": {
                 "busName": "INCOMING@0",
                 "address": 14,
                 "kernelDeviceName": "24c02"
@@ -37,7 +37,7 @@
         },
         "PSU_SLOT": {
             "numOutgoingI2cBuses": 2,
-            "eepromConfig": {
+            "idpromConfig": {
                 "busName": "INCOMING@0",
                 "address": 12,
                 "kernelDeviceName": "24c64"
@@ -45,7 +45,7 @@
         },
         "YOLO_SLOT": {
             "numOutgoingI2cBuses": 3,
-            "eepromConfig": {
+            "idpromConfig": {
                 "busName": "INCOMING@0",
                 "address": 5,
                 "kernelDeviceName": "24c64"

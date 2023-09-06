@@ -35,17 +35,28 @@ void PlatformExplorer::exploreFRU(
     const std::string& parentFruName,
     const std::string& parentSlotName,
     const SlotConfig& parentSlot,
-    const std::string& fruTypeName,
-    const FruTypeConfig& fruTypeConfig) {
+    const std::string& fruTypeName) {
   auto fruName =
       fmt::format("{}::{}/{}", parentFruName, parentSlotName, fruTypeName);
+  auto fruTypeConfig = platformConfig_.fruTypeConfigs_ref()->at(fruTypeName);
   XLOG(INFO) << fmt::format("Exploring FRU {}", fruName);
+
   int i = 0;
   for (const auto& busName : *parentSlot.outgoingI2cBusNames()) {
     auto busNum = getI2cBusNum(parentFruName, busName);
     updateI2cBusNum(fruName, fmt::format("INCOMING@{}", i++), busNum);
   }
+
+  XLOG(INFO) << fmt::format(
+      "Exploring I2C Devices for FRU {}. Count {}",
+      fruName,
+      fruTypeConfig.i2cDeviceConfigs_ref()->size());
   exploreI2cDevices(fruName, *fruTypeConfig.i2cDeviceConfigs());
+
+  XLOG(INFO) << fmt::format(
+      "Exploring Slots for FRU {}. Count {}",
+      fruName,
+      fruTypeConfig.outgoingSlotConfigs_ref()->size());
   for (const auto& [slotName, slotConfig] :
        *fruTypeConfig.outgoingSlotConfigs()) {
     exploreSlot(fruName, slotName, slotConfig);
@@ -57,39 +68,61 @@ void PlatformExplorer::exploreSlot(
     const std::string& slotName,
     const SlotConfig& slotConfig) {
   XLOG(INFO) << fmt::format("Exploring Slot {}::{}", fruName, slotName);
+  auto pluggedInFruTypeName = getFruTypeNameFromSlot(slotConfig, fruName);
+
+  if (!pluggedInFruTypeName) {
+    XLOG(INFO) << fmt::format(
+        "No device could be read in Slot {}::{}", fruName, slotName);
+    return;
+  }
+
+  exploreFRU(fruName, slotName, slotConfig, *pluggedInFruTypeName);
+}
+
+std::optional<std::string> PlatformExplorer::getFruTypeNameFromSlot(
+    const SlotConfig& slotConfig,
+    const std::string& fruName) {
   bool isChildFruPlugged =
       presenceDetector_.isPresent(*slotConfig.presenceDetection());
   if (!isChildFruPlugged) {
-    XLOG(INFO) << fmt::format(
-        "No device detected at Slot {}::{}", fruName, slotName);
-    return;
+    XLOG(INFO) << "No device detected";
+    return std::nullopt;
   }
-  auto eepromConfig = *platformConfig_.slotTypeConfigs_ref()
-                           ->at(*slotConfig.slotType())
-                           .eepromConfig();
-  auto eepromI2cBusNum = getI2cBusNum(fruName, *eepromConfig.busName());
-  i2cExplorer_.createI2cDevice(
-      *eepromConfig.kernelDeviceName(),
-      eepromI2cBusNum,
-      *eepromConfig.address());
-  auto eepromPath =
-      i2cExplorer_.getDeviceI2cPath(eepromI2cBusNum, *eepromConfig.address());
-  auto pluggedInFruTypeName = i2cExplorer_.getFruTypeName(eepromPath);
-  exploreFRU(
-      fruName,
-      slotName,
-      slotConfig,
-      pluggedInFruTypeName,
-      platformConfig_.fruTypeConfigs_ref()->at(pluggedInFruTypeName));
+  auto slotTypeConfig =
+      platformConfig_.slotTypeConfigs_ref()->at(*slotConfig.slotType());
+  std::optional<std::string> fruTypeNameInEeprom{std::nullopt};
+  if (slotTypeConfig.idpromConfig_ref()) {
+    auto idpromConfig = *slotTypeConfig.idpromConfig_ref();
+    auto eepromI2cBusNum = getI2cBusNum(fruName, *idpromConfig.busName());
+    i2cExplorer_.createI2cDevice(
+        *idpromConfig.kernelDeviceName(),
+        eepromI2cBusNum,
+        *idpromConfig.address());
+    auto eepromPath =
+        i2cExplorer_.getDeviceI2cPath(eepromI2cBusNum, *idpromConfig.address());
+    try {
+      fruTypeNameInEeprom = i2cExplorer_.getFruTypeName(eepromPath);
+    } catch (const std::exception& e) {
+      XLOG(ERR) << fmt::format(
+          "Could not fetch contents of IDPROM {}. {}", eepromPath, e.what());
+    }
+  }
+  if (slotTypeConfig.fruType_ref()) {
+    if (fruTypeNameInEeprom &&
+        *fruTypeNameInEeprom != *slotTypeConfig.fruType_ref()) {
+      XLOG(WARNING) << fmt::format(
+          "The fru type in eeprom `{}` is different from the one in config `{}`",
+          *fruTypeNameInEeprom,
+          *slotTypeConfig.fruType_ref());
+    }
+    return *slotTypeConfig.fruType_ref();
+  }
+  return fruTypeNameInEeprom;
 }
 
 void PlatformExplorer::exploreI2cDevices(
     const std::string& fruName,
     const std::vector<I2cDeviceConfig>& i2cDeviceConfigs) {
-  XLOG(INFO) << fmt::format(
-      "Exploring I2C Devices for FRU {}. Count {}",
-      fruName,
-      i2cDeviceConfigs.size());
   for (const auto& i2cDeviceConfig : i2cDeviceConfigs) {
     i2cExplorer_.createI2cDevice(
         *i2cDeviceConfig.kernelDeviceName(),
