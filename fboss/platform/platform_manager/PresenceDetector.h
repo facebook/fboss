@@ -10,7 +10,9 @@ class PresenceDetector {
  public:
   // Checks for the presence of a FRU based on the passed `presenceDetection`
   bool isPresent(const PresenceDetection& presenceDetection) {
-    throw std::runtime_error("Not implemented");
+    // We will always return true for now. Once we figure out the implementation
+    // details, this will be changed.
+    return true;
   }
 };
 
