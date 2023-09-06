@@ -48,10 +48,15 @@ class ResolvedNexthopMonitorTest : public ::testing::Test {
  public:
   using StateUpdateFn = SwSwitch::StateUpdateFn;
   using Func = folly::Function<void()>;
+  static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
   void SetUp() override {
     auto cfg = testConfigA();
     handle_ = createTestHandle(&cfg);
     sw_ = handle_->getSw();
+  }
+
+  bool isIntfNbrTable() const {
+    return intfNbrTable == true;
   }
 
   void TearDown() override {
