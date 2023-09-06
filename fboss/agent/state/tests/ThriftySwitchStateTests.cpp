@@ -32,9 +32,53 @@ void verifySwitchStateSerialization(const SwitchState& state) {
   auto stateBack = SwitchState::fromThrift(state.toThrift());
   EXPECT_EQ(state, *stateBack);
 }
+
 HwSwitchMatcher scope() {
   return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
 }
+
+template <typename VlanOrIntfT>
+void setNeighborTablesAndDHCPRelay(
+    const std::shared_ptr<VlanOrIntfT> vlanOrIntf1,
+    const std::shared_ptr<VlanOrIntfT> vlanOrIntf2) {
+  vlanOrIntf1->setDhcpV4Relay(IPAddressV4("1.2.3.4"));
+  vlanOrIntf1->setDhcpV4RelayOverrides(
+      {{MacAddress("02:00:00:00:00:02"), IPAddressV4("1.2.3.4")}});
+
+  auto arpTable = std::make_shared<ArpTable>();
+  arpTable->addEntry(
+      IPAddressV4("1.2.3.4"),
+      MacAddress("02:00:00:00:00:03"),
+      PortDescriptor(PortID(1)),
+      InterfaceID(1));
+  vlanOrIntf1->setArpTable(arpTable);
+
+  auto ndpTable = std::make_shared<NdpTable>();
+  ndpTable->addEntry(
+      IPAddressV6("2401:db00:21:70cb:face:0:96:0"),
+      MacAddress("02:00:00:00:00:04"),
+      PortDescriptor(PortID(2)),
+      InterfaceID(2));
+  vlanOrIntf1->setNdpTable(ndpTable);
+
+  auto arpResponseTable = std::make_shared<ArpResponseTable>();
+  arpResponseTable->setEntry(
+      IPAddressV4("1.2.3.5"), MacAddress("02:00:00:00:00:06"), InterfaceID(3));
+  vlanOrIntf1->setArpResponseTable(arpResponseTable);
+
+  auto ndpResponseTable = std::make_shared<NdpResponseTable>();
+  ndpResponseTable->setEntry(
+      IPAddressV6("2401:db00:21:70cb:face:0:96:1"),
+      MacAddress("02:00:00:00:00:07"),
+      InterfaceID(4));
+  vlanOrIntf1->setNdpResponseTable(ndpResponseTable);
+
+  vlanOrIntf2->setDhcpV6Relay(IPAddressV6("2401:db00:21:70cb:face:0:96:0"));
+  vlanOrIntf2->setDhcpV6RelayOverrides(
+      {{MacAddress("02:00:00:00:00:03"),
+        IPAddressV6("2401:db00:21:70cb:face:0:96:0")}});
+}
+
 } // namespace
 
 TEST(ThriftySwitchState, BasicTest) {
