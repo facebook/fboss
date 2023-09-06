@@ -233,24 +233,30 @@ class LookupClassUpdaterTest : public ::testing::Test {
         NdpTable>;
 
     auto state = sw_->getState();
-    auto vlan = state->getVlans()->getNode(kVlan());
-    auto neighborTable = vlan->template getNeighborTable<NeighborTableT>();
 
-    auto verifyNeighbor =
-        [this, ipClassID, macClassID, neighborTable](auto ipAddr) {
-          auto entry = neighborTable->getEntry(ipAddr);
-          XLOG(DBG) << entry->str();
-          EXPECT_EQ(entry->getClassID(), ipClassID);
-          if (entry->isReachable() && !entry->getMac().isBroadcast()) {
-            // We assume here that class ID of mac matches that of
-            // neighbor. That's true for our tests, since for neighbor
-            // entries we add a Mac entry in sequence. And since Mac
-            // entries round robin over the same sequence of classIDs
-            // the paired MAC entry gets a identical classID.
-            verifyMacClassIDHelper(
-                entry->getMac(), macClassID, MacEntryType::STATIC_ENTRY);
-          }
-        };
+    auto verifyNeighbor = [this, ipClassID, macClassID, state](auto ipAddr) {
+      std::shared_ptr<NeighborTableT> neighborTable;
+      if (isIntfNbrTable()) {
+        auto intf = state->getInterfaces()->getNode(kInterfaceID());
+        neighborTable = intf->template getNeighborTable<NeighborTableT>();
+      } else {
+        auto vlan = state->getVlans()->getNode(kVlan());
+        neighborTable = vlan->template getNeighborTable<NeighborTableT>();
+      }
+
+      auto entry = neighborTable->getEntry(ipAddr);
+      XLOG(DBG) << entry->str();
+      EXPECT_EQ(entry->getClassID(), ipClassID);
+      if (entry->isReachable() && !entry->getMac().isBroadcast()) {
+        // We assume here that class ID of mac matches that of
+        // neighbor. That's true for our tests, since for neighbor
+        // entries we add a Mac entry in sequence. And since Mac
+        // entries round robin over the same sequence of classIDs
+        // the paired MAC entry gets a identical classID.
+        verifyMacClassIDHelper(
+            entry->getMac(), macClassID, MacEntryType::STATIC_ENTRY);
+      }
+    };
     if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
       verifyNeighbor(ipAddress.asV4());
     } else {
