@@ -19,28 +19,28 @@ TEST(PlatformValidatorTest, InvalidPlatformName) {
   EXPECT_FALSE(PlatformValidator().isValid(config));
 }
 
-TEST(PlatformValidatorTest, MissingMainBoardSlotTypeConfig) {
+TEST(PlatformValidatorTest, MissingChassisSlotTypeConfig) {
   auto config = PlatformConfig();
   config.platformName() = "MERU400BIU";
   auto fruTypeConfig = FruTypeConfig();
-  fruTypeConfig.pluggedInSlotType() = "MAIN_BOARD";
-  config.fruTypeConfigs()["main_board"] = fruTypeConfig;
+  fruTypeConfig.pluggedInSlotType() = "CHASSIS_SLOT";
+  config.fruTypeConfigs()["CHASSIS_FRU"] = fruTypeConfig;
   EXPECT_FALSE(PlatformValidator().isValid(config));
 }
 
-TEST(PlatformValidatorTest, MissingMainBoardFruTypeConfig) {
+TEST(PlatformValidatorTest, MissingChassisFruTypeConfig) {
   auto config = PlatformConfig();
   config.platformName() = "MERU400BIU";
-  config.slotTypeConfigs()["MAIN_BOARD"] = SlotTypeConfig{};
+  config.slotTypeConfigs()["CHASSIS_SLOT"] = SlotTypeConfig{};
   EXPECT_FALSE(PlatformValidator().isValid(config));
 }
 
 TEST(PlatformValidatorTest, ValidConfig) {
   auto config = PlatformConfig();
   config.platformName() = "MERU400BIU";
-  config.slotTypeConfigs()["MAIN_BOARD"] = SlotTypeConfig{};
+  config.slotTypeConfigs()["CHASSIS_SLOT"] = SlotTypeConfig{};
   auto fruTypeConfig = FruTypeConfig();
-  fruTypeConfig.pluggedInSlotType() = "MAIN_BOARD";
-  config.fruTypeConfigs()["main_board"] = fruTypeConfig;
+  fruTypeConfig.pluggedInSlotType() = "CHASSIS_SLOT";
+  config.fruTypeConfigs()["CHASSIS_FRU"] = fruTypeConfig;
   EXPECT_TRUE(PlatformValidator().isValid(config));
 }

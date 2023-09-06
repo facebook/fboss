@@ -12,21 +12,21 @@ bool PlatformValidator::isValid(const PlatformConfig& config) {
     XLOG(ERR) << "Platform name cannot be empty";
     return false;
   }
-  // TODO: Validate platformName matches what is set in dmedicode on BIOS
-  if (config.slotTypeConfigs()->find("MAIN_BOARD") ==
+  // TODO: Validate platformName matches what is set in dmidecode on BIOS
+  if (config.slotTypeConfigs()->find("CHASSIS_SLOT") ==
       config.slotTypeConfigs()->end()) {
-    XLOG(ERR) << "MAIN_BOARD SlotTypeConfig is not found";
+    XLOG(ERR) << "CHASSIS_SLOT SlotTypeConfig is not found";
     return false;
   }
 
   int count(0);
   for (const auto& [fruTypeName, fruTypeConfig] : *config.fruTypeConfigs()) {
-    if (*fruTypeConfig.pluggedInSlotType() == "MAIN_BOARD") {
+    if (*fruTypeConfig.pluggedInSlotType() == "CHASSIS_SLOT") {
       count++;
     }
   }
   if (count != 1) {
-    XLOG(ERR) << "Exactly one MAIN_BOARD FruTypeConfig is expected";
+    XLOG(ERR) << "Exactly one CHASSIS FruTypeConfig is expected";
     return false;
   }
 
