@@ -492,15 +492,6 @@ class NdpTest : public ::testing::Test {
 TYPED_TEST_SUITE(NdpTest, NbrTableTypes);
 
 TYPED_TEST(NdpTest, UnsolicitedRequest) {
-  /*
-   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
-   */
-  if (this->isIntfNbrTable()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-  }
-
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
@@ -853,43 +844,16 @@ void NdpTest<EnableIntfNbrTableT>::validateRouterAdv(
 }
 
 TYPED_TEST(NdpTest, RouterAdvertisement) {
-  /*
-   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
-   */
-  if (this->isIntfNbrTable()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-  }
-
   this->validateRouterAdv(std::nullopt);
 }
 
 TYPED_TEST(NdpTest, BrokenRouterAdvConfig) {
-  /*
-   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
-   */
-  if (this->isIntfNbrTable()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-  }
-
   seconds raInterval(1);
   auto config = createSwitchConfig(raInterval, seconds(0), false, "2::2");
   EXPECT_THROW(createTestHandle(&config), FbossError);
 }
 
 TYPED_TEST(NdpTest, RouterAdvConfigWithRouterAddress) {
-  /*
-   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
-   */
-  if (this->isIntfNbrTable()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-  }
-
   this->validateRouterAdv("fe80::face:b00c");
 }
 
