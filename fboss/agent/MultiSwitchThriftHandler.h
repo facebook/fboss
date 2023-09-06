@@ -29,7 +29,8 @@ class MultiSwitchThriftHandler
   void getNextStateOperDelta(
       multiswitch::StateOperDelta& operDelta,
       int64_t switchId,
-      std::unique_ptr<multiswitch::StateOperDelta> prevOperResult) override;
+      std::unique_ptr<multiswitch::StateOperDelta> prevOperResult,
+      bool initialSync) override;
 
   void gracefulExit(int64_t switchId) override;
 

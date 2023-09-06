@@ -153,8 +153,8 @@ class HwEnsembleMultiSwitchThriftHandler
   void getNextStateOperDelta(
       multiswitch::StateOperDelta& operDelta,
       int64_t /*switchId*/,
-      std::unique_ptr<multiswitch::StateOperDelta> /*prevOperResult*/)
-      override {
+      std::unique_ptr<multiswitch::StateOperDelta> /*prevOperResult*/,
+      bool /*initialSync*/) override {
     std::unique_lock<std::mutex> lk(operDeltaMutex_);
     if (!nextOperReady_) {
       operDeltaCV_.wait(

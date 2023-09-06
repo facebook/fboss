@@ -131,7 +131,8 @@ MultiSwitchThriftHandler::co_getTxPackets(int64_t switchId) {
 void MultiSwitchThriftHandler::getNextStateOperDelta(
     multiswitch::StateOperDelta& operDelta,
     int64_t switchId,
-    std::unique_ptr<multiswitch::StateOperDelta> prevOperResult) {
+    std::unique_ptr<multiswitch::StateOperDelta> prevOperResult,
+    bool /*initialSync*/) {
   operDelta = sw_->getHwSwitchHandler()->getNextStateOperDelta(
       switchId, std::move(prevOperResult));
 }
