@@ -316,17 +316,29 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
   }
 
   void removeNeighbor(const AddrT& ip) {
+    using NeighborTableT = std::conditional_t<
+        std::is_same<AddrT, folly::IPAddressV4>::value,
+        ArpTable,
+        NdpTable>;
+
     this->updateState(
         "Add new route", [=](const std::shared_ptr<SwitchState>& state) {
           auto newState = state->clone();
 
-          VlanID vlanId = newState->getInterfaces()
-                              ->getNode(this->kInterfaceID())
-                              ->getVlanID();
-          Vlan* vlan = newState->getVlans()->getNodeIf(VlanID(vlanId)).get();
-          auto* neighborTable =
-              vlan->template getNeighborEntryTable<AddrT>().get()->modify(
-                  &vlan, &newState);
+          NeighborTableT* neighborTable;
+          if (isIntfNbrTable()) {
+            Interface* intf =
+                newState->getInterfaces()->getNodeIf(kInterfaceID()).get();
+            neighborTable =
+                intf->template getNeighborEntryTable<AddrT>().get()->modify(
+                    &intf, &newState);
+          } else {
+            Vlan* vlan = newState->getVlans()->getNodeIf(kVlan()).get();
+            neighborTable =
+                vlan->template getNeighborEntryTable<AddrT>().get()->modify(
+                    &vlan, &newState);
+          }
+
           neighborTable->removeEntry(ip);
           return newState;
         });
