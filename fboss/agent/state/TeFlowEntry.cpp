@@ -4,6 +4,8 @@
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/SwitchState.h"
 
+DECLARE_bool(intf_nbr_tables);
+
 namespace facebook::fboss {
 
 std::shared_ptr<TeFlowEntry> TeFlowEntry::createTeFlowEntry(
@@ -29,8 +31,20 @@ std::optional<folly::MacAddress> TeFlowEntry::getNeighborMac(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& interface,
     AddrT ip) {
-  auto vlan = state->getVlans()->getNodeIf(interface->getVlanID());
-  auto neighbor = vlan->getNeighborEntryTable<AddrT>()->getNodeIf(ip.str());
+  using NeighborEntryT = std::conditional_t<
+      std::is_same<AddrT, folly::IPAddressV4>::value,
+      ArpEntry,
+      NdpEntry>;
+
+  std::shared_ptr<NeighborEntryT> neighbor;
+  if (FLAGS_intf_nbr_tables) {
+    auto intf = state->getInterfaces()->getNodeIf(interface->getID());
+    neighbor = intf->getNeighborEntryTable<AddrT>()->getNodeIf(ip.str());
+  } else {
+    auto vlan = state->getVlans()->getNodeIf(interface->getVlanID());
+    neighbor = vlan->getNeighborEntryTable<AddrT>()->getNodeIf(ip.str());
+  }
+
   if (!neighbor) {
     return std::nullopt;
   }

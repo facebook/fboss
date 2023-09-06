@@ -10,6 +10,8 @@
 #include "fboss/agent/state/TeFlowEntry.h"
 #include "fboss/agent/state/TeFlowTable.h"
 
+DECLARE_bool(intf_nbr_tables);
+
 namespace facebook::fboss {
 
 using DeltaFunctions::isEmpty;
@@ -21,8 +23,13 @@ TeFlowNexthopHandler::~TeFlowNexthopHandler() {
   sw_->unregisterStateObserver(this);
 }
 bool TeFlowNexthopHandler::hasTeFlowChanges(const StateDelta& delta) {
-  return (sw_->getState()->getTeFlowTable()->numNodes() > 0) &&
-      (!isEmpty(delta.getVlansDelta()));
+  if (FLAGS_intf_nbr_tables) {
+    return (sw_->getState()->getTeFlowTable()->numNodes() > 0) &&
+        (!isEmpty(delta.getIntfsDelta()));
+  } else {
+    return (sw_->getState()->getTeFlowTable()->numNodes() > 0) &&
+        (!isEmpty(delta.getVlansDelta()));
+  }
 }
 
 /*
