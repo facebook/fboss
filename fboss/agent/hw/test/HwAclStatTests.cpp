@@ -552,9 +552,17 @@ TEST_F(HwAclStatTest, AclStatRenameShared) {
         /*stats*/ 2,
         /*counters*/ 2 * utility::getAclCounterTypes(getHwSwitch()).size());
     utility::checkAclStat(
-        getHwSwitch(), getProgrammedState(), {"acl0"}, "stat0");
+        getHwSwitch(),
+        getProgrammedState(),
+        {"acl0"},
+        "stat0",
+        utility::getAclCounterTypes(getHwSwitch()));
     utility::checkAclStat(
-        getHwSwitch(), getProgrammedState(), {"acl1"}, "stat1");
+        getHwSwitch(),
+        getProgrammedState(),
+        {"acl1"},
+        "stat1",
+        utility::getAclCounterTypes(getHwSwitch()));
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);

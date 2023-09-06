@@ -55,7 +55,7 @@ void checkAclStat(
     std::shared_ptr<SwitchState> state,
     std::vector<std::string> acls,
     const std::string& statName,
-    std::vector<cfg::CounterType> counterTypes = {cfg::CounterType::PACKETS},
+    std::vector<cfg::CounterType> counterTypes,
     const std::optional<std::string>& aclTableName = std::nullopt);
 
 void checkAclStatDeleted(const HwSwitch* hwSwitch, const std::string& statName);
