@@ -1642,9 +1642,24 @@ void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
     return;
   }
 
-  processNeighborUpdates<folly::MacAddress>(stateDelta);
-  processNeighborUpdates<folly::IPAddressV6>(stateDelta);
-  processNeighborUpdates<folly::IPAddressV4>(stateDelta);
+  // VOQ switches don't support VLANs.
+  // Thus, we arein the process of migrating the Neighbor tables from VLANs to
+  // Interfaces. Thus, process neighbor updates from VLAN / Interface neighbor
+  // tables depending on the feature flag.
+  // MAC Tables continue to be part of the VLANs.
+  processNeighborUpdates<folly::MacAddress>(
+      stateDelta, stateDelta.getVlansDelta());
+  if (FLAGS_intf_nbr_tables) {
+    processNeighborUpdates<folly::IPAddressV6>(
+        stateDelta, stateDelta.getIntfsDelta());
+    processNeighborUpdates<folly::IPAddressV4>(
+        stateDelta, stateDelta.getIntfsDelta());
+  } else {
+    processNeighborUpdates<folly::IPAddressV6>(
+        stateDelta, stateDelta.getVlansDelta());
+    processNeighborUpdates<folly::IPAddressV4>(
+        stateDelta, stateDelta.getVlansDelta());
+  }
 
   processRouteUpdates<folly::IPAddressV6>(stateDelta);
   processRouteUpdates<folly::IPAddressV4>(stateDelta);
