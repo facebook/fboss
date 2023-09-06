@@ -306,6 +306,13 @@ class ArpTest : public ::testing::Test {
   void SetUp() override {
     FLAGS_intf_nbr_tables = isIntfNbrTable();
   }
+
+  std::shared_ptr<ArpTable>
+  getArpTable(const SwSwitch* sw, VlanID vlanID, InterfaceID intfID) {
+    return isIntfNbrTable()
+        ? sw->getState()->getInterfaces()->getNode(intfID)->getArpTable()
+        : sw->getState()->getVlans()->getNode(vlanID)->getArpTable();
+  }
 };
 
 TYPED_TEST_SUITE(ArpTest, NbrTableTypes);
@@ -360,18 +367,10 @@ TYPED_TEST(ArpTest, BasicSendRequest) {
 }
 
 TYPED_TEST(ArpTest, TableUpdates) {
-  /*
-   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
-   */
-  if (this->isIntfNbrTable()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-  }
-
   auto handle = setupTestHandle();
   auto sw = handle->getSw();
   VlanID vlanID(1);
+  InterfaceID intfID(1);
 
   // Create an ARP request for 10.0.0.1 from an unreachable source
   auto buf = make_unique<IOBuf>(PktUtil::parseHexData(
@@ -415,7 +414,7 @@ TYPED_TEST(ArpTest, TableUpdates) {
   sw->getNeighborUpdater()->waitForPendingUpdates();
 
   // Check the new ArpTable does not have any entry
-  auto arpTable = sw->getState()->getVlans()->getNode(vlanID)->getArpTable();
+  std::shared_ptr<ArpTable> arpTable = this->getArpTable(sw, vlanID, intfID);
   EXPECT_EQ(0, arpTable->size());
 
   // Create an ARP request for 10.0.0.1
@@ -463,7 +462,7 @@ TYPED_TEST(ArpTest, TableUpdates) {
   waitForStateUpdates(sw);
 
   // Check the new ArpTable contents
-  arpTable = sw->getState()->getVlans()->getNode(vlanID)->getArpTable();
+  arpTable = this->getArpTable(sw, vlanID, intfID);
   EXPECT_EQ(1, arpTable->size());
   auto entry = arpTable->getEntry(IPAddressV4("10.0.0.15"));
   EXPECT_EQ(MacAddress("00:02:00:01:02:03"), entry->getMac());
@@ -585,7 +584,7 @@ TYPED_TEST(ArpTest, TableUpdates) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.error.sum", 0);
 
-  arpTable = sw->getState()->getVlans()->getNode(vlanID)->getArpTable();
+  arpTable = this->getArpTable(sw, vlanID, intfID);
   EXPECT_EQ(1, arpTable->size());
   entry = arpTable->getEntry(IPAddressV4("10.0.0.15"));
   EXPECT_EQ(MacAddress("00:02:00:01:02:08"), entry->getMac());
@@ -640,7 +639,7 @@ TYPED_TEST(ArpTest, TableUpdates) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 0);
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.error.sum", 0);
 
-  arpTable = sw->getState()->getVlans()->getNode(vlanID)->getArpTable();
+  arpTable = this->getArpTable(sw, vlanID, intfID);
   EXPECT_EQ(2, arpTable->size());
   entry = arpTable->getEntry(IPAddressV4("10.0.0.15"));
   EXPECT_EQ(MacAddress("00:02:00:01:02:08"), entry->getMac());
@@ -699,7 +698,7 @@ TYPED_TEST(ArpTest, TableUpdates) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 0);
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.error.sum", 0);
 
-  arpTable = sw->getState()->getVlans()->getNode(vlanID)->getArpTable();
+  arpTable = this->getArpTable(sw, vlanID, intfID);
   EXPECT_EQ(3, arpTable->size());
   entry = arpTable->getEntry(IPAddressV4("10.0.0.15"));
   EXPECT_EQ(MacAddress("00:02:00:01:02:08"), entry->getMac());
