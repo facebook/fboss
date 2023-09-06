@@ -214,20 +214,40 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
      * assert if valid CLASSID is associated with the newly resolved neighbor.
      */
     if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
-      sw_->getNeighborUpdater()->receivedArpMine(
-          kVlan(),
-          ipAddress,
-          macAddress,
-          PortDescriptor(kPortID()),
-          ArpOpCode::ARP_OP_REPLY);
+      if (isIntfNbrTable()) {
+        sw_->getNeighborUpdater()->receivedArpMineForIntf(
+            kInterfaceID(),
+            ipAddress,
+            macAddress,
+            PortDescriptor(kPortID()),
+            ArpOpCode::ARP_OP_REPLY);
+
+      } else {
+        sw_->getNeighborUpdater()->receivedArpMine(
+            kVlan(),
+            ipAddress,
+            macAddress,
+            PortDescriptor(kPortID()),
+            ArpOpCode::ARP_OP_REPLY);
+      }
     } else {
-      sw_->getNeighborUpdater()->receivedNdpMine(
-          kVlan(),
-          ipAddress,
-          macAddress,
-          PortDescriptor(kPortID()),
-          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-          0);
+      if (isIntfNbrTable()) {
+        sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+            kInterfaceID(),
+            ipAddress,
+            macAddress,
+            PortDescriptor(kPortID()),
+            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+            0);
+      } else {
+        sw_->getNeighborUpdater()->receivedNdpMine(
+            kVlan(),
+            ipAddress,
+            macAddress,
+            PortDescriptor(kPortID()),
+            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+            0);
+      }
     }
 
     // Wait for neighbor update to be done, this should
@@ -243,7 +263,12 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
   }
 
   void unresolveNeighbor(folly::IPAddress ipAddress) {
-    sw_->getNeighborUpdater()->flushEntry(kVlan(), ipAddress);
+    if (isIntfNbrTable()) {
+      sw_->getNeighborUpdater()->flushEntryForIntf(kInterfaceID(), ipAddress);
+    } else {
+      sw_->getNeighborUpdater()->flushEntry(kVlan(), ipAddress);
+    }
+
     // Wait for neighbor update to be done, this should
     // queue up state updates
     sw_->getNeighborUpdater()->waitForPendingUpdates();
