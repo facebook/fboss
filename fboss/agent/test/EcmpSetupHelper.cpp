@@ -24,6 +24,8 @@
 
 #include <folly/IPAddress.h>
 
+DECLARE_bool(intf_nbr_tables);
+
 using boost::container::flat_map;
 using boost::container::flat_set;
 using folly::IPAddress;
@@ -180,20 +182,33 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolveVlanRifNextHop(
     const NextHopT& nhop,
     const std::shared_ptr<Interface>& intf,
     bool useLinkLocal) const {
+  using NeighborTableT = typename std::conditional_t<
+      std::is_same<AddrT, folly::IPAddressV4>::value,
+      ArpTable,
+      NdpTable>;
+
   auto outputState{inputState->clone()};
-  auto vlan = outputState->getVlans()->getNode(intf->getVlanID());
-  auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
-      vlan->getID(), &outputState);
+
+  NeighborTableT* nbrTable;
+  if (FLAGS_intf_nbr_tables) {
+    nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
+        intf->getID(), &outputState);
+  } else {
+    auto vlan = outputState->getVlans()->getNode(intf->getVlanID());
+    nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
+        vlan->getID(), &outputState);
+  }
+
   auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
   if (nbrTable->getEntryIf(nhop.ip)) {
     nbrTable->updateEntry(
         nhopIp,
         nhop.mac,
         nhop.portDesc,
-        vlan->getInterfaceID(),
+        intf->getID(),
         NeighborState::REACHABLE);
   } else {
-    nbrTable->addEntry(nhopIp, nhop.mac, nhop.portDesc, vlan->getInterfaceID());
+    nbrTable->addEntry(nhopIp, nhop.mac, nhop.portDesc, intf->getID());
   }
   return outputState;
 }
@@ -237,10 +252,23 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::unresolveVlanRifNextHop(
     const NextHopT& nhop,
     const std::shared_ptr<Interface>& intf,
     bool useLinkLocal) const {
+  using NeighborTableT = typename std::conditional_t<
+      std::is_same<AddrT, folly::IPAddressV4>::value,
+      ArpTable,
+      NdpTable>;
+
   auto outputState{inputState->clone()};
-  auto vlan = outputState->getVlans()->getNode(intf->getVlanID());
-  auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
-      vlan->getID(), &outputState);
+
+  NeighborTableT* nbrTable;
+  if (FLAGS_intf_nbr_tables) {
+    nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
+        intf->getID(), &outputState);
+  } else {
+    auto vlan = outputState->getVlans()->getNode(intf->getVlanID());
+    nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
+        vlan->getID(), &outputState);
+  }
+
   auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
   nbrTable->removeEntry(nhopIp);
   return outputState;
