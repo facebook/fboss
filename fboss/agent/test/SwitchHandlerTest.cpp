@@ -63,6 +63,7 @@ TEST_F(SwSwitchHandlerTest, GetOperDelta) {
 
   auto delta = StateDelta(stateV0, stateV1);
   std::thread stateUpdateThread([this, &delta, &addRandomDelay, &stateV1]() {
+    hwSwitchHandler_->waitUntilHwSwitchConnected();
     addRandomDelay();
     auto stateReturned = hwSwitchHandler_->stateChanged(delta, true);
     EXPECT_EQ(stateReturned, stateV1);
@@ -84,17 +85,17 @@ TEST_F(SwSwitchHandlerTest, GetOperDelta) {
       operDelta->operDelta() = fsdb::OperDelta();
       return operDelta;
     };
-    auto operDelta =
-        hwSwitchHandler_->getNextStateOperDelta(switchId, getEmptyOper());
+    auto operDelta = hwSwitchHandler_->getNextStateOperDelta(
+        switchId, getEmptyOper(), true /*initialSync*/);
     EXPECT_EQ(operDelta.operDelta(), *filter.filter(delta.getOperDelta(), 1));
     // request next state delta. the empty oper passed serves as success
     // indicator for previous delta
-    operDelta =
-        hwSwitchHandler_->getNextStateOperDelta(switchId, getEmptyOper());
+    operDelta = hwSwitchHandler_->getNextStateOperDelta(
+        switchId, getEmptyOper(), false /*initialSync*/);
     EXPECT_EQ(operDelta.operDelta(), *filter.filter(delta.getOperDelta(), 1));
     // this request will be cancelled
-    operDelta =
-        hwSwitchHandler_->getNextStateOperDelta(switchId, getEmptyOper());
+    operDelta = hwSwitchHandler_->getNextStateOperDelta(
+        switchId, getEmptyOper(), false /*initialSync*/);
     // this request will be cancelled
     EXPECT_EQ(operDelta.operDelta(), fsdb::OperDelta());
   };

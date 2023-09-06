@@ -8,6 +8,7 @@
 #include <memory>
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/HwSwitchCallback.h"
+#include "fboss/agent/HwSwitchConnectionStatusTable.h"
 #include "fboss/agent/if/gen-cpp2/MultiSwitchCtrl.h"
 
 namespace facebook::fboss {
@@ -42,7 +43,8 @@ class MultiHwSwitchHandler {
 
   multiswitch::StateOperDelta getNextStateOperDelta(
       int64_t switchId,
-      std::unique_ptr<multiswitch::StateOperDelta> prevOperResult);
+      std::unique_ptr<multiswitch::StateOperDelta> prevOperResult,
+      bool initialSync);
 
   void notifyHwSwitchGracefulExit(int64_t switchId);
 
@@ -127,6 +129,9 @@ class MultiHwSwitchHandler {
   // For test purpose
   std::map<SwitchID, HwSwitchHandler*> getHwSwitchHandlers();
 
+  /* blocks till atleast one HwSwitch is connected */
+  void waitUntilHwSwitchConnected();
+
  private:
   HwSwitchHandler* getHwSwitchHandler(SwitchID id);
 
@@ -139,6 +144,7 @@ class MultiHwSwitchHandler {
 
   std::map<SwitchID, std::unique_ptr<HwSwitchHandler>> hwSwitchSyncers_;
   std::atomic<bool> stopped_{true};
+  HwSwitchConnectionStatusTable connectionStatusTable_;
 };
 
 } // namespace facebook::fboss

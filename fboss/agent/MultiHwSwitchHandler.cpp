@@ -346,9 +346,13 @@ MultiHwSwitchHandler::getHwSwitchHandlers() {
 
 multiswitch::StateOperDelta MultiHwSwitchHandler::getNextStateOperDelta(
     int64_t switchId,
-    std::unique_ptr<multiswitch::StateOperDelta> prevOperResult) {
+    std::unique_ptr<multiswitch::StateOperDelta> prevOperResult,
+    bool initialSync) {
   if (!isRunning()) {
     throw FbossError("multi hw switch syncer not started");
+  }
+  if (initialSync) {
+    connectionStatusTable_.connected(SwitchID(switchId));
   }
   auto iter = hwSwitchSyncers_.find(SwitchID(switchId));
   CHECK(iter != hwSwitchSyncers_.end());
@@ -366,6 +370,10 @@ void MultiHwSwitchHandler::notifyHwSwitchGracefulExit(int64_t switchId) {
   iter->second->notifyHwSwitchGracefulExit();
 
   // TODO - remove hwswitch from switch state update list
+}
+
+void MultiHwSwitchHandler::waitUntilHwSwitchConnected() {
+  connectionStatusTable_.waitUntilHwSwitchConnected();
 }
 
 } // namespace facebook::fboss

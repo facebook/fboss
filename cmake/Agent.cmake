@@ -139,6 +139,7 @@ add_library(core
   fboss/agent/FibHelpers.cpp
   fboss/agent/HwAsicTable.cpp
   fboss/agent/HwSwitch.cpp
+  fboss/agent/HwSwitchConnectionStatusTable.cpp
   fboss/agent/HwSwitchHandler.cpp
   fboss/agent/IPHeaderV4.cpp
   fboss/agent/IPv4Handler.cpp
