@@ -11,7 +11,6 @@ struct FanStatus {
   int rpm;
   float currentPwm{0};
   bool fanFailed{false};
-  bool fanAccessLost{false};
   bool firstTimeLedAccess{true};
   uint64_t timeStamp;
 };
