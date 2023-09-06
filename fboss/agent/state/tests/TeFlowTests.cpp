@@ -28,6 +28,8 @@ static std::string kNhopAddrB("2401:db00:2110:3055::0002");
 static folly::MacAddress kMacAddress("01:02:03:04:05:06");
 static VlanID kVlanA(1);
 static VlanID kVlanB(55);
+static InterfaceID kInterfaceA(1);
+static InterfaceID kInterfaceB(55);
 static PortID kPortIDA(1);
 static PortID kPortIDB(11);
 
@@ -60,20 +62,42 @@ class TeFlowTest : public ::testing::Test {
     config.switchSettings()->exactMatchTableConfigs() = {tableConfig};
     handle_ = createTestHandle(&config);
     this->sw_ = handle_->getSw();
-    this->sw_->getNeighborUpdater()->receivedNdpMine(
-        kVlanA,
-        folly::IPAddressV6(kNhopAddrA),
-        kMacAddress,
-        PortDescriptor(kPortIDA),
-        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-        0);
-    this->sw_->getNeighborUpdater()->receivedNdpMine(
-        kVlanB,
-        folly::IPAddressV6(kNhopAddrB),
-        kMacAddress,
-        PortDescriptor(kPortIDB),
-        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-        0);
+
+    if (isIntfNbrTable()) {
+      this->sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+          kInterfaceA,
+          folly::IPAddressV6(kNhopAddrA),
+          kMacAddress,
+          PortDescriptor(kPortIDA),
+          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+          0);
+    } else {
+      this->sw_->getNeighborUpdater()->receivedNdpMine(
+          kVlanA,
+          folly::IPAddressV6(kNhopAddrA),
+          kMacAddress,
+          PortDescriptor(kPortIDA),
+          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+          0);
+    }
+
+    if (isIntfNbrTable()) {
+      this->sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+          kInterfaceB,
+          folly::IPAddressV6(kNhopAddrB),
+          kMacAddress,
+          PortDescriptor(kPortIDB),
+          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+          0);
+    } else {
+      this->sw_->getNeighborUpdater()->receivedNdpMine(
+          kVlanB,
+          folly::IPAddressV6(kNhopAddrB),
+          kMacAddress,
+          PortDescriptor(kPortIDB),
+          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+          0);
+    }
 
     this->sw_->getNeighborUpdater()->waitForPendingUpdates();
     waitForBackgroundThread(this->sw_);
@@ -265,8 +289,14 @@ TYPED_TEST(TeFlowTest, NextHopResolution) {
   this->verifyFlowEntry(tableEntry);
 
   // test neighbor removal
-  this->sw_->getNeighborUpdater()->flushEntry(
-      kVlanA, folly::IPAddressV6(kNhopAddrA));
+  if (this->isIntfNbrTable()) {
+    this->sw_->getNeighborUpdater()->flushEntryForIntf(
+        kInterfaceA, folly::IPAddressV6(kNhopAddrA));
+  } else {
+    this->sw_->getNeighborUpdater()->flushEntry(
+        kVlanA, folly::IPAddressV6(kNhopAddrA));
+  }
+
   this->sw_->getNeighborUpdater()->waitForPendingUpdates();
   waitForBackgroundThread(this->sw_);
   waitForStateUpdates(this->sw_);
@@ -276,13 +306,23 @@ TYPED_TEST(TeFlowTest, NextHopResolution) {
   EXPECT_EQ(tableEntry->getResolvedNextHops()->size(), 0);
 
   // add back the neighbor entry
-  this->sw_->getNeighborUpdater()->receivedNdpMine(
-      kVlanA,
-      folly::IPAddressV6(kNhopAddrA),
-      kMacAddress,
-      PortDescriptor(kPortIDA),
-      ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-      0);
+  if (this->isIntfNbrTable()) {
+    this->sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+        kInterfaceA,
+        folly::IPAddressV6(kNhopAddrA),
+        kMacAddress,
+        PortDescriptor(kPortIDA),
+        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+        0);
+  } else {
+    this->sw_->getNeighborUpdater()->receivedNdpMine(
+        kVlanA,
+        folly::IPAddressV6(kNhopAddrA),
+        kMacAddress,
+        PortDescriptor(kPortIDA),
+        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+        0);
+  }
   this->sw_->getNeighborUpdater()->waitForPendingUpdates();
   waitForBackgroundThread(this->sw_);
   waitForStateUpdates(this->sw_);
@@ -323,8 +363,14 @@ TYPED_TEST(TeFlowTest, TeFlowStats) {
       counters.value(SwitchStats::kCounterPrefix + "teflows.inactive"), 0);
 
   // trigger ndp flush to disable NextHopB enentries
-  this->sw_->getNeighborUpdater()->flushEntry(
-      kVlanB, folly::IPAddressV6(kNhopAddrB));
+  if (this->isIntfNbrTable()) {
+    this->sw_->getNeighborUpdater()->flushEntryForIntf(
+        kInterfaceB, folly::IPAddressV6(kNhopAddrB));
+  } else {
+    this->sw_->getNeighborUpdater()->flushEntry(
+        kVlanB, folly::IPAddressV6(kNhopAddrB));
+  }
+
   this->sw_->getNeighborUpdater()->waitForPendingUpdates();
   waitForBackgroundThread(this->sw_);
   waitForStateUpdates(this->sw_);
