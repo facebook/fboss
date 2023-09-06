@@ -497,6 +497,7 @@ void ControlLogic::programFan(const Zone& zone, float pwmSoFar) {
         zone.fanNames()->end()) {
       continue;
     }
+
     if ((*zone.slope() == 0) || (currentPwm == 0)) {
       pwmToProgram = pwmSoFar;
     } else {

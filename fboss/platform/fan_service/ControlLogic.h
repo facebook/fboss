@@ -52,6 +52,9 @@ class ControlLogic {
   //                 readings and set PWM value accordingly
   void updateControl(std::shared_ptr<SensorData> pS);
   void setTransitionValue();
+  const std::map<std::string, FanStatus> getFanStatuses() {
+    return fanStatuses_;
+  }
 
  private:
   // Private Attributess :

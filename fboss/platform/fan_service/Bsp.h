@@ -59,11 +59,13 @@ class Bsp {
   virtual int emergencyShutdown(bool enable);
   int kickWatchdog();
   // setFanPwm... : Fan pwm set function. Used by Control Logic Class
-  bool setFanPwmSysfs(std::string path, int pwm);
-  bool setFanPwmShell(std::string command, std::string fanName, int pwm);
+  virtual bool setFanPwmSysfs(std::string path, int pwm);
+  virtual bool
+  setFanPwmShell(std::string command, std::string fanName, int pwm);
   // setFanLed... : Fan pwm set function. Used by Control Logic Class
-  bool setFanLedSysfs(std::string path, int pwm);
-  bool setFanLedShell(std::string command, std::string fanName, int pwm);
+  virtual bool setFanLedSysfs(std::string path, int pwm);
+  virtual bool
+  setFanLedShell(std::string command, std::string fanName, int pwm);
   // Other public functions that cannot be overridden
   virtual uint64_t getCurrentTime() const;
   virtual bool checkIfInitialSensorDataRead() const;

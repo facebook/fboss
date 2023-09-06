@@ -65,6 +65,7 @@ install(TARGETS fan_service)
 
 add_executable(fan_service_sw_test
   fboss/platform/fan_service/tests/BspTests.cpp
+  fboss/platform/fan_service/tests/ControlLogicTests.cpp
 )
 
 target_link_libraries(fan_service_sw_test
