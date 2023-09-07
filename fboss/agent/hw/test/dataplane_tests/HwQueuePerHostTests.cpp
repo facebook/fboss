@@ -31,7 +31,9 @@ struct IpAddrAndEnableIntfNbrTableT {
 
 using TestTypes = ::testing::Types<
     IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, false>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>>;
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, true>,
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>,
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, true>>;
 
 template <typename IpAddrAndEnableIntfNbrTableT>
 class HwQueuePerHostTest : public HwLinkStateDependentTest {
@@ -127,10 +129,20 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
 
     for (const auto& ipToMacAndClassID : getIpToMacAndClassID()) {
       auto ip = ipToMacAndClassID.first;
-      auto neighborTable = outState->getVlans()
-                               ->getNode(kVlanID)
-                               ->template getNeighborTable<NeighborTableT>()
-                               ->modify(kVlanID, &outState);
+
+      NeighborTableT* neighborTable;
+      if (isIntfNbrTable) {
+        neighborTable = outState->getInterfaces()
+                            ->getNode(kIntfID)
+                            ->template getNeighborTable<NeighborTableT>()
+                            ->modify(kIntfID, &outState);
+      } else {
+        neighborTable = outState->getVlans()
+                            ->getNode(kVlanID)
+                            ->template getNeighborTable<NeighborTableT>()
+                            ->modify(kVlanID, &outState);
+      }
+
       neighborTable->addPendingEntry(ip, kIntfID);
     }
 
@@ -149,10 +161,20 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
       auto neighborMac = macAndClassID.first;
       auto classID = blockNeighbor ? cfg::AclLookupClass::CLASS_DROP
                                    : macAndClassID.second;
-      auto neighborTable = outState->getVlans()
-                               ->getNode(kVlanID)
-                               ->template getNeighborTable<NeighborTableT>()
-                               ->modify(kVlanID, &outState);
+
+      NeighborTableT* neighborTable;
+      if (isIntfNbrTable) {
+        neighborTable = outState->getInterfaces()
+                            ->getNode(kIntfID)
+                            ->template getNeighborTable<NeighborTableT>()
+                            ->modify(kIntfID, &outState);
+      } else {
+        neighborTable = outState->getVlans()
+                            ->getNode(kVlanID)
+                            ->template getNeighborTable<NeighborTableT>()
+                            ->modify(kVlanID, &outState);
+      }
+
       if (setClassIDs) {
         neighborTable->updateEntry(
             ip,
