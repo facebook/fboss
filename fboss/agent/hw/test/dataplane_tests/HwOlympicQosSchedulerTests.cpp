@@ -163,6 +163,7 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
                             .begin());
     utility::addOlympicV2WRRQueueConfig(&newCfg, streamType, getAsic());
     utility::addOlympicV2QosMaps(newCfg, getAsic());
+    utility::setTTLZeroCpuConfig(getAsic(), newCfg);
     applyNewConfig(newCfg);
   }
 
@@ -392,6 +393,7 @@ void HwOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
                             .begin());
     utility::addOlympicAllSPQueueConfig(&newCfg, streamType, getAsic());
     utility::addOlympicV2QosMaps(newCfg, getAsic());
+    utility::setTTLZeroCpuConfig(getAsic(), newCfg);
     applyNewConfig(newCfg);
   };
 
@@ -424,6 +426,7 @@ void HwOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
                             .begin());
     utility::addOlympicAllSPQueueConfig(&newCfg, streamType, getAsic());
     utility::addOlympicV2QosMaps(newCfg, getAsic());
+    utility::setTTLZeroCpuConfig(getAsic(), newCfg);
     applyNewConfig(newCfg);
   };
 
@@ -435,7 +438,8 @@ void HwOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
         // SP queue with highest queueId
         // should starve other SP queues
         // altogether
-        utility::kOlympicAllSPHighestSPQueueId));
+        utility::getOlympicV2QueueId(
+            getAsic(), utility::OlympicV2QueueType::NC)));
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
@@ -524,6 +528,7 @@ void HwOlympicQosSchedulerTest::verifyDscpToQueueOlympicV2ToOlympic() {
                             .begin());
     utility::addOlympicQueueConfig(&newCfg, streamType, getAsic());
     utility::addOlympicQosMaps(newCfg, getAsic());
+    utility::setTTLZeroCpuConfig(getAsic(), newCfg);
     applyNewConfig(newCfg);
   };
 
@@ -557,6 +562,7 @@ void HwOlympicQosSchedulerTest::verifyOlympicV2WRRToAllSPTraffic() {
                             .begin());
     utility::addOlympicAllSPQueueConfig(&newCfg, streamType, getAsic());
     utility::addOlympicV2QosMaps(newCfg, getAsic());
+    utility::setTTLZeroCpuConfig(getAsic(), newCfg);
     applyNewConfig(newCfg);
   };
 
@@ -568,7 +574,8 @@ void HwOlympicQosSchedulerTest::verifyOlympicV2WRRToAllSPTraffic() {
         // SP queue with highest queueId
         // should starve other SP queues
         // altogether
-        utility::kOlympicAllSPHighestSPQueueId));
+        utility::getOlympicV2QueueId(
+            getAsic(), utility::OlympicV2QueueType::NC)));
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
@@ -591,6 +598,7 @@ void HwOlympicQosSchedulerTest::verifyOlympicV2AllSPTrafficToWRR() {
                             .begin());
     utility::addOlympicAllSPQueueConfig(&newCfg, streamType, getAsic());
     utility::addOlympicV2QosMaps(newCfg, getAsic());
+    utility::setTTLZeroCpuConfig(getAsic(), newCfg);
     applyNewConfig(newCfg);
   };
 
