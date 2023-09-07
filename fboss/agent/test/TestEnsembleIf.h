@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/HwSwitch.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -31,6 +32,7 @@ class TestEnsembleIf : public HwSwitchCallback {
   virtual HwSwitch* getHwSwitch() = 0;
   virtual const HwSwitch* getHwSwitch() const = 0;
   virtual const SwitchIdScopeResolver& scopeResolver() const = 0;
+  virtual HwAsicTable* getHwAsicTable() = 0;
 };
 
 } // namespace facebook::fboss

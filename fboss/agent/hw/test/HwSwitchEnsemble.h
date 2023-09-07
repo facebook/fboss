@@ -136,7 +136,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
     return getPlatform()->getAsic();
   }
   // Used for testing only
-  HwAsicTable* getHwAsicTable() {
+  HwAsicTable* getHwAsicTable() override {
     return hwAsicTable_.get();
   }
   virtual std::map<int64_t, cfg::DsfNode> dsfNodesFromInputConfig() const {
