@@ -65,16 +65,17 @@ std::string PlatformI2cExplorer::getFruTypeName(const std::string&) {
   throw std::runtime_error("Not implemented yet.");
 }
 
-bool PlatformI2cExplorer::isI2cDevicePresent(uint16_t busNum, uint8_t addr) {
-  return fs::exists(fs::path(getDeviceI2cPath(busNum, I2cAddr(addr))) / "name");
+bool PlatformI2cExplorer::isI2cDevicePresent(
+    uint16_t busNum,
+    const I2cAddr& addr) {
+  return fs::exists(fs::path(getDeviceI2cPath(busNum, addr)) / "name");
 }
 
 std::optional<std::string> PlatformI2cExplorer::getI2cDeviceName(
     uint16_t busNum,
-    uint8_t addr) {
+    const I2cAddr& addr) {
   std::string deviceName{};
-  auto deviceNameFile =
-      fs::path(getDeviceI2cPath(busNum, I2cAddr(addr))) / "name";
+  auto deviceNameFile = fs::path(getDeviceI2cPath(busNum, addr)) / "name";
   if (!fs::exists(deviceNameFile)) {
     XLOG(ERR) << fmt::format("{} does not exist", deviceNameFile.string());
     return std::nullopt;
@@ -89,52 +90,52 @@ std::optional<std::string> PlatformI2cExplorer::getI2cDeviceName(
 void PlatformI2cExplorer::createI2cDevice(
     const std::string& deviceName,
     uint16_t busNum,
-    uint8_t addr) {
+    const I2cAddr& addr) {
   if (isI2cDevicePresent(busNum, addr)) {
     auto existingDeviceName = getI2cDeviceName(busNum, addr);
     if (existingDeviceName && existingDeviceName.value() == deviceName) {
       XLOG(INFO) << fmt::format(
-          "Device {} already exists at bus: {}, addr: {:#x}. Skipping creation.",
+          "Device {} already exists at bus: {}, addr: {}. Skipping creation.",
           deviceName,
           busNum,
-          addr);
+          addr.hex2Str());
       return;
     }
     XLOG(ERR) << fmt::format(
-        "Creation of i2c device {} at bus: {}, addr: {:#x} failed. "
+        "Creation of i2c device {} at bus: {}, addr: {} failed. "
         "Another device already present",
         deviceName,
         busNum,
-        addr);
+        addr.hex2Str());
     throw std::runtime_error("Creation of i2c device failed");
   }
   auto cmd = fmt::format(
-      "echo {} {:#x} > /sys/bus/i2c/devices/i2c-{}/new_device",
+      "echo {} {} > /sys/bus/i2c/devices/i2c-{}/new_device",
       deviceName,
-      addr,
+      addr.hex2Str(),
       busNum);
   auto [exitStatus, standardOut] = platformUtils_->execCommand(cmd);
   XLOG_IF(INFO, !standardOut.empty()) << standardOut;
   if (exitStatus != 0) {
     XLOG(ERR) << fmt::format(
-        "Creation of i2c device for {} at bus: {}, addr: {:#x} "
+        "Creation of i2c device for {} at bus: {}, addr: {} "
         "failed with exit status {}",
         deviceName,
         busNum,
-        addr,
+        addr.hex2Str(),
         exitStatus);
     throw std::runtime_error("Creation of i2c device failed");
   }
   XLOG(INFO) << fmt::format(
       "Created i2c device {} at {}",
       deviceName,
-      getDeviceI2cPath(busNum, I2cAddr(addr)));
+      getDeviceI2cPath(busNum, addr));
 }
 
 std::vector<uint16_t> PlatformI2cExplorer::getMuxChannelI2CBuses(
     uint16_t busNum,
-    uint8_t addr) {
-  auto devicePath = fs::path(getDeviceI2cPath(busNum, I2cAddr(addr)));
+    const I2cAddr& addr) {
+  auto devicePath = fs::path(getDeviceI2cPath(busNum, addr));
   if (!fs::is_directory(devicePath)) {
     throw std::runtime_error(
         fmt::format("{} is not a directory.", devicePath.string()));

@@ -58,23 +58,27 @@ class PlatformI2cExplorer {
   std::string getFruTypeName(const std::string& eepromPath);
 
   // Checks if a I2c devices is present at `addr` on `busNum`.
-  virtual bool isI2cDevicePresent(uint16_t busNum, uint8_t addr);
+  virtual bool isI2cDevicePresent(uint16_t busNum, const I2cAddr& addr);
 
   // Returns the i2c device name if present at `addr` on `busNum`.
   virtual std::optional<std::string> getI2cDeviceName(
       uint16_t busNum,
-      uint8_t addr);
+      const I2cAddr& addr);
 
   // Creates an i2c device for `deviceName` on `busNum` and `addr`.
-  void
-  createI2cDevice(const std::string& deviceName, uint16_t busNum, uint8_t addr);
+  void createI2cDevice(
+      const std::string& deviceName,
+      uint16_t busNum,
+      const I2cAddr& addr);
 
   // Returns the I2C Buses which were created for the channels behind the I2C
   // Mux at `busNum`@`addr`. They are listed in the ascending order of
   // channels. It reads the children of /sys/bus/i2c/devices/`busNum`-`addr`/
   // to obtain this. This function needs to be called after `createI2cMux()` for
   // the mux. Otherwise it throws an exception.
-  std::vector<uint16_t> getMuxChannelI2CBuses(uint16_t busNum, uint8_t addr);
+  std::vector<uint16_t> getMuxChannelI2CBuses(
+      uint16_t busNum,
+      const I2cAddr& addr);
 
   // Return sysfs path to the device at `addr` on `busNum`.
   static std::string getDeviceI2cPath(uint16_t busNum, const I2cAddr& addr);
