@@ -16,6 +16,7 @@
 
 using facebook::fboss::FakeHostifTrapGroupManager;
 using facebook::fboss::FakeHostifTrapManager;
+using facebook::fboss::FakeHostifUserDefinedTrapManager;
 using facebook::fboss::FakeSai;
 
 sai_status_t send_hostif_fn(
@@ -203,6 +204,94 @@ sai_status_t get_hostif_trap_group_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+sai_status_t create_hostif_user_defined_trap_fn(
+    sai_object_id_t* hostif_user_defined_trap_id,
+    sai_object_id_t /* switch_id */,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  std::optional<sai_hostif_user_defined_trap_type_t> trapType;
+  sai_object_id_t trapGroup = 0;
+  uint32_t priority = 0;
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_HOSTIF_USER_DEFINED_TRAP_ATTR_TYPE:
+        trapType = (sai_hostif_user_defined_trap_type_t)attr_list[i].value.s32;
+        break;
+      case SAI_HOSTIF_USER_DEFINED_TRAP_ATTR_TRAP_PRIORITY:
+        priority = attr_list[i].value.u32;
+        break;
+      case SAI_HOSTIF_USER_DEFINED_TRAP_ATTR_TRAP_GROUP:
+        trapGroup = attr_list[i].value.oid;
+        break;
+      default:
+        break;
+    }
+  }
+  if (!trapType) {
+    XLOG(ERR) << "create hostif user defined trap missing trap type";
+    return SAI_STATUS_INVALID_PARAMETER;
+  }
+  *hostif_user_defined_trap_id = fs->hostIfUserDefinedTrapManager.create(
+      trapType.value(), priority, trapGroup);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t remove_hostif_user_defined_trap_fn(
+    sai_object_id_t hostif_user_defined_trap_id) {
+  auto fs = FakeSai::getInstance();
+  fs->hostIfTrapManager.remove(hostif_user_defined_trap_id);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t set_hostif_user_defined_trap_attribute_fn(
+    sai_object_id_t hostif_user_defined_trap_id,
+    const sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  auto& trap =
+      fs->hostIfUserDefinedTrapManager.get(hostif_user_defined_trap_id);
+  switch (attr->id) {
+    case SAI_HOSTIF_USER_DEFINED_TRAP_ATTR_TYPE:
+      trap.trapType = (sai_hostif_user_defined_trap_type_t)attr->value.s32;
+      break;
+    case SAI_HOSTIF_USER_DEFINED_TRAP_ATTR_TRAP_PRIORITY:
+      trap.priority = attr->value.u32;
+      break;
+    case SAI_HOSTIF_USER_DEFINED_TRAP_ATTR_TRAP_GROUP:
+      trap.trapGroup = attr->value.oid;
+      break;
+    default:
+      return SAI_STATUS_INVALID_PARAMETER;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t get_hostif_user_defined_trap_attribute_fn(
+    sai_object_id_t hostif_user_defined_trap_id,
+    uint32_t attr_count,
+    sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  const auto& hostifUserDefinedTrap =
+      fs->hostIfUserDefinedTrapManager.get(hostif_user_defined_trap_id);
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr[i].id) {
+      case SAI_HOSTIF_USER_DEFINED_TRAP_ATTR_TYPE:
+        attr[i].value.s32 =
+            static_cast<int32_t>(hostifUserDefinedTrap.trapType);
+        break;
+      case SAI_HOSTIF_USER_DEFINED_TRAP_ATTR_TRAP_PRIORITY:
+        attr[i].value.u32 = hostifUserDefinedTrap.priority;
+        break;
+      case SAI_HOSTIF_USER_DEFINED_TRAP_ATTR_TRAP_GROUP:
+        attr[i].value.oid = hostifUserDefinedTrap.trapGroup;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
 namespace facebook::fboss {
 
 static sai_hostif_api_t _hostif_api;
@@ -218,6 +307,14 @@ void populate_hostif_api(sai_hostif_api_t** hostif_api) {
   _hostif_api.remove_hostif_trap = &remove_hostif_trap_fn;
   _hostif_api.set_hostif_trap_attribute = &set_hostif_trap_attribute_fn;
   _hostif_api.get_hostif_trap_attribute = &get_hostif_trap_attribute_fn;
+  _hostif_api.create_hostif_user_defined_trap =
+      &create_hostif_user_defined_trap_fn;
+  _hostif_api.remove_hostif_user_defined_trap =
+      &remove_hostif_user_defined_trap_fn;
+  _hostif_api.set_hostif_user_defined_trap_attribute =
+      &set_hostif_user_defined_trap_attribute_fn;
+  _hostif_api.get_hostif_user_defined_trap_attribute =
+      &get_hostif_user_defined_trap_attribute_fn;
   _hostif_api.send_hostif_packet = &send_hostif_fn;
   *hostif_api = &_hostif_api;
 }

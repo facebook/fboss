@@ -243,6 +243,8 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
       return "udf-group";
     case SAI_OBJECT_TYPE_UDF_MATCH:
       return "udf-match";
+    case SAI_OBJECT_TYPE_HOSTIF_USER_DEFINED_TRAP:
+      return "hostif-user-defined-trap";
     default:
       throw FbossError("object type invalid: ", objectType);
   }

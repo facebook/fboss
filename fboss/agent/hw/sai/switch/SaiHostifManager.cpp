@@ -43,6 +43,9 @@ SaiHostifManager::~SaiHostifManager() {
   if (globalDscpToTcQosMap_) {
     clearQosPolicy();
   }
+  // clear all user defined trap
+  auto& store = saiStore_->get<SaiHostifUserDefinedTrapTraits>();
+  store.release();
 }
 
 std::pair<sai_hostif_trap_type_t, sai_packet_action_t>
@@ -147,12 +150,40 @@ SaiHostifManager::makeHostifTrapAttributes(
       trapType, packetAction, trapPriority, trapGroup};
 }
 
+SaiHostifUserDefinedTrapTraits::CreateAttributes
+SaiHostifManager::makeHostifUserDefinedTrapAttributes(
+    HostifTrapGroupSaiId trapGroupId,
+    std::optional<uint16_t> priority,
+    std::optional<uint16_t> trapType) {
+  SaiHostifUserDefinedTrapTraits::Attributes::TrapGroup trapGroup{trapGroupId};
+  return SaiHostifUserDefinedTrapTraits::CreateAttributes{
+      trapGroupId, priority, trapType};
+}
+
 std::shared_ptr<SaiHostifTrapGroup> SaiHostifManager::ensureHostifTrapGroup(
     uint32_t queueId) {
   auto& store = saiStore_->get<SaiHostifTrapGroupTraits>();
   SaiHostifTrapGroupTraits::AdapterHostKey k{queueId};
   SaiHostifTrapGroupTraits::CreateAttributes attributes{queueId, std::nullopt};
   return store.setObject(k, attributes);
+}
+
+std::shared_ptr<SaiHostifUserDefinedTrapHandle>
+SaiHostifManager::ensureHostifUserDefinedTrap(uint32_t queueId) {
+  XLOG(DBG2) << "ensure user defined trap for cpu queue " << queueId;
+  auto hostifTrapGroup = ensureHostifTrapGroup(queueId);
+  auto attributes = makeHostifUserDefinedTrapAttributes(
+      hostifTrapGroup->adapterKey(),
+      SaiHostifUserDefinedTrapTraits::Attributes::TrapPriority::defaultValue(),
+      SaiHostifUserDefinedTrapTraits::Attributes::TrapType::defaultValue());
+  SaiHostifUserDefinedTrapTraits::AdapterHostKey k =
+      GET_ATTR(HostifUserDefinedTrap, TrapGroup, attributes);
+  auto& store = saiStore_->get<SaiHostifUserDefinedTrapTraits>();
+  auto userDefinedTrap = store.setObject(k, attributes);
+  auto handle = std::make_shared<SaiHostifUserDefinedTrapHandle>();
+  handle->trapGroup = hostifTrapGroup;
+  handle->trap = userDefinedTrap;
+  return handle;
 }
 
 std::shared_ptr<SaiHostifTrapCounter> SaiHostifManager::createHostifTrapCounter(

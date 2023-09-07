@@ -37,6 +37,7 @@ class SaiStore;
 using SaiHostifTrapGroup = SaiObject<SaiHostifTrapGroupTraits>;
 using SaiHostifTrap = SaiObject<SaiHostifTrapTraits>;
 using SaiHostifTrapCounter = SaiObject<SaiCounterTraits>;
+using SaiHostifUserDefinedTrap = SaiObject<SaiHostifUserDefinedTrapTraits>;
 
 struct SaiCpuPortHandle {
   PortSaiId cpuPortId;
@@ -48,6 +49,11 @@ struct SaiHostifTrapHandle {
   std::shared_ptr<SaiHostifTrapGroup> trapGroup;
   std::shared_ptr<SaiHostifTrap> trap;
   std::shared_ptr<SaiHostifTrapCounter> counter;
+};
+
+struct SaiHostifUserDefinedTrapHandle {
+  std::shared_ptr<SaiHostifTrapGroup> trapGroup;
+  std::shared_ptr<SaiHostifUserDefinedTrap> trap;
 };
 
 class SaiHostifManager {
@@ -76,6 +82,13 @@ class SaiHostifManager {
       HostifTrapGroupSaiId trapGroupId,
       uint16_t priority,
       const SaiPlatform* platform);
+  static SaiHostifUserDefinedTrapTraits::CreateAttributes
+  makeHostifUserDefinedTrapAttributes(
+      HostifTrapGroupSaiId trapGroupId,
+      std::optional<uint16_t> priority,
+      std::optional<uint16_t> trapType);
+  std::shared_ptr<SaiHostifUserDefinedTrapHandle> ensureHostifUserDefinedTrap(
+      uint32_t queueId);
   void processHostifDelta(const ThriftMapDelta<MultiControlPlane>& delta);
   SaiQueueHandle* getQueueHandle(const SaiQueueConfig& saiQueueConfig);
   const SaiQueueHandle* getQueueHandle(

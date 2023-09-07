@@ -66,6 +66,7 @@ struct FakeSai {
   FakeFdbManager fdbManager;
   FakeHashManager hashManager;
   FakeHostifTrapManager hostIfTrapManager;
+  FakeHostifUserDefinedTrapManager hostIfUserDefinedTrapManager;
   FakeHostifTrapGroupManager hostifTrapGroupManager;
   FakeInSegEntryManager inSegEntryManager;
   FakeNeighborManager neighborManager;

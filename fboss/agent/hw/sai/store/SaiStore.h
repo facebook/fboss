@@ -614,6 +614,7 @@ class SaiStore {
       SaiObjectStore<SaiNeighborTraits>,
       SaiObjectStore<SaiHostifTrapGroupTraits>,
       SaiObjectStore<SaiHostifTrapTraits>,
+      SaiObjectStore<SaiHostifUserDefinedTrapTraits>,
       SaiObjectStore<SaiQueueTraits>,
       SaiObjectStore<SaiSchedulerTraits>,
       SaiObjectStore<SaiSamplePacketTraits>,

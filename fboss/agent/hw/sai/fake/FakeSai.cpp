@@ -37,6 +37,7 @@ void FakeSai::clear() {
   fs->fdbManager.clear();
   fs->hashManager.clear();
   fs->hostIfTrapManager.clear();
+  fs->hostIfUserDefinedTrapManager.clear();
   fs->hostifTrapGroupManager.clear();
   fs->inSegEntryManager.clear();
   fs->neighborManager.clear();

@@ -78,6 +78,76 @@ TEST_F(HostifManagerTest, removeHostifTrap) {
   EXPECT_EQ(trapGroup1, trapGroup2);
 }
 
+TEST_F(HostifManagerTest, createHostifUserDefinedTrap) {
+  uint32_t queueId = 4;
+  // create an user defined trap
+  std::shared_ptr<SaiHostifUserDefinedTrapHandle> userDefinedTrap =
+      saiManagerTable->hostifManager().ensureHostifUserDefinedTrap(queueId);
+  HostifUserDefinedTrapSaiId trapId = userDefinedTrap->trap->adapterKey();
+  auto trapGroupId = saiApiTable->hostifApi().getAttribute(
+      trapId, SaiHostifUserDefinedTrapTraits::Attributes::TrapGroup{});
+  auto queueIdExpected = saiApiTable->hostifApi().getAttribute(
+      HostifTrapGroupSaiId{trapGroupId},
+      SaiHostifTrapGroupTraits::Attributes::Queue{});
+  // user defined trap's trapGroup should point to queueId
+  EXPECT_EQ(queueIdExpected, queueId);
+}
+
+TEST_F(HostifManagerTest, sharedHostifUserDefinedTrapGroup) {
+  uint32_t queueId = 4;
+  auto trapType = cfg::PacketRxReason::ARP;
+  auto& hostifManager = saiManagerTable->hostifManager();
+  // create a normal trap and user defined trap using the same queue
+  HostifTrapSaiId trapId1 = hostifManager.addHostifTrap(trapType, queueId, 1);
+  std::shared_ptr<SaiHostifUserDefinedTrapHandle> userDefinedTrap =
+      saiManagerTable->hostifManager().ensureHostifUserDefinedTrap(queueId);
+  HostifUserDefinedTrapSaiId trapId2 = userDefinedTrap->trap->adapterKey();
+  auto trapGroup1 = saiApiTable->hostifApi().getAttribute(
+      trapId1, SaiHostifTrapTraits::Attributes::TrapGroup{});
+  auto trapGroup2 = saiApiTable->hostifApi().getAttribute(
+      trapId2, SaiHostifUserDefinedTrapTraits::Attributes::TrapGroup{});
+  // both traps should point to the same trap group
+  EXPECT_EQ(trapGroup1, trapGroup2);
+  auto queueIdExpected = saiApiTable->hostifApi().getAttribute(
+      HostifTrapGroupSaiId{trapGroup1},
+      SaiHostifTrapGroupTraits::Attributes::Queue{});
+  // trap group should point to queueId
+  EXPECT_EQ(queueIdExpected, queueId);
+  // call ensureHostifUserDefinedTrap() using the same queueId again
+  std::shared_ptr<SaiHostifUserDefinedTrapHandle> userDefinedTrap2 =
+      saiManagerTable->hostifManager().ensureHostifUserDefinedTrap(queueId);
+  HostifUserDefinedTrapSaiId trapId3 = userDefinedTrap2->trap->adapterKey();
+  // shoud return the old trapId that is already programmed
+  EXPECT_EQ(trapId2, trapId3);
+}
+
+TEST_F(HostifManagerTest, removeHostifUserDefinedTrap) {
+  uint32_t queueId = 4;
+  auto trapType = cfg::PacketRxReason::ARP;
+  auto& hostifManager = saiManagerTable->hostifManager();
+  // create a normal trap and user defined trap using the same queue
+  HostifTrapSaiId trapId1 = hostifManager.addHostifTrap(trapType, queueId, 1);
+  std::shared_ptr<SaiHostifUserDefinedTrapHandle> userDefinedTrap =
+      saiManagerTable->hostifManager().ensureHostifUserDefinedTrap(queueId);
+  HostifUserDefinedTrapSaiId trapId2 = userDefinedTrap->trap->adapterKey();
+  auto trapGroup1 = saiApiTable->hostifApi().getAttribute(
+      trapId1, SaiHostifTrapTraits::Attributes::TrapGroup{});
+  // remove one of them
+  saiManagerTable->hostifManager().removeHostifTrap(trapType);
+  // trap group for the queue should still be valid
+  auto trapGroup2 = saiApiTable->hostifApi().getAttribute(
+      trapId2, SaiHostifUserDefinedTrapTraits::Attributes::TrapGroup{});
+  EXPECT_EQ(trapGroup1, trapGroup2);
+  // remove user defined trap
+  userDefinedTrap.reset();
+  // trap group should be removed
+  EXPECT_THROW(
+      saiApiTable->hostifApi().getAttribute(
+          HostifTrapGroupSaiId{trapGroup2},
+          SaiHostifTrapGroupTraits::Attributes::Queue{}),
+      std::out_of_range);
+}
+
 TEST_F(HostifManagerTest, addCpuQueueAndCheckStats) {
   auto prevState = std::make_shared<SwitchState>();
   auto newState = std::make_shared<SwitchState>();

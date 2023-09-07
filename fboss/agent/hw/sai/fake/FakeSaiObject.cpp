@@ -64,6 +64,9 @@ sai_status_t sai_get_object_count(
     case SAI_OBJECT_TYPE_HOSTIF_TRAP:
       *count = fs->hostIfTrapManager.map().size();
       break;
+    case SAI_OBJECT_TYPE_HOSTIF_USER_DEFINED_TRAP:
+      *count = fs->hostIfUserDefinedTrapManager.map().size();
+      break;
     case SAI_OBJECT_TYPE_NEIGHBOR_ENTRY:
       *count = fs->neighborManager.map().size();
       break;
