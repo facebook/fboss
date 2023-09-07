@@ -364,8 +364,23 @@ TYPED_TEST(HwNeighborTest, LinkDownAndUpOnResolvedEntry) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+template <bool enableIntfNbrTable>
+struct EnableIntfNbrTable {
+  static constexpr auto intfNbrTable = enableIntfNbrTable;
+};
+
+using IntfNbrTableTypes = ::testing::Types<EnableIntfNbrTable<false>>;
+
+template <typename EnableIntfNbrTableT>
 class HwNeighborOnMultiplePortsTest : public HwLinkStateDependentTest {
+  static auto constexpr isIntfNbrTable = EnableIntfNbrTableT::intfNbrTable;
+
  protected:
+  void SetUp() override {
+    FLAGS_intf_nbr_tables = isIntfNbrTable;
+    HwLinkStateDependentTest::SetUp();
+  }
+
   cfg::SwitchConfig initialConfig() const override {
     return utility::onePortPerInterfaceConfig(
         getHwSwitch(),
@@ -432,19 +447,21 @@ class HwNeighborOnMultiplePortsTest : public HwLinkStateDependentTest {
   }
 };
 
-TEST_F(HwNeighborOnMultiplePortsTest, ResolveOnTwoPorts) {
+TYPED_TEST_SUITE(HwNeighborOnMultiplePortsTest, IntfNbrTableTypes);
+
+TYPED_TEST(HwNeighborOnMultiplePortsTest, ResolveOnTwoPorts) {
   auto setup = [&]() {
-    oneNeighborPerPortSetup(
-        {masterLogicalInterfacePortIds()[0],
-         masterLogicalInterfacePortIds()[1]});
+    this->oneNeighborPerPortSetup(
+        {this->masterLogicalInterfacePortIds()[0],
+         this->masterLogicalInterfacePortIds()[1]});
   };
   auto verify = [&]() {
-    EXPECT_FALSE(isProgrammedToCPU(
-        masterLogicalInterfacePortIds()[0], folly::IPAddressV6("1::1")));
-    EXPECT_FALSE(isProgrammedToCPU(
-        masterLogicalInterfacePortIds()[1], folly::IPAddressV6("2::2")));
+    EXPECT_FALSE(this->isProgrammedToCPU(
+        this->masterLogicalInterfacePortIds()[0], folly::IPAddressV6("1::1")));
+    EXPECT_FALSE(this->isProgrammedToCPU(
+        this->masterLogicalInterfacePortIds()[1], folly::IPAddressV6("2::2")));
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
