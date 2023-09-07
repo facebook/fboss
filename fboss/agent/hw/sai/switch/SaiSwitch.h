@@ -476,7 +476,13 @@ class SaiSwitch : public HwSwitch {
 
   void initialStateApplied() override;
 
-  void processPfcWatchdogGlobalDelta(const StateDelta& delta);
+  template <typename LockPolicyT>
+  void processPfcWatchdogGlobalDelta(
+      const StateDelta& delta,
+      const LockPolicyT& lockPolicy);
+  void processPfcWatchdogGlobalDeltaLocked(
+      const StateDelta& delta,
+      const std::lock_guard<std::mutex>& lock);
   void processPfcDeadlockNotificationCallback(
       std::optional<cfg::PfcWatchdogRecoveryAction> oldRecoveryAction,
       std::optional<cfg::PfcWatchdogRecoveryAction> newRecoveryAction);

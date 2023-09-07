@@ -886,6 +886,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
         kAclTable1);
   }
 
+  processPfcWatchdogGlobalDelta(delta, lockPolicy);
+
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::RESOURCE_USAGE_STATS)) {
     updateResourceUsage(lockPolicy);
@@ -3263,17 +3265,24 @@ void SaiSwitch::processPfcDeadlockRecoveryAction(
   }
 }
 
-void SaiSwitch::processPfcWatchdogGlobalDelta(const StateDelta& delta) {
+void SaiSwitch::processPfcWatchdogGlobalDeltaLocked(
+    const StateDelta& delta,
+    const std::lock_guard<std::mutex>& /* lock */) {
   auto oldRecoveryAction = delta.oldState()->getPfcWatchdogRecoveryAction();
   auto newRecoveryAction = delta.newState()->getPfcWatchdogRecoveryAction();
 
-  if (!platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
-    // Look for PFC watchdog only if PFC is supported on platform
-    return;
+  if (oldRecoveryAction != newRecoveryAction) {
+    processPfcDeadlockNotificationCallback(
+        oldRecoveryAction, newRecoveryAction);
+    processPfcDeadlockRecoveryAction(newRecoveryAction);
   }
+}
 
-  processPfcDeadlockNotificationCallback(oldRecoveryAction, newRecoveryAction);
-  processPfcDeadlockRecoveryAction(newRecoveryAction);
+template <typename LockPolicyT>
+void SaiSwitch::processPfcWatchdogGlobalDelta(
+    const StateDelta& delta,
+    const LockPolicyT& lockPolicy) {
+  processPfcWatchdogGlobalDeltaLocked(delta, lockPolicy.lock());
 }
 
 void SaiSwitch::pfcDeadlockNotificationCallback(
