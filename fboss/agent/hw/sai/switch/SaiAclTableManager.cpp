@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/sai/api/AclApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
+#include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -789,6 +790,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 
   std::optional<std::string> ingressMirror{std::nullopt};
   std::optional<std::string> egressMirror{std::nullopt};
+  std::shared_ptr<SaiHostifUserDefinedTrapHandle> userDefinedTrap{nullptr};
 
   std::optional<SaiAclEntryTraits::Attributes::ActionMacsecFlow>
       aclActionMacsecFlow{std::nullopt};
@@ -858,6 +860,22 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
               setCopyOrTrap(sendToQueue, SAI_PACKET_ACTION_TRAP);
               break;
           }
+        }
+
+        if (FLAGS_sai_user_defined_trap) {
+          // Some platform requires implementing ACL copy/trap to cpu action
+          // along with user defined trap action mapping to the desrited cpu
+          // queue, so as to make ACL rule take precedence over hostif trap
+          // rule.
+#if !defined(TAJO_SDK)
+          userDefinedTrap =
+              managerTable_->hostifManager().ensureHostifUserDefinedTrap(
+                  *sendToQueue.first.queueId());
+          aclActionSetUserTrap =
+              SaiAclEntryTraits::Attributes::ActionSetUserTrap{
+                  AclEntryActionSaiObjectIdT(
+                      userDefinedTrap->trap->adapterKey())};
+#endif
         }
       }
     }
@@ -990,6 +1008,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   entryHandle->aclCounterTypeAndName = aclCounterTypeAndName;
   entryHandle->ingressMirror = ingressMirror;
   entryHandle->egressMirror = egressMirror;
+  entryHandle->userDefinedTrap = userDefinedTrap;
   auto [it, inserted] = aclTableHandle->aclTableMembers.emplace(
       addedAclEntry->getPriority(), std::move(entryHandle));
   CHECK(inserted);

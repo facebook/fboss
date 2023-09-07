@@ -180,7 +180,6 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   // Qos map manager is going away, reset global qos maps
   switchManager_->resetQosMaps();
   qosMapManager_.reset();
-  hostifManager_.reset();
   samplePacketManager_.reset();
 
   // ACL Table Group is going away, reset ingressACL pointing to it
@@ -194,6 +193,10 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   aclTableGroupManager_.reset();
   aclTableManager_.reset();
 
+  // aclTable might depends on user defined hostif trap. For example,
+  // to trap packet to a specific CPU queue, some platforms require creating an
+  // ACL with action to set hostif user defined mapping to a specific queue id.
+  hostifManager_.reset();
   bufferManager_.reset();
   wredManager_.reset();
 

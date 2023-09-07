@@ -24,11 +24,14 @@
 
 #include <memory>
 
+DECLARE_bool(sai_user_defined_trap);
+
 namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
 class SaiStore;
+struct SaiHostifUserDefinedTrapHandle;
 
 using SaiAclTable = SaiObject<SaiAclTableTraits>;
 using SaiAclEntry = SaiObject<SaiAclEntryTraits>;
@@ -45,6 +48,7 @@ struct SaiAclEntryHandle {
    * Declare SaiAclCounter before SaiAclEntry as class members are destructed
    * in the reverse order of declaration.
    */
+  std::shared_ptr<SaiHostifUserDefinedTrapHandle> userDefinedTrap;
   std::shared_ptr<SaiAclCounter> aclCounter;
   std::shared_ptr<SaiAclEntry> aclEntry;
   std::vector<std::pair<cfg::CounterType, std::string>> aclCounterTypeAndName;
