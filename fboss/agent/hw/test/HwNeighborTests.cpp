@@ -369,7 +369,8 @@ struct EnableIntfNbrTable {
   static constexpr auto intfNbrTable = enableIntfNbrTable;
 };
 
-using IntfNbrTableTypes = ::testing::Types<EnableIntfNbrTable<false>>;
+using IntfNbrTableTypes =
+    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
 
 template <typename EnableIntfNbrTableT>
 class HwNeighborOnMultiplePortsTest : public HwLinkStateDependentTest {
@@ -423,20 +424,22 @@ class HwNeighborOnMultiplePortsTest : public HwLinkStateDependentTest {
 
   InterfaceID getInterfaceId(const PortID& portId) const {
     auto switchType = getSwitchType();
-    if (switchType == cfg::SwitchType::NPU) {
+
+    if (isIntfNbrTable || switchType == cfg::SwitchType::VOQ) {
+      return InterfaceID(*getProgrammedState()
+                              ->getPorts()
+                              ->getNodeIf(portId)
+                              ->getInterfaceIDs()
+                              .begin());
+    } else if (switchType == cfg::SwitchType::NPU) {
       return InterfaceID(static_cast<int>((*getProgrammedState()
                                                 ->getPorts()
                                                 ->getNodeIf(portId)
                                                 ->getVlans()
                                                 .begin())
                                               .first));
-    } else if (switchType == cfg::SwitchType::VOQ) {
-      return InterfaceID(*getProgrammedState()
-                              ->getPorts()
-                              ->getNodeIf(portId)
-                              ->getInterfaceIDs()
-                              .begin());
     }
+
     XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);
   }
 
