@@ -20,4 +20,12 @@ void BspTransceiverApi::clearAllTransceiverReset() {
   systemContainer_->clearAllTransceiverReset();
 }
 
+void BspTransceiverApi::holdTransceiverReset(unsigned int module) {
+  systemContainer_->holdTransceiverReset(module);
+}
+
+void BspTransceiverApi::releaseTransceiverReset(unsigned int module) {
+  systemContainer_->releaseTransceiverReset(module);
+}
+
 } // namespace facebook::fboss

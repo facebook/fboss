@@ -49,6 +49,8 @@ class BspSystemContainer {
   void initAllTransceivers() const;
   void clearAllTransceiverReset() const;
   void initTransceiver(int tcvrID) const;
+  void holdTransceiverReset(int tcvrID) const;
+  void releaseTransceiverReset(int tcvrID) const;
   const I2cControllerStats getI2cControllerStats(int tcvrID) const;
 
   void tcvrRead(

@@ -71,6 +71,14 @@ void BspSystemContainer::initTransceiver(int tcvrID) const {
   getPimContainerFromTcvrID(tcvrID)->initTransceiver(tcvrID);
 }
 
+void BspSystemContainer::holdTransceiverReset(int tcvrID) const {
+  getPimContainerFromTcvrID(tcvrID)->holdTransceiverReset(tcvrID);
+}
+
+void BspSystemContainer::releaseTransceiverReset(int tcvrID) const {
+  getPimContainerFromTcvrID(tcvrID)->releaseTransceiverReset(tcvrID);
+}
+
 bool BspSystemContainer::isTcvrPresent(int tcvrID) const {
   return getPimContainerFromTcvrID(tcvrID)->isTcvrPresent(tcvrID);
 }

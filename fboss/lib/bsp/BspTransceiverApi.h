@@ -14,6 +14,8 @@ class BspTransceiverApi : public TransceiverPlatformApi {
   ~BspTransceiverApi() override {}
   void triggerQsfpHardReset(unsigned int module) override;
   void clearAllTransceiverReset() override;
+  void holdTransceiverReset(unsigned int module) override;
+  void releaseTransceiverReset(unsigned int module) override;
 
   // Forbidden copy constructor and assignment operator
   BspTransceiverApi(BspTransceiverApi const&) = delete;

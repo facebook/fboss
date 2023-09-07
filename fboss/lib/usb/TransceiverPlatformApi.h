@@ -39,6 +39,18 @@ class TransceiverPlatformApi {
    * So function we will stay no op for those platforms.
    */
   virtual void clearAllTransceiverReset() = 0;
+
+  /*
+   * This function will hold the transceiver in reset.
+   */
+  virtual void holdTransceiverReset(unsigned int /* module */) {}
+
+  /*
+   * This function will clear the reset pin for the transceiver.
+   * TODO: Make this a pure virtual function when it's implemented for all
+   * platforms
+   */
+  virtual void releaseTransceiverReset(unsigned int /* module */) {}
 };
 
 } // namespace facebook::fboss
