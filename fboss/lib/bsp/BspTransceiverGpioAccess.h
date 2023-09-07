@@ -29,6 +29,8 @@ class BspTransceiverGpioAccess : public BspTransceiverAccessImpl {
 
   bool isPresent() override;
   void init(bool force) override;
+  void holdReset() override;
+  void releaseReset() override;
 
  private:
   struct gpiod_chip* chip_{nullptr};

@@ -14,6 +14,8 @@ class BspTransceiverAccessImpl {
 
   virtual bool isPresent() = 0;
   virtual void init(bool force) = 0;
+  virtual void holdReset() = 0;
+  virtual void releaseReset() = 0;
 
  protected:
   BspTransceiverMapping tcvrMapping_;

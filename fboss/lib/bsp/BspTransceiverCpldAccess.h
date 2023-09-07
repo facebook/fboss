@@ -14,6 +14,8 @@ class BspTransceiverCpldAccess : public BspTransceiverAccessImpl {
 
   bool isPresent() override;
   void init(bool force) override;
+  void holdReset() override;
+  void releaseReset() override;
 };
 
 } // namespace fboss

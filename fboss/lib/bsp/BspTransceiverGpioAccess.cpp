@@ -58,25 +58,38 @@ bool BspTransceiverGpioAccess::isPresent() {
 }
 
 void BspTransceiverGpioAccess::init(bool forceReset) {
+  if (forceReset) {
+    holdReset();
+    /* sleep override */
+    usleep(100);
+  }
+  releaseReset();
+}
+
+void BspTransceiverGpioAccess::holdReset() {
   auto gpioOffset = tcvrMapping_.accessControl()->reset()->gpioOffset();
   CHECK(gpioOffset);
   try {
     GpiodLine reset(
         chip_, *gpioOffset, fmt::format("QSFP {}  Reset GPIO", tcvrID_));
 
-    // The goal here is if qsfp is present, we should always make sure reset
-    // bit is clear and for forceReset, we need to first reset and then
-    // clear reset.
-    if (forceReset) {
-      reset.setValue(kBspGpioInactiveLow, kBspGpioActiveLow);
-    }
-
-    // we should always bring qsfp status out of reset so that when new qsfp
-    // module inserted, the port can come up automatically
-    reset.setValue(kBspGpioInactiveLow, kBspGpioInactiveLow);
+    reset.setValue(kBspGpioInactiveLow, kBspGpioActiveLow);
   } catch (std::exception& ex) {
     throw BspTransceiverGpioAccessError(
-        fmt::format("QSFP {}: init fails with {}", tcvrID_, ex.what()));
+        fmt::format("QSFP {}: hold reset fails with {}", tcvrID_, ex.what()));
+  }
+}
+
+void BspTransceiverGpioAccess::releaseReset() {
+  auto gpioOffset = tcvrMapping_.accessControl()->reset()->gpioOffset();
+  CHECK(gpioOffset);
+  try {
+    GpiodLine reset(
+        chip_, *gpioOffset, fmt::format("QSFP {}  Reset GPIO", tcvrID_));
+    reset.setValue(kBspGpioInactiveLow, kBspGpioInactiveLow);
+  } catch (std::exception& ex) {
+    throw BspTransceiverGpioAccessError(fmt::format(
+        "QSFP {}: release reset fails with {}", tcvrID_, ex.what()));
   }
 }
 
