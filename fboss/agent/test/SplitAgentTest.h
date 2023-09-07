@@ -7,6 +7,8 @@
 
 #include <gtest/gtest.h>
 
+DECLARE_int32(update_watermark_stats_interval_s);
+
 namespace facebook::fboss {
 
 /*

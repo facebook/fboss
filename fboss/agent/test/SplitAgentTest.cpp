@@ -8,6 +8,16 @@ DEFINE_bool(run_forever_on_failure, false, "run the test forever on failure");
 
 namespace facebook::fboss {
 void SplitAgentTest::SetUp() {
+  FLAGS_verify_apply_oper_delta = true;
+  FLAGS_hide_fabric_ports = hideFabricPorts();
+  // Reset any global state being tracked in singletons
+  // Each test then sets up its own state as needed.
+  folly::SingletonVault::singleton()->destroyInstances();
+  folly::SingletonVault::singleton()->reenableInstances();
+  // Set watermark stats update interval to 0 so we always refresh BST stats
+  // in each updateStats call
+  FLAGS_update_watermark_stats_interval_s = 0;
+
   if (initialConfigFn_ && platformConfigFn_) {
     agentEnsemble_ = createAgentEnsemble(initialConfigFn_, platformConfigFn_);
   } else if (initialConfigFn_) {
