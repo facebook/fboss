@@ -17,21 +17,6 @@ using namespace ::testing;
 using namespace facebook::fboss::platform::fan_service;
 
 namespace {
-// For debugging purposes to print out fan statuses.
-std::ostream& operator<<(
-    std::ostream& os,
-    const std::map<std::string, FanStatus>& fanStatuses) {
-  os << std::endl;
-  for (const auto& [fanName, fanStatus] : fanStatuses) {
-    os << "---------------" << std::endl;
-    os << "Fan Name: " << fanName << std::endl;
-    os << "Fan Failed: " << (fanStatus.fanFailed ? "Yes" : "No") << std::endl;
-    os << "Current Pwm: " << fanStatus.currentPwm << std::endl;
-    os << "RPM: " << fanStatus.rpm << std::endl;
-    os << "Timestamp: " << fanStatus.timeStamp << std::endl;
-  }
-  return os;
-}
 
 float kDefaultRpm = 31;
 
