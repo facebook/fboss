@@ -87,6 +87,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES:
     case HwAsic::Feature::SAI_EAPOL_TRAP:
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
+    case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:

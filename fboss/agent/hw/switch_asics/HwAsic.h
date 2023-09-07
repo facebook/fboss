@@ -154,6 +154,7 @@ class HwAsic {
     SAI_EAPOL_TRAP,
     // pending CS00012311423
     L3_MTU_ERROR_TRAP,
+    SAI_USER_DEFINED_TRAP,
   };
 
   enum class AsicMode {

@@ -68,6 +68,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_SAMPLEPACKET_TRAP:
     case HwAsic::Feature::SEPARATE_BYTE_AND_PACKET_ACL_COUNTER:
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
+    case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
       return true;
 
     case HwAsic::Feature::ERSPANv6:

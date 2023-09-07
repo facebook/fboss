@@ -154,6 +154,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     // Ebro Asic does not support EAPOL trap for Macsec. Currently this is
     // needed only for FAUU and DMAG devices.
     case HwAsic::Feature::SAI_EAPOL_TRAP:
+    case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
       return false;
   }
   return false;

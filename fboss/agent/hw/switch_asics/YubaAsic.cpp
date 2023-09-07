@@ -151,6 +151,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES:
     case HwAsic::Feature::P4_WARMBOOT:
     case HwAsic::Feature::SAI_EAPOL_TRAP:
+    case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
       return false;
   }
   return false;
