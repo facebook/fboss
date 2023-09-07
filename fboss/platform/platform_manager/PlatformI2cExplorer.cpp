@@ -66,14 +66,15 @@ std::string PlatformI2cExplorer::getFruTypeName(const std::string&) {
 }
 
 bool PlatformI2cExplorer::isI2cDevicePresent(uint16_t busNum, uint8_t addr) {
-  return fs::exists(fs::path(getDeviceI2cPath(busNum, addr)) / "name");
+  return fs::exists(fs::path(getDeviceI2cPath(busNum, I2cAddr(addr))) / "name");
 }
 
 std::optional<std::string> PlatformI2cExplorer::getI2cDeviceName(
     uint16_t busNum,
     uint8_t addr) {
   std::string deviceName{};
-  auto deviceNameFile = fs::path(getDeviceI2cPath(busNum, addr)) / "name";
+  auto deviceNameFile =
+      fs::path(getDeviceI2cPath(busNum, I2cAddr(addr))) / "name";
   if (!fs::exists(deviceNameFile)) {
     XLOG(ERR) << fmt::format("{} does not exist", deviceNameFile.string());
     return std::nullopt;
@@ -127,13 +128,13 @@ void PlatformI2cExplorer::createI2cDevice(
   XLOG(INFO) << fmt::format(
       "Created i2c device {} at {}",
       deviceName,
-      getDeviceI2cPath(busNum, addr));
+      getDeviceI2cPath(busNum, I2cAddr(addr)));
 }
 
 std::vector<uint16_t> PlatformI2cExplorer::getMuxChannelI2CBuses(
     uint16_t busNum,
     uint8_t addr) {
-  auto devicePath = fs::path(getDeviceI2cPath(busNum, addr));
+  auto devicePath = fs::path(getDeviceI2cPath(busNum, I2cAddr(addr)));
   if (!fs::is_directory(devicePath)) {
     throw std::runtime_error(
         fmt::format("{} is not a directory.", devicePath.string()));
@@ -157,8 +158,8 @@ std::vector<uint16_t> PlatformI2cExplorer::getMuxChannelI2CBuses(
 
 std::string PlatformI2cExplorer::getDeviceI2cPath(
     uint16_t busNum,
-    uint8_t addr) {
-  return fmt::format("/sys/bus/i2c/devices/{}-{:04x}", busNum, addr);
+    const I2cAddr& addr) {
+  return fmt::format("/sys/bus/i2c/devices/{}-{}", busNum, addr.hex4Str());
 }
 
 } // namespace facebook::fboss::platform::platform_manager

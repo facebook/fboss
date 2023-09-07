@@ -98,8 +98,8 @@ std::optional<std::string> PlatformExplorer::getFruTypeNameFromSlot(
         *idpromConfig.kernelDeviceName(),
         eepromI2cBusNum,
         *idpromConfig.address());
-    auto eepromPath =
-        i2cExplorer_.getDeviceI2cPath(eepromI2cBusNum, *idpromConfig.address());
+    auto eepromPath = i2cExplorer_.getDeviceI2cPath(
+        eepromI2cBusNum, I2cAddr(*idpromConfig.address()));
     try {
       fruTypeNameInEeprom = i2cExplorer_.getFruTypeName(eepromPath);
     } catch (const std::exception& e) {

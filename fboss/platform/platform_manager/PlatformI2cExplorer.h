@@ -8,9 +8,37 @@
 #include <stdexcept>
 #include <vector>
 
+#include <fmt/format.h>
+#include <folly/String.h>
+
 #include "fboss/platform/helpers/PlatformUtils.h"
 
 namespace facebook::fboss::platform::platform_manager {
+
+struct I2cAddr {
+ public:
+  explicit I2cAddr(uint16_t addr) : addr_(addr) {}
+  explicit I2cAddr(const std::string& addr)
+      : addr_(std::stoi(addr, nullptr, 16 /* base */)) {
+    std::string lcAddr = addr;
+    folly::toLowerAscii(lcAddr);
+    if (hex2Str() != lcAddr) {
+      throw std::invalid_argument("Invalid I2C Address. " + addr);
+    }
+  }
+  bool operator==(const I2cAddr& b) const {
+    return addr_ == b.addr_;
+  }
+  std::string hex2Str() const {
+    return fmt::format("{:#x}", addr_);
+  }
+  std::string hex4Str() const {
+    return fmt::format("{:04x}", addr_);
+  }
+
+ private:
+  uint16_t addr_{0};
+};
 
 class PlatformI2cExplorer {
  public:
@@ -49,7 +77,7 @@ class PlatformI2cExplorer {
   std::vector<uint16_t> getMuxChannelI2CBuses(uint16_t busNum, uint8_t addr);
 
   // Return sysfs path to the device at `addr` on `busNum`.
-  static std::string getDeviceI2cPath(uint16_t busNum, uint8_t addr);
+  static std::string getDeviceI2cPath(uint16_t busNum, const I2cAddr& addr);
 
  private:
   std::shared_ptr<PlatformUtils> platformUtils_{};

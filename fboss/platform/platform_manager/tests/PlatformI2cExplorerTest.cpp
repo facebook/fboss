@@ -63,7 +63,22 @@ TEST(PlatformI2cExplorerTest, createI2cDeviceFailure) {
 
 TEST(PlatformI2cExplorerTest, getDeviceI2cPath) {
   auto i2cExplorer = PlatformI2cExplorer();
-  EXPECT_EQ(i2cExplorer.getDeviceI2cPath(4, 5), "/sys/bus/i2c/devices/4-0005");
-  EXPECT_EQ(i2cExplorer.getDeviceI2cPath(4, 15), "/sys/bus/i2c/devices/4-000f");
-  EXPECT_EQ(i2cExplorer.getDeviceI2cPath(5, 16), "/sys/bus/i2c/devices/5-0010");
+  EXPECT_EQ(
+      i2cExplorer.getDeviceI2cPath(4, I2cAddr(5)),
+      "/sys/bus/i2c/devices/4-0005");
+  EXPECT_EQ(
+      i2cExplorer.getDeviceI2cPath(4, I2cAddr(15)),
+      "/sys/bus/i2c/devices/4-000f");
+  EXPECT_EQ(
+      i2cExplorer.getDeviceI2cPath(5, I2cAddr(16)),
+      "/sys/bus/i2c/devices/5-0010");
+}
+
+TEST(PlatformI2cExplorerTest, I2cAddr) {
+  EXPECT_EQ(I2cAddr("0x2f").hex2Str(), "0x2f");
+  EXPECT_EQ(I2cAddr("0x2F").hex2Str(), "0x2f");
+  EXPECT_EQ(I2cAddr(20).hex2Str(), "0x14");
+  EXPECT_THROW(I2cAddr("0xGF"), std::invalid_argument);
+  EXPECT_THROW(I2cAddr("20"), std::invalid_argument);
+  EXPECT_THROW(I2cAddr("0x"), std::invalid_argument);
 }
