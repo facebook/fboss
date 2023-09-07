@@ -240,7 +240,8 @@ SwSwitch::SwSwitch(
     const std::shared_ptr<SwitchState>& initialState)
     : multiHwSwitchHandler_(new MultiHwSwitchHandler(
           getSwitchInfoFromConfig(config),
-          std::move(hwSwitchHandlerInitFn))),
+          std::move(hwSwitchHandlerInitFn),
+          this)),
       agentDirUtil_(agentDirUtil),
       supportsAddRemovePort_(supportsAddRemovePort),
       platformProductInfo_(

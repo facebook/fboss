@@ -7,7 +7,8 @@ namespace facebook::fboss {
 
 NonMonolithicHwSwitchHandler::NonMonolithicHwSwitchHandler(
     const SwitchID& switchId,
-    const cfg::SwitchInfo& info)
+    const cfg::SwitchInfo& info,
+    SwSwitch* /*sw*/)
     : HwSwitchHandler(switchId, info) {}
 
 void NonMonolithicHwSwitchHandler::exitFatal() const {

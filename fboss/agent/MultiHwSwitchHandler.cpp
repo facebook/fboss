@@ -9,11 +9,12 @@ namespace facebook::fboss {
 
 MultiHwSwitchHandler::MultiHwSwitchHandler(
     const std::map<int64_t, cfg::SwitchInfo>& switchInfoMap,
-    HwSwitchHandlerInitFn hwSwitchHandlerInitFn) {
+    HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
+    SwSwitch* sw) {
   for (auto entry : switchInfoMap) {
     hwSwitchSyncers_.emplace(
         SwitchID(entry.first),
-        hwSwitchHandlerInitFn(SwitchID(entry.first), entry.second));
+        hwSwitchHandlerInitFn(SwitchID(entry.first), entry.second, sw));
   }
 }
 

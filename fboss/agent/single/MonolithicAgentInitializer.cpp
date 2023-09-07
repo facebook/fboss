@@ -99,9 +99,10 @@ void MonolithicAgentInitializer::createSwitch(
 
   // Create the SwSwitch and thrift handler
   sw_ = std::make_unique<SwSwitch>(
-      [platform](const SwitchID& switchId, const cfg::SwitchInfo& info) {
+      [platform](
+          const SwitchID& switchId, const cfg::SwitchInfo& info, SwSwitch* sw) {
         return std::make_unique<MonolithicHwSwitchHandler>(
-            platform, switchId, info);
+            platform, switchId, info, sw);
       },
       platform->getDirectoryUtil(),
       platform->supportsAddRemovePort(),

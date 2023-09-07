@@ -46,9 +46,9 @@ unique_ptr<SwSwitch> setupSwitch() {
   simPlatform = make_unique<SimPlatform>(localMac, 10);
   auto sw = make_unique<SwSwitch>(
       [platform = simPlatform.get()](
-          const SwitchID& switchId, const cfg::SwitchInfo& info) {
+          const SwitchID& switchId, const cfg::SwitchInfo& info, SwSwitch* sw) {
         return std::make_unique<facebook::fboss::MonolithicHwSwitchHandler>(
-            platform, switchId, info);
+            platform, switchId, info, sw);
       },
       simPlatform->getDirectoryUtil(),
       simPlatform->supportsAddRemovePort(),

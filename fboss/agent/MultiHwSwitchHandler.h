@@ -20,16 +20,19 @@ class TxPacket;
 class SwitchStats;
 class HwSwitchFb303Stats;
 struct HwSwitchStateUpdate;
+class SwSwitch;
 
 using HwSwitchHandlerInitFn = std::function<std::unique_ptr<HwSwitchHandler>(
     const SwitchID& switchId,
-    const cfg::SwitchInfo& info)>;
+    const cfg::SwitchInfo& info,
+    SwSwitch* sw)>;
 
 class MultiHwSwitchHandler {
  public:
   MultiHwSwitchHandler(
       const std::map<int64_t, cfg::SwitchInfo>& switchInfoMap,
-      HwSwitchHandlerInitFn hwSwitchHandlerInitFn);
+      HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
+      SwSwitch* sw);
 
   ~MultiHwSwitchHandler();
 

@@ -10,13 +10,15 @@ namespace facebook::fboss {
 class HwSwitch;
 class Platform;
 class TxPacket;
+class SwSwitch;
 
 class MonolithicHwSwitchHandler : public HwSwitchHandler {
  public:
   MonolithicHwSwitchHandler(
       Platform* platform,
       const SwitchID& switchId,
-      const cfg::SwitchInfo& info);
+      const cfg::SwitchInfo& info,
+      SwSwitch* sw);
 
   virtual ~MonolithicHwSwitchHandler() override {}
 

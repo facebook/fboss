@@ -5,11 +5,14 @@
 
 namespace facebook::fboss {
 
+class SwSwitch;
+
 class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
  public:
   NonMonolithicHwSwitchHandler(
       const SwitchID& switchId,
-      const cfg::SwitchInfo& info);
+      const cfg::SwitchInfo& info,
+      SwSwitch* sw);
 
   virtual ~NonMonolithicHwSwitchHandler() override;
 

@@ -504,9 +504,10 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
   agentConfig.sw() = *config;
   platform->setConfig(std::make_unique<AgentConfig>(agentConfig));
   HwSwitchHandlerInitFn hwSwitchHandlerInitFn =
-      [platform](const SwitchID& switchId, const cfg::SwitchInfo& info) {
+      [platform](
+          const SwitchID& switchId, const cfg::SwitchInfo& info, SwSwitch* sw) {
         return std::make_unique<facebook::fboss::MonolithicHwSwitchHandler>(
-            platform, switchId, info);
+            platform, switchId, info, sw);
       };
   HwInitResult ret;
   ret.switchState = state ? state : make_shared<SwitchState>();

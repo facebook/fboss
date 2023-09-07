@@ -26,10 +26,14 @@ class SwSwitchHandlerTest : public ::testing::Test {
         {0, cfg::SwitchInfo()}, {1, cfg::SwitchInfo()}};
     hwSwitchHandler_ = std::make_unique<MultiHwSwitchHandler>(
         switchInfoMap,
-        [](const SwitchID& switchId, const cfg::SwitchInfo& info) {
+        [](const SwitchID& switchId,
+           const cfg::SwitchInfo& info,
+           SwSwitch* sw) {
           return std::make_unique<
-              facebook::fboss::NonMonolithicHwSwitchHandler>(switchId, info);
-        });
+              facebook::fboss::NonMonolithicHwSwitchHandler>(
+              switchId, info, sw);
+        },
+        nullptr);
     hwSwitchHandler_->start();
   }
 
