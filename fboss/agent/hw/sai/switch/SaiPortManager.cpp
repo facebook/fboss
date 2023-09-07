@@ -652,9 +652,15 @@ void SaiPortManager::changePfc(
     const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {
   if (oldPort->getPfc() != newPort->getPfc()) {
-    sai_uint8_t txPfc, rxPfc;
-    std::tie(txPfc, rxPfc) = preparePfcConfigs(newPort);
-    programPfc(newPort, txPfc, rxPfc);
+    sai_uint8_t oldTxPfc, oldRxPfc;
+    sai_uint8_t newTxPfc, newRxPfc;
+    std::tie(oldTxPfc, oldRxPfc) = preparePfcConfigs(oldPort);
+    std::tie(newTxPfc, newRxPfc) = preparePfcConfigs(newPort);
+    if (oldTxPfc != newTxPfc || oldRxPfc != newRxPfc) {
+      programPfc(newPort, newTxPfc, newRxPfc);
+    } else {
+      XLOG(DBG4) << "PFC setting unchanged for port " << oldPort->getName();
+    }
   } else {
     XLOG(DBG4) << "PFC setting unchanged for port " << oldPort->getName();
   }
