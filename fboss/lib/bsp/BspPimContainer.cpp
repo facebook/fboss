@@ -112,12 +112,20 @@ void BspPimContainer::clearAllTransceiverReset() const {
   for (auto tcvrContainerIt = tcvrContainers_.begin();
        tcvrContainerIt != tcvrContainers_.end();
        tcvrContainerIt++) {
-    tcvrContainerIt->second->clearTransceiverReset();
+    tcvrContainerIt->second->releaseTransceiverReset();
   }
 }
 
-void BspPimContainer::triggerTcvrHardReset(int tcvrID) const {
-  getTransceiverContainer(tcvrID)->triggerTcvrHardReset();
+void BspPimContainer::initTransceiver(int tcvrID) const {
+  getTransceiverContainer(tcvrID)->initTcvr();
+}
+
+void BspPimContainer::holdTransceiverReset(int tcvrID) const {
+  getTransceiverContainer(tcvrID)->holdTransceiverReset();
+}
+
+void BspPimContainer::releaseTransceiverReset(int tcvrID) const {
+  getTransceiverContainer(tcvrID)->releaseTransceiverReset();
 }
 
 bool BspPimContainer::isTcvrPresent(int tcvrID) const {

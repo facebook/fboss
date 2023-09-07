@@ -48,7 +48,7 @@ class BspSystemContainer {
   bool isTcvrPresent(int tcvrID) const;
   void initAllTransceivers() const;
   void clearAllTransceiverReset() const;
-  void triggerQsfpHardReset(int tcvrID) const;
+  void initTransceiver(int tcvrID) const;
   const I2cControllerStats getI2cControllerStats(int tcvrID) const;
 
   void tcvrRead(

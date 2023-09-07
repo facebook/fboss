@@ -25,7 +25,9 @@ class BspPimContainer : public MultiPimPlatformPimContainer {
   bool isTcvrPresent(int tcvrID) const;
   void initAllTransceivers() const;
   void clearAllTransceiverReset() const;
-  void triggerTcvrHardReset(int tcvrID) const;
+  void initTransceiver(int tcvrID) const;
+  void holdTransceiverReset(int tcvrID) const;
+  void releaseTransceiverReset(int tcvrID) const;
   void tcvrRead(
       unsigned int tcvrID,
       const TransceiverAccessParameter& param,

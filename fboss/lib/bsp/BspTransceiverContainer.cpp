@@ -15,11 +15,15 @@ BspTransceiverContainer::BspTransceiverContainer(
   tcvrAccess_ = std::make_unique<BspTransceiverAccess>(tcvrID_, tcvrMapping);
 }
 
-void BspTransceiverContainer::clearTransceiverReset() const {
-  tcvrAccess_->init(false);
+void BspTransceiverContainer::releaseTransceiverReset() const {
+  tcvrAccess_->releaseReset();
 }
 
-void BspTransceiverContainer::triggerTcvrHardReset() const {
+void BspTransceiverContainer::holdTransceiverReset() const {
+  tcvrAccess_->holdReset();
+}
+
+void BspTransceiverContainer::initTcvr() const {
   tcvrAccess_->init(true);
 }
 

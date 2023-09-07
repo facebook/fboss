@@ -18,8 +18,9 @@ class BspTransceiverContainer {
 
   bool isTcvrPresent() const;
   void initTransceiver() {}
-  void clearTransceiverReset() const;
-  void triggerTcvrHardReset() const;
+  void releaseTransceiverReset() const;
+  void holdTransceiverReset() const;
+  void initTcvr() const;
   void tcvrRead(const TransceiverAccessParameter& param, uint8_t* buf) const;
   void tcvrWrite(const TransceiverAccessParameter& param, const uint8_t* buf)
       const;

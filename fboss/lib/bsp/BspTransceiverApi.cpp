@@ -11,7 +11,7 @@ BspTransceiverApi::BspTransceiverApi(const BspSystemContainer* systemContainer)
 /* Trigger the QSFP hard reset for a given QSFP module
  */
 void BspTransceiverApi::triggerQsfpHardReset(unsigned int module) {
-  systemContainer_->triggerQsfpHardReset(module);
+  systemContainer_->initTransceiver(module);
 }
 
 /* This function will bring all the transceivers out of reset.
