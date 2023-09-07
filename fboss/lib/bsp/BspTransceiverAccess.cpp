@@ -41,5 +41,13 @@ bool BspTransceiverAccess::isPresent() {
   return impl_->isPresent();
 }
 
+void BspTransceiverAccess::holdReset() {
+  impl_->holdReset();
+}
+
+void BspTransceiverAccess::releaseReset() {
+  impl_->releaseReset();
+}
+
 } // namespace fboss
 } // namespace facebook

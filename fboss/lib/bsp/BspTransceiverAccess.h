@@ -26,6 +26,8 @@ class BspTransceiverAccess {
 
   bool isPresent();
   void init(bool force);
+  void holdReset();
+  void releaseReset();
 
  private:
   BspTransceiverMapping tcvrMapping_;
