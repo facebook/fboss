@@ -238,74 +238,6 @@ class HwNeighborTest : public HwLinkStateDependentTest {
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3};
 };
 
-class HwNeighborOnMultiplePortsTest : public HwLinkStateDependentTest {
- protected:
-  cfg::SwitchConfig initialConfig() const override {
-    return utility::onePortPerInterfaceConfig(
-        getHwSwitch(),
-        masterLogicalPortIds(),
-        getAsic()->desiredLoopbackModes());
-  }
-
-  void oneNeighborPerPortSetup(const std::vector<PortID>& portIds) {
-    auto cfg = initialConfig();
-    if (FLAGS_disable_loopback) {
-      // Disable loopback on specific ports
-      for (auto portId : portIds) {
-        auto portCfg = utility::findCfgPortIf(cfg, portId);
-        if (portCfg != cfg.ports()->end()) {
-          portCfg->loopbackMode() = cfg::PortLoopbackMode::NONE;
-        }
-      }
-      applyNewConfig(cfg);
-    }
-
-    // Create adjacencies on all test ports
-    auto dstMac = utility::getFirstInterfaceMac(cfg);
-    for (int idx = 0; idx < portIds.size(); idx++) {
-      utility::EcmpSetupAnyNPorts6 ecmpHelper6(
-          getProgrammedState(),
-          utility::MacAddressGenerator().get(dstMac.u64NBO() + idx + 1));
-      applyNewState(ecmpHelper6.resolveNextHops(
-          getProgrammedState(), {PortDescriptor(portIds[idx])}));
-    }
-
-    // Dump the local interface config
-    XLOG(DBG0) << "Dumping port configurations:";
-    for (int idx = 0; idx < portIds.size(); idx++) {
-      auto mac = utility::getFirstInterfaceMac(getProgrammedState());
-      XLOG(DBG0) << "   Port " << portIds[idx]
-                 << ", IPv6: " << cfg.interfaces()[idx].ipAddresses()[1]
-                 << ", Intf MAC: " << mac;
-    }
-  }
-
-  InterfaceID getInterfaceId(const PortID& portId) const {
-    auto switchType = getSwitchType();
-    if (switchType == cfg::SwitchType::NPU) {
-      return InterfaceID(static_cast<int>((*getProgrammedState()
-                                                ->getPorts()
-                                                ->getNodeIf(portId)
-                                                ->getVlans()
-                                                .begin())
-                                              .first));
-    } else if (switchType == cfg::SwitchType::VOQ) {
-      return InterfaceID(*getProgrammedState()
-                              ->getPorts()
-                              ->getNodeIf(portId)
-                              ->getInterfaceIDs()
-                              .begin());
-    }
-    XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);
-  }
-
-  bool isProgrammedToCPU(const PortID& portId, const folly::IPAddress& ip)
-      const {
-    auto intfId = getInterfaceId(portId);
-    return utility::nbrProgrammedToCpu(this->getHwSwitch(), intfId, ip);
-  }
-};
-
 TYPED_TEST_SUITE(HwNeighborTest, NeighborTypes);
 
 TYPED_TEST(HwNeighborTest, AddPendingEntry) {
@@ -431,6 +363,74 @@ TYPED_TEST(HwNeighborTest, LinkDownAndUpOnResolvedEntry) {
 
   this->verifyAcrossWarmBoots(setup, verify);
 }
+
+class HwNeighborOnMultiplePortsTest : public HwLinkStateDependentTest {
+ protected:
+  cfg::SwitchConfig initialConfig() const override {
+    return utility::onePortPerInterfaceConfig(
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackModes());
+  }
+
+  void oneNeighborPerPortSetup(const std::vector<PortID>& portIds) {
+    auto cfg = initialConfig();
+    if (FLAGS_disable_loopback) {
+      // Disable loopback on specific ports
+      for (auto portId : portIds) {
+        auto portCfg = utility::findCfgPortIf(cfg, portId);
+        if (portCfg != cfg.ports()->end()) {
+          portCfg->loopbackMode() = cfg::PortLoopbackMode::NONE;
+        }
+      }
+      applyNewConfig(cfg);
+    }
+
+    // Create adjacencies on all test ports
+    auto dstMac = utility::getFirstInterfaceMac(cfg);
+    for (int idx = 0; idx < portIds.size(); idx++) {
+      utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+          getProgrammedState(),
+          utility::MacAddressGenerator().get(dstMac.u64NBO() + idx + 1));
+      applyNewState(ecmpHelper6.resolveNextHops(
+          getProgrammedState(), {PortDescriptor(portIds[idx])}));
+    }
+
+    // Dump the local interface config
+    XLOG(DBG0) << "Dumping port configurations:";
+    for (int idx = 0; idx < portIds.size(); idx++) {
+      auto mac = utility::getFirstInterfaceMac(getProgrammedState());
+      XLOG(DBG0) << "   Port " << portIds[idx]
+                 << ", IPv6: " << cfg.interfaces()[idx].ipAddresses()[1]
+                 << ", Intf MAC: " << mac;
+    }
+  }
+
+  InterfaceID getInterfaceId(const PortID& portId) const {
+    auto switchType = getSwitchType();
+    if (switchType == cfg::SwitchType::NPU) {
+      return InterfaceID(static_cast<int>((*getProgrammedState()
+                                                ->getPorts()
+                                                ->getNodeIf(portId)
+                                                ->getVlans()
+                                                .begin())
+                                              .first));
+    } else if (switchType == cfg::SwitchType::VOQ) {
+      return InterfaceID(*getProgrammedState()
+                              ->getPorts()
+                              ->getNodeIf(portId)
+                              ->getInterfaceIDs()
+                              .begin());
+    }
+    XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);
+  }
+
+  bool isProgrammedToCPU(const PortID& portId, const folly::IPAddress& ip)
+      const {
+    auto intfId = getInterfaceId(portId);
+    return utility::nbrProgrammedToCpu(this->getHwSwitch(), intfId, ip);
+  }
+};
 
 TEST_F(HwNeighborOnMultiplePortsTest, ResolveOnTwoPorts) {
   auto setup = [&]() {
