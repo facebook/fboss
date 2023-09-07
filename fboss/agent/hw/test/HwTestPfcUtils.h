@@ -44,11 +44,9 @@ int getProgrammedPfcWatchdogControlParam(
     const PortID& portId,
     int param);
 
-int getPfcWatchdogRecoveryAction();
-
-// Maps cfg::PfcWatchdogRecoveryAction to switch specific value
-int pfcWatchdogRecoveryAction(
-    cfg::PfcWatchdogRecoveryAction configuredRecoveryAction);
+cfg::PfcWatchdogRecoveryAction getPfcWatchdogRecoveryAction(
+    const HwSwitch* hw,
+    const PortID& portId);
 
 // Routine to validate if the SW and HW match for the PG cfg
 void checkSwHwPgCfgMatch(

@@ -100,16 +100,17 @@ std::optional<cfg::PfcWatchdog> getProgrammedPfcDeadlockParams(
 }
 
 // Verifies if the PFC watchdog config provided matches the one
-// programmed in BCM HW
+// programmed in HW
 void pfcWatchdogProgrammingMatchesConfig(
-    const HwSwitch* /* unused */,
-    const PortID& /* unused */,
-    const bool /* unused */,
-    const cfg::PfcWatchdog& /* unused */) {
-  // This function is not implemented yet.
-  // If the test is running on SAI Switches,
-  // it should throw an error.
-  EXPECT_TRUE(false);
+    const HwSwitch* hw,
+    const PortID& portId,
+    const bool watchdogEnabled,
+    const cfg::PfcWatchdog& watchdog) {
+  auto pfcWdProgrammed = getProgrammedPfcDeadlockParams(hw, portId);
+  EXPECT_EQ(watchdogEnabled, pfcWdProgrammed.has_value());
+  if (pfcWdProgrammed.has_value()) {
+    EXPECT_EQ(watchdog, *pfcWdProgrammed);
+  }
 }
 
 int getPfcDeadlockDetectionTimerGranularity(int /* unused */) {
@@ -136,21 +137,14 @@ int getProgrammedPfcWatchdogControlParam(
   return 0;
 }
 
-int getPfcWatchdogRecoveryAction() {
-  // This function is not implemented yet.
-  // If the test is running on SAI Switches,
-  // it should throw an error.
-  EXPECT_TRUE(false);
-  return -1;
-}
-
-// Maps cfg::PfcWatchdogRecoveryAction to SAI specific value
-int pfcWatchdogRecoveryAction(cfg::PfcWatchdogRecoveryAction /* unused */) {
-  // This function is not implemented yet.
-  // If the test is running on SAI Switches,
-  // it should throw an error.
-  EXPECT_TRUE(false);
-  return 0;
+cfg::PfcWatchdogRecoveryAction getPfcWatchdogRecoveryAction(
+    const HwSwitch* hw,
+    const PortID& portId) {
+  auto pfcWdProgrammed = getProgrammedPfcDeadlockParams(hw, portId);
+  if (pfcWdProgrammed.has_value()) {
+    return *pfcWdProgrammed->recoveryAction();
+  }
+  throw FbossError("PFC Watchdog is not configured!");
 }
 
 void checkSwHwPgCfgMatch(

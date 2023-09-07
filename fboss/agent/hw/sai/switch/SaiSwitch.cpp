@@ -3244,12 +3244,7 @@ void SaiSwitch::processPfcDeadlockRecoveryAction(
     newPfcDlrPacketAction = SAI_PACKET_ACTION_DROP;
     recoveryActionConfig = *recoveryAction;
   } else {
-#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
-    newPfcDlrPacketAction = SAI_PACKET_ACTION_DONOTDROP;
-#else
-    XLOG(ERR) << "PFC WD recovery action NO_DROP unsupported!";
-    return;
-#endif
+    newPfcDlrPacketAction = SAI_PACKET_ACTION_FORWARD;
   }
   CHECK(newPfcDlrPacketAction.has_value());
   if (currentPfcDlrPacketAction != *newPfcDlrPacketAction) {
