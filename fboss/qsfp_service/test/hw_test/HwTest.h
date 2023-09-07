@@ -57,6 +57,8 @@ class HwTest : public ::testing::Test {
   // TransceiverManager::refreshStateMachines()
   void waitTillCabledTcvrProgrammed(int numRetries = 10);
 
+  std::vector<int> getCabledOpticalTransceiverIDs();
+
  private:
   bool didWarmBoot() const;
   void setupForWarmboot() const;

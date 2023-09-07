@@ -9,6 +9,7 @@
  */
 #include "fboss/qsfp_service/test/hw_test/HwTest.h"
 
+#include <folly/gen/Base.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/CommonFileUtils.h"
@@ -186,5 +187,22 @@ void HwTest::waitTillCabledTcvrProgrammed(int numRetries) {
       numRetries /* retries */,
       std::chrono::milliseconds(5000) /* msBetweenRetry */,
       "Never got all transceivers programmed");
+}
+
+std::vector<int> HwTest::getCabledOpticalTransceiverIDs() {
+  auto transceivers = utility::legacyTransceiverIds(
+      utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
+  std::map<int32_t, TransceiverInfo> transceiversInfo;
+  getHwQsfpEnsemble()->getWedgeManager()->getTransceiversInfo(
+      transceiversInfo, std::make_unique<std::vector<int32_t>>(transceivers));
+
+  return folly::gen::from(transceivers) |
+      folly::gen::filter([&transceiversInfo](int32_t tcvrId) {
+           auto& tcvrInfo = transceiversInfo[tcvrId];
+           auto transmitterTech =
+               *tcvrInfo.cable().value_or({}).transmitterTech();
+           return transmitterTech == TransmitterTechnology::OPTICAL;
+         }) |
+      folly::gen::as<std::vector>();
 }
 } // namespace facebook::fboss
