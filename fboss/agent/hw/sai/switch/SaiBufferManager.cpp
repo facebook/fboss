@@ -402,6 +402,10 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
       reservedBytes;
   if (queue.getReservedBytes()) {
     reservedBytes = queue.getReservedBytes().value();
+  } else {
+    // don't set nullopt for reserved bytes as SAI always return non-null
+    // value during get/warmboot
+    reservedBytes = 0;
   }
   SaiBufferProfileTraits::Attributes::ThresholdMode mode{
       SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
