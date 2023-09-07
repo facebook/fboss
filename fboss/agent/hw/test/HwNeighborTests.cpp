@@ -24,14 +24,17 @@
  */
 DEFINE_bool(disable_loopback, false, "Disable loopback on test ports");
 
+DECLARE_bool(intf_nbr_tables);
+
 using namespace ::testing;
 
 namespace facebook::fboss {
 
-template <typename AddrType, bool trunk = false>
+template <typename AddrType, bool trunk = false, bool intfNbrTable = false>
 struct NeighborT {
   using IPAddrT = AddrType;
   static constexpr auto isTrunk = trunk;
+  static auto constexpr isIntfNbrTable = intfNbrTable;
 
   template <typename AddrT = IPAddrT>
   std::enable_if_t<
@@ -48,10 +51,10 @@ struct NeighborT {
   }
 };
 
-using PortNeighborV4 = NeighborT<folly::IPAddressV4, false>;
-using TrunkNeighborV4 = NeighborT<folly::IPAddressV4, true>;
-using PortNeighborV6 = NeighborT<folly::IPAddressV6, false>;
-using TrunkNeighborV6 = NeighborT<folly::IPAddressV6, true>;
+using PortNeighborV4 = NeighborT<folly::IPAddressV4, false, false>;
+using TrunkNeighborV4 = NeighborT<folly::IPAddressV4, true, false>;
+using PortNeighborV6 = NeighborT<folly::IPAddressV6, false, false>;
+using TrunkNeighborV6 = NeighborT<folly::IPAddressV6, true, false>;
 
 const facebook::fboss::AggregatePortID kAggID{1};
 
@@ -63,12 +66,18 @@ class HwNeighborTest : public HwLinkStateDependentTest {
  protected:
   using IPAddrT = typename NeighborT::IPAddrT;
   static auto constexpr programToTrunk = NeighborT::isTrunk;
+  static auto constexpr isIntfNbrTable = NeighborT::isIntfNbrTable;
   using NTable = typename std::conditional_t<
       std::is_same<IPAddrT, folly::IPAddressV4>::value,
       ArpTable,
       NdpTable>;
 
  protected:
+  void SetUp() override {
+    FLAGS_intf_nbr_tables = isIntfNbrTable;
+    HwLinkStateDependentTest::SetUp();
+  }
+
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = programToTrunk ? utility::oneL3IntfTwoPortConfig(
                                     getHwSwitch(),
