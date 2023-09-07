@@ -14,6 +14,7 @@
 
 namespace {
 static constexpr auto kJerichoWordSize{16};
+static constexpr auto kJerichoEcnThresholdIncrements{1024};
 } // namespace
 
 namespace facebook::fboss::utility {
@@ -71,10 +72,10 @@ int getRoundedBufferThreshold(
   } else if (
       hwSwitch->getPlatform()->getAsic()->getAsicType() ==
       cfg::AsicType::ASIC_TYPE_JERICHO2) {
-    // Jericho2 tracks buffer usage in words and hence round up to the
-    // next multiple of word size.
-    threshold = kJerichoWordSize *
-        ceil(static_cast<double>(expectedThreshold) / kJerichoWordSize);
+    // Jericho2 ECN thresholds are in multiples of 1K
+    threshold = kJerichoEcnThresholdIncrements *
+        ceil(static_cast<double>(expectedThreshold) /
+             kJerichoEcnThresholdIncrements);
   } else {
     // Thresholds are applied in multiples of unit buffer size
     auto bufferUnitSize =
