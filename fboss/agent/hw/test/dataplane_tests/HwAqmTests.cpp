@@ -117,7 +117,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
-  cfg::SwitchConfig configureQueue2WithWredThreshold() const {
+  cfg::SwitchConfig configureQueue2WithAqmThreshold(bool ecnConfigOnly) const {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
@@ -129,7 +129,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
                 ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
                 .begin());
       utility::addOlympicQueueConfig(
-          &cfg, streamType, getPlatform()->getAsic(), true /*add wred*/);
+          &cfg, streamType, getPlatform()->getAsic(), !ecnConfigOnly);
       utility::addOlympicQosMaps(cfg, getPlatform()->getAsic());
     }
     return cfg;
@@ -383,7 +383,10 @@ class HwAqmTest : public HwLinkStateDependentTest {
     return stats;
   }
 
-  void runTest(const uint8_t ecnVal) {
+  // The ecnConfigOnly param is used to specify the test should
+  // use ECN config only when ECN is being tested. This helps
+  // validate functionality in AI network which uses ECN alone.
+  void runTest(const uint8_t ecnVal, bool ecnConfigOnly = false) {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
 #if defined(GTEST_SKIP)
       GTEST_SKIP();
@@ -404,7 +407,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
     };
 
     auto setup = [&]() {
-      applyNewConfig(configureQueue2WithWredThreshold());
+      applyNewConfig(configureQueue2WithAqmThreshold(ecnConfigOnly));
       setupEcmpTraffic();
       if (isEct(ecnVal)) {
         sendPkt(kDscp(), ecnVal, true);
@@ -992,6 +995,10 @@ TEST_F(HwAqmTest, verifyEct0) {
 
 TEST_F(HwAqmTest, verifyEct1) {
   runTest(kECT1);
+}
+
+TEST_F(HwAqmTest, verifyEcnWithoutWredConfig) {
+  runTest(kECT1, true /* ecnConfigOnly */);
 }
 
 TEST_F(HwAqmTest, verifyWred) {
