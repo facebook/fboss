@@ -153,6 +153,10 @@ class AclTableStoreTest : public SaiStoreTest {
     return 42;
   }
 
+  sai_object_id_t kSetUserTrap() const {
+    return 50;
+  }
+
   sai_uint8_t kSetTC() const {
     return 1;
   }
@@ -262,6 +266,7 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryActionSaiObjectIdList(this->kMirrorIngress()),
             AclEntryActionSaiObjectIdList(this->kMirrorEgress()),
             AclEntryActionSaiObjectIdT(this->kMacsecFlow()),
+            AclEntryActionSaiObjectIdT(this->kSetUserTrap()),
         },
         0);
   }
@@ -429,7 +434,8 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
       this->kSetDSCP(),
       this->kMirrorIngress(),
       this->kMirrorEgress(),
-      this->kMacsecFlow()};
+      this->kMacsecFlow(),
+      this->kSetUserTrap()};
 
   SaiObject<SaiAclEntryTraits> obj = createObj<SaiAclEntryTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclEntry, TableId, obj.attributes()), aclTableId);

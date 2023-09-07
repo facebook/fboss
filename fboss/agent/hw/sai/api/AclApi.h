@@ -399,6 +399,12 @@ struct SaiAclEntryTraits {
         SAI_ACL_ENTRY_ATTR_ACTION_MACSEC_FLOW,
         AclEntryActionSaiObjectIdT,
         SaiAclEntryActionSaiObjectDefault>;
+#if !defined(TAJO_SDK)
+    using ActionSetUserTrap = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_ACTION_SET_USER_TRAP_ID,
+        AclEntryActionSaiObjectIdT>;
+#endif
   };
 
   using AdapterKey = AclEntrySaiId;
@@ -438,7 +444,12 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::ActionSetDSCP>,
       std::optional<Attributes::ActionMirrorIngress>,
       std::optional<Attributes::ActionMirrorEgress>,
-      std::optional<Attributes::ActionMacsecFlow>>;
+      std::optional<Attributes::ActionMacsecFlow>
+#if !defined(TAJO_SDK)
+      ,
+      std::optional<Attributes::ActionSetUserTrap>
+#endif
+      >;
 };
 
 SAI_ATTRIBUTE_NAME(AclEntry, TableId);
@@ -475,6 +486,9 @@ SAI_ATTRIBUTE_NAME(AclEntry, ActionSetDSCP);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionMirrorIngress);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionMirrorEgress);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionMacsecFlow);
+#if !defined(TAJO_SDK)
+SAI_ATTRIBUTE_NAME(AclEntry, ActionSetUserTrap);
+#endif
 
 struct SaiAclCounterTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_ACL_COUNTER;

@@ -196,6 +196,9 @@ class FakeAclEntry {
   bool actionMacsecFlowEnable{false};
   sai_object_id_t actionMacsecFlowData;
 
+  bool actionSetUserTrapEnable{false};
+  sai_object_id_t actionSetUserTrapData;
+
   sai_object_id_t id;
 };
 

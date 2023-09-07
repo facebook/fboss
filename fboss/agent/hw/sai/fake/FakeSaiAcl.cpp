@@ -79,6 +79,7 @@ bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
     case SAI_ACL_ENTRY_ATTR_ACTION_MIRROR_INGRESS:
     case SAI_ACL_ENTRY_ATTR_ACTION_MIRROR_EGRESS:
     case SAI_ACL_ENTRY_ATTR_ACTION_MACSEC_FLOW:
+    case SAI_ACL_ENTRY_ATTR_ACTION_SET_USER_TRAP_ID:
       return true;
     default:
       return false;
@@ -674,6 +675,11 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.actionMacsecFlowData = attr->value.aclaction.parameter.oid;
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_ACTION_SET_USER_TRAP_ID:
+      aclEntry.actionSetUserTrapEnable = attr->value.aclaction.enable;
+      aclEntry.actionSetUserTrapData = attr->value.aclaction.parameter.oid;
+      res = SAI_STATUS_SUCCESS;
+      break;
     default:
       res = SAI_STATUS_NOT_SUPPORTED;
       break;
@@ -881,6 +887,11 @@ sai_status_t get_acl_entry_attribute_fn(
         attr_list[i].value.aclaction.enable = aclEntry.actionMacsecFlowEnable;
         attr_list[i].value.aclaction.parameter.oid =
             aclEntry.actionMacsecFlowData;
+        break;
+      case SAI_ACL_ENTRY_ATTR_ACTION_SET_USER_TRAP_ID:
+        attr_list[i].value.aclaction.enable = aclEntry.actionSetUserTrapEnable;
+        attr_list[i].value.aclaction.parameter.oid =
+            aclEntry.actionSetUserTrapData;
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;
