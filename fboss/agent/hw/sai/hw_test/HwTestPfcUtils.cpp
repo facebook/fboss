@@ -44,6 +44,61 @@ void getPfcEnabledStatus(
   rxPfc = rxPriorities != 0;
 }
 
+// Maps PFC DLR _sai_packet_action_t to cfg::PfcWatchdogRecoveryAction
+cfg::PfcWatchdogRecoveryAction pfcWatchdogRecoveryAction(
+    int pfcDlrPacketAction) {
+  cfg::PfcWatchdogRecoveryAction recoveryAction;
+  if (pfcDlrPacketAction == SAI_PACKET_ACTION_DROP) {
+    recoveryAction = cfg::PfcWatchdogRecoveryAction::DROP;
+  } else {
+    recoveryAction = cfg::PfcWatchdogRecoveryAction::NO_DROP;
+  }
+  return recoveryAction;
+}
+
+std::optional<cfg::PfcWatchdog> getProgrammedPfcDeadlockParams(
+    const HwSwitch* hw,
+    const PortID& portId) {
+  auto portHandle = static_cast<const SaiSwitch*>(hw)
+                        ->managerTable()
+                        ->portManager()
+                        .getPortHandle(portId);
+  CHECK(portHandle);
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+  std::vector<sai_map_t> pfcDldTimer =
+      SaiApiTable::getInstance()->portApi().getAttribute(
+          portHandle->port->adapterKey(),
+          SaiPortTraits::Attributes::PfcTcDldInterval{});
+  std::vector<sai_map_t> pfcDlrTimer =
+      SaiApiTable::getInstance()->portApi().getAttribute(
+          portHandle->port->adapterKey(),
+          SaiPortTraits::Attributes::PfcTcDlrInterval{});
+  // PfcWD is programmed in HW, we'll see non zero
+  // PFC DLD/DLR timers.
+  if (pfcDldTimer.size() && pfcDlrTimer.size()) {
+    cfg::PfcWatchdog pfcWd;
+    pfcWd.detectionTimeMsecs() = pfcDlrTimer.at(0).value;
+    // Timers for all priorities should be the same!
+    for (const auto& dldTimer : pfcDldTimer) {
+      EXPECT_EQ(dldTimer.value, *pfcWd.detectionTimeMsecs());
+    }
+    pfcWd.recoveryTimeMsecs() = pfcDlrTimer.at(0).value;
+    // Timers for all priorities should be the same!
+    for (const auto& dlrTimer : pfcDlrTimer) {
+      EXPECT_EQ(dlrTimer.value, *pfcWd.recoveryTimeMsecs());
+    }
+
+    auto pfcDlrPacketAction =
+        SaiApiTable::getInstance()->switchApi().getAttribute(
+            static_cast<const SaiSwitch*>(hw)->getSaiSwitchId(),
+            SaiSwitchTraits::Attributes::PfcDlrPacketAction{});
+    pfcWd.recoveryAction() = pfcWatchdogRecoveryAction(pfcDlrPacketAction);
+    return pfcWd;
+  }
+#endif
+  return std::nullopt;
+}
+
 // Verifies if the PFC watchdog config provided matches the one
 // programmed in BCM HW
 void pfcWatchdogProgrammingMatchesConfig(
