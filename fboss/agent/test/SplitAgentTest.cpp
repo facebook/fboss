@@ -34,14 +34,6 @@ void SplitAgentTest::TearDown() {
     runForever();
   }
   tearDownAgentEnsemble();
-  /*
-   * Work around to avoid long singleton cleanup
-   * during atexit. TODO: figure out why extra time
-   * is spent in at exit cleanups
-   */
-  XLOG(DBG2) << " Destroy singleton instances ";
-  folly::SingletonVault::singleton()->destroyInstances();
-  XLOG(DBG2) << " Done destroying singleton instances";
 }
 
 void SplitAgentTest::tearDownAgentEnsemble(bool doWarmboot) {
