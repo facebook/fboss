@@ -51,15 +51,27 @@ struct NeighborT {
   }
 };
 
-using PortNeighborV4 = NeighborT<folly::IPAddressV4, false, false>;
-using TrunkNeighborV4 = NeighborT<folly::IPAddressV4, true, false>;
-using PortNeighborV6 = NeighborT<folly::IPAddressV6, false, false>;
-using TrunkNeighborV6 = NeighborT<folly::IPAddressV6, true, false>;
+using PortNeighborV4VlanNbrTable = NeighborT<folly::IPAddressV4, false, false>;
+using TrunkNeighborV4VlanNbrTable = NeighborT<folly::IPAddressV4, true, false>;
+using PortNeighborV6VlanNbrTable = NeighborT<folly::IPAddressV6, false, false>;
+using TrunkNeighborV6VlanNbrTable = NeighborT<folly::IPAddressV6, true, false>;
+
+using PortNeighborV4IntfNbrTable = NeighborT<folly::IPAddressV4, false, true>;
+using TrunkNeighborV4IntfNbrTable = NeighborT<folly::IPAddressV4, true, true>;
+using PortNeighborV6IntfNbrTable = NeighborT<folly::IPAddressV6, false, true>;
+using TrunkNeighborV6IntfNbrTable = NeighborT<folly::IPAddressV6, true, true>;
 
 const facebook::fboss::AggregatePortID kAggID{1};
 
-using NeighborTypes = ::testing::
-    Types<PortNeighborV4, TrunkNeighborV4, PortNeighborV6, TrunkNeighborV6>;
+using NeighborTypes = ::testing::Types<
+    PortNeighborV4VlanNbrTable,
+    TrunkNeighborV4VlanNbrTable,
+    PortNeighborV6VlanNbrTable,
+    TrunkNeighborV6VlanNbrTable,
+    PortNeighborV4IntfNbrTable,
+    TrunkNeighborV4IntfNbrTable,
+    PortNeighborV6IntfNbrTable,
+    TrunkNeighborV6IntfNbrTable>;
 
 template <typename NeighborT>
 class HwNeighborTest : public HwLinkStateDependentTest {
@@ -139,17 +151,19 @@ class HwNeighborTest : public HwLinkStateDependentTest {
 
   auto getNeighborTable(std::shared_ptr<SwitchState> state) {
     auto switchType = getSwitchType();
-    if (switchType == cfg::SwitchType::NPU) {
-      return state->getVlans()
-          ->getNode(kVlanID())
-          ->template getNeighborTable<NTable>()
-          ->modify(kVlanID(), &state);
-    } else if (switchType == cfg::SwitchType::VOQ) {
+
+    if (isIntfNbrTable || switchType == cfg::SwitchType::VOQ) {
       return state->getInterfaces()
           ->getNode(kIntfID())
           ->template getNeighborEntryTable<IPAddrT>()
           ->modify(kIntfID(), &state);
+    } else if (switchType == cfg::SwitchType::NPU) {
+      return state->getVlans()
+          ->getNode(kVlanID())
+          ->template getNeighborTable<NTable>()
+          ->modify(kVlanID(), &state);
     }
+
     XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);
   }
   std::shared_ptr<SwitchState> addNeighbor(
