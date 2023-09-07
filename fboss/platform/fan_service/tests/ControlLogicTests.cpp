@@ -171,7 +171,8 @@ TEST_F(ControlLogicTests, UpdateControlSuccess) {
   controlLogic_->updateControl(sensorData_);
   const auto fanStatuses = controlLogic_->getFanStatuses();
   EXPECT_EQ(fanStatuses.size(), fanServiceConfig_.fans()->size());
-  for (auto i = 0; const auto& [fanName, fanStatus] : fanStatuses) {
+  int i = 0;
+  for (const auto& [fanName, fanStatus] : fanStatuses) {
     EXPECT_EQ(fanStatus.fanFailed, false);
     EXPECT_EQ(fanStatus.rpm, kDefaultRpm);
     EXPECT_LE(fanStatus.timeStamp, mockBsp_->getCurrentTime());
@@ -194,8 +195,9 @@ TEST_F(ControlLogicTests, UpdateControlFailureDueToMissingFans) {
 
   controlLogic_->updateControl(sensorData_);
   const auto fanStatuses = controlLogic_->getFanStatuses();
+  int i = 0;
   EXPECT_EQ(fanStatuses.size(), fanServiceConfig_.fans()->size());
-  for (auto i = 0; const auto& [fanName, fanStatus] : fanStatuses) {
+  for (const auto& [fanName, fanStatus] : fanStatuses) {
     EXPECT_EQ(fanStatus.fanFailed, true);
     EXPECT_EQ(fanStatus.rpm, kDefaultRpm);
     EXPECT_LE(fanStatus.timeStamp, mockBsp_->getCurrentTime());
@@ -219,7 +221,8 @@ TEST_F(ControlLogicTests, UpdateControlFailureAfterFanUnaccessibleFirstTime) {
   controlLogic_->updateControl(sensorData_);
   const auto fanStatuses = controlLogic_->getFanStatuses();
   EXPECT_EQ(fanStatuses.size(), fanServiceConfig_.fans()->size());
-  for (auto i = 0; const auto& [fanName, fanStatus] : fanStatuses) {
+  int i = 0;
+  for (const auto& [fanName, fanStatus] : fanStatuses) {
     EXPECT_EQ(fanStatus.fanFailed, true);
     EXPECT_EQ(fanStatus.rpm, 0);
     EXPECT_LE(fanStatus.timeStamp, 0);
