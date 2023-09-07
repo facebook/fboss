@@ -34,8 +34,8 @@ static constexpr int kTeAgentThriftPort{2022};
 static std::string kNhopAddrA("1::1");
 static std::string kNhopAddrB("2::2");
 static std::string kDstIpStart("103");
-static std::string kCounterId1("counterId1");
-static std::string kCounterId2("counterId2");
+static std::string kCounterId1("rtsw001:host1:nic1-rtsw002:host1");
+static std::string kCounterId2("rtsw001:host1:nic1-rtsw003:host1");
 static int kPrefixLength(59);
 static int kTeFlowEntries(9000);
 } // namespace
@@ -178,7 +178,8 @@ class TeAgentIntegrationTest : public AgentIntegrationTest {
         network::toBinaryAddress(folly::IPAddressV6(dstIpPrefix));
     ipPrefix.prefixLength() = prefixLength;
     route.dstPrefix() = std::move(ipPrefix);
-    route.nextHops()->emplace_back(std::move(nh));
+    route.nextHops() = {nh};
+    route.nexthops() = {std::move(nh)};
     return route;
   }
 
@@ -227,7 +228,7 @@ class TeAgentIntegrationTest : public AgentIntegrationTest {
     int j{0};
     while (++count <= numEntries) {
       std::string dstIpPrefix = fmt::format("{}:{}:{}::", dstIpStart, i, j);
-      std::string id = fmt::format("counterId{}", count);
+      std::string id = fmt::format("rtsw001:host1:nic1-rtsw003:host{}", count);
       batch->emplace_back(makeFlowRoute(
           id,
           folly::IPAddressV6(nextHop),
