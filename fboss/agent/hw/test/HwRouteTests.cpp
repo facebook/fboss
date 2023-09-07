@@ -652,7 +652,9 @@ struct IpAddrAndEnableIntfNbrTableT {
 
 using NeighborTableTypes = ::testing::Types<
     IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, false>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>>;
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, true>,
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>,
+    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, true>>;
 
 template <typename IpAddrAndEnableIntfNbrTableT>
 class HwRouteNeighborTest
@@ -682,19 +684,21 @@ TYPED_TEST(HwRouteNeighborTest, AddHostRouteAndNeighbor) {
     auto state = this->getProgrammedState();
     auto getNeighborTable = [&]() {
       auto switchType = this->getSwitchType();
-      if (switchType == cfg::SwitchType::NPU) {
-        auto vlanId = port->getVlans().begin()->first;
-        return state->getVlans()
-            ->getNode(vlanId)
-            ->template getNeighborEntryTable<AddrT>()
-            ->modify(vlanId, &state);
-      } else if (switchType == cfg::SwitchType::VOQ) {
+
+      if (this->isIntfNbrTable() || switchType == cfg::SwitchType::VOQ) {
         auto intfId = port->getInterfaceID();
         return state->getInterfaces()
             ->getNode(intfId)
             ->template getNeighborEntryTable<AddrT>()
             ->modify(intfId, &state);
+      } else if (switchType == cfg::SwitchType::NPU) {
+        auto vlanId = port->getVlans().begin()->first;
+        return state->getVlans()
+            ->getNode(vlanId)
+            ->template getNeighborEntryTable<AddrT>()
+            ->modify(vlanId, &state);
       }
+
       XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);
     };
     // add neighbor
