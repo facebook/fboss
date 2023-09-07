@@ -129,8 +129,11 @@ class MultiHwSwitchHandler {
   // For test purpose
   std::map<SwitchID, HwSwitchHandler*> getHwSwitchHandlers();
 
-  /* blocks till atleast one HwSwitch is connected */
-  void waitUntilHwSwitchConnected();
+  /*
+   * blocks till atleast one HwSwitch is connected.
+   * returns false if wait is cancelled
+   */
+  bool waitUntilHwSwitchConnected();
 
  private:
   HwSwitchHandler* getHwSwitchHandler(SwitchID id);

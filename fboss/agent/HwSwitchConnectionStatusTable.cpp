@@ -30,11 +30,22 @@ void HwSwitchConnectionStatusTable::disconnected(SwitchID switchId) {
   connectedSwitches_.erase(switchId);
 }
 
-void HwSwitchConnectionStatusTable::waitUntilHwSwitchConnected() {
+bool HwSwitchConnectionStatusTable::waitUntilHwSwitchConnected() {
   std::unique_lock<std::mutex> lk(hwSwitchConnectedMutex_);
   if (!connectedSwitches_.empty()) {
-    return;
+    return true;
   }
-  hwSwitchConnectedCV_.wait(lk, [this] { return !connectedSwitches_.empty(); });
+  hwSwitchConnectedCV_.wait(lk, [this] {
+    return !connectedSwitches_.empty() || connectionWaitCancelled_;
+  });
+  return !connectionWaitCancelled_;
+}
+
+void HwSwitchConnectionStatusTable::cancelWait() {
+  {
+    std::unique_lock<std::mutex> lk(hwSwitchConnectedMutex_);
+    connectionWaitCancelled_ = true;
+  }
+  hwSwitchConnectedCV_.notify_one();
 }
 } // namespace facebook::fboss

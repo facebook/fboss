@@ -35,6 +35,8 @@ void MultiHwSwitchHandler::stop() {
   if (stopped_.load()) {
     return;
   }
+  // Cancel any pending waits for HwSwitch connect calls
+  connectionStatusTable_.cancelWait();
   for (auto& entry : hwSwitchSyncers_) {
     entry.second.reset();
   }
@@ -373,8 +375,8 @@ void MultiHwSwitchHandler::notifyHwSwitchGracefulExit(int64_t switchId) {
   // TODO - remove hwswitch from switch state update list
 }
 
-void MultiHwSwitchHandler::waitUntilHwSwitchConnected() {
-  connectionStatusTable_.waitUntilHwSwitchConnected();
+bool MultiHwSwitchHandler::waitUntilHwSwitchConnected() {
+  return connectionStatusTable_.waitUntilHwSwitchConnected();
 }
 
 } // namespace facebook::fboss

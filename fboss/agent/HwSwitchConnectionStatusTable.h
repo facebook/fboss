@@ -18,11 +18,13 @@ class HwSwitchConnectionStatusTable {
  public:
   void connected(SwitchID switchId);
   void disconnected(SwitchID switchId);
-  void waitUntilHwSwitchConnected();
+  bool waitUntilHwSwitchConnected();
+  void cancelWait();
 
  private:
   std::set<SwitchID> connectedSwitches_;
   std::condition_variable hwSwitchConnectedCV_;
   std::mutex hwSwitchConnectedMutex_;
+  bool connectionWaitCancelled_{false};
 };
 } // namespace facebook::fboss

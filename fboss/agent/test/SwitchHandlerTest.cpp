@@ -107,3 +107,11 @@ TEST_F(SwSwitchHandlerTest, GetOperDelta) {
   clientRequestThread1.join();
   clientRequestThread2.join();
 }
+
+TEST_F(SwSwitchHandlerTest, cancelHwSwitchWait) {
+  std::thread serverThread(
+      [&]() { EXPECT_FALSE(hwSwitchHandler_->waitUntilHwSwitchConnected()); });
+  std::thread serverStopThread([&]() { hwSwitchHandler_->stop(); });
+  serverThread.join();
+  serverStopThread.join();
+}
