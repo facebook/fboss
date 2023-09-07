@@ -32,6 +32,8 @@
 
 #include <gtest/gtest.h>
 
+DECLARE_bool(sai_user_defined_trap);
+
 namespace {
 constexpr auto kGetQueueOutPktsRetryTimes = 5;
 /**
@@ -63,6 +65,11 @@ namespace facebook::fboss {
 
 template <typename TestType>
 class HwCoppTest : public HwLinkStateDependentTest {
+  void SetUp() override {
+    FLAGS_sai_user_defined_trap = true;
+    HwLinkStateDependentTest::SetUp();
+  }
+
  protected:
   static constexpr auto isTrunk = std::is_same_v<TestType, AggregatePortID>;
 

@@ -862,7 +862,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
           }
         }
 
-        if (FLAGS_sai_user_defined_trap) {
+        if (platform_->getAsic()->isSupported(
+                HwAsic::Feature::SAI_USER_DEFINED_TRAP) &&
+            FLAGS_sai_user_defined_trap) {
           // Some platform requires implementing ACL copy/trap to cpu action
           // along with user defined trap action mapping to the desrited cpu
           // queue, so as to make ACL rule take precedence over hostif trap

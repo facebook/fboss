@@ -99,6 +99,11 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
     if (!(isTajo || isJericho2 || isJericho3)) {
       actionTypeList.push_back(SAI_ACL_ACTION_TYPE_MIRROR_EGRESS);
     }
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::SAI_USER_DEFINED_TRAP) &&
+        FLAGS_sai_user_defined_trap) {
+      actionTypeList.push_back(SAI_ACL_ACTION_TYPE_SET_USER_TRAP_ID);
+    }
     return actionTypeList;
   }
 }
