@@ -135,6 +135,10 @@ class HwSwitchHandler {
 
   virtual void notifyHwSwitchGracefulExit() = 0;
 
+  SwitchID getSwitchId() const {
+    return switchId_;
+  }
+
  private:
   std::shared_ptr<SwitchState> stateChangedImpl(
       const HwSwitchStateUpdate& update);

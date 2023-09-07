@@ -148,6 +148,7 @@ class MultiHwSwitchHandler {
   std::shared_ptr<SwitchState> getStateUpdateResult(
       std::vector<folly::Future<std::shared_ptr<SwitchState>>>& futures);
 
+  SwSwitch* sw_;
   std::map<SwitchID, std::unique_ptr<HwSwitchHandler>> hwSwitchSyncers_;
   std::atomic<bool> stopped_{true};
   HwSwitchConnectionStatusTable connectionStatusTable_;

@@ -2,6 +2,7 @@
 
 #include "fboss/agent/MultiHwSwitchHandler.h"
 #include "fboss/agent/HwSwitchHandler.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/if/gen-cpp2/MultiSwitchCtrl.h"
 
@@ -10,11 +11,12 @@ namespace facebook::fboss {
 MultiHwSwitchHandler::MultiHwSwitchHandler(
     const std::map<int64_t, cfg::SwitchInfo>& switchInfoMap,
     HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
-    SwSwitch* sw) {
+    SwSwitch* sw)
+    : sw_(sw) {
   for (auto entry : switchInfoMap) {
     hwSwitchSyncers_.emplace(
         SwitchID(entry.first),
-        hwSwitchHandlerInitFn(SwitchID(entry.first), entry.second, sw));
+        hwSwitchHandlerInitFn(SwitchID(entry.first), entry.second, sw_));
   }
 }
 
@@ -301,7 +303,7 @@ bool MultiHwSwitchHandler::needL2EntryForNeighbor(
 
 std::unique_ptr<TxPacket> MultiHwSwitchHandler::allocatePacket(uint32_t size) {
   // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
+  CHECK_GE(hwSwitchSyncers_.size(), 1);
   return hwSwitchSyncers_.begin()->second->allocatePacket(size);
 }
 
@@ -309,24 +311,27 @@ bool MultiHwSwitchHandler::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> pkt,
     PortID portID,
     std::optional<uint8_t> queue) noexcept {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
-  return hwSwitchSyncers_.begin()->second->sendPacketOutOfPortAsync(
-      std::move(pkt), portID, queue);
+  auto switchId = sw_->getScopeResolver()->scope(portID).switchId();
+  auto iter = hwSwitchSyncers_.find(switchId);
+  if (iter == hwSwitchSyncers_.end()) {
+    XLOG(ERR) << " hw switch syncer for switch id " << switchId << " not found";
+    return false;
+  }
+  return iter->second->sendPacketOutOfPortAsync(std::move(pkt), portID, queue);
 }
 
 bool MultiHwSwitchHandler::sendPacketSwitchedSync(
     std::unique_ptr<TxPacket> pkt) noexcept {
-  // Not supported with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
+  CHECK_GE(hwSwitchSyncers_.size(), 1);
+  // use first available switch to send pkt
   return hwSwitchSyncers_.begin()->second->sendPacketSwitchedSync(
       std::move(pkt));
 }
 
 bool MultiHwSwitchHandler::sendPacketSwitchedAsync(
     std::unique_ptr<TxPacket> pkt) noexcept {
-  // Not supported with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
+  CHECK_GE(hwSwitchSyncers_.size(), 1);
+  // use first available switch to send pkt
   return hwSwitchSyncers_.begin()->second->sendPacketSwitchedAsync(
       std::move(pkt));
 }

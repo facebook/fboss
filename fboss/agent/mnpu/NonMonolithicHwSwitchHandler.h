@@ -106,7 +106,13 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
   void notifyHwSwitchGracefulExit() override;
   void cancelOperDeltaSync();
 
+  bool sendPacketOutViaThriftStream(
+      std::unique_ptr<TxPacket> pkt,
+      std::optional<PortID> portID = std::nullopt,
+      std::optional<uint8_t> queue = std::nullopt);
+
  private:
+  SwSwitch* sw_;
   std::condition_variable stateUpdateCV_;
   std::mutex stateUpdateMutex_;
   multiswitch::StateOperDelta* nextOperDelta_{nullptr};

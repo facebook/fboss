@@ -1,6 +1,9 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/mnpu/NonMonolithicHwSwitchHandler.h"
+#include "fboss/agent/MultiSwitchPacketStreamMap.h"
+#include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 
 namespace facebook::fboss {
@@ -8,8 +11,8 @@ namespace facebook::fboss {
 NonMonolithicHwSwitchHandler::NonMonolithicHwSwitchHandler(
     const SwitchID& switchId,
     const cfg::SwitchInfo& info,
-    SwSwitch* /*sw*/)
-    : HwSwitchHandler(switchId, info) {}
+    SwSwitch* sw)
+    : HwSwitchHandler(switchId, info), sw_(sw) {}
 
 void NonMonolithicHwSwitchHandler::exitFatal() const {
   // TODO: implement this
@@ -21,23 +24,20 @@ std::unique_ptr<TxPacket> NonMonolithicHwSwitchHandler::allocatePacket(
 }
 
 bool NonMonolithicHwSwitchHandler::sendPacketOutOfPortAsync(
-    std::unique_ptr<TxPacket> /*pkt*/,
-    PortID /*portID*/,
-    std::optional<uint8_t> /*queue*/) noexcept {
-  // TODO: implement this
-  return true;
+    std::unique_ptr<TxPacket> pkt,
+    PortID portID,
+    std::optional<uint8_t> queue) noexcept {
+  return sendPacketOutViaThriftStream(std::move(pkt), portID, queue);
 }
 
 bool NonMonolithicHwSwitchHandler::sendPacketSwitchedSync(
-    std::unique_ptr<TxPacket> /*pkt*/) noexcept {
-  // TODO: implement this
-  return true;
+    std::unique_ptr<TxPacket> pkt) noexcept {
+  return sendPacketOutViaThriftStream(std::move(pkt));
 }
 
 bool NonMonolithicHwSwitchHandler::sendPacketSwitchedAsync(
-    std::unique_ptr<TxPacket> /*pkt*/) noexcept {
-  // TODO: implement this
-  return true;
+    std::unique_ptr<TxPacket> pkt) noexcept {
+  return sendPacketOutViaThriftStream(std::move(pkt));
 }
 
 bool NonMonolithicHwSwitchHandler::isValidStateUpdate(
@@ -205,6 +205,15 @@ bool NonMonolithicHwSwitchHandler::needL2EntryForNeighbor(
   // falling back to true as assumption is split mode is for SAI alone
   return !config || !config->sdkVersion().has_value() ||
       config->sdkVersion()->saiSdk().has_value();
+}
+
+bool NonMonolithicHwSwitchHandler::sendPacketOutViaThriftStream(
+    std::unique_ptr<TxPacket> pkt,
+    std::optional<PortID> portID,
+    std::optional<uint8_t> queue) {
+  sw_->sendPacketOutViaThriftStream(
+      std::move(pkt), getSwitchId(), portID, queue);
+  return true;
 }
 
 fsdb::OperDelta NonMonolithicHwSwitchHandler::stateChanged(
