@@ -100,9 +100,14 @@ void OperDeltaSyncer::stopOperSync() {
   // stop any new requests
   operSyncRunning_.store(false);
   // send exit notification to server with short timeout
-  apache::thrift::RpcOptions options;
-  options.setTimeout(std::chrono::milliseconds(1000));
-  operSyncClient_->sync_gracefulExit(options, switchId_);
+  try {
+    apache::thrift::RpcOptions options;
+    options.setTimeout(std::chrono::milliseconds(1000));
+    operSyncClient_->sync_gracefulExit(options, switchId_);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << fmt::format(
+        "Failed to send graceful exit notification to swswitch: {}", ex.what());
+  }
   if (operSyncThread_) {
     operSyncThread_->join();
   }

@@ -42,6 +42,15 @@ void SplitHwAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
   steady_clock::time_point servicesStopped = steady_clock::now();
   XLOG(DBG2) << "[Exit] Services stop time "
              << duration_cast<duration<float>>(servicesStopped - begin).count();
+  hw_->gracefulExit(state::WarmbootState());
+  steady_clock::time_point switchGracefulExit = steady_clock::now();
+  XLOG(DBG2)
+      << "[Exit] Switch Graceful Exit time "
+      << duration_cast<duration<float>>(switchGracefulExit - servicesStopped)
+             .count()
+      << std::endl
+      << "[Exit] Total graceful Exit time "
+      << duration_cast<duration<float>>(switchGracefulExit - begin).count();
   restart_time::mark(RestartEvent::SHUTDOWN);
   exit(0);
 }
@@ -78,7 +87,9 @@ int hwAgentMain(
       true /*setupSSL*/);
 
   SplitHwAgentSignalHandler signalHandler(
-      &eventBase, [&thriftSyncer]() { thriftSyncer->stop(); });
+      &eventBase,
+      [&thriftSyncer]() { thriftSyncer->stop(); },
+      hwAgent->getPlatform()->getHwSwitch());
 
   restart_time::mark(RestartEvent::INITIALIZED);
 

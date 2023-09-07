@@ -18,14 +18,20 @@
 
 namespace facebook::fboss {
 
+class HwSwitch;
+
 class SplitHwAgentSignalHandler : public SignalHandler {
  public:
   SplitHwAgentSignalHandler(
       folly::EventBase* eventBase,
-      SignalHandler::StopServices stopServices)
-      : SignalHandler(eventBase, std::move(stopServices)) {}
+      SignalHandler::StopServices stopServices,
+      HwSwitch* hw)
+      : SignalHandler(eventBase, std::move(stopServices)), hw_(hw) {}
 
   void signalReceived(int /*signum*/) noexcept override;
+
+ private:
+  HwSwitch* hw_;
 };
 
 std::string getSDKVersion();
