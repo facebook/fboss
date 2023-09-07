@@ -77,10 +77,8 @@ void BcmLinkStateToggler::setLinkTraining(
 }
 
 std::unique_ptr<HwLinkStateToggler> createHwLinkStateToggler(
-    TestEnsembleIf* ensemble,
-    const std::map<cfg::PortType, cfg::PortLoopbackMode>&
-        desiredLoopbackModes) {
-  return std::make_unique<BcmLinkStateToggler>(ensemble, desiredLoopbackModes);
+    TestEnsembleIf* ensemble) {
+  return std::make_unique<BcmLinkStateToggler>(ensemble);
 }
 
 } // namespace facebook::fboss

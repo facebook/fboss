@@ -102,9 +102,7 @@ SaiSwitch* SaiLinkStateToggler::getHw() const {
 }
 
 std::unique_ptr<HwLinkStateToggler> createHwLinkStateToggler(
-    TestEnsembleIf* ensemble,
-    const std::map<cfg::PortType, cfg::PortLoopbackMode>&
-        desiredLoopbackModes) {
-  return std::make_unique<SaiLinkStateToggler>(ensemble, desiredLoopbackModes);
+    TestEnsembleIf* ensemble) {
+  return std::make_unique<SaiLinkStateToggler>(ensemble);
 }
 } // namespace facebook::fboss

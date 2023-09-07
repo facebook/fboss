@@ -50,13 +50,11 @@ void HwLinkStateToggler::portStateChangeImpl(
   auto newState = switchState;
   for (auto port : ports) {
     auto currPort = newState->getPorts()->getNodeIf(port);
-    auto iter = desiredLoopbackModes_.find(currPort->getPortType());
-    if (iter == desiredLoopbackModes_.end()) {
-      throw FbossError(
-          "Unable to find the desired looped back mode for port : ",
-          currPort->getPortType());
-    }
-    auto desiredLoopbackMode = up ? iter->second : cfg::PortLoopbackMode::NONE;
+    auto switchId = hwEnsemble_->scopeResolver().scope(currPort).switchId();
+    auto asic = hwEnsemble_->getHwAsicTable()->getHwAsic(switchId);
+    auto desiredLoopbackMode = up
+        ? asic->getDesiredLoopbackMode(currPort->getPortType())
+        : cfg::PortLoopbackMode::NONE;
     if (currPort->getLoopbackMode() == desiredLoopbackMode) {
       continue;
     }

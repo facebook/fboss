@@ -22,12 +22,8 @@ class SaiSwitch;
 
 class SaiLinkStateToggler : public HwLinkStateToggler {
  public:
-  SaiLinkStateToggler(
-      TestEnsembleIf* ensemble,
-      const std::map<cfg::PortType, cfg::PortLoopbackMode>&
-          desiredLoopbackModes)
-      : HwLinkStateToggler(ensemble, desiredLoopbackModes),
-        saiEnsemble_(ensemble) {}
+  explicit SaiLinkStateToggler(TestEnsembleIf* ensemble)
+      : HwLinkStateToggler(ensemble), saiEnsemble_(ensemble) {}
 
  private:
   SaiSwitch* getHw() const;
