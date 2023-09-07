@@ -56,7 +56,7 @@ include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 //
 // `busName`: Refer to Bus Naming Convention above.
 //
-// `addr`: I2c address used by the i2c device
+// `address`: I2c address used by the device in hex notation
 //
 // `kernelDeviceName`: The device name used by kernel to identify the device
 //
@@ -68,14 +68,14 @@ include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 // For example, the three i2c devices in the below sample_fru will be modeled
 // as follows
 //
-// sensor1 = I2cDeviceConfig( busName="INCOMING@0", addr=12, kernelDeviceName="lm75",
-// fruScopeName="sensor1")
+// sensor1 = I2cDeviceConfig( busName="INCOMING@0", address="0x12",
+// kernelDeviceName="lm75", fruScopeName="sensor1")
 //
-// sensor2 = I2cDeviceConfig( busName="mux1@0", addr=13, kernelDeviceName="lm75",
-// fruScopeName="sensor2")
+// sensor2 = I2cDeviceConfig( busName="mux1@0", address="0x13",
+// kernelDeviceName="lm75", fruScopeName="sensor2")
 //
-// mux1 = I2cDeviceConfig( busName="INCOMING@1", addr=54, kernelDeviceName="pca9x48",
-// fruScopeName="mux1", numOutgoingChannels=3)
+// mux1 = I2cDeviceConfig( busName="INCOMING@1", address="0x54",
+// kernelDeviceName="pca9x48", fruScopeName="mux1", numOutgoingChannels=3)
 //                    ┌──────────────────────────────────────────┐
 //                    │                sample_fru                │
 //    INCOMING@0      │                       ┌────┬─────┐       │
@@ -92,7 +92,7 @@ include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 //                    └──────────────────────────────────────────┘
 struct I2cDeviceConfig {
   1: string busName;
-  2: i32 address;
+  2: string address;
   3: string kernelDeviceName;
   4: string fruScopedName;
   5: optional i32 numOutgoingChannels;
@@ -106,12 +106,12 @@ struct I2cDeviceConfig {
 // the INCOMING@ notation should be used. Note, this bus can originate from a
 // mux/fpga in an upstream FRU.
 //
-// `address`: I2C address of the IDPROM.
+// `address`: I2C address of the IDPROM in hex notation
 //
 // `kernelDeviceName`: The device name used by kernel to identify the device
 struct IdpromConfig {
   1: string busName;
-  2: i32 address;
+  2: string address;
   3: string kernelDeviceName;
 }
 

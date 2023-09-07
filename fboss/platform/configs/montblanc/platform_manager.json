@@ -6,7 +6,7 @@
             "numOutgoingI2cBuses": 0,
             "idpromConfig": {
                 "busName": "SMBus I801 adapter at 5000",
-                "address": 83,
+                "address": "0x53",
                 "kernelDeviceName": "24c02"
             },
             "fruType": "MCB"
