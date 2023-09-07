@@ -1,8 +1,10 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/platform/platform_manager/PlatformValidator.h"
+
 #include <folly/logging/xlog.h>
 
-#include "fboss/platform/platform_manager/PlatformValidator.h"
+#include "fboss/platform/platform_manager/PlatformI2cExplorer.h"
 
 namespace facebook::fboss::platform::platform_manager {
 
@@ -12,6 +14,26 @@ bool PlatformValidator::isValidSlotTypeConfig(
     XLOG(ERR) << "SlotTypeConfig must have either EEPROM or FRUType name";
     return false;
   }
+  if (slotTypeConfig.idpromConfig_ref()) {
+    try {
+      I2cAddr(*slotTypeConfig.idpromConfig_ref()->address_ref());
+    } catch (std::invalid_argument& e) {
+      XLOG(ERR) << "IDPROM has invalid address " << e.what();
+      return false;
+    }
+  }
+  return true;
+}
+
+bool PlatformValidator::isValidI2cDeviceConfig(
+    const I2cDeviceConfig& i2cDeviceConfig) {
+  try {
+    I2cAddr(*i2cDeviceConfig.address_ref());
+  } catch (std::invalid_argument& e) {
+    XLOG(ERR) << "IDPROM has invalid address " << e.what();
+    return false;
+  }
+
   return true;
 }
 
@@ -45,9 +67,19 @@ bool PlatformValidator::isValid(const PlatformConfig& config) {
     return false;
   }
 
+  // Validate SlotTypeConfigs.
   for (const auto& [slotName, slotTypeConfig] : *config.slotTypeConfigs()) {
     if (!isValidSlotTypeConfig(slotTypeConfig)) {
       return false;
+    }
+  }
+
+  // Validate I2cDeviceConfigs
+  for (const auto& [name, fruTypeConfig] : *config.fruTypeConfigs_ref()) {
+    for (const auto& i2cDeviceConfig : *fruTypeConfig.i2cDeviceConfigs_ref()) {
+      if (!isValidI2cDeviceConfig(i2cDeviceConfig)) {
+        return false;
+      }
     }
   }
 

@@ -18,6 +18,7 @@ SlotTypeConfig getValidSlotTypeConfig() {
   auto slotTypeConfig = SlotTypeConfig();
   slotTypeConfig.fruType_ref() = "FAN_TRAY";
   slotTypeConfig.idpromConfig_ref() = IdpromConfig();
+  slotTypeConfig.idpromConfig_ref()->address_ref() = "0x14";
   return slotTypeConfig;
 }
 } // namespace
@@ -65,4 +66,24 @@ TEST(PlatformValidatorTest, SlotTypeConfig) {
   slotTypeConfig.fruType_ref().reset();
   slotTypeConfig.idpromConfig_ref().reset();
   EXPECT_FALSE(PlatformValidator().isValidSlotTypeConfig(slotTypeConfig));
+  slotTypeConfig = getValidSlotTypeConfig();
+  slotTypeConfig.idpromConfig_ref()->address_ref() = "0xK4";
+  EXPECT_FALSE(PlatformValidator().isValidSlotTypeConfig(slotTypeConfig));
+}
+
+TEST(PlatformValidatorTest, I2cDeviceConfig) {
+  auto i2cConfig = I2cDeviceConfig{};
+  EXPECT_FALSE(PlatformValidator().isValidI2cDeviceConfig(i2cConfig));
+  i2cConfig.address_ref() = "029";
+  EXPECT_FALSE(PlatformValidator().isValidI2cDeviceConfig(i2cConfig));
+  i2cConfig.address_ref() = "29";
+  EXPECT_FALSE(PlatformValidator().isValidI2cDeviceConfig(i2cConfig));
+  i2cConfig.address_ref() = "0x";
+  EXPECT_FALSE(PlatformValidator().isValidI2cDeviceConfig(i2cConfig));
+  i2cConfig.address_ref() = "0x2f";
+  EXPECT_TRUE(PlatformValidator().isValidI2cDeviceConfig(i2cConfig));
+  i2cConfig.address_ref() = "0x2F";
+  EXPECT_TRUE(PlatformValidator().isValidI2cDeviceConfig(i2cConfig));
+  i2cConfig.address_ref() = "0x20";
+  EXPECT_TRUE(PlatformValidator().isValidI2cDeviceConfig(i2cConfig));
 }
