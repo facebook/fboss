@@ -21,6 +21,8 @@
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TrunkUtils.h"
 
+DECLARE_bool(intf_nbr_tables);
+
 namespace facebook::fboss {
 
 namespace {
@@ -32,10 +34,13 @@ const cfg::AclLookupClass kLookupClass{
 
 template <
     cfg::L2LearningMode mode = cfg::L2LearningMode::HARDWARE,
-    bool trunk = false>
+    bool trunk = false,
+    bool intfNbrTable = false>
 struct LearningModeAndPortTypesT {
   static constexpr auto kLearningMode = mode;
   static constexpr auto kIsTrunk = trunk;
+  static auto constexpr isIntfNbrTable = intfNbrTable;
+
   static cfg::SwitchConfig initialConfig(cfg::SwitchConfig config) {
     config.switchSettings()->l2LearningMode() = kLearningMode;
     if (kIsTrunk) {
@@ -55,13 +60,13 @@ struct LearningModeAndPortTypesT {
 };
 
 using SwLearningModeAndTrunk =
-    LearningModeAndPortTypesT<cfg::L2LearningMode::SOFTWARE, true>;
+    LearningModeAndPortTypesT<cfg::L2LearningMode::SOFTWARE, true, false>;
 using SwLearningModeAndPort =
-    LearningModeAndPortTypesT<cfg::L2LearningMode::SOFTWARE, false>;
+    LearningModeAndPortTypesT<cfg::L2LearningMode::SOFTWARE, false, false>;
 using HwLearningModeAndTrunk =
-    LearningModeAndPortTypesT<cfg::L2LearningMode::HARDWARE, true>;
+    LearningModeAndPortTypesT<cfg::L2LearningMode::HARDWARE, true, false>;
 using HwLearningModeAndPort =
-    LearningModeAndPortTypesT<cfg::L2LearningMode::HARDWARE, false>;
+    LearningModeAndPortTypesT<cfg::L2LearningMode::HARDWARE, false, false>;
 
 using LearningAndPortTypes = ::testing::Types<
     SwLearningModeAndTrunk,
@@ -76,8 +81,14 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
  public:
   static auto constexpr kLearningMode = LearningModeAndPortT::kLearningMode;
   static auto constexpr kIsTrunk = LearningModeAndPortT::kIsTrunk;
+  static auto constexpr isIntfNbrTable = LearningModeAndPortT::isIntfNbrTable;
 
  protected:
+  void SetUp() override {
+    FLAGS_intf_nbr_tables = isIntfNbrTable;
+    HwLinkStateDependentTest::SetUp();
+  }
+
   cfg::SwitchConfig initialConfig() const override {
     auto inConfig = utility::oneL3IntfNPortConfig(
         getHwSwitch()->getPlatform()->getPlatformMapping(),
