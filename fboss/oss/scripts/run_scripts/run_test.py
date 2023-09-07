@@ -506,6 +506,30 @@ class TestRunner(abc.ABC):
             ).encode("utf-8")
         return run_test_result
 
+    def _string_in_file(self, file_path, string):
+        try:
+            with open(file_path, "r") as file:
+                file_contents = file.read()
+            return string in file_contents
+        except FileNotFoundError:
+            print(f"File not found when replacing string: {file_path}")
+
+    def _replace_string_in_file(self, file_path, old_str, new_str):
+        try:
+            with open(file_path, "r") as file:
+                file_contents = file.read()
+
+            new_file_contents = file_contents.replace(old_str, new_str)
+
+            if new_file_contents != file_contents:
+                with open(file_path, "w") as file:
+                    file.write(new_file_contents)
+                print(f"Replaced {old_str} by {new_str} in file {file_path}")
+        except FileNotFoundError:
+            print(f"File not found when replacing string: {file_path}")
+        except Exception as e:
+            print(f"Error when replacing string in {file_path}: {str(e)}")
+
     def _run_tests(self, tests_to_run, args):
         if args.sdk_logging:
             if os.path.isdir(args.sdk_logging) or os.path.isfile(args.sdk_logging):
@@ -548,6 +572,11 @@ class TestRunner(abc.ABC):
         conf_file = (
             args.config if (args.config is not None) else self._get_config_path()
         )
+        if args.oss and self._string_in_file(args.fruid_path, "MONTBLANC"):
+            # TH5 SVK platform need to set AUTOLOAD_BOARD_SETTINGS=1
+            self._replace_string_in_file(
+                conf_file, "AUTOLOAD_BOARD_SETTINGS: 0", "AUTOLOAD_BOARD_SETTINGS: 1"
+            )
         if test_binary_name != "qsfp_hw_test" and not os.path.exists(conf_file):
             print("########## Conf file not found: " + conf_file)
             return []
