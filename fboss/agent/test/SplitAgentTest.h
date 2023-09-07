@@ -85,6 +85,8 @@ class SplitAgentTest : public ::testing::Test {
   void runForever() const;
   const std::map<SwitchID, HwAsic*> getAsics() const;
   bool isSupportedOnAllAsics(HwAsic::Feature feature) const;
+  AgentEnsemble* getAgentEnsemble() const;
+  const std::shared_ptr<SwitchState> getProgrammedState() const;
 
  private:
   /*
@@ -94,6 +96,8 @@ class SplitAgentTest : public ::testing::Test {
   virtual bool runVerification() const {
     return true;
   }
+
+  virtual bool hideFabricPorts() const;
 
   AgentEnsembleSwitchConfigFn initialConfigFn_ = nullptr;
   AgentEnsemblePlatformConfigFn platformConfigFn_ = nullptr;

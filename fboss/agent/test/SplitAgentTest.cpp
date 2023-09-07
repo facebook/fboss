@@ -66,4 +66,19 @@ bool SplitAgentTest::isSupportedOnAllAsics(HwAsic::Feature feature) const {
       feature);
 }
 
+AgentEnsemble* SplitAgentTest::getAgentEnsemble() const {
+  return agentEnsemble_.get();
+}
+
+const std::shared_ptr<SwitchState> SplitAgentTest::getProgrammedState() const {
+  return getAgentEnsemble()->getProgrammedState();
+}
+
+bool SplitAgentTest::hideFabricPorts() const {
+  // Due to the speedup in test run time (6m->21s on meru400biu)
+  // we want to skip over fabric ports in a overwhelming
+  // majority of test cases. Make this the default HwTest mode
+  return true;
+}
+
 } // namespace facebook::fboss
