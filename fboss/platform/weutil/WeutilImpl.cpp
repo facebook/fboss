@@ -79,7 +79,7 @@ void WeutilImpl::initializeFieldDictionaryV4() {
 }
 
 // Same as above, but for EEPROM V3.
-void WeutilImpl::initializeFieldDictionaryV3(){
+void WeutilImpl::initializeFieldDictionaryV3() {
   //
   // VARIABLE in the offset and length means it's variable, and
   // will be determined by the TLV structure in the EEPROM
@@ -142,6 +142,15 @@ void WeutilImpl::printInfoJson() {
 }
 
 bool WeutilImpl::verifyOptions() {
+  // If eeprom is in fact the FRU name, replace this name with the actual path
+  // If it's not, treat it as the path to the eeprom file / sysfs
+  std::string lEeprom = eepromPath;
+  std::transform(lEeprom.begin(), lEeprom.end(), lEeprom.begin(), ::tolower);
+  if (config_.configEntry.find(lEeprom) != config_.configEntry.end()) {
+    eepromPath = get<0>(config_.configEntry[lEeprom]);
+  } else {
+    throw std::runtime_error("Invalid EEPROM Name.");
+  }
   return true;
 }
 void WeutilImpl::printUsage() {
