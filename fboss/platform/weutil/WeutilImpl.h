@@ -39,6 +39,9 @@ class WeutilImpl : public WeutilInterface {
   std::string parseString(int len, unsigned char* ptr);
   std::string parseMac(int len, unsigned char* ptr);
   std::string parseLegacyMac(int len, unsigned char* ptr);
+  // Note that this parseDate method is for EEPROM v3 format.
+  // In EEPROM v4, the date is stored as a plain string.
+  std::string parseDate(int len, unsigned char* ptr);
 
  public:
   WeutilImpl(const std::string& eeprom = "", PlainWeutilConfig config = {});

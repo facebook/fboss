@@ -197,6 +197,24 @@ std::string WeutilImpl::parseLegacyMac(int len, unsigned char* ptr) {
   return retVal;
 }
 
+std::string WeutilImpl::parseDate(int len, unsigned char* ptr) {
+  std::string retVal = "";
+  // We convert char array to string only upto len or null pointer
+  if (len != 4) {
+    throw std::runtime_error("Date field must be 4 Bytes Long!");
+  }
+  unsigned int year = (unsigned int)ptr[1] + (unsigned int)ptr[0];
+  unsigned int month = (unsigned int)ptr[2];
+  unsigned int day = (unsigned int)ptr[3];
+  std::string yearString = std::to_string(year % 100);
+  std::string monthString = std::to_string(month);
+  std::string dayString = std::to_string(day);
+  yearString = (yearString.length() == 1 ? "0" : "") + yearString;
+  monthString = (monthString.length() == 1 ? "0" : "") + monthString;
+  dayString = (dayString.length() == 1 ? "0" : "") + dayString;
+  return monthString + "-" + dayString + "-" + yearString;
+}
+
 void WeutilImpl::printInfo() {
   XLOG(INFO) << "printInfo";
 }
