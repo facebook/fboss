@@ -32,7 +32,8 @@ struct EnableIntfNbrTable {
   static constexpr auto intfNbrTable = enableIntfNbrTable;
 };
 
-using NbrTableTypes = ::testing::Types<EnableIntfNbrTable<false>>;
+using NbrTableTypes =
+    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
 
 template <typename EnableIntfNbrTableT>
 class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
@@ -146,10 +147,20 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
 
     for (const auto& ipToMacAndClassID : getIpToMacAndClassID<AddrT>()) {
       auto ip = ipToMacAndClassID.first;
-      auto neighborTable = outState->getVlans()
-                               ->getNode(kVlanID)
-                               ->template getNeighborTable<NeighborTableT>()
-                               ->modify(kVlanID, &outState);
+
+      NeighborTableT* neighborTable;
+      if (isIntfNbrTable) {
+        neighborTable = outState->getInterfaces()
+                            ->getNode(kIntfID)
+                            ->template getNeighborTable<NeighborTableT>()
+                            ->modify(kIntfID, &outState);
+      } else {
+        neighborTable = outState->getVlans()
+                            ->getNode(kVlanID)
+                            ->template getNeighborTable<NeighborTableT>()
+                            ->modify(kVlanID, &outState);
+      }
+
       neighborTable->addPendingEntry(ip, kIntfID);
     }
 
@@ -172,10 +183,20 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
       auto macAndClassID = ipToMacAndClassID.second;
       auto neighborMac = macAndClassID.first;
       auto classID = macAndClassID.second;
-      auto neighborTable = outState->getVlans()
-                               ->getNode(kVlanID)
-                               ->template getNeighborTable<NeighborTableT>()
-                               ->modify(kVlanID, &outState);
+
+      NeighborTableT* neighborTable;
+      if (isIntfNbrTable) {
+        neighborTable = outState->getInterfaces()
+                            ->getNode(kIntfID)
+                            ->template getNeighborTable<NeighborTableT>()
+                            ->modify(kIntfID, &outState);
+      } else {
+        neighborTable = outState->getVlans()
+                            ->getNode(kVlanID)
+                            ->template getNeighborTable<NeighborTableT>()
+                            ->modify(kVlanID, &outState);
+      }
+
       if (setClassIDs) {
         neighborTable->updateEntry(
             ip,
