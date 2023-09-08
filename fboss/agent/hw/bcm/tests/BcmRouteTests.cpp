@@ -1030,7 +1030,8 @@ struct EnableIntfNbrTable {
   static constexpr auto intfNbrTable = enableIntfNbrTable;
 };
 
-using NeighborTableTypes = ::testing::Types<EnableIntfNbrTable<false>>;
+using NeighborTableTypes =
+    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
 
 template <typename EnableIntfNbrTableT>
 class BcmRouteNeighborTest : public BcmRouteTest {
@@ -1073,9 +1074,22 @@ TYPED_TEST(BcmRouteNeighborTest, UnresolveResolveNextHop) {
     auto state0 = this->getProgrammedState();
     for (auto port : ports) {
       auto ecmpNextHop = helper.nhop(port);
-      auto vlanId = helper.getVlan(port, this->getProgrammedState());
-      auto ntable = state0->getVlans()->getNode(*vlanId)->getNdpTable()->modify(
-          *vlanId, &state0);
+
+      NdpTable* ntable;
+      if (this->isIntfNbrTable()) {
+        EXPECT_EQ(port.type(), PortDescriptor::PortType::PHYSICAL);
+        auto interfaceID =
+            this->getProgrammedState()->getInterfaceIDForPort(port.phyPortID());
+        ntable = state0->getInterfaces()
+                     ->getNode(interfaceID)
+                     ->getNdpTable()
+                     ->modify(interfaceID, &state0);
+      } else {
+        auto vlanId = helper.getVlan(port, this->getProgrammedState());
+        ntable = state0->getVlans()->getNode(*vlanId)->getNdpTable()->modify(
+            *vlanId, &state0);
+      }
+
       auto entry = ntable->getEntry(ecmpNextHop.ip);
       auto intfId = entry->getIntfID();
       ntable->removeEntry(ecmpNextHop.ip);
@@ -1087,9 +1101,21 @@ TYPED_TEST(BcmRouteNeighborTest, UnresolveResolveNextHop) {
     // mark neighbors connected over ports reachable
     auto state1 = this->getProgrammedState();
     for (auto port : ports) {
-      auto vlanId = helper.getVlan(port, this->getProgrammedState());
-      auto ntable = state1->getVlans()->getNode(*vlanId)->getNdpTable()->modify(
-          *vlanId, &state1);
+      NdpTable* ntable;
+      if (this->isIntfNbrTable()) {
+        EXPECT_EQ(port.type(), PortDescriptor::PortType::PHYSICAL);
+        auto interfaceID =
+            this->getProgrammedState()->getInterfaceIDForPort(port.phyPortID());
+        ntable = state1->getInterfaces()
+                     ->getNode(interfaceID)
+                     ->getNdpTable()
+                     ->modify(interfaceID, &state1);
+      } else {
+        auto vlanId = helper.getVlan(port, this->getProgrammedState());
+        ntable = state1->getVlans()->getNode(*vlanId)->getNdpTable()->modify(
+            *vlanId, &state1);
+      }
+
       auto entry = entries[port];
       ntable->updateEntry(NeighborEntryFields<folly::IPAddressV6>::fromThrift(
           entry->toThrift()));
