@@ -471,7 +471,32 @@ void WeutilImpl::printInfo() {
 }
 
 void WeutilImpl::printInfoJson() {
+  // Use getInfo, then go thru our table to generate JSON in order
   XLOG(INFO) << "printInfoJson";
+  std::vector<std::pair<std::string, std::string>> info = getInfo(eepromPath);
+  int vectorSize = info.size();
+  int cursor = 0;
+  // Manually create JSON object without using folly, so that this code
+  // will be ported to BMC later
+  // Print the first part of the JSON - fixed entry to make a JSON
+  std::cout << "{";
+  std::cout << "\"Information\": {";
+  // Print the second part of the JSON, the dynamic entry
+  for (auto [key, value] : info) {
+    // CRC16 is not needed in JSON output
+    if (key == "CRC16") {
+      continue;
+    }
+    std::cout << "\"" << key << "\": ";
+    std::cout << "\"" << value << "\"";
+    if (cursor++ != vectorSize - 1) {
+      std::cout << ", ";
+    }
+  }
+
+  // Finally, print the third part of the JSON - fixed entry
+  std::cout << "}, \"Actions\": [], \"Resources\": []";
+  std::cout << "}" << std::endl;
 }
 
 bool WeutilImpl::verifyOptions() {
