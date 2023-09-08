@@ -219,8 +219,85 @@ std::unordered_map<int, std::string> WeutilImpl::parseEepromBlobV3(
     // 10th juice (item) so as not to flooding the log file
     // (Celebrating 10th Juice)
     if (juice % 10 == 0) {
+      XLOG(DBG) << "Parsing eeprom entry " << juice << std::endl;
+    }
+  }
+  return parsedValue;
+}
+
+// Helper function of getInfo, for V4 eeprom
+std::unordered_map<int, std::string> WeutilImpl::parseEepromBlobV4(
+    const unsigned char* buffer,
+    const int readCount) {
+  int juice = 0; // A variable to count the number of items
+                 // parsed so far
+  int cursor = 4; // According to the Meta EEPROM v4 spec,
+                  // the actual data starts from 4th byte of eeprom.
+  std::unordered_map<int, std::string> parsedValue;
+  std::string value;
+
+  while (cursor < readCount) {
+    // Increment the item counter (mainly for debugging purposes)
+    // Very important to do this.
+    juice = juice + 1;
+    // First, get the itemCode of the TLV (T)
+    int itemCode = (int)buffer[cursor];
+    entryType itemType = FIELD_INVALID;
+    int itemLen = (int)buffer[cursor + 1];
+    std::string key;
+
+    // Vendors pad EEPROM with 0xff. Therefore, if item code is
+    // 0xff, then we reached to the end of the actual content.
+    if (itemCode == 0xFF) {
+      break;
+    }
+    // Look up our table to find the itemType and field name of this itemCode
+    for (int i = 0; i < fieldDictionaryV4_.size(); i++) {
+      if (fieldDictionaryV4_[i].typeCode == itemCode) {
+        itemType = fieldDictionaryV4_[i].fieldType;
+        key = fieldDictionaryV4_[i].fieldName;
+      }
+    }
+    // If no entry found, throw an exception
+    if (itemType == FIELD_INVALID) {
+      XLOG(ERR) << " Unknown field code " << itemCode << " at position "
+                << cursor << " item number " << juice << std::endl;
+      throw std::runtime_error(
+          "Invalid field code in EEPROM at :" + std::to_string(cursor));
+    }
+
+    // Find Length and Variable (L and V)
+    int itemLength = buffer[cursor + 1];
+    unsigned char* itemDataPtr = (unsigned char*)&buffer[cursor + 2];
+    // Parse the value according to the itemType
+    switch (itemType) {
+      case FIELD_UINT:
+        value = parseUint(itemLength, itemDataPtr);
+        break;
+      case FIELD_HEX:
+        value = parseHex(itemLength, itemDataPtr);
+        break;
+      case FIELD_STRING:
+        value = parseString(itemLength, itemDataPtr);
+        break;
+      case FIELD_MAC:
+        value = parseMac(itemLength, itemDataPtr);
+        break;
+      default:
+        XLOG(ERR) << " Unknown field type " << itemType << " at position "
+                  << cursor << " item number " << juice << std::endl;
+        throw std::runtime_error("Invalid field type in EEPROM.");
+        break;
+    }
+    // Print the log for every 10th juice (item) so as not
+    // to flooding the log file (Celebrating 10th Juice)
+    if (juice % 10 == 0) {
       XLOG(INFO) << "Parsing eeprom entry " << juice << std::endl;
     }
+    // Add the key-value pair to the result
+    parsedValue[itemCode] = value;
+    // Increment the cursor
+    cursor += itemLen + 2;
   }
   return parsedValue;
 }

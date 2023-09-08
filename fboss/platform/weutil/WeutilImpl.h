@@ -42,6 +42,9 @@ class WeutilImpl : public WeutilInterface {
       int max);
   std::unordered_map<int, std::string> parseEepromBlobV3(
       const unsigned char* buffer);
+  std::unordered_map<int, std::string> parseEepromBlobV4(
+      const unsigned char* buffer,
+      const int readCount);
   std::string parseUint(int len, unsigned char* ptr);
   std::string parseHex(int len, unsigned char* ptr);
   std::string parseString(int len, unsigned char* ptr);
