@@ -20,8 +20,64 @@ WeutilImpl::WeutilImpl(const std::string& eeprom, PlainWeutilConfig config)
     : config_(config) {
   XLOG(INFO) << "WeutilImpl: eeprom = " << eeprom;
   initializeFieldDictionaryV3();
+  initializeFieldDictionaryV4();
   eepromPath = eeprom;
 }
+
+//
+//  This method is called inside the constructor to initialize the
+//  internal look-up table. The content of this table follows FBOSS
+//  EEPROM spec v4.
+//
+void WeutilImpl::initializeFieldDictionaryV4() {
+  //
+  // VARIABLE in the offset and length means it's variable, and
+  // will be determined by the TLV structure in the EEPROM
+  // itself (v4 and above)
+  // {Typecode, Name, FieldType, Length, Offset}
+  // Note that this is the order that the EEPROM will be printed
+  //
+  fieldDictionaryV4_.push_back(
+      {0, "NA", FIELD_UINT, -1, -1}); // TypeCode 0 is reserved
+  fieldDictionaryV4_.push_back(
+      {1, "Product Name", FIELD_STRING, VARIABLE, VARIABLE});
+  fieldDictionaryV4_.push_back(
+      {2, "Product Part Number", FIELD_STRING, VARIABLE, VARIABLE});
+  fieldDictionaryV4_.push_back(
+      {3, "System Assembly Part Number", FIELD_STRING, 8, VARIABLE});
+  fieldDictionaryV4_.push_back(
+      {4, "Meta PCBA Part Number", FIELD_STRING, 12, VARIABLE});
+  fieldDictionaryV4_.push_back(
+      {5, "Meta PCB Part Number", FIELD_STRING, 12, VARIABLE});
+  fieldDictionaryV4_.push_back(
+      {6, "ODM/JDM PCBA Part Number", FIELD_STRING, VARIABLE, VARIABLE});
+  fieldDictionaryV4_.push_back(
+      {7, "ODM/JDM PCBA Serial Number", FIELD_STRING, VARIABLE, VARIABLE});
+  fieldDictionaryV4_.push_back(
+      {8, "Product Production State", FIELD_UINT, 1, VARIABLE});
+  fieldDictionaryV4_.push_back({9, "Product Version", FIELD_UINT, 1, VARIABLE});
+  fieldDictionaryV4_.push_back(
+      {10, "Product Sub-Version", FIELD_UINT, 1, VARIABLE});
+  fieldDictionaryV4_.push_back(
+      {11, "Product Serial Number", FIELD_STRING, VARIABLE, VARIABLE});
+  fieldDictionaryV4_.push_back(
+      {12, "System Manufacturer", FIELD_STRING, VARIABLE, VARIABLE});
+  fieldDictionaryV4_.push_back(
+      {13, "System Manufacturing Date", FIELD_STRING, 8, VARIABLE});
+  fieldDictionaryV4_.push_back(
+      {14, "PCB Manufacturer", FIELD_STRING, VARIABLE, VARIABLE});
+  fieldDictionaryV4_.push_back(
+      {15, "Assembled at", FIELD_STRING, VARIABLE, VARIABLE});
+  fieldDictionaryV4_.push_back({16, "Local MAC", FIELD_MAC, 6, VARIABLE});
+  fieldDictionaryV4_.push_back(
+      {17, "Extended MAC Base", FIELD_MAC, 6, VARIABLE});
+  fieldDictionaryV4_.push_back(
+      {18, "Extended MAC Address Size", FIELD_UINT, 2, VARIABLE});
+  fieldDictionaryV4_.push_back(
+      {19, "EEPROM location on Fabric", FIELD_STRING, VARIABLE, VARIABLE});
+  fieldDictionaryV4_.push_back({250, "CRC16", FIELD_HEX, 2, VARIABLE});
+}
+
 // Same as above, but for EEPROM V3.
 void WeutilImpl::initializeFieldDictionaryV3(){
   //

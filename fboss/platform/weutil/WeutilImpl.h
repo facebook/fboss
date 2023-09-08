@@ -28,7 +28,9 @@ class WeutilImpl : public WeutilInterface {
  private:
   const std::optional<int> VARIABLE = std::nullopt;
   std::vector<EepromFieldEntry> fieldDictionaryV3_;
+  std::vector<EepromFieldEntry> fieldDictionaryV4_;
   void initializeFieldDictionaryV3();
+  void initializeFieldDictionaryV4();
   std::string eepromPath;
   std::string translatedFrom;
   PlainWeutilConfig config_;
