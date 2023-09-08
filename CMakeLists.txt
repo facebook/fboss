@@ -597,3 +597,18 @@ foreach(cmakeFile ${cmakeFiles})
   message(status " INCLUDE ${cmakeFile}")
   INCLUDE(${cmakeFile})
 endforeach(cmakeFile)
+
+add_custom_target(fboss_platform_services)
+add_dependencies(fboss_platform_services
+  sensor_service
+  sensor_service_hw_test
+  sensor_service_sw_test
+  fan_service
+  fan_service_sw_test
+  fan_service_hw_test
+  rackmon
+  rackmon_test
+  platform_manager
+  fw_util
+  weutil
+)
