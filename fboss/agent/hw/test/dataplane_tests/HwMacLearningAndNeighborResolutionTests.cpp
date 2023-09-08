@@ -59,20 +59,33 @@ struct LearningModeAndPortTypesT {
   }
 };
 
-using SwLearningModeAndTrunk =
+using SwLearningModeAndTrunkVlanNbrTable =
     LearningModeAndPortTypesT<cfg::L2LearningMode::SOFTWARE, true, false>;
-using SwLearningModeAndPort =
+using SwLearningModeAndPortVlanNbrTable =
     LearningModeAndPortTypesT<cfg::L2LearningMode::SOFTWARE, false, false>;
-using HwLearningModeAndTrunk =
+using HwLearningModeAndTrunkVlanNbrTable =
     LearningModeAndPortTypesT<cfg::L2LearningMode::HARDWARE, true, false>;
-using HwLearningModeAndPort =
+using HwLearningModeAndPortVlanNbrTable =
     LearningModeAndPortTypesT<cfg::L2LearningMode::HARDWARE, false, false>;
 
+using SwLearningModeAndTrunkIntfNbrTable =
+    LearningModeAndPortTypesT<cfg::L2LearningMode::SOFTWARE, true, true>;
+using SwLearningModeAndPortIntfNbrTable =
+    LearningModeAndPortTypesT<cfg::L2LearningMode::SOFTWARE, false, true>;
+using HwLearningModeAndTrunkIntfNbrTable =
+    LearningModeAndPortTypesT<cfg::L2LearningMode::HARDWARE, true, true>;
+using HwLearningModeAndPortIntfNbrTable =
+    LearningModeAndPortTypesT<cfg::L2LearningMode::HARDWARE, false, true>;
+
 using LearningAndPortTypes = ::testing::Types<
-    SwLearningModeAndTrunk,
-    SwLearningModeAndPort,
-    HwLearningModeAndTrunk,
-    HwLearningModeAndPort>;
+    SwLearningModeAndTrunkVlanNbrTable,
+    SwLearningModeAndPortVlanNbrTable,
+    HwLearningModeAndTrunkVlanNbrTable,
+    HwLearningModeAndPortVlanNbrTable,
+    SwLearningModeAndTrunkIntfNbrTable,
+    SwLearningModeAndPortIntfNbrTable,
+    HwLearningModeAndTrunkIntfNbrTable,
+    HwLearningModeAndPortIntfNbrTable>;
 
 } // namespace
 
@@ -246,11 +259,26 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
       PortDescriptor port,
       const AddrT& addr,
       std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
+    using NeighborTableT = typename std::conditional_t<
+        std::is_same<AddrT, folly::IPAddressV4>::value,
+        ArpTable,
+        NdpTable>;
+
     auto state = getProgrammedState()->clone();
-    auto neighborTable = state->getVlans()
-                             ->getNode(kVlanID)
-                             ->template getNeighborEntryTable<AddrT>()
-                             ->modify(kVlanID, &state);
+
+    NeighborTableT* neighborTable;
+    if (isIntfNbrTable) {
+      neighborTable = state->getInterfaces()
+                          ->getNode(kIntfID)
+                          ->template getNeighborEntryTable<AddrT>()
+                          ->modify(kIntfID, &state);
+    } else {
+      neighborTable = state->getVlans()
+                          ->getNode(kVlanID)
+                          ->template getNeighborEntryTable<AddrT>()
+                          ->modify(kVlanID, &state);
+    }
+
     if (neighborTable->getEntryIf(addr)) {
       neighborTable->updateEntry(
           addr,
@@ -274,11 +302,25 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
   }
   template <typename AddrT>
   void removeNeighbor(const AddrT& ip) {
+    using NeighborTableT = typename std::conditional_t<
+        std::is_same<AddrT, folly::IPAddressV4>::value,
+        ArpTable,
+        NdpTable>;
+
     auto newState{getProgrammedState()->clone()};
-    auto neighborTable = newState->getVlans()
-                             ->getNode(kVlanID)
-                             ->template getNeighborEntryTable<AddrT>()
-                             ->modify(kVlanID, &newState);
+
+    NeighborTableT* neighborTable;
+    if (isIntfNbrTable) {
+      neighborTable = newState->getInterfaces()
+                          ->getNode(kIntfID)
+                          ->template getNeighborEntryTable<AddrT>()
+                          ->modify(kIntfID, &newState);
+    } else {
+      neighborTable = newState->getVlans()
+                          ->getNode(kVlanID)
+                          ->template getNeighborEntryTable<AddrT>()
+                          ->modify(kVlanID, &newState);
+    }
 
     neighborTable->removeEntry(ip);
     applyNewState(newState);
