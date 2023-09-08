@@ -110,6 +110,10 @@ from datetime import datetime
 #      ./run_test.py sai --config fuji.agent.materialized_JSON --filter HwVlanTest.VlanApplyConfig --sai_replayer_logging /root/skhare/sai_replayer_logs --no-oss --sai-bin /root/skhare/sai_test-brcm-8.2.0.0_odp --mgmt-if eth0
 #      desc: Runs tests but does not use OSS binary for testing
 #
+#  17. Enable more FBOSS Logging:
+#      ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig --fboss_logging DBG5
+#      desc: Enable more FBOSS logging
+#
 #
 # TERMS & DEFINITIONS:
 # ---------------------
@@ -159,6 +163,7 @@ OPT_ARG_SAI_BIN = "--sai-bin"
 OPT_ARG_FRUID_PATH = "--fruid-path"
 OPT_ARG_SIMULATOR = "--simulator"
 OPT_ARG_SAI_LOGGING = "--sai_logging"
+OPT_ARG_FBOSS_LOGGING = "--fboss_logging"
 SUB_CMD_BCM = "bcm"
 SUB_CMD_SAI = "sai"
 SUB_CMD_QSFP = "qsfp"
@@ -452,6 +457,7 @@ class TestRunner(abc.ABC):
         warmrun,
         sai_replayer_logging_dir,
         sai_logging,
+        fboss_logging,
     ):
         flags = [self.WARMBOOT_SETUP_OPTION] if setup_warmboot else []
         test_prefix = self.WARMBOOT_PREFIX if warmrun else self.COLDBOOT_PREFIX
@@ -462,6 +468,8 @@ class TestRunner(abc.ABC):
             )
 
         flags += self._get_sai_logging_flags(sai_logging)
+
+        flags += ["--logging", fboss_logging]
 
         try:
             print(
@@ -598,6 +606,7 @@ class TestRunner(abc.ABC):
                 False,
                 args.sai_replayer_logging,
                 args.sai_logging,
+                args.fboss_logging,
             )
             output = test_output.decode("utf-8")
             print(
@@ -620,6 +629,7 @@ class TestRunner(abc.ABC):
                     True,
                     args.sai_replayer_logging,
                     args.sai_logging,
+                    args.fboss_logging,
                 )
                 output = test_output.decode("utf-8")
                 print(
@@ -946,6 +956,12 @@ if __name__ == "__main__":
         type=str,
         default="WARN",
         help=("Enable SAI logging (Options: DEBUG|INFO|NOTICE|WARN|ERROR|CRITICAL)"),
+    )
+    ap.add_argument(
+        OPT_ARG_FBOSS_LOGGING,
+        type=str,
+        default="DBG4",
+        help=("Enable FBOSS logging (Options: INFO|ERR|DBG0-9)"),
     )
 
     # Add subparsers for different test types
