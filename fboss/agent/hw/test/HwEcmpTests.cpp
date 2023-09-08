@@ -487,7 +487,8 @@ struct EnableIntfNbrTable {
   static constexpr auto intfNbrTable = enableIntfNbrTable;
 };
 
-using NeighborTableTypes = ::testing::Types<EnableIntfNbrTable<false>>;
+using NeighborTableTypes =
+    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
 
 template <typename EnableIntfNbrTableT>
 class HwEcmpNeighborTest : public HwEcmpTest {
@@ -504,17 +505,21 @@ class HwEcmpNeighborTest : public HwEcmpTest {
   }
 
   auto getNdpTable(PortDescriptor port, std::shared_ptr<SwitchState>& state) {
-    if (getSwitchType() == cfg::SwitchType::NPU) {
-      auto vlanId = ecmpHelper_->getVlan(port, getProgrammedState());
-      return state->getVlans()->getNode(*vlanId)->getNdpTable()->modify(
-          *vlanId, &state);
-    } else {
+    auto switchType = getSwitchType();
+
+    if (isIntfNbrTable() || switchType == cfg::SwitchType::VOQ) {
       auto portId = port.phyPortID();
       InterfaceID intfId(
           *state->getPorts()->getNode(portId)->getInterfaceIDs().begin());
       return state->getInterfaces()->getNode(intfId)->getNdpTable()->modify(
           intfId, &state);
+    } else if (switchType == cfg::SwitchType::NPU) {
+      auto vlanId = ecmpHelper_->getVlan(port, getProgrammedState());
+      return state->getVlans()->getNode(*vlanId)->getNdpTable()->modify(
+          *vlanId, &state);
     }
+
+    XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);
   }
 };
 
