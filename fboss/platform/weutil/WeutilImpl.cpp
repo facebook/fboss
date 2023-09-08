@@ -215,6 +215,12 @@ std::string WeutilImpl::parseDate(int len, unsigned char* ptr) {
   return monthString + "-" + dayString + "-" + yearString;
 }
 
+std::string WeutilImpl::parseHex(int len, unsigned char* ptr) {
+  std::stringstream stream;
+  stream << std::hex << std::stoi(parseString(len, ptr));
+  return stream.str();
+}
+
 void WeutilImpl::printInfo() {
   XLOG(INFO) << "printInfo";
 }

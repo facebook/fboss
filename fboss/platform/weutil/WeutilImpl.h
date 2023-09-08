@@ -27,6 +27,7 @@ class WeutilImpl : public WeutilInterface {
 
  private:
   const std::optional<int> VARIABLE = std::nullopt;
+  static const int MAXEEPROMSIZE = 2048;
   std::vector<EepromFieldEntry> fieldDictionaryV3_;
   std::vector<EepromFieldEntry> fieldDictionaryV4_;
   void initializeFieldDictionaryV3();
@@ -34,6 +35,23 @@ class WeutilImpl : public WeutilInterface {
   std::string eepromPath;
   std::string translatedFrom;
   PlainWeutilConfig config_;
+  int loadEeprom(
+      const std::string& eeprom,
+      unsigned char* output,
+      int offset,
+      int max);
+  std::unordered_map<int, std::string> parseEepromBlobV3(
+      const unsigned char* buffer);
+  std::unordered_map<int, std::string> parseEepromBlobV4(
+      const unsigned char* buffer,
+      const int readCount);
+  // This method is a helper function to translate <field_id, value> pair
+  // into <field_name, field_value> pair, so that the user of this
+  // methon can parse the data into human readable screen output or
+  // JSON
+  std::vector<std::pair<std::string, std::string>> prepareEepromFieldMap(
+      std::unordered_map<int, std::string> parsedValue,
+      int eepromVer);
   std::string parseUint(int len, unsigned char* ptr);
   std::string parseHex(int len, unsigned char* ptr);
   std::string parseString(int len, unsigned char* ptr);
@@ -45,6 +63,9 @@ class WeutilImpl : public WeutilInterface {
 
  public:
   WeutilImpl(const std::string& eeprom = "", PlainWeutilConfig config = {});
+  // This method will translate EEPROM blob to human readable format by
+  // firstly translate it into <field_id, value> pair, then to
+  // <key, value> pair
   std::vector<std::pair<std::string, std::string>> getInfo(
       const std::string& eeprom = "") override;
   void printInfo() override;
