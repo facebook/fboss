@@ -152,6 +152,15 @@ std::string WeutilImpl::parseUint(int len, unsigned char* ptr) {
   return std::to_string(readVal);
 }
 
+// Parse String field
+std::string WeutilImpl::parseString(int len, unsigned char* ptr) {
+  // std::string only takes char *, not unsigned char*
+  // but the data we want to parse is alphanumeric string
+  // whose ASCII value is less than 127. So it is safe to cast
+  // unsigned char to char here.
+  return std::string((const char*)ptr, len);
+}
+
 void WeutilImpl::printInfo() {
   XLOG(INFO) << "printInfo";
 }
