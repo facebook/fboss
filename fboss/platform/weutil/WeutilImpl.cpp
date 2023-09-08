@@ -161,6 +161,26 @@ std::string WeutilImpl::parseString(int len, unsigned char* ptr) {
   return std::string((const char*)ptr, len);
 }
 
+// For EEPROM V4, Parse MAC with the format XX:XX:XX:XX:XX:XX
+std::string WeutilImpl::parseMac(int len, unsigned char* ptr) {
+  std::string retVal = "";
+  // We convert char array to string only upto len or null pointer
+  int juice = 0;
+  while ((juice < len) && (ptr[juice] != 0)) {
+    unsigned int val = ptr[juice];
+    std::ostringstream ss;
+    ss << std::hex << val;
+    std::string strElement = ss.str();
+    // Pad 0 if the hex value is only 1 digit. Also,
+    // add ':' between 2 hex digits except for the last element
+    strElement =
+        (val < 16 ? "0" : "") + strElement + (juice != len - 1 ? ":" : "");
+    retVal += strElement;
+    juice = juice + 1;
+  }
+  return retVal;
+}
+
 void WeutilImpl::printInfo() {
   XLOG(INFO) << "printInfo";
 }
