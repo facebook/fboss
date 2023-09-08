@@ -15,6 +15,7 @@ namespace facebook::fboss {
 namespace fsdb {
 class FsdbPubSubManager;
 }
+
 class FsdbSensorSubscriber {
  public:
   explicit FsdbSensorSubscriber(fsdb::FsdbPubSubManager* pubSubMgr)

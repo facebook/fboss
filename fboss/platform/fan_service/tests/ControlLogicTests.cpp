@@ -1,12 +1,12 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <stdexcept>
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <folly/FileUtil.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-#include <ostream>
-#include <stdexcept>
 
 #include "fboss/platform/fan_service/Bsp.h"
 #include "fboss/platform/fan_service/ControlLogic.h"

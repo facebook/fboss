@@ -46,6 +46,8 @@ target_link_libraries(fan_service_lib
   fan_service_cpp2
   Folly::folly
   qsfp_service_client
+  qsfp_state_cpp2
+  qsfp_stats_cpp2
   FBThrift::thriftcpp2
   fsdb_stream_client
   fsdb_pub_sub
