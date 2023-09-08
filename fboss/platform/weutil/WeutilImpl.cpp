@@ -8,6 +8,7 @@
 #include <folly/json.h>
 #include <folly/logging/xlog.h>
 #include <filesystem>
+#include <iostream>
 #include <string>
 
 #include "fboss/platform/helpers/PlatformUtils.h"
@@ -154,6 +155,16 @@ bool WeutilImpl::verifyOptions() {
   return true;
 }
 void WeutilImpl::printUsage() {
+  std::cout << "weutil [--h] [--json] [--eeprom module_name]" << std::endl;
+  std::cout << "usage examples:" << std::endl;
+  std::cout << "    weutil" << std::endl;
+  std::cout << "    weutil --eeprom pem" << std::endl;
+  std::cout << std::endl;
+  std::cout << "Module names are : ";
+  for (auto item : config_.configEntry) {
+    std::cout << item.first << " ";
+  }
+  std::cout << std::endl;
   XLOG(INFO) << "printUSage";
 }
 
