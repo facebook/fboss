@@ -34,6 +34,7 @@ class WeutilImpl : public WeutilInterface {
   std::string eepromPath;
   std::string translatedFrom;
   PlainWeutilConfig config_;
+  std::string parseUint(int len, unsigned char* ptr);
 
  public:
   WeutilImpl(const std::string& eeprom = "", PlainWeutilConfig config = {});

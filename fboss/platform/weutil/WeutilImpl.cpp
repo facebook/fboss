@@ -134,6 +134,24 @@ std::vector<std::pair<std::string, std::string>> WeutilImpl::getInfo(
   return info;
 }
 
+// Parse Uint field
+std::string WeutilImpl::parseUint(int len, unsigned char* ptr) {
+  // For now, we only support up to 4 Bytes of data
+  if (len > 4) {
+    throw std::runtime_error("Unsigned int can be up to 4 bytes only.");
+  }
+  unsigned int readVal = 0;
+  // Values in the EEPROM is little endian
+  // Thus cursor starts from the end and goes backwards
+  int cursor = len - 1;
+  for (int i = 0; i < len; i++) {
+    readVal <<= 8;
+    readVal |= (unsigned int)ptr[cursor];
+    cursor -= 1;
+  }
+  return std::to_string(readVal);
+}
+
 void WeutilImpl::printInfo() {
   XLOG(INFO) << "printInfo";
 }
