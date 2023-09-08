@@ -302,6 +302,48 @@ std::unordered_map<int, std::string> WeutilImpl::parseEepromBlobV4(
   return parsedValue;
 }
 
+// Another helper function of getInfo
+// This method will translate <field_id, value> pair into
+// <field_name, value> pair, so as to be used in other
+// methods to print the human readable information
+std::vector<std::pair<std::string, std::string>>
+WeutilImpl::prepareEepromFieldMap(
+    std::unordered_map<int, std::string> parsedValue,
+    int eepromVer) {
+  std::vector<std::pair<std::string, std::string>> result;
+  std::vector<EepromFieldEntry> fieldDictionary;
+  switch (eepromVer) {
+    case 3:
+      fieldDictionary = fieldDictionaryV3_;
+      break;
+    case 4:
+      fieldDictionary = fieldDictionaryV4_;
+      break;
+    default:
+      throw std::runtime_error(
+          "EEPROM version is not supported. Only ver 3+ is supported.");
+      break;
+  }
+  for (auto dictItem : fieldDictionary) {
+    std::string key = dictItem.fieldName;
+    std::string value;
+    auto match = parsedValue.find(dictItem.typeCode);
+    // "NA" is reservered, and not for display
+    if (key == "NA") {
+      continue;
+    }
+    // if match exists for an itemCode, use the value, otherwise use empty
+    // string.
+    if (match != parsedValue.end()) {
+      value = parsedValue.find(dictItem.typeCode)->second;
+    } else {
+      value = "";
+    }
+    result.push_back({key, value});
+  }
+  return result;
+}
+
 std::vector<std::pair<std::string, std::string>> WeutilImpl::getInfo(
     const std::string& eeprom) {
   std::vector<std::pair<std::string, std::string>> info;
