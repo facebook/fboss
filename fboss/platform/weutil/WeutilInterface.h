@@ -2,9 +2,22 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace facebook::fboss::platform {
+
+// WeutilImpl will be used as is in BMC codebase too, where we do not have
+// thrift and folly support. Therefore we define the following structure for
+// WeutilImpl. In fbcode, we will still use thrift and folly to parse the config
+// but then store the data in this "plain" struct that does not require thrift.
+typedef struct {
+  std::string chassisEeprom;
+  // Mapping fru name (string) to the tuple of <Path, Offset, Version>
+  std::unordered_map<std::string, std::tuple<std::string, int, int>>
+      configEntry;
+} PlainWeutilConfig;
+
 class WeutilInterface {
  public:
   WeutilInterface() {}
