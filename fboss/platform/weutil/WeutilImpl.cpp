@@ -1,8 +1,4 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
-
-#include <ios>
-#include <unordered_map>
-
 #include <folly/Conv.h>
 #include <folly/Format.h>
 #include <folly/json.h>
@@ -10,9 +6,12 @@
 #include <cctype>
 #include <filesystem>
 #include <fstream>
+#include <ios>
 #include <iostream>
 #include <string>
+#include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/weutil/WeutilImpl.h"
@@ -170,6 +169,60 @@ int WeutilImpl::loadEeprom(
     readCount = 0;
   }
   return readCount;
+}
+
+/*
+ * Helper function of getInfo, for V3 eeprom
+ * V3 eeprom has fixed length / offset fields, so is parsed
+ * differently from V4, which is basically TLV structured.
+ */
+std::unordered_map<int, std::string> WeutilImpl::parseEepromBlobV3(
+    const unsigned char* buffer) {
+  std::unordered_map<int, std::string> parsedValue;
+  int juice = 0;
+  for (auto dictItem : fieldDictionaryV3_) {
+    std::string key = dictItem.fieldName;
+    std::string value;
+    int itemCode = dictItem.typeCode;
+    int itemOffset = dictItem.offset.value();
+    int itemLength = dictItem.length.value();
+    unsigned char* itemDataPtr = (unsigned char*)&buffer[itemOffset];
+    entryType itemType = dictItem.fieldType;
+    switch (itemType) {
+      case FIELD_UINT:
+        value = parseUint(itemLength, itemDataPtr);
+        break;
+      case FIELD_HEX:
+        value = parseHex(itemLength, itemDataPtr);
+        break;
+      case FIELD_STRING:
+        value = parseString(itemLength, itemDataPtr);
+        break;
+      case FIELD_LEGACY_MAC:
+        value = parseLegacyMac(itemLength, itemDataPtr);
+        break;
+      case FIELD_DATE:
+        value = parseDate(itemLength, itemDataPtr);
+        break;
+      default:
+        // Create the issue (story) of this item (juice) as juicetory
+        std::string juicetory = "Unknown field type " +
+            std::to_string(itemType) + " at position " +
+            std::to_string(itemOffset);
+        XLOG(ERR) << juicetory << std::endl;
+        throw std::runtime_error(juicetory);
+        break;
+    }
+    parsedValue[itemCode] = value;
+    juice = juice + 1;
+    // As in V4 parsing routine, print the log for every
+    // 10th juice (item) so as not to flooding the log file
+    // (Celebrating 10th Juice)
+    if (juice % 10 == 0) {
+      XLOG(INFO) << "Parsing eeprom entry " << juice << std::endl;
+    }
+  }
+  return parsedValue;
 }
 
 std::vector<std::pair<std::string, std::string>> WeutilImpl::getInfo(
