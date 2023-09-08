@@ -339,6 +339,14 @@ uint64_t getQueueOutPacketsWithRetry(
     int postMatchRetryTimes) {
   uint64_t outPkts = 0, outBytes = 0;
   do {
+    for (auto i = 0; i <=
+         utility::getCoppHighPriQueueId(hwSwitch->getPlatform()->getAsic());
+         i++) {
+      auto [qOutPkts, qOutBytes] =
+          utility::getCpuQueueOutPacketsAndBytes(hwSwitch, i);
+      XLOG(DBG2) << "QueueID: " << i << " qOutPkts: " << qOutPkts
+                 << " outBytes: " << qOutBytes;
+    }
     std::tie(outPkts, outBytes) =
         getCpuQueueOutPacketsAndBytes(hwSwitch, queueId);
     if (retryTimes == 0 || (outPkts >= expectedNumPkts)) {
@@ -351,16 +359,6 @@ uint64_t getQueueOutPacketsWithRetry(
      * Retrying a few times to avoid test noise.
      */
     XLOG(DBG0) << "Retry...";
-
-    for (auto i = 0;
-         i < utility::getCoppHighPriQueueId(hwSwitch->getPlatform()->getAsic());
-         i++) {
-      auto [qOutPkts, qOutBytes] =
-          utility::getCpuQueueOutPacketsAndBytes(hwSwitch, i);
-      XLOG(DBG2) << "QueueID: " << i << " qOutPkts: " << qOutPkts
-                 << " outBytes: " << qOutBytes;
-    }
-
     /* sleep override */
     sleep(1);
   } while (retryTimes-- > 0);

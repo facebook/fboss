@@ -290,6 +290,15 @@ class HwCoppTest : public HwLinkStateDependentTest {
       int postMatchRetryTimes = 2) {
     uint64_t outPkts = 0, outBytes = 0;
     do {
+      for (auto i = 0; i <= utility::getCoppHighPriQueueId(
+                                getHwSwitch()->getPlatform()->getAsic());
+           i++) {
+        auto [qOutPkts, qOutBytes] =
+            utility::getCpuQueueOutPacketsAndBytes(getHwSwitch(), i);
+        XLOG(DBG2) << "QueueID: " << i << " qOutPkts: " << qOutPkts
+                   << " outBytes: " << qOutBytes;
+      }
+
       std::tie(outPkts, outBytes) =
           utility::getCpuQueueOutPacketsAndBytes(getHwSwitch(), queueId);
       if (retryTimes == 0 || (outPkts >= expectedNumPkts)) {
@@ -1092,8 +1101,9 @@ TYPED_TEST(HwCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
     // Device link local unicast address + kNetworkControlDscp should use
     // high-pri queue
     {
+      XLOG(DBG2) << "send device link local packet";
       const folly::IPAddressV6 linkLocalAddr = folly::IPAddressV6(
-          folly::IPAddressV6::LINK_LOCAL, this->getPlatform()->getLocalMac());
+          folly::IPAddressV6::LINK_LOCAL, utility::kLocalCpuMac());
 
       this->sendPktAndVerifyCpuQueue(
           utility::getCoppHighPriQueueId(this->getAsic()),
@@ -1106,6 +1116,7 @@ TYPED_TEST(HwCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
     // Non device link local unicast address + kNetworkControlDscp dscp should
     // also use high-pri queue
     {
+      XLOG(DBG2) << "send non-device link local packet";
       this->sendPktAndVerifyCpuQueue(
           utility::getCoppHighPriQueueId(this->getAsic()),
           kIPv6LinkLocalUcastAddress,
