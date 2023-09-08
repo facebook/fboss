@@ -15,11 +15,12 @@
 
 namespace facebook::fboss::platform {
 
-WeutilImpl::WeutilImpl(const std::string& eeprom, PlainWeutilConfig config) {
+WeutilImpl::WeutilImpl(const std::string& eeprom, PlainWeutilConfig config)
+    : config_(config) {
   XLOG(INFO) << "WeutilImpl: eeprom = " << eeprom;
-  config_ = config;
+  // Store the eeprom name here, so that it will be
+  // checked and the translated to the actual path in the logic later
   eepromPath = eeprom;
-  translatedFrom = "";
 }
 
 std::vector<std::pair<std::string, std::string>> WeutilImpl::getInfo(
