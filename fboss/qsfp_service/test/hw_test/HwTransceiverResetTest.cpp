@@ -223,4 +223,86 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectStateChanged) {
     }
   }
 }
+
+TEST_F(HwTransceiverResetTest, verifyResetControl) {
+  // 1. Put the transceivers in reset one at a time.
+  // 2. Read byte 0 10 times and ensure all reads fail. When a transceiver is in
+  // reset, all IO should fail.
+  // 3. Verify read to all other transceivers is successful
+  // 4. Release reset
+  // 5. Verify all other transceivers still respond to IO
+  // 6. Wait up to 10 seconds for the transceiver in step 4 to start responding
+  // to IO
+  // 7. Repeat 1-6 for all transceivers
+
+  auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+  // Only work with optical transceivers
+  auto opticalTransceivers = getCabledOpticalTransceiverIDs();
+
+  EXPECT_TRUE(!opticalTransceivers.empty());
+
+  auto platApi = wedgeManager->getQsfpPlatformApi();
+
+  auto readAndVerifyByte0 = [&, wedgeManager](int tcvrID, bool valid) {
+    ReadRequest request;
+    request.ids() = {tcvrID};
+    TransceiverIOParameters params;
+    params.offset() = 0;
+    request.parameter() = params;
+    std::map<int32_t, ReadResponse> currentResponse;
+    std::unique_ptr<ReadRequest> readRequest =
+        std::make_unique<ReadRequest>(request);
+    wedgeManager->readTransceiverRegister(
+        currentResponse, std::move(readRequest));
+    EXPECT_TRUE(currentResponse.find(tcvrID) != currentResponse.end());
+    auto curr = currentResponse[tcvrID];
+
+    return *curr.valid() == valid;
+  };
+
+  for (auto tcvrID : opticalTransceivers) {
+    XLOG(INFO) << "Testing transceiver (0-indexed): " << tcvrID;
+    auto oneIndexedTcvrID = tcvrID + 1;
+    // 1. Put transceiver in reset
+    platApi->holdTransceiverReset(oneIndexedTcvrID);
+    XLOG(INFO) << "Transceiver (0-indexed): " << tcvrID
+               << " should be in reset";
+
+    // 2. Do IO and verify it fails on above transceiver
+    for (int i = 0; i < 10; i++) {
+      EXPECT_TRUE(readAndVerifyByte0(tcvrID, false /* valid */));
+    }
+
+    // 3. Verify read to all other transceivers is successful
+    for (auto otherTcvrID : opticalTransceivers) {
+      if (otherTcvrID == tcvrID) {
+        continue;
+      }
+      for (int i = 0; i < 10; i++) {
+        EXPECT_TRUE(readAndVerifyByte0(otherTcvrID, true /* valid */));
+      }
+    }
+
+    // 4. Undo reset to put transceiver back in normal operation
+    platApi->releaseTransceiverReset(oneIndexedTcvrID);
+    XLOG(INFO) << "Transceiver (0-indexed): " << tcvrID
+               << " should be out of reset";
+
+    // 5. Verify all other transceivers still respond to IO
+    for (auto otherTcvrID : opticalTransceivers) {
+      if (otherTcvrID == tcvrID) {
+        continue;
+      }
+      for (int i = 0; i < 10; i++) {
+        EXPECT_TRUE(readAndVerifyByte0(otherTcvrID, true /* valid */));
+      }
+    }
+
+    // 6. Wait up to 10 seconds for transceiver to start responding
+    WITH_RETRIES_N_TIMED(
+        10 /* retries */,
+        std::chrono::milliseconds(1000) /* msBetweenRetry */,
+        EXPECT_EVENTUALLY_TRUE(readAndVerifyByte0(tcvrID, true /* valid */)));
+  }
+}
 } // namespace facebook::fboss
