@@ -9,7 +9,7 @@ include "thrift/annotation/cpp.thrift"
 
 struct PathConfig {
   1: fsdb_oper.OperPath path;
-  2: bool isExpected; // whether stream is expected to be connected on this path in healthy state
+  2: bool isExpected = false; // whether stream is expected to be connected on this path in healthy state
 }
 
 struct PublisherConfig {
