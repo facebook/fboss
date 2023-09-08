@@ -6,8 +6,12 @@
 
 namespace facebook::fboss::platform {
 class WeutilImpl : public WeutilInterface {
+  std::string eepromPath;
+  std::string translatedFrom;
+  PlainWeutilConfig config_;
+
  public:
-  WeutilImpl(const std::string& eeprom = "");
+  WeutilImpl(const std::string& eeprom = "", PlainWeutilConfig config = {});
   std::vector<std::pair<std::string, std::string>> getInfo(
       const std::string& eeprom = "") override;
   void printInfo() override;
