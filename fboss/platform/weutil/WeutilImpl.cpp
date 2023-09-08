@@ -1,15 +1,18 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
+#include <ios>
 #include <unordered_map>
-#include <utility>
 
 #include <folly/Conv.h>
 #include <folly/Format.h>
 #include <folly/json.h>
 #include <folly/logging/xlog.h>
+#include <cctype>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <string>
+#include <utility>
 
 #include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/weutil/WeutilImpl.h"
@@ -124,6 +127,49 @@ void WeutilImpl::initializeFieldDictionaryV3() {
   fieldDictionaryV3_.push_back(
       {19, "Location on Fabric", FIELD_STRING, 20, 175});
   fieldDictionaryV3_.push_back({250, "CRC8", FIELD_HEX, 1, 195});
+}
+
+/*
+ * Helper function, given the eeprom path, read it and store the blob
+ * to the char array output
+ */
+int WeutilImpl::loadEeprom(
+    const std::string& eeprom,
+    unsigned char* output,
+    int offset,
+    int max) {
+  // Declare buffer, and fill it up with 0s
+  int fileSize = 0;
+  std::ifstream file(eeprom, std::ios::binary);
+  int readCount = 0;
+  // First, detect EEPROM size, upto 2048B only
+  try {
+    file.seekg(0, std::ios::end);
+    fileSize = file.tellg();
+    fileSize = fileSize > max ? max : fileSize;
+  } catch (std::exception& ex) {
+    std::cout << "Failed to detect EEPROM size (" << eeprom
+              << "): " << ex.what() << std::endl;
+  }
+  if (fileSize < 0) {
+    std::cout << "EEPROM (" << eeprom << ") does not exist, or is empty!"
+              << std::endl;
+    throw std::runtime_error("Unable to read EEPROM.");
+  }
+  if (offset > fileSize) {
+    throw std::runtime_error("Offset exceeds EEPROM size.");
+  }
+  // Now, read the eeprom
+  try {
+    file.seekg(offset, std::ios::beg);
+    file.read((char*)&output[0], (fileSize - offset));
+    readCount = (int)file.gcount();
+    file.close();
+  } catch (std::exception& ex) {
+    std::cout << "Failed to read EEPROM contents " << ex.what() << std::endl;
+    readCount = 0;
+  }
+  return readCount;
 }
 
 std::vector<std::pair<std::string, std::string>> WeutilImpl::getInfo(
