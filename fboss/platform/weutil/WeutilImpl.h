@@ -38,6 +38,7 @@ class WeutilImpl : public WeutilInterface {
   std::string parseHex(int len, unsigned char* ptr);
   std::string parseString(int len, unsigned char* ptr);
   std::string parseMac(int len, unsigned char* ptr);
+  std::string parseLegacyMac(int len, unsigned char* ptr);
 
  public:
   WeutilImpl(const std::string& eeprom = "", PlainWeutilConfig config = {});

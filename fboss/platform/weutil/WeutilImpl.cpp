@@ -181,6 +181,22 @@ std::string WeutilImpl::parseMac(int len, unsigned char* ptr) {
   return retVal;
 }
 
+// For EEPROM V3, MAC is represented as XXXXXXXXXXXX. Therefore,
+// parse the MAC into the human readable format as XX:XX:XX:XX:XX:XX
+std::string WeutilImpl::parseLegacyMac(int len, unsigned char* ptr) {
+  std::string retVal = "";
+  if (len != 12) {
+    throw std::runtime_error("Legacy(v3) MAC field must be 12 Bytes Long!");
+  }
+  for (int i = 0; i < 12; i++) {
+    retVal += (ptr[i]);
+    if (((i % 2) == 1) && (i != 11)) {
+      retVal += ":";
+    }
+  }
+  return retVal;
+}
+
 void WeutilImpl::printInfo() {
   XLOG(INFO) << "printInfo";
 }
