@@ -27,7 +27,6 @@ class WeutilImpl : public WeutilInterface {
 
  private:
   const std::optional<int> VARIABLE = std::nullopt;
-  static const int MAXEEPROMSIZE = 2048;
   std::vector<EepromFieldEntry> fieldDictionaryV3_;
   std::vector<EepromFieldEntry> fieldDictionaryV4_;
   void initializeFieldDictionaryV3();

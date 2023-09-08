@@ -17,6 +17,10 @@
 #include "fboss/platform/weutil/WeutilImpl.h"
 #include "fboss/platform/weutil/prefdl/Prefdl.h"
 
+namespace {
+auto constexpr kMaxEepromSize = 2048;
+} // namespace
+
 namespace facebook::fboss::platform {
 
 WeutilImpl::WeutilImpl(const std::string& eeprom, PlainWeutilConfig config)
@@ -346,10 +350,27 @@ WeutilImpl::prepareEepromFieldMap(
 
 std::vector<std::pair<std::string, std::string>> WeutilImpl::getInfo(
     const std::string& eeprom) {
-  std::vector<std::pair<std::string, std::string>> info;
+  unsigned char buffer[kMaxEepromSize + 1];
+  int readCount = loadEeprom(eeprom, buffer, 0, kMaxEepromSize);
 
-  XLOG(INFO) << "getInfo: eeprom = " << eeprom;
-  return info;
+  // Ensure that this is EEPROM v4 or later
+  std::unordered_map<int, std::string> parsedValue;
+  int eepromVer = buffer[2];
+
+  switch (eepromVer) {
+    case 3:
+      parsedValue = parseEepromBlobV3(buffer);
+      break;
+    case 4:
+      parsedValue =
+          parseEepromBlobV4(buffer, std::min(readCount, kMaxEepromSize));
+      break;
+    default:
+      throw std::runtime_error(
+          "EEPROM version is not supported. Only ver 4+ is supported.");
+      break;
+  }
+  return prepareEepromFieldMap(parsedValue, eepromVer);
 }
 
 // Parse Uint field
