@@ -8,6 +8,7 @@
 #include <folly/json.h>
 #include <folly/logging/xlog.h>
 #include <filesystem>
+#include <string>
 
 #include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/weutil/WeutilImpl.h"

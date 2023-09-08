@@ -2,10 +2,31 @@
 
 #pragma once
 #include <gflags/gflags.h>
+#include <optional>
 #include "fboss/platform/weutil/WeutilInterface.h"
 
 namespace facebook::fboss::platform {
 class WeutilImpl : public WeutilInterface {
+  enum entryType {
+    FIELD_INVALID,
+    FIELD_UINT,
+    FIELD_HEX,
+    FIELD_STRING,
+    FIELD_MAC,
+    FIELD_LEGACY_MAC,
+    FIELD_DATE
+  };
+
+  typedef struct {
+    int typeCode;
+    std::string fieldName;
+    entryType fieldType;
+    std::optional<int> length;
+    std::optional<int> offset;
+  } EepromFieldEntry;
+
+ private:
+  const std::optional<int> VARIABLE = std::nullopt;
   std::string eepromPath;
   std::string translatedFrom;
   PlainWeutilConfig config_;
@@ -18,9 +39,6 @@ class WeutilImpl : public WeutilInterface {
   void printInfoJson() override;
   bool verifyOptions(void) override;
   void printUsage(void) override;
-
- private:
-  std::string eeprom_;
 };
 
 } // namespace facebook::fboss::platform
