@@ -15,6 +15,8 @@
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestEcmpUtils.h"
 
+DECLARE_bool(intf_nbr_tables);
+
 namespace {
 facebook::fboss::RoutePrefixV6 kDefaultRoute{folly::IPAddressV6(), 0};
 folly::CIDRNetwork kDefaultRoutePrefix{folly::IPAddress("::"), 0};
@@ -99,20 +101,6 @@ class HwEcmpTest : public HwLinkStateDependentTest {
   void verifyResolvedUcmp(
       const folly::CIDRNetwork& routePrefix,
       const std::vector<NextHopWeight>& hwWs);
-
-  auto getNdpTable(PortDescriptor port, std::shared_ptr<SwitchState>& state) {
-    if (getSwitchType() == cfg::SwitchType::NPU) {
-      auto vlanId = ecmpHelper_->getVlan(port, getProgrammedState());
-      return state->getVlans()->getNode(*vlanId)->getNdpTable()->modify(
-          *vlanId, &state);
-    } else {
-      auto portId = port.phyPortID();
-      InterfaceID intfId(
-          *state->getPorts()->getNode(portId)->getInterfaceIDs().begin());
-      return state->getInterfaces()->getNode(intfId)->getNdpTable()->modify(
-          intfId, &state);
-    }
-  }
 };
 
 void HwEcmpTest::programResolvedUcmp(
@@ -457,47 +445,6 @@ TEST_F(HwWideEcmpTest, WideUcmpCheckMultipleSlotUnderflow) {
   runSimpleUcmpTest(nhops, normalizedNhops);
 }
 
-TEST_F(HwEcmpTest, ResolvePendingResolveNexthop) {
-  auto setup = [=]() {
-    resolveNhops(2);
-    std::map<PortDescriptor, std::shared_ptr<NdpEntry>> entries;
-
-    // mark neighbors connected over ports pending
-    auto state0 = getProgrammedState();
-    for (auto i = 0; i < 2; i++) {
-      const auto& ecmpNextHop = ecmpHelper_->nhop(i);
-      auto port = ecmpNextHop.portDesc;
-      auto ntable = getNdpTable(port, state0);
-      auto entry = ntable->getEntry(ecmpNextHop.ip);
-      auto intfId = entry->getIntfID();
-      ntable->removeEntry(ecmpNextHop.ip);
-      ntable->addPendingEntry(ecmpNextHop.ip, intfId);
-      entries[port] = std::move(entry);
-    }
-    applyNewState(state0);
-
-    // mark neighbors connected over ports reachable
-    auto state1 = getProgrammedState();
-    for (auto i = 0; i < 2; i++) {
-      const auto& ecmpNextHop = ecmpHelper_->nhop(i);
-      auto port = ecmpNextHop.portDesc;
-      auto ntable = getNdpTable(port, state1);
-      auto entry = entries[port];
-      ntable->updateEntry(NeighborEntryFields<folly::IPAddressV6>::fromThrift(
-          entry->toThrift()));
-    }
-    applyNewState(state1);
-    ecmpHelper_->programRoutes(getRouteUpdater(), 2);
-  };
-  auto verify = [=]() {
-    /* ecmp is resolved */
-    EXPECT_EQ(
-        utility::getEcmpSizeInHw(getHwSwitch(), kDefaultRoutePrefix, kRid, 2),
-        2);
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 // Test link down in UCMP scenario
 TEST_F(HwEcmpTest, UcmpL2ResolveAllNhopsInThenLinkDown) {
   programResolvedUcmp({3, 1, 1, 1, 1, 1, 1, 1}, {3, 1, 1, 1, 1, 1, 1, 1});
@@ -534,4 +481,85 @@ TEST_F(HwEcmpTest, UcmpL2ResolveBothNhopsInThenLinkFlap) {
       utility::getTotalEcmpMemberWeight(getHwSwitch(), pathsInHw2);
   EXPECT_EQ(10, totalWeightInHw2);
 }
+
+template <bool enableIntfNbrTable>
+struct EnableIntfNbrTable {
+  static constexpr auto intfNbrTable = enableIntfNbrTable;
+};
+
+using NeighborTableTypes = ::testing::Types<EnableIntfNbrTable<false>>;
+
+template <typename EnableIntfNbrTableT>
+class HwEcmpNeighborTest : public HwEcmpTest {
+  static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
+
+  void SetUp() override {
+    FLAGS_intf_nbr_tables = isIntfNbrTable();
+    HwEcmpTest::SetUp();
+  }
+
+ public:
+  bool isIntfNbrTable() const {
+    return intfNbrTable == true;
+  }
+
+  auto getNdpTable(PortDescriptor port, std::shared_ptr<SwitchState>& state) {
+    if (getSwitchType() == cfg::SwitchType::NPU) {
+      auto vlanId = ecmpHelper_->getVlan(port, getProgrammedState());
+      return state->getVlans()->getNode(*vlanId)->getNdpTable()->modify(
+          *vlanId, &state);
+    } else {
+      auto portId = port.phyPortID();
+      InterfaceID intfId(
+          *state->getPorts()->getNode(portId)->getInterfaceIDs().begin());
+      return state->getInterfaces()->getNode(intfId)->getNdpTable()->modify(
+          intfId, &state);
+    }
+  }
+};
+
+TYPED_TEST_SUITE(HwEcmpNeighborTest, NeighborTableTypes);
+
+TYPED_TEST(HwEcmpNeighborTest, ResolvePendingResolveNexthop) {
+  auto setup = [=]() {
+    this->resolveNhops(2);
+    std::map<PortDescriptor, std::shared_ptr<NdpEntry>> entries;
+
+    // mark neighbors connected over ports pending
+    auto state0 = this->getProgrammedState();
+    for (auto i = 0; i < 2; i++) {
+      const auto& ecmpNextHop = this->ecmpHelper_->nhop(i);
+      auto port = ecmpNextHop.portDesc;
+      auto ntable = this->getNdpTable(port, state0);
+      auto entry = ntable->getEntry(ecmpNextHop.ip);
+      auto intfId = entry->getIntfID();
+      ntable->removeEntry(ecmpNextHop.ip);
+      ntable->addPendingEntry(ecmpNextHop.ip, intfId);
+      entries[port] = std::move(entry);
+    }
+    this->applyNewState(state0);
+
+    // mark neighbors connected over ports reachable
+    auto state1 = this->getProgrammedState();
+    for (auto i = 0; i < 2; i++) {
+      const auto& ecmpNextHop = this->ecmpHelper_->nhop(i);
+      auto port = ecmpNextHop.portDesc;
+      auto ntable = this->getNdpTable(port, state1);
+      auto entry = entries[port];
+      ntable->updateEntry(NeighborEntryFields<folly::IPAddressV6>::fromThrift(
+          entry->toThrift()));
+    }
+    this->applyNewState(state1);
+    this->ecmpHelper_->programRoutes(this->getRouteUpdater(), 2);
+  };
+  auto verify = [=]() {
+    /* ecmp is resolved */
+    EXPECT_EQ(
+        utility::getEcmpSizeInHw(
+            this->getHwSwitch(), kDefaultRoutePrefix, this->kRid, 2),
+        2);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
