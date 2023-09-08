@@ -462,6 +462,12 @@ std::string WeutilImpl::parseHex(int len, unsigned char* ptr) {
 
 void WeutilImpl::printInfo() {
   XLOG(INFO) << "printInfo";
+  std::vector<std::pair<std::string, std::string>> info = getInfo(eepromPath);
+  std::cout << "Wedge EEPROM : " << eepromPath << std::endl;
+  for (const auto& item : info) {
+    std::cout << item.first << ": " << item.second << std::endl;
+  }
+  return;
 }
 
 void WeutilImpl::printInfoJson() {
