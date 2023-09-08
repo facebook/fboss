@@ -107,8 +107,8 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
 
   void sendPackets(int count, size_t payloadSize = 1) {
     auto params = getTestParams<AddrT>();
-    auto vlanId = VlanID(utility::kBaseVlanId);
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto vlanId = utility::firstVlanID(initialConfig());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     std::vector<uint8_t> payload(payloadSize, 0xff);
     auto oldOutPkts = getPortOutPkts(getLatestPortStats(trafficPort_));
     auto i = 0;
