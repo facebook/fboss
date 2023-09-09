@@ -498,6 +498,7 @@ enum AclTableActionType {
   SET_DSCP = 3,
   MIRROR_INGRESS = 4,
   MIRROR_EGRESS = 5,
+  SET_USER_DEFINED_TRAP = 6,
 }
 
 enum AclTableQualifier {
@@ -557,7 +558,15 @@ enum StreamType {
   FABRIC_TX = 3,
 }
 
+// Bcm native SDK supports directly setting action send to queue.
+// SAI translates queueId to tc and then do action set tc.
+// So, need to convert SAI to use action SetTcAction.
 struct QueueMatchAction {
+  1: i16 queueId;
+}
+
+// used by SAI ACL action send to cpu queue
+struct UserDefinedTrapAction {
   1: i16 queueId;
 }
 
@@ -567,6 +576,10 @@ struct PacketCounterMatchAction {
 
 struct SetDscpMatchAction {
   1: byte dscpValue;
+}
+
+struct SetTcAction {
+  1: byte tcValue;
 }
 
 enum ToCpuAction {
@@ -615,6 +628,8 @@ struct MatchAction {
   7: optional ToCpuAction toCpuAction;
   8: optional MacsecFlowAction macsecFlow;
   9: optional RedirectToNextHopAction redirectToNextHop;
+  10: optional SetTcAction setTc;
+  11: optional UserDefinedTrapAction userDefinedTrap;
 }
 
 struct MatchToAction {
