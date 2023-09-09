@@ -86,7 +86,9 @@ void fillHwQueueStats(
         break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
       case SAI_QUEUE_STAT_CREDIT_WD_DELETED_PACKETS:
-        hwSysPortStats.queueCreditWatchdogDeletedPackets_()[queueId] = value;
+        // Watchdog delete counter is clear on read. While for queue
+        // counters we report a monotonically increasing value
+        hwSysPortStats.queueCreditWatchdogDeletedPackets_()[queueId] += value;
         break;
 #endif
       default:
