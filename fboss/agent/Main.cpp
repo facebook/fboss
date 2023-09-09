@@ -11,7 +11,11 @@
 
 #include <folly/logging/Init.h>
 
+#ifdef IS_OSS
+FOLLY_INIT_LOGGING_CONFIG("DBG2; default:async=true");
+#else
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
+#endif
 
 namespace facebook::fboss {
 
