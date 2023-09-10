@@ -15,7 +15,9 @@ namespace facebook::fboss {
 
 void AgentHwTest::setupConfigFlag() {
   utility::setPortToDefaultProfileIDMap(
-      std::make_shared<MultiSwitchPortMap>(), platform());
+      std::make_shared<MultiSwitchPortMap>(),
+      platform()->getPlatformMapping(),
+      platform()->getAsic());
   auto portsByControllingPort =
       utility::getSubsidiaryPortIDs(platform()->getPlatformPorts());
   for (const auto& port : portsByControllingPort) {

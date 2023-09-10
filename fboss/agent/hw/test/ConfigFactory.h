@@ -212,7 +212,8 @@ std::pair<int, int> getRetryCountAndDelay(const HwAsic* asic);
 
 void setPortToDefaultProfileIDMap(
     const std::shared_ptr<MultiSwitchPortMap>& ports,
-    const Platform* platform);
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic);
 
 std::map<int, std::vector<uint8_t>> getOlympicQosMaps(
     const cfg::SwitchConfig& config);

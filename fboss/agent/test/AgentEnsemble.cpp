@@ -59,10 +59,15 @@ void AgentEnsemble::setupEnsemble(
   auto* initializer = agentInitializer();
   initializer->createSwitch(std::move(config), hwFeaturesDesired, initPlatform);
 
+  // TODO: Handle multiple Asics
+  auto asic = getSw()->getHwAsicTable()->getHwAsics().cbegin()->second;
+
   utility::setPortToDefaultProfileIDMap(
-      std::make_shared<MultiSwitchPortMap>(), getPlatform());
-  auto portsByControllingPort =
-      utility::getSubsidiaryPortIDs(getPlatform()->getPlatformPorts());
+      std::make_shared<MultiSwitchPortMap>(),
+      getSw()->getPlatformMapping(),
+      asic);
+  auto portsByControllingPort = utility::getSubsidiaryPortIDs(
+      getSw()->getPlatformMapping()->getPlatformPorts());
 
   for (const auto& port : portsByControllingPort) {
     masterLogicalPortIds_.push_back(port.first);
@@ -191,8 +196,12 @@ std::shared_ptr<SwitchState> AgentEnsemble::applyNewState(
   if (!state) {
     return getSw()->getState();
   }
+
+  // TODO: Handle multiple Asics
+  auto asic = getSw()->getHwAsicTable()->getHwAsics().cbegin()->second;
+
   state = EncapIndexAllocator::updateEncapIndices(
-      StateDelta(getProgrammedState(), state), *getPlatform()->getAsic());
+      StateDelta(getProgrammedState(), state), *asic);
   transaction
       ? getSw()->updateStateWithHwFailureProtection(
             "apply new state with failure protection",

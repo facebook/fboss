@@ -694,7 +694,9 @@ void HwSwitchEnsemble::setupEnsemble(
   }
   // Set ConfigFactory port to default profile id map
   utility::setPortToDefaultProfileIDMap(
-      getProgrammedState()->getPorts(), getPlatform());
+      getProgrammedState()->getPorts(),
+      getPlatform()->getPlatformMapping(),
+      getPlatform()->getAsic());
 }
 
 void HwSwitchEnsemble::switchRunStateChanged(SwitchRunState switchState) {
