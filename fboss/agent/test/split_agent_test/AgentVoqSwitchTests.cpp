@@ -3,6 +3,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestFabricUtils.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/SplitAgentTest.h"
 
 DECLARE_bool(enable_stats_update_thread);
@@ -69,6 +70,21 @@ class AgentVoqSwitchTest : public SplitAgentTest {
     cpuConfig.rxReasonToQueueOrderedList() = rxReasonToQueues;
     cfg.cpuTrafficPolicy() = cpuConfig;
   }
+
+ protected:
+  void addRemoveNeighbor(
+      PortDescriptor port,
+      bool add,
+      std::optional<int64_t> encapIdx = std::nullopt) {
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    if (add) {
+      getAgentEnsemble()->applyNewState(ecmpHelper.resolveNextHops(
+          getProgrammedState(), {port}, false /*use link local*/, encapIdx));
+    } else {
+      getAgentEnsemble()->applyNewState(
+          ecmpHelper.unresolveNextHops(getProgrammedState(), {port}));
+    }
+  }
 };
 
 class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
@@ -100,6 +116,18 @@ class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
     return false;
   }
 };
+
+TEST_F(AgentVoqSwitchTest, addRemoveNeighbor) {
+  auto setup = [this]() {
+    const PortDescriptor kPort(getAgentEnsemble()->masterLogicalPortIds(
+        {cfg::PortType::INTERFACE_PORT})[0]);
+    // Add neighbor
+    addRemoveNeighbor(kPort, true);
+    // Remove neighbor
+    addRemoveNeighbor(kPort, false);
+  };
+  verifyAcrossWarmBoots(setup, [] {});
+}
 
 TEST_F(AgentVoqSwitchWithFabricPortsTest, init) {
   auto setup = []() {};
