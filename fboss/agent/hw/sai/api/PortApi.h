@@ -548,6 +548,11 @@ struct SaiPortSerdesTraits {
         SAI_PORT_SERDES_ATTR_TX_FIR_PRE2,
         std::vector<sai_uint32_t>,
         SaiU32ListDefault>;
+    using TxFirPre3 = SaiAttribute<
+        EnumType,
+        SAI_PORT_SERDES_ATTR_TX_FIR_PRE3,
+        std::vector<sai_uint32_t>,
+        SaiU32ListDefault>;
     using TxFirPost2 = SaiAttribute<
         EnumType,
         SAI_PORT_SERDES_ATTR_TX_FIR_POST2,
@@ -609,6 +614,7 @@ struct SaiPortSerdesTraits {
       std::optional<Attributes::IDriver>,
       std::optional<Attributes::TxFirPre1>,
       std::optional<Attributes::TxFirPre2>,
+      std::optional<Attributes::TxFirPre3>,
       std::optional<Attributes::TxFirMain>,
       std::optional<Attributes::TxFirPost1>,
       std::optional<Attributes::TxFirPost2>,
@@ -626,6 +632,7 @@ SAI_ATTRIBUTE_NAME(PortSerdes, Preemphasis);
 SAI_ATTRIBUTE_NAME(PortSerdes, IDriver);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPre1);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPre2);
+SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPre3);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirMain);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPost1);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPost2);

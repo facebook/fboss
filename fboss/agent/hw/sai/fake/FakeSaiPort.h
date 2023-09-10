@@ -101,6 +101,7 @@ struct FakePortSerdes {
   std::vector<uint32_t> iDriver;
   std::vector<uint32_t> txFirPre1;
   std::vector<uint32_t> txFirPre2;
+  std::vector<uint32_t> txFirPre3;
   std::vector<uint32_t> txFirMain;
   std::vector<uint32_t> txFirPost1;
   std::vector<uint32_t> txFirPost2;

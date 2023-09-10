@@ -86,6 +86,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortSerdesMap{
     SAI_ATTR_MAP(PortSerdes, IDriver),
     SAI_ATTR_MAP(PortSerdes, TxFirPre1),
     SAI_ATTR_MAP(PortSerdes, TxFirPre2),
+    SAI_ATTR_MAP(PortSerdes, TxFirPre3),
     SAI_ATTR_MAP(PortSerdes, TxFirMain),
     SAI_ATTR_MAP(PortSerdes, TxFirPost1),
     SAI_ATTR_MAP(PortSerdes, TxFirPost2),

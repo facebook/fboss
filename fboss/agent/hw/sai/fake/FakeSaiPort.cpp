@@ -1090,6 +1090,16 @@ sai_status_t set_port_serdes_attribute_fn(
       }
       break;
 
+    case SAI_PORT_SERDES_ATTR_TX_FIR_PRE3:
+      fillVec(
+          portSerdes.txFirPre3,
+          attr->value.u32list.list,
+          attr->value.u32list.count);
+      if (!checkLanes(portSerdes.txFirPre3)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+
     case SAI_PORT_SERDES_ATTR_IDRIVER:
       fillVec(
           portSerdes.iDriver,
@@ -1254,6 +1264,13 @@ sai_status_t get_port_serdes_attribute_fn(
           return SAI_STATUS_BUFFER_OVERFLOW;
         }
         copyVecToList(portSerdes.txFirPre2, attr_list[i].value.u32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_TX_FIR_PRE3:
+        if (!checkListSize(attr_list[i].value.u32list, portSerdes.txFirPre3)) {
+          attr_list[i].value.u32list.count = portSerdes.txFirPre3.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.txFirPre3, attr_list[i].value.u32list);
         break;
       case SAI_PORT_SERDES_ATTR_TX_FIR_MAIN:
         if (!checkListSize(attr_list[i].value.u32list, portSerdes.txFirMain)) {

@@ -82,13 +82,15 @@ class PortApiTest : public ::testing::Test {
       std::vector<sai_int32_t> rxDspMode,
       std::vector<sai_int32_t> rxAfeTrim,
       std::vector<sai_int32_t> rxAcCouplingByPass,
-      std::vector<sai_int32_t> rxAfeAdaptiveEnable) const {
+      std::vector<sai_int32_t> rxAfeAdaptiveEnable,
+      std::vector<sai_uint32_t> txPre3) const {
     SaiPortSerdesTraits::CreateAttributes a{
         portSaiId,
         preemphasis,
         std::nullopt, // IDriver
         txPre1,
         std::nullopt, // txPre2
+        txPre3,
         txMain,
         txPost1,
         std::nullopt, // txPost2
@@ -381,11 +383,13 @@ TEST_F(PortApiTest, getSome) {
 TEST_F(PortApiTest, serdesApi) {
   auto id = createPort(100000, {42}, true);
   auto serdesId =
-      createPortSerdes(id, {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8});
+      createPortSerdes(id, {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9});
   auto preemphasis = portApi->getAttribute(
       serdesId, SaiPortSerdesTraits::Attributes::Preemphasis{});
   auto txFirPre1 = portApi->getAttribute(
       serdesId, SaiPortSerdesTraits::Attributes::TxFirPre1{});
+  auto txFirPre3 = portApi->getAttribute(
+      serdesId, SaiPortSerdesTraits::Attributes::TxFirPre3{});
   auto txFirMain = portApi->getAttribute(
       serdesId, SaiPortSerdesTraits::Attributes::TxFirMain{});
   auto txFirPost1 = portApi->getAttribute(
@@ -409,6 +413,7 @@ TEST_F(PortApiTest, serdesApi) {
   EXPECT_EQ(rxAfeTrim, std::vector<sai_int32_t>{6});
   EXPECT_EQ(rxAcCouplingByPass, std::vector<sai_int32_t>{7});
   EXPECT_EQ(rxAfeAdaptiveEnable, std::vector<sai_int32_t>{8});
+  EXPECT_EQ(txFirPre3, std::vector<sai_uint32_t>{9});
 }
 
 #if !defined(IS_OSS)

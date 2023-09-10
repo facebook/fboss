@@ -237,6 +237,7 @@ void verifyTxSettting(
       serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirMain{});
   auto post = portApi.getAttribute(
       serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPost1{});
+
   std::vector<sai_uint32_t> pre2;
   std::vector<sai_uint32_t> post2;
   std::vector<sai_uint32_t> post3;
@@ -244,6 +245,15 @@ void verifyTxSettting(
   EXPECT_EQ(pre, GET_OPT_ATTR(PortSerdes, TxFirPre1, expectedTx));
   EXPECT_EQ(main, GET_OPT_ATTR(PortSerdes, TxFirMain, expectedTx));
   EXPECT_EQ(post, GET_OPT_ATTR(PortSerdes, TxFirPost1, expectedTx));
+
+  if (auto expectedPre3 =
+          std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirPre3>>(
+              expectedTx)) {
+    auto pre3 = portApi.getAttribute(
+        serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPre3{});
+    EXPECT_EQ(pre3, expectedPre3->value());
+  }
+
   if (saiPlatform->getAsic()->isSupported(
           HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
     pre2 = portApi.getAttribute(
