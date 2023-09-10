@@ -2,9 +2,11 @@
 
 #include <algorithm>
 #include "fboss/agent/HwAsicTable.h"
+#include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestFabricUtils.h"
 #include "fboss/agent/test/SplitAgentTest.h"
+#include "fboss/lib/CommonUtils.h"
 
 DECLARE_bool(enable_stats_update_thread);
 
@@ -41,6 +43,30 @@ class AgentFabricSwitchTest : public SplitAgentTest {
         }));
   }
 
+  void checkFabricReachabilityStats(SwSwitch* sw) {
+    sw->updateStats();
+    auto reachability = sw->getHwSwitchHandler()->getFabricReachability();
+    int count = 0;
+    for (auto [_, endpoint] : reachability) {
+      if (!*endpoint.isAttached()) {
+        continue;
+      }
+      // all interfaces which have reachability info collected
+      count++;
+    }
+    // expected all of interfaces to jump on mismatched and missing
+    WITH_RETRIES(EXPECT_EVENTUALLY_EQ(
+        *(sw->getHwSwitchHandler()
+              ->getFabricReachabilityStats()
+              .mismatchCount()),
+        count));
+    WITH_RETRIES(EXPECT_EVENTUALLY_EQ(
+        *(sw->getHwSwitchHandler()
+              ->getFabricReachabilityStats()
+              .missingCount()),
+        count));
+  }
+
  private:
   bool hideFabricPorts() const override {
     return false;
@@ -61,6 +87,26 @@ TEST_F(AgentFabricSwitchTest, init) {
                 port.second->getPortType()));
       }
     }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentFabricSwitchTest, checkFabricReachabilityStats) {
+  auto setup = [=]() {
+    auto newCfg =
+        initialConfig(getAgentEnsemble()->getSw(), masterLogicalPortIds());
+    // reset the neighbor reachability information
+    for (const auto& portID : masterLogicalPortIds()) {
+      auto portCfg = utility::findCfgPort(newCfg, portID);
+      if (portCfg->portType() == cfg::PortType::FABRIC_PORT) {
+        portCfg->expectedNeighborReachability() = {};
+      }
+    }
+    applyNewConfig(newCfg);
+  };
+  auto verify = [this]() {
+    EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
+    checkFabricReachabilityStats(getAgentEnsemble()->getSw());
   };
   verifyAcrossWarmBoots(setup, verify);
 }
