@@ -83,6 +83,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DEBUG_COUNTER:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
+    case HwAsic::Feature::WARMBOOT:
       return true;
 
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
@@ -130,7 +131,6 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
     case HwAsic::Feature::SAI_PORT_GET_PMD_LANES:
     case HwAsic::Feature::SAI_PORT_VCO_CHANGE:
-    case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::ROUTE_METADATA:
     case HwAsic::Feature::DLB:
     case HwAsic::Feature::P4_WARMBOOT:
