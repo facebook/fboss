@@ -60,6 +60,11 @@ void SplitAgentTest::runForever() const {
   }
 }
 
+std::shared_ptr<SwitchState> SplitAgentTest::applyNewConfig(
+    const cfg::SwitchConfig& config) {
+  return agentEnsemble_->applyNewConfig(config);
+}
+
 const std::map<SwitchID, HwAsic*> SplitAgentTest::getAsics() const {
   return agentEnsemble_->getSw()->getHwAsicTable()->getHwAsics();
 }
@@ -76,6 +81,10 @@ AgentEnsemble* SplitAgentTest::getAgentEnsemble() const {
 
 const std::shared_ptr<SwitchState> SplitAgentTest::getProgrammedState() const {
   return getAgentEnsemble()->getProgrammedState();
+}
+
+std::vector<PortID> SplitAgentTest::masterLogicalPortIds() const {
+  return getAgentEnsemble()->masterLogicalPortIds();
 }
 
 bool SplitAgentTest::hideFabricPorts() const {
