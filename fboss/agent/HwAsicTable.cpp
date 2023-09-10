@@ -21,13 +21,17 @@ HwAsicTable::HwAsicTable(
         // Expected when fake bcm tests run without config
       }
     }
+    std::optional<cfg::Range64> systemPortRange;
+    if (switchIdAndSwitchInfo.second.systemPortRange().has_value()) {
+      systemPortRange = *switchIdAndSwitchInfo.second.systemPortRange();
+    }
     hwAsics_.emplace(
         SwitchID(switchIdAndSwitchInfo.first),
         HwAsic::makeAsic(
             *switchIdAndSwitchInfo.second.asicType(),
             *switchIdAndSwitchInfo.second.switchType(),
             switchIdAndSwitchInfo.first,
-            std::nullopt,
+            systemPortRange,
             mac));
   }
 }
