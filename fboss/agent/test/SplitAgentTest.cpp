@@ -18,13 +18,15 @@ void SplitAgentTest::SetUp() {
   // in each updateStats call
   FLAGS_update_watermark_stats_interval_s = 0;
 
-  if (initialConfigFn_ && platformConfigFn_) {
-    agentEnsemble_ = createAgentEnsemble(initialConfigFn_, platformConfigFn_);
-  } else if (initialConfigFn_) {
-    agentEnsemble_ = createAgentEnsemble(initialConfigFn_);
+  AgentEnsembleSwitchConfigFn initialConfigFn =
+      [this](SwSwitch* swSwitch, const std::vector<PortID>& ports) {
+        return initialConfig(swSwitch, ports);
+      };
+
+  if (platformConfigFn_) {
+    agentEnsemble_ = createAgentEnsemble(initialConfigFn, platformConfigFn_);
   } else {
-    throw FbossError(
-        "InitialConfigFn needs to be set during SplitAgentTest SetUp()");
+    agentEnsemble_ = createAgentEnsemble(initialConfigFn);
   }
 }
 

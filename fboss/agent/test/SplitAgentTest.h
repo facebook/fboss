@@ -76,10 +76,6 @@ class SplitAgentTest : public ::testing::Test {
     verifyAcrossWarmBoots([]() {}, verify, []() {}, []() {});
   }
 
-  void setupInitialConfig(AgentEnsembleSwitchConfigFn initialConfigFn) {
-    initialConfigFn_ = std::move(initialConfigFn);
-  }
-
   void setupPlatformConfig(AgentEnsemblePlatformConfigFn platformConfigFn) {
     platformConfigFn_ = std::move(platformConfigFn);
   }
@@ -101,7 +97,10 @@ class SplitAgentTest : public ::testing::Test {
 
   virtual bool hideFabricPorts() const;
 
-  AgentEnsembleSwitchConfigFn initialConfigFn_ = nullptr;
+  virtual cfg::SwitchConfig initialConfig(
+      SwSwitch* swSwitch,
+      const std::vector<PortID>& ports) const = 0;
+
   AgentEnsemblePlatformConfigFn platformConfigFn_ = nullptr;
   std::unique_ptr<AgentEnsemble> agentEnsemble_;
 };
