@@ -69,8 +69,14 @@ void AgentEnsemble::setupEnsemble(
   auto portsByControllingPort = utility::getSubsidiaryPortIDs(
       getSw()->getPlatformMapping()->getPlatformPorts());
 
+  const auto& platformPorts = getSw()->getPlatformMapping()->getPlatformPorts();
   for (const auto& port : portsByControllingPort) {
-    masterLogicalPortIds_.push_back(port.first);
+    if (!FLAGS_hide_fabric_ports ||
+        *platformPorts.find(static_cast<int32_t>(port.first))
+                ->second.mapping()
+                ->portType() != cfg::PortType::FABRIC_PORT) {
+      masterLogicalPortIds_.push_back(port.first);
+    }
   }
   initialConfig_ = initialConfigFn(getSw(), masterLogicalPortIds_);
   applyInitialConfig(initialConfig_);
