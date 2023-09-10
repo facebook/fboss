@@ -505,7 +505,7 @@ bool WeutilImpl::verifyOptions() {
   std::string lEeprom = eepromPath;
   std::transform(lEeprom.begin(), lEeprom.end(), lEeprom.begin(), ::tolower);
   if (config_.configEntry.find(lEeprom) != config_.configEntry.end()) {
-    eepromPath = get<0>(config_.configEntry[lEeprom]);
+    eepromPath = std::get<0>(config_.configEntry[lEeprom]);
   } else {
     throw std::runtime_error("Invalid EEPROM Name.");
   }

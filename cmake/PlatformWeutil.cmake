@@ -3,6 +3,14 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+add_fbthrift_cpp_library(
+  weutil_config_cpp2
+  fboss/platform/weutil/if/weutil_config.thrift
+  OPTIONS
+    json
+    reflection
+)
+
 add_library(weutil_lib
   fboss/platform/weutil/WeutilDarwin.cpp
   fboss/platform/weutil/WeutilImpl.cpp
@@ -14,6 +22,8 @@ target_link_libraries(weutil_lib
   product_info
   platform_utils
   Folly::folly
+  weutil_config_cpp2
+  platform_config_lib
 )
 
 add_executable(weutil
