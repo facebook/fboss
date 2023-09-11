@@ -11,7 +11,7 @@
 
 namespace facebook::fboss {
 namespace {
-void triggerSaiBcmParityError(HwSwitchEnsemble* ensemble) {
+void triggerBcmXgsParityError(HwSwitchEnsemble* ensemble) {
   std::string out;
   auto asic = ensemble->getPlatform()->getAsic()->getAsicType();
   ensemble->runDiagCommand("\n", out);
@@ -27,20 +27,46 @@ void triggerSaiBcmParityError(HwSwitchEnsemble* ensemble) {
   ensemble->runDiagCommand("quit\n", out);
   std::ignore = out;
 }
-} // namespace
-namespace utility {
-void triggerParityError(HwSwitchEnsemble* ensemble) {
-  auto asic = ensemble->getPlatform()->getAsic()->getAsicType();
-  if (asic != cfg::AsicType::ASIC_TYPE_EBRO) {
-    triggerSaiBcmParityError(ensemble);
-    return;
-  }
+
+void triggerCiscoParityError(HwSwitchEnsemble* ensemble) {
   SaiSwitchEnsemble* saiEnsemble = static_cast<SaiSwitchEnsemble*>(ensemble);
+
   if (SaiSwitchTraits::Attributes::HwEccErrorInitiate::AttributeId()()) {
     SaiSwitchTraits::Attributes::HwEccErrorInitiate initiateError{1};
     auto switchId = static_cast<SwitchSaiId>(saiEnsemble->getSdkSwitchId());
     SaiApiTable::getInstance()->switchApi().setAttribute(
         switchId, initiateError);
+  }
+}
+} // namespace
+
+namespace utility {
+void triggerParityError(HwSwitchEnsemble* ensemble) {
+  auto asic = ensemble->getPlatform()->getAsic()->getAsicType();
+  switch (asic) {
+    case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_MOCK:
+    case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+    case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+    case cfg::AsicType::ASIC_TYPE_JERICHO2:
+    case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_RAMON:
+    case cfg::AsicType::ASIC_TYPE_RAMON3:
+      XLOG(FATAL) << "Unsupported HwAsic: "
+                  << ensemble->getPlatform()->getAsic()->getAsicTypeStr();
+      break;
+    case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_GARONNE:
+    case cfg::AsicType::ASIC_TYPE_YUBA:
+      triggerCiscoParityError(ensemble);
+      break;
+    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+      triggerBcmXgsParityError(ensemble);
+      break;
   }
 }
 } // namespace utility

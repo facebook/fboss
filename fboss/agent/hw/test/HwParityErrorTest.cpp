@@ -28,28 +28,7 @@ class HwParityErrorTest : public HwLinkStateDependentTest {
   }
 
   void generateParityError() {
-    auto asic = getPlatform()->getAsic()->getAsicType();
-    switch (asic) {
-      case cfg::AsicType::ASIC_TYPE_FAKE:
-      case cfg::AsicType::ASIC_TYPE_MOCK:
-      case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
-      case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
-      case cfg::AsicType::ASIC_TYPE_JERICHO2:
-      case cfg::AsicType::ASIC_TYPE_JERICHO3:
-      case cfg::AsicType::ASIC_TYPE_RAMON:
-      case cfg::AsicType::ASIC_TYPE_RAMON3:
-        XLOG(FATAL) << "Unsupported HwAsic";
-        break;
-      case cfg::AsicType::ASIC_TYPE_EBRO:
-      case cfg::AsicType::ASIC_TYPE_GARONNE:
-      case cfg::AsicType::ASIC_TYPE_YUBA:
-      case cfg::AsicType::ASIC_TYPE_TRIDENT2:
-      case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
-      case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
-      case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
-      case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
-        utility::triggerParityError(getHwSwitchEnsemble());
-    }
+    utility::triggerParityError(getHwSwitchEnsemble());
   }
 
   int64_t getCorrectedParityErrorCount() const {
