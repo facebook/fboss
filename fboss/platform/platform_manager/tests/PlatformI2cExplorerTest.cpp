@@ -35,7 +35,7 @@ TEST(PlatformI2cExplorerTest, createI2cDeviceSuccess) {
       .WillOnce(Return(false));
   EXPECT_CALL(
       *platformUtils,
-      execCommand("echo lm73 0xf > /sys/bus/i2c/devices/i2c-4/new_device"))
+      execCommand("echo lm73 0x0f > /sys/bus/i2c/devices/i2c-4/new_device"))
       .WillOnce(Return(std::pair(0, "")));
   EXPECT_NO_THROW(i2cExplorer.createI2cDevice("lm73", 4, I2cAddr(15)));
 
@@ -55,7 +55,7 @@ TEST(PlatformI2cExplorerTest, createI2cDeviceFailure) {
       .WillOnce(Return(false));
   EXPECT_CALL(
       *platformUtils,
-      execCommand("echo lm73 0xf > /sys/bus/i2c/devices/i2c-4/new_device"))
+      execCommand("echo lm73 0x0f > /sys/bus/i2c/devices/i2c-4/new_device"))
       .WillOnce(Return(std::pair(-1, "")));
   EXPECT_THROW(
       i2cExplorer.createI2cDevice("lm73", 4, I2cAddr(15)), std::runtime_error);

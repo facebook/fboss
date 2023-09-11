@@ -29,9 +29,11 @@ struct I2cAddr {
   bool operator==(const I2cAddr& b) const {
     return addr_ == b.addr_;
   }
+  // Returned string is in the format 0x0f
   std::string hex2Str() const {
-    return fmt::format("{:#x}", addr_);
+    return fmt::format("{:#04x}", addr_);
   }
+  // Returned string is in the format 000f
   std::string hex4Str() const {
     return fmt::format("{:04x}", addr_);
   }
