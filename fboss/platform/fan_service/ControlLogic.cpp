@@ -599,33 +599,35 @@ float ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {
 }
 
 void ControlLogic::setTransitionValue() {
-  for (const auto& zone : *config_.zones()) {
-    for (const auto& fan : *config_.fans()) {
-      // If this fan belongs to the zone, then write the transitional value
-      if (std::find(
-              zone.fanNames()->begin(),
-              zone.fanNames()->end(),
-              *fan.fanName()) == zone.fanNames()->end()) {
-        continue;
-      }
-      for (const auto& sensorName : *zone.sensorNames()) {
-        if (isSensorPresentInConfig(sensorName)) {
-          pwmCalcCaches_[sensorName].previousTargetPwm =
-              *config_.pwmTransitionValue();
+  fanStatuses_.withWLock([&](auto& fanStatuses) {
+    for (const auto& zone : *config_.zones()) {
+      for (const auto& fan : *config_.fans()) {
+        // If this fan belongs to the zone, then write the transitional value
+        if (std::find(
+                zone.fanNames()->begin(),
+                zone.fanNames()->end(),
+                *fan.fanName()) == zone.fanNames()->end()) {
+          continue;
         }
+        for (const auto& sensorName : *zone.sensorNames()) {
+          if (isSensorPresentInConfig(sensorName)) {
+            pwmCalcCaches_[sensorName].previousTargetPwm =
+                *config_.pwmTransitionValue();
+          }
+        }
+        const auto [fanFailed, pwmToProgram] = programFan(
+            zone,
+            fan,
+            fanStatuses[*fan.fanName()].currentPwm,
+            *config_.pwmTransitionValue());
+        fanStatuses[*fan.fanName()].currentPwm = pwmToProgram;
+        if (fanFailed) {
+          programLed(fan, fanFailed);
+        }
+        fanStatuses[*fan.fanName()].fanFailed = fanFailed;
       }
-      const auto [fanFailed, pwmToProgram] = programFan(
-          zone,
-          fan,
-          fanStatuses_[*fan.fanName()].currentPwm,
-          *config_.pwmTransitionValue());
-      fanStatuses_[*fan.fanName()].currentPwm = pwmToProgram;
-      if (fanFailed) {
-        programLed(fan, fanFailed);
-      }
-      fanStatuses_[*fan.fanName()].fanFailed = fanFailed;
     }
-  }
+  });
 }
 
 void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
@@ -667,8 +669,7 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
                << *config_.pwmBoostOnNoQsfpAfterInSec();
   }
 
-  // Critical Section of fanStatuses_
-  {
+  fanStatuses_.withWLock([&](auto& fanStatuses) {
     // Now, check if Fan is in good shape, based on the previously read
     // sensor data
     XLOG(INFO) << "Control :: Checking Fan Status";
@@ -676,13 +677,13 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
     // Update fan status with new rpm and timestamp.
     for (const auto& fan : *config_.fans()) {
       auto [fanFailed, fanRpm, fanTimestamp] =
-          getFanUpdate(fan, fanStatuses_[*fan.fanName()]);
-      fanStatuses_[*fan.fanName()].rpm = fanRpm;
-      fanStatuses_[*fan.fanName()].timeStamp = fanTimestamp;
+          getFanUpdate(fan, fanStatuses[*fan.fanName()]);
+      fanStatuses[*fan.fanName()].rpm = fanRpm;
+      fanStatuses[*fan.fanName()].timeStamp = fanTimestamp;
 
       // Record whether fan is healthy, missing or inaccessible for long time.
       programLed(fan, fanFailed);
-      fanStatuses_[*fan.fanName()].fanFailed = fanFailed;
+      fanStatuses[*fan.fanName()].fanFailed = fanFailed;
     }
 
     boostMode =
@@ -709,17 +710,17 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
         }
 
         const auto [fanFailed, pwmToProgram] = programFan(
-            zone, fan, fanStatuses_[*fan.fanName()].currentPwm, pwmSoFar);
-        fanStatuses_[*fan.fanName()].currentPwm = pwmToProgram;
+            zone, fan, fanStatuses[*fan.fanName()].currentPwm, pwmSoFar);
+        fanStatuses[*fan.fanName()].currentPwm = pwmToProgram;
 
         if (fanFailed) {
           programLed(fan, fanFailed);
           // Only override the fanFailed if fan programming failed.
-          fanStatuses_[*fan.fanName()].fanFailed = fanFailed;
+          fanStatuses[*fan.fanName()].fanFailed = fanFailed;
         }
       }
     }
-  }
+  });
 
   // Update the time stamp
   lastControlUpdateSec_ = pBsp_->getCurrentTime();

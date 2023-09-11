@@ -51,7 +51,7 @@ class ControlLogic {
   void updateControl(std::shared_ptr<SensorData> pS);
   void setTransitionValue();
   const std::map<std::string, FanStatus> getFanStatuses() {
-    return fanStatuses_;
+    return fanStatuses_.copy();
   }
 
  private:
@@ -82,7 +82,8 @@ class ControlLogic {
   bool isFanPresentInDevice(const Fan& fan);
   bool isSensorPresentInConfig(const std::string& sensorName);
 
-  std::map<std::string /* fanName */, FanStatus> fanStatuses_;
+  folly::Synchronized<std::map<std::string /* fanName */, FanStatus>>
+      fanStatuses_;
   std::map<std::string /* sensorName */, SensorReadCache> sensorReadCaches_;
   std::map<std::string /* sensorName */, PwmCalcCache> pwmCalcCaches_;
 };

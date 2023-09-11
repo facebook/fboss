@@ -243,6 +243,8 @@ TEST_F(ControlLogicTests, UpdateControlSuccessAfterFanUnaccessibleLTThreshold) {
   EXPECT_EQ(fanStatuses.size(), fanServiceConfig_.fans()->size());
   for (const auto& [fanName, fanStatus] : fanStatuses) {
     EXPECT_EQ(fanStatus.fanFailed, false);
+    EXPECT_EQ(fanStatus.rpm, 0);
+    EXPECT_EQ(fanStatus.timeStamp, 0);
   }
 }
 } // namespace facebook::fboss::platform
