@@ -656,8 +656,8 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   getOpticsUpdate();
 
   // Check if we need to turn on boost mode
-  XLOG(INFO) << "Control :: Failed Sensor : " << numFanFailed_
-             << " Failed Sensor : " << numSensorFailed_;
+  XLOG(INFO) << "Control :: Failed Fans : " << numFanFailed_
+             << " Failed Sensors : " << numSensorFailed_;
 
   uint64_t secondsSinceLastOpticsUpdate =
       pBsp_->getCurrentTime() - pSensor_->getLastQsfpSvcTime();
