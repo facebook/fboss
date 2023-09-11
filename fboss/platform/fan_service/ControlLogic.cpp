@@ -527,53 +527,21 @@ std::pair<bool, float> ControlLogic::programFan(
   return std::make_pair(!writeSuccess, pwmToProgram);
 }
 
-void ControlLogic::setFanFailState(
-    const Fan& fan,
-    FanStatus& fanStatus,
-    bool fanFailed) {
+void ControlLogic::programLed(const Fan& fan, bool fanFailed) {
   XLOG(INFO) << "Control :: Enter LED for " << *fan.fanName();
-  bool ledAccessNeeded = false;
-  if (fanStatus.firstTimeLedAccess) {
-    ledAccessNeeded = true;
-    fanStatus.firstTimeLedAccess = false;
-  }
-  if (fanFailed) {
-    // Fan failed.
-    // If the previous status was fan good, we need to set fan LED color
-    if (!fanStatus.fanFailed) {
-      // We need to change internal state
-      fanStatus.fanFailed = true;
-      // Also change led color to "FAIL", if Fan LED is available
-      if (*fan.pwmAccess()->path() != "") {
-        ledAccessNeeded = true;
-      }
-    }
+  unsigned int valueToWrite =
+      (fanFailed ? *fan.fanFailLedVal() : *fan.fanGoodLedVal());
+  if (*fan.ledAccess()->accessType() == constants::ACCESS_TYPE_SYSFS()) {
+    pBsp_->setFanLedSysfs(*fan.ledAccess()->path(), valueToWrite);
+  } else if (*fan.ledAccess()->accessType() == constants::ACCESS_TYPE_UTIL()) {
+    pBsp_->setFanLedShell(
+        *fan.ledAccess()->path(), *fan.fanName(), valueToWrite);
   } else {
-    // Fan did NOT fail (is in a good shape)
-    // If the previous status was fan fail, we need to set fan LED color
-    if (fanStatus.fanFailed) {
-      // We need to change internal state
-      fanStatus.fanFailed = false;
-      // Also change led color to "GOOD", if Fan LED is available
-      ledAccessNeeded = true;
-    }
+    XLOG(ERR) << "Unsupported LED access type for : ", *fan.fanName();
   }
-  if (ledAccessNeeded) {
-    unsigned int valueToWrite =
-        (fanFailed ? *fan.fanFailLedVal() : *fan.fanGoodLedVal());
-    if (*fan.ledAccess()->accessType() == constants::ACCESS_TYPE_SYSFS()) {
-      pBsp_->setFanLedSysfs(*fan.ledAccess()->path(), valueToWrite);
-    } else if (
-        *fan.ledAccess()->accessType() == constants::ACCESS_TYPE_UTIL()) {
-      pBsp_->setFanLedShell(
-          *fan.ledAccess()->path(), *fan.fanName(), valueToWrite);
-    } else {
-      XLOG(ERR) << "Unsupported LED access type for : ", *fan.fanName();
-    }
-    XLOG(INFO) << "Control :: Set the LED of " << *fan.fanName() << " to "
-               << (fanFailed ? "Fail" : "Good") << "(" << valueToWrite << ") "
-               << *fan.fanFailLedVal() << " vs " << *fan.fanGoodLedVal();
-  }
+  XLOG(INFO) << "Control :: Set the LED of " << *fan.fanName() << " to "
+             << (fanFailed ? "Fail" : "Good") << "(" << valueToWrite << ") "
+             << *fan.fanFailLedVal() << " vs " << *fan.fanGoodLedVal();
 }
 
 float ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {
@@ -653,8 +621,9 @@ void ControlLogic::setTransitionValue() {
           *config_.pwmTransitionValue());
       fanStatuses_[*fan.fanName()].currentPwm = pwmToProgram;
       if (fanFailed) {
-        setFanFailState(fan, fanStatuses_[*fan.fanName()], true);
+        programLed(fan, fanFailed);
       }
+      fanStatuses_[*fan.fanName()].fanFailed = fanFailed;
     }
   }
 }
@@ -703,12 +672,17 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
     // Now, check if Fan is in good shape, based on the previously read
     // sensor data
     XLOG(INFO) << "Control :: Checking Fan Status";
+
+    // Update fan status with new rpm and timestamp.
     for (const auto& fan : *config_.fans()) {
       auto [fanFailed, fanRpm, fanTimestamp] =
           getFanUpdate(fan, fanStatuses_[*fan.fanName()]);
       fanStatuses_[*fan.fanName()].rpm = fanRpm;
       fanStatuses_[*fan.fanName()].timeStamp = fanTimestamp;
-      setFanFailState(fan, fanStatuses_[*fan.fanName()], fanFailed);
+
+      // Record whether fan is healthy, missing or inaccessible for long time.
+      programLed(fan, fanFailed);
+      fanStatuses_[*fan.fanName()].fanFailed = fanFailed;
     }
 
     boostMode =
@@ -737,8 +711,11 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
         const auto [fanFailed, pwmToProgram] = programFan(
             zone, fan, fanStatuses_[*fan.fanName()].currentPwm, pwmSoFar);
         fanStatuses_[*fan.fanName()].currentPwm = pwmToProgram;
+
         if (fanFailed) {
-          setFanFailState(fan, fanStatuses_[*fan.fanName()], fanFailed);
+          programLed(fan, fanFailed);
+          // Only override the fanFailed if fan programming failed.
+          fanStatuses_[*fan.fanName()].fanFailed = fanFailed;
         }
       }
     }

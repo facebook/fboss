@@ -11,7 +11,6 @@ struct FanStatus {
   int rpm;
   float currentPwm{0};
   bool fanFailed{false};
-  bool firstTimeLedAccess{true};
   uint64_t timeStamp;
 };
 
@@ -79,7 +78,7 @@ class ControlLogic {
       float pwmSoFar);
   float calculateZonePwm(const Zone& zone, bool boostMode);
   void updateTargetPwm(const Sensor& sensorItem);
-  void setFanFailState(const Fan& fan, FanStatus& fanStatus, bool fanFailed);
+  void programLed(const Fan& fan, bool fanFailed);
   bool isFanPresentInDevice(const Fan& fan);
   bool isSensorPresentInConfig(const std::string& sensorName);
 
