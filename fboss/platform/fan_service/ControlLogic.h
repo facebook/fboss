@@ -72,14 +72,21 @@ class ControlLogic {
   void getFanUpdate();
   void getOpticsUpdate();
   void programFan(const Zone& zone, float pwmSoFar);
+  std::pair<bool /* pwm update fail */, float /* pwm */> programFan(
+      const Zone& zone,
+      const Fan& fan,
+      float currentPwm,
+      float pwmSoFar);
   void adjustZoneFans(bool boostMode);
   void updateTargetPwm(const Sensor& sensorItem);
   void setFanFailState(const Fan& fan, bool fanFailed);
+  void setFanFailState(const Fan& fan, FanStatus& fanStatus, bool fanFailed);
   bool isFanPresentInDevice(const Fan& fan);
   bool isSensorPresentInConfig(const std::string& sensorName);
 
   std::map<std::string /* fanName */, FanStatus> fanStatuses_;
   std::map<std::string /* sensorName */, SensorReadCache> sensorReadCaches_;
   std::map<std::string /* sensorName */, PwmCalcCache> pwmCalcCaches_;
+  std::mutex fanStatusesMutex_;
 };
 } // namespace facebook::fboss::platform::fan_service

@@ -485,6 +485,59 @@ bool ControlLogic::isFanPresentInDevice(const Fan& fan) {
   return false;
 }
 
+std::pair<bool, float> ControlLogic::programFan(
+    const Zone& zone,
+    const Fan& fan,
+    float currentPwm,
+    float pwmSoFar) {
+  auto srcType = *fan.pwmAccess()->accessType();
+  float pwmToProgram = 0;
+  bool writeSuccess{false};
+  if ((*zone.slope() == 0) || (currentPwm == 0)) {
+    pwmToProgram = pwmSoFar;
+  } else {
+    if (pwmSoFar > currentPwm) {
+      if ((pwmSoFar - currentPwm) > *zone.slope()) {
+        pwmToProgram = currentPwm + *zone.slope();
+      } else {
+        pwmToProgram = pwmSoFar;
+      }
+    } else if (pwmSoFar < currentPwm) {
+      if ((currentPwm - pwmSoFar) > *zone.slope()) {
+        pwmToProgram = currentPwm - *zone.slope();
+      } else {
+        pwmToProgram = pwmSoFar;
+      }
+    } else {
+      pwmToProgram = pwmSoFar;
+    }
+  }
+  int pwmInt =
+      (int)(((*fan.pwmMax()) - (*fan.pwmMin())) * pwmToProgram / 100.0 + *fan.pwmMin());
+  if (pwmInt < *fan.pwmMin()) {
+    pwmInt = *fan.pwmMin();
+  } else if (pwmInt > *fan.pwmMax()) {
+    pwmInt = *fan.pwmMax();
+  }
+  if (srcType == constants::ACCESS_TYPE_SYSFS()) {
+    writeSuccess = pBsp_->setFanPwmSysfs(*fan.pwmAccess()->path(), pwmInt);
+  } else if (srcType == constants::ACCESS_TYPE_UTIL()) {
+    writeSuccess =
+        pBsp_->setFanPwmShell(*fan.pwmAccess()->path(), *fan.fanName(), pwmInt);
+  } else {
+    XLOG(ERR) << "Unsupported PWM access type for : ", *fan.fanName();
+  }
+  fb303::fbData->setCounter(
+      fmt::format(kFanWriteFailure, *zone.zoneName(), *fan.fanName()),
+      !writeSuccess);
+  XLOG(INFO) << folly ::sformat(
+      "Program :: Programmed Fan {} with PWM {} and Returned {} as PWM to program.",
+      *fan.fanName(),
+      pwmInt,
+      pwmToProgram);
+  return std::make_pair(!writeSuccess, pwmToProgram);
+}
+
 void ControlLogic::programFan(const Zone& zone, float pwmSoFar) {
   for (const auto& fan : *config_.fans()) {
     auto srcType = *fan.pwmAccess()->accessType();
@@ -545,19 +598,22 @@ void ControlLogic::programFan(const Zone& zone, float pwmSoFar) {
   }
 }
 
-void ControlLogic::setFanFailState(const Fan& fan, bool fanFailed) {
+void ControlLogic::setFanFailState(
+    const Fan& fan,
+    FanStatus& fanStatus,
+    bool fanFailed) {
   XLOG(INFO) << "Control :: Enter LED for " << *fan.fanName();
   bool ledAccessNeeded = false;
-  if (fanStatuses_[*fan.fanName()].firstTimeLedAccess) {
+  if (fanStatus.firstTimeLedAccess) {
     ledAccessNeeded = true;
-    fanStatuses_[*fan.fanName()].firstTimeLedAccess = false;
+    fanStatus.firstTimeLedAccess = false;
   }
   if (fanFailed) {
     // Fan failed.
     // If the previous status was fan good, we need to set fan LED color
-    if (!fanStatuses_[*fan.fanName()].fanFailed) {
+    if (!fanStatus.fanFailed) {
       // We need to change internal state
-      fanStatuses_[*fan.fanName()].fanFailed = true;
+      fanStatus.fanFailed = true;
       // Also change led color to "FAIL", if Fan LED is available
       if (*fan.pwmAccess()->path() != "") {
         ledAccessNeeded = true;
@@ -566,9 +622,9 @@ void ControlLogic::setFanFailState(const Fan& fan, bool fanFailed) {
   } else {
     // Fan did NOT fail (is in a good shape)
     // If the previous status was fan fail, we need to set fan LED color
-    if (fanStatuses_[*fan.fanName()].fanFailed) {
+    if (fanStatus.fanFailed) {
       // We need to change internal state
-      fanStatuses_[*fan.fanName()].fanFailed = false;
+      fanStatus.fanFailed = false;
       // Also change led color to "GOOD", if Fan LED is available
       ledAccessNeeded = true;
     }
@@ -589,6 +645,10 @@ void ControlLogic::setFanFailState(const Fan& fan, bool fanFailed) {
                << (fanFailed ? "Fail" : "Good") << "(" << valueToWrite << ") "
                << *fan.fanFailLedVal() << " vs " << *fan.fanGoodLedVal();
   }
+}
+
+void ControlLogic::setFanFailState(const Fan& fan, bool fanFailed) {
+  setFanFailState(fan, fanStatuses_[*fan.fanName()], fanFailed);
 }
 
 void ControlLogic::adjustZoneFans(bool boostMode) {
@@ -667,6 +727,7 @@ void ControlLogic::setTransitionValue() {
     }
   }
 }
+
 void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   pSensor_ = pS;
 
