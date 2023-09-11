@@ -707,6 +707,43 @@ void SwSwitch::publishTxPacket(TxPacket* pkt, uint16_t ethertype) {
   pubPkt.packetData = copy_buf.moveToFbString();
 }
 
+std::shared_ptr<SwitchState> SwSwitch::init(SwitchFlags flags) {
+  auto begin = steady_clock::now();
+  flags_ = flags;
+  bootType_ = swSwitchWarmbootHelper_->canWarmBoot() ? BootType::WARM_BOOT
+                                                     : BootType::COLD_BOOT;
+  multiHwSwitchHandler_->start();
+  std::optional<state::WarmbootState> wbState{};
+  if (bootType_ == BootType::WARM_BOOT) {
+    wbState = swSwitchWarmbootHelper_->getWarmBootState();
+  }
+  restart_time::init(
+      agentDirUtil_->getWarmBootDir(), bootType_ == BootType::WARM_BOOT);
+
+  auto [state, rib] = SwSwitchWarmBootHelper::reconstructStateAndRib(
+      wbState, scopeResolver_->hasL3());
+  rib_ = std::move(rib);
+
+  if (bootType_ != BootType::WARM_BOOT) {
+    state = setupMinAlpmRouteState(*scopeResolver_, state);
+  }
+
+  fb303::fbData->setCounter(kHwUpdateFailures, 0);
+
+  startThreads();
+
+  // start lagMananger
+  if (flags_ & SwitchFlags::ENABLE_LACP) {
+    lagManager_ = std::make_unique<LinkAggregationManager>(this);
+  }
+
+  XLOG(DBG2)
+      << "Time to init switch and start all threads "
+      << duration_cast<duration<float>>(steady_clock::now() - begin).count();
+
+  return state;
+}
+
 void SwSwitch::init(
     HwSwitchCallback* callback,
     std::unique_ptr<TunManager> tunMgr,
@@ -715,8 +752,7 @@ void SwSwitch::init(
   auto begin = steady_clock::now();
   flags_ = flags;
   auto hwInitRet = hwSwitchInitFn(callback, false /*failHwCallsOnWarmboot*/);
-  bootType_ = swSwitchWarmbootHelper_->canWarmBoot() ? BootType::WARM_BOOT
-                                                     : BootType::COLD_BOOT;
+  auto initialState = init(flags);
   if (hwInitRet.bootType != bootType_) {
     // this is being done for preprod2trunk migration. further until tooling is
     // updated to affect both warm boot flags, HwSwitch will override SwSwitch
@@ -728,44 +764,22 @@ void SwSwitch::init(
                << bootStr(hwInitRet.bootType);
     bootType_ = hwInitRet.bootType;
   }
-  multiHwSwitchHandler_->start();
-  std::optional<state::WarmbootState> wbState{};
-  if (bootType_ == BootType::WARM_BOOT) {
-    wbState = swSwitchWarmbootHelper_->getWarmBootState();
-  }
-  auto [state, rib] = SwSwitchWarmBootHelper::reconstructStateAndRib(
-      wbState, scopeResolver_->hasL3());
-  rib_ = std::move(rib);
-  auto initialState = state;
-  if (!getAppliedState()) {
-    // Store the initial state
-    initialState->publish();
-    setStateInternal(initialState);
-  } else {
-    // seeded by test
+  if (getAppliedState()) {
+    // applied state is already seeded by test
     initialState = getAppliedState();
   }
+  initialState->publish();
   auto emptyState = std::make_shared<SwitchState>();
   emptyState->publish();
   multiHwSwitchHandler_->stateChanged(
       StateDelta(emptyState, initialState), false);
-
-  fb303::fbData->setCounter(kHwUpdateFailures, 0);
+  // For cold boot there will be discripancy between applied state and state
+  // that exists in hardware. this discrepancy is until config is applied, after
+  // that the two states are in sync. tolerating this discrepancy for now
+  setStateInternal(initialState);
 
   XLOG(DBG0) << "hardware initialized in " << hwInitRet.bootTime
              << " seconds; applying initial config";
-
-  restart_time::init(
-      agentDirUtil_->getWarmBootDir(), bootType_ == BootType::WARM_BOOT);
-
-  // start LACP thread
-  lacpThread_.reset(new std::thread(
-      [=] { this->threadLoop("fbossLacpThread", &lacpEventBase_); }));
-
-  // start lagMananger
-  if (flags & SwitchFlags::ENABLE_LACP) {
-    lagManager_ = std::make_unique<LinkAggregationManager>(this);
-  }
 
   if (flags & SwitchFlags::ENABLE_TUN) {
     if (tunMgr) {
@@ -783,85 +797,12 @@ void SwSwitch::init(
         StateDelta(std::make_shared<SwitchState>(), initialState));
   });
 
-  startThreads();
   XLOG(DBG2)
-      << "Time to init switch and start all threads "
+      << "Time to init switch and start all threads and apply the state"
       << duration_cast<duration<float>>(steady_clock::now() - begin).count();
 
-  // Publish timers after we aked TunManager to do a probe. This
-  // is not required but since both stats publishing and tunnel
-  // interface probing happens on backgroundEventBase_ its somewhat
-  // nicer to have tun inteface probing finish faster since then
-  // we don't have to wait for the initial probe to complete before
-  // applying initial config.
-  if (flags & SwitchFlags::PUBLISH_STATS) {
-    publishSwitchInfo(hwInitRet);
-  }
+  initDone(&hwInitRet);
 
-  if (flags & SwitchFlags::ENABLE_LLDP) {
-    lldpManager_ = std::make_unique<LldpManager>(this);
-  }
-
-  auto bgHeartbeatStatsFunc = [this](int delay, int backLog) {
-    stats()->bgHeartbeatDelay(delay);
-    stats()->bgEventBacklog(backLog);
-  };
-  bgThreadHeartbeat_ = std::make_shared<ThreadHeartbeat>(
-      &backgroundEventBase_,
-      "fbossBgThread",
-      FLAGS_thread_heartbeat_ms,
-      bgHeartbeatStatsFunc);
-
-  auto updHeartbeatStatsFunc = [this](int delay, int backLog) {
-    stats()->updHeartbeatDelay(delay);
-    stats()->updEventBacklog(backLog);
-  };
-  updThreadHeartbeat_ = std::make_shared<ThreadHeartbeat>(
-      &updateEventBase_,
-      "fbossUpdateThread",
-      FLAGS_thread_heartbeat_ms,
-      updHeartbeatStatsFunc);
-
-  auto packetTxHeartbeatStatsFunc = [this](int delay, int backLog) {
-    stats()->packetTxHeartbeatDelay(delay);
-    stats()->packetTxEventBacklog(backLog);
-  };
-  packetTxThreadHeartbeat_ = std::make_shared<ThreadHeartbeat>(
-      &packetTxEventBase_,
-      "fbossPktTxThread",
-      FLAGS_thread_heartbeat_ms,
-      packetTxHeartbeatStatsFunc);
-
-  auto updateLacpThreadHeartbeatStats = [this](int delay, int backLog) {
-    stats()->lacpHeartbeatDelay(delay);
-    stats()->lacpEventBacklog(backLog);
-  };
-  lacpThreadHeartbeat_ = std::make_shared<ThreadHeartbeat>(
-      &lacpEventBase_,
-      *folly::getThreadName(lacpThread_->get_id()),
-      FLAGS_thread_heartbeat_ms,
-      updateLacpThreadHeartbeatStats);
-
-  neighborCacheThreadHeartbeat_ = std::make_shared<ThreadHeartbeat>(
-      &neighborCacheEventBase_,
-      *folly::getThreadName(neighborCacheThread_->get_id()),
-      FLAGS_thread_heartbeat_ms,
-      [this](int delay, int backlog) {
-        stats()->neighborCacheHeartbeatDelay(delay);
-        stats()->neighborCacheEventBacklog(backlog);
-      });
-
-  heartbeatWatchdog_ = std::make_unique<ThreadHeartbeatWatchdog>(
-      std::chrono::milliseconds(FLAGS_thread_heartbeat_ms * 10),
-      [this]() { stats()->ThreadHeartbeatMissCount(); });
-  heartbeatWatchdog_->startMonitoringHeartbeat(bgThreadHeartbeat_);
-  heartbeatWatchdog_->startMonitoringHeartbeat(packetTxThreadHeartbeat_);
-  heartbeatWatchdog_->startMonitoringHeartbeat(updThreadHeartbeat_);
-  heartbeatWatchdog_->startMonitoringHeartbeat(lacpThreadHeartbeat_);
-  heartbeatWatchdog_->startMonitoringHeartbeat(neighborCacheThreadHeartbeat_);
-  heartbeatWatchdog_->start();
-
-  setSwitchRunState(SwitchRunState::INITIALIZED);
   if (scopeResolver_->hasL3()) {
     SwSwitchRouteUpdateWrapper(this, rib_.get()).programMinAlpmState();
   }
@@ -1646,6 +1587,80 @@ void SwSwitch::startThreads() {
   neighborCacheThread_.reset(new std::thread([=] {
     this->threadLoop("fbossNeighborCacheThread", &neighborCacheEventBase_);
   }));
+  // start LACP thread, start before creating LinkAggregationManager
+  lacpThread_.reset(new std::thread(
+      [=] { this->threadLoop("fbossLacpThread", &lacpEventBase_); }));
+}
+
+void SwSwitch::initDone(const HwInitResult* hwInitResult) {
+  if (flags_ & SwitchFlags::ENABLE_LLDP) {
+    lldpManager_ = std::make_unique<LldpManager>(this);
+  }
+
+  if (flags_ & SwitchFlags::PUBLISH_STATS && hwInitResult) {
+    publishSwitchInfo(*hwInitResult);
+  }
+
+  auto bgHeartbeatStatsFunc = [this](int delay, int backLog) {
+    stats()->bgHeartbeatDelay(delay);
+    stats()->bgEventBacklog(backLog);
+  };
+  bgThreadHeartbeat_ = std::make_shared<ThreadHeartbeat>(
+      &backgroundEventBase_,
+      "fbossBgThread",
+      FLAGS_thread_heartbeat_ms,
+      bgHeartbeatStatsFunc);
+
+  auto updHeartbeatStatsFunc = [this](int delay, int backLog) {
+    stats()->updHeartbeatDelay(delay);
+    stats()->updEventBacklog(backLog);
+  };
+  updThreadHeartbeat_ = std::make_shared<ThreadHeartbeat>(
+      &updateEventBase_,
+      "fbossUpdateThread",
+      FLAGS_thread_heartbeat_ms,
+      updHeartbeatStatsFunc);
+
+  auto packetTxHeartbeatStatsFunc = [this](int delay, int backLog) {
+    stats()->packetTxHeartbeatDelay(delay);
+    stats()->packetTxEventBacklog(backLog);
+  };
+  packetTxThreadHeartbeat_ = std::make_shared<ThreadHeartbeat>(
+      &packetTxEventBase_,
+      "fbossPktTxThread",
+      FLAGS_thread_heartbeat_ms,
+      packetTxHeartbeatStatsFunc);
+
+  auto updateLacpThreadHeartbeatStats = [this](int delay, int backLog) {
+    stats()->lacpHeartbeatDelay(delay);
+    stats()->lacpEventBacklog(backLog);
+  };
+  lacpThreadHeartbeat_ = std::make_shared<ThreadHeartbeat>(
+      &lacpEventBase_,
+      *folly::getThreadName(lacpThread_->get_id()),
+      FLAGS_thread_heartbeat_ms,
+      updateLacpThreadHeartbeatStats);
+
+  neighborCacheThreadHeartbeat_ = std::make_shared<ThreadHeartbeat>(
+      &neighborCacheEventBase_,
+      *folly::getThreadName(neighborCacheThread_->get_id()),
+      FLAGS_thread_heartbeat_ms,
+      [this](int delay, int backlog) {
+        stats()->neighborCacheHeartbeatDelay(delay);
+        stats()->neighborCacheEventBacklog(backlog);
+      });
+
+  heartbeatWatchdog_ = std::make_unique<ThreadHeartbeatWatchdog>(
+      std::chrono::milliseconds(FLAGS_thread_heartbeat_ms * 10),
+      [this]() { stats()->ThreadHeartbeatMissCount(); });
+  heartbeatWatchdog_->startMonitoringHeartbeat(bgThreadHeartbeat_);
+  heartbeatWatchdog_->startMonitoringHeartbeat(packetTxThreadHeartbeat_);
+  heartbeatWatchdog_->startMonitoringHeartbeat(updThreadHeartbeat_);
+  heartbeatWatchdog_->startMonitoringHeartbeat(lacpThreadHeartbeat_);
+  heartbeatWatchdog_->startMonitoringHeartbeat(neighborCacheThreadHeartbeat_);
+  heartbeatWatchdog_->start();
+
+  setSwitchRunState(SwitchRunState::INITIALIZED);
 }
 
 void SwSwitch::stopThreads() {

@@ -1003,6 +1003,10 @@ class SwSwitch : public HwSwitchCallback {
 
   void setConfigImpl(std::unique_ptr<AgentConfig> config);
 
+  std::shared_ptr<SwitchState> init(SwitchFlags flags = SwitchFlags::DEFAULT);
+
+  void initDone(const HwInitResult* HwInitResult);
+
   std::unique_ptr<MultiHwSwitchHandler> multiHwSwitchHandler_;
   const AgentDirectoryUtil* agentDirUtil_;
   bool supportsAddRemovePort_;
