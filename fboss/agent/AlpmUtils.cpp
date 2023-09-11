@@ -29,6 +29,9 @@
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/logging/xlog.h>
+
+DECLARE_bool(intf_nbr_tables);
+
 namespace facebook::fboss {
 
 namespace {
@@ -105,11 +108,13 @@ std::shared_ptr<SwitchState> getMinAlpmRouteState(
   // addresses.
   auto noRoutesState{oldState->clone()};
 
-  for (const auto& vlanTable : std::as_const(*noRoutesState->getVlans())) {
-    for (const auto& idAndVlan : std::as_const(*vlanTable.second)) {
-      auto vlan = idAndVlan.second->modify(&noRoutesState);
-      vlan->setArpTable(std::make_shared<ArpTable>());
-      vlan->setNdpTable(std::make_shared<NdpTable>());
+  if (!FLAGS_intf_nbr_tables) {
+    for (const auto& vlanTable : std::as_const(*noRoutesState->getVlans())) {
+      for (const auto& idAndVlan : std::as_const(*vlanTable.second)) {
+        auto vlan = idAndVlan.second->modify(&noRoutesState);
+        vlan->setArpTable(std::make_shared<ArpTable>());
+        vlan->setNdpTable(std::make_shared<NdpTable>());
+      }
     }
   }
 
@@ -118,6 +123,10 @@ std::shared_ptr<SwitchState> getMinAlpmRouteState(
     for (const auto& [_, interface] : std::as_const(*intfMap)) {
       CHECK(interface->isPublished());
       auto newIntf = interface->modify(&noRoutesState);
+      if (FLAGS_intf_nbr_tables) {
+        newIntf->setArpTable(std::make_shared<ArpTable>());
+        newIntf->setNdpTable(std::make_shared<NdpTable>());
+      }
       newIntf->setAddresses(Interface::Addresses{});
     }
   }
