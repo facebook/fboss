@@ -125,4 +125,13 @@ bool validatePortFlowletQuality(
   return true;
 }
 
+void setEcmpMemberStatus(const facebook::fboss::HwSwitch* hw) {
+  const auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
+  auto ecmpMembers = utility::getEcmpMembersInHw(bcmSwitch);
+  for (const auto ecmpMember : ecmpMembers) {
+    bcm_l3_egress_ecmp_member_status_set(
+        bcmSwitch->getUnit(), ecmpMember, BCM_L3_ECMP_DYNAMIC_MEMBER_FORCE_UP);
+  }
+}
+
 } // namespace facebook::fboss::utility

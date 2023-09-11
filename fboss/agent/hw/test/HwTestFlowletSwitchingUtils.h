@@ -28,4 +28,6 @@ bool validatePortFlowletQuality(
     const PortID& portId,
     const cfg::PortFlowletConfig& portFlowletCfg);
 
+void setEcmpMemberStatus(const facebook::fboss::HwSwitch* hw);
+
 } // namespace facebook::fboss::utility

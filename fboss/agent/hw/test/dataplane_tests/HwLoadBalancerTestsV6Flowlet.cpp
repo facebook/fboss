@@ -75,6 +75,7 @@ class HwLoadBalancerTestV6Flowlet
   }
 
   void setPortState() {
+    XLOG(DBG3) << "setting port loopback mode to PHY: ";
     auto hwEnsemble = getHwSwitchEnsemble();
     auto newState = hwEnsemble->getProgrammedState()->clone();
     for (int i = 0; i < 8; i++) {
@@ -98,9 +99,6 @@ class HwLoadBalancerTestV6Flowlet
 
 // DLB expects traffic not to be balanced on all egress ports
 // Hence do negative test
-RUN_HW_LOAD_BALANCER_NEGATIVE_TEST_FRONT_PANEL(
-    HwLoadBalancerTestV6Flowlet,
-    Ecmp,
-    Full)
+RUN_HW_LOAD_BALANCER_TEST_FRONT_PANEL(HwLoadBalancerTestV6Flowlet, Ecmp, Full)
 
 } // namespace facebook::fboss

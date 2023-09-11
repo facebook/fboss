@@ -44,4 +44,11 @@ bool validatePortFlowletQuality(
   return false;
 }
 
+void setEcmpMemberStatus(const HwSwitch* /* unused */) {
+  // This function is not implemented yet.
+  // If the test is running on SAI Switches,
+  // it should throw an error.
+  EXPECT_TRUE(false);
+}
+
 } // namespace facebook::fboss::utility

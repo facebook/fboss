@@ -4,6 +4,7 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/HwTestFlowletSwitchingUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.h"
 
@@ -206,6 +207,13 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
     }
     auto setup = [=]() { programECMP(ecmpWidth, loadBalancer, weights); };
     auto verify = [=]() {
+      // DLB engine can not detect port member hardware status
+      // when in "phy" loopback mode.
+      // Hence we are setting it forcibly here again for all the ecmp members.
+      if (FLAGS_flowletSwitchingEnable) {
+        XLOG(DBG3) << "setting ECMP Member Status: ";
+        utility::setEcmpMemberStatus(getHwSwitch());
+      }
       pumpTrafficPortAndVerifyLoadBalanced(
           ecmpWidth,
           weights,
