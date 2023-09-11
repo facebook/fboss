@@ -27,34 +27,6 @@ class HwParityErrorTest : public HwLinkStateDependentTest {
         HwAsic::Feature::TELEMETRY_AND_MONITORING);
   }
 
-  void generateBcmParityError() {
-    std::string out;
-    auto asic = getPlatform()->getAsic()->getAsicType();
-    auto ensemble = getHwSwitchEnsemble();
-    ensemble->runDiagCommand("\n", out);
-    if (asic == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
-      ensemble->runDiagCommand("ser inject pt=L2_ENTRY_SINGLEm\n", out);
-      ensemble->runDiagCommand("ser LOG\n", out);
-    } else {
-      ensemble->runDiagCommand(
-          "ser INJECT memory=L2_ENTRY index=10 pipe=pipe_x\n", out);
-      ensemble->runDiagCommand("d chg L2_ENTRY 10 1\n", out);
-    }
-    ensemble->runDiagCommand("quit\n", out);
-    std::ignore = out;
-  }
-
-  void generateTajoParityError() {
-    std::string out;
-    auto ensemble = getHwSwitchEnsemble();
-    ensemble->runDiagCommand("\n", out);
-    ensemble->runDiagCommand("from cli import sai_cli\n", out);
-    ensemble->runDiagCommand("saidev = sai_cli.sai_device()\n", out);
-    ensemble->runDiagCommand("saidev.inject_ecc_error()\n", out);
-    ensemble->runDiagCommand("quit\n", out);
-    std::ignore = out;
-  }
-
   void generateParityError() {
     auto asic = getPlatform()->getAsic()->getAsicType();
     switch (asic) {
