@@ -87,6 +87,5 @@ class ControlLogic {
   std::map<std::string /* fanName */, FanStatus> fanStatuses_;
   std::map<std::string /* sensorName */, SensorReadCache> sensorReadCaches_;
   std::map<std::string /* sensorName */, PwmCalcCache> pwmCalcCaches_;
-  std::mutex fanStatusesMutex_;
 };
 } // namespace facebook::fboss::platform::fan_service

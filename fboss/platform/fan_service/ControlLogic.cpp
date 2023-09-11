@@ -715,14 +715,23 @@ void ControlLogic::setTransitionValue() {
       if (std::find(
               zone.fanNames()->begin(),
               zone.fanNames()->end(),
-              *fan.fanName()) != zone.fanNames()->end()) {
-        for (const auto& sensorName : *zone.sensorNames()) {
-          if (isSensorPresentInConfig(sensorName)) {
-            pwmCalcCaches_[sensorName].previousTargetPwm =
-                *config_.pwmTransitionValue();
-          }
+              *fan.fanName()) == zone.fanNames()->end()) {
+        continue;
+      }
+      for (const auto& sensorName : *zone.sensorNames()) {
+        if (isSensorPresentInConfig(sensorName)) {
+          pwmCalcCaches_[sensorName].previousTargetPwm =
+              *config_.pwmTransitionValue();
         }
-        programFan(zone, *config_.pwmTransitionValue());
+      }
+      const auto [fanFailed, pwmToProgram] = programFan(
+          zone,
+          fan,
+          fanStatuses_[*fan.fanName()].currentPwm,
+          *config_.pwmTransitionValue());
+      fanStatuses_[*fan.fanName()].currentPwm = pwmToProgram;
+      if (fanFailed) {
+        setFanFailState(fan, fanStatuses_[*fan.fanName()], true);
       }
     }
   }
