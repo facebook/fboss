@@ -2087,27 +2087,37 @@ void SwSwitch::applyConfig(const std::string& reason, bool reload) {
     applyConfigImpl(reason, newConfig);
     agentConfig->dumpConfig(agentDirUtil_->getRunningConfigDumpFile());
   };
-  if (!agentConfig_ || reload) {
-    auto agentConfig = loadConfig();
-    applyAgentConfig(agentConfig.get());
-    // set agent config applying it
-    agentConfig_ = std::move(agentConfig);
+  if (reload) {
+    auto loadedAgentConfig = loadConfig();
+    applyAgentConfig(loadedAgentConfig.get());
+    setConfigImpl(std::move(loadedAgentConfig));
+    return;
   } else {
-    applyAgentConfig(agentConfig_.get());
+    auto agentConfigLocked = agentConfig_.rlock();
+    auto agentConfig = agentConfigLocked->get();
+    if (agentConfig) {
+      applyAgentConfig(agentConfig);
+      return;
+    }
   }
+  applyConfig(reason, true);
 }
 
 void SwSwitch::applyConfig(
     const std::string& reason,
     const cfg::SwitchConfig& newConfig) {
-  CHECK(agentConfig_);
-  /* apply and reset software switch config in the already applied agent config
-   */
-  auto agentConfigThrift = agentConfig_->thrift;
+  cfg::AgentConfig agentConfigThrift{};
+  {
+    auto agentConfigLocked = agentConfig_.rlock();
+    CHECK(agentConfigLocked->get());
+    agentConfigThrift = agentConfigLocked->get()->thrift;
+  }
   agentConfigThrift.sw_ref() = newConfig;
   auto newAgentConfig = std::make_unique<AgentConfig>(agentConfigThrift);
   applyConfigImpl(reason, newConfig);
-  agentConfig_ = std::move(newAgentConfig);
+  /* apply and reset software switch config in the already applied agent config
+   */
+  setConfigImpl(std::move(newAgentConfig));
 }
 
 void SwSwitch::applyConfigImpl(
@@ -2236,7 +2246,8 @@ bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
 }
 
 AdminDistance SwSwitch::clientIdToAdminDistance(int clientId) const {
-  return getAdminDistanceForClientId(getConfig(), clientId);
+  auto config = getConfig();
+  return getAdminDistanceForClientId(config, clientId);
 }
 
 void SwSwitch::clearPortStats(
@@ -2529,10 +2540,11 @@ std::string SwSwitch::getConfigStr() const {
 }
 
 cfg::SwitchConfig SwSwitch::getConfig() const {
-  if (!agentConfig_) {
+  const auto& agentConfigLocked = agentConfig_.rlock();
+  if (!agentConfigLocked->get()) {
     return cfg::SwitchConfig();
   }
-  return agentConfig_->thrift.sw().value();
+  return agentConfigLocked->get()->thrift.sw().value();
 }
 
 std::unique_ptr<AgentConfig> SwSwitch::loadConfig() {
@@ -2546,7 +2558,12 @@ std::unique_ptr<AgentConfig> SwSwitch::loadConfig() {
 
 void SwSwitch::setConfig(std::unique_ptr<AgentConfig> config) {
   // used only for tests
-  agentConfig_ = std::move(config);
+  setConfigImpl(std::move(config));
+}
+
+void SwSwitch::setConfigImpl(std::unique_ptr<AgentConfig> config) {
+  auto agentConfigLocked = agentConfig_.wlock();
+  *agentConfigLocked = std::move(config);
 }
 
 bool SwSwitch::needL2EntryForNeighbor() const {

@@ -1001,6 +1001,8 @@ class SwSwitch : public HwSwitchCallback {
       const std::string& reason,
       const cfg::SwitchConfig& newConfig);
 
+  void setConfigImpl(std::unique_ptr<AgentConfig> config);
+
   std::unique_ptr<MultiHwSwitchHandler> multiHwSwitchHandler_;
   const AgentDirectoryUtil* agentDirUtil_;
   bool supportsAddRemovePort_;
@@ -1154,6 +1156,6 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<SwSwitchWarmBootHelper> swSwitchWarmbootHelper_;
   std::atomic<std::chrono::time_point<std::chrono::steady_clock>>
       lastPacketRxTime_{std::chrono::steady_clock::time_point::min()};
-  std::unique_ptr<AgentConfig> agentConfig_;
+  folly::Synchronized<std::unique_ptr<AgentConfig>> agentConfig_;
 };
 } // namespace facebook::fboss
