@@ -782,6 +782,7 @@ void SwSwitch::init(
              << " seconds; applying initial config";
 
   if (flags & SwitchFlags::ENABLE_TUN) {
+    // for monolithic agent enable tun manager early to retain existing behavior
     if (tunMgr) {
       tunMgr_ = std::move(tunMgr);
     } else {
@@ -824,6 +825,16 @@ void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
   // notify the hw
   multiHwSwitchHandler_->onInitialConfigApplied(this);
   setSwitchRunState(SwitchRunState::CONFIGURED);
+
+  if (flags_ & SwitchFlags::ENABLE_TUN) {
+    // skip if mock tun manager was set by tests or during monolithic agent
+    // initialization.
+    // this is created only for split software agent after config is applied
+    if (!tunMgr_) {
+      tunMgr_ = std::make_unique<TunManager>(this, &packetTxEventBase_);
+      tunMgr_->probe();
+    }
+  }
 
   if (tunMgr_) {
     // We check for syncing tun interface only on state changes after the
