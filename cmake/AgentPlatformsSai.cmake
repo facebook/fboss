@@ -129,6 +129,7 @@ function(BUILD_SAI_WEDGE_AGENT SAI_IMPL_NAME SAI_IMPL_ARG)
     main
     monolithic_agent_initializer
     sai_platform
+    sai_traced_api
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
     ${CMAKE_THREAD_LIBS_INIT}
