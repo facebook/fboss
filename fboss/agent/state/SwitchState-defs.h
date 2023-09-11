@@ -13,6 +13,8 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 
+DECLARE_bool(intf_nbr_tables);
+
 namespace facebook::fboss {
 
 template <typename EntryClassT, typename NTableT>
@@ -20,20 +22,31 @@ void SwitchState::revertNewNeighborEntry(
     const std::shared_ptr<EntryClassT>& newEntry,
     const std::shared_ptr<EntryClassT>& oldEntry,
     std::shared_ptr<SwitchState>* appliedState) {
-  const auto ip = newEntry->getIP();
-  // We are assuming here that vlan is equal to interface always.
-  VlanID vlanId = static_cast<VlanID>(newEntry->getIntfID());
+  using NeighborEntryT = std::
+      conditional_t<std::is_same<NTableT, ArpTable>::value, ArpEntry, NdpEntry>;
+  std::shared_ptr<NeighborEntryT> entry;
 
-  auto neighborTablePtr = (*appliedState)
-                              ->getVlans()
-                              ->getNode(vlanId)
-                              ->template getNeighborTable<NTableT>()
-                              .get();
-  // Check that the entry exists
-  auto entry = neighborTablePtr->getNodeIf(ip.str());
-  CHECK(entry);
+  const auto ip = newEntry->getIP();
+
+  NTableT* neighborTablePtr;
   // In this call, we also modify appliedState
-  neighborTablePtr = neighborTablePtr->modify(vlanId, appliedState);
+  if (FLAGS_intf_nbr_tables) {
+    auto intf =
+        (*appliedState)->getInterfaces()->getNode(newEntry->getIntfID());
+    neighborTablePtr = intf->template getNeighborTable<NTableT>()->modify(
+        newEntry->getIntfID(), appliedState);
+  } else {
+    // We are assuming here that vlan is equal to interface always.
+    VlanID vlanId = static_cast<VlanID>(newEntry->getIntfID());
+    auto vlan = (*appliedState)->getVlans()->getNode(vlanId);
+    neighborTablePtr = vlan->template getNeighborTable<NTableT>()->modify(
+        vlanId, appliedState);
+  }
+
+  // Check that the entry exists
+  entry = neighborTablePtr->getNodeIf(ip.str());
+  CHECK(entry);
+
   if (!oldEntry) {
     neighborTablePtr->removeNode(ip.str());
   } else {
