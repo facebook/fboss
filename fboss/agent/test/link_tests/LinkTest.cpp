@@ -139,7 +139,7 @@ std::map<int32_t, TransceiverInfo> LinkTest::waitForTransceiverInfo(
     }
     // Make sure we have at least one present transceiver
     for (const auto& it : info) {
-      if (*it.second.present()) {
+      if (*it.second.tcvrState()->present()) {
         return info;
       }
     }
