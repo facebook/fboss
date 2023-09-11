@@ -520,71 +520,11 @@ std::pair<bool, float> ControlLogic::programFan(
       fmt::format(kFanWriteFailure, *zone.zoneName(), *fan.fanName()),
       !writeSuccess);
   XLOG(INFO) << folly ::sformat(
-      "Program :: Programmed Fan {} with PWM {} and Returned {} as PWM to program.",
+      "Programmed Fan {} with PWM {} and Returned {} as PWM to program.",
       *fan.fanName(),
       pwmInt,
       pwmToProgram);
   return std::make_pair(!writeSuccess, pwmToProgram);
-}
-
-void ControlLogic::programFan(const Zone& zone, float pwmSoFar) {
-  for (const auto& fan : *config_.fans()) {
-    auto srcType = *fan.pwmAccess()->accessType();
-    float pwmToProgram = 0;
-    float currentPwm = fanStatuses_[*fan.fanName()].currentPwm;
-    bool writeSuccess{false};
-    // If this fan does not belong to the current zone, do not do anything
-    if (std::find(
-            zone.fanNames()->begin(), zone.fanNames()->end(), *fan.fanName()) ==
-        zone.fanNames()->end()) {
-      continue;
-    }
-
-    if ((*zone.slope() == 0) || (currentPwm == 0)) {
-      pwmToProgram = pwmSoFar;
-    } else {
-      if (pwmSoFar > currentPwm) {
-        if ((pwmSoFar - currentPwm) > *zone.slope()) {
-          pwmToProgram = currentPwm + *zone.slope();
-        } else {
-          pwmToProgram = pwmSoFar;
-        }
-      } else if (pwmSoFar < currentPwm) {
-        if ((currentPwm - pwmSoFar) > *zone.slope()) {
-          pwmToProgram = currentPwm - *zone.slope();
-        } else {
-          pwmToProgram = pwmSoFar;
-        }
-      } else {
-        pwmToProgram = pwmSoFar;
-      }
-    }
-    int pwmInt =
-        (int)(((*fan.pwmMax()) - (*fan.pwmMin())) * pwmToProgram / 100.0 + *fan.pwmMin());
-    if (pwmInt < *fan.pwmMin()) {
-      pwmInt = *fan.pwmMin();
-    } else if (pwmInt > *fan.pwmMax()) {
-      pwmInt = *fan.pwmMax();
-    }
-    if (srcType == constants::ACCESS_TYPE_SYSFS()) {
-      writeSuccess = pBsp_->setFanPwmSysfs(*fan.pwmAccess()->path(), pwmInt);
-      if (!writeSuccess) {
-        setFanFailState(fan, true);
-      }
-    } else if (srcType == constants::ACCESS_TYPE_UTIL()) {
-      writeSuccess = pBsp_->setFanPwmShell(
-          *fan.pwmAccess()->path(), *fan.fanName(), pwmInt);
-      if (!writeSuccess) {
-        setFanFailState(fan, true);
-      }
-    } else {
-      XLOG(ERR) << "Unsupported PWM access type for : ", *fan.fanName();
-    }
-    fb303::fbData->setCounter(
-        fmt::format(kFanWriteFailure, *zone.zoneName(), *fan.fanName()),
-        !writeSuccess);
-    fanStatuses_[*fan.fanName()].currentPwm = pwmToProgram;
-  }
 }
 
 void ControlLogic::setFanFailState(
@@ -636,65 +576,58 @@ void ControlLogic::setFanFailState(
   }
 }
 
-void ControlLogic::setFanFailState(const Fan& fan, bool fanFailed) {
-  setFanFailState(fan, fanStatuses_[*fan.fanName()], fanFailed);
-}
-
-void ControlLogic::adjustZoneFans(bool boostMode) {
-  for (const auto& zone : *config_.zones()) {
-    float pwmSoFar = 0;
-    XLOG(INFO) << "Zone : " << *zone.zoneName();
-    // First, calculate the pwm value for this zone
-    auto zoneType = *zone.zoneType();
-    int totalPwmConsidered = 0;
-    for (const auto& sensorName : *zone.sensorNames()) {
-      if (isSensorPresentInConfig(sensorName) ||
-          pSensor_->checkIfOpticEntryExists(sensorName)) {
-        totalPwmConsidered++;
-        float pwmForThisSensor;
-        if (isSensorPresentInConfig(sensorName)) {
-          // If this is a sensor name
-          pwmForThisSensor = sensorReadCaches_[sensorName].targetPwmCache;
-        } else {
-          // If this is an optics name
-          pwmForThisSensor = pSensor_->getOpticsPwm(sensorName);
-        }
-        if (zoneType == constants::ZONE_TYPE_MAX()) {
-          if (pwmSoFar < pwmForThisSensor) {
-            pwmSoFar = pwmForThisSensor;
-          }
-        } else if (zoneType == constants::ZONE_TYPE_MIN()) {
-          if (pwmSoFar > pwmForThisSensor) {
-            pwmSoFar = pwmForThisSensor;
-          }
-        } else if (zoneType == constants::ZONE_TYPE_AVG()) {
-          pwmSoFar += pwmForThisSensor;
-        } else {
-          XLOG(ERR) << "Undefined Zone Type for zone : ", *zone.zoneName();
-        }
-        XLOG(INFO) << "  Sensor/Optic " << sensorName << " : "
-                   << pwmForThisSensor << " Overall so far : " << pwmSoFar;
-      }
-    }
-    if (zoneType == constants::ZONE_TYPE_AVG()) {
-      pwmSoFar /= (float)totalPwmConsidered;
-    }
-    XLOG(INFO) << "  Final PWM : " << pwmSoFar;
-    if (boostMode) {
-      if (pwmSoFar < *config_.pwmBoostValue()) {
-        pwmSoFar = *config_.pwmBoostValue();
-      }
-    }
-    // Update the previous pwm value in each associated sensors,
-    // so that they may be used in the next calculation.
-    for (const auto& sensorName : *zone.sensorNames()) {
+float ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {
+  XLOG(INFO) << "Zone : " << *zone.zoneName();
+  // First, calculate the pwm value for this zone
+  auto zoneType = *zone.zoneType();
+  float pwmSoFar = 0;
+  int totalPwmConsidered = 0;
+  for (const auto& sensorName : *zone.sensorNames()) {
+    if (isSensorPresentInConfig(sensorName) ||
+        pSensor_->checkIfOpticEntryExists(sensorName)) {
+      totalPwmConsidered++;
+      float pwmForThisSensor;
       if (isSensorPresentInConfig(sensorName)) {
-        pwmCalcCaches_[sensorName].previousTargetPwm = pwmSoFar;
+        // If this is a sensor name
+        pwmForThisSensor = sensorReadCaches_[sensorName].targetPwmCache;
+      } else {
+        // If this is an optics name
+        pwmForThisSensor = pSensor_->getOpticsPwm(sensorName);
       }
+      if (zoneType == constants::ZONE_TYPE_MAX()) {
+        if (pwmSoFar < pwmForThisSensor) {
+          pwmSoFar = pwmForThisSensor;
+        }
+      } else if (zoneType == constants::ZONE_TYPE_MIN()) {
+        if (pwmSoFar > pwmForThisSensor) {
+          pwmSoFar = pwmForThisSensor;
+        }
+      } else if (zoneType == constants::ZONE_TYPE_AVG()) {
+        pwmSoFar += pwmForThisSensor;
+      } else {
+        XLOG(ERR) << "Undefined Zone Type for zone : ", *zone.zoneName();
+      }
+      XLOG(INFO) << "  Sensor/Optic " << sensorName << " : " << pwmForThisSensor
+                 << " Overall so far : " << pwmSoFar;
     }
-    // Secondly, set Zone pwm value to all the fans in the zone
-    programFan(zone, pwmSoFar);
   }
+  if (zoneType == constants::ZONE_TYPE_AVG()) {
+    pwmSoFar /= (float)totalPwmConsidered;
+  }
+  XLOG(INFO) << "  Final PWM : " << pwmSoFar;
+  if (boostMode) {
+    if (pwmSoFar < *config_.pwmBoostValue()) {
+      pwmSoFar = *config_.pwmBoostValue();
+    }
+  }
+  // Update the previous pwm value in each associated sensors,
+  // so that they may be used in the next calculation.
+  for (const auto& sensorName : *zone.sensorNames()) {
+    if (isSensorPresentInConfig(sensorName)) {
+      pwmCalcCaches_[sensorName].previousTargetPwm = pwmSoFar;
+    }
+  }
+  return pwmSoFar;
 }
 
 void ControlLogic::setTransitionValue() {
@@ -765,6 +698,7 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
                << *config_.pwmBoostOnNoQsfpAfterInSec();
   }
 
+  // Critical Section of fanStatuses_
   {
     // Now, check if Fan is in good shape, based on the previously read
     // sensor data
@@ -776,21 +710,40 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
       fanStatuses_[*fan.fanName()].timeStamp = fanTimestamp;
       setFanFailState(fan, fanStatuses_[*fan.fanName()], fanFailed);
     }
+
+    boostMode =
+        (((*config_.pwmBoostOnNumDeadFan() != 0) &&
+          (numFanFailed_ >= *config_.pwmBoostOnNumDeadFan())) ||
+         ((*config_.pwmBoostOnNumDeadSensor() != 0) &&
+          (numSensorFailed_ >= *config_.pwmBoostOnNumDeadSensor())) ||
+         boost_due_to_no_qsfp);
+    XLOG(INFO) << "Control :: Boost mode " << (boostMode ? "On" : "Off");
+
+    XLOG(INFO) << "Control :: Updating Zones with new Fan value";
+    for (const auto& zone : *config_.zones()) {
+      // Finally, set pwm values per zone.
+      // It's not recommended to put a fan in multiple zones,
+      // even though it's possible to do so.
+      float pwmSoFar = calculateZonePwm(zone, boostMode);
+      for (const auto& fan : *config_.fans()) {
+        // Skip if the fan doesn't belong to this zone
+        if (std::find(
+                zone.fanNames()->begin(),
+                zone.fanNames()->end(),
+                *fan.fanName()) == zone.fanNames()->end()) {
+          continue;
+        }
+
+        const auto [fanFailed, pwmToProgram] = programFan(
+            zone, fan, fanStatuses_[*fan.fanName()].currentPwm, pwmSoFar);
+        fanStatuses_[*fan.fanName()].currentPwm = pwmToProgram;
+        if (fanFailed) {
+          setFanFailState(fan, fanStatuses_[*fan.fanName()], fanFailed);
+        }
+      }
+    }
   }
 
-  boostMode =
-      (((*config_.pwmBoostOnNumDeadFan() != 0) &&
-        (numFanFailed_ >= *config_.pwmBoostOnNumDeadFan())) ||
-       ((*config_.pwmBoostOnNumDeadSensor() != 0) &&
-        (numSensorFailed_ >= *config_.pwmBoostOnNumDeadSensor())) ||
-       boost_due_to_no_qsfp);
-  XLOG(INFO) << "Control :: Boost mode " << (boostMode ? "On" : "Off");
-  XLOG(INFO) << "Control :: Updating Zones with new Fan value";
-
-  // Finally, set pwm values per zone.
-  // It's not recommended to put a fan in multiple zones,
-  // even though it's possible to do so.
-  adjustZoneFans(boostMode);
   // Update the time stamp
   lastControlUpdateSec_ = pBsp_->getCurrentTime();
 }

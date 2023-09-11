@@ -72,15 +72,13 @@ class ControlLogic {
   std::tuple<bool /*fan failed*/, int /*rpm*/, uint64_t /*timestamp*/>
   getFanUpdate(const Fan& fan, const FanStatus& fanStatus);
   void getOpticsUpdate();
-  void programFan(const Zone& zone, float pwmSoFar);
   std::pair<bool /* pwm update fail */, float /* pwm */> programFan(
       const Zone& zone,
       const Fan& fan,
       float currentPwm,
       float pwmSoFar);
-  void adjustZoneFans(bool boostMode);
+  float calculateZonePwm(const Zone& zone, bool boostMode);
   void updateTargetPwm(const Sensor& sensorItem);
-  void setFanFailState(const Fan& fan, bool fanFailed);
   void setFanFailState(const Fan& fan, FanStatus& fanStatus, bool fanFailed);
   bool isFanPresentInDevice(const Fan& fan);
   bool isSensorPresentInConfig(const std::string& sensorName);
