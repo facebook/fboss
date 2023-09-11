@@ -41,85 +41,74 @@ ControlLogic::ControlLogic(
       pBsp_(pB),
       lastControlUpdateSec_(pBsp_->getCurrentTime()) {}
 
-void ControlLogic::getFanUpdate() {
+std::tuple<bool, int, uint64_t> ControlLogic::getFanUpdate(
+    const Fan& fan,
+    const FanStatus& fanStatus) {
   SensorEntryType entryType;
 
-  // Zeroth, check Fan RPM and Status
-  for (const auto& fan : *config_.fans()) {
-    std::string fanName = *fan.fanName();
-    auto rpmAccessType = *fan.rpmAccess()->accessType();
-    XLOG(INFO) << "Control :: Fan name " << *fan.fanName()
-               << " Access type : " << rpmAccessType;
-    bool fanAccessFail = false, fanMissing = false;
-    int fanRpm;
-    uint64_t rpmTimeStamp;
+  std::string fanName = *fan.fanName();
+  auto rpmAccessType = *fan.rpmAccess()->accessType();
+  XLOG(INFO) << "Control :: Fan name " << *fan.fanName()
+             << " Access type : " << rpmAccessType;
+  bool fanAccessFail = false, fanMissing = false;
+  int fanRpm = 0;
+  uint64_t rpmTimeStamp = 0;
 
-    // Check if RPM name in Thrift data is overridden
-    if (rpmAccessType == constants::ACCESS_TYPE_THRIFT()) {
-      fanName = *fan.rpmAccess()->path();
-    }
-    if (!isFanPresentInDevice(fan)) {
-      fanMissing = true;
-    }
-    if (rpmAccessType == constants::ACCESS_TYPE_THRIFT()) {
-      if (pSensor_->checkIfEntryExists(fanName)) {
-        entryType = pSensor_->getSensorEntryType(fanName);
-        switch (entryType) {
-          case SensorEntryType::kSensorEntryInt:
-            fanRpm = static_cast<int>(pSensor_->getSensorDataInt(fanName));
-            break;
-          case SensorEntryType::kSensorEntryFloat:
-            fanRpm = static_cast<int>(pSensor_->getSensorDataFloat(fanName));
-            break;
-        }
-        rpmTimeStamp = pSensor_->getLastUpdated(fanName);
-        if (rpmTimeStamp == fanStatuses_[fanName].timeStamp) {
-          // If read method is Thrift, but read time stamp is stale
-          // , consider that as access failure
-          fanAccessFail = true;
-        } else {
-          fanStatuses_[fanName].rpm = fanRpm;
-          fanStatuses_[fanName].timeStamp = rpmTimeStamp;
-        }
-      } else {
-        // If no entry in Thrift response, consider that as failure
-        fanAccessFail = true;
-      }
-    } else if (rpmAccessType == constants::ACCESS_TYPE_SYSFS()) {
-      try {
-        fanStatuses_[fanName].rpm = pBsp_->readSysfs(*fan.rpmAccess()->path());
-        fanStatuses_[fanName].timeStamp = pBsp_->getCurrentTime();
-      } catch (std::exception& e) {
-        XLOG(ERR) << "Fan RPM access fail " << *fan.rpmAccess()->path();
-        // Obvious. Sysfs fail means access fail
-        fanAccessFail = true;
-      }
-    } else {
-      facebook::fboss::FbossError(
-          "Unable to fetch Fan RPM due to invalide RPM sensor entry type :",
-          fanName);
-    }
-
-    // We honor fan presence bit first,
-    // If fan is present, then check if access has failed
-    if (fanMissing) {
-      setFanFailState(fan, true);
-    } else if (fanAccessFail) {
-      uint64_t timeDiffInSec =
-          pBsp_->getCurrentTime() - fanStatuses_[fanName].timeStamp;
-      if (timeDiffInSec >= kFanFailThresholdInSec) {
-        setFanFailState(fan, true);
-        numFanFailed_++;
-      }
-    } else {
-      setFanFailState(fan, false);
-    }
-    XLOG(INFO) << "Control :: RPM :" << fanStatuses_[fanName].rpm
-               << " Failed : "
-               << (fanStatuses_[fanName].fanFailed ? "Yes" : "No");
+  // Check if RPM name in Thrift data is overridden
+  if (rpmAccessType == constants::ACCESS_TYPE_THRIFT()) {
+    fanName = *fan.rpmAccess()->path();
   }
-  XLOG(INFO) << "Control :: Done checking Fans Status";
-  return;
+  if (!isFanPresentInDevice(fan)) {
+    fanMissing = true;
+  }
+  if (rpmAccessType == constants::ACCESS_TYPE_THRIFT()) {
+    if (pSensor_->checkIfEntryExists(fanName)) {
+      entryType = pSensor_->getSensorEntryType(fanName);
+      switch (entryType) {
+        case SensorEntryType::kSensorEntryInt:
+          fanRpm = static_cast<int>(pSensor_->getSensorDataInt(fanName));
+          break;
+        case SensorEntryType::kSensorEntryFloat:
+          fanRpm = static_cast<int>(pSensor_->getSensorDataFloat(fanName));
+          break;
+      }
+      rpmTimeStamp = pSensor_->getLastUpdated(fanName);
+      if (rpmTimeStamp == fanStatus.timeStamp) {
+        // If read method is Thrift, but read time stamp is stale
+        // , consider that as access failure
+        fanAccessFail = true;
+      }
+    } else {
+      // If no entry in Thrift response, consider that as failure
+      fanAccessFail = true;
+    }
+  } else if (rpmAccessType == constants::ACCESS_TYPE_SYSFS()) {
+    try {
+      fanRpm = pBsp_->readSysfs(*fan.rpmAccess()->path());
+      rpmTimeStamp = pBsp_->getCurrentTime();
+    } catch (std::exception& e) {
+      XLOG(ERR) << "Fan RPM access fail " << *fan.rpmAccess()->path();
+      // Obvious. Sysfs fail means access fail
+      fanAccessFail = true;
+    }
+  } else {
+    facebook::fboss::FbossError(
+        "Unable to fetch Fan RPM due to invalide RPM sensor entry type :",
+        fanName);
+  }
+
+  auto fanAccessFailDuration = pBsp_->getCurrentTime() - fanStatus.timeStamp;
+  if (fanAccessFail && fanAccessFailDuration >= kFanFailThresholdInSec) {
+    numFanFailed_++;
+  }
+
+  auto fanFailed = fanMissing ||
+      (fanAccessFail && fanAccessFailDuration >= kFanFailThresholdInSec);
+
+  XLOG(INFO) << "Control :: RPM :" << fanRpm
+             << " Failed : " << (fanFailed ? "Yes" : "No");
+
+  return std::make_tuple(fanFailed, fanRpm, rpmTimeStamp);
 }
 
 void ControlLogic::updateTargetPwm(const Sensor& sensor) {
@@ -754,11 +743,6 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
     pBsp_->getSensorData(pSensor_);
   }
 
-  // Now, check if Fan is in good shape, based on the previously read
-  // sensor data
-  XLOG(INFO) << "Control :: Checking Fan Status";
-  getFanUpdate();
-
   // Determine proposed pwm value by each sensor read
   XLOG(INFO) << "Control :: Reading Sensor Status and determine per sensor PWM";
   getSensorUpdate();
@@ -779,6 +763,19 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
     XLOG(INFO) << "Control :: Boost mode condition for no optics update "
                << secondsSinceLastOpticsUpdate << " > "
                << *config_.pwmBoostOnNoQsfpAfterInSec();
+  }
+
+  {
+    // Now, check if Fan is in good shape, based on the previously read
+    // sensor data
+    XLOG(INFO) << "Control :: Checking Fan Status";
+    for (const auto& fan : *config_.fans()) {
+      auto [fanFailed, fanRpm, fanTimestamp] =
+          getFanUpdate(fan, fanStatuses_[*fan.fanName()]);
+      fanStatuses_[*fan.fanName()].rpm = fanRpm;
+      fanStatuses_[*fan.fanName()].timeStamp = fanTimestamp;
+      setFanFailState(fan, fanStatuses_[*fan.fanName()], fanFailed);
+    }
   }
 
   boostMode =
