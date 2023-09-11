@@ -83,7 +83,30 @@ unique_ptr<HwTestHandle> setupTestHandle() {
 
 } // unnamed namespace
 
-TEST(CaptureTest, FullCapture) {
+template <bool enableIntfNbrTable>
+struct EnableIntfNbrTable {
+  static constexpr auto intfNbrTable = enableIntfNbrTable;
+};
+
+using NbrTableTypes = ::testing::Types<EnableIntfNbrTable<false>>;
+
+template <typename EnableIntfNbrTableT>
+class CaptureTest : public ::testing::Test {
+  static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
+
+  void SetUp() override {
+    FLAGS_intf_nbr_tables = isIntfNbrTable();
+  }
+
+ public:
+  bool isIntfNbrTable() const {
+    return intfNbrTable == true;
+  }
+};
+
+TYPED_TEST_SUITE(CaptureTest, NbrTableTypes);
+
+TYPED_TEST(CaptureTest, FullCapture) {
   auto handle = setupTestHandle();
   auto sw = handle->getSw();
 
