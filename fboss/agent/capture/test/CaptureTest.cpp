@@ -88,7 +88,8 @@ struct EnableIntfNbrTable {
   static constexpr auto intfNbrTable = enableIntfNbrTable;
 };
 
-using NbrTableTypes = ::testing::Types<EnableIntfNbrTable<false>>;
+using NbrTableTypes =
+    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
 
 template <typename EnableIntfNbrTableT>
 class CaptureTest : public ::testing::Test {
@@ -224,7 +225,8 @@ TYPED_TEST(CaptureTest, FullCapture) {
   // This should trigger the switch to send an ARP request
   // and set a pending entry.
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(1);
-  EXPECT_STATE_UPDATE_TIMES(sw, 1);
+  // pending entry is not created for intf neighbors
+  EXPECT_STATE_UPDATE_TIMES(sw, this->isIntfNbrTable() ? 0 : 1);
   sw->packetReceived(ipPkt.clone());
   sw->getNeighborUpdater()->waitForPendingUpdates();
   waitForStateUpdates(sw);
