@@ -60,8 +60,8 @@ const HwAsic* HwAsicTable::getHwAsic(SwitchID switchID) const {
   return asic;
 }
 
-const std::map<SwitchID, HwAsic*> HwAsicTable::getHwAsics() const {
-  std::map<SwitchID, HwAsic*> hwAsicsMap;
+const std::map<SwitchID, const HwAsic*> HwAsicTable::getHwAsics() const {
+  std::map<SwitchID, const HwAsic*> hwAsicsMap;
   for (const auto& [id, asic] : hwAsics_) {
     hwAsicsMap.emplace(id, asic.get());
   }

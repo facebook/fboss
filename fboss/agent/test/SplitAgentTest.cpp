@@ -65,7 +65,7 @@ std::shared_ptr<SwitchState> SplitAgentTest::applyNewConfig(
   return agentEnsemble_->applyNewConfig(config);
 }
 
-const std::map<SwitchID, HwAsic*> SplitAgentTest::getAsics() const {
+const std::map<SwitchID, const HwAsic*> SplitAgentTest::getAsics() const {
   return agentEnsemble_->getSw()->getHwAsicTable()->getHwAsics();
 }
 
