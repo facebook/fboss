@@ -416,19 +416,7 @@ void Bsp::setEmergencyState(bool state) {
 }
 
 void Bsp::getSensorDataThrift(std::shared_ptr<SensorData> pSensorData) {
-  // Simply call the helper fucntion with empty string vector.
-  // (which means we want all sensor data)
-  std::vector<std::string> emptyStrVec;
-  getSensorDataThriftWithSensorList(pSensorData, emptyStrVec);
-  return;
-}
-
-void Bsp::getSensorDataThriftWithSensorList(
-    std::shared_ptr<SensorData> pSensorData,
-    std::vector<std::string> sensorList) {
-  getSensorValueThroughThrift(
-      sensordThriftPort_, evbSensor_, pSensorData, sensorList);
-  return;
+  getSensorValueThroughThrift(sensordThriftPort_, evbSensor_, pSensorData);
 }
 
 void Bsp::getSensorDataRest(std::shared_ptr<SensorData> /*pSensorData*/) {

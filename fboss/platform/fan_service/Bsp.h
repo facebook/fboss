@@ -118,14 +118,6 @@ class Bsp {
       std::string fanName,
       int pwm);
 
-  // Private Methods
-  // Various handlers to fetch sensor data from Thrift / Utility / Rest / Sysfs
-  void getSensorDataThriftWithSensorList(
-      std::shared_ptr<SensorData> pSensorData,
-      std::vector<std::string> sensorList);
-  void getSensorDataFb303WithSensorList(
-      std::shared_ptr<SensorData> pSensorData,
-      std::vector<std::string> sensorList);
   void getSensorDataUtil(std::shared_ptr<SensorData> pSensorData);
   float getSensorDataSysfs(std::string path);
   void getSensorDataRest(std::shared_ptr<SensorData> pSensorData);

@@ -19,10 +19,9 @@ void getTransceivers(
 }
 
 void getSensorValueThroughThrift(
-    int sensordThriftPort_,
-    folly::EventBase& evb_,
-    std::shared_ptr<SensorData>& pSensorData,
-    std::vector<std::string>& sensorList) {
+    int sensorServiceThriftPort,
+    folly::EventBase& evb,
+    std::shared_ptr<SensorData>& pSensorData) {
   // Until we have a way to do RPC between fan_service and
   // sensor_service in OSS build, we will not simply print out
   // error log
