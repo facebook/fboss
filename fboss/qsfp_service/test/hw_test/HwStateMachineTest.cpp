@@ -41,8 +41,8 @@ class HwStateMachineTest : public HwTest {
         continue;
       }
       auto id = *chip.second.physicalID();
-      if (auto tcvrIt = presentTcvrs.find(id);
-          tcvrIt != presentTcvrs.end() && *tcvrIt->second.present()) {
+      if (auto tcvrIt = presentTcvrs.find(id); tcvrIt != presentTcvrs.end() &&
+          *tcvrIt->second.tcvrState()->present()) {
         if (std::find(
                 cabledTransceivers.begin(), cabledTransceivers.end(), id) !=
             cabledTransceivers.end()) {
