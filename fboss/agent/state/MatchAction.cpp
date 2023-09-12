@@ -63,6 +63,13 @@ state::MatchAction MatchAction::toThrift() const {
     }
     matchAction.redirectToNextHop() = redirectToNextHop;
   }
+  if (setTc_.has_value()) {
+    auto setTc = state::SetTc();
+    setTc.action() = setTc_->first;
+    setTc.sendToCPU() = setTc_->second;
+    matchAction.setTc() = setTc;
+  }
+  matchAction.userDefinedTrap().from_optional(userDefinedTrap_);
   return matchAction;
 }
 
@@ -89,6 +96,13 @@ MatchAction MatchAction::fromThrift(state::MatchAction const& ma) {
     }
     matchAction.redirectToNextHop_ = redirectAction;
   }
+  if (auto setTc = ma.setTc()) {
+    auto setTcVal = SetTc();
+    setTcVal.first = setTc->get_action();
+    setTcVal.second = setTc->get_sendToCPU();
+    matchAction.setTc_ = setTcVal;
+  }
+  matchAction.userDefinedTrap_ = ma.userDefinedTrap().to_optional();
   return matchAction;
 }
 

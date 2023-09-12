@@ -2852,6 +2852,9 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
         if (auto sendToQueue = mta.action()->sendToQueue()) {
           matchAction.setSendToQueue(std::make_pair(*sendToQueue, isCoppAcl));
         }
+        if (auto setTc = mta.action()->setTc()) {
+          matchAction.setSetTc(std::make_pair(*setTc, isCoppAcl));
+        }
         if (auto actionCounter = mta.action()->counter()) {
           auto counter = counterByName.find(*actionCounter);
           if (counter == counterByName.end()) {
