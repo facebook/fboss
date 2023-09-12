@@ -120,7 +120,8 @@
       ],
       "metaMacOuis": [
         
-      ]
+      ],
+      "needL2EntryForNeighbor": true
     },
     "dsfNodes": {
       
