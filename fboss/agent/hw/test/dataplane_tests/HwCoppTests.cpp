@@ -848,7 +848,6 @@ TYPED_TEST(HwCoppTest, VerifyCoppPpsLowPri) {
     auto kMinDurationInSecs = 12;
     const double kVariance = 0.30; // i.e. + or -30%
 
-    auto beforeSecs = getCurrentTime();
     auto beforeOutPkts = this->getQueueOutPacketsWithRetry(
         utility::kCoppLowPriQueueId,
         0 /* retryTimes */,
@@ -862,6 +861,7 @@ TYPED_TEST(HwCoppTest, VerifyCoppPpsLowPri) {
      * kMinDurationInSecs. But to be safe, keep sending packets for
      * at least kMinDurationInSecs.
      */
+    auto beforeSecs = getCurrentTime();
     do {
       this->sendTcpPkts(
           kNumPktsToSend,
