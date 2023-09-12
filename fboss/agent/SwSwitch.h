@@ -231,6 +231,8 @@ class SwSwitch : public HwSwitchCallback {
       HwSwitchInitFn hwSwitchInitFn,
       SwitchFlags flags = SwitchFlags::DEFAULT);
 
+  void init(SwitchFlags flags = SwitchFlags::DEFAULT);
+
   bool isFullyInitialized() const;
 
   bool isInitialized() const;
@@ -896,6 +898,10 @@ class SwSwitch : public HwSwitchCallback {
 
   bool needL2EntryForNeighbor() const;
 
+  SwSwitchWarmBootHelper* getWarmBootHelper() {
+    return swSwitchWarmbootHelper_.get();
+  }
+
  private:
   std::optional<folly::MacAddress> getSourceMac(
       const std::shared_ptr<Interface>& intf) const;
@@ -1003,9 +1009,10 @@ class SwSwitch : public HwSwitchCallback {
 
   void setConfigImpl(std::unique_ptr<AgentConfig> config);
 
-  std::shared_ptr<SwitchState> init(SwitchFlags flags = SwitchFlags::DEFAULT);
+  std::shared_ptr<SwitchState> preInit(
+      SwitchFlags flags = SwitchFlags::DEFAULT);
 
-  void initDone(const HwInitResult* HwInitResult);
+  void postInit(const HwInitResult* HwInitResult = nullptr);
 
   std::unique_ptr<MultiHwSwitchHandler> multiHwSwitchHandler_;
   const AgentDirectoryUtil* agentDirUtil_;

@@ -526,6 +526,7 @@ void SwSwitch::gracefulExit() {
                       .count();
     // Cleanup if we ever initialized
     multiHwSwitchHandler_->gracefulExit(thriftSwitchState);
+    multiHwSwitchHandler_->stop();
     // writing after hwSwitch state for backward compat
     storeWarmBootState(thriftSwitchState);
     XLOG(DBG2)
@@ -566,8 +567,9 @@ void SwSwitch::publishStatsToFsdb() {
   agentStats.hwPortStats() = multiHwSwitchHandler_->getPortStats();
   agentStats.sysPortStats() = multiHwSwitchHandler_->getSysPortStats();
 
-  agentStats.hwAsicErrors() =
-      multiHwSwitchHandler_->getSwitchStats()->getHwAsicErrors();
+  if (auto hwSwitchStats = multiHwSwitchHandler_->getSwitchStats()) {
+    agentStats.hwAsicErrors() = hwSwitchStats->getHwAsicErrors();
+  }
   agentStats.teFlowStats() = getTeFlowStats();
   stats()->fillAgentStats(agentStats);
   agentStats.bufferPoolStats() = getBufferPoolStats();
@@ -707,7 +709,7 @@ void SwSwitch::publishTxPacket(TxPacket* pkt, uint16_t ethertype) {
   pubPkt.packetData = copy_buf.moveToFbString();
 }
 
-std::shared_ptr<SwitchState> SwSwitch::init(SwitchFlags flags) {
+std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
   auto begin = steady_clock::now();
   flags_ = flags;
   bootType_ = swSwitchWarmbootHelper_->canWarmBoot() ? BootType::WARM_BOOT
@@ -726,6 +728,11 @@ std::shared_ptr<SwitchState> SwSwitch::init(SwitchFlags flags) {
 
   if (bootType_ != BootType::WARM_BOOT) {
     state = setupMinAlpmRouteState(*scopeResolver_, state);
+    // rib should also have minimum alpm state
+    rib_ = RoutingInformationBase::fromThrift(
+        rib_->toThrift(),
+        state->getFibs(),
+        state->getLabelForwardingInformationBase());
   }
 
   fb303::fbData->setCounter(kHwUpdateFailures, 0);
@@ -752,7 +759,7 @@ void SwSwitch::init(
   auto begin = steady_clock::now();
   flags_ = flags;
   auto hwInitRet = hwSwitchInitFn(callback, false /*failHwCallsOnWarmboot*/);
-  auto initialState = init(flags);
+  auto initialState = preInit(flags);
   if (hwInitRet.bootType != bootType_) {
     // this is being done for preprod2trunk migration. further until tooling is
     // updated to affect both warm boot flags, HwSwitch will override SwSwitch
@@ -802,7 +809,7 @@ void SwSwitch::init(
       << "Time to init switch and start all threads and apply the state"
       << duration_cast<duration<float>>(steady_clock::now() - begin).count();
 
-  initDone(&hwInitRet);
+  postInit(&hwInitRet);
 
   if (scopeResolver_->hasL3()) {
     SwSwitchRouteUpdateWrapper(this, rib_.get()).programMinAlpmState();
@@ -819,6 +826,39 @@ void SwSwitch::init(
     HwSwitchInitFn hwSwitchInitFn,
     SwitchFlags flags) {
   this->init(this, std::move(tunMgr), hwSwitchInitFn, flags);
+}
+
+void SwSwitch::init(SwitchFlags flags) {
+  /* used for split Software Switch init */
+  auto initialState = preInit(flags);
+  initialState->publish();
+  // wait for HwSwitch connect
+  std::shared_ptr<SwitchState> emptyState = std::make_shared<SwitchState>();
+  emptyState->publish();
+  if (!getHwSwitchHandler()->waitUntilHwSwitchConnected()) {
+    throw FbossError("Waiting for HwSwitch to be connected cancelled");
+  }
+  try {
+    getHwSwitchHandler()->stateChanged(
+        StateDelta(emptyState, initialState), false);
+  } catch (const std::exception& ex) {
+    throw FbossError("Failed to sync initial state to HwSwitch: ", ex.what());
+  }
+  // for cold boot discrepancy may exist between applied state in software
+  // switch and state that already exist in hardware. this discrepancy is until
+  // config is applied, after that the two states are in sync. tolerating this
+  // discrepancy for now.
+  setStateInternal(initialState);
+  // Notify the state observers of the initial state
+  updateEventBase_.runInEventBaseThread([emptyState, initialState, this]() {
+    notifyStateObservers(StateDelta(emptyState, initialState));
+  });
+  if (FLAGS_log_all_fib_updates) {
+    constexpr auto kAllFibUpdates = "all_fib_updates";
+    logRouteUpdates("::", 0, kAllFibUpdates);
+    logRouteUpdates("0.0.0.0", 0, kAllFibUpdates);
+  }
+  postInit();
 }
 
 void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
@@ -1603,7 +1643,7 @@ void SwSwitch::startThreads() {
       [=] { this->threadLoop("fbossLacpThread", &lacpEventBase_); }));
 }
 
-void SwSwitch::initDone(const HwInitResult* hwInitResult) {
+void SwSwitch::postInit(const HwInitResult* hwInitResult) {
   if (flags_ & SwitchFlags::ENABLE_LLDP) {
     lldpManager_ = std::make_unique<LldpManager>(this);
   }

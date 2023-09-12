@@ -2,11 +2,14 @@
 
 #pragma once
 
+#include "fboss/agent/AgentDirectoryUtil.h"
 #include "fboss/agent/SwAgentInitializer.h"
 
 #include <folly/io/async/EventBase.h>
 
 namespace facebook::fboss {
+
+class SwitchState;
 
 class SplitSwSwitchInitializer : public SwSwitchInitializer {
  public:
@@ -18,11 +21,14 @@ class SplitSwSwitchInitializer : public SwSwitchInitializer {
 
 class SplitSwAgentInitializer : public SwAgentInitializer {
  public:
-  SplitSwAgentInitializer() {}
-  ~SplitSwAgentInitializer() override {}
+  SplitSwAgentInitializer();
+  virtual ~SplitSwAgentInitializer() override {}
 
   std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
   getThrifthandlers() override;
+
+ private:
+  AgentDirectoryUtil agentDirectoryUtil_;
 };
 
 } // namespace facebook::fboss

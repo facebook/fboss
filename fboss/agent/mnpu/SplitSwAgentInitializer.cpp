@@ -10,15 +10,20 @@
 namespace facebook::fboss {
 
 void SplitSwSwitchInitializer::initImpl(HwSwitchCallback* callback) {
-  sw_->init(
-      callback,
-      nullptr,
-      [](HwSwitchCallback* /*callback*/, bool /*failHwCallsOnWarmboot*/) {
-        // TODO: need a different init for split sw-switch, as it there is no hw
-        // agent
-        return HwInitResult{};
+  // this blocks until at least one hardware switch is up
+  sw_->init(setupFlags());
+}
+
+SplitSwAgentInitializer::SplitSwAgentInitializer() {
+  sw_ = std::make_unique<SwSwitch>(
+      [](const SwitchID& switchId, const cfg::SwitchInfo& info, SwSwitch* sw) {
+        return std::make_unique<NonMonolithicHwSwitchHandler>(
+            switchId, info, sw);
       },
-      setupFlags());
+      &agentDirectoryUtil_,
+      true /* supportsAddRemovePort */,
+      nullptr /* config */);
+  initializer_ = std::make_unique<SplitSwSwitchInitializer>(sw_.get());
 }
 
 std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
