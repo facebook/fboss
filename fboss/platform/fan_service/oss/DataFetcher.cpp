@@ -3,12 +3,14 @@
 // that are OSS specific. The counterpart should be
 // implemented in Meta specific file.
 
-#include "fboss/platform/fan_service/HelperFunction.h"
+#include "fboss/platform/fan_service/DataFetcher.h"
 
 #include <folly/logging/xlog.h>
 
 using namespace facebook::fboss;
 using namespace facebook::fboss::platform::fan_service;
+
+namespace facebook::fboss::platform::fan_service {
 
 void getTransceivers(
     std::map<int32_t, TransceiverInfo>& cacheTable,
@@ -26,3 +28,5 @@ void getSensorValueThroughThrift(
   // error log
   XLOG(ERR) << "Thrift RPC to other services are not yet supported in OSS.";
 }
+
+} // namespace facebook::fboss::platform::fan_service

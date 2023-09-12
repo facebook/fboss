@@ -5,7 +5,6 @@
 
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/platform/fan_service/FanServiceImpl.h"
-#include "fboss/platform/fan_service/HelperFunction.h"
 #include "fboss/platform/helpers/Init.h"
 
 DEFINE_bool(run_forever, false, "run the test forever");

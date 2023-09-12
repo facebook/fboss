@@ -32,7 +32,7 @@ add_library(fan_service_lib
   fboss/platform/fan_service/SensorData.cpp
   fboss/platform/fan_service/Utils.cpp
   fboss/platform/fan_service/oss/FsdbSensorSubscriber.cpp
-  fboss/platform/fan_service/oss/OssHelper.cpp
+  fboss/platform/fan_service/oss/DataFetcher.cpp
 )
 
 target_link_libraries(fan_service_lib
