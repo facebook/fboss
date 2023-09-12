@@ -30,27 +30,10 @@ class HwLoadBalancerTestV6Flowlet
   }
 
  private:
-  std::vector<PortID> getPorts() const {
-    std::vector<PortID> ports = {
-        masterLogicalPortIds()[0],
-        masterLogicalPortIds()[1],
-        masterLogicalPortIds()[2],
-        masterLogicalPortIds()[3],
-        masterLogicalPortIds()[4],
-        masterLogicalPortIds()[5],
-        masterLogicalPortIds()[6],
-        masterLogicalPortIds()[7],
-        masterLogicalPortIds()[8],
-    };
-
-    return ports;
-  }
-
   cfg::SwitchConfig initialConfig() const override {
     auto hwSwitch = getHwSwitch();
-    auto ports = getPorts();
     auto cfg = utility::onePortPerInterfaceConfig(
-        hwSwitch, std::move(ports), getAsic()->desiredLoopbackModes());
+        hwSwitch, masterLogicalPortIds(), getAsic()->desiredLoopbackModes());
     cfg::FlowletSwitchingConfig flowletCfg =
         utility::getDefaultFlowletSwitchingConfig();
     cfg.flowletSwitchingConfig() = flowletCfg;
@@ -74,31 +57,12 @@ class HwLoadBalancerTestV6Flowlet
     return cfg;
   }
 
-  void setPortState() {
-    XLOG(DBG3) << "setting port loopback mode to PHY: ";
-    auto hwEnsemble = getHwSwitchEnsemble();
-    auto newState = hwEnsemble->getProgrammedState()->clone();
-    for (int i = 0; i < 8; i++) {
-      auto newPort = newState->getPorts()
-                         ->getNodeIf(masterLogicalPortIds()[i])
-                         ->modify(&newState);
-      newPort->setLoopbackMode(cfg::PortLoopbackMode::PHY);
-      newPort->setAdminState(cfg::PortState::ENABLED);
-    }
-    hwEnsemble->applyNewState(newState, true);
-  }
-
   void SetUp() override {
     FLAGS_flowletSwitchingEnable = true;
     HwLoadBalancerTest::SetUp();
-    // For DLB ports need to be in PHY loopback mode since
-    // BRCM does not support MAC loopback for 100G links due to phy lane issues
-    setPortState();
   }
 };
 
-// DLB expects traffic not to be balanced on all egress ports
-// Hence do negative test
 RUN_HW_LOAD_BALANCER_TEST_FRONT_PANEL(HwLoadBalancerTestV6Flowlet, Ecmp, Full)
 
 } // namespace facebook::fboss
