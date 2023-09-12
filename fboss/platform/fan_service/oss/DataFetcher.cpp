@@ -23,11 +23,21 @@ void getTransceivers(
 sensor_service::SensorReadResponse getSensorValueThroughThrift(
     int sensorServiceThriftPort,
     folly::EventBase& evb) {
-  // Until we have a way to do RPC between fan_service and
-  // sensor_service in OSS build, we will not simply print out
-  // error log
-  XLOG(ERR) << "Thrift RPC to other services are not yet supported in OSS.";
-  return sensor_service::SensorReadResponse();
+  folly::SocketAddress sockAddr("::1", sensorServiceThriftPort);
+  auto socket =
+      folly::AsyncSocket::newSocket(&evb, sockAddr, kSensorSendTimeoutMs);
+  auto channel =
+      apache::thrift::RocketClientChannel::newChannel(std::move(socket));
+  auto client = std::make_unique<apache::thrift::Client<
+      facebook::fboss::platform::sensor_service::SensorServiceThrift>>(
+      std::move(channel));
+  sensor_service::SensorReadResponse res;
+  try {
+    res = client->future_getSensorValuesByNames({}).get();
+  } catch (std::exception& ex) {
+    XLOG(ERR) << "Exception talking to sensor_service. " << ex.what();
+  }
+  return res;
 }
 
 } // namespace facebook::fboss::platform::fan_service
