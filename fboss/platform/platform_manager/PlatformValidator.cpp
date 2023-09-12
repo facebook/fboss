@@ -11,7 +11,7 @@ namespace facebook::fboss::platform::platform_manager {
 bool PlatformValidator::isValidSlotTypeConfig(
     const SlotTypeConfig& slotTypeConfig) {
   if (!slotTypeConfig.idpromConfig_ref() && !slotTypeConfig.fruType_ref()) {
-    XLOG(ERR) << "SlotTypeConfig must have either EEPROM or FRUType name";
+    XLOG(ERR) << "SlotTypeConfig must have either IDPROM or FRUType name";
     return false;
   }
   if (slotTypeConfig.idpromConfig_ref()) {

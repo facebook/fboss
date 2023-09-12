@@ -197,6 +197,10 @@
                 }
             ],
             "outgoingSlotConfigs": {}
+        },
+        "CHASSIS": {
+            "pluggedInSlotType": "CHASSIS_SLOT",
+            "outgoingSlotConfigs": {}
         }
     },
     "i2cAdaptersFromCpu": [
