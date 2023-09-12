@@ -7,6 +7,8 @@
 
 #include <folly/logging/xlog.h>
 
+#include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_clients.h"
+
 using namespace facebook::fboss;
 using namespace facebook::fboss::platform::fan_service;
 
@@ -18,14 +20,14 @@ void getTransceivers(
   XLOG(ERR) << "OSS Build does not support reading data from qsfp_service";
 }
 
-void getSensorValueThroughThrift(
+sensor_service::SensorReadResponse getSensorValueThroughThrift(
     int sensorServiceThriftPort,
-    folly::EventBase& evb,
-    std::shared_ptr<SensorData>& pSensorData) {
+    folly::EventBase& evb) {
   // Until we have a way to do RPC between fan_service and
   // sensor_service in OSS build, we will not simply print out
   // error log
   XLOG(ERR) << "Thrift RPC to other services are not yet supported in OSS.";
+  return sensor_service::SensorReadResponse();
 }
 
 } // namespace facebook::fboss::platform::fan_service

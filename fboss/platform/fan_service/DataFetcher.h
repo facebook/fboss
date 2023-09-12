@@ -5,6 +5,7 @@
 #pragma once
 
 #include "fboss/platform/fan_service/SensorData.h"
+#include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 
 namespace facebook::fboss::platform::fan_service {
@@ -13,10 +14,8 @@ void getTransceivers(
     std::map<int32_t, facebook::fboss::TransceiverInfo>& cacheTable,
     folly::EventBase& evb);
 
-void getSensorValueThroughThrift(
+sensor_service::SensorReadResponse getSensorValueThroughThrift(
     int sensorServiceThriftPort,
-    folly::EventBase& evb,
-    std::shared_ptr<facebook::fboss::platform::fan_service::SensorData>&
-        pSensorData);
+    folly::EventBase& evb);
 
 } // namespace facebook::fboss::platform::fan_service

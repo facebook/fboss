@@ -416,7 +416,23 @@ void Bsp::setEmergencyState(bool state) {
 }
 
 void Bsp::getSensorDataThrift(std::shared_ptr<SensorData> pSensorData) {
-  getSensorValueThroughThrift(sensordThriftPort_, evbSensor_, pSensorData);
+  auto sensorReadResponse =
+      getSensorValueThroughThrift(sensordThriftPort_, evbSensor_);
+  for (auto& sensorData : *sensorReadResponse.sensorData()) {
+    // Value and Timestamp are not set for failed sensors. Skip them
+    if (sensorData.value() && sensorData.timeStamp()) {
+      pSensorData->updateEntryFloat(
+          *sensorData.name(), *sensorData.value(), *sensorData.timeStamp());
+      XLOG(INFO) << fmt::format(
+          "Storing sensor {} with value {} timestamp {}",
+          *sensorData.name(),
+          *sensorData.value(),
+          *sensorData.timeStamp());
+    }
+  }
+  XLOG(INFO) << fmt::format(
+      "Got sensor data from sensor_service.  Item count: {}",
+      sensorReadResponse.sensorData()->size());
 }
 
 void Bsp::getSensorDataRest(std::shared_ptr<SensorData> /*pSensorData*/) {
