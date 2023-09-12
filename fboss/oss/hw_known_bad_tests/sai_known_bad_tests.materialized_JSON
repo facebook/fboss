@@ -3529,9 +3529,6 @@
           "test_name_regex": "HwPortLedTest.TestLedFromSwitchState"
         },
         {
-          "test_name_regex": "HwCoppTest/0.Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ"
-        },
-        {
           "test_name_regex": "HwNeighborTest/[13].*"
         },
         {
@@ -5003,9 +5000,6 @@
         },
         {
           "test_name_regex": "HwPortLedTest.TestLedFromSwitchState"
-        },
-        {
-          "test_name_regex": "HwCoppTest/0.Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ"
         },
         {
           "test_name_regex": "HwNeighborTest/[13].*"
@@ -6790,9 +6784,6 @@
         },
         {
           "test_name_regex": "HwPortLedTest.TestLedFromSwitchState"
-        },
-        {
-          "test_name_regex": "HwCoppTest/0.Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ"
         },
         {
           "test_name_regex": "HwNeighborTest/[13].*"
@@ -8649,9 +8640,6 @@
         },
         {
           "test_name_regex": "HwPortLedTest.TestLedFromSwitchState"
-        },
-        {
-          "test_name_regex": "HwCoppTest/0.Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ"
         },
         {
           "test_name_regex": "HwNeighborTest/[13].*"
@@ -10932,9 +10920,6 @@
           "test_name_regex": "HwPortLedTest.TestLedFromSwitchState"
         },
         {
-          "test_name_regex": "HwCoppTest/0.Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ"
-        },
-        {
           "test_name_regex": "HwNeighborTest/[13].*"
         },
         {
@@ -11097,9 +11082,6 @@
         },
         {
           "test_name_regex": "HwCoppTest/[01].NdpSolicitationToHighPriQ$"
-        },
-        {
-          "test_name_regex": "HwCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
           "test_name_regex": "HwCoppTest/1.JumboFramesToQueues$"
@@ -11474,9 +11456,6 @@
         },
         {
           "test_name_regex": "HwCoppTest/[01].NdpSolicitationToHighPriQ$"
-        },
-        {
-          "test_name_regex": "HwCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
           "test_name_regex": "HwCoppTest/1.JumboFramesToQueues$"
@@ -12129,9 +12108,6 @@
           "test_name_regex": "HwCoppTest/[01].NdpSolicitationToHighPriQ$"
         },
         {
-          "test_name_regex": "HwCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
           "test_name_regex": "HwCoppTest/1.JumboFramesToQueues$"
         },
         {
@@ -12506,9 +12482,6 @@
           "test_name_regex": "HwCoppTest/[01].NdpSolicitationToHighPriQ$"
         },
         {
-          "test_name_regex": "HwCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
           "test_name_regex": "HwCoppTest/1.JumboFramesToQueues$"
         },
         {
@@ -12881,9 +12854,6 @@
         },
         {
           "test_name_regex": "HwCoppTest/[01].NdpSolicitationToHighPriQ$"
-        },
-        {
-          "test_name_regex": "HwCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
           "test_name_regex": "HwCoppTest/1.JumboFramesToQueues$"
@@ -13534,9 +13504,6 @@
         },
         {
           "test_name_regex": "HwCoppTest/[01].NdpSolicitationToHighPriQ$"
-        },
-        {
-          "test_name_regex": "HwCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
           "test_name_regex": "HwCoppTest/1.JumboFramesToQueues$"
