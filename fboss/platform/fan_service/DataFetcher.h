@@ -9,6 +9,8 @@
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 
 namespace facebook::fboss::platform::fan_service {
+constexpr int kSensorSendTimeoutMs = 5000;
+constexpr int kSensorConnTimeoutMs = 2000;
 
 void getTransceivers(
     std::map<int32_t, facebook::fboss::TransceiverInfo>& cacheTable,
