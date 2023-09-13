@@ -99,7 +99,11 @@ class LookupClassUpdater : public StateObserver {
       const std::shared_ptr<RemovedEntryT>& removedEntry);
 
   cfg::AclLookupClass getClassIDwithMinimumNeighbors(
-      ClassID2Count classID2Count) const;
+      const ClassID2Count& classID2Count) const;
+
+  cfg::AclLookupClass getClassIDwithQueuePerPhysicalHost(
+      const ClassID2Count& classID2Count,
+      const folly::MacAddress& mac) const;
 
   template <typename RemovedEntryT>
   void removeNeighborFromLocalCacheForEntry(

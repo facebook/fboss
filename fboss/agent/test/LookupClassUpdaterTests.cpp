@@ -28,6 +28,8 @@ using folly::IPAddressV4;
 using folly::IPAddressV6;
 using folly::MacAddress;
 
+DECLARE_bool(queue_per_physical_host);
+
 namespace facebook::fboss {
 
 template <typename AddrType, bool enableIntfNbrTable>
@@ -785,6 +787,86 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyMaxNumHostsPerQueue) {
   // outlier MAC should also be counted
   this->resolve(this->getIpAddressN(4), outlierMac);
   EXPECT_EQ(this->sw_->getLookupClassUpdater()->getMaxNumHostsPerQueue(), 1);
+}
+
+TYPED_TEST(
+    LookupClassUpdaterNeighborTest,
+    VerifyDedicatedQueuePerPhysicalHost) {
+  FLAGS_queue_per_physical_host = true;
+  auto verifyClassIDs =
+      [this](IPAddress ip, MacAddress mac, cfg::AclLookupClass queue) {
+        this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+          this->verifyClassIDHelper(
+              ip, mac, queue /* ipClassID */, queue /* macClassID */);
+        });
+      };
+  this->updateState(
+      "vendor mac ouis", [=](const std::shared_ptr<SwitchState>& state) {
+        auto newState = state->clone();
+        auto matcher =
+            HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
+        auto switchSettings = newState->getSwitchSettings()
+                                  ->getNode(matcher.matcherString())
+                                  ->modify(&newState);
+
+        switchSettings->setVendorMacOuis({"01:02:03:00:00:00"});
+        switchSettings->setMetaMacOuis({"04:02:03:00:00:00"});
+        return newState;
+      });
+  waitForStateUpdates(this->sw_);
+  auto host0Mac = MacAddress("01:02:03:04:05:00");
+  auto host1Mac = MacAddress("01:02:03:04:05:02");
+  auto host2Mac = MacAddress("01:02:03:04:05:04");
+  auto host3Mac = MacAddress("01:02:03:04:05:06");
+  auto oobMac = MacAddress("01:02:03:04:05:01");
+  auto metaMac = MacAddress("04:02:03:04:05:06");
+  auto localAdministeredMac = MacAddress("02:02:03:04:05:06");
+  auto outlierMac = MacAddress("08:02:03:04:05:06");
+
+  // physical host mac and oob mac are assigned to dedicated queue
+  this->resolve(this->getIpAddressN(3), host3Mac);
+  verifyClassIDs(
+      this->getIpAddressN(3),
+      host3Mac,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3);
+  this->resolve(this->getIpAddressN(2), host2Mac);
+  verifyClassIDs(
+      this->getIpAddressN(2),
+      host2Mac,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2);
+  this->resolve(this->getIpAddressN(4), oobMac);
+  verifyClassIDs(
+      this->getIpAddressN(4),
+      oobMac,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4);
+  this->resolve(this->getIpAddressN(1), host1Mac);
+  verifyClassIDs(
+      this->getIpAddressN(1),
+      host1Mac,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+  this->resolve(this->getIpAddressN(0), host0Mac);
+  verifyClassIDs(
+      this->getIpAddressN(0),
+      host0Mac,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+  // vm mac and outlier mac is assigned in way (first queue with minimum hosts
+  // assigned)
+  this->resolve(this->getIpAddressN(5), metaMac);
+  verifyClassIDs(
+      this->getIpAddressN(5),
+      metaMac,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->resolve(this->getIpAddressN(6), localAdministeredMac);
+  verifyClassIDs(
+      this->getIpAddressN(6),
+      localAdministeredMac,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+  this->resolve(this->getIpAddressN(7), outlierMac);
+  verifyClassIDs(
+      this->getIpAddressN(7),
+      outlierMac,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2);
 }
 
 TYPED_TEST(
