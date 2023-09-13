@@ -158,9 +158,14 @@ HwLinkStateToggler::applyInitialConfigWithPortsDown(
 
   // Some platforms silently undo squelch setting on admin enable. Prevent it
   // by setting squelch after admin enable.
-  for (auto& port : *cfg.ports()) {
-    setRxLaneSquelch(PortID(*port.logicalID()), *port.portType(), true);
+  auto switchState = hwEnsemble_->getProgrammedState();
+  for (auto& cfgPort : *cfg.ports()) {
+    auto port = switchState->getPorts()
+                    ->getNodeIf(PortID(*cfgPort.logicalID()))
+                    ->modify(&switchState);
+    port->setRxLaneSquelch(true);
   }
+  hwEnsemble_->applyNewState(switchState);
 
   hwEnsemble_->getHwSwitch()->switchRunStateChanged(SwitchRunState::CONFIGURED);
   return hwEnsemble_->getProgrammedState();
