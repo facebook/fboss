@@ -167,23 +167,4 @@ void HwLinkStateToggler::bringUpPorts(
   bringUpPorts(newState, portsToBringUp);
 }
 
-void HwLinkStateToggler::setRxLaneSquelch(
-    PortID portID,
-    cfg::PortType portType,
-    bool enable) {
-  // On DNX platforms, fabric ports come up when the RX alone is UP. In these
-  // platforms, setting preemphasis to 0 doesn't bring the port down when
-  // there is an active remote partner. If the RX_LANE_SQUELCH_ENABLE is
-  // supported, set that true which will cutoff any signal coming from the
-  // remote side and bring down the local link
-  if ((portType == cfg::PortType::FABRIC_PORT ||
-       portType == cfg::PortType::INTERFACE_PORT) &&
-      hwEnsemble_->getHwSwitch()->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::RX_LANE_SQUELCH_ENABLE)) {
-    setRxLaneSquelchImpl(
-        hwEnsemble_->getProgrammedState()->getPorts()->getNodeIf(portID),
-        enable);
-  }
-}
-
 } // namespace facebook::fboss
