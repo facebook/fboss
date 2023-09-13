@@ -55,6 +55,25 @@ struct QsfpTestConfig {
   1: list<CabledTestPair> cabledPortPairs;
 }
 
+enum FirmwareType {
+  APPLICATION = 1,
+  DSP = 2,
+}
+
+struct FirmwareVersion {
+  1: FirmwareType fwType;
+  2: string version;
+}
+
+struct Firmware {
+  1: list<FirmwareVersion> versions;
+}
+
+struct TransceiverFirmware {
+  // Transceiver Part Number to Firmware version(s) map
+  1: map<string, Firmware> versionsMap;
+}
+
 struct QsfpServiceConfig {
   // This is used to override the default command line arguments we
   // pass to qsfp service.
@@ -68,4 +87,6 @@ struct QsfpServiceConfig {
   3: optional QsfpSdkVersion sdk_version;
 
   4: optional QsfpTestConfig qsfpTestConfig;
+
+  5: optional TransceiverFirmware transceiverFirmwareVersions;
 }
