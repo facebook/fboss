@@ -631,6 +631,14 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     return std::nullopt;
   }
 
+  bool getRxLaneSquelch() const {
+    return cref<switch_state_tags::rxLaneSquelch>()->cref();
+  }
+
+  void setRxLaneSquelch(bool rxLaneSquelch) {
+    set<switch_state_tags::rxLaneSquelch>(rxLaneSquelch);
+  }
+
   Port* modify(std::shared_ptr<SwitchState>* state);
 
  private:
