@@ -62,12 +62,6 @@ void HwLinkStateToggler::portStateChangeImpl(
     auto newPort = currPort->modify(&newState);
     setPortIDAndStateToWaitFor(port, up);
     newPort->setLoopbackMode(desiredLoopbackMode);
-    // On DNX platforms, especially on fabric ports which link up on just a good
-    // RX, need to enable Squelch to force the link down
-    if (!up) {
-      setRxLaneSquelch(
-          port, newState->getPorts()->getNodeIf(port)->getPortType(), true);
-    }
     hwEnsemble_->applyNewState(newState);
     invokeLinkScanIfNeeded(port, up);
     XLOG(DBG2) << " Wait for port " << (up ? "up" : "down")
