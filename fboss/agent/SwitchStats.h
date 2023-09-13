@@ -302,6 +302,10 @@ class SwitchStats : public boost::noncopyable {
     neighborCacheEventBacklog_.addValue(value);
   }
 
+  void maxNumOfPhysicalHostsPerQueue(int value) {
+    maxNumOfPhysicalHostsPerQueue_.addValue(value);
+  }
+
   void linkStateChange() {
     linkStateChange_.addValue(1);
   }
@@ -564,6 +568,12 @@ class SwitchStats : public boost::noncopyable {
    * Number of events queued in fboss Arp Cache thread
    */
   TLHistogram neighborCacheEventBacklog_;
+
+  /*
+   * Maximum number of physical hosts assigned to a port egress queue
+   * should be 0 or 1, alert when >=2
+   */
+  TLHistogram maxNumOfPhysicalHostsPerQueue_;
 
   /**
    * Link state up/down change count

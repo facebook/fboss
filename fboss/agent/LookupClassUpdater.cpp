@@ -17,6 +17,7 @@
 #include "fboss/agent/NeighborTableDeltaCallbackGenerator.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -122,6 +123,7 @@ void LookupClassUpdater::initPort(
   for (auto classID : port->getLookupClassesToDistributeTrafficOn()) {
     classID2Count[classID] = 0;
   }
+  port2MacAndVlanEntriesUpdated_ = true;
 }
 
 template <typename NewEntryT>
@@ -228,6 +230,7 @@ void LookupClassUpdater::updateNeighborClassID(
     auto updater = sw_->getNeighborUpdater();
     updater->updateEntryClassID(vlanID, newEntry->getIP(), classID);
   }
+  port2MacAndVlanEntriesUpdated_ = true;
 }
 
 template <typename NeighborEntryT>
@@ -521,6 +524,7 @@ void LookupClassUpdater::processPortRemoved(
 
   port2MacAndVlanEntries_.erase(portID);
   port2ClassIDAndCount_.erase(portID);
+  port2MacAndVlanEntriesUpdated_ = true;
 }
 
 void LookupClassUpdater::processPortChanged(
@@ -638,6 +642,7 @@ void LookupClassUpdater::removeNeighborFromLocalCacheForEntry(
 
     macAndVlan2ClassIDAndRefCnt.erase(std::make_pair(mac, vlanID));
   }
+  port2MacAndVlanEntriesUpdated_ = true;
 }
 
 template <typename NewEntryT>
@@ -675,6 +680,7 @@ void LookupClassUpdater::updateStateObserverLocalCacheForEntry(
     CHECK(classID_ == classID);
     refCnt++;
   }
+  port2MacAndVlanEntriesUpdated_ = true;
 }
 
 template <typename AddrT>
@@ -997,6 +1003,58 @@ void LookupClassUpdater::processMacOuis(
   }
 }
 
+void LookupClassUpdater::updateMaxNumHostsPerQueueCounter() {
+  if (!port2MacAndVlanEntriesUpdated_) {
+    // no need to update max number of physical host per queue counter
+    // since no change to port2MacAndVlanEntries_;
+    return;
+  }
+  port2MacAndVlanEntriesUpdated_ = false;
+  int preMaxNumHostsPerQueue = maxNumHostsPerQueue_;
+  maxNumHostsPerQueue_ = 0;
+  PortID maxPortID;
+  cfg::AclLookupClass maxClassID;
+  for (const auto& [port, macAndVlan2ClassIDAndRefCnt] :
+       port2MacAndVlanEntries_) {
+    // for each port
+    std::unordered_map<cfg::AclLookupClass, int> classID2NumMacs;
+    for (const auto& [macAndVlan, classIDAndRefCnt] :
+         macAndVlan2ClassIDAndRefCnt) {
+      // count each physical host mac
+      auto mac = macAndVlan.first;
+      auto oui = getMacOui(mac);
+      auto classID = classIDAndRefCnt.first;
+      if (vendorMacOuis_.find(oui) != vendorMacOuis_.end()) {
+        classID2NumMacs[classID]++;
+      } else if (
+          metaMacOuis_.find(oui) == metaMacOuis_.end() &&
+          !mac.isLocallyAdministered()) {
+        XLOG(DBG4)
+            << "found outlier mac, need to update host mac oui or meta mac oui for "
+            << mac.toString();
+        // also count outlier mac
+        classID2NumMacs[classID]++;
+      }
+      if (classID2NumMacs[classID] >= maxNumHostsPerQueue_) {
+        maxNumHostsPerQueue_ = classID2NumMacs[classID];
+        maxClassID = classID;
+        maxPortID = port;
+      }
+    }
+  }
+  XLOG(DBG4) << "new maximum number of hosts per host is "
+             << maxNumHostsPerQueue_;
+  // warn if more than one physical hosts are assigned to the same
+  // class id/queue
+  if (maxNumHostsPerQueue_ > 1 &&
+      maxNumHostsPerQueue_ != preMaxNumHostsPerQueue) {
+    XLOG(WARN) << maxNumHostsPerQueue_
+               << " physical hosts are allocated to port " << maxPortID
+               << " classID " << (int)maxClassID;
+  }
+  sw_->stats()->maxNumOfPhysicalHostsPerQueue(maxNumHostsPerQueue_);
+}
+
 void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
   // The current LookupClassUpdater logic relies on VLANs, MAC learning
   // callbacks etc. that are not supported on VOQ/Fabric switches. Thus, run
@@ -1014,6 +1072,7 @@ void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
   processPortUpdates(stateDelta);
   processBlockNeighborUpdates(stateDelta);
   processMacAddrsToBlockUpdates(stateDelta);
+  updateMaxNumHostsPerQueueCounter();
   inited_ = true;
 }
 

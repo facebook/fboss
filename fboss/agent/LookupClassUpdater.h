@@ -53,6 +53,10 @@ class LookupClassUpdater : public StateObserver {
     return port2ClassIDAndCount_;
   }
 
+  int getMaxNumHostsPerQueue() {
+    return maxNumHostsPerQueue_;
+  }
+
  private:
   bool portHasClassID(const std::shared_ptr<Port>& port);
 
@@ -183,6 +187,8 @@ class LookupClassUpdater : public StateObserver {
   template <typename AddrT>
   auto getTable(const std::shared_ptr<Vlan>& vlan);
 
+  void updateMaxNumHostsPerQueueCounter();
+
   SwSwitch* sw_;
 
   /*
@@ -215,6 +221,7 @@ class LookupClassUpdater : public StateObserver {
       std::pair<cfg::AclLookupClass, int>>;
   boost::container::flat_map<PortID, MacAndVlan2ClassIDAndRefCnt>
       port2MacAndVlanEntries_;
+  bool port2MacAndVlanEntriesUpdated_{false};
 
   /*
    * Some use cases (e.g. DR) requires blocking traffic to specific neighbors.
@@ -273,6 +280,7 @@ class LookupClassUpdater : public StateObserver {
   std::set<std::pair<VlanID, folly::MacAddress>> macAddrsToBlock_;
   std::set<uint64_t> vendorMacOuis_;
   std::set<uint64_t> metaMacOuis_;
+  int maxNumHostsPerQueue_{0};
 
   friend class NeighborTableDeltaCallbackGenerator;
   bool inited_{false};

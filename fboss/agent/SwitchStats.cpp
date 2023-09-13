@@ -183,6 +183,13 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           AVG,
           50,
           100),
+      maxNumOfPhysicalHostsPerQueue_(
+          map,
+          kCounterPrefix + "max_num_of_physical_hosts_per_queue",
+          1,
+          0,
+          200,
+          AVG),
       linkStateChange_(map, kCounterPrefix + "link_state.flap", SUM),
       pcapDistFailure_(map, kCounterPrefix + "pcap_dist_failure.error"),
       updateStatsExceptions_(

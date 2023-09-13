@@ -352,4 +352,6 @@ cfg::SwitchDrainState computeActualSwitchDrainState(
     const std::shared_ptr<SwitchSettings>& switchSettings,
     int numFabricPortsUp);
 
+uint64_t getMacOui(const folly::MacAddress macAddress);
+
 } // namespace facebook::fboss

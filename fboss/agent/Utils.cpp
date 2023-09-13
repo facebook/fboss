@@ -704,4 +704,8 @@ cfg::SwitchDrainState computeActualSwitchDrainState(
   return newSwitchDrainState;
 }
 
+uint64_t getMacOui(const folly::MacAddress macAddress) {
+  return macAddress.u64HBO() & 0x0000FFFFFF000000;
+}
+
 } // namespace facebook::fboss

@@ -751,6 +751,42 @@ class LookupClassUpdaterNeighborTest
 
 TYPED_TEST_SUITE(LookupClassUpdaterNeighborTest, TestTypesNeighbor);
 
+TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyMaxNumHostsPerQueue) {
+  this->updateState(
+      "vendor mac ouis", [=](const std::shared_ptr<SwitchState>& state) {
+        auto newState = state->clone();
+        auto matcher =
+            HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
+        auto switchSettings = newState->getSwitchSettings()
+                                  ->getNode(matcher.matcherString())
+                                  ->modify(&newState);
+
+        switchSettings->setVendorMacOuis({"01:02:03:00:00:00"});
+        switchSettings->setMetaMacOuis({"04:02:03:00:00:00"});
+        return newState;
+      });
+  waitForStateUpdates(this->sw_);
+  auto vendorMac = MacAddress("01:02:03:04:05:06");
+  auto metaMac = MacAddress("04:02:03:04:05:06");
+  auto localAdministeredMac = MacAddress("02:02:03:04:05:06");
+  auto outlierMac = MacAddress("08:02:03:04:05:06");
+  // Meta VM MAC should not be counted by number of physical hosts
+  this->resolve(this->getIpAddressN(1), metaMac);
+  EXPECT_EQ(this->sw_->getLookupClassUpdater()->getMaxNumHostsPerQueue(), 0);
+  // local Administered MAC  should not be counted either
+  this->resolve(this->getIpAddressN(2), localAdministeredMac);
+  EXPECT_EQ(this->sw_->getLookupClassUpdater()->getMaxNumHostsPerQueue(), 0);
+  // vendor MAC should be counted
+  this->resolve(this->getIpAddressN(3), vendorMac);
+  EXPECT_EQ(this->sw_->getLookupClassUpdater()->getMaxNumHostsPerQueue(), 1);
+  // unresolve should reset number to zero
+  this->unresolveNeighbor(this->getIpAddressN(3));
+  EXPECT_EQ(this->sw_->getLookupClassUpdater()->getMaxNumHostsPerQueue(), 0);
+  // outlier MAC should also be counted
+  this->resolve(this->getIpAddressN(4), outlierMac);
+  EXPECT_EQ(this->sw_->getLookupClassUpdater()->getMaxNumHostsPerQueue(), 1);
+}
+
 TYPED_TEST(
     LookupClassUpdaterNeighborTest,
     ResolveUnresolveResolveVerifyClassID) {
