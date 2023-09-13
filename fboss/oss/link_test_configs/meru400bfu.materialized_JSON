@@ -8372,9 +8372,6 @@
           "warmboot_support.BCM8879X": "on"
         }
       }
-    },
-    "platformSettings": {
-      "1": "0c:00"
     }
   }
 }
