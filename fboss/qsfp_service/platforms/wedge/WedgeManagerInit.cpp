@@ -12,12 +12,14 @@
 #include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
 #include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bia/Meru400biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
+#include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
@@ -63,6 +65,8 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
     return createMeru400biuWedgeManager();
   } else if (mode == PlatformType::PLATFORM_MERU800BIA) {
     return createMeru800biaWedgeManager();
+  } else if (mode == PlatformType::PLATFORM_MERU800BFA) {
+    return createMeru800bfaWedgeManager();
   } else if (mode == PlatformType::PLATFORM_MONTBLANC) {
     return createMontblancWedgeManager();
   } else if (mode == PlatformType::PLATFORM_WEDGE400C) {
@@ -119,6 +123,17 @@ std::unique_ptr<WedgeManager> createMeru800biaWedgeManager() {
       std::make_unique<BspTransceiverApi>(systemContainer),
       std::make_unique<Meru800biaPlatformMapping>(),
       PlatformType::PLATFORM_MERU800BIA);
+}
+
+std::unique_ptr<WedgeManager> createMeru800bfaWedgeManager() {
+  auto systemContainer =
+      BspGenericSystemContainer<Meru800bfaBspPlatformMapping>::getInstance()
+          .get();
+  return std::make_unique<BspWedgeManager>(
+      systemContainer,
+      std::make_unique<BspTransceiverApi>(systemContainer),
+      std::make_unique<Meru800bfaPlatformMapping>(),
+      PlatformType::PLATFORM_MERU800BFA);
 }
 
 std::unique_ptr<WedgeManager> createMontblancWedgeManager() {

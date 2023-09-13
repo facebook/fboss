@@ -46,6 +46,7 @@ std::unique_ptr<WedgeManager> createMeru400bfuWedgeManager();
 std::unique_ptr<WedgeManager> createMeru400biaWedgeManager();
 std::unique_ptr<WedgeManager> createMeru400biuWedgeManager();
 std::unique_ptr<WedgeManager> createMeru800biaWedgeManager();
+std::unique_ptr<WedgeManager> createMeru800bfaWedgeManager();
 
 std::unique_ptr<WedgeManager> createMontblancWedgeManager();
 
