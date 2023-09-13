@@ -2581,6 +2581,10 @@ std::optional<uint32_t> SwSwitch::getHwLogicalPortId(PortID portID) const {
   return multiHwSwitchHandler_->getHwLogicalPortId(portID);
 }
 
+const AgentDirectoryUtil* SwSwitch::getDirUtil() const {
+  return agentDirUtil_;
+}
+
 void SwSwitch::switchRunStateChanged(SwitchRunState newState) {
   // TODO (m-NPU): handle m-NPU support
   multiHwSwitchHandler_->switchRunStateChanged(newState);
@@ -2611,6 +2615,14 @@ cfg::SwitchConfig SwSwitch::getConfig() const {
     return cfg::SwitchConfig();
   }
   return agentConfigLocked->get()->thrift.sw().value();
+}
+
+cfg::AgentConfig SwSwitch::getAgentConfig() const {
+  const auto& agentConfigLocked = agentConfig_.rlock();
+  if (!agentConfigLocked->get()) {
+    return cfg::AgentConfig();
+  }
+  return agentConfigLocked->get()->thrift;
 }
 
 std::unique_ptr<AgentConfig> SwSwitch::loadConfig() {

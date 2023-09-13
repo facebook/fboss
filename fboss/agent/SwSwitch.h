@@ -790,6 +790,7 @@ class SwSwitch : public HwSwitchCallback {
 
   std::string getConfigStr() const;
   cfg::SwitchConfig getConfig() const;
+  cfg::AgentConfig getAgentConfig() const;
 
   AdminDistance clientIdToAdminDistance(int clientId) const;
   void publishRxPacket(RxPacket* packet, uint16_t ethertype);
@@ -881,6 +882,8 @@ class SwSwitch : public HwSwitchCallback {
   TransceiverIdxThrift getTransceiverIdxThrift(PortID port) const;
 
   std::optional<uint32_t> getHwLogicalPortId(PortID port) const;
+
+  const AgentDirectoryUtil* getDirUtil() const;
 
   void switchRunStateChanged(SwitchRunState newState);
 
