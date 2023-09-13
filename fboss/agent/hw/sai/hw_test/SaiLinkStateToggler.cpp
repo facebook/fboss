@@ -69,20 +69,6 @@ void SaiLinkStateToggler::setPortPreemphasis(
   }
 }
 
-void SaiLinkStateToggler::setLinkTraining(
-    const std::shared_ptr<Port>& port,
-    bool enable) {
-  auto& portManager = getHw()->managerTable()->portManager();
-  auto portHandle = portManager.getPortHandle(port->getID());
-  if (!portHandle) {
-    throw FbossError(
-        "Cannot set link training on non existent port: ", port->getID());
-  }
-
-  portHandle->port->setOptionalAttribute(
-      SaiPortTraits::Attributes::LinkTrainingEnable{enable});
-}
-
 void SaiLinkStateToggler::setRxLaneSquelchImpl(
     const std::shared_ptr<Port>& port,
     bool enable) {

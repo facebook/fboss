@@ -28,8 +28,6 @@ class HwSplitAgentCallbackTest : public HwLinkStateDependentTest {
     void setPortPreemphasis(
         const std::shared_ptr<Port>& /*port*/,
         int /*preemphasis*/) override {}
-    void setLinkTraining(const std::shared_ptr<Port>& /*port*/, bool /*enable*/)
-        override {}
   };
 
   void SetUp() override {

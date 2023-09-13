@@ -32,7 +32,6 @@ class SaiLinkStateToggler : public HwLinkStateToggler {
   }
   void setPortPreemphasis(const std::shared_ptr<Port>& port, int preemphasis)
       override;
-  void setLinkTraining(const std::shared_ptr<Port>& port, bool enable) override;
   void setRxLaneSquelchImpl(const std::shared_ptr<Port>& port, bool enable)
       override;
 

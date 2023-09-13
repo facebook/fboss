@@ -136,17 +136,6 @@ HwLinkStateToggler::applyInitialConfigWithPortsDown(
     // Set all port preemphasis values to 0 so that we can bring ports up and
     // down by setting their loopback mode to PHY and NONE respectively.
     // TODO: use sw port's pinConfigs to set this
-
-    // Some ASICs require disabling Link Training before we can disable
-    // preemphasis.
-    if (hwEnsemble_->getHwSwitch()->getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::LINK_TRAINING)) {
-      setLinkTraining(
-          hwEnsemble_->getProgrammedState()->getPorts()->getNodeIf(
-              PortID(*port.logicalID())),
-          false /* disable link training */);
-    }
-
     setPortPreemphasis(
         hwEnsemble_->getProgrammedState()->getPorts()->getNodeIf(
             PortID(*port.logicalID())),
