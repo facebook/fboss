@@ -40,9 +40,11 @@ class MockSffModule : public SffModule {
         .WillByDefault(testing::Assign(&dirty_, false));
     ON_CALL(*this, ensureTransceiverReadyLocked())
         .WillByDefault(testing::Return(true));
+    ON_CALL(*this, numHostLanes()).WillByDefault(testing::Return(4));
   }
   MOCK_METHOD1(setPowerOverrideIfSupportedLocked, void(PowerControlState));
   MOCK_METHOD1(updateQsfpData, void(bool));
+  MOCK_CONST_METHOD0(numHostLanes, unsigned int());
   MOCK_CONST_METHOD2(getSettingsValue, uint8_t(SffField, uint8_t));
   MOCK_METHOD0(getTransceiverInfo, TransceiverInfo());
 

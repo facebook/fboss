@@ -151,7 +151,7 @@ class QsfpModule : public Transceiver {
    * Returns the total number of media lanes supported by the inserted
    * transceiver
    */
-  unsigned int numHostLanes() const;
+  virtual unsigned int numHostLanes() const;
   /*
    * Returns the total number of media lanes supported by the inserted
    * transceiver

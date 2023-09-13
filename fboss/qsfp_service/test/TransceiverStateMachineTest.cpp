@@ -42,6 +42,7 @@ class MockSff8472Module : public Sff8472Module {
       : Sff8472Module(transceiverManager, std::move(qsfpImpl)) {
     ON_CALL(*this, ensureTransceiverReadyLocked())
         .WillByDefault(testing::Return(true));
+    ON_CALL(*this, numHostLanes()).WillByDefault(testing::Return(1));
   }
 
   MockSff8472TransceiverImpl* getTransceiverImpl() {
@@ -50,6 +51,7 @@ class MockSff8472Module : public Sff8472Module {
 
   MOCK_METHOD1(configureModule, void(uint8_t));
   MOCK_METHOD1(customizeTransceiverLocked, void(TransceiverPortState&));
+  MOCK_CONST_METHOD0(numHostLanes, unsigned int());
 
   MOCK_METHOD1(
       ensureRxOutputSquelchEnabled,
@@ -86,6 +88,7 @@ class MockCmisModule : public CmisModule {
         .WillByDefault(testing::Return(true));
     ON_CALL(*this, getPortPrbsStateLocked(testing::_))
         .WillByDefault(testing::Return(prbs::InterfacePrbsState()));
+    ON_CALL(*this, numHostLanes()).WillByDefault(testing::Return(8));
   }
 
   MockCmisTransceiverImpl* getTransceiverImpl() {
@@ -94,6 +97,7 @@ class MockCmisModule : public CmisModule {
 
   MOCK_METHOD1(configureModule, void(uint8_t));
   MOCK_METHOD1(customizeTransceiverLocked, void(TransceiverPortState&));
+  MOCK_CONST_METHOD0(numHostLanes, unsigned int());
 
   MOCK_METHOD1(
       ensureRxOutputSquelchEnabled,
