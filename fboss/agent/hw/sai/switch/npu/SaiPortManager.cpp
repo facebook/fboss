@@ -263,6 +263,7 @@ void SaiPortManager::changePortImpl(
   changeMirror(oldPort, newPort);
   changeSamplePacket(oldPort, newPort);
   changePfc(oldPort, newPort);
+  changeRxLaneSquelch(oldPort, newPort);
   programPfcBuffers(newPort);
 
   if (newPort->isEnabled()) {

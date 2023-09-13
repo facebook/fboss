@@ -2153,4 +2153,30 @@ void SaiPortManager::resetQueues() {
     idAndHandle.second->resetQueues();
   }
 }
+
+void SaiPortManager::changeRxLaneSquelch(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  if (oldPort->getRxLaneSquelch() != newPort->getRxLaneSquelch()) {
+    // On DNX platforms, fabric ports come up when the RX alone is UP. In these
+    // platforms, setting preemphasis to 0 doesn't bring the port down when
+    // there is an active remote partner. If the RX_LANE_SQUELCH_ENABLE is
+    // supported, set that true which will cutoff any signal coming from the
+    // remote side and bring down the local link
+    if ((newPort->getPortType() == cfg::PortType::FABRIC_PORT ||
+         newPort->getPortType() == cfg::PortType::INTERFACE_PORT) &&
+        platform_->getAsic()->isSupported(
+            HwAsic::Feature::RX_LANE_SQUELCH_ENABLE)) {
+      auto portHandle = getPortHandle(newPort->getID());
+      if (!portHandle) {
+        throw FbossError(
+            "Cannot set Rx Lane Squelch on non existent port: ",
+            newPort->getID());
+      }
+      portHandle->port->setOptionalAttribute(
+          SaiPortTraits::Attributes::RxLaneSquelchEnable{
+              newPort->getRxLaneSquelch()});
+    }
+  }
+}
 } // namespace facebook::fboss

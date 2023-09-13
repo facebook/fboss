@@ -337,6 +337,9 @@ class SaiPortManager {
   std::optional<FabricEndpoint> getFabricReachabilityForPort(
       const PortID& portId,
       const SaiPortHandle* portHandle) const;
+  void changeRxLaneSquelch(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
