@@ -39,7 +39,7 @@ class SaiSwitch;
 
 class SaiPlatform : public Platform, public StateObserver {
  public:
-  explicit SaiPlatform(
+  SaiPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       std::unique_ptr<PlatformMapping> platformMapping,
       folly::MacAddress localMac);
