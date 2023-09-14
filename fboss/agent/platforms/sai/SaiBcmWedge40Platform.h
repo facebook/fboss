@@ -16,7 +16,7 @@ class Trident2Asic;
 
 class SaiBcmWedge40Platform : public SaiBcmPlatform {
  public:
-  explicit SaiBcmWedge40Platform(
+  SaiBcmWedge40Platform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       folly::MacAddress localMac,
       const std::string& platformMappingStr);

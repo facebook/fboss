@@ -15,7 +15,7 @@ namespace facebook::fboss {
 
 class SaiMorgan800ccPlatformPort : public SaiTajoPlatformPort {
  public:
-  explicit SaiMorgan800ccPlatformPort(PortID id, SaiPlatform* platform)
+  SaiMorgan800ccPlatformPort(PortID id, SaiPlatform* platform)
       : SaiTajoPlatformPort(id, platform) {}
   void linkStatusChanged(bool up, bool adminUp) override;
   void externalState(PortLedExternalState lfs) override;

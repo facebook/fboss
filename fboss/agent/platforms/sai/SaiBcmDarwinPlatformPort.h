@@ -15,7 +15,7 @@ namespace facebook::fboss {
 
 class SaiBcmDarwinPlatformPort : public SaiBcmPlatformPort {
  public:
-  explicit SaiBcmDarwinPlatformPort(PortID id, SaiPlatform* platform)
+  SaiBcmDarwinPlatformPort(PortID id, SaiPlatform* platform)
       : SaiBcmPlatformPort(id, platform) {}
   void linkStatusChanged(bool up, bool adminUp) override;
   void externalState(PortLedExternalState lfs) override;

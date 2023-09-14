@@ -16,7 +16,7 @@ class TomahawkAsic;
 
 class SaiBcmWedge100Platform : public SaiBcmPlatform {
  public:
-  explicit SaiBcmWedge100Platform(
+  SaiBcmWedge100Platform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       folly::MacAddress localMac,
       const std::string& platformMappingStr);

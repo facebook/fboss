@@ -16,7 +16,7 @@ class TomahawkAsic;
 
 class SaiBcmGalaxyLCPlatform : public SaiBcmGalaxyPlatform {
  public:
-  explicit SaiBcmGalaxyLCPlatform(
+  SaiBcmGalaxyLCPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       folly::MacAddress localMac,
       const std::string& platformMappingStr);

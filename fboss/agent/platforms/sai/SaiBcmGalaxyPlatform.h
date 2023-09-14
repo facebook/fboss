@@ -14,7 +14,7 @@ namespace facebook::fboss {
 
 class SaiBcmGalaxyPlatform : public SaiBcmPlatform {
  public:
-  explicit SaiBcmGalaxyPlatform(
+  SaiBcmGalaxyPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       std::unique_ptr<PlatformMapping> platformMapping,
       folly::MacAddress localMac)

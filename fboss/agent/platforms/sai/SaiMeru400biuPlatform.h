@@ -17,7 +17,7 @@ class Jericho2Asic;
 
 class SaiMeru400biuPlatform : public SaiBcmPlatform {
  public:
-  explicit SaiMeru400biuPlatform(
+  SaiMeru400biuPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       folly::MacAddress localMac,
       const std::string& platformMappingStr);

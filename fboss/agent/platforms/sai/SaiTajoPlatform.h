@@ -15,7 +15,7 @@ namespace facebook::fboss {
 
 class SaiTajoPlatform : public SaiPlatform {
  public:
-  explicit SaiTajoPlatform(
+  SaiTajoPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       std::unique_ptr<PlatformMapping> platformMapping,
       folly::MacAddress localMac);

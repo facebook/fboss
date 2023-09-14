@@ -17,7 +17,7 @@ namespace facebook::fboss {
 class SaiBcmMinipackPlatformPort : public SaiBcmPlatformPort,
                                    MultiPimPlatformPort {
  public:
-  explicit SaiBcmMinipackPlatformPort(PortID id, SaiPlatform* platform)
+  SaiBcmMinipackPlatformPort(PortID id, SaiPlatform* platform)
       : SaiBcmPlatformPort(id, platform),
         MultiPimPlatformPort(id, getPlatformPortEntry()) {}
   void linkStatusChanged(bool up, bool adminUp) override;

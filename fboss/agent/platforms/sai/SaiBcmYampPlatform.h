@@ -16,7 +16,7 @@ class Tomahawk3Asic;
 
 class SaiBcmYampPlatform : public SaiBcmPlatform {
  public:
-  explicit SaiBcmYampPlatform(
+  SaiBcmYampPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       folly::MacAddress localMac,
       const std::string& platformMappingStr);

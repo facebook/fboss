@@ -17,7 +17,7 @@ namespace facebook::fboss {
 class SaiCloudRipperPlatform;
 class SaiCloudRipperPlatformPort : public SaiTajoPlatformPort {
  public:
-  explicit SaiCloudRipperPlatformPort(PortID id, SaiPlatform* platform)
+  SaiCloudRipperPlatformPort(PortID id, SaiPlatform* platform)
       : SaiTajoPlatformPort(id, platform) {}
   uint32_t getCurrentLedState() const override;
   void portChanged(std::shared_ptr<Port> newPort, std::shared_ptr<Port> oldPort)

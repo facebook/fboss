@@ -15,7 +15,7 @@ namespace facebook::fboss {
 
 class SaiBcmPlatformPort : public SaiPlatformPort {
  public:
-  explicit SaiBcmPlatformPort(PortID id, SaiPlatform* platform)
+  SaiBcmPlatformPort(PortID id, SaiPlatform* platform)
       : SaiPlatformPort(id, platform) {}
   virtual uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
       const override;
