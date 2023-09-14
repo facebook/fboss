@@ -11321,6 +11321,9 @@
           "test_name_regex": "SaiRouteRollbackTest.*WithTrunk.*$"
         },
         {
+          "test_name_regex": "HwPortLedTest.TestLedFromSwitchState$"
+        },
+        {
           "test_name_regex": "HwVoqSwitch*"
         },
         {
@@ -11693,6 +11696,9 @@
         },
         {
           "test_name_regex": "SaiRouteRollbackTest.*WithTrunk.*$"
+        },
+        {
+          "test_name_regex": "HwPortLedTest.TestLedFromSwitchState$"
         },
         {
           "test_name_regex": "HwVoqSwitch*"
@@ -12345,6 +12351,9 @@
           "test_name_regex": "SaiRouteRollbackTest.*WithTrunk.*$"
         },
         {
+          "test_name_regex": "HwPortLedTest.TestLedFromSwitchState$"
+        },
+        {
           "test_name_regex": "HwVoqSwitch*"
         },
         {
@@ -12719,6 +12728,9 @@
           "test_name_regex": "SaiRouteRollbackTest.*WithTrunk.*$"
         },
         {
+          "test_name_regex": "HwPortLedTest.TestLedFromSwitchState$"
+        },
+        {
           "test_name_regex": "HwVoqSwitch*"
         },
         {
@@ -13091,6 +13103,9 @@
         },
         {
           "test_name_regex": "SaiRouteRollbackTest.*WithTrunk.*$"
+        },
+        {
+          "test_name_regex": "HwPortLedTest.TestLedFromSwitchState$"
         },
         {
           "test_name_regex": "HwVoqSwitch*"
@@ -13741,6 +13756,9 @@
         },
         {
           "test_name_regex": "SaiRouteRollbackTest.*WithTrunk.*$"
+        },
+        {
+          "test_name_regex": "HwPortLedTest.TestLedFromSwitchState$"
         },
         {
           "test_name_regex": "HwVoqSwitch*"
