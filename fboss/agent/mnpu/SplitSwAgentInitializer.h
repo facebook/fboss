@@ -27,6 +27,8 @@ class SplitSwAgentInitializer : public SwAgentInitializer {
   std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
   getThrifthandlers() override;
 
+  void handleExitSignal() override;
+
  private:
   AgentDirectoryUtil agentDirectoryUtil_;
 };

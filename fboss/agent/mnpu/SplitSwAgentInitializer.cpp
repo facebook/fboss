@@ -34,4 +34,14 @@ SplitSwAgentInitializer::getThrifthandlers() {
   return handlers;
 }
 
+void SplitSwAgentInitializer::handleExitSignal() {
+  if (!sw_->isInitialized()) {
+    XLOG(WARNING)
+        << "[Exit] Signal received before initializing sw switch, waiting for initialization to finish.";
+  }
+  initializer()->waitForInitDone();
+  SwAgentInitializer::handleExitSignal();
+  exit(0);
+}
+
 } // namespace facebook::fboss
