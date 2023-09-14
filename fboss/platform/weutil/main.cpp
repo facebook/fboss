@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
   helpers::init(argc, argv);
   std::unique_ptr<WeutilInterface> weutilInstance;
 
-  weutilInstance = get_plat_weutil(FLAGS_eeprom);
+  weutilInstance = get_plat_weutil(FLAGS_eeprom, FLAGS_config_file);
 
   if (weutilInstance) {
     if (FLAGS_h) {

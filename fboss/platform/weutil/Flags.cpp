@@ -16,3 +16,8 @@ DEFINE_string(
     "chassis",
     "EEPROM name or device type, default is chassis eeprom");
 DEFINE_bool(h, false, "help");
+DEFINE_string(
+    config_file,
+    "",
+    "Optional platform weutil configuration file. "
+    "If empty we pick the platform default config");

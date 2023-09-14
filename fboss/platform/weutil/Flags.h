@@ -15,3 +15,4 @@
 DECLARE_bool(json);
 DECLARE_string(eeprom);
 DECLARE_bool(h);
+DECLARE_string(config_file);
