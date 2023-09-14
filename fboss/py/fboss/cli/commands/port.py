@@ -254,7 +254,9 @@ class PortFlapCmd(cmds.FbossCmd):
                         qsfp_info = qsfp_info_map.get(
                             status.transceiverIdx.transceiverId
                         )
-                        qsfp_present = qsfp_info.present if qsfp_info else False
+                        qsfp_present = (
+                            qsfp_info.tcvrState.present if qsfp_info else False
+                        )
                     if qsfp_present:
                         print("Disabling port %d" % port)
                         client.setPortState(port, False)
@@ -552,7 +554,7 @@ class PortStatusCmd(cmds.FbossCmd):
             transceiver = status.transceiverIdx
             if transceiver and self._qsfp_client:
                 qsfp_info = qsfp_info_map.get(transceiver.transceiverId)
-                qsfp_present = qsfp_info.present if qsfp_info else False
+                qsfp_present = qsfp_info.tcvrState.present if qsfp_info else False
 
             attrs = utils.get_status_strs(status, qsfp_present)
             if internal_port:
@@ -667,14 +669,14 @@ class PortStatusDetailCmd:
                 tid = status.transceiverIdx.transceiverId
                 if tid not in self._info_resp.keys():
                     info = transceiver_ttypes.TransceiverInfo()
-                    info.port = port
-                    info.present = False
+                    info.tcvrState.port = port
+                    info.tcvrState.present = False
                     self._info_resp[port] = info
 
     def _print_transceiver_ports(self, ports, info):
         """Print port info if the transceiver doesn't have any"""
 
-        present = info.present if info else None
+        present = info.tcvrState.present if info else None
 
         for port in ports:
             attrs = utils.get_status_strs(self._status_resp[port], present)
@@ -969,47 +971,54 @@ class PortStatusDetailCmd:
 
         info = self._info_resp.get(tid)
         ch_to_port = self._t_to_p[tid]
-        if not info or info.present is False:
+        if not info or info.tcvrState.present is False:
             self._print_transceiver_ports(ch_to_port.values(), info)
             return
 
-        print("Transceiver:  {:>2}".format(info.port))
-        if info.identifier:
+        print("Transceiver:  {:>2}".format(info.tcvrState.port))
+        if info.tcvrState.identifier:
             print(
                 "Optics type: {}".format(
                     transceiver_ttypes.TransceiverModuleIdentifier._VALUES_TO_NAMES[
-                        info.identifier
+                        info.tcvrState.identifier
                     ]
                 )
             )
 
-        if info.vendor:
+        if info.tcvrState.vendor:
             self._print_vendor_details(info)
 
-        if info.cable:
+        if info.tcvrState.cable:
             self._print_cable_details(info)
 
-        if info.settings:
+        if info.tcvrState.settings:
             self._print_settings_details(info)
 
-        if info.sensor or (info.thresholds and self._verbose) or info.channels:
+        if (
+            info.tcvrStats.sensor
+            or (info.tcvrState.thresholds and self._verbose)
+            or info.tcvrStats.channels
+        ):
             print("Monitoring Information:")
 
-        if info.sensor:
+        if info.tcvrStats.sensor:
             print(
                 "  {:<15} {:0.4}   {:<4} {:0.4}".format(
-                    "Temperature", info.sensor.temp.value, "Vcc", info.sensor.vcc.value
+                    "Temperature",
+                    info.tcvrStats.sensor.temp.value,
+                    "Vcc",
+                    info.tcvrStats.sensor.vcc.value,
                 )
             )
 
-        if self._verbose and info.thresholds:
-            self._print_thresholds(info.thresholds)
+        if self._verbose and info.tcvrState.thresholds:
+            self._print_thresholds(info.tcvrState.thresholds)
 
-        if self._verbose and info.sensor:
-            if info.sensor.temp.flags and info.sensor.vcc.flags:
-                self._print_sensor_flags(info.sensor)
+        if self._verbose and info.tcvrStats.sensor:
+            if info.tcvrStats.sensor.temp.flags and info.tcvrStats.sensor.vcc.flags:
+                self._print_sensor_flags(info.tcvrStats.sensor)
 
-        for channel in info.channels:
+        for channel in info.tcvrStats.channels:
             port = ch_to_port.get(channel.channel, None)
             if port:
                 attrs = utils.get_status_strs(self._status_resp[port], None)
@@ -1033,7 +1042,7 @@ class PortStatusDetailCmd:
             self._print_port_channel(channel)
 
         # If we didn't print any channel info, print something useful
-        if not info.channels:
+        if not info.tcvrStats.channels:
             self._print_transceiver_ports(ch_to_port.values(), info)
 
     def _print_port_detail(self):
