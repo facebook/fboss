@@ -30,7 +30,16 @@ HwInitResult HwAgent::initAgent(
   auto ret =
       getPlatform()->getHwSwitch()->initLight(callback, failHwCallsOnWarmboot);
   XLOG(DBG2) << "HwSwitch init done";
+  inited_.post();
   return ret;
+}
+
+void HwAgent::waitForInitDone() {
+  inited_.wait();
+}
+
+bool HwAgent::isInitialized() const {
+  return inited_.ready();
 }
 
 } // namespace facebook::fboss

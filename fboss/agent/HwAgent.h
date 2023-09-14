@@ -37,7 +37,12 @@ class HwAgent {
       bool failHwCallsOnWarmboot,
       HwSwitchCallback* callback);
 
+  void waitForInitDone();
+
+  bool isInitialized() const;
+
  private:
   std::unique_ptr<Platform> platform_;
+  folly::Baton<> inited_{};
 };
 } // namespace facebook::fboss

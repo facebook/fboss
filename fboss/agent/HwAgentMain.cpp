@@ -35,14 +35,18 @@ namespace facebook::fboss {
 
 void SplitHwAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
   restart_time::mark(RestartEvent::SIGNAL_RECEIVED);
-
   XLOG(DBG2) << "[Exit] Signal received ";
+  if (!hwAgent_->isInitialized()) {
+    XLOG(WARNING)
+        << "[Exit] Signal received before initializing hw switch, waiting for initialization to finish.";
+    hwAgent_->waitForInitDone();
+  }
   steady_clock::time_point begin = steady_clock::now();
   stopServices();
   steady_clock::time_point servicesStopped = steady_clock::now();
   XLOG(DBG2) << "[Exit] Services stop time "
              << duration_cast<duration<float>>(servicesStopped - begin).count();
-  hw_->gracefulExit(state::WarmbootState());
+  hwAgent_->getPlatform()->getHwSwitch()->gracefulExit(state::WarmbootState());
   steady_clock::time_point switchGracefulExit = steady_clock::now();
   XLOG(DBG2)
       << "[Exit] Switch Graceful Exit time "
@@ -87,9 +91,7 @@ int hwAgentMain(
       true /*setupSSL*/);
 
   SplitHwAgentSignalHandler signalHandler(
-      &eventBase,
-      [&thriftSyncer]() { thriftSyncer->stop(); },
-      hwAgent->getPlatform()->getHwSwitch());
+      &eventBase, [&thriftSyncer]() { thriftSyncer->stop(); }, hwAgent.get());
 
   restart_time::mark(RestartEvent::INITIALIZED);
 
