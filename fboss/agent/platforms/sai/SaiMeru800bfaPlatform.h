@@ -17,7 +17,7 @@ class Ramon3Asic;
 
 class SaiMeru800bfaPlatform : public SaiBcmPlatform {
  public:
-  explicit SaiMeru800bfaPlatform(
+  SaiMeru800bfaPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       folly::MacAddress localMac,
       const std::string& platformMappingStr);
@@ -60,6 +60,7 @@ class SaiMeru800bfaPlatform : public SaiBcmPlatform {
   void setupAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
+      int16_t switchIndex,
       std::optional<cfg::Range64> systemPortRange,
       folly::MacAddress& mac) override;
   std::unique_ptr<Ramon3Asic> asic_;

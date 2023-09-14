@@ -17,7 +17,7 @@ class Tomahawk5Asic;
 
 class SaiBcmMontblancPlatform : public SaiBcmPlatform {
  public:
-  explicit SaiBcmMontblancPlatform(
+  SaiBcmMontblancPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       folly::MacAddress localMac,
       const std::string& platformMappingStr);
@@ -41,6 +41,7 @@ class SaiBcmMontblancPlatform : public SaiBcmPlatform {
   void setupAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
+      int16_t switchIndex,
       std::optional<cfg::Range64> systemPortRange,
       folly::MacAddress& mac) override;
   std::unique_ptr<Tomahawk5Asic> asic_;

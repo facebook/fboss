@@ -16,7 +16,7 @@ class Tomahawk3Asic;
 
 class SaiBcmWedge400Platform : public SaiBcmPlatform {
  public:
-  explicit SaiBcmWedge400Platform(
+  SaiBcmWedge400Platform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       PlatformType type,
       folly::MacAddress localMac,
@@ -54,6 +54,7 @@ class SaiBcmWedge400Platform : public SaiBcmPlatform {
   void setupAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
+      int16_t switchIndex,
       std::optional<cfg::Range64> systemPortRange,
       folly::MacAddress& mac) override;
   std::unique_ptr<Tomahawk3Asic> asic_;

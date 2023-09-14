@@ -16,7 +16,7 @@ class GaronneAsic;
 
 class SaiSandiaPlatform : public SaiTajoPlatform {
  public:
-  explicit SaiSandiaPlatform(
+  SaiSandiaPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       folly::MacAddress localMac,
       const std::string& platformMappingStr);
@@ -28,6 +28,7 @@ class SaiSandiaPlatform : public SaiTajoPlatform {
   void setupAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
+      int16_t switchIndex,
       std::optional<cfg::Range64> systemPortRange,
       folly::MacAddress& mac) override;
   std::unique_ptr<GaronneAsic> asic_;

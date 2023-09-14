@@ -27,6 +27,7 @@ SaiBcmGalaxyLCPlatform::SaiBcmGalaxyLCPlatform(
 void SaiBcmGalaxyLCPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
+    int16_t /*switchIndex*/,
     std::optional<cfg::Range64> systemPortRange,
     folly::MacAddress& mac) {
   asic_ = std::make_unique<TomahawkAsic>(

@@ -39,6 +39,7 @@ class SaiBcmWedge40Platform : public SaiBcmPlatform {
   void setupAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
+      int16_t switchIndex,
       std::optional<cfg::Range64> systemPortRange,
       folly::MacAddress& mac) override;
   std::unique_ptr<Trident2Asic> asic_;
