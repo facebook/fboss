@@ -22,6 +22,7 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/lib/platforms/PlatformMode.h"
+#include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/lib/usb/TransceiverPlatformApi.h"
 #include "fboss/qsfp_service/QsfpConfig.h"
 #include "fboss/qsfp_service/TransceiverStateMachineUpdate.h"
@@ -444,6 +445,10 @@ class TransceiverManager {
    */
   void syncNpuPortStatusUpdate(
       std::map<int, facebook::fboss::NpuPortStatus>& portStatus);
+
+  virtual std::unique_ptr<TransceiverI2CApi> getI2CBus() = 0;
+
+  virtual TransceiverI2CApi* i2cBus() = 0;
 
  protected:
   /*

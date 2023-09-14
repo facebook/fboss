@@ -153,7 +153,12 @@ class WedgeManager : public TransceiverManager {
  protected:
   void initTransceiverMap() override;
 
-  virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
+  virtual std::unique_ptr<TransceiverI2CApi> getI2CBus() override;
+
+  virtual TransceiverI2CApi* i2cBus() override {
+    return wedgeI2cBus_.get();
+  }
+
   void updateTransceiverMap();
 
   // thread safe handle to access bus
