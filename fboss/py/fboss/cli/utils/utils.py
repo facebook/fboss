@@ -188,7 +188,7 @@ def get_vlan_port_map(
 
         # galaxy fab ports have no transceiver
         qsfp_info = qsfp_info_map.get(qsfp_id)
-        qsfp_present = qsfp_info.present if qsfp_info else False
+        qsfp_present = qsfp_info.tcvrState.present if qsfp_info else False
 
         port_summary = get_port_summary(
             port.name,
