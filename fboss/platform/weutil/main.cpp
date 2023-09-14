@@ -26,7 +26,22 @@ int main(int argc, char* argv[]) {
   helpers::init(argc, argv);
   std::unique_ptr<WeutilInterface> weutilInstance;
 
-  weutilInstance = get_plat_weutil(FLAGS_eeprom, FLAGS_config_file);
+  // Usually, we auto-detect the platform type and load
+  // the proper config file. But when path flag is set,
+  // we skip this, and just load and parse the eeprom specified
+  // in the path flag.
+  if (!FLAGS_path.empty() && !FLAGS_eeprom.empty()) {
+    throw std::runtime_error("Please use either --path or --eeprom, not both!");
+  }
+  if (!FLAGS_path.empty()) {
+    // Path flag is set. We read the eeprom in the absolute path.
+    // Neither platform type detection nor config file load is needed.
+    weutilInstance = get_meta_eeprom_handler(FLAGS_path);
+  } else {
+    // Path flag is NOT set. Auto-detect the platform type and
+    // load the proper config file
+    weutilInstance = get_plat_weutil(FLAGS_eeprom, FLAGS_config_file);
+  }
 
   if (weutilInstance) {
     if (FLAGS_h) {

@@ -21,3 +21,7 @@ DEFINE_string(
     "",
     "Optional platform weutil configuration file. "
     "If empty we pick the platform default config");
+DEFINE_string(
+    path,
+    "",
+    "When set, ignore config and read the eeprom specified by the path");

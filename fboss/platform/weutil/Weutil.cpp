@@ -76,7 +76,7 @@ std::unique_ptr<WeutilInterface> get_plat_weutil(
   if (prodInfo.getType() == PlatformType::PLATFORM_DARWIN) {
     std::unique_ptr<WeutilDarwin> pDarwinIntf;
     pDarwinIntf = std::make_unique<WeutilDarwin>(eeprom);
-    if (pDarwinIntf->verifyOptions()) {
+    if (pDarwinIntf->getEepromPath()) {
       return std::move(pDarwinIntf);
     } else {
       return nullptr;
@@ -85,7 +85,7 @@ std::unique_ptr<WeutilInterface> get_plat_weutil(
     PlainWeutilConfig config = parseConfig(configFile);
     std::unique_ptr<WeutilImpl> pWeutilImpl =
         std::make_unique<WeutilImpl>(eeprom, config);
-    if (pWeutilImpl->verifyOptions()) {
+    if (pWeutilImpl->getEepromPath()) {
       return std::move(pWeutilImpl);
     } else {
       return nullptr;
@@ -95,6 +95,16 @@ std::unique_ptr<WeutilInterface> get_plat_weutil(
   XLOG(INFO) << "The platform (" << toString(prodInfo.getType())
              << ") is not supported" << std::endl;
   return nullptr;
+}
+
+std::unique_ptr<WeutilInterface> get_meta_eeprom_handler(std::string path) {
+  // Absolute path is given. No config needed. Use dummy config instead.
+  PlainWeutilConfig dummyConfig;
+  // Note that we pass path as the eeprom name, since we will skip the
+  // eeprom name to the path translation (done by calling verify option method.)
+  std::unique_ptr<WeutilImpl> pWeutilImpl =
+      std::make_unique<WeutilImpl>(path, dummyConfig);
+  return std::move(pWeutilImpl);
 }
 
 } // namespace facebook::fboss::platform

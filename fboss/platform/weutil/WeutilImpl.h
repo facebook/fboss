@@ -69,7 +69,7 @@ class WeutilImpl : public WeutilInterface {
       const std::string& eeprom = "") override;
   void printInfo() override;
   void printInfoJson() override;
-  bool verifyOptions(void) override;
+  bool getEepromPath(void) override;
   void printUsage(void) override;
 };
 

@@ -217,7 +217,7 @@ void WeutilDarwin::printInfoJson() {
   std::cout << folly::toPrettyJson(wedgeInfo);
 }
 
-bool WeutilDarwin::verifyOptions(void) {
+bool WeutilDarwin::getEepromPath(void) {
   if (eeprom_ != "") {
     if (eeprom_ != "pem" && eeprom_ != "fanspinner" && eeprom_ != "rackmon" &&
         eeprom_ != "chassis") {

@@ -499,7 +499,7 @@ void WeutilImpl::printInfoJson() {
   std::cout << "}" << std::endl;
 }
 
-bool WeutilImpl::verifyOptions() {
+bool WeutilImpl::getEepromPath() {
   // If eeprom is in fact the FRU name, replace this name with the actual path
   // If it's not, treat it as the path to the eeprom file / sysfs
   std::string lEeprom = eepromPath;
@@ -512,16 +512,23 @@ bool WeutilImpl::verifyOptions() {
   return true;
 }
 void WeutilImpl::printUsage() {
-  std::cout << "weutil [--h] [--json] [--eeprom module_name]" << std::endl;
+  std::cout
+      << "weutil [--h] [--json] [--eeprom module_name] [--path absolute_path_to_eeprom]"
+      << std::endl;
   std::cout << "usage examples:" << std::endl;
   std::cout << "    weutil" << std::endl;
   std::cout << "    weutil --eeprom pem" << std::endl;
+  std::cout << "    weutil --path /sys/bus/i2c/drivers/at24/6-0051/eeprom"
+            << std::endl;
   std::cout << std::endl;
   std::cout << "Module names are : ";
   for (auto item : config_.configEntry) {
     std::cout << item.first << " ";
   }
   std::cout << std::endl;
+  std::cout
+      << "Note that supplying --path option will override any module name or config."
+      << std::endl;
   XLOG(INFO) << "printUSage";
 }
 
