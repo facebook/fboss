@@ -108,9 +108,10 @@ class CmdShowInterfaceStatus
         }
         ifStatus.speed() =
             std::to_string(portInfo.get_speedMbps() / 1000) + "G";
-        if (transceiver.get_vendor()) {
-          ifStatus.vendor() = transceiver.get_vendor()->get_name();
-          ifStatus.mpn() = transceiver.get_vendor()->get_partNumber();
+        if (transceiver.tcvrState()->get_vendor()) {
+          ifStatus.vendor() = transceiver.tcvrState()->get_vendor()->get_name();
+          ifStatus.mpn() =
+              transceiver.tcvrState()->get_vendor()->get_partNumber();
         } else {
           ifStatus.vendor() = "Not Present";
           ifStatus.mpn() = "Not Present";

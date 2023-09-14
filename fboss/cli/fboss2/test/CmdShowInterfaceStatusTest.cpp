@@ -67,13 +67,13 @@ std::map<int32_t, facebook::fboss::TransceiverInfo> createStatusTransceivers() {
   facebook::fboss::Vendor vendor1;
   vendor1.name() = "INTEL CORP";
   vendor1.partNumber() = "SPTSBP2CLCKS";
-  transceiver1.vendor() = vendor1;
+  transceiver1.tcvrState()->vendor() = vendor1;
 
   facebook::fboss::TransceiverInfo transceiver2;
   facebook::fboss::Vendor vendor2;
   vendor2.name() = "INNOLIGHT";
   vendor2.partNumber() = "TR-FC13H-HFB";
-  transceiver2.vendor() = vendor2;
+  transceiver2.tcvrState()->vendor() = vendor2;
 
   transceivers[100] = transceiver1;
   transceivers[101] = transceiver2;
