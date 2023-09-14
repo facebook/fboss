@@ -87,7 +87,6 @@ cfg::AclLookupClass LookupClassUpdater::getClassIDwithMinimumNeighbors(
 }
 
 cfg::AclLookupClass LookupClassUpdater::getClassIDwithQueuePerPhysicalHost(
-
     const ClassID2Count& classID2Count,
     const folly::MacAddress& mac) const {
   auto oui = getMacOui(mac);
@@ -356,7 +355,7 @@ void LookupClassUpdater::processAdded(
   CHECK(addedEntry);
   if (!shouldProcessNeighborEntry(
           std::shared_ptr<AddedNeighborEntryT>(nullptr), addedEntry)) {
-    XLOG(DBG2) << "Skip processing added neighbor entry " << addedEntry;
+    XLOG(DBG2) << "Skip processing added neighbor entry " << addedEntry->str();
     return;
   }
   CHECK(addedEntry->getPort().isPhysicalPort());
@@ -1002,59 +1001,109 @@ void LookupClassUpdater::processMacAddrsToBlockUpdates(
 
   macAddrsToBlock_ = newMacAddrsToBlock;
   for (const auto& [vlanID, macAddress] : toBeUpdatedMacAddrsToBlock) {
-    auto vlan = newState->getVlans()->getNodeIf(vlanID);
-    XLOG(DBG2) << "Starting to Processing mac address "
-               << macAddress.toString();
-    if (!vlan) {
-      XLOG(DBG2) << "No vlan found for vlanID " << vlanID << " macAddress "
-                 << macAddress.toString()
-                 << ". Skip processing the blocked mac entry.";
-      continue;
-    }
-
-    auto macEntry = vlan->getMacTable()->getMacIf(macAddress);
-    if (!macEntry) {
-      XLOG(DBG2) << "No mac entry found for in mac table for vlanID " << vlanID
-                 << " macAddress " << macAddress.toString()
-                 << ". Skip processing the blocked mac entry.";
-      continue;
-    }
-
-    removeClassIDForPortAndMac(newState, vlan->getID(), macEntry);
-    removeClassIDForEveryNeighborForMac<folly::IPAddressV4>(
-        newState, vlan, macAddress);
-    removeClassIDForEveryNeighborForMac<folly::IPAddressV6>(
-        newState, vlan, macAddress);
-
-    updateNeighborClassID(newState, vlan->getID(), macEntry);
-    updateClassIDForEveryNeighborForMac<folly::IPAddressV4>(
-        newState, vlan, macAddress);
-    updateClassIDForEveryNeighborForMac<folly::IPAddressV6>(
-        newState, vlan, macAddress);
+    removeAndUpdateClassIDForMacVlan(newState, macAddress, vlanID);
   }
 }
 
-void LookupClassUpdater::processMacOuis(
-    const std::shared_ptr<SwitchState>& switchState) {
-  // TODO(daiweix): do class id re-assignment based on new mac ouis
+void LookupClassUpdater::removeAndUpdateClassIDForMacVlan(
+    const std::shared_ptr<SwitchState>& switchState,
+    folly::MacAddress macAddress,
+    VlanID vlanID) {
+  auto vlan = switchState->getVlans()->getNodeIf(vlanID);
+  XLOG(DBG2) << "Starting to update classID of mac address "
+             << macAddress.toString();
+  if (!vlan) {
+    XLOG(DBG2) << "No vlan found for vlanID " << vlanID << " macAddress "
+               << macAddress.toString() << ". Skip updating mac entry classID.";
+    return;
+  }
+
+  auto macEntry = vlan->getMacTable()->getMacIf(macAddress);
+  if (!macEntry) {
+    XLOG(DBG2) << "No mac entry found for in mac table for vlanID " << vlanID
+               << " macAddress " << macAddress.toString()
+               << ". Skip updating mac entry classID.";
+    return;
+  }
+
+  removeClassIDForPortAndMac(switchState, vlan->getID(), macEntry);
+  removeClassIDForEveryNeighborForMac<folly::IPAddressV4>(
+      switchState, vlan, macAddress);
+  removeClassIDForEveryNeighborForMac<folly::IPAddressV6>(
+      switchState, vlan, macAddress);
+
+  updateNeighborClassID(switchState, vlan->getID(), macEntry);
+  updateClassIDForEveryNeighborForMac<folly::IPAddressV4>(
+      switchState, vlan, macAddress);
+  updateClassIDForEveryNeighborForMac<folly::IPAddressV6>(
+      switchState, vlan, macAddress);
+}
+
+void LookupClassUpdater::processMacOuis(const StateDelta& stateDelta) {
   std::set<uint64_t> newVendorMacOuis;
   std::set<uint64_t> newMetaMacOuis;
+  auto populateMacOuis = [](const auto& macOuisFromState,
+                            std::set<uint64_t>& macOuis) {
+    for (const auto& iter : macOuisFromState) {
+      auto macStr = iter->toThrift();
+      auto macAddress = folly::MacAddress(macStr);
+      macOuis.insert(macAddress.u64HBO());
+      XLOG(DBG4) << "insert mac OUI " << macStr;
+    }
+  };
   for ([[maybe_unused]] const auto& [_, switchSettings] :
-       std::as_const(*switchState->getSwitchSettings())) {
-    for (const auto& iter : *(switchSettings->getVendorMacOuis())) {
-      auto macStr = iter->toThrift();
-      auto macAddress = folly::MacAddress(macStr);
-      newVendorMacOuis.insert(macAddress.u64HBO());
-      XLOG(DBG4) << "vendor mac OUI " << macStr;
+       std::as_const(*stateDelta.newState()->getSwitchSettings())) {
+    XLOG(DBG4) << "populate vendor mac OUIs";
+    populateMacOuis(*(switchSettings->getVendorMacOuis()), newVendorMacOuis);
+    XLOG(DBG4) << "populate meta mac OUIs";
+    populateMacOuis(*(switchSettings->getMetaMacOuis()), newMetaMacOuis);
+  }
+
+  std::set<uint64_t> updatedVendorMacOuis;
+  std::set_symmetric_difference(
+      newVendorMacOuis.begin(),
+      newVendorMacOuis.end(),
+      vendorMacOuis_.begin(),
+      vendorMacOuis_.end(),
+      std::inserter(updatedVendorMacOuis, updatedVendorMacOuis.end()));
+  std::set<uint64_t> updatedMetaMacOuis;
+  std::set_symmetric_difference(
+      newMetaMacOuis.begin(),
+      newMetaMacOuis.end(),
+      metaMacOuis_.begin(),
+      metaMacOuis_.end(),
+      std::inserter(updatedMetaMacOuis, updatedMetaMacOuis.end()));
+
+  // update classID
+  std::vector<std::pair<folly::MacAddress, VlanID>> macAndVlanToUpdate;
+  if (FLAGS_queue_per_physical_host) {
+    for (const auto& [port, macAndVlan2ClassIDAndRefCnt] :
+         port2MacAndVlanEntries_) {
+      // for each port
+      std::unordered_map<cfg::AclLookupClass, int> classID2NumMacs;
+      for (const auto& [macAndVlan, classIDAndRefCnt] :
+           macAndVlan2ClassIDAndRefCnt) {
+        // count each physical host mac
+        auto mac = macAndVlan.first;
+        auto oui = getMacOui(mac);
+        if (updatedVendorMacOuis.find(oui) != updatedVendorMacOuis.end() ||
+            updatedMetaMacOuis.find(oui) != updatedMetaMacOuis.end()) {
+          // update classID of newly added (or removed) physical vendor host mac
+          macAndVlanToUpdate.push_back(macAndVlan);
+        }
+      }
     }
-    for (const auto& iter : *(switchSettings->getMetaMacOuis())) {
-      auto macStr = iter->toThrift();
-      auto macAddress = folly::MacAddress(macStr);
-      newMetaMacOuis.insert(macAddress.u64HBO());
-      XLOG(DBG4) << "meta mac OUI " << macStr;
-    }
-    vendorMacOuis_ = newVendorMacOuis;
-    metaMacOuis_ = newMetaMacOuis;
+  }
+  // TODO(daiweix): else case to consider rollback
+  // queue_per_physical_host feature
+  vendorMacOuis_ = newVendorMacOuis;
+  metaMacOuis_ = newMetaMacOuis;
+
+  for (const auto& macAndVlan : macAndVlanToUpdate) {
+    XLOG(DBG2) << "update classID of mac " << macAndVlan.first.toString()
+               << " vlan " << macAndVlan.second;
+    removeAndUpdateClassIDForMacVlan(
+        stateDelta.newState(), macAndVlan.first, macAndVlan.second);
   }
 }
 
@@ -1122,7 +1171,7 @@ void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
   if (!inited_) {
     updateStateObserverLocalCache(stateDelta.newState());
   }
-  processMacOuis(stateDelta.newState());
+  processMacOuis(stateDelta);
   NeighborTableDeltaCallbackGenerator::genCallbacks(stateDelta, *this);
   processPortUpdates(stateDelta);
   processBlockNeighborUpdates(stateDelta);

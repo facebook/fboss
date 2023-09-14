@@ -160,6 +160,18 @@ class LookupClassUpdaterTest : public ::testing::Test {
     return MacAddress("01:02:03:04:05:" + std::to_string(n));
   }
 
+  std::string kVendorMacOui() const {
+    return "01:02:03:00:00:00";
+  }
+
+  MacAddress kMetaMacAddress() const {
+    return MacAddress("04:02:03:04:05:06");
+  }
+
+  std::string kMetaMacOui() const {
+    return "04:02:03:00:00:00";
+  }
+
   SwSwitch* getSw() const {
     return sw_;
   }
@@ -451,6 +463,27 @@ class LookupClassUpdaterTest : public ::testing::Test {
     waitForStateUpdates(this->sw_);
     this->sw_->getNeighborUpdater()->waitForPendingUpdates();
     waitForBackgroundThread(this->sw_);
+    waitForStateUpdates(this->sw_);
+  }
+
+  void updateMacOuis(bool add = true) {
+    this->updateState(
+        "mac ouis", [=](const std::shared_ptr<SwitchState>& state) {
+          auto newState = state->clone();
+          auto matcher =
+              HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
+          auto switchSettings = newState->getSwitchSettings()
+                                    ->getNode(matcher.matcherString())
+                                    ->modify(&newState);
+          if (add) {
+            switchSettings->setVendorMacOuis({this->kVendorMacOui()});
+            switchSettings->setMetaMacOuis({this->kMetaMacOui()});
+          } else {
+            switchSettings->setVendorMacOuis({});
+            switchSettings->setMetaMacOuis({});
+          }
+          return newState;
+        });
     waitForStateUpdates(this->sw_);
   }
 
@@ -754,22 +787,9 @@ class LookupClassUpdaterNeighborTest
 TYPED_TEST_SUITE(LookupClassUpdaterNeighborTest, TestTypesNeighbor);
 
 TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyMaxNumHostsPerQueue) {
-  this->updateState(
-      "vendor mac ouis", [=](const std::shared_ptr<SwitchState>& state) {
-        auto newState = state->clone();
-        auto matcher =
-            HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
-        auto switchSettings = newState->getSwitchSettings()
-                                  ->getNode(matcher.matcherString())
-                                  ->modify(&newState);
-
-        switchSettings->setVendorMacOuis({"01:02:03:00:00:00"});
-        switchSettings->setMetaMacOuis({"04:02:03:00:00:00"});
-        return newState;
-      });
-  waitForStateUpdates(this->sw_);
-  auto vendorMac = MacAddress("01:02:03:04:05:06");
-  auto metaMac = MacAddress("04:02:03:04:05:06");
+  this->updateMacOuis();
+  auto vendorMac = this->kMacAddress();
+  auto metaMac = this->kMetaMacAddress();
   auto localAdministeredMac = MacAddress("02:02:03:04:05:06");
   auto outlierMac = MacAddress("08:02:03:04:05:06");
   // Meta VM MAC should not be counted by number of physical hosts
@@ -789,9 +809,7 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyMaxNumHostsPerQueue) {
   EXPECT_EQ(this->sw_->getLookupClassUpdater()->getMaxNumHostsPerQueue(), 1);
 }
 
-TYPED_TEST(
-    LookupClassUpdaterNeighborTest,
-    VerifyDedicatedQueuePerPhysicalHost) {
+TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyQueuePerPhysicalHost) {
   FLAGS_queue_per_physical_host = true;
   auto verifyClassIDs =
       [this](IPAddress ip, MacAddress mac, cfg::AclLookupClass queue) {
@@ -800,58 +818,46 @@ TYPED_TEST(
               ip, mac, queue /* ipClassID */, queue /* macClassID */);
         });
       };
-  this->updateState(
-      "vendor mac ouis", [=](const std::shared_ptr<SwitchState>& state) {
-        auto newState = state->clone();
-        auto matcher =
-            HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
-        auto switchSettings = newState->getSwitchSettings()
-                                  ->getNode(matcher.matcherString())
-                                  ->modify(&newState);
-
-        switchSettings->setVendorMacOuis({"01:02:03:00:00:00"});
-        switchSettings->setMetaMacOuis({"04:02:03:00:00:00"});
-        return newState;
-      });
-  waitForStateUpdates(this->sw_);
-  auto host0Mac = MacAddress("01:02:03:04:05:00");
-  auto host1Mac = MacAddress("01:02:03:04:05:02");
-  auto host2Mac = MacAddress("01:02:03:04:05:04");
-  auto host3Mac = MacAddress("01:02:03:04:05:06");
-  auto oobMac = MacAddress("01:02:03:04:05:01");
-  auto metaMac = MacAddress("04:02:03:04:05:06");
+  this->updateMacOuis();
+  std::vector<MacAddress> hostMacs = {
+      this->kMacAddressN(0),
+      this->kMacAddressN(2),
+      this->kMacAddressN(4),
+      this->kMacAddressN(6)};
+  auto oobMac = this->kMacAddressN(1);
+  auto metaMac = this->kMetaMacAddress();
   auto localAdministeredMac = MacAddress("02:02:03:04:05:06");
   auto outlierMac = MacAddress("08:02:03:04:05:06");
 
-  // physical host mac and oob mac are assigned to dedicated queue
-  this->resolve(this->getIpAddressN(3), host3Mac);
+  // physical host mac and oob mac are assigned to different queues
+  this->resolve(this->getIpAddressN(3), hostMacs[3]);
   verifyClassIDs(
       this->getIpAddressN(3),
-      host3Mac,
+      hostMacs[3],
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3);
-  this->resolve(this->getIpAddressN(2), host2Mac);
+  this->resolve(this->getIpAddressN(2), hostMacs[2]);
   verifyClassIDs(
       this->getIpAddressN(2),
-      host2Mac,
+      hostMacs[2],
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2);
   this->resolve(this->getIpAddressN(4), oobMac);
   verifyClassIDs(
       this->getIpAddressN(4),
       oobMac,
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4);
-  this->resolve(this->getIpAddressN(1), host1Mac);
+  this->resolve(this->getIpAddressN(1), hostMacs[1]);
   verifyClassIDs(
       this->getIpAddressN(1),
-      host1Mac,
+      hostMacs[1],
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
-  this->resolve(this->getIpAddressN(0), host0Mac);
+  this->resolve(this->getIpAddressN(0), hostMacs[0]);
   verifyClassIDs(
       this->getIpAddressN(0),
-      host0Mac,
+      hostMacs[0],
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 
-  // vm mac and outlier mac is assigned in way (first queue with minimum hosts
-  // assigned)
+  // vm mac and outlier mac is assigned in old way (first queue with minimum
+  // hosts assigned)
   this->resolve(this->getIpAddressN(5), metaMac);
   verifyClassIDs(
       this->getIpAddressN(5),
@@ -867,6 +873,169 @@ TYPED_TEST(
       this->getIpAddressN(7),
       outlierMac,
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2);
+}
+
+TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyMacOuiUpdate) {
+  FLAGS_queue_per_physical_host = true;
+  auto verifyClassIDs =
+      [this](IPAddress ip, MacAddress mac, cfg::AclLookupClass queue) {
+        this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+          this->verifyClassIDHelper(
+              ip, mac, queue /* ipClassID */, queue /* macClassID */);
+        });
+      };
+  std::vector<MacAddress> hostMacs = {
+      this->kMacAddressN(0),
+      this->kMacAddressN(2),
+      this->kMacAddressN(4),
+      this->kMacAddressN(6)};
+  auto oobMac = this->kMacAddressN(1);
+  auto metaMac = this->kMetaMacAddress();
+  auto localAdministeredMac = MacAddress("02:02:03:04:05:06");
+  auto outlierMac = MacAddress("08:02:03:04:05:06");
+
+  // all macs are assigned in old way (first queue with minimum hosts
+  // assigned)
+  // physical host mac and oob mac
+  this->resolve(this->getIpAddressN(3), hostMacs[3]);
+  verifyClassIDs(
+      this->getIpAddressN(3),
+      hostMacs[3],
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->resolve(this->getIpAddressN(2), hostMacs[2]);
+  verifyClassIDs(
+      this->getIpAddressN(2),
+      hostMacs[2],
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+  this->resolve(this->getIpAddressN(4), oobMac);
+  verifyClassIDs(
+      this->getIpAddressN(4),
+      oobMac,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2);
+  this->resolve(this->getIpAddressN(1), hostMacs[1]);
+  verifyClassIDs(
+      this->getIpAddressN(1),
+      hostMacs[1],
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3);
+  this->resolve(this->getIpAddressN(0), hostMacs[0]);
+  verifyClassIDs(
+      this->getIpAddressN(0),
+      hostMacs[0],
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4);
+  // vm mac and outlier mac
+  this->resolve(this->getIpAddressN(5), metaMac);
+  verifyClassIDs(
+      this->getIpAddressN(5),
+      metaMac,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->resolve(this->getIpAddressN(6), localAdministeredMac);
+  verifyClassIDs(
+      this->getIpAddressN(6),
+      localAdministeredMac,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+  this->resolve(this->getIpAddressN(7), outlierMac);
+  verifyClassIDs(
+      this->getIpAddressN(7),
+      outlierMac,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2);
+
+  // add mac ouis
+  this->updateMacOuis();
+  // physical host mac and oob mac are assigned to different queues
+  verifyClassIDs(
+      this->getIpAddressN(3),
+      hostMacs[3],
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3);
+  verifyClassIDs(
+      this->getIpAddressN(2),
+      hostMacs[2],
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2);
+  verifyClassIDs(
+      this->getIpAddressN(4),
+      oobMac,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4);
+  verifyClassIDs(
+      this->getIpAddressN(1),
+      hostMacs[1],
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+  verifyClassIDs(
+      this->getIpAddressN(0),
+      hostMacs[0],
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+  // vm mac and outlier mac are not re-assigned
+  verifyClassIDs(
+      this->getIpAddressN(5),
+      metaMac,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  verifyClassIDs(
+      this->getIpAddressN(6),
+      localAdministeredMac,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+  verifyClassIDs(
+      this->getIpAddressN(7),
+      outlierMac,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2);
+
+  // new vm mac should be assigned to next queue 3
+  auto localAdministeredMac2 = MacAddress("02:02:03:04:05:07");
+  this->resolve(this->getIpAddressN(8), localAdministeredMac2);
+  verifyClassIDs(
+      this->getIpAddressN(8),
+      localAdministeredMac2,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3);
+
+  // assign another vendor mac to queue 0 to make assignment imbalanced
+  this->resolve(this->getIpAddressN(9), this->kMacAddressN(8));
+  verifyClassIDs(
+      this->getIpAddressN(9),
+      this->kMacAddressN(8),
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+  // remove mac ouis
+  this->updateMacOuis(false);
+
+  // all macs should be rebalanced in old way
+  verifyClassIDs(
+      this->getIpAddressN(3),
+      hostMacs[3],
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3);
+  verifyClassIDs(
+      this->getIpAddressN(2),
+      hostMacs[2],
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2);
+  verifyClassIDs(
+      this->getIpAddressN(4),
+      oobMac,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4);
+  verifyClassIDs(
+      this->getIpAddressN(1),
+      hostMacs[1],
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+  verifyClassIDs(
+      this->getIpAddressN(0),
+      hostMacs[0],
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4);
+  verifyClassIDs(
+      this->getIpAddressN(5),
+      metaMac,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  verifyClassIDs(
+      this->getIpAddressN(6),
+      localAdministeredMac,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+  verifyClassIDs(
+      this->getIpAddressN(7),
+      outlierMac,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2);
+  verifyClassIDs(
+      this->getIpAddressN(8),
+      localAdministeredMac2,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3);
+  verifyClassIDs(
+      this->getIpAddressN(9),
+      this->kMacAddressN(8),
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 }
 
 TYPED_TEST(
@@ -1654,6 +1823,128 @@ TYPED_TEST(LookupClassUpdaterWarmbootTest, VerifyClassID) {
         this->getIpAddress3(),
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* ipClassID */,
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* macClassID */);
+  });
+}
+
+template <typename IpAddrAndEnableIntfNbrTableT>
+class LookupClassUpdaterWarmbootWithQueuePerPhysicalHostTest
+    : public LookupClassUpdaterTest<IpAddrAndEnableIntfNbrTableT> {
+ public:
+  using AddrT = typename IpAddrAndEnableIntfNbrTableT::AddrT;
+
+  void SetUp() override {
+    FLAGS_intf_nbr_tables = this->isIntfNbrTable();
+    using NeighborTableT = std::conditional_t<
+        std::is_same<AddrT, folly::IPAddressV4>::value,
+        ArpTable,
+        NdpTable>;
+
+    auto newState = testStateAWithLookupClasses();
+
+    auto vlanID = this->kVlan();
+    auto vlan = newState->getVlans()->getNodeIf(vlanID);
+    auto macTable = vlan->getMacTable();
+    macTable->addEntry(std::make_shared<MacEntry>(
+        this->kMacAddress(),
+        PortDescriptor(this->kPortID()),
+        std::optional<cfg::AclLookupClass>(
+            cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
+        MacEntryType::DYNAMIC_ENTRY));
+    macTable->addEntry(std::make_shared<MacEntry>(
+        this->kMetaMacAddress(),
+        PortDescriptor(this->kPortID()),
+        std::optional<cfg::AclLookupClass>(
+            cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
+        MacEntryType::DYNAMIC_ENTRY));
+
+    std::shared_ptr<NeighborTableT> neighborTable;
+    if (this->isIntfNbrTable()) {
+      auto intf = newState->getInterfaces()->getNodeIf(this->kInterfaceID());
+      neighborTable = intf->template getNeighborTable<NeighborTableT>();
+    } else {
+      neighborTable = vlan->template getNeighborTable<NeighborTableT>();
+    }
+
+    neighborTable->addEntry(NeighborEntryFields(
+        this->getIpAddrN(2),
+        this->kMacAddress(),
+        PortDescriptor(this->kPortID()),
+        this->kInterfaceID(),
+        NeighborState::PENDING));
+
+    neighborTable->updateEntry(
+        this->getIpAddrN(2),
+        this->kMacAddress(),
+        PortDescriptor(this->kPortID()),
+        this->kInterfaceID(),
+        NeighborState::REACHABLE,
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+    neighborTable->addEntry(NeighborEntryFields(
+        this->getIpAddrN(1),
+        this->kMetaMacAddress(),
+        PortDescriptor(this->kPortID()),
+        this->kInterfaceID(),
+        NeighborState::PENDING));
+
+    neighborTable->updateEntry(
+        this->getIpAddrN(1),
+        this->kMetaMacAddress(),
+        PortDescriptor(this->kPortID()),
+        this->kInterfaceID(),
+        NeighborState::REACHABLE,
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+    auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
+    auto switchSettings = newState->getSwitchSettings()
+                              ->getNode(matcher.matcherString())
+                              ->modify(&newState);
+
+    switchSettings->setVendorMacOuis({this->kVendorMacOui()});
+    switchSettings->setMetaMacOuis({this->kMetaMacOui()});
+
+    FLAGS_queue_per_physical_host = true;
+    this->handle_ = createTestHandle(newState);
+    this->sw_ = this->handle_->getSw();
+  }
+
+  AddrT getIpAddrN(int n) {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return this->kIp4AddrN(n);
+    } else {
+      return this->kIp6AddrN(n);
+    }
+  }
+};
+
+TYPED_TEST_SUITE(
+    LookupClassUpdaterWarmbootWithQueuePerPhysicalHostTest,
+    TestTypesNeighbor);
+
+TYPED_TEST(
+    LookupClassUpdaterWarmbootWithQueuePerPhysicalHostTest,
+    VerifyUpdateClassID) {
+  // meta Mac address should still be assigned to the first queue 0
+  this->resolveNeighbor(this->getIpAddress2(), this->kMetaMacAddress());
+  // vendor Mac address endin with 6 should be re-assigned to queue (6>>1)=3
+  EXPECT_EQ(this->kMacAddress().u64HBO() & 0b111, 6);
+  this->resolveNeighbor(this->getIpAddress3(), this->kMacAddress());
+
+  this->verifyStateUpdate([=]() {
+    this->verifyNeighborClassIDHelper(
+        this->getIpAddress(),
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3 /* ipClassID */,
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3 /* macClassID */);
+
+    this->verifyNeighborClassIDHelper(
+        this->getIpAddress2(),
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* ipClassID */,
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* macClassID */);
+
+    this->verifyNeighborClassIDHelper(
+        this->getIpAddress3(),
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3 /* ipClassID */,
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3 /* macClassID */);
   });
 }
 

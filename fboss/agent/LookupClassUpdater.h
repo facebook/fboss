@@ -181,9 +181,14 @@ class LookupClassUpdater : public StateObserver {
       const std::shared_ptr<Vlan>& vlan,
       folly::MacAddress macAddress);
 
+  void removeAndUpdateClassIDForMacVlan(
+      const std::shared_ptr<SwitchState>& switchState,
+      folly::MacAddress macAddress,
+      VlanID vlanID);
+
   void processMacAddrsToBlockUpdates(const StateDelta& stateDelta);
 
-  void processMacOuis(const std::shared_ptr<SwitchState>& switchState);
+  void processMacOuis(const StateDelta& stateDelta);
 
   /*
    * Methods to iterate over MacTable, ArpTable or NdpTable or table deltas.
