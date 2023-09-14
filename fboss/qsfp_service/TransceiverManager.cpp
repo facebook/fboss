@@ -13,6 +13,7 @@
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
@@ -85,6 +86,13 @@ TransceiverManager::TransceiverManager(
     portInfo.name = portName;
     portInfo.tcvrID = utility::getTransceiverId(platformPort, chips);
     portToSwPortInfo_.emplace(portID, std::move(portInfo));
+  }
+  try {
+    fwStorage_ =
+        std::make_unique<FbossFwStorage>(FbossFwStorage::initStorage());
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Couldn't create FbossFwStorage instance: "
+              << folly::exceptionStr(ex);
   }
 }
 

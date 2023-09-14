@@ -162,6 +162,7 @@ target_link_libraries(transceiver_manager
   utils
   product_info
   fsdb_flags
+  firmware_upgrader
 )
 
 add_library(qsfp_handler

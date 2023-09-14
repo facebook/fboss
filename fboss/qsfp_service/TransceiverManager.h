@@ -17,6 +17,7 @@
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/ThreadHeartbeat.h"
+#include "fboss/lib/firmware_storage/FbossFwStorage.h"
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
@@ -446,6 +447,10 @@ class TransceiverManager {
   void syncNpuPortStatusUpdate(
       std::map<int, facebook::fboss::NpuPortStatus>& portStatus);
 
+  FbossFwStorage* fwStorage() const {
+    return fwStorage_.get();
+  }
+
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus() = 0;
 
   virtual TransceiverI2CApi* i2cBus() = 0;
@@ -736,6 +741,8 @@ class TransceiverManager {
   folly::Synchronized<
       std::map<int /* agent logical port id */, facebook::fboss::NpuPortStatus>>
       npuPortStatusCache_;
+
+  std::unique_ptr<FbossFwStorage> fwStorage_;
 
   friend class TransceiverStateMachineTest;
 };
