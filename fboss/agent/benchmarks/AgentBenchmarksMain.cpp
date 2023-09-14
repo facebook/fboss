@@ -5,6 +5,7 @@
 #include <folly/init/Init.h>
 #include <folly/json.h>
 #include <folly/logging/Init.h>
+#include <gtest/gtest.h>
 
 #include <sys/resource.h>
 #include <sys/time.h>
@@ -27,7 +28,7 @@ int main(int argc, char* argv[]) {
   FLAGS_bm_max_iters = 2;
   struct rusage startUsage, endUsage;
   getrusage(RUSAGE_SELF, &startUsage);
-
+  testing::InitGoogleTest(&argc, argv);
   facebook::fboss::initBenchmarks(argc, argv);
   folly::runBenchmarks();
 
