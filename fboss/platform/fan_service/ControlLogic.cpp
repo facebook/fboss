@@ -44,45 +44,20 @@ ControlLogic::ControlLogic(
 std::tuple<bool, int, uint64_t> ControlLogic::getFanUpdate(
     const Fan& fan,
     const FanStatus& fanStatus) {
-  SensorEntryType entryType;
-
   std::string fanName = *fan.fanName();
   auto rpmAccessType = *fan.rpmAccess()->accessType();
   XLOG(INFO) << "Control :: Fan name " << *fan.fanName()
              << " Access type : " << rpmAccessType;
-  bool fanAccessFail = false, fanMissing = false;
+  bool fanAccessFail = false;
   int fanRpm = 0;
   uint64_t rpmTimeStamp = 0;
 
-  // Check if RPM name in Thrift data is overridden
-  if (rpmAccessType == constants::ACCESS_TYPE_THRIFT()) {
-    fanName = *fan.rpmAccess()->path();
-  }
   if (!isFanPresentInDevice(fan)) {
-    fanMissing = true;
+    XLOG(INFO) << "Control :: Fan is absent for " << *fan.fanName();
+    return std::make_tuple(true, 0, 0);
   }
-  if (rpmAccessType == constants::ACCESS_TYPE_THRIFT()) {
-    if (pSensor_->checkIfEntryExists(fanName)) {
-      entryType = pSensor_->getSensorEntryType(fanName);
-      switch (entryType) {
-        case SensorEntryType::kSensorEntryInt:
-          fanRpm = static_cast<int>(pSensor_->getSensorDataInt(fanName));
-          break;
-        case SensorEntryType::kSensorEntryFloat:
-          fanRpm = static_cast<int>(pSensor_->getSensorDataFloat(fanName));
-          break;
-      }
-      rpmTimeStamp = pSensor_->getLastUpdated(fanName);
-      if (rpmTimeStamp == fanStatus.timeStamp) {
-        // If read method is Thrift, but read time stamp is stale
-        // , consider that as access failure
-        fanAccessFail = true;
-      }
-    } else {
-      // If no entry in Thrift response, consider that as failure
-      fanAccessFail = true;
-    }
-  } else if (rpmAccessType == constants::ACCESS_TYPE_SYSFS()) {
+
+  if (rpmAccessType == constants::ACCESS_TYPE_SYSFS()) {
     try {
       fanRpm = pBsp_->readSysfs(*fan.rpmAccess()->path());
       rpmTimeStamp = pBsp_->getCurrentTime();
@@ -102,8 +77,8 @@ std::tuple<bool, int, uint64_t> ControlLogic::getFanUpdate(
     numFanFailed_++;
   }
 
-  auto fanFailed = fanMissing ||
-      (fanAccessFail && fanAccessFailDuration >= kFanFailThresholdInSec);
+  auto fanFailed =
+      fanAccessFail && fanAccessFailDuration >= kFanFailThresholdInSec;
 
   XLOG(INFO) << "Control :: RPM :" << fanRpm
              << " Failed : " << (fanFailed ? "Yes" : "No");
@@ -533,11 +508,11 @@ void ControlLogic::programLed(const Fan& fan, bool fanFailed) {
       (fanFailed ? *fan.fanFailLedVal() : *fan.fanGoodLedVal());
   if (*fan.ledAccess()->accessType() == constants::ACCESS_TYPE_SYSFS()) {
     pBsp_->setFanLedSysfs(*fan.ledAccess()->path(), valueToWrite);
-  } else if (*fan.ledAccess()->accessType() == constants::ACCESS_TYPE_UTIL()) {
-    pBsp_->setFanLedShell(
-        *fan.ledAccess()->path(), *fan.fanName(), valueToWrite);
   } else {
-    XLOG(ERR) << "Unsupported LED access type for : ", *fan.fanName();
+    XLOG(ERR) << folly::sformat(
+        "Unsupported LED access type {} for : {}",
+        *fan.ledAccess()->accessType(),
+        *fan.fanName());
   }
   XLOG(INFO) << "Control :: Set the LED of " << *fan.fanName() << " to "
              << (fanFailed ? "Fail" : "Good") << "(" << valueToWrite << ") "

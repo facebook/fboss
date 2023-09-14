@@ -151,7 +151,7 @@
         "path": "/run/devmap/sensors/FAN_CPLD/fan2_input"
       },
       "pwmAccess": {
-        "accessType": "ACCESS_TYPE_UTIL",
+        "accessType": "ACCESS_TYPE_SYSFS",
         "path": "/run/devmap/sensors/FAN_CPLD/pwm2"
       },
       "presenceAccess": {
@@ -159,7 +159,7 @@
         "path": "/run/devmap/sensors/FAN_CPLD/fan2_present"
       },
       "ledAccess": {
-        "accessType": "ACCESS_TYPE_UTIL",
+        "accessType": "ACCESS_TYPE_SYSFS",
         "path": "/run/devmap/sensors/FAN_CPLD/fan2_led"
       },
       "pwmMin": 1,
@@ -176,7 +176,7 @@
         "path": "/run/devmap/sensors/FAN_CPLD/fan3_input"
       },
       "pwmAccess": {
-        "accessType": "ACCESS_TYPE_UTIL",
+        "accessType": "ACCESS_TYPE_SYSFS",
         "path": "/run/devmap/sensors/FAN_CPLD/pwm3"
       },
       "presenceAccess": {
@@ -184,7 +184,7 @@
         "path": "/run/devmap/sensors/FAN_CPLD/fan3_present"
       },
       "ledAccess": {
-        "accessType": "ACCESS_TYPE_UTIL",
+        "accessType": "ACCESS_TYPE_SYSFS",
         "path": "/run/devmap/sensors/FAN_CPLD/fan3_led"
       },
       "pwmMin": 1,

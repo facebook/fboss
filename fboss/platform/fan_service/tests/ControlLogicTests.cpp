@@ -76,40 +76,6 @@ class ControlLogicTests : public testing::Test {
     ASSERT_TRUE(kExpectedPwms.size() == fanServiceConfig_.fans()->size());
   }
 
-  void mockFanProgramming(const Fan& fan, int times, bool success) {
-    auto accessType = *fan.pwmAccess()->accessType();
-    if (accessType == fan_service_config_constants::ACCESS_TYPE_SYSFS()) {
-      EXPECT_CALL(*mockBsp_, setFanPwmSysfs(*fan.pwmAccess()->path(), _))
-          .Times(times)
-          .WillRepeatedly(Return(success));
-    } else if (accessType == fan_service_config_constants::ACCESS_TYPE_UTIL()) {
-      EXPECT_CALL(
-          *mockBsp_,
-          setFanPwmShell(*fan.pwmAccess()->path(), *fan.fanName(), _))
-          .Times(times)
-          .WillRepeatedly(Return(success));
-    } else {
-      throw std::runtime_error("Unexpected PWM access type");
-    }
-  }
-
-  void mockLedProgramming(const Fan& fan, int times, bool success) {
-    auto accessType = *fan.ledAccess()->accessType();
-    if (accessType == fan_service_config_constants::ACCESS_TYPE_SYSFS()) {
-      EXPECT_CALL(*mockBsp_, setFanLedSysfs(*fan.ledAccess()->path(), _))
-          .Times(times)
-          .WillRepeatedly(Return(success));
-    } else if (accessType == fan_service_config_constants::ACCESS_TYPE_UTIL()) {
-      EXPECT_CALL(
-          *mockBsp_,
-          setFanLedShell(*fan.ledAccess()->path(), *fan.fanName(), _))
-          .Times(times)
-          .WillRepeatedly(Return(success));
-    } else {
-      throw std::runtime_error("Unexpected LED access type");
-    }
-  }
-
   FanServiceConfig fanServiceConfig_;
   std::shared_ptr<SensorData> sensorData_;
   std::shared_ptr<MockBsp> mockBsp_;
@@ -118,8 +84,10 @@ class ControlLogicTests : public testing::Test {
 
 TEST_F(ControlLogicTests, SetTransitionValueSuccess) {
   for (const auto& fan : *fanServiceConfig_.fans()) {
-    mockFanProgramming(fan, 1, true);
-    mockLedProgramming(fan, 0, true);
+    EXPECT_CALL(*mockBsp_, setFanPwmSysfs(*fan.pwmAccess()->path(), _))
+        .WillOnce(Return(true));
+    EXPECT_CALL(*mockBsp_, setFanLedSysfs(*fan.ledAccess()->path(), _))
+        .Times(0);
   }
 
   controlLogic_->setTransitionValue();
@@ -132,8 +100,11 @@ TEST_F(ControlLogicTests, SetTransitionValueSuccess) {
 
 TEST_F(ControlLogicTests, SetTransitionValueFailure) {
   for (const auto& fan : *fanServiceConfig_.fans()) {
-    mockFanProgramming(fan, 1, false);
-    mockLedProgramming(fan, 1, true);
+    EXPECT_CALL(*mockBsp_, setFanPwmSysfs(*fan.pwmAccess()->path(), _))
+        .WillOnce(Return(false));
+    EXPECT_CALL(*mockBsp_, setFanLedSysfs(*fan.ledAccess()->path(), _))
+        .Times(1)
+        .WillOnce(Return(true));
   }
 
   controlLogic_->setTransitionValue();
@@ -147,8 +118,11 @@ TEST_F(ControlLogicTests, SetTransitionValueFailure) {
 TEST_F(ControlLogicTests, UpdateControlSuccess) {
   EXPECT_CALL(*mockBsp_, checkIfInitialSensorDataRead()).WillOnce(Return(true));
   for (const auto& fan : *fanServiceConfig_.fans()) {
-    mockFanProgramming(fan, 2, true);
-    mockLedProgramming(fan, 1, true);
+    EXPECT_CALL(*mockBsp_, setFanPwmSysfs(*fan.pwmAccess()->path(), _))
+        .Times(2)
+        .WillRepeatedly(Return(true));
+    EXPECT_CALL(*mockBsp_, setFanLedSysfs(*fan.ledAccess()->path(), _))
+        .WillOnce(Return(true));
     EXPECT_CALL(*mockBsp_, readSysfs(*fan.rpmAccess()->path()))
         .WillOnce(Return(kDefaultRpm));
     EXPECT_CALL(*mockBsp_, readSysfs(*fan.presenceAccess()->path()))
@@ -172,10 +146,12 @@ TEST_F(ControlLogicTests, UpdateControlSuccess) {
 TEST_F(ControlLogicTests, UpdateControlFailureDueToMissingFans) {
   EXPECT_CALL(*mockBsp_, checkIfInitialSensorDataRead()).WillOnce(Return(true));
   for (const auto& fan : *fanServiceConfig_.fans()) {
-    mockFanProgramming(fan, 2, true);
-    mockLedProgramming(fan, 1, true);
-    EXPECT_CALL(*mockBsp_, readSysfs(*fan.rpmAccess()->path()))
-        .WillOnce(Return(kDefaultRpm));
+    EXPECT_CALL(*mockBsp_, setFanPwmSysfs(*fan.pwmAccess()->path(), _))
+        .Times(2)
+        .WillRepeatedly(Return(true));
+    EXPECT_CALL(*mockBsp_, setFanLedSysfs(*fan.ledAccess()->path(), _))
+        .WillOnce(Return(true));
+    EXPECT_CALL(*mockBsp_, readSysfs(*fan.rpmAccess()->path())).Times(0);
     EXPECT_CALL(*mockBsp_, readSysfs(*fan.presenceAccess()->path()))
         .WillOnce(Return(0 /* fan missing */));
   }
@@ -188,8 +164,8 @@ TEST_F(ControlLogicTests, UpdateControlFailureDueToMissingFans) {
   EXPECT_EQ(fanStatuses.size(), fanServiceConfig_.fans()->size());
   for (const auto& [fanName, fanStatus] : fanStatuses) {
     EXPECT_EQ(fanStatus.fanFailed, true);
-    EXPECT_EQ(fanStatus.rpm, kDefaultRpm);
-    EXPECT_LE(fanStatus.timeStamp, mockBsp_->getCurrentTime());
+    EXPECT_EQ(fanStatus.rpm, 0);
+    EXPECT_LE(fanStatus.timeStamp, 0);
     EXPECT_EQ(fanStatus.currentPwm, kExpectedPwms[i++]);
   }
 }
@@ -197,8 +173,12 @@ TEST_F(ControlLogicTests, UpdateControlFailureDueToMissingFans) {
 TEST_F(ControlLogicTests, UpdateControlFailureAfterFanUnaccessibleFirstTime) {
   EXPECT_CALL(*mockBsp_, checkIfInitialSensorDataRead()).WillOnce(Return(true));
   for (const auto& fan : *fanServiceConfig_.fans()) {
-    mockFanProgramming(fan, 2, true);
-    mockLedProgramming(fan, 1, true);
+    EXPECT_CALL(*mockBsp_, setFanPwmSysfs(*fan.pwmAccess()->path(), _))
+        .Times(2)
+        .WillRepeatedly(Return(true));
+    EXPECT_CALL(*mockBsp_, setFanLedSysfs(*fan.ledAccess()->path(), _))
+        .Times(1)
+        .WillRepeatedly(Return(true));
     EXPECT_CALL(*mockBsp_, readSysfs(*fan.rpmAccess()->path()))
         .WillOnce(Throw(std::exception()));
     EXPECT_CALL(*mockBsp_, readSysfs(*fan.presenceAccess()->path()))
@@ -224,8 +204,12 @@ TEST_F(ControlLogicTests, UpdateControlSuccessAfterFanUnaccessibleLTThreshold) {
       .Times(2)
       .WillRepeatedly(Return(true));
   for (const auto& fan : *fanServiceConfig_.fans()) {
-    mockFanProgramming(fan, 3, true);
-    mockLedProgramming(fan, 2, true);
+    EXPECT_CALL(*mockBsp_, setFanPwmSysfs(*fan.pwmAccess()->path(), _))
+        .Times(3)
+        .WillRepeatedly(Return(true));
+    EXPECT_CALL(*mockBsp_, setFanLedSysfs(*fan.ledAccess()->path(), _))
+        .Times(2)
+        .WillRepeatedly(Return(true));
     EXPECT_CALL(*mockBsp_, readSysfs(*fan.rpmAccess()->path()))
         .WillOnce(Return(kDefaultRpm))
         .WillOnce(Throw(std::exception()));
