@@ -145,7 +145,9 @@ void PlatformProductInfo::initMode() {
     } else if (
         modelName.find("Montblanc") == 0 || modelName.find("MONTBLANC") == 0) {
       type_ = PlatformType::PLATFORM_MONTBLANC;
-    } else if (modelName.find("Meru800bia") == 0) {
+    } else if (
+        modelName.find("Meru800bia") == 0 ||
+        modelName.find("MERU800BIA") == 0) {
       type_ = PlatformType::PLATFORM_MERU800BIA;
     } else if (modelName.find("Meru800bfa") == 0) {
       type_ = PlatformType::PLATFORM_MERU800BFA;
