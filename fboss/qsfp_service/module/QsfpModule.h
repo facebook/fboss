@@ -104,7 +104,7 @@ class QsfpModule : public Transceiver {
   /*
    * Returns the entire QSFP information
    */
-  TransceiverInfo getTransceiverInfo() override;
+  TransceiverInfo getTransceiverInfo() const override;
 
   /*
    * Perform a raw register read on the transceiver

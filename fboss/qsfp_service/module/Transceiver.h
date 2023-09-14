@@ -123,7 +123,7 @@ class Transceiver {
   /*
    * Return all of the transceiver information
    */
-  virtual TransceiverInfo getTransceiverInfo() = 0;
+  virtual TransceiverInfo getTransceiverInfo() const = 0;
 
   /*
    * Return raw page data from the qsfp DOM

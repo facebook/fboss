@@ -130,7 +130,7 @@ bool QsfpModule::cacheIsValid() const {
   return present_ && !dirty_;
 }
 
-TransceiverInfo QsfpModule::getTransceiverInfo() {
+TransceiverInfo QsfpModule::getTransceiverInfo() const {
   auto cachedInfo = info_.rlock();
   if (!cachedInfo->has_value()) {
     throw QsfpModuleError("Still populating data...");
