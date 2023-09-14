@@ -48,25 +48,6 @@ bool PlatformValidator::isValid(const PlatformConfig& config) {
 
   // TODO: Validate platformName matches what is set in dmidecode on BIOS
 
-  // Verify presence of CHASSIS_SLOT SlotTypeConfig
-  if (config.slotTypeConfigs()->find("CHASSIS_SLOT") ==
-      config.slotTypeConfigs()->end()) {
-    XLOG(ERR) << "CHASSIS_SLOT SlotTypeConfig is not found";
-    return false;
-  }
-
-  // Verify presence of CHASSIS FruTypeConfig
-  int count(0);
-  for (const auto& [fruTypeName, fruTypeConfig] : *config.fruTypeConfigs()) {
-    if (*fruTypeConfig.pluggedInSlotType() == "CHASSIS_SLOT") {
-      count++;
-    }
-  }
-  if (count != 1) {
-    XLOG(ERR) << "Exactly one CHASSIS FruTypeConfig is expected";
-    return false;
-  }
-
   // Validate SlotTypeConfigs.
   for (const auto& [slotName, slotTypeConfig] : *config.slotTypeConfigs()) {
     if (!isValidSlotTypeConfig(slotTypeConfig)) {

@@ -65,6 +65,12 @@ include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 //
 // `numOutgoingChannels`: Number of outgoing channels (applies only for mux)
 //
+// `isEeprom`: Indicates whether this device is an EEPROM. If not specified, it
+// defaults to false.
+//
+// `isChassisEeprom`: Indicates whether this device is the Chassis EEPROM. If
+// not specified, it defaults to false.
+//
 // For example, the three i2c devices in the below sample_fru will be modeled
 // as follows
 //
@@ -96,6 +102,8 @@ struct I2cDeviceConfig {
   3: string kernelDeviceName;
   4: string fruScopedName;
   5: optional i32 numOutgoingChannels;
+  6: bool isEeprom;
+  7: bool isChassisEeprom;
 }
 
 // The IDPROM which contains information about the FRU or Chassis

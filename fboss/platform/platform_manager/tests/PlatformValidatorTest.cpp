@@ -29,29 +29,9 @@ TEST(PlatformValidatorTest, InvalidPlatformName) {
   EXPECT_FALSE(PlatformValidator().isValid(config));
 }
 
-TEST(PlatformValidatorTest, MissingChassisSlotTypeConfig) {
-  auto config = PlatformConfig();
-  config.platformName() = "MERU400BIU";
-  auto fruTypeConfig = FruTypeConfig();
-  fruTypeConfig.pluggedInSlotType() = "CHASSIS_SLOT";
-  config.fruTypeConfigs()["CHASSIS_FRU"] = fruTypeConfig;
-  EXPECT_FALSE(PlatformValidator().isValid(config));
-}
-
-TEST(PlatformValidatorTest, MissingChassisFruTypeConfig) {
-  auto config = PlatformConfig();
-  config.platformName() = "MERU400BIU";
-  config.slotTypeConfigs()["CHASSIS_SLOT"] = getValidSlotTypeConfig();
-  EXPECT_FALSE(PlatformValidator().isValid(config));
-}
-
 TEST(PlatformValidatorTest, ValidConfig) {
   auto config = PlatformConfig();
   config.platformName() = "MERU400BIU";
-  config.slotTypeConfigs()["CHASSIS_SLOT"] = getValidSlotTypeConfig();
-  auto fruTypeConfig = FruTypeConfig();
-  fruTypeConfig.pluggedInSlotType() = "CHASSIS_SLOT";
-  config.fruTypeConfigs()["CHASSIS_FRU"] = fruTypeConfig;
   EXPECT_TRUE(PlatformValidator().isValid(config));
 }
 

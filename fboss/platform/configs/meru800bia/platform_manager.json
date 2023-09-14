@@ -1,102 +1,84 @@
 {
-    "platformName": "meru800bia",
-    "rootFruType": "SCM",
-    "slotTypeConfigs": {
-        "SCM_SLOT": {
-            "numOutgoingI2cBuses": 0,
-            "idpromConfig": {
-                "busName": "Intel SMBus Controller #TBD",
-                "address": "0x00",
-                "kernelDeviceName": "at24"
-            }
-        },
-        "SMB_SLOT": {
-            "numOutgoingI2cBuses": 1,
-            "idpromConfig": {
-                "busName": "INCOMING@0",
-                "address": "0x50",
-                "kernelDeviceName": "at24"
-            }
-        },
-        "PSU_SLOT": {
-            "numOutgoingI2cBuses": 1,
-            "idpromConfig": {
-                "busName": "INCOMING@0",
-                "address": "0x58",
-                "kernelDeviceName": "at24"
-            }
-        },
-        "FAN_SLOT": {
-            "numOutgoingI2cBuses": 0,
-            "fruType": "FAN"
-        },
-        "CHASSIS_SLOT": {
-            "numOutgoingI2cBuses": 0,
-            "idpromConfig": {
-                "busName": "TBD",
-                "address": "0x00",
-                "kernelDeviceName": "at24"
-            }
-        }
+  "platformName": "meru800bia",
+  "rootFruType": "SCM",
+  "slotTypeConfigs": {
+    "SCM_SLOT": {
+      "numOutgoingI2cBuses": 0,
+      "idpromConfig": {
+        "busName": "Intel SMBus Controller #TBD",
+        "address": "0x00",
+        "kernelDeviceName": "at24"
+      }
     },
-    "i2cAdaptersFromCpu": [
-        "Intel SMBus Controller #TBD1",
-        "Intel SMBus Controller #TBD2"
-    ],
-    "fruTypeConfigs": {
-        "SCM": {
-            "pluggedInSlotType": "SCM_SLOT",
-            "i2cDeviceConfigs": [],
-            "outgoingSlotConfigs": {
-                "SMB_SLOT@0": {
-                    "slotType": "SMB_SLOT",
-                    "ougoingI2cBusNames": [
-                        "SCM CPLD SMBus master 1 bus 0"
-                    ]
-                }
-            }
-        },
-        "SMB": {
-            "pluggedInSlotType": "SMB_SLOT",
-            "i2cDeviceConfigs": [],
-            "outgoingSlotConfigs": {
-                "PSU_SLOT@0": {
-                    "slotType": "PSU_SLOT",
-                    "ougoingI2cBusNames": [
-                        "SMB FPGA SMBus master 0 bus 5"
-                    ]
-                },
-                "PSU_SLOT@1": {
-                    "slotType": "PSU_SLOT",
-                    "ougoingI2cBusNames": [
-                        "SMB FPGA SMBus master 0 bus 6"
-                    ]
-                },
-                "FAN_SLOT@0": {
-                    "slotType": "FAN_SLOT"
-                },
-                "FAN_SLOT@1": {
-                    "slotType": "FAN_SLOT"
-                },
-                "FAN_SLOT@2": {
-                    "slotType": "FAN_SLOT"
-                },
-                "FAN_SLOT@3": {
-                    "slotType": "FAN_SLOT"
-                }
-            }
-        },
-        "PSU": {
-            "pluggedInSlotType": "PSU_SLOT",
-            "i2cDeviceConfigs": []
-        },
-        "FAN": {
-            "pluggedInSlotType": "SMB_SLOT",
-            "i2cDeviceConfigs": []
-        },
-        "CHASSIS": {
-            "pluggedInSlotType": "CHASSIS_SLOT",
-            "outgoingSlotConfigs": {}
-        }
+    "SMB_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x50",
+        "kernelDeviceName": "at24"
+      }
+    },
+    "PSU_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x58",
+        "kernelDeviceName": "at24"
+      }
+    },
+    "FAN_SLOT": {
+      "numOutgoingI2cBuses": 0,
+      "fruType": "FAN"
     }
+  },
+  "i2cAdaptersFromCpu": [
+    "Intel SMBus Controller #TBD1",
+    "Intel SMBus Controller #TBD2"
+  ],
+  "fruTypeConfigs": {
+    "SCM": {
+      "pluggedInSlotType": "SCM_SLOT",
+      "i2cDeviceConfigs": [],
+      "outgoingSlotConfigs": {
+        "SMB_SLOT@0": {
+          "slotType": "SMB_SLOT",
+          "ougoingI2cBusNames": ["SCM CPLD SMBus master 1 bus 0"]
+        }
+      }
+    },
+    "SMB": {
+      "pluggedInSlotType": "SMB_SLOT",
+      "i2cDeviceConfigs": [],
+      "outgoingSlotConfigs": {
+        "PSU_SLOT@0": {
+          "slotType": "PSU_SLOT",
+          "ougoingI2cBusNames": ["SMB FPGA SMBus master 0 bus 5"]
+        },
+        "PSU_SLOT@1": {
+          "slotType": "PSU_SLOT",
+          "ougoingI2cBusNames": ["SMB FPGA SMBus master 0 bus 6"]
+        },
+        "FAN_SLOT@0": {
+          "slotType": "FAN_SLOT"
+        },
+        "FAN_SLOT@1": {
+          "slotType": "FAN_SLOT"
+        },
+        "FAN_SLOT@2": {
+          "slotType": "FAN_SLOT"
+        },
+        "FAN_SLOT@3": {
+          "slotType": "FAN_SLOT"
+        }
+      }
+    },
+    "PSU": {
+      "pluggedInSlotType": "PSU_SLOT",
+      "i2cDeviceConfigs": []
+    },
+    "FAN": {
+      "pluggedInSlotType": "SMB_SLOT",
+      "i2cDeviceConfigs": []
+    }
+  }
 }

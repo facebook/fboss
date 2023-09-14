@@ -1,36 +1,30 @@
 {
-    "platformName": "montblanc",
-    "rootFruType": "MCB",
-    "slotTypeConfigs": {
-        "MCB_SLOT": {
-            "numOutgoingI2cBuses": 0,
-            "idpromConfig": {
-                "busName": "SMBus I801 adapter at 5000",
-                "address": "0x53",
-                "kernelDeviceName": "24c02"
-            },
-            "fruType": "MCB"
-        },
-        "CHASSIS_SLOT": {
-            "fruType": "CHASSIS"
-        }
-    },
-    "i2cAdaptersFromCpu": [
-        "SMBus I801 adapter at 5000",
-        "SMBus iSMT adapter at 20fffa7b000"
-    ],
-    "fruTypeConfigs": {
-        "MCB": {
-            "pluggedInSlotType": "MCB_SLOT",
-            "i2cDeviceConfigs": [],
-            "outgoingSlotConfigs": {}
-        },
-        "CHASSIS": {
-            "pluggedInSlotType": "CHASSIS_SLOT"
-        }
-    },
-    "bspKmodsRpmName" : "fboss_bsp_kmods",
-    "bspKmodsRpmVersion" : "0.5.0-1",
-    "udevRpmName" : "fb-fboss-platform-montblanc-udev",
-    "udevRpmVersion" : "20230724-105050"
+  "platformName": "montblanc",
+  "rootFruType": "MCB",
+  "slotTypeConfigs": {
+    "MCB_SLOT": {
+      "numOutgoingI2cBuses": 0,
+      "idpromConfig": {
+        "busName": "SMBus I801 adapter at 5000",
+        "address": "0x53",
+        "kernelDeviceName": "24c02"
+      },
+      "fruType": "MCB"
+    }
+  },
+  "i2cAdaptersFromCpu": [
+    "SMBus I801 adapter at 5000",
+    "SMBus iSMT adapter at 20fffa7b000"
+  ],
+  "fruTypeConfigs": {
+    "MCB": {
+      "pluggedInSlotType": "MCB_SLOT",
+      "i2cDeviceConfigs": [],
+      "outgoingSlotConfigs": {}
+    }
+  },
+  "bspKmodsRpmName": "fboss_bsp_kmods",
+  "bspKmodsRpmVersion": "0.5.0-1",
+  "udevRpmName": "fb-fboss-platform-montblanc-udev",
+  "udevRpmVersion": "20230724-105050"
 }
