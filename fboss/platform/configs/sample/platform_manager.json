@@ -1,7 +1,7 @@
 {
   "___COMMENT___": "See the associated pastes to get a pictorial representation of this config",
   "platformName": "sample_platform",
-  "rootFruType": "SCM",
+  "rootPmUnitName": "SCM",
   "slotTypeConfigs": {
     "SCM_SLOT": {
       "numOutgoingI2cBuses": 0,
@@ -44,7 +44,7 @@
       }
     }
   },
-  "fruTypeConfigs": {
+  "pmUnitConfigs": {
     "SCM": {
       "pluggedInSlotType": "SCM_SLOT",
       "outgoingSlotConfigs": {
@@ -68,7 +68,7 @@
           "busName": "CPU@7",
           "address": "0x11",
           "kernelDeviceName": "24c02",
-          "fruScopedName": "chassis_eeprom",
+          "pmUnitScopeName": "chassis_eeprom",
           "isEeprom": true,
           "isChassisEeprom": true
         }
@@ -81,19 +81,19 @@
           "busName": "INCOMING@7",
           "address": "0x54",
           "kernelDeviceName": "lm75",
-          "fruScopedName": "inlet_sensor"
+          "pmUnitScopeName": "inlet_sensor"
         },
         {
           "busName": "INCOMING@7",
           "address": "0x55",
           "kernelDeviceName": "lm75",
-          "fruScopedName": "outlet_sensor"
+          "pmUnitScopeName": "outlet_sensor"
         },
         {
           "busName": "INCOMING@6",
           "address": "0x54",
           "kernelDeviceName": "lm75",
-          "fruScopedName": "asic_sensor"
+          "pmUnitScopeName": "asic_sensor"
         }
       ],
       "outgoingSlotConfigs": {
@@ -111,27 +111,27 @@
           "busName": "INCOMING@0",
           "address": "0x54",
           "kernelDeviceName": "pca9x42",
-          "fruScopedName": "yolo_mux1",
+          "pmUnitScopeName": "yolo_mux1",
           "numOutgoingChannels": 2
         },
         {
           "busName": "INCOMING@1",
           "address": "0x55",
           "kernelDeviceName": "pca9x44",
-          "fruScopedName": "yolo_mux2",
+          "pmUnitScopeName": "yolo_mux2",
           "numOutgoingChannels": 4
         },
         {
           "busName": "yolo_mux1@0",
           "address": "0x12",
           "kernelDeviceName": "lm75",
-          "fruScopedName": "yolo_sensor1"
+          "pmUnitScopeName": "yolo_sensor1"
         },
         {
           "busName": "INCOMING@2",
           "address": "0x12",
           "kernelDeviceName": "lm75",
-          "fruScopedName": "yolo_sensor2"
+          "pmUnitScopeName": "yolo_sensor2"
         }
       ],
       "outgoingSlotConfigs": {
@@ -164,7 +164,7 @@
           "busName": "INCOMING@0",
           "address": "0x15",
           "kernelDeviceName": "pca9x42",
-          "fruScopedName": "pim_mux",
+          "pmUnitScopeName": "pim_mux",
           "numOutgoingChannels": 2
         }
       ],
@@ -181,7 +181,7 @@
           "busName": "INCOMING@1",
           "address": "0x12",
           "kernelDeviceName": "lm75",
-          "fruScopedName": "psu_2gh_sensor"
+          "pmUnitScopeName": "psu_2gh_sensor"
         }
       ],
       "outgoingSlotConfigs": {}

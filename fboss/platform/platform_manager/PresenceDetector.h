@@ -8,7 +8,7 @@ namespace facebook::fboss::platform::platform_manager {
 
 class PresenceDetector {
  public:
-  // Checks for the presence of a FRU based on the passed `presenceDetection`
+  // Checks for the presence of a PmUnit based on the passed `presenceDetection`
   bool isPresent(const PresenceDetection& presenceDetection) {
     // We will always return true for now. Once we figure out the implementation
     // details, this will be changed.

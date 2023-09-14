@@ -61,7 +61,7 @@ std::map<std::string, int16_t> PlatformI2cExplorer::getBusNums(
   return busNums;
 }
 
-std::string PlatformI2cExplorer::getFruTypeName(const std::string&) {
+std::string PlatformI2cExplorer::getPmUnitName(const std::string&) {
   throw std::runtime_error("Not implemented yet.");
 }
 

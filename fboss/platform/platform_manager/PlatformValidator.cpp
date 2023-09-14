@@ -10,8 +10,8 @@ namespace facebook::fboss::platform::platform_manager {
 
 bool PlatformValidator::isValidSlotTypeConfig(
     const SlotTypeConfig& slotTypeConfig) {
-  if (!slotTypeConfig.idpromConfig_ref() && !slotTypeConfig.fruType_ref()) {
-    XLOG(ERR) << "SlotTypeConfig must have either IDPROM or FRUType name";
+  if (!slotTypeConfig.idpromConfig_ref() && !slotTypeConfig.pmUnitName()) {
+    XLOG(ERR) << "SlotTypeConfig must have either IDPROM or PmUnit name";
     return false;
   }
   if (slotTypeConfig.idpromConfig_ref()) {
@@ -56,8 +56,8 @@ bool PlatformValidator::isValid(const PlatformConfig& config) {
   }
 
   // Validate I2cDeviceConfigs
-  for (const auto& [name, fruTypeConfig] : *config.fruTypeConfigs_ref()) {
-    for (const auto& i2cDeviceConfig : *fruTypeConfig.i2cDeviceConfigs_ref()) {
+  for (const auto& [name, pmUnitConfig] : *config.pmUnitConfigs()) {
+    for (const auto& i2cDeviceConfig : *pmUnitConfig.i2cDeviceConfigs_ref()) {
       if (!isValidI2cDeviceConfig(i2cDeviceConfig)) {
         return false;
       }

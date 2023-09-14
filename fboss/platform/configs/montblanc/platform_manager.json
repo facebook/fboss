@@ -1,6 +1,6 @@
 {
   "platformName": "montblanc",
-  "rootFruType": "MCB",
+  "rootPmUnitName": "MCB",
   "slotTypeConfigs": {
     "MCB_SLOT": {
       "numOutgoingI2cBuses": 0,
@@ -9,14 +9,14 @@
         "address": "0x53",
         "kernelDeviceName": "24c02"
       },
-      "fruType": "MCB"
+      "pmUnitName": "MCB"
     }
   },
   "i2cAdaptersFromCpu": [
     "SMBus I801 adapter at 5000",
     "SMBus iSMT adapter at 20fffa7b000"
   ],
-  "fruTypeConfigs": {
+  "pmUnitConfigs": {
     "MCB": {
       "pluggedInSlotType": "MCB_SLOT",
       "i2cDeviceConfigs": [],

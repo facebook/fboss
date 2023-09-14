@@ -56,8 +56,8 @@ class PlatformI2cExplorer {
   std::map<std::string, int16_t> getBusNums(
       const std::vector<std::string>& i2cAdaptersFromCpu);
 
-  // Returns the FRU Type name based on the contents read from the EEPROM
-  std::string getFruTypeName(const std::string& eepromPath);
+  // Returns the PmUnit name based on the contents read from the EEPROM
+  std::string getPmUnitName(const std::string& eepromPath);
 
   // Checks if a I2c devices is present at `addr` on `busNum`.
   virtual bool isI2cDevicePresent(uint16_t busNum, const I2cAddr& addr);

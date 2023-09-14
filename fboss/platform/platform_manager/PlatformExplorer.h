@@ -16,27 +16,27 @@ class PlatformExplorer {
       std::chrono::seconds exploreInterval,
       const PlatformConfig& config);
   void explore();
-  void exploreFRU(
-      const std::string& parentFruName,
+  void explorePmUnit(
+      const std::string& parentPmUnitPath,
       const std::string& parentSlotName,
       const SlotConfig& parentSlot,
-      const std::string& fruTypeName);
+      const std::string& pmUnitName);
   void exploreSlot(
-      const std::string& fruName,
+      const std::string& pmUnitPath,
       const std::string& slotName,
       const SlotConfig& slotConfig);
-  std::optional<std::string> getFruTypeNameFromSlot(
+  std::optional<std::string> getPmUnitNameFromSlot(
       const SlotConfig& slotConfig,
-      const std::string& fruName);
+      const std::string& pmUnitPath);
   void exploreI2cDevices(
-      const std::string& fruName,
+      const std::string& pmUnitPath,
       const std::vector<I2cDeviceConfig>& i2cDeviceConfigs);
   uint16_t getI2cBusNum(
-      const std::string& fruName,
-      const std::string& fruScopeBusName) const;
+      const std::string& pmUnitPath,
+      const std::string& pmUnitScopeBusName) const;
   void updateI2cBusNum(
-      const std::string& fruName,
-      const std::string& fruScopeBusName,
+      const std::string& pmUnitPath,
+      const std::string& pmUnitScopeBusName,
       uint16_t busNum);
 
  private:
@@ -44,7 +44,7 @@ class PlatformExplorer {
   PlatformConfig platformConfig_{};
   PlatformI2cExplorer i2cExplorer_{};
   PresenceDetector presenceDetector_{};
-  // Map from <fruName, fruScopeBusName> to kernel i2c bus name.
+  // Map from <pmUnitName, pmUnitScopeBusName> to kernel i2c bus name.
   // Example: <CHASSIS/PIMSlot0:PIM-8DD, INCOMING@3> -> i2c-54
   std::map<std::pair<std::string, std::string>, uint16_t> i2cBusNamesToNums_{};
 };

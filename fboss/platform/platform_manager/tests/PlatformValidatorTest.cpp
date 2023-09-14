@@ -16,7 +16,7 @@ using namespace facebook::fboss::platform::platform_manager;
 namespace {
 SlotTypeConfig getValidSlotTypeConfig() {
   auto slotTypeConfig = SlotTypeConfig();
-  slotTypeConfig.fruType_ref() = "FAN_TRAY";
+  slotTypeConfig.pmUnitName() = "FAN_TRAY";
   slotTypeConfig.idpromConfig_ref() = IdpromConfig();
   slotTypeConfig.idpromConfig_ref()->address_ref() = "0x14";
   return slotTypeConfig;
@@ -38,12 +38,12 @@ TEST(PlatformValidatorTest, ValidConfig) {
 TEST(PlatformValidatorTest, SlotTypeConfig) {
   auto slotTypeConfig = getValidSlotTypeConfig();
   EXPECT_TRUE(PlatformValidator().isValidSlotTypeConfig(slotTypeConfig));
-  slotTypeConfig.fruType_ref().reset();
+  slotTypeConfig.pmUnitName().reset();
   EXPECT_TRUE(PlatformValidator().isValidSlotTypeConfig(slotTypeConfig));
   slotTypeConfig = getValidSlotTypeConfig();
   slotTypeConfig.idpromConfig_ref().reset();
   EXPECT_TRUE(PlatformValidator().isValidSlotTypeConfig(slotTypeConfig));
-  slotTypeConfig.fruType_ref().reset();
+  slotTypeConfig.pmUnitName().reset();
   slotTypeConfig.idpromConfig_ref().reset();
   EXPECT_FALSE(PlatformValidator().isValidSlotTypeConfig(slotTypeConfig));
   slotTypeConfig = getValidSlotTypeConfig();

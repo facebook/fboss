@@ -1,6 +1,6 @@
 {
   "platformName": "meru800bia",
-  "rootFruType": "SCM",
+  "rootPmUnitName": "SCM",
   "slotTypeConfigs": {
     "SCM_SLOT": {
       "numOutgoingI2cBuses": 0,
@@ -28,14 +28,14 @@
     },
     "FAN_SLOT": {
       "numOutgoingI2cBuses": 0,
-      "fruType": "FAN"
+      "pmUnitName": "FAN"
     }
   },
   "i2cAdaptersFromCpu": [
     "Intel SMBus Controller #TBD1",
     "Intel SMBus Controller #TBD2"
   ],
-  "fruTypeConfigs": {
+  "pmUnitConfigs": {
     "SCM": {
       "pluggedInSlotType": "SCM_SLOT",
       "i2cDeviceConfigs": [],
