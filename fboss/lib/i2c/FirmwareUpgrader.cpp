@@ -71,7 +71,7 @@ CmisFirmwareUpgrader::CmisFirmwareUpgrader(
 
   // Get the msa password
   std::string msaPwStr = fbossFirmware_->getProperty("msa_password");
-  uint32_t msaPwVal = folly::to<uint32_t>(msaPwStr);
+  uint32_t msaPwVal = std::stoull(msaPwStr, nullptr, 16);
   msaPassword_[0] = (msaPwVal & 0xFF000000) >> 24;
   msaPassword_[1] = (msaPwVal & 0x00FF0000) >> 16;
   msaPassword_[2] = (msaPwVal & 0x0000FF00) >> 8;
