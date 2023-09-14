@@ -2,6 +2,8 @@
 
 #include "fboss/platform/config_lib/ConfigLib.h"
 
+#include <stdexcept>
+
 namespace facebook::fboss::platform {
 
 std::string ConfigLib::getSensorServiceConfig(
