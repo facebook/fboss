@@ -99,7 +99,7 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectPresence) {
                  << " was detected after reset";
       auto titr = transceiversAfterReset.find(idAndTransceiver.first);
       EXPECT_TRUE(titr != transceiversAfterReset.end());
-      EXPECT_TRUE(*titr->second.present());
+      EXPECT_TRUE(*titr->second.tcvrState()->present());
 
       XLOG(INFO) << "Transceiver:" << idAndTransceiver.first
                  << " before hard reset, power control="
@@ -107,10 +107,10 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectPresence) {
                         *tcvrState.settings()->powerControl())
                  << ", after hard reset, power control="
                  << apache::thrift::util::enumNameSafe(
-                        *titr->second.settings()->powerControl());
+                        *titr->second.tcvrState()->settings()->powerControl());
       EXPECT_EQ(
           *tcvrState.settings()->powerControl(),
-          *titr->second.settings()->powerControl());
+          *titr->second.tcvrState()->settings()->powerControl());
     }
   }
 }
