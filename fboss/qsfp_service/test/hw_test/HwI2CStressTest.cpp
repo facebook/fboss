@@ -57,7 +57,9 @@ TEST_F(HwTest, i2cStressRead) {
 
       TransceiverModuleIdentifier identifier =
           static_cast<TransceiverModuleIdentifier>(*(curr.data()->data()));
-      EXPECT_EQ(identifier, transceiversInfo[tcvrId].identifier().value_or({}));
+      EXPECT_EQ(
+          identifier,
+          transceiversInfo[tcvrId].tcvrState()->identifier().value_or({}));
       EXPECT_TRUE(identifier != TransceiverModuleIdentifier::UNKNOWN);
       if (iteration != 1) {
         auto prev = previousResponse[tcvrId];
