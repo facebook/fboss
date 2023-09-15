@@ -17,6 +17,7 @@ struct OperPublisherInfo {
   2: fsdb_oper.PubSubType type;
   3: fsdb_oper.OperPath path;
   4: bool isStats;
+  5: bool isExpectedPath;
 }
 
 // could probably reuse types between get/subscribe here, but easier
