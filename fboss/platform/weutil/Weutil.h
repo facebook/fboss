@@ -8,7 +8,6 @@ namespace facebook::fboss::platform {
 std::unique_ptr<WeutilInterface> get_plat_weutil(
     const std::string& eeprom = "",
     const std::string& configFile = "");
-std::unique_ptr<WeutilInterface> get_plat_weutil(std::string eeprom = "");
 std::unique_ptr<WeutilInterface> get_meta_eeprom_handler(std::string path = "");
 PlainWeutilConfig parseConfig();
 } // namespace facebook::fboss::platform
