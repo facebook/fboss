@@ -1210,6 +1210,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE"
+        },
+        {
+          "test_name_regex": "HwHashPolarizationTests.fullXfullHash"
         }
     ],
     "brcm/10.0_ea_sim_odp/10.0_ea_sim_odp/tomahawk4/simulator": [
@@ -2060,6 +2063,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE"
+        },
+        {
+          "test_name_regex": "HwHashPolarizationTests.fullXfullHash"
         },
         {
           "test_name_regex": "warm_boot.*"
