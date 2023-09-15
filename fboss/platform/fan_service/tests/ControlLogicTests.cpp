@@ -218,6 +218,8 @@ TEST_F(ControlLogicTests, UpdateControlSuccessAfterFanUnaccessibleLTThreshold) {
         .WillRepeatedly(Return(1 /* fan exists */));
   }
 
+  auto startTime = mockBsp_->getCurrentTime();
+
   controlLogic_->setTransitionValue();
 
   // Simulate two cycles of programing fan.
@@ -228,7 +230,7 @@ TEST_F(ControlLogicTests, UpdateControlSuccessAfterFanUnaccessibleLTThreshold) {
   for (const auto& [fanName, fanStatus] : fanStatuses) {
     EXPECT_EQ(fanStatus.fanFailed, false);
     EXPECT_EQ(fanStatus.rpm, 0);
-    EXPECT_EQ(fanStatus.timeStamp, 0);
+    EXPECT_GE(fanStatus.timeStamp, startTime);
   }
 }
 } // namespace facebook::fboss::platform

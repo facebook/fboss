@@ -68,8 +68,8 @@ class ControlLogic {
 
   // Private Methods
   void getSensorUpdate();
-  std::tuple<bool /*fan failed*/, int /*rpm*/, uint64_t /*timestamp*/>
-  getFanUpdate(const Fan& fan, const FanStatus& fanStatus);
+  std::tuple<bool /*fanAccessFailed*/, int /*rpm*/, uint64_t /*timestamp*/>
+  readFanRpm(const Fan& fan);
   void getOpticsUpdate();
   std::pair<bool /* pwm update fail */, float /* pwm */> programFan(
       const Zone& zone,
