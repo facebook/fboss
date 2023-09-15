@@ -13,5 +13,10 @@ struct FanStatus {
   4: optional i32 rpm;
 }
 
+struct FanStatusesResponse {
+  1: map<string/*fanName*/ , FanStatus> fanStatuses;
+}
+
 service FanService {
+  FanStatusesResponse getFanStatuses();
 }

@@ -17,6 +17,7 @@ class FanServiceHandler : public apache::thrift::ServiceHandler<FanService> {
   FanServiceImpl* getFanServiceImpl() const {
     return fanServiceImpl_.get();
   }
+  void getFanStatuses(FanStatusesResponse&) override;
 
  private:
   // Internal pointer for FanServiceImpl.

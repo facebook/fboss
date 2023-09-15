@@ -33,6 +33,9 @@ class FanServiceImpl {
   }
   unsigned int getControlFrequency() const;
   unsigned int getSensorFetchFrequency() const;
+  const std::map<std::string, FanStatus> getFanStatuses() {
+    return pControlLogic_->getFanStatuses();
+  }
 
  private:
   // Attributes
