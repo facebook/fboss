@@ -18,6 +18,7 @@ struct PublisherConfig {
 
 struct SubscriberConfig {
   1: bool trackReconnect = true;
+  2: bool allowExtendedSubscriptions = false;
 }
 
 struct Config {
