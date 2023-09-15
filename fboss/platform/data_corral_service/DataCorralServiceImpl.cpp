@@ -49,7 +49,7 @@ std::vector<FruIdData> DataCorralServiceImpl::getFruid(bool uncached) {
   std::vector<FruIdData> vData;
 
   if (uncached || fruid_.empty()) {
-    fruid_ = get_plat_weutil()->getInfo();
+    fruid_ = get_plat_weutil("chassis", "")->getInfo();
   }
 
   for (auto it : fruid_) {
