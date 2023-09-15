@@ -4,15 +4,9 @@
 
 #include "fboss/platform/fan_service/Bsp.h"
 #include "fboss/platform/fan_service/SensorData.h"
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_service_types.h"
 
 namespace facebook::fboss::platform::fan_service {
-
-struct FanStatus {
-  int rpm;
-  float currentPwm{0};
-  bool fanFailed{false};
-  uint64_t timeStamp;
-};
 
 struct SensorReadCache {
   float adjustedReadCache{0};

@@ -583,13 +583,13 @@ void ControlLogic::setTransitionValue() {
         const auto [fanFailed, pwmToProgram] = programFan(
             zone,
             fan,
-            fanStatuses[*fan.fanName()].currentPwm,
+            *fanStatuses[*fan.fanName()].pwmToProgram(),
             *config_.pwmTransitionValue());
-        fanStatuses[*fan.fanName()].currentPwm = pwmToProgram;
+        fanStatuses[*fan.fanName()].pwmToProgram() = pwmToProgram;
         if (fanFailed) {
           programLed(fan, fanFailed);
         }
-        fanStatuses[*fan.fanName()].fanFailed = fanFailed;
+        fanStatuses[*fan.fanName()].fanFailed() = fanFailed;
       }
     }
   });
@@ -643,22 +643,22 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
     for (const auto& fan : *config_.fans()) {
       auto [fanAccessFailed, fanRpm, fanTimestamp] = readFanRpm(fan);
       if (fanAccessFailed) {
-        fanStatuses[*fan.fanName()].rpm = 0;
+        fanStatuses[*fan.fanName()].rpm().reset();
       } else {
-        fanStatuses[*fan.fanName()].rpm = fanRpm;
-        fanStatuses[*fan.fanName()].timeStamp = fanTimestamp;
+        fanStatuses[*fan.fanName()].rpm() = fanRpm;
+        fanStatuses[*fan.fanName()].lastSuccessfulAccessTime() = fanTimestamp;
       }
 
       // Ignore last access failure if it happened < kFanFailThresholdInSec
-      auto timeSinceLastSuccessfulAccess =
-          pBsp_->getCurrentTime() - fanStatuses[*fan.fanName()].timeStamp;
+      auto timeSinceLastSuccessfulAccess = pBsp_->getCurrentTime() -
+          *fanStatuses[*fan.fanName()].lastSuccessfulAccessTime();
       auto fanFailed = fanAccessFailed &&
           (timeSinceLastSuccessfulAccess >= kFanFailThresholdInSec);
       if (fanFailed) {
         numFanFailed_++;
       }
       programLed(fan, fanFailed);
-      fanStatuses[*fan.fanName()].fanFailed = fanFailed;
+      fanStatuses[*fan.fanName()].fanFailed() = fanFailed;
     }
 
     boostMode =
@@ -685,13 +685,13 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
         }
 
         const auto [fanFailed, pwmToProgram] = programFan(
-            zone, fan, fanStatuses[*fan.fanName()].currentPwm, pwmSoFar);
-        fanStatuses[*fan.fanName()].currentPwm = pwmToProgram;
+            zone, fan, *fanStatuses[*fan.fanName()].pwmToProgram(), pwmSoFar);
+        fanStatuses[*fan.fanName()].pwmToProgram() = pwmToProgram;
 
         if (fanFailed) {
           programLed(fan, fanFailed);
           // Only override the fanFailed if fan programming failed.
-          fanStatuses[*fan.fanName()].fanFailed = fanFailed;
+          fanStatuses[*fan.fanName()].fanFailed() = fanFailed;
         }
       }
     }

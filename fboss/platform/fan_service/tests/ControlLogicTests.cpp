@@ -93,8 +93,9 @@ TEST_F(ControlLogicTests, SetTransitionValueSuccess) {
   controlLogic_->setTransitionValue();
 
   for (const auto& [fanName, fanStatus] : controlLogic_->getFanStatuses()) {
-    EXPECT_EQ(fanStatus.fanFailed, false);
-    EXPECT_EQ(fanStatus.currentPwm, *fanServiceConfig_.pwmTransitionValue());
+    EXPECT_EQ(*fanStatus.fanFailed(), false);
+    EXPECT_EQ(
+        *fanStatus.pwmToProgram(), *fanServiceConfig_.pwmTransitionValue());
   }
 }
 
@@ -110,8 +111,9 @@ TEST_F(ControlLogicTests, SetTransitionValueFailure) {
   controlLogic_->setTransitionValue();
 
   for (const auto& [fanName, fanStatus] : controlLogic_->getFanStatuses()) {
-    EXPECT_EQ(fanStatus.fanFailed, true);
-    EXPECT_EQ(fanStatus.currentPwm, *fanServiceConfig_.pwmTransitionValue());
+    EXPECT_EQ(*fanStatus.fanFailed(), true);
+    EXPECT_EQ(
+        *fanStatus.pwmToProgram(), *fanServiceConfig_.pwmTransitionValue());
   }
 }
 
@@ -129,6 +131,8 @@ TEST_F(ControlLogicTests, UpdateControlSuccess) {
         .WillOnce(Return(1 /* fan exists */));
   }
 
+  auto startTime = mockBsp_->getCurrentTime();
+
   controlLogic_->setTransitionValue();
 
   controlLogic_->updateControl(sensorData_);
@@ -136,10 +140,10 @@ TEST_F(ControlLogicTests, UpdateControlSuccess) {
   EXPECT_EQ(fanStatuses.size(), fanServiceConfig_.fans()->size());
   int i = 0;
   for (const auto& [fanName, fanStatus] : fanStatuses) {
-    EXPECT_EQ(fanStatus.fanFailed, false);
-    EXPECT_EQ(fanStatus.rpm, kDefaultRpm);
-    EXPECT_LE(fanStatus.timeStamp, mockBsp_->getCurrentTime());
-    EXPECT_EQ(fanStatus.currentPwm, kExpectedPwms[i++]);
+    EXPECT_EQ(*fanStatus.fanFailed(), false);
+    EXPECT_EQ(*fanStatus.rpm(), kDefaultRpm);
+    EXPECT_GE(*fanStatus.lastSuccessfulAccessTime(), startTime);
+    EXPECT_EQ(*fanStatus.pwmToProgram(), kExpectedPwms[i++]);
   }
 }
 
@@ -163,10 +167,10 @@ TEST_F(ControlLogicTests, UpdateControlFailureDueToMissingFans) {
   int i = 0;
   EXPECT_EQ(fanStatuses.size(), fanServiceConfig_.fans()->size());
   for (const auto& [fanName, fanStatus] : fanStatuses) {
-    EXPECT_EQ(fanStatus.fanFailed, true);
-    EXPECT_EQ(fanStatus.rpm, 0);
-    EXPECT_LE(fanStatus.timeStamp, 0);
-    EXPECT_EQ(fanStatus.currentPwm, kExpectedPwms[i++]);
+    EXPECT_EQ(*fanStatus.fanFailed(), true);
+    EXPECT_EQ(fanStatus.rpm().has_value(), false);
+    EXPECT_EQ(*fanStatus.lastSuccessfulAccessTime(), 0);
+    EXPECT_EQ(*fanStatus.pwmToProgram(), kExpectedPwms[i++]);
   }
 }
 
@@ -192,10 +196,10 @@ TEST_F(ControlLogicTests, UpdateControlFailureAfterFanUnaccessibleFirstTime) {
   EXPECT_EQ(fanStatuses.size(), fanServiceConfig_.fans()->size());
   int i = 0;
   for (const auto& [fanName, fanStatus] : fanStatuses) {
-    EXPECT_EQ(fanStatus.fanFailed, true);
-    EXPECT_EQ(fanStatus.rpm, 0);
-    EXPECT_LE(fanStatus.timeStamp, 0);
-    EXPECT_EQ(fanStatus.currentPwm, kExpectedPwms[i++]);
+    EXPECT_EQ(*fanStatus.fanFailed(), true);
+    EXPECT_EQ(fanStatus.rpm().has_value(), false);
+    EXPECT_EQ(*fanStatus.lastSuccessfulAccessTime(), 0);
+    EXPECT_EQ(*fanStatus.pwmToProgram(), kExpectedPwms[i++]);
   }
 }
 
@@ -228,9 +232,9 @@ TEST_F(ControlLogicTests, UpdateControlSuccessAfterFanUnaccessibleLTThreshold) {
   const auto fanStatuses = controlLogic_->getFanStatuses();
   EXPECT_EQ(fanStatuses.size(), fanServiceConfig_.fans()->size());
   for (const auto& [fanName, fanStatus] : fanStatuses) {
-    EXPECT_EQ(fanStatus.fanFailed, false);
-    EXPECT_EQ(fanStatus.rpm, 0);
-    EXPECT_GE(fanStatus.timeStamp, startTime);
+    EXPECT_EQ(*fanStatus.fanFailed(), false);
+    EXPECT_EQ(fanStatus.rpm().has_value(), false);
+    EXPECT_GE(*fanStatus.lastSuccessfulAccessTime(), startTime);
   }
 }
 } // namespace facebook::fboss::platform
