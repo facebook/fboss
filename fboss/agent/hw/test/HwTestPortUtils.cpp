@@ -15,6 +15,8 @@ TransceiverInfo getTransceiverInfo(cfg::PortProfileID profileID) {
   TransceiverInfo info;
   info.present() = true;
   info.transceiver() = TransceiverType::QSFP;
+  info.port().ensure();
+  info.channels().ensure();
 
   info.tcvrState()->present() = true;
   info.tcvrState()->transceiver() = TransceiverType::QSFP;

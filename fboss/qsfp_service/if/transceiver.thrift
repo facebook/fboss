@@ -456,14 +456,14 @@ struct TcvrStats {
 }
 
 struct TransceiverInfo {
-  1: bool present (deprecated = "Moved to state/stats");
-  2: TransceiverType transceiver (deprecated = "Moved to state/stats");
-  3: i32 port (deprecated = "Moved to state/stats"); // physical port number
+  1: optional bool present (deprecated = "Moved to state/stats");
+  2: optional TransceiverType transceiver (deprecated = "Moved to state/stats");
+  3: optional i32 port (deprecated = "Moved to state/stats"); // physical port number
   4: optional GlobalSensors sensor (deprecated = "Moved to state/stats");
   5: optional AlarmThreshold thresholds (deprecated = "Moved to state/stats");
   9: optional Vendor vendor (deprecated = "Moved to state/stats");
   10: optional Cable cable (deprecated = "Moved to state/stats");
-  12: list<Channel> channels (deprecated = "Moved to state/stats");
+  12: optional list<Channel> channels (deprecated = "Moved to state/stats");
   13: optional TransceiverSettings settings (
     deprecated = "Moved to state/stats",
   );

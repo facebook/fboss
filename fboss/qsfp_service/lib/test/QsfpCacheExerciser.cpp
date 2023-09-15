@@ -79,7 +79,12 @@ int main(int argc, char** argv) {
                            [i](std::runtime_error exc) {
                              XLOG(ERR) << "Error retrieving info for tcvr " << i
                                        << ": " << exc.what();
-                             return facebook::fboss::TransceiverInfo();
+                             auto info = facebook::fboss::TransceiverInfo();
+                             info.port().ensure();
+                             info.transceiver().ensure();
+                             info.present().ensure();
+                             info.channels().ensure();
+                             return info;
                            });
         futs.push_back(std::move(fut));
       }

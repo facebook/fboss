@@ -411,9 +411,9 @@ TEST_F(QsfpModuleTest, getNewTcvrInfo) {
       info.tcvrState()->vendor() &&
       !info.tcvrState()->vendor()->partNumber()->empty());
 
-  EXPECT_EQ(info.tcvrState()->present(), info.present());
-  EXPECT_EQ(info.tcvrState()->transceiver(), info.transceiver());
-  EXPECT_EQ(info.tcvrState()->port(), info.port());
+  EXPECT_EQ(info.tcvrState()->present(), *info.present());
+  EXPECT_EQ(info.tcvrState()->transceiver(), *info.transceiver());
+  EXPECT_EQ(info.tcvrState()->port(), *info.port());
   EXPECT_EQ(info.tcvrState()->mediaLaneSignals(), info.mediaLaneSignals());
   EXPECT_EQ(info.tcvrState()->vendor(), info.vendor());
   EXPECT_EQ(info.tcvrState()->cable(), info.cable());
@@ -434,7 +434,7 @@ TEST_F(QsfpModuleTest, getNewTcvrInfo) {
       info.tcvrState()->moduleMediaInterface(), info.moduleMediaInterface());
 
   EXPECT_EQ(info.tcvrStats()->sensor(), info.sensor());
-  EXPECT_EQ(info.tcvrStats()->channels(), info.channels());
+  EXPECT_EQ(info.tcvrStats()->channels(), *info.channels());
   EXPECT_EQ(info.tcvrStats()->stats(), info.stats());
   EXPECT_EQ(info.tcvrStats()->vdmDiagsStats(), info.vdmDiagsStats());
   EXPECT_EQ(

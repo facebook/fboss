@@ -165,15 +165,16 @@ QsfpModule::detectPresenceLocked() {
     // we need to fill in the essential info before parsing the DOM data
     // which may not be available.
     TransceiverInfo info;
-
-    info.present() = present_;
-    info.transceiver() = type();
-    info.port() = qsfpImpl_->getNum();
+    info.channels().ensure();
 
     auto& tcvrState = info.tcvrState().ensure();
-    tcvrState.present().copy_from(info.present());
-    tcvrState.transceiver().copy_from(info.transceiver());
-    tcvrState.port().copy_from(info.port());
+    tcvrState.present() = present_;
+    tcvrState.transceiver() = type();
+    tcvrState.port() = qsfpImpl_->getNum();
+
+    info.present() = present_;
+    info.transceiver() = *tcvrState.transceiver();
+    info.port() = *tcvrState.port();
 
     *info_.wlock() = info;
   }
@@ -240,15 +241,18 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
   // We're currently at step 1.
 
   TransceiverInfo info;
-  info.present() = present_;
-  info.transceiver() = type();
-  info.port() = qsfpImpl_->getNum();
+  info.channels().ensure();
 
   auto& tcvrState = *info.tcvrState();
   auto& tcvrStats = *info.tcvrStats();
-  tcvrState.present().copy_from(info.present());
-  tcvrState.transceiver().copy_from(info.transceiver());
-  tcvrState.port().copy_from(info.port());
+
+  tcvrState.present() = present_;
+  tcvrState.transceiver() = type();
+  tcvrState.port() = qsfpImpl_->getNum();
+
+  info.present() = *tcvrState.present();
+  info.transceiver() = *tcvrState.transceiver();
+  info.port() = *tcvrState.port();
 
   if (present_) {
     auto nMediaLanes = numMediaLanes();
@@ -309,7 +313,8 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     tcvrState.cable().copy_from(info.cable());
     tcvrState.thresholds().copy_from(info.thresholds());
     tcvrState.settings().copy_from(info.settings());
-    tcvrStats.channels().copy_from(info.channels());
+    tcvrStats.channels() =
+        info.channels().has_value() ? *info.channels() : std::vector<Channel>();
     tcvrState.hostLaneSignals().copy_from(info.hostLaneSignals());
     tcvrStats.stats().copy_from(info.stats());
     tcvrState.signalFlag().copy_from(info.signalFlag());

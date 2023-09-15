@@ -41,6 +41,8 @@ class MockSffModule : public SffModule {
     ON_CALL(*this, ensureTransceiverReadyLocked())
         .WillByDefault(testing::Return(true));
     ON_CALL(*this, numHostLanes()).WillByDefault(testing::Return(4));
+    ON_CALL(*this, getTransceiverInfo())
+        .WillByDefault(testing::Return(defaultTcvrInfo()));
   }
   MOCK_METHOD1(setPowerOverrideIfSupportedLocked, void(PowerControlState));
   MOCK_METHOD1(updateQsfpData, void(bool));
@@ -109,6 +111,10 @@ class MockSffModule : public SffModule {
 
   void setVendorPN(std::string vendorPN = kIntelModulePN) {
     TransceiverInfo info;
+    info.present().ensure();
+    info.port().ensure();
+    info.transceiver().ensure();
+    info.channels().ensure();
     Vendor vendor = Vendor();
     // shouldRemediate will check the vendor PN to skip doing it on Miniphoton
     // modules. Here we take a PN other than Miniphoton.
@@ -139,7 +145,15 @@ class MockSffModule : public SffModule {
     return SffModule::writeTransceiver(param, data);
   }
 
-  TransceiverInfo fakeInfo_;
+  TransceiverInfo defaultTcvrInfo() {
+    TransceiverInfo info;
+    info.present().ensure();
+    info.port().ensure();
+    info.transceiver().ensure();
+    info.channels().ensure();
+    return info;
+  }
+  TransceiverInfo fakeInfo_ = defaultTcvrInfo();
 
  private:
   FeatureState cdrTx_ = FeatureState::UNSUPPORTED;
