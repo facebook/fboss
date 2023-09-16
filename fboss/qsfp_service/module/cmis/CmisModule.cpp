@@ -2545,6 +2545,10 @@ void CmisModule::setDiagsCapability() {
             CmisField::HOST_SUPPORTED_GENERATOR_PATTERNS,
             CmisField::HOST_SUPPORTED_CHECKER_PATTERNS);
       }
+
+      readFromCacheOrHw(CmisField::DIAGNOSTIC_CAPABILITY, &data);
+      diags.snrLine() = data & FieldMasks::SNR_LINE_SUPPORT_MASK;
+      diags.snrSystem() = data & FieldMasks::SNR_SYS_SUPPORT_MASK;
     }
 
     *diagsCapability = diags;

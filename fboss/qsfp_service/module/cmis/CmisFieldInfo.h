@@ -276,6 +276,8 @@ enum FieldMasks : uint8_t {
   MODULE_STATUS_MASK = 0x0E,
   TX_DISABLE_SUPPORT_MASK = 0x02,
   RX_DISABLE_SUPPORT_MASK = 0x02,
+  SNR_LINE_SUPPORT_MASK = 0x20,
+  SNR_SYS_SUPPORT_MASK = 0x10,
 };
 
 enum FieldBitShift : uint8_t {

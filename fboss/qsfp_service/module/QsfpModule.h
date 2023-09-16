@@ -174,6 +174,15 @@ class QsfpModule : public Transceiver {
            *(*diagsCapability).value().prbsSystem());
   }
 
+  bool isSnrSupported(phy::Side side) const {
+    auto diagsCapability = diagsCapability_.rlock();
+    return (side == phy::Side::LINE)
+        ? ((*diagsCapability).has_value() &&
+           *(*diagsCapability).value().snrLine())
+        : ((*diagsCapability).has_value() &&
+           *(*diagsCapability).value().snrSystem());
+  }
+
   std::optional<DiagsCapability> getDiagsCapability() const override {
     // return a copy to avoid needing a lock
     return diagsCapability_.copy();
