@@ -13,6 +13,7 @@
 #include "fboss/agent/CommonInit.h"
 #include "fboss/agent/FbossInit.h"
 #include "fboss/agent/HwAgent.h"
+#include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/SetupThrift.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -29,7 +30,19 @@ DEFINE_int32(
 
 DEFINE_int32(swswitch_port, 5959, "Port for SwSwitch");
 
+DEFINE_bool(enable_stats_update_thread, true, "Run stats update thread");
+
 using namespace std::chrono;
+
+namespace {
+
+/*
+ * This function is executed periodically by the UpdateStats thread.
+ */
+void updateStats(facebook::fboss::HwSwitch* hw) {
+  hw->updateStats();
+}
+} // namespace
 
 namespace facebook::fboss {
 
@@ -83,6 +96,22 @@ int hwAgentMain(
 
   thriftSyncer->start();
 
+  std::unique_ptr<folly::FunctionScheduler> fs{nullptr};
+  if (FLAGS_enable_stats_update_thread) {
+    // Start the UpdateSwitchStatsThread
+    fs.reset(new folly::FunctionScheduler());
+    fs->setThreadName("UpdateStatsThread");
+    // steady will help even out the interval which will especially make
+    // aggregated counters more accurate with less spikes and dips
+    fs->setSteady(true);
+    std::function<void()> callback(
+        std::bind(updateStats, hwAgent->getPlatform()->getHwSwitch()));
+    auto timeInterval = std::chrono::seconds(1);
+    fs->addFunction(callback, timeInterval, "updateStats");
+    fs->start();
+    XLOG(DBG2) << "Started background thread: UpdateStatsThread";
+  }
+
   folly::EventBase eventBase;
   auto server = setupThriftServer(
       eventBase,
@@ -91,7 +120,14 @@ int hwAgentMain(
       true /*setupSSL*/);
 
   SplitHwAgentSignalHandler signalHandler(
-      &eventBase, [&thriftSyncer]() { thriftSyncer->stop(); }, hwAgent.get());
+      &eventBase,
+      [&thriftSyncer, &fs]() {
+        thriftSyncer->stop();
+        if (fs) {
+          fs->shutdown();
+        }
+      },
+      hwAgent.get());
 
   restart_time::mark(RestartEvent::INITIALIZED);
 
