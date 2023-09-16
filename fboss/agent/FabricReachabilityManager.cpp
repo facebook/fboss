@@ -131,6 +131,7 @@ static const PlatformMapping* FOLLY_NULLABLE getPlatformMappingForDsfNode(
       return &meru800bfa;
       break;
     case PlatformType::PLATFORM_MERU800BIA:
+      *remotePortOffset = 1024;
       return &meru800bia;
     default:
       break;
