@@ -70,7 +70,7 @@ class MockHwSwitch : public HwSwitch {
       std::optional<uint8_t> queue = std::nullopt) noexcept override;
 
   MOCK_CONST_METHOD0(transactionsSupported, bool());
-  MOCK_METHOD1(updateStatsImpl, void(SwitchStats* switchStats));
+  MOCK_METHOD0(updateStatsImpl, void());
   MOCK_CONST_METHOD0(
       getPortStats,
       folly::F14FastMap<std::string, HwPortStats>());

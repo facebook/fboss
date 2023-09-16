@@ -123,8 +123,7 @@ void SaiPhyManager::updateAllXphyPortsStats() {
             auto& xphyToPlatform = saiPlatforms_.find(pimId)->second;
             for (auto& [xphy, platformInfo] : xphyToPlatform) {
               try {
-                static SwitchStats unused;
-                platformInfo->getHwSwitch()->updateStats(&unused);
+                platformInfo->getHwSwitch()->updateStats();
                 auto phyInfos = platformInfo->getHwSwitch()->updateAllPhyInfo();
                 for (auto& [portId, phyInfo] : phyInfos) {
                   updateXphyInfo(portId, std::move(phyInfo));
@@ -655,8 +654,7 @@ SaiPhyManager::createExternalPhyPortStats(PortID portID) {
 
 MacsecStats SaiPhyManager::getMacsecStatsFromHw(const std::string& portName) {
   auto saiSwitch = getSaiSwitch(getPortId(portName));
-  static SwitchStats unused;
-  saiSwitch->updateStats(&unused);
+  saiSwitch->updateStats();
   return getMacsecStats(portName);
 }
 
@@ -693,8 +691,7 @@ std::map<std::string, MacsecStats> SaiPhyManager::getAllMacsecPortStats(
       auto saiSwitch = getSaiSwitch(xphyID);
 
       if (readFromHw) {
-        static SwitchStats unused;
-        saiSwitch->updateStats(&unused);
+        saiSwitch->updateStats();
       }
 
       // Call getPortStats for the particular Phy and fill in to return map

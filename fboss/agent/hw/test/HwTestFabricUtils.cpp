@@ -11,8 +11,7 @@
 
 namespace facebook::fboss {
 void checkFabricReachability(HwSwitch* hw) {
-  SwitchStats dummy;
-  hw->updateStats(&dummy);
+  hw->updateStats();
   auto reachability = hw->getFabricReachability();
   EXPECT_GT(reachability.size(), 0);
   for (auto [port, endpoint] : reachability) {
@@ -45,8 +44,7 @@ void checkFabricReachability(HwSwitch* hw) {
 }
 
 void checkFabricReachabilityStats(HwSwitch* hw) {
-  SwitchStats dummy;
-  hw->updateStats(&dummy);
+  hw->updateStats();
   auto reachability = hw->getFabricReachability();
   int count = 0;
   for (auto [_, endpoint] : reachability) {
@@ -83,8 +81,7 @@ void populatePortExpectedNeighbors(
 }
 
 void checkPortFabricReachability(HwSwitch* hw, PortID portId) {
-  SwitchStats dummy;
-  hw->updateStats(&dummy);
+  hw->updateStats();
   auto reachability = hw->getFabricReachability();
   auto itr = reachability.find(portId);
   ASSERT_TRUE(itr != reachability.end());

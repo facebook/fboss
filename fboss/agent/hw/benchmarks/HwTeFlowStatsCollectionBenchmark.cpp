@@ -90,9 +90,8 @@ BENCHMARK(HwTeFlowStatsCollection) {
   ensemble->applyNewState(state, true /* rollback on fail */);
   CHECK_EQ(utility::getNumTeFlowEntries(hwSwitch), numEntries);
   // Measure stats collection time for 9K entries
-  SwitchStats dummy;
   suspender.dismiss();
-  hwSwitch->updateStats(&dummy);
+  hwSwitch->updateStats();
   suspender.rehire();
 }
 

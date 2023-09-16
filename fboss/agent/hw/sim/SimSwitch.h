@@ -141,7 +141,7 @@ class SimSwitch : public HwSwitch {
  private:
   void switchRunStateChangedImpl(SwitchRunState newState) override {}
   // TODO
-  void updateStatsImpl(SwitchStats* /*switchStats*/) override {}
+  void updateStatsImpl() override {}
 
   void gracefulExitImpl() override {}
 

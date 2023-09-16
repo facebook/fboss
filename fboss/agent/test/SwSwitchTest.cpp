@@ -94,9 +94,7 @@ TEST_F(SwSwitchTest, UpdateStatsExceptionCounter) {
   CounterCache counters(sw);
 
   MockHwSwitch* hw = getMockHw(sw);
-  EXPECT_CALL(*hw, updateStatsImpl(sw->stats()))
-      .Times(1)
-      .WillRepeatedly(ThrowException());
+  EXPECT_CALL(*hw, updateStatsImpl()).Times(1).WillRepeatedly(ThrowException());
   sw->updateStats();
 
   counters.update();

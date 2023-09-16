@@ -430,10 +430,7 @@ void verifyQueuePerHostMapping(
      */
     return statAfter - statBefore == 1;
   };
-  auto updateStats = [&]() {
-    facebook::fboss::SwitchStats dummy;
-    hwSwitch->updateStats(&dummy);
-  };
+  auto updateStats = [&]() { hwSwitch->updateStats(); };
   EXPECT_TRUE(utility::waitStatsCondition(
       aclStatsMatch, updateStats, 20, std::chrono::milliseconds(20)));
 }

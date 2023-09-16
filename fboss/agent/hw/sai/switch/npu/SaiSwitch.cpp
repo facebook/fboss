@@ -23,7 +23,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 
 namespace facebook::fboss {
-void SaiSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
+void SaiSwitch::updateStatsImpl() {
   auto now =
       std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
   bool updateWatermarks = now - watermarkStatsUpdateTime_ >=

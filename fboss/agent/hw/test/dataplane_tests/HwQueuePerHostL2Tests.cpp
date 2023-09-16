@@ -137,10 +137,7 @@ class HwQueuePerHostL2Test : public HwLinkStateDependentTest {
        */
       return statAfter - statBefore == 2;
     };
-    auto updateStats = [&]() {
-      facebook::fboss::SwitchStats dummy;
-      getHwSwitch()->updateStats(&dummy);
-    };
+    auto updateStats = [&]() { getHwSwitch()->updateStats(); };
     EXPECT_TRUE(
         getHwSwitchEnsemble()->waitStatsCondition(aclStatsMatch, updateStats));
   }

@@ -73,8 +73,7 @@ TEST_F(HwFabricSwitchTest, checkFabricReachabilityStats) {
 TEST_F(HwFabricSwitchTest, collectStats) {
   auto verify = [this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
-    SwitchStats dummy;
-    getHwSwitch()->updateStats(&dummy);
+    getHwSwitch()->updateStats();
   };
   verifyAcrossWarmBoots([] {}, verify);
 }

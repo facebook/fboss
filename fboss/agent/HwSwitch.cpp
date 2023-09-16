@@ -73,8 +73,8 @@ void HwSwitch::switchRunStateChanged(SwitchRunState newState) {
   }
 }
 
-void HwSwitch::updateStats(SwitchStats* switchStats) {
-  updateStatsImpl(switchStats);
+void HwSwitch::updateStats() {
+  updateStatsImpl();
   // send to normalizer
   auto normalizer = Normalizer::getInstance();
   if (normalizer) {

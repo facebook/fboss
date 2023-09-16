@@ -343,10 +343,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
       }
     }
 
-    auto updateStats = [&]() {
-      facebook::fboss::SwitchStats dummy;
-      getHwSwitch()->updateStats(&dummy);
-    };
+    auto updateStats = [&]() { getHwSwitch()->updateStats(); };
 
     auto aclStatsMatch = [&]() {
       auto statAfter = utility::getAclInOutPackets(
@@ -471,10 +468,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
 
     auto beforeAclPkts = pktCounterHelper();
     sendAllPacketshelper<AddrT>(dstIP, frontPanel, 0);
-    auto updateStats = [&]() {
-      facebook::fboss::SwitchStats dummy;
-      getHwSwitch()->updateStats(&dummy);
-    };
+    auto updateStats = [&]() { getHwSwitch()->updateStats(); };
 
     auto intermediateAclStatsMatch = [&]() {
       auto [dscpAclPkts, ttlAclPkts] = pktCounterHelper();

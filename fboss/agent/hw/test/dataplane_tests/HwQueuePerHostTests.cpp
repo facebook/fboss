@@ -297,10 +297,7 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
         return statAfter - statBefore == getIpToMacAndClassID().size();
       }
     };
-    auto updateStats = [&]() {
-      facebook::fboss::SwitchStats dummy;
-      getHwSwitch()->updateStats(&dummy);
-    };
+    auto updateStats = [&]() { getHwSwitch()->updateStats(); };
     EXPECT_TRUE(
         getHwSwitchEnsemble()->waitStatsCondition(aclStatsMatch, updateStats));
   }
@@ -419,10 +416,7 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
         // TODO: Still need to debug why we get extra 4 bytes for CPU port
         return bytesAfter - bytesBefore >= packetSize;
       };
-      auto updateStats = [&]() {
-        facebook::fboss::SwitchStats dummy;
-        getHwSwitch()->updateStats(&dummy);
-      };
+      auto updateStats = [&]() { getHwSwitch()->updateStats(); };
       EXPECT_TRUE(getHwSwitchEnsemble()->waitStatsCondition(
           aclStatsMatch, updateStats));
     };

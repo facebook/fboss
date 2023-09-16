@@ -645,7 +645,7 @@ class BcmSwitch : public BcmSwitchIf {
   /*
    * Update all statistics.
    */
-  void updateStatsImpl(SwitchStats* switchStats) override;
+  void updateStatsImpl() override;
 
   /*
    * Get default state switch is in on a cold boot

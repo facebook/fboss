@@ -15,7 +15,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
 namespace facebook::fboss {
-void SaiSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
+void SaiSwitch::updateStatsImpl() {
   auto portsIter = concurrentIndices_->portIds.begin();
   while (portsIter != concurrentIndices_->portIds.end()) {
     {

@@ -331,8 +331,7 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, init) {
 TEST_F(HwVoqSwitchWithFabricPortsTest, collectStats) {
   auto verify = [this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
-    SwitchStats dummy;
-    getHwSwitch()->updateStats(&dummy);
+    getHwSwitch()->updateStats();
   };
   verifyAcrossWarmBoots([] {}, verify);
 }
@@ -347,8 +346,7 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, fabricIsolate) {
 
   auto verify = [=]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
-    SwitchStats dummy;
-    getHwSwitch()->updateStats(&dummy);
+    getHwSwitch()->updateStats();
     auto fabricPortId =
         PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
     checkPortFabricReachability(getHwSwitch(), fabricPortId);
@@ -357,7 +355,7 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, fabricIsolate) {
     auto newPort = port->modify(&newState);
     newPort->setPortDrainState(cfg::PortDrainState::DRAINED);
     applyNewState(newState);
-    getHwSwitch()->updateStats(&dummy);
+    getHwSwitch()->updateStats();
     checkPortFabricReachability(getHwSwitch(), fabricPortId);
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -724,8 +722,7 @@ TEST_F(HwVoqSwitchTest, packetIntegrityError) {
         out);
     sendPacket(dstIp, std::nullopt);
     WITH_RETRIES({
-      SwitchStats dummy;
-      getHwSwitch()->updateStats(&dummy);
+      getHwSwitch()->updateStats();
       auto pktIntegrityDrops =
           getHwSwitch()->getSwitchStats()->getPacketIntegrityDropsCount();
       XLOG(INFO) << " Packet integrity drops: " << pktIntegrityDrops;
@@ -836,8 +833,7 @@ TEST_F(HwVoqSwitchTest, dramEnqueueDequeueBytes) {
     int64_t dramEnqueuedBytes = 0;
     WITH_RETRIES({
       sendPkts();
-      SwitchStats dummy;
-      getHwSwitch()->updateStats(&dummy);
+      getHwSwitch()->updateStats();
       fb303::ThreadCachedServiceData::get()->publishStats();
       dramEnqueuedBytes =
           getHwSwitch()->getSwitchStats()->getDramEnqueuedBytes();
@@ -847,8 +843,7 @@ TEST_F(HwVoqSwitchTest, dramEnqueueDequeueBytes) {
     // Enable port TX
     utility::setPortTx(getHwSwitch(), kPort.phyPortID(), false);
     WITH_RETRIES({
-      SwitchStats dummy;
-      getHwSwitch()->updateStats(&dummy);
+      getHwSwitch()->updateStats();
       fb303::ThreadCachedServiceData::get()->publishStats();
       auto dramDequeuedBytes =
           getHwSwitch()->getSwitchStats()->getDramDequeuedBytes();
@@ -884,8 +879,7 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
     auto voqDiscardBytes = 0;
     WITH_RETRIES_N(100, {
       sendPkts();
-      SwitchStats dummy;
-      getHwSwitch()->updateStats(&dummy);
+      getHwSwitch()->updateStats();
       voqDiscardBytes =
           getLatestSysPortStats(sysPortId).get_queueOutDiscardBytes_().at(
               kDefaultQueue);

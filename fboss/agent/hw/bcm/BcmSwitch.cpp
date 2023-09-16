@@ -2983,7 +2983,7 @@ bool BcmSwitch::sendPacketOutOfPortSync(
   return BCM_SUCCESS(BcmTxPacket::sendSync(std::move(bcmPkt), this));
 }
 
-void BcmSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
+void BcmSwitch::updateStatsImpl() {
   // Update global statistics.
   updateGlobalStats();
   // Update cpu or host bound packet stats

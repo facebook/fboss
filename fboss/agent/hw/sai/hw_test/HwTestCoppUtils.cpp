@@ -23,8 +23,7 @@ namespace utility {
 
 HwPortStats getCpuQueueStats(HwSwitch* hwSwitch) {
   auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch);
-  SwitchStats dummy;
-  saiSwitch->updateStats(&dummy);
+  saiSwitch->updateStats();
   return saiSwitch->managerTable()->hostifManager().getCpuPortStats();
 }
 

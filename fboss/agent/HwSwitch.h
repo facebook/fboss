@@ -228,7 +228,7 @@ class HwSwitch {
   /*
    * Allows hardware-specific code to record switch statistics.
    */
-  void updateStats(SwitchStats* switchStats);
+  void updateStats();
 
   virtual folly::F14FastMap<std::string, HwPortStats> getPortStats() const = 0;
   virtual CpuPortStats getCpuPortStats() const = 0;
@@ -380,7 +380,7 @@ class HwSwitch {
       bool failHwCallsOnWarmboot) = 0;
   virtual void switchRunStateChangedImpl(SwitchRunState newState) = 0;
 
-  virtual void updateStatsImpl(SwitchStats* switchStats) = 0;
+  virtual void updateStatsImpl() = 0;
 
   virtual void gracefulExitImpl() = 0;
 

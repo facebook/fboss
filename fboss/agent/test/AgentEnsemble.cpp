@@ -274,8 +274,7 @@ std::unique_ptr<AgentEnsemble> createAgentEnsemble(
 std::map<PortID, HwPortStats> AgentEnsemble::getLatestPortStats(
     const std::vector<PortID>& ports) {
   std::map<PortID, HwPortStats> portIdStatsMap;
-  SwitchStats dummy{};
-  getHw()->updateStats(&dummy);
+  getHw()->updateStats();
 
   auto swState = getSw()->getState();
   auto stats = getHw()->getPortStats();

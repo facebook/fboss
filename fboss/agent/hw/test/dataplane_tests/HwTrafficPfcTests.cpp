@@ -115,10 +115,7 @@ void validateBufferPoolWatermarkCounters(
     }
     return true;
   };
-  auto updateStats = [&]() {
-    facebook::fboss::SwitchStats dummy;
-    ensemble->getHwSwitch()->updateStats(&dummy);
-  };
+  auto updateStats = [&]() { ensemble->getHwSwitch()->updateStats(); };
   EXPECT_TRUE(ensemble->waitStatsCondition(
       globalSharedWatermarksIncrementing, updateStats));
 }
