@@ -707,6 +707,10 @@ class QsfpModule : public Transceiver {
 
   std::unordered_map<std::string, std::set<uint8_t>> portNameToHostLanes_;
   std::unordered_map<std::string, std::set<uint8_t>> portNameToMediaLanes_;
+
+  // Returns the Firmware object from qsfp config for the given module.
+  // If there is no firmware in config, returns empty optional
+  std::optional<cfg::Firmware> getFirmwareFromCfg() const;
 };
 } // namespace fboss
 } // namespace facebook
