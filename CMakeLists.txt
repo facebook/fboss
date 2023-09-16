@@ -494,6 +494,14 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  led_config_cpp2
+  fboss/led_service/if/led_service_config.thrift
+  OPTIONS
+    json
+    reflection
+)
+
+add_fbthrift_cpp_library(
   qsfp_cpp2
   fboss/qsfp_service/if/qsfp.thrift
   SERVICES

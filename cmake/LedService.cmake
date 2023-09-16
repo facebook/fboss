@@ -24,6 +24,17 @@ add_fbthrift_cpp_library(
     ctrl_cpp2
 )
 
+add_library(led_config
+  fboss/led_service/LedConfig.cpp
+)
+
+target_link_libraries(led_config
+  error
+  led_config_cpp2
+  Folly::folly
+  FBThrift::thriftcpp2
+)
+
 add_library(led_core_lib
   fboss/led_service/BspLedManager.cpp
   fboss/led_service/FsdbSwitchStateSubscriber.cpp
