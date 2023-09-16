@@ -6,6 +6,7 @@
 #include "fboss/qsfp_service/module/QsfpModule.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/lib/firmware_storage/FbossFirmware.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <optional>
@@ -457,6 +458,9 @@ class CmisModule : public QsfpModule {
   CmisLaneState getDatapathLaneStateLocked(
       uint8_t lane,
       bool readFromCache = true);
+
+  bool upgradeFirmwareLockedImpl(
+      std::unique_ptr<FbossFirmware> fbossFw) const override;
 };
 
 } // namespace fboss

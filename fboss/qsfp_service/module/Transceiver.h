@@ -14,6 +14,7 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <folly/futures/Future.h>
@@ -270,6 +271,15 @@ class Transceiver {
   bool getDirty_() const {
     return dirty_;
   }
+
+  virtual bool requiresFirmwareUpgrade() const = 0;
+
+  // Blocking call to upgrade the firmware on the transceiver.
+  // Returns true if successful, false otherwise.
+  // If fw is not specified, then the firmware image to upgrade is picked from
+  // the qsfp config
+  virtual bool upgradeFirmware(
+      const std::optional<cfg::Firmware>& fw = std::nullopt) = 0;
 
  protected:
   virtual void latchAndReadVdmDataLocked() = 0;

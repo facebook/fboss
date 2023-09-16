@@ -11,9 +11,11 @@
 #include <cstdint>
 #include <mutex>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/lib/firmware_storage/FbossFirmware.h"
 #include "fboss/lib/link_snapshots/SnapshotManager-defs.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
 
@@ -293,6 +295,8 @@ class QsfpModule : public Transceiver {
   bool isTransceiverFeatureSupported(TransceiverFeature feature);
 
   bool isTransceiverFeatureSupported(TransceiverFeature feature, bool lineSide);
+
+  bool requiresFirmwareUpgrade() const override;
 
  protected:
   /* Qsfp Internal Implementation */
@@ -593,6 +597,11 @@ class QsfpModule : public Transceiver {
 
   bool shouldRemediateLocked() override;
 
+  virtual bool upgradeFirmwareLockedImpl(
+      std::unique_ptr<FbossFirmware> /* fbossFw */) const {
+    return false;
+  }
+
  private:
   // no copy or assignment
   QsfpModule(QsfpModule const&) = delete;
@@ -636,6 +645,12 @@ class QsfpModule : public Transceiver {
   folly::Future<std::pair<int32_t, bool>> futureWriteTransceiver(
       TransceiverIOParameters param,
       uint8_t data) override;
+
+  bool upgradeFirmware(
+      const std::optional<cfg::Firmware>& fw = std::nullopt) override;
+
+  bool upgradeFirmwareLocked(
+      const std::optional<cfg::Firmware>& fw = std::nullopt);
 
   /*
    * Perform logic OR operation to media lane signals in order to cache them

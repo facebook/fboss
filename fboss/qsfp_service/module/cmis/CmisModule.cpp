@@ -9,6 +9,7 @@
 #include <string>
 #include "common/time/Time.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/lib/i2c/FirmwareUpgrader.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/lib/platforms/PlatformMode.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
@@ -3157,6 +3158,17 @@ bool CmisModule::setTransceiverTxLocked(
 
   writeCmisField(txDisableRegister, &txDisableVal);
   return true;
+}
+
+bool CmisModule::upgradeFirmwareLockedImpl(
+    std::unique_ptr<FbossFirmware> fbossFw) const {
+  QSFP_LOG(INFO, this) << "Upgrading CMIS Module Firmware";
+
+  auto fwUpgradeObj = std::make_unique<CmisFirmwareUpgrader>(
+      getTransceiverManager()->i2cBus(), getID() + 1, std::move(fbossFw));
+
+  bool ret = fwUpgradeObj->cmisModuleFirmwareUpgrade();
+  return ret;
 }
 
 } // namespace fboss
