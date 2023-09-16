@@ -244,27 +244,33 @@ bool QsfpModule::upgradeFirmwareLocked(const std::optional<cfg::Firmware>& fw) {
   // Mark the module dirty so that we can refresh the entire cache later
   dirty_ = true;
 
-  // TODO: Resolve Firmware version from qsfp config if not provided to this
-  // function call
-  bool fwUpgradeResult = true;
+  cfg::Firmware fwToUpgrade;
   if (fw.has_value()) {
-    for (const auto& fwVersion : *fw->versions()) {
-      QSFP_LOG(INFO, this) << folly::sformat(
-          "Upgrading module firmware. Type={:s}, Version={:s}",
-          apache::thrift::util::enumNameSafe(*fwVersion.fwType()),
-          *fwVersion.version());
-
-      // TODO: Maintain a map of part number to the handle in the
-      // fboss_firmware.yaml and use it here
-      std::string fwStorageHandleName = "";
-      std::unique_ptr<FbossFirmware> fbossFw =
-          getTransceiverManager()->fwStorage()->getFirmware(
-              fwStorageHandleName, *fwVersion.version());
-      fwUpgradeResult &= upgradeFirmwareLockedImpl(std::move(fbossFw));
-    }
-    return fwUpgradeResult;
+    fwToUpgrade = fw.value();
+  } else if (auto fwFromConfig = getFirmwareFromCfg()) {
+    QSFP_LOG(INFO, this) << "Upgrading firmware to the one in qsfp config";
+    fwToUpgrade = *fwFromConfig;
+  } else {
+    QSFP_LOG(ERR, this) << "No firmware version found to upgrade";
+    return false;
   }
-  return false;
+
+  bool fwUpgradeResult = true;
+  for (const auto& fwVersion : *fwToUpgrade.versions()) {
+    QSFP_LOG(INFO, this) << folly::sformat(
+        "Upgrading module firmware. Type={:s}, Version={:s}",
+        apache::thrift::util::enumNameSafe(*fwVersion.fwType()),
+        *fwVersion.version());
+
+    // TODO: Maintain a map of part number to the handle in the
+    // fboss_firmware.yaml and use it here
+    std::string fwStorageHandleName = "";
+    std::unique_ptr<FbossFirmware> fbossFw =
+        getTransceiverManager()->fwStorage()->getFirmware(
+            fwStorageHandleName, *fwVersion.version());
+    fwUpgradeResult &= upgradeFirmwareLockedImpl(std::move(fbossFw));
+  }
+  return fwUpgradeResult;
 }
 
 // Note that this needs to be called while holding the
