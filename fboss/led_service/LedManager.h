@@ -19,6 +19,7 @@
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/led_service/FsdbSwitchStateSubscriber.h"
+#include "fboss/led_service/LedConfig.h"
 #include "fboss/lib/led/LedIO.h"
 #include "fboss/lib/led/gen-cpp2/led_mapping_types.h"
 
@@ -71,6 +72,8 @@ class LedManager {
 
   void setExternalLedState(int32_t portNum, PortLedExternalState ledState);
 
+  bool isLedControlledThroughService();
+
   // Forbidden copy constructor and assignment operator
   LedManager(LedManager const&) = delete;
   LedManager& operator=(LedManager const&) = delete;
@@ -84,6 +87,8 @@ class LedManager {
 
   std::unique_ptr<FsdbSwitchStateSubscriber> fsdbSwitchStateSubscriber_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
+
+  std::unique_ptr<LedConfig> ledConfig_;
 
   virtual led::LedColor calculateLedColor(
       uint32_t /* portId */,

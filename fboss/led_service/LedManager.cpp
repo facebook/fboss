@@ -25,6 +25,13 @@ LedManager::LedManager() {
   ledManagerThread_ =
       std::make_unique<std::thread>([=] { evb->loopForever(); });
 
+  // Read the LED config from file
+  try {
+    ledConfig_ = LedConfig::fromDefaultFile();
+  } catch (FbossError& e) {
+    XLOG(ERR) << "LED config file not present: " << e.what();
+  }
+
   // Subscribe to Fsdb
   fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>("led_service");
   fsdbSwitchStateSubscriber_ =
@@ -144,6 +151,21 @@ void LedManager::setExternalLedState(
         portName,
         enumToName<led::LedColor>(newLedColor));
   }
+}
+
+/*
+ * isLedControlledThroughService
+ *
+ * Returns if the LED is being controlled through LED Service
+ * - If /etc/coop/led.conf does not exist then return false
+ * - If the led.conf file exist then return the value of boolean
+ *   ledControlledThroughService from that file
+ */
+bool LedManager::isLedControlledThroughService() {
+  if (ledConfig_.get()) {
+    return ledConfig_->thriftConfig_.ledControlledThroughService().value();
+  }
+  return false;
 }
 
 } // namespace facebook::fboss

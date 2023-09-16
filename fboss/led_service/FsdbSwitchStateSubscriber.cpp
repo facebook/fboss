@@ -38,6 +38,12 @@ void FsdbSwitchStateSubscriber::removeSwitchStateSubscription() {
 void FsdbSwitchStateSubscriber::subscribeToState(
     std::vector<std::string> path,
     LedManager* ledManager) {
+  // Subscribe to FSDB only if the LED config is enabled
+  if (!ledManager || !ledManager->isLedControlledThroughService()) {
+    XLOG(ERR) << "LED Service is not subscribed to FSDB";
+    return;
+  }
+
   auto stateCb = [](fsdb::FsdbStreamClient::State /*old*/,
                     fsdb::FsdbStreamClient::State /*new*/) {};
   auto dataCb = [=](fsdb::OperState&& state) {

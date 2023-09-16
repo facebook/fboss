@@ -60,6 +60,7 @@ target_link_libraries(led_core_lib
   bsp_platform_mapping_cpp2
   qsfp_bsp_core
   ledIO
+  led_config
   led_structs_types_cpp2
   led_service_types_cpp2
   log_thrift_call
