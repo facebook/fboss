@@ -1278,7 +1278,7 @@ SaiQueueHandle* SaiPortManager::getQueueHandle(PortID swId, uint8_t queueId)
 bool SaiPortManager::fecStatsSupported(PortID portId) const {
   if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_FEC_COUNTERS) &&
       utility::isReedSolomonFec(getFECMode(portId))) {
-#if defined(SAI_VERSION_7_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_ODP) ||    \
+#if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
     defined(SAI_VERSION_8_2_0_0_DNX_ODP) ||                                    \
     defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
     defined(SAI_VERSION_9_0_EA_SIM_ODP) || defined(TAJO_SDK_VERSION_1_42_4) || \

@@ -91,7 +91,7 @@ folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
     case SAI_API_TAM:
       return "tam";
 #if !(                                                                         \
-    defined(SAI_VERSION_7_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_ODP) ||    \
+    defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
     defined(SAI_VERSION_8_2_0_0_DNX_ODP) ||                                    \
     defined(SAI_VERSION_9_2_0_0_ODP) ||                                        \
     defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \

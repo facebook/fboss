@@ -598,13 +598,13 @@ void SaiPortManager::programSerdes(
      * needs to create a new serdes object without knowing the serdes Id or
      * reloading the object to sai store.
      */
-#if !defined(SAI_VERSION_7_2_0_0_ODP) && !defined(SAI_VERSION_8_2_0_0_ODP) && \
-    !defined(SAI_VERSION_8_2_0_0_DNX_ODP) &&                                  \
-    !defined(SAI_VERSION_8_2_0_0_SIM_ODP) &&                                  \
-    !defined(SAI_VERSION_9_0_EA_SIM_ODP) &&                                   \
-    !defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) &&                              \
-    !defined(SAI_VERSION_9_2_0_0_ODP) &&                                      \
-    !defined(SAI_VERSION_10_0_EA_DNX_ODP) &&                                  \
+#if !defined(SAI_VERSION_8_2_0_0_ODP) &&         \
+    !defined(SAI_VERSION_8_2_0_0_DNX_ODP) &&     \
+    !defined(SAI_VERSION_8_2_0_0_SIM_ODP) &&     \
+    !defined(SAI_VERSION_9_0_EA_SIM_ODP) &&      \
+    !defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) && \
+    !defined(SAI_VERSION_9_2_0_0_ODP) &&         \
+    !defined(SAI_VERSION_10_0_EA_DNX_ODP) &&     \
     !defined(SAI_VERSION_10_0_EA_ODP) && !defined(SAI_VERSION_10_0_EA_SIM_ODP)
 
     // serdes is not yet programmed or reloaded from adapter

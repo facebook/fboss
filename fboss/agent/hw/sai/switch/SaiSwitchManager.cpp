@@ -579,8 +579,7 @@ std::optional<bool> SaiSwitchManager::getPtpTcEnabled() {
 }
 
 bool SaiSwitchManager::isGlobalQoSMapSupported() const {
-#if defined(SAI_VERSION_7_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_ODP) ||    \
-    defined(SAI_VERSION_8_2_0_0_SIM) ||                                        \
+#if defined(SAI_VERSION_8_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_SIM) ||    \
     defined(SAI_VERSION_8_2_0_0_DNX_ODP) ||                                    \
     defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP) || \
     defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) ||                                \
@@ -592,9 +591,6 @@ bool SaiSwitchManager::isGlobalQoSMapSupported() const {
 }
 
 bool SaiSwitchManager::isMplsQoSMapSupported() const {
-#if defined(SAI_VERSION_7_2_0_0_ODP)
-  return false;
-#endif
 #if defined(TAJO_SDK_VERSION_1_42_1) || defined(TAJO_SDK_VERSION_1_42_8)
   return false;
 #endif
