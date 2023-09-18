@@ -679,7 +679,7 @@ cfg::SwitchDrainState computeActualSwitchDrainState(
     case cfg::SwitchDrainState::UNDRAINED:
       // If the desired (configured) state is UNDRAINED, actual state will be
       // DRAINED/UNDRAINED depending on the threshold.
-      switch (switchSettings->getSwitchDrainState()) {
+      switch (switchSettings->getActualSwitchDrainState()) {
         case cfg::SwitchDrainState::UNDRAINED:
           if (switchSettings->getMinLinksToRemainInVOQDomain().has_value() &&
               numFabricPortsUp <
