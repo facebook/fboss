@@ -33,17 +33,6 @@ void SnapshotWrapper::publish(const std::set<std::string>& portNames) {
   if (patchedSnapshot.transceiverInfo_ref()) {
     patchedSnapshot.transceiverInfo_ref() = TransceiverInfo();
 
-    // Repopulate the non-optional fields just so that we're not misled
-    // by the default values
-    patchedSnapshot.transceiverInfo_ref()->present_ref().copy_from(
-        snapshot_.transceiverInfo_ref()->present_ref());
-    patchedSnapshot.transceiverInfo_ref()->transceiver_ref().copy_from(
-        snapshot_.transceiverInfo_ref()->transceiver_ref());
-    patchedSnapshot.transceiverInfo_ref()->port_ref().copy_from(
-        snapshot_.transceiverInfo_ref()->port_ref());
-    patchedSnapshot.transceiverInfo_ref()->timeCollected_ref().copy_from(
-        snapshot_.transceiverInfo_ref()->timeCollected_ref());
-
     // Repopulate the new fields
     patchedSnapshot.transceiverInfo_ref()->tcvrStats_ref().copy_from(
         snapshot_.transceiverInfo_ref()->tcvrStats_ref());
