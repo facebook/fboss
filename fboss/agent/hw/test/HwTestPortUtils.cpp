@@ -13,11 +13,6 @@ namespace facebook::fboss::utility {
 
 TransceiverInfo getTransceiverInfo(cfg::PortProfileID profileID) {
   TransceiverInfo info;
-  info.present() = true;
-  info.transceiver() = TransceiverType::QSFP;
-  info.port().ensure();
-  info.channels().ensure();
-
   info.tcvrState()->present() = true;
   info.tcvrState()->transceiver() = TransceiverType::QSFP;
 
@@ -29,7 +24,6 @@ TransceiverInfo getTransceiverInfo(cfg::PortProfileID profileID) {
   } else if (mediaType == TransmitterTechnology::OPTICAL) {
     cable.length() = 2000;
   }
-  info.cable() = cable;
   info.tcvrState()->cable() = cable;
 
   // Prepare mediaInterface and managementInterface
@@ -56,7 +50,6 @@ TransceiverInfo getTransceiverInfo(cfg::PortProfileID profileID) {
         apache::thrift::util::enumNameSafe(speed));
   }
 
-  info.transceiverManagementInterface() = mgmtInterface;
   info.tcvrState()->transceiverManagementInterface() = mgmtInterface;
   TransceiverSettings settings;
   std::vector<MediaInterfaceId> mediaInterfaces;
@@ -67,7 +60,6 @@ TransceiverInfo getTransceiverInfo(cfg::PortProfileID profileID) {
     mediaInterfaces.push_back(lane);
   }
   settings.mediaInterface() = mediaInterfaces;
-  info.settings() = settings;
   info.tcvrState()->settings() = settings;
 
   return info;
