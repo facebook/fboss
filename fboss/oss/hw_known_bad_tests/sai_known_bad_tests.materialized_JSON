@@ -1203,6 +1203,9 @@
           "test_name_regex": "HwHashPolarizationTestForTH4"
         },
         {
+          "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
+        },
+        {
           "test_name_regex": "HwHashPolarizationTestSAITH4"
         },
         {
@@ -1563,6 +1566,9 @@
         },
         {
           "test_name_regex": "HwHashPolarizationTestForTH4"
+        },
+        {
+          "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
         },
         {
           "test_name_regex": "HwHashPolarizationTestSAITH5"
@@ -2054,6 +2060,9 @@
         },
         {
           "test_name_regex": "HwHashPolarizationTestForTH4"
+        },
+        {
+          "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
         },
         {
           "test_name_regex": "HwHashPolarizationTestSAITH4"
@@ -4652,6 +4661,9 @@
           "test_name_regex": "HwIngressBufferTest.validateIngressPoolParamChange"
         },
         {
+          "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -6105,6 +6117,9 @@
         },
         {
           "test_name_regex": "HwIngressBufferTest.validateIngressPoolParamChange"
+        },
+        {
+          "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk4": [
@@ -6455,6 +6470,9 @@
         },
         {
           "test_name_regex": "HwHashPolarizationTestForTH4"
+        },
+        {
+          "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
         },
         {
           "test_name_regex": "HwHashPolarizationTestSAITH5"
@@ -7915,6 +7933,9 @@
           "test_name_regex": "HwIngressBufferTest.validateIngressPoolParamChange"
         },
         {
+          "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -8287,6 +8308,9 @@
         },
         {
           "test_name_regex": "HwHashPolarizationTestForTH4"
+        },
+        {
+          "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
         },
         {
           "test_name_regex": "HwHashPolarizationTestSAITH5"
@@ -9065,6 +9089,9 @@
         },
         {
           "test_name_regex": "HwHashPolarizationTestForTH4"
+        },
+        {
+          "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
         },
         {
           "test_name_regex": "HwHashPolarizationTestSAITH5"
@@ -10238,6 +10265,9 @@
           "test_name_regex": "HwIngressBufferTest.validateIngressPoolParamChange"
         },
         {
+          "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
+        },
+        {
           "test_name_regex": "HwWideEcmpTest.WideUcmp.*"
         }
     ],
@@ -10589,6 +10619,9 @@
         },
         {
           "test_name_regex": "HwHashPolarizationTestForTH4"
+        },
+        {
+          "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
         },
         {
           "test_name_regex": "HwHashPolarizationTestSAITH5"
