@@ -25,15 +25,30 @@ constexpr auto kMaxLogLineLength = 8000;
 namespace facebook::fboss {
 
 void SnapshotWrapper::publish(const std::set<std::string>& portNames) {
-  // S309875: Log length is too long now due to the tcvrStats and tcvrState
-  // fields containing lots of duplicate data from other fields. For now lets
-  // just clear these fields so that they aren't included in the log.
-  // TODO(ccpowers): At some point we should de-duplicate the data at its source
-  // rather than just wiping the duplicate data prior to logging it.
+  // TODO(ccpowers): Delete this once the deprecated TransceiverInfo fields
+  // have been fully removed
+
+  // Clear the deprecated fields to reduce the size of the snapshot
   auto patchedSnapshot = snapshot_;
   if (patchedSnapshot.transceiverInfo_ref()) {
-    patchedSnapshot.transceiverInfo_ref()->tcvrStats_ref() = TcvrStats();
-    patchedSnapshot.transceiverInfo_ref()->tcvrState_ref() = TcvrState();
+    patchedSnapshot.transceiverInfo_ref() = TransceiverInfo();
+
+    // Repopulate the non-optional fields just so that we're not misled
+    // by the default values
+    patchedSnapshot.transceiverInfo_ref()->present_ref().copy_from(
+        snapshot_.transceiverInfo_ref()->present_ref());
+    patchedSnapshot.transceiverInfo_ref()->transceiver_ref().copy_from(
+        snapshot_.transceiverInfo_ref()->transceiver_ref());
+    patchedSnapshot.transceiverInfo_ref()->port_ref().copy_from(
+        snapshot_.transceiverInfo_ref()->port_ref());
+    patchedSnapshot.transceiverInfo_ref()->timeCollected_ref().copy_from(
+        snapshot_.transceiverInfo_ref()->timeCollected_ref());
+
+    // Repopulate the new fields
+    patchedSnapshot.transceiverInfo_ref()->tcvrStats_ref().copy_from(
+        snapshot_.transceiverInfo_ref()->tcvrStats_ref());
+    patchedSnapshot.transceiverInfo_ref()->tcvrState_ref().copy_from(
+        snapshot_.transceiverInfo_ref()->tcvrState_ref());
   }
   auto serializedSnapshot =
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(
