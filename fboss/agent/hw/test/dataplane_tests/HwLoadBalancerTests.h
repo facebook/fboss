@@ -70,6 +70,28 @@
         false);                                                              \
   }
 
+// Adding new load balancer test for DLB since DLB need deviation of ~30%
+// in some runs.
+#define RUN_HW_LOAD_BALANCER_TEST_FOR_DLB(                                   \
+    TEST_FIXTURE, MULTIPATH_TYPE, HASH_TYPE, TRAFFIC_TYPE)                   \
+  TEST_F(TEST_FIXTURE, TEST_NAME(MULTIPATH_TYPE, HASH_TYPE, TRAFFIC_TYPE)) { \
+    if (BOOST_PP_STRINGIZE(MULTIPATH_TYPE) == std::string{"WideUcmp"} &&                    \
+            !getPlatform()->getAsic()->isSupported(                          \
+                HwAsic::Feature::WIDE_ECMP)) {                               \
+      return;                                                                \
+    }                                                                        \
+    static bool kLoopThroughFrontPanelPort =                                 \
+        (BOOST_PP_STRINGIZE(TRAFFIC_TYPE) != std::string{"Cpu"});            \
+    runLoadBalanceTest(                                                      \
+        8,                                                                   \
+        facebook::fboss::utility::getEcmp##HASH_TYPE##HashConfig(            \
+            *getPlatform()->getAsic()),                                      \
+        facebook::fboss::utility::kHwTest##MULTIPATH_TYPE##Weights(),        \
+        kLoopThroughFrontPanelPort,                                          \
+        true,                                                                \
+        35);                                                                 \
+  }
+
 #define RUN_SHRINK_EXPAND_HW_LOAD_BALANCER_TEST(TEST_FIXTURE, HASH_TYPE) \
   TEST_F(TEST_FIXTURE, ECMP_SHRINK_EXPAND_TEST_NAME(HASH_TYPE)) {        \
     runEcmpShrinkExpandLoadBalanceTest(                                  \

@@ -22,10 +22,10 @@ const int kQueueWeight = 30;
 namespace facebook::fboss {
 
 class HwLoadBalancerTestV6Flowlet
-    : public HwLoadBalancerTest<utility::HwIpV6EcmpDataPlaneTestUtil> {
-  std::unique_ptr<utility::HwIpV6EcmpDataPlaneTestUtil> getECMPHelper()
+    : public HwLoadBalancerTest<utility::HwIpV6RoCEEcmpDataPlaneTestUtil> {
+  std::unique_ptr<utility::HwIpV6RoCEEcmpDataPlaneTestUtil> getECMPHelper()
       override {
-    return std::make_unique<utility::HwIpV6EcmpDataPlaneTestUtil>(
+    return std::make_unique<utility::HwIpV6RoCEEcmpDataPlaneTestUtil>(
         getHwSwitchEnsemble(), RouterID(0));
   }
 
@@ -63,6 +63,10 @@ class HwLoadBalancerTestV6Flowlet
   }
 };
 
-RUN_HW_LOAD_BALANCER_TEST_FRONT_PANEL(HwLoadBalancerTestV6Flowlet, Ecmp, Full)
+RUN_HW_LOAD_BALANCER_TEST_FOR_DLB(
+    HwLoadBalancerTestV6Flowlet,
+    Ecmp,
+    Full,
+    FrontPanel)
 
 } // namespace facebook::fboss

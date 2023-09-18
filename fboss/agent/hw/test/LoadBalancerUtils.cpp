@@ -160,8 +160,10 @@ cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(void) {
   cfg::FlowletSwitchingConfig flowletCfg;
   flowletCfg.inactivityIntervalUsecs() = 16;
   flowletCfg.flowletTableSize() = 2048;
-  flowletCfg.dynamicEgressLoadExponent() = 4;
-  flowletCfg.dynamicQueueExponent() = 4;
+  // set the egress load and queue exponent to zero for DLB engine
+  // to do load balancing across all the links better with single stream
+  flowletCfg.dynamicEgressLoadExponent() = 0;
+  flowletCfg.dynamicQueueExponent() = 0;
   flowletCfg.dynamicQueueMinThresholdBytes() = 1000;
   flowletCfg.dynamicQueueMaxThresholdBytes() = 10000;
   flowletCfg.dynamicSampleRate() = 1000000;
@@ -224,7 +226,7 @@ void pumpRoCETraffic(
   auto dstIp = folly::IPAddress(isV6 ? "2001::1" : "200.0.0.1");
 
   XLOG(INFO) << "Send traffic with RoCE payload ..";
-  for (auto i = 0; i < 10000; ++i) {
+  for (auto i = 0; i < 50000; ++i) {
     std::vector<uint8_t> rocePayload = {0x0a, 0x40, 0xff, 0xff, 0x00};
     std::vector<uint8_t> roceEndPayload = {0x40, 0x00, 0x00, 0x03};
 
