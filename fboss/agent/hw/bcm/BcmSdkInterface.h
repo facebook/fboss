@@ -581,6 +581,13 @@ class BcmSdkInterface {
   virtual int
   bcm_udf_get(int unit, bcm_udf_id_t udf_id, bcm_udf_t* udf_info) = 0;
 
+  virtual int bcm_field_qset_id_multi_set(
+      int unit,
+      bcm_field_qualify_t qualifier,
+      int num_objects,
+      int* object_list,
+      bcm_field_qset_t* qset) = 0;
+
   virtual int bcm_cosq_bst_stat_sync(int unit, bcm_bst_stat_id_t bid) = 0;
   virtual int bcm_stat_custom_add(
       int unit,

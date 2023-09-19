@@ -376,6 +376,13 @@ int __real_bcm_udf_init(int unit);
 
 int __real_bcm_udf_get(int unit, bcm_udf_id_t udf_id, bcm_udf_t* udf_info);
 
+int __real_bcm_field_qset_id_multi_set(
+    int unit,
+    bcm_field_qualify_t qualifier,
+    int num_objects,
+    int* object_list,
+    bcm_field_qset_t* qset);
+
 int __real_bcm_l3_egress_ecmp_get(
     int unit,
     bcm_l3_egress_ecmp_t* ecmp,
@@ -1070,6 +1077,13 @@ void __real_bcm_udf_t_init(bcm_udf_t* udf_info);
 int __real_bcm_udf_init(int unit);
 
 int __real_bcm_udf_get(int unit, bcm_udf_id_t udf_id, bcm_udf_t* udf_info);
+
+int __real_bcm_field_qset_id_multi_set(
+    int unit,
+    bcm_field_qualify_t qualifier,
+    int num_objects,
+    int* object_list,
+    bcm_field_qset_t* qset);
 
 int __real_bcm_l3_route_get(int unit, bcm_l3_route_t* info);
 
@@ -2339,6 +2353,16 @@ int __wrap_bcm_udf_get(int unit, bcm_udf_id_t udf_id, bcm_udf_t* udf_info) {
 
 void __wrap_bcm_udf_hash_config_t_init(bcm_udf_hash_config_t* config) {
   CALL_WRAPPERS_NO_RV(bcm_udf_hash_config_t_init(config));
+}
+
+int __wrap_bcm_field_qset_id_multi_set(
+    int unit,
+    bcm_field_qualify_t qualifier,
+    int num_objects,
+    int* object_list,
+    bcm_field_qset_t* qset) {
+  CALL_WRAPPERS_RV(bcm_field_qset_id_multi_set(
+      unit, qualifier, num_objects, object_list, qset));
 }
 
 int __wrap_bcm_stat_custom_add(

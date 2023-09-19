@@ -2208,6 +2208,26 @@ int BcmCinter::bcm_udf_init(int unit) {
   return 0;
 }
 
+int BcmCinter::bcm_field_qset_id_multi_set(
+    int unit,
+    bcm_field_qualify_t qualifier,
+    int num_objects,
+    int* object_list,
+    bcm_field_qset_t* qset) {
+  auto cint = cintForQset(*qset);
+  auto cintForFn = wrapFunc(to<string>(
+      "bcm_field_group_create_id(",
+      makeParamStr(unit, qualifier, num_objects, *object_list, "&qset"),
+      ")"));
+
+  cint.insert(
+      cint.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator(cintForFn.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
 int BcmCinter::bcm_port_phy_modify(
     int unit,
     bcm_port_t port,
