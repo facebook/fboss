@@ -34,18 +34,19 @@ class QsfpUtilTx {
       const TransceiverManagementInterface moduleType,
       uint8_t& data);
   int setTxDisableDirect();
-  bool setSffTxDisableDirect(unsigned int module);
-  bool setCmisTxDisableDirect(unsigned int module);
+  bool setSffTxDisableDirect(const std::vector<std::string>& sffPortNames);
+  bool setCmisTxDisableDirect(const std::vector<std::string>& cmisPortNames);
   int setTxDisableViaService();
-  bool setCmisTxDisableViaService(const std::vector<int32_t>& modules);
-  bool setSffTxDisableViaService(const std::vector<int32_t>& modules);
+  bool setTxDisableViaServiceHelper(const std::vector<std::string>& portNames);
 
   static const uint8_t maxSffChannels = 4;
   static const uint8_t maxCmisChannels = 8;
 
   TransceiverI2CApi* bus_;
   TransceiverManager* wedgeManager_;
-  std::vector<unsigned int> moduleIds_;
+  std::vector<std::string> allPortNames_;
+  std::vector<std::string> sffPortNames_;
+  std::vector<std::string> cmisPortNames_;
   folly::EventBase& evb_;
   bool disableTx_;
 };

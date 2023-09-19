@@ -12,6 +12,7 @@ QsfpUtilTx::QsfpUtilTx(
     folly::EventBase& evb)
     : bus_(i2cInfo.bus),
       wedgeManager_(i2cInfo.transceiverManager),
+      allPortNames_(portNames),
       evb_(evb),
       disableTx_(FLAGS_tx_disable ? true : false) {
   XLOG(INFO) << fmt::format(
@@ -19,9 +20,18 @@ QsfpUtilTx::QsfpUtilTx(
       disableTx_ ? "disabled" : "enabled",
       FLAGS_tx_disable ? "disabled" : "enabled",
       FLAGS_tx_enable ? "enabled" : "disabled");
+
   for (auto portName : portNames) {
     int moduleId = wedgeManager_->getPortNameToModuleMap().at(portName);
-    moduleIds_.push_back(moduleId + 1);
+    auto moduleType = getModuleType(bus_, moduleId + 1);
+    if (moduleType == TransceiverManagementInterface::SFF) {
+      sffPortNames_.push_back(portName);
+    } else if (moduleType == TransceiverManagementInterface::CMIS) {
+      cmisPortNames_.push_back(portName);
+    } else {
+      XLOG(ERR) << fmt::format(
+          "Port {:s} has unknown managament interface type", portName);
+    }
   }
 }
 
@@ -36,35 +46,16 @@ int QsfpUtilTx::setTxDisable() {
  */
 int QsfpUtilTx::setTxDisableDirect() {
   int retVal = EX_OK;
-
-  for (unsigned int module : moduleIds_) {
-    XLOG(INFO) << fmt::format(
-        "TxDisableTrace: QSFP {:d}: directly {:s} TX on {:s} channels",
-        module,
-        disableTx_ ? "disabled" : "enabled",
-        (FLAGS_channel >= 1 && FLAGS_channel <= QsfpUtilTx::maxCmisChannels)
-            ? "some"
-            : "all");
-
-    // Get module type CMIS or SFF
-    auto moduleType = getModuleType(bus_, module);
-
-    if (moduleType == TransceiverManagementInterface::SFF) {
-      if (!setSffTxDisableDirect(module)) {
-        retVal = EX_SOFTWARE;
-      }
-    } else if (moduleType == TransceiverManagementInterface::CMIS) {
-      if (!setCmisTxDisableDirect(module)) {
-        retVal = EX_SOFTWARE;
-      }
-    } else {
-      XLOG(ERR) << fmt::format(
-          "TxDisableTrace: QSFP {:d}: Unrecognized transceiver management interface",
-          module);
-      retVal = EX_SOFTWARE;
+  if (!sffPortNames_.empty()) {
+    if (!setSffTxDisableDirect(sffPortNames_)) {
+      retVal |= EX_SOFTWARE;
     }
   }
-
+  if (!cmisPortNames_.empty()) {
+    if (!setCmisTxDisableDirect(cmisPortNames_)) {
+      retVal |= EX_SOFTWARE;
+    }
+  }
   return retVal;
 }
 
@@ -73,24 +64,41 @@ int QsfpUtilTx::setTxDisableDirect() {
  * module. The TX Disable will cause LOS at the link partner and Remote Fault at
  * this end.
  */
-bool QsfpUtilTx::setSffTxDisableDirect(unsigned int module) {
-  try {
-    // For SFF module, the lower page 0 reg 86 controls TX_DISABLE for 4 lanes
-    const int offset = 86;
-    const int length = 1;
-    uint8_t buf;
+bool QsfpUtilTx::setSffTxDisableDirect(
+    const std::vector<std::string>& sffPortNames) {
+  for (auto portName : sffPortNames) {
+    int moduleId = wedgeManager_->getPortNameToModuleMap().at(portName);
+    int oneIndexedModuleId = moduleId + 1;
+    XLOG(INFO) << fmt::format(
+        "TxDisableTrace: SFF {:d}: directly {:s} TX on {:s} channels",
+        oneIndexedModuleId,
+        disableTx_ ? "disabled" : "enabled",
+        (FLAGS_channel >= 1 && FLAGS_channel <= QsfpUtilTx::maxSffChannels)
+            ? "some"
+            : "all");
 
-    bus_->moduleRead(
-        module, {TransceiverI2CApi::ADDR_QSFP, offset, length}, &buf);
-    setChannelDisable(TransceiverManagementInterface::SFF, buf);
-    bus_->moduleWrite(
-        module, {TransceiverI2CApi::ADDR_QSFP, offset, length}, &buf);
-  } catch (const I2cError& ex) {
-    XLOG(ERR) << fmt::format(
-        "TxDisableTrace: QSFP {:d}: unwritable or write error", module);
-    return false;
+    try {
+      // For SFF module, the lower page 0 reg 86 controls TX_DISABLE for 4 lanes
+      const int offset = 86;
+      const int length = 1;
+      uint8_t buf;
+
+      bus_->moduleRead(
+          oneIndexedModuleId,
+          {TransceiverI2CApi::ADDR_QSFP, offset, length},
+          &buf);
+      setChannelDisable(TransceiverManagementInterface::SFF, buf);
+      bus_->moduleWrite(
+          oneIndexedModuleId,
+          {TransceiverI2CApi::ADDR_QSFP, offset, length},
+          &buf);
+    } catch (const I2cError& ex) {
+      XLOG(ERR) << fmt::format(
+          "TxDisableTrace: QSFP {:d}: unwritable or write error",
+          oneIndexedModuleId);
+      return false;
+    }
   }
-
   return true;
 }
 
@@ -99,42 +107,62 @@ bool QsfpUtilTx::setSffTxDisableDirect(unsigned int module) {
  * module. The TX Disable will cause LOS at the link partner and Remote Fault at
  * this end.
  */
-bool QsfpUtilTx::setCmisTxDisableDirect(unsigned int module) {
-  try {
-    const int offset = 127;
-    const int length = 1;
-    uint8_t savedPage;
+bool QsfpUtilTx::setCmisTxDisableDirect(
+    const std::vector<std::string>& cmisPortNames) {
+  for (auto portName : cmisPortNames) {
+    int moduleId = wedgeManager_->getPortNameToModuleMap().at(portName);
+    int oneIndexedModuleId = moduleId + 1;
+    XLOG(INFO) << fmt::format(
+        "TxDisableTrace: CMIS {:d}: directly {:s} TX on {:s} channels",
+        oneIndexedModuleId,
+        disableTx_ ? "disabled" : "enabled",
+        (FLAGS_channel >= 1 && FLAGS_channel <= QsfpUtilTx::maxCmisChannels)
+            ? "some"
+            : "all");
 
-    // Save current page
-    bus_->moduleRead(
-        module, {TransceiverI2CApi::ADDR_QSFP, offset, length}, &savedPage);
+    try {
+      const int offset = 127;
+      const int length = 1;
+      uint8_t savedPage;
 
-    // For CMIS module, the page 0x10 reg 130 controls TX_DISABLE for 8 lanes
-    uint8_t moduleControlPage = 0x10;
-    const int cmisTxDisableReg = 130;
-    uint8_t buf;
+      // Save current page
+      bus_->moduleRead(
+          oneIndexedModuleId,
+          {TransceiverI2CApi::ADDR_QSFP, offset, length},
+          &savedPage);
 
-    bus_->moduleWrite(
-        module,
-        {TransceiverI2CApi::ADDR_QSFP, offset, length},
-        &moduleControlPage);
-    bus_->moduleRead(
-        module, {TransceiverI2CApi::ADDR_QSFP, cmisTxDisableReg, length}, &buf);
-    setChannelDisable(TransceiverManagementInterface::CMIS, buf);
-    bus_->moduleWrite(
-        module, {TransceiverI2CApi::ADDR_QSFP, cmisTxDisableReg, length}, &buf);
+      // For CMIS module, the page 0x10 reg 130 controls TX_DISABLE for 8 lanes
+      uint8_t moduleControlPage = 0x10;
+      const int cmisTxDisableReg = 130;
+      uint8_t buf;
 
-    // Restore current page. Need a delay here, otherwise certain modules
-    // will fail to turn on the lasers. Sleep override
-    usleep(20 * 1000);
-    bus_->moduleWrite(
-        module, {TransceiverI2CApi::ADDR_QSFP, offset, length}, &savedPage);
-  } catch (const I2cError& ex) {
-    XLOG(ERR) << fmt::format(
-        "TxDisableTrace: QSFP {:d}: read/write error", module);
-    return false;
+      bus_->moduleWrite(
+          oneIndexedModuleId,
+          {TransceiverI2CApi::ADDR_QSFP, offset, length},
+          &moduleControlPage);
+      bus_->moduleRead(
+          oneIndexedModuleId,
+          {TransceiverI2CApi::ADDR_QSFP, cmisTxDisableReg, length},
+          &buf);
+      setChannelDisable(TransceiverManagementInterface::CMIS, buf);
+      bus_->moduleWrite(
+          oneIndexedModuleId,
+          {TransceiverI2CApi::ADDR_QSFP, cmisTxDisableReg, length},
+          &buf);
+
+      // Restore current page. Need a delay here, otherwise certain modules
+      // will fail to turn on the lasers. Sleep override
+      usleep(20 * 1000);
+      bus_->moduleWrite(
+          oneIndexedModuleId,
+          {TransceiverI2CApi::ADDR_QSFP, offset, length},
+          &savedPage);
+    } catch (const I2cError& ex) {
+      XLOG(ERR) << fmt::format(
+          "TxDisableTrace: QSFP {:d}: read/write error", oneIndexedModuleId);
+      return false;
+    }
   }
-
   return true;
 }
 
@@ -144,130 +172,62 @@ bool QsfpUtilTx::setCmisTxDisableDirect(unsigned int module) {
  * partner and Remote Fault at this end.
  */
 int QsfpUtilTx::setTxDisableViaService() {
+  int retVal = EX_OK;
+
   // Release the bus access for QSFP service
   bus_->close();
-  std::map<int32_t, TransceiverManagementInterface> moduleTypes =
-      getModuleTypeViaService(moduleIds_, evb_);
 
-  if (moduleTypes.empty()) {
-    XLOG(ERR) << "TxDisableTrace: Indirect read error in getting module type";
-    return EX_SOFTWARE;
+  if (!setTxDisableViaServiceHelper(allPortNames_)) {
+    retVal |= EX_SOFTWARE;
   }
 
-  std::vector<int32_t> sffModuleIdx;
-  std::vector<int32_t> cmisModuleIdx;
+  return retVal;
+}
 
-  for (auto [module, moduleType] : moduleTypes) {
+/*
+ * This function indirectly disables the CMIS or SFF optics lane TX via
+ * qsfp_service which brings down the module. The TX Disable will cause LOS at
+ * the link partner and Remote Fault at this end.
+ */
+bool QsfpUtilTx::setTxDisableViaServiceHelper(
+    const std::vector<std::string>& portNames) {
+  std::vector<phy::TxRxEnableRequest> txDisableRequests;
+
+  for (auto portName : portNames) {
     XLOG(INFO) << fmt::format(
-        "TxDisableTrace: QSFP {:d}: indirectly {:s} TX on {:s} channels",
-        module + 1,
+        "TxDisableTrace: {:s}: indirectly {:s} TX on {:s} channels",
+        portName,
         disableTx_ ? "disabled" : "enabled",
-        (FLAGS_channel >= 1 && FLAGS_channel <= QsfpUtilTx::maxCmisChannels)
-            ? "some"
-            : "all");
+        (FLAGS_channel != -1) ? "some" : "all");
 
-    if (moduleType == TransceiverManagementInterface::SFF) {
-      sffModuleIdx.push_back(module);
-    } else if (moduleType == TransceiverManagementInterface::CMIS) {
-      cmisModuleIdx.push_back(module);
-    } else {
-      XLOG(ERR) << fmt::format(
-          "TxDisableTrace: QSFP {:d}: Unrecognized transceiver management interface",
-          module);
-      return EX_SOFTWARE;
+    phy::TxRxEnableRequest txRequest;
+    txRequest.portName() = portName;
+    txRequest.component() = phy::PortComponent::TRANSCEIVER_LINE;
+    txRequest.direction() = phy::Direction::TRANSMIT;
+    txRequest.enable() = !disableTx_;
+    if (FLAGS_channel != -1) {
+      txRequest.laneMask() = 1 << (FLAGS_channel - 1);
     }
+
+    txDisableRequests.push_back(txRequest);
   }
 
-  if (sffModuleIdx.empty() && cmisModuleIdx.empty()) {
-    XLOG(ERR)
-        << "TxDisableTrace: Did not detect any transceivers with expected interface";
-    return EX_SOFTWARE;
-  }
+  auto client = getQsfpClient(evb_);
+  std::vector<phy::TxRxEnableResponse> txDisableResponses;
 
-  if (!sffModuleIdx.empty() && !setSffTxDisableViaService(sffModuleIdx)) {
-    return EX_SOFTWARE;
-  }
-
-  if (!cmisModuleIdx.empty() && !setCmisTxDisableViaService(cmisModuleIdx)) {
-    return EX_SOFTWARE;
-  }
-
-  return EX_OK;
-}
-
-/*
- * This function indirectly disables the SFF optics lane TX via qsfp_service
- * which brings down the module. The TX Disable will cause LOS at the link
- * partner and Remote Fault at this end.
- */
-bool QsfpUtilTx::setSffTxDisableViaService(
-    const std::vector<int32_t>& modules) {
-  // For SFF module, the page 0 reg 86 controls TX_DISABLE for 4 lanes
-  const int offset = 86;
-  const int length = 1;
-  const int page = 0;
-  std::map<int32_t, ReadResponse> readResp;
-  doReadRegViaService(modules, offset, length, page, evb_, readResp);
-
-  if (readResp.empty()) {
-    XLOG(ERR) << "TxDisableTrace: indirect read error";
+  try {
+    client->sync_setInterfaceTxRx(txDisableResponses, txDisableRequests);
+    for (const auto& response : txDisableResponses) {
+      XLOG(INFO) << fmt::format(
+          "Tx Dis/Ena operation on port {:s} is {:s}",
+          response.portName().value(),
+          (response.success().value() ? "successful" : "failed"));
+    }
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << fmt::format(
+        "Tx Dis/Ena operation through qsfp_service failed: {:s}", ex.what());
     return false;
   }
-
-  for (const auto& response : readResp) {
-    auto buf = *(response.second.data()->data());
-    setChannelDisable(TransceiverManagementInterface::SFF, buf);
-    std::vector<int32_t> writePort{response.first};
-
-    if (!doWriteRegViaService(writePort, offset, page, buf, evb_)) {
-      XLOG(ERR) << fmt::format(
-          "TxDisableTrace: QSFP {:d}: indirect write error", response.first);
-      return false;
-    }
-  }
-
-  XLOG(INFO) << fmt::format(
-      "TxDisableTrace: successfully {:s} SFF Tx indirectly",
-      disableTx_ ? "disabled" : "enabled");
-  return true;
-}
-
-/*
- * This function indirectly disables the CMIS optics lane TX via qsfp_service
- * which brings down the module. The TX Disable will cause LOS at the link
- * partner and Remote Fault at this end.
- */
-bool QsfpUtilTx::setCmisTxDisableViaService(
-    const std::vector<int32_t>& modules) {
-  // For CMIS module, page 0x10 of reg 130 controls TX_DISABLE for 8 lanes
-  const int length = 1;
-  const uint8_t moduleControlPage = 0x10;
-  const int cmisTxDisableReg = 130;
-  std::map<int32_t, ReadResponse> readResp;
-  doReadRegViaService(
-      modules, cmisTxDisableReg, length, moduleControlPage, evb_, readResp);
-
-  if (readResp.empty()) {
-    XLOG(ERR) << "TxDisableTrace: indirect read error";
-    return false;
-  }
-
-  for (const auto& response : readResp) {
-    auto buf = *(response.second.data()->data());
-    setChannelDisable(TransceiverManagementInterface::CMIS, buf);
-    std::vector<int32_t> writePort{response.first};
-
-    if (!doWriteRegViaService(
-            writePort, cmisTxDisableReg, moduleControlPage, buf, evb_)) {
-      XLOG(ERR) << fmt::format(
-          "TxDisableTrace: QSFP {:d}: indirect write error", response.first);
-      return false;
-    }
-  }
-
-  XLOG(INFO) << fmt::format(
-      "TxDisableTrace: successfully {:s} CMIS Tx indirectly",
-      disableTx_ ? "disabled" : "enabled");
   return true;
 }
 
