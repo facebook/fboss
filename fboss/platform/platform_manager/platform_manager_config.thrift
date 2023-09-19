@@ -27,6 +27,9 @@ include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 // muxA@1 and muxA@2.  So, the outgoing buses out of the PmUnit Slot from
 // PmUnit A are muxA@0, INCOMING@0 and muxA@2.
 //
+// If the source of the bus is a FPGA within a PmUnit, then the bus is assigned
+// the name <FRU_SCOPED_NAME> of the I2C Adapter within the FPGA.
+//
 // Note, the three incoming buses of PmUnit B are assigned the names
 // INCOMING@0, INCOMING@1 and INCOMING@2.  These names are independent of how
 // the buses originated from PmUnit A.
@@ -123,21 +126,67 @@ struct IdpromConfig {
   3: string kernelDeviceName;
 }
 
+// Defines I2C Adapter in FPGAs.
+//
+// `i2cAdapterName`: It is the name used in the ioctl system call to create
+// the i2c adapter. It should one of the compatible strings specified in the
+// kernel driver.
+//
+// `offset`: It is the memory offset of the I2C Adapter in the FPGA.
+struct I2cAdapterConfig {
+  1: string i2cAdapterName;
+  3: i32 offset;
+}
+
+// Defines the SPI Master in FPGAs.
+//
+// `spiMasterName`: It is the name used in the ioctl system call to create
+// the spi master. It should one of the compatible strings specified in the
+// kernel driver.
+//
+// `offset`: It is the memory offset of the spi master in the FPGA.
+//
+// `numberOfCsPins`: Number of CS (chip-select) pins.
+struct SpiMasterConfig {
+  1: string spiMasterName;
+  3: i32 offset;
+  4: i32 numberOfCsPins;
+}
+
+// Defines the GPIO Chip in FPGAs.
+//
+// `gpioChipName`: It is the name used in the ioctl system call to create
+// the gpio chip. It should one of the compatible strings specified in the
+// kernel driver.
+//
+// `offset`: It is the memory offset of the gpio chip in the FPGA.
+struct GpioChipConfig {
+  1: string gpioChipName;
+  3: i32 offset;
+}
+
 // `vendorId`: PCIe Vendor ID, and it must be a 4-digit heximal value, such as
 // “1d9b”
 //
 // `deviceId`: PCIe Device ID, and it must be a 4-digit heximal value, such as
 // “0011”
 //
-// `i2CAdapterNameToOffset`: This is a mapping from `i2cAdapterName` to its
-// `offset` inside the FPGA memory. The `i2CAdapterName` is the name that will
-// be eventually assigned to the i2c controller created at the corresponding
-// `offset`. It should be string output for the corresponding
-// /sys/bus/i2c/devices/i2c-#/name
+// `i2cAdapterConfigs`: Lists the I2C Adapters in the PMUnit. The key is the
+// PMUnit scoped name of the I2C Adapter.
+//
+// `spiMasterConfigs`: Lists the SPI Masters in the PMUnit. The key is the
+// PMUnit scoped name of the SPI Master.
+//
+// `gpioChipConfigs`: Lists the GPIO Chips in the PMUnit. The key is the
+// PMUnit scoped name of the GPIO Chip.
+//
+// TODO: Add MDIO support
 struct PciDevice {
   1: string vendorId;
   2: string deviceId;
-  3: map<string, i32> i2CAdapterNameToOffset;
+  3: map<string, I2cAdapterConfig> i2cAdapterConfigs;
+  4: map<string, SpiMasterConfig> spiMasterConfigs;
+  5: map<string, GpioChipConfig> gpioChipConfigs;
 }
 
 // These are the PmUnit slot types. Examples: "PIM_SLOT", "PSU_SLOT" and
