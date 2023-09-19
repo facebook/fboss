@@ -714,6 +714,8 @@ class QsfpModule : public Transceiver {
 
   time_t lastFwUpgradeStartTime_{0};
   time_t lastFwUpgradeEndTime_{0};
+
+  std::string getFwStorageHandle(const std::string& tcvrPartNumber) const;
 };
 } // namespace fboss
 } // namespace facebook

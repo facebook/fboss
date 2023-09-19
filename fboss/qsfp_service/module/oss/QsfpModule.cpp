@@ -16,5 +16,10 @@ bool QsfpModule::validateQsfpString(const std::string& /*value*/) const {
   return true;
 }
 
+std::string QsfpModule::getFwStorageHandle(
+    const std::string& /* tcvrPartNumber */) const {
+  return "";
+}
+
 } // namespace fboss
 } // namespace facebook

@@ -255,6 +255,23 @@ bool QsfpModule::upgradeFirmwareLocked(const std::optional<cfg::Firmware>& fw) {
     return false;
   }
 
+  auto cachedTcvrInfo = getTransceiverInfo();
+  auto vendor = cachedTcvrInfo.tcvrState()->vendor();
+  if (!vendor.has_value()) {
+    QSFP_LOG(ERR, this)
+        << "Vendor not set. Can't find the partnumber to upgrade";
+    return false;
+  }
+
+  std::string fwStorageHandleName =
+      getFwStorageHandle(vendor->get_partNumber());
+
+  if (fwStorageHandleName.empty()) {
+    QSFP_LOG(ERR, this)
+        << "Can't find the fwStorage handle for this part number. Skipping fw upgrade";
+    return false;
+  }
+
   bool fwUpgradeResult = true;
   lastFwUpgradeStartTime_ = std::time(nullptr);
   for (const auto& fwVersion : *fwToUpgrade.versions()) {
@@ -263,9 +280,6 @@ bool QsfpModule::upgradeFirmwareLocked(const std::optional<cfg::Firmware>& fw) {
         apache::thrift::util::enumNameSafe(*fwVersion.fwType()),
         *fwVersion.version());
 
-    // TODO: Maintain a map of part number to the handle in the
-    // fboss_firmware.yaml and use it here
-    std::string fwStorageHandleName = "";
     std::unique_ptr<FbossFirmware> fbossFw =
         getTransceiverManager()->fwStorage()->getFirmware(
             fwStorageHandleName, *fwVersion.version());
