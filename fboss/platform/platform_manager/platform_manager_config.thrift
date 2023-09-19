@@ -182,11 +182,12 @@ struct GpioChipConfig {
 //
 // TODO: Add MDIO support
 struct PciDevice {
-  1: string vendorId;
-  2: string deviceId;
-  3: map<string, I2cAdapterConfig> i2cAdapterConfigs;
-  4: map<string, SpiMasterConfig> spiMasterConfigs;
-  5: map<string, GpioChipConfig> gpioChipConfigs;
+  1: string name;
+  2: string vendorId;
+  3: string deviceId;
+  4: map<string, I2cAdapterConfig> i2cAdapterConfigs;
+  5: map<string, SpiMasterConfig> spiMasterConfigs;
+  6: map<string, GpioChipConfig> gpioChipConfigs;
 }
 
 // These are the PmUnit slot types. Examples: "PIM_SLOT", "PSU_SLOT" and
