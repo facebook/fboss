@@ -285,6 +285,10 @@ bool QsfpModule::upgradeFirmwareLocked(const std::optional<cfg::Firmware>& fw) {
             fwStorageHandleName, *fwVersion.version());
     fwUpgradeResult &= upgradeFirmwareLockedImpl(std::move(fbossFw));
   }
+
+  // Trigger a hard reset of the transceiver to kick start the new firmware
+  triggerModuleResetLocked();
+
   lastFwUpgradeEndTime_ = std::time(nullptr);
   auto elapsedSeconds = lastFwUpgradeEndTime_ - lastFwUpgradeStartTime_;
 
@@ -292,6 +296,12 @@ bool QsfpModule::upgradeFirmwareLocked(const std::optional<cfg::Firmware>& fw) {
                        << (fwUpgradeResult ? "successfully" : "unsuccessfully")
                        << " in " << elapsedSeconds << " seconds. ";
   return fwUpgradeResult;
+}
+
+void QsfpModule::triggerModuleResetLocked() {
+  getTransceiverManager()->getQsfpPlatformApi()->triggerQsfpHardReset(
+      static_cast<unsigned int>(getID()) + 1);
+  moduleResetCounter_++;
 }
 
 // Note that this needs to be called while holding the

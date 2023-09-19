@@ -2054,9 +2054,7 @@ bool CmisModule::remediateFlakyTransceiver(
   if (allPortsDown) {
     // This api accept 1 based module id however the module id in WedgeManager
     // is 0 based.
-    getTransceiverManager()->getQsfpPlatformApi()->triggerQsfpHardReset(
-        static_cast<unsigned int>(getID()) + 1);
-    moduleResetCounter_++;
+    triggerModuleResetLocked();
   } else {
     auto portNameToHostLanesMap = getPortNameToHostLanes();
     for (const auto& port : ports) {

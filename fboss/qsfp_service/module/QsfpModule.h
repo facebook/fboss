@@ -602,6 +602,8 @@ class QsfpModule : public Transceiver {
     return false;
   }
 
+  void triggerModuleResetLocked();
+
  private:
   // no copy or assignment
   QsfpModule(QsfpModule const&) = delete;
