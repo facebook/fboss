@@ -25,23 +25,8 @@ constexpr auto kMaxLogLineLength = 8000;
 namespace facebook::fboss {
 
 void SnapshotWrapper::publish(const std::set<std::string>& portNames) {
-  // TODO(ccpowers): Delete this once the deprecated TransceiverInfo fields
-  // have been fully removed
-
-  // Clear the deprecated fields to reduce the size of the snapshot
-  auto patchedSnapshot = snapshot_;
-  if (patchedSnapshot.transceiverInfo_ref()) {
-    patchedSnapshot.transceiverInfo_ref() = TransceiverInfo();
-
-    // Repopulate the new fields
-    patchedSnapshot.transceiverInfo_ref()->tcvrStats_ref().copy_from(
-        snapshot_.transceiverInfo_ref()->tcvrStats_ref());
-    patchedSnapshot.transceiverInfo_ref()->tcvrState_ref().copy_from(
-        snapshot_.transceiverInfo_ref()->tcvrState_ref());
-  }
   auto serializedSnapshot =
-      apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-          patchedSnapshot);
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(snapshot_);
   if (!published_) {
     std::stringstream log;
     log << LinkSnapshotAlert() << "Collected snapshot for ports ";
