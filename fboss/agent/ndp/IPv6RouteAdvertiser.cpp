@@ -160,7 +160,22 @@ void IPv6RAImpl::sendRouteAdvertisement() {
   RWPrivateCursor cursor(pkt->buf());
   cursor.push(buf_.data(), buf_.length());
 
-  sw_->sendNetworkControlPacketAsync(std::move(pkt), std::nullopt);
+  std::optional<PortDescriptor> portDescriptor{std::nullopt};
+  auto switchType = sw_->getSwitchInfoTable().l3SwitchType();
+  if (switchType == cfg::SwitchType::VOQ) {
+    auto intf = sw_->getState()->getInterfaces()->getNodeIf(intfID_);
+    if (!intf) {
+      XLOG(ERR) << " Skip sending router advertisement for non "
+                << "existent interface: " << intfID_;
+      return;
+    }
+    // VOQ switches don't use VLANs (no broadcast domain).
+    // Find the port to send out the pkt with pipeline bypass on.
+    CHECK(intf->getSystemPortID().has_value());
+    portDescriptor =
+        PortDescriptor(getPortID(*intf->getSystemPortID(), sw_->getState()));
+  }
+  sw_->sendNetworkControlPacketAsync(std::move(pkt), portDescriptor);
   sw_->interfaceStats(intfID_)->sentRouterAdvertisement();
 }
 
