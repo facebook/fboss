@@ -399,49 +399,6 @@ TEST_F(QsfpModuleTest, populateSnapshots) {
   EXPECT_EQ(snapshots.size(), snapshots.maxSize());
 }
 
-TEST_F(QsfpModuleTest, getNewTcvrInfo) {
-  qsfp_->refresh(); // trigger TcvrInfo update
-  qsfp_->useActualGetTransceiverInfo();
-  auto info = qsfp_->getTransceiverInfo();
-
-  // First check that we have actual content instead of just equal because
-  // it's empty on both new and old. Part number is set by the mock module and
-  // should always be non-empty.
-  EXPECT_TRUE(
-      info.tcvrState()->vendor() &&
-      !info.tcvrState()->vendor()->partNumber()->empty());
-
-  EXPECT_EQ(info.tcvrState()->present(), *info.present());
-  EXPECT_EQ(info.tcvrState()->transceiver(), *info.transceiver());
-  EXPECT_EQ(info.tcvrState()->port(), *info.port());
-  EXPECT_EQ(info.tcvrState()->mediaLaneSignals(), info.mediaLaneSignals());
-  EXPECT_EQ(info.tcvrState()->vendor(), info.vendor());
-  EXPECT_EQ(info.tcvrState()->cable(), info.cable());
-  EXPECT_EQ(info.tcvrState()->thresholds(), info.thresholds());
-  EXPECT_EQ(info.tcvrState()->settings(), info.settings());
-  EXPECT_EQ(info.tcvrState()->hostLaneSignals(), info.hostLaneSignals());
-  EXPECT_EQ(info.tcvrState()->signalFlag(), info.signalFlag());
-  EXPECT_EQ(
-      info.tcvrState()->extendedSpecificationComplianceCode(),
-      info.extendedSpecificationComplianceCode());
-  EXPECT_EQ(
-      info.tcvrState()->transceiverManagementInterface(),
-      info.transceiverManagementInterface());
-  EXPECT_EQ(info.tcvrState()->identifier(), info.identifier());
-  EXPECT_EQ(info.tcvrState()->status(), info.status());
-  EXPECT_EQ(info.tcvrState()->eepromCsumValid(), info.eepromCsumValid());
-  EXPECT_EQ(
-      info.tcvrState()->moduleMediaInterface(), info.moduleMediaInterface());
-
-  EXPECT_EQ(info.tcvrStats()->sensor(), info.sensor());
-  EXPECT_EQ(info.tcvrStats()->channels(), *info.channels());
-  EXPECT_EQ(info.tcvrStats()->stats(), info.stats());
-  EXPECT_EQ(info.tcvrStats()->vdmDiagsStats(), info.vdmDiagsStats());
-  EXPECT_EQ(
-      info.tcvrStats()->vdmDiagsStatsForOds(), info.vdmDiagsStatsForOds());
-  EXPECT_EQ(info.tcvrStats()->remediationCounter(), info.remediationCounter());
-}
-
 TEST_F(QsfpModuleTest, verifyLaneToPortMapping) {
   std::vector<uint8_t> lanes50GPort1 = {0, 1};
   std::vector<uint8_t> lanes50GPort3 = {2, 3};

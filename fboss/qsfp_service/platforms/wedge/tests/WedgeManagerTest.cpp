@@ -121,7 +121,6 @@ TEST_F(WedgeManagerTest, getTransceiverInfoWithReadExceptions) {
       transInfo, std::make_unique<std::vector<int32_t>>());
   for (const auto& info : transInfo) {
     EXPECT_EQ(*info.second.tcvrState()->present(), false);
-    EXPECT_EQ(info.second.timeCollected().has_value(), true);
   }
 }
 

@@ -51,18 +51,20 @@ TEST_F(SffTest, cwdm4TransceiverInfoTest) {
   // Verify getTransceiverInfo() result
   const auto& info = xcvr->getTransceiverInfo();
   EXPECT_EQ(
-      *info.extendedSpecificationComplianceCode(),
+      *info.tcvrState()->extendedSpecificationComplianceCode(),
       ExtendedSpecComplianceCode::CWDM4_100G);
-  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::CWDM4_100G);
-  for (auto& media : *info.settings()->mediaInterface()) {
+  EXPECT_EQ(
+      info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::CWDM4_100G);
+  for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
     EXPECT_EQ(
         *media.media()->extendedSpecificationComplianceCode_ref(),
         ExtendedSpecComplianceCode::CWDM4_100G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::CWDM4_100G);
   }
 
-  EXPECT_EQ(100, info.cable().value_or({}).om3().value_or({}));
-  EXPECT_EQ(true, info.status().value_or({}).interruptL().value_or({}));
+  EXPECT_EQ(100, info.tcvrState()->cable().value_or({}).om3().value_or({}));
+  EXPECT_EQ(
+      true, info.tcvrState()->status().value_or({}).interruptL().value_or({}));
 
   utility::HwTransceiverUtils::verifyDiagsCapability(
       *info.tcvrState(),
@@ -104,7 +106,7 @@ TEST_F(SffTest, cwdm4TransceiverInfoTest) {
       {"RxOutputEmph", {2, 1, 1, 3}},
       {"RxOutputAmp", {1, 3, 2, 3}},
   };
-  auto settings = info.settings().value_or({});
+  auto settings = info.tcvrState()->settings().value_or({});
   tests.verifyMediaLaneSettings(
       expectedMediaLaneSettings, xcvr->numMediaLanes());
   tests.verifyHostLaneSettings(expectedHostLaneSettings, xcvr->numHostLanes());
@@ -150,10 +152,11 @@ TEST_F(SffTest, dacTransceiverInfoTest) {
   // Verify getTransceiverInfo() result
   const auto& info = xcvr->getTransceiverInfo();
   EXPECT_EQ(
-      *info.extendedSpecificationComplianceCode(),
+      *info.tcvrState()->extendedSpecificationComplianceCode(),
       ExtendedSpecComplianceCode::CR4_100G);
-  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::CR4_100G);
-  for (auto& media : *info.settings()->mediaInterface()) {
+  EXPECT_EQ(
+      info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::CR4_100G);
+  for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
     EXPECT_EQ(
         *media.media()->extendedSpecificationComplianceCode_ref(),
         ExtendedSpecComplianceCode::CR4_100G);
@@ -185,10 +188,11 @@ TEST_F(SffTest, fr1TransceiverInfoTest) {
   // Verify getTransceiverInfo() result
   const auto& info = xcvr->getTransceiverInfo();
   EXPECT_EQ(
-      *info.extendedSpecificationComplianceCode(),
+      *info.tcvrState()->extendedSpecificationComplianceCode(),
       ExtendedSpecComplianceCode::FR1_100G);
-  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::FR1_100G);
-  for (auto& media : *info.settings()->mediaInterface()) {
+  EXPECT_EQ(
+      info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::FR1_100G);
+  for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
     EXPECT_EQ(
         media.media()->get_extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::FR1_100G);
@@ -232,10 +236,11 @@ TEST_F(SffTest, miniphotonTransceiverInfoTest) {
   // Verify getTransceiverInfo() result
   const auto& info = xcvr->getTransceiverInfo();
   EXPECT_EQ(
-      *info.extendedSpecificationComplianceCode(),
+      *info.tcvrState()->extendedSpecificationComplianceCode(),
       ExtendedSpecComplianceCode::CWDM4_100G);
-  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::CWDM4_100G);
-  for (auto& media : *info.settings()->mediaInterface()) {
+  EXPECT_EQ(
+      info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::CWDM4_100G);
+  for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
     EXPECT_EQ(
         media.media()->get_extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::CWDM4_100G);
@@ -262,10 +267,11 @@ TEST_F(SffTest, unknownTransceiverInfoTest) {
 
   const auto& info = xcvr->getTransceiverInfo();
   EXPECT_EQ(
-      *info.extendedSpecificationComplianceCode(),
+      *info.tcvrState()->extendedSpecificationComplianceCode(),
       ExtendedSpecComplianceCode::CWDM4_100G);
-  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::CWDM4_100G);
-  for (auto& media : *info.settings()->mediaInterface()) {
+  EXPECT_EQ(
+      info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::CWDM4_100G);
+  for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
     EXPECT_EQ(
         media.media()->get_extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::CWDM4_100G);
@@ -337,9 +343,12 @@ TEST_F(SfpTest, sfp10GTransceiverInfoTest) {
 
   // Verify getTransceiverInfo() result
   const auto& info = xcvr->getTransceiverInfo();
-  EXPECT_EQ((*info.settings()->mediaInterface()).size(), xcvr->numMediaLanes());
-  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::LR_10G);
-  for (auto& media : *info.settings()->mediaInterface()) {
+  EXPECT_EQ(
+      (*info.tcvrState()->settings()->mediaInterface()).size(),
+      xcvr->numMediaLanes());
+  EXPECT_EQ(
+      info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::LR_10G);
+  for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
     EXPECT_EQ(
         media.media()->get_ethernet10GComplianceCode(),
         Ethernet10GComplianceCode::LR_10G);
@@ -387,9 +396,12 @@ TEST_F(SfpTest, sfp10GBaseTTransceiverInfoTest) {
 
   // Verify getTransceiverInfo() result
   const auto& info = xcvr->getTransceiverInfo();
-  EXPECT_EQ((*info.settings()->mediaInterface()).size(), xcvr->numMediaLanes());
-  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::BASE_T_10G);
-  for (auto& media : *info.settings()->mediaInterface()) {
+  EXPECT_EQ(
+      (*info.tcvrState()->settings()->mediaInterface()).size(),
+      xcvr->numMediaLanes());
+  EXPECT_EQ(
+      info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::BASE_T_10G);
+  for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
     EXPECT_EQ(
         media.media()->get_extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::BASE_T_10G);
@@ -419,10 +431,11 @@ TEST_F(SffTest, 200GCr4TransceiverInfoTest) {
   // Verify getTransceiverInfo() result
   const auto& info = xcvr->getTransceiverInfo();
   EXPECT_EQ(
-      *info.extendedSpecificationComplianceCode(),
+      *info.tcvrState()->extendedSpecificationComplianceCode(),
       ExtendedSpecComplianceCode::CR_50G_CHANNELS);
-  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::CR4_200G);
-  for (auto& media : *info.settings()->mediaInterface()) {
+  EXPECT_EQ(
+      info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::CR4_200G);
+  for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
     EXPECT_EQ(
         media.media()->get_extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::CR_50G_CHANNELS);

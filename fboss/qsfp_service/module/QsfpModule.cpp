@@ -345,16 +345,11 @@ QsfpModule::detectPresenceLocked() {
     // we need to fill in the essential info before parsing the DOM data
     // which may not be available.
     TransceiverInfo info;
-    info.channels().ensure();
 
     auto& tcvrState = info.tcvrState().ensure();
     tcvrState.present() = present_;
     tcvrState.transceiver() = type();
     tcvrState.port() = qsfpImpl_->getNum();
-
-    info.present() = present_;
-    info.transceiver() = *tcvrState.transceiver();
-    info.port() = *tcvrState.port();
 
     *info_.wlock() = info;
   }
@@ -421,7 +416,6 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
   // We're currently at step 1.
 
   TransceiverInfo info;
-  info.channels().ensure();
 
   auto& tcvrState = *info.tcvrState();
   auto& tcvrStats = *info.tcvrStats();
@@ -430,80 +424,57 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
   tcvrState.transceiver() = type();
   tcvrState.port() = qsfpImpl_->getNum();
 
-  info.present() = *tcvrState.present();
-  info.transceiver() = *tcvrState.transceiver();
-  info.port() = *tcvrState.port();
-
   if (present_) {
     auto nMediaLanes = numMediaLanes();
-    info.mediaLaneSignals() = std::vector<MediaLaneSignals>(nMediaLanes);
-    if (!getSignalsPerMediaLane(*info.mediaLaneSignals())) {
-      info.mediaLaneSignals()->clear();
+    tcvrState.mediaLaneSignals() = std::vector<MediaLaneSignals>(nMediaLanes);
+    if (!getSignalsPerMediaLane(*tcvrState.mediaLaneSignals())) {
+      tcvrState.mediaLaneSignals()->clear();
     } else {
-      cacheMediaLaneSignals(*info.mediaLaneSignals());
+      cacheMediaLaneSignals(*tcvrState.mediaLaneSignals());
     }
 
-    info.sensor() = getSensorInfo();
-    info.vendor() = getVendorInfo();
-    info.cable() = getCableInfo();
+    tcvrStats.sensor() = getSensorInfo();
+    tcvrState.vendor() = getVendorInfo();
+    tcvrState.cable() = getCableInfo();
     if (auto threshold = getThresholdInfo()) {
-      info.thresholds() = *threshold;
+      tcvrState.thresholds() = *threshold;
     }
-    info.settings() = getTransceiverSettingsInfo();
+    tcvrState.settings() = getTransceiverSettingsInfo();
 
     for (int i = 0; i < nMediaLanes; i++) {
       Channel chan;
       chan.channel() = i;
-      info.channels()->push_back(chan);
+      tcvrStats.channels()->push_back(chan);
     }
-    if (!getSensorsPerChanInfo(*info.channels())) {
-      info.channels()->clear();
+    if (!getSensorsPerChanInfo(*tcvrStats.channels())) {
+      tcvrStats.channels()->clear();
     }
 
-    info.hostLaneSignals() = std::vector<HostLaneSignals>(numHostLanes());
-    if (!getSignalsPerHostLane(*info.hostLaneSignals())) {
-      info.hostLaneSignals()->clear();
+    tcvrState.hostLaneSignals() = std::vector<HostLaneSignals>(numHostLanes());
+    if (!getSignalsPerHostLane(*tcvrState.hostLaneSignals())) {
+      tcvrState.hostLaneSignals()->clear();
     }
 
     if (auto transceiverStats = getTransceiverStats()) {
-      info.stats() = *transceiverStats;
+      tcvrStats.stats() = *transceiverStats;
     }
 
-    info.signalFlag() = getSignalFlagInfo();
-    cacheSignalFlags(*info.signalFlag());
+    tcvrState.signalFlag() = getSignalFlagInfo();
+    cacheSignalFlags(*tcvrState.signalFlag());
 
     if (auto extSpecCompliance = getExtendedSpecificationComplianceCode()) {
-      info.extendedSpecificationComplianceCode() = *extSpecCompliance;
+      tcvrState.extendedSpecificationComplianceCode() = *extSpecCompliance;
     }
-    info.transceiverManagementInterface() = managementInterface();
+    tcvrState.transceiverManagementInterface() = managementInterface();
 
-    info.identifier() = getIdentifier();
+    tcvrState.identifier() = getIdentifier();
     auto currentStatus = getModuleStatus();
     // Use the input `moduleStatus` as the reference to update the
     // `cmisStateChanged` for currentStatus, which will be used in the
     // TransceiverInfo
     updateCmisStateChanged(currentStatus, moduleStatus);
-    info.status() = currentStatus;
+    tcvrState.status() = currentStatus;
     cacheStatusFlags(currentStatus);
-
-    // Populate the new state/stats members as well from old fields
-    tcvrState.mediaLaneSignals().copy_from(info.mediaLaneSignals());
-    tcvrStats.sensor().copy_from(info.sensor());
-    tcvrState.vendor().copy_from(info.vendor());
-    tcvrState.cable().copy_from(info.cable());
-    tcvrState.thresholds().copy_from(info.thresholds());
-    tcvrState.settings().copy_from(info.settings());
-    tcvrStats.channels() =
-        info.channels().has_value() ? *info.channels() : std::vector<Channel>();
-    tcvrState.hostLaneSignals().copy_from(info.hostLaneSignals());
-    tcvrStats.stats().copy_from(info.stats());
-    tcvrState.signalFlag().copy_from(info.signalFlag());
-    tcvrState.extendedSpecificationComplianceCode().copy_from(
-        info.extendedSpecificationComplianceCode());
-    tcvrState.transceiverManagementInterface().copy_from(
-        info.transceiverManagementInterface());
-    tcvrState.identifier().copy_from(info.identifier());
-    tcvrState.status().copy_from(info.status());
 
     // If the StatsPublisher thread has triggered the VDM data capture then
     // latch, read data (page 24 and 25), release latch
@@ -512,38 +483,29 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     }
 
     if (auto vdmStats = getVdmDiagsStatsInfo()) {
-      info.vdmDiagsStats() = *vdmStats;
+      tcvrStats.vdmDiagsStats() = *vdmStats;
 
       // If the StatsPublisher thread has triggered the VDM data capture then
       // capure this data into transceiverInfo cache
       if (captureVdmStats_) {
-        info.vdmDiagsStatsForOds() = *vdmStats;
+        tcvrStats.vdmDiagsStatsForOds() = *vdmStats;
       } else {
         // If the VDM is not updated in this cycle then retain older values
         auto cachedTcvrInfo = getTransceiverInfo();
-        if (cachedTcvrInfo.vdmDiagsStatsForOds()) {
-          info.vdmDiagsStatsForOds() =
-              cachedTcvrInfo.vdmDiagsStatsForOds().value();
+        if (cachedTcvrInfo.tcvrStats()->vdmDiagsStatsForOds()) {
+          tcvrStats.vdmDiagsStatsForOds() =
+              cachedTcvrInfo.tcvrStats()->vdmDiagsStatsForOds().value();
         }
       }
       captureVdmStats_ = false;
-
-      tcvrStats.vdmDiagsStats().copy_from(info.vdmDiagsStats());
-      tcvrStats.vdmDiagsStatsForOds().copy_from(info.vdmDiagsStatsForOds());
     }
 
-    info.timeCollected() = lastRefreshTime_;
     tcvrState.timeCollected() = lastRefreshTime_;
     tcvrStats.timeCollected() = lastRefreshTime_;
 
-    info.remediationCounter() = numRemediation_;
-    info.eepromCsumValid() = verifyEepromChecksums();
-
-    info.moduleMediaInterface() = getModuleMediaInterface();
-
-    tcvrStats.remediationCounter().copy_from(info.remediationCounter());
-    tcvrState.eepromCsumValid().copy_from(info.eepromCsumValid());
-    tcvrState.moduleMediaInterface().copy_from(info.moduleMediaInterface());
+    tcvrStats.remediationCounter() = numRemediation_;
+    tcvrState.eepromCsumValid() = verifyEepromChecksums();
+    tcvrState.moduleMediaInterface() = getModuleMediaInterface();
 
     for (auto it : getPortNameToHostLanes()) {
       tcvrState.portNameToHostLanes()[it.first] =

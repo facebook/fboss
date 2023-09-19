@@ -73,25 +73,27 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
   auto xcvr = overrideCmisModule<Cmis200GTransceiver>(xcvrID);
 
   const auto& info = xcvr->getTransceiverInfo();
-  EXPECT_TRUE(info.transceiverManagementInterface());
+  EXPECT_TRUE(info.tcvrState()->transceiverManagementInterface());
   EXPECT_EQ(
-      info.transceiverManagementInterface(),
+      info.tcvrState()->transceiverManagementInterface(),
       TransceiverManagementInterface::CMIS);
   EXPECT_EQ(xcvr->numHostLanes(), 4);
   EXPECT_EQ(xcvr->numMediaLanes(), 4);
-  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::FR4_200G);
+  EXPECT_EQ(
+      info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::FR4_200G);
   EXPECT_EQ(
       xcvr->numMediaLanes(),
-      info.settings()->mediaInterface().value_or({}).size());
-  for (auto& media : *info.settings()->mediaInterface()) {
+      info.tcvrState()->settings()->mediaInterface().value_or({}).size());
+  for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
     EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::FR4_200G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::FR4_200G);
   }
   testCachedMediaSignals(xcvr);
   // Check cmisStateChanged
   EXPECT_TRUE(
-      info.status() && info.status()->cmisStateChanged() &&
-      *info.status()->cmisStateChanged());
+      info.tcvrState()->status() &&
+      info.tcvrState()->status()->cmisStateChanged() &&
+      *info.tcvrState()->status()->cmisStateChanged());
 
   utility::HwTransceiverUtils::verifyDiagsCapability(
       *info.tcvrState(),
@@ -99,7 +101,8 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
       false /* skipCheckingIndividualCapability */);
 
   // Verify update qsfp data logic
-  if (auto status = info.status(); status && status->cmisModuleState()) {
+  if (auto status = info.tcvrState()->status();
+      status && status->cmisModuleState()) {
     EXPECT_EQ(*status->cmisModuleState(), CmisModuleState::READY);
     auto cmisData = xcvr->getDOMDataUnion().get_cmis();
     // NOTE the following cmis data are specifically set to 0x11 in
@@ -144,8 +147,10 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
       CmisLaneState::TX_ON,
       CmisLaneState::DEINIT};
 
-  EXPECT_EQ(xcvr->numHostLanes(), info.hostLaneSignals().value_or({}).size());
-  for (auto& signal : *info.hostLaneSignals()) {
+  EXPECT_EQ(
+      xcvr->numHostLanes(),
+      info.tcvrState()->hostLaneSignals().value_or({}).size());
+  for (auto& signal : *info.tcvrState()->hostLaneSignals()) {
     EXPECT_EQ(
         expectedDatapathDeinit[*signal.lane()],
         signal.dataPathDeInit().value_or({}));
@@ -167,7 +172,7 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
       {"RxEqMain", {3, 3, 3, 3}},
   };
 
-  auto settings = info.settings().value_or({});
+  auto settings = info.tcvrState()->settings().value_or({});
   tests.verifyMediaLaneSettings(
       expectedMediaLaneSettings, xcvr->numMediaLanes());
   tests.verifyHostLaneSettings(expectedHostLaneSettings, xcvr->numHostLanes());
@@ -234,21 +239,24 @@ TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
   auto xcvrID = TransceiverID(1);
   auto xcvr = overrideCmisModule<Cmis400GLr4Transceiver>(xcvrID);
   const auto& info = xcvr->getTransceiverInfo();
-  EXPECT_TRUE(info.transceiverManagementInterface());
+  EXPECT_TRUE(info.tcvrState()->transceiverManagementInterface());
   EXPECT_EQ(
-      info.transceiverManagementInterface(),
+      info.tcvrState()->transceiverManagementInterface(),
       TransceiverManagementInterface::CMIS);
   EXPECT_EQ(xcvr->numHostLanes(), 8);
   EXPECT_EQ(xcvr->numMediaLanes(), 4);
-  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::LR4_400G_10KM);
-  for (auto& media : *info.settings()->mediaInterface()) {
+  EXPECT_EQ(
+      info.tcvrState()->moduleMediaInterface(),
+      MediaInterfaceCode::LR4_400G_10KM);
+  for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
     EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::LR4_10_400G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::LR4_400G_10KM);
   }
   // Check cmisStateChanged
   EXPECT_TRUE(
-      info.status() && info.status()->cmisStateChanged() &&
-      *info.status()->cmisStateChanged());
+      info.tcvrState()->status() &&
+      info.tcvrState()->status()->cmisStateChanged() &&
+      *info.tcvrState()->status()->cmisStateChanged());
 
   utility::HwTransceiverUtils::verifyDiagsCapability(
       *info.tcvrState(),
@@ -256,7 +264,8 @@ TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
       false /* skipCheckingIndividualCapability */);
 
   // Verify update qsfp data logic
-  if (auto status = info.status(); status && status->cmisModuleState()) {
+  if (auto status = info.tcvrState()->status();
+      status && status->cmisModuleState()) {
     EXPECT_EQ(*status->cmisModuleState(), CmisModuleState::READY);
     auto cmisData = xcvr->getDOMDataUnion().get_cmis();
     // NOTE the following cmis data are specifically set to 0x11 in
@@ -275,27 +284,68 @@ TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
     EXPECT_TRUE(cmisData.page25());
     EXPECT_EQ(cmisData.page25()->data()[0], 0x00);
     EXPECT_EQ(
-        int(info.vdmDiagsStats().value().errFrameMediaMin().value() * 10e9),
+        int(info.tcvrStats()
+                ->vdmDiagsStats()
+                .value()
+                .errFrameMediaMin()
+                .value() *
+            10e9),
         736);
     EXPECT_EQ(
-        int(info.vdmDiagsStats().value().errFrameMediaMax().value() * 10e9),
+        int(info.tcvrStats()
+                ->vdmDiagsStats()
+                .value()
+                .errFrameMediaMax()
+                .value() *
+            10e9),
         743);
     EXPECT_EQ(
-        int(info.vdmDiagsStats().value().errFrameMediaAvg().value() * 10e9),
+        int(info.tcvrStats()
+                ->vdmDiagsStats()
+                .value()
+                .errFrameMediaAvg()
+                .value() *
+            10e9),
         738);
     EXPECT_EQ(
-        int(info.vdmDiagsStats().value().errFrameMediaCur().value() * 10e9),
+        int(info.tcvrStats()
+                ->vdmDiagsStats()
+                .value()
+                .errFrameMediaCur()
+                .value() *
+            10e9),
         741);
     EXPECT_EQ(
-        int(info.vdmDiagsStats().value().errFrameHostMin().value() * 10e10),
+        int(info.tcvrStats()
+                ->vdmDiagsStats()
+                .value()
+                .errFrameHostMin()
+                .value() *
+            10e10),
         597);
     EXPECT_EQ(
-        int(info.vdmDiagsStats().value().errFrameHostMax().value() * 10e10),
+        int(info.tcvrStats()
+                ->vdmDiagsStats()
+                .value()
+                .errFrameHostMax()
+                .value() *
+            10e10),
         598);
     EXPECT_EQ(
-        int(info.vdmDiagsStats().value().errFrameHostAvg().value() * 10e8), 6);
+        int(info.tcvrStats()
+                ->vdmDiagsStats()
+                .value()
+                .errFrameHostAvg()
+                .value() *
+            10e8),
+        6);
     EXPECT_EQ(
-        int(info.vdmDiagsStats().value().errFrameHostCur().value() * 10e10),
+        int(info.tcvrStats()
+                ->vdmDiagsStats()
+                .value()
+                .errFrameHostCur()
+                .value() *
+            10e10),
         601);
   } else {
     throw FbossError("Missing CMIS Module state");
@@ -350,9 +400,9 @@ TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
 TEST_F(CmisTest, flatMemTransceiverInfoTest) {
   auto xcvr = overrideCmisModule<CmisFlatMemTransceiver>(TransceiverID(1));
   const auto& info = xcvr->getTransceiverInfo();
-  EXPECT_TRUE(info.transceiverManagementInterface());
+  EXPECT_TRUE(info.tcvrState()->transceiverManagementInterface());
   EXPECT_EQ(
-      info.transceiverManagementInterface(),
+      info.tcvrState()->transceiverManagementInterface(),
       TransceiverManagementInterface::CMIS);
   EXPECT_EQ(xcvr->numHostLanes(), 0); // Unknown MediaInterface
   EXPECT_EQ(xcvr->numMediaLanes(), 0); // Unknown MediaInterface
@@ -388,14 +438,15 @@ TEST_F(CmisTest, cmis400GCr8TransceiverInfoTest) {
   auto xcvrID = TransceiverID(1);
   auto xcvr = overrideCmisModule<Cmis400GCr8Transceiver>(xcvrID);
   const auto& info = xcvr->getTransceiverInfo();
-  EXPECT_TRUE(info.transceiverManagementInterface());
+  EXPECT_TRUE(info.tcvrState()->transceiverManagementInterface());
   EXPECT_EQ(
-      info.transceiverManagementInterface(),
+      info.tcvrState()->transceiverManagementInterface(),
       TransceiverManagementInterface::CMIS);
   EXPECT_EQ(xcvr->numHostLanes(), 8);
   EXPECT_EQ(xcvr->numMediaLanes(), 8);
-  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::CR8_400G);
-  for (auto& media : *info.settings()->mediaInterface()) {
+  EXPECT_EQ(
+      info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::CR8_400G);
+  for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
     EXPECT_EQ(
         media.media()->get_passiveCuCode(),
         PassiveCuMediaInterfaceCode::COPPER);
@@ -403,11 +454,13 @@ TEST_F(CmisTest, cmis400GCr8TransceiverInfoTest) {
   }
   // Check cmisStateChanged
   EXPECT_TRUE(
-      info.status() && info.status()->cmisStateChanged() &&
-      *info.status()->cmisStateChanged());
+      info.tcvrState()->status() &&
+      info.tcvrState()->status()->cmisStateChanged() &&
+      *info.tcvrState()->status()->cmisStateChanged());
 
   // Verify update qsfp data logic
-  if (auto status = info.status(); status && status->cmisModuleState()) {
+  if (auto status = info.tcvrState()->status();
+      status && status->cmisModuleState()) {
     EXPECT_EQ(*status->cmisModuleState(), CmisModuleState::READY);
   } else {
     throw FbossError("Missing CMIS Module state");
@@ -453,22 +506,24 @@ TEST_F(CmisTest, cmis2x400GFr4TransceiverInfoTest) {
   auto xcvr = overrideCmisModule<Cmis2x400GFr4Transceiver>(
       xcvrID, TransceiverModuleIdentifier::OSFP);
   const auto& info = xcvr->getTransceiverInfo();
-  EXPECT_TRUE(info.transceiverManagementInterface());
+  EXPECT_TRUE(info.tcvrState()->transceiverManagementInterface());
   EXPECT_EQ(
-      info.transceiverManagementInterface(),
+      info.tcvrState()->transceiverManagementInterface(),
       TransceiverManagementInterface::CMIS);
   EXPECT_EQ(xcvr->numHostLanes(), 8);
   EXPECT_EQ(xcvr->numMediaLanes(), 8);
-  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::FR4_2x400G);
-  for (auto& media : *info.settings()->mediaInterface()) {
+  EXPECT_EQ(
+      info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::FR4_2x400G);
+  for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
     EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::FR4_400G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::FR4_400G);
   }
 
   // Check cmisStateChanged
   EXPECT_TRUE(
-      info.status() && info.status()->cmisStateChanged() &&
-      *info.status()->cmisStateChanged());
+      info.tcvrState()->status() &&
+      info.tcvrState()->status()->cmisStateChanged() &&
+      *info.tcvrState()->status()->cmisStateChanged());
 
   utility::HwTransceiverUtils::verifyDiagsCapability(
       *info.tcvrState(),

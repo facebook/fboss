@@ -701,16 +701,10 @@ TransceiverInfo TransceiverManager::getTransceiverInfo(TransceiverID id) {
     return it->second->getTransceiverInfo();
   } else {
     TransceiverInfo absentTcvr;
-    absentTcvr.present() = false;
-    absentTcvr.port() = id;
-    absentTcvr.transceiver().ensure();
-    absentTcvr.channels().ensure();
-    absentTcvr.timeCollected() = std::time(nullptr);
     absentTcvr.tcvrState()->present() = false;
     absentTcvr.tcvrState()->port() = id;
     absentTcvr.tcvrState()->timeCollected() = std::time(nullptr);
     absentTcvr.tcvrStats()->timeCollected() = std::time(nullptr);
-    absentTcvr.tcvrState()->present() = false;
     return absentTcvr;
   }
 }

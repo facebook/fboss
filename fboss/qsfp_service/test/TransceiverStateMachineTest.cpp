@@ -221,12 +221,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     auto qsfpModuleXcvr = static_cast<QsfpModule*>(xcvr);
     // Assign a default transceiver info so that we can set expectations based
     // on it even when transceiverInfo hasn't been updated for the first time
-    auto info = TransceiverInfo();
-    info.present().ensure();
-    info.port().ensure();
-    info.transceiver().ensure();
-    info.channels().ensure();
-    *(qsfpModuleXcvr->info_.wlock()) = info;
+    *(qsfpModuleXcvr->info_.wlock()) = TransceiverInfo{};
     return qsfpModuleXcvr;
   }
 
