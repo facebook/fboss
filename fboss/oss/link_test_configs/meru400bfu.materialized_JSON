@@ -2,7 +2,8 @@
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
     "counter_refresh_interval": "0",
-    "mode": "meru400bfu"
+    "mode": "meru400bfu",
+    "sai_configure_six_tap": "true"
   },
   "sw": {
     "version": 0,
