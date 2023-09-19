@@ -453,6 +453,8 @@ struct TcvrStats {
   7: map<string, list<i32>> portNameToHostLanes;
   8: map<string, list<i32>> portNameToMediaLanes;
   9: i64 timeCollected;
+  10: i64 lastFwUpgradeStartTime;
+  11: i64 lastFwUpgradeEndTime;
 }
 
 struct TransceiverInfo {

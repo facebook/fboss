@@ -13579,7 +13579,9 @@ class ChildThriftPath<::facebook::fboss::TcvrStats, ::facebook::fboss::fsdb::Fsd
    std::pair<strings::vdmDiagsStatsForOds, ChildThriftPath<::facebook::fboss::VdmDiagsStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<strings::portNameToHostLanes, ChildThriftPath<::std::map<::std::string, ::std::vector<::std::int32_t>>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<strings::portNameToMediaLanes, ChildThriftPath<::std::map<::std::string, ::std::vector<::std::int32_t>>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
-   std::pair<strings::timeCollected, Child<::std::int64_t, ::apache::thrift::type_class::integral>>>;
+   std::pair<strings::timeCollected, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
+   std::pair<strings::lastFwUpgradeStartTime, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
+   std::pair<strings::lastFwUpgradeEndTime, Child<::std::int64_t, ::apache::thrift::type_class::integral>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, ChildThriftPath<::facebook::fboss::GlobalSensors, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, ChildThriftPath<::std::vector<::facebook::fboss::Channel>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, ChildThriftPath<::facebook::fboss::TransceiverStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
@@ -13588,7 +13590,9 @@ class ChildThriftPath<::facebook::fboss::TcvrStats, ::facebook::fboss::fsdb::Fsd
    std::pair<std::integral_constant<apache::thrift::field_id_t, 6>, ChildThriftPath<::facebook::fboss::VdmDiagsStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 7>, ChildThriftPath<::std::map<::std::string, ::std::vector<::std::int32_t>>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 8>, ChildThriftPath<::std::map<::std::string, ::std::vector<::std::int32_t>>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 9>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 9>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 10>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 11>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -13609,6 +13613,8 @@ class ChildThriftPath<::facebook::fboss::TcvrStats, ::facebook::fboss::fsdb::Fsd
     STRUCT_CHILD_GETTERS(portNameToHostLanes);
     STRUCT_CHILD_GETTERS(portNameToMediaLanes);
     STRUCT_CHILD_GETTERS(timeCollected);
+    STRUCT_CHILD_GETTERS(lastFwUpgradeStartTime);
+    STRUCT_CHILD_GETTERS(lastFwUpgradeEndTime);
 };
 
 

@@ -711,6 +711,9 @@ class QsfpModule : public Transceiver {
   // Returns the Firmware object from qsfp config for the given module.
   // If there is no firmware in config, returns empty optional
   std::optional<cfg::Firmware> getFirmwareFromCfg() const;
+
+  time_t lastFwUpgradeStartTime_{0};
+  time_t lastFwUpgradeEndTime_{0};
 };
 } // namespace fboss
 } // namespace facebook

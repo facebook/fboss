@@ -256,6 +256,7 @@ bool QsfpModule::upgradeFirmwareLocked(const std::optional<cfg::Firmware>& fw) {
   }
 
   bool fwUpgradeResult = true;
+  lastFwUpgradeStartTime_ = std::time(nullptr);
   for (const auto& fwVersion : *fwToUpgrade.versions()) {
     QSFP_LOG(INFO, this) << folly::sformat(
         "Upgrading module firmware. Type={:s}, Version={:s}",
@@ -270,6 +271,12 @@ bool QsfpModule::upgradeFirmwareLocked(const std::optional<cfg::Firmware>& fw) {
             fwStorageHandleName, *fwVersion.version());
     fwUpgradeResult &= upgradeFirmwareLockedImpl(std::move(fbossFw));
   }
+  lastFwUpgradeEndTime_ = std::time(nullptr);
+  auto elapsedSeconds = lastFwUpgradeEndTime_ - lastFwUpgradeStartTime_;
+
+  QSFP_LOG(INFO, this) << "Firmware upgrade completed "
+                       << (fwUpgradeResult ? "successfully" : "unsuccessfully")
+                       << " in " << elapsedSeconds << " seconds. ";
   return fwUpgradeResult;
 }
 
@@ -526,6 +533,9 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     }
     tcvrStats.portNameToMediaLanes() = *tcvrState.portNameToMediaLanes();
   }
+
+  tcvrStats.lastFwUpgradeStartTime() = lastFwUpgradeStartTime_;
+  tcvrStats.lastFwUpgradeEndTime() = lastFwUpgradeEndTime_;
 
   phy::LinkSnapshot snapshot;
   snapshot.transceiverInfo_ref() = info;
