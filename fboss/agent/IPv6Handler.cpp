@@ -526,13 +526,19 @@ void IPv6Handler::handleNeighborSolicitation(
 
   // Send the response. To reply the neighbor solicitation, we can use the
   // src port of such packet to send back the neighbor advertisement.
-  sendNeighborAdvertisement(
-      vlanID,
-      entry->getMac(),
-      targetIP,
-      hdr.src,
-      hdr.ipv6->srcAddr,
-      srcPortDescriptor);
+  if (entry) {
+    sendNeighborAdvertisement(
+        vlanID,
+        entry->getMac(),
+        targetIP,
+        hdr.src,
+        hdr.ipv6->srcAddr,
+        srcPortDescriptor);
+  } else {
+    XLOG(DBG2) << "Dropping NS ingressing on port " << pkt->getSrcPort()
+               << " on vlan " << vlanIDStr << " for " << targetIP
+               << " due to missing mac ";
+  }
 }
 
 template <typename VlanOrIntfT>
