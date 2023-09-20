@@ -98,6 +98,8 @@ class LinkTest : public AgentTest {
   std::vector<std::string> getPortName(
       const std::vector<PortID>& portIDs) const;
 
+  std::optional<PortID> getPeerPortID(PortID portId) const;
+
   void waitForStateMachineState(
       const std::set<TransceiverID>& transceiversToCheck,
       TransceiverStateMachineState stateMachineState,

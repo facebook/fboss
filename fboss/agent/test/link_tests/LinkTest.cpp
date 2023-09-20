@@ -329,6 +329,17 @@ std::vector<std::string> LinkTest::getPortName(
   return portNames;
 }
 
+std::optional<PortID> LinkTest::getPeerPortID(PortID portId) const {
+  for (auto portPair : getConnectedPairs()) {
+    if (portPair.first == portId) {
+      return portPair.second;
+    } else if (portPair.second == portId) {
+      return portPair.first;
+    }
+  }
+  return std::nullopt;
+}
+
 std::set<std::pair<PortID, PortID>> LinkTest::getConnectedPairs() const {
   waitForLldpOnCabledPorts();
   std::set<std::pair<PortID, PortID>> connectedPairs;
