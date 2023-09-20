@@ -1,10 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/led_service/MontblancLedManager.h"
-#include "fboss/agent/EnumUtils.h"
 #include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
-#include "fboss/lib/CommonFileUtils.h"
-#include "fboss/lib/CommonPortUtils.h"
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 

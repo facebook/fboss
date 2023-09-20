@@ -54,6 +54,8 @@ add_library(led_core_lib
   fboss/led_service/LedServiceHandler.cpp
   fboss/led_service/MinipackBaseLedManager.cpp
   fboss/led_service/MontblancLedManager.cpp
+  fboss/led_service/Meru800biaLedManager.cpp
+  fboss/led_service/Meru800bfaLedManager.cpp
 )
 
 target_link_libraries(led_core_lib
@@ -65,12 +67,16 @@ target_link_libraries(led_core_lib
   led_service_types_cpp2
   log_thrift_call
   montblanc_bsp
+  meru800bia_bsp
+  meru800bfa_bsp
   darwin_platform_mapping
   elbert_platform_mapping
   fuji_platform_mapping
   lassen_platform_mapping
   minipack_platform_mapping
   montblanc_platform_mapping
+  meru800bia_platform_mapping
+  meru800bfa_platform_mapping
   wedge400_platform_mapping
   yamp_platform_mapping
   product_info
