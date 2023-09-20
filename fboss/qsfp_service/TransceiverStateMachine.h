@@ -122,6 +122,19 @@ void operator()(
   fsm.get_attribute(needMarkLastDownTime) = true;
 }
 };
+
+BOOST_MSM_EUML_ACTION(upgradingStateEntry) {
+template <class Event, class Fsm, class State>
+void operator()(
+    const Event& /* event */,
+    Fsm& fsm,
+    State& currState) const {
+  auto tcvrID = fsm.get_attribute(transceiverID);
+  XLOG(DBG2) << "[Transceiver:" << tcvrID << "] State changed to "
+             << apache::thrift::util::enumNameSafe(stateToStateEnum(currState));
+  fsm.get_attribute(transceiverMgrPtr)->doTransceiverFirmwareUpgrade(tcvrID);
+}
+};
 // clang-format on
 
 // Transceiver State Machine States
@@ -133,7 +146,7 @@ BOOST_MSM_EUML_STATE((), XPHY_PORTS_PROGRAMMED)
 BOOST_MSM_EUML_STATE((), TRANSCEIVER_PROGRAMMED)
 BOOST_MSM_EUML_STATE((activeStateEntry), ACTIVE)
 BOOST_MSM_EUML_STATE((markLastDownTime), INACTIVE)
-BOOST_MSM_EUML_STATE((), UPGRADING)
+BOOST_MSM_EUML_STATE((upgradingStateEntry), UPGRADING)
 BOOST_MSM_EUML_STATE((), TRANSCEIVER_READY)
 
 // Transceiver State Machine Events
@@ -154,6 +167,7 @@ BOOST_MSM_EUML_EVENT(REMOVE_TRANSCEIVER)
 // trigger a `PROGRAM_TRANSCEIVER` later
 BOOST_MSM_EUML_EVENT(REMEDIATE_TRANSCEIVER)
 BOOST_MSM_EUML_EVENT(PREPARE_TRANSCEIVER)
+BOOST_MSM_EUML_EVENT(UPGRADE_FIRMWARE)
 
 // Module State Machine Actions
 template <class State>
@@ -377,6 +391,18 @@ bool operator()(
   }
 }
 };
+
+BOOST_MSM_EUML_ACTION(firmwareUpgradeRequired) {
+template <class Event, class Fsm, class Source, class Target>
+bool operator()(
+    const Event& /* ev */,
+    Fsm& fsm,
+    Source& /* src */,
+    Target& /* trg */) {
+  auto tcvrID = fsm.get_attribute(transceiverID);
+  return fsm.get_attribute(transceiverMgrPtr)->firmwareUpgradeRequired(tcvrID);
+}
+};
 // clang-format on
 
 // Transceiver State Machine State transition table
@@ -438,7 +464,9 @@ BOOST_MSM_EUML_TRANSITION_TABLE((
     TRANSCEIVER_PROGRAMMED + DETECT_TRANSCEIVER                                / logStateChanged == PRESENT,
     INACTIVE               + DETECT_TRANSCEIVER                                / logStateChanged == PRESENT,
     // May need to remediate transciever if some ports are down
-    ACTIVE                 + REMEDIATE_TRANSCEIVER  [tryRemediateTransceiver]  / logStateChanged == XPHY_PORTS_PROGRAMMED
+    ACTIVE                 + REMEDIATE_TRANSCEIVER  [tryRemediateTransceiver]  / logStateChanged == XPHY_PORTS_PROGRAMMED,
+    INACTIVE               + UPGRADE_FIRMWARE [firmwareUpgradeRequired]        / logStateChanged == UPGRADING,
+    UPGRADING              + RESET_TO_NOT_PRESENT                              / logStateChanged == NOT_PRESENT
 //  +------------------------------------------------------------------------------------------------------------+
     ), TransceiverTransitionTable)
 // clang-format on

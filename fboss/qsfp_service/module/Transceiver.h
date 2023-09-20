@@ -43,6 +43,7 @@ enum TransceiverStateMachineEvent {
   TCVR_EV_RESET_TO_NOT_PRESENT = 15,
   TCVR_EV_REMEDIATE_TRANSCEIVER = 16,
   TCVR_EV_PREPARE_TRANSCEIVER = 17,
+  TCVR_EV_UPGRADE_FIRMWARE = 18,
 };
 
 struct TransceiverPortState {

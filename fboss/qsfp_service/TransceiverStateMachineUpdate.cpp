@@ -37,6 +37,7 @@ std::map<TransceiverStateMachineEvent, std::string>
         {TCVR_EV_RESET_TO_NOT_PRESENT, "RESET_TO_NOT_PRESENT"},
         {TCVR_EV_REMEDIATE_TRANSCEIVER, "REMEDIATE_TRANSCEIVER"},
         {TCVR_EV_PREPARE_TRANSCEIVER, "PREPARE_TRANSCEIVER"},
+        {TCVR_EV_UPGRADE_FIRMWARE, "UPGRADE_FIRMWARE"},
 };
 
 TransceiverStateMachineUpdate::TransceiverStateMachineUpdate(
@@ -93,6 +94,9 @@ void TransceiverStateMachineUpdate::applyUpdate(
       break;
     case TransceiverStateMachineEvent::TCVR_EV_REMEDIATE_TRANSCEIVER:
       curState.process_event(REMEDIATE_TRANSCEIVER);
+      break;
+    case TransceiverStateMachineEvent::TCVR_EV_UPGRADE_FIRMWARE:
+      curState.process_event(UPGRADE_FIRMWARE);
       break;
     default:
       throw FbossError("Unsupported TransceiverStateMachine for ", name_);

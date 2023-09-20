@@ -33,6 +33,8 @@ TransceiverStateMachineState getStateByOrder(int currentStateOrder) {
     return TransceiverStateMachineState::ACTIVE;
   } else if (currentStateOrder == 8) {
     return TransceiverStateMachineState::INACTIVE;
+  } else if (currentStateOrder == 9) {
+    return TransceiverStateMachineState::UPGRADING;
   }
   // TODO(joseph5wu) Need to support other states
   throw FbossError(
