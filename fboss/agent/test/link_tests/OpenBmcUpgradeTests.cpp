@@ -67,7 +67,7 @@ class OpenBmcUpgradeTest : public LinkTest {
 
   void upgradeOpenBmc() const {
     std::string upgradeCmd = folly::sformat(
-        "sshpass -p {} ssh root@{} /opt/scripts/run_flashy.sh --device {}",
+        "sshpass -p {} ssh root@{} /run/scripts/run_flashy.sh --device {}",
         FLAGS_openbmc_password,
         FLAGS_oob_asset,
         FLAGS_oob_flash_device_name);
