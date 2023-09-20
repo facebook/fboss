@@ -518,6 +518,11 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
           std::vector<int>(it.second.begin(), it.second.end());
     }
     tcvrStats.portNameToMediaLanes() = *tcvrState.portNameToMediaLanes();
+
+    auto diagCapability = getDiagsCapability();
+    if (diagCapability.has_value()) {
+      tcvrState.diagCapability() = diagCapability.value();
+    }
   }
 
   tcvrStats.lastFwUpgradeStartTime() = lastFwUpgradeStartTime_;

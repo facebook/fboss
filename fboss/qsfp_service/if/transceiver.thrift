@@ -441,6 +441,7 @@ struct TcvrState {
   21: map<string, list<i32>> portNameToHostLanes;
   22: map<string, list<i32>> portNameToMediaLanes;
   23: i64 timeCollected;
+  24: DiagsCapability diagCapability;
 }
 
 struct TcvrStats {
