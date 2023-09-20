@@ -250,6 +250,29 @@ const std::string TransceiverManager::getPortName(TransceiverID tcvrId) const {
   return portNames.empty() ? "" : *portNames.begin();
 }
 
+bool TransceiverManager::firmwareUpgradeRequired(TransceiverID id) const {
+  auto lockedTransceivers = transceivers_.rlock();
+  auto tcvrIt = lockedTransceivers->find(id);
+
+  return (
+      tcvrIt != lockedTransceivers->end() && tcvrIt->second->isPresent() &&
+      tcvrIt->second->requiresFirmwareUpgrade());
+}
+
+void TransceiverManager::doTransceiverFirmwareUpgrade(TransceiverID tcvrID) {
+  std::vector<folly::Future<bool>> futResponses;
+  auto lockedTransceivers = transceivers_.rlock();
+  auto tcvrIt = lockedTransceivers->find(tcvrID);
+  if (tcvrIt == lockedTransceivers->end() || !tcvrIt->second->isPresent()) {
+    XLOG(INFO) << "Transceiver not found for ID=" << tcvrID
+               << ". Can't do firmware upgrade";
+    return;
+  }
+  XLOG(INFO) << " Triggering Transceiver Firmware Upgrade for Transceiver="
+             << tcvrIt->first;
+  tcvrIt->second->upgradeFirmware();
+}
+
 TransceiverManager::TransceiverToStateMachineHelper
 TransceiverManager::setupTransceiverToStateMachineHelper() {
   TransceiverToStateMachineHelper stateMachineMap;

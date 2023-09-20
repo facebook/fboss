@@ -447,6 +447,10 @@ class TransceiverManager {
   void syncNpuPortStatusUpdate(
       std::map<int, facebook::fboss::NpuPortStatus>& portStatus);
 
+  bool firmwareUpgradeRequired(TransceiverID id) const;
+
+  void doTransceiverFirmwareUpgrade(TransceiverID tcvrID);
+
   FbossFwStorage* fwStorage() const {
     return fwStorage_.get();
   }
