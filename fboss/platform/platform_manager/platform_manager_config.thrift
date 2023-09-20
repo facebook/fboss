@@ -4,9 +4,9 @@ namespace cpp2 facebook.fboss.platform.platform_manager
 
 include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 
-// +-+-+-+ +-+-+-+ +-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+
-// |I|2|C| |B|u|s| |N|a|m|i|n|g| |C|o|n|v|e|n|t|i|o|n|
-// +-+-+-+ +-+-+-+ +-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+
+//            +-+-+-+ +-+-+-+ +-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+
+//            |I|2|C| |B|u|s| |N|a|m|i|n|g| |C|o|n|v|e|n|t|i|o|n|
+//            +-+-+-+ +-+-+-+ +-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+
 //
 // I2C bus names for a PmUnit are assigned from the PmUnit perspective.  From
 // the PmUnit's perspective the origin of the bus can be external (coming
@@ -23,37 +23,97 @@ include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 // If the source of the bus is a mux within a PmUnit, then the bus is assigned
 // the name <MUX_NAME>@<channel_number>.  The MUX_NAME, which is represented as
 // `I2cDeviceConfig::pmUnitScopedName` should be unique for each mux within the
-// PmUnit. For example, in PmUnit A, the INCOMING@1 bus gets muxed into muxA@0,
-// muxA@1 and muxA@2.  So, the outgoing buses out of the PmUnit Slot from
-// PmUnit A are muxA@0, INCOMING@0 and muxA@2.
+// PmUnit. In the example, in PmUnit A, the INCOMING@1 bus gets muxed into
+// muxA@0, muxA@1 and muxA@2.  So, the outgoing buses out of the PmUnit Slot
+// from PmUnit A are muxA@0, INCOMING@0 and muxA@2.
 //
 // If the source of the bus is a FPGA within a PmUnit, then the bus is assigned
-// the name <FRU_SCOPED_NAME> of the I2C Adapter within the FPGA.
+// the name <PmUnit_SCOPED_NAME> of the I2C Adapter within the FPGA. In the
+// example below, fpga1_I2C_2 is the adapter name of the I2C bus coming out of
+// the fpga.
 //
 // Note, the three incoming buses of PmUnit B are assigned the names
 // INCOMING@0, INCOMING@1 and INCOMING@2.  These names are independent of how
 // the buses originated from PmUnit A.
-//                                            PmUnit
-//            ┌────────────────────┐         Boundary        ┌────────────────────┐
-//            │      PmUnit A ┌────┤            │            │     PmUnit B       │
-//            │  ┌────┬─────┐ │    │                         │   ┌────┬─────┐     │
-//  INCOMING@0│  │ 12 │     │ │    │muxA@0      │  INCOMING@0│   │ 12 │     │┌────┤
-// ───────────┼┬▶├────┘     │┌┼────┼─────────────────────────┼┬─▶├────┘     ││    │
-//            ││ │ sensor1  │││    │            │            ││  │ sensor1  ││Slot│
-//            ││ └──────────┘││Slot│                         ││  └──────────┘│    │
-//            ││             ││    │            │            ││              │    │INCOMING@0
-//            ││             ││    │INCOMING@0     INCOMING@1│└──────────────┼────┼─────────▶
+//                                             PmUnit
+//            ┌────────────────────┐           Boundary      ┌────────────────────┐
+//            │      PmUnit A ┌────┤            │            │      PmUnit B      │
+//            │  ┌────┬─────┐ │Slot│                         │   ┌────┬─────┐     │
+//  incoming@0│  │ 12 │     │ │    │muxA@0      │  incoming@0│   │ 12 │     │┌────┤
+// ───────────┼┬▶├────┘     │┌┼────┼─────────────────────────┼┬─▶├────┘     ││Slot│
+//            ││ │ sensor1  │││    │            │            ││  │ sensor1  ││    │
+//            ││ └──────────┘││    │                         ││  └──────────┘│    │
+//            ││             ││    │            │            ││              │    │incoming@0
+//            ││             ││    │incoming@0     incoming@1│└──────────────┼────┼─────────▶
 //            │└─────────────┼┼────┼────────────┼────────────┼──▶            │    │
 //            │              ││    │                         │               │    │muxB@0
 //            │ ┌────────┐   ││    │            │            │ ┌────────┐  ┌─┼────┼─────────▶
-//  INCOMING@1│ │  muxA  ├───┘│    │                         │ │  muxB  ├──┘ │    │
-// ───────────┼▶├────┐   ├─▶  │    │muxA@2      │  INCOMING@2│ ├────┐   ├─▶  │    │muxB@2
+//  incoming@1│ │  muxA  ├───┘│    │                         │ │  muxB  ├──┘ │    │
+// ───────────┼▶├────┐   ├─▶  │    │muxA@2      │  incoming@2│ ├────┐   ├─▶  │    │muxB@2
 //            │ │ 54 │   ├────┼────┼─────────────────────────┼▶│ 54 │   ├────┼────┼─────────▶
 //            │ └────┴───┘    └────┤            │            │ └────┴───┘    │    │
-//            │                    │                         │               └────┤
-//            └────────────────────┘            │            └────────────────────┘
+//            │         ┌────────┐ │                         │               │    │fpga1_I2C_2
+//            │         │  muxC  │ │            │            │           ┌───┼────┼─────────▶
+//            │         ├────┐   │ │                         │           │   │    │
+//            │         │ 12 │   │ │                         │           │   │    │
+//            │         └─▲──┴───┘ │                         │           │   │    │
+//            │           │        │                         │           │   └────┤
+//            │     SMBus │        │                         │           │        │
+//            │    Adapter│        │                         │           │        │
+//            │           │        │                         │           │        │
+//            │ ┌─────────┴──────┐ │                         │ ┌─────────┴──────┐ │
+//            │ │      CPU       │ │                         │ │     fpga1      │ │
+//            │ └────────────────┘ │                         │ └────────────────┘ │
+//            └────────────────────┘                         └────────────────────┘
+
+// ============================================================================
+
+//                         +-+-+-+-+-+-+ +-+-+-+-+
+//                         |P|m|U|n|i|t| |P|A|T|H|
+//                         +-+-+-+-+-+-+ +-+-+-+-+
 //
-// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+// PmUnit paths are constructs used to refer to devices in the platform.  The
+// paths start from the root PmUnit. PmUnit boundary is represented with a
+// forward slash (/).  To represent a device in a PmUnit, the path should
+// contain all the slots which have been used all the way up to the root
+// PmUnit.  The device itself is represented within square brackets (e.g.,
+// [Device]), and it should be the leaf (last token), of the path.  If the
+// device is within a FPGA, then the device is represented as [FPGA::Device]
+//
+// For example the devices in the below example are represented as follows
+// - /[fpga1]
+// - /[fpga1::gpiochip0]
+// - /ABC_SLOT@0/[cpld1]
+// - /ABC_SLOT@1/[cpld1]
+// - /ABC_SLOT@1/[cpld2]
+// - /ABC_SLOT@1/DEF_SLOT@0/[sensor3]
+// - /XYZ_SLOT@0/[sensor1]
+// - /XYZ_SLOT@1/[sensor1]
+//
+// ┌─────────────────┐   ┌──────────────────────────┐   ┌─────────────────┐
+// │   ABC1 PmUnit   │   │       Root PmUnit        │   │   XYZ PmUnit    │
+// │   ┌───────┐     │   ├──────────┐    ┌──────────┤   │   ┌───────┐     │
+// │   │ cpld1 │     ├ ─ ┤ABC_SLOT@0│    │XYZ_SLOT@0├ ─ ┤   │sensor1│     │
+// │   └───────┘     │   ├──────────┘    └──────────┤   │   └───────┘     │
+// └─────────────────┘   │                          │   └─────────────────┘
+//                       │                          │
+// ┌─────────────────┐   │                          │   ┌─────────────────┐
+// │   ABC2 PmUnit   │   ├──────────┐    ┌──────────┤   │   XYZ PmUnit    │
+// │┌─────┐   ┌─────┐├ ─ ┤ABC_SLOT@1│    │XYZ_SLOT@1├ ─ ┤   ┌───────┐     │
+// ││cpld1│   │cpld2││   ├──────────┘    └──────────┤   │   │sensor2│     │
+// │└─────┘   └─────┘│   │                          │   │   └───────┘     │
+// │   ┌──────────┐  │   │     ┌───────────────┐    │   └─────────────────┘
+// │   │DEF_SLOT@0│  │   │     │     fpga1     │    │
+// └───┴────┬─────┴──┘   │     │  ┌──────────┐ │    │
+//                       │     │  │gpiochip0 │ │    │
+// ┌────────┴────────┐   │     └──┴──────────┴─┘    │
+// │   DEF PmUnit    │   │                          │
+// │   ┌───────┐     │   └──────────────────────────┘
+// │   │sensor3│     │
+// │   └───────┘     │
+// └─────────────────┘
+
+// ============================================================================
 
 // `I2cDeviceConfig` defines a i2c device within any PmUnit.
 //
@@ -165,6 +225,9 @@ struct GpioChipConfig {
   3: i32 offset;
 }
 
+// `pmUnitScopedName`: The name assigned to the device in the config, unique
+// within the scope of PmUnit.
+//
 // `vendorId`: PCIe Vendor ID, and it must be a 4-digit heximal value, such as
 // “1d9b”
 //
@@ -182,7 +245,7 @@ struct GpioChipConfig {
 //
 // TODO: Add MDIO support
 struct PciDevice {
-  1: string name;
+  1: string pmUnitScopedName;
   2: string vendorId;
   3: string deviceId;
   4: map<string, I2cAdapterConfig> i2cAdapterConfigs;
@@ -267,9 +330,8 @@ struct PlatformConfig {
   // CPU. We have to revisit this logic if this assumption changes.
   13: list<string> i2cAdaptersFromCpu;
 
-  // Global mapping from the i2c device paths to an application friendly sysfs
-  // path.
-  14: map<string, string> i2cPathToHumanFriendlyName;
+  // Global mapping from the PmUnit paths to an application friendly path.
+  14: map<string, string> pmUnitPathToHumanFriendlyName;
 
   // Name and version of the rpm containing the BSP kmods for this platform
   21: string bspKmodsRpmName;
