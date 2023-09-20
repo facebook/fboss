@@ -1,0 +1,161 @@
+{
+  "bspType" : 1,
+  "pwmBoostOnNumDeadFan" : 1,
+  "pwmBoostOnNumDeadSensor" : 0,
+  "pwmBoostOnNoQsfpAfterInSec" : 0,
+  "pwmBoostValue" : 60,
+  "pwmTransitionValue" : 50,
+  "pwmLowerThreshold" : 24,
+  "pwmUpperThreshold" : 100,
+  "shutdownCmd" : "echo 0xdead > /run/devmap/fpgas/MERU_SCM_CPLD/chassis_power_cycle",
+  "optics" : [
+  ],
+  "sensors" : [
+    {
+      "sensorName": "SMB_TMP75_FRONT",
+      "access" : {
+        "accessType" : "ACCESS_TYPE_THRIFT"
+      },
+      "alarm" : {
+        "highMajor" : 95.0,
+        "highMinor" : 85.0,
+        "minorSoakSeconds" : 15
+      },
+      "pwmCalcType" : "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "scale" : 1000.0,
+      "normalUpTable" : {
+        "15" : 30,
+        "110" : 100
+      },
+      "normalDownTable" : {
+        "15" : 30,
+        "110" : 100
+      },
+      "failUpTable" : {
+        "15" : 30,
+        "110" : 100
+      },
+      "failDownTable" : {
+        "15" : 30,
+        "110" : 100
+      }
+    }
+  ],
+  "fans" : [
+    {
+      "fanName" : "fan_1",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan1_input"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD/pwm1"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan1_present"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan1_led"
+      },
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 1,
+      "fanFailLedVal" : 2
+    },
+    {
+      "fanName" : "fan_2",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan2_input"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD/pwm2"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan2_present"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan2_led"
+      },
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 1,
+      "fanFailLedVal" : 2
+    },
+    {
+      "fanName" : "fan_3",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan3_input"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD/pwm3"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan3_present"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan3_led"
+      },
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 1,
+      "fanFailLedVal" : 2
+    },
+    {
+      "fanName" : "fan_4",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan4_input"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD/pwm4"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan4_present"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan4_led"
+      },
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 1,
+      "fanFailLedVal" : 2
+    }
+  ],
+  "zones": [
+    {
+      "zoneType" : "ZONE_TYPE_MAX",
+      "zoneName" : "zone1",
+      "sensorNames" : [
+      ],
+      "fanNames" : [
+        "fan_1",
+        "fan_2",
+        "fan_3",
+        "fan_4"
+      ],
+      "slope" : 3
+    }
+  ]
+}
