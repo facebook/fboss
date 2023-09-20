@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss {
 
@@ -115,9 +116,11 @@ TEST_F(HwSplitAgentCallbackTest, txPacket) {
   auto statBefore =
       getPortOutPkts(getLatestPortStats(masterLogicalPortIds()[0]));
   getHwSwitchEnsemble()->enqueueTxPacket(std::move(txPacket));
-  auto statAfter =
-      getPortOutPkts(getLatestPortStats(masterLogicalPortIds()[0]));
-  EXPECT_EQ(statAfter - statBefore, 1);
+  WITH_RETRIES({
+    auto statAfter =
+        getPortOutPkts(getLatestPortStats(masterLogicalPortIds()[0]));
+    EXPECT_EVENTUALLY_EQ(statAfter - statBefore, 1);
+  });
 }
 
 TEST_F(HwSplitAgentCallbackTest, operDeltaUpdate) {
