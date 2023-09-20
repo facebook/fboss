@@ -10,11 +10,7 @@
 
 #include "fboss/agent/hw/sai/diag/PythonRepl.h"
 
-#ifdef IS_OSS
 #include <Python.h>
-#else
-#include <python/Python.h>
-#endif
 
 namespace facebook::fboss {
 
