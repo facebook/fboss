@@ -1,0 +1,8 @@
+{
+  "chassisEepromName" : "CHASSIS" ,
+  "fruEepromList" : {
+    "SCM" : {
+      "path" : "/run/devmap/eeproms/MERU_SCM_EEPROM"
+    }
+  }
+}
