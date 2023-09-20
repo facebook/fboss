@@ -82,7 +82,7 @@ void WeutilImpl::initializeFieldDictionaryV4() {
       {18, "Extended MAC Address Size", FIELD_UINT, 2, VARIABLE});
   fieldDictionaryV4_.push_back(
       {19, "EEPROM location on Fabric", FIELD_STRING, VARIABLE, VARIABLE});
-  fieldDictionaryV4_.push_back({250, "CRC16", FIELD_HEX, 2, VARIABLE});
+  fieldDictionaryV4_.push_back({250, "CRC16", FIELD_UINT, 2, VARIABLE});
 }
 
 // Same as above, but for EEPROM V3.
@@ -139,17 +139,20 @@ void WeutilImpl::initializeFieldDictionaryV3() {
 int WeutilImpl::loadEeprom(
     const std::string& eeprom,
     unsigned char* output,
-    int offset,
     int max) {
   // Declare buffer, and fill it up with 0s
   int fileSize = 0;
+  int bufferSize = 0;
   std::ifstream file(eeprom, std::ios::binary);
   int readCount = 0;
-  // First, detect EEPROM size, upto 2048B only
+  int offset;
+  unsigned char header[4];
+
+  // First, detect EEPROM size and offset
   try {
     file.seekg(0, std::ios::end);
     fileSize = file.tellg();
-    fileSize = fileSize > max ? max : fileSize;
+    bufferSize = fileSize > max ? max : fileSize;
   } catch (std::exception& ex) {
     std::cout << "Failed to detect EEPROM size (" << eeprom
               << "): " << ex.what() << std::endl;
@@ -159,13 +162,31 @@ int WeutilImpl::loadEeprom(
               << std::endl;
     throw std::runtime_error("Unable to read EEPROM.");
   }
+  else if (fileSize < 4) {
+    std::cout << "EEPROM (" << eeprom << ") size is too small!"
+              << std::endl;
+    throw std::runtime_error("Unable to detect EEPROM format.");
+  }
+  file.seekg(0, std::ios::beg);
+  file.read((char*)&header[0], 4);
+  if (header[0] == 0xfb && header[1] == 0xfb && header[2] == 0x04) {
+    offset = 0;
+  } else if (
+     (header[0] == '0' && header[1] == '0' && header[2] == '0' &&
+     (header[3] == '2' || header[3] == '3')) || (header[0] == 0 &&
+     header[1] == 0 && header[2] == 0 && header[3] == 3)) {
+    offset = 15 * 1024;
+  }
+  else {
+    throw std::runtime_error("Unrecongized EEPROM format.");
+  }
   if (offset > fileSize) {
     throw std::runtime_error("Offset exceeds EEPROM size.");
   }
   // Now, read the eeprom
   try {
     file.seekg(offset, std::ios::beg);
-    file.read((char*)&output[0], (fileSize - offset));
+    file.read((char*)&output[0], bufferSize);
     readCount = (int)file.gcount();
     file.close();
   } catch (std::exception& ex) {
@@ -351,7 +372,7 @@ WeutilImpl::prepareEepromFieldMap(
 std::vector<std::pair<std::string, std::string>> WeutilImpl::getInfo(
     const std::string& eeprom) {
   unsigned char buffer[kMaxEepromSize + 1];
-  int readCount = loadEeprom(eeprom, buffer, 0, kMaxEepromSize);
+  int readCount = loadEeprom(eeprom, buffer, kMaxEepromSize);
 
   // Ensure that this is EEPROM v4 or later
   std::unordered_map<int, std::string> parsedValue;

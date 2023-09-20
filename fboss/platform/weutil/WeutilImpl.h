@@ -37,7 +37,6 @@ class WeutilImpl : public WeutilInterface {
   int loadEeprom(
       const std::string& eeprom,
       unsigned char* output,
-      int offset,
       int max);
   std::unordered_map<int, std::string> parseEepromBlobV3(
       const unsigned char* buffer);
