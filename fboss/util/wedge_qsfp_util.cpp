@@ -1672,8 +1672,8 @@ void printSff8472DetailService(
 
   printVendorInfo(transceiverInfo);
 
-  if (auto timeCollected = transceiverInfo.timeCollected()) {
-    printf("  Time collected: %s\n", getLocalTime(*timeCollected).c_str());
+  if (auto timeCollected = *transceiverInfo.tcvrState()->timeCollected()) {
+    printf("  Time collected: %s\n", getLocalTime(timeCollected).c_str());
   }
 }
 
@@ -1750,8 +1750,8 @@ void printSffDetailService(
   printf(
       "    Power Control: %s\n",
       apache::thrift::util::enumNameSafe(*(settings.powerControl())).c_str());
-  if (auto timeCollected = transceiverInfo.timeCollected()) {
-    printf("  Time collected: %s\n", getLocalTime(*timeCollected).c_str());
+  if (auto timeCollected = *transceiverInfo.tcvrState()->timeCollected()) {
+    printf("  Time collected: %s\n", getLocalTime(timeCollected).c_str());
   }
 }
 
@@ -2038,13 +2038,13 @@ void printCmisDetailService(
   if (tcvrState.eepromCsumValid().has_value()) {
     printf(
         "  EEPROM Checksum: %s\n",
-        *transceiverInfo.eepromCsumValid() ? "Valid" : "Invalid");
+        *tcvrState.eepromCsumValid() ? "Valid" : "Invalid");
   }
   printSignalsAndSettings(transceiverInfo);
   printDomMonitors(transceiverInfo);
   printVendorInfo(transceiverInfo);
-  if (auto timeCollected = transceiverInfo.timeCollected()) {
-    printf("  Time collected: %s\n", getLocalTime(*timeCollected).c_str());
+  if (auto timeCollected = *transceiverInfo.tcvrState()->timeCollected()) {
+    printf("  Time collected: %s\n", getLocalTime(timeCollected).c_str());
   }
 }
 
@@ -3424,8 +3424,8 @@ void printModuleTransactionStats(
   printf(
       "Module        ReadsAttempted      ReadFailed(%%)   WritesAttempted    WritesFailed(%%)\n");
   for (auto& moduleInfo : modulesInfo) {
-    if (moduleInfo.second.stats().has_value()) {
-      auto& moduleStat = moduleInfo.second.stats().value();
+    if (moduleInfo.second.tcvrStats()->stats().has_value()) {
+      auto& moduleStat = moduleInfo.second.tcvrStats()->stats().value();
       readFailure = moduleStat.numReadAttempted().value()
           ? (double(moduleStat.numReadFailed().value() * 100) /
              moduleStat.numReadAttempted().value())
