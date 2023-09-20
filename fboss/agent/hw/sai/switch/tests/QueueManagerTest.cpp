@@ -24,6 +24,12 @@
 
 using namespace facebook::fboss;
 
+namespace {
+std::string sysPortStatName(const std::string& sysPortName) {
+  return folly::to<std::string>(sysPortName, "_0");
+}
+
+} // namespace
 class QueueManagerTest : public ManagerTestBase {
  public:
   void SetUp() override {
@@ -309,7 +315,7 @@ TEST_F(QueueManagerTest, checkSysPortVoqStats) {
   auto portStat =
       saiManagerTable->systemPortManager().getLastPortStats(sysPort->getID());
   checkCounterExportAndValue(
-      sysPort->getPortName(),
+      sysPortStatName(sysPort->getPortName()),
       voqIds(sysPort->getID()),
       ExpectExport::EXPORT,
       portStat);
@@ -324,7 +330,7 @@ TEST_F(QueueManagerTest, changeSysPortAndCheckVoqStats) {
   auto portStat = saiManagerTable->systemPortManager().getLastPortStats(
       newSysPort->getID());
   checkCounterExportAndValue(
-      newSysPort->getPortName(),
+      sysPortStatName(newSysPort->getPortName()),
       voqIds(newSysPort->getID()),
       ExpectExport::EXPORT,
       portStat);
@@ -350,7 +356,10 @@ TEST_F(QueueManagerTest, changeSysPortVoQsAndCheckVoqStats) {
   auto portStat = saiManagerTable->systemPortManager().getLastPortStats(
       newSysPort->getID());
   checkCounterExportAndValue(
-      newSysPort->getPortName(), newVoqs, ExpectExport::EXPORT, portStat);
+      sysPortStatName(newSysPort->getPortName()),
+      newVoqs,
+      ExpectExport::EXPORT,
+      portStat);
 
   // Stats for removed voqs should no longer show up
   checkCounterExportAndValue(
@@ -506,7 +515,7 @@ TEST_F(QueueManagerTest, sysPortReenableRestartsVoQStatsExport) {
   auto portStat = saiManagerTable->systemPortManager().getLastPortStats(
       newSysPort->getID());
   checkCounterExportAndValue(
-      newSysPort->getPortName(),
+      sysPortStatName(newSysPort->getPortName()),
       voqIds(newSysPort->getID()),
       ExpectExport::NO_EXPORT,
       portStat);
@@ -515,7 +524,7 @@ TEST_F(QueueManagerTest, sysPortReenableRestartsVoQStatsExport) {
   portStat =
       saiManagerTable->systemPortManager().getLastPortStats(sysPort->getID());
   checkCounterExportAndValue(
-      sysPort->getPortName(),
+      sysPortStatName(sysPort->getPortName()),
       voqIds(sysPort->getID()),
       ExpectExport::EXPORT,
       portStat);

@@ -104,6 +104,7 @@ class SaiSystemPortManager {
   void configureQueues(
       const std::shared_ptr<SystemPort>& systemPort,
       const QueueConfig& newQueueConfig);
+  std::string portNameForStats(const SystemPort& port) const;
 
   SaiSystemPortHandle* getSystemPortHandleImpl(SystemPortID swId) const;
   void setQosMapOnAllSystemPorts(QosMapSaiId qosMapId);

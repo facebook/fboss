@@ -73,6 +73,16 @@ SaiSystemPortManager::attributesFromSwSystemPort(
       config, swSystemPort->getEnabled(), std::nullopt};
 }
 
+std::string SaiSystemPortManager::portNameForStats(
+    const SystemPort& port) const {
+  /* On multi asic systems, same sys ports will get created
+   * on each ASIC on the system. To uniquify sys port/VOQ
+   * stats from each ASIC prepend switch index to port name
+   */
+  return folly::to<std::string>(
+      port.getPortName(), "_", platform_->getAsic()->getSwitchIndex());
+}
+
 SystemPortSaiId SaiSystemPortManager::addSystemPort(
     const std::shared_ptr<SystemPort>& swSystemPort) {
   auto systemPortHandle = getSystemPortHandle(swSystemPort->getID());
@@ -89,7 +99,7 @@ SystemPortSaiId SaiSystemPortManager::addSystemPort(
   if (swSystemPort->getEnabled()) {
     portStats_.emplace(
         swSystemPort->getID(),
-        std::make_unique<HwSysPortFb303Stats>(swSystemPort->getPortName()));
+        std::make_unique<HwSysPortFb303Stats>(portNameForStats(*swSystemPort)));
   }
   auto handle = std::make_unique<SaiSystemPortHandle>();
 
@@ -195,12 +205,14 @@ void SaiSystemPortManager::changeSystemPort(
         portStats_.emplace(
             newSystemPort->getID(),
             std::make_unique<HwSysPortFb303Stats>(
-                newSystemPort->getPortName()));
+                portNameForStats(*newSystemPort)));
         setupVoqStats(newSystemPort);
-      } else if (oldSystemPort->getPortName() != newSystemPort->getPortName()) {
+      } else if (
+          portNameForStats(*oldSystemPort) !=
+          portNameForStats(*newSystemPort)) {
         // Port was already enabled, but Port name changed - update stats
         portStats_.find(newSystemPort->getID())
-            ->second->portNameChanged(newSystemPort->getPortName());
+            ->second->portNameChanged(portNameForStats(*newSystemPort));
       }
     } else if (oldSystemPort->getEnabled()) {
       // Port transitioned from enabled to disabled, remove stats
