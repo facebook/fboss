@@ -11,11 +11,13 @@ class RamonAsic : public BroadcomAsic {
   RamonAsic(
       cfg::SwitchType type,
       std::optional<int64_t> id,
+      int16_t index,
       std::optional<cfg::Range64> systemPortRange,
       folly::MacAddress& mac)
       : BroadcomAsic(
             type,
             id,
+            index,
             systemPortRange,
             mac,
             {cfg::SwitchType::FABRIC}) {}

@@ -35,7 +35,7 @@ void SaiBcmMontblancPlatform::setupAsic(
     std::optional<cfg::Range64> systemPortRange,
     folly::MacAddress& mac) {
   asic_ = std::make_unique<Tomahawk5Asic>(
-      switchType, switchId, systemPortRange, mac);
+      switchType, switchId, switchIndex, systemPortRange, mac);
 }
 
 HwAsic* SaiBcmMontblancPlatform::getAsic() const {

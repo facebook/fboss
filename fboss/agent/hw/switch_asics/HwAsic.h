@@ -13,6 +13,7 @@ class HwAsic {
   HwAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
+      int16_t switchIndex,
       std::optional<cfg::Range64> systemPortRange,
       folly::MacAddress& mac,
       std::unordered_set<cfg::SwitchType> supportedModes = {
@@ -175,6 +176,7 @@ class HwAsic {
       cfg::AsicType asicType,
       cfg::SwitchType switchType,
       std::optional<int64_t> switchID,
+      int16_t switchIndex,
       std::optional<cfg::Range64> systemPortRange,
       folly::MacAddress& mac);
   virtual bool isSupported(Feature) const = 0;
@@ -287,6 +289,9 @@ class HwAsic {
   std::optional<uint64_t> getSwitchId() const {
     return switchId_;
   }
+  int16_t getSwitchIndex() const {
+    return switchIndex_;
+  }
   std::optional<cfg::Range64> getSystemPortRange() const {
     return systemPortRange_;
   }
@@ -319,6 +324,7 @@ class HwAsic {
  private:
   cfg::SwitchType switchType_;
   std::optional<int64_t> switchId_;
+  int16_t switchIndex_;
   std::optional<cfg::Range64> systemPortRange_;
   cfg::StreamType defaultStreamType_{cfg::StreamType::ALL};
   folly::MacAddress asicMac_;

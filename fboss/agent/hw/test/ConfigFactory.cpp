@@ -121,22 +121,38 @@ cfg::DsfNode dsfNodeConfig(
       case cfg::AsicType::ASIC_TYPE_JERICHO2:
         return std::pair(
             std::make_unique<Jericho2Asic>(
-                fromAsic.getSwitchType(), switchId, systemPortRange, localMac),
+                fromAsic.getSwitchType(),
+                switchId,
+                fromAsic.getSwitchIndex(),
+                systemPortRange,
+                localMac),
             PlatformType::PLATFORM_MERU400BIU);
       case cfg::AsicType::ASIC_TYPE_JERICHO3:
         return std::pair(
             std::make_unique<Jericho3Asic>(
-                fromAsic.getSwitchType(), switchId, systemPortRange, localMac),
+                fromAsic.getSwitchType(),
+                switchId,
+                fromAsic.getSwitchIndex(),
+                systemPortRange,
+                localMac),
             PlatformType::PLATFORM_MERU800BIA);
       case cfg::AsicType::ASIC_TYPE_RAMON:
         return std::pair(
             std::make_unique<RamonAsic>(
-                fromAsic.getSwitchType(), switchId, std::nullopt, localMac),
+                fromAsic.getSwitchType(),
+                switchId,
+                fromAsic.getSwitchIndex(),
+                std::nullopt,
+                localMac),
             PlatformType::PLATFORM_MERU400BFU);
       case cfg::AsicType::ASIC_TYPE_RAMON3:
         return std::pair(
             std::make_unique<Ramon3Asic>(
-                fromAsic.getSwitchType(), switchId, std::nullopt, localMac),
+                fromAsic.getSwitchType(),
+                switchId,
+                fromAsic.getSwitchIndex(),
+                std::nullopt,
+                localMac),
             PlatformType::PLATFORM_MERU800BFA);
       case cfg::AsicType::ASIC_TYPE_EBRO:
         PlatformType platformType;
@@ -147,7 +163,11 @@ cfg::DsfNode dsfNodeConfig(
         }
         return std::pair(
             std::make_unique<EbroAsic>(
-                fromAsic.getSwitchType(), switchId, systemPortRange, localMac),
+                fromAsic.getSwitchType(),
+                switchId,
+                fromAsic.getSwitchIndex(),
+                systemPortRange,
+                localMac),
             platformType);
       default:
         throw FbossError("Unexpected asic type: ", fromAsic.getAsicTypeStr());

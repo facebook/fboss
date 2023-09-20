@@ -31,6 +31,7 @@ HwAsicTable::HwAsicTable(
             *switchIdAndSwitchInfo.second.asicType(),
             *switchIdAndSwitchInfo.second.switchType(),
             switchIdAndSwitchInfo.first,
+            *switchIdAndSwitchInfo.second.switchIndex(),
             systemPortRange,
             mac));
   }

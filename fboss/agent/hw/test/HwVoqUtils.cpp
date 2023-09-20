@@ -34,6 +34,7 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteDsfNodeCfg(
       *firstDsfNode.asicType(),
       cfg::SwitchType::VOQ,
       *firstDsfNode.switchId(),
+      0,
       *firstDsfNode.systemPortRange(),
       mac);
   int numCores = asic->getNumCores();

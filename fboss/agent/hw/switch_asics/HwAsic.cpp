@@ -41,11 +41,13 @@ namespace facebook::fboss {
 HwAsic::HwAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
+    int16_t switchIndex,
     std::optional<cfg::Range64> systemPortRange,
     folly::MacAddress& mac,
     std::unordered_set<cfg::SwitchType> supportedModes)
     : switchType_(switchType),
       switchId_(switchId),
+      switchIndex_(switchIndex),
       systemPortRange_(systemPortRange),
       asicMac_(mac) {
   if (supportedModes.find(switchType_) == supportedModes.end()) {
@@ -69,57 +71,58 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
     cfg::AsicType asicType,
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
+    int16_t switchIndex,
     std::optional<cfg::Range64> systemPortRange,
     folly::MacAddress& mac) {
   switch (asicType) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
       return std::make_unique<FakeAsic>(
-          switchType, switchId, systemPortRange, mac);
+          switchType, switchId, switchIndex, systemPortRange, mac);
     case cfg::AsicType::ASIC_TYPE_MOCK:
       return std::make_unique<MockAsic>(
-          switchType, switchId, systemPortRange, mac);
+          switchType, switchId, switchIndex, systemPortRange, mac);
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:
       return std::make_unique<Trident2Asic>(
-          switchType, switchId, systemPortRange, mac);
+          switchType, switchId, switchIndex, systemPortRange, mac);
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
       return std::make_unique<TomahawkAsic>(
-          switchType, switchId, systemPortRange, mac);
+          switchType, switchId, switchIndex, systemPortRange, mac);
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
       return std::make_unique<Tomahawk3Asic>(
-          switchType, switchId, systemPortRange, mac);
+          switchType, switchId, switchIndex, systemPortRange, mac);
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
       return std::make_unique<Tomahawk4Asic>(
-          switchType, switchId, systemPortRange, mac);
+          switchType, switchId, switchIndex, systemPortRange, mac);
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
       return std::make_unique<Tomahawk5Asic>(
-          switchType, switchId, systemPortRange, mac);
+          switchType, switchId, switchIndex, systemPortRange, mac);
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
       return std::make_unique<CredoPhyAsic>(
-          switchType, switchId, systemPortRange, mac);
+          switchType, switchId, switchIndex, systemPortRange, mac);
     case cfg::AsicType::ASIC_TYPE_EBRO:
       return std::make_unique<EbroAsic>(
-          switchType, switchId, systemPortRange, mac);
+          switchType, switchId, switchIndex, systemPortRange, mac);
     case cfg::AsicType::ASIC_TYPE_GARONNE:
       return std::make_unique<GaronneAsic>(
-          switchType, switchId, systemPortRange, mac);
+          switchType, switchId, switchIndex, systemPortRange, mac);
     case cfg::AsicType::ASIC_TYPE_YUBA:
       return std::make_unique<YubaAsic>(
-          switchType, switchId, systemPortRange, mac);
+          switchType, switchId, switchIndex, systemPortRange, mac);
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
       return std::make_unique<MarvelPhyAsic>(
-          switchType, switchId, systemPortRange, mac);
+          switchType, switchId, switchIndex, systemPortRange, mac);
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
       return std::make_unique<Jericho2Asic>(
-          switchType, switchId, systemPortRange, mac);
+          switchType, switchId, switchIndex, systemPortRange, mac);
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
       return std::make_unique<Jericho3Asic>(
-          switchType, switchId, systemPortRange, mac);
+          switchType, switchId, switchIndex, systemPortRange, mac);
     case cfg::AsicType::ASIC_TYPE_RAMON:
       return std::make_unique<RamonAsic>(
-          switchType, switchId, systemPortRange, mac);
+          switchType, switchId, switchIndex, systemPortRange, mac);
     case cfg::AsicType::ASIC_TYPE_RAMON3:
       return std::make_unique<Ramon3Asic>(
-          switchType, switchId, systemPortRange, mac);
+          switchType, switchId, switchIndex, systemPortRange, mac);
   };
   throw FbossError("Unexcepted asic type: ", asicType);
 }

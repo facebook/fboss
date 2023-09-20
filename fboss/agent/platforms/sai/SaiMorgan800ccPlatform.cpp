@@ -31,11 +31,11 @@ SaiMorgan800ccPlatform::SaiMorgan800ccPlatform(
 void SaiMorgan800ccPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    int16_t /*switchIndex*/,
+    int16_t switchIndex,
     std::optional<cfg::Range64> systemPortRange,
     folly::MacAddress& mac) {
-  asic_ =
-      std::make_unique<YubaAsic>(switchType, switchId, systemPortRange, mac);
+  asic_ = std::make_unique<YubaAsic>(
+      switchType, switchId, switchIndex, systemPortRange, mac);
   asic_->setDefaultStreamType(cfg::StreamType::UNICAST);
 }
 

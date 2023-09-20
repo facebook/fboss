@@ -11,9 +11,16 @@ class Jericho3Asic : public BroadcomAsic {
   Jericho3Asic(
       cfg::SwitchType type,
       std::optional<int64_t> id,
+      int16_t index,
       std::optional<cfg::Range64> systemPortRange,
       folly::MacAddress& mac)
-      : BroadcomAsic(type, id, systemPortRange, mac, {cfg::SwitchType::VOQ}) {}
+      : BroadcomAsic(
+            type,
+            id,
+            index,
+            systemPortRange,
+            mac,
+            {cfg::SwitchType::VOQ}) {}
   bool isSupported(Feature) const override;
   const std::map<cfg::PortType, cfg::PortLoopbackMode>& desiredLoopbackModes()
       const override;

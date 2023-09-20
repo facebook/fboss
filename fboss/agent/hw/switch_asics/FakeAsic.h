@@ -15,11 +15,13 @@ class FakeAsic : public HwAsic {
   FakeAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
+      int16_t index,
       std::optional<cfg::Range64> systemPortRange,
       folly::MacAddress& mac)
       : HwAsic(
             switchType,
             switchId,
+            index,
             systemPortRange,
             mac,
             {cfg::SwitchType::NPU,

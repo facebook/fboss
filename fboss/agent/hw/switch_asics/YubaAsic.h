@@ -20,11 +20,13 @@ class YubaAsic : public TajoAsic {
   YubaAsic(
       cfg::SwitchType type,
       std::optional<int64_t> id,
+      int16_t index,
       std::optional<cfg::Range64> systemPortRange,
       folly::MacAddress& mac)
       : TajoAsic(
             type,
             id,
+            index,
             systemPortRange,
             mac,
             {cfg::SwitchType::NPU,

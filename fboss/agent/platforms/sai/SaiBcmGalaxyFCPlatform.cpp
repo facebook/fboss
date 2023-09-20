@@ -27,11 +27,11 @@ SaiBcmGalaxyFCPlatform::SaiBcmGalaxyFCPlatform(
 void SaiBcmGalaxyFCPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    int16_t /*switchIndex*/,
+    int16_t switchIndex,
     std::optional<cfg::Range64> systemPortRange,
     folly::MacAddress& mac) {
   asic_ = std::make_unique<TomahawkAsic>(
-      switchType, switchId, systemPortRange, mac);
+      switchType, switchId, switchIndex, systemPortRange, mac);
 }
 HwAsic* SaiBcmGalaxyFCPlatform::getAsic() const {
   return asic_.get();
