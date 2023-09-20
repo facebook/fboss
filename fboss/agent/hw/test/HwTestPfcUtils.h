@@ -54,4 +54,9 @@ void checkSwHwPgCfgMatch(
     const std::shared_ptr<Port>& swPort,
     bool pfcEnable);
 
+void checkSwHwPgIdSetMatch(
+    const HwSwitch* hw,
+    const std::shared_ptr<Port>& swPort,
+    std::set<int>& pgIdSetExpected);
+
 } // namespace facebook::fboss::utility

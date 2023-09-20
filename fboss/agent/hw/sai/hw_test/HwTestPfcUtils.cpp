@@ -233,4 +233,14 @@ void checkSwHwPgCfgMatch(
     }
   }
 }
+
+void checkSwHwPgIdSetMatch(
+    const HwSwitch* /* unused */,
+    const std::shared_ptr<Port>& /* unused */,
+    std::set<int>& /* unused */) {
+  EXPECT_TRUE(false);
+  // This function is not implemented yet.
+  // If the test is running on SAI Switches,
+  // it should throw an error.
+}
 } // namespace facebook::fboss::utility

@@ -272,4 +272,33 @@ TEST_F(HwIngressBufferTest, validateLossyMode) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+// Create PG config, associate with PFC config. Modify the PG queue
+// config params and ensure that its getting re-programmed.
+TEST_F(HwIngressBufferTest, validatePGQueueChanges) {
+  auto setup = [&]() {
+    setupHelper();
+    // update one PG, and see ifs reflected in the HW
+    std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
+    portPgConfigMap["foo"] = getPortPgConfig(
+        getPlatform()->getAsic()->getPacketBufferUnitSize(), {1});
+    cfg_.portPgConfigs() = portPgConfigMap;
+    applyNewConfig(cfg_);
+  };
+
+  auto verify = [&]() {
+    utility::checkSwHwPgCfgMatch(
+        getHwSwitch(),
+        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0])),
+        true /*pfcEnable*/);
+
+    std::set<int> pgIdSetExpected = {1};
+    utility::checkSwHwPgIdSetMatch(
+        getHwSwitch(),
+        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0])),
+        pgIdSetExpected);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
