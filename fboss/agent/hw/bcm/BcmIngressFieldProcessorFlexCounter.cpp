@@ -31,7 +31,12 @@ struct BcmGetNumAclStatsCountUserData {
 // Broadcom provided some reference code in CS00011186214 to implement the
 // details of IFP. Most of the constants are following their examples.
 constexpr auto kIFPActionIndexNum = 2;
+// ACL total allocated counter indexes are 256.
+// Hence actionIndex mask is 8 bits
 constexpr auto kIFPActionIndexObj0Mask = 8;
+// EM total allocated counter indexes are 9216.
+// Hence actionIndex mask is 14 bits
+constexpr auto kEMActionIndexObj0Mask = 14;
 constexpr auto kIFPActionIndexObj1Mask = 1;
 constexpr auto kIFPActionPacketOperationObj0Mask = 16;
 constexpr auto kIFPActionPacketOperationObj1Mask = 1;
@@ -63,11 +68,12 @@ void setIFPActionIndex(
   /* Counter index is PKT_ATTR_OBJ0. */
   if (type == facebook::fboss::BcmAclStatType::IFP) {
     index->object[0] = bcmFlexctrObjectStaticIngFieldStageIngress;
+    index->mask_size[0] = kIFPActionIndexObj0Mask;
   } else {
     index->object[0] = bcmFlexctrObjectStaticIngExactMatch;
+    index->mask_size[0] = kEMActionIndexObj0Mask;
   }
   index->object_id[0] = 0;
-  index->mask_size[0] = kIFPActionIndexObj0Mask;
   index->shift[0] = 0;
   index->object[1] = bcmFlexctrObjectConstZero;
   index->mask_size[1] = kIFPActionIndexObj1Mask;
