@@ -6,7 +6,7 @@
 #include "fboss/agent/test/AgentTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/types.h"
-#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 #include <boost/container/flat_set.hpp>
 
@@ -99,6 +99,10 @@ class LinkTest : public AgentTest {
       const std::vector<PortID>& portIDs) const;
 
   std::optional<PortID> getPeerPortID(PortID portId) const;
+
+  std::set<std::pair<PortID, PortID>> getConnectedOpticalPortPairWithFeature(
+      TransceiverFeature feature,
+      phy::Side side) const;
 
   void waitForStateMachineState(
       const std::set<TransceiverID>& transceiversToCheck,

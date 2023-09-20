@@ -362,6 +362,94 @@ std::set<std::pair<PortID, PortID>> LinkTest::getConnectedPairs() const {
   return connectedPairs;
 }
 
+/*
+ * getConnectedOpticalPortPairWithFeature
+ *
+ * Returns the set of connected port pairs with optical link and the optics
+ * supporting the given feature. For feature==None, this will return set of
+ * connected port pairs using optical links
+ */
+std::set<std::pair<PortID, PortID>>
+LinkTest::getConnectedOpticalPortPairWithFeature(
+    TransceiverFeature feature,
+    phy::Side side) const {
+  auto connectedPairs = getConnectedPairs();
+  auto opticalPorts = std::get<0>(getOpticalCabledPortsAndNames(false));
+
+  std::set<std::pair<PortID, PortID>> connectedOpticalPortPairs;
+  for (auto connectedPair : connectedPairs) {
+    if (std::find(
+            opticalPorts.begin(), opticalPorts.end(), connectedPair.first) !=
+        opticalPorts.end()) {
+      connectedOpticalPortPairs.insert(connectedPair);
+    }
+  }
+
+  if (feature == TransceiverFeature::NONE) {
+    return connectedOpticalPortPairs;
+  }
+
+  std::vector<int32_t> transceiverIds;
+  for (auto portPair : connectedOpticalPortPairs) {
+    auto tcvrId =
+        platform()->getPlatformPort(portPair.first)->getTransceiverID().value();
+    transceiverIds.push_back(tcvrId);
+    tcvrId = platform()
+                 ->getPlatformPort(portPair.second)
+                 ->getTransceiverID()
+                 .value();
+    transceiverIds.push_back(tcvrId);
+  }
+
+  auto transceiverInfos = waitForTransceiverInfo(transceiverIds);
+  std::set<std::pair<PortID, PortID>> connectedOpticalFeaturedPorts;
+  for (auto portPair : connectedOpticalPortPairs) {
+    auto tcvrId =
+        platform()->getPlatformPort(portPair.first)->getTransceiverID().value();
+
+    auto tcvrInfo = transceiverInfos.find(tcvrId);
+    if (tcvrInfo != transceiverInfos.end()) {
+      auto tcvrState = *tcvrInfo->second.tcvrState();
+      if (tcvrState.diagCapability().value().diagnostics().value()) {
+        if (feature == TransceiverFeature::TX_DISABLE &&
+            side == phy::Side::LINE) {
+          bool txDisCapable =
+              tcvrState.diagCapability().value().txOutputControl().value();
+          if (txDisCapable) {
+            connectedOpticalFeaturedPorts.insert(portPair);
+          }
+        } else if (
+            feature == TransceiverFeature::TX_DISABLE &&
+            side == phy::Side::SYSTEM) {
+          bool rxDisCapable =
+              tcvrState.diagCapability().value().rxOutputControl().value();
+          if (rxDisCapable) {
+            connectedOpticalFeaturedPorts.insert(portPair);
+          }
+        } else if (
+            feature == TransceiverFeature::LOOPBACK &&
+            side == phy::Side::LINE) {
+          bool lineLoopCapable =
+              tcvrState.diagCapability().value().loopbackLine().value();
+          if (lineLoopCapable) {
+            connectedOpticalFeaturedPorts.insert(portPair);
+          }
+        } else if (
+            feature == TransceiverFeature::LOOPBACK &&
+            side == phy::Side::SYSTEM) {
+          bool sysLoopCapable =
+              tcvrState.diagCapability().value().loopbackSystem().value();
+          if (sysLoopCapable) {
+            connectedOpticalFeaturedPorts.insert(portPair);
+          }
+        }
+      }
+    }
+  }
+
+  return connectedOpticalFeaturedPorts;
+}
+
 void LinkTest::waitForStateMachineState(
     const std::set<TransceiverID>& transceiversToCheck,
     TransceiverStateMachineState stateMachineState,
