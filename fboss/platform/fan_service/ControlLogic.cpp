@@ -475,9 +475,6 @@ std::pair<bool, float> ControlLogic::programFan(
   }
   if (srcType == constants::ACCESS_TYPE_SYSFS()) {
     writeSuccess = pBsp_->setFanPwmSysfs(*fan.pwmAccess()->path(), pwmInt);
-  } else if (srcType == constants::ACCESS_TYPE_UTIL()) {
-    writeSuccess =
-        pBsp_->setFanPwmShell(*fan.pwmAccess()->path(), *fan.fanName(), pwmInt);
   } else {
     XLOG(ERR) << "Unsupported PWM access type for : ", *fan.fanName();
   }
