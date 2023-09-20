@@ -2,42 +2,35 @@
 
 namespace cpp2 facebook.fboss.platform.platform_manager
 
-enum DetectionMechanism {
-  GPIO = 1,
-  SYSFS = 2,
-}
-
+// `pmUnitPath`: PmUnit path of the device which will create the sysfs file
+// indicating the presence.
+//
+// `presenceFileName`: The name of the file which will contain the presence
+// information.
+//
+// `desiredValue`: The value which will indicate that the device is present.
 struct SysfsFileHandle {
-  1: string sysfsPath;
-  2: string desiredValue;
+  1: string pmUnitPath;
+  2: string presenceFileName;
+  3: string desiredValue;
 }
 
-enum GpioValue {
-  GPIO_LOW = 0,
-  GPIO_HIGH = 1,
-}
-
-// A GPIO line can be specified by either <gpioChip + offset> pair, or
-// global-unique <lineName> assigned in ACPI or Device Tree.
-//   - "gpioChip" must be the symlink name under /run/devmap/gpiochips/.
-//   - "lineName" is optional. If supplied, <gpioChip + offset> pair
-//     will be updated at runtime, based on the result of gpiofind.
-//   - GPIO lines are active high by default, unless "activeLow" is set
-//     to true explicitly.
-struct GpioLine {
-  1: string gpioChip;
-  2: i32 offset;
-  3: optional string lineName;
-  4: bool activeLow = false;
-}
-
+// `pmUnitPath`: PmUnit path of the gpiochip which holds the presence
+// information.
+//
+// `lineIndex`: The gpio line number which will indicate the presence of the
+// device.
+//
+// `desiredValue`: The value which will indicate that the device is present.
 struct GpioLineHandle {
-  1: GpioLine gLine;
-  2: GpioValue desiredValue;
+  1: string pmUnitPath;
+  2: i32 lineIndex;
+  3: string desiredValue;
 }
 
+// The presence detection can be based on GPIO registers or sysfs paths.  Only
+// one of them should be populated
 struct PresenceDetection {
-  1: DetectionMechanism detectionMechanism;
-  2: GpioLineHandle gpioHandle;
-  3: optional SysfsFileHandle sysfsHandle;
+  1: optional GpioLineHandle gpioHandle;
+  2: optional SysfsFileHandle sysfsHandle;
 }
