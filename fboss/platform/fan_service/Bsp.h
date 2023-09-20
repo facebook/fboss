@@ -118,9 +118,7 @@ class Bsp {
       std::string fanName,
       int pwm);
 
-  void getSensorDataUtil(std::shared_ptr<SensorData> pSensorData);
   float getSensorDataSysfs(std::string path);
-  void getSensorDataRest(std::shared_ptr<SensorData> pSensorData);
   void processOpticEntries(
       const Optic& opticsGroup,
       std::shared_ptr<SensorData> pSensorData,

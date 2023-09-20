@@ -165,8 +165,7 @@ std::string getMokujinFSConfig() {
       "sensorName" : "test_sensor_3",
       "scale" : 1000.0,
       "access" : {
-        "accessType" : "ACCESS_TYPE_UTIL",
-        "path" : "sensor-util --read --name:test_sensor_2"
+        "accessType" : "ACCESS_TYPE_THRIFT",
       },
       "adjustmentTable" : {
         "60" : 0,
@@ -196,8 +195,7 @@ std::string getMokujinFSConfig() {
       "sensorName" : "test_sensor_4",
       "scale" : 1000.0,
       "access" : {
-        "accessType" : "ACCESS_TYPE_UTIL",
-        "path" : "sensor-util --read --name:test_sensor_2"
+        "accessType" : "ACCESS_TYPE_THRIFT",
       },
       "adjustmentTable" : {
         "60" : 0,

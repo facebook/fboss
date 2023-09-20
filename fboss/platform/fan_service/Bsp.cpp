@@ -76,8 +76,6 @@ int Bsp::run(const std::string& cmd) {
 
 void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
   bool fetchOverThrift = false;
-  bool fetchOverRest = false;
-  bool fetchOverUtil = false;
   bool fetchFromFsdb = false;
 
   // Only sysfs is read one by one. For other type of read,
@@ -93,10 +91,6 @@ void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
       } else {
         fetchOverThrift = true;
       }
-    } else if (sensorAccessType == constants::ACCESS_TYPE_REST()) {
-      fetchOverRest = true;
-    } else if (sensorAccessType == constants::ACCESS_TYPE_UTIL()) {
-      fetchOverUtil = true;
     } else if (sensorAccessType == constants::ACCESS_TYPE_SYSFS()) {
       nowSec = facebook::WallClockUtil::NowInSecFast();
       readSuccessful = false;
@@ -120,12 +114,6 @@ void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
   // then another sensor is read from sysfs)
   if (fetchOverThrift) {
     getSensorDataThrift(pSensorData);
-  }
-  if (fetchOverUtil) {
-    getSensorDataUtil(pSensorData);
-  }
-  if (fetchOverRest) {
-    getSensorDataRest(pSensorData);
   }
   if (fetchFromFsdb) {
     // Populate the last data that was received from FSDB into pSensorData
@@ -433,16 +421,6 @@ void Bsp::getSensorDataThrift(std::shared_ptr<SensorData> pSensorData) {
   XLOG(INFO) << fmt::format(
       "Got sensor data from sensor_service.  Item count: {}",
       sensorReadResponse.sensorData()->size());
-}
-
-void Bsp::getSensorDataRest(std::shared_ptr<SensorData> /*pSensorData*/) {
-  throw facebook::fboss::FbossError(
-      "getSensorDataRest is NOT IMPLEMENTED YET!");
-}
-
-void Bsp::getSensorDataUtil(std::shared_ptr<SensorData> /*pSensorData*/) {
-  throw facebook::fboss::FbossError(
-      "getSensorDataUtil is NOT IMPLEMENTED YET!");
 }
 
 // Sysfs may fail, but fan_service should keep running even

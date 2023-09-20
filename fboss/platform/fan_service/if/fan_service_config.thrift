@@ -5,7 +5,6 @@ const string RANGE_CHECK_ACTION_SHUTDOWN = "shutdown";
 const string ACCESS_TYPE_SYSFS = "ACCESS_TYPE_SYSFS";
 const string ACCESS_TYPE_UTIL = "ACCESS_TYPE_UTIL";
 const string ACCESS_TYPE_THRIFT = "ACCESS_TYPE_THRIFT";
-const string ACCESS_TYPE_REST = "ACCESS_TYPE_REST";
 const string ACCESS_TYPE_QSFP = "ACCESS_TYPE_QSFP";
 const string ZONE_TYPE_MAX = "ZONE_TYPE_MAX";
 const string ZONE_TYPE_MIN = "ZONE_TYPE_MIN";

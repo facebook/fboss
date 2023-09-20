@@ -33,13 +33,6 @@ class BspTest : public ::testing::Test {
   }
 };
 
-TEST_F(BspTest, getSensorOverRest) {
-  AccessMethod access;
-  access.accessType() = constants::ACCESS_TYPE_REST();
-  auto bsp = Bsp(makeConfig(access));
-  EXPECT_THROW(bsp.getSensorData(std::make_shared<SensorData>()), FbossError);
-}
-
 TEST_F(BspTest, getSensorMethodUnset) {
   auto bsp = Bsp(makeConfig({}));
   EXPECT_THROW(bsp.getSensorData(std::make_shared<SensorData>()), FbossError);
