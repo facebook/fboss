@@ -13,13 +13,15 @@ class RamonAsic : public BroadcomAsic {
       std::optional<int64_t> id,
       int16_t index,
       std::optional<cfg::Range64> systemPortRange,
-      folly::MacAddress& mac)
+      folly::MacAddress& mac,
+      std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)
       : BroadcomAsic(
             type,
             id,
             index,
             systemPortRange,
             mac,
+            sdkVersion,
             {cfg::SwitchType::FABRIC}) {}
   bool isSupported(Feature feature) const override;
   const std::map<cfg::PortType, cfg::PortLoopbackMode>& desiredLoopbackModes()

@@ -33,7 +33,8 @@ HwAsicTable::HwAsicTable(
             switchIdAndSwitchInfo.first,
             *switchIdAndSwitchInfo.second.switchIndex(),
             systemPortRange,
-            mac));
+            mac,
+            std::nullopt));
   }
 }
 

@@ -14,13 +14,15 @@ class EbroAsic : public TajoAsic {
       std::optional<int64_t> id,
       int16_t index,
       std::optional<cfg::Range64> systemPortRange,
-      folly::MacAddress& mac)
+      folly::MacAddress& mac,
+      std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)
       : TajoAsic(
             type,
             id,
             index,
             systemPortRange,
             mac,
+            sdkVersion,
             {cfg::SwitchType::NPU,
              cfg::SwitchType::VOQ,
              cfg::SwitchType::FABRIC}) {}

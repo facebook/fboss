@@ -375,9 +375,12 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       uint32_t systemCores = 0;
       uint32_t maxCoreCount = 0;
       auto localMac = getLocalMac();
-      const EbroAsic ebro(cfg::SwitchType::VOQ, 0, 0, std::nullopt, localMac);
-      const Jericho2Asic j2(cfg::SwitchType::VOQ, 0, 0, std::nullopt, localMac);
-      const Jericho3Asic j3(cfg::SwitchType::VOQ, 0, 0, std::nullopt, localMac);
+      const EbroAsic ebro(
+          cfg::SwitchType::VOQ, 0, 0, std::nullopt, localMac, std::nullopt);
+      const Jericho2Asic j2(
+          cfg::SwitchType::VOQ, 0, 0, std::nullopt, localMac, std::nullopt);
+      const Jericho3Asic j3(
+          cfg::SwitchType::VOQ, 0, 0, std::nullopt, localMac, std::nullopt);
       for (const auto& [id, dsfNode] : *agentCfg->thrift.sw()->dsfNodes()) {
         if (dsfNode.type() != cfg::DsfNodeType::INTERFACE_NODE) {
           continue;

@@ -876,7 +876,8 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
             static_cast<int64_t>(node->getSwitchId()),
             0, /* dummy switchIndex*/
             node->getSystemPortRange(),
-            mac);
+            mac,
+            std::nullopt);
       };
   auto processLoopbacks = [&](const std::shared_ptr<DsfNode>& node,
                               const HwAsic* dsfNodeAsic) {

@@ -16,6 +16,7 @@ class HwAsic {
       int16_t switchIndex,
       std::optional<cfg::Range64> systemPortRange,
       folly::MacAddress& mac,
+      std::optional<cfg::SdkVersion> sdkVersion = std::nullopt,
       std::unordered_set<cfg::SwitchType> supportedModes = {
           cfg::SwitchType::NPU});
   enum class Feature {
@@ -178,7 +179,8 @@ class HwAsic {
       std::optional<int64_t> switchID,
       int16_t switchIndex,
       std::optional<cfg::Range64> systemPortRange,
-      folly::MacAddress& mac);
+      folly::MacAddress& mac,
+      std::optional<cfg::SdkVersion> sdkVersion);
   virtual bool isSupported(Feature) const = 0;
   virtual cfg::AsicType getAsicType() const = 0;
   std::string getAsicTypeStr() const;
@@ -328,6 +330,7 @@ class HwAsic {
   std::optional<cfg::Range64> systemPortRange_;
   cfg::StreamType defaultStreamType_{cfg::StreamType::ALL};
   folly::MacAddress asicMac_;
+  std::optional<cfg::SdkVersion> sdkVersion_;
 };
 
 } // namespace facebook::fboss
