@@ -64,7 +64,8 @@ MultiSwitchThriftHandler::co_notifyLinkEvent(int64_t switchId) {
         co_return true;
       },
       10 /* buffer size */
-  };
+  }
+      .setChunkTimeout(std::chrono::milliseconds(0));
 }
 
 folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::FdbEvent, bool>>
@@ -83,7 +84,8 @@ MultiSwitchThriftHandler::co_notifyFdbEvent(int64_t switchId) {
         co_return true;
       },
       10 /* buffer size */
-  };
+  }
+      .setChunkTimeout(std::chrono::milliseconds(0));
 }
 
 folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::RxPacket, bool>>
@@ -108,7 +110,8 @@ MultiSwitchThriftHandler::co_notifyRxPacket(int64_t switchId) {
         co_return true;
       },
       1000 /* buffer size */
-  };
+  }
+      .setChunkTimeout(std::chrono::milliseconds(0));
 }
 
 folly::coro::Task<apache::thrift::ServerStream<multiswitch::TxPacket>>

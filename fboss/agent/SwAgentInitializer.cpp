@@ -218,6 +218,9 @@ int SwAgentInitializer::initAgent(HwSwitchCallback* callback) {
       {FLAGS_port, FLAGS_migrated_port},
       true /*setupSSL*/);
 
+  server_->setStreamExpireTime(std::chrono::milliseconds(0));
+  server_->setIdleTimeout(std::chrono::milliseconds(0));
+
   swHandler->setSSLPolicy(server_->getSSLPolicy());
 
   // At this point, we are guaranteed no other agent process will initialize
