@@ -397,6 +397,9 @@ int __real_bcm_field_qualify_udf(
     uint8* data,
     uint8* mask);
 
+void __real_bcm_field_group_config_t_init(
+    bcm_field_group_config_t* group_config);
+
 int __real_bcm_l3_egress_ecmp_get(
     int unit,
     bcm_l3_egress_ecmp_t* ecmp,
@@ -1112,6 +1115,9 @@ int __real_bcm_field_qualify_udf(
     int length,
     uint8* data,
     uint8* mask);
+
+void __real_bcm_field_group_config_t_init(
+    bcm_field_group_config_t* group_config);
 
 int __real_bcm_l3_route_get(int unit, bcm_l3_route_t* info);
 
@@ -2410,6 +2416,11 @@ int __wrap_bcm_field_qualify_udf(
     uint8* mask) {
   CALL_WRAPPERS_RV(
       bcm_field_qualify_udf(unit, eid, udf_id, length, data, mask));
+}
+
+void __wrap_bcm_field_group_config_t_init(
+    bcm_field_group_config_t* group_config) {
+  CALL_WRAPPERS_NO_RV(bcm_field_group_config_t_init(group_config));
 }
 
 int __wrap_bcm_stat_custom_add(

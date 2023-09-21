@@ -239,6 +239,8 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int length,
       uint8* data,
       uint8* mask) override;
+  void bcm_field_group_config_t_init(
+      bcm_field_group_config_t* group_config) override;
   int bcm_port_autoneg_set(int unit, bcm_port_t port, int autoneg) override;
   int bcm_port_phy_modify(
       int unit,

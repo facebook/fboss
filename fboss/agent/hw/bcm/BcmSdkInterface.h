@@ -602,6 +602,9 @@ class BcmSdkInterface {
       uint8* data,
       uint8* mask) = 0;
 
+  virtual void bcm_field_group_config_t_init(
+      bcm_field_group_config_t* group_config) = 0;
+
   virtual int bcm_cosq_bst_stat_sync(int unit, bcm_bst_stat_id_t bid) = 0;
   virtual int bcm_stat_custom_add(
       int unit,

@@ -2255,6 +2255,12 @@ int BcmCinter::bcm_field_qualify_udf(
   return 0;
 }
 
+void BcmCinter::bcm_field_group_config_t_init(
+    bcm_field_group_config_t* /*group_config*/) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_field_group_config_t_init(", makeParamStr("group_config"), ")")));
+}
+
 int BcmCinter::bcm_port_phy_modify(
     int unit,
     bcm_port_t port,
