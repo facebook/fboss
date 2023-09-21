@@ -489,6 +489,8 @@ struct AclEntry {
   29: optional EtherType etherType;
 
   30: optional i32 vlanID;
+
+  31: optional list<string> udfGroups;
 }
 
 enum AclTableActionType {
