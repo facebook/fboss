@@ -185,6 +185,7 @@ struct AclEntryFields {
   25: optional MatchAction aclAction;
   26: optional i32 vlanID;
   27: optional bool enabled;
+  28: optional list<string> udfGroups;
 }
 
 enum NeighborState {
