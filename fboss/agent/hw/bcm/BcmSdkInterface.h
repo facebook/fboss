@@ -588,6 +588,12 @@ class BcmSdkInterface {
       int* object_list,
       bcm_field_qset_t* qset) = 0;
 
+  virtual int bcm_field_qualify_UdfClass(
+      int unit,
+      bcm_field_entry_t entry,
+      uint32 data,
+      uint32 mask) = 0;
+
   virtual int bcm_cosq_bst_stat_sync(int unit, bcm_bst_stat_id_t bid) = 0;
   virtual int bcm_stat_custom_add(
       int unit,

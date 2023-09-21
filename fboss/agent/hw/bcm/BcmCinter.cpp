@@ -2228,6 +2228,17 @@ int BcmCinter::bcm_field_qset_id_multi_set(
   return 0;
 }
 
+int BcmCinter::bcm_field_qualify_UdfClass(
+    int unit,
+    bcm_field_entry_t entry,
+    uint32 data,
+    uint32 mask) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_field_qualify_UdfClass(",
+      makeParamStr(unit, getCintVar(fieldEntryVars, entry), data, mask),
+      ")")));
+  return 0;
+}
 int BcmCinter::bcm_port_phy_modify(
     int unit,
     bcm_port_t port,

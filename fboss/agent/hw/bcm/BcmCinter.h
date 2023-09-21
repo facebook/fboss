@@ -227,6 +227,11 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int num_objects,
       int* object_list,
       bcm_field_qset_t* qset) override;
+  int bcm_field_qualify_UdfClass(
+      int unit,
+      bcm_field_entry_t entry,
+      uint32 data,
+      uint32 mask) override;
   int bcm_port_autoneg_set(int unit, bcm_port_t port, int autoneg) override;
   int bcm_port_phy_modify(
       int unit,
