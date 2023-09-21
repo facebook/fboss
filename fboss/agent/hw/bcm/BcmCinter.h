@@ -232,6 +232,13 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_field_entry_t entry,
       uint32 data,
       uint32 mask) override;
+  int bcm_field_qualify_udf(
+      int unit,
+      bcm_field_entry_t eid,
+      bcm_udf_id_t udf_id,
+      int length,
+      uint8* data,
+      uint8* mask) override;
   int bcm_port_autoneg_set(int unit, bcm_port_t port, int autoneg) override;
   int bcm_port_phy_modify(
       int unit,

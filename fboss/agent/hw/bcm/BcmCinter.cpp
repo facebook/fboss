@@ -2239,6 +2239,22 @@ int BcmCinter::bcm_field_qualify_UdfClass(
       ")")));
   return 0;
 }
+
+int BcmCinter::bcm_field_qualify_udf(
+    int unit,
+    bcm_field_entry_t eid,
+    bcm_udf_id_t udf_id,
+    int length,
+    uint8* data,
+    uint8* mask) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_field_qualify_udf(",
+      makeParamStr(
+          unit, getCintVar(fieldEntryVars, eid), udf_id, length, *data, *mask),
+      ")")));
+  return 0;
+}
+
 int BcmCinter::bcm_port_phy_modify(
     int unit,
     bcm_port_t port,
