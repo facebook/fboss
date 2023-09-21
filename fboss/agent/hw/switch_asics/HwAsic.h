@@ -298,7 +298,7 @@ class HwAsic {
     return systemPortRange_;
   }
 
-  cfg::StreamType getDefaultStreamType() const {
+  virtual cfg::StreamType getDefaultStreamType() const {
     return defaultStreamType_;
   }
 
