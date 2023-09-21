@@ -67,13 +67,17 @@ class CmdShowInterfacePrbsStats : public CmdHandler<
              "Locked",
              "BER",
              "Max BER",
+             "SNR",
+             "Max SNR",
              "Num Loss Of Lock",
              "Time Since Last Lock",
              "Time Since Last Clear"});
         for (auto laneStat : *stats.laneStats()) {
-          std::ostringstream ber, maxBer;
+          std::ostringstream ber, maxBer, snr, maxSnr;
           ber << *laneStat.ber();
           maxBer << *laneStat.maxBer();
+          snr << (laneStat.snr().has_value() ? *laneStat.snr() : 0);
+          maxSnr << (laneStat.maxSnr().has_value() ? *laneStat.maxSnr() : 0);
           std::string lastClear = *laneStat.timeSinceLastClear()
               ? utils::getPrettyElapsedTime(
                     now.count() - *laneStat.timeSinceLastClear())
@@ -83,6 +87,8 @@ class CmdShowInterfacePrbsStats : public CmdHandler<
                *laneStat.locked() ? "True" : "False",
                ber.str(),
                maxBer.str(),
+               snr.str(),
+               maxSnr.str(),
                std::to_string(*laneStat.numLossOfLock()),
                utils::getPrettyElapsedTime(
                    now.count() - *laneStat.timeSinceLastLocked()),

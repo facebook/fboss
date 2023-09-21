@@ -3362,6 +3362,12 @@ void getModulePrbsStats(folly::EventBase& evb, std::vector<PortID> portList) {
       printf("  Locked: %s\n", (laneStats.locked().value() ? "True" : "False"));
       printf("  BER: %e\n", laneStats.ber().value());
       printf("  Max BER: %e\n", laneStats.maxBer().value());
+      printf(
+          "  SNR: %f\n",
+          (laneStats.snr().has_value() ? laneStats.snr().value() : 0));
+      printf(
+          "  Max SNR: %f\n",
+          (laneStats.maxSnr().has_value() ? laneStats.maxSnr().value() : 0));
       printf("  Num Loss of lock: %d\n", laneStats.numLossOfLock().value());
     }
   }
