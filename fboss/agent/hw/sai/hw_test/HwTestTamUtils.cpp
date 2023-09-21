@@ -28,6 +28,22 @@ void triggerBcmXgsParityError(HwSwitchEnsemble* ensemble) {
   std::ignore = out;
 }
 
+void triggerBcmJerichoParityError(HwSwitchEnsemble* ensemble) {
+  std::string out;
+  ensemble->runDiagCommand("\n", out);
+  ensemble->runDiagCommand("s CGM_INTERRUPT_MASK_REGISTER -1\n", out);
+  ensemble->runDiagCommand("s CGM_ENABLE_DYNAMIC_MEMORY_ACCESS 1\n", out);
+  ensemble->runDiagCommand("w CGM_QSPM 0 1 0\n", out);
+  ensemble->runDiagCommand(
+      "m ECI_GLOBAL_MEM_OPTIONS CPU_BYPASS_ECC_PAR=1\n", out);
+  ensemble->runDiagCommand("w CGM_QSPM 0 1 0\n", out);
+  ensemble->runDiagCommand(
+      "m ECI_GLOBAL_MEM_OPTIONS CPU_BYPASS_ECC_PAR=0\n", out);
+  ensemble->runDiagCommand("d raw disable_cache CGM_QSPM 0 1\n", out);
+  ensemble->runDiagCommand("quit\n", out);
+  std::ignore = out;
+}
+
 void triggerCiscoParityError(HwSwitchEnsemble* ensemble) {
   SaiSwitchEnsemble* saiEnsemble = static_cast<SaiSwitchEnsemble*>(ensemble);
 
@@ -48,8 +64,6 @@ void triggerParityError(HwSwitchEnsemble* ensemble) {
     case cfg::AsicType::ASIC_TYPE_MOCK:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
-    case cfg::AsicType::ASIC_TYPE_JERICHO2:
-    case cfg::AsicType::ASIC_TYPE_JERICHO3:
     case cfg::AsicType::ASIC_TYPE_RAMON:
     case cfg::AsicType::ASIC_TYPE_RAMON3:
       XLOG(FATAL) << "Unsupported HwAsic: "
@@ -66,6 +80,10 @@ void triggerParityError(HwSwitchEnsemble* ensemble) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
       triggerBcmXgsParityError(ensemble);
+      break;
+    case cfg::AsicType::ASIC_TYPE_JERICHO2:
+    case cfg::AsicType::ASIC_TYPE_JERICHO3:
+      triggerBcmJerichoParityError(ensemble);
       break;
   }
 }
