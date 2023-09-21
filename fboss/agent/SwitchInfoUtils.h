@@ -32,4 +32,12 @@ const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig(
 
 const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig();
 
+const std::optional<cfg::SdkVersion> getSdkVersionFromConfigImpl(
+    const cfg::SwitchConfig* config);
+
+const std::optional<cfg::SdkVersion> getSdkVersionFromConfig();
+
+const std::optional<cfg::SdkVersion> getSdkVersionFromConfig(
+    const AgentConfig* config);
+
 } // namespace facebook::fboss

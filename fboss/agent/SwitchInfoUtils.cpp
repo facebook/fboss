@@ -8,6 +8,8 @@
  *
  */
 #include "fboss/agent/SwitchInfoUtils.h"
+#include <atomic>
+#include <optional>
 
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/FbossError.h"
@@ -75,5 +77,34 @@ const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfig(
   }
   auto& swConfig = config->thrift.sw().value();
   return getSwitchInfoFromConfig(&swConfig);
+}
+
+const std::optional<cfg::SdkVersion> getSdkVersionFromConfigImpl(
+    const cfg::SwitchConfig* config) {
+  std::optional<cfg::SdkVersion> sdkVersion = std::nullopt;
+  if (config->sdkVersion().has_value()) {
+    sdkVersion = *config->sdkVersion();
+  }
+  return sdkVersion;
+}
+
+const std::optional<cfg::SdkVersion> getSdkVersionFromConfig() {
+  std::unique_ptr<AgentConfig> config;
+  try {
+    config = AgentConfig::fromDefaultFile();
+  } catch (const std::exception& e) {
+    return std::nullopt;
+  }
+  auto swConfig = config->thrift.sw();
+  return getSdkVersionFromConfigImpl(&(swConfig.value()));
+}
+
+const std::optional<cfg::SdkVersion> getSdkVersionFromConfig(
+    const AgentConfig* config) {
+  if (!config) {
+    return getSdkVersionFromConfig();
+  }
+  auto& swConfig = config->thrift.sw().value();
+  return getSdkVersionFromConfigImpl(&swConfig);
 }
 } // namespace facebook::fboss
