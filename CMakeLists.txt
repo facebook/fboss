@@ -89,7 +89,7 @@ if (SAI_BRCM_IMPL)
 endif()
 
 set(SAI_VER_MAJOR "1")
-set(SAI_VER_MINOR "12")
+set(SAI_VER_MINOR "13")
 set(SAI_VER_RELEASE "0")
 
 if (NOT "$ENV{SAI_SDK_VERSION}" STREQUAL "")
