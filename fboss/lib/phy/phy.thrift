@@ -303,6 +303,8 @@ struct PrbsLaneStats {
   5: i32 numLossOfLock;
   6: i32 timeSinceLastLocked;
   7: i32 timeSinceLastClear;
+  8: optional double snr;
+  9: optional double maxSnr;
 }
 
 struct PrbsStats {

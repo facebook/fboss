@@ -2946,7 +2946,8 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(
 
   // Step 2.a: Set the Diag Sel register to collect the BER values and wait
   // for some time
-  uint8_t diagSel = 1; // Diag Sel 1 is to obtain BER values
+  uint8_t diagSel =
+      DiagnosticFeatureEncoding::BER; // Diag Sel 1 is to obtain BER values
   writeCmisField(CmisField::DIAG_SEL, &diagSel);
   /* sleep override */
   usleep(kUsecDiagSelectLatchWait);
@@ -2956,6 +2957,24 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(
                                            : CmisField::HOST_BER;
   std::array<uint8_t, 16> laneBerList;
   readCmisField(cmisRegister, laneBerList.data());
+
+  // Get the SNR values
+  std::array<uint8_t, 16> laneSnrList;
+  if (isSnrSupported(side)) {
+    // Step 2.c: Set the Diag Sel register to collect the SNR values and wait
+    // for some time
+    diagSel =
+        DiagnosticFeatureEncoding::SNR; // Diag Sel 6 is to obtain SNR values
+    writeCmisField(CmisField::DIAG_SEL, &diagSel);
+    /* sleep override */
+    usleep(kUsecDiagSelectLatchWait);
+
+    // Step 2.d: Read the SNR values for all lanes
+    cmisRegister = (side == phy::Side::LINE) ? CmisField::MEDIA_SNR
+                                             : CmisField::MEDIA_BER_HOST_SNR;
+
+    readCmisField(cmisRegister, laneSnrList.data());
+  }
 
   // Step 3: Put all the lane info in return structure and return
   for (auto laneId = 0; laneId < numLanes; laneId++) {
@@ -2969,6 +2988,14 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(
     lsb = laneBerList.at(laneId * 2);
     msb = laneBerList.at((laneId * 2) + 1);
     laneStats.ber() = QsfpModule::getBerFloatValue(lsb, msb);
+
+    // Put the SNR value
+    if (isSnrSupported(side)) {
+      lsb = laneSnrList.at(laneId * 2);
+      msb = laneSnrList.at((laneId * 2) + 1);
+      uint16_t snrRawVal = (msb << 8) | lsb;
+      laneStats.snr() = CmisFieldInfo::getSnr(snrRawVal);
+    }
 
     prbsStats.laneStats()->push_back(laneStats);
   }

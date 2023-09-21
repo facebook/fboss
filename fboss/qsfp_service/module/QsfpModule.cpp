@@ -809,6 +809,8 @@ void QsfpModule::clearTransceiverPrbsStats(phy::Side side) {
     for (auto& laneStat : laneStats) {
       laneStat.ber() = 0;
       laneStat.maxBer() = 0;
+      laneStat.snr().reset();
+      laneStat.maxSnr().reset();
       laneStat.numLossOfLock() = 0;
       laneStat.timeSinceLastClear() = 0;
 
@@ -846,10 +848,24 @@ void QsfpModule::updatePrbsStats() {
             } else {
               newLane.maxBer() = *oldLane.maxBer();
             }
+            // Update maxSnr only if there is a lock
+            if (*newLane.locked()) {
+              if (newLane.snr().has_value() &&
+                  (!oldLane.maxSnr().has_value() ||
+                   *newLane.snr() > *oldLane.maxSnr())) {
+                newLane.maxSnr() = *newLane.snr();
+              }
+            } else if (oldLane.maxSnr().has_value()) {
+              newLane.maxSnr() = *oldLane.maxSnr();
+            }
+
             QSFP_LOG(DBG5, this)
                 << " Lane " << *newLane.laneId()
                 << " Lock=" << (*newLane.locked() ? "Y" : "N")
-                << " ber=" << *newLane.ber() << " maxBer=" << *newLane.maxBer();
+                << " ber=" << *newLane.ber() << " maxBer=" << *newLane.maxBer()
+                << " snr=" << (newLane.snr().has_value() ? *newLane.snr() : 0)
+                << " maxSnr="
+                << (newLane.maxSnr().has_value() ? *newLane.maxSnr() : 0);
 
             // Update timeSinceLastLocked
             // If previously there was no lock and now there is, update
