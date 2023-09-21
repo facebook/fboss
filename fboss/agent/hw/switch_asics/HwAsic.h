@@ -316,6 +316,10 @@ class HwAsic {
     uint32_t speedMbps;
   };
 
+  std::optional<cfg::SdkVersion> getSdkVersion() const {
+    return sdkVersion_;
+  }
+
   virtual RecyclePortInfo getRecyclePortInfo() const;
   cfg::PortLoopbackMode getDesiredLoopbackMode(
       cfg::PortType portType = cfg::PortType::INTERFACE_PORT) const;
