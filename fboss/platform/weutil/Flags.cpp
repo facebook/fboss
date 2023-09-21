@@ -13,7 +13,7 @@
 DEFINE_bool(json, false, "Output in JSON format");
 DEFINE_string(
     eeprom,
-    "chassis",
+    "",
     "EEPROM name or device type, default is chassis eeprom");
 DEFINE_bool(h, false, "help");
 DEFINE_string(

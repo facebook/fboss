@@ -351,7 +351,12 @@ WeutilImpl::prepareEepromFieldMap(
 std::vector<std::pair<std::string, std::string>> WeutilImpl::getInfo(
     const std::string& eeprom) {
   unsigned char buffer[kMaxEepromSize + 1];
-  int readCount = loadEeprom(eeprom, buffer, 0, kMaxEepromSize);
+  int offset = 0;
+  if (config_.configEntry.find(translatedFrom) != config_.configEntry.end()) {
+    offset = std::get<1>(config_.configEntry[translatedFrom]);
+  }
+
+  int readCount = loadEeprom(eeprom, buffer, offset, kMaxEepromSize);
 
   // Ensure that this is EEPROM v4 or later
   std::unordered_map<int, std::string> parsedValue;
@@ -502,9 +507,14 @@ void WeutilImpl::printInfoJson() {
 bool WeutilImpl::getEepromPath() {
   // If eeprom is in fact the FRU name, replace this name with the actual path
   // If it's not, treat it as the path to the eeprom file / sysfs
-  std::string lEeprom = eepromPath;
+  std::string lEeprom;
+  if (eepromPath == "") {
+    eepromPath = config_.chassisEeprom;
+  }
+  lEeprom = eepromPath;
   std::transform(lEeprom.begin(), lEeprom.end(), lEeprom.begin(), ::tolower);
   if (config_.configEntry.find(lEeprom) != config_.configEntry.end()) {
+    translatedFrom = eepromPath;
     eepromPath = std::get<0>(config_.configEntry[lEeprom]);
   } else {
     throw std::runtime_error("Invalid EEPROM Name.");
