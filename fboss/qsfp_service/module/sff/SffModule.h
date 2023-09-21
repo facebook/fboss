@@ -424,6 +424,7 @@ class SffModule : public QsfpModule {
    * This function expects the caller to hold the qsfp module level lock
    */
   bool setPortPrbsLocked(
+      const std::string& /* portName */,
       phy::Side /* side */,
       const prbs::InterfacePrbsState& /* prbs */) override;
 

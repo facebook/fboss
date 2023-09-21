@@ -435,8 +435,10 @@ class CmisModule : public QsfpModule {
    * Set the PRBS Generator and Checker on a module for the desired side (Line
    * or System side)
    */
-  bool setPortPrbsLocked(phy::Side side, const prbs::InterfacePrbsState& prbs)
-      override;
+  bool setPortPrbsLocked(
+      const std::string& portName,
+      phy::Side side,
+      const prbs::InterfacePrbsState& prbs) override;
 
   /*
    * Get the PRBS stats for a module

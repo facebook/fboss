@@ -2703,6 +2703,7 @@ bool CmisModule::getModuleStateChanged() {
  * This function expects the caller to hold the qsfp module level lock
  */
 bool CmisModule::setPortPrbsLocked(
+    const std::string& portName,
     phy::Side side,
     const prbs::InterfacePrbsState& prbs) {
   // If PRBS is not supported then return
@@ -2716,6 +2717,14 @@ bool CmisModule::setPortPrbsLocked(
   // Return error for invalid PRBS polynominal
   auto prbsPatternItr = prbsPatternMap.left.find(
       static_cast<prbs::PrbsPolynomial>(*prbs.polynomial()));
+
+  // Get the list of lanes to enable/disable PRBS
+  auto tcvrLanes = getTcvrLanesForPort(portName, side == phy::Side::LINE);
+  if (tcvrLanes.empty()) {
+    QSFP_LOG(ERR, this) << fmt::format(
+        "Empty lane list for port {:s}", portName);
+    return false;
+  }
 
   bool startGen{false}, stopGen{false};
   bool startChk{false}, stopChk{false};
@@ -2736,12 +2745,12 @@ bool CmisModule::setPortPrbsLocked(
 
   // Step 1: Set the pattern for Generator (for starting case)
   if (startGen) {
-    auto mediaFields = {
+    std::array<CmisField, 4> mediaFields = {
         CmisField::MEDIA_PATTERN_SELECT_LANE_2_1,
         CmisField::MEDIA_PATTERN_SELECT_LANE_4_3,
         CmisField::MEDIA_PATTERN_SELECT_LANE_6_5,
         CmisField::MEDIA_PATTERN_SELECT_LANE_8_7};
-    auto hostFields = {
+    std::array<CmisField, 4> hostFields = {
         CmisField::HOST_PATTERN_SELECT_LANE_2_1,
         CmisField::HOST_PATTERN_SELECT_LANE_4_3,
         CmisField::HOST_PATTERN_SELECT_LANE_6_5,
@@ -2757,9 +2766,14 @@ bool CmisModule::setPortPrbsLocked(
     }
     auto prbsPolynominal = prbsPatternItr->second;
     // There are 4 bytes, each contains pattern for 2 lanes
-    uint8_t patternVal = (prbsPolynominal & 0xF) << 4 | (prbsPolynominal & 0xF);
-    for (auto field : cmisRegisters) {
-      writeCmisField(field, &patternVal);
+    uint8_t patternVal;
+    for (auto lane : tcvrLanes) {
+      auto cmisReg = cmisRegisters[lane / 2];
+      readCmisField(cmisReg, &patternVal);
+      patternVal = (lane % 2 == 0)
+          ? (patternVal & 0xF0) | (prbsPolynominal & 0x0F)
+          : (patternVal & 0x0F) | ((prbsPolynominal << 4) & 0xF0);
+      writeCmisField(cmisReg, &patternVal);
     }
   }
 
@@ -2770,12 +2784,13 @@ bool CmisModule::setPortPrbsLocked(
 
   if (startGen || stopGen) {
     uint8_t startGenLaneMask;
-    if (startGen) {
-      startGenLaneMask = (side == phy::Side::LINE)
-          ? ((1 << numMediaLanes()) - 1)
-          : ((1 << numHostLanes()) - 1);
-    } else {
-      startGenLaneMask = 0;
+    readCmisField(cmisRegister, &startGenLaneMask);
+    for (auto lane : tcvrLanes) {
+      if (startGen) {
+        startGenLaneMask |= (1 << lane);
+      } else {
+        startGenLaneMask &= ~(1 << lane);
+      }
     }
     writeCmisField(cmisRegister, &startGenLaneMask);
 
@@ -2788,13 +2803,13 @@ bool CmisModule::setPortPrbsLocked(
 
   // Step 3: Set the pattern for Checker (for starting case)
   if (startChk) {
-    auto mediaFields = {
+    std::array<CmisField, 4> mediaFields = {
         CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_2_1,
         CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_4_3,
         CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_6_5,
         CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_8_7,
     };
-    auto hostFields = {
+    std::array<CmisField, 4> hostFields = {
         CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_2_1,
         CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_4_3,
         CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_6_5,
@@ -2811,9 +2826,14 @@ bool CmisModule::setPortPrbsLocked(
     }
     auto prbsPolynominal = prbsPatternItr->second;
     // There are 4 bytes, each contains pattern for 2 lanes
-    uint8_t patternVal = (prbsPolynominal & 0xF) << 4 | (prbsPolynominal & 0xF);
-    for (auto field : cmisFields) {
-      writeCmisField(field, &patternVal);
+    uint8_t patternVal;
+    for (auto lane : tcvrLanes) {
+      auto cmisReg = cmisFields[lane / 2];
+      readCmisField(cmisReg, &patternVal);
+      patternVal = (lane % 2 == 0)
+          ? (patternVal & 0xF0) | (prbsPolynominal & 0x0F)
+          : (patternVal & 0x0F) | ((prbsPolynominal << 4) & 0xF0);
+      writeCmisField(cmisReg, &patternVal);
     }
   }
 
@@ -2823,12 +2843,13 @@ bool CmisModule::setPortPrbsLocked(
 
   if (startChk || stopChk) {
     uint8_t startChkLaneMask;
-    if (startChk) {
-      startChkLaneMask = (side == phy::Side::LINE)
-          ? ((1 << numMediaLanes()) - 1)
-          : ((1 << numHostLanes()) - 1);
-    } else {
-      startChkLaneMask = 0;
+    readCmisField(cmisRegister, &startChkLaneMask);
+    for (auto lane : tcvrLanes) {
+      if (startChk) {
+        startChkLaneMask |= (1 << lane);
+      } else {
+        startChkLaneMask &= ~(1 << lane);
+      }
     }
     writeCmisField(cmisRegister, &startChkLaneMask);
 

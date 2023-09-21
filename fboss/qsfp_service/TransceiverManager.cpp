@@ -1659,7 +1659,7 @@ void TransceiverManager::setInterfacePrbs(
       auto lockedTransceivers = transceivers_.rlock();
       if (auto it = lockedTransceivers->find(*tcvrID);
           it != lockedTransceivers->end()) {
-        if (!it->second->setPortPrbs(side, state)) {
+        if (!it->second->setPortPrbs(portName, side, state)) {
           throw FbossError("Failed to set PRBS on transceiver ", *tcvrID);
         }
       } else {

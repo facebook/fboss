@@ -584,12 +584,13 @@ void QsfpModule::cacheMediaLaneSignals(
 }
 
 bool QsfpModule::setPortPrbs(
+    const std::string& portName,
     phy::Side side,
     const prbs::InterfacePrbsState& prbs) {
   bool status = false;
-  auto setPrbsLambda = [&status, side, prbs, this]() {
+  auto setPrbsLambda = [&status, portName, side, prbs, this]() {
     lock_guard<std::mutex> g(qsfpModuleMutex_);
-    status = setPortPrbsLocked(side, prbs);
+    status = setPortPrbsLocked(portName, side, prbs);
   };
   auto i2cEvb = qsfpImpl_->getI2cEventBase();
   if (!i2cEvb) {

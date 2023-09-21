@@ -249,6 +249,7 @@ class QsfpModule : public Transceiver {
   void updatePrbsStats();
 
   bool setPortPrbs(
+      const std::string& /* portName */,
       phy::Side /* side */,
       const prbs::InterfacePrbsState& /* prbs */) override;
 
@@ -673,6 +674,7 @@ class QsfpModule : public Transceiver {
    * level lock. Returns true if setting the prbs was successful
    */
   virtual bool setPortPrbsLocked(
+      const std::string& /* portName */,
       phy::Side /* side */,
       const prbs::InterfacePrbsState& /* prbs */) {
     return false;

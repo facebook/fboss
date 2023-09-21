@@ -1680,6 +1680,7 @@ void SffModule::setDiagsCapability() {
  * This function expects the caller to hold the qsfp module level lock
  */
 bool SffModule::setPortPrbsLocked(
+    const std::string& /* portName */,
     phy::Side side,
     const prbs::InterfacePrbsState& prbs) {
   auto enable = (prbs.generatorEnabled().has_value() &&

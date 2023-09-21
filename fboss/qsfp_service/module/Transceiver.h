@@ -224,6 +224,7 @@ class Transceiver {
       phy::Side side) const = 0;
 
   virtual bool setPortPrbs(
+      const std::string& /* portName */,
       phy::Side /* side */,
       const prbs::InterfacePrbsState& /* prbs */) = 0;
 
