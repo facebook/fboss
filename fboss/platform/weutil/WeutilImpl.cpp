@@ -82,7 +82,7 @@ void WeutilImpl::initializeFieldDictionaryV4() {
       {18, "Extended MAC Address Size", FIELD_UINT, 2, VARIABLE});
   fieldDictionaryV4_.push_back(
       {19, "EEPROM location on Fabric", FIELD_STRING, VARIABLE, VARIABLE});
-  fieldDictionaryV4_.push_back({250, "CRC16", FIELD_HEX, 2, VARIABLE});
+  fieldDictionaryV4_.push_back({250, "CRC16", FIELD_UINT, 2, VARIABLE});
 }
 
 // Same as above, but for EEPROM V3.
@@ -145,11 +145,12 @@ int WeutilImpl::loadEeprom(
   int fileSize = 0;
   std::ifstream file(eeprom, std::ios::binary);
   int readCount = 0;
+  int lastByte = 0;
   // First, detect EEPROM size, upto 2048B only
   try {
     file.seekg(0, std::ios::end);
     fileSize = file.tellg();
-    fileSize = fileSize > max ? max : fileSize;
+    lastByte = fileSize > (max + offset) ? (max + offset) : fileSize;
   } catch (std::exception& ex) {
     std::cout << "Failed to detect EEPROM size (" << eeprom
               << "): " << ex.what() << std::endl;
@@ -165,7 +166,7 @@ int WeutilImpl::loadEeprom(
   // Now, read the eeprom
   try {
     file.seekg(offset, std::ios::beg);
-    file.read((char*)&output[0], (fileSize - offset));
+    file.read((char*)&output[0], (lastByte - offset));
     readCount = (int)file.gcount();
     file.close();
   } catch (std::exception& ex) {
@@ -514,7 +515,7 @@ bool WeutilImpl::getEepromPath() {
   lEeprom = eepromPath;
   std::transform(lEeprom.begin(), lEeprom.end(), lEeprom.begin(), ::tolower);
   if (config_.configEntry.find(lEeprom) != config_.configEntry.end()) {
-    translatedFrom = eepromPath;
+    translatedFrom = lEeprom;
     eepromPath = std::get<0>(config_.configEntry[lEeprom]);
   } else {
     throw std::runtime_error("Invalid EEPROM Name.");
