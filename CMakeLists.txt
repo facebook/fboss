@@ -619,4 +619,5 @@ add_dependencies(fboss_platform_services
   platform_manager
   fw_util
   weutil
+  led_service
 )
