@@ -9,7 +9,8 @@
 
 namespace facebook::fboss {
 HwAsicTable::HwAsicTable(
-    const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo) {
+    const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo,
+    std::optional<cfg::SdkVersion> sdkVersion) {
   for (const auto& switchIdAndSwitchInfo : switchIdToSwitchInfo) {
     folly::MacAddress mac;
     if (switchIdAndSwitchInfo.second.switchMac()) {
@@ -34,7 +35,7 @@ HwAsicTable::HwAsicTable(
             *switchIdAndSwitchInfo.second.switchIndex(),
             systemPortRange,
             mac,
-            std::nullopt));
+            sdkVersion));
   }
 }
 

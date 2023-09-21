@@ -448,7 +448,8 @@ shared_ptr<SwitchState> publishAndApplyConfig(
       config->switchSettings()->switchIdToSwitchInfo()->size()
           ? *config->switchSettings()->switchIdToSwitchInfo()
           : std::map<int64_t, cfg::SwitchInfo>(
-                {{0, createSwitchInfo(cfg::SwitchType::NPU)}}));
+                {{0, createSwitchInfo(cfg::SwitchType::NPU)}}),
+      std::nullopt);
   return applyThriftConfig(
       state,
       config,

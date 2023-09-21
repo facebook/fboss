@@ -271,7 +271,9 @@ SwSwitch::SwSwitch(
       teFlowNextHopHandler_(new TeFlowNexthopHandler(this)),
       dsfSubscriber_(new DsfSubscriber(this)),
       switchInfoTable_(getSwitchInfoFromConfig(config)),
-      hwAsicTable_(new HwAsicTable(getSwitchInfoFromConfig(config))),
+      hwAsicTable_(new HwAsicTable(
+          getSwitchInfoFromConfig(config),
+          getSdkVersionFromConfig(config))),
       scopeResolver_(
           new SwitchIdScopeResolver(getSwitchInfoFromConfig(config))),
       switchStatsObserver_(new SwitchStatsObserver(this)),

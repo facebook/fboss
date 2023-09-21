@@ -594,7 +594,8 @@ void HwSwitchEnsemble::setupEnsemble(
   switchInfo.portIdRange() = portIdRange;
   auto switchIdToSwitchInfo = std::map<int64_t, cfg::SwitchInfo>(
       {{asic->getSwitchId() ? *asic->getSwitchId() : 0, switchInfo}});
-  hwAsicTable_ = std::make_unique<HwAsicTable>(switchIdToSwitchInfo);
+  hwAsicTable_ =
+      std::make_unique<HwAsicTable>(switchIdToSwitchInfo, std::nullopt);
   scopeResolver_ =
       std::make_unique<SwitchIdScopeResolver>(switchIdToSwitchInfo);
   if (haveFeature(MULTISWITCH_THRIFT_SERVER)) {
