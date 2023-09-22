@@ -30,6 +30,12 @@ constexpr auto kSecondsBetweenXphyInfoCollectionCheck = 5s;
 constexpr auto kMaxNumXphyInfoCollectionCheck = 24;
 
 class LinkTest : public AgentTest {
+ public:
+  bool sendAndCheckReachabilityOnAllCabledPorts() {
+    sw()->getLldpMgr()->sendLldpOnAllPorts();
+    return checkReachabilityOnAllCabledPorts();
+  }
+
  protected:
   void SetUp() override;
   void overrideL2LearningConfig(bool swLearning = false, int ageTimer = 300);
@@ -122,12 +128,6 @@ class LinkTest : public AgentTest {
   void TearDown() override;
 
   void setLinkState(bool enable, std::vector<PortID>& portIds);
-
- public:
-  bool sendAndCheckReachabilityOnAllCabledPorts() {
-    sw()->getLldpMgr()->sendLldpOnAllPorts();
-    return checkReachabilityOnAllCabledPorts();
-  }
 
  private:
   void programDefaultRoute(

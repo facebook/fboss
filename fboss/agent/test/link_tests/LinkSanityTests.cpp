@@ -1,5 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
+#include <folly/Random.h>
 #include <folly/Subprocess.h>
 #include <gtest/gtest.h>
 #include "fboss/agent/LldpManager.h"
@@ -193,6 +194,105 @@ TEST_F(LinkTest, ptpEnableIsHitless) {
           RouterID(0),
           ecmpSizeInSw),
       ecmpSizeInSw);
+}
+
+/*
+ * opticsTxDisableRandomPorts
+ *
+ * Test randomly selected ports for optics tx_disable and tx_enable.
+ * Steps:
+ * 1. Randomly select some of the optical ports
+ * 2. Mark these ports and their peers for expected Down Ports
+ * 3. Disable the randomly selected port from step 1
+ * 4. Verify all Expected Down ports from step 2 go Down
+ * 5. Verify all other ports (all optical ports - expected Down ports) keep
+ *    remain Up
+ * 6. Enable the randomly selected port from step 1
+ * 7. Make sure all the ports come up again
+ */
+TEST_F(LinkTest, opticsTxDisableRandomPorts) {
+  auto [opticalPorts, opticalPortNames] = getOpticalCabledPortsAndNames();
+  EXPECT_FALSE(opticalPorts.empty())
+      << "opticsTxDisableEnable: Did not detect any optical transceivers";
+
+  auto connectedPairPortIds = getConnectedOpticalPortPairWithFeature(
+      TransceiverFeature::TX_DISABLE, phy::Side::LINE);
+
+  std::vector<PortID> disabledPorts; // List of PortID of disabled ports
+  std::string disabledPortNames = ""; // List of port Names of disabled ports
+  std::vector<PortID> expectedDownPorts; // List of PortID of disabled ports
+                                         // and their peers
+  std::vector<PortID> expectedUpPorts; // opticalPorts - expectedDownPorts
+
+  for (auto portPair : connectedPairPortIds) {
+    auto port = portPair.first;
+    auto peerPort = portPair.second;
+    // Get port name
+    auto name = getPortName(port);
+
+    // 1. Randomly select if this portA needs to be disabled
+    auto disableThisPort = folly::Random::randBool(0.5);
+    if (disableThisPort) {
+      // Add the port to disable port list
+      disabledPorts.push_back(port);
+      disabledPortNames += " " + name;
+
+      // 2. Mark these ports and their peers for expected Down Ports
+      // Add this port to expectedDownPorts list
+      expectedDownPorts.push_back(port);
+
+      // Add the peer port to expectedDownPorts list
+      expectedDownPorts.push_back(peerPort);
+    }
+  }
+
+  // Expected Up ports = All optical ports - expected down ports
+  for (auto port : opticalPorts) {
+    if (std::find(expectedDownPorts.begin(), expectedDownPorts.end(), port) ==
+        expectedDownPorts.end()) {
+      expectedUpPorts.push_back(port);
+    }
+  }
+
+  // 0. Verify all the ports are Up first
+  EXPECT_NO_THROW(waitForLinkStatus(opticalPorts, true));
+
+  // 3. Disable the randomly selected port from step 1
+  const std::string txDisableCmd =
+      "wedge_qsfp_util " + disabledPortNames + " --tx_disable";
+  XLOG(DBG2) << fmt::format(
+      "opticsTxDisableRandomPorts: Disabling ports using command: {:s}",
+      txDisableCmd);
+  folly::Subprocess(txDisableCmd).waitChecked();
+  XLOG(DBG2) << fmt::format(
+      "opticsTxDisableRandomPorts: cmd {:s} finished. Awaiting links to go down...",
+      txDisableCmd);
+
+  // 4. Verify all Expected Down ports from step 2 go Down
+  EXPECT_NO_THROW(waitForLinkStatus(expectedDownPorts, false));
+  XLOG(DBG2) << fmt::format(
+      "opticsTxDisableEnable: link Tx disabled for {:s}", disabledPortNames);
+
+  // 5. Verify thet expected Up ports (all optical ports - expected Down ports)
+  // keep
+  //   remain Up
+  EXPECT_NO_THROW(waitForLinkStatus(expectedUpPorts, true));
+
+  // 6. Enable the randomly selected port from step 1
+  const std::string txEnableCmd =
+      "wedge_qsfp_util " + disabledPortNames + " --tx_enable";
+  XLOG(DBG2) << fmt::format(
+      "opticsTxDisableRandomPorts: Enabling ports using command: {:s}",
+      txEnableCmd);
+  folly::Subprocess(txEnableCmd).waitChecked();
+  XLOG(DBG2) << fmt::format(
+      "opticsTxDisableRandomPorts: cmd {:s} finished. Awaiting links to go up...",
+      txEnableCmd);
+
+  // 7. Make sure all the ports are Up again
+  EXPECT_NO_THROW(waitForLinkStatus(opticalPorts, true));
+  XLOG(DBG2) << fmt::format(
+      "opticsTxDisableEnable: link Tx enabled for {:s}", disabledPortNames);
 }
 
 TEST_F(LinkTest, opticsTxDisableEnable) {
