@@ -334,23 +334,42 @@ TEST_F(LinkTest, opticsTxDisableEnable) {
 TEST_F(LinkTest, testOpticsRemediation) {
   auto verify = [this]() {
     std::vector<int32_t> transceiverIds;
-    auto [ports, opticalPortNames] = getOpticalCabledPortsAndNames(true);
-    // Bring down the link on all the optical cabled ports. The link should go
-    // down and the remediation should get triggered
-    EXPECT_GT(ports.size(), 0);
+    // Bring down the link on all the optical cabled ports having tx_disable
+    // feature supported. The link should go down and the remediation should
+    // get triggered bringing it up
+    auto connectedPairPortIds = getConnectedOpticalPortPairWithFeature(
+        TransceiverFeature::TX_DISABLE, phy::Side::LINE);
+
+    EXPECT_GT(connectedPairPortIds.size(), 0);
+
+    std::vector<PortID> disabledPorts; // List of PortID of disabled ports
+    std::string disabledPortNames = ""; // List of port Names of disabled ports
+
+    for (auto portPair : connectedPairPortIds) {
+      auto port = portPair.first;
+      auto peerPort = portPair.second;
+      // Get port names
+      auto portName = getPortName(port);
+      auto peerPortName = getPortName(peerPort);
+
+      disabledPorts.push_back(port);
+      disabledPorts.push_back(peerPort);
+      disabledPortNames += " " + portName;
+      disabledPortNames += " " + peerPortName;
+    }
 
     const std::string txDisableCmd =
-        "wedge_qsfp_util " + opticalPortNames + " --tx-disable";
+        "wedge_qsfp_util " + disabledPortNames + " --tx-disable";
     // @lint-ignore CLANGTIDY
     folly::Subprocess(txDisableCmd).waitChecked();
 
-    for (const auto& port : ports) {
+    for (const auto& port : disabledPorts) {
       auto tcvrId =
           platform()->getPlatformPort(port)->getTransceiverID().value();
       transceiverIds.push_back(tcvrId);
     }
-    XLOG(DBG2) << "Wait for all ports to be down " << opticalPortNames;
-    EXPECT_NO_THROW(waitForLinkStatus(ports, false));
+    XLOG(DBG2) << "Wait for all ports to be down " << disabledPortNames;
+    EXPECT_NO_THROW(waitForLinkStatus(disabledPorts, false));
 
     // Check the module's remediation counter has increased.
     // Exclude the Miniphoton ports
@@ -358,7 +377,7 @@ TEST_F(LinkTest, testOpticsRemediation) {
 
     WITH_RETRIES_N_TIMED(5, std::chrono::seconds(60), {
       auto transceiverInfos = waitForTransceiverInfo(transceiverIds);
-      for (const auto& port : ports) {
+      for (const auto& port : disabledPorts) {
         auto tcvrId =
             platform()->getPlatformPort(port)->getTransceiverID().value();
         auto txInfoItr = transceiverInfos.find(tcvrId);
@@ -378,8 +397,8 @@ TEST_F(LinkTest, testOpticsRemediation) {
       }
     });
 
-    XLOG(DBG2) << "Wait for all ports to come up " << opticalPortNames;
-    EXPECT_NO_THROW(waitForLinkStatus(ports, true, 60, 5s));
+    XLOG(DBG2) << "Wait for all ports to come up " << disabledPortNames;
+    EXPECT_NO_THROW(waitForLinkStatus(disabledPorts, true, 60, 5s));
   };
 
   verifyAcrossWarmBoots([]() {}, verify);
