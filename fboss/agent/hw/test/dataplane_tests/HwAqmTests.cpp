@@ -117,7 +117,9 @@ class HwAqmTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
-  cfg::SwitchConfig configureQueue2WithAqmThreshold(bool ecnConfigOnly) const {
+  cfg::SwitchConfig configureQueue2WithAqmThreshold(
+      bool enableWred,
+      bool enableEcn) const {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
@@ -129,7 +131,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
                 ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
                 .begin());
       utility::addOlympicQueueConfig(
-          &cfg, streamType, getPlatform()->getAsic(), !ecnConfigOnly);
+          &cfg, streamType, getPlatform()->getAsic(), enableWred, enableEcn);
       utility::addOlympicQosMaps(cfg, getPlatform()->getAsic());
     }
     return cfg;
@@ -383,10 +385,11 @@ class HwAqmTest : public HwLinkStateDependentTest {
     return stats;
   }
 
-  // The ecnConfigOnly param is used to specify the test should
-  // use ECN config only when ECN is being tested. This helps
-  // validate functionality in AI network which uses ECN alone.
-  void runTest(const uint8_t ecnVal, bool ecnConfigOnly = false) {
+  // The enableWred/ enableEcn params are used to specify the test should
+  // use WRED/ECN config or not. This helps validate functionality in AI
+  // network which uses ECN alone, the case with both ECN and WRED as in
+  // front end network or with just WRED.
+  void runTest(const uint8_t ecnVal, bool enableWred, bool enableEcn) {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
 #if defined(GTEST_SKIP)
       GTEST_SKIP();
@@ -407,7 +410,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
     };
 
     auto setup = [&]() {
-      applyNewConfig(configureQueue2WithAqmThreshold(ecnConfigOnly));
+      applyNewConfig(configureQueue2WithAqmThreshold(enableWred, enableEcn));
       setupEcmpTraffic();
       if (isEct(ecnVal)) {
         sendPkt(kDscp(), ecnVal, true);
@@ -990,19 +993,23 @@ class HwAqmTest : public HwLinkStateDependentTest {
 };
 
 TEST_F(HwAqmTest, verifyEct0) {
-  runTest(kECT0);
+  runTest(kECT0, true /* enableWred */, true /* enableEcn */);
 }
 
 TEST_F(HwAqmTest, verifyEct1) {
-  runTest(kECT1);
+  runTest(kECT1, true /* enableWred */, true /* enableEcn */);
 }
 
 TEST_F(HwAqmTest, verifyEcnWithoutWredConfig) {
-  runTest(kECT1, true /* ecnConfigOnly */);
+  runTest(kECT1, false /* enableWred */, true /* enableEcn */);
+}
+
+TEST_F(HwAqmTest, verifyWredWithoutEcnConfig) {
+  runTest(kNotECT, true /* enableWred */, false /* enableEcn */);
 }
 
 TEST_F(HwAqmTest, verifyWred) {
-  runTest(kNotECT);
+  runTest(kNotECT, true /* enableWred */, true /* enableEcn */);
 }
 
 TEST_F(HwAqmTest, verifyWredDrop) {
