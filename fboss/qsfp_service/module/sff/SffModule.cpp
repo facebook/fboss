@@ -120,6 +120,9 @@ static QsfpFieldInfo<SffField, SffPages>::QsfpFieldMap qsfpFields = {
     {SffField::RX_AMPLITUDE, {SffPages::PAGE3, 238, 2}},
     {SffField::SQUELCH_CONTROL, {SffPages::PAGE3, 240, 1}},
     {SffField::TXRX_OUTPUT_CONTROL, {SffPages::PAGE3, 241, 1}},
+
+    // Page 128 values for Miniphoton diags
+    {SffField::MINIPHOTON_LOOPBACK, {SffPages::PAGE128, 245, 1}},
 };
 
 static SffFieldMultiplier qsfpMultiplier = {
@@ -1662,13 +1665,26 @@ void SffModule::setDiagsCapability() {
         ? true
         : false;
 
+    // Only Miniphoton has loopback capability
+    bool lbCapability{false};
+    const auto& cachedTcvrInfo = getTransceiverInfo();
+    if (cachedTcvrInfo.tcvrState().value().vendor().has_value() &&
+        *cachedTcvrInfo.tcvrState().value().vendor()->partNumber() ==
+            kMiniphotonPartNumber) {
+      lbCapability = true;
+    }
+
     if ((*diagsCapability).has_value()) {
       diagsCapability->value().txOutputControl() = txOpCtrl;
       diagsCapability->value().rxOutputControl() = rxOpCtrl;
+      diagsCapability->value().loopbackLine() = lbCapability;
+      diagsCapability->value().loopbackSystem() = lbCapability;
     } else {
       DiagsCapability diags;
       diags.txOutputControl() = txOpCtrl;
       diags.rxOutputControl() = rxOpCtrl;
+      diags.loopbackLine() = lbCapability;
+      diags.loopbackSystem() = lbCapability;
       *diagsCapability = diags;
     }
   }
@@ -1775,6 +1791,50 @@ bool SffModule::setTransceiverTxLocked(
   rxTxCtrl = lineSide ? txDisableVal : ((txDisableVal << 4) | (rxTxCtrl & 0xF));
   writeSffField(txControlReg, &rxTxCtrl);
   return true;
+}
+
+/*
+ * setTransceiverLoopbackLocked
+ *
+ * Sets or resets the loopback on the given lanes for the SW Port on system
+ * or line side of the Transceiver. For line side this should bring up the NPU
+ * port. For system side, this should bring up the peer side port.
+ */
+void SffModule::setTransceiverLoopbackLocked(
+    const std::string& portName,
+    phy::Side side,
+    bool setLoopback) {
+  // Check if the module supports Loopback feature first
+  if (!isTransceiverFeatureSupported(
+          TransceiverFeature::LOOPBACK, side == phy::Side::SYSTEM)) {
+    throw FbossError(fmt::format(
+        "Module {:s} does not support transceiver loopback on {:s}",
+        portName,
+        ((side == phy::Side::LINE) ? "Line" : "System")));
+  }
+
+  // For Miniphoton alone, there is no need to cache read the diag page 128
+  // every refresh cycle so let's do the direct register access
+  // Page 128, register 245:
+  // 0b01010101 - host loopback
+  // 0b10101010 - line loopback
+  // 0 - no loopback
+  uint8_t loopbackVal{0};
+  if (setLoopback) {
+    loopbackVal = (side == phy::Side::SYSTEM) ? MINIPHOTON_LPBK_SYSTEM_MASK
+                                              : MINIPHOTON_LPBK_LINE_MASK;
+  }
+
+  writeSffField(SffField::MINIPHOTON_LOOPBACK, &loopbackVal);
+
+  QSFP_LOG(DBG2, this) << fmt::format(
+      "Port {:s} wrote Loopback register value {:#x}", portName, loopbackVal);
+
+  QSFP_LOG(DBG2, this) << fmt::format(
+      "Port {:s} {:s} Loopback {:s}",
+      portName,
+      (side == phy::Side::SYSTEM ? "system" : "line"),
+      (setLoopback ? "set" : "reset"));
 }
 
 } // namespace fboss

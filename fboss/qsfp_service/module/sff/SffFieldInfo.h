@@ -122,6 +122,9 @@ enum class SffField {
   VENDOR_MEM_ADDRESS, // Vendor Specific memory address
   USER_EEPROM, // User Writable NVM
   VENDOR_CONTROL, // Vendor Specific Control
+
+  /* Miniphoton specific */
+  MINIPHOTON_LOOPBACK, // Miniphoton Loopback Mode
 };
 
 enum DeviceTechnologySff : uint8_t {
@@ -190,6 +193,11 @@ enum FieldMasks : uint8_t {
 enum DiagsCapabilityMask : uint8_t {
   TX_DISABLE_SUPPORT_MASK = 0x10,
   RX_DISABLE_SUPPORT_MASK = 0x04,
+};
+
+enum MiniphotonLoopbackRegVal : uint8_t {
+  MINIPHOTON_LPBK_LINE_MASK = 0b10101010,
+  MINIPHOTON_LPBK_SYSTEM_MASK = 0b01010101,
 };
 
 class SffFieldInfo : public QsfpFieldInfo<SffField, SffPages> {
