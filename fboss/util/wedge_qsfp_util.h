@@ -67,6 +67,7 @@ DECLARE_bool(prbs_stats);
 DECLARE_bool(generator);
 DECLARE_bool(checker);
 DECLARE_bool(module_io_stats);
+DECLARE_bool(capabilities);
 
 enum LoopbackMode { noLoopback, electricalLoopback, opticalLoopback };
 
@@ -292,5 +293,7 @@ bool verifyDirectI2cCompliance();
 void printModuleTransactionStats(
     const std::vector<int32_t>& ports,
     folly::EventBase& evb);
+
+bool printDiagsInfo(folly::EventBase& evb);
 
 } // namespace facebook::fboss

@@ -15,8 +15,14 @@ QsfpUtilTx::QsfpUtilTx(
       allPortNames_(portNames),
       evb_(evb),
       disableTx_(FLAGS_tx_disable ? true : false) {
+  std::string allPortNames;
+  for (auto portName : portNames) {
+    allPortNames += portName;
+    allPortNames += ", ";
+  }
   XLOG(INFO) << fmt::format(
-      "TxDisableTrace: disableTx_ = {:s}, FLAGS_tx_disable = {:s}, FLAGS_tx_enable = {:s}",
+      "TxDisableTrace: disableTx_ = {:s}, {:s}, FLAGS_tx_disable = {:s}, FLAGS_tx_enable = {:s}",
+      allPortNames,
       disableTx_ ? "disabled" : "enabled",
       FLAGS_tx_disable ? "disabled" : "enabled",
       FLAGS_tx_enable ? "enabled" : "disabled");

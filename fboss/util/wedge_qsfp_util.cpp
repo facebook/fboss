@@ -36,6 +36,7 @@
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thread>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -302,6 +303,10 @@ DEFINE_bool(
     module_io_stats,
     false,
     "Get the Module read/write transaction stats");
+DEFINE_bool(
+    capabilities,
+    false,
+    "Show module capabilities for all present modules");
 
 namespace {
 struct ModulePartInfo_s {
@@ -3276,6 +3281,50 @@ bool printVdmInfo(DirectI2cInfo i2cInfo, unsigned int port) {
   // Host side info: control page = 0x20, data page = 0x24
   findAndPrintVdmInfo(page21Buf, page25Buf);
 
+  return true;
+}
+
+/*
+ * printDiagsInfo
+ *
+ * Prints the diagnostic information for all the modules
+ */
+bool printDiagsInfo(folly::EventBase& evb) {
+  DOMDataUnion domDataUnion;
+
+  if (FLAGS_direct_i2c) {
+    printf(
+        "This command reads from qsfp_service so you can't use --direct_i2c option\n");
+    return false;
+  }
+  printf("Displaying Diagnostic info for modules\n");
+
+  auto returnedModulesInfo =
+      fetchInfoFromQsfpService(std::vector<int32_t>{}, evb);
+  printf(
+      "Mod   Diag   VDM   CDB   PRBS_Line PRBS_Sys Lpbk_Line Lpbk_Sys TxDis RxDis SNR_Line SNR_Sys\n");
+
+  for (auto& moduleInfo : returnedModulesInfo) {
+    if (!moduleInfo.second.tcvrState().value().present().value()) {
+      continue;
+    }
+
+    printf("%2d  ", moduleInfo.first);
+    auto& diagCap =
+        moduleInfo.second.tcvrState().value().diagCapability().value();
+    printf("%5s", *diagCap.diagnostics() ? "Y" : "N");
+    printf("%6s", *diagCap.vdm() ? "Y" : "N");
+    printf("%6s", *diagCap.cdb() ? "Y" : "N");
+    printf("%9s", *diagCap.prbsLine() ? "Y" : "N");
+    printf("%10s", *diagCap.prbsSystem() ? "Y" : "N");
+    printf("%9s", *diagCap.loopbackLine() ? "Y" : "N");
+    printf("%10s", *diagCap.loopbackSystem() ? "Y" : "N");
+    printf("%7s", *diagCap.txOutputControl() ? "Y" : "N");
+    printf("%6s", *diagCap.rxOutputControl() ? "Y" : "N");
+    printf("%7s", *diagCap.snrLine() ? "Y" : "N");
+    printf("%9s", *diagCap.snrSystem() ? "Y" : "N");
+    printf("\n");
+  }
   return true;
 }
 
