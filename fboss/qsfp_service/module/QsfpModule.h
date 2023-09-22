@@ -289,13 +289,15 @@ class QsfpModule : public Transceiver {
 
   virtual bool setTransceiverTx(
       const std::string& portName,
-      bool lineSide,
+      phy::Side side,
       std::optional<uint8_t> userChannelMask,
       bool enable) override;
 
   bool isTransceiverFeatureSupported(TransceiverFeature feature);
 
-  bool isTransceiverFeatureSupported(TransceiverFeature feature, bool lineSide);
+  bool isTransceiverFeatureSupported(
+      TransceiverFeature feature,
+      phy::Side side);
 
   bool requiresFirmwareUpgrade() const override;
 
@@ -572,7 +574,7 @@ class QsfpModule : public Transceiver {
 
   virtual bool setTransceiverTxLocked(
       const std::string& /* portName */,
-      bool /* lineSide */,
+      phy::Side /* side */,
       std::optional<uint8_t> /* userChannelMask */,
       bool /* enable */) {
     return false;
@@ -588,7 +590,7 @@ class QsfpModule : public Transceiver {
    */
   std::set<uint8_t> getTcvrLanesForPort(
       const std::string& portName,
-      bool lineSide) const;
+      phy::Side side) const;
 
   unsigned int moduleResetCounter_{0};
 

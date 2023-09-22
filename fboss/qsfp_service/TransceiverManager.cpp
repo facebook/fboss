@@ -2081,9 +2081,11 @@ std::vector<phy::TxRxEnableResponse> TransceiverManager::setInterfaceTxRx(
 
       phy::TxRxEnableResponse response;
       response.portName() = portName;
-      bool lineSide = (component == phy::PortComponent::TRANSCEIVER_LINE);
-      auto result = it->second->setTransceiverTx(
-          portName, lineSide, tcvrChannelMask, enable);
+      auto side = (component == phy::PortComponent::TRANSCEIVER_LINE)
+          ? phy::Side::LINE
+          : phy::Side::SYSTEM;
+      auto result =
+          it->second->setTransceiverTx(portName, side, tcvrChannelMask, enable);
       response.success() = result;
 
       txRxEnableResponses.push_back(response);

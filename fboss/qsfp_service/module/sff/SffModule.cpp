@@ -1773,11 +1773,11 @@ prbs::InterfacePrbsState SffModule::getPortPrbsStateLocked(Side side) {
  */
 bool SffModule::setTransceiverTxLocked(
     const std::string& portName,
-    bool lineSide,
+    phy::Side side,
     std::optional<uint8_t> userChannelMask,
     bool enable) {
   // Get the list of lanes to disable/enable the Tx output
-  auto tcvrLanes = getTcvrLanesForPort(portName, lineSide);
+  auto tcvrLanes = getTcvrLanesForPort(portName, side);
 
   if (tcvrLanes.empty()) {
     XLOG(ERR) << fmt::format("No lanes available for port {:s}", portName);
@@ -1785,25 +1785,26 @@ bool SffModule::setTransceiverTxLocked(
   }
 
   // Check if the module supports Tx control feature first
-  if (!isTransceiverFeatureSupported(
-          TransceiverFeature::TX_DISABLE, lineSide)) {
+  if (!isTransceiverFeatureSupported(TransceiverFeature::TX_DISABLE, side)) {
     throw FbossError(fmt::format(
         "Module {:s} does not support transceiver TX output control on {:s}",
         portName,
-        (lineSide ? "Line" : "System")));
+        ((side == phy::Side::LINE) ? "Line" : "System")));
   }
 
-  auto txControlReg =
-      lineSide ? SffField::TX_DISABLE : SffField::TXRX_OUTPUT_CONTROL;
+  auto txControlReg = (side == phy::Side::LINE) ? SffField::TX_DISABLE
+                                                : SffField::TXRX_OUTPUT_CONTROL;
   uint8_t txDisableVal, rxTxCtrl;
 
   readSffField(txControlReg, &rxTxCtrl);
-  txDisableVal = lineSide ? rxTxCtrl : ((rxTxCtrl >> 4) & 0xF);
+  txDisableVal = (side == phy::Side::LINE) ? rxTxCtrl : ((rxTxCtrl >> 4) & 0xF);
 
   txDisableVal =
       setTxChannelMask(tcvrLanes, userChannelMask, enable, txDisableVal);
 
-  rxTxCtrl = lineSide ? txDisableVal : ((txDisableVal << 4) | (rxTxCtrl & 0xF));
+  rxTxCtrl = (side == phy::Side::LINE)
+      ? txDisableVal
+      : ((txDisableVal << 4) | (rxTxCtrl & 0xF));
   writeSffField(txControlReg, &rxTxCtrl);
   return true;
 }
@@ -1820,8 +1821,7 @@ void SffModule::setTransceiverLoopbackLocked(
     phy::Side side,
     bool setLoopback) {
   // Check if the module supports Loopback feature first
-  if (!isTransceiverFeatureSupported(
-          TransceiverFeature::LOOPBACK, side == phy::Side::SYSTEM)) {
+  if (!isTransceiverFeatureSupported(TransceiverFeature::LOOPBACK, side)) {
     throw FbossError(fmt::format(
         "Module {:s} does not support transceiver loopback on {:s}",
         portName,

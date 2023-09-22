@@ -347,7 +347,7 @@ class CmisModule : public QsfpModule {
    */
   virtual bool setTransceiverTxLocked(
       const std::string& portName,
-      bool lineSide,
+      phy::Side side,
       std::optional<uint8_t> userChannelMask,
       bool enable) override;
 

@@ -607,13 +607,13 @@ bool QsfpModule::setPortPrbs(
 
 bool QsfpModule::setTransceiverTx(
     const std::string& portName,
-    bool lineSide,
+    phy::Side side,
     std::optional<uint8_t> userChannelMask,
     bool enable) {
   // Lambda to call Locked function
   auto setTcvrFn = [&]() -> bool {
     lock_guard<std::mutex> g(qsfpModuleMutex_);
-    return setTransceiverTxLocked(portName, lineSide, userChannelMask, enable);
+    return setTransceiverTxLocked(portName, side, userChannelMask, enable);
   };
 
   auto i2cEvb = qsfpImpl_->getI2cEventBase();
@@ -683,7 +683,7 @@ bool QsfpModule::isTransceiverFeatureSupported(TransceiverFeature feature) {
  */
 bool QsfpModule::isTransceiverFeatureSupported(
     TransceiverFeature feature,
-    bool lineSide) {
+    phy::Side side) {
   auto lockedDiagsCapability = diagsCapability_.rlock();
   if (auto diagsCapability = *lockedDiagsCapability) {
     switch (feature) {
@@ -695,14 +695,17 @@ bool QsfpModule::isTransceiverFeatureSupported(
             "Line/System side info is not needed to check Feature support in Transceiver");
         return diagsCapability->cdb().value();
       case TransceiverFeature::PRBS:
-        return lineSide ? diagsCapability->prbsLine().value()
-                        : diagsCapability->prbsSystem().value();
+        return (side == phy::Side::LINE)
+            ? diagsCapability->prbsLine().value()
+            : diagsCapability->prbsSystem().value();
       case TransceiverFeature::LOOPBACK:
-        return lineSide ? diagsCapability->loopbackLine().value()
-                        : diagsCapability->loopbackSystem().value();
+        return (side == phy::Side::LINE)
+            ? diagsCapability->loopbackLine().value()
+            : diagsCapability->loopbackSystem().value();
       case TransceiverFeature::TX_DISABLE:
-        return lineSide ? diagsCapability->txOutputControl().value()
-                        : diagsCapability->rxOutputControl().value();
+        return (side == phy::Side::LINE)
+            ? diagsCapability->txOutputControl().value()
+            : diagsCapability->rxOutputControl().value();
       default:
         return false;
     }
@@ -1453,10 +1456,10 @@ time_t QsfpModule::getModulePauseRemediationUntil() {
 
 std::set<uint8_t> QsfpModule::getTcvrLanesForPort(
     const std::string& portName,
-    bool lineSide) const {
+    phy::Side side) const {
   std::set<uint8_t> tcvrLanes;
 
-  if (lineSide) {
+  if (side == phy::Side::LINE) {
     auto portNameToMediaLanes = getPortNameToMediaLanes();
     if (portNameToMediaLanes.find(portName) == portNameToMediaLanes.end()) {
       XLOG(ERR) << fmt::format(

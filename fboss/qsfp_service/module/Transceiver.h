@@ -263,7 +263,7 @@ class Transceiver {
 
   virtual bool setTransceiverTx(
       const std::string& /* portName */,
-      bool /* lineSide */,
+      phy::Side /* side */,
       std::optional<uint8_t> /* userChannelMask */,
       bool /* enable */) = 0;
 
