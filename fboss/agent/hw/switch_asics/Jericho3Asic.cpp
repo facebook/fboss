@@ -163,7 +163,7 @@ std::set<cfg::StreamType> Jericho3Asic::getQueueStreamTypes(
     cfg::PortType portType) const {
   switch (portType) {
     case cfg::PortType::CPU_PORT:
-      return {cfg::StreamType::MULTICAST};
+      return {cfg::StreamType::UNICAST};
     case cfg::PortType::INTERFACE_PORT:
     case cfg::PortType::RECYCLE_PORT:
       return {cfg::StreamType::UNICAST};
@@ -181,12 +181,9 @@ int Jericho3Asic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
   }
   switch (streamType) {
     case cfg::StreamType::UNICAST:
-      if (cpu) {
-        break;
-      }
-      return 8;
+      return cpu ? 2 : 8;
     case cfg::StreamType::MULTICAST:
-      return cpu ? 10 : 4;
+      break;
     case cfg::StreamType::FABRIC_TX:
       if (cpu) {
         break;
