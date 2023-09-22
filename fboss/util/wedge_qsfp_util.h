@@ -215,18 +215,23 @@ bool doQsfpHardReset(TransceiverI2CApi* bus, unsigned int port);
 
 int resetQsfp(const std::vector<std::string>& ports, folly::EventBase& evb);
 
-bool doMiniphotonLoopback(
+bool doMiniphotonLoopbackDirect(
     TransceiverI2CApi* bus,
     unsigned int port,
     LoopbackMode mode);
 
-void cmisHostInputLoopback(
+void cmisHostInputLoopbackDirect(
     TransceiverI2CApi* bus,
     unsigned int port,
     LoopbackMode mode);
-void cmisMediaInputLoopback(
+void cmisMediaInputLoopbackDirect(
     TransceiverI2CApi* bus,
     unsigned int port,
+    LoopbackMode mode);
+
+bool setTransceiverLoopback(
+    DirectI2cInfo i2cInfo,
+    std::vector<std::string> portList,
     LoopbackMode mode);
 
 bool cliModulefirmwareUpgrade(

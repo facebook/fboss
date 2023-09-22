@@ -2384,7 +2384,37 @@ int resetQsfp(const std::vector<std::string>& ports, folly::EventBase& evb) {
   return EX_OK;
 }
 
-bool doMiniphotonLoopback(
+bool setTransceiverLoopback(
+    DirectI2cInfo i2cInfo,
+    std::vector<std::string> portList,
+    LoopbackMode mode) {
+  TransceiverManagementInterface managementInterface;
+
+  if (FLAGS_direct_i2c) {
+    bool result = true;
+    TransceiverI2CApi* bus = i2cInfo.bus;
+    TransceiverManager* wedgeManager = i2cInfo.transceiverManager;
+
+    for (auto& portName : portList) {
+      auto port = wedgeManager->getPortNameToModuleMap().at(portName) + 1;
+      managementInterface = getModuleType(bus, port);
+      if (managementInterface != TransceiverManagementInterface::CMIS) {
+        result = result && doMiniphotonLoopbackDirect(bus, port, mode);
+      } else {
+        if (mode == electricalLoopback || mode == noLoopback) {
+          cmisHostInputLoopbackDirect(bus, port, mode);
+        }
+        if (mode == opticalLoopback || mode == noLoopback) {
+          cmisMediaInputLoopbackDirect(bus, port, mode);
+        }
+      }
+    }
+    return result;
+  }
+  return true;
+}
+
+bool doMiniphotonLoopbackDirect(
     TransceiverI2CApi* bus,
     unsigned int port,
     LoopbackMode mode) {
@@ -2408,7 +2438,7 @@ bool doMiniphotonLoopback(
   return true;
 }
 
-void cmisHostInputLoopback(
+void cmisHostInputLoopbackDirect(
     TransceiverI2CApi* bus,
     unsigned int port,
     LoopbackMode mode) {
@@ -2439,7 +2469,7 @@ void cmisHostInputLoopback(
   }
 }
 
-void cmisMediaInputLoopback(
+void cmisMediaInputLoopbackDirect(
     TransceiverI2CApi* bus,
     unsigned int port,
     LoopbackMode mode) {
@@ -3387,7 +3417,8 @@ bool verifyDirectI2cCompliance() {
   if (FLAGS_tx_disable || FLAGS_tx_enable || FLAGS_pause_remediation ||
       FLAGS_get_remediation_until_time || FLAGS_read_reg || FLAGS_write_reg ||
       FLAGS_update_module_firmware || FLAGS_update_bulk_module_fw ||
-      FLAGS_set_40g || FLAGS_set_100g) {
+      FLAGS_set_40g || FLAGS_set_100g || FLAGS_electrical_loopback ||
+      FLAGS_optical_loopback || FLAGS_clear_loopback) {
     if (FLAGS_direct_i2c) {
       if (QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
         XLOG(ERR)

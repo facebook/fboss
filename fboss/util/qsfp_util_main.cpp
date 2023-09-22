@@ -264,37 +264,28 @@ int main(int argc, char* argv[]) {
       printf("QSFP %d: Hard reset done\n", portNum);
     }
 
-    if (FLAGS_electrical_loopback) {
-      if (getModuleType(bus, portNum) != TransceiverManagementInterface::CMIS) {
-        if (doMiniphotonLoopback(bus, portNum, electricalLoopback)) {
-          printf(
-              "QSFP %d: done setting module to electrical loopback.\n",
-              portNum);
-        }
-      } else {
-        cmisHostInputLoopback(bus, portNum, electricalLoopback);
+    if (FLAGS_optical_loopback || FLAGS_electrical_loopback ||
+        FLAGS_clear_loopback) {
+      LoopbackMode loopback{noLoopback};
+      std::string lbModeStr{"noLoopback"};
+      if (FLAGS_optical_loopback) {
+        loopback = opticalLoopback;
+        lbModeStr = "opticalLoopback";
+      } else if (FLAGS_electrical_loopback) {
+        loopback = electricalLoopback;
+        lbModeStr = "electricalLoopback";
       }
-    }
 
-    if (FLAGS_optical_loopback) {
-      if (getModuleType(bus, portNum) != TransceiverManagementInterface::CMIS) {
-        if (doMiniphotonLoopback(bus, portNum, opticalLoopback)) {
-          printf(
-              "QSFP %d: done setting module to optical loopback.\n", portNum);
-        }
+      if (setTransceiverLoopback(i2cInfo, portNames, loopback)) {
+        printf(
+            "QSFP %d: done setting module loopback mode %s\n",
+            portNum,
+            lbModeStr.c_str());
       } else {
-        cmisMediaInputLoopback(bus, portNum, opticalLoopback);
-      }
-    }
-
-    if (FLAGS_clear_loopback) {
-      if (getModuleType(bus, portNum) != TransceiverManagementInterface::CMIS) {
-        if (doMiniphotonLoopback(bus, portNum, noLoopback)) {
-          printf("QSFP %d: done clear module to loopback.\n", portNum);
-        }
-      } else {
-        cmisHostInputLoopback(bus, portNum, noLoopback);
-        cmisMediaInputLoopback(bus, portNum, noLoopback);
+        printf(
+            "QSFP %d: setting module loopback mode %s failed\n",
+            portNum,
+            lbModeStr.c_str());
       }
     }
 
