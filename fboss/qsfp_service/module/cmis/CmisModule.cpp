@@ -3217,5 +3217,46 @@ bool CmisModule::upgradeFirmwareLockedImpl(
   return ret;
 }
 
+/*
+ * setTransceiverLoopbackLocked
+ *
+ * Sets or resets the loopback on the given lanes for the SW Port on system
+ * or line side of the Transceiver. The System side loopback set should bring
+ * up the NPU port. The Line side loopback set should bring up the peer port.
+ */
+void CmisModule::setTransceiverLoopbackLocked(
+    const std::string& portName,
+    phy::Side side,
+    bool setLoopback) {
+  // Get the list of lanes to disable/enable the loopback
+  auto tcvrLanes = getTcvrLanesForPort(portName, side == phy::Side::LINE);
+  if (tcvrLanes.empty()) {
+    XLOG(ERR) << fmt::format(
+        "No {:s} lanes available for port {:s}",
+        (side == phy::Side::SYSTEM ? "HOST" : "LINE"),
+        portName);
+    return;
+  }
+
+  // Check if the module supports system or line side loopback
+  if (!isTransceiverFeatureSupported(
+          TransceiverFeature::LOOPBACK, side == phy::Side::LINE)) {
+    throw FbossError(fmt::format(
+        "Module {:s} does not support transceiver Loopback on {:s}",
+        portName,
+        ((side == phy::Side::LINE) ? "Line" : "System")));
+  }
+
+  auto regField = (side == phy::Side::SYSTEM) ? CmisField::MEDIA_FAR_LB_EN
+                                              : CmisField::MEDIA_NEAR_LB_EN;
+  uint8_t hostOrMediaInputLbEnable;
+  readCmisField(regField, &hostOrMediaInputLbEnable);
+
+  hostOrMediaInputLbEnable = setTxChannelMask(
+      tcvrLanes, std::nullopt, !setLoopback, hostOrMediaInputLbEnable);
+
+  writeCmisField(regField, &hostOrMediaInputLbEnable);
+}
+
 } // namespace fboss
 } // namespace facebook

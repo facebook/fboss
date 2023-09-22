@@ -351,6 +351,14 @@ class CmisModule : public QsfpModule {
       std::optional<uint8_t> userChannelMask,
       bool enable) override;
 
+  /*
+   * Set the Transceiver loopback system side
+   */
+  virtual void setTransceiverLoopbackLocked(
+      const std::string& portName,
+      phy::Side side,
+      bool setLoopback) override;
+
  private:
   // no copy or assignment
   CmisModule(CmisModule const&) = delete;
