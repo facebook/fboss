@@ -127,7 +127,7 @@ std::string getl2EntryTypeStr(L2EntryType l2EntryType) {
 bool comparePortName(
     const std::basic_string<char>& nameA,
     const std::basic_string<char>& nameB) {
-  static const RE2 exp("([a-z][a-z][a-z])(\\d+)/(\\d+)/(\\d)");
+  static const RE2 exp("([a-z][a-z][a-z])(\\d+)/(\\d+)/(\\d+)");
   std::string moduleNameA, moduleNumStrA, portNumStrA, subportNumStrA;
   std::string moduleNameB, moduleNumStrB, portNumStrB, subportNumStrB;
   if (!RE2::FullMatch(
