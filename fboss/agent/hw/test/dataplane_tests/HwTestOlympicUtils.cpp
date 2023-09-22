@@ -232,12 +232,23 @@ void addVoqQueueConfig(
   config->defaultVoqConfig() = voqConfig;
 }
 
-// XXX This is FSW config, add RSW config. Prefix queue names with portName
 void addOlympicQueueConfigWithSchedulingHelper(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
     const HwAsic* asic,
     bool addWredConfig,
+    cfg::QueueScheduling schedType) {
+  addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
+      config, streamType, asic, addWredConfig, true, schedType);
+}
+
+// XXX This is FSW config, add RSW config. Prefix queue names with portName
+void addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
+    cfg::SwitchConfig* config,
+    cfg::StreamType streamType,
+    const HwAsic* asic,
+    bool addWredConfig,
+    bool addEcnConfig,
     cfg::QueueScheduling schedType) {
   std::vector<cfg::PortQueue> portQueues;
 
@@ -279,7 +290,9 @@ void addOlympicQueueConfigWithSchedulingHelper(
     queue2.scalingFactor() = cfg::MMUScalingFactor::ONE;
   }
   queue2.aqms() = {};
-  queue2.aqms()->push_back(kGetOlympicEcnConfig());
+  if (addEcnConfig) {
+    queue2.aqms()->push_back(kGetOlympicEcnConfig());
+  }
   if (addWredConfig) {
     queue2.aqms()->push_back(kGetWredConfig());
   }
@@ -330,12 +343,14 @@ void addOlympicQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
     const HwAsic* asic,
-    bool addWredConfig) {
-  addOlympicQueueConfigWithSchedulingHelper(
+    bool addWredConfig,
+    bool addEcnConfig) {
+  addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
       config,
       streamType,
       asic,
       addWredConfig,
+      addEcnConfig,
       cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN);
 }
 
