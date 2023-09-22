@@ -219,7 +219,7 @@ class QsfpServiceHandler
       std::unique_ptr<std::string> portName,
       bool opRead,
       int16_t mdioAddr,
-      bool lineSide,
+      phy::Side side,
       int serdesLane,
       int64_t regOffset,
       int64_t data) override;

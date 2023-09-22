@@ -161,7 +161,7 @@ void saiPhySerdesRegisterAccess(
       FLAGS_port,
       opRead,
       FLAGS_mdio,
-      (FLAGS_side == "line"),
+      (FLAGS_side == "line") ? phy::Side::LINE : phy::Side::SYSTEM,
       FLAGS_lane,
       FLAGS_serdes_reg,
       FLAGS_serdes_val);

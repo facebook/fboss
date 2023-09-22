@@ -522,12 +522,12 @@ std::string SaiPhyManager::getSaiPortInfo(PortID swPort) {
   auto connectorAdapter = portHandle->connector->adapterKey();
 
   auto portInfoGet = [this](
-                         bool lineSide,
+                         phy::Side side,
                          SaiPortTraits::AdapterKey& portAdapter,
                          std::string& output) {
     output.append(folly::sformat(
         "  {:s} Port Obj = {}\n",
-        (lineSide ? "Line" : "System"),
+        ((side == phy::Side::LINE) ? "Line" : "System"),
         portAdapter.t));
 
     auto portOperStatus = SaiApiTable::getInstance()->portApi().getAttribute(
@@ -565,8 +565,8 @@ std::string SaiPhyManager::getSaiPortInfo(PortID swPort) {
     output.append(folly::sformat("    Serdes Id: {:d}\n", serdesId));
   };
 
-  portInfoGet(true, linePortAdapter, output);
-  portInfoGet(false, sysPortAdapter, output);
+  portInfoGet(phy::Side::LINE, linePortAdapter, output);
+  portInfoGet(phy::Side::SYSTEM, sysPortAdapter, output);
 
   output.append(
       folly::sformat("  Port Connector Obj = {}\n", connectorAdapter.t));

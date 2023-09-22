@@ -182,7 +182,7 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
     1: string portName,
     2: bool opRead = true,
     3: i16 mdioAddr,
-    4: bool lineSide,
+    4: phy.Side side,
     5: i32 serdesLane,
     6: i64 regOffset,
     7: i64 data,

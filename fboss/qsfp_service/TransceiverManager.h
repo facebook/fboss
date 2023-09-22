@@ -238,7 +238,7 @@ class TransceiverManager {
       std::string /* portName */,
       bool /* opRead */,
       int /* mdioAddr */,
-      bool /* lineSide */,
+      phy::Side /* side */,
       int /* serdesLane */,
       uint32_t /* regOffset */,
       uint32_t /* data */) {
