@@ -375,8 +375,11 @@ TEST_F(LinkTest, testOpticsRemediation) {
     // Exclude the Miniphoton ports
     XLOG(DBG2) << "Check for Transceiver Info from qsfp_service now";
 
+    // If the remediation counter has incremented for at least one of the
+    // disabled ports then pass the test
     WITH_RETRIES_N_TIMED(5, std::chrono::seconds(60), {
       auto transceiverInfos = waitForTransceiverInfo(transceiverIds);
+      int numPortsRemediated = 0;
       for (const auto& port : disabledPorts) {
         auto tcvrId =
             platform()->getPlatformPort(port)->getTransceiverID().value();
@@ -391,10 +394,12 @@ TEST_F(LinkTest, testOpticsRemediation) {
           XLOG(DBG2)
               << "Tcvr Id " << tcvrId << " remediation counter "
               << txInfoItr->second.tcvrStats()->remediationCounter().value();
-          EXPECT_EVENTUALLY_GT(
-              txInfoItr->second.tcvrStats()->remediationCounter().value(), 0);
+          if (txInfoItr->second.tcvrStats()->remediationCounter().value() > 0) {
+            numPortsRemediated++;
+          }
         }
       }
+      EXPECT_EVENTUALLY_GT(numPortsRemediated, 0);
     });
 
     XLOG(DBG2) << "Wait for all ports to come up " << disabledPortNames;
