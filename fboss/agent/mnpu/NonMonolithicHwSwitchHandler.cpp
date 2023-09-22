@@ -103,9 +103,8 @@ NonMonolithicHwSwitchHandler::getSysPortStats() const {
   return {};
 }
 
-void NonMonolithicHwSwitchHandler::updateStats(SwitchStats* /*switchStats*/) {
-  // TODO: implement this
-}
+// not used in split
+void NonMonolithicHwSwitchHandler::updateStats() {}
 
 std::map<PortID, phy::PhyInfo>
 NonMonolithicHwSwitchHandler::updateAllPhyInfo() {

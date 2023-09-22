@@ -102,7 +102,7 @@ MonolithicHwSwitchHandler::getSysPortStats() const {
   return hw_->getSysPortStats();
 }
 
-void MonolithicHwSwitchHandler::updateStats(SwitchStats* /*switchStats*/) {
+void MonolithicHwSwitchHandler::updateStats() {
   return hw_->updateStats();
 }
 

@@ -177,15 +177,11 @@ std::map<std::string, HwSysPortStats> MultiHwSwitchHandler::getSysPortStats() {
   return hwSwitchSyncers_.begin()->second->getSysPortStats();
 }
 
-void MultiHwSwitchHandler::updateStats(SwitchStats* switchStats) {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
-  return hwSwitchSyncers_.begin()->second->updateStats(switchStats);
+void MultiHwSwitchHandler::updateStats() {
+  return hwSwitchSyncers_.begin()->second->updateStats();
 }
 
 std::map<PortID, phy::PhyInfo> MultiHwSwitchHandler::updateAllPhyInfo() {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
   return hwSwitchSyncers_.begin()->second->updateAllPhyInfo();
 }
 

@@ -51,7 +51,7 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   std::map<std::string, HwSysPortStats> getSysPortStats() const override;
 
-  void updateStats(SwitchStats* switchStats) override;
+  void updateStats() override;
 
   std::map<PortID, phy::PhyInfo> updateAllPhyInfo() override;
 

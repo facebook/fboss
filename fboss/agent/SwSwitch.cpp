@@ -599,7 +599,7 @@ void SwSwitch::updateStats() {
   updateLldpStats();
   updateTeFlowStats();
   try {
-    multiHwSwitchHandler_->updateStats(stats());
+    multiHwSwitchHandler_->updateStats();
   } catch (const std::exception& ex) {
     stats()->updateStatsException();
     XLOG(ERR) << "Error running updateStats: " << folly::exceptionStr(ex);

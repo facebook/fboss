@@ -90,7 +90,7 @@ class MultiHwSwitchHandler {
 
   std::map<std::string, HwSysPortStats> getSysPortStats();
 
-  void updateStats(SwitchStats* switchStats);
+  void updateStats();
 
   std::map<PortID, phy::PhyInfo> updateAllPhyInfo();
 
