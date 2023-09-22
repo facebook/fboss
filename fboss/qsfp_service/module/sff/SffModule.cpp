@@ -1687,7 +1687,22 @@ void SffModule::setDiagsCapability() {
       diags.loopbackSystem() = lbCapability;
       *diagsCapability = diags;
     }
+
+    // If tx/rx disable or loopback is supported then diagnostic support is
+    // true
+    if ((txOpCtrl || rxOpCtrl || lbCapability) &&
+        !(*diagsCapability).value().diagnostics().value()) {
+      (*diagsCapability).value().diagnostics() = true;
+    }
   }
+
+  QSFP_LOG(DBG2, this) << folly::sformat(
+      "setDiagsCapability: Module {} TxOpCtrl {:s} RxOpCtrl {:s} LbLine {:s} LbSys {:s}",
+      qsfpImpl_->getName(),
+      ((*diagsCapability).value().txOutputControl().value() ? "Y" : "N"),
+      ((*diagsCapability).value().rxOutputControl().value() ? "Y" : "N"),
+      ((*diagsCapability).value().loopbackLine().value() ? "Y" : "N"),
+      ((*diagsCapability).value().loopbackSystem().value() ? "Y" : "N"));
 }
 
 /*
