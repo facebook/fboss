@@ -801,7 +801,12 @@ void ThriftHandler::syncFibInVrf(
     int32_t vrf) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-
+  if (!sw_->getSwitchInfoTable().haveL3Switches()) {
+    if (routes->size()) {
+      throw FbossError("No ASIC found with L3 functionality");
+    }
+    return;
+  }
   // Only route updates in first syncFib for each client are logged
   auto firstClientSync =
       syncedFibClients.find(client) == syncedFibClients.end();
