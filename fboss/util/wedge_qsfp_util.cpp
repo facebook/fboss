@@ -2408,8 +2408,47 @@ bool setTransceiverLoopback(
           cmisMediaInputLoopbackDirect(bus, port, mode);
         }
       }
+      printf(
+          "QSFP port %s loopback mode setting to %s done\n",
+          portName.c_str(),
+          ((mode == electricalLoopback)    ? "electrical"
+               : (mode == opticalLoopback) ? "opticalLoopback"
+                                           : "noLoopback"));
     }
     return result;
+  } else {
+    if (!QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
+      throw FbossError("qsfp_service not found running");
+    }
+
+    folly::EventBase& evb = QsfpUtilContainer::getInstance()->getEventBase();
+    auto client = getQsfpClient(evb);
+
+    for (auto& portName : portList) {
+      try {
+        if (mode == electricalLoopback) {
+          client->sync_setPortLoopbackState(
+              portName, phy::PortComponent::TRANSCEIVER_SYSTEM, true);
+        } else if (mode == opticalLoopback) {
+          client->sync_setPortLoopbackState(
+              portName, phy::PortComponent::TRANSCEIVER_LINE, true);
+        } else {
+          client->sync_setPortLoopbackState(
+              portName, phy::PortComponent::TRANSCEIVER_SYSTEM, false);
+          client->sync_setPortLoopbackState(
+              portName, phy::PortComponent::TRANSCEIVER_LINE, false);
+        }
+
+        printf("QSFP port %s loopback mode setting done\n", portName.c_str());
+      } catch (const std::exception& ex) {
+        fprintf(
+            stderr,
+            "Error setting loopback mode via qsfp_service: %s\n",
+            ex.what());
+        return false;
+      }
+    }
+    return true;
   }
   return true;
 }
