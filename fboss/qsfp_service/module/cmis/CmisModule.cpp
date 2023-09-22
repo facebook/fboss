@@ -2869,14 +2869,8 @@ prbs::InterfacePrbsState CmisModule::getPortPrbsStateLocked(Side side) {
     return prbs::InterfacePrbsState();
   }
   {
-    auto lockedDiagsCapability = diagsCapability_.rlock();
-    // Return a default InterfacePrbsState(with PRBS state as disabled) if the
-    // module is not capable of PRBS
-    if (auto diagsCapability = *lockedDiagsCapability) {
-      if ((side == Side::SYSTEM && !*(diagsCapability->prbsSystem())) ||
-          (side == Side::LINE && !*(diagsCapability->prbsLine()))) {
-        return prbs::InterfacePrbsState();
-      }
+    if (isTransceiverFeatureSupported(TransceiverFeature::PRBS, side)) {
+      return prbs::InterfacePrbsState();
     }
   }
   prbs::InterfacePrbsState state;

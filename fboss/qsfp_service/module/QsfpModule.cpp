@@ -653,7 +653,8 @@ void QsfpModule::setTransceiverLoopback(
  *
  * This function returns the supported status of transceiver features
  */
-bool QsfpModule::isTransceiverFeatureSupported(TransceiverFeature feature) {
+bool QsfpModule::isTransceiverFeatureSupported(
+    TransceiverFeature feature) const {
   auto lockedDiagsCapability = diagsCapability_.rlock();
   if (auto diagsCapability = *lockedDiagsCapability) {
     switch (feature) {
@@ -683,7 +684,7 @@ bool QsfpModule::isTransceiverFeatureSupported(TransceiverFeature feature) {
  */
 bool QsfpModule::isTransceiverFeatureSupported(
     TransceiverFeature feature,
-    phy::Side side) {
+    phy::Side side) const {
   auto lockedDiagsCapability = diagsCapability_.rlock();
   if (auto diagsCapability = *lockedDiagsCapability) {
     switch (feature) {

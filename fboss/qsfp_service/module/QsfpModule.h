@@ -163,17 +163,11 @@ class QsfpModule : public Transceiver {
   virtual void configureModule(uint8_t /* startHostLane */) {}
 
   bool isVdmSupported() const {
-    auto diagsCapability = diagsCapability_.rlock();
-    return diagsCapability->has_value() && *(*diagsCapability)->vdm();
+    return isTransceiverFeatureSupported(TransceiverFeature::VDM);
   }
 
   bool isPrbsSupported(phy::Side side) const {
-    auto diagsCapability = diagsCapability_.rlock();
-    return (side == phy::Side::LINE)
-        ? ((*diagsCapability).has_value() &&
-           *(*diagsCapability).value().prbsLine())
-        : ((*diagsCapability).has_value() &&
-           *(*diagsCapability).value().prbsSystem());
+    return isTransceiverFeatureSupported(TransceiverFeature::PRBS, side);
   }
 
   bool isSnrSupported(phy::Side side) const {
@@ -293,11 +287,10 @@ class QsfpModule : public Transceiver {
       std::optional<uint8_t> userChannelMask,
       bool enable) override;
 
-  bool isTransceiverFeatureSupported(TransceiverFeature feature);
+  bool isTransceiverFeatureSupported(TransceiverFeature feature) const;
 
-  bool isTransceiverFeatureSupported(
-      TransceiverFeature feature,
-      phy::Side side);
+  bool isTransceiverFeatureSupported(TransceiverFeature feature, phy::Side side)
+      const;
 
   bool requiresFirmwareUpgrade() const override;
 

@@ -1719,20 +1719,16 @@ bool SffModule::setPortPrbsLocked(
       (prbs.checkerEnabled().has_value() && prbs.checkerEnabled().value());
   auto polynomial = *(prbs.polynomial());
   {
-    auto lockedDiagsCapability = diagsCapability_.rlock();
-    if (auto diagsCapability = *lockedDiagsCapability) {
-      if ((side == Side::SYSTEM && *(diagsCapability->prbsSystem())) ||
-          (side == Side::LINE && *(diagsCapability->prbsLine()))) {
-        // Check if there is an override function available for setting prbs
-        // state
-        if (auto prbsEnable = setPortPrbsOverrideLocked(side, prbs)) {
-          QSFP_LOG(INFO, this) << folly::sformat(
-              "Prbs {:s} {:s} on {:s} side",
-              apache::thrift::util::enumNameSafe(polynomial),
-              enable ? "enabled" : "disabled",
-              apache::thrift::util::enumNameSafe(side));
-          return true;
-        }
+    if (isTransceiverFeatureSupported(TransceiverFeature::PRBS, side)) {
+      // Check if there is an override function available for setting prbs
+      // state
+      if (auto prbsEnable = setPortPrbsOverrideLocked(side, prbs)) {
+        QSFP_LOG(INFO, this) << folly::sformat(
+            "Prbs {:s} {:s} on {:s} side",
+            apache::thrift::util::enumNameSafe(polynomial),
+            enable ? "enabled" : "disabled",
+            apache::thrift::util::enumNameSafe(side));
+        return true;
       }
     }
   }
@@ -1745,14 +1741,8 @@ bool SffModule::setPortPrbsLocked(
 // This function expects caller to hold the qsfp module level lock
 prbs::InterfacePrbsState SffModule::getPortPrbsStateLocked(Side side) {
   {
-    auto lockedDiagsCapability = diagsCapability_.rlock();
-    // Return a default InterfacePrbsState(with PRBS state as disabled) if the
-    // module is not capable of PRBS
-    if (auto diagsCapability = *lockedDiagsCapability) {
-      if ((side == Side::SYSTEM && !*(diagsCapability->prbsSystem())) ||
-          (side == Side::LINE && !*(diagsCapability->prbsLine()))) {
-        return prbs::InterfacePrbsState();
-      }
+    if (isTransceiverFeatureSupported(TransceiverFeature::PRBS, side)) {
+      return prbs::InterfacePrbsState();
     }
   }
   // Certain modules have proprietary methods to get prbs state, check if
