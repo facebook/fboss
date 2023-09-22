@@ -240,6 +240,7 @@ enum TransceiverModuleIdentifier {
 }
 
 enum CmisModuleState {
+  UNKNOWN = 0x0,
   LOW_POWER = 0x1,
   POWERING_UP = 0x2,
   READY = 0x3,

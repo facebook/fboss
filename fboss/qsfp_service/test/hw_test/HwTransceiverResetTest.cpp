@@ -45,6 +45,42 @@ class HwTransceiverResetTest : public HwTransceiverTest {
 
     waitTillCabledTcvrProgrammed();
   }
+
+  // Verify that the transceiver's module state is correct based on the
+  // expectInReset flag.
+  // If expectInReset == true, verifies that module state is
+  // UNKNOWN
+  // If expectInReset == false, verifies that module state is NOT
+  // UNKNOWN
+  bool verifyCmisModuleState(int32_t cmisTcvrID, bool expectInReset) {
+    auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+    ReadRequest request;
+    request.ids() = std::vector<int32_t>{cmisTcvrID};
+    TransceiverIOParameters params;
+    params.offset() = 3; // ModuleStatus register in CMIS
+    request.parameter() = params;
+    std::map<int32_t, ReadResponse> currentResponse;
+    std::unique_ptr<ReadRequest> readRequest =
+        std::make_unique<ReadRequest>(request);
+    wedgeManager->readTransceiverRegister(
+        currentResponse, std::move(readRequest));
+    EXPECT_TRUE(currentResponse.find(cmisTcvrID) != currentResponse.end());
+    auto curr = currentResponse[cmisTcvrID];
+    EXPECT_TRUE(*curr.valid());
+
+    if (expectInReset &&
+        curr.get_data().data()[0] !=
+            static_cast<uint8_t>(CmisModuleState::UNKNOWN)) {
+      return false;
+    }
+    if (!expectInReset &&
+        curr.get_data().data()[0] ==
+            static_cast<uint8_t>(CmisModuleState::UNKNOWN)) {
+      return false;
+    }
+
+    return true;
+  }
 };
 
 TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectPresence) {
@@ -226,8 +262,9 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectStateChanged) {
 
 TEST_F(HwTransceiverResetTest, verifyResetControl) {
   // 1. Put the transceivers in reset one at a time.
-  // 2. Read byte 0 10 times and ensure all reads fail. When a transceiver is in
-  // reset, all IO should fail.
+  // 2. Read byte 0 10 times and ensure
+  //    - for sff, all reads fail
+  //    - for cmis, moduleStatus is unknown.
   // 3. Verify read to all other transceivers is successful
   // 4. Release reset
   // 5. Verify all other transceivers still respond to IO
@@ -240,6 +277,20 @@ TEST_F(HwTransceiverResetTest, verifyResetControl) {
   auto opticalTransceivers = getCabledOpticalTransceiverIDs();
 
   EXPECT_TRUE(!opticalTransceivers.empty());
+
+  std::map<int32_t, TransceiverInfo> transceivers;
+  wedgeManager->getTransceiversInfo(
+      transceivers,
+      std::make_unique<std::vector<int32_t>>(opticalTransceivers));
+
+  std::vector<int32_t> cmisTransceivers;
+  for (auto idAndTransceiver : transceivers) {
+    if (*idAndTransceiver.second.tcvrState()
+             ->transceiverManagementInterface() ==
+        TransceiverManagementInterface::CMIS) {
+      cmisTransceivers.push_back(idAndTransceiver.first);
+    }
+  }
 
   auto platApi = wedgeManager->getQsfpPlatformApi();
 
@@ -260,6 +311,12 @@ TEST_F(HwTransceiverResetTest, verifyResetControl) {
     return *curr.valid() == valid;
   };
 
+  auto isCmis = [&cmisTransceivers](int32_t tcvrID) {
+    return std::find(
+               cmisTransceivers.begin(), cmisTransceivers.end(), tcvrID) !=
+        cmisTransceivers.end();
+  };
+
   for (auto tcvrID : opticalTransceivers) {
     XLOG(INFO) << "Testing transceiver (0-indexed): " << tcvrID;
     auto oneIndexedTcvrID = tcvrID + 1;
@@ -269,17 +326,31 @@ TEST_F(HwTransceiverResetTest, verifyResetControl) {
                << " should be in reset";
 
     // 2. Do IO and verify it fails on above transceiver
-    for (int i = 0; i < 10; i++) {
-      EXPECT_TRUE(readAndVerifyByte0(tcvrID, false /* valid */));
-    }
+    // For SFF, failure means IO fails when transceiver is in reset
+    // For CMIS, failure means module state is unknown when transceiver is in
+    // reset
+    WITH_RETRIES_N_TIMED(
+        10 /* retries */,
+        std::chrono::milliseconds(1000) /* msBetweenRetry */,
+        {
+          if (isCmis(tcvrID)) {
+            EXPECT_EVENTUALLY_TRUE(
+                verifyCmisModuleState(tcvrID, true /* expectInReset */));
+          } else {
+            EXPECT_EVENTUALLY_TRUE(
+                readAndVerifyByte0(tcvrID, false /* valid */));
+          }
+        });
 
     // 3. Verify read to all other transceivers is successful
     for (auto otherTcvrID : opticalTransceivers) {
       if (otherTcvrID == tcvrID) {
+        // Skip the tcvrID in test
         continue;
       }
-      for (int i = 0; i < 10; i++) {
-        EXPECT_TRUE(readAndVerifyByte0(otherTcvrID, true /* valid */));
+      EXPECT_TRUE(readAndVerifyByte0(otherTcvrID, true /* valid */));
+      if (isCmis(otherTcvrID)) {
+        verifyCmisModuleState(otherTcvrID, false /* expectInReset */);
       }
     }
 
@@ -291,10 +362,12 @@ TEST_F(HwTransceiverResetTest, verifyResetControl) {
     // 5. Verify all other transceivers still respond to IO
     for (auto otherTcvrID : opticalTransceivers) {
       if (otherTcvrID == tcvrID) {
+        // Skip the tcvrID in test
         continue;
       }
-      for (int i = 0; i < 10; i++) {
-        EXPECT_TRUE(readAndVerifyByte0(otherTcvrID, true /* valid */));
+      EXPECT_TRUE(readAndVerifyByte0(otherTcvrID, true /* valid */));
+      if (isCmis(otherTcvrID)) {
+        verifyCmisModuleState(otherTcvrID, false /* expectInReset */);
       }
     }
 
@@ -302,7 +375,15 @@ TEST_F(HwTransceiverResetTest, verifyResetControl) {
     WITH_RETRIES_N_TIMED(
         10 /* retries */,
         std::chrono::milliseconds(1000) /* msBetweenRetry */,
-        EXPECT_EVENTUALLY_TRUE(readAndVerifyByte0(tcvrID, true /* valid */)));
+        {
+          if (isCmis(tcvrID)) {
+            EXPECT_EVENTUALLY_TRUE(
+                verifyCmisModuleState(tcvrID, false /* expectInReset */));
+          } else {
+            EXPECT_EVENTUALLY_TRUE(
+                readAndVerifyByte0(tcvrID, true /* valid */));
+          }
+        });
   }
 }
 } // namespace facebook::fboss
