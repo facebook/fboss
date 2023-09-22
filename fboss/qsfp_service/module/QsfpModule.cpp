@@ -628,6 +628,26 @@ bool QsfpModule::setTransceiverTx(
   }
 }
 
+void QsfpModule::setTransceiverLoopback(
+    const std::string& portName,
+    phy::Side side,
+    bool setLoopback) {
+  // Lambda to call Locked function
+  auto setTcvrFn = [&]() {
+    lock_guard<std::mutex> g(qsfpModuleMutex_);
+    setTransceiverLoopbackLocked(portName, side, setLoopback);
+  };
+
+  auto i2cEvb = qsfpImpl_->getI2cEventBase();
+  if (!i2cEvb) {
+    // In non-multithreaded environment, run the function in current thread
+    setTcvrFn();
+  } else {
+    // In mulththreaded environment, run the function in event base thread
+    via(i2cEvb).thenValue([setTcvrFn](auto&&) mutable { setTcvrFn(); }).get();
+  }
+}
+
 /*
  * isTransceiverFeatureSupported
  *

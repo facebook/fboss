@@ -299,6 +299,11 @@ class QsfpModule : public Transceiver {
 
   bool requiresFirmwareUpgrade() const override;
 
+  void setTransceiverLoopback(
+      const std::string& portName,
+      phy::Side side,
+      bool setLoopback) override;
+
  protected:
   /* Qsfp Internal Implementation */
   std::unique_ptr<TransceiverImpl> qsfpImpl_;
@@ -572,6 +577,11 @@ class QsfpModule : public Transceiver {
       bool /* enable */) {
     return false;
   }
+
+  virtual void setTransceiverLoopbackLocked(
+      const std::string& /* portName */,
+      phy::Side /* side */,
+      bool /* setLoopback */) {}
 
   /*
    * Returns a set of Transceiver lanes for a given SW port for a given side

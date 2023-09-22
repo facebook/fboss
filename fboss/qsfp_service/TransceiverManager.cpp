@@ -1961,7 +1961,9 @@ void TransceiverManager::setPortLoopbackState(
         folly::sformat("setPortLoopbackState: Invalid port {}", portName));
   }
   if (component != phy::PortComponent::GB_SYSTEM &&
-      component != phy::PortComponent::GB_LINE) {
+      component != phy::PortComponent::GB_LINE &&
+      component != phy::PortComponent::TRANSCEIVER_SYSTEM &&
+      component != phy::PortComponent::TRANSCEIVER_LINE) {
     XLOG(INFO)
         << " TransceiverManager::setPortLoopbackState - component not supported "
         << apache::thrift::util::enumNameSafe(component);
@@ -1970,8 +1972,32 @@ void TransceiverManager::setPortLoopbackState(
 
   XLOG(INFO) << " TransceiverManager::setPortLoopbackState Port "
              << static_cast<int>(swPort.value());
-  getPhyManager()->setPortLoopbackState(
-      PortID(swPort.value()), component, setLoopback);
+
+  if (component == phy::PortComponent::GB_SYSTEM ||
+      component == phy::PortComponent::GB_LINE) {
+    getPhyManager()->setPortLoopbackState(
+        PortID(swPort.value()), component, setLoopback);
+  } else {
+    // Get the Transceiver ID
+    auto tcvrId = getTransceiverID(swPort.value());
+    if (!tcvrId.has_value()) {
+      throw FbossError(folly::sformat(
+          "setInterfaceTxRx: Transceiver not found for port {}", portName));
+    }
+
+    // Finally call the transceiver object for port loopback
+    auto lockedTransceivers = transceivers_.rlock();
+    if (auto it = lockedTransceivers->find(tcvrId.value());
+        it != lockedTransceivers->end()) {
+      if (component == phy::PortComponent::TRANSCEIVER_LINE) {
+        it->second->setTransceiverLoopback(
+            portName, phy::Side::LINE, setLoopback);
+      } else {
+        it->second->setTransceiverLoopback(
+            portName, phy::Side::SYSTEM, setLoopback);
+      }
+    }
+  }
 }
 
 void TransceiverManager::setPortAdminState(

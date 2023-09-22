@@ -267,6 +267,11 @@ class Transceiver {
       std::optional<uint8_t> /* userChannelMask */,
       bool /* enable */) = 0;
 
+  virtual void setTransceiverLoopback(
+      const std::string& /* portName */,
+      phy::Side /* side */,
+      bool /* setLoopback */) = 0;
+
   time_t modulePauseRemediationUntil_{0};
   virtual void setModulePauseRemediation(int32_t timeout) = 0;
   virtual time_t getModulePauseRemediationUntil() = 0;
