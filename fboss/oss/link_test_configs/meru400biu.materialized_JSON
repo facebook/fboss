@@ -6572,7 +6572,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 3,
+        "logicalID": 10,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6606,7 +6606,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 4,
+        "logicalID": 18,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6640,7 +6640,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 5,
+        "logicalID": 26,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6674,7 +6674,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 6,
+        "logicalID": 34,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6708,7 +6708,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 7,
+        "logicalID": 42,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6742,7 +6742,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 8,
+        "logicalID": 50,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6776,7 +6776,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 9,
+        "logicalID": 58,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6810,7 +6810,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 10,
+        "logicalID": 66,
         "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6844,7 +6844,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 11,
+        "logicalID": 74,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6878,7 +6878,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 12,
+        "logicalID": 82,
         "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6912,7 +6912,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 13,
+        "logicalID": 90,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6946,7 +6946,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 14,
+        "logicalID": 98,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6980,7 +6980,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 15,
+        "logicalID": 106,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -7014,7 +7014,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 16,
+        "logicalID": 114,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -7048,7 +7048,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 17,
+        "logicalID": 122,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -7137,7 +7137,7 @@
         "type": 2
       },
       {
-        "intfID": 110,
+        "intfID": 166,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -7150,7 +7150,7 @@
         "type": 2
       },
       {
-        "intfID": 112,
+        "intfID": 182,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -7423,7 +7423,7 @@
             },
             "systemPortRange": {
               "minimum": 100,
-              "maximum": 120
+              "maximum": 300
             },
             "switchMac": "02:00:00:00:00:01",
             "connectionHandle": "68:00"
@@ -7446,7 +7446,7 @@
           ],
           "systemPortRange": {
             "minimum": 100,
-            "maximum": 120
+            "maximum": 300
           },
           "nodeMac": "02:00:00:00:0F:0B",
           "asicType": 11,
@@ -9738,20 +9738,17 @@
           "ucode_port_1.BCM88803": "CGE8:core_0.1",
           "ucode_port_1.BCM88806": "CGE4:core_0.1",
           "ucode_port_1.BCM8885X": "RCY.21:core_0.1",
-          "ucode_port_10.BCM8885X": "CGE16:core_0.10",
-          "ucode_port_11.BCM8885X": "CGE14:core_0.11",
-          "ucode_port_12.BCM8885X": "CGE12:core_0.12",
+          "ucode_port_10.BCM8885X": "CGE22:core_1.10",
+          "ucode_port_106.BCM8885X": "CGE6:core_0.106",
+          "ucode_port_114.BCM8885X": "CGE4:core_0.114",
+          "ucode_port_122.BCM8885X": "CGE2:core_0.122",
           "ucode_port_13.BCM88482": "IGNORE",
-          "ucode_port_13.BCM8885X": "CGE10:core_0.13",
           "ucode_port_14.BCM88482": "IGNORE",
-          "ucode_port_14.BCM8885X": "CGE8:core_0.14",
           "ucode_port_15.BCM88482": "IGNORE",
-          "ucode_port_15.BCM8885X": "CGE6:core_0.15",
           "ucode_port_16.BCM88482": "IGNORE",
-          "ucode_port_16.BCM8885X": "CGE4:core_0.16",
           "ucode_port_17.BCM88280": "CGE6:core_0.17",
           "ucode_port_17.BCM88287": "IGNORE",
-          "ucode_port_17.BCM8885X": "CGE2:core_0.17",
+          "ucode_port_18.BCM8885X": "CGE24:core_1.18",
           "ucode_port_2.BCM8885X": "CGE20:core_1.2",
           "ucode_port_20.BCM88485": "IGNORE",
           "ucode_port_20.BCM88487": "IGNORE",
@@ -9774,8 +9771,9 @@
           "ucode_port_240.BCM8885X_A0": "OLP:core_0.240",
           "ucode_port_254.BCM8885X": "ERP:core_0.255",
           "ucode_port_255.BCM8885X": "ERP:core_1.255",
-          "ucode_port_3.BCM8885X": "CGE22:core_1.3",
-          "ucode_port_4.BCM8885X": "CGE24:core_1.4",
+          "ucode_port_26.BCM8885X": "CGE26:core_1.26",
+          "ucode_port_34.BCM8885X": "CGE28:core_1.34",
+          "ucode_port_42.BCM8885X": "CGE30:core_1.42",
           "ucode_port_5.BCM88280": "ILKN0.0:core_0.5",
           "ucode_port_5.BCM88284": "IGNORE",
           "ucode_port_5.BCM88287": "IGNORE",
@@ -9786,7 +9784,8 @@
           "ucode_port_5.BCM88806": "IGNORE",
           "ucode_port_5.BCM88821": "IGNORE",
           "ucode_port_5.BCM88823": "IGNORE",
-          "ucode_port_5.BCM8885X": "CGE26:core_1.5",
+          "ucode_port_50.BCM8885X": "CGE32:core_1.50",
+          "ucode_port_58.BCM8885X": "CGE34:core_1.58",
           "ucode_port_6.BCM88280": "ILKN0.1:core_0.6",
           "ucode_port_6.BCM88284": "IGNORE",
           "ucode_port_6.BCM88287": "IGNORE",
@@ -9796,7 +9795,7 @@
           "ucode_port_6.BCM88804": "IGNORE",
           "ucode_port_6.BCM88806": "IGNORE",
           "ucode_port_6.BCM88823": "IGNORE",
-          "ucode_port_6.BCM8885X": "CGE28:core_1.6",
+          "ucode_port_66.BCM8885X": "CGE16:core_0.66",
           "ucode_port_7.BCM88280": "IGNORE",
           "ucode_port_7.BCM88284": "IGNORE",
           "ucode_port_7.BCM88287": "IGNORE",
@@ -9804,9 +9803,10 @@
           "ucode_port_7.BCM88804": "IGNORE",
           "ucode_port_7.BCM88806": "IGNORE",
           "ucode_port_7.BCM88823": "IGNORE",
-          "ucode_port_7.BCM8885X": "CGE30:core_1.7",
-          "ucode_port_8.BCM8885X": "CGE32:core_1.8",
-          "ucode_port_9.BCM8885X": "CGE34:core_1.9",
+          "ucode_port_74.BCM8885X": "CGE14:core_0.74",
+          "ucode_port_82.BCM8885X": "CGE12:core_0.82",
+          "ucode_port_90.BCM8885X": "CGE10:core_0.90",
+          "ucode_port_98.BCM8885X": "CGE8:core_0.98",
           "warmboot_support.BCM8885X": "on",
           "warmboot_support.BCM8885X_ADAPTER": "on"
         }
