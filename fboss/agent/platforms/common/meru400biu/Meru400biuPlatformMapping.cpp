@@ -15932,9 +15932,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "physicalID": 55
     }
   ],
-  "platformSettings": {
-    "1": "68:00"
-  },
   "portConfigOverrides": [
     {
       "factor": {
@@ -16130,23 +16127,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           364,
           365,
           366,
-          367,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12,
-          13,
-          14,
-          15,
-          16,
-          17
+          367
         ],
         "profiles": [
           36,
@@ -16366,23 +16347,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           364,
           365,
           366,
-          367,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12,
-          13,
-          14,
-          15,
-          16,
-          17
+          367
         ],
         "profiles": [
           24
@@ -16441,6 +16406,135 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "pre": -16,
               "pre2": 0,
               "main": 132,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        "profiles": [
+          36,
+          37
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -20,
+              "pre2": 4,
+              "main": 140,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        "profiles": [
+          24
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -20,
+              "pre2": 4,
+              "main": 140,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -20,
+              "pre2": 4,
+              "main": 140,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -20,
+              "pre2": 4,
+              "main": 140,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -20,
+              "pre2": 4,
+              "main": 140,
               "post": 0,
               "post2": 0,
               "post3": 0
