@@ -20,6 +20,8 @@ extern "C" {
 #endif
 }
 
+using namespace facebook::fboss;
+
 namespace {
 struct BcmGetNumAclStatsCountUserData {
   int count{0};
@@ -34,9 +36,6 @@ constexpr auto kIFPActionIndexNum = 2;
 // ACL total allocated counter indexes are 256.
 // Hence actionIndex mask is 8 bits
 constexpr auto kIFPActionIndexObj0Mask = 8;
-// EM total allocated counter indexes are 9216.
-// Hence actionIndex mask is 14 bits
-constexpr auto kEMActionIndexObj0Mask = 14;
 constexpr auto kIFPActionIndexObj1Mask = 1;
 constexpr auto kIFPActionPacketOperationObj0Mask = 16;
 constexpr auto kIFPActionPacketOperationObj1Mask = 1;

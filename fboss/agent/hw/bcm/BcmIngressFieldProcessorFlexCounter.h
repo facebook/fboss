@@ -14,6 +14,10 @@
 
 namespace facebook::fboss {
 
+// EM total allocated counter indexes are 9216.
+// Hence actionIndex mask is 14 bits
+constexpr auto kEMActionIndexObj0Mask = 14;
+
 enum class BcmAclStatType;
 class BcmIngressFieldProcessorFlexCounter : public BcmFlexCounter {
  public:

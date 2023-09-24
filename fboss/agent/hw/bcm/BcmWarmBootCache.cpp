@@ -1774,6 +1774,25 @@ void BcmWarmBootCache::populateTeFlows(
   if (!entryCount) {
     return;
   }
+
+  // If there is a flex counter id and action index mask is not expected value
+  // remove the flex counters and flex counter id
+  // After warm boot, during the first teflow create with counter
+  // a new flex counter id with action index mask will be created
+  if (teFlowFlexCounterId_) {
+    bcm_flexctr_action_t action;
+    bcm_flexctr_action_t_init(&action);
+    rv = bcm_flexctr_action_get(hw_->getUnit(), teFlowFlexCounterId_, &action);
+    bcmCheckError(
+        rv, "Unable to get flex counter action for Id=", teFlowFlexCounterId_);
+    if (action.index_operation.mask_size[0] != kEMActionIndexObj0Mask) {
+      BcmIngressFieldProcessorFlexCounter::removeAllCountersInFpGroup(
+          hw_->getUnit(), getEMGroupID(groupId));
+      teFlowFlexCounterId_ = 0;
+      XLOG(DBG1) << " Removed flex counters for EM group=" << groupId;
+    }
+  }
+
   std::vector<bcm_field_entry_t> bcmEntries(entryCount);
   rv = bcm_field_entry_multi_get(
       hw_->getUnit(),
