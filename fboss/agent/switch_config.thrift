@@ -530,6 +530,7 @@ enum AclTableQualifier {
   LOOKUP_CLASS_ROUTE = 21,
   ETHER_TYPE = 22,
   OUTER_VLAN = 23,
+  UDF = 24,
 }
 
 struct AclTable {

@@ -1430,6 +1430,9 @@ bool SaiAclTableManager::isQualifierSupported(
           std::get<
               std::optional<SaiAclTableTraits::Attributes::FieldOuterVlanId>>(
               attributes));
+    case cfg::AclTableQualifier::UDF:
+      /* not supported */
+      return false;
   }
   return false;
 }
