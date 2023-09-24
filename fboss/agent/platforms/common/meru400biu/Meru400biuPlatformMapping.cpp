@@ -277,60 +277,64 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC49",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/1",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC49",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/1",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
     "3": {
         "mapping": {
           "id": 3,
-          "name": "eth1/3/1",
-          "controllingPort": 3,
+          "name": "eth1/1/2",
+          "controllingPort": 2,
           "pins": [
             {
               "a": {
-                "chip": "BC50",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/3",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC50",
+                "chip": "BC49",
                 "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "eth1/3",
+                  "chip": "eth1/1",
                   "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC50",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/3",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC50",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/3",
-                  "lane": 3
                 }
               }
             }
@@ -340,169 +344,41 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "attachedCorePortIndex": 3
         },
         "supportedProfiles": {
-          "22": {
+          "43": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC50",
+                      "chip": "BC49",
                       "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC50",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC50",
-                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/3",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/3",
+                      "chip": "eth1/1",
                       "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/3",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/3",
-                      "lane": 3
                     }
                   }
                 ]
               }
           },
-          "23": {
+          "44": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC50",
+                      "chip": "BC49",
                       "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC50",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC50",
-                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/3",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/3",
+                      "chip": "eth1/1",
                       "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/3",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/3",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "24": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC50",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC50",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC50",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC50",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/3",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/3",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/3",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/3",
-                      "lane": 3
                     }
                   }
                 ]
@@ -513,54 +389,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "4": {
         "mapping": {
           "id": 4,
-          "name": "eth1/4/1",
-          "controllingPort": 4,
+          "name": "eth1/1/3",
+          "controllingPort": 2,
           "pins": [
             {
               "a": {
-                "chip": "BC51",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/4",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC51",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/4",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC51",
+                "chip": "BC49",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "eth1/4",
+                  "chip": "eth1/1",
                   "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC51",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/4",
-                  "lane": 3
                 }
               }
             }
@@ -570,169 +410,41 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "attachedCorePortIndex": 4
         },
         "supportedProfiles": {
-          "22": {
+          "43": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC51",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC51",
+                      "chip": "BC49",
                       "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC51",
-                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/4",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/4",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/4",
+                      "chip": "eth1/1",
                       "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/4",
-                      "lane": 3
                     }
                   }
                 ]
               }
           },
-          "23": {
+          "44": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC51",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC51",
+                      "chip": "BC49",
                       "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC51",
-                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/4",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/4",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/4",
+                      "chip": "eth1/1",
                       "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/4",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "24": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC51",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC51",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC51",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC51",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/4",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/4",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/4",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/4",
-                      "lane": 3
                     }
                   }
                 ]
@@ -743,53 +455,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "5": {
         "mapping": {
           "id": 5,
-          "name": "eth1/5/1",
-          "controllingPort": 5,
+          "name": "eth1/1/4",
+          "controllingPort": 2,
           "pins": [
             {
               "a": {
-                "chip": "BC52",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/5",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC52",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/5",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC52",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/5",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC52",
+                "chip": "BC49",
                 "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "eth1/5",
+                  "chip": "eth1/1",
                   "lane": 3
                 }
               }
@@ -800,30 +476,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "attachedCorePortIndex": 5
         },
         "supportedProfiles": {
-          "22": {
+          "43": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC52",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC52",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC52",
+                      "chip": "BC49",
                       "lane": 3
                     }
                   }
@@ -831,55 +489,19 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/5",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/5",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/5",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/5",
+                      "chip": "eth1/1",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "23": {
+          "44": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC52",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC52",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC52",
+                      "chip": "BC49",
                       "lane": 3
                     }
                   }
@@ -887,81 +509,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/5",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/5",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/5",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/5",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "24": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC52",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC52",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC52",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC52",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/5",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/5",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/5",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/5",
+                      "chip": "eth1/1",
                       "lane": 3
                     }
                   }
@@ -973,54 +521,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "6": {
         "mapping": {
           "id": 6,
-          "name": "eth1/6/1",
-          "controllingPort": 6,
+          "name": "eth1/1/5",
+          "controllingPort": 2,
           "pins": [
             {
               "a": {
-                "chip": "BC53",
-                "lane": 0
+                "chip": "BC49",
+                "lane": 4
               },
               "z": {
                 "end": {
-                  "chip": "eth1/6",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC53",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/6",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC53",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/6",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC53",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/6",
-                  "lane": 3
+                  "chip": "eth1/1",
+                  "lane": 4
                 }
               }
             }
@@ -1030,169 +542,41 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "attachedCorePortIndex": 6
         },
         "supportedProfiles": {
-          "22": {
+          "43": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC53",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC53",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC53",
-                      "lane": 3
+                      "chip": "BC49",
+                      "lane": 4
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/6",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/6",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/6",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/6",
-                      "lane": 3
+                      "chip": "eth1/1",
+                      "lane": 4
                     }
                   }
                 ]
               }
           },
-          "23": {
+          "44": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC53",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC53",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC53",
-                      "lane": 3
+                      "chip": "BC49",
+                      "lane": 4
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/6",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/6",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/6",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/6",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "24": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC53",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC53",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC53",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC53",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/6",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/6",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/6",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/6",
-                      "lane": 3
+                      "chip": "eth1/1",
+                      "lane": 4
                     }
                   }
                 ]
@@ -1203,54 +587,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "7": {
         "mapping": {
           "id": 7,
-          "name": "eth1/7/1",
-          "controllingPort": 7,
+          "name": "eth1/1/6",
+          "controllingPort": 2,
           "pins": [
             {
               "a": {
-                "chip": "BC54",
-                "lane": 0
+                "chip": "BC49",
+                "lane": 5
               },
               "z": {
                 "end": {
-                  "chip": "eth1/7",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC54",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/7",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC54",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/7",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC54",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/7",
-                  "lane": 3
+                  "chip": "eth1/1",
+                  "lane": 5
                 }
               }
             }
@@ -1260,169 +608,41 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "attachedCorePortIndex": 7
         },
         "supportedProfiles": {
-          "22": {
+          "43": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC54",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC54",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC54",
-                      "lane": 3
+                      "chip": "BC49",
+                      "lane": 5
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/7",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/7",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/7",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/7",
-                      "lane": 3
+                      "chip": "eth1/1",
+                      "lane": 5
                     }
                   }
                 ]
               }
           },
-          "23": {
+          "44": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC54",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC54",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC54",
-                      "lane": 3
+                      "chip": "BC49",
+                      "lane": 5
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/7",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/7",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/7",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/7",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "24": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC54",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC54",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC54",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC54",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/7",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/7",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/7",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/7",
-                      "lane": 3
+                      "chip": "eth1/1",
+                      "lane": 5
                     }
                   }
                 ]
@@ -1433,54 +653,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "8": {
         "mapping": {
           "id": 8,
-          "name": "eth1/8/1",
-          "controllingPort": 8,
+          "name": "eth1/1/7",
+          "controllingPort": 2,
           "pins": [
             {
               "a": {
-                "chip": "BC55",
-                "lane": 0
+                "chip": "BC49",
+                "lane": 6
               },
               "z": {
                 "end": {
-                  "chip": "eth1/8",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC55",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/8",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC55",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/8",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC55",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/8",
-                  "lane": 3
+                  "chip": "eth1/1",
+                  "lane": 6
                 }
               }
             }
@@ -1490,169 +674,41 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "attachedCorePortIndex": 8
         },
         "supportedProfiles": {
-          "22": {
+          "43": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC55",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC55",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC55",
-                      "lane": 3
+                      "chip": "BC49",
+                      "lane": 6
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/8",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/8",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/8",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/8",
-                      "lane": 3
+                      "chip": "eth1/1",
+                      "lane": 6
                     }
                   }
                 ]
               }
           },
-          "23": {
+          "44": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC55",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC55",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC55",
-                      "lane": 3
+                      "chip": "BC49",
+                      "lane": 6
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/8",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/8",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/8",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/8",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "24": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC55",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC55",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC55",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC55",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/8",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/8",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/8",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/8",
-                      "lane": 3
+                      "chip": "eth1/1",
+                      "lane": 6
                     }
                   }
                 ]
@@ -1663,54 +719,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "9": {
         "mapping": {
           "id": 9,
-          "name": "eth1/9/1",
-          "controllingPort": 9,
+          "name": "eth1/1/8",
+          "controllingPort": 2,
           "pins": [
             {
               "a": {
-                "chip": "BC56",
-                "lane": 0
+                "chip": "BC49",
+                "lane": 7
               },
               "z": {
                 "end": {
-                  "chip": "eth1/9",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC56",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/9",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC56",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/9",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC56",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/9",
-                  "lane": 3
+                  "chip": "eth1/1",
+                  "lane": 7
                 }
               }
             }
@@ -1720,169 +740,41 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "attachedCorePortIndex": 9
         },
         "supportedProfiles": {
-          "22": {
+          "43": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC56",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC56",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC56",
-                      "lane": 3
+                      "chip": "BC49",
+                      "lane": 7
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/9",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/9",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/9",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/9",
-                      "lane": 3
+                      "chip": "eth1/1",
+                      "lane": 7
                     }
                   }
                 ]
               }
           },
-          "23": {
+          "44": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC56",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC56",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC56",
-                      "lane": 3
+                      "chip": "BC49",
+                      "lane": 7
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/9",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/9",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/9",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/9",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "24": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC56",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC56",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC56",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC56",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/9",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/9",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/9",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/9",
-                      "lane": 3
+                      "chip": "eth1/1",
+                      "lane": 7
                     }
                   }
                 ]
@@ -1893,60 +785,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "10": {
         "mapping": {
           "id": 10,
-          "name": "eth1/10/1",
+          "name": "eth1/2/1",
           "controllingPort": 10,
           "pins": [
             {
               "a": {
-                "chip": "BC57",
+                "chip": "BC50",
                 "lane": 0
               },
               "z": {
                 "end": {
-                  "chip": "eth1/10",
+                  "chip": "eth1/2",
                   "lane": 0
                 }
               }
             },
             {
               "a": {
-                "chip": "BC57",
+                "chip": "BC50",
                 "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "eth1/10",
+                  "chip": "eth1/2",
                   "lane": 1
                 }
               }
             },
             {
               "a": {
-                "chip": "BC57",
+                "chip": "BC50",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "eth1/10",
+                  "chip": "eth1/2",
                   "lane": 2
                 }
               }
             },
             {
               "a": {
-                "chip": "BC57",
+                "chip": "BC50",
                 "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "eth1/10",
+                  "chip": "eth1/2",
                   "lane": 3
                 }
               }
             }
           ],
           "portType": 0,
-          "attachedCoreId": 0,
+          "attachedCoreId": 1,
           "attachedCorePortIndex": 10
         },
         "supportedProfiles": {
@@ -1955,25 +847,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "BC50",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "BC50",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "BC50",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "BC50",
                       "lane": 3
                     }
                   }
@@ -1981,25 +873,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/10",
+                      "chip": "eth1/2",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/10",
+                      "chip": "eth1/2",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/10",
+                      "chip": "eth1/2",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/10",
+                      "chip": "eth1/2",
                       "lane": 3
                     }
                   }
@@ -2011,25 +903,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "BC50",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "BC50",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "BC50",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "BC50",
                       "lane": 3
                     }
                   }
@@ -2037,25 +929,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/10",
+                      "chip": "eth1/2",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/10",
+                      "chip": "eth1/2",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/10",
+                      "chip": "eth1/2",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/10",
+                      "chip": "eth1/2",
                       "lane": 3
                     }
                   }
@@ -2067,25 +959,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "BC50",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "BC50",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "BC50",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "BC50",
                       "lane": 3
                     }
                   }
@@ -2093,26 +985,66 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/10",
+                      "chip": "eth1/2",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/10",
+                      "chip": "eth1/2",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/10",
+                      "chip": "eth1/2",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/10",
+                      "chip": "eth1/2",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/2",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/2",
+                      "lane": 0
                     }
                   }
                 ]
@@ -2123,226 +1055,62 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "11": {
         "mapping": {
           "id": 11,
-          "name": "eth1/11/1",
-          "controllingPort": 11,
+          "name": "eth1/2/2",
+          "controllingPort": 10,
           "pins": [
             {
               "a": {
-                "chip": "BC58",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/11",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC58",
+                "chip": "BC50",
                 "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "eth1/11",
+                  "chip": "eth1/2",
                   "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC58",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/11",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC58",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/11",
-                  "lane": 3
                 }
               }
             }
           ],
           "portType": 0,
-          "attachedCoreId": 0,
+          "attachedCoreId": 1,
           "attachedCorePortIndex": 11
         },
         "supportedProfiles": {
-          "22": {
+          "43": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC58",
+                      "chip": "BC50",
                       "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC58",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC58",
-                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/11",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/11",
+                      "chip": "eth1/2",
                       "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/11",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/11",
-                      "lane": 3
                     }
                   }
                 ]
               }
           },
-          "23": {
+          "44": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC58",
+                      "chip": "BC50",
                       "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC58",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC58",
-                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/11",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/11",
+                      "chip": "eth1/2",
                       "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/11",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/11",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "24": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC58",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC58",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC58",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC58",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/11",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/11",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/11",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/11",
-                      "lane": 3
                     }
                   }
                 ]
@@ -2353,226 +1121,62 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "12": {
         "mapping": {
           "id": 12,
-          "name": "eth1/12/1",
-          "controllingPort": 12,
+          "name": "eth1/2/3",
+          "controllingPort": 10,
           "pins": [
             {
               "a": {
-                "chip": "BC59",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/12",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC59",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/12",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC59",
+                "chip": "BC50",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "eth1/12",
+                  "chip": "eth1/2",
                   "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC59",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/12",
-                  "lane": 3
                 }
               }
             }
           ],
           "portType": 0,
-          "attachedCoreId": 0,
+          "attachedCoreId": 1,
           "attachedCorePortIndex": 12
         },
         "supportedProfiles": {
-          "22": {
+          "43": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC59",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC59",
+                      "chip": "BC50",
                       "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC59",
-                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/12",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/12",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/12",
+                      "chip": "eth1/2",
                       "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/12",
-                      "lane": 3
                     }
                   }
                 ]
               }
           },
-          "23": {
+          "44": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC59",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC59",
+                      "chip": "BC50",
                       "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC59",
-                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/12",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/12",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/12",
+                      "chip": "eth1/2",
                       "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/12",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "24": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC59",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC59",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC59",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC59",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/12",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/12",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/12",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/12",
-                      "lane": 3
                     }
                   }
                 ]
@@ -2583,87 +1187,33 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "13": {
         "mapping": {
           "id": 13,
-          "name": "eth1/13/1",
-          "controllingPort": 13,
+          "name": "eth1/2/4",
+          "controllingPort": 10,
           "pins": [
             {
               "a": {
-                "chip": "BC60",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/13",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC60",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/13",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC60",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/13",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC60",
+                "chip": "BC50",
                 "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "eth1/13",
+                  "chip": "eth1/2",
                   "lane": 3
                 }
               }
             }
           ],
           "portType": 0,
-          "attachedCoreId": 0,
+          "attachedCoreId": 1,
           "attachedCorePortIndex": 13
         },
         "supportedProfiles": {
-          "22": {
+          "43": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC60",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC60",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC60",
+                      "chip": "BC50",
                       "lane": 3
                     }
                   }
@@ -2671,55 +1221,19 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/13",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/13",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/13",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/13",
+                      "chip": "eth1/2",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "23": {
+          "44": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC60",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC60",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC60",
+                      "chip": "BC50",
                       "lane": 3
                     }
                   }
@@ -2727,81 +1241,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/13",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/13",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/13",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/13",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "24": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC60",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC60",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC60",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC60",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/13",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/13",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/13",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/13",
+                      "chip": "eth1/2",
                       "lane": 3
                     }
                   }
@@ -2813,226 +1253,62 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "14": {
         "mapping": {
           "id": 14,
-          "name": "eth1/14/1",
-          "controllingPort": 14,
+          "name": "eth1/2/5",
+          "controllingPort": 10,
           "pins": [
             {
               "a": {
-                "chip": "BC61",
-                "lane": 0
+                "chip": "BC50",
+                "lane": 4
               },
               "z": {
                 "end": {
-                  "chip": "eth1/14",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC61",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/14",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC61",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/14",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC61",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/14",
-                  "lane": 3
+                  "chip": "eth1/2",
+                  "lane": 4
                 }
               }
             }
           ],
           "portType": 0,
-          "attachedCoreId": 0,
+          "attachedCoreId": 1,
           "attachedCorePortIndex": 14
         },
         "supportedProfiles": {
-          "22": {
+          "43": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC61",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC61",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC61",
-                      "lane": 3
+                      "chip": "BC50",
+                      "lane": 4
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/14",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/14",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/14",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/14",
-                      "lane": 3
+                      "chip": "eth1/2",
+                      "lane": 4
                     }
                   }
                 ]
               }
           },
-          "23": {
+          "44": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC61",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC61",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC61",
-                      "lane": 3
+                      "chip": "BC50",
+                      "lane": 4
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/14",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/14",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/14",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/14",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "24": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC61",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC61",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC61",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC61",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/14",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/14",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/14",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/14",
-                      "lane": 3
+                      "chip": "eth1/2",
+                      "lane": 4
                     }
                   }
                 ]
@@ -3043,226 +1319,62 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "15": {
         "mapping": {
           "id": 15,
-          "name": "eth1/15/1",
-          "controllingPort": 15,
+          "name": "eth1/2/6",
+          "controllingPort": 10,
           "pins": [
             {
               "a": {
-                "chip": "BC62",
-                "lane": 0
+                "chip": "BC50",
+                "lane": 5
               },
               "z": {
                 "end": {
-                  "chip": "eth1/15",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC62",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/15",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC62",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/15",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC62",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/15",
-                  "lane": 3
+                  "chip": "eth1/2",
+                  "lane": 5
                 }
               }
             }
           ],
           "portType": 0,
-          "attachedCoreId": 0,
+          "attachedCoreId": 1,
           "attachedCorePortIndex": 15
         },
         "supportedProfiles": {
-          "22": {
+          "43": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC62",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC62",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC62",
-                      "lane": 3
+                      "chip": "BC50",
+                      "lane": 5
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/15",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/15",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/15",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/15",
-                      "lane": 3
+                      "chip": "eth1/2",
+                      "lane": 5
                     }
                   }
                 ]
               }
           },
-          "23": {
+          "44": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC62",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC62",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC62",
-                      "lane": 3
+                      "chip": "BC50",
+                      "lane": 5
                     }
                   }
                 ],
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/15",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/15",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/15",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/15",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "24": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC62",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC62",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC62",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC62",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/15",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/15",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/15",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/15",
-                      "lane": 3
+                      "chip": "eth1/2",
+                      "lane": 5
                     }
                   }
                 ]
@@ -3273,8 +1385,8924 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "16": {
         "mapping": {
           "id": 16,
-          "name": "eth1/16/1",
-          "controllingPort": 16,
+          "name": "eth1/2/7",
+          "controllingPort": 10,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC50",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/2",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 16
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/2",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/2",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "17": {
+        "mapping": {
+          "id": 17,
+          "name": "eth1/2/8",
+          "controllingPort": 10,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC50",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/2",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 17
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/2",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/2",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "18": {
+        "mapping": {
+          "id": 18,
+          "name": "eth1/3/1",
+          "controllingPort": 18,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC51",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/3",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC51",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/3",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC51",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/3",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC51",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/3",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 18
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "24": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "19": {
+        "mapping": {
+          "id": 19,
+          "name": "eth1/3/2",
+          "controllingPort": 18,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC51",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/3",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 19
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "20": {
+        "mapping": {
+          "id": 20,
+          "name": "eth1/3/3",
+          "controllingPort": 18,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC51",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/3",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 20
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "21": {
+        "mapping": {
+          "id": 21,
+          "name": "eth1/3/4",
+          "controllingPort": 18,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC51",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/3",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 21
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "22": {
+        "mapping": {
+          "id": 22,
+          "name": "eth1/3/5",
+          "controllingPort": 18,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC51",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/3",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 22
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "23": {
+        "mapping": {
+          "id": 23,
+          "name": "eth1/3/6",
+          "controllingPort": 18,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC51",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/3",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 23
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "24": {
+        "mapping": {
+          "id": 24,
+          "name": "eth1/3/7",
+          "controllingPort": 18,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC51",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/3",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 24
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "25": {
+        "mapping": {
+          "id": 25,
+          "name": "eth1/3/8",
+          "controllingPort": 18,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC51",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/3",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 25
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "26": {
+        "mapping": {
+          "id": 26,
+          "name": "eth1/4/1",
+          "controllingPort": 26,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC52",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/4",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC52",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/4",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC52",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/4",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC52",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/4",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 26
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "24": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "27": {
+        "mapping": {
+          "id": 27,
+          "name": "eth1/4/2",
+          "controllingPort": 26,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC52",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/4",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 27
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "28": {
+        "mapping": {
+          "id": 28,
+          "name": "eth1/4/3",
+          "controllingPort": 26,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC52",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/4",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 28
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "29": {
+        "mapping": {
+          "id": 29,
+          "name": "eth1/4/4",
+          "controllingPort": 26,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC52",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/4",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 29
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "30": {
+        "mapping": {
+          "id": 30,
+          "name": "eth1/4/5",
+          "controllingPort": 26,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC52",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/4",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 30
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "31": {
+        "mapping": {
+          "id": 31,
+          "name": "eth1/4/6",
+          "controllingPort": 26,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC52",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/4",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 31
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "32": {
+        "mapping": {
+          "id": 32,
+          "name": "eth1/4/7",
+          "controllingPort": 26,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC52",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/4",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 32
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "33": {
+        "mapping": {
+          "id": 33,
+          "name": "eth1/4/8",
+          "controllingPort": 26,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC52",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/4",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 33
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "34": {
+        "mapping": {
+          "id": 34,
+          "name": "eth1/5/1",
+          "controllingPort": 34,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC53",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/5",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC53",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/5",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC53",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/5",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC53",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/5",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 34
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "24": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "35": {
+        "mapping": {
+          "id": 35,
+          "name": "eth1/5/2",
+          "controllingPort": 34,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC53",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/5",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 35
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "36": {
+        "mapping": {
+          "id": 36,
+          "name": "eth1/5/3",
+          "controllingPort": 34,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC53",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/5",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 36
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "37": {
+        "mapping": {
+          "id": 37,
+          "name": "eth1/5/4",
+          "controllingPort": 34,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC53",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/5",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 37
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "38": {
+        "mapping": {
+          "id": 38,
+          "name": "eth1/5/5",
+          "controllingPort": 34,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC53",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/5",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 38
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "39": {
+        "mapping": {
+          "id": 39,
+          "name": "eth1/5/6",
+          "controllingPort": 34,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC53",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/5",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 39
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "40": {
+        "mapping": {
+          "id": 40,
+          "name": "eth1/5/7",
+          "controllingPort": 34,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC53",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/5",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 40
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "41": {
+        "mapping": {
+          "id": 41,
+          "name": "eth1/5/8",
+          "controllingPort": 34,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC53",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/5",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 41
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "42": {
+        "mapping": {
+          "id": 42,
+          "name": "eth1/6/1",
+          "controllingPort": 42,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC54",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/6",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC54",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/6",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC54",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/6",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC54",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/6",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 42
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "24": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "43": {
+        "mapping": {
+          "id": 43,
+          "name": "eth1/6/2",
+          "controllingPort": 42,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC54",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/6",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 43
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "44": {
+        "mapping": {
+          "id": 44,
+          "name": "eth1/6/3",
+          "controllingPort": 42,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC54",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/6",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 44
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "45": {
+        "mapping": {
+          "id": 45,
+          "name": "eth1/6/4",
+          "controllingPort": 42,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC54",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/6",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 45
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "46": {
+        "mapping": {
+          "id": 46,
+          "name": "eth1/6/5",
+          "controllingPort": 42,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC54",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/6",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 46
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "47": {
+        "mapping": {
+          "id": 47,
+          "name": "eth1/6/6",
+          "controllingPort": 42,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC54",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/6",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 47
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "48": {
+        "mapping": {
+          "id": 48,
+          "name": "eth1/6/7",
+          "controllingPort": 42,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC54",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/6",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 48
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "49": {
+        "mapping": {
+          "id": 49,
+          "name": "eth1/6/8",
+          "controllingPort": 42,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC54",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/6",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 49
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "50": {
+        "mapping": {
+          "id": 50,
+          "name": "eth1/7/1",
+          "controllingPort": 50,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC55",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/7",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC55",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/7",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC55",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/7",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC55",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/7",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 50
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "24": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "51": {
+        "mapping": {
+          "id": 51,
+          "name": "eth1/7/2",
+          "controllingPort": 50,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC55",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/7",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 51
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "52": {
+        "mapping": {
+          "id": 52,
+          "name": "eth1/7/3",
+          "controllingPort": 50,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC55",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/7",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 52
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "53": {
+        "mapping": {
+          "id": 53,
+          "name": "eth1/7/4",
+          "controllingPort": 50,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC55",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/7",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 53
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "54": {
+        "mapping": {
+          "id": 54,
+          "name": "eth1/7/5",
+          "controllingPort": 50,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC55",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/7",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 54
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "55": {
+        "mapping": {
+          "id": 55,
+          "name": "eth1/7/6",
+          "controllingPort": 50,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC55",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/7",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 55
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "56": {
+        "mapping": {
+          "id": 56,
+          "name": "eth1/7/7",
+          "controllingPort": 50,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC55",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/7",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 56
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "57": {
+        "mapping": {
+          "id": 57,
+          "name": "eth1/7/8",
+          "controllingPort": 50,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC55",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/7",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 57
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "58": {
+        "mapping": {
+          "id": 58,
+          "name": "eth1/8/1",
+          "controllingPort": 58,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC56",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/8",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC56",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/8",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC56",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/8",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC56",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/8",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 58
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "24": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "59": {
+        "mapping": {
+          "id": 59,
+          "name": "eth1/8/2",
+          "controllingPort": 58,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC56",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/8",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 59
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "60": {
+        "mapping": {
+          "id": 60,
+          "name": "eth1/8/3",
+          "controllingPort": 58,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC56",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/8",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 60
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "61": {
+        "mapping": {
+          "id": 61,
+          "name": "eth1/8/4",
+          "controllingPort": 58,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC56",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/8",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 61
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "62": {
+        "mapping": {
+          "id": 62,
+          "name": "eth1/8/5",
+          "controllingPort": 58,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC56",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/8",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 62
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "63": {
+        "mapping": {
+          "id": 63,
+          "name": "eth1/8/6",
+          "controllingPort": 58,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC56",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/8",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 63
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "64": {
+        "mapping": {
+          "id": 64,
+          "name": "eth1/8/7",
+          "controllingPort": 58,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC56",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/8",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 64
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "65": {
+        "mapping": {
+          "id": 65,
+          "name": "eth1/8/8",
+          "controllingPort": 58,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC56",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/8",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 65
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "66": {
+        "mapping": {
+          "id": 66,
+          "name": "eth1/9/1",
+          "controllingPort": 66,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC57",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/9",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC57",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/9",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC57",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/9",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC57",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/9",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 66
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "24": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "67": {
+        "mapping": {
+          "id": 67,
+          "name": "eth1/9/2",
+          "controllingPort": 66,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC57",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/9",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 67
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "68": {
+        "mapping": {
+          "id": 68,
+          "name": "eth1/9/3",
+          "controllingPort": 66,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC57",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/9",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 68
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "69": {
+        "mapping": {
+          "id": 69,
+          "name": "eth1/9/4",
+          "controllingPort": 66,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC57",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/9",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 69
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "70": {
+        "mapping": {
+          "id": 70,
+          "name": "eth1/9/5",
+          "controllingPort": 66,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC57",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/9",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 70
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "71": {
+        "mapping": {
+          "id": 71,
+          "name": "eth1/9/6",
+          "controllingPort": 66,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC57",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/9",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 71
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "72": {
+        "mapping": {
+          "id": 72,
+          "name": "eth1/9/7",
+          "controllingPort": 66,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC57",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/9",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 72
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "73": {
+        "mapping": {
+          "id": 73,
+          "name": "eth1/9/8",
+          "controllingPort": 66,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC57",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/9",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 73
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "74": {
+        "mapping": {
+          "id": 74,
+          "name": "eth1/10/1",
+          "controllingPort": 74,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC58",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/10",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC58",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/10",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC58",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/10",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC58",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/10",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 74
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "24": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "75": {
+        "mapping": {
+          "id": 75,
+          "name": "eth1/10/2",
+          "controllingPort": 74,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC58",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/10",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 75
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "76": {
+        "mapping": {
+          "id": 76,
+          "name": "eth1/10/3",
+          "controllingPort": 74,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC58",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/10",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 76
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "77": {
+        "mapping": {
+          "id": 77,
+          "name": "eth1/10/4",
+          "controllingPort": 74,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC58",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/10",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 77
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "78": {
+        "mapping": {
+          "id": 78,
+          "name": "eth1/10/5",
+          "controllingPort": 74,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC58",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/10",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 78
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "79": {
+        "mapping": {
+          "id": 79,
+          "name": "eth1/10/6",
+          "controllingPort": 74,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC58",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/10",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 79
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "80": {
+        "mapping": {
+          "id": 80,
+          "name": "eth1/10/7",
+          "controllingPort": 74,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC58",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/10",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 80
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "81": {
+        "mapping": {
+          "id": 81,
+          "name": "eth1/10/8",
+          "controllingPort": 74,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC58",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/10",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 81
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "82": {
+        "mapping": {
+          "id": 82,
+          "name": "eth1/11/1",
+          "controllingPort": 82,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC59",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/11",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC59",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/11",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC59",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/11",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC59",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/11",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 82
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "24": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "83": {
+        "mapping": {
+          "id": 83,
+          "name": "eth1/11/2",
+          "controllingPort": 82,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC59",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/11",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 83
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "84": {
+        "mapping": {
+          "id": 84,
+          "name": "eth1/11/3",
+          "controllingPort": 82,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC59",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/11",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 84
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "85": {
+        "mapping": {
+          "id": 85,
+          "name": "eth1/11/4",
+          "controllingPort": 82,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC59",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/11",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 85
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "86": {
+        "mapping": {
+          "id": 86,
+          "name": "eth1/11/5",
+          "controllingPort": 82,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC59",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/11",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 86
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "87": {
+        "mapping": {
+          "id": 87,
+          "name": "eth1/11/6",
+          "controllingPort": 82,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC59",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/11",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 87
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "88": {
+        "mapping": {
+          "id": 88,
+          "name": "eth1/11/7",
+          "controllingPort": 82,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC59",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/11",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 88
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "89": {
+        "mapping": {
+          "id": 89,
+          "name": "eth1/11/8",
+          "controllingPort": 82,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC59",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/11",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 89
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "90": {
+        "mapping": {
+          "id": 90,
+          "name": "eth1/12/1",
+          "controllingPort": 90,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC60",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/12",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC60",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/12",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC60",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/12",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC60",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/12",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 90
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "24": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "91": {
+        "mapping": {
+          "id": 91,
+          "name": "eth1/12/2",
+          "controllingPort": 90,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC60",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/12",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 91
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "92": {
+        "mapping": {
+          "id": 92,
+          "name": "eth1/12/3",
+          "controllingPort": 90,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC60",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/12",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 92
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "93": {
+        "mapping": {
+          "id": 93,
+          "name": "eth1/12/4",
+          "controllingPort": 90,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC60",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/12",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 93
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "94": {
+        "mapping": {
+          "id": 94,
+          "name": "eth1/12/5",
+          "controllingPort": 90,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC60",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/12",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 94
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "95": {
+        "mapping": {
+          "id": 95,
+          "name": "eth1/12/6",
+          "controllingPort": 90,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC60",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/12",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 95
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "96": {
+        "mapping": {
+          "id": 96,
+          "name": "eth1/12/7",
+          "controllingPort": 90,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC60",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/12",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 96
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "97": {
+        "mapping": {
+          "id": 97,
+          "name": "eth1/12/8",
+          "controllingPort": 90,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC60",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/12",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 97
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "98": {
+        "mapping": {
+          "id": 98,
+          "name": "eth1/13/1",
+          "controllingPort": 98,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC61",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/13",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC61",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/13",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC61",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/13",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC61",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/13",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 98
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "24": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "99": {
+        "mapping": {
+          "id": 99,
+          "name": "eth1/13/2",
+          "controllingPort": 98,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC61",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/13",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 99
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "100": {
+        "mapping": {
+          "id": 100,
+          "name": "eth1/13/3",
+          "controllingPort": 98,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC61",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/13",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 100
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "101": {
+        "mapping": {
+          "id": 101,
+          "name": "eth1/13/4",
+          "controllingPort": 98,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC61",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/13",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 101
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "102": {
+        "mapping": {
+          "id": 102,
+          "name": "eth1/13/5",
+          "controllingPort": 98,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC61",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/13",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 102
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "103": {
+        "mapping": {
+          "id": 103,
+          "name": "eth1/13/6",
+          "controllingPort": 98,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC61",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/13",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 103
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "104": {
+        "mapping": {
+          "id": 104,
+          "name": "eth1/13/7",
+          "controllingPort": 98,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC61",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/13",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 104
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "105": {
+        "mapping": {
+          "id": 105,
+          "name": "eth1/13/8",
+          "controllingPort": 98,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC61",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/13",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 105
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "106": {
+        "mapping": {
+          "id": 106,
+          "name": "eth1/14/1",
+          "controllingPort": 106,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC62",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/14",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC62",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/14",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC62",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/14",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC62",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/14",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 106
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "24": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "107": {
+        "mapping": {
+          "id": 107,
+          "name": "eth1/14/2",
+          "controllingPort": 106,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC62",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/14",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 107
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "108": {
+        "mapping": {
+          "id": 108,
+          "name": "eth1/14/3",
+          "controllingPort": 106,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC62",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/14",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 108
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "109": {
+        "mapping": {
+          "id": 109,
+          "name": "eth1/14/4",
+          "controllingPort": 106,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC62",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/14",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 109
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "110": {
+        "mapping": {
+          "id": 110,
+          "name": "eth1/14/5",
+          "controllingPort": 106,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC62",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/14",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 110
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "111": {
+        "mapping": {
+          "id": 111,
+          "name": "eth1/14/6",
+          "controllingPort": 106,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC62",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/14",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 111
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "112": {
+        "mapping": {
+          "id": 112,
+          "name": "eth1/14/7",
+          "controllingPort": 106,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC62",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/14",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 112
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "113": {
+        "mapping": {
+          "id": 113,
+          "name": "eth1/14/8",
+          "controllingPort": 106,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC62",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/14",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 113
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "114": {
+        "mapping": {
+          "id": 114,
+          "name": "eth1/15/1",
+          "controllingPort": 114,
           "pins": [
             {
               "a": {
@@ -3283,7 +10311,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/16",
+                  "chip": "eth1/15",
                   "lane": 0
                 }
               }
@@ -3295,7 +10323,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/16",
+                  "chip": "eth1/15",
                   "lane": 1
                 }
               }
@@ -3307,7 +10335,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/16",
+                  "chip": "eth1/15",
                   "lane": 2
                 }
               }
@@ -3319,7 +10347,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/16",
+                  "chip": "eth1/15",
                   "lane": 3
                 }
               }
@@ -3327,7 +10355,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 16
+          "attachedCorePortIndex": 114
         },
         "supportedProfiles": {
           "22": {
@@ -3361,25 +10389,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/16",
+                      "chip": "eth1/15",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/16",
+                      "chip": "eth1/15",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/16",
+                      "chip": "eth1/15",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/16",
+                      "chip": "eth1/15",
                       "lane": 3
                     }
                   }
@@ -3417,25 +10445,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/16",
+                      "chip": "eth1/15",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/16",
+                      "chip": "eth1/15",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/16",
+                      "chip": "eth1/15",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/16",
+                      "chip": "eth1/15",
                       "lane": 3
                     }
                   }
@@ -3473,6 +10501,626 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
+                      "chip": "eth1/15",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "115": {
+        "mapping": {
+          "id": 115,
+          "name": "eth1/15/2",
+          "controllingPort": 114,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC63",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/15",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 115
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "116": {
+        "mapping": {
+          "id": 116,
+          "name": "eth1/15/3",
+          "controllingPort": 114,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC63",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/15",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 116
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "117": {
+        "mapping": {
+          "id": 117,
+          "name": "eth1/15/4",
+          "controllingPort": 114,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC63",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/15",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 117
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "118": {
+        "mapping": {
+          "id": 118,
+          "name": "eth1/15/5",
+          "controllingPort": 114,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC63",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/15",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 118
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "119": {
+        "mapping": {
+          "id": 119,
+          "name": "eth1/15/6",
+          "controllingPort": 114,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC63",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/15",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 119
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "120": {
+        "mapping": {
+          "id": 120,
+          "name": "eth1/15/7",
+          "controllingPort": 114,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC63",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/15",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 120
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "121": {
+        "mapping": {
+          "id": 121,
+          "name": "eth1/15/8",
+          "controllingPort": 114,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC63",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/15",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 121
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "122": {
+        "mapping": {
+          "id": 122,
+          "name": "eth1/16/1",
+          "controllingPort": 122,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC64",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/16",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC64",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/16",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC64",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/16",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC64",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/16",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 122
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
                       "chip": "eth1/16",
                       "lane": 0
                     }
@@ -3489,6 +11137,356 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   },
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "24": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "123": {
+        "mapping": {
+          "id": 123,
+          "name": "eth1/16/2",
+          "controllingPort": 122,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC64",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/16",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 123
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "124": {
+        "mapping": {
+          "id": 124,
+          "name": "eth1/16/3",
+          "controllingPort": 122,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC64",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/16",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 124
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "125": {
+        "mapping": {
+          "id": 125,
+          "name": "eth1/16/4",
+          "controllingPort": 122,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC64",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/16",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 125
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
                   {
                     "id": {
                       "chip": "eth1/16",
@@ -3500,15 +11498,279 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "17": {
+    "126": {
         "mapping": {
-          "id": 17,
-          "name": "eth1/17/1",
-          "controllingPort": 17,
+          "id": 126,
+          "name": "eth1/16/5",
+          "controllingPort": 122,
           "pins": [
             {
               "a": {
                 "chip": "BC64",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/16",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 126
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "127": {
+        "mapping": {
+          "id": 127,
+          "name": "eth1/16/6",
+          "controllingPort": 122,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC64",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/16",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 127
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "128": {
+        "mapping": {
+          "id": 128,
+          "name": "eth1/16/7",
+          "controllingPort": 122,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC64",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/16",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 128
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "129": {
+        "mapping": {
+          "id": 129,
+          "name": "eth1/16/8",
+          "controllingPort": 122,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC64",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/16",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 129
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "130": {
+        "mapping": {
+          "id": 130,
+          "name": "eth1/17/1",
+          "controllingPort": 130,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC65",
                 "lane": 0
               },
               "z": {
@@ -3520,7 +11782,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC64",
+                "chip": "BC65",
                 "lane": 1
               },
               "z": {
@@ -3532,7 +11794,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC64",
+                "chip": "BC65",
                 "lane": 2
               },
               "z": {
@@ -3544,7 +11806,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC64",
+                "chip": "BC65",
                 "lane": 3
               },
               "z": {
@@ -3557,7 +11819,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 17
+          "attachedCorePortIndex": 130
         },
         "supportedProfiles": {
           "22": {
@@ -3565,25 +11827,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "BC65",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "BC65",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "BC65",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "BC65",
                       "lane": 3
                     }
                   }
@@ -3621,25 +11883,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "BC65",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "BC65",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "BC65",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "BC65",
                       "lane": 3
                     }
                   }
@@ -3677,25 +11939,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "BC65",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "BC65",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "BC65",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "BC65",
                       "lane": 3
                     }
                   }
@@ -3723,6 +11985,1240 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/17",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC65",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC65",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "131": {
+        "mapping": {
+          "id": 131,
+          "name": "eth1/17/2",
+          "controllingPort": 130,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC65",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/17",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 131
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC65",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC65",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "132": {
+        "mapping": {
+          "id": 132,
+          "name": "eth1/17/3",
+          "controllingPort": 130,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC65",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/17",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 132
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC65",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC65",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "133": {
+        "mapping": {
+          "id": 133,
+          "name": "eth1/17/4",
+          "controllingPort": 130,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC65",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/17",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 133
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC65",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC65",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "134": {
+        "mapping": {
+          "id": 134,
+          "name": "eth1/17/5",
+          "controllingPort": 130,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC65",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/17",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 134
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC65",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC65",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "135": {
+        "mapping": {
+          "id": 135,
+          "name": "eth1/17/6",
+          "controllingPort": 130,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC65",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/17",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 135
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC65",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC65",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "136": {
+        "mapping": {
+          "id": 136,
+          "name": "eth1/17/7",
+          "controllingPort": 130,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC65",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/17",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 136
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC65",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC65",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "137": {
+        "mapping": {
+          "id": 137,
+          "name": "eth1/17/8",
+          "controllingPort": 130,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC65",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/17",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 137
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC65",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC65",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "138": {
+        "mapping": {
+          "id": 138,
+          "name": "eth1/18/1",
+          "controllingPort": 138,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC66",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/18",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC66",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/18",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC66",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/18",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC66",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/18",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 138
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "24": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "139": {
+        "mapping": {
+          "id": 139,
+          "name": "eth1/18/2",
+          "controllingPort": 138,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC66",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/18",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 139
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "140": {
+        "mapping": {
+          "id": 140,
+          "name": "eth1/18/3",
+          "controllingPort": 138,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC66",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/18",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 140
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "141": {
+        "mapping": {
+          "id": 141,
+          "name": "eth1/18/4",
+          "controllingPort": 138,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC66",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/18",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 141
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "142": {
+        "mapping": {
+          "id": 142,
+          "name": "eth1/18/5",
+          "controllingPort": 138,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC66",
+                "lane": 4
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/18",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 142
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "143": {
+        "mapping": {
+          "id": 143,
+          "name": "eth1/18/6",
+          "controllingPort": 138,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC66",
+                "lane": 5
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/18",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 143
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "144": {
+        "mapping": {
+          "id": 144,
+          "name": "eth1/18/7",
+          "controllingPort": 138,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC66",
+                "lane": 6
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/18",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 144
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 6
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "145": {
+        "mapping": {
+          "id": 145,
+          "name": "eth1/18/8",
+          "controllingPort": 138,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC66",
+                "lane": 7
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/18",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 145
+        },
+        "supportedProfiles": {
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC66",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 7
                     }
                   }
                 ]
@@ -15559,7 +25055,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
     {
       "name": "BC64",
       "type": 1,
+      "physicalID": 4
+    },
+    {
+      "name": "BC65",
+      "type": 1,
       "physicalID": 2
+    },
+    {
+      "name": "BC66",
+      "type": 1,
+      "physicalID": 0
     },
     {
       "name": "BC49",
@@ -15569,72 +25075,72 @@ constexpr auto kJsonPlatformMappingStr = R"(
     {
       "name": "BC50",
       "type": 1,
-      "physicalID": 22
+      "physicalID": 18
     },
     {
       "name": "BC51",
       "type": 1,
-      "physicalID": 24
+      "physicalID": 22
     },
     {
       "name": "BC52",
       "type": 1,
-      "physicalID": 26
+      "physicalID": 24
     },
     {
       "name": "BC53",
       "type": 1,
-      "physicalID": 28
+      "physicalID": 26
     },
     {
       "name": "BC54",
       "type": 1,
-      "physicalID": 30
+      "physicalID": 28
     },
     {
       "name": "BC55",
       "type": 1,
-      "physicalID": 32
+      "physicalID": 30
     },
     {
       "name": "BC56",
       "type": 1,
-      "physicalID": 34
+      "physicalID": 32
     },
     {
       "name": "BC57",
       "type": 1,
-      "physicalID": 16
+      "physicalID": 34
     },
     {
       "name": "BC58",
       "type": 1,
-      "physicalID": 14
+      "physicalID": 16
     },
     {
       "name": "BC59",
       "type": 1,
-      "physicalID": 12
+      "physicalID": 14
     },
     {
       "name": "BC60",
       "type": 1,
-      "physicalID": 10
+      "physicalID": 12
     },
     {
       "name": "BC61",
       "type": 1,
-      "physicalID": 8
+      "physicalID": 10
     },
     {
       "name": "BC62",
       "type": 1,
-      "physicalID": 6
+      "physicalID": 8
     },
     {
       "name": "BC63",
       "type": 1,
-      "physicalID": 4
+      "physicalID": 6
     },
     {
       "name": "fab1/1",
@@ -16432,7 +25938,135 @@ constexpr auto kJsonPlatformMappingStr = R"(
           14,
           15,
           16,
-          17
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          85,
+          86,
+          87,
+          88,
+          89,
+          90,
+          91,
+          92,
+          93,
+          94,
+          95,
+          96,
+          97,
+          98,
+          99,
+          100,
+          101,
+          102,
+          103,
+          104,
+          105,
+          106,
+          107,
+          108,
+          109,
+          110,
+          111,
+          112,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145
         ],
         "profiles": [
           36,
@@ -16476,7 +26110,135 @@ constexpr auto kJsonPlatformMappingStr = R"(
           14,
           15,
           16,
-          17
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          85,
+          86,
+          87,
+          88,
+          89,
+          90,
+          91,
+          92,
+          93,
+          94,
+          95,
+          96,
+          97,
+          98,
+          99,
+          100,
+          101,
+          102,
+          103,
+          104,
+          105,
+          106,
+          107,
+          108,
+          109,
+          110,
+          111,
+          112,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145
         ],
         "profiles": [
           24
@@ -16753,7 +26515,135 @@ constexpr auto kJsonPlatformMappingStr = R"(
           14,
           15,
           16,
-          17
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          85,
+          86,
+          87,
+          88,
+          89,
+          90,
+          91,
+          92,
+          93,
+          94,
+          95,
+          96,
+          97,
+          98,
+          99,
+          100,
+          101,
+          102,
+          103,
+          104,
+          105,
+          106,
+          107,
+          108,
+          109,
+          110,
+          111,
+          112,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145
         ],
         "profiles": [
           23,
@@ -16852,6 +26742,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "medium": 3,
           "interfaceMode": 41,
           "interfaceType": 41
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 44
+      },
+      "profile": {
+        "speed": 50000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 2,
+          "fec": 544,
+          "medium": 2,
+          "interfaceMode": 1,
+          "interfaceType": 1
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 43
+      },
+      "profile": {
+        "speed": 50000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 2,
+          "fec": 544,
+          "medium": 1,
+          "interfaceMode": 10,
+          "interfaceType": 10
         }
       }
     },
