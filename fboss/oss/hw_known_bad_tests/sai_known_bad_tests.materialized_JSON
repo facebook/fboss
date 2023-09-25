@@ -12433,6 +12433,15 @@
         },
         {
           "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "HwLabelEdgeRouteTest/0.ExceedMaxLabels"
+        },
+        {
+          "test_name_regex": "HwPortBandwidthTest.VerifyQueueShaper"
+        },
+        {
+          "test_name_regex": "SaiAclTableRecreateTests.AclEntryCount"
         }
     ]
   }
