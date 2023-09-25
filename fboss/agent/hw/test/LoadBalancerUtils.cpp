@@ -30,8 +30,16 @@
 #include <gtest/gtest.h>
 #include <sstream>
 
+DEFINE_string(
+    load_balance_traffic_src,
+    "",
+    "CSV file with source IP, port and destination IP, port for load balancing test. See P827101297 for example.");
+
 namespace facebook::fboss::utility {
 namespace {
+
+std::vector<std::string> kTrafficFields = {"sip", "dip", "sport", "dport"};
+
 cfg::Fields getHalfHashFields() {
   cfg::Fields hashFields;
   hashFields.ipv4Fields() = std::set<cfg::IPv4Field>(
@@ -264,6 +272,84 @@ void pumpRoCETraffic(
   }
 }
 
+/*
+ * The helper expects source file FLAGS_load_balance_traffic_src to be in CSV
+ * format, where it should contain the following columns:
+ *
+ *   sip - source IP
+ *   dip - destination IP
+ *   sport - source port
+ *   dport - destination port
+ *
+ *   Please see P827101297 for an example of how this file should be formatted.
+ */
+void pumpTrafficWithSourceFile(
+    HwSwitch* hw,
+    folly::MacAddress dstMac,
+    std::optional<VlanID> vlan,
+    std::optional<PortID> frontPanelPortToLoopTraffic,
+    int hopLimit,
+    std::optional<folly::MacAddress> srcMacAddr) {
+  XLOG(DBG2) << "Using " << FLAGS_load_balance_traffic_src
+             << " as source file for traffic generation";
+  folly::MacAddress srcMac(
+      srcMacAddr.has_value() ? *srcMacAddr
+                             : MacAddressGenerator().get(dstMac.u64HBO() + 1));
+  // Use source file to generate traffic
+  if (!FLAGS_load_balance_traffic_src.empty()) {
+    std::ifstream srcFile(FLAGS_load_balance_traffic_src);
+    std::string line;
+    // Find index of SIP, DIP, SPort and DPort
+    std::vector<int> indices;
+    if (std::getline(srcFile, line)) {
+      std::vector<std::string> parsedLine;
+      folly::split(',', line, parsedLine);
+      for (const auto& field : kTrafficFields) {
+        for (int i = 0; i < parsedLine.size(); i++) {
+          std::string column = parsedLine[i];
+          column.erase(
+              std::remove_if(
+                  column.begin(),
+                  column.end(),
+                  [](auto const& c) -> bool { return !std::isalnum(c); }),
+              column.end());
+          if (field == column) {
+            indices.push_back(i);
+            break;
+          }
+        }
+      }
+      CHECK_EQ(kTrafficFields.size(), indices.size());
+    } else {
+      throw FbossError("Empty source file ", FLAGS_load_balance_traffic_src);
+    }
+    while (std::getline(srcFile, line)) {
+      std::vector<std::string> parsedLine;
+      folly::split(',', line, parsedLine);
+      auto pkt = makeUDPTxPacket(
+          hw,
+          vlan,
+          srcMac,
+          dstMac,
+          folly::IPAddress(parsedLine[indices[0]]),
+          folly::IPAddress(parsedLine[indices[1]]),
+          folly::to<uint16_t>(parsedLine[indices[2]]),
+          folly::to<uint16_t>(parsedLine[indices[3]]),
+          0,
+          hopLimit);
+      if (frontPanelPortToLoopTraffic) {
+        hw->sendPacketOutOfPortSync(
+            std::move(pkt), frontPanelPortToLoopTraffic.value());
+      } else {
+        hw->sendPacketSwitchedSync(std::move(pkt));
+      }
+    }
+  } else {
+    throw FbossError(
+        "Using pumpTrafficWithSourceFile without source file specified");
+  }
+}
+
 void pumpTraffic(
     bool isV6,
     HwSwitch* hw,
@@ -272,6 +358,11 @@ void pumpTraffic(
     std::optional<PortID> frontPanelPortToLoopTraffic,
     int hopLimit,
     std::optional<folly::MacAddress> srcMacAddr) {
+  if (!FLAGS_load_balance_traffic_src.empty()) {
+    pumpTrafficWithSourceFile(
+        hw, dstMac, vlan, frontPanelPortToLoopTraffic, hopLimit, srcMacAddr);
+    return;
+  }
   folly::MacAddress srcMac(
       srcMacAddr.has_value() ? *srcMacAddr
                              : MacAddressGenerator().get(dstMac.u64HBO() + 1));

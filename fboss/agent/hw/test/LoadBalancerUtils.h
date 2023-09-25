@@ -21,6 +21,8 @@
 
 #include <vector>
 
+DECLARE_string(load_balance_traffic_src);
+
 namespace facebook::fboss {
 class HwSwitch;
 class Platform;
@@ -78,6 +80,14 @@ void pumpRoCETraffic(
     std::optional<VlanID> vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic,
     int roceDestPort = kUdfL4DstPort, /* RoCE fixed dst port */
+    int hopLimit = 255,
+    std::optional<folly::MacAddress> srcMacAddr = std::nullopt);
+
+void pumpTrafficWithSourceFile(
+    HwSwitch* hw,
+    folly::MacAddress dstMac,
+    std::optional<VlanID> vlan,
+    std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt,
     int hopLimit = 255,
     std::optional<folly::MacAddress> srcMacAddr = std::nullopt);
 
