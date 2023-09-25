@@ -145,6 +145,9 @@ std::set<cfg::AclTableQualifier> AclEntry::getRequiredAclTableQualifiers()
   if (getEtherType()) {
     qualifiers.insert(cfg::AclTableQualifier::ETHER_TYPE);
   }
+  if (getUdfGroups()) {
+    qualifiers.insert(cfg::AclTableQualifier::UDF);
+  }
   return qualifiers;
 }
 

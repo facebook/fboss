@@ -3135,6 +3135,9 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (auto vlanID = config->vlanID()) {
     newAcl->setVlanID(*vlanID);
   }
+  if (auto udfGroupList = config->udfGroups()) {
+    newAcl->setUdfGroups(*udfGroupList);
+  }
   newAcl->setEnabled(enable);
   return newAcl;
 }

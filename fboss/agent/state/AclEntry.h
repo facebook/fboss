@@ -90,6 +90,7 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
  public:
   using BaseT = ThriftStructNode<AclEntry, state::AclEntryFields>;
   using BaseT::modify;
+  using UdfGroups = std::vector<std::string>;
   static const uint8_t kProtoIcmp = 1;
   static const uint8_t kProtoIcmpv6 = 58;
   static const uint8_t kMaxIcmpType = 0xFF;
@@ -339,6 +340,17 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
     set<switch_state_tags::lookupClassNeighbor>(lookupClassNeighbor);
   }
 
+  void setUdfGroups(const UdfGroups& udfGroups) {
+    set<switch_state_tags::udfGroups>(udfGroups);
+  }
+
+  std::optional<UdfGroups> getUdfGroups() const {
+    if (auto udf = cref<switch_state_tags::udfGroups>()) {
+      return udf->toThrift();
+    }
+    return std::nullopt;
+  }
+
   std::optional<cfg::AclLookupClass> getLookupClassRoute() const {
     if (auto lookupClassRoute = cref<switch_state_tags::lookupClassRoute>()) {
       return lookupClassRoute->cref();
@@ -387,7 +399,8 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
         getIcmpType() || getDscp() || getIpType() || getTtl() || getDstMac() ||
         getL4SrcPort() || getL4DstPort() || getLookupClassL2() ||
         getLookupClassNeighbor() || getLookupClassRoute() ||
-        getPacketLookupResult() || getEtherType() || getVlanID();
+        getPacketLookupResult() || getEtherType() || getVlanID() ||
+        getUdfGroups();
   }
 
   std::set<cfg::AclTableQualifier> getRequiredAclTableQualifiers() const;

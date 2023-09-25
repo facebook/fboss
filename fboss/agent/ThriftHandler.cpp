@@ -474,6 +474,9 @@ AclEntryThrift populateAclEntryThrift(const AclEntry& aclEntry) {
   if (aclEntry.getDstMac()) {
     aclEntryThrift.dstMac() = aclEntry.getDstMac().value().toString();
   }
+  if (aclEntry.getUdfGroups()) {
+    aclEntryThrift.udfGroups() = aclEntry.getUdfGroups().value();
+  }
   if (aclEntry.isEnabled()) {
     aclEntryThrift.enabled() = aclEntry.isEnabled().value();
   }
