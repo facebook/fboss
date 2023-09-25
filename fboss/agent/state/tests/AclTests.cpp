@@ -303,6 +303,35 @@ TEST(Acl, stateDelta) {
   EXPECT_EQ(iter, aclDelta45.end());
 }
 
+TEST(Acl, Udf) {
+  FLAGS_enable_acl_table_group = false;
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  std::vector<std::string> udfList = {"foo1", "foo2"};
+
+  cfg::SwitchConfig config;
+  config.acls()->resize(1);
+  *config.acls()[0].name() = "aclUdf";
+  *config.acls()[0].actionType() = cfg::AclActionType::DENY;
+  config.acls()[0].udfGroups() = udfList;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto aclV1 = stateV1->getAcl("aclUdf");
+  ASSERT_NE(nullptr, aclV1);
+  EXPECT_EQ(cfg::AclActionType::DENY, aclV1->getActionType());
+  EXPECT_EQ(aclV1->getUdfGroups().value(), udfList);
+
+  // update udf list, ensure it gets reflected
+  std::vector<std::string> newUdfList = {"foo3"};
+  config.acls()[0].udfGroups() = newUdfList;
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  EXPECT_NE(nullptr, stateV2);
+  auto aclV2 = stateV2->getAcl("aclUdf");
+  ASSERT_NE(nullptr, aclV2);
+  EXPECT_EQ(aclV2->getUdfGroups().value(), newUdfList);
+}
+
 TEST(Acl, Icmp) {
   FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
@@ -985,6 +1014,7 @@ TEST(Acl, GetRequiredAclTableQualifiers) {
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1;
     acl.lookupClassRoute() = cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2;
     acl.actionType() = cfg::AclActionType::DENY;
+    acl.udfGroups() = {"foo1", "foo2"};
     return acl;
   };
   config.acls()[0] = setAclQualifiers("10.0.0.1/32", "acl0");
@@ -1020,7 +1050,8 @@ TEST(Acl, GetRequiredAclTableQualifiers) {
       cfg::AclTableQualifier::OUT_PORT,
       cfg::AclTableQualifier::LOOKUP_CLASS_L2,
       cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
-      cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
+      cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE,
+      cfg::AclTableQualifier::UDF};
 
   std::set<cfg::AclTableQualifier> qualifiers1{
       cfg::AclTableQualifier::SRC_IPV6,
@@ -1038,7 +1069,8 @@ TEST(Acl, GetRequiredAclTableQualifiers) {
       cfg::AclTableQualifier::OUT_PORT,
       cfg::AclTableQualifier::LOOKUP_CLASS_L2,
       cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
-      cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
+      cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE,
+      cfg::AclTableQualifier::UDF};
 
   EXPECT_EQ(q0, qualifiers0);
   EXPECT_EQ(q1, qualifiers1);
