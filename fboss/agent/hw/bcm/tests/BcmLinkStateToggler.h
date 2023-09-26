@@ -28,8 +28,6 @@ class BcmLinkStateToggler : public HwLinkStateToggler {
  private:
   BcmSwitch* getHw();
   void invokeLinkScanIfNeeded(PortID port, bool isUp) override;
-  void setPortPreemphasis(const std::shared_ptr<Port>& port, int preemphasis)
-      override;
 };
 
 } // namespace facebook::fboss

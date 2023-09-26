@@ -26,9 +26,6 @@ class HwSplitAgentCallbackTest : public HwLinkStateDependentTest {
    public:
     TestToggler() : HwLinkStateToggler(nullptr) {}
     void invokeLinkScanIfNeeded(PortID /*port*/, bool /*isUp*/) override {}
-    void setPortPreemphasis(
-        const std::shared_ptr<Port>& /*port*/,
-        int /*preemphasis*/) override {}
   };
 
   void SetUp() override {
