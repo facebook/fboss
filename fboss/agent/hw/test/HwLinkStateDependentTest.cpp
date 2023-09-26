@@ -23,6 +23,27 @@ void HwLinkStateDependentTest::SetUp() {
     // to warm boot
     getHwSwitchEnsemble()->applyInitialConfig(initialConfig());
   }
+
+  if (isSupported(HwAsic::Feature::LINK_STATE_BASED_ISOLATE)) {
+    // For switches that support LINK_STATE_BASED_ISOLATE, force
+    // switch to come out of isolate post setup. This is required
+    // for data plane to work.
+    //
+    // TODO: For VOQ switches, enhance HwTestLinkScanUpdateObserver to observe
+    // link state updates, exercise (thus test) computeActualSwitchDrainState
+    // which will bring the device out of isolate. At that time, this explicit
+    // unisolate can be removed.
+    auto undrainState = getProgrammedState()->clone();
+    auto multiSwitchSettings = undrainState->getSwitchSettings()->clone();
+    auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
+    auto settings =
+        multiSwitchSettings->getNode(matcher.matcherString())->clone();
+    settings->setActualSwitchDrainState(cfg::SwitchDrainState::UNDRAINED);
+    multiSwitchSettings->updateNode(matcher.matcherString(), settings);
+    undrainState->resetSwitchSettings(multiSwitchSettings);
+
+    applyNewState(undrainState);
+  }
 }
 
 HwLinkStateToggler* HwLinkStateDependentTest::getLinkToggler() {
