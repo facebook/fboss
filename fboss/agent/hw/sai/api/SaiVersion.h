@@ -28,3 +28,47 @@
 #endif
 
 #endif
+
+/*
+ *  Aggregate BRCM_SAI flags
+ *
+ *  Purpose of this is try to minimize the SDK version flags scattering around
+ * the code base. It's error prone and hard to maintain.
+ *
+ *  High-level flags:
+ *   - BRCM_SAI_SDK_XGS: Flags for all XGS SDK versions
+ *   - BRCM_SAI_SDK_DNX: Flags for DNX SDK versions
+ *   - BRCM_SAI_SDK_XGS_AND_DNX: Flags for all BRCM-SAI SDK versions
+ *
+ *  Apart from these, individual flags are available for versions greater than
+ * certain SDK. They will be useful for features being supported since a
+ * particular SDK version.
+ *
+ */
+#if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
+    defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
+    defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP) || \
+    defined(SAI_VERSION_10_0_EA_ODP) || defined(SAI_VERSION_10_0_EA_SIM_ODP)
+#define BRCM_SAI_SDK_XGS
+#endif
+
+#if defined(SAI_VERSION_10_0_EA_DNX_ODP) || \
+    defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP)
+#define BRCM_SAI_SDK_DNX
+#endif
+
+#if defined(BRCM_SAI_SDK_XGS) || defined(BRCM_SAI_SDK_DNX)
+#define BRCM_SAI_SDK_XGS_AND_DNX
+#endif
+
+#if defined(SAI_VERSION_10_0_EA_ODP) ||     \
+    defined(SAI_VERSION_10_0_EA_SIM_ODP) || \
+    defined(SAI_VERSION_10_0_EA_DNX_ODP) || \
+    defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP)
+#define BRCM_SAI_SDK_GTE_10_0
+#endif
+
+#if defined(BRCM_SAI_SDK_GTE_10_0) || defined(SAI_VERSION_9_2_0_0_ODP) || \
+    defined(SAI_VERSION_9_0_EA_SIM_ODP)
+#define BRCM_SAI_SDK_GTE_9_2
+#endif
