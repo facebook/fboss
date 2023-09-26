@@ -579,12 +579,7 @@ std::optional<bool> SaiSwitchManager::getPtpTcEnabled() {
 }
 
 bool SaiSwitchManager::isGlobalQoSMapSupported() const {
-#if defined(SAI_VERSION_8_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_SIM) ||    \
-    defined(SAI_VERSION_8_2_0_0_DNX_ODP) ||                                    \
-    defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP) || \
-    defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) ||                                \
-    defined(SAI_VERSION_10_0_EA_DNX_ODP) ||                                    \
-    defined(SAI_VERSION_10_0_EA_ODP) || defined(SAI_VERSION_10_0_EA_SIM_ODP)
+#if defined(BRCM_SAI_SDK_XGS_AND_DNX)
   return false;
 #endif
   return platform_->getAsic()->isSupported(HwAsic::Feature::QOS_MAP_GLOBAL);

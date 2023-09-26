@@ -20,8 +20,7 @@ void fillHwSwitchDramStats(
   for (auto counterIdAndValue : counterId2Value) {
     auto [counterId, value] = counterIdAndValue;
     switch (counterId) {
-#if defined(SAI_VERSION_10_0_EA_DNX_ODP) || \
-    defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP)
+#if defined(BRCM_SAI_SDK_DNX)
       case SAI_SWITCH_STAT_DEVICE_DRAM_ENQUEUED_BYTES:
         hwSwitchDramStats.dramEnqueuedBytes() = value;
         break;

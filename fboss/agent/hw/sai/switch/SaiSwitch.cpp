@@ -2336,13 +2336,7 @@ void SaiSwitch::unregisterCallbacksLocked(
     switchApi.unregisterRxCallback(saiSwitchId_);
   }
   if (isFeatureSetupLocked(FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED, lock)) {
-#if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
-    defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
-    defined(SAI_VERSION_8_2_0_0_DNX_ODP) ||                                    \
-    defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP) || \
-    defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) ||                                \
-    defined(SAI_VERSION_10_0_EA_DNX_ODP) ||                                    \
-    defined(SAI_VERSION_10_0_EA_ODP) || defined(SAI_VERSION_10_0_EA_SIM_ODP)
+#if defined(BRCM_SAI_SDK_XGS_AND_DNX)
     switchApi.unregisterParityErrorSwitchEventCallback(saiSwitchId_);
 #else
     switchApi.unregisterTamEventCallback(saiSwitchId_);
@@ -2639,13 +2633,7 @@ void SaiSwitch::switchRunStateChangedImplLocked(
       }
       if (getFeaturesDesired() & FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED) {
         auto& switchApi = SaiApiTable::getInstance()->switchApi();
-#if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
-    defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
-    defined(SAI_VERSION_8_2_0_0_DNX_ODP) ||                                    \
-    defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP) || \
-    defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) ||                                \
-    defined(SAI_VERSION_10_0_EA_DNX_ODP) ||                                    \
-    defined(SAI_VERSION_10_0_EA_ODP) || defined(SAI_VERSION_10_0_EA_SIM_ODP)
+#if defined(BRCM_SAI_SDK_XGS_AND_DNX)
         switchApi.registerParityErrorSwitchEventCallback(
             saiSwitchId_, (void*)__gParityErrorSwitchEventCallback);
 #else
@@ -3165,13 +3153,7 @@ void SaiSwitch::processAclTableGroupDelta(
 void SaiSwitch::initialStateApplied() {
   managerTable_->fdbManager().removeUnclaimedDynanicEntries();
   managerTable_->hashManager().removeUnclaimedDefaultHash();
-#if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
-    defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
-    defined(SAI_VERSION_8_2_0_0_DNX_ODP) ||                                    \
-    defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP) || \
-    defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) ||                                \
-    defined(SAI_VERSION_10_0_EA_DNX_ODP) ||                                    \
-    defined(SAI_VERSION_10_0_EA_ODP) || defined(SAI_VERSION_10_0_EA_SIM_ODP)
+#if defined(BRCM_SAI_SDK_XGS_AND_DNX)
   // TODO(zecheng): Remove after devices warmbooted to 8.2.
   managerTable_->wredManager().removeUnclaimedWredProfile();
 #endif
