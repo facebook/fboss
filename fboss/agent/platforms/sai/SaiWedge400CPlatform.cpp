@@ -55,11 +55,24 @@ void SaiWedge400CPlatform::setupAsic(
     int16_t switchIndex,
     std::optional<cfg::Range64> systemPortRange,
     folly::MacAddress& mac) {
-  asic_ = std::make_unique<EbroAsic>(
-      switchType, switchId, switchIndex, systemPortRange, mac);
+  std::optional<cfg::SdkVersion> sdkVersion;
 #if defined(TAJO_SDK_VERSION_1_65_0)
-  asic_->setDefaultStreamType(cfg::StreamType::UNICAST);
+  /*
+   * HwAsic table instance in the sw switch reads the SDK version
+   * from the agent config for prod and from sai switch ensemble
+   * for hw test. However, hw asic instance owned by the sai switch
+   * do not carry the SDK version. Hence, populating the SDK version
+   */
+  auto agentConfig = config();
+  if (agentConfig->thrift.sw()->sdkVersion().has_value()) {
+    sdkVersion = agentConfig->thrift.sw()->sdkVersion().value();
+  } else {
+    sdkVersion = cfg::SdkVersion{};
+    sdkVersion->asicSdk() = "1.65.0";
+  }
 #endif
+  asic_ = std::make_unique<EbroAsic>(
+      switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
 }
 
 HwAsic* SaiWedge400CPlatform::getAsic() const {
