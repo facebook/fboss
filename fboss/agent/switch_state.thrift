@@ -112,6 +112,7 @@ struct PortFields {
   45: optional PortFlowletFields flowletConfig;
   46: optional ctrl.PortLedExternalState portLedExternalState;
   47: bool rxLaneSquelch = false;
+  48: bool zeroPreemphasis = false;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields

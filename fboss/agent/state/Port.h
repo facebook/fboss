@@ -639,6 +639,14 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     set<switch_state_tags::rxLaneSquelch>(rxLaneSquelch);
   }
 
+  bool getZeroPreemphasis() const {
+    return cref<switch_state_tags::zeroPreemphasis>()->cref();
+  }
+
+  void setZeroPreemphasis(bool zeroPreemphasis) {
+    set<switch_state_tags::zeroPreemphasis>(zeroPreemphasis);
+  }
+
   Port* modify(std::shared_ptr<SwitchState>* state);
 
  private:

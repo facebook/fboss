@@ -11571,7 +11571,8 @@ class ChildThriftPath<::facebook::fboss::state::PortFields, ::facebook::fboss::f
    std::pair<strings::flowletConfigName, Child<::std::string, ::apache::thrift::type_class::string>>,
    std::pair<strings::flowletConfig, ChildThriftPath<::facebook::fboss::state::PortFlowletFields, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<strings::portLedExternalState, Child<::facebook::fboss::PortLedExternalState, ::apache::thrift::type_class::enumeration>>,
-   std::pair<strings::rxLaneSquelch, Child<bool, ::apache::thrift::type_class::integral>>>;
+   std::pair<strings::rxLaneSquelch, Child<bool, ::apache::thrift::type_class::integral>>,
+   std::pair<strings::zeroPreemphasis, Child<bool, ::apache::thrift::type_class::integral>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::string, ::apache::thrift::type_class::string>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::string, ::apache::thrift::type_class::string>>,
@@ -11616,7 +11617,8 @@ class ChildThriftPath<::facebook::fboss::state::PortFields, ::facebook::fboss::f
    std::pair<std::integral_constant<apache::thrift::field_id_t, 44>, Child<::std::string, ::apache::thrift::type_class::string>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 45>, ChildThriftPath<::facebook::fboss::state::PortFlowletFields, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 46>, Child<::facebook::fboss::PortLedExternalState, ::apache::thrift::type_class::enumeration>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 47>, Child<bool, ::apache::thrift::type_class::integral>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 47>, Child<bool, ::apache::thrift::type_class::integral>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 48>, Child<bool, ::apache::thrift::type_class::integral>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -11673,6 +11675,7 @@ class ChildThriftPath<::facebook::fboss::state::PortFields, ::facebook::fboss::f
     STRUCT_CHILD_GETTERS(flowletConfig);
     STRUCT_CHILD_GETTERS(portLedExternalState);
     STRUCT_CHILD_GETTERS(rxLaneSquelch);
+    STRUCT_CHILD_GETTERS(zeroPreemphasis);
 };
 
 template<typename Parent>
