@@ -2869,7 +2869,7 @@ prbs::InterfacePrbsState CmisModule::getPortPrbsStateLocked(Side side) {
     return prbs::InterfacePrbsState();
   }
   {
-    if (isTransceiverFeatureSupported(TransceiverFeature::PRBS, side)) {
+    if (!isTransceiverFeatureSupported(TransceiverFeature::PRBS, side)) {
       return prbs::InterfacePrbsState();
     }
   }

@@ -1718,20 +1718,20 @@ bool SffModule::setPortPrbsLocked(
                  prbs.generatorEnabled().value()) ||
       (prbs.checkerEnabled().has_value() && prbs.checkerEnabled().value());
   auto polynomial = *(prbs.polynomial());
-  {
-    if (isTransceiverFeatureSupported(TransceiverFeature::PRBS, side)) {
-      // Check if there is an override function available for setting prbs
-      // state
-      if (auto prbsEnable = setPortPrbsOverrideLocked(side, prbs)) {
-        QSFP_LOG(INFO, this) << folly::sformat(
-            "Prbs {:s} {:s} on {:s} side",
-            apache::thrift::util::enumNameSafe(polynomial),
-            enable ? "enabled" : "disabled",
-            apache::thrift::util::enumNameSafe(side));
-        return true;
-      }
+
+  if (isTransceiverFeatureSupported(TransceiverFeature::PRBS, side)) {
+    // Check if there is an override function available for setting prbs
+    // state
+    if (auto prbsEnable = setPortPrbsOverrideLocked(side, prbs)) {
+      QSFP_LOG(INFO, this) << folly::sformat(
+          "Prbs {:s} {:s} on {:s} side",
+          apache::thrift::util::enumNameSafe(polynomial),
+          enable ? "enabled" : "disabled",
+          apache::thrift::util::enumNameSafe(side));
+      return true;
     }
   }
+
   QSFP_LOG(WARNING, this) << folly::sformat(
       "Does not support PRBS on {:s} side",
       apache::thrift::util::enumNameSafe(side));
@@ -1740,11 +1740,10 @@ bool SffModule::setPortPrbsLocked(
 
 // This function expects caller to hold the qsfp module level lock
 prbs::InterfacePrbsState SffModule::getPortPrbsStateLocked(Side side) {
-  {
-    if (isTransceiverFeatureSupported(TransceiverFeature::PRBS, side)) {
-      return prbs::InterfacePrbsState();
-    }
+  if (!isTransceiverFeatureSupported(TransceiverFeature::PRBS, side)) {
+    return prbs::InterfacePrbsState();
   }
+
   // Certain modules have proprietary methods to get prbs state, check if
   // there exists one
   if (auto prbsState = getPortPrbsStateOverrideLocked(side)) {
