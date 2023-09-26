@@ -16,10 +16,20 @@ QsfpUtilTx::QsfpUtilTx(
       evb_(evb),
       disableTx_(FLAGS_tx_disable ? true : false) {
   std::string allPortNames;
+  std::map<int32_t, TransceiverManagementInterface> moduleTypes;
+  std::vector<unsigned int> moduleIds;
   for (auto portName : portNames) {
     allPortNames += portName;
     allPortNames += ", ";
+
+    int moduleId = wedgeManager_->getPortNameToModuleMap().at(portName);
+    int oneIndexedModuleId = moduleId + 1;
+    moduleIds.push_back(oneIndexedModuleId);
   }
+
+  // Find TransceiverManagementInterface for all these port modules
+  moduleTypes = getModuleType(moduleIds);
+
   XLOG(INFO) << fmt::format(
       "TxDisableTrace: disableTx_ = {:s}, {:s}, FLAGS_tx_disable = {:s}, FLAGS_tx_enable = {:s}",
       allPortNames,
@@ -29,7 +39,14 @@ QsfpUtilTx::QsfpUtilTx(
 
   for (auto portName : portNames) {
     int moduleId = wedgeManager_->getPortNameToModuleMap().at(portName);
-    auto moduleType = getModuleTypeDirect(bus_, moduleId + 1);
+    int oneIndexedModuleId = moduleId + 1;
+    if (moduleTypes.find(oneIndexedModuleId) == moduleTypes.end()) {
+      XLOG(ERR) << fmt::format(
+          "Port {:s} does not a valid module type", portName);
+      continue;
+    }
+    auto moduleType = moduleTypes[oneIndexedModuleId];
+
     if (moduleType == TransceiverManagementInterface::SFF) {
       sffPortNames_.push_back(portName);
     } else if (moduleType == TransceiverManagementInterface::CMIS) {
