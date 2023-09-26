@@ -161,7 +161,7 @@ class SaiObjectStore {
               }),
           keys.end());
     }
-    for (const auto k : keys) {
+    for (const auto& k : keys) {
       ObjectType obj = getObject(k, adapterKeys2AdapterHostKey);
       auto adapterHostKey = obj.adapterHostKey();
       XLOGF(DBG5, "SaiStore reloaded {}", obj);

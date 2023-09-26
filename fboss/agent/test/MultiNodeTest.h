@@ -61,7 +61,7 @@ class MultiNodeTest : public AgentTest {
     auto defaultRoute = fib->getRouteIf(prefix);
     auto nhSet = defaultRoute->getForwardInfo().getNextHopSet();
 
-    for (const auto nhop : nhSet) {
+    for (const auto& nhop : nhSet) {
       if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
         auto ecmpNh = utility::EcmpNextHop<AddrT>(
             nhop.addr().asV6(),
