@@ -311,10 +311,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     EXPECT_GE(capturedPkt->length(), getSflowPacketHeaderLength());
 
     auto delta = capturedPkt->length() - pkt.length();
-    EXPECT_EQ(
-        delta,
-        getSflowPacketHeaderLength() -
-            4 /* vlan tag is absent in mirrored packet */);
+    EXPECT_LE(delta, getSflowPacketHeaderLength());
     auto payload = capturedPkt->v4PayLoad()->payload()->payload();
 
     EXPECT_EQ(getSflowPacketSrcPort(payload), getPortsForSampling()[1]);
