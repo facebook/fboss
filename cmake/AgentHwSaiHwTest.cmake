@@ -21,7 +21,6 @@ set_target_properties(thrift_test_handler PROPERTIES COMPILE_FLAGS
 add_library(sai_switch_ensemble
   fboss/agent/hw/sai/hw_test/HwSwitchEnsembleFactory.cpp
   fboss/agent/hw/sai/hw_test/SaiSwitchEnsemble.cpp
-  fboss/agent/hw/sai/hw_test/SaiLinkStateToggler.cpp
 )
 
 target_link_libraries(sai_switch_ensemble
@@ -30,6 +29,7 @@ target_link_libraries(sai_switch_ensemble
   sai_switch
   thrift_test_handler
   hw_switch_ensemble
+  hw_link_state_toggler
   sai_platform
   sai_test_ctrl_cpp2
   sai_traced_api
