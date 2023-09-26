@@ -35,6 +35,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -77,6 +86,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -123,6 +141,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -165,6 +192,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -211,6 +247,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -253,6 +298,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -299,6 +353,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -341,6 +404,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -387,6 +459,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -429,6 +510,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -475,6 +565,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -519,6 +618,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -561,6 +669,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -613,6 +730,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -661,6 +787,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -713,6 +848,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -761,6 +905,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -813,6 +966,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -861,6 +1023,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -913,6 +1084,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -963,6 +1143,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -1005,6 +1194,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -1051,6 +1249,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -1093,6 +1300,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -1139,6 +1355,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -1181,6 +1406,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -1227,6 +1461,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -1269,6 +1512,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -1315,6 +1567,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -1357,6 +1618,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -1403,6 +1673,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -1447,6 +1726,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -1489,6 +1777,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -1541,6 +1838,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -1589,6 +1895,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -1641,6 +1956,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -1689,6 +2013,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -1741,6 +2074,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -1789,6 +2131,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -1841,6 +2192,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -1891,6 +2251,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -1933,6 +2302,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -1979,6 +2357,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -2021,6 +2408,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -2067,6 +2463,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -2109,6 +2514,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -2155,6 +2569,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -2197,6 +2620,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -2243,6 +2675,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -2285,6 +2726,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -2331,6 +2781,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -2375,6 +2834,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -2417,6 +2885,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -2469,6 +2946,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -2517,6 +3003,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -2569,6 +3064,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -2617,6 +3121,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -2669,6 +3182,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -2717,6 +3239,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -2769,6 +3300,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -2816,6 +3356,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -2855,6 +3404,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -2898,6 +3456,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -2937,6 +3504,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -2980,6 +3556,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -3019,6 +3604,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -3062,6 +3656,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -3101,6 +3704,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -3144,6 +3756,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -3183,6 +3804,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -3226,6 +3856,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -3267,6 +3906,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -3306,6 +3954,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -3355,6 +4012,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -3400,6 +4066,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -3449,6 +4124,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -3494,6 +4178,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -3543,6 +4236,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -3588,6 +4290,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -3637,6 +4348,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -3684,6 +4404,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -3723,6 +4452,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -3766,6 +4504,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -3805,6 +4552,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -3848,6 +4604,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -3887,6 +4652,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -3930,6 +4704,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -3969,6 +4752,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -4012,6 +4804,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -4051,6 +4852,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -4094,6 +4904,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -4135,6 +4954,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -4174,6 +5002,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -4223,6 +5060,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -4268,6 +5114,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -4317,6 +5172,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -4362,6 +5226,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -4411,6 +5284,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -4458,6 +5340,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -4503,6 +5394,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -4564,6 +5464,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -4615,6 +5524,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -4670,6 +5588,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -4721,6 +5648,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -4776,6 +5712,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -4827,6 +5772,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -4882,6 +5836,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -4933,6 +5896,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -4988,6 +5960,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -5039,6 +6020,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -5094,6 +6084,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -5147,6 +6146,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -5198,6 +6206,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -5259,6 +6276,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -5316,6 +6342,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -5377,6 +6412,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -5434,6 +6478,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -5495,6 +6548,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -5552,6 +6614,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -5613,6 +6684,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -5657,6 +6737,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -5693,6 +6782,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -5733,6 +6831,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -5769,6 +6876,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -5809,6 +6925,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -5845,6 +6970,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -5885,6 +7019,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -5921,6 +7064,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -5961,6 +7113,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -5997,6 +7158,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -6037,6 +7207,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -6075,6 +7254,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -6111,6 +7299,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -6157,6 +7354,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -6199,6 +7405,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -6245,6 +7460,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -6287,6 +7511,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -6333,6 +7566,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -6375,6 +7617,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -6421,6 +7672,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -6465,6 +7725,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -6501,6 +7770,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -6541,6 +7819,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -6577,6 +7864,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -6617,6 +7913,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -6653,6 +7958,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -6693,6 +8007,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -6729,6 +8052,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -6769,6 +8101,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -6805,6 +8146,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -6845,6 +8195,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -6883,6 +8242,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -6919,6 +8287,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -6965,6 +8342,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -7007,6 +8393,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -7053,6 +8448,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -7095,6 +8499,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -7141,6 +8554,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -7185,6 +8607,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -7227,6 +8658,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -7294,6 +8734,15 @@
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -7359,6 +8808,15 @@
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -7419,6 +8877,15 @@
         },
         {
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -7483,6 +8950,15 @@
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -7524,6 +9000,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -7557,6 +9042,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -7594,6 +9088,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -7627,6 +9130,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -7664,6 +9176,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -7697,6 +9218,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -7734,6 +9264,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -7767,6 +9306,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -7804,6 +9352,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -7837,6 +9394,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -7874,6 +9440,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -7909,6 +9484,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -7942,6 +9526,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -7985,6 +9578,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -8024,6 +9626,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -8067,6 +9678,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -8106,6 +9726,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -8149,6 +9778,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -8190,6 +9828,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -8229,6 +9876,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -8281,6 +9937,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -8323,6 +9988,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -8369,6 +10043,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -8411,6 +10094,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -8457,6 +10149,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -8499,6 +10200,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -8545,6 +10255,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -8587,6 +10306,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -8633,6 +10361,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -8675,6 +10412,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -8721,6 +10467,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -8765,6 +10520,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -8807,6 +10571,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -8859,6 +10632,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -8907,6 +10689,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -8959,6 +10750,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -9007,6 +10807,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -9059,6 +10868,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -9109,6 +10927,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -9157,6 +10984,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -9215,6 +11051,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -9263,6 +11108,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -9315,6 +11169,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -9363,6 +11226,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -9415,6 +11287,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -9463,6 +11344,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -9515,6 +11405,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -9563,6 +11462,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -9615,6 +11523,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -9663,6 +11580,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -9715,6 +11641,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -9765,6 +11700,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -9813,6 +11757,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -9871,6 +11824,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -9925,6 +11887,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -9983,6 +11954,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -10037,6 +12017,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -10095,6 +12084,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -10151,6 +12149,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -10205,6 +12212,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -10272,6 +12288,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -10329,6 +12354,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -10390,6 +12424,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -10447,6 +12490,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -10508,6 +12560,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -10565,6 +12626,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -10626,6 +12696,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -10683,6 +12762,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -10744,6 +12832,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -10801,6 +12898,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -10862,6 +12968,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -10921,6 +13036,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -10978,6 +13102,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -11045,6 +13178,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -11108,6 +13250,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -11175,6 +13326,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -11238,6 +13398,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -11305,6 +13474,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -11368,6 +13546,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -11435,6 +13622,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -11480,6 +13676,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -11532,6 +13737,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -11580,6 +13794,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -11632,6 +13855,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -11682,6 +13914,15 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -11730,6 +13971,15 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -11791,6 +14041,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -11839,6 +14098,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -11891,6 +14159,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -11939,6 +14216,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -11991,6 +14277,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -12039,6 +14334,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -12091,6 +14395,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -12139,6 +14452,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -12191,6 +14513,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -12239,6 +14570,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -12291,6 +14631,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -12341,6 +14690,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -12389,6 +14747,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -12447,6 +14814,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -12501,6 +14877,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -12559,6 +14944,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -12613,6 +15007,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
@@ -12671,6 +15074,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -12727,6 +15139,15 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
         },
         {
@@ -12781,6 +15202,15 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
           "test_name_regex": "LinkTest.iPhyInfoTest$"
