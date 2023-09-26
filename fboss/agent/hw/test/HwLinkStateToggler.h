@@ -75,7 +75,4 @@ class HwLinkStateToggler {
   TestEnsembleIf* hwEnsemble_;
 };
 
-std::unique_ptr<HwLinkStateToggler> createHwLinkStateToggler(
-    TestEnsembleIf* ensemble);
-
 } // namespace facebook::fboss

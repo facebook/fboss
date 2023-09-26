@@ -42,9 +42,4 @@ void BcmLinkStateToggler::invokeLinkScanIfNeeded(PortID port, bool isUp) {
   }
 }
 
-std::unique_ptr<HwLinkStateToggler> createHwLinkStateToggler(
-    TestEnsembleIf* ensemble) {
-  return std::make_unique<BcmLinkStateToggler>(ensemble);
-}
-
 } // namespace facebook::fboss
