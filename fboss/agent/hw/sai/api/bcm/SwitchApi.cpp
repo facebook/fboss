@@ -16,8 +16,7 @@ namespace facebook::fboss {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeMaxCoresWrapper::operator()() {
-#if defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) || \
-    defined(SAI_VERSION_10_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX)
   return SAI_SWITCH_ATTR_MAX_CORES;
 #else
   return std::nullopt;
@@ -51,10 +50,7 @@ SaiSwitchTraits::Attributes::HwEccErrorInitiateWrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeDllPathWrapper::operator()() {
-#if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
-    defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
-    defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP) || \
-    defined(SAI_VERSION_10_0_EA_ODP) || defined(SAI_VERSION_10_0_EA_SIM_ODP)
+#if defined(BRCM_SAI_SDK_XGS)
   return SAI_SWITCH_ATTR_ISSU_CUSTOM_DLL_PATH;
 #else
   return std::nullopt;
@@ -72,8 +68,7 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
 }
 
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramStats() {
-#if defined(SAI_VERSION_10_0_EA_DNX_ODP) || \
-    defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP)
+#if defined(BRCM_SAI_SDK_DNX)
   static const std::vector<sai_stat_id_t> stats{
       SAI_SWITCH_STAT_DEVICE_DRAM_ENQUEUED_BYTES,
       SAI_SWITCH_STAT_DEVICE_DRAM_DEQUEUED_BYTES};
@@ -86,13 +81,7 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramStats() {
 void SwitchApi::registerParityErrorSwitchEventCallback(
     SwitchSaiId id,
     void* switch_event_cb) const {
-#if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
-    defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
-    defined(SAI_VERSION_8_2_0_0_DNX_ODP) ||                                    \
-    defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP) || \
-    defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) ||                                \
-    defined(SAI_VERSION_10_0_EA_DNX_ODP) ||                                    \
-    defined(SAI_VERSION_10_0_EA_ODP) || defined(SAI_VERSION_10_0_EA_SIM_ODP)
+#if defined(BRCM_SAI_SDK_XGS_AND_DNX)
   sai_attribute_t attr;
   attr.value.ptr = switch_event_cb;
   attr.id = SAI_SWITCH_ATTR_SWITCH_EVENT_NOTIFY;
@@ -138,8 +127,7 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeSwitchIsolateWrapper::operator()() {
-#if defined(SAI_VERSION_10_0_EA_DNX_ODP) || \
-    defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP)
+#if defined(BRCM_SAI_SDK_DNX)
   return SAI_SWITCH_ATTR_SWITCH_ISOLATE;
 #endif
   return std::nullopt;
