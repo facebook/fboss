@@ -2165,20 +2165,10 @@ phy::TxSettings BcmPort::getTxSettingsForLane(int lane) const {
 }
 
 void BcmPort::setTxSetting(const std::shared_ptr<Port>& swPort) {
-  auto iphyPinConfigs = swPort->getPinConfigs();
+  const auto& iphyPinConfigs = swPort->getPinConfigs();
   if (iphyPinConfigs.empty()) {
     XLOG(DBG2) << "No iphy pin configs to program for " << swPort->getName();
     return;
-  }
-  // Handle setting zero preemphasis from LinkStateToggler
-  if (swPort->getZeroPreemphasis()) {
-    for (auto& pinConfig : iphyPinConfigs) {
-      if (pinConfig.tx().has_value()) {
-        pinConfig.tx()->pre() = 0;
-        pinConfig.tx()->main() = 0;
-        pinConfig.tx()->post() = 0;
-      }
-    }
   }
   if (platformPort_->shouldUsePortResourceAPIs()) {
     setTxSettingViaPhyTx(swPort, iphyPinConfigs);
@@ -2202,7 +2192,6 @@ void BcmPort::setTxSettingViaPhyControl(
     // tx setting for the port. So do nothing
     return;
   }
-
   const auto correctTx = tx.value();
   uint32_t dc;
   uint32_t preTap;
