@@ -10,7 +10,6 @@
 #include "fboss/agent/hw/sai/hw_test/SaiSwitchEnsemble.h"
 
 #include "fboss/agent/SetupThrift.h"
-#include "fboss/agent/hw/sai/hw_test/SaiLinkStateToggler.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -153,7 +152,7 @@ void SaiSwitchEnsemble::init(
   }
   std::unique_ptr<HwLinkStateToggler> linkToggler;
   if (haveFeature(HwSwitchEnsemble::LINKSCAN)) {
-    linkToggler = std::make_unique<SaiLinkStateToggler>(this);
+    linkToggler = std::make_unique<HwLinkStateToggler>(this);
   }
   std::unique_ptr<std::thread> thriftThread;
   if (FLAGS_setup_thrift) {
