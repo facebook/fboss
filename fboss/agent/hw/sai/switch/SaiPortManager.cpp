@@ -2148,4 +2148,49 @@ void SaiPortManager::changeRxLaneSquelch(
     }
   }
 }
+
+void SaiPortManager::changeZeroPreemphasis(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  if (oldPort->getZeroPreemphasis() != newPort->getZeroPreemphasis()) {
+    if (!newPort->getZeroPreemphasis()) {
+      throw FbossError("Reverting zero preemphasis on port is not supported.");
+    }
+    auto portHandle = getPortHandle(newPort->getID());
+    if (!portHandle) {
+      throw FbossError(
+          "Cannot set zero preemphasis on non existent port: ",
+          newPort->getID());
+    }
+    auto gotAttributes = portHandle->port->attributes();
+    auto numLanes =
+        std::get<SaiPortTraits::Attributes::HwLaneList>(gotAttributes)
+            .value()
+            .size();
+
+    auto serDesAttributes = serdesAttributesFromSwPinConfigs(
+        portHandle->port->adapterKey(),
+        newPort->getPinConfigs(),
+        portHandle->serdes);
+
+    auto setTxRxAttr = [](auto& attrs, auto type, const auto& val) {
+      auto& attr = std::get<std::optional<std::decay_t<decltype(type)>>>(attrs);
+      if (!val.empty()) {
+        attr = val;
+      }
+    };
+    auto preemphasisVal =
+        std::vector<uint32_t>(numLanes, static_cast<uint32_t>(0));
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET)) {
+      setTxRxAttr(
+          serDesAttributes,
+          SaiPortSerdesTraits::Attributes::Preemphasis{},
+          preemphasisVal);
+    }
+    if (platform_->isSerdesApiSupported()) {
+      portHandle->serdes->setAttributes(serDesAttributes);
+    }
+  }
+}
 } // namespace facebook::fboss

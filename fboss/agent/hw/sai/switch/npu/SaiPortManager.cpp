@@ -264,6 +264,7 @@ void SaiPortManager::changePortImpl(
   changeSamplePacket(oldPort, newPort);
   changePfc(oldPort, newPort);
   changeRxLaneSquelch(oldPort, newPort);
+  changeZeroPreemphasis(oldPort, newPort);
   programPfcBuffers(newPort);
 
   if (newPort->isEnabled()) {
