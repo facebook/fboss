@@ -3031,4 +3031,35 @@ void BcmPort::setInterPacketGapBits(uint32_t ipgBits) {
       port_);
 }
 
+// For the support of setting zero preemphasis in hw tests.
+void BcmPort::processChangedZeroPreemphasis(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  if (oldPort->getZeroPreemphasis() != newPort->getZeroPreemphasis()) {
+    if (!newPort->getZeroPreemphasis()) {
+      throw FbossError("Reverting zero preemphasis on port is not supported.");
+    }
+    auto portID = newPort->getID();
+    int rv;
+    auto preemphasis = 0;
+    if (!platformPort_->shouldUsePortResourceAPIs()) {
+      rv = bcm_port_phy_control_set(
+          hw_->getUnit(),
+          portID,
+          BCM_PORT_PHY_CONTROL_PREEMPHASIS,
+          preemphasis);
+    } else {
+      bcm_port_phy_tx_t tx;
+      bcm_port_phy_tx_t_init(&tx);
+      rv = bcm_port_phy_tx_get(hw_->getUnit(), portID, &tx);
+      bcmCheckError(rv, "Failed to get port tx settings");
+      tx.pre = preemphasis & 0xf; // 0-3 bits
+      tx.main = (preemphasis & 0x3f0) >> 4; // 4-9 bits
+      tx.post = (preemphasis & 0x7c00) >> 10; // 10-14 bits
+      rv = bcm_port_phy_tx_set(hw_->getUnit(), portID, &tx);
+    }
+    bcmCheckError(rv, "Failed to set port preemphasis");
+  }
+}
+
 } // namespace facebook::fboss

@@ -237,6 +237,9 @@ class BcmPort {
   phy::PhyInfo updateIPhyInfo();
 
   uint32_t getInterPacketGapBits() const;
+  void processChangedZeroPreemphasis(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
 
   cfg::PortFlowletConfig getPortFlowletConfig() const;
 

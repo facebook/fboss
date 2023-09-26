@@ -1909,6 +1909,11 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
         }
 
         processChangedPortQueues(oldPort, newPort);
+
+        // For the support of setting zero preemphasis in hw tests.
+        if (oldPort->getZeroPreemphasis() != newPort->getZeroPreemphasis()) {
+          bcmPort->processChangedZeroPreemphasis(oldPort, newPort);
+        }
       });
 }
 
