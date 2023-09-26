@@ -41,6 +41,8 @@ static std::string kCounterID0("counter0");
 static std::string kCounterID1("counter1");
 static std::string kCounterID2("counter2");
 static int kPrefixLength1(56);
+static std::string kDstIpStart = "100";
+static uint16_t kScaleTeFlowEntries(8192);
 } // namespace
 
 class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
@@ -95,8 +97,8 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
     auto ethFrame = utility::EthFrame(
         eth, utility::IPPacket<folly::IPAddressV6>(ip6, datagram));
     auto pkt = ethFrame.getTxPacket(getHwSwitch());
-    XLOG(DBG2) << "sending packet: ";
-    XLOG(DBG2) << PktUtil::hexDump(pkt->buf());
+    XLOG(DBG5) << "sending packet: ";
+    XLOG(DBG5) << PktUtil::hexDump(pkt->buf());
     // send pkt on src port, let it loop back in switch and be l3 switched
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), from);
     return ethFrame.length();
@@ -158,6 +160,17 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
         from,
         255,
         srcMac);
+  }
+
+  std::string getCounterId(int index) {
+    return fmt::format("counter{}", index + 1);
+  }
+
+  std::string getDstIp(std::string& dstIpStart, int index) {
+    auto i = int(index / 256);
+    auto j = index % 256;
+    std::string prefix = fmt::format("{}:{}:{}::", dstIpStart, i, j);
+    return prefix;
   }
 
   std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper_;
@@ -395,4 +408,60 @@ TEST_F(HwTeFlowTrafficTest, validateSyncTeFlows) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwTeFlowTrafficTest, verifyTeFlowScale) {
+  if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+
+  auto setup = [&]() {
+    FLAGS_emStatOnlyMode = true;
+    ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
+        getProgrammedState(), RouterID(0));
+    setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
+    auto flowEntries = makeFlowEntries(
+        kDstIpStart,
+        kNhopAddrB,
+        kIfName2,
+        masterLogicalPortIds()[0],
+        kScaleTeFlowEntries);
+    addFlowEntries(getHwSwitchEnsemble(), flowEntries);
+  };
+
+  auto verify = [&]() {
+    EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), kScaleTeFlowEntries);
+
+    for (uint16_t i = 1; i < kScaleTeFlowEntries; i <<= 1) {
+      auto byteCountBefore =
+          utility::getTeFlowOutBytes(getHwSwitch(), this->getCounterId(i - 1));
+      auto outPktsBefore0 = getPortOutPkts(
+          this->getLatestPortStats(this->masterLogicalPortIds()[0]));
+      auto outPktsBefore1 = getPortOutPkts(
+          this->getLatestPortStats(this->masterLogicalPortIds()[1]));
+      // Send a packet to hit TeFlow EM entry and verify
+      auto expectedLen = this->sendL3Packet(
+          folly::IPAddressV6(this->getDstIp(kDstIpStart, i - 1)),
+          this->masterLogicalPortIds()[0],
+          DSCP(16));
+      auto byteCountAfter =
+          utility::getTeFlowOutBytes(getHwSwitch(), getCounterId(i - 1));
+      auto outPktsAfter0 = getPortOutPkts(
+          this->getLatestPortStats(this->masterLogicalPortIds()[0]));
+      auto outPktsAfter1 = getPortOutPkts(
+          this->getLatestPortStats(this->masterLogicalPortIds()[1]));
+      // Sending a L3 packet via masterLogicalPortIds()[0] and
+      // TeFlow EM entry nexthop is forwarding to masterLogicalPortIds()[1]
+      // Hence the outpacket count should increment both.
+      EXPECT_EQ((outPktsAfter0 - outPktsBefore0), 1);
+      EXPECT_EQ((outPktsAfter1 - outPktsBefore1), 1);
+      EXPECT_EQ(byteCountAfter - byteCountBefore, expectedLen);
+    }
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
