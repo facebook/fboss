@@ -204,6 +204,16 @@ int BcmUdfManager::getBcmUdfGroupFieldSize(
   return iter->second->getUdfMatchFieldWidth();
 }
 
+int BcmUdfManager::getBcmUdfGroupProto(const std::string& udfGroupName) const {
+  auto iter = udfGroupsMap_.find(udfGroupName);
+  if (iter == udfGroupsMap_.end()) {
+    throw FbossError("Unable to find : ", udfGroupName, " in the map.");
+  }
+  XLOG(DBG3) << " For UDF group " << udfGroupName
+             << "  get udfProto: " << iter->second->getUdfProto();
+  return iter->second->getUdfProto();
+}
+
 int BcmUdfManager::getBcmUdfPacketMatcherId(
     const std::string& udfPacketMatcherName) const {
   auto iter = udfPacketMatcherMap_.find(udfPacketMatcherName);

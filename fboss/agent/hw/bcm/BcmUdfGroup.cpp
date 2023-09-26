@@ -50,6 +50,7 @@ BcmUdfGroup::BcmUdfGroup(
   udfInfo.layer = convertBaseHeaderToBcmLayer(udfGroup->getUdfBaseHeader());
   udfInfo.start = udfGroup->getStartOffsetInBytes() * 8; // in bits
   udfInfo.width = matchFieldWidth_ * 8; // in bits
+  proto_ = udfInfo.layer;
 
   auto warmBootCache = hw_->getWarmBootCache();
   auto name = udfGroup->getID();

@@ -20,10 +20,9 @@
 #include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/BcmUdfManager.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/state/AclEntry.h"
-
-#include <boost/container/flat_map.hpp>
 
 #include <folly/MacAddress.h>
 #include <folly/logging/xlog.h>
@@ -298,6 +297,35 @@ void BcmAclEntry::createAclQualifiers() {
         hw_->getUnit(), handle_, acl_->getVlanID().value(), 0xFFF);
     bcmCheckError(
         rv, "failed to qualify OuterVlanId:", acl_->getVlanID().value());
+  }
+
+  if (acl_->getUdfGroups()) {
+    for (auto udfGroupIdItr = acl_->getUdfGroups()->begin();
+         udfGroupIdItr != acl_->getUdfGroups()->end();
+         ++udfGroupIdItr) {
+      const int bcmUdfGroupId =
+          hw_->getUdfMgr()->getBcmUdfGroupId(*udfGroupIdItr);
+      int length = hw_->getUdfMgr()->getBcmUdfGroupFieldSize(
+          *udfGroupIdItr); // number of bytes in data
+      if (length <= 0) {
+        throw FbossError(
+            "Invalid length: ", length, "for UDFGroupId: ", *udfGroupIdItr);
+      }
+      int udfGroupProto = hw_->getUdfMgr()->getBcmUdfGroupProto(*udfGroupIdItr);
+      uint8 data[length];
+      memcpy(data, &udfGroupProto, length);
+      uint8 mask[length];
+      memset(mask, 0xff, length);
+
+      rv = bcm_field_qualify_udf(
+          hw_->getUnit(), handle_, bcmUdfGroupId, length, data, mask);
+      bcmCheckError(
+          rv,
+          "failed to qualify udfGroupId:",
+          *udfGroupIdItr,
+          " bcmUdfGroupId:",
+          bcmUdfGroupId);
+    }
   }
 }
 

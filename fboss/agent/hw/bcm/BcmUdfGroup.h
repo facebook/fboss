@@ -54,6 +54,10 @@ class BcmUdfGroup {
     return matchFieldWidth_;
   }
 
+  int getUdfProto() {
+    return proto_;
+  }
+
  private:
   int udfCreate(bcm_udf_t* udfInfo);
   int udfDelete(bcm_udf_id_t udfId);
@@ -65,6 +69,7 @@ class BcmUdfGroup {
   BcmSwitch* hw_;
   bcm_udf_id_t udfId_ = 0;
   int matchFieldWidth_ = 0;
+  int proto_ = 0;
   std::string udfGroupName_;
   std::map<bcm_udf_pkt_format_id_t, std::string> udfPacketMatcherIds_;
 };
