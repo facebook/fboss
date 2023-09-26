@@ -323,7 +323,8 @@ int main(int argc, char* argv[]) {
     }
 
     if (FLAGS_cdb_command) {
-      if (getModuleType(bus, portNum) != TransceiverManagementInterface::CMIS) {
+      if (getModuleTypeDirect(bus, portNum) !=
+          TransceiverManagementInterface::CMIS) {
         printf("This command is applicable to CMIS module only\n");
       } else {
         doCdbCommand(bus, portNum);

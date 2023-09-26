@@ -394,7 +394,7 @@ std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> getQsfpClient(
  * This function returns the transceiver management interface
  * by reading the register 0 directly from module
  */
-TransceiverManagementInterface getModuleType(
+TransceiverManagementInterface getModuleTypeDirect(
     TransceiverI2CApi* bus,
     unsigned int port) {
   uint8_t moduleId = static_cast<uint8_t>(TransceiverModuleIdentifier::UNKNOWN);
@@ -485,7 +485,7 @@ bool overrideLowPower(unsigned int port, bool lowPower) {
     TransceiverI2CApi* bus =
         QsfpUtilContainer::getInstance()->getTransceiverBus();
 
-    managementInterface = getModuleType(bus, port);
+    managementInterface = getModuleTypeDirect(bus, port);
   }
 
   uint8_t buf;
@@ -2402,7 +2402,7 @@ bool setTransceiverLoopback(
 
     for (auto& portName : portList) {
       auto port = wedgeManager->getPortNameToModuleMap().at(portName) + 1;
-      managementInterface = getModuleType(bus, port);
+      managementInterface = getModuleTypeDirect(bus, port);
       if (managementInterface != TransceiverManagementInterface::CMIS) {
         result = result && doMiniphotonLoopbackDirect(bus, port, mode);
       } else {
@@ -2629,7 +2629,7 @@ bool cliModulefirmwareUpgrade(
   auto dataUpper = cmisData.page0()->data();
 
   // Confirm module type is CMIS
-  auto moduleType = getModuleType(i2cInfo.bus, port);
+  auto moduleType = getModuleTypeDirect(i2cInfo.bus, port);
   if (moduleType != TransceiverManagementInterface::CMIS) {
     // If device can't be determined as cmis then check page 0 register 128
     // also to identify its type as in some case corrupted image wipes out all
@@ -3079,7 +3079,7 @@ void get_module_fw_info(
       continue;
     }
 
-    auto moduleType = getModuleType(i2cInfo.bus, module);
+    auto moduleType = getModuleTypeDirect(i2cInfo.bus, module);
     if (moduleType != TransceiverManagementInterface::CMIS) {
       continue;
     }

@@ -92,7 +92,8 @@ QsfpUtil::getModuleTypeViaService(const std::vector<unsigned int>& ports) {
  * This function returns the transceiver management interface
  * by reading the register 0 directly from module
  */
-TransceiverManagementInterface QsfpUtil::getModuleType(unsigned int port) {
+TransceiverManagementInterface QsfpUtil::getModuleTypeDirect(
+    unsigned int port) {
   uint8_t moduleId = static_cast<uint8_t>(TransceiverModuleIdentifier::UNKNOWN);
 
   // Get the module id to differentiate between CMIS (0x1e) and SFF

@@ -29,7 +29,7 @@ QsfpUtilTx::QsfpUtilTx(
 
   for (auto portName : portNames) {
     int moduleId = wedgeManager_->getPortNameToModuleMap().at(portName);
-    auto moduleType = getModuleType(bus_, moduleId + 1);
+    auto moduleType = getModuleTypeDirect(bus_, moduleId + 1);
     if (moduleType == TransceiverManagementInterface::SFF) {
       sffPortNames_.push_back(portName);
     } else if (moduleType == TransceiverManagementInterface::CMIS) {

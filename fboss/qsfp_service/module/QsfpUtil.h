@@ -66,7 +66,7 @@ class QsfpUtil {
   std::map<int32_t, TransceiverManagementInterface> getModuleTypeViaService(
       const std::vector<unsigned int>& ports);
 
-  TransceiverManagementInterface getModuleType(unsigned int port);
+  TransceiverManagementInterface getModuleTypeDirect(unsigned int port);
 
   std::vector<int32_t> zeroBasedPortIds(const std::vector<unsigned int>& ports);
 
