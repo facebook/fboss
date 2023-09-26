@@ -32,6 +32,7 @@ class EbroAsic : public TajoAsic {
       auto currentSdkVersion = getAsicSdkVersion(sdkVersion->asicSdk().value());
       if (currentSdkVersion >= p4WarmbootSdkVersion) {
         HwAsic::setDefaultStreamType(cfg::StreamType::UNICAST);
+        mirrorTruncateSize_ = 343;
       }
     }
   }
@@ -81,7 +82,7 @@ class EbroAsic : public TajoAsic {
     return 257;
   }
   uint16_t getMirrorTruncateSize() const override {
-    return 220;
+    return mirrorTruncateSize_;
   }
   uint32_t getMaxWideEcmpSize() const override {
     return 128;
@@ -125,6 +126,7 @@ class EbroAsic : public TajoAsic {
   bool isSupportedFabric(Feature feature) const;
   bool isSupportedNonFabric(Feature feature) const;
   static constexpr auto p4WarmbootBaseSdk = "1.65.0";
+  uint16_t mirrorTruncateSize_ = 220;
 };
 
 } // namespace facebook::fboss
