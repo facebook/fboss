@@ -67,6 +67,7 @@ class HwLinkStateToggler {
   virtual void setPortPreemphasis(
       const std::shared_ptr<Port>& port,
       int preemphasis) = 0;
+  void waitForPortDown(PortID port);
 
   mutable std::mutex linkEventMutex_;
   std::optional<PortID> portIdToWaitFor_;

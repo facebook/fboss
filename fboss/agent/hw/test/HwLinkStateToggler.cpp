@@ -16,9 +16,11 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/lib/CommonUtils.h"
 
 #include <boost/container/flat_map.hpp>
 #include <folly/gen/Base.h>
+#include <gtest/gtest.h>
 
 namespace facebook::fboss {
 
@@ -84,6 +86,17 @@ bool HwLinkStateToggler::waitForPortEvent() {
   return desiredPortEventOccurred_;
 }
 
+void HwLinkStateToggler::waitForPortDown(PortID port) {
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_EQ(
+        hwEnsemble_->getProgrammedState()
+            ->getPorts()
+            ->getNodeIf(port)
+            ->getOperState(),
+        PortFields::OperState::DOWN);
+  });
+}
+
 void HwLinkStateToggler::applyInitialConfig(const cfg::SwitchConfig& initCfg) {
   auto newState = applyInitialConfigWithPortsDown(initCfg);
   bringUpPorts(newState, initCfg);
@@ -122,33 +135,53 @@ HwLinkStateToggler::applyInitialConfigWithPortsDown(
   // init (since there are no portup events in init + initial config
   // application). iii) Start tests.
   hwEnsemble_->applyNewConfig(cfg);
+
+  // Wait for oper state to be down in switch state.
+  // For tests without SwSwitch (e.g. all HwTests), this should not be an
+  // concern as initial config is not yet applied. However, for
+  // SwSwitch/AgentTests, initial config has already applied, meaning swSwitch
+  // could be receiving linkState callbacks and update oper state to be UP.
+  // Therefore, wait for all port's oper state to be DOWN before reading the
+  // programmed state.
   for (auto& port : *cfg.ports()) {
-    if (portId2DesiredState.find(*port.logicalID()) ==
+    if (port.portType() == cfg::PortType::RECYCLE_PORT) {
+      continue;
+    }
+    waitForPortDown(PortID(*port.logicalID()));
+  }
+
+  auto switchState = hwEnsemble_->getProgrammedState();
+  for (auto& cfgPort : *cfg.ports()) {
+    if (portId2DesiredState.find(*cfgPort.logicalID()) ==
         portId2DesiredState.end()) {
       continue;
     }
     // Set all port preemphasis values to 0 so that we can bring ports up and
     // down by setting their loopback mode to PHY and NONE respectively.
     // TODO: use sw port's pinConfigs to set this
-    setPortPreemphasis(
-        hwEnsemble_->getProgrammedState()->getPorts()->getNodeIf(
-            PortID(*port.logicalID())),
-        0);
-
-    *port.state() = portId2DesiredState[*port.logicalID()];
+    auto port = switchState->getPorts()
+                    ->getNodeIf(PortID(*cfgPort.logicalID()))
+                    ->modify(&switchState);
+    port->setZeroPreemphasis(true);
+    *cfgPort.state() = portId2DesiredState[*cfgPort.logicalID()];
   }
+  // Update txSetting first and then enable admin state
+  hwEnsemble_->applyNewState(switchState);
   hwEnsemble_->applyNewConfig(cfg);
 
   // Some platforms silently undo squelch setting on admin enable. Prevent it
   // by setting squelch after admin enable.
-  auto switchState = hwEnsemble_->getProgrammedState();
-  for (auto& cfgPort : *cfg.ports()) {
-    auto port = switchState->getPorts()
-                    ->getNodeIf(PortID(*cfgPort.logicalID()))
-                    ->modify(&switchState);
-    port->setRxLaneSquelch(true);
+  if (hwEnsemble_->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::RX_LANE_SQUELCH_ENABLE)) {
+    switchState = hwEnsemble_->getProgrammedState();
+    for (auto& cfgPort : *cfg.ports()) {
+      auto port = switchState->getPorts()
+                      ->getNodeIf(PortID(*cfgPort.logicalID()))
+                      ->modify(&switchState);
+      port->setRxLaneSquelch(true);
+    }
+    hwEnsemble_->applyNewState(switchState);
   }
-  hwEnsemble_->applyNewState(switchState);
 
   hwEnsemble_->getHwSwitch()->switchRunStateChanged(SwitchRunState::CONFIGURED);
   return hwEnsemble_->getProgrammedState();
