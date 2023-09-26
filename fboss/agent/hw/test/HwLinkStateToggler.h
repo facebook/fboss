@@ -63,7 +63,7 @@ class HwLinkStateToggler {
       std::shared_ptr<SwitchState> switchState,
       const std::vector<PortID>& ports,
       bool up);
-  virtual void invokeLinkScanIfNeeded(PortID port, bool isUp) = 0;
+  virtual void invokeLinkScanIfNeeded(PortID port, bool isUp);
   void waitForPortDown(PortID port);
 
   mutable std::mutex linkEventMutex_;

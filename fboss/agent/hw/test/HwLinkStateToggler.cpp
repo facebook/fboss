@@ -200,4 +200,12 @@ void HwLinkStateToggler::bringUpPorts(
   bringUpPorts(newState, portsToBringUp);
 }
 
+void HwLinkStateToggler::invokeLinkScanIfNeeded(
+    PortID /* port */,
+    bool /* isUp */) {
+  // For fake bcm tests, there's no link event callbacks from SDK.
+  // Hence link scan is needed to mimic SDK behavior for port UP/DOWn
+  // processing. For all other platforms that support linkscan, skip this step.
+}
+
 } // namespace facebook::fboss
