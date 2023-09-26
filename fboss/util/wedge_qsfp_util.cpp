@@ -391,6 +391,36 @@ std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> getQsfpClient(
 }
 
 /*
+ * This function returns the transceiver management interface through either
+ * qsfp_service query or direct_i2c operation. This function takes 1 based
+ * based module Ids and returns the map of 1 based module Ids to the
+ * corresponding management interface types
+ */
+std::map<int32_t, TransceiverManagementInterface> getModuleType(
+    const std::vector<unsigned int>& ports) {
+  std::map<int32_t, TransceiverManagementInterface> moduleTypeMap;
+
+  if (QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
+    folly::EventBase& evb = QsfpUtilContainer::getInstance()->getEventBase();
+    std::map<int32_t, TransceiverManagementInterface> moduleTypeMapZeroBased;
+    moduleTypeMapZeroBased = getModuleTypeViaService(ports, evb);
+
+    // Service returns 0 based module id in result. Change it to 1 based to
+    // make it compatible with input values
+    for (auto& modType : moduleTypeMapZeroBased) {
+      moduleTypeMap[modType.first + 1] = modType.second;
+    }
+  } else {
+    TransceiverI2CApi* bus =
+        QsfpUtilContainer::getInstance()->getTransceiverBus();
+    for (auto port : ports) {
+      moduleTypeMap[port] = getModuleTypeDirect(bus, port);
+    }
+  }
+  return moduleTypeMap;
+}
+
+/*
  * This function returns the transceiver management interface
  * by reading the register 0 directly from module
  */

@@ -63,6 +63,9 @@ class QsfpUtil {
  private:
   void setChannelStateBitmask(uint8_t& data, uint32_t channel, bool disable);
 
+  std::map<int32_t, TransceiverManagementInterface> getModuleType(
+      const std::vector<unsigned int>& ports);
+
   std::map<int32_t, TransceiverManagementInterface> getModuleTypeViaService(
       const std::vector<unsigned int>& ports);
 

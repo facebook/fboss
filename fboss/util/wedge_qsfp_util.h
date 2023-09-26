@@ -96,6 +96,9 @@ bool rateSelect(unsigned int port, uint8_t value);
 
 bool appSel(TransceiverI2CApi* bus, unsigned int port, uint8_t value);
 
+std::map<int32_t, TransceiverManagementInterface> getModuleType(
+    const std::vector<unsigned int>& ports);
+
 TransceiverManagementInterface getModuleTypeDirect(
     TransceiverI2CApi* bus,
     unsigned int port);
