@@ -1077,6 +1077,9 @@
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
+        },
+        {
           "test_name_regex": "HwUdfTest.*"
         },
         {
@@ -1440,6 +1443,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
+        },
+        {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -1934,6 +1940,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
+        },
+        {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -2541,6 +2550,9 @@
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -2889,6 +2901,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
+        },
+        {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
         },
         {
           "test_name_regex": "warm_boot.HwHashPolarizationTests.fullXHalfHash"
@@ -3436,6 +3451,9 @@
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -3933,6 +3951,9 @@
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -4311,6 +4332,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
+        },
+        {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
         },
         {
           "test_name_regex": "warm_boot.HwHashPolarizationTests.fullXHalfHash"
@@ -4912,6 +4936,9 @@
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -5415,6 +5442,9 @@
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -5769,6 +5799,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
+        },
+        {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
         },
         {
           "test_name_regex": "warm_boot.HwHashPolarizationTests.fullXHalfHash"
@@ -6346,6 +6379,9 @@
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
+        },
+        {
           "test_name_regex": "HwUdfTest.*"
         },
         {
@@ -6700,6 +6736,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
+        },
+        {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
         },
         {
           "test_name_regex": "HwTrafficPfcTest.*"
@@ -7205,6 +7244,9 @@
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -7583,6 +7625,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
+        },
+        {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
         },
         {
           "test_name_regex": "warm_boot.HwHashPolarizationTests.fullXHalfHash"
@@ -8184,6 +8229,9 @@
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
+        },
+        {
           "test_name_regex": "HwUdfTest.*"
         },
         {
@@ -8562,6 +8610,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
+        },
+        {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
         },
         {
           "test_name_regex": "HwTrafficPfcTest.*"
@@ -8963,6 +9014,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
+        },
+        {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -9561,6 +9615,9 @@
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -9915,6 +9972,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
+        },
+        {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
         },
         {
           "test_name_regex": "warm_boot.HwHashPolarizationTests.fullXHalfHash"
@@ -10495,6 +10555,9 @@
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
+        },
+        {
           "test_name_regex": "HwUdfTest.*"
         },
         {
@@ -10849,6 +10912,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
+        },
+        {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
         },
         {
           "test_name_regex": "HwTrafficPfcTest.*"
