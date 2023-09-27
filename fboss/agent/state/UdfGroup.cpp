@@ -22,6 +22,13 @@ std::string UdfGroup::getName() const {
   return get<switch_config_tags::name>()->cref();
 }
 
+std::optional<cfg::UdfGroupType> UdfGroup::getUdfGroupType() const {
+  if (auto udfGroupType = cref<switch_config_tags::type>()) {
+    return udfGroupType->cref();
+  }
+  return std::nullopt;
+}
+
 // THRIFT_COPY: avoid returning std::vector
 std::vector<std::string> UdfGroup::getUdfPacketMatcherIds() const {
   return get<switch_config_tags::udfPacketMatcherIds>()->toThrift();

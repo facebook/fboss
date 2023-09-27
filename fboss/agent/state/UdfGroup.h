@@ -27,6 +27,7 @@ class UdfGroup : public ThriftStructNode<UdfGroup, cfg::UdfGroup> {
     return getName();
   }
   std::string getName() const;
+  std::optional<cfg::UdfGroupType> getUdfGroupType() const;
   cfg::UdfBaseHeaderType getUdfBaseHeader() const;
   int getStartOffsetInBytes() const;
   int getFieldSizeInBytes() const;
