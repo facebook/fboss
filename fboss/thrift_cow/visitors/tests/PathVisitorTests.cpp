@@ -7,31 +7,16 @@
 #include <gtest/gtest.h>
 
 #include <fboss/thrift_cow/visitors/PathVisitor.h>
+#include <fboss/thrift_cow/visitors/tests/VisitorTestUtils.h>
 #include <thrift/lib/cpp2/reflection/folly_dynamic.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/thrift_cow/nodes/Types.h"
 #include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_fatal_types.h"
 
-using folly::dynamic;
-using namespace facebook::fboss;
-using namespace facebook::fboss::thrift_cow;
-using k = facebook::fboss::test_tags::strings;
-
-namespace {
-
-TestStruct createTestStruct() {
-  dynamic testDyn = dynamic::object("inlineBool", true)("inlineInt", 54)(
-      "inlineString",
-      "testname")("optionalString", "bla")("inlineStruct", dynamic::object("min", 10)("max", 20))("inlineVariant", dynamic::object("inlineInt", 99))("mapOfEnumToStruct", dynamic::object("3", dynamic::object("min", 100)("max", 200)));
-
-  return apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
-}
-
-} // namespace
+namespace facebook::fboss::thrift_cow::test {
 
 TEST(PathVisitorTests, AccessField) {
-  auto structA = createTestStruct();
+  auto structA = createSimpleTestStruct();
 
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
   folly::dynamic dyn;
@@ -60,7 +45,7 @@ TEST(PathVisitorTests, AccessField) {
 }
 
 TEST(PathVisitorTests, AccessFieldInContainer) {
-  auto structA = createTestStruct();
+  auto structA = createSimpleTestStruct();
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
 
   cfg::L4PortRange got;
@@ -86,7 +71,7 @@ TEST(PathVisitorTests, AccessFieldInContainer) {
 }
 
 TEST(PathVisitorTests, TraversalModeFull) {
-  auto structA = createTestStruct();
+  auto structA = createSimpleTestStruct();
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
 
   std::set<std::string> got;
@@ -104,7 +89,7 @@ TEST(PathVisitorTests, TraversalModeFull) {
 }
 
 TEST(PathVisitorTests, AccessOptional) {
-  auto structA = createTestStruct();
+  auto structA = createSimpleTestStruct();
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
 
   std::string got;
@@ -127,3 +112,5 @@ TEST(PathVisitorTests, AccessOptional) {
   EXPECT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
   EXPECT_TRUE(got.empty());
 }
+
+} // namespace facebook::fboss::thrift_cow::test

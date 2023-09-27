@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 
 #include <fboss/thrift_cow/visitors/DeltaVisitor.h>
+#include <fboss/thrift_cow/visitors/tests/VisitorTestUtils.h>
 #include <thrift/lib/cpp2/reflection/folly_dynamic.h>
 #include "fboss/thrift_cow/nodes/Types.h"
 #include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_fatal_types.h"
@@ -17,22 +18,12 @@ namespace {
 using namespace facebook::fboss;
 
 using PathTagSet = std::set<std::pair<std::string, thrift_cow::DeltaElemTag>>;
-
-TestStruct createTestStruct() {
-  dynamic testDyn = dynamic::object("inlineBool", true)("inlineInt", 54)(
-      "inlineString",
-      "testname")("optionalString", "bla")("inlineStruct", dynamic::object("min", 10)("max", 20))("inlineVariant", dynamic::object("inlineInt", 99))("mapOfEnumToStruct", dynamic::object("3", dynamic::object("min", 100)("max", 200)));
-
-  return apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
-}
-
 } // namespace
 
-TEST(DeltaVisitorTests, ChangeOneField) {
-  using namespace facebook::fboss::thrift_cow;
+namespace facebook::fboss::thrift_cow::test {
 
-  auto structA = createTestStruct();
+TEST(DeltaVisitorTests, ChangeOneField) {
+  auto structA = createSimpleTestStruct();
   auto structB = structA;
   structB.inlineInt() = false;
 
@@ -98,9 +89,7 @@ TEST(DeltaVisitorTests, ChangeOneField) {
 }
 
 TEST(DeltaVisitorTests, ChangeOneFieldInContainer) {
-  using namespace facebook::fboss::thrift_cow;
-
-  auto structA = createTestStruct();
+  auto structA = createSimpleTestStruct();
   auto structB = structA;
   structB.mapOfEnumToStruct()->at(TestEnum::THIRD).min() = 11;
 
@@ -138,9 +127,7 @@ TEST(DeltaVisitorTests, ChangeOneFieldInContainer) {
 }
 
 TEST(DeltaVisitorTests, SetOptional) {
-  using namespace facebook::fboss::thrift_cow;
-
-  auto structA = createTestStruct();
+  auto structA = createSimpleTestStruct();
   auto structB = structA;
   structB.optionalString() = "now I'm set";
 
@@ -189,9 +176,7 @@ TEST(DeltaVisitorTests, SetOptional) {
 }
 
 TEST(DeltaVisitorTests, AddToMap) {
-  using namespace facebook::fboss::thrift_cow;
-
-  auto structA = createTestStruct();
+  auto structA = createSimpleTestStruct();
   auto structB = structA;
 
   cfg::L4PortRange newOne;
@@ -250,9 +235,7 @@ TEST(DeltaVisitorTests, AddToMap) {
 }
 
 TEST(DeltaVisitorTests, UpdateMap) {
-  using namespace facebook::fboss::thrift_cow;
-
-  auto structA = createTestStruct();
+  auto structA = createSimpleTestStruct();
   auto structB = structA;
 
   cfg::L4PortRange oldOne;
@@ -338,9 +321,7 @@ TEST(DeltaVisitorTests, UpdateMap) {
 }
 
 TEST(DeltaVisitorTests, DeleteFromMap) {
-  using namespace facebook::fboss::thrift_cow;
-
-  auto structA = createTestStruct();
+  auto structA = createSimpleTestStruct();
   auto structB = structA;
   structB.mapOfEnumToStruct()->erase(TestEnum::THIRD);
 
@@ -395,9 +376,7 @@ TEST(DeltaVisitorTests, DeleteFromMap) {
 }
 
 TEST(DeltaVisitorTests, AddToList) {
-  using namespace facebook::fboss::thrift_cow;
-
-  auto structA = createTestStruct();
+  auto structA = createSimpleTestStruct();
   auto structB = structA;
   cfg::L4PortRange newOne;
   newOne.min() = 40;
@@ -455,9 +434,7 @@ TEST(DeltaVisitorTests, AddToList) {
 }
 
 TEST(DeltaVisitorTests, DeleteFromList) {
-  using namespace facebook::fboss::thrift_cow;
-
-  auto structA = createTestStruct();
+  auto structA = createSimpleTestStruct();
   auto structB = structA;
   cfg::L4PortRange newOne;
   newOne.min() = 40;
@@ -515,9 +492,7 @@ TEST(DeltaVisitorTests, DeleteFromList) {
 }
 
 TEST(DeltaVisitorTests, EditVariantField) {
-  using namespace facebook::fboss::thrift_cow;
-
-  auto structA = createTestStruct();
+  auto structA = createSimpleTestStruct();
   auto structB = structA;
   structB.inlineVariant()->inlineInt_ref() = 1000;
 
@@ -586,9 +561,7 @@ TEST(DeltaVisitorTests, EditVariantField) {
 }
 
 TEST(DeltaVisitorTests, SwitchVariantField) {
-  using namespace facebook::fboss::thrift_cow;
-
-  auto structA = createTestStruct();
+  auto structA = createSimpleTestStruct();
   auto structB = structA;
   structB.inlineVariant()->inlineBool_ref() = true;
 
@@ -642,9 +615,7 @@ TEST(DeltaVisitorTests, SwitchVariantField) {
 }
 
 TEST(DeltaVisitorTests, SwitchVariantFieldToStruct) {
-  using namespace facebook::fboss::thrift_cow;
-
-  auto structA = createTestStruct();
+  auto structA = createSimpleTestStruct();
 
   cfg::L4PortRange newOne;
   newOne.min() = 40;
@@ -710,3 +681,5 @@ TEST(DeltaVisitorTests, SwitchVariantFieldToStruct) {
               "/inlineVariant/inlineStruct/invert",
               DeltaElemTag::NOT_MINIMAL)}));
 }
+
+} // namespace facebook::fboss::thrift_cow::test
