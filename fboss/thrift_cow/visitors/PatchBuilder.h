@@ -3,12 +3,14 @@
 #pragma once
 
 #include <fboss/thrift_cow/gen-cpp2/patch_types.h>
+#include <fboss/thrift_cow/gen-cpp2/patch_visitation.h>
 #include <fboss/thrift_cow/visitors/DeltaVisitor.h>
 #include <fboss/thrift_cow/visitors/TraverseHelper.h>
 
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
 #include <functional>
+#include <stdexcept>
 
 namespace facebook::fboss::thrift_cow {
 
@@ -28,13 +30,7 @@ struct PatchBuilderTraverser : public TraverseHelper<PatchBuilderTraverser> {
   void onPushImpl() {
     const auto& newTok = path().back();
     PatchNode& curPatch = curPath_.back();
-
-    // TODO: use correct type and key
-    PatchNode nextPatch;
-    nextPatch.set_struct_node();
-    auto it = curPatch.mutable_struct_node().children()->insert_or_assign(
-        1, std::move(nextPatch));
-    curPath_.push_back(it.first->second);
+    insertChild<SimpleTC>(curPatch, newTok);
   }
 
   template <ThriftSimpleTC SimpleTC>
@@ -44,6 +40,78 @@ struct PatchBuilderTraverser : public TraverseHelper<PatchBuilderTraverser> {
   }
 
  private:
+  template <ThriftSimpleTC SimpleTC>
+  void insertChild(PatchNode& node, const std::string& key) {
+    apache::thrift::visit_union(
+        node,
+        [&](const apache::thrift::metadata::ThriftField& meta, auto& patch) {
+          // TODO: construct child correctly
+          PatchNode childPatch = constructEmptyPatch<SimpleTC>();
+          auto insert = folly::overload(
+              [](Empty&) -> PatchNode& {
+                throw std::runtime_error("empty nodes cannot have children");
+              },
+              [](ByteBuffer&) -> PatchNode& {
+                throw std::runtime_error("val nodes cannot have children");
+              },
+              [&](StructPatch& patch) -> PatchNode& {
+                return patch.children()
+                    ->try_emplace(
+                        folly::to<apache::thrift::field_id_t>(key),
+                        std::move(childPatch))
+                    .first->second;
+              },
+              [&](ListPatch& patch) -> PatchNode& {
+                return patch.children()
+                    ->try_emplace(
+                        folly::to<std::size_t>(key), std::move(childPatch))
+                    .first->second;
+              },
+              [&](MapPatch& patch) -> PatchNode& {
+                return patch.children()
+                    ->try_emplace(key, std::move(childPatch))
+                    .first->second;
+              },
+              [&](SetPatch& patch) -> PatchNode& {
+                return patch.children()
+                    ->try_emplace(key, std::move(childPatch))
+                    .first->second;
+              },
+              [&](VariantPatch& patch) -> PatchNode& {
+                patch.id() = folly::to<apache::thrift::field_id_t>(key);
+                patch.child() = std::move(childPatch);
+                return *patch.child();
+              });
+          curPath_.push_back(insert(patch));
+        });
+  }
+
+  template <ThriftSimpleTC SimpleTC>
+  PatchNode constructEmptyPatch() {
+    PatchNode child;
+    switch (SimpleTC) {
+      case ThriftSimpleTC::PRIMITIVE:
+        child.set_val();
+        break;
+      case ThriftSimpleTC::STRUCTURE:
+        child.set_struct_node();
+        break;
+      case ThriftSimpleTC::VARIANT:
+        child.set_variant_node();
+        break;
+      case ThriftSimpleTC::MAP:
+        child.set_map_node();
+        break;
+      case ThriftSimpleTC::SET:
+        child.set_set_node();
+        break;
+      case ThriftSimpleTC::LIST:
+        child.set_list_node();
+        break;
+    }
+    return child;
+  }
+
   std::vector<std::reference_wrapper<PatchNode>> curPath_;
 };
 } // namespace detail_pb
