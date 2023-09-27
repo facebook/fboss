@@ -195,6 +195,10 @@ struct ThriftSetFields {
     return storage_.find(value_type{value});
   }
 
+  size_t count(const value_type& value) const {
+    return storage_.count(value);
+  }
+
   const_iterator cbegin() const {
     return storage_.cbegin();
   }
@@ -317,7 +321,7 @@ class ThriftSetNode : public NodeBaseT<
   }
 
   typename Fields::iterator find(const value_type& value) {
-    return this->writableFields->find(value);
+    return this->writableFields()->find(value);
   }
 
   typename Fields::const_iterator find(const value_type& value) const {
@@ -330,6 +334,10 @@ class ThriftSetNode : public NodeBaseT<
 
   typename Fields::const_iterator find(const ValueTType& value) const {
     return this->getFields()->find(value_type{value});
+  }
+
+  size_t count(const value_type& value) const {
+    return this->getFields()->count(value);
   }
 
   std::size_t size() const {

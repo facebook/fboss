@@ -335,6 +335,10 @@ struct DeltaVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
             // shouldn't happen...
             return;
           }
+          if (oldFields.count(val) && newFields.count(val)) {
+            return;
+          }
+
           hasDifferences = true;
           traverser.push(folly::to<std::string>(val->cref()));
           if (auto it = oldFields.find(val); it != oldFields.end()) {
