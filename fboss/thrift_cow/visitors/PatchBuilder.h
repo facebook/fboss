@@ -38,7 +38,7 @@ struct PatchBuilderTraverser : public TraverseHelper<PatchBuilderTraverser> {
   }
 
   template <ThriftSimpleTC SimpleTC>
-  void onPopImpl() {
+  void onPopImpl(std::string&& /* popped */) {
     // TODO: prune empty paths on the way up
     curPath_.pop_back();
   }

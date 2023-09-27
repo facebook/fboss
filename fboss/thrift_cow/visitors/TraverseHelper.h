@@ -79,8 +79,9 @@ class TraverseHelper {
 
   template <ThriftSimpleTC SimpleTC>
   void pop() {
+    std::string&& tok = std::move(currentPath_.back());
     currentPath_.pop_back();
-    onPop<SimpleTC>();
+    onPop<SimpleTC>(std::forward<std::string>(tok));
   }
 
   bool shouldShortCircuit(VisitorType visitorType) const {
@@ -98,8 +99,9 @@ class TraverseHelper {
     return static_cast<Impl*>(this)->template onPushImpl<SimpleTC>();
   }
   template <ThriftSimpleTC SimpleTC>
-  void onPop() {
-    return static_cast<Impl*>(this)->template onPopImpl<SimpleTC>();
+  void onPop(std::string&& popped) {
+    return static_cast<Impl*>(this)->template onPopImpl<SimpleTC>(
+        std::forward<std::string>(popped));
   }
 
   std::vector<std::string> currentPath_;
@@ -116,7 +118,7 @@ struct SimpleTraverseHelper : TraverseHelper<SimpleTraverseHelper> {
   template <ThriftSimpleTC SimpleTC>
   void onPushImpl() {}
   template <ThriftSimpleTC SimpleTC>
-  void onPopImpl() {}
+  void onPopImpl(std::string&& popped) {}
 };
 
 } // namespace facebook::fboss::thrift_cow
