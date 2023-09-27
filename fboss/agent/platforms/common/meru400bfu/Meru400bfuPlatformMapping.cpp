@@ -27019,3861 +27019,21 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           }
         }
     },
-    "2001": {
-        "mapping": {
-          "id": 2001,
-          "name": "fab1/12/6",
-          "controllingPort": 2001,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core8",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip12",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core8",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip12",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core8",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip12",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2002": {
-        "mapping": {
-          "id": 2002,
-          "name": "fab1/12/7",
-          "controllingPort": 2002,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core8",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip12",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core8",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip12",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core8",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip12",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2003": {
-        "mapping": {
-          "id": 2003,
-          "name": "fab1/12/8",
-          "controllingPort": 2003,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core8",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip12",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core8",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip12",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core8",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip12",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2004": {
-        "mapping": {
-          "id": 2004,
-          "name": "fab1/11/5",
-          "controllingPort": 2004,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core10",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
-                  "lane": 4
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core10",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core10",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2005": {
-        "mapping": {
-          "id": 2005,
-          "name": "fab1/11/6",
-          "controllingPort": 2005,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core10",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core10",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core10",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2006": {
-        "mapping": {
-          "id": 2006,
-          "name": "fab1/11/7",
-          "controllingPort": 2006,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core10",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core10",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core10",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2007": {
-        "mapping": {
-          "id": 2007,
-          "name": "fab1/11/8",
-          "controllingPort": 2007,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core10",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core10",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core10",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2008": {
-        "mapping": {
-          "id": 2008,
-          "name": "fab1/9/5",
-          "controllingPort": 2008,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core23",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
-                  "lane": 4
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core23",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core23",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2009": {
-        "mapping": {
-          "id": 2009,
-          "name": "fab1/9/6",
-          "controllingPort": 2009,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core23",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core23",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core23",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2010": {
-        "mapping": {
-          "id": 2010,
-          "name": "fab1/9/7",
-          "controllingPort": 2010,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core23",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core23",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core23",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2011": {
-        "mapping": {
-          "id": 2011,
-          "name": "fab1/9/8",
-          "controllingPort": 2011,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core23",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core23",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core23",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2012": {
-        "mapping": {
-          "id": 2012,
-          "name": "fab1/10/5",
-          "controllingPort": 2012,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core11",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
-                  "lane": 4
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core11",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core11",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2013": {
-        "mapping": {
-          "id": 2013,
-          "name": "fab1/10/6",
-          "controllingPort": 2013,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core11",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core11",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core11",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2014": {
-        "mapping": {
-          "id": 2014,
-          "name": "fab1/10/7",
-          "controllingPort": 2014,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core11",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core11",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core11",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2015": {
-        "mapping": {
-          "id": 2015,
-          "name": "fab1/10/8",
-          "controllingPort": 2015,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core11",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core11",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core11",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2016": {
-        "mapping": {
-          "id": 2016,
-          "name": "fab1/7/5",
-          "controllingPort": 2016,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core20",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
-                  "lane": 4
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core20",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core20",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2017": {
-        "mapping": {
-          "id": 2017,
-          "name": "fab1/7/6",
-          "controllingPort": 2017,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core20",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core20",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core20",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2018": {
-        "mapping": {
-          "id": 2018,
-          "name": "fab1/7/7",
-          "controllingPort": 2018,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core20",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core20",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core20",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2019": {
-        "mapping": {
-          "id": 2019,
-          "name": "fab1/7/8",
-          "controllingPort": 2019,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core20",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core20",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core20",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2020": {
-        "mapping": {
-          "id": 2020,
-          "name": "fab1/8/5",
-          "controllingPort": 2020,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core22",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
-                  "lane": 4
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core22",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core22",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2021": {
-        "mapping": {
-          "id": 2021,
-          "name": "fab1/8/6",
-          "controllingPort": 2021,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core22",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core22",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core22",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2022": {
-        "mapping": {
-          "id": 2022,
-          "name": "fab1/8/7",
-          "controllingPort": 2022,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core22",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core22",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core22",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2023": {
-        "mapping": {
-          "id": 2023,
-          "name": "fab1/8/8",
-          "controllingPort": 2023,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core22",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core22",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core22",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2024": {
-        "mapping": {
-          "id": 2024,
-          "name": "fab1/6/5",
-          "controllingPort": 2024,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core16",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
-                  "lane": 4
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core16",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core16",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2025": {
-        "mapping": {
-          "id": 2025,
-          "name": "fab1/6/6",
-          "controllingPort": 2025,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core16",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core16",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core16",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2026": {
-        "mapping": {
-          "id": 2026,
-          "name": "fab1/6/7",
-          "controllingPort": 2026,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core16",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core16",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core16",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2027": {
-        "mapping": {
-          "id": 2027,
-          "name": "fab1/6/8",
-          "controllingPort": 2027,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core16",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core16",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core16",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2028": {
-        "mapping": {
-          "id": 2028,
-          "name": "fab1/5/5",
-          "controllingPort": 2028,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core17",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
-                  "lane": 4
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core17",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core17",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2029": {
-        "mapping": {
-          "id": 2029,
-          "name": "fab1/5/6",
-          "controllingPort": 2029,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core17",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core17",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core17",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2030": {
-        "mapping": {
-          "id": 2030,
-          "name": "fab1/5/7",
-          "controllingPort": 2030,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core17",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core17",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core17",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2031": {
-        "mapping": {
-          "id": 2031,
-          "name": "fab1/5/8",
-          "controllingPort": 2031,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core17",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core17",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core17",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2032": {
-        "mapping": {
-          "id": 2032,
-          "name": "fab1/36/1",
-          "controllingPort": 2032,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core0",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core0",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core0",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2033": {
-        "mapping": {
-          "id": 2033,
-          "name": "fab1/36/2",
-          "controllingPort": 2033,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core0",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core0",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core0",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2034": {
-        "mapping": {
-          "id": 2034,
-          "name": "fab1/36/3",
-          "controllingPort": 2034,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core0",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core0",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core0",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2035": {
-        "mapping": {
-          "id": 2035,
-          "name": "fab1/36/4",
-          "controllingPort": 2035,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core0",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core0",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core0",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2036": {
-        "mapping": {
-          "id": 2036,
-          "name": "fab1/4/5",
-          "controllingPort": 2036,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core14",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
-                  "lane": 4
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core14",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core14",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2037": {
-        "mapping": {
-          "id": 2037,
-          "name": "fab1/4/6",
-          "controllingPort": 2037,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core14",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core14",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core14",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2038": {
-        "mapping": {
-          "id": 2038,
-          "name": "fab1/4/7",
-          "controllingPort": 2038,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core14",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core14",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core14",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2039": {
-        "mapping": {
-          "id": 2039,
-          "name": "fab1/4/8",
-          "controllingPort": 2039,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core14",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core14",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core14",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2040": {
-        "mapping": {
-          "id": 2040,
-          "name": "fab1/35/1",
-          "controllingPort": 2040,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core1",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core1",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core1",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2041": {
-        "mapping": {
-          "id": 2041,
-          "name": "fab1/35/2",
-          "controllingPort": 2041,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core1",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core1",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core1",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2042": {
-        "mapping": {
-          "id": 2042,
-          "name": "fab1/35/3",
-          "controllingPort": 2042,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core1",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core1",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core1",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2043": {
-        "mapping": {
-          "id": 2043,
-          "name": "fab1/35/4",
-          "controllingPort": 2043,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core1",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core1",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core1",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2044": {
-        "mapping": {
-          "id": 2044,
-          "name": "fab1/34/1",
-          "controllingPort": 2044,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core3",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core3",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core3",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2045": {
-        "mapping": {
-          "id": 2045,
-          "name": "fab1/34/2",
-          "controllingPort": 2045,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core3",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core3",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core3",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2046": {
-        "mapping": {
-          "id": 2046,
-          "name": "fab1/34/3",
-          "controllingPort": 2046,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core3",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core3",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core3",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2047": {
-        "mapping": {
-          "id": 2047,
-          "name": "fab1/34/4",
-          "controllingPort": 2047,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core3",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core3",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core3",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2048": {
-        "mapping": {
-          "id": 2048,
-          "name": "fab1/25/1",
-          "controllingPort": 2048,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core18",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core18",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core18",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
     "2049": {
         "mapping": {
           "id": 2049,
-          "name": "fab1/25/2",
+          "name": "fab1/12/6",
           "controllingPort": 2049,
           "pins": [
             {
               "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core18",
+                "chip": "NPU-R_FE-slot1/chip2/core8",
                 "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
-                  "lane": 1
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip12",
+                  "lane": 5
                 }
               }
             }
@@ -30886,7 +27046,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core18",
+                      "chip": "NPU-R_FE-slot1/chip2/core8",
                       "lane": 1
                     },
                     "tx": {
@@ -30902,8 +27062,8 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
-                      "lane": 1
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip12",
+                      "lane": 5
                     }
                   }
                 ]
@@ -30914,7 +27074,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core18",
+                      "chip": "NPU-R_FE-slot1/chip2/core8",
                       "lane": 1
                     },
                     "tx": {
@@ -30930,8 +27090,8 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
-                      "lane": 1
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip12",
+                      "lane": 5
                     }
                   }
                 ]
@@ -30942,18 +27102,18 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
     "2050": {
         "mapping": {
           "id": 2050,
-          "name": "fab1/25/3",
+          "name": "fab1/12/7",
           "controllingPort": 2050,
           "pins": [
             {
               "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core18",
+                "chip": "NPU-R_FE-slot1/chip2/core8",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
-                  "lane": 2
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip12",
+                  "lane": 6
                 }
               }
             }
@@ -30966,7 +27126,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core18",
+                      "chip": "NPU-R_FE-slot1/chip2/core8",
                       "lane": 2
                     },
                     "tx": {
@@ -30982,8 +27142,8 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
-                      "lane": 2
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip12",
+                      "lane": 6
                     }
                   }
                 ]
@@ -30994,7 +27154,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core18",
+                      "chip": "NPU-R_FE-slot1/chip2/core8",
                       "lane": 2
                     },
                     "tx": {
@@ -31010,8 +27170,8 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
-                      "lane": 2
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip12",
+                      "lane": 6
                     }
                   }
                 ]
@@ -31022,18 +27182,18 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
     "2051": {
         "mapping": {
           "id": 2051,
-          "name": "fab1/25/4",
+          "name": "fab1/12/8",
           "controllingPort": 2051,
           "pins": [
             {
               "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core18",
+                "chip": "NPU-R_FE-slot1/chip2/core8",
                 "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
-                  "lane": 3
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip12",
+                  "lane": 7
                 }
               }
             }
@@ -31046,7 +27206,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core18",
+                      "chip": "NPU-R_FE-slot1/chip2/core8",
                       "lane": 3
                     },
                     "tx": {
@@ -31062,8 +27222,8 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
-                      "lane": 3
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip12",
+                      "lane": 7
                     }
                   }
                 ]
@@ -31074,7 +27234,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core18",
+                      "chip": "NPU-R_FE-slot1/chip2/core8",
                       "lane": 3
                     },
                     "tx": {
@@ -31090,8 +27250,8 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
-                      "lane": 3
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip12",
+                      "lane": 7
                     }
                   }
                 ]
@@ -31102,1617 +27262,17 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
     "2052": {
         "mapping": {
           "id": 2052,
-          "name": "fab1/26/1",
+          "name": "fab1/11/5",
           "controllingPort": 2052,
           "pins": [
             {
               "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core19",
+                "chip": "NPU-R_FE-slot1/chip2/core10",
                 "lane": 0
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core19",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core19",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2053": {
-        "mapping": {
-          "id": 2053,
-          "name": "fab1/26/2",
-          "controllingPort": 2053,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core19",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core19",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core19",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2054": {
-        "mapping": {
-          "id": 2054,
-          "name": "fab1/26/3",
-          "controllingPort": 2054,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core19",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core19",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core19",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2055": {
-        "mapping": {
-          "id": 2055,
-          "name": "fab1/26/4",
-          "controllingPort": 2055,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core19",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core19",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core19",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2056": {
-        "mapping": {
-          "id": 2056,
-          "name": "fab1/28/1",
-          "controllingPort": 2056,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core9",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core9",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core9",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2057": {
-        "mapping": {
-          "id": 2057,
-          "name": "fab1/28/2",
-          "controllingPort": 2057,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core9",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core9",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core9",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2058": {
-        "mapping": {
-          "id": 2058,
-          "name": "fab1/28/3",
-          "controllingPort": 2058,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core9",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core9",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core9",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2059": {
-        "mapping": {
-          "id": 2059,
-          "name": "fab1/28/4",
-          "controllingPort": 2059,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core9",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core9",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core9",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2060": {
-        "mapping": {
-          "id": 2060,
-          "name": "fab1/27/1",
-          "controllingPort": 2060,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core21",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core21",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core21",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2061": {
-        "mapping": {
-          "id": 2061,
-          "name": "fab1/27/2",
-          "controllingPort": 2061,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core21",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core21",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core21",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2062": {
-        "mapping": {
-          "id": 2062,
-          "name": "fab1/27/3",
-          "controllingPort": 2062,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core21",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core21",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core21",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2063": {
-        "mapping": {
-          "id": 2063,
-          "name": "fab1/27/4",
-          "controllingPort": 2063,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core21",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core21",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core21",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2064": {
-        "mapping": {
-          "id": 2064,
-          "name": "fab1/30/1",
-          "controllingPort": 2064,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core6",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core6",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core6",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2065": {
-        "mapping": {
-          "id": 2065,
-          "name": "fab1/30/2",
-          "controllingPort": 2065,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core6",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core6",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core6",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2066": {
-        "mapping": {
-          "id": 2066,
-          "name": "fab1/30/3",
-          "controllingPort": 2066,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core6",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core6",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core6",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2067": {
-        "mapping": {
-          "id": 2067,
-          "name": "fab1/30/4",
-          "controllingPort": 2067,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core6",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core6",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core6",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2068": {
-        "mapping": {
-          "id": 2068,
-          "name": "fab1/29/1",
-          "controllingPort": 2068,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core7",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core7",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core7",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2069": {
-        "mapping": {
-          "id": 2069,
-          "name": "fab1/29/2",
-          "controllingPort": 2069,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core7",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core7",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core7",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2070": {
-        "mapping": {
-          "id": 2070,
-          "name": "fab1/29/3",
-          "controllingPort": 2070,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core7",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core7",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core7",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2071": {
-        "mapping": {
-          "id": 2071,
-          "name": "fab1/29/4",
-          "controllingPort": 2071,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core7",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core7",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core7",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2072": {
-        "mapping": {
-          "id": 2072,
-          "name": "fab1/1/5",
-          "controllingPort": 2072,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core12",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip1",
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
                   "lane": 4
                 }
               }
@@ -32726,7 +27286,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core12",
+                      "chip": "NPU-R_FE-slot1/chip2/core10",
                       "lane": 0
                     },
                     "tx": {
@@ -32742,7 +27302,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip1",
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
                       "lane": 4
                     }
                   }
@@ -32754,7 +27314,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core12",
+                      "chip": "NPU-R_FE-slot1/chip2/core10",
                       "lane": 0
                     },
                     "tx": {
@@ -32770,7 +27330,1607 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip1",
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2053": {
+        "mapping": {
+          "id": 2053,
+          "name": "fab1/11/6",
+          "controllingPort": 2053,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core10",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core10",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core10",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2054": {
+        "mapping": {
+          "id": 2054,
+          "name": "fab1/11/7",
+          "controllingPort": 2054,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core10",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core10",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core10",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2055": {
+        "mapping": {
+          "id": 2055,
+          "name": "fab1/11/8",
+          "controllingPort": 2055,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core10",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core10",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core10",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip11",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2056": {
+        "mapping": {
+          "id": 2056,
+          "name": "fab1/9/5",
+          "controllingPort": 2056,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core23",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core23",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core23",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2057": {
+        "mapping": {
+          "id": 2057,
+          "name": "fab1/9/6",
+          "controllingPort": 2057,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core23",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core23",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core23",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2058": {
+        "mapping": {
+          "id": 2058,
+          "name": "fab1/9/7",
+          "controllingPort": 2058,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core23",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core23",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core23",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2059": {
+        "mapping": {
+          "id": 2059,
+          "name": "fab1/9/8",
+          "controllingPort": 2059,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core23",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core23",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core23",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip9",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2060": {
+        "mapping": {
+          "id": 2060,
+          "name": "fab1/10/5",
+          "controllingPort": 2060,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core11",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core11",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core11",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2061": {
+        "mapping": {
+          "id": 2061,
+          "name": "fab1/10/6",
+          "controllingPort": 2061,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core11",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core11",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core11",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2062": {
+        "mapping": {
+          "id": 2062,
+          "name": "fab1/10/7",
+          "controllingPort": 2062,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core11",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core11",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core11",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2063": {
+        "mapping": {
+          "id": 2063,
+          "name": "fab1/10/8",
+          "controllingPort": 2063,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core11",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core11",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core11",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip10",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2064": {
+        "mapping": {
+          "id": 2064,
+          "name": "fab1/7/5",
+          "controllingPort": 2064,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core20",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core20",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core20",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2065": {
+        "mapping": {
+          "id": 2065,
+          "name": "fab1/7/6",
+          "controllingPort": 2065,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core20",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core20",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core20",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2066": {
+        "mapping": {
+          "id": 2066,
+          "name": "fab1/7/7",
+          "controllingPort": 2066,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core20",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core20",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core20",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2067": {
+        "mapping": {
+          "id": 2067,
+          "name": "fab1/7/8",
+          "controllingPort": 2067,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core20",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core20",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core20",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip7",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2068": {
+        "mapping": {
+          "id": 2068,
+          "name": "fab1/8/5",
+          "controllingPort": 2068,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core22",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core22",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core22",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2069": {
+        "mapping": {
+          "id": 2069,
+          "name": "fab1/8/6",
+          "controllingPort": 2069,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core22",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core22",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core22",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2070": {
+        "mapping": {
+          "id": 2070,
+          "name": "fab1/8/7",
+          "controllingPort": 2070,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core22",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core22",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core22",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2071": {
+        "mapping": {
+          "id": 2071,
+          "name": "fab1/8/8",
+          "controllingPort": 2071,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core22",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core22",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core22",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip8",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2072": {
+        "mapping": {
+          "id": 2072,
+          "name": "fab1/6/5",
+          "controllingPort": 2072,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core16",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core16",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core16",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
                       "lane": 4
                     }
                   }
@@ -32782,17 +28942,17 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
     "2073": {
         "mapping": {
           "id": 2073,
-          "name": "fab1/1/6",
+          "name": "fab1/6/6",
           "controllingPort": 2073,
           "pins": [
             {
               "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core12",
+                "chip": "NPU-R_FE-slot1/chip2/core16",
                 "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip1",
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
                   "lane": 5
                 }
               }
@@ -32806,7 +28966,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core12",
+                      "chip": "NPU-R_FE-slot1/chip2/core16",
                       "lane": 1
                     },
                     "tx": {
@@ -32822,7 +28982,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip1",
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
                       "lane": 5
                     }
                   }
@@ -32834,7 +28994,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core12",
+                      "chip": "NPU-R_FE-slot1/chip2/core16",
                       "lane": 1
                     },
                     "tx": {
@@ -32850,7 +29010,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip1",
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
                       "lane": 5
                     }
                   }
@@ -32862,17 +29022,17 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
     "2074": {
         "mapping": {
           "id": 2074,
-          "name": "fab1/1/7",
+          "name": "fab1/6/7",
           "controllingPort": 2074,
           "pins": [
             {
               "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core12",
+                "chip": "NPU-R_FE-slot1/chip2/core16",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip1",
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
                   "lane": 6
                 }
               }
@@ -32886,7 +29046,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core12",
+                      "chip": "NPU-R_FE-slot1/chip2/core16",
                       "lane": 2
                     },
                     "tx": {
@@ -32902,7 +29062,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip1",
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
                       "lane": 6
                     }
                   }
@@ -32914,7 +29074,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core12",
+                      "chip": "NPU-R_FE-slot1/chip2/core16",
                       "lane": 2
                     },
                     "tx": {
@@ -32930,7 +29090,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip1",
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
                       "lane": 6
                     }
                   }
@@ -32942,8 +29102,3848 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
     "2075": {
         "mapping": {
           "id": 2075,
-          "name": "fab1/1/8",
+          "name": "fab1/6/8",
           "controllingPort": 2075,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core16",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core16",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core16",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip6",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2076": {
+        "mapping": {
+          "id": 2076,
+          "name": "fab1/5/5",
+          "controllingPort": 2076,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core17",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core17",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core17",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2077": {
+        "mapping": {
+          "id": 2077,
+          "name": "fab1/5/6",
+          "controllingPort": 2077,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core17",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core17",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core17",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2078": {
+        "mapping": {
+          "id": 2078,
+          "name": "fab1/5/7",
+          "controllingPort": 2078,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core17",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core17",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core17",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2079": {
+        "mapping": {
+          "id": 2079,
+          "name": "fab1/5/8",
+          "controllingPort": 2079,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core17",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core17",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core17",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip5",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2080": {
+        "mapping": {
+          "id": 2080,
+          "name": "fab1/36/1",
+          "controllingPort": 2080,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core0",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core0",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core0",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2081": {
+        "mapping": {
+          "id": 2081,
+          "name": "fab1/36/2",
+          "controllingPort": 2081,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core0",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core0",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core0",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2082": {
+        "mapping": {
+          "id": 2082,
+          "name": "fab1/36/3",
+          "controllingPort": 2082,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core0",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core0",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core0",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2083": {
+        "mapping": {
+          "id": 2083,
+          "name": "fab1/36/4",
+          "controllingPort": 2083,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core0",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core0",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core0",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip36",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2084": {
+        "mapping": {
+          "id": 2084,
+          "name": "fab1/4/5",
+          "controllingPort": 2084,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core14",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core14",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core14",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2085": {
+        "mapping": {
+          "id": 2085,
+          "name": "fab1/4/6",
+          "controllingPort": 2085,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core14",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core14",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core14",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2086": {
+        "mapping": {
+          "id": 2086,
+          "name": "fab1/4/7",
+          "controllingPort": 2086,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core14",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core14",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core14",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2087": {
+        "mapping": {
+          "id": 2087,
+          "name": "fab1/4/8",
+          "controllingPort": 2087,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core14",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core14",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core14",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip4",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2088": {
+        "mapping": {
+          "id": 2088,
+          "name": "fab1/35/1",
+          "controllingPort": 2088,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core1",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core1",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core1",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2089": {
+        "mapping": {
+          "id": 2089,
+          "name": "fab1/35/2",
+          "controllingPort": 2089,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core1",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core1",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core1",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2090": {
+        "mapping": {
+          "id": 2090,
+          "name": "fab1/35/3",
+          "controllingPort": 2090,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core1",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core1",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core1",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2091": {
+        "mapping": {
+          "id": 2091,
+          "name": "fab1/35/4",
+          "controllingPort": 2091,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core1",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core1",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core1",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip35",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2092": {
+        "mapping": {
+          "id": 2092,
+          "name": "fab1/34/1",
+          "controllingPort": 2092,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core3",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core3",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core3",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2093": {
+        "mapping": {
+          "id": 2093,
+          "name": "fab1/34/2",
+          "controllingPort": 2093,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core3",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core3",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core3",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2094": {
+        "mapping": {
+          "id": 2094,
+          "name": "fab1/34/3",
+          "controllingPort": 2094,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core3",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core3",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core3",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2095": {
+        "mapping": {
+          "id": 2095,
+          "name": "fab1/34/4",
+          "controllingPort": 2095,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core3",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core3",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core3",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip34",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2096": {
+        "mapping": {
+          "id": 2096,
+          "name": "fab1/25/1",
+          "controllingPort": 2096,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core18",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core18",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core18",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2097": {
+        "mapping": {
+          "id": 2097,
+          "name": "fab1/25/2",
+          "controllingPort": 2097,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core18",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core18",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core18",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2098": {
+        "mapping": {
+          "id": 2098,
+          "name": "fab1/25/3",
+          "controllingPort": 2098,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core18",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core18",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core18",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2099": {
+        "mapping": {
+          "id": 2099,
+          "name": "fab1/25/4",
+          "controllingPort": 2099,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core18",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core18",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core18",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip25",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2100": {
+        "mapping": {
+          "id": 2100,
+          "name": "fab1/26/1",
+          "controllingPort": 2100,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core19",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core19",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core19",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2101": {
+        "mapping": {
+          "id": 2101,
+          "name": "fab1/26/2",
+          "controllingPort": 2101,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core19",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core19",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core19",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2102": {
+        "mapping": {
+          "id": 2102,
+          "name": "fab1/26/3",
+          "controllingPort": 2102,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core19",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core19",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core19",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2103": {
+        "mapping": {
+          "id": 2103,
+          "name": "fab1/26/4",
+          "controllingPort": 2103,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core19",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core19",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core19",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip26",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2104": {
+        "mapping": {
+          "id": 2104,
+          "name": "fab1/28/1",
+          "controllingPort": 2104,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core9",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core9",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core9",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2105": {
+        "mapping": {
+          "id": 2105,
+          "name": "fab1/28/2",
+          "controllingPort": 2105,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core9",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core9",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core9",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2106": {
+        "mapping": {
+          "id": 2106,
+          "name": "fab1/28/3",
+          "controllingPort": 2106,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core9",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core9",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core9",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2107": {
+        "mapping": {
+          "id": 2107,
+          "name": "fab1/28/4",
+          "controllingPort": 2107,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core9",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core9",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core9",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip28",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2108": {
+        "mapping": {
+          "id": 2108,
+          "name": "fab1/27/1",
+          "controllingPort": 2108,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core21",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core21",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core21",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2109": {
+        "mapping": {
+          "id": 2109,
+          "name": "fab1/27/2",
+          "controllingPort": 2109,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core21",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core21",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core21",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2110": {
+        "mapping": {
+          "id": 2110,
+          "name": "fab1/27/3",
+          "controllingPort": 2110,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core21",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core21",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core21",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2111": {
+        "mapping": {
+          "id": 2111,
+          "name": "fab1/27/4",
+          "controllingPort": 2111,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core21",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core21",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core21",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip27",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2112": {
+        "mapping": {
+          "id": 2112,
+          "name": "fab1/30/1",
+          "controllingPort": 2112,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core6",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core6",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core6",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2113": {
+        "mapping": {
+          "id": 2113,
+          "name": "fab1/30/2",
+          "controllingPort": 2113,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core6",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core6",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core6",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2114": {
+        "mapping": {
+          "id": 2114,
+          "name": "fab1/30/3",
+          "controllingPort": 2114,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core6",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core6",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core6",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2115": {
+        "mapping": {
+          "id": 2115,
+          "name": "fab1/30/4",
+          "controllingPort": 2115,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core6",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core6",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core6",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip30",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2116": {
+        "mapping": {
+          "id": 2116,
+          "name": "fab1/29/1",
+          "controllingPort": 2116,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core7",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core7",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core7",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2117": {
+        "mapping": {
+          "id": 2117,
+          "name": "fab1/29/2",
+          "controllingPort": 2117,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core7",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core7",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core7",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2118": {
+        "mapping": {
+          "id": 2118,
+          "name": "fab1/29/3",
+          "controllingPort": 2118,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core7",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core7",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core7",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2119": {
+        "mapping": {
+          "id": 2119,
+          "name": "fab1/29/4",
+          "controllingPort": 2119,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core7",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core7",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core7",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip29",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2120": {
+        "mapping": {
+          "id": 2120,
+          "name": "fab1/1/5",
+          "controllingPort": 2120,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core12",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip1",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core12",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip1",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core12",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip1",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2121": {
+        "mapping": {
+          "id": 2121,
+          "name": "fab1/1/6",
+          "controllingPort": 2121,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core12",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip1",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core12",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip1",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core12",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip1",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2122": {
+        "mapping": {
+          "id": 2122,
+          "name": "fab1/1/7",
+          "controllingPort": 2122,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core12",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip1",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core12",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip1",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core12",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip1",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2123": {
+        "mapping": {
+          "id": 2123,
+          "name": "fab1/1/8",
+          "controllingPort": 2123,
           "pins": [
             {
               "a": {
@@ -33019,3412 +33019,20 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           }
         }
     },
-    "2076": {
-        "mapping": {
-          "id": 2076,
-          "name": "fab1/2/5",
-          "controllingPort": 2076,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core13",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
-                  "lane": 4
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core13",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core13",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2077": {
-        "mapping": {
-          "id": 2077,
-          "name": "fab1/2/6",
-          "controllingPort": 2077,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core13",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core13",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core13",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2078": {
-        "mapping": {
-          "id": 2078,
-          "name": "fab1/2/7",
-          "controllingPort": 2078,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core13",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core13",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core13",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2079": {
-        "mapping": {
-          "id": 2079,
-          "name": "fab1/2/8",
-          "controllingPort": 2079,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core13",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core13",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core13",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2080": {
-        "mapping": {
-          "id": 2080,
-          "name": "fab1/31/1",
-          "controllingPort": 2080,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core4",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core4",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core4",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2081": {
-        "mapping": {
-          "id": 2081,
-          "name": "fab1/31/2",
-          "controllingPort": 2081,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core4",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core4",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core4",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2082": {
-        "mapping": {
-          "id": 2082,
-          "name": "fab1/31/3",
-          "controllingPort": 2082,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core4",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core4",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core4",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2083": {
-        "mapping": {
-          "id": 2083,
-          "name": "fab1/31/4",
-          "controllingPort": 2083,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core4",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core4",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core4",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2084": {
-        "mapping": {
-          "id": 2084,
-          "name": "fab1/3/5",
-          "controllingPort": 2084,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core15",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
-                  "lane": 4
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core15",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core15",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2085": {
-        "mapping": {
-          "id": 2085,
-          "name": "fab1/3/6",
-          "controllingPort": 2085,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core15",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core15",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core15",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2086": {
-        "mapping": {
-          "id": 2086,
-          "name": "fab1/3/7",
-          "controllingPort": 2086,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core15",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core15",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core15",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2087": {
-        "mapping": {
-          "id": 2087,
-          "name": "fab1/3/8",
-          "controllingPort": 2087,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core15",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core15",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core15",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2088": {
-        "mapping": {
-          "id": 2088,
-          "name": "fab1/32/1",
-          "controllingPort": 2088,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core5",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core5",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core5",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2089": {
-        "mapping": {
-          "id": 2089,
-          "name": "fab1/32/2",
-          "controllingPort": 2089,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core5",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core5",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core5",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2090": {
-        "mapping": {
-          "id": 2090,
-          "name": "fab1/32/3",
-          "controllingPort": 2090,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core5",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core5",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core5",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2091": {
-        "mapping": {
-          "id": 2091,
-          "name": "fab1/32/4",
-          "controllingPort": 2091,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core5",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core5",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core5",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2092": {
-        "mapping": {
-          "id": 2092,
-          "name": "fab1/33/1",
-          "controllingPort": 2092,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core2",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core2",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core2",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2093": {
-        "mapping": {
-          "id": 2093,
-          "name": "fab1/33/2",
-          "controllingPort": 2093,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core2",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core2",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core2",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2094": {
-        "mapping": {
-          "id": 2094,
-          "name": "fab1/33/3",
-          "controllingPort": 2094,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core2",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core2",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core2",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2095": {
-        "mapping": {
-          "id": 2095,
-          "name": "fab1/33/4",
-          "controllingPort": 2095,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core2",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core2",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core2",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -16,
-                      "pre2": 0,
-                      "main": 132,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2096": {
-        "mapping": {
-          "id": 2096,
-          "name": "fab1/48/1",
-          "controllingPort": 2096,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core31",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core31",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core31",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2097": {
-        "mapping": {
-          "id": 2097,
-          "name": "fab1/48/2",
-          "controllingPort": 2097,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core31",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core31",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core31",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2098": {
-        "mapping": {
-          "id": 2098,
-          "name": "fab1/48/3",
-          "controllingPort": 2098,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core31",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core31",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core31",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2099": {
-        "mapping": {
-          "id": 2099,
-          "name": "fab1/48/4",
-          "controllingPort": 2099,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core31",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core31",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core31",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2100": {
-        "mapping": {
-          "id": 2100,
-          "name": "fab1/47/1",
-          "controllingPort": 2100,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core30",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core30",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core30",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2101": {
-        "mapping": {
-          "id": 2101,
-          "name": "fab1/47/2",
-          "controllingPort": 2101,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core30",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core30",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core30",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2102": {
-        "mapping": {
-          "id": 2102,
-          "name": "fab1/47/3",
-          "controllingPort": 2102,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core30",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core30",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core30",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2103": {
-        "mapping": {
-          "id": 2103,
-          "name": "fab1/47/4",
-          "controllingPort": 2103,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core30",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core30",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core30",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2104": {
-        "mapping": {
-          "id": 2104,
-          "name": "fab1/45/1",
-          "controllingPort": 2104,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core33",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core33",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core33",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2105": {
-        "mapping": {
-          "id": 2105,
-          "name": "fab1/45/2",
-          "controllingPort": 2105,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core33",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core33",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core33",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2106": {
-        "mapping": {
-          "id": 2106,
-          "name": "fab1/45/3",
-          "controllingPort": 2106,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core33",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core33",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core33",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2107": {
-        "mapping": {
-          "id": 2107,
-          "name": "fab1/45/4",
-          "controllingPort": 2107,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core33",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core33",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core33",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2108": {
-        "mapping": {
-          "id": 2108,
-          "name": "fab1/46/1",
-          "controllingPort": 2108,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core45",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core45",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core45",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2109": {
-        "mapping": {
-          "id": 2109,
-          "name": "fab1/46/2",
-          "controllingPort": 2109,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core45",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core45",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core45",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2110": {
-        "mapping": {
-          "id": 2110,
-          "name": "fab1/46/3",
-          "controllingPort": 2110,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core45",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core45",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core45",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2111": {
-        "mapping": {
-          "id": 2111,
-          "name": "fab1/46/4",
-          "controllingPort": 2111,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core45",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core45",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core45",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2112": {
-        "mapping": {
-          "id": 2112,
-          "name": "fab1/43/1",
-          "controllingPort": 2112,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core43",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core43",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core43",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2113": {
-        "mapping": {
-          "id": 2113,
-          "name": "fab1/43/2",
-          "controllingPort": 2113,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core43",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core43",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core43",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2114": {
-        "mapping": {
-          "id": 2114,
-          "name": "fab1/43/3",
-          "controllingPort": 2114,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core43",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core43",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core43",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2115": {
-        "mapping": {
-          "id": 2115,
-          "name": "fab1/43/4",
-          "controllingPort": 2115,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core43",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core43",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core43",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2116": {
-        "mapping": {
-          "id": 2116,
-          "name": "fab1/44/1",
-          "controllingPort": 2116,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core42",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core42",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core42",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2117": {
-        "mapping": {
-          "id": 2117,
-          "name": "fab1/44/2",
-          "controllingPort": 2117,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core42",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core42",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core42",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2118": {
-        "mapping": {
-          "id": 2118,
-          "name": "fab1/44/3",
-          "controllingPort": 2118,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core42",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core42",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core42",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2119": {
-        "mapping": {
-          "id": 2119,
-          "name": "fab1/44/4",
-          "controllingPort": 2119,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core42",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core42",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core42",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2120": {
-        "mapping": {
-          "id": 2120,
-          "name": "fab1/23/5",
-          "controllingPort": 2120,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core25",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
-                  "lane": 4
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core25",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core25",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2121": {
-        "mapping": {
-          "id": 2121,
-          "name": "fab1/23/6",
-          "controllingPort": 2121,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core25",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core25",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core25",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2122": {
-        "mapping": {
-          "id": 2122,
-          "name": "fab1/23/7",
-          "controllingPort": 2122,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core25",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core25",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core25",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2123": {
-        "mapping": {
-          "id": 2123,
-          "name": "fab1/23/8",
-          "controllingPort": 2123,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core25",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core25",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core25",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
     "2124": {
         "mapping": {
           "id": 2124,
-          "name": "fab1/24/5",
+          "name": "fab1/2/5",
           "controllingPort": 2124,
           "pins": [
             {
               "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core24",
+                "chip": "NPU-R_FE-slot1/chip2/core13",
                 "lane": 0
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip24",
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
                   "lane": 4
                 }
               }
@@ -36438,7 +33046,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core24",
+                      "chip": "NPU-R_FE-slot1/chip2/core13",
                       "lane": 0
                     },
                     "tx": {
@@ -36454,7 +33062,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip24",
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
                       "lane": 4
                     }
                   }
@@ -36466,7 +33074,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core24",
+                      "chip": "NPU-R_FE-slot1/chip2/core13",
                       "lane": 0
                     },
                     "tx": {
@@ -36482,7 +33090,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip24",
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
                       "lane": 4
                     }
                   }
@@ -36494,17 +33102,17 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
     "2125": {
         "mapping": {
           "id": 2125,
-          "name": "fab1/24/6",
+          "name": "fab1/2/6",
           "controllingPort": 2125,
           "pins": [
             {
               "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core24",
+                "chip": "NPU-R_FE-slot1/chip2/core13",
                 "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip24",
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
                   "lane": 5
                 }
               }
@@ -36518,7 +33126,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core24",
+                      "chip": "NPU-R_FE-slot1/chip2/core13",
                       "lane": 1
                     },
                     "tx": {
@@ -36534,7 +33142,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip24",
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
                       "lane": 5
                     }
                   }
@@ -36546,7 +33154,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core24",
+                      "chip": "NPU-R_FE-slot1/chip2/core13",
                       "lane": 1
                     },
                     "tx": {
@@ -36562,7 +33170,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip24",
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
                       "lane": 5
                     }
                   }
@@ -36574,17 +33182,17 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
     "2126": {
         "mapping": {
           "id": 2126,
-          "name": "fab1/24/7",
+          "name": "fab1/2/7",
           "controllingPort": 2126,
           "pins": [
             {
               "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core24",
+                "chip": "NPU-R_FE-slot1/chip2/core13",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip24",
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
                   "lane": 6
                 }
               }
@@ -36598,7 +33206,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core24",
+                      "chip": "NPU-R_FE-slot1/chip2/core13",
                       "lane": 2
                     },
                     "tx": {
@@ -36614,7 +33222,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip24",
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
                       "lane": 6
                     }
                   }
@@ -36626,7 +33234,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core24",
+                      "chip": "NPU-R_FE-slot1/chip2/core13",
                       "lane": 2
                     },
                     "tx": {
@@ -36642,7 +33250,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip24",
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
                       "lane": 6
                     }
                   }
@@ -36654,8 +33262,3400 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
     "2127": {
         "mapping": {
           "id": 2127,
-          "name": "fab1/24/8",
+          "name": "fab1/2/8",
           "controllingPort": 2127,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core13",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core13",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core13",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip2",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2128": {
+        "mapping": {
+          "id": 2128,
+          "name": "fab1/31/1",
+          "controllingPort": 2128,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core4",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core4",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core4",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2129": {
+        "mapping": {
+          "id": 2129,
+          "name": "fab1/31/2",
+          "controllingPort": 2129,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core4",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core4",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core4",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2130": {
+        "mapping": {
+          "id": 2130,
+          "name": "fab1/31/3",
+          "controllingPort": 2130,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core4",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core4",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core4",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2131": {
+        "mapping": {
+          "id": 2131,
+          "name": "fab1/31/4",
+          "controllingPort": 2131,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core4",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core4",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core4",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip31",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2132": {
+        "mapping": {
+          "id": 2132,
+          "name": "fab1/3/5",
+          "controllingPort": 2132,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core15",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core15",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core15",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2133": {
+        "mapping": {
+          "id": 2133,
+          "name": "fab1/3/6",
+          "controllingPort": 2133,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core15",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core15",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core15",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2134": {
+        "mapping": {
+          "id": 2134,
+          "name": "fab1/3/7",
+          "controllingPort": 2134,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core15",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core15",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core15",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2135": {
+        "mapping": {
+          "id": 2135,
+          "name": "fab1/3/8",
+          "controllingPort": 2135,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core15",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core15",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core15",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip3",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2136": {
+        "mapping": {
+          "id": 2136,
+          "name": "fab1/32/1",
+          "controllingPort": 2136,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core5",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core5",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core5",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2137": {
+        "mapping": {
+          "id": 2137,
+          "name": "fab1/32/2",
+          "controllingPort": 2137,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core5",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core5",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core5",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2138": {
+        "mapping": {
+          "id": 2138,
+          "name": "fab1/32/3",
+          "controllingPort": 2138,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core5",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core5",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core5",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2139": {
+        "mapping": {
+          "id": 2139,
+          "name": "fab1/32/4",
+          "controllingPort": 2139,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core5",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core5",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core5",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip32",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2140": {
+        "mapping": {
+          "id": 2140,
+          "name": "fab1/33/1",
+          "controllingPort": 2140,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core2",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core2",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core2",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2141": {
+        "mapping": {
+          "id": 2141,
+          "name": "fab1/33/2",
+          "controllingPort": 2141,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core2",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core2",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core2",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2142": {
+        "mapping": {
+          "id": 2142,
+          "name": "fab1/33/3",
+          "controllingPort": 2142,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core2",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core2",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core2",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2143": {
+        "mapping": {
+          "id": 2143,
+          "name": "fab1/33/4",
+          "controllingPort": 2143,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core2",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core2",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core2",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip33",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2144": {
+        "mapping": {
+          "id": 2144,
+          "name": "fab1/48/1",
+          "controllingPort": 2144,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core31",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core31",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core31",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2145": {
+        "mapping": {
+          "id": 2145,
+          "name": "fab1/48/2",
+          "controllingPort": 2145,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core31",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core31",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core31",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2146": {
+        "mapping": {
+          "id": 2146,
+          "name": "fab1/48/3",
+          "controllingPort": 2146,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core31",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core31",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core31",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2147": {
+        "mapping": {
+          "id": 2147,
+          "name": "fab1/48/4",
+          "controllingPort": 2147,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core31",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core31",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core31",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip48",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2148": {
+        "mapping": {
+          "id": 2148,
+          "name": "fab1/47/1",
+          "controllingPort": 2148,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core30",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core30",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core30",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2149": {
+        "mapping": {
+          "id": 2149,
+          "name": "fab1/47/2",
+          "controllingPort": 2149,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core30",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core30",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core30",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2150": {
+        "mapping": {
+          "id": 2150,
+          "name": "fab1/47/3",
+          "controllingPort": 2150,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core30",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core30",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core30",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2151": {
+        "mapping": {
+          "id": 2151,
+          "name": "fab1/47/4",
+          "controllingPort": 2151,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core30",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core30",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core30",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip47",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2152": {
+        "mapping": {
+          "id": 2152,
+          "name": "fab1/45/1",
+          "controllingPort": 2152,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core33",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core33",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core33",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2153": {
+        "mapping": {
+          "id": 2153,
+          "name": "fab1/45/2",
+          "controllingPort": 2153,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core33",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core33",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core33",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2154": {
+        "mapping": {
+          "id": 2154,
+          "name": "fab1/45/3",
+          "controllingPort": 2154,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core33",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core33",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core33",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2155": {
+        "mapping": {
+          "id": 2155,
+          "name": "fab1/45/4",
+          "controllingPort": 2155,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core33",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core33",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core33",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip45",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2156": {
+        "mapping": {
+          "id": 2156,
+          "name": "fab1/46/1",
+          "controllingPort": 2156,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core45",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core45",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core45",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2157": {
+        "mapping": {
+          "id": 2157,
+          "name": "fab1/46/2",
+          "controllingPort": 2157,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core45",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core45",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core45",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2158": {
+        "mapping": {
+          "id": 2158,
+          "name": "fab1/46/3",
+          "controllingPort": 2158,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core45",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core45",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core45",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2159": {
+        "mapping": {
+          "id": 2159,
+          "name": "fab1/46/4",
+          "controllingPort": 2159,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core45",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core45",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core45",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip46",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2160": {
+        "mapping": {
+          "id": 2160,
+          "name": "fab1/43/1",
+          "controllingPort": 2160,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core43",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core43",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core43",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2161": {
+        "mapping": {
+          "id": 2161,
+          "name": "fab1/43/2",
+          "controllingPort": 2161,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core43",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core43",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core43",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2162": {
+        "mapping": {
+          "id": 2162,
+          "name": "fab1/43/3",
+          "controllingPort": 2162,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core43",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core43",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core43",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2163": {
+        "mapping": {
+          "id": 2163,
+          "name": "fab1/43/4",
+          "controllingPort": 2163,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core43",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core43",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core43",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip43",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2164": {
+        "mapping": {
+          "id": 2164,
+          "name": "fab1/44/1",
+          "controllingPort": 2164,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core42",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core42",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core42",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2165": {
+        "mapping": {
+          "id": 2165,
+          "name": "fab1/44/2",
+          "controllingPort": 2165,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core42",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core42",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core42",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2166": {
+        "mapping": {
+          "id": 2166,
+          "name": "fab1/44/3",
+          "controllingPort": 2166,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core42",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core42",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core42",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2167": {
+        "mapping": {
+          "id": 2167,
+          "name": "fab1/44/4",
+          "controllingPort": 2167,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core42",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core42",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core42",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip44",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2168": {
+        "mapping": {
+          "id": 2168,
+          "name": "fab1/23/5",
+          "controllingPort": 2168,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core25",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core25",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core25",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2169": {
+        "mapping": {
+          "id": 2169,
+          "name": "fab1/23/6",
+          "controllingPort": 2169,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core25",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core25",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core25",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2170": {
+        "mapping": {
+          "id": 2170,
+          "name": "fab1/23/7",
+          "controllingPort": 2170,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core25",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core25",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core25",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2171": {
+        "mapping": {
+          "id": 2171,
+          "name": "fab1/23/8",
+          "controllingPort": 2171,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core25",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core25",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core25",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip23",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2172": {
+        "mapping": {
+          "id": 2172,
+          "name": "fab1/24/5",
+          "controllingPort": 2172,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core24",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip24",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core24",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip24",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core24",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip24",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2173": {
+        "mapping": {
+          "id": 2173,
+          "name": "fab1/24/6",
+          "controllingPort": 2173,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core24",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip24",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core24",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip24",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core24",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip24",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2174": {
+        "mapping": {
+          "id": 2174,
+          "name": "fab1/24/7",
+          "controllingPort": 2174,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core24",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip24",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core24",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip24",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core24",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip24",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2175": {
+        "mapping": {
+          "id": 2175,
+          "name": "fab1/24/8",
+          "controllingPort": 2175,
           "pins": [
             {
               "a": {
@@ -36731,3092 +36731,20 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           }
         }
     },
-    "2128": {
-        "mapping": {
-          "id": 2128,
-          "name": "fab1/42/1",
-          "controllingPort": 2128,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core41",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core41",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core41",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2129": {
-        "mapping": {
-          "id": 2129,
-          "name": "fab1/42/2",
-          "controllingPort": 2129,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core41",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core41",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core41",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2130": {
-        "mapping": {
-          "id": 2130,
-          "name": "fab1/42/3",
-          "controllingPort": 2130,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core41",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core41",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core41",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2131": {
-        "mapping": {
-          "id": 2131,
-          "name": "fab1/42/4",
-          "controllingPort": 2131,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core41",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core41",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core41",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2132": {
-        "mapping": {
-          "id": 2132,
-          "name": "fab1/21/5",
-          "controllingPort": 2132,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core26",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
-                  "lane": 4
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core26",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core26",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2133": {
-        "mapping": {
-          "id": 2133,
-          "name": "fab1/21/6",
-          "controllingPort": 2133,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core26",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core26",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core26",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2134": {
-        "mapping": {
-          "id": 2134,
-          "name": "fab1/21/7",
-          "controllingPort": 2134,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core26",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core26",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core26",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2135": {
-        "mapping": {
-          "id": 2135,
-          "name": "fab1/21/8",
-          "controllingPort": 2135,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core26",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core26",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core26",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2136": {
-        "mapping": {
-          "id": 2136,
-          "name": "fab1/41/1",
-          "controllingPort": 2136,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core40",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core40",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core40",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2137": {
-        "mapping": {
-          "id": 2137,
-          "name": "fab1/41/2",
-          "controllingPort": 2137,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core40",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core40",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core40",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2138": {
-        "mapping": {
-          "id": 2138,
-          "name": "fab1/41/3",
-          "controllingPort": 2138,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core40",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core40",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core40",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2139": {
-        "mapping": {
-          "id": 2139,
-          "name": "fab1/41/4",
-          "controllingPort": 2139,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core40",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core40",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core40",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2140": {
-        "mapping": {
-          "id": 2140,
-          "name": "fab1/40/1",
-          "controllingPort": 2140,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core39",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
-                  "lane": 0
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core39",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core39",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2141": {
-        "mapping": {
-          "id": 2141,
-          "name": "fab1/40/2",
-          "controllingPort": 2141,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core39",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
-                  "lane": 1
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core39",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core39",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
-                      "lane": 1
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2142": {
-        "mapping": {
-          "id": 2142,
-          "name": "fab1/40/3",
-          "controllingPort": 2142,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core39",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
-                  "lane": 2
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core39",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core39",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
-                      "lane": 2
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2143": {
-        "mapping": {
-          "id": 2143,
-          "name": "fab1/40/4",
-          "controllingPort": 2143,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core39",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core39",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core39",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2144": {
-        "mapping": {
-          "id": 2144,
-          "name": "fab1/14/5",
-          "controllingPort": 2144,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core46",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
-                  "lane": 4
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core46",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core46",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2145": {
-        "mapping": {
-          "id": 2145,
-          "name": "fab1/14/6",
-          "controllingPort": 2145,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core46",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core46",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core46",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2146": {
-        "mapping": {
-          "id": 2146,
-          "name": "fab1/14/7",
-          "controllingPort": 2146,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core46",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core46",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core46",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2147": {
-        "mapping": {
-          "id": 2147,
-          "name": "fab1/14/8",
-          "controllingPort": 2147,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core46",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core46",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core46",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2148": {
-        "mapping": {
-          "id": 2148,
-          "name": "fab1/13/5",
-          "controllingPort": 2148,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core44",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
-                  "lane": 4
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core44",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core44",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2149": {
-        "mapping": {
-          "id": 2149,
-          "name": "fab1/13/6",
-          "controllingPort": 2149,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core44",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core44",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core44",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2150": {
-        "mapping": {
-          "id": 2150,
-          "name": "fab1/13/7",
-          "controllingPort": 2150,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core44",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core44",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core44",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2151": {
-        "mapping": {
-          "id": 2151,
-          "name": "fab1/13/8",
-          "controllingPort": 2151,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core44",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core44",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core44",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2152": {
-        "mapping": {
-          "id": 2152,
-          "name": "fab1/15/5",
-          "controllingPort": 2152,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core47",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
-                  "lane": 4
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core47",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core47",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2153": {
-        "mapping": {
-          "id": 2153,
-          "name": "fab1/15/6",
-          "controllingPort": 2153,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core47",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core47",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core47",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2154": {
-        "mapping": {
-          "id": 2154,
-          "name": "fab1/15/7",
-          "controllingPort": 2154,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core47",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core47",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core47",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2155": {
-        "mapping": {
-          "id": 2155,
-          "name": "fab1/15/8",
-          "controllingPort": 2155,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core47",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core47",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core47",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2156": {
-        "mapping": {
-          "id": 2156,
-          "name": "fab1/16/5",
-          "controllingPort": 2156,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core35",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
-                  "lane": 4
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core35",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core35",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2157": {
-        "mapping": {
-          "id": 2157,
-          "name": "fab1/16/6",
-          "controllingPort": 2157,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core35",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core35",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core35",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2158": {
-        "mapping": {
-          "id": 2158,
-          "name": "fab1/16/7",
-          "controllingPort": 2158,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core35",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core35",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core35",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2159": {
-        "mapping": {
-          "id": 2159,
-          "name": "fab1/16/8",
-          "controllingPort": 2159,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core35",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core35",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core35",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2160": {
-        "mapping": {
-          "id": 2160,
-          "name": "fab1/17/5",
-          "controllingPort": 2160,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core34",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
-                  "lane": 4
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core34",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core34",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2161": {
-        "mapping": {
-          "id": 2161,
-          "name": "fab1/17/6",
-          "controllingPort": 2161,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core34",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core34",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core34",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2162": {
-        "mapping": {
-          "id": 2162,
-          "name": "fab1/17/7",
-          "controllingPort": 2162,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core34",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core34",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core34",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2163": {
-        "mapping": {
-          "id": 2163,
-          "name": "fab1/17/8",
-          "controllingPort": 2163,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core34",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core34",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core34",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2164": {
-        "mapping": {
-          "id": 2164,
-          "name": "fab1/18/5",
-          "controllingPort": 2164,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core32",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
-                  "lane": 4
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core32",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core32",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2165": {
-        "mapping": {
-          "id": 2165,
-          "name": "fab1/18/6",
-          "controllingPort": 2165,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core32",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core32",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core32",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2166": {
-        "mapping": {
-          "id": 2166,
-          "name": "fab1/18/7",
-          "controllingPort": 2166,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core32",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core32",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core32",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2167": {
-        "mapping": {
-          "id": 2167,
-          "name": "fab1/18/8",
-          "controllingPort": 2167,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core32",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core32",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core32",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2168": {
-        "mapping": {
-          "id": 2168,
-          "name": "fab1/20/5",
-          "controllingPort": 2168,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core29",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
-                  "lane": 4
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core29",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core29",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2169": {
-        "mapping": {
-          "id": 2169,
-          "name": "fab1/20/6",
-          "controllingPort": 2169,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core29",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core29",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core29",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2170": {
-        "mapping": {
-          "id": 2170,
-          "name": "fab1/20/7",
-          "controllingPort": 2170,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core29",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core29",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core29",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2171": {
-        "mapping": {
-          "id": 2171,
-          "name": "fab1/20/8",
-          "controllingPort": 2171,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core29",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core29",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core29",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2172": {
-        "mapping": {
-          "id": 2172,
-          "name": "fab1/19/5",
-          "controllingPort": 2172,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core28",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
-                  "lane": 4
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core28",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core28",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2173": {
-        "mapping": {
-          "id": 2173,
-          "name": "fab1/19/6",
-          "controllingPort": 2173,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core28",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
-                  "lane": 5
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core28",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core28",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
-                      "lane": 5
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2174": {
-        "mapping": {
-          "id": 2174,
-          "name": "fab1/19/7",
-          "controllingPort": 2174,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core28",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
-                  "lane": 6
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core28",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core28",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
-                      "lane": 6
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "2175": {
-        "mapping": {
-          "id": 2175,
-          "name": "fab1/19/8",
-          "controllingPort": 2175,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core28",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
-                  "lane": 7
-                }
-              }
-            }
-          ],
-          "portType": 1
-        },
-        "supportedProfiles": {
-          "36": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core28",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "37": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core28",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
     "2176": {
         "mapping": {
           "id": 2176,
-          "name": "fab1/37/1",
+          "name": "fab1/42/1",
           "controllingPort": 2176,
           "pins": [
             {
               "a": {
-                "chip": "NPU-R_FE-slot1/chip2/core37",
+                "chip": "NPU-R_FE-slot1/chip2/core41",
                 "lane": 0
               },
               "z": {
                 "end": {
-                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip37",
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
                   "lane": 0
                 }
               }
@@ -39830,7 +36758,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core37",
+                      "chip": "NPU-R_FE-slot1/chip2/core41",
                       "lane": 0
                     }
                   }
@@ -39838,7 +36766,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip37",
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
                       "lane": 0
                     }
                   }
@@ -39850,7 +36778,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-R_FE-slot1/chip2/core37",
+                      "chip": "NPU-R_FE-slot1/chip2/core41",
                       "lane": 0
                     }
                   }
@@ -39858,7 +36786,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip37",
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
                       "lane": 0
                     }
                   }
@@ -39870,8 +36798,3080 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
     "2177": {
         "mapping": {
           "id": 2177,
-          "name": "fab1/37/2",
+          "name": "fab1/42/2",
           "controllingPort": 2177,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core41",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core41",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core41",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2178": {
+        "mapping": {
+          "id": 2178,
+          "name": "fab1/42/3",
+          "controllingPort": 2178,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core41",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core41",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core41",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2179": {
+        "mapping": {
+          "id": 2179,
+          "name": "fab1/42/4",
+          "controllingPort": 2179,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core41",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core41",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core41",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip42",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2180": {
+        "mapping": {
+          "id": 2180,
+          "name": "fab1/21/5",
+          "controllingPort": 2180,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core26",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core26",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core26",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2181": {
+        "mapping": {
+          "id": 2181,
+          "name": "fab1/21/6",
+          "controllingPort": 2181,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core26",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core26",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core26",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2182": {
+        "mapping": {
+          "id": 2182,
+          "name": "fab1/21/7",
+          "controllingPort": 2182,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core26",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core26",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core26",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2183": {
+        "mapping": {
+          "id": 2183,
+          "name": "fab1/21/8",
+          "controllingPort": 2183,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core26",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core26",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core26",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip21",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2184": {
+        "mapping": {
+          "id": 2184,
+          "name": "fab1/41/1",
+          "controllingPort": 2184,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core40",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core40",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core40",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2185": {
+        "mapping": {
+          "id": 2185,
+          "name": "fab1/41/2",
+          "controllingPort": 2185,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core40",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core40",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core40",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2186": {
+        "mapping": {
+          "id": 2186,
+          "name": "fab1/41/3",
+          "controllingPort": 2186,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core40",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core40",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core40",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2187": {
+        "mapping": {
+          "id": 2187,
+          "name": "fab1/41/4",
+          "controllingPort": 2187,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core40",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core40",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core40",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip41",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2188": {
+        "mapping": {
+          "id": 2188,
+          "name": "fab1/40/1",
+          "controllingPort": 2188,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core39",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core39",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core39",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2189": {
+        "mapping": {
+          "id": 2189,
+          "name": "fab1/40/2",
+          "controllingPort": 2189,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core39",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
+                  "lane": 1
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core39",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core39",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2190": {
+        "mapping": {
+          "id": 2190,
+          "name": "fab1/40/3",
+          "controllingPort": 2190,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core39",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
+                  "lane": 2
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core39",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core39",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2191": {
+        "mapping": {
+          "id": 2191,
+          "name": "fab1/40/4",
+          "controllingPort": 2191,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core39",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core39",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core39",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip40",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2192": {
+        "mapping": {
+          "id": 2192,
+          "name": "fab1/14/5",
+          "controllingPort": 2192,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core46",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core46",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core46",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2193": {
+        "mapping": {
+          "id": 2193,
+          "name": "fab1/14/6",
+          "controllingPort": 2193,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core46",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core46",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core46",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2194": {
+        "mapping": {
+          "id": 2194,
+          "name": "fab1/14/7",
+          "controllingPort": 2194,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core46",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core46",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core46",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2195": {
+        "mapping": {
+          "id": 2195,
+          "name": "fab1/14/8",
+          "controllingPort": 2195,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core46",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core46",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core46",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip14",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2196": {
+        "mapping": {
+          "id": 2196,
+          "name": "fab1/13/5",
+          "controllingPort": 2196,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core44",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core44",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core44",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2197": {
+        "mapping": {
+          "id": 2197,
+          "name": "fab1/13/6",
+          "controllingPort": 2197,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core44",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core44",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core44",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2198": {
+        "mapping": {
+          "id": 2198,
+          "name": "fab1/13/7",
+          "controllingPort": 2198,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core44",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core44",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core44",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2199": {
+        "mapping": {
+          "id": 2199,
+          "name": "fab1/13/8",
+          "controllingPort": 2199,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core44",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core44",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core44",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip13",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2200": {
+        "mapping": {
+          "id": 2200,
+          "name": "fab1/15/5",
+          "controllingPort": 2200,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core47",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core47",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core47",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2201": {
+        "mapping": {
+          "id": 2201,
+          "name": "fab1/15/6",
+          "controllingPort": 2201,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core47",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core47",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core47",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2202": {
+        "mapping": {
+          "id": 2202,
+          "name": "fab1/15/7",
+          "controllingPort": 2202,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core47",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core47",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core47",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2203": {
+        "mapping": {
+          "id": 2203,
+          "name": "fab1/15/8",
+          "controllingPort": 2203,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core47",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core47",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core47",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip15",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2204": {
+        "mapping": {
+          "id": 2204,
+          "name": "fab1/16/5",
+          "controllingPort": 2204,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core35",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core35",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core35",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2205": {
+        "mapping": {
+          "id": 2205,
+          "name": "fab1/16/6",
+          "controllingPort": 2205,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core35",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core35",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core35",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2206": {
+        "mapping": {
+          "id": 2206,
+          "name": "fab1/16/7",
+          "controllingPort": 2206,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core35",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core35",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core35",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2207": {
+        "mapping": {
+          "id": 2207,
+          "name": "fab1/16/8",
+          "controllingPort": 2207,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core35",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core35",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core35",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip16",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2208": {
+        "mapping": {
+          "id": 2208,
+          "name": "fab1/17/5",
+          "controllingPort": 2208,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core34",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core34",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core34",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2209": {
+        "mapping": {
+          "id": 2209,
+          "name": "fab1/17/6",
+          "controllingPort": 2209,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core34",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core34",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core34",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2210": {
+        "mapping": {
+          "id": 2210,
+          "name": "fab1/17/7",
+          "controllingPort": 2210,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core34",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core34",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core34",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2211": {
+        "mapping": {
+          "id": 2211,
+          "name": "fab1/17/8",
+          "controllingPort": 2211,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core34",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core34",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core34",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip17",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2212": {
+        "mapping": {
+          "id": 2212,
+          "name": "fab1/18/5",
+          "controllingPort": 2212,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core32",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core32",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core32",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2213": {
+        "mapping": {
+          "id": 2213,
+          "name": "fab1/18/6",
+          "controllingPort": 2213,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core32",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core32",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core32",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2214": {
+        "mapping": {
+          "id": 2214,
+          "name": "fab1/18/7",
+          "controllingPort": 2214,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core32",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core32",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core32",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2215": {
+        "mapping": {
+          "id": 2215,
+          "name": "fab1/18/8",
+          "controllingPort": 2215,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core32",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core32",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core32",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip18",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2216": {
+        "mapping": {
+          "id": 2216,
+          "name": "fab1/20/5",
+          "controllingPort": 2216,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core29",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core29",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core29",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2217": {
+        "mapping": {
+          "id": 2217,
+          "name": "fab1/20/6",
+          "controllingPort": 2217,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core29",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core29",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core29",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2218": {
+        "mapping": {
+          "id": 2218,
+          "name": "fab1/20/7",
+          "controllingPort": 2218,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core29",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core29",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core29",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2219": {
+        "mapping": {
+          "id": 2219,
+          "name": "fab1/20/8",
+          "controllingPort": 2219,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core29",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core29",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core29",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip20",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2220": {
+        "mapping": {
+          "id": 2220,
+          "name": "fab1/19/5",
+          "controllingPort": 2220,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core28",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
+                  "lane": 4
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core28",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core28",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
+                      "lane": 4
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2221": {
+        "mapping": {
+          "id": 2221,
+          "name": "fab1/19/6",
+          "controllingPort": 2221,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core28",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
+                  "lane": 5
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core28",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core28",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
+                      "lane": 5
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2222": {
+        "mapping": {
+          "id": 2222,
+          "name": "fab1/19/7",
+          "controllingPort": 2222,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core28",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
+                  "lane": 6
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core28",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core28",
+                      "lane": 2
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
+                      "lane": 6
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2223": {
+        "mapping": {
+          "id": 2223,
+          "name": "fab1/19/8",
+          "controllingPort": 2223,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core28",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
+                  "lane": 7
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core28",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core28",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip19",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2224": {
+        "mapping": {
+          "id": 2224,
+          "name": "fab1/37/1",
+          "controllingPort": 2224,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-R_FE-slot1/chip2/core37",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFPDD-slot1/chip37",
+                  "lane": 0
+                }
+              }
+            }
+          ],
+          "portType": 1
+        },
+        "supportedProfiles": {
+          "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core37",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip37",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-R_FE-slot1/chip2/core37",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFPDD-slot1/chip37",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "2225": {
+        "mapping": {
+          "id": 2225,
+          "name": "fab1/37/2",
+          "controllingPort": 2225,
           "pins": [
             {
               "a": {
@@ -39931,11 +39931,11 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           }
         }
     },
-    "2178": {
+    "2226": {
         "mapping": {
-          "id": 2178,
+          "id": 2226,
           "name": "fab1/37/3",
-          "controllingPort": 2178,
+          "controllingPort": 2226,
           "pins": [
             {
               "a": {
@@ -39995,11 +39995,11 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           }
         }
     },
-    "2179": {
+    "2227": {
         "mapping": {
-          "id": 2179,
+          "id": 2227,
           "name": "fab1/37/4",
-          "controllingPort": 2179,
+          "controllingPort": 2227,
           "pins": [
             {
               "a": {
@@ -40059,11 +40059,11 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           }
         }
     },
-    "2180": {
+    "2228": {
         "mapping": {
-          "id": 2180,
+          "id": 2228,
           "name": "fab1/22/5",
-          "controllingPort": 2180,
+          "controllingPort": 2228,
           "pins": [
             {
               "a": {
@@ -40123,11 +40123,11 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           }
         }
     },
-    "2181": {
+    "2229": {
         "mapping": {
-          "id": 2181,
+          "id": 2229,
           "name": "fab1/22/6",
-          "controllingPort": 2181,
+          "controllingPort": 2229,
           "pins": [
             {
               "a": {
@@ -40187,11 +40187,11 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           }
         }
     },
-    "2182": {
+    "2230": {
         "mapping": {
-          "id": 2182,
+          "id": 2230,
           "name": "fab1/22/7",
-          "controllingPort": 2182,
+          "controllingPort": 2230,
           "pins": [
             {
               "a": {
@@ -40251,11 +40251,11 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           }
         }
     },
-    "2183": {
+    "2231": {
         "mapping": {
-          "id": 2183,
+          "id": 2231,
           "name": "fab1/22/8",
-          "controllingPort": 2183,
+          "controllingPort": 2231,
           "pins": [
             {
               "a": {
@@ -40315,11 +40315,11 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           }
         }
     },
-    "2184": {
+    "2232": {
         "mapping": {
-          "id": 2184,
+          "id": 2232,
           "name": "fab1/38/1",
-          "controllingPort": 2184,
+          "controllingPort": 2232,
           "pins": [
             {
               "a": {
@@ -40379,11 +40379,11 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           }
         }
     },
-    "2185": {
+    "2233": {
         "mapping": {
-          "id": 2185,
+          "id": 2233,
           "name": "fab1/38/2",
-          "controllingPort": 2185,
+          "controllingPort": 2233,
           "pins": [
             {
               "a": {
@@ -40443,11 +40443,11 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           }
         }
     },
-    "2186": {
+    "2234": {
         "mapping": {
-          "id": 2186,
+          "id": 2234,
           "name": "fab1/38/3",
-          "controllingPort": 2186,
+          "controllingPort": 2234,
           "pins": [
             {
               "a": {
@@ -40507,11 +40507,11 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           }
         }
     },
-    "2187": {
+    "2235": {
         "mapping": {
-          "id": 2187,
+          "id": 2235,
           "name": "fab1/38/4",
-          "controllingPort": 2187,
+          "controllingPort": 2235,
           "pins": [
             {
               "a": {
@@ -40571,11 +40571,11 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           }
         }
     },
-    "2188": {
+    "2236": {
         "mapping": {
-          "id": 2188,
+          "id": 2236,
           "name": "fab1/39/1",
-          "controllingPort": 2188,
+          "controllingPort": 2236,
           "pins": [
             {
               "a": {
@@ -40635,11 +40635,11 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           }
         }
     },
-    "2189": {
+    "2237": {
         "mapping": {
-          "id": 2189,
+          "id": 2237,
           "name": "fab1/39/2",
-          "controllingPort": 2189,
+          "controllingPort": 2237,
           "pins": [
             {
               "a": {
@@ -40699,11 +40699,11 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           }
         }
     },
-    "2190": {
+    "2238": {
         "mapping": {
-          "id": 2190,
+          "id": 2238,
           "name": "fab1/39/3",
-          "controllingPort": 2190,
+          "controllingPort": 2238,
           "pins": [
             {
               "a": {
@@ -40763,11 +40763,11 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           }
         }
     },
-    "2191": {
+    "2239": {
         "mapping": {
-          "id": 2191,
+          "id": 2239,
           "name": "fab1/39/4",
-          "controllingPort": 2191,
+          "controllingPort": 2239,
           "pins": [
             {
               "a": {
