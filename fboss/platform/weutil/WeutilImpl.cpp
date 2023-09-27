@@ -143,13 +143,21 @@ int WeutilImpl::loadEeprom(
     int max) {
   // Declare buffer, and fill it up with 0s
   int fileSize = 0;
+  int bytesToRead = max;
   std::ifstream file(eeprom, std::ios::binary);
   int readCount = 0;
   // First, detect EEPROM size, upto 2048B only
   try {
     file.seekg(0, std::ios::end);
     fileSize = file.tellg();
-    fileSize = fileSize > max ? max : fileSize;
+    // bytesToRead cannot be bigger than the remaining bytes of the file from
+    // the offset. That is, we cannot read beyond the end of the file.
+    // If the remaining bytes are smaller than max, then we only read up to
+    // the end of the file.
+    int remainingBytes = fileSize - offset;
+    if (bytesToRead > remainingBytes) {
+      bytesToRead = remainingBytes;
+    }
   } catch (std::exception& ex) {
     std::cout << "Failed to detect EEPROM size (" << eeprom
               << "): " << ex.what() << std::endl;
@@ -159,13 +167,10 @@ int WeutilImpl::loadEeprom(
               << std::endl;
     throw std::runtime_error("Unable to read EEPROM.");
   }
-  if (offset > fileSize) {
-    throw std::runtime_error("Offset exceeds EEPROM size.");
-  }
   // Now, read the eeprom
   try {
     file.seekg(offset, std::ios::beg);
-    file.read((char*)&output[0], (fileSize - offset));
+    file.read((char*)&output[0], bytesToRead);
     readCount = (int)file.gcount();
     file.close();
   } catch (std::exception& ex) {
@@ -460,9 +465,17 @@ std::string WeutilImpl::parseDate(int len, unsigned char* ptr) {
 }
 
 std::string WeutilImpl::parseHex(int len, unsigned char* ptr) {
-  std::stringstream stream;
-  stream << std::hex << std::stoi(parseString(len, ptr));
-  return stream.str();
+  std::string retVal = "";
+  // Values in the EEPROM is big endian
+  // Thus cursor starts from the end and goes backwards
+  int cursor = len - 1;
+  for (int i = 0; i < len; i++) {
+    int val = ptr[cursor];
+    std::string converter = "0123456789abcdef";
+    retVal = retVal + converter[(int)(val / 16)] + converter[val % 16];
+    cursor -= 1;
+  }
+  return "0x" + retVal;
 }
 
 void WeutilImpl::printInfo() {
