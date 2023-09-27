@@ -39,6 +39,11 @@ DEFINE_int32(
     10000,
     "State machine update thread's heartbeat interval (ms)");
 
+DEFINE_bool(
+    firmware_upgrade_supported,
+    false,
+    "Set to true to enable firmware upgrade support");
+
 namespace {
 constexpr auto kForceColdBootFileName = "cold_boot_once_qsfp_service";
 constexpr auto kWarmBootFlag = "can_warm_boot";
@@ -867,6 +872,7 @@ void TransceiverManager::updateNpuPortStatusCache(
 void TransceiverManager::updateTransceiverPortStatus() noexcept {
   steady_clock::time_point begin = steady_clock::now();
   std::map<int32_t, NpuPortStatus> newPortToPortStatus;
+  std::unordered_set<TransceiverID> tcvrsForFwUpgrade;
   if (!overrideAgentPortStatusForTesting_.empty()) {
     XLOG(WARN) << "[TEST ONLY] Use overrideAgentPortStatusForTesting_ "
                << "for wedge_agent getPortStatus()";
@@ -967,6 +973,13 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
                   cachedPortInfoIt->second.status->operState !=
                       portStatusIt->second.operState) {
                 statusChangedPorts.insert(portID);
+                // If the port just went down, it's a candidate for firmware
+                // upgrade
+                if (cachedPortInfoIt->second.status &&
+                    cachedPortInfoIt->second.status->operState &&
+                    !portStatusIt->second.operState) {
+                  tcvrsForFwUpgrade.insert(tcvrID);
+                }
               }
               cachedPortInfoIt->second.status.emplace(portStatusIt->second);
             }
@@ -1014,6 +1027,24 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
       << numPortStatusChanged
       << " transceivers need to update port status. Total execute time(ms):"
       << duration_cast<milliseconds>(steady_clock::now() - begin).count();
+
+  triggerFirmwareUpgradeEvents(tcvrsForFwUpgrade);
+}
+
+void TransceiverManager::triggerFirmwareUpgradeEvents(
+    std::unordered_set<TransceiverID>& tcvrs) {
+  if (!FLAGS_firmware_upgrade_supported) {
+    return;
+  }
+  BlockingStateUpdateResultList results;
+  for (auto tcvrID : tcvrs) {
+    TransceiverStateMachineEvent event =
+        TransceiverStateMachineEvent::TCVR_EV_UPGRADE_FIRMWARE;
+    if (auto result = updateStateBlockingWithoutWait(tcvrID, event)) {
+      results.push_back(result);
+    }
+  }
+  waitForAllBlockingStateUpdateDone(results);
 }
 
 void TransceiverManager::updateTransceiverActiveState(
@@ -1098,12 +1129,40 @@ void TransceiverManager::updateTransceiverActiveState(
       << " transceivers need to update port status.";
 }
 
+void TransceiverManager::resetUpgradedTransceiversToNotPresent() {
+  BlockingStateUpdateResultList results;
+  std::vector<TransceiverID> tcvrsToReset;
+  for (auto& stateMachine : stateMachines_) {
+    const auto& lockedStateMachine =
+        stateMachine.second->getStateMachine().rlock();
+    if (lockedStateMachine->get_attribute(needToResetToNotPresent)) {
+      tcvrsToReset.push_back(stateMachine.first);
+    }
+  }
+
+  if (!tcvrsToReset.empty()) {
+    XLOG(INFO)
+        << "Resetting the following transceivers to NOT_PRESENT since they were recently upgraded: "
+        << folly::join(",", tcvrsToReset);
+    for (auto tcvrID : tcvrsToReset) {
+      TransceiverStateMachineEvent event =
+          TransceiverStateMachineEvent::TCVR_EV_RESET_TO_NOT_PRESENT;
+      if (auto result = updateStateBlockingWithoutWait(tcvrID, event)) {
+        results.push_back(result);
+      }
+    }
+    waitForAllBlockingStateUpdateDone(results);
+  }
+}
+
 void TransceiverManager::refreshStateMachines() {
   // Step1: Fetch current port status from wedge_agent.
   // Since the following steps, like refreshTransceivers() might need to use
   // port status to decide whether it's safe to reset a transceiver.
   // Therefore, always do port status update first.
   updateTransceiverPortStatus();
+
+  resetUpgradedTransceiversToNotPresent();
 
   // Step2: Refresh all transceivers so that we can get an update
   // TransceiverInfo

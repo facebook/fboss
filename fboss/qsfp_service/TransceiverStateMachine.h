@@ -65,6 +65,8 @@ BOOST_MSM_EUML_DECLARE_ATTRIBUTE(TransceiverID, transceiverID)
 // agent coldboot and reset the iphy.
 BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, needResetDataPath)
 
+BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, needToResetToNotPresent)
+
 // clang-format off
 BOOST_MSM_EUML_ACTION(resetProgrammingAttributes) {
 template <class Event, class Fsm, class State>
@@ -80,6 +82,7 @@ void operator()(
   fsm.get_attribute(isXphyProgrammed) = false;
   fsm.get_attribute(isTransceiverProgrammed) = false;
   fsm.get_attribute(needMarkLastDownTime) = true;
+  fsm.get_attribute(needToResetToNotPresent) = false;
   fsm.get_attribute(transceiverMgrPtr)->resetProgrammedIphyPortToPortInfo(tcvrID);
 }
 };
@@ -479,7 +482,8 @@ BOOST_MSM_EUML_DECLARE_STATE_MACHINE(
      no_action,
      attributes_ << isIphyProgrammed << isXphyProgrammed
                  << isTransceiverProgrammed << transceiverMgrPtr
-                 << transceiverID << needMarkLastDownTime << needResetDataPath),
+                 << transceiverID << needMarkLastDownTime << needResetDataPath
+                 << needToResetToNotPresent),
     TransceiverStateMachine)
 
 } // namespace facebook::fboss
