@@ -18,6 +18,7 @@
 #include "fboss/agent/test/TestUtils.h"
 
 #include <gtest/gtest.h>
+#include <optional>
 
 namespace {
 constexpr folly::StringPiece kPacketMatcherCfgName = "matchCfg_1";
@@ -67,10 +68,17 @@ cfg::UdfPacketMatcher makeCfgUdfPacketMatcherEntry(
   return udfPkt;
 }
 
-cfg::UdfGroup makeCfgUdfGroupEntry(std::string name, int fieldSize = 0) {
+cfg::UdfGroup makeCfgUdfGroupEntry(
+    std::string name,
+    std::optional<cfg::UdfGroupType> type = std::nullopt,
+    int fieldSize = 0) {
   cfg::UdfGroup udfGroupEntry;
 
   udfGroupEntry.name() = name;
+  if (type) {
+    udfGroupEntry.type() = *type;
+  }
+
   udfGroupEntry.header() = cfg::UdfBaseHeaderType::UDF_L4_HEADER;
   udfGroupEntry.startOffsetInBytes() = 5;
   udfGroupEntry.fieldSizeInBytes() = fieldSize;
@@ -183,6 +191,43 @@ TEST(Udf, addUpdateRemove) {
       state->getUdfConfig()->getUdfGroupMap()->getNodeIf(
           kPacketMatcherCfgName2.str()),
       nullptr);
+}
+
+TEST(Udf, udfGroupType) {
+  auto state = std::make_shared<SwitchState>();
+  auto udfEntry1 = makeCfgUdfGroupEntry(kUdfGroupCfgName1.str());
+  auto udfEntry2 =
+      makeCfgUdfGroupEntry(kUdfGroupCfgName2.str(), cfg::UdfGroupType::ACL);
+
+  auto udfPacketmatcherEntry =
+      makeCfgUdfPacketMatcherEntry(kPacketMatcherCfgName.str());
+  // convert to state object
+  const auto pktMatcherCfgName = kPacketMatcherCfgName.str();
+  auto udfStatePacketmatcherEntry =
+      std::make_shared<UdfPacketMatcher>(pktMatcherCfgName);
+  udfStatePacketmatcherEntry->fromThrift(udfPacketmatcherEntry);
+
+  cfg::UdfConfig udf =
+      makeUdfCfg({udfEntry1, udfEntry2}, {udfPacketmatcherEntry});
+  auto udfConfig = std::make_shared<UdfConfig>();
+  udfConfig->fromThrift(udf);
+
+  // update the state
+  auto switchSettings = std::make_shared<SwitchSettings>();
+  switchSettings->setUdfConfig(udfConfig);
+  addSwitchSettingsToState(state, switchSettings);
+  EXPECT_EQ(
+      state->getUdfConfig()
+          ->getUdfGroupMap()
+          ->getNodeIf(kUdfGroupCfgName1.str())
+          ->getUdfGroupType(),
+      std::nullopt);
+  EXPECT_EQ(
+      state->getUdfConfig()
+          ->getUdfGroupMap()
+          ->getNodeIf(kUdfGroupCfgName2.str())
+          ->getUdfGroupType(),
+      cfg::UdfGroupType::ACL);
 }
 
 TEST(Udf, serDesUdfGroup) {
