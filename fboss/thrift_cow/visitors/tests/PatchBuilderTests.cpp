@@ -21,6 +21,7 @@ TEST(PatchBuilderTests, simple) {
   EXPECT_EQ(patch.get_basePath(), std::vector<std::string>());
   EXPECT_EQ(patch.patch()->getType(), PatchNode::Type::struct_node);
   auto children = patch.patch()->struct_node_ref()->children();
+  EXPECT_EQ(children->size(), 1);
   // inlineInt id = 2
   auto inlineIntIt = children->find(2);
   EXPECT_TRUE(inlineIntIt != children->end());

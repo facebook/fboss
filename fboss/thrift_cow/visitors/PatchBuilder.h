@@ -16,6 +16,7 @@
 namespace facebook::fboss::thrift_cow {
 
 namespace detail_pb {
+
 struct PatchBuilderTraverser : public TraverseHelper<PatchBuilderTraverser> {
   using Base = TraverseHelper<PatchBuilderTraverser>;
 
@@ -35,9 +36,68 @@ struct PatchBuilderTraverser : public TraverseHelper<PatchBuilderTraverser> {
   }
 
   template <ThriftSimpleTC SimpleTC>
-  void onPopImpl(std::string&& /* popped */) {
-    // TODO: prune empty paths on the way up
+  void onPopImpl(std::string&& popped) {
+    auto shouldPrune = true;
+    apache::thrift::visit_union(
+        curPath_.back().get(),
+        [&](const apache::thrift::metadata::ThriftField& /* meta */,
+            auto& patch) {
+          auto checkChild = folly::overload(
+              [](Empty& /* b */) -> bool { return false; },
+              [](ByteBuffer& b) -> bool { return b.empty(); },
+              [&](StructPatch& patch) -> bool {
+                return patch.children()->size() == 0;
+              },
+              [&](ListPatch& patch) -> bool {
+                return patch.children()->size() == 0;
+              },
+              [&](MapPatch& patch) -> bool {
+                return patch.children()->size() == 0;
+              },
+              [&](SetPatch& patch) -> bool {
+                return patch.children()->size() == 0;
+              },
+              [&](VariantPatch& patch) -> bool {
+                return !patch.child().has_value();
+              });
+          shouldPrune = checkChild(patch);
+        });
     curPath_.pop_back();
+    if (shouldPrune) {
+      apache::thrift::visit_union(
+          curPath_.back().get(),
+          [&](const apache::thrift::metadata::ThriftField& /* meta */,
+              auto& patch) {
+            auto removeChild = folly::overload(
+                [](ByteBuffer&) -> bool {
+                  throw std::runtime_error(
+                      "val nodes should never be a parent");
+                },
+                [](Empty&) -> bool {
+                  throw std::runtime_error(
+                      "del nodes should never be a parent");
+                },
+                [&](StructPatch& patch) {
+                  patch.children()->erase(
+                      folly::to<apache::thrift::field_id_t>(std::move(popped)));
+                },
+                [&](ListPatch& patch) {
+                  patch.children()->erase(
+                      folly::to<std::size_t>(std::move(popped)));
+                },
+                [&](MapPatch& patch) {
+                  patch.children()->erase(std::move(popped));
+                },
+                [&](SetPatch& patch) {
+                  patch.children()->erase(std::move(popped));
+                },
+                [&](VariantPatch& patch) {
+                  patch.id() = 0;
+                  patch.child().reset();
+                });
+            removeChild(patch);
+          });
+    }
   }
 
   PatchNode& curPatch() const {
@@ -49,8 +109,8 @@ struct PatchBuilderTraverser : public TraverseHelper<PatchBuilderTraverser> {
   void insertChild(PatchNode& node, const std::string& key) {
     apache::thrift::visit_union(
         node,
-        [&](const apache::thrift::metadata::ThriftField& meta, auto& patch) {
-          // TODO: construct child correctly
+        [&](const apache::thrift::metadata::ThriftField& /* meta */,
+            auto& patch) {
           PatchNode childPatch = constructEmptyPatch<SimpleTC>();
           auto insert = folly::overload(
               [](Empty&) -> PatchNode& {
