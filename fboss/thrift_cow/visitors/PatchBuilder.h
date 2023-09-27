@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h>
 #include <fboss/thrift_cow/gen-cpp2/patch_types.h>
 #include <fboss/thrift_cow/gen-cpp2/patch_visitation.h>
 #include <fboss/thrift_cow/visitors/DeltaVisitor.h>
@@ -37,6 +38,10 @@ struct PatchBuilderTraverser : public TraverseHelper<PatchBuilderTraverser> {
   void onPopImpl(std::string&& /* popped */) {
     // TODO: prune empty paths on the way up
     curPath_.pop_back();
+  }
+
+  PatchNode& curPatch() const {
+    return curPath_.back();
   }
 
  private:
@@ -125,11 +130,16 @@ struct PatchBuilder {
     thrift_cow::Patch patch;
     patch.basePath() = basePath;
 
-    auto processDelta = [](const std::vector<std::string>& path,
+    auto processDelta = [](const detail_pb::PatchBuilderTraverser& traverser,
                            auto oldNode,
                            auto newNode,
                            thrift_cow::DeltaElemTag visitTag) {
-      // TODO: patch node
+      if (newNode) {
+        traverser.curPatch().set_val(
+            newNode->encodeBuf(fsdb::OperProtocol::COMPACT));
+      } else {
+        traverser.curPatch().set_del();
+      }
     };
 
     patch.patch()->set_struct_node();
