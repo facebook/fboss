@@ -24,4 +24,7 @@ struct AgentConfig {
   // configuration (e.g broadcom config), as well as low-level port
   // tuning params.
   3: platform_config.PlatformConfig platform;
+
+  // An agent is expected to run in split mode, default is false
+  4: optional bool splitMode;
 } (thriftpath.root)
