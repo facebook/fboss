@@ -26,7 +26,7 @@ std::string getMplsActionCodeStr(MplsActionCode mplsActionCode) {
 }
 
 std::string getMplsActionInfoStr(const cli::MplsActionInfo& mplsActionInfo) {
-  auto action = mplsActionInfo.get_action();
+  const auto& action = mplsActionInfo.get_action();
   auto swapLabelPtr = mplsActionInfo.get_swapLabel();
   auto pushLabelsPtr = mplsActionInfo.get_pushLabels();
   std::string labels;

@@ -427,8 +427,8 @@ utils::ObjectArgTypeId helpArgTypeHandler() {
 }
 
 void helpCommandHandler() {
-  auto cmdTree = kCommandTree();
-  auto addCmdTree = kAdditionalCommandTree();
+  const auto& cmdTree = kCommandTree();
+  const auto& addCmdTree = kAdditionalCommandTree();
   std::vector<CommandTree> cmdTrees = {cmdTree, addCmdTree};
   CmdHelp(cmdTrees).run();
 }
