@@ -111,6 +111,10 @@ class ThriftPrimitiveNode {
     return serialize<TypeClass>(proto, toThrift());
   }
 
+  folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const {
+    return serializeBuf<TypeClass>(proto, toThrift());
+  }
+
   template <typename T = Self>
   auto fromEncoded(fsdb::OperProtocol proto, const folly::fbstring& encoded)
       -> std::enable_if_t<!T::immutable, void> {
@@ -122,6 +126,19 @@ class ThriftPrimitiveNode {
       fsdb::OperProtocol /*proto*/,
       const folly::fbstring& /*encoded*/) const
       -> std::enable_if_t<T::immutable, void> {
+    throwImmutableException();
+  }
+
+  template <typename T = Self>
+  auto fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded)
+      -> std::enable_if_t<!T::immutable, void> {
+    fromThrift(deserializeBuf<TypeClass, TType>(proto, std::move(encoded)));
+  }
+
+  template <typename T = Self>
+  auto fromEncodedBuf(
+      fsdb::OperProtocol /* proto */,
+      folly::IOBuf&& /* encoded */) -> std::enable_if_t<T::immutable, void> {
     throwImmutableException();
   }
 

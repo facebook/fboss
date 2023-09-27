@@ -344,8 +344,16 @@ struct ThriftStructFields {
     return serialize<TC>(proto, toThrift());
   }
 
+  folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const {
+    return serializeBuf<TC>(proto, toThrift());
+  }
+
   void fromEncoded(fsdb::OperProtocol proto, const folly::fbstring& encoded) {
     fromThrift(deserialize<TC, TType>(proto, encoded));
+  }
+
+  void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded) {
+    fromThrift(deserializeBuf<TC, TType>(proto, std::move(encoded)));
   }
 
  private:
@@ -411,8 +419,16 @@ class ThriftStructNode
     return this->getFields()->encode(proto);
   }
 
+  folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const {
+    return this->getFields()->encodeBuf(proto);
+  }
+
   void fromEncoded(fsdb::OperProtocol proto, const folly::fbstring& encoded) {
     return this->writableFields()->fromEncoded(proto, encoded);
+  }
+
+  void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded) {
+    return this->writableFields()->fromEncodedBuf(proto, std::move(encoded));
   }
 
   template <typename Name>

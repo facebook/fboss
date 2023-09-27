@@ -122,8 +122,16 @@ struct ThriftMapFields {
     return serialize<TypeClass>(proto, toThrift());
   }
 
+  folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const {
+    return serializeBuf<TypeClass>(proto, toThrift());
+  }
+
   void fromEncoded(fsdb::OperProtocol proto, const folly::fbstring& encoded) {
     fromThrift(deserialize<TypeClass, TType>(proto, encoded));
+  }
+
+  void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded) {
+    fromThrift(deserializeBuf<TypeClass, TType>(proto, std::move(encoded)));
   }
 
   value_type at(key_type key) const {
@@ -316,8 +324,16 @@ class ThriftMapNode
     return this->getFields()->encode(proto);
   }
 
+  folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const {
+    return this->getFields()->encodeBuf(proto);
+  }
+
   void fromEncoded(fsdb::OperProtocol proto, const folly::fbstring& encoded) {
     return this->writableFields()->fromEncoded(proto, encoded);
+  }
+
+  void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded) {
+    return this->writableFields()->fromEncodedBuf(proto, std::move(encoded));
   }
 
   value_type at(key_type key) const {
