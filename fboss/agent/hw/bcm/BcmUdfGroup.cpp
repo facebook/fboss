@@ -43,6 +43,7 @@ BcmUdfGroup::BcmUdfGroup(
     const std::shared_ptr<UdfGroup>& udfGroup)
     : hw_(hw) {
   udfGroupName_ = udfGroup->getName();
+  udfGroupType_ = udfGroup->getUdfGroupType();
   bcm_udf_t udfInfo;
   bcm_udf_t_init(&udfInfo);
 
@@ -86,7 +87,15 @@ int BcmUdfGroup::udfCreate(bcm_udf_t* udfInfo) {
   bcm_udf_alloc_hints_t hints;
   int rv = 0;
   bcm_udf_alloc_hints_t_init(&hints);
-  hints.flags = BCM_UDF_CREATE_O_UDFHASH;
+  cfg::UdfGroupType udfGroupType =
+      udfGroupType_.value_or(cfg::UdfGroupType::HASH);
+  if (udfGroupType == cfg::UdfGroupType::ACL) {
+    hints.flags |= (BCM_UDF_CREATE_O_FIELD_INGRESS);
+    BCM_FIELD_QSET_INIT(hints.qset);
+    BCM_FIELD_QSET_ADD(hints.qset, bcmFieldQualifyStageIngress);
+  } else {
+    hints.flags |= BCM_UDF_CREATE_O_UDFHASH;
+  }
 
   rv = bcm_udf_create(hw_->getUnit(), &hints, udfInfo, &udfId_);
   bcmCheckError(

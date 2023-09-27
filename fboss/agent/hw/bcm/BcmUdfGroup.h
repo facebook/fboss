@@ -71,6 +71,7 @@ class BcmUdfGroup {
   int matchFieldWidth_ = 0;
   int proto_ = 0;
   std::string udfGroupName_;
+  std::optional<cfg::UdfGroupType> udfGroupType_;
   std::map<bcm_udf_pkt_format_id_t, std::string> udfPacketMatcherIds_;
 };
 
