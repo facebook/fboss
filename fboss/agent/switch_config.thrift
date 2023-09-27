@@ -1688,6 +1688,11 @@ enum UdfBaseHeaderType {
   UDF_L4_HEADER = 3,
 }
 
+enum UdfGroupType {
+  HASH = 0,
+  ACL = 1,
+}
+
 enum UdfMatchL2Type {
   // match any l2 pkt
   UDF_L2_PKT_TYPE_ANY = 0,
@@ -1745,6 +1750,7 @@ struct UdfGroup {
   // number of bytes to extract (can use for hashing)
   4: i32 fieldSizeInBytes;
   5: list<string> udfPacketMatcherIds;
+  6: optional UdfGroupType type;
 }
 
 struct UdfConfig {

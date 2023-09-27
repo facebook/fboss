@@ -13269,12 +13269,14 @@ class ChildThriftPath<::facebook::fboss::cfg::UdfGroup, ::facebook::fboss::fsdb:
    std::pair<strings::header, Child<::facebook::fboss::cfg::UdfBaseHeaderType, ::apache::thrift::type_class::enumeration>>,
    std::pair<strings::startOffsetInBytes, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
    std::pair<strings::fieldSizeInBytes, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
-   std::pair<strings::udfPacketMatcherIds, ChildThriftPath<::std::vector<::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+   std::pair<strings::udfPacketMatcherIds, ChildThriftPath<::std::vector<::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+   std::pair<strings::type, Child<::facebook::fboss::cfg::UdfGroupType, ::apache::thrift::type_class::enumeration>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::string, ::apache::thrift::type_class::string>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::facebook::fboss::cfg::UdfBaseHeaderType, ::apache::thrift::type_class::enumeration>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 4>, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 5>, ChildThriftPath<::std::vector<::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 5>, ChildThriftPath<::std::vector<::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 6>, Child<::facebook::fboss::cfg::UdfGroupType, ::apache::thrift::type_class::enumeration>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -13291,6 +13293,7 @@ class ChildThriftPath<::facebook::fboss::cfg::UdfGroup, ::facebook::fboss::fsdb:
     STRUCT_CHILD_GETTERS(startOffsetInBytes);
     STRUCT_CHILD_GETTERS(fieldSizeInBytes);
     STRUCT_CHILD_GETTERS(udfPacketMatcherIds);
+    STRUCT_CHILD_GETTERS(type);
 };
 
 
