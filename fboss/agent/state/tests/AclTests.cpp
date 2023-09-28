@@ -36,7 +36,23 @@ namespace {
 HwSwitchMatcher scope() {
   return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
 }
+
+const std::vector<std::string> kUdfList = {"foo1", "foo2"};
 } // namespace
+
+cfg::UdfConfig makeUdfConfig(const std::vector<std::string>& udfNameList) {
+  cfg::UdfConfig udf;
+  std::map<std::string, cfg::UdfGroup> udfMap;
+
+  for (const auto& udfName : udfNameList) {
+    cfg::UdfGroup udfGroup;
+    udfGroup.name() = udfName;
+    udfMap.insert(std::make_pair(udfName, udfGroup));
+  }
+
+  udf.udfGroups() = udfMap;
+  return udf;
+}
 
 TEST(Acl, applyConfig) {
   FLAGS_enable_acl_table_group = false;
@@ -313,7 +329,19 @@ TEST(Acl, Udf) {
   config.acls()->resize(1);
   *config.acls()[0].name() = "aclUdf";
   *config.acls()[0].actionType() = cfg::AclActionType::DENY;
-  config.acls()[0].udfGroups() = udfList;
+  config.acls()[0].udfGroups() = kUdfList;
+
+  // empty groups section is not valid
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+
+  config.acls()[0].udfGroups() = kUdfList;
+  // still no good, if we don't find the relevant configuration in the udf group
+  // section
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+
+  config.udfConfig() = makeUdfConfig(kUdfList);
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
@@ -325,6 +353,13 @@ TEST(Acl, Udf) {
   // update udf list, ensure it gets reflected
   std::vector<std::string> newUdfList = {"foo3"};
   config.acls()[0].udfGroups() = newUdfList;
+
+  // negative test case, foo3 is not in the cfg.
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
+
+  config.udfConfig() = makeUdfConfig({"foo3"});
+
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
   auto aclV2 = stateV2->getAcl("aclUdf");
@@ -990,7 +1025,7 @@ TEST(Acl, GetRequiredAclTableQualifiers) {
   config.acls();
   config.acls()->resize(2);
 
-  auto setAclQualifiers = [](std::string ip, std::string name) {
+  auto setAclQualifiers = [&](std::string ip, std::string name) {
     cfg::AclEntry acl;
     acl.name() = name;
     acl.srcIp() = ip;
@@ -1014,7 +1049,7 @@ TEST(Acl, GetRequiredAclTableQualifiers) {
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1;
     acl.lookupClassRoute() = cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2;
     acl.actionType() = cfg::AclActionType::DENY;
-    acl.udfGroups() = {"foo1", "foo2"};
+    acl.udfGroups() = kUdfList;
     return acl;
   };
   config.acls()[0] = setAclQualifiers("10.0.0.1/32", "acl0");
@@ -1024,6 +1059,8 @@ TEST(Acl, GetRequiredAclTableQualifiers) {
   config.dataPlaneTrafficPolicy()->matchToAction()->resize(2);
   config.dataPlaneTrafficPolicy()->matchToAction()[0].matcher() = "acl0";
   config.dataPlaneTrafficPolicy()->matchToAction()[0].matcher() = "acl1";
+
+  config.udfConfig() = makeUdfConfig(kUdfList);
 
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();

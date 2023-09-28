@@ -361,6 +361,7 @@ class ThriftConfigApplier {
       int priority,
       const MatchAction* action = nullptr,
       bool enable = true);
+  void checkUdfAcl(const std::vector<std::string>& udfGroups) const;
   std::shared_ptr<AclEntry> updateAcl(
       cfg::AclStage aclStage,
       const cfg::AclEntry& acl,
@@ -3001,6 +3002,32 @@ std::shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
   return newAcl;
 }
 
+void ThriftConfigApplier::checkUdfAcl(
+    const std::vector<std::string>& udfGroups) const {
+  if ((udfGroups).size() == 0) {
+    throw FbossError("udf group list is empty");
+  }
+  if (!cfg_->udfConfig()) {
+    throw FbossError("No udf config exists");
+  }
+  auto newUdfConfig = std::make_shared<UdfConfig>();
+  newUdfConfig->fromThrift(*cfg_->udfConfig());
+
+  auto udfGroupMap = newUdfConfig->getUdfGroupMap();
+  if (udfGroupMap == nullptr) {
+    throw FbossError("Udf group map does not exist");
+  }
+
+  for (const auto& udfGroupName : udfGroups) {
+    if (udfGroupMap->find(udfGroupName) == udfGroupMap->end()) {
+      throw FbossError(
+          "Udf group in the ACL entry: ",
+          udfGroupName,
+          " does not exist in the Udf group map");
+    }
+  }
+}
+
 void ThriftConfigApplier::checkAcl(const cfg::AclEntry* config) const {
   // check l4 port
   if (auto l4SrcPort = config->l4SrcPort()) {
@@ -3058,6 +3085,10 @@ void ThriftConfigApplier::checkAcl(const cfg::AclEntry* config) const {
         throw FbossError("ttl mask is less than 0");
       }
     }
+  }
+
+  if (auto udfGroups = config->udfGroups()) {
+    checkUdfAcl(*udfGroups);
   }
 }
 
