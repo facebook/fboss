@@ -35,10 +35,10 @@ void PlatformExplorer::explorePmUnit(
     const std::string& parentSlotName,
     const SlotConfig& parentSlotConfig,
     const std::string& pmUnitName) {
-  auto pmUnitPath =
-      fmt::format("{}::{}/{}", parentPmUnitPath, parentSlotName, pmUnitName);
+  auto pmUnitPath = fmt::format("{}/{}", parentPmUnitPath, parentSlotName);
   auto pmUnitConfig = platformConfig_.pmUnitConfigs()->at(pmUnitName);
-  XLOG(INFO) << fmt::format("Exploring PmUnit {}", pmUnitPath);
+  XLOG(INFO) << fmt::format(
+      "Exploring PmUnit {} at {}", pmUnitName, pmUnitPath);
 
   int i = 0;
   for (const auto& busName : *parentSlotConfig.outgoingI2cBusNames()) {
@@ -47,13 +47,15 @@ void PlatformExplorer::explorePmUnit(
   }
 
   XLOG(INFO) << fmt::format(
-      "Exploring I2C Devices for PmUnit {}. Count {}",
+      "Exploring I2C Devices for PmUnit {} at {}. Count {}",
+      pmUnitName,
       pmUnitPath,
       pmUnitConfig.i2cDeviceConfigs_ref()->size());
   exploreI2cDevices(pmUnitPath, *pmUnitConfig.i2cDeviceConfigs());
 
   XLOG(INFO) << fmt::format(
-      "Exploring Slots for PmUnit {}. Count {}",
+      "Exploring Slots for PmUnit {} at {}. Count {}",
+      pmUnitName,
       pmUnitPath,
       pmUnitConfig.outgoingSlotConfigs_ref()->size());
   for (const auto& [slotName, slotConfig] :
@@ -66,12 +68,12 @@ void PlatformExplorer::exploreSlot(
     const std::string& pmUnitPath,
     const std::string& slotName,
     const SlotConfig& slotConfig) {
-  XLOG(INFO) << fmt::format("Exploring Slot {}::{}", pmUnitPath, slotName);
+  XLOG(INFO) << fmt::format("Exploring Slot {}/{}", pmUnitPath, slotName);
   auto pluggedInPmUnitName = getPmUnitNameFromSlot(slotConfig, pmUnitPath);
 
   if (!pluggedInPmUnitName) {
     XLOG(INFO) << fmt::format(
-        "No device could be read in Slot {}::{}", pmUnitPath, slotName);
+        "No device could be read in Slot {}/{}", pmUnitPath, slotName);
     return;
   }
 
@@ -145,7 +147,7 @@ void PlatformExplorer::exploreI2cDevices(
 uint16_t PlatformExplorer::getI2cBusNum(
     const std::string& pmUnitPath,
     const std::string& pmUnitScopeBusName) const {
-  return i2cBusNamesToNums_.at(std::make_pair(pmUnitPath, pmUnitScopeBusName));
+  return i2cBusNums_.at(std::make_pair(pmUnitPath, pmUnitScopeBusName));
 }
 
 void PlatformExplorer::updateI2cBusNum(
@@ -158,7 +160,7 @@ void PlatformExplorer::updateI2cBusNum(
       pmUnitPath,
       busNum,
       busNum);
-  i2cBusNamesToNums_[std::make_pair(pmUnitPath, pmUnitScopeBusName)] = busNum;
+  i2cBusNums_[std::make_pair(pmUnitPath, pmUnitScopeBusName)] = busNum;
 }
 
 } // namespace facebook::fboss::platform::platform_manager
