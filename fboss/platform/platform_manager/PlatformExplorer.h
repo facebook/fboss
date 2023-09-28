@@ -26,7 +26,7 @@ class PlatformExplorer {
       const std::string& slotName,
       const SlotConfig& slotConfig);
   std::optional<std::string> getPmUnitNameFromSlot(
-      const SlotConfig& slotConfig,
+      const std::string& slotType,
       const std::string& pmUnitPath);
   void exploreI2cDevices(
       const std::string& pmUnitPath,

@@ -69,7 +69,14 @@ void PlatformExplorer::exploreSlot(
     const std::string& slotName,
     const SlotConfig& slotConfig) {
   XLOG(INFO) << fmt::format("Exploring Slot {}/{}", pmUnitPath, slotName);
-  auto pluggedInPmUnitName = getPmUnitNameFromSlot(slotConfig, pmUnitPath);
+  bool isChildPmUnitPlugged =
+      presenceDetector_.isPresent(*slotConfig.presenceDetection());
+  if (!isChildPmUnitPlugged) {
+    XLOG(INFO) << fmt::format(
+        "No device could detected in Slot {}/{}", pmUnitPath, slotName);
+  }
+  auto pluggedInPmUnitName =
+      getPmUnitNameFromSlot(*slotConfig.slotType(), pmUnitPath);
 
   if (!pluggedInPmUnitName) {
     XLOG(INFO) << fmt::format(
@@ -81,16 +88,9 @@ void PlatformExplorer::exploreSlot(
 }
 
 std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
-    const SlotConfig& slotConfig,
+    const std::string& slotType,
     const std::string& pmUnitPath) {
-  bool isChildPmUnitPlugged =
-      presenceDetector_.isPresent(*slotConfig.presenceDetection());
-  if (!isChildPmUnitPlugged) {
-    XLOG(INFO) << "No device detected";
-    return std::nullopt;
-  }
-  auto slotTypeConfig =
-      platformConfig_.slotTypeConfigs_ref()->at(*slotConfig.slotType());
+  auto slotTypeConfig = platformConfig_.slotTypeConfigs_ref()->at(slotType);
   std::optional<std::string> pmUnitNameInEeprom{std::nullopt};
   if (slotTypeConfig.idpromConfig_ref()) {
     auto idpromConfig = *slotTypeConfig.idpromConfig_ref();
