@@ -61,6 +61,7 @@ class BcmUdfGroup {
  private:
   int udfCreate(bcm_udf_t* udfInfo);
   int udfDelete(bcm_udf_id_t udfId);
+  int udfBcmFieldQsetMultiSet();
   bcm_udf_layer_t convertBaseHeaderToBcmLayer(cfg::UdfBaseHeaderType layer);
   bool isBcmUdfInfoCacheMatchesCfg(
       const bcm_udf_t* cachedUdfInfo,
