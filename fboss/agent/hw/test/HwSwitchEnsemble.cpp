@@ -550,7 +550,10 @@ std::map<SystemPortID, HwSysPortStats> HwSwitchEnsemble::getLatestSysPortStats(
 
   auto swState = getProgrammedState();
   auto stats = getHwSwitch()->getSysPortStats();
-  for (auto [portName, stats] : stats) {
+  for (auto [portStatName, stats] : stats) {
+    // Sysport stats names are suffixed with _switchIndex. Remove that
+    // to get at sys port name
+    auto portName = portStatName.substr(0, portStatName.find_last_of("_"));
     SystemPortID portId;
     try {
       portId = swState->getSystemPorts()->getSystemPort(portName)->getID();
