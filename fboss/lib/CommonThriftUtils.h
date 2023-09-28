@@ -18,6 +18,10 @@
 
 namespace facebook::fboss {
 
+// helper macro to be used in ReconnectingThriftClient to output connection info
+#define STREAM_XLOG(LEVEL) \
+  XLOG(LEVEL) << "[STREAM " << connectionLogStr_ << "] "
+
 class ReconnectingThriftClient {
  public:
   enum class State : uint16_t {
@@ -109,5 +113,6 @@ class ReconnectingThriftClient {
   folly::Synchronized<std::optional<ServerOptions>> serverOptions_;
   std::unique_ptr<folly::AsyncTimeout> timer_;
   uint32_t reconnectTimeout_;
+  std::string connectionLogStr_;
 };
 }; // namespace facebook::fboss

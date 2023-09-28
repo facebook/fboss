@@ -54,10 +54,10 @@ void ReconnectingThriftClient::setState(State state) {
     auto stateLocked = state_.wlock();
     oldState = *stateLocked;
     if (oldState == state) {
-      XLOG(INFO) << "State not changing, skipping";
+      STREAM_XLOG(INFO) << "State not changing, skipping";
       return;
     } else if (oldState == State::CANCELLED) {
-      XLOG(INFO) << "Old state is CANCELLED, will not try to reconnect";
+      STREAM_XLOG(INFO) << "Old state is CANCELLED, will not try to reconnect";
       return;
     }
     *stateLocked = state;
@@ -86,15 +86,17 @@ void ReconnectingThriftClient::setServerOptions(
   if (!allowReset && *serverOptions_.rlock()) {
     throw std::runtime_error("Cannot reset server address");
   }
+  connectionLogStr_ =
+      fmt::format("{}->{}", clientId(), options.dstAddr.getAddressStr());
   *serverOptions_.wlock() = std::move(options);
 }
 
 void ReconnectingThriftClient::cancel() {
-  XLOG(DBG2) << "Canceling StreamClient: " << clientId();
+  STREAM_XLOG(DBG2) << "Canceling StreamClient";
 
   // already disconnected;
   if (getState() == State::CANCELLED) {
-    XLOG(WARNING) << clientId() << " already cancelled";
+    STREAM_XLOG(WARNING) << "Already cancelled";
     return;
   }
   serverOptions_.wlock()->reset();
@@ -103,7 +105,7 @@ void ReconnectingThriftClient::cancel() {
   setState(State::CANCELLED);
   streamEvb_->getEventBase()->runImmediatelyOrRunInEventBaseThreadAndWait(
       [this] { resetClient(); });
-  XLOG(DBG2) << " Cancelled: " << clientId();
+  STREAM_XLOG(DBG2) << "Cancelled";
 }
 
 void ReconnectingThriftClient::timeoutExpired() noexcept {

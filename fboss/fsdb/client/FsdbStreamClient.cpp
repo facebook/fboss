@@ -52,7 +52,7 @@ FsdbStreamClient::FsdbStreamClient(
 }
 
 FsdbStreamClient::~FsdbStreamClient() {
-  XLOG(DBG2) << "Destroying FsdbStreamClient";
+  STREAM_XLOG(DBG2) << "Destroying FsdbStreamClient";
   CHECK(isCancelled());
 }
 
@@ -63,7 +63,7 @@ void FsdbStreamClient::connectToServer(const ServerOptions& options) {
       createClient(options);
       setState(State::CONNECTING);
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Connect to server failed with ex:" << ex.what();
+      STREAM_XLOG(ERR) << "Connect to server failed with ex: " << ex.what();
       setState(State::DISCONNECTED);
     }
   });
@@ -71,10 +71,10 @@ void FsdbStreamClient::connectToServer(const ServerOptions& options) {
 
 #if FOLLY_HAS_COROUTINES
 folly::coro::Task<void> FsdbStreamClient::serviceLoopWrapper() {
-  XLOG(INFO) << " Service loop started: " << clientId();
+  STREAM_XLOG(INFO) << "Service loop started";
   serviceLoopRunning_.store(true);
   SCOPE_EXIT {
-    XLOG(INFO) << " Service loop done: " << clientId();
+    STREAM_XLOG(INFO) << "Service loop done";
     serviceLoopRunning_.store(false);
   };
   try {
@@ -82,14 +82,14 @@ folly::coro::Task<void> FsdbStreamClient::serviceLoopWrapper() {
     setState(State::CONNECTED);
     co_await serveStream(std::move(stream));
   } catch (const folly::OperationCancelled&) {
-    XLOG(DBG2) << "Service loop cancelled :" << clientId();
+    STREAM_XLOG(DBG2) << "Service loop cancelled";
   } catch (const fsdb::FsdbException& ex) {
-    XLOG(ERR) << clientId() << " Fsdb error "
-              << apache::thrift::util::enumNameSafe(ex.get_errorCode()) << ": "
-              << ex.get_message();
+    STREAM_XLOG(ERR) << "Fsdb error "
+                     << apache::thrift::util::enumNameSafe(ex.get_errorCode())
+                     << ": " << ex.get_message();
     setState(State::DISCONNECTED);
   } catch (const std::exception& ex) {
-    XLOG(ERR) << clientId() << " Unknown error: " << folly::exceptionStr(ex);
+    STREAM_XLOG(ERR) << "Unknown error: " << folly::exceptionStr(ex);
     setState(State::DISCONNECTED);
   }
   co_return;
