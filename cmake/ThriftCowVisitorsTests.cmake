@@ -4,6 +4,7 @@
 # cmake/FooBar.cmake
 
 add_executable(thrift_cow_visitor_tests
+  fboss/thrift_cow/visitors/tests/VisitorTestUtils.cpp
   fboss/thrift_cow/visitors/tests/DeltaVisitorTests.cpp
   fboss/thrift_cow/visitors/tests/PathVisitorTests.cpp
   fboss/thrift_cow/visitors/tests/RecurseVisitorTests.cpp
