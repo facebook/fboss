@@ -1,142 +1,11 @@
 {
   "known_bad_tests": {
-    "cloudripper/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
-        },
-        {
-          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_40G_4_NRZ_NOFEC.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPrbsStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortInfoTest.*$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTest.*$"
-        },
-        {
-          "test_name_regex": "warm_boot.*$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckPimPresent$"
-        },
-        {
-          "test_name_regex": "HwMacsecTest.*$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
-        }
-    ],
     "darwin/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
         },
         {
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_40G_4_NRZ_NOFEC.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckPimPresent$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPrbsStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortInfoTest.*$"
-        },
-        {
-          "test_name_regex": "HwMacsecTest.*$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
@@ -153,60 +22,6 @@
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
         },
         {
-          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_40G_4_NRZ_NOFEC.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckPimPresent$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPrbsStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortInfoTest.*$"
-        },
-        {
-          "test_name_regex": "HwMacsecTest.*$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
         },
         {
@@ -221,60 +36,6 @@
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
         },
         {
-          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_40G_4_NRZ_NOFEC.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckPimPresent$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPrbsStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortInfoTest.*$"
-        },
-        {
-          "test_name_regex": "HwMacsecTest.*$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
         }
     ],
@@ -284,27 +45,6 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_40G_4_NRZ_NOFEC.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N.TestProfile$"
         },
         {
           "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
@@ -320,15 +60,6 @@
         },
         {
           "test_name_regex": "warm_boot.*$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
@@ -342,27 +73,6 @@
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
         },
         {
-          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_40G_4_NRZ_NOFEC.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N.TestProfile$"
-        },
-        {
           "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
         },
         {
@@ -378,15 +88,6 @@
           "test_name_regex": "warm_boot.*$"
         },
         {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
         }
     ],
@@ -396,51 +97,6 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_40G_4_NRZ_NOFEC.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPrbsStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortInfoTest.*$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTest.*$"
-        },
-        {
-          "test_name_regex": "HwMacsecTest.*$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
@@ -457,24 +113,6 @@
           "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
         },
         {
-          "test_name_regex": "HwTest_PROFILE_40G_4_NRZ_NOFEC.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N.TestProfile$"
-        },
-        {
           "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
         },
         {
@@ -485,15 +123,6 @@
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
-        },
-        {
-          "test_name_regex": "HwMacsecTest.*$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
@@ -516,24 +145,6 @@
           "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
         },
         {
-          "test_name_regex": "HwTest_PROFILE_40G_4_NRZ_NOFEC.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N.TestProfile$"
-        },
-        {
           "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
         },
         {
@@ -546,87 +157,10 @@
           "test_name_regex": "HwPortPrbsTest.*$"
         },
         {
-          "test_name_regex": "HwMacsecTest.*$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
         },
         {
           "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
-        }
-    ],
-    "lassen_100G/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
-        },
-        {
-          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_40G_4_NRZ_NOFEC.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckPimPresent$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPrbsStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortInfoTest.*$"
-        },
-        {
-          "test_name_regex": "HwMacsecTest.*$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
         }
     ],
     "meru400bfu/physdk-credo-0.7.2/credo-0.7.2": [
@@ -635,60 +169,6 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_40G_4_NRZ_NOFEC.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckPimPresent$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPrbsStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortInfoTest.*$"
-        },
-        {
-          "test_name_regex": "HwMacsecTest.*$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
         }
     ],
     "meru400biu/physdk-credo-0.7.2/credo-0.7.2": [
@@ -697,60 +177,6 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_40G_4_NRZ_NOFEC.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckPimPresent$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPrbsStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortInfoTest.*$"
-        },
-        {
-          "test_name_regex": "HwMacsecTest.*$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
         }
     ],
     "meru800bfa/physdk-credo-0.7.2/credo-0.7.2": [
@@ -761,18 +187,6 @@
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
         },
         {
-          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_40G_4_NRZ_NOFEC.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528.TestProfile$"
-        },
-        {
           "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile$"
         },
         {
@@ -795,27 +209,6 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckPimPresent$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPrbsStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortInfoTest.*$"
-        },
-        {
-          "test_name_regex": "HwMacsecTest.*$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
     "meru800bia/physdk-credo-0.7.2/credo-0.7.2": [
@@ -826,18 +219,6 @@
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
         },
         {
-          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_40G_4_NRZ_NOFEC.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528.TestProfile$"
-        },
-        {
           "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile$"
         },
         {
@@ -860,24 +241,6 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckPimPresent$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPrbsStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortInfoTest.*$"
-        },
-        {
-          "test_name_regex": "HwMacsecTest.*$"
         }
     ],
     "minipack_7x16Q_1x16O/physdk-millenio-5.5/millenio-5.5": [
@@ -888,70 +251,7 @@
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
         },
         {
-          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_40G_4_NRZ_NOFEC.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwMacsecTest.*$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTest_SYSTEM_NRZ.*$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTest_LINE_PAM4.*$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
           "test_name_regex": "HwTest.cmisPageChange$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
@@ -965,67 +265,16 @@
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
         },
         {
-          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_40G_4_NRZ_NOFEC.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528.TestProfile$"
-        },
-        {
           "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_COPPER.TestProfile$"
         },
         {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_CL91_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_NOFEC_COPPER.TestProfile$"
-        },
-        {
           "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_CL91_COPPER_RACK_YV3_T1.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N.TestProfile$"
         },
         {
           "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
         },
         {
           "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTest.*$"
-        },
-        {
-          "test_name_regex": "HwMacsecTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortInfoTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPrbsStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         }
     ],
     "wedge100s/physdk-credo-0.7.2/credo-0.7.2": [
@@ -1036,85 +285,10 @@
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
         },
         {
-          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_40G_4_NRZ_NOFEC.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwMacsecTest.*$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
           "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528.TestProfile$"
         },
         {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
-        },
-        {
           "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckPimPresent$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPrbsStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortInfoTest.*$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.cmisPageChange$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
@@ -1128,61 +302,16 @@
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
         },
         {
-          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_40G_4_NRZ_NOFEC.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckPimPresent$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPrbsStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortInfoTest.*$"
-        },
-        {
-          "test_name_regex": "HwMacsecTest.*$"
-        },
-        {
           "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
         }
     ],
     "wedge400c/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
-        },
         {
           "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
         },
@@ -1191,66 +320,6 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_40G_4_NRZ_NOFEC.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest.CheckPimPresent$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPrbsStatsCollectionTest.*$"
-        },
-        {
-          "test_name_regex": "HwXphyPortInfoTest.*$"
-        },
-        {
-          "test_name_regex": "HwMacsecTest.*$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
         },
         {
           "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
@@ -1271,63 +340,6 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_40G_4_NRZ_NOFEC.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwMacsecTest.*$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTest_SYSTEM_NRZ.*$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
