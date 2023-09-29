@@ -13950,6 +13950,9 @@
           "test_name_regex": "LinkTest.ptpEnableIsHitless$"
         },
         {
+          "test_name_regex": "warmboot.PtpTests.verifyPtpTcDelayRequest$"
+        },
+        {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
@@ -14007,6 +14010,9 @@
         },
         {
           "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "warmboot.PtpTests.verifyPtpTcDelayRequest$"
         },
         {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
@@ -14068,6 +14074,9 @@
           "test_name_regex": "LinkTest.ptpEnableIsHitless$"
         },
         {
+          "test_name_regex": "warmboot.PtpTests.verifyPtpTcDelayRequest$"
+        },
+        {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
@@ -14125,6 +14134,9 @@
         },
         {
           "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "warmboot.PtpTests.verifyPtpTcDelayRequest$"
         },
         {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
@@ -14186,6 +14198,9 @@
           "test_name_regex": "LinkTest.ptpEnableIsHitless$"
         },
         {
+          "test_name_regex": "warmboot.PtpTests.verifyPtpTcDelayRequest$"
+        },
+        {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
@@ -14243,6 +14258,9 @@
         },
         {
           "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "warmboot.PtpTests.verifyPtpTcDelayRequest$"
         },
         {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
