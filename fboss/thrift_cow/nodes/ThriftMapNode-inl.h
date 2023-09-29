@@ -229,6 +229,10 @@ struct ThriftMapFields {
     return storage_.find(key);
   }
 
+  size_t count(const key_type& key) const {
+    return storage_.count(key);
+  }
+
   const_iterator cbegin() const {
     return storage_.cbegin();
   }
@@ -435,6 +439,10 @@ class ThriftMapNode
 
   typename Fields::const_iterator find(const key_type& key) const {
     return this->getFields()->find(key);
+  }
+
+  size_t count(const key_type& key) const {
+    return this->getFields()->count(key);
   }
 
   std::size_t size() const {

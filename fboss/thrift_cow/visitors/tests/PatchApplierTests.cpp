@@ -84,6 +84,31 @@ TEST(PatchApplierTests, ModifyMapMember) {
   EXPECT_EQ(*nodeA->template ref<k::mapOfI32ToI32>()->at(123), 42);
 }
 
+TEST(PatchApplierTests, AddRemoveMapMember) {
+  auto structA = createSimpleTestStruct();
+  structA.mapOfI32ToI32() = {{1, 2}};
+  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+
+  PatchNode intPatch;
+  intPatch.set_val(serializeBuf<apache::thrift::type_class::integral>(
+      fsdb::OperProtocol::COMPACT, 42));
+  PatchNode delPatch;
+  delPatch.set_del();
+
+  MapPatch mapPatch;
+  mapPatch.children() = {
+      {"3" /* new key */, intPatch}, {"1" /* delete existing */, delPatch}};
+  PatchNode n;
+  n.set_map_node(mapPatch);
+
+  PatchApplier<apache::thrift::type_class::map<
+      apache::thrift::type_class::integral,
+      apache::thrift::type_class::integral>>::
+      apply(nodeA->template ref<k::mapOfI32ToI32>(), std::move(n));
+  EXPECT_EQ(*nodeA->template ref<k::mapOfI32ToI32>()->at(3), 42);
+  EXPECT_EQ(nodeA->template ref<k::mapOfI32ToI32>()->count(1), 0);
+}
+
 TEST(PatchApplierTests, ModifyListMember) {
   auto structA = createSimpleTestStruct();
   structA.listOfPrimitives() = {1, 2, 3};

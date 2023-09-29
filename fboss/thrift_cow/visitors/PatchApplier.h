@@ -80,17 +80,18 @@ struct PatchApplier<
     auto mapPatch = patch.move_map_node();
     for (auto&& [key, childPatch] : *std::move(mapPatch).children()) {
       if (auto parsedKey = parseKey(key)) {
-        // TODO: modify child, create if does not exist? handle deletion
-        if (auto child = node->find(parsedKey.value()); child != node->end()) {
+        if (childPatch.getType() == PatchNode::Type::del) {
+          node->remove(std::move(*parsedKey));
+        } else {
+          node->modifyImpl(*parsedKey);
+
           auto res = PatchApplier<MappedTypeClass>::apply(
-              child->second, std::forward<PatchNode>(childPatch));
+              node->ref(std::move(*parsedKey)), std::move(childPatch));
           // Continue patching even if there is an error, but still return an
           // error if encountered
           if (res != PatchResult::OK) {
             result = res;
           }
-        } else {
-          result = PatchResult::NON_EXISTENT_NODE;
         }
       } else {
         result = PatchResult::KEY_PARSE_ERROR;
