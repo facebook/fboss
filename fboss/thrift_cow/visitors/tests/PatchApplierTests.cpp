@@ -107,6 +107,7 @@ TEST(PatchApplierTests, AddRemoveMapMember) {
       apply(nodeA->template ref<k::mapOfI32ToI32>(), std::move(n));
   EXPECT_EQ(*nodeA->template ref<k::mapOfI32ToI32>()->at(3), 42);
   EXPECT_EQ(nodeA->template ref<k::mapOfI32ToI32>()->count(1), 0);
+  EXPECT_EQ(nodeA->template ref<k::mapOfI32ToI32>()->size(), 1);
 }
 
 TEST(PatchApplierTests, ModifyListMember) {
@@ -128,6 +129,53 @@ TEST(PatchApplierTests, ModifyListMember) {
       apache::thrift::type_class::list<apache::thrift::type_class::integral>>::
       apply(nodeA->template ref<k::listOfPrimitives>(), std::move(n));
   EXPECT_EQ(*nodeA->template ref<k::listOfPrimitives>()->at(1), 42);
+}
+
+TEST(PatchApplierTests, AddListMembers) {
+  auto structA = createSimpleTestStruct();
+  structA.listOfPrimitives() = {1};
+
+  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+
+  PatchNode intPatch1;
+  intPatch1.set_val(serializeBuf<apache::thrift::type_class::integral>(
+      fsdb::OperProtocol::COMPACT, 12));
+  PatchNode intPatch2;
+  intPatch2.set_val(serializeBuf<apache::thrift::type_class::integral>(
+      fsdb::OperProtocol::COMPACT, 34));
+
+  ListPatch listPatch;
+  listPatch.children() = {{1, intPatch1}, {2, intPatch2}};
+  PatchNode n;
+  n.set_list_node(listPatch);
+
+  PatchApplier<
+      apache::thrift::type_class::list<apache::thrift::type_class::integral>>::
+      apply(nodeA->template ref<k::listOfPrimitives>(), std::move(n));
+  EXPECT_EQ(nodeA->template ref<k::listOfPrimitives>()->size(), 3);
+  EXPECT_EQ(*nodeA->template ref<k::listOfPrimitives>()->at(1), 12);
+  EXPECT_EQ(*nodeA->template ref<k::listOfPrimitives>()->at(2), 34);
+}
+
+TEST(PatchApplierTests, RemoveListMembers) {
+  auto structA = createSimpleTestStruct();
+  structA.listOfPrimitives() = {1, 2, 3};
+
+  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+
+  PatchNode delPatch;
+  delPatch.set_del();
+
+  ListPatch listPatch;
+  listPatch.children() = {{1, delPatch}, {2, delPatch}};
+  PatchNode n;
+  n.set_list_node(listPatch);
+
+  PatchApplier<
+      apache::thrift::type_class::list<apache::thrift::type_class::integral>>::
+      apply(nodeA->template ref<k::listOfPrimitives>(), std::move(n));
+  EXPECT_EQ(nodeA->template ref<k::listOfPrimitives>()->size(), 1);
+  EXPECT_EQ(nodeA->template ref<k::listOfPrimitives>()->at(0), 1);
 }
 
 TEST(PatchApplierTests, ModifyVariantValue) {

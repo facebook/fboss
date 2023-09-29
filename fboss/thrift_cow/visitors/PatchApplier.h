@@ -127,10 +127,26 @@ struct PatchApplier<apache::thrift::type_class::list<ValueTypeClass>> {
     PatchResult result = PatchResult::OK;
 
     auto listPatch = patch.move_list_node();
-    for (auto&& [index, childPatch] : *std::move(listPatch).children()) {
-      // TODO: modify child, create if does not exist? handle deletion
+
+    // In case of removals, we want to make sure we resolve later indices first.
+    // So first we need to sort the indices
+    std::vector<int> indices;
+    indices.reserve(listPatch.children()->size());
+    for (const auto& pair : *listPatch.children()) {
+      indices.push_back(pair.first);
+    }
+    std::sort(indices.begin(), indices.end(), std::greater<>());
+
+    // Iterate through sorted keys and access values in the map
+    for (const int index : indices) {
+      auto& childPatch = listPatch.children()->at(index);
+      if (childPatch.getType() == PatchNode::Type::del) {
+        node->remove(index);
+        continue;
+      }
+      node->modify(index);
       auto res = PatchApplier<ValueTypeClass>::apply(
-          node->ref(index), std::move(childPatch));
+          node->ref(index), std::move(std::move(childPatch)));
       if (res != PatchResult::OK) {
         result = res;
       }
