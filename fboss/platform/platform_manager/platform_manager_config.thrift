@@ -209,24 +209,30 @@ struct IdpromConfig {
 // the i2c adapter. It should one of the compatible strings specified in the
 // kernel driver.
 //
-// `offset`: It is the memory offset of the I2C Adapter in the FPGA.
+// `iobufOffset`: It is the iobuf register offset of the I2C Adapter in the FPGA.
+//
+// `csrOffset`: It is the csr register offset of the I2C Adapter in the FPGA.
 struct I2cAdapterConfig {
   1: string i2cAdapterName;
-  3: i32 offset;
+  2: i32 iobufOffset;
+  3: i32 csrOffset;
 }
 
 // Defines the SPI Master in FPGAs.
 //
 // `spiMasterName`: It is the name used in the ioctl system call to create
-// the spi master. It should one of the compatible strings specified in the
+// the SPI Master. It should one of the compatible strings specified in the
 // kernel driver.
 //
-// `offset`: It is the memory offset of the spi master in the FPGA.
+// `iobufOffset`: It is the iobuf register offset of the SPI Master in the FPGA.
+//
+// `csrOffset`: It is the csr register offset of the SPI Master in the FPGA.
 //
 // `numberOfCsPins`: Number of CS (chip-select) pins.
 struct SpiMasterConfig {
   1: string spiMasterName;
-  3: i32 offset;
+  2: i32 iobufOffset;
+  3: i32 csrOffset;
   4: i32 numberOfCsPins;
 }
 
@@ -236,10 +242,13 @@ struct SpiMasterConfig {
 // the gpio chip. It should one of the compatible strings specified in the
 // kernel driver.
 //
-// `offset`: It is the memory offset of the gpio chip in the FPGA.
+// `iobufOffset`: It is the iobuf register offset of the gpio chip in the FPGA.
+//
+// `csrOffset`: It is the csr register offset of the gpio chip in the FPGA.
 struct GpioChipConfig {
   1: string gpioChipName;
-  3: i32 offset;
+  2: i32 iobufOffset;
+  3: i32 csrOffset;
 }
 
 // `pmUnitScopedName`: The name assigned to the device in the config, unique
