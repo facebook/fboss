@@ -149,13 +149,10 @@
       "bcm": {
         "config": {
         "soc_family.BCM8886X": "BCM8886X",
-        "port_priorities0": "2",
-        "port_priorities1": "8",
-        "port_priorities13": "8",
-        "port_priorities14": "8",
-        "port_priorities15": "8",
-        "port_priorities16": "8",
-        "port_priorities17": "8",
+        "port_priorities_0.CM8886X": "2",
+        "port_priorities_1.CM8886X": "2",
+        "port_priorities": "8",
+        "port_priorities_sch.BCM8886X" : "8",
         "port_fec_cc": "9",
         "programmability_image_name.BCM8886X": "S121",
         "custom_feature_programmability_standard_image_name.BCM8886X": "S121",
