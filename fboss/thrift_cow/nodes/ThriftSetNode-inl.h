@@ -356,6 +356,10 @@ class ThriftSetNode : public NodeBaseT<
     return this->getFields()->count(value);
   }
 
+  size_t count(const ValueTType& value) const {
+    return this->getFields()->count(value_type(value));
+  }
+
   std::size_t size() const {
     return this->getFields()->size();
   }

@@ -126,4 +126,29 @@ TEST(PatchApplierTests, ModifyVariantValue) {
   EXPECT_EQ(*nodeA->template ref<k::inlineVariant>()->ref<k::inlineInt>(), 42);
 }
 
+TEST(PatchApplierTests, AddRemoveSetItems) {
+  auto structA = createSimpleTestStruct();
+  structA.setOfI32() = {1, 2};
+
+  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+
+  PatchNode intPatch;
+  intPatch.set_val(serializeBuf<apache::thrift::type_class::integral>(
+      fsdb::OperProtocol::COMPACT, 3));
+
+  PatchNode delPatch;
+  delPatch.set_del();
+
+  SetPatch setPatch;
+  setPatch.children() = {{"3", intPatch}, {"2", delPatch}};
+  PatchNode n;
+  n.set_set_node(setPatch);
+
+  PatchApplier<
+      apache::thrift::type_class::set<apache::thrift::type_class::integral>>::
+      apply(nodeA->template ref<k::setOfI32>(), std::move(n));
+  EXPECT_EQ(nodeA->template ref<k::setOfI32>()->size(), 2);
+  EXPECT_EQ(nodeA->template ref<k::setOfI32>()->count(1), 1);
+  EXPECT_EQ(nodeA->template ref<k::setOfI32>()->count(3), 1);
+}
 } // namespace facebook::fboss::thrift_cow

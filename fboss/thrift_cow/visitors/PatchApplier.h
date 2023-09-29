@@ -69,7 +69,7 @@ struct PatchApplier<
     auto mapPatch = patch.move_map_node();
     for (auto&& [key, childPatch] : *std::move(mapPatch).children()) {
       if (auto parsedKey = parseKey(key)) {
-        // TODO: create if does not exist?
+        // TODO: modify child, create if does not exist? handle deletion
         if (auto child = node->find(parsedKey.value()); child != node->end()) {
           auto res = PatchApplier<MappedTypeClass>::apply(
               child->second, std::forward<PatchNode>(childPatch));
@@ -111,9 +111,10 @@ struct PatchApplier<apache::thrift::type_class::list<ValueTypeClass>> {
     }
 
     PatchResult result = PatchResult::OK;
+
     auto listPatch = patch.move_list_node();
     for (auto&& [index, childPatch] : *std::move(listPatch).children()) {
-      // TODO: create if does not exist?
+      // TODO: modify child, create if does not exist? handle deletion
       auto res = PatchApplier<ValueTypeClass>::apply(
           node->ref(index), std::move(childPatch));
       if (res != PatchResult::OK) {
@@ -137,12 +138,54 @@ struct PatchApplier<apache::thrift::type_class::set<ValueTypeClass>> {
       std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
           true>
   static inline PatchResult apply(
-      std::shared_ptr<Node>& /*node*/,
+      std::shared_ptr<Node>& node,
       PatchNode&& patch) {
     // TODO: handle val
     if (patch.getType() != PatchNode::Type::set_node) {
       return PatchResult::INVALID_PATCH_TYPE;
     }
+
+    using ValueTType = typename Node::ValueTType;
+
+    auto parseKey = [](auto&& key) {
+      ValueTType parsedKey;
+      if constexpr (std::is_same_v<
+                        ValueTType,
+                        apache::thrift::type_class::enumeration>) {
+        if (fatal::enum_traits<ValueTType>::try_parse(
+                parsedKey, std::move(key))) {
+          return std::make_optional(parsedKey);
+        }
+      } else {
+        auto keyTry = folly::tryTo<ValueTType>(std::move(key));
+        if (keyTry.hasValue()) {
+          return std::make_optional(std::move(keyTry.value()));
+        }
+      }
+      return std::optional<ValueTType>();
+    };
+
+    PatchResult result = PatchResult::OK;
+
+    auto setPatch = patch.move_set_node();
+    for (auto&& [key, childPatch] : *std::move(setPatch).children()) {
+      // for sets keys are our values
+      std::optional<ValueTType> value = parseKey(key);
+      if (!value) {
+        result = PatchResult::KEY_PARSE_ERROR;
+        break;
+      }
+      // We only support sets of primitives
+      // lets not recurse and just handle add/remove here
+      if (childPatch.getType() == PatchNode::Type::del) {
+        node->erase(std::move(*value));
+      } else if (childPatch.getType() == PatchNode::Type::val) {
+        node->emplace(std::move(*value));
+      } else {
+        result = PatchResult::INVALID_PATCH_TYPE;
+      }
+    }
+
     return PatchResult::OK;
   }
 };
