@@ -68,27 +68,21 @@ include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 
 // ============================================================================
 
-//                         +-+-+-+-+-+-+ +-+-+-+-+
-//                         |P|m|U|n|i|t| |P|A|T|H|
-//                         +-+-+-+-+-+-+ +-+-+-+-+
+//                             +-+-+-+-+-+-+-+-+
+//                             |S|l|o|t|P|a|t|h|
+//                             +-+-+-+-+-+-+-+-+
 //
-// PmUnit paths are constructs used to refer to devices in the platform.  The
-// paths start from the root PmUnit. PmUnit boundary is represented with a
-// forward slash (/).  To represent a device in a PmUnit, the path should
-// contain all the slots which have been used all the way up to the root
-// PmUnit.  The device itself is represented within square brackets (e.g.,
-// [Device]), and it should be the leaf (last token), of the path.  If the
-// device is within a FPGA, then the device is represented as [FPGA::Device]
-//
-// For example the devices in the below example are represented as follows
-// - /[fpga1]
-// - /[fpga1::gpiochip0]
-// - /ABC_SLOT@0/[cpld1]
-// - /ABC_SLOT@1/[cpld1]
-// - /ABC_SLOT@1/[cpld2]
-// - /ABC_SLOT@1/DEF_SLOT@0/[sensor3]
-// - /XYZ_SLOT@0/[sensor1]
-// - /XYZ_SLOT@1/[sensor1]
+// SlotPaths are constructs used to reference slots in the platform. The
+// virtual root slot is a forward slash (/).  The SlotPaths are constructed in
+// the sequence of the slot names in which they are plugged in.  The separator
+// between slot names is a forward slash (/).
+// For example, in the below platform,
+// - Root PmUnit is plugged in SlotPath /
+// - First XZY PmUnit is plugged in SlotPath /XYZ_SLOT@0
+// - Second XZY PmUnit is plugged in SlotPath /XYZ_SLOT@1
+// - ABC1 PmUnit is plugged in SlotPath /ABC_SLOT@0
+// - ABC2 PmUnit is plugged in SlotPath /ABC_SLOT@1
+// - DEF PmUnit is plugged in SlotPath /ABC_SLOT@1/DEF_SLOT@0
 //
 // ┌─────────────────┐   ┌──────────────────────────┐   ┌─────────────────┐
 // │   ABC1 PmUnit   │   │       Root PmUnit        │   │   XYZ PmUnit    │
@@ -112,6 +106,29 @@ include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 // │   │sensor3│     │
 // │   └───────┘     │
 // └─────────────────┘
+//
+// ============================================================================
+
+//                            +-+-+-+-+-+-+-+-+-+-+
+//                            |D|e|v|i|c|e|P|a|t|h|
+//                            +-+-+-+-+-+-+-+-+-+-+
+//
+// DevicePaths are constructs used to refer to devices in the platform. To
+// represent a device in a PmUnit, the path should contain the SlotPath where
+// the PmUnit is plugged in, followed by the device name.  The device itself is
+// represented within square brackets (e.g., [DeviceName]). The device should
+// be the leaf (last token), of the path.  If the device is within a FPGA, then
+// the device is represented as [FPGA_Name::DeviceName]
+//
+// The devices in the above example are represented as follows
+// - /[fpga1]
+// - /[fpga1::gpiochip0]
+// - /XYZ_SLOT@0/[sensor1]
+// - /XYZ_SLOT@1/[sensor1]
+// - /ABC_SLOT@0/[cpld1]
+// - /ABC_SLOT@1/[cpld1]
+// - /ABC_SLOT@1/[cpld2]
+// - /ABC_SLOT@1/DEF_SLOT@0/[sensor3]
 
 // ============================================================================
 
@@ -331,8 +348,9 @@ struct PlatformConfig {
   // CPU. We have to revisit this logic if this assumption changes.
   13: list<string> i2cAdaptersFromCpu;
 
-  // Global mapping from the PmUnit paths to an application friendly path.
-  14: map<string, string> pmUnitPathToHumanFriendlyName;
+  // Global mapping from the DevicePath to an application friendly path
+  // (symbolic link).
+  14: map<string, string> devicePathToHumanFriendlyPath;
 
   // Name and version of the rpm containing the BSP kmods for this platform
   21: string bspKmodsRpmName;

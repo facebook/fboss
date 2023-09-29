@@ -15,25 +15,45 @@ class PlatformExplorer {
   explicit PlatformExplorer(
       std::chrono::seconds exploreInterval,
       const PlatformConfig& config);
+
+  // Explore the platform.
   void explore();
+
+  // Explore the PmUnit present at the given slotPath.
   void explorePmUnit(
-      const std::string& pmUnitPath,
+      const std::string& slotPath,
       const std::string& pmUnitName);
+
+  // Explore the slotName which is located at a PmUnit in the given
+  // parentSlotPath.
   void exploreSlot(
-      const std::string& pmUnitPath,
+      const std::string& parentSlotPath,
       const std::string& slotName,
       const SlotConfig& slotConfig);
+
+  // Get the PmUnit name which has been plugged in at the given slotPath,
+  // and the slot is of given slotType.
   std::optional<std::string> getPmUnitNameFromSlot(
       const std::string& slotType,
-      const std::string& pmUnitPath);
+      const std::string& slotPath);
+
+  // Explore the I2C devices in the PmUnit at the given SlotPath.
   void exploreI2cDevices(
-      const std::string& pmUnitPath,
+      const std::string& slotPath,
       const std::vector<I2cDeviceConfig>& i2cDeviceConfigs);
+
+  // Get the kernel assigned I2C bus number for the given busName.
+  // If the busName could be found in global scope (e.g., bus from CPU),
+  // then return it directly. Otherwise, check if there is a mapping in the
+  // provided slotPath.
   uint16_t getI2cBusNum(
-      const std::optional<std::string>& pmUnitPath,
+      const std::optional<std::string>& slotPath,
       const std::string& pmUnitScopeBusName) const;
+
+  // Update the kernel assigned I2C bus number for the given busName. If the
+  // bus name is of global scope, then slotPath is empty.
   void updateI2cBusNum(
-      const std::optional<std::string>& pmUnitPath,
+      const std::optional<std::string>& slotPath,
       const std::string& pmUnitScopeBusName,
       uint16_t busNum);
 

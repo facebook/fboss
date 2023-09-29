@@ -8,7 +8,7 @@
 #include "fboss/platform/platform_manager/PlatformExplorer.h"
 
 namespace {
-constexpr auto kRootPmUnitPath = "/";
+constexpr auto kRootSlotPath = "/";
 }
 
 namespace facebook::fboss::platform::platform_manager {
@@ -30,75 +30,74 @@ void PlatformExplorer::explore() {
   const PmUnitConfig& rootPmUnitConfig =
       platformConfig_.pmUnitConfigs()->at(*platformConfig_.rootPmUnitName());
   auto pmUnitName = getPmUnitNameFromSlot(
-      *rootPmUnitConfig.pluggedInSlotType(), kRootPmUnitPath);
+      *rootPmUnitConfig.pluggedInSlotType(), kRootSlotPath);
   CHECK(pmUnitName == *platformConfig_.rootPmUnitName());
-  explorePmUnit(kRootPmUnitPath, *platformConfig_.rootPmUnitName());
+  explorePmUnit(kRootSlotPath, *platformConfig_.rootPmUnitName());
 }
 
 void PlatformExplorer::explorePmUnit(
-    const std::string& pmUnitPath,
+    const std::string& slotPath,
     const std::string& pmUnitName) {
   auto pmUnitConfig = platformConfig_.pmUnitConfigs()->at(pmUnitName);
-  XLOG(INFO) << fmt::format(
-      "Exploring PmUnit {} at {}", pmUnitName, pmUnitPath);
+  XLOG(INFO) << fmt::format("Exploring PmUnit {} at {}", pmUnitName, slotPath);
 
   XLOG(INFO) << fmt::format(
-      "Exploring I2C Devices for PmUnit {} at {}. Count {}",
+      "Exploring I2C Devices for PmUnit {} at SlotPath {}. Count {}",
       pmUnitName,
-      pmUnitPath,
+      slotPath,
       pmUnitConfig.i2cDeviceConfigs_ref()->size());
-  exploreI2cDevices(pmUnitPath, *pmUnitConfig.i2cDeviceConfigs());
+  exploreI2cDevices(slotPath, *pmUnitConfig.i2cDeviceConfigs());
 
   XLOG(INFO) << fmt::format(
-      "Exploring Slots for PmUnit {} at {}. Count {}",
+      "Exploring Slots for PmUnit {} at SlotPath {}. Count {}",
       pmUnitName,
-      pmUnitPath,
+      slotPath,
       pmUnitConfig.outgoingSlotConfigs_ref()->size());
   for (const auto& [slotName, slotConfig] :
        *pmUnitConfig.outgoingSlotConfigs()) {
-    exploreSlot(pmUnitPath, slotName, slotConfig);
+    exploreSlot(slotPath, slotName, slotConfig);
   }
 }
 
 void PlatformExplorer::exploreSlot(
-    const std::string& pmUnitPath,
+    const std::string& parentSlotPath,
     const std::string& slotName,
     const SlotConfig& slotConfig) {
-  XLOG(INFO) << fmt::format("Exploring Slot {}/{}", pmUnitPath, slotName);
+  std::string childSlotPath = fmt::format("{}/{}", parentSlotPath, slotName);
+  XLOG(INFO) << fmt::format("Exploring SlotPath {}", childSlotPath);
 
   if (slotConfig.presenceDetection() &&
       presenceDetector_.isPresent(*slotConfig.presenceDetection())) {
     XLOG(INFO) << fmt::format(
-        "No device could detected in Slot {}/{}", pmUnitPath, slotName);
+        "No device could detected in SlotPath {}", childSlotPath);
   }
 
-  std::string childPmUnitPath = fmt::format("{}/{}", pmUnitPath, slotName);
   int i = 0;
   for (const auto& busName : *slotConfig.outgoingI2cBusNames()) {
-    auto busNum = getI2cBusNum(pmUnitPath, busName);
-    updateI2cBusNum(childPmUnitPath, fmt::format("INCOMING@{}", i++), busNum);
+    auto busNum = getI2cBusNum(parentSlotPath, busName);
+    updateI2cBusNum(childSlotPath, fmt::format("INCOMING@{}", i++), busNum);
   }
   auto childPmUnitName =
-      getPmUnitNameFromSlot(*slotConfig.slotType(), childPmUnitPath);
+      getPmUnitNameFromSlot(*slotConfig.slotType(), childSlotPath);
 
   if (!childPmUnitName) {
     XLOG(INFO) << fmt::format(
-        "No device could be read in Slot {}/{}", pmUnitPath, slotName);
+        "No device could be read in Slot {}", childSlotPath);
     return;
   }
 
-  explorePmUnit(childPmUnitPath, *childPmUnitName);
+  explorePmUnit(childSlotPath, *childPmUnitName);
 }
 
 std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     const std::string& slotType,
-    const std::string& pmUnitPath) {
+    const std::string& slotPath) {
   auto slotTypeConfig = platformConfig_.slotTypeConfigs_ref()->at(slotType);
   CHECK(slotTypeConfig.idpromConfig() || slotTypeConfig.pmUnitName());
   std::optional<std::string> pmUnitNameInEeprom{std::nullopt};
   if (slotTypeConfig.idpromConfig_ref()) {
     auto idpromConfig = *slotTypeConfig.idpromConfig_ref();
-    auto eepromI2cBusNum = getI2cBusNum(pmUnitPath, *idpromConfig.busName());
+    auto eepromI2cBusNum = getI2cBusNum(slotPath, *idpromConfig.busName());
     i2cExplorer_.createI2cDevice(
         *idpromConfig.kernelDeviceName(),
         eepromI2cBusNum,
@@ -116,7 +115,7 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     if (pmUnitNameInEeprom &&
         *pmUnitNameInEeprom != *slotTypeConfig.pmUnitName()) {
       XLOG(WARNING) << fmt::format(
-          "The PmUnit type in eeprom `{}` is different from the one in config `{}`",
+          "The PmUnit name in eeprom `{}` is different from the one in config `{}`",
           *pmUnitNameInEeprom,
           *slotTypeConfig.pmUnitName());
     }
@@ -126,21 +125,21 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
 }
 
 void PlatformExplorer::exploreI2cDevices(
-    const std::string& pmUnitPath,
+    const std::string& slotPath,
     const std::vector<I2cDeviceConfig>& i2cDeviceConfigs) {
   for (const auto& i2cDeviceConfig : i2cDeviceConfigs) {
     i2cExplorer_.createI2cDevice(
         *i2cDeviceConfig.kernelDeviceName(),
-        getI2cBusNum(pmUnitPath, *i2cDeviceConfig.busName()),
+        getI2cBusNum(slotPath, *i2cDeviceConfig.busName()),
         I2cAddr(*i2cDeviceConfig.address()));
     if (i2cDeviceConfig.numOutgoingChannels()) {
       auto channelBusNums = i2cExplorer_.getMuxChannelI2CBuses(
-          getI2cBusNum(pmUnitPath, *i2cDeviceConfig.busName()),
+          getI2cBusNum(slotPath, *i2cDeviceConfig.busName()),
           I2cAddr(*i2cDeviceConfig.address()));
       assert(channelBusNums.size() == i2cDeviceConfig.numOutgoingChannels());
       for (int i = 0; i < i2cDeviceConfig.numOutgoingChannels(); ++i) {
         updateI2cBusNum(
-            pmUnitPath,
+            slotPath,
             fmt::format("{}@{}", *i2cDeviceConfig.pmUnitScopedName(), i),
             channelBusNums[i]);
       }
@@ -149,27 +148,27 @@ void PlatformExplorer::exploreI2cDevices(
 }
 
 uint16_t PlatformExplorer::getI2cBusNum(
-    const std::optional<std::string>& pmUnitPath,
+    const std::optional<std::string>& slotPath,
     const std::string& pmUnitScopeBusName) const {
   auto it = i2cBusNums_.find(std::make_pair(std::nullopt, pmUnitScopeBusName));
   if (it != i2cBusNums_.end()) {
     return it->second;
   } else {
-    return i2cBusNums_.at(std::make_pair(pmUnitPath, pmUnitScopeBusName));
+    return i2cBusNums_.at(std::make_pair(slotPath, pmUnitScopeBusName));
   }
 }
 
 void PlatformExplorer::updateI2cBusNum(
-    const std::optional<std::string>& pmUnitPath,
+    const std::optional<std::string>& slotPath,
     const std::string& pmUnitScopeBusName,
     uint16_t busNum) {
   XLOG(INFO) << fmt::format(
-      "Updating bus `{}` in `{}` to bus number {} (i2c-{})",
+      "Updating bus {} in {} to bus number {} (i2c-{})",
       pmUnitScopeBusName,
-      pmUnitPath ? fmt::format("PmUnit {}", *pmUnitPath) : "Global Scope",
+      slotPath ? fmt::format("SlotPath {}", *slotPath) : "Global Scope",
       busNum,
       busNum);
-  i2cBusNums_[std::make_pair(pmUnitPath, pmUnitScopeBusName)] = busNum;
+  i2cBusNums_[std::make_pair(slotPath, pmUnitScopeBusName)] = busNum;
 }
 
 } // namespace facebook::fboss::platform::platform_manager
