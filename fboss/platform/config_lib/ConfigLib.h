@@ -27,6 +27,9 @@ class ConfigLib {
 
   virtual std::string getFwUtilConfig(
       const std::optional<std::string>& platformName = std::nullopt) const;
+
+  virtual std::string getLedManagerConfig(
+      const std::optional<std::string>& platformName = std::nullopt) const;
 };
 
 } // namespace facebook::fboss::platform

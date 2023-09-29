@@ -42,4 +42,10 @@ std::string ConfigLib::getPlatformManagerConfig(
       "Unimplemented function. Specify config_file explicitly");
 }
 
+std::string ConfigLib::getLedManagerConfig(
+    const std::optional<std::string>& platformName) const {
+  throw std::runtime_error(
+      "Unimplemented function. Specify config_file explicitly");
+}
+
 } // namespace facebook::fboss::platform
