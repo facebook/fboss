@@ -5,6 +5,7 @@
 
 #include <fboss/thrift_cow/gen-cpp2/patch_types.h>
 #include <fboss/thrift_cow/visitors/PatchApplier.h>
+#include <fboss/thrift_cow/visitors/tests/VisitorTestUtils.h>
 #include "fboss/thrift_cow/nodes/Types.h"
 #include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_fatal_types.h"
 #include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_types.h"
@@ -17,23 +18,29 @@ using folly::dynamic;
 using namespace facebook::fboss;
 using namespace facebook::fboss::thrift_cow;
 
-TestStruct createTestStruct() {
-  dynamic testDyn = dynamic::object("inlineBool", true)("inlineInt", 54)(
-      "inlineString",
-      "testname")("optionalString", "bla")("inlineStruct", dynamic::object("min", 10)("max", 20))("inlineVariant", dynamic::object("inlineInt", 99))("mapOfEnumToStruct", dynamic::object("3", dynamic::object("min", 100)("max", 200)));
-
-  return apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
-}
-
 } // namespace
 
 namespace facebook::fboss::thrift_cow {
 
-TEST(PatchVisitorTests, simple) {
-  auto structA = createTestStruct();
+TEST(PatchApplierTests, ModifyPrimitive) {
+  auto structA = createSimpleTestStruct();
+
+  PatchNode n;
+  n.set_val(serializeBuf<apache::thrift::type_class::string>(
+      fsdb::OperProtocol::COMPACT, "new val"));
 
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  PatchApplier<apache::thrift::type_class::string>::apply(
+      nodeA->template ref<k::inlineString>(), std::move(n));
+  EXPECT_EQ(*nodeA->template ref<k::inlineString>(), "new val");
+
+  n = PatchNode();
+  n.set_val(serializeBuf<apache::thrift::type_class::integral>(
+      fsdb::OperProtocol::COMPACT, 1234));
+
+  PatchApplier<apache::thrift::type_class::integral>::apply(
+      nodeA->template ref<k::inlineInt>(), std::move(n));
+  EXPECT_EQ(*nodeA->template ref<k::inlineInt>(), 1234);
 }
 
 } // namespace facebook::fboss::thrift_cow

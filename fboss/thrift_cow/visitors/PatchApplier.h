@@ -147,10 +147,12 @@ struct PatchApplier {
       "Refer to thrift/lib/cpp2/reflection/reflection.h");
 
   template <typename Fields>
-  static PatchResult visit(Fields& /*fields*/, PatchNode&& patch) {
+  static PatchResult apply(std::optional<Fields>& fields, PatchNode&& patch) {
     if (patch.getType() != PatchNode::Type::val) {
       return PatchResult::INVALID_PATCH_TYPE;
     }
+    // TODO: construct if nullopt?
+    fields->fromEncodedBuf(fsdb::OperProtocol::COMPACT, patch.move_val());
     return PatchResult::OK;
   }
 };

@@ -66,6 +66,10 @@ class ThriftPrimitiveNode {
     return obj_ < other.obj_;
   }
 
+  ThriftType operator*() const {
+    return obj_;
+  }
+
   ThriftType toThrift() const {
     return obj_;
   }
