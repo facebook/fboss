@@ -26939,11 +26939,11 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           }
         }
     },
-    "2000": {
+    "2048": {
         "mapping": {
-          "id": 2000,
+          "id": 2048,
           "name": "fab1/12/5",
-          "controllingPort": 2000,
+          "controllingPort": 2048,
           "pins": [
             {
               "a": {

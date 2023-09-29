@@ -219,9 +219,15 @@ void SaiPlatform::initImpl(uint32_t hwFeaturesDesired) {
 
 void SaiPlatform::initPorts() {
   auto platformMode = getType();
+  auto switchId =
+      SwitchID(getAsic()->getSwitchId() ? *getAsic()->getSwitchId() : 0);
+  HwSwitchMatcher matcher(std::unordered_set<SwitchID>({switchId}));
   for (auto& port : getPlatformPorts()) {
     std::unique_ptr<SaiPlatformPort> saiPort;
     PortID portId(port.first);
+    if (scopeResolver()->scope(portId) != matcher) {
+      continue;
+    }
     if (platformMode == PlatformType::PLATFORM_WEDGE400C ||
         platformMode == PlatformType::PLATFORM_WEDGE400C_VOQ ||
         platformMode == PlatformType::PLATFORM_WEDGE400C_FABRIC) {
