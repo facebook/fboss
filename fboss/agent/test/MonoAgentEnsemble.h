@@ -9,8 +9,6 @@ namespace facebook::fboss {
 
 class MonoAgentEnsemble : public AgentEnsemble {
  public:
-  ~MonoAgentEnsemble() override;
-
   const SwAgentInitializer* agentInitializer() const override;
   SwAgentInitializer* agentInitializer() override;
   void createSwitch(

@@ -4,10 +4,6 @@
 
 namespace facebook::fboss {
 
-SplitAgentEnsemble::~SplitAgentEnsemble() {
-  agentInitializer_->stopAgent(false);
-}
-
 const SwAgentInitializer* SplitAgentEnsemble::agentInitializer() const {
   CHECK(agentInitializer_);
   return agentInitializer_.get();
