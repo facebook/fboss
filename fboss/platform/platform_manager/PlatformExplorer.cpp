@@ -25,7 +25,7 @@ void PlatformExplorer::explore() {
   XLOG(INFO) << "Exploring the platform";
   for (const auto& [busName, busNum] :
        i2cExplorer_.getBusNums(*platformConfig_.i2cAdaptersFromCpu())) {
-    updateI2cBusNum(kRootPmUnitPath, busName, busNum);
+    updateI2cBusNum(std::nullopt, busName, busNum);
   }
   const PmUnitConfig& rootPmUnitConfig =
       platformConfig_.pmUnitConfigs()->at(*platformConfig_.rootPmUnitName());
@@ -149,19 +149,24 @@ void PlatformExplorer::exploreI2cDevices(
 }
 
 uint16_t PlatformExplorer::getI2cBusNum(
-    const std::string& pmUnitPath,
+    const std::optional<std::string>& pmUnitPath,
     const std::string& pmUnitScopeBusName) const {
-  return i2cBusNums_.at(std::make_pair(pmUnitPath, pmUnitScopeBusName));
+  auto it = i2cBusNums_.find(std::make_pair(std::nullopt, pmUnitScopeBusName));
+  if (it != i2cBusNums_.end()) {
+    return it->second;
+  } else {
+    return i2cBusNums_.at(std::make_pair(pmUnitPath, pmUnitScopeBusName));
+  }
 }
 
 void PlatformExplorer::updateI2cBusNum(
-    const std::string& pmUnitPath,
+    const std::optional<std::string>& pmUnitPath,
     const std::string& pmUnitScopeBusName,
     uint16_t busNum) {
   XLOG(INFO) << fmt::format(
-      "Updating bus `{}` in PmUnit `{}` to bus number {} (i2c-{})",
+      "Updating bus `{}` in `{}` to bus number {} (i2c-{})",
       pmUnitScopeBusName,
-      pmUnitPath,
+      pmUnitPath ? fmt::format("PmUnit {}", *pmUnitPath) : "Global Scope",
       busNum,
       busNum);
   i2cBusNums_[std::make_pair(pmUnitPath, pmUnitScopeBusName)] = busNum;
