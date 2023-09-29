@@ -103,13 +103,25 @@ struct PatchApplier<apache::thrift::type_class::list<ValueTypeClass>> {
       std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
           true>
   static inline PatchResult apply(
-      std::shared_ptr<Node>& /*node*/,
+      std::shared_ptr<Node>& node,
       PatchNode&& patch) {
     // TODO: handle val
     if (patch.getType() != PatchNode::Type::list_node) {
       return PatchResult::INVALID_PATCH_TYPE;
     }
-    return PatchResult::OK;
+
+    PatchResult result = PatchResult::OK;
+    auto listPatch = patch.move_list_node();
+    for (auto&& [index, childPatch] : *std::move(listPatch).children()) {
+      // TODO: create if does not exist?
+      auto res = PatchApplier<ValueTypeClass>::apply(
+          node->ref(index), std::move(childPatch));
+      if (res != PatchResult::OK) {
+        result = res;
+      }
+    }
+
+    return result;
   }
 };
 
