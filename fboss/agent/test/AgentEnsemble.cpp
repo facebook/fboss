@@ -99,7 +99,7 @@ void AgentEnsemble::startAgent() {
   }));
   initializer->initializer()->waitForInitDone();
   // if cold booting, invoke link toggler
-  if (getHw()->getBootType() != BootType::WARM_BOOT &&
+  if (getSw()->getBootType() != BootType::WARM_BOOT &&
       linkToggler_ != nullptr) {
     linkToggler_->applyInitialConfig(initialConfig_);
   }
@@ -274,10 +274,10 @@ std::unique_ptr<AgentEnsemble> createAgentEnsemble(
 std::map<PortID, HwPortStats> AgentEnsemble::getLatestPortStats(
     const std::vector<PortID>& ports) {
   std::map<PortID, HwPortStats> portIdStatsMap;
-  getHw()->updateStats();
+  getSw()->updateStats();
 
   auto swState = getSw()->getState();
-  auto stats = getHw()->getPortStats();
+  auto stats = getSw()->getHwSwitchHandler()->getPortStats();
   for (auto [portName, stats] : stats) {
     auto portId = swState->getPorts()->getPort(portName)->getID();
     if (std::find(ports.begin(), ports.end(), (PortID)portId) == ports.end()) {
