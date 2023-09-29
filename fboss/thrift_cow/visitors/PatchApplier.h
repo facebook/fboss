@@ -2,6 +2,7 @@
 
 #include <fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h>
 #include <fboss/thrift_cow/gen-cpp2/patch_types.h>
+#include <thrift/lib/cpp2/reflection/reflection.h>
 
 #pragma once
 
@@ -121,13 +122,33 @@ struct PatchApplier<apache::thrift::type_class::structure> {
       std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
           true>
   static inline PatchResult apply(
-      std::shared_ptr<Node>& /*node*/,
+      std::shared_ptr<Node>& node,
       PatchNode&& patch) {
     // TODO: handle val
     if (patch.getType() != PatchNode::Type::struct_node) {
       return PatchResult::INVALID_PATCH_TYPE;
     }
-    return PatchResult::OK;
+
+    using Fields = typename Node::Fields;
+    PatchResult result = PatchResult::OK;
+    auto structPatch = patch.move_struct_node();
+    for (auto&& [key, childPatch] : *std::move(structPatch).children()) {
+      fatal::scalar_search<typename Fields::Members, fatal::get_type::id>(
+          key, [&, childPatch = std::move(childPatch)](auto indexed) mutable {
+            using member = decltype(fatal::tag_type(indexed));
+            using name = typename member::name;
+            using tc = typename member::type_class;
+
+            auto& child = node->template modify<name>(&node);
+            auto res = PatchApplier<tc>::apply(child, std::move(childPatch));
+            // Continue patching even if there is an error, but still return an
+            // error if encountered
+            if (res != PatchResult::OK) {
+              result = res;
+            }
+          });
+    }
+    return result;
   }
 };
 

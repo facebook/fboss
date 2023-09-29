@@ -43,4 +43,23 @@ TEST(PatchApplierTests, ModifyPrimitive) {
   EXPECT_EQ(*nodeA->template ref<k::inlineInt>(), 1234);
 }
 
+TEST(PatchApplierTests, ModifyStructMember) {
+  auto structA = createSimpleTestStruct();
+
+  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+
+  PatchNode inlineString;
+  inlineString.set_val(serializeBuf<apache::thrift::type_class::string>(
+      fsdb::OperProtocol::COMPACT, "new val"));
+
+  StructPatch structPatch;
+  structPatch.children() = {
+      {TestStructMembers::inlineString::id(), inlineString}};
+  PatchNode n;
+  n.set_struct_node(std::move(structPatch));
+
+  PatchApplier<apache::thrift::type_class::structure>::apply(
+      nodeA, std::move(n));
+  EXPECT_EQ(*nodeA->template ref<k::inlineString>(), "new val");
+}
 } // namespace facebook::fboss::thrift_cow
