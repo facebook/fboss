@@ -4,6 +4,8 @@
 #include <fboss/thrift_cow/gen-cpp2/patch_types.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
 
+#include <optional>
+
 #pragma once
 
 namespace facebook::fboss::thrift_cow {
@@ -11,6 +13,8 @@ namespace facebook::fboss::thrift_cow {
 enum class PatchResult {
   OK,
   INVALID_PATCH_TYPE,
+  NON_EXISTENT_NODE,
+  KEY_PARSE_ERROR,
 };
 
 template <typename TC>
@@ -33,12 +37,56 @@ struct PatchApplier<
       std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
           true>
   static inline PatchResult apply(
-      std::shared_ptr<Node>& /*node*/,
+      std::shared_ptr<Node>& node,
       PatchNode&& patch) {
     if (patch.getType() != PatchNode::Type::map_node) {
       return PatchResult::INVALID_PATCH_TYPE;
     }
-    return PatchResult::OK;
+
+    using Fields = typename Node::Fields;
+    using key_type = typename Fields::key_type;
+
+    auto parseKey = [](auto&& key) {
+      key_type parsedKey;
+      if constexpr (std::is_same_v<
+                        KeyTypeClass,
+                        apache::thrift::type_class::enumeration>) {
+        if (fatal::enum_traits<key_type>::try_parse(
+                parsedKey, std::move(key))) {
+          return std::make_optional(parsedKey);
+        }
+      } else {
+        auto keyTry = folly::tryTo<key_type>(std::move(key));
+        if (keyTry.hasValue()) {
+          return std::make_optional(keyTry.value());
+        }
+      }
+      return std::optional<key_type>();
+    };
+
+    PatchResult result = PatchResult::OK;
+
+    auto mapPatch = patch.move_map_node();
+    for (auto&& [key, childPatch] : *std::move(mapPatch).children()) {
+      if (auto parsedKey = parseKey(key)) {
+        // TODO: create if does not exist?
+        if (auto child = node->find(parsedKey.value()); child != node->end()) {
+          auto res = PatchApplier<MappedTypeClass>::apply(
+              child->second, std::forward<PatchNode>(childPatch));
+          // Continue patching even if there is an error, but still return an
+          // error if encountered
+          if (res != PatchResult::OK) {
+            result = res;
+          }
+        } else {
+          result = PatchResult::NON_EXISTENT_NODE;
+        }
+      } else {
+        result = PatchResult::KEY_PARSE_ERROR;
+      }
+    }
+
+    return result;
   }
 };
 

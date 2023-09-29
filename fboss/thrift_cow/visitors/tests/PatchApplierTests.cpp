@@ -62,4 +62,25 @@ TEST(PatchApplierTests, ModifyStructMember) {
       nodeA, std::move(n));
   EXPECT_EQ(*nodeA->template ref<k::inlineString>(), "new val");
 }
+
+TEST(PatchApplierTests, ModifyMapMember) {
+  auto structA = createSimpleTestStruct();
+  structA.mapOfI32ToI32() = {{123, 456}};
+  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+
+  PatchNode intPatch;
+  intPatch.set_val(serializeBuf<apache::thrift::type_class::integral>(
+      fsdb::OperProtocol::COMPACT, 42));
+
+  MapPatch mapPatch;
+  mapPatch.children() = {{"123", intPatch}};
+  PatchNode n;
+  n.set_map_node(mapPatch);
+
+  PatchApplier<apache::thrift::type_class::map<
+      apache::thrift::type_class::integral,
+      apache::thrift::type_class::integral>>::
+      apply(nodeA->template ref<k::mapOfI32ToI32>(), std::move(n));
+  EXPECT_EQ(*nodeA->template ref<k::mapOfI32ToI32>()->at(123), 42);
+}
 } // namespace facebook::fboss::thrift_cow
