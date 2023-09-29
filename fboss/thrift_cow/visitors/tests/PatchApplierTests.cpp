@@ -105,4 +105,25 @@ TEST(PatchApplierTests, ModifyListMember) {
   EXPECT_EQ(*nodeA->template ref<k::listOfPrimitives>()->at(1), 42);
 }
 
+TEST(PatchApplierTests, ModifyVariantValue) {
+  auto structA = createSimpleTestStruct();
+  structA.inlineVariant()->set_inlineInt(123);
+
+  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+
+  PatchNode intPatch;
+  intPatch.set_val(serializeBuf<apache::thrift::type_class::integral>(
+      fsdb::OperProtocol::COMPACT, 42));
+
+  VariantPatch variantPatch;
+  variantPatch.id() = TestStructMembers::inlineInt::id();
+  variantPatch.child() = intPatch;
+  PatchNode n;
+  n.set_variant_node(variantPatch);
+
+  PatchApplier<apache::thrift::type_class::variant>::apply(
+      nodeA->template ref<k::inlineVariant>(), std::move(n));
+  EXPECT_EQ(*nodeA->template ref<k::inlineVariant>()->ref<k::inlineInt>(), 42);
+}
+
 } // namespace facebook::fboss::thrift_cow

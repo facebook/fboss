@@ -160,12 +160,45 @@ struct PatchApplier<apache::thrift::type_class::variant> {
       std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
           true>
   static inline PatchResult apply(
-      std::shared_ptr<Node>& /*node*/,
+      std::shared_ptr<Node>& node,
       PatchNode&& patch) {
     if (patch.getType() != PatchNode::Type::variant_node) {
       return PatchResult::INVALID_PATCH_TYPE;
     }
-    return PatchResult::OK;
+
+    PatchResult result = PatchResult::OK;
+
+    using Fields = typename Node::Fields;
+    using Members = typename Fields::MemberTypes;
+
+    auto variantPatch = patch.variant_node_ref();
+    auto key = *variantPatch->id();
+
+    // TODO: handle changing the variant type (if child patch is val type)
+    fatal::scalar_search<Members, fatal::get_type::id>(key, [&](auto tag) {
+      using descriptor = typename decltype(fatal::tag_type(tag))::member;
+      using name = typename descriptor::metadata::name;
+      using tc = typename descriptor::metadata::type_class;
+
+      // TODO: modify child
+      auto& child = node->template ref<name>();
+
+      if (!child) {
+        // child is unset, cannot traverse through missing optional child
+        result = PatchResult::NON_EXISTENT_NODE;
+        return;
+      }
+
+      auto res =
+          PatchApplier<tc>::apply(child, std::move(*variantPatch->child()));
+      // Continue patching even if there is an error, but still return an
+      // error if encountered
+      if (res != PatchResult::OK) {
+        result = res;
+      }
+    });
+
+    return result;
   }
 };
 
