@@ -25,7 +25,7 @@ void BcmLinkStateDependentTests::SetUp() {
   }
 }
 
-HwLinkStateToggler* BcmLinkStateDependentTests::getLinkToggler() {
+LinkStateToggler* BcmLinkStateDependentTests::getLinkToggler() {
   return getHwSwitchEnsemble()->getLinkToggler();
 }
 

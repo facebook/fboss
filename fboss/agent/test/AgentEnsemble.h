@@ -14,7 +14,7 @@
 #include "fboss/agent/FbossInit.h"
 #include "fboss/agent/SwAgentInitializer.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/hw/test/HwLinkStateToggler.h"
+#include "fboss/agent/hw/test/LinkStateToggler.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 
@@ -168,7 +168,7 @@ class AgentEnsemble : public TestEnsembleIf {
   std::unique_ptr<std::thread> asyncInitThread_{nullptr};
   std::vector<PortID> masterLogicalPortIds_;
   std::string configFile_{"agent.conf"};
-  std::unique_ptr<HwLinkStateToggler> linkToggler_;
+  std::unique_ptr<LinkStateToggler> linkToggler_;
   cfg::PortLoopbackMode mode_{cfg::PortLoopbackMode::MAC};
 };
 

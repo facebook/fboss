@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "fboss/agent/hw/test/HwLinkStateToggler.h"
+#include "fboss/agent/hw/test/LinkStateToggler.h"
 
 #include <memory>
 
@@ -20,10 +20,10 @@ class BcmSwitch;
 class Port;
 class TestEnsembleIf;
 
-class BcmLinkStateToggler : public HwLinkStateToggler {
+class BcmLinkStateToggler : public LinkStateToggler {
  public:
   explicit BcmLinkStateToggler(TestEnsembleIf* ensemble)
-      : HwLinkStateToggler(ensemble) {}
+      : LinkStateToggler(ensemble) {}
 
  private:
   BcmSwitch* getHw();

@@ -26,8 +26,8 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
+#include "fboss/agent/hw/test/LinkStateToggler.h"
 #include "fboss/agent/hw/test/StaticL2ForNeighborHwSwitchUpdater.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
@@ -578,7 +578,7 @@ HwTrunkStats HwSwitchEnsemble::getLatestAggregatePortStats(
 
 void HwSwitchEnsemble::setupEnsemble(
     std::unique_ptr<HwAgent> hwAgent,
-    std::unique_ptr<HwLinkStateToggler> linkToggler,
+    std::unique_ptr<LinkStateToggler> linkToggler,
     std::unique_ptr<std::thread> thriftThread,
     const HwSwitchEnsembleInitInfo& initInfo) {
   hwAgent_ = std::move(hwAgent);

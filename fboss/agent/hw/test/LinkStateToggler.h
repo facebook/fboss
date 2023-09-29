@@ -27,11 +27,10 @@ class SwitchState;
 class HwSwitchEnsemble;
 class TestEnsembleIf;
 
-class HwLinkStateToggler {
+class LinkStateToggler {
  public:
-  explicit HwLinkStateToggler(TestEnsembleIf* ensemble)
-      : hwEnsemble_(ensemble) {}
-  virtual ~HwLinkStateToggler() {}
+  explicit LinkStateToggler(TestEnsembleIf* ensemble) : hwEnsemble_(ensemble) {}
+  virtual ~LinkStateToggler() {}
 
   void applyInitialConfig(const cfg::SwitchConfig& initCfg);
   void linkStateChanged(PortID port, bool up) noexcept;

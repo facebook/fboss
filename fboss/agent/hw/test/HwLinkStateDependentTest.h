@@ -13,7 +13,7 @@
 #include "fboss/agent/hw/test/HwTest.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/hw/test/HwLinkStateToggler.h"
+#include "fboss/agent/hw/test/LinkStateToggler.h"
 
 namespace facebook::fboss {
 
@@ -42,7 +42,7 @@ class HwLinkStateDependentTest : public HwTest {
    * through the bringPort(s){Up,Down} APIs below
    */
   virtual cfg::SwitchConfig initialConfig() const = 0;
-  HwLinkStateToggler* getLinkToggler();
+  LinkStateToggler* getLinkToggler();
   HwSwitchEnsemble::Features featuresDesired() const override {
     return {HwSwitchEnsemble::LINKSCAN};
   }

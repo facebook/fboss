@@ -8,7 +8,7 @@
  *
  */
 #include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
-#include "fboss/agent/hw/test/HwLinkStateToggler.h"
+#include "fboss/agent/hw/test/LinkStateToggler.h"
 
 #include <memory>
 

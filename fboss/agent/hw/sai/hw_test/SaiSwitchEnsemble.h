@@ -72,7 +72,7 @@ class SaiSwitchEnsemble : public HwSwitchEnsemble {
   std::unique_ptr<std::thread> setupThrift() override {
     return createThriftThread(getHwSwitch());
   }
-  std::unique_ptr<HwLinkStateToggler> createLinkToggler(
+  std::unique_ptr<LinkStateToggler> createLinkToggler(
       HwSwitch* hwSwitch,
       cfg::PortLoopbackMode desiredLoopbackMode);
   std::unique_ptr<std::thread> createThriftThread(const SaiSwitch* hwSwitch);

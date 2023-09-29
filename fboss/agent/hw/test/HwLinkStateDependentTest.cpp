@@ -9,8 +9,8 @@
  */
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 
-#include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
+#include "fboss/agent/hw/test/LinkStateToggler.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -46,7 +46,7 @@ void HwLinkStateDependentTest::SetUp() {
   }
 }
 
-HwLinkStateToggler* HwLinkStateDependentTest::getLinkToggler() {
+LinkStateToggler* HwLinkStateDependentTest::getLinkToggler() {
   return getHwSwitchEnsemble()->getLinkToggler();
 }
 

@@ -23,9 +23,7 @@
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateToggler.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/hw/test/HwLinkStateToggler.h"
-#include "fboss/agent/hw/test/HwTestStatUtils.h"
+#include "fboss/agent/hw/test/LinkStateToggler.h"
 #include "fboss/agent/platforms/tests/utils/CreateTestPlatform.h"
 
 DECLARE_bool(setup_thrift);
@@ -194,7 +192,7 @@ bool BcmSwitchEnsemble::isRouteScaleEnabled() const {
   return BcmAPI::isAlpmEnabled();
 }
 
-std::unique_ptr<HwLinkStateToggler> BcmSwitchEnsemble::createLinkToggler() {
+std::unique_ptr<LinkStateToggler> BcmSwitchEnsemble::createLinkToggler() {
   return std::make_unique<BcmLinkStateToggler>(this);
 }
 
@@ -308,7 +306,7 @@ void BcmSwitchEnsemble::init(
     platform->setOverrideTransceiverInfo(*tcvr);
   }
 
-  std::unique_ptr<HwLinkStateToggler> linkToggler;
+  std::unique_ptr<LinkStateToggler> linkToggler;
   if (haveFeature(HwSwitchEnsemble::LINKSCAN)) {
     linkToggler = createLinkToggler();
   }

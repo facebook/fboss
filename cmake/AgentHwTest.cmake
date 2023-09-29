@@ -111,7 +111,7 @@ target_link_libraries(hw_dscp_marking_utils
 )
 
 add_library(hw_link_state_toggler
-  fboss/agent/hw/test/HwLinkStateToggler.cpp
+  fboss/agent/hw/test/LinkStateToggler.cpp
 )
 
 target_link_libraries(hw_link_state_toggler
@@ -383,11 +383,11 @@ target_link_libraries(hw_queue_per_host_utils
   ${LIBGMOCK_LIBRARIES}
 )
 
-add_library(hw_linkstate_toggler
-  fboss/agent/hw/test/HwLinkStateToggler.cpp
+add_library(linkstate_toggler
+  fboss/agent/hw/test/LinkStateToggler.cpp
 )
 
-target_link_libraries(hw_linkstate_toggler
+target_link_libraries(linkstate_toggler
   hw_switch
   state
   core

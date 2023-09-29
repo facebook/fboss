@@ -45,7 +45,7 @@ namespace facebook::fboss {
 
 class Platform;
 class SwitchState;
-class HwLinkStateToggler;
+class LinkStateToggler;
 class SwitchIdScopeResolver;
 class StateObserver;
 class SwSwitchWarmBootHelper;
@@ -116,7 +116,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       const cfg::SwitchConfig& config) override;
 
   std::shared_ptr<SwitchState> getProgrammedState() const override;
-  HwLinkStateToggler* getLinkToggler() {
+  LinkStateToggler* getLinkToggler() {
     return linkToggler_.get();
   }
   RoutingInformationBase* getRib() {
@@ -275,7 +275,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
    */
   void setupEnsemble(
       std::unique_ptr<HwAgent> hwAgent,
-      std::unique_ptr<HwLinkStateToggler> linkToggler,
+      std::unique_ptr<LinkStateToggler> linkToggler,
       std::unique_ptr<std::thread> thriftThread,
       const HwSwitchEnsembleInitInfo& info);
   uint32_t getHwSwitchFeatures() const;
@@ -309,7 +309,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
 
   std::shared_ptr<SwitchState> programmedState_{nullptr};
   std::unique_ptr<RoutingInformationBase> routingInformationBase_;
-  std::unique_ptr<HwLinkStateToggler> linkToggler_;
+  std::unique_ptr<LinkStateToggler> linkToggler_;
   std::unique_ptr<SplitAgentThriftSyncer> thriftSyncer_{nullptr};
   std::unique_ptr<HwAgent> hwAgent_;
   const Features featuresDesired_;

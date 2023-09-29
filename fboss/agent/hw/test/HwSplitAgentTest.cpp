@@ -13,8 +13,8 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
-#include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/LinkStateToggler.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -22,9 +22,9 @@ namespace facebook::fboss {
 
 class HwSplitAgentCallbackTest : public HwLinkStateDependentTest {
  public:
-  class TestToggler : public HwLinkStateToggler {
+  class TestToggler : public LinkStateToggler {
    public:
-    TestToggler() : HwLinkStateToggler(nullptr) {}
+    TestToggler() : LinkStateToggler(nullptr) {}
     void invokeLinkScanIfNeeded(PortID /*port*/, bool /*isUp*/) override {}
   };
 
@@ -66,7 +66,7 @@ class HwSplitAgentCallbackTest : public HwLinkStateDependentTest {
   }
 
  private:
-  std::unique_ptr<HwLinkStateToggler> toggler_;
+  std::unique_ptr<LinkStateToggler> toggler_;
 };
 
 TEST_F(HwSplitAgentCallbackTest, linkCallback) {

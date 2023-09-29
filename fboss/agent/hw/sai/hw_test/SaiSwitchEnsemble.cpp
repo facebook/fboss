@@ -18,7 +18,7 @@
 #include "fboss/agent/hw/sai/diag/SaiRepl.h"
 #include "fboss/agent/hw/sai/hw_test/SaiTestHandler.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/hw/test/HwLinkStateToggler.h"
+#include "fboss/agent/hw/test/LinkStateToggler.h"
 #include "fboss/agent/platforms/sai/SaiPlatformInit.h"
 
 #include "fboss/agent/HwSwitch.h"
@@ -150,9 +150,9 @@ void SaiSwitchEnsemble::init(
   if (auto tcvr = info.overrideTransceiverInfo) {
     platform->setOverrideTransceiverInfo(*tcvr);
   }
-  std::unique_ptr<HwLinkStateToggler> linkToggler;
+  std::unique_ptr<LinkStateToggler> linkToggler;
   if (haveFeature(HwSwitchEnsemble::LINKSCAN)) {
-    linkToggler = std::make_unique<HwLinkStateToggler>(this);
+    linkToggler = std::make_unique<LinkStateToggler>(this);
   }
   std::unique_ptr<std::thread> thriftThread;
   if (FLAGS_setup_thrift) {

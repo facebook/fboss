@@ -31,7 +31,7 @@ class BcmLinkStateDependentTests : public BcmTest {
   void bringDownPorts(const std::vector<PortID>& ports);
 
  private:
-  HwLinkStateToggler* getLinkToggler();
+  LinkStateToggler* getLinkToggler();
   HwSwitchEnsemble::Features featuresDesired() const override {
     return {HwSwitchEnsemble::LINKSCAN};
   }

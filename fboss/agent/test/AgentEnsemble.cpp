@@ -226,7 +226,7 @@ void AgentEnsemble::setupLinkStateToggler() {
   if (linkToggler_) {
     return;
   }
-  linkToggler_ = std::make_unique<HwLinkStateToggler>(this);
+  linkToggler_ = std::make_unique<LinkStateToggler>(this);
 }
 
 std::string AgentEnsemble::getInputConfigFile() {
