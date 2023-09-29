@@ -280,7 +280,8 @@ struct SlotTypeConfig {
 // "FAN_SLOT".
 //
 // `presenceDetection`: Logic to determine whether a PmUnit has been plugged in
-// this slot.
+// this slot. Need not be described if there is no presence detection for this
+// slot
 //
 // TODO: Enhance device presence logic based on SimpleIoDevice definition in
 // fbdevd.thrift
@@ -289,7 +290,7 @@ struct SlotTypeConfig {
 // which are going out in the slot.  Refer to Bus Naming Convention above.
 struct SlotConfig {
   1: SlotType slotType;
-  2: platform_manager_presence.PresenceDetection presenceDetection;
+  2: optional platform_manager_presence.PresenceDetection presenceDetection;
   3: list<string> outgoingI2cBusNames;
 }
 

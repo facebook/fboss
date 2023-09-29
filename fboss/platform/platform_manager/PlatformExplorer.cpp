@@ -65,9 +65,9 @@ void PlatformExplorer::exploreSlot(
     const std::string& slotName,
     const SlotConfig& slotConfig) {
   XLOG(INFO) << fmt::format("Exploring Slot {}/{}", pmUnitPath, slotName);
-  bool isChildPmUnitPlugged =
-      presenceDetector_.isPresent(*slotConfig.presenceDetection());
-  if (!isChildPmUnitPlugged) {
+
+  if (slotConfig.presenceDetection() &&
+      presenceDetector_.isPresent(*slotConfig.presenceDetection())) {
     XLOG(INFO) << fmt::format(
         "No device could detected in Slot {}/{}", pmUnitPath, slotName);
   }
