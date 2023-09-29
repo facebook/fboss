@@ -17,9 +17,7 @@ class PlatformExplorer {
       const PlatformConfig& config);
   void explore();
   void explorePmUnit(
-      const std::string& parentPmUnitPath,
-      const std::string& parentSlotName,
-      const SlotConfig& parentSlot,
+      const std::string& pmUnitPath,
       const std::string& pmUnitName);
   void exploreSlot(
       const std::string& pmUnitPath,
@@ -44,11 +42,11 @@ class PlatformExplorer {
   PlatformConfig platformConfig_{};
   PlatformI2cExplorer i2cExplorer_{};
   PresenceDetector presenceDetector_{};
-  // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.
-  // The pmUnitPath to the rootPmUnit is empty string. So a bus at root node
-  // will have the entry <"", "SMBus I801 adapter at"> -> i2c-54. A INCOMING@1
-  // bus at pmUnitPath /MCB_SLOT@0/PIM_SLOT@1 will have the entry
-  // <"/MCB_SLOT@0/PIM_SLOT@1", "INCOMING@1"> -> i2c-52
+  // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.  The
+  // pmUnitPath to the rootPmUnit is /. So a bus at root node will have the
+  // entry <"/", "MuxA@1"> -> i2c-54. A INCOMING@1 bus at pmUnitPath
+  // /MCB_SLOT@0/PIM_SLOT@1 will have the entry <"/MCB_SLOT@0/PIM_SLOT@1",
+  // "INCOMING@1"> -> i2c-52
   std::map<std::pair<std::string, std::string>, uint16_t> i2cBusNums_{};
 };
 
