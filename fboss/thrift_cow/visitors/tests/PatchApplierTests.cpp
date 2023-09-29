@@ -361,4 +361,32 @@ TEST(PatchApplierTests, SetUnsetOptionalMember) {
   EXPECT_FALSE(nodeB->isSet<k::optionalInt>());
   EXPECT_FALSE(nodeB->isSet<k::optionalStruct>());
 }
+
+TEST(PatchApplierTests, TestBadPatches) {
+  auto structA = createSimpleTestStruct();
+  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+
+  PatchNode del;
+  del.set_del();
+
+  // invalid field id
+  StructPatch structPatch;
+  structPatch.children() = {{1234, del}};
+  PatchNode n;
+  n.set_struct_node(structPatch);
+
+  auto ret = RootPatchApplier::apply(nodeA, PatchNode(n));
+  EXPECT_EQ(ret, PatchResult::INVALID_STRUCT_MEMBER);
+
+  // invalid union id
+  VariantPatch variantPatch;
+  variantPatch.id() = 4321;
+  n.set_variant_node(variantPatch);
+
+  structPatch.children() = {{TestStructMembers::inlineVariant::id(), n}};
+  n.set_struct_node(structPatch);
+
+  ret = RootPatchApplier::apply(nodeA, PatchNode(n));
+  EXPECT_EQ(ret, PatchResult::INVALID_VARIANT_MEMBER);
+}
 } // namespace facebook::fboss::thrift_cow

@@ -12,6 +12,8 @@ namespace facebook::fboss::thrift_cow {
 
 enum class PatchResult {
   OK,
+  INVALID_STRUCT_MEMBER,
+  INVALID_VARIANT_MEMBER,
   INVALID_PATCH_TYPE,
   NON_EXISTENT_NODE,
   KEY_PARSE_ERROR,
@@ -244,7 +246,7 @@ struct PatchApplier<apache::thrift::type_class::variant> {
       return PatchResult::INVALID_PATCH_TYPE;
     }
 
-    PatchResult result = PatchResult::OK;
+    PatchResult result = PatchResult::INVALID_VARIANT_MEMBER;
 
     using Fields = typename Node::Fields;
     using Members = typename Fields::MemberTypes;
@@ -265,13 +267,8 @@ struct PatchApplier<apache::thrift::type_class::variant> {
         result = PatchResult::NON_EXISTENT_NODE;
         return;
       }
-      auto res =
+      result =
           PatchApplier<tc>::apply(child, std::move(*variantPatch->child()));
-      // Continue patching even if there is an error, but still return an
-      // error if encountered
-      if (res != PatchResult::OK) {
-        result = res;
-      }
     });
 
     return result;
@@ -304,8 +301,10 @@ struct PatchApplier<apache::thrift::type_class::structure> {
     PatchResult result = PatchResult::OK;
     auto structPatch = patch.move_struct_node();
     for (auto&& [key, childPatch] : *std::move(structPatch).children()) {
+      auto invalidMember = true;
       fatal::scalar_search<typename Fields::Members, fatal::get_type::id>(
           key, [&, childPatch = std::move(childPatch)](auto indexed) mutable {
+            invalidMember = false;
             using member = decltype(fatal::tag_type(indexed));
             using name = typename member::name;
             using tc = typename member::type_class;
@@ -323,6 +322,9 @@ struct PatchApplier<apache::thrift::type_class::structure> {
               result = res;
             }
           });
+      if (invalidMember) {
+        result = PatchResult::INVALID_STRUCT_MEMBER;
+      }
     }
     return result;
   }
