@@ -6,7 +6,7 @@
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 
-#include <fboss/thrift_storage/visitors/NameToPathVisitor.h>
+#include <fboss/thrift_visitors/NameToPathVisitor.h>
 #include <thrift/lib/cpp2/reflection/folly_dynamic.h>
 // @lint-ignore CLANGTIDY
 #include "fboss/fsdb/tests/gen-cpp2-thriftpath/thriftpath_test.h" // @manual=//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath
