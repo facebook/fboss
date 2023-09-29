@@ -11,7 +11,7 @@
 
 #include <memory>
 
-#include <fboss/thrift_storage/CowStorage.h>
+#include <fboss/thrift_cow/storage/CowStorage.h>
 #include <folly/FBString.h>
 #include <folly/IntrusiveList.h>
 

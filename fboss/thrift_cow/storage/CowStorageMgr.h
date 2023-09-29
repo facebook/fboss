@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include <fboss/thrift_storage/CowStateUpdate.h>
-#include <fboss/thrift_storage/CowStorage.h>
+#include <fboss/thrift_cow/storage/CowStateUpdate.h>
+#include <fboss/thrift_cow/storage/CowStorage.h>
 #include <folly/Synchronized.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <folly/logging/xlog.h>

@@ -4,11 +4,11 @@
 
 #include <fboss/fsdb/common/Utils.h>
 #include <fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h>
+#include <fboss/thrift_cow/storage/CowStorage.h>
 #include <fboss/thrift_cow/visitors/DeltaVisitor.h>
-#include <fboss/thrift_storage/CowStorage.h>
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/fsdb/client/FsdbStreamClient.h"
-#include "fboss/thrift_storage/CowStorageMgr.h"
+#include "fboss/thrift_cow/storage/CowStorageMgr.h"
 
 #include <folly/io/async/EventBase.h>
 #include <atomic>

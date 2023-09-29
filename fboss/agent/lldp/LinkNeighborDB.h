@@ -6,7 +6,7 @@
 #include "fboss/agent/lldp/gen-cpp2/lldp_fatal_types.h"
 #include "fboss/agent/lldp/gen-cpp2/lldp_types.h"
 #include "fboss/agent/types.h"
-#include "fboss/thrift_storage/CowStorage.h"
+#include "fboss/thrift_cow/storage/CowStorage.h"
 #include "folly/Synchronized.h"
 
 #include <chrono>

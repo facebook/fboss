@@ -2,8 +2,8 @@
 
 #pragma once
 
+#include <fboss/thrift_cow/storage/CowStorage.h>
 #include <fboss/thrift_cow/visitors/DeltaVisitor.h>
-#include <fboss/thrift_storage/CowStorage.h>
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
 namespace facebook::fboss::fsdb {

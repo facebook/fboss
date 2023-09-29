@@ -3,9 +3,9 @@
 #pragma once
 
 #include <fboss/thrift_cow/nodes/Types.h>
+#include <fboss/thrift_cow/storage/Storage.h>
 #include <fboss/thrift_cow/visitors/ExtendedPathVisitor.h>
 #include <fboss/thrift_cow/visitors/PathVisitor.h>
-#include <fboss/thrift_storage/Storage.h>
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss::fsdb {
