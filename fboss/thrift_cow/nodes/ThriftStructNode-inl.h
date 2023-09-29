@@ -509,9 +509,9 @@ class ThriftStructNode
   template <typename Name>
   static auto& modify(std::shared_ptr<Derived>* node) {
     auto newNode = ((*node)->isPublished()) ? (*node)->clone() : *node;
-    auto& name = newNode->template modify<Name>();
+    auto& child = newNode->template modify<Name>();
     node->swap(newNode);
-    return name;
+    return child;
   }
 
   void modify(const std::string& token) {

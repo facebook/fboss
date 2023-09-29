@@ -206,4 +206,49 @@ TEST(PatchApplierTests, SetMemberFull) {
       *structB.listOfPrimitives());
   EXPECT_EQ(nodeA->ref<k::setOfI32>()->toThrift(), *structB.setOfI32());
 }
+
+TEST(PatchApplierTests, SetUnsetOptionalMember) {
+  auto structA = createSimpleTestStruct();
+  structA.optionalInt().reset();
+  structA.optionalStruct().reset();
+  auto structB = structA;
+  structB.optionalInt() = 123;
+  structB.optionalStruct() = cfg::L4PortRange();
+  structB.optionalStruct()->max() = 321;
+  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
+
+  PatchNode optionalInt;
+  optionalInt.set_val(
+      nodeB->ref<k::optionalInt>()->encodeBuf(fsdb::OperProtocol::COMPACT));
+  PatchNode optionalStruct;
+  optionalStruct.set_val(
+      nodeB->ref<k::optionalStruct>()->encodeBuf(fsdb::OperProtocol::COMPACT));
+
+  StructPatch structPatch;
+  structPatch.children() = {
+      {TestStructMembers::optionalInt::id(), optionalInt},
+      {TestStructMembers::optionalStruct::id(), optionalStruct}};
+  PatchNode n;
+  n.set_struct_node(structPatch);
+
+  auto ret = RootPatchApplier::apply(nodeA, std::move(n));
+  EXPECT_EQ(ret, PatchResult::OK);
+
+  EXPECT_EQ(nodeA->ref<k::optionalInt>()->toThrift(), *structB.optionalInt());
+  EXPECT_EQ(
+      nodeA->ref<k::optionalStruct>()->toThrift(), *structB.optionalStruct());
+
+  // unset optionals
+  structPatch.children()[TestStructMembers::optionalInt::id()].set_del();
+  structPatch.children()[TestStructMembers::optionalStruct::id()].set_del();
+  n = PatchNode();
+  n.set_struct_node(std::move(structPatch));
+
+  ret = RootPatchApplier::apply(nodeB, std::move(n));
+  EXPECT_EQ(ret, PatchResult::OK);
+
+  EXPECT_FALSE(nodeB->isSet<k::optionalInt>());
+  EXPECT_FALSE(nodeB->isSet<k::optionalStruct>());
+}
 } // namespace facebook::fboss::thrift_cow

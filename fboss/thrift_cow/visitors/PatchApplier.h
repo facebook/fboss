@@ -249,7 +249,6 @@ struct PatchApplier<apache::thrift::type_class::variant> {
         result = PatchResult::NON_EXISTENT_NODE;
         return;
       }
-
       auto res =
           PatchApplier<tc>::apply(child, std::move(*variantPatch->child()));
       // Continue patching even if there is an error, but still return an
@@ -295,6 +294,11 @@ struct PatchApplier<apache::thrift::type_class::structure> {
             using name = typename member::name;
             using tc = typename member::type_class;
 
+            if (childPatch.getType() == PatchNode::Type::del) {
+              node->template remove<name>();
+              return;
+            }
+
             auto& child = node->template modify<name>(&node);
             auto res = PatchApplier<tc>::apply(child, std::move(childPatch));
             // Continue patching even if there is an error, but still return an
@@ -328,7 +332,6 @@ struct PatchApplier {
     if (patch.getType() != PatchNode::Type::val) {
       return PatchResult::INVALID_PATCH_TYPE;
     }
-    // TODO: construct if nullopt?
     return pa_detail::patchNode(fields, patch.move_val());
   }
 };
