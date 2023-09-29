@@ -1,5 +1,4 @@
 namespace cpp2 facebook.fboss.platform.data_corral_service
-namespace py3 neteng.fboss.platform.data_corral_service
 
 enum LedColor {
   OFF = 0,
