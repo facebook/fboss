@@ -23,6 +23,14 @@ struct PatchApplier;
 struct NodeType;
 struct FieldsType;
 
+namespace pa_detail {
+template <typename Node>
+PatchResult patchNode(Node& n, ByteBuffer&& buf) {
+  n->fromEncodedBuf(fsdb::OperProtocol::COMPACT, std::move(buf));
+  return PatchResult::OK;
+}
+} // namespace pa_detail
+
 /*
  * Map
  */
@@ -39,6 +47,9 @@ struct PatchApplier<
   static inline PatchResult apply(
       std::shared_ptr<Node>& node,
       PatchNode&& patch) {
+    if (patch.getType() == PatchNode::Type::val) {
+      return pa_detail::patchNode(node, patch.move_val());
+    }
     if (patch.getType() != PatchNode::Type::map_node) {
       return PatchResult::INVALID_PATCH_TYPE;
     }
@@ -105,7 +116,9 @@ struct PatchApplier<apache::thrift::type_class::list<ValueTypeClass>> {
   static inline PatchResult apply(
       std::shared_ptr<Node>& node,
       PatchNode&& patch) {
-    // TODO: handle val
+    if (patch.getType() == PatchNode::Type::val) {
+      return pa_detail::patchNode(node, patch.move_val());
+    }
     if (patch.getType() != PatchNode::Type::list_node) {
       return PatchResult::INVALID_PATCH_TYPE;
     }
@@ -140,7 +153,9 @@ struct PatchApplier<apache::thrift::type_class::set<ValueTypeClass>> {
   static inline PatchResult apply(
       std::shared_ptr<Node>& node,
       PatchNode&& patch) {
-    // TODO: handle val
+    if (patch.getType() == PatchNode::Type::val) {
+      return pa_detail::patchNode(node, patch.move_val());
+    }
     if (patch.getType() != PatchNode::Type::set_node) {
       return PatchResult::INVALID_PATCH_TYPE;
     }
@@ -205,6 +220,9 @@ struct PatchApplier<apache::thrift::type_class::variant> {
   static inline PatchResult apply(
       std::shared_ptr<Node>& node,
       PatchNode&& patch) {
+    if (patch.getType() == PatchNode::Type::val) {
+      return pa_detail::patchNode(node, patch.move_val());
+    }
     if (patch.getType() != PatchNode::Type::variant_node) {
       return PatchResult::INVALID_PATCH_TYPE;
     }
@@ -260,7 +278,9 @@ struct PatchApplier<apache::thrift::type_class::structure> {
   static inline PatchResult apply(
       std::shared_ptr<Node>& node,
       PatchNode&& patch) {
-    // TODO: handle val
+    if (patch.getType() == PatchNode::Type::val) {
+      return pa_detail::patchNode(node, patch.move_val());
+    }
     if (patch.getType() != PatchNode::Type::struct_node) {
       return PatchResult::INVALID_PATCH_TYPE;
     }
@@ -309,8 +329,9 @@ struct PatchApplier {
       return PatchResult::INVALID_PATCH_TYPE;
     }
     // TODO: construct if nullopt?
-    fields->fromEncodedBuf(fsdb::OperProtocol::COMPACT, patch.move_val());
-    return PatchResult::OK;
+    return pa_detail::patchNode(fields, patch.move_val());
   }
 };
+
+using RootPatchApplier = PatchApplier<apache::thrift::type_class::structure>;
 } // namespace facebook::fboss::thrift_cow

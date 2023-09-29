@@ -151,4 +151,59 @@ TEST(PatchApplierTests, AddRemoveSetItems) {
   EXPECT_EQ(nodeA->template ref<k::setOfI32>()->count(1), 1);
   EXPECT_EQ(nodeA->template ref<k::setOfI32>()->count(3), 1);
 }
+
+TEST(PatchApplierTests, SetMemberFull) {
+  auto structA = createSimpleTestStruct();
+  auto structB = structA;
+
+  cfg::L4PortRange t;
+  t.min() = 12;
+  t.max() = 34;
+  structB.inlineStruct() = std::move(t);
+  structB.inlineVariant()->set_inlineString("test");
+  structB.mapOfI32ToI32() = {{1, 2}, {3, 4}};
+  structB.listOfPrimitives() = {5, 6};
+  structB.setOfI32() = {7, 8};
+  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
+
+  // use second node to create full patches
+  PatchNode inlineStruct;
+  inlineStruct.set_val(
+      nodeB->ref<k::inlineStruct>()->encodeBuf(fsdb::OperProtocol::COMPACT));
+  PatchNode inlineVariant;
+  inlineVariant.set_val(
+      nodeB->ref<k::inlineVariant>()->encodeBuf(fsdb::OperProtocol::COMPACT));
+  PatchNode mapOfI32ToI32;
+  mapOfI32ToI32.set_val(
+      nodeB->ref<k::mapOfI32ToI32>()->encodeBuf(fsdb::OperProtocol::COMPACT));
+  PatchNode listOfPrimitives;
+  listOfPrimitives.set_val(nodeB->ref<k::listOfPrimitives>()->encodeBuf(
+      fsdb::OperProtocol::COMPACT));
+  PatchNode setOfI32;
+  setOfI32.set_val(
+      nodeB->ref<k::setOfI32>()->encodeBuf(fsdb::OperProtocol::COMPACT));
+  StructPatch structPatch;
+  structPatch.children() = {
+      {TestStructMembers::inlineStruct::id(), inlineStruct},
+      {TestStructMembers::inlineVariant::id(), inlineVariant},
+      {TestStructMembers::mapOfI32ToI32::id(), mapOfI32ToI32},
+      {TestStructMembers::listOfPrimitives::id(), listOfPrimitives},
+      {TestStructMembers::setOfI32::id(), setOfI32}};
+  PatchNode n;
+  n.set_struct_node(std::move(structPatch));
+
+  auto ret = RootPatchApplier::apply(nodeA, std::move(n));
+  EXPECT_EQ(ret, PatchResult::OK);
+
+  EXPECT_EQ(nodeA->ref<k::inlineStruct>()->toThrift(), *structB.inlineStruct());
+  EXPECT_EQ(
+      nodeA->ref<k::inlineVariant>()->toThrift(), *structB.inlineVariant());
+  EXPECT_EQ(
+      nodeA->ref<k::mapOfI32ToI32>()->toThrift(), *structB.mapOfI32ToI32());
+  EXPECT_EQ(
+      nodeA->ref<k::listOfPrimitives>()->toThrift(),
+      *structB.listOfPrimitives());
+  EXPECT_EQ(nodeA->ref<k::setOfI32>()->toThrift(), *structB.setOfI32());
+}
 } // namespace facebook::fboss::thrift_cow
