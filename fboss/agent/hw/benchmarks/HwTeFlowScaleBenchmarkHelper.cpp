@@ -65,7 +65,11 @@ void teFlowAddDelEntriesBenchmarkHelper(bool measureAdd) {
       };
   auto ensemble = createAgentEnsemble(initialConfigFn, platformConfigFn);
   auto ports = ensemble->masterLogicalPortIds();
-  auto hwSwitch = ensemble->getHw();
+  // TODO(zecheng): Deprecate agent access to HwSwitch
+  auto hwSwitch =
+      static_cast<MonolithicAgentInitializer*>(ensemble->agentInitializer())
+          ->platform()
+          ->getHwSwitch();
   auto state = ensemble->getSw()->getState();
   auto ecmpHelper = utility::EcmpSetupAnyNPorts6(state, RouterID(0));
   // Setup EM Config

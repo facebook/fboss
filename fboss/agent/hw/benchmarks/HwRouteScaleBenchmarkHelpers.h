@@ -23,7 +23,7 @@
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
-#include "fboss/agent/test/AgentEnsemble.h"
+#include "fboss/agent/test/MonoAgentEnsemble.h"
 
 namespace facebook::fboss {
 
@@ -52,7 +52,11 @@ void routeAddDelBenchmarker(bool measureAdd) {
   auto* sw = ensemble->getSw();
 
   auto routeGenerator = RouteScaleGeneratorT(sw->getState());
-  if (!routeGenerator.isSupported(ensemble->getPlatform()->getType())) {
+  // TODO(zecheng): Deprecate ensemble access to platform
+  auto platform =
+      static_cast<MonolithicAgentInitializer*>(ensemble->agentInitializer())
+          ->platform();
+  if (!routeGenerator.isSupported(platform->getType())) {
     // skip if this is not supported for a platform
     return;
   }

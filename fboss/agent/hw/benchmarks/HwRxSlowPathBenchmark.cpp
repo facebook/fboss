@@ -59,7 +59,11 @@ BENCHMARK(RxSlowPathBenchmark) {
 
   auto ensemble = createAgentEnsemble(initialConfigFn);
 
-  auto hwSwitch = ensemble->getHwSwitch();
+  // TODO(zecheng): Deprecate agent access to HwSwitch
+  auto hwSwitch =
+      static_cast<MonolithicAgentInitializer*>(ensemble->agentInitializer())
+          ->platform()
+          ->getHwSwitch();
   auto config =
       initialConfigFn(ensemble->getSw(), ensemble->masterLogicalPortIds());
   // capture packet exiting port 0 (entering due to loopback)

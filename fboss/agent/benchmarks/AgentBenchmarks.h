@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "fboss/agent/test/AgentEnsemble.h"
+#include "fboss/agent/test/MonoAgentEnsemble.h"
 
 DECLARE_bool(json);
 

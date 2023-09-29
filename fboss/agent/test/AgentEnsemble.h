@@ -11,8 +11,10 @@
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/Main.h"
 
+#include "fboss/agent/FbossInit.h"
+#include "fboss/agent/SwAgentInitializer.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
-#include "fboss/agent/single/MonolithicAgentInitializer.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 
@@ -34,10 +36,7 @@ class AgentEnsemble : public TestEnsembleIf {
   using TestEnsembleIf::masterLogicalPortIds;
 
   void setupEnsemble(
-      int argc,
-      char** argv,
       uint32_t hwFeaturesDesired,
-      PlatformInitFn initPlatform,
       AgentEnsembleSwitchConfigFn initConfig,
       AgentEnsemblePlatformConfigFn platformConfig =
           AgentEnsemblePlatformConfigFn());
@@ -46,18 +45,10 @@ class AgentEnsemble : public TestEnsembleIf {
 
   void applyNewConfig(const cfg::SwitchConfig& config, bool activate);
 
-  const MonolithicAgentInitializer* agentInitializer() const {
-    return &agentInitializer_;
-  }
-
   void setupLinkStateToggler();
 
-  MonolithicAgentInitializer* agentInitializer() {
-    return &agentInitializer_;
-  }
-
   SwSwitch* getSw() const {
-    return agentInitializer_.sw();
+    return agentInitializer()->sw();
   }
 
   std::shared_ptr<SwitchState> getProgrammedState() const override {
@@ -75,13 +66,13 @@ class AgentEnsemble : public TestEnsembleIf {
     return getProgrammedState();
   }
 
-  Platform* getPlatform() const {
-    return agentInitializer_.platform();
-  }
-
-  HwSwitch* getHw() const {
-    return getPlatform()->getHwSwitch();
-  }
+  virtual const SwAgentInitializer* agentInitializer() const = 0;
+  virtual SwAgentInitializer* agentInitializer() = 0;
+  virtual void createSwitch(
+      std::unique_ptr<AgentConfig> config,
+      uint32_t hwFeaturesDesired,
+      PlatformInitFn initPlatform) = 0;
+  virtual void reloadPlatformConfig() = 0;
 
   std::shared_ptr<SwitchState> applyNewState(
       std::shared_ptr<SwitchState> state,
@@ -139,11 +130,11 @@ class AgentEnsemble : public TestEnsembleIf {
   }
 
   HwSwitch* getHwSwitch() override {
-    return getHw();
+    return nullptr;
   }
 
   const HwSwitch* getHwSwitch() const override {
-    return getHw();
+    return nullptr;
   }
 
   std::map<PortID, HwPortStats> getLatestPortStats(
@@ -173,7 +164,6 @@ class AgentEnsemble : public TestEnsembleIf {
   void writeConfig(const cfg::AgentConfig& config);
   void writeConfig(const cfg::AgentConfig& config, const std::string& file);
 
-  MonolithicAgentInitializer agentInitializer_{};
   cfg::SwitchConfig initialConfig_;
   std::unique_ptr<std::thread> asyncInitThread_{nullptr};
   std::vector<PortID> masterLogicalPortIds_;

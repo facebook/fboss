@@ -34,15 +34,12 @@ AgentEnsemble::AgentEnsemble(const std::string& configFileName) {
 }
 
 void AgentEnsemble::setupEnsemble(
-    int argc,
-    char** argv,
     uint32_t hwFeaturesDesired,
-    PlatformInitFn initPlatform,
     AgentEnsembleSwitchConfigFn initialConfigFn,
     AgentEnsemblePlatformConfigFn platformConfigFn) {
   // to ensure FLAGS_config is set, as this is used in case platform config is
   // overriden by the application.
-  gflags::ParseCommandLineFlags(&argc, &argv, false);
+  gflags::ParseCommandLineFlags(&kArgc, &kArgv, false);
 
   FLAGS_verify_apply_oper_delta = true;
 
@@ -55,9 +52,8 @@ void AgentEnsemble::setupEnsemble(
     writeConfig(agentConf, FLAGS_config);
   }
   setVersionInfo();
-  auto config = fbossCommonInit(argc, argv);
-  auto* initializer = agentInitializer();
-  initializer->createSwitch(std::move(config), hwFeaturesDesired, initPlatform);
+  auto config = fbossCommonInit(kArgc, kArgv);
+  createSwitch(std::move(config), hwFeaturesDesired, kPlatformInitFn);
 
   // TODO: Handle multiple Asics
   auto asic = getSw()->getHwAsicTable()->getHwAsics().cbegin()->second;
@@ -81,7 +77,7 @@ void AgentEnsemble::setupEnsemble(
   initialConfig_ = initialConfigFn(getSw(), masterLogicalPortIds_);
   applyInitialConfig(initialConfig_);
   // reload the new config
-  getPlatform()->reloadConfig();
+  reloadPlatformConfig();
 }
 
 void AgentEnsemble::startAgent() {
@@ -139,8 +135,6 @@ void AgentEnsemble::writeConfig(
 }
 
 AgentEnsemble::~AgentEnsemble() {
-  auto* initializer = agentInitializer();
-  initializer->stopAgent(false);
   asyncInitThread_->join();
   asyncInitThread_.reset();
 }
@@ -247,28 +241,6 @@ int ensembleMain(int argc, char* argv[], PlatformInitFn initPlatform) {
   kArgv = argv;
   kPlatformInitFn = std::move(initPlatform);
   return RUN_ALL_TESTS();
-}
-
-std::unique_ptr<AgentEnsemble> createAgentEnsemble(
-    AgentEnsembleSwitchConfigFn initialConfigFn,
-    AgentEnsemblePlatformConfigFn platformConfigFn,
-    uint32_t featuresDesired,
-    bool startAgent) {
-  auto ensemble = std::make_unique<AgentEnsemble>();
-  ensemble->setupEnsemble(
-      kArgc,
-      kArgv,
-      featuresDesired,
-      kPlatformInitFn,
-      initialConfigFn,
-      platformConfigFn);
-  if (featuresDesired & HwSwitch::FeaturesDesired::LINKSCAN_DESIRED) {
-    ensemble->setupLinkStateToggler();
-  }
-  if (startAgent) {
-    ensemble->startAgent();
-  }
-  return ensemble;
 }
 
 std::map<PortID, HwPortStats> AgentEnsemble::getLatestPortStats(

@@ -46,7 +46,11 @@ BENCHMARK(HwEcmpGroupShrink) {
         ;
       };
   auto ensemble = createAgentEnsemble(initialConfigFn);
-  auto hwSwitch = ensemble->getHw();
+  // TODO(zecheng): Deprecate agent access to HwSwitch
+  auto hwSwitch =
+      static_cast<MonolithicAgentInitializer*>(ensemble->agentInitializer())
+          ->platform()
+          ->getHwSwitch();
   auto ecmpHelper = utility::EcmpSetupAnyNPorts6(ensemble->getSw()->getState());
   ensemble->applyNewState(
       ecmpHelper.resolveNextHops(ensemble->getSw()->getState(), kEcmpWidth));

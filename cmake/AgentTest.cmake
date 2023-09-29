@@ -161,3 +161,11 @@ target_link_libraries(agent_ensemble
   test_ensemble_if
   ${GTEST}
 )
+
+add_library(mono_agent_ensemble
+  fboss/agent/test/MonoAgentEnsemble.cpp
+)
+
+target_link_libraries(mono_agent_ensemble
+  agent_ensemble
+)

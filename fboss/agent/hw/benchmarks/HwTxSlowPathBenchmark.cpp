@@ -71,7 +71,11 @@ BENCHMARK(runTxSlowPathBenchmark) {
       std::make_unique<SwSwitchRouteUpdateWrapper>(
           ensemble->getSw(), ensemble->getSw()->getRib()),
       kEcmpWidth);
-  auto cpuMac = ensemble->getPlatform()->getLocalMac();
+  // TODO(zecheng): Deprecate ensemble access to platform
+  auto platform =
+      static_cast<MonolithicAgentInitializer*>(ensemble->agentInitializer())
+          ->platform();
+  auto cpuMac = platform->getLocalMac();
   auto vlanId = utility::firstVlanID(ensemble->getProgrammedState());
   std::atomic<bool> packetTxDone{false};
   std::thread t([cpuMac, vlanId, swSwitch, &packetTxDone]() {
