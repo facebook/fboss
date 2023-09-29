@@ -189,7 +189,7 @@ TEST(PatchApplierTests, ModifyVariantValue) {
       fsdb::OperProtocol::COMPACT, 42));
 
   VariantPatch variantPatch;
-  variantPatch.id() = TestStructMembers::inlineInt::id();
+  variantPatch.id() = TestUnionMembers::inlineInt();
   variantPatch.child() = intPatch;
   PatchNode n;
   n.set_variant_node(variantPatch);
@@ -197,6 +197,43 @@ TEST(PatchApplierTests, ModifyVariantValue) {
   PatchApplier<apache::thrift::type_class::variant>::apply(
       nodeA->template ref<k::inlineVariant>(), std::move(n));
   EXPECT_EQ(*nodeA->template ref<k::inlineVariant>()->ref<k::inlineInt>(), 42);
+}
+
+TEST(PatchApplierTests, ModifyVariantType) {
+  auto structA = createSimpleTestStruct();
+  structA.inlineVariant()->set_inlineString("some val");
+
+  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+
+  PatchNode intPatch;
+  intPatch.set_val(serializeBuf<apache::thrift::type_class::integral>(
+      fsdb::OperProtocol::COMPACT, 42));
+
+  VariantPatch variantPatch;
+  variantPatch.id() = TestUnionMembers::inlineInt();
+  variantPatch.child() = intPatch;
+  PatchNode n;
+  n.set_variant_node(variantPatch);
+
+  PatchApplier<apache::thrift::type_class::variant>::apply(
+      nodeA->template ref<k::inlineVariant>(), PatchNode(n));
+  EXPECT_EQ(*nodeA->template ref<k::inlineVariant>()->ref<k::inlineInt>(), 42);
+
+  StructPatch structPatch;
+  structPatch.children() = {{L4PortRangeMembers::min::id(), intPatch}};
+
+  variantPatch.id() = TestUnionMembers::inlineStruct();
+  variantPatch.child()->set_struct_node(structPatch);
+  n.set_variant_node(variantPatch);
+
+  PatchApplier<apache::thrift::type_class::variant>::apply(
+      nodeA->template ref<k::inlineVariant>(), PatchNode(n));
+  EXPECT_EQ(
+      *nodeA->template ref<k::inlineVariant>()
+           ->ref<k::inlineStruct>()
+           ->toThrift()
+           .min(),
+      42);
 }
 
 TEST(PatchApplierTests, AddRemoveSetItems) {

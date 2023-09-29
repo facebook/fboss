@@ -252,13 +252,12 @@ struct PatchApplier<apache::thrift::type_class::variant> {
     auto variantPatch = patch.variant_node_ref();
     auto key = *variantPatch->id();
 
-    // TODO: handle changing the variant type (if child patch is val type)
     fatal::scalar_search<Members, fatal::get_type::id>(key, [&](auto tag) {
       using descriptor = typename decltype(fatal::tag_type(tag))::member;
       using name = typename descriptor::metadata::name;
       using tc = typename descriptor::metadata::type_class;
 
-      // TODO: modify child
+      node->template modify<name>();
       auto& child = node->template ref<name>();
 
       if (!child) {
