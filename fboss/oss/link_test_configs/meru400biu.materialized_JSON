@@ -7643,6 +7643,7 @@
           "eventor_sbus_dma_channels.BCM8885X": "1,0,1,1",
           "fabric_connect_mode": "FE",
           "fabric_connectivity_based_on_integrity": "0",
+          "fabric_distributed_system_enable": "1",
           "flexe_device_mode.BCM88482": "IGNORE",
           "flexe_device_mode.BCM88485": "IGNORE",
           "flexe_device_mode.BCM88487": "IGNORE",
