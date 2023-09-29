@@ -302,7 +302,9 @@ sai_service_method_table_t* SaiPlatform::getServiceMethodTable() const {
 HwSwitchWarmBootHelper* SaiPlatform::getWarmBootHelper() {
   if (!wbHelper_) {
     wbHelper_ = std::make_unique<HwSwitchWarmBootHelper>(
-        0, getDirectoryUtil()->getWarmBootDir(), "sai_adaptor_state_");
+        getAsic()->getSwitchIndex(),
+        getDirectoryUtil()->getWarmBootDir(),
+        "sai_adaptor_state_");
   }
   return wbHelper_.get();
 }
