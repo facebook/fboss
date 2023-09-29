@@ -22,7 +22,6 @@ void SplitAgentTest::SetUp() {
       [this](SwSwitch* swSwitch, const std::vector<PortID>& ports) {
         return initialConfig(swSwitch, ports);
       };
-
   if (platformConfigFn_) {
     agentEnsemble_ = createAgentEnsemble(initialConfigFn, platformConfigFn_);
   } else {

@@ -22,7 +22,8 @@ void SplitAgentEnsemble::createSwitch(
     std::unique_ptr<AgentConfig> /* config */,
     uint32_t /* hwFeaturesDesired */,
     PlatformInitFn /* initPlatform */) {
-  // TODO: Initialize sw in createSwitch.
+  // For SplitAgentEnsemble, initialize splitSwAgentInitializer
+  agentInitializer_ = std::make_unique<SplitSwAgentInitializer>();
   return;
 }
 
