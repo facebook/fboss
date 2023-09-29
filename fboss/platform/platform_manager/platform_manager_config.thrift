@@ -123,7 +123,7 @@ include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 //
 // `kernelDeviceName`: The device name used by kernel to identify the device
 //
-// `pmUnitScopeName`: The name assigned to the device in the config, unique
+// `pmUnitScopedName`: The name assigned to the device in the config, unique
 // within the scope of PmUnit.
 //
 // `numOutgoingChannels`: Number of outgoing channels (applies only for mux)
@@ -138,13 +138,13 @@ include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 // as follows
 //
 // sensor1 = I2cDeviceConfig( busName="INCOMING@0", address="0x12",
-// kernelDeviceName="lm75", pmUnitScopeName="sensor1")
+// kernelDeviceName="lm75", pmUnitScopedName="sensor1")
 //
 // sensor2 = I2cDeviceConfig( busName="mux1@0", address="0x13",
-// kernelDeviceName="lm75", pmUnitScopeName="sensor2")
+// kernelDeviceName="lm75", pmUnitScopedName="sensor2")
 //
 // mux1 = I2cDeviceConfig( busName="INCOMING@1", address="0x54",
-// kernelDeviceName="pca9x48", pmUnitScopeName="mux1", numOutgoingChannels=3)
+// kernelDeviceName="pca9x48", pmUnitScopedName="mux1", numOutgoingChannels=3)
 //                    ┌──────────────────────────────────────────┐
 //                    │               Sample PmUnit              │
 //    INCOMING@0      │                       ┌────┬─────┐       │
