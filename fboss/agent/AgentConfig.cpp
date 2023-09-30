@@ -21,6 +21,11 @@ DEFINE_string(
     "/etc/coop/agent.conf",
     "The path to the local JSON configuration file");
 
+DEFINE_bool(
+    multi_switch,
+    false,
+    "If the agent is running in multi_switch mode or not");
+
 // NOTE: we use std::cerr because logging libs are likely not
 // initialized yet...
 
@@ -86,4 +91,10 @@ AgentConfig::AgentConfig(const cfg::AgentConfig& thriftConfig)
       raw(apache::thrift::SimpleJSONSerializer::serialize<std::string>(
           thriftConfig)) {}
 
+cfg::AgentRunMode AgentConfig::getRunMode() const {
+  if (FLAGS_multi_switch) {
+    return cfg::AgentRunMode::MULTI_SWITCH;
+  }
+  return cfg::AgentRunMode::MONO;
+}
 } // namespace facebook::fboss

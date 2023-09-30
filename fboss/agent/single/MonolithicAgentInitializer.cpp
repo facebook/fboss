@@ -81,6 +81,8 @@ MonolithicAgentInitializer::MonolithicAgentInitializer(
     std::unique_ptr<AgentConfig> config,
     uint32_t hwFeaturesDesired,
     PlatformInitFn initPlatform) {
+  CHECK(!FLAGS_multi_switch)
+      << "Multi-switch not supported for monolithic agent";
   createSwitch(std::move(config), hwFeaturesDesired, initPlatform);
 }
 
