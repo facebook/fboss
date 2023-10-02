@@ -24,14 +24,14 @@ struct AttributeConfig {
 }
 
 // Platform config info of a fru module
-struct FruConfig {
+struct DataCorralFruConfig {
   1: string name;
   2: list<AttributeConfig> attributes;
 }
 
 // Platform config info of the whole chassis
 struct DataCorralPlatformConfig {
-  1: list<FruConfig> fruModules;
+  1: list<DataCorralFruConfig> fruModules;
   2: list<AttributeConfig> chassisAttributes;
 }
 
