@@ -4,6 +4,10 @@
 
 namespace facebook::fboss {
 
+MonoAgentEnsemble::~MonoAgentEnsemble() {
+  agentInitializer_.stopAgent(false);
+}
+
 const SwAgentInitializer* MonoAgentEnsemble::agentInitializer() const {
   return &agentInitializer_;
 }

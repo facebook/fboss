@@ -45,7 +45,9 @@ void SplitAgentTest::tearDownAgentEnsemble(bool doWarmboot) {
   if (::testing::Test::HasFailure()) {
     // TODO: Collect Info and dump counters
   }
-  agentEnsemble_->agentInitializer()->stopAgent(doWarmboot);
+  if (doWarmboot) {
+    agentEnsemble_->gracefulExit();
+  }
   agentEnsemble_.reset();
 }
 

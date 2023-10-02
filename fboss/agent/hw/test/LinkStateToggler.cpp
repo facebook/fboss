@@ -182,7 +182,10 @@ std::shared_ptr<SwitchState> LinkStateToggler::applyInitialConfigWithPortsDown(
     hwEnsemble_->applyNewState(switchState);
   }
 
-  hwEnsemble_->getHwSwitch()->switchRunStateChanged(SwitchRunState::CONFIGURED);
+  if (hwEnsemble_->getHwSwitch()) {
+    hwEnsemble_->getHwSwitch()->switchRunStateChanged(
+        SwitchRunState::CONFIGURED);
+  }
   return hwEnsemble_->getProgrammedState();
 }
 
