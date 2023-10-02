@@ -493,6 +493,8 @@ struct AclEntry {
   30: optional i32 vlanID;
 
   31: optional list<string> udfGroups;
+
+  32: optional byte roceOpcode;
 }
 
 enum AclTableActionType {
