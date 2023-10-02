@@ -1,12 +1,12 @@
 {
   "fwConfigs" : {
     "bios" : {
-      "preUpgradeCmd" : "printf '3000000:3FFFFFF image\n2FF0000:2FF7FFF aboot_conf' > /tmp/bios_spi_layout",
+      "preUpgradeCmd" : "printf '3000000:3FFFFFF image' > /tmp/bios_spi_layout",
       "priority" : 1,
-      "upgradeCmd" : "bios_filename=$(head -n 1 /tmp/bios_filename.txt); flashrom -p internal -l /tmp/bios_spi_layout -i image -i aboot_conf --noverify-all -w $bios_filename",
-      "postUpgradeCmd" : "bios_filename=$(head -n 1 /tmp/bios_filename.txt); flashrom -p internal -l /tmp/bios_spi_layout -i image -i aboot_conf --noverify-all -v $bios_filename",
-      "verifyFwCmd" : "bios_filename=$(head -n 1 /tmp/bios_filename.txt); flashrom -p internal -l /tmp/bios_spi_layout -i image -i aboot_conf --noverify-all -v $bios_filename",
-      "readFwCmd" : "bios_filename=$(head -n 1 /tmp/bios_filename.txt); flashrom -p internal -l /tmp/bios_spi_layout -i image -i aboot_conf --noverify-all -r $bios_filename"
+      "upgradeCmd" : "bios_filename=$(head -n 1 /tmp/bios_filename.txt); flashrom -p internal -l /tmp/bios_spi_layout -i image --noverify-all -w $bios_filename",
+      "postUpgradeCmd" : "bios_filename=$(head -n 1 /tmp/bios_filename.txt); flashrom -p internal -l /tmp/bios_spi_layout -i image --noverify-all -v $bios_filename",
+      "verifyFwCmd" : "bios_filename=$(head -n 1 /tmp/bios_filename.txt); flashrom -p internal -l /tmp/bios_spi_layout -i image --noverify-all -v $bios_filename",
+      "readFwCmd" : "bios_filename=$(head -n 1 /tmp/bios_filename.txt); flashrom -p internal -l /tmp/bios_spi_layout -i image --noverify-all -r $bios_filename"
     },
     "scm_cpld" : {
       "preUpgradeCmd" : "",
