@@ -33,43 +33,94 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
     return cfg;
   }
   enum AclType {
-    TTLD,
+    TCP_TTLD,
+    UDP_TTLD,
     SRC_PORT,
   };
 
-  void
-  counterBumpOnHitHelper(bool bumpOnHit, bool frontPanel, AclType aclType) {
-    auto setup = [this, aclType]() {
+  std::string getAclName(AclType aclType) const {
+    std::string aclName{};
+    switch (aclType) {
+      case AclType::SRC_PORT:
+        aclName = "test-acl";
+        break;
+      case AclType::TCP_TTLD:
+        aclName = "test-tcp-acl";
+        break;
+      case AclType::UDP_TTLD:
+        aclName = "test-udp-acl";
+        break;
+    }
+    return aclName;
+  }
+
+  std::string getCounterName(AclType aclType) const {
+    std::string counterName{};
+    switch (aclType) {
+      case AclType::SRC_PORT:
+        counterName = "test-acl-stats";
+        break;
+      case AclType::TCP_TTLD:
+        counterName = "test-tcp-acl-stats";
+        break;
+      case AclType::UDP_TTLD:
+        counterName = "test-udp-acl-stats";
+        break;
+    }
+    return counterName;
+  }
+
+  void counterBumpOnHitHelper(
+      bool bumpOnHit,
+      bool frontPanel,
+      std::vector<AclType> aclTypes) {
+    auto setup = [this, aclTypes]() {
       applyNewState(helper_->resolveNextHops(getProgrammedState(), 2));
       helper_->programRoutes(getRouteUpdater(), kEcmpWidth);
       auto newCfg{initialConfig()};
-      addAclAndStat(&newCfg, aclType);
+      for (auto aclType : aclTypes) {
+        addAclAndStat(&newCfg, aclType);
+      }
       applyNewConfig(newCfg);
     };
 
-    auto verify = [this, bumpOnHit, frontPanel, aclType]() {
+    auto verifyAclType = [this, bumpOnHit, frontPanel](AclType aclType) {
       auto egressPort = helper_->ecmpPortDescriptorAt(0).phyPortID();
       auto pktsBefore = *getLatestPortStats(egressPort).outUnicastPkts__ref();
       auto aclPktCountBefore = utility::getAclInOutPackets(
-          getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
+          getHwSwitch(),
+          getProgrammedState(),
+          getAclName(aclType),
+          getCounterName(aclType));
 
       auto aclBytesCountBefore = utility::getAclInOutBytes(
-          getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
+          getHwSwitch(),
+          getProgrammedState(),
+          getAclName(aclType),
+          getCounterName(aclType));
       size_t sizeOfPacketSent = sendPacket(frontPanel, bumpOnHit, aclType);
       WITH_RETRIES({
         auto aclPktCountAfter = utility::getAclInOutPackets(
-            getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
+            getHwSwitch(),
+            getProgrammedState(),
+            getAclName(aclType),
+            getCounterName(aclType));
 
         auto aclBytesCountAfter = utility::getAclInOutBytes(
-            getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
+            getHwSwitch(),
+            getProgrammedState(),
+            getAclName(aclType),
+            getCounterName(aclType));
 
         auto pktsAfter = *getLatestPortStats(egressPort).outUnicastPkts__ref();
         XLOG(DBG2) << "\n"
                    << "PacketCounter: " << pktsBefore << " -> " << pktsAfter
                    << "\n"
-                   << "aclPacketCounter: " << aclPktCountBefore << " -> "
-                   << (aclPktCountAfter) << "\n"
-                   << "aclBytesCounter: " << aclBytesCountBefore << " -> "
+                   << "aclPacketCounter(" << getCounterName(aclType)
+                   << "): " << aclPktCountBefore << " -> " << (aclPktCountAfter)
+                   << "\n"
+                   << "aclBytesCounter(" << getCounterName(aclType)
+                   << "): " << aclBytesCountBefore << " -> "
                    << aclBytesCountAfter;
 
         if (bumpOnHit) {
@@ -94,27 +145,48 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
       });
     };
 
+    auto verify = [aclTypes, verifyAclType]() {
+      for (auto aclType : aclTypes) {
+        verifyAclType(aclType);
+      }
+    };
+
     verifyAcrossWarmBoots(setup, verify);
   }
 
  private:
   size_t sendPacket(bool frontPanel, bool bumpOnHit, AclType aclType) {
     // TTL is configured for value >= 128
-    auto ttl = bumpOnHit && aclType == AclType::TTLD ? 200 : 10;
+    auto ttl = bumpOnHit &&
+            (aclType == AclType::UDP_TTLD || aclType == AclType::TCP_TTLD)
+        ? 200
+        : 10;
     auto vlanId = utility::firstVlanID(initialConfig());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
-    auto txPacket = utility::makeUDPTxPacket(
-        getHwSwitch(),
-        vlanId,
-        srcMac, // src mac
-        intfMac, // dst mac
-        kSrcIP(),
-        kDstIP(),
-        8000, // l4 src port
-        8001, // l4 dst port
-        0,
-        ttl);
+
+    auto txPacket = aclType == AclType::UDP_TTLD ? utility::makeUDPTxPacket(
+                                                       getHwSwitch(),
+                                                       vlanId,
+                                                       srcMac, // src mac
+                                                       intfMac, // dst mac
+                                                       kSrcIP(),
+                                                       kDstIP(),
+                                                       8000, // l4 src port
+                                                       8001, // l4 dst port
+                                                       0,
+                                                       ttl)
+                                                 : utility::makeTCPTxPacket(
+                                                       getHwSwitch(),
+                                                       vlanId,
+                                                       srcMac, // src mac
+                                                       intfMac, // dst mac
+                                                       kSrcIP(),
+                                                       kDstIP(),
+                                                       8000, // l4 src port
+                                                       8001, // l4 dst port
+                                                       0,
+                                                       ttl);
 
     size_t txPacketSize = txPacket->buf()->length();
     // port is in LB mode, so it will egress and immediately loop back.
@@ -140,11 +212,14 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
   }
 
   void addAclAndStat(cfg::SwitchConfig* config, AclType aclType) const {
-    auto acl = utility::addAcl(config, kAclName);
+    auto aclName = getAclName(aclType);
+    auto counterName = getCounterName(aclType);
+    auto acl = utility::addAcl(config, aclName);
     switch (aclType) {
-      case AclType::TTLD:
+      case AclType::TCP_TTLD:
+      case AclType::UDP_TTLD:
         acl->srcIp() = "2620:0:1cfe:face:b00c::/64";
-        acl->proto() = 0x11;
+        acl->proto() = aclType == AclType::UDP_TTLD ? 17 : 6;
         acl->ipType() = cfg::IpType::IP6;
         acl->ttl() = cfg::Ttl();
         *acl->ttl()->value() = 128;
@@ -156,46 +231,52 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
     }
     std::vector<cfg::CounterType> setCounterTypes{
         cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
-    utility::addAclStat(config, kAclName, kCounterName, setCounterTypes);
+    utility::addAclStat(config, aclName, counterName, setCounterTypes);
   }
 
   static inline constexpr auto kEcmpWidth = 1;
   std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
-  static constexpr auto kAclName = "test-acl";
-  static constexpr auto kCounterName = "test-acl-stat";
 };
 
 // Verify that traffic arrive on a front panel port increments ACL counter.
 TEST_F(HwAclCounterTest, VerifyCounterBumpOnTtlHitFrontPanel) {
   counterBumpOnHitHelper(
-      true /* bump on hit */, true /* front panel port */, AclType::TTLD);
+      true /* bump on hit */,
+      true /* front panel port */,
+      {AclType::TCP_TTLD, AclType::UDP_TTLD});
 }
 
 TEST_F(HwAclCounterTest, VerifyCounterBumpOnSportHitFrontPanel) {
   counterBumpOnHitHelper(
-      true /* bump on hit */, true /* front panel port */, AclType::SRC_PORT);
+      true /* bump on hit */, true /* front panel port */, {AclType::SRC_PORT});
 }
 // Verify that traffic originating on the CPU increments ACL counter.
 TEST_F(HwAclCounterTest, VerifyCounterBumpOnTtlHitCpu) {
   counterBumpOnHitHelper(
-      true /* bump on hit */, false /* cpu port */, AclType::TTLD);
+      true /* bump on hit */,
+      false /* cpu port */,
+      {AclType::TCP_TTLD, AclType::UDP_TTLD});
 }
 
 TEST_F(HwAclCounterTest, VerifyCounterBumpOnSportHitCpu) {
   counterBumpOnHitHelper(
-      true /* bump on hit */, false /* cpu port */, AclType::SRC_PORT);
+      true /* bump on hit */, false /* cpu port */, {AclType::SRC_PORT});
 }
 
 // Verify that traffic arrive on a front panel port increments ACL counter.
 TEST_F(HwAclCounterTest, VerifyCounterNoTtlHitNoBumpFrontPanel) {
   counterBumpOnHitHelper(
-      false /* no hit, no bump */, true /* front panel port */, AclType::TTLD);
+      false /* no hit, no bump */,
+      true /* front panel port */,
+      {AclType::TCP_TTLD, AclType::UDP_TTLD});
 }
 
 // Verify that traffic originating on the CPU increments ACL counter.
 TEST_F(HwAclCounterTest, VerifyCounterNoHitNoBumpCpu) {
   counterBumpOnHitHelper(
-      false /* no hit, no bump */, false /* cpu port */, AclType::TTLD);
+      false /* no hit, no bump */,
+      false /* cpu port */,
+      {AclType::TCP_TTLD, AclType::UDP_TTLD});
 }
 
 } // namespace facebook::fboss
