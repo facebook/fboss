@@ -35,7 +35,7 @@ target_link_libraries(led_config
   FBThrift::thriftcpp2
 )
 
-add_library(led_core_lib
+add_library(led_manager_lib
   fboss/led_service/BspLedManager.cpp
   fboss/led_service/FsdbSwitchStateSubscriber.cpp
   fboss/led_service/oss/DarwinLedManager.cpp
@@ -50,21 +50,18 @@ add_library(led_core_lib
   fboss/led_service/oss/YampLedManager.cpp
   fboss/led_service/LedManager.cpp
   fboss/led_service/LedManagerInit.cpp
-  fboss/led_service/LedService.cpp
-  fboss/led_service/LedServiceHandler.cpp
   fboss/led_service/MinipackBaseLedManager.cpp
   fboss/led_service/MontblancLedManager.cpp
   fboss/led_service/Meru800biaLedManager.cpp
   fboss/led_service/Meru800bfaLedManager.cpp
 )
 
-target_link_libraries(led_core_lib
+target_link_libraries(led_manager_lib
   bsp_platform_mapping_cpp2
   qsfp_bsp_core
   ledIO
   led_config
   led_structs_types_cpp2
-  led_service_types_cpp2
   log_thrift_call
   montblanc_bsp
   meru800bia_bsp
@@ -85,6 +82,16 @@ target_link_libraries(led_core_lib
   fsdb_stream_client
   fsdb_pub_sub
   fsdb_flags
+)
+
+add_library(led_core_lib
+  fboss/led_service/LedService.cpp
+  fboss/led_service/LedServiceHandler.cpp
+)
+
+target_link_libraries(led_core_lib
+  led_manager_lib
+  led_service_types_cpp2
 )
 
 add_executable(led_service
