@@ -57,7 +57,8 @@ static void i2cWriteAndContinue(
   try {
     bus->moduleWrite(modId, {i2cAddress, offset, length}, buf);
   } catch (const std::exception& e) {
-    XLOG(INFO) << "write() raised exception: Sleep for 100ms and continue";
+    XLOG(INFO) << "write() raised exception: Sleep for 100ms and continue: "
+               << e.what();
     usleep(cdbCommandIntervalUsec);
   }
 }
