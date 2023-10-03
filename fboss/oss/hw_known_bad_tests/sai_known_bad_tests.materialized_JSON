@@ -83,6 +83,12 @@
           "test_name_regex": "SaiAclTableGroupTest.AddTwoTablesDeleteAddSecond"
         },
         {
+          "test_name_regex": "SaiAclTableGroupTest.AddAclEntriesToAclTablesPostWarmboot"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTest.AddAclEntriesAndQualifiersToAclTablesPostWarmboot"
+        },
+        {
           "test_name_regex": "HwAclQualifierTest.*Ip4*"
         },
         {
@@ -437,6 +443,12 @@
         },
         {
           "test_name_regex": "SaiAclTableGroupTest.AddTwoTablesDeleteAddSecond"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTest.AddAclEntriesToAclTablesPostWarmboot"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTest.AddAclEntriesAndQualifiersToAclTablesPostWarmboot"
         },
         {
           "test_name_regex": "HwAclQualifierTest.*Ip4*"
