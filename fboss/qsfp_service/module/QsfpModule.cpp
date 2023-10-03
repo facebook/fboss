@@ -714,11 +714,13 @@ bool QsfpModule::isTransceiverFeatureSupported(
   return false;
 }
 
-prbs::InterfacePrbsState QsfpModule::getPortPrbsState(phy::Side side) {
+prbs::InterfacePrbsState QsfpModule::getPortPrbsState(
+    std::optional<const std::string> portName,
+    phy::Side side) {
   prbs::InterfacePrbsState state;
-  auto getPrbsStateLambda = [&state, side, this]() {
+  auto getPrbsStateLambda = [&state, portName, side, this]() {
     lock_guard<std::mutex> g(qsfpModuleMutex_);
-    state = getPortPrbsStateLocked(side);
+    state = getPortPrbsStateLocked(portName, side);
   };
   auto i2cEvb = qsfpImpl_->getI2cEventBase();
   if (!i2cEvb) {
@@ -913,8 +915,8 @@ void QsfpModule::updatePrbsStats() {
         }
       };
 
-  auto sysPrbsState = getPortPrbsStateLocked(phy::Side::SYSTEM);
-  auto linePrbsState = getPortPrbsStateLocked(phy::Side::LINE);
+  auto sysPrbsState = getPortPrbsStateLocked(std::nullopt, phy::Side::SYSTEM);
+  auto linePrbsState = getPortPrbsStateLocked(std::nullopt, phy::Side::LINE);
   phy::PrbsStats stats;
   stats = getPortPrbsStatsSideLocked(
       phy::Side::SYSTEM,
@@ -961,8 +963,8 @@ bool QsfpModule::shouldRemediateLocked() {
     return false;
   }
 
-  auto sysPrbsState = getPortPrbsStateLocked(phy::Side::SYSTEM);
-  auto linePrbsState = getPortPrbsStateLocked(phy::Side::LINE);
+  auto sysPrbsState = getPortPrbsStateLocked(std::nullopt, phy::Side::SYSTEM);
+  auto linePrbsState = getPortPrbsStateLocked(std::nullopt, phy::Side::LINE);
 
   auto linePrbsEnabled =
       ((linePrbsState.generatorEnabled().has_value() &&

@@ -247,7 +247,9 @@ class QsfpModule : public Transceiver {
       phy::Side /* side */,
       const prbs::InterfacePrbsState& /* prbs */) override;
 
-  prbs::InterfacePrbsState getPortPrbsState(phy::Side /* side */) override;
+  prbs::InterfacePrbsState getPortPrbsState(
+      std::optional<const std::string> /* portName */,
+      phy::Side /* side */) override;
 
   void setModulePauseRemediation(int32_t timeout) override;
 
@@ -670,6 +672,7 @@ class QsfpModule : public Transceiver {
    * Returns the current state of prbs (enabled/polynomial)
    */
   virtual prbs::InterfacePrbsState getPortPrbsStateLocked(
+      std::optional<const std::string> /* portName */,
       phy::Side /* side */) {
     return prbs::InterfacePrbsState();
   }

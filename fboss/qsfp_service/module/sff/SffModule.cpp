@@ -1739,7 +1739,9 @@ bool SffModule::setPortPrbsLocked(
 }
 
 // This function expects caller to hold the qsfp module level lock
-prbs::InterfacePrbsState SffModule::getPortPrbsStateLocked(Side side) {
+prbs::InterfacePrbsState SffModule::getPortPrbsStateLocked(
+    std::optional<const std::string> /* portName */,
+    Side side) {
   if (!isTransceiverFeatureSupported(TransceiverFeature::PRBS, side)) {
     return prbs::InterfacePrbsState();
   }

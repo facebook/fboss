@@ -416,6 +416,30 @@ const PrbsMap prbsPatternMap = boost::assign::list_of<PrbsMap::relation>(
   prbs::PrbsPolynomial::PRBSSSPRQ, 12);
 // clang-format on
 
+std::array<CmisField, 4> prbsGenMediaPatternFields = {
+    CmisField::MEDIA_PATTERN_SELECT_LANE_2_1,
+    CmisField::MEDIA_PATTERN_SELECT_LANE_4_3,
+    CmisField::MEDIA_PATTERN_SELECT_LANE_6_5,
+    CmisField::MEDIA_PATTERN_SELECT_LANE_8_7};
+std::array<CmisField, 4> prbsGenHostPatternFields = {
+    CmisField::HOST_PATTERN_SELECT_LANE_2_1,
+    CmisField::HOST_PATTERN_SELECT_LANE_4_3,
+    CmisField::HOST_PATTERN_SELECT_LANE_6_5,
+    CmisField::HOST_PATTERN_SELECT_LANE_8_7};
+
+std::array<CmisField, 4> prbsChkMediaPatternFields = {
+    CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_2_1,
+    CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_4_3,
+    CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_6_5,
+    CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_8_7,
+};
+std::array<CmisField, 4> prbsChkHostPatternFields = {
+    CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_2_1,
+    CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_4_3,
+    CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_6_5,
+    CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_8_7,
+};
+
 void getQsfpFieldAddress(
     CmisField field,
     int& dataAddress,
@@ -2745,17 +2769,8 @@ bool CmisModule::setPortPrbsLocked(
 
   // Step 1: Set the pattern for Generator (for starting case)
   if (startGen) {
-    std::array<CmisField, 4> mediaFields = {
-        CmisField::MEDIA_PATTERN_SELECT_LANE_2_1,
-        CmisField::MEDIA_PATTERN_SELECT_LANE_4_3,
-        CmisField::MEDIA_PATTERN_SELECT_LANE_6_5,
-        CmisField::MEDIA_PATTERN_SELECT_LANE_8_7};
-    std::array<CmisField, 4> hostFields = {
-        CmisField::HOST_PATTERN_SELECT_LANE_2_1,
-        CmisField::HOST_PATTERN_SELECT_LANE_4_3,
-        CmisField::HOST_PATTERN_SELECT_LANE_6_5,
-        CmisField::HOST_PATTERN_SELECT_LANE_8_7};
-    auto cmisRegisters = (side == phy::Side::LINE) ? mediaFields : hostFields;
+    auto cmisRegisters = (side == phy::Side::LINE) ? prbsGenMediaPatternFields
+                                                   : prbsGenHostPatternFields;
 
     // Check that a valid polynomial is provided
     if (prbsPatternItr == prbsPatternMap.left.end()) {
@@ -2803,19 +2818,8 @@ bool CmisModule::setPortPrbsLocked(
 
   // Step 3: Set the pattern for Checker (for starting case)
   if (startChk) {
-    std::array<CmisField, 4> mediaFields = {
-        CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_2_1,
-        CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_4_3,
-        CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_6_5,
-        CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_8_7,
-    };
-    std::array<CmisField, 4> hostFields = {
-        CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_2_1,
-        CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_4_3,
-        CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_6_5,
-        CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_8_7,
-    };
-    auto cmisFields = (side == phy::Side::LINE) ? mediaFields : hostFields;
+    auto cmisFields = (side == phy::Side::LINE) ? prbsChkMediaPatternFields
+                                                : prbsChkHostPatternFields;
 
     // Check that a valid polynomial is provided
     if (prbsPatternItr == prbsPatternMap.left.end()) {
@@ -2864,7 +2868,9 @@ bool CmisModule::setPortPrbsLocked(
 }
 
 // This function expects caller to hold the qsfp module level lock
-prbs::InterfacePrbsState CmisModule::getPortPrbsStateLocked(Side side) {
+prbs::InterfacePrbsState CmisModule::getPortPrbsStateLocked(
+    std::optional<const std::string> portName,
+    Side side) {
   if (flatMem_) {
     return prbs::InterfacePrbsState();
   }
@@ -2875,8 +2881,27 @@ prbs::InterfacePrbsState CmisModule::getPortPrbsStateLocked(Side side) {
   }
   prbs::InterfacePrbsState state;
 
-  uint8_t laneMask = (side == phy::Side::LINE) ? ((1 << numMediaLanes()) - 1)
-                                               : ((1 << numHostLanes()) - 1);
+  // Get the list of lanes to check PRBS
+  uint8_t laneMask = 0;
+  if (portName.has_value()) {
+    auto tcvrLanes = getTcvrLanesForPort(portName.value(), side);
+    if (tcvrLanes.empty()) {
+      QSFP_LOG(ERR, this) << fmt::format(
+          "Empty lane list for port {:s}", portName.value());
+      return prbs::InterfacePrbsState();
+    }
+    for (auto lane : tcvrLanes) {
+      laneMask |= (1 << lane);
+    }
+  } else {
+    laneMask = (side == phy::Side::LINE) ? ((1 << numMediaLanes()) - 1)
+                                         : ((1 << numHostLanes()) - 1);
+  }
+  if (!laneMask) {
+    QSFP_LOG(ERR, this) << fmt::format(
+        "Lanes not available for getPortPrbsState {:s}", qsfpImpl_->getName());
+    return prbs::InterfacePrbsState();
+  }
 
   auto cmisRegister = (side == phy::Side::LINE) ? CmisField::MEDIA_GEN_ENABLE
                                                 : CmisField::HOST_GEN_ENABLE;
@@ -2888,22 +2913,35 @@ prbs::InterfacePrbsState CmisModule::getPortPrbsStateLocked(Side side) {
   uint8_t checker;
   readCmisField(cmisRegister, &checker);
 
-  state.generatorEnabled() = generator == laneMask;
-  state.checkerEnabled() = checker == laneMask;
+  state.generatorEnabled() = (generator & laneMask);
+  state.checkerEnabled() = (checker & laneMask);
   // PRBS is enabled if either generator is enabled or the checker is enabled
-  auto enabled = ((generator == laneMask) || (checker == laneMask));
+  auto enabled =
+      state.generatorEnabled().value() || state.checkerEnabled().value();
 
   // If state is enabled, check the polynomial
   if (enabled) {
-    cmisRegister = (side == phy::Side::LINE)
-        ? CmisField::MEDIA_PATTERN_SELECT_LANE_2_1
-        : CmisField::HOST_PATTERN_SELECT_LANE_2_1;
-    uint8_t pattern;
+    std::array<CmisField, 4> cmisPatternRegister = (side == phy::Side::LINE)
+        ? prbsGenMediaPatternFields
+        : prbsGenHostPatternFields;
+
+    int firstLane = 0, tempLaneMask = laneMask;
+    while (tempLaneMask) {
+      if (tempLaneMask & 0x1) {
+        break;
+      }
+      firstLane++;
+      tempLaneMask >>= 1;
+    }
+
+    uint8_t patternByte, pattern;
     // Intentionally reading only 1 byte instead of 'length'
     // We assume the same polynomial is configured on all lanes so only reading
     // 1 byte which gives the polynomial configured on lane 0
-    readCmisField(cmisRegister, &pattern);
-    auto polynomialItr = prbsPatternMap.right.find(pattern & 0xF);
+    cmisRegister = cmisPatternRegister[firstLane / 2];
+    readCmisField(cmisRegister, &patternByte);
+    pattern = patternByte >> (((firstLane % 2) * 4) & 0xF);
+    auto polynomialItr = prbsPatternMap.right.find(pattern);
     if (polynomialItr != prbsPatternMap.right.end()) {
       state.polynomial() = prbs::PrbsPolynomial(polynomialItr->second);
     }

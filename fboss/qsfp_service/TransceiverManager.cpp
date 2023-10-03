@@ -1855,7 +1855,7 @@ void TransceiverManager::getInterfacePrbsState(
         auto lockedTransceivers = transceivers_.rlock();
         if (auto it = lockedTransceivers->find(*tcvrID);
             it != lockedTransceivers->end()) {
-          prbsState = it->second->getPortPrbsState(side);
+          prbsState = it->second->getPortPrbsState(portName, side);
           return;
         } else {
           throw FbossError("Can't find transceiver ", *tcvrID);

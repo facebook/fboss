@@ -94,7 +94,9 @@ class CmisModule : public QsfpModule {
   /*
    * Returns the current state of prbs (enabled/polynomial)
    */
-  prbs::InterfacePrbsState getPortPrbsStateLocked(phy::Side side) override;
+  prbs::InterfacePrbsState getPortPrbsStateLocked(
+      std::optional<const std::string> portName,
+      phy::Side side) override;
 
  protected:
   // QSFP+ requires a bottom 128 byte page describing important monitoring

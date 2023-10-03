@@ -86,7 +86,7 @@ class MockCmisModule : public CmisModule {
         .WillByDefault(testing::Assign(&dirty_, false));
     ON_CALL(*this, ensureTransceiverReadyLocked())
         .WillByDefault(testing::Return(true));
-    ON_CALL(*this, getPortPrbsStateLocked(testing::_))
+    ON_CALL(*this, getPortPrbsStateLocked(testing::_, testing::_))
         .WillByDefault(testing::Return(prbs::InterfacePrbsState()));
     ON_CALL(*this, numHostLanes()).WillByDefault(testing::Return(8));
   }
@@ -107,7 +107,9 @@ class MockCmisModule : public CmisModule {
   MOCK_METHOD1(updateCachedTransceiverInfoLocked, void(ModuleStatus));
   MOCK_CONST_METHOD0(ensureOutOfReset, void());
   MOCK_METHOD0(ensureTransceiverReadyLocked, bool());
-  MOCK_METHOD1(getPortPrbsStateLocked, prbs::InterfacePrbsState(phy::Side));
+  MOCK_METHOD2(
+      getPortPrbsStateLocked,
+      prbs::InterfacePrbsState(std::optional<const std::string>, phy::Side));
 };
 
 /*
