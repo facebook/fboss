@@ -233,6 +233,22 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
           std::nullopt);
     }
   }
+
+  EXPECT_FALSE(diagsCap.value().vdm().value());
+  EXPECT_TRUE(diagsCap.value().cdb().value());
+  EXPECT_TRUE(diagsCap.value().prbsLine().value());
+  EXPECT_TRUE(diagsCap.value().prbsSystem().value());
+  EXPECT_TRUE(diagsCap.value().loopbackLine().value());
+  EXPECT_TRUE(diagsCap.value().loopbackSystem().value());
+  EXPECT_TRUE(diagsCap.value().txOutputControl().value());
+  EXPECT_TRUE(diagsCap.value().rxOutputControl().value());
+  EXPECT_FALSE(diagsCap.value().snrLine().value());
+  EXPECT_FALSE(diagsCap.value().snrSystem().value());
+  EXPECT_FALSE(xcvr->isVdmSupported());
+  EXPECT_TRUE(xcvr->isPrbsSupported(phy::Side::LINE));
+  EXPECT_TRUE(xcvr->isPrbsSupported(phy::Side::SYSTEM));
+  EXPECT_FALSE(xcvr->isSnrSupported(phy::Side::LINE));
+  EXPECT_FALSE(xcvr->isSnrSupported(phy::Side::SYSTEM));
 }
 
 TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
@@ -605,5 +621,21 @@ TEST_F(CmisTest, cmis2x400GFr4TransceiverInfoTest) {
           std::nullopt);
     }
   }
+
+  EXPECT_TRUE(diagsCap.value().vdm().value());
+  EXPECT_TRUE(diagsCap.value().cdb().value());
+  EXPECT_TRUE(diagsCap.value().prbsLine().value());
+  EXPECT_TRUE(diagsCap.value().prbsSystem().value());
+  EXPECT_TRUE(diagsCap.value().loopbackLine().value());
+  EXPECT_TRUE(diagsCap.value().loopbackSystem().value());
+  EXPECT_TRUE(diagsCap.value().txOutputControl().value());
+  EXPECT_TRUE(diagsCap.value().rxOutputControl().value());
+  EXPECT_TRUE(diagsCap.value().snrLine().value());
+  EXPECT_TRUE(diagsCap.value().snrSystem().value());
+  EXPECT_TRUE(xcvr->isVdmSupported());
+  EXPECT_TRUE(xcvr->isPrbsSupported(phy::Side::LINE));
+  EXPECT_TRUE(xcvr->isPrbsSupported(phy::Side::SYSTEM));
+  EXPECT_TRUE(xcvr->isSnrSupported(phy::Side::LINE));
+  EXPECT_TRUE(xcvr->isSnrSupported(phy::Side::SYSTEM));
 }
 } // namespace facebook::fboss
