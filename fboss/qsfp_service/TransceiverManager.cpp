@@ -1748,11 +1748,16 @@ phy::PrbsStats TransceiverManager::getPortPrbsStats(
   phy::Side side = prbsComponentToPhySide(component);
   if (component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
       component == phy::PortComponent::TRANSCEIVER_LINE) {
+    auto portName = getPortNameByPortId(portId);
     auto lockedTransceivers = transceivers_.rlock();
     if (auto tcvrID = getTransceiverID(portId)) {
       if (auto it = lockedTransceivers->find(*tcvrID);
           it != lockedTransceivers->end()) {
-        return it->second->getPortPrbsStats(side);
+        if (portName.has_value()) {
+          return it->second->getPortPrbsStats(portName.value(), side);
+        } else {
+          throw FbossError("Can't find a portName for portId ", portId);
+        }
       } else {
         throw FbossError("Can't find transceiver ", *tcvrID);
       }

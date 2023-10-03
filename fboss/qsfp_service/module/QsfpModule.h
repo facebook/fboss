@@ -233,12 +233,8 @@ class QsfpModule : public Transceiver {
     return lastDownTime_.load();
   }
 
-  phy::PrbsStats getPortPrbsStats(phy::Side side) override {
-    if (side == phy::Side::SYSTEM) {
-      return systemPrbsStats_.copy();
-    }
-    return linePrbsStats_.copy();
-  };
+  phy::PrbsStats getPortPrbsStats(const std::string& portName, phy::Side side)
+      override;
 
   void updatePrbsStats();
 

@@ -232,7 +232,9 @@ class Transceiver {
       std::optional<const std::string> /* portName */,
       phy::Side /* side */) = 0;
 
-  virtual phy::PrbsStats getPortPrbsStats(phy::Side /* side */) = 0;
+  virtual phy::PrbsStats getPortPrbsStats(
+      const std::string& /* portName */,
+      phy::Side /* side */) = 0;
 
   virtual void clearTransceiverPrbsStats(phy::Side side) = 0;
 

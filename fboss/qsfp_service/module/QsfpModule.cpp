@@ -935,6 +935,28 @@ void QsfpModule::updatePrbsStats() {
   *linePrbs = stats;
 }
 
+phy::PrbsStats QsfpModule::getPortPrbsStats(
+    const std::string& portName,
+    phy::Side side) {
+  phy::PrbsStats portPrbs;
+  auto tcvrLanes = getTcvrLanesForPort(portName, side);
+
+  if (side == phy::Side::LINE) {
+    portPrbs = linePrbsStats_.copy();
+  } else {
+    portPrbs = systemPrbsStats_.copy();
+  }
+
+  for (auto it = portPrbs.laneStats().value().begin();
+       it < portPrbs.laneStats().value().end();
+       it++) {
+    if (tcvrLanes.find(*it->laneId()) == tcvrLanes.end()) {
+      portPrbs.laneStats().value().erase(it);
+    }
+  }
+  return portPrbs;
+}
+
 bool QsfpModule::shouldRemediate() {
   // Always use i2cEvb to program transceivers if there's an i2cEvb
   auto shouldRemediateFunc = [this]() {
