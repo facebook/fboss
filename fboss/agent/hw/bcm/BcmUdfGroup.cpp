@@ -85,19 +85,6 @@ BcmUdfGroup::~BcmUdfGroup() {
   udfDelete(udfId_);
 }
 
-int BcmUdfGroup::udfBcmFieldQsetMultiSet() {
-  bcm_field_qset_t qset;
-  int rv = 0;
-  qset = utility::getGroupQset(
-      hw_->getUnit(), hw_->getPlatform()->getAsic()->getDefaultACLGroupID());
-  rv = bcm_field_qset_id_multi_set(
-      hw_->getUnit(), bcmFieldQualifyUdf, 1, &udfId_, &qset);
-  bcmCheckError(
-      rv, "bcm_field_qset_id_multi_set failed for bcmGroupId", udfId_);
-
-  return rv;
-}
-
 int BcmUdfGroup::udfCreate(bcm_udf_t* udfInfo) {
   bcm_udf_alloc_hints_t hints;
   int rv = 0;
@@ -115,9 +102,6 @@ int BcmUdfGroup::udfCreate(bcm_udf_t* udfInfo) {
   rv = bcm_udf_create(hw_->getUnit(), &hints, udfInfo, &udfId_);
   bcmCheckError(
       rv, "bcm_udf_create failed for udf group ", udfGroupName_.c_str());
-  if (udfGroupType == cfg::UdfGroupType::ACL) {
-    udfBcmFieldQsetMultiSet();
-  }
   return rv;
 }
 
