@@ -941,19 +941,17 @@ phy::PrbsStats QsfpModule::getPortPrbsStats(
   phy::PrbsStats portPrbs;
   auto tcvrLanes = getTcvrLanesForPort(portName, side);
 
-  if (side == phy::Side::LINE) {
-    portPrbs = linePrbsStats_.copy();
-  } else {
-    portPrbs = systemPrbsStats_.copy();
-  }
-
-  for (auto it = portPrbs.laneStats().value().begin();
-       it < portPrbs.laneStats().value().end();
-       it++) {
-    if (tcvrLanes.find(*it->laneId()) == tcvrLanes.end()) {
-      portPrbs.laneStats().value().erase(it);
+  auto sidePrbs = (side == phy::Side::LINE) ? linePrbsStats_.rlock()
+                                            : systemPrbsStats_.rlock();
+  portPrbs.portId() = sidePrbs->portId().value();
+  portPrbs.timeCollected() = sidePrbs->timeCollected().value();
+  portPrbs.component() = sidePrbs->component().value();
+  for (auto& laneStat : sidePrbs->laneStats().value()) {
+    if (tcvrLanes.find(*laneStat.laneId()) != tcvrLanes.end()) {
+      portPrbs.laneStats()->push_back(laneStat);
     }
   }
+
   return portPrbs;
 }
 
