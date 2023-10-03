@@ -329,7 +329,8 @@ TEST(Acl, Udf) {
   config.acls()->resize(1);
   *config.acls()[0].name() = "aclUdf";
   *config.acls()[0].actionType() = cfg::AclActionType::DENY;
-  config.acls()[0].udfGroups() = kUdfList;
+  config.acls()[0].udfGroups() = {};
+  config.acls()[0].roceOpcode() = 11;
 
   // empty groups section is not valid
   EXPECT_THROW(
@@ -348,7 +349,8 @@ TEST(Acl, Udf) {
   auto aclV1 = stateV1->getAcl("aclUdf");
   ASSERT_NE(nullptr, aclV1);
   EXPECT_EQ(cfg::AclActionType::DENY, aclV1->getActionType());
-  EXPECT_EQ(aclV1->getUdfGroups().value(), udfList);
+  EXPECT_EQ(aclV1->getUdfGroups().value(), kUdfList);
+  EXPECT_EQ(aclV1->getRoceOpcode().value(), 11);
 
   // update udf list, ensure it gets reflected
   std::vector<std::string> newUdfList = {"foo3"};
