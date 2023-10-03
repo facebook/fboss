@@ -316,7 +316,7 @@ class TestRunner(abc.ABC):
             run_test_result = (line[:idx] + test_prefix + line[idx:]).encode("utf-8")
         return run_test_result
 
-    def _get_known_bad_test_regex(self):
+    def _get_known_bad_test_regexes(self):
         if not args.skip_known_bad_tests:
             return None
 
@@ -331,8 +331,7 @@ class TestRunner(abc.ABC):
             for test_struct in known_bad_test_structs:
                 known_bad_test = test_struct["test_name_regex"]
                 known_bad_tests.append(known_bad_test)
-        known_bad_tests_str = ":".join(known_bad_tests)
-        return known_bad_tests_str
+        return known_bad_tests
 
     def _parse_list_test_output(self, output):
         ret = []
@@ -367,43 +366,41 @@ class TestRunner(abc.ABC):
             test_summary.append(line)
         return test_summary
 
-    def _process_test_filter(self, filter):
-        if filter:
-            filter = "--gtest_filter=" + filter
-            # --gtest_filter matches based on wildcard, while our bad test list is
-            # using regular expression. So, probperly convert regular expressions
-            # like HwRouteTest/[01].StaticIp2MplsRoutes, HwLoadBalancerTestV[46].Ucmp.*
-            filter = filter.replace(".*", "*")
-            filter = filter.replace("[46]", "?")
-            filter = filter.replace("[01]", "?")
-            filter = filter.replace("$", "")
+    def _list_tests_to_run(self, filter, should_print=True):
         output = subprocess.check_output(
             [self._get_test_binary_name(), "--gtest_list_tests", filter]
         )
         # Print all the matching tests
-        print(output.decode("utf-8"))
+        if should_print:
+            print(output.decode("utf-8"))
         return self._parse_list_test_output(output)
 
+    def _is_known_bad_test(self, test):
+        known_bad_test_regexes = self._get_known_bad_test_regexes()
+        for known_bad_test_regex in known_bad_test_regexes:
+            if re.match(known_bad_test_regex, test):
+                return True
+        return False
+
     def _get_tests_to_run(self):
-        # GTEST filter syntax is -
-        #   --gtest_filter=<include_regexes>-<exclude_regexes>
+        # Filter syntax is -
+        #   --filter=<include_regexes>-<exclude_regexes>
         #   in case of multiple regexes, each one should be separated by ':'
         #
         # For example, to run all tests matching "Vlan" and "Port" but
         # excluding "Mac" tests in the list is -
-        #   --gtest_filter=*Vlan*:*Port*:-*Mac*
+        #   --filter=*Vlan*:*Port*:-*Mac*
         #
         # Also, multiple '-' is allowed but all regexes following the first '-'
-        # are part of exclude list. This means following code would still work
-        # as expected even if user provides an exclude list in the args.filter.
-        tests_to_run = []
+        # are part of exclude list.
+        #
         # There are 4 variations of test filtering:
         # 1. Tests by filter without known bad
         # 2. Tests by filter with known bad
         # 3. All tests with known bad
         # 4. All tests without known bad
+        regexes = []
         if args.filter or args.filter_file:
-            regexes = []
             if args.filter_file:
                 with open(args.filter_file) as file:
                     regexes = [
@@ -412,26 +409,20 @@ class TestRunner(abc.ABC):
                         if not line.strip().startswith("#")
                     ]
             elif args.filter:
-                regexes = [args.filter]
-
-            for regex in regexes:
-                filter = (regex + ":") if (regex is not None) else ""
-                known_bad_tests_regex = self._get_known_bad_test_regex()
-                filter = (
-                    (filter + "-" + known_bad_tests_regex)
-                    if (known_bad_tests_regex is not None)
-                    else filter
-                )
-                tests = self._process_test_filter(filter)
-                tests_to_run.extend(tests)
+                regexes = args.filter.split(":")
         else:
-            known_bad_tests_regex = self._get_known_bad_test_regex()
-            filter = ""
-            if known_bad_tests_regex:
-                filter = "*:-" + known_bad_tests_regex
-            tests = self._process_test_filter(filter)
-            tests_to_run.extend(tests)
-        return tests_to_run
+            regexes = self._list_tests_to_run("*", False)
+        filter = ""
+        for regex in regexes:
+            if "-" in regex:
+                break
+            if self._is_known_bad_test(regex):
+                continue
+            filter += f"{regex}:"
+        if not filter:
+            return []
+        filter = "--gtest_filter=" + filter
+        return self._list_tests_to_run(filter)
 
     def _restart_bcmsim(self, asic):
         try:
