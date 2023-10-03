@@ -1,4 +1,5 @@
 include "thrift/annotation/thrift.thrift"
+include "thrift/annotation/cpp.thrift"
 
 namespace py3 neteng.fboss.thrift_cow
 namespace py neteng.fboss.thrift_cow.patch
@@ -6,7 +7,8 @@ namespace py.asyncio neteng.fboss.asyncio.thrift_cow.patch
 namespace cpp2 facebook.fboss.thrift_cow
 namespace go facebook.fboss.thrift_cow
 
-typedef binary (cpp.type = "folly::IOBuf") ByteBuffer
+@cpp.Type{name = "folly::IOBuf"}
+typedef binary ByteBuffer
 typedef byte Empty
 
 struct StructPatch {
