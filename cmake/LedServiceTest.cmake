@@ -5,10 +5,12 @@
 
 add_executable(led_service_test
   fboss/led_service/hw_test/LedServiceTest.cpp
+  fboss/led_service/hw_test/LedEnsemble.cpp
 )
 
 target_link_libraries(led_service_test
   led_manager_lib
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
+  error
 )
