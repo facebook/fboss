@@ -784,6 +784,7 @@ struct ExpQosMap {
 struct QosMap {
   1: list<DscpQosMap> dscpMaps;
   2: list<ExpQosMap> expMaps;
+  // TC to egress queue (EGQ) mapping
   3: map<i16, i16> trafficClassToQueueId;
   // for rx PFC, map the incoming PFC pkts
   // priority to the corresponding queueId
@@ -795,6 +796,14 @@ struct QosMap {
   // to PG id. Used mainly for TX of PFC where
   // PG is mapped to outgoing PFC priority
   6: optional map<i16, i16> pfcPriorityToPgId;
+  // TC to VOQ mapping, only used on VOQ platforms.
+  // On J3 CPU/RCY ports: 8 VOQs map to WRR scheduler with only 2 EGQs.
+  // So, different from trafficClassToQueueId that contains 2 EGQs.
+  // On J3 NIF ports: same as trafficClassToQueueId, since
+  // there is a 1:1 mapping between VOQ and EGQ. For cleanliness,
+  // we still generate config for NIF ports on VOQ  platforms even
+  // when they are the same as trafficClassToQueueId.
+  7: optional map<i16, i16> trafficClassToVoqId;
 }
 
 struct QosRule {
