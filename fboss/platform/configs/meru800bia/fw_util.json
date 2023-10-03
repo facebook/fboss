@@ -1,18 +1,18 @@
 {
   "fwConfigs" : {
     "bios" : {
-      "preUpgradeCmd" : "printf '3000000:3FFFFFF image\n2FF0000:2FF7FFF aboot_conf' > /tmp/bios_spi_layout",
+      "preUpgradeCmd" : "printf '3000000:3FFFFFF image\n2FF0000:2FF7FFF aboot_conf' > /home/bios_spi_layout",
       "priority" : 1,
-      "upgradeCmd" : "bios_filename=$(head -n 1 /tmp/bios_filename.txt); flashrom -p internal -l /tmp/bios_spi_layout -i image -i aboot_conf --noverify-all -w $bios_filename",
-      "postUpgradeCmd" : "bios_filename=$(head -n 1 /tmp/bios_filename.txt); flashrom -p internal -l /tmp/bios_spi_layout -i image -i aboot_conf --noverify-all -v $bios_filename",
-      "verifyFwCmd" : "bios_filename=$(head -n 1 /tmp/bios_filename.txt); flashrom -p internal -l /tmp/bios_spi_layout -i image -i aboot_conf --noverify-all -v $bios_filename",
-      "readFwCmd" : "bios_filename=$(head -n 1 /tmp/bios_filename.txt); flashrom -p internal -l /tmp/bios_spi_layout -i image -i aboot_conf --noverify-all -r $bios_filename"
+      "upgradeCmd" : "bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -l /home/bios_spi_layout -i image -i aboot_conf --noverify-all -w $bios_filename",
+      "postUpgradeCmd" : "bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -l /home/bios_spi_layout -i image -i aboot_conf --noverify-all -v $bios_filename",
+      "verifyFwCmd" : "bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -l /home/bios_spi_layout -i image -i aboot_conf --noverify-all -v $bios_filename",
+      "readFwCmd" : "bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -l /home/bios_spi_layout -i image -i aboot_conf --noverify-all -r $bios_filename"
     },
     "scm_cpld" : {
       "preUpgradeCmd" : "",
       "getVersionCmd" : "cpu_cpld_ver=$((`cat /sys/bus/pci/drivers/scd/0000:07:00.0/fpga_ver`));cpu_cpld_subver=$((`cat /sys/bus/pci/drivers/scd/0000:07:00.0/fpga_sub_ver`));echo $cpu_cpld_ver'.'$cpu_cpld_subver",
       "priority" : 2,
-      "upgradeCmd" : "cpu_cpld_filename=$(head -n 1 /tmp/meru_scm_cpld_filename.txt);/usr/bin/jam -aprogram -fmeru_cpu_cpld -v $cpu_cpld_filename",
+      "upgradeCmd" : "cpu_cpld_filename=$(head -n 1 /home/meru_scm_cpld_filename.txt);/usr/bin/jam -aprogram -fmeru_cpu_cpld -v $cpu_cpld_filename",
       "postUpgradeCmd" : ""
     }
   }

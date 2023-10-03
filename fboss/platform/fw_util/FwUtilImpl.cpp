@@ -206,7 +206,7 @@ void FwUtilImpl::doFirmwareAction(
 void FwUtilImpl::storeFilePath(
     const std::string& fpd,
     const std::string& filePath) {
-  const std::string textFile = "/tmp/" + fpd + "_filename.txt";
+  const std::string textFile = "/home/" + fpd + "_filename.txt";
   const std::string cmd = "echo " + filePath + " > " + textFile;
   auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmd);
   if (exitStatus != 0) {
