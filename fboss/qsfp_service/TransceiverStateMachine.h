@@ -135,7 +135,12 @@ void operator()(
   auto tcvrID = fsm.get_attribute(transceiverID);
   XLOG(DBG2) << "[Transceiver:" << tcvrID << "] State changed to "
              << apache::thrift::util::enumNameSafe(stateToStateEnum(currState));
-  fsm.get_attribute(transceiverMgrPtr)->doTransceiverFirmwareUpgrade(tcvrID);
+  try {
+    fsm.get_attribute(transceiverMgrPtr)->doTransceiverFirmwareUpgrade(tcvrID);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "[Transceiver:" << tcvrID << "] firmware upgrade failed with: " << ex.what();
+  }
+  fsm.get_attribute(needToResetToNotPresent) = true;
 }
 };
 // clang-format on
