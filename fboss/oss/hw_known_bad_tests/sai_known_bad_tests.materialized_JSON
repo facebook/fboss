@@ -1577,6 +1577,108 @@
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
         },
         {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTablesThenEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesNoEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesWithEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteFirst"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteSecond"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteAddFirst"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteAddSecond"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddFirstTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteFirstTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesNoEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesWithEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTablesThenEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteFirst"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteSecond"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteAddFirst"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteAddSecond"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddFirstTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteFirstTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiAclTableGroupTest.RemoveAclTable"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiAclTableGroupTest.SingleAclTableGroup"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.SaiAclTableGroupTest.RemoveAclTable"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.SaiAclTableGroupTest.SingleAclTableGroup"
+        },
+        {
           "test_name_regex": "HwHashPolarizationTestSAITH5"
         },
         {
@@ -2259,16 +2361,16 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesNoEntries"
@@ -2304,16 +2406,16 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiAclTableGroupTest.RemoveAclTable"
@@ -2960,16 +3062,16 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesNoEntries"
@@ -3005,16 +3107,16 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiAclTableGroupTest.RemoveAclTable"
@@ -3660,16 +3762,16 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesNoEntries"
@@ -3705,16 +3807,16 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiAclTableGroupTest.RemoveAclTable"
@@ -4391,16 +4493,16 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesNoEntries"
@@ -4436,16 +4538,16 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiAclTableGroupTest.RemoveAclTable"
@@ -5151,16 +5253,16 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesNoEntries"
@@ -5196,16 +5298,16 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiAclTableGroupTest.RemoveAclTable"
@@ -5858,16 +5960,16 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesNoEntries"
@@ -5903,16 +6005,16 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiAclTableGroupTest.RemoveAclTable"
@@ -6511,6 +6613,108 @@
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
         },
         {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTablesThenEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesNoEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesWithEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteFirst"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteSecond"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteAddFirst"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteAddSecond"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddFirstTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteFirstTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesNoEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesWithEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTablesThenEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteFirst"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteSecond"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteAddFirst"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteAddSecond"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddFirstTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteFirstTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiAclTableGroupTest.RemoveAclTable"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiAclTableGroupTest.SingleAclTableGroup"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.SaiAclTableGroupTest.RemoveAclTable"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.SaiAclTableGroupTest.SingleAclTableGroup"
+        },
+        {
           "test_name_regex": "HwHashPolarizationTestSAITH5"
         }
     ],
@@ -6953,16 +7157,16 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesNoEntries"
@@ -6998,16 +7202,16 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiAclTableGroupTest.RemoveAclTable"
@@ -7684,16 +7888,16 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesNoEntries"
@@ -7729,16 +7933,16 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiAclTableGroupTest.RemoveAclTable"
@@ -8359,6 +8563,108 @@
         },
         {
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTablesThenEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesNoEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesWithEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteFirst"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteSecond"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteAddFirst"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteAddSecond"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddFirstTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteFirstTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesNoEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesWithEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTablesThenEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteFirst"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteSecond"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteAddFirst"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteAddSecond"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddFirstTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteFirstTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiAclTableGroupTest.RemoveAclTable"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiAclTableGroupTest.SingleAclTableGroup"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.SaiAclTableGroupTest.RemoveAclTable"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.SaiAclTableGroupTest.SingleAclTableGroup"
         },
         {
           "test_name_regex": "HwHashPolarizationTestSAITH5"
@@ -9148,6 +9454,108 @@
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
         },
         {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTablesThenEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesNoEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesWithEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteFirst"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteSecond"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteAddFirst"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteAddSecond"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddFirstTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteFirstTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesNoEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesWithEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTablesThenEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteFirst"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteSecond"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteAddFirst"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteAddSecond"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddFirstTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteFirstTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiAclTableGroupTest.RemoveAclTable"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiAclTableGroupTest.SingleAclTableGroup"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.SaiAclTableGroupTest.RemoveAclTable"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.SaiAclTableGroupTest.SingleAclTableGroup"
+        },
+        {
           "test_name_regex": "HwHashPolarizationTestSAITH5"
         },
         {
@@ -9324,16 +9732,16 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesNoEntries"
@@ -9369,16 +9777,16 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiAclTableGroupTest.RemoveAclTable"
@@ -10031,16 +10439,16 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesNoEntries"
@@ -10076,16 +10484,16 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiAclTableGroupTest.RemoveAclTable"
@@ -10685,6 +11093,108 @@
         },
         {
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTablesThenEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesNoEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesWithEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteFirst"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteSecond"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteAddFirst"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteAddSecond"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddFirstTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteFirstTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesNoEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.MultipleTablesWithEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTablesThenEntries"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteFirst"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteSecond"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteAddFirst"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddTwoTablesDeleteAddSecond"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddFirstTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.AddSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteFirstTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableCpu"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyQueuePerHostAclTableAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiAclTableGroupTest.RemoveAclTable"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiAclTableGroupTest.SingleAclTableGroup"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.SaiAclTableGroupTest.RemoveAclTable"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.SaiAclTableGroupTest.SingleAclTableGroup"
         },
         {
           "test_name_regex": "HwHashPolarizationTestSAITH5"
