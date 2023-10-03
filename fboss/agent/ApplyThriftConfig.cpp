@@ -3169,6 +3169,9 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (auto udfGroupList = config->udfGroups()) {
     newAcl->setUdfGroups(*udfGroupList);
   }
+  if (auto roceOpcode = config->roceOpcode()) {
+    newAcl->setRoceOpcode(*roceOpcode);
+  }
   newAcl->setEnabled(enable);
   return newAcl;
 }
