@@ -180,7 +180,11 @@ void BcmEgress::program(
     if (id_ != INVALID) {
       flags |= BCM_L3_REPLACE | BCM_L3_WITH_ID;
     }
-    if (FLAGS_flowletSwitchingEnable) {
+    // For TH3 Port Flowlet configs are programmed in egress object
+    // For TH4 Port Flowlet configs are programmed in port object
+    if (FLAGS_flowletSwitchingEnable &&
+        !(hw_->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES))) {
       auto* bcmPort = hw_->getPortTable()->getBcmPortIf(port);
       if (bcmPort) {
         auto bcmFlowletConfig = bcmPort->getPortFlowletConfig();
