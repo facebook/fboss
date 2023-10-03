@@ -338,7 +338,7 @@ struct PmUnitConfig {
 
 // Defines the whole Platform. The top level struct.
 struct PlatformConfig {
-  // Name of the platform.  Should match the name set in dmedicode
+  // Name of the platform.  Should match the name set in dmidecode
   1: string platformName;
 
   // This is the PmUnit from which the exploration will begin. The IDPROM of
@@ -351,10 +351,10 @@ struct PlatformConfig {
   // List of PmUnits which the platform can support. Key is the PmUnit name.
   12: map<string, PmUnitConfig> pmUnitConfigs;
 
-  // List of the i2c buses created from the CPU / System Control Module (SCM)
-  // We are assuming the i2c Adapter name (content of
-  // /sys/bus/i2c/devices/i2c-N/name) is unique for buses directly coming of
-  // CPU. We have to revisit this logic if this assumption changes.
+  // List of the i2c buses created from the CPU.  We are assuming the i2c
+  // Adapter name (content of /sys/bus/i2c/devices/i2c-N/name) is unique for
+  // buses directly coming of CPU. We have to revisit this logic if this
+  // assumption changes.
   13: list<string> i2cAdaptersFromCpu;
 
   // Global mapping from the DevicePath to an application friendly path
