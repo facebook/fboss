@@ -100,7 +100,7 @@ class BcmRtag7Test : public BcmTest {
     }
 
     auto udfConfigState = std::make_shared<UdfConfig>();
-    auto udfConfig = utility::addUdfConfig();
+    auto udfConfig = utility::addUdfHashConfig();
     udfConfigState->fromThrift(udfConfig);
 
     auto switchSettings = util::getFirstNodeIf(state->getSwitchSettings());

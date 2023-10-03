@@ -33,8 +33,8 @@ void validateUdfConfig(
       static_cast<const BcmSwitch*>(hw)->getUnit(), udfGroupId, &udfInfo);
   bcmCheckError(rv, "Unable to get udfInfo for udfGroupId: ", udfGroupId);
   EXPECT_EQ(udfInfo.layer, bcmUdfLayerL4OuterHeader);
-  EXPECT_EQ(udfInfo.start, utility::kUdfStartOffsetInBytes * 8);
-  EXPECT_EQ(udfInfo.width, utility::kUdfFieldSizeInBytes * 8);
+  EXPECT_EQ(udfInfo.start, utility::kUdfHashStartOffsetInBytes * 8);
+  EXPECT_EQ(udfInfo.width, utility::kUdfHashFieldSizeInBytes * 8);
 
   const int udfPacketMatcherId =
       static_cast<const BcmSwitch*>(hw)->getUdfMgr()->getBcmUdfPacketMatcherId(

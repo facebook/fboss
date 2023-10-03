@@ -20,7 +20,7 @@ class HwUdfTest : public HwTest {
     auto udfConfigState = std::make_shared<UdfConfig>();
     cfg::UdfConfig udfConfig;
     if (addConfig) {
-      udfConfig = utility::addUdfConfig();
+      udfConfig = utility::addUdfHashConfig();
     }
     udfConfigState->fromThrift(udfConfig);
 
@@ -37,7 +37,7 @@ TEST_F(HwUdfTest, checkUdfConfiguration) {
   auto setup = [=]() { applyNewState(setupUdfConfiguration(true)); };
   auto verify = [=]() {
     utility::validateUdfConfig(
-        getHwSwitch(), utility::kUdfGroupName, utility::kUdfPktMatcherName);
+        getHwSwitch(), utility::kUdfHashGroupName, utility::kUdfPktMatcherName);
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -49,14 +49,14 @@ TEST_F(HwUdfTest, deleteUdfConfig) {
   auto setup = [&]() {
     applyNewState(setupUdfConfiguration(true));
     udfGroupId =
-        utility::getHwUdfGroupId(getHwSwitch(), utility::kUdfGroupName);
+        utility::getHwUdfGroupId(getHwSwitch(), utility::kUdfHashGroupName);
     udfPacketMatcherId = utility::getHwUdfPacketMatcherId(
         getHwSwitch(), utility::kUdfPktMatcherName);
     applyNewState(setupUdfConfiguration(false));
   };
   auto verify = [=]() {
     utility::validateRemoveUdfGroup(
-        getHwSwitch(), utility::kUdfGroupName, udfGroupId);
+        getHwSwitch(), utility::kUdfHashGroupName, udfGroupId);
     utility::validateRemoveUdfPacketMatcher(
         getHwSwitch(), utility::kUdfPktMatcherName, udfPacketMatcherId);
   };

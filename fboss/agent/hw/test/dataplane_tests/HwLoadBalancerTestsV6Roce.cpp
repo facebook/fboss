@@ -30,7 +30,7 @@ class HwLoadBalancerTestV6RoCE
         getHwSwitch(),
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes());
-    cfg::UdfConfig udfCfg = utility::addUdfConfig();
+    cfg::UdfConfig udfCfg = utility::addUdfHashConfig();
     cfg.udfConfig() = udfCfg;
     return cfg;
   }
@@ -73,7 +73,7 @@ class HwLoadBalancerNegativeProtocolMatchTestV6RoCE
         getHwSwitch(),
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes());
-    cfg::UdfConfig udfCfg = utility::addUdfConfig();
+    cfg::UdfConfig udfCfg = utility::addUdfHashConfig();
     cfg.udfConfig() = udfCfg;
     return cfg;
   }

@@ -38,14 +38,14 @@ void validateUdfConfig(
     EXPECT_EQ(
         udfApi.getAttribute(
             saiUdfGroup->adapterKey(), SaiUdfGroupTraits::Attributes::Length{}),
-        utility::kUdfFieldSizeInBytes);
+        utility::kUdfHashFieldSizeInBytes);
 
     // Verify Udf attributes
     auto saiUdf = udfGroupIter->second->udfs[udfPacketMatcherName]->udf;
     EXPECT_EQ(
         udfApi.getAttribute(
             saiUdf->adapterKey(), SaiUdfTraits::Attributes::Offset{}),
-        utility::kUdfStartOffsetInBytes);
+        utility::kUdfHashStartOffsetInBytes);
     EXPECT_EQ(
         udfApi.getAttribute(
             saiUdf->adapterKey(), SaiUdfTraits::Attributes::Base{}),

@@ -29,7 +29,7 @@ class BcmUdfTest : public BcmTest {
     auto udfConfigState = std::make_shared<UdfConfig>();
     cfg::UdfConfig udfConfig;
     if (addConfig) {
-      udfConfig = utility::addUdfConfig();
+      udfConfig = utility::addUdfHashConfig();
     }
     udfConfigState->fromThrift(udfConfig);
 
@@ -45,16 +45,16 @@ class BcmUdfTest : public BcmTest {
 TEST_F(BcmUdfTest, checkUdfGroupConfiguration) {
   auto setupUdfConfig = [=]() { applyNewState(setupUdfConfiguration(true)); };
   auto verifyUdfConfig = [=]() {
-    const int udfGroupId =
-        getHwSwitch()->getUdfMgr()->getBcmUdfGroupId(utility::kUdfGroupName);
+    const int udfGroupId = getHwSwitch()->getUdfMgr()->getBcmUdfGroupId(
+        utility::kUdfHashGroupName);
     /* get udf info */
     bcm_udf_t udfInfo;
     bcm_udf_t_init(&udfInfo);
     auto rv = bcm_udf_get(getHwSwitch()->getUnit(), udfGroupId, &udfInfo);
     bcmCheckError(rv, "Unable to get udfInfo for udfGroupId: ", udfGroupId);
     ASSERT_EQ(udfInfo.layer, bcmUdfLayerL4OuterHeader);
-    ASSERT_EQ(udfInfo.start, utility::kUdfStartOffsetInBytes * 8);
-    ASSERT_EQ(udfInfo.width, utility::kUdfFieldSizeInBytes * 8);
+    ASSERT_EQ(udfInfo.start, utility::kUdfHashStartOffsetInBytes * 8);
+    ASSERT_EQ(udfInfo.width, utility::kUdfHashFieldSizeInBytes * 8);
   };
 
   verifyAcrossWarmBoots(setupUdfConfig, verifyUdfConfig);
@@ -87,7 +87,7 @@ TEST_F(BcmUdfTest, deleteUdfConfiguration) {
   applyNewState(setupUdfConfiguration(true));
 
   const int udfGroupId =
-      getHwSwitch()->getUdfMgr()->getBcmUdfGroupId(utility::kUdfGroupName);
+      getHwSwitch()->getUdfMgr()->getBcmUdfGroupId(utility::kUdfHashGroupName);
   const int udfPacketMatcherId =
       getHwSwitch()->getUdfMgr()->getBcmUdfPacketMatcherId(
           utility::kUdfPktMatcherName);
@@ -97,7 +97,8 @@ TEST_F(BcmUdfTest, deleteUdfConfiguration) {
 
   auto verifyUdfConfig = [=]() {
     EXPECT_THROW(
-        getHwSwitch()->getUdfMgr()->getBcmUdfGroupId(utility::kUdfGroupName),
+        getHwSwitch()->getUdfMgr()->getBcmUdfGroupId(
+            utility::kUdfHashGroupName),
         FbossError);
     EXPECT_THROW(
         getHwSwitch()->getUdfMgr()->getBcmUdfPacketMatcherId(

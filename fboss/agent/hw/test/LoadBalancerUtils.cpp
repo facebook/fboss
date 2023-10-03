@@ -63,7 +63,7 @@ cfg::Fields getFullHashUdf() {
   hashFields.transportFields() = std::set<cfg::TransportField>(
       {cfg::TransportField::SOURCE_PORT,
        cfg::TransportField::DESTINATION_PORT});
-  hashFields.udfGroups() = std::vector<std::string>({kUdfGroupName});
+  hashFields.udfGroups() = std::vector<std::string>({kUdfHashGroupName});
   return hashFields;
 }
 
@@ -181,7 +181,11 @@ cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(void) {
   return flowletCfg;
 }
 
-cfg::UdfConfig addUdfConfig(void) {
+static cfg::UdfConfig addUdfConfig(
+    const std::string& udfGroup,
+    const int offsetBytes,
+    const int fieldSizeBytes,
+    cfg::UdfGroupType udfType) {
   cfg::UdfConfig udfCfg;
   cfg::UdfGroup udfGroupEntry;
   cfg::UdfPacketMatcher matchCfg;
@@ -192,18 +196,35 @@ cfg::UdfConfig addUdfConfig(void) {
   matchCfg.l4PktType() = cfg::UdfMatchL4Type::UDF_L4_PKT_TYPE_UDP;
   matchCfg.UdfL4DstPort() = kUdfL4DstPort;
 
-  udfGroupEntry.name() = kUdfGroupName;
+  udfGroupEntry.name() = udfGroup;
   udfGroupEntry.header() = cfg::UdfBaseHeaderType::UDF_L4_HEADER;
-  udfGroupEntry.startOffsetInBytes() = kUdfStartOffsetInBytes;
-  udfGroupEntry.fieldSizeInBytes() = kUdfFieldSizeInBytes;
+  udfGroupEntry.startOffsetInBytes() = offsetBytes;
+  udfGroupEntry.fieldSizeInBytes() = fieldSizeBytes;
   // has to be the same as in matchCfg
   udfGroupEntry.udfPacketMatcherIds() = {kUdfPktMatcherName};
+  udfGroupEntry.type() = udfType;
 
   udfMap.insert(std::make_pair(*udfGroupEntry.name(), udfGroupEntry));
   udfPacketMatcherMap.insert(std::make_pair(*matchCfg.name(), matchCfg));
   udfCfg.udfGroups() = udfMap;
   udfCfg.udfPacketMatcher() = udfPacketMatcherMap;
   return udfCfg;
+}
+
+cfg::UdfConfig addUdfAclConfig(void) {
+  return addUdfConfig(
+      kUdfRoceOpcodeAclGroupName,
+      kUdfAclRoceOpcodeStartOffsetInBytes,
+      kUdfAclRoceOpcodeFieldSizeInBytes,
+      cfg::UdfGroupType::ACL);
+}
+
+cfg::UdfConfig addUdfHashConfig(void) {
+  return addUdfConfig(
+      kUdfHashGroupName,
+      kUdfHashStartOffsetInBytes,
+      kUdfHashFieldSizeInBytes,
+      cfg::UdfGroupType::HASH);
 }
 
 /*
@@ -226,7 +247,8 @@ void pumpRoCETraffic(
     std::optional<PortID> frontPanelPortToLoopTraffic,
     int destPort,
     int hopLimit,
-    std::optional<folly::MacAddress> srcMacAddr) {
+    std::optional<folly::MacAddress> srcMacAddr,
+    int packetCount) {
   folly::MacAddress srcMac(
       srcMacAddr.has_value() ? *srcMacAddr
                              : MacAddressGenerator().get(dstMac.u64HBO() + 1));
@@ -234,8 +256,8 @@ void pumpRoCETraffic(
   auto dstIp = folly::IPAddress(isV6 ? "2001::1" : "200.0.0.1");
 
   XLOG(INFO) << "Send traffic with RoCE payload ..";
-  for (auto i = 0; i < 50000; ++i) {
-    std::vector<uint8_t> rocePayload = {0x0a, 0x40, 0xff, 0xff, 0x00};
+  for (auto i = 0; i < packetCount; ++i) {
+    std::vector<uint8_t> rocePayload = {kUdfRoceOpcode, 0x40, 0xff, 0xff, 0x00};
     std::vector<uint8_t> roceEndPayload = {0x40, 0x00, 0x00, 0x03};
 
     // vary dst queues pair ids ONLY in the RoCE pkt

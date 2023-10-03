@@ -35,12 +35,16 @@ class SwitchIdScopeResolver;
 
 namespace facebook::fboss::utility {
 
-inline const std::string kUdfGroupName("dstQueuePair");
+inline const std::string kUdfHashGroupName("dstQueuePair");
+inline const std::string kUdfRoceOpcodeAclGroupName("roceOpcode");
 inline const std::string kUdfPktMatcherName("l4UdpRoce");
-inline const int kUdfStartOffsetInBytes(13);
-inline const int kUdfFieldSizeInBytes(3);
+inline const int kUdfHashStartOffsetInBytes(13);
+inline const int kUdfAclRoceOpcodeStartOffsetInBytes(8);
+inline const int kUdfHashFieldSizeInBytes(3);
+inline const int kUdfAclRoceOpcodeFieldSizeInBytes(1);
 inline const int kUdfL4DstPort(4791);
 inline const int kRandomUdfL4SrcPort(62946);
+inline const int kUdfRoceOpcode(11);
 
 cfg::LoadBalancer getEcmpHalfHashConfig(const HwAsic& asic);
 cfg::LoadBalancer getEcmpFullHashConfig(const HwAsic& asic);
@@ -81,7 +85,8 @@ void pumpRoCETraffic(
     std::optional<PortID> frontPanelPortToLoopTraffic,
     int roceDestPort = kUdfL4DstPort, /* RoCE fixed dst port */
     int hopLimit = 255,
-    std::optional<folly::MacAddress> srcMacAddr = std::nullopt);
+    std::optional<folly::MacAddress> srcMacAddr = std::nullopt,
+    int packetCount = 50000);
 
 void pumpTrafficWithSourceFile(
     HwSwitch* hw,
@@ -170,7 +175,7 @@ void pumpTrafficAndVerifyLoadBalanced(
     std::function<bool()> isLoadBalanced,
     bool loadBalanceExpected = true);
 
-cfg::UdfConfig addUdfConfig();
+cfg::UdfConfig addUdfHashConfig();
 
 bool isHwDeterministicSeed(
     HwSwitch* hwSwitch,
