@@ -90,7 +90,7 @@ class HwMacsecTest : public HwExternalPhyPortTest {
     auto scIdentifier = MacsecSecureChannelId(mac.u64NBO() | *sci.port());
     auto aclName = folly::to<std::string>(
         "macsec-",
-        direction == SAI_MACSEC_DIRECTION_INGRESS ? "ingress" : "egress",
+        direction == SAI_MACSEC_DIRECTION_INGRESS ? "ing" : "egr",
         "-port",
         portId);
     auto assocNum = *sak.assocNum() % 4;
@@ -300,7 +300,7 @@ class HwMacsecTest : public HwExternalPhyPortTest {
     // Get Macsec ACL table
     auto aclName = folly::to<std::string>(
         "macsec-",
-        direction == SAI_MACSEC_DIRECTION_INGRESS ? "ingress" : "egress",
+        direction == SAI_MACSEC_DIRECTION_INGRESS ? "ing" : "egr",
         "-port",
         portId);
     auto aclTableHandle = aclManager.getAclTableHandle(aclName);

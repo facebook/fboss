@@ -51,6 +51,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SEPARATE_BYTE_AND_PACKET_ACL_COUNTER:
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
     case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
+    case HwAsic::Feature::ACL_COUNTER_LABEL:
       return true;
 
     case HwAsic::Feature::ERSPANv6:

@@ -903,7 +903,7 @@ std::string SaiMacsecManager::getAclName(
     sai_macsec_direction_t direction) const {
   return folly::to<std::string>(
       "macsec-",
-      direction == SAI_MACSEC_DIRECTION_INGRESS ? "ingress" : "egress",
+      direction == SAI_MACSEC_DIRECTION_INGRESS ? "ing" : "egr",
       "-port",
       port);
 }

@@ -72,6 +72,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SEPARATE_BYTE_AND_PACKET_ACL_COUNTER:
     case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
+    case HwAsic::Feature::ACL_COUNTER_LABEL:
       return true;
     // VOQ vs NPU mode dependent features
     case HwAsic::Feature::BRIDGE_PORT_8021Q:

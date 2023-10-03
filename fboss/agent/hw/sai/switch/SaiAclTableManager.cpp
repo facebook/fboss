@@ -361,19 +361,24 @@ SaiAclTableManager::cfgActionTypeListToSaiActionTypeList(
   return saiActionTypeList;
 }
 
-bool isSameAclCounterAttributes(
+bool SaiAclTableManager::isSameAclCounterAttributes(
     const SaiAclCounterTraits::CreateAttributes& fromStore,
     const SaiAclCounterTraits::CreateAttributes& fromSw) {
-  return GET_ATTR(AclCounter, TableId, fromStore) ==
-      GET_ATTR(AclCounter, TableId, fromSw) &&
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
-      GET_OPT_ATTR(AclCounter, Label, fromStore) ==
-      GET_OPT_ATTR(AclCounter, Label, fromSw) &&
-#endif
+  bool result = GET_ATTR(AclCounter, TableId, fromStore) ==
+          GET_ATTR(AclCounter, TableId, fromSw) &&
       GET_OPT_ATTR(AclCounter, EnablePacketCount, fromStore) ==
-      GET_OPT_ATTR(AclCounter, EnablePacketCount, fromSw) &&
+          GET_OPT_ATTR(AclCounter, EnablePacketCount, fromSw) &&
       GET_OPT_ATTR(AclCounter, EnableByteCount, fromStore) ==
-      GET_OPT_ATTR(AclCounter, EnableByteCount, fromSw);
+          GET_OPT_ATTR(AclCounter, EnableByteCount, fromSw);
+
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::ACL_COUNTER_LABEL)) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+    result = result &&
+        GET_OPT_ATTR(AclCounter, Label, fromStore) ==
+            GET_OPT_ATTR(AclCounter, Label, fromSw);
+#endif
+  }
+  return result;
 }
 
 std::pair<
@@ -405,7 +410,10 @@ SaiAclTableManager::addAclCounter(
       counterLabel.begin());
 
   std::optional<SaiAclCounterTraits::Attributes::Label> aclCounterLabel{
-      counterLabel};
+      std::nullopt};
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::ACL_COUNTER_LABEL)) {
+    aclCounterLabel = counterLabel;
+  }
 #endif
 
   std::optional<SaiAclCounterTraits::Attributes::EnablePacketCount>

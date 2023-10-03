@@ -247,6 +247,10 @@ class SaiAclTableManager {
       std::shared_ptr<SaiAclTable>& exisitingTable,
       const SaiAclTableTraits::CreateAttributes& attributes);
 
+  bool isSameAclCounterAttributes(
+      const SaiAclCounterTraits::CreateAttributes& fromStore,
+      const SaiAclCounterTraits::CreateAttributes& fromSw);
+
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;

@@ -70,6 +70,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PACKET_INTEGRITY_DROP_STATS:
     case HwAsic::Feature::LINK_STATE_BASED_ISOLATE:
     case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
+    case HwAsic::Feature::ACL_COUNTER_LABEL:
       return true;
 
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
