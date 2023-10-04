@@ -227,13 +227,8 @@ NonMonolithicHwSwitchHandler::stateChanged(
   multiswitch::StateOperDelta stateDelta;
   stateDelta.operDelta() = delta;
   stateDelta.transaction() = transaction;
-  // if HwSwitch is not connected, wait for connection. TODO - remove this once
-  // partial update is supported
   {
     std::unique_lock<std::mutex> lk(stateUpdateMutex_);
-    stateUpdateCV_.wait(lk, [this] {
-      return !isOperSyncState(HwSwitchOperDeltaSyncState::DISCONNECTED);
-    });
     if (isOperSyncState(HwSwitchOperDeltaSyncState::CANCELLED)) {
       // return incoming delta to indicate that none of the changes were applied
       return {

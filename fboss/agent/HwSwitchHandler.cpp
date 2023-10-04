@@ -75,8 +75,28 @@ HwSwitchStateUpdateResult HwSwitchHandler::stateChangedImpl(
         stateChanged(stateDelta, update.isTransaction),
         HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_SUCCEEDED};
   }
-  // filter out deltas that don't apply to this switch
-  auto inDelta = operDeltaFilter_.filter(update.inDelta, 1);
+
+  auto operDeltaSyncState = getHwSwitchOperDeltaSyncState();
+
+  if (operDeltaSyncState == HwSwitchOperDeltaSyncState::DISCONNECTED ||
+      operDeltaSyncState == HwSwitchOperDeltaSyncState::CANCELLED) {
+    return {
+        update.oldState,
+        HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_CANCELLED};
+  }
+
+  std::optional<fsdb::OperDelta> inDelta;
+  if (operDeltaSyncState == HwSwitchOperDeltaSyncState::WAITING_INITIAL_SYNC) {
+    auto initialUpdate = HwSwitchStateUpdate(
+        StateDelta(std::make_shared<SwitchState>(), update.newState),
+        update.isTransaction);
+    // filter out deltas that don't apply to this switch from initial update
+    inDelta = operDeltaFilter_.filter(initialUpdate.inDelta, 1);
+  } else {
+    // filter out deltas that don't apply to this switch from incremental update
+    inDelta = operDeltaFilter_.filter(update.inDelta, 1);
+  }
+
   if (!inDelta) {
     // no-op
     return {
