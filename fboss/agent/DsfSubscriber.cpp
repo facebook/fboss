@@ -328,56 +328,65 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
       return stateUpdateFn;
     };
 
+    auto getOperStateCb = [this, nodeName, nodeSwitchId]() {
+      fsdb::FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCbFn =
+          [this, nodeName, nodeSwitchId](
+              fsdb::OperSubPathUnit&& operStateUnit) {
+            std::shared_ptr<SystemPortMap> newSysPorts;
+            std::shared_ptr<InterfaceMap> newRifs;
+            for (const auto& change : *operStateUnit.changes()) {
+              if (change.path()->path() == getSystemPortsPath()) {
+                XLOG(DBG2) << " Got sys port update from : " << nodeName;
+                MultiSwitchSystemPortMap mswitchSysPorts;
+                mswitchSysPorts.fromThrift(thrift_cow::deserialize<
+                                           MultiSwitchSystemPortMapTypeClass,
+                                           MultiSwitchSystemPortMapThriftType>(
+                    fsdb::OperProtocol::BINARY, *change.state()->contents()));
+                newSysPorts = mswitchSysPorts.getAllNodes();
+              } else if (change.path()->path() == getInterfacesPath()) {
+                XLOG(DBG2) << " Got rif update from : " << nodeName;
+                MultiSwitchInterfaceMap mswitchIntfs;
+                mswitchIntfs.fromThrift(thrift_cow::deserialize<
+                                        MultiSwitchInterfaceMapTypeClass,
+                                        MultiSwitchInterfaceMapThriftType>(
+                    fsdb::OperProtocol::BINARY, *change.state()->contents()));
+                newRifs = mswitchIntfs.getAllNodes();
+              } else if (
+                  change.path()->path() ==
+                  getDsfSubscriptionsPath(localNodeName_)) {
+                XLOG(DBG2) << " Got dsf sub update from : " << nodeName;
+
+                using targetType = fsdb::FsdbSubscriptionState;
+                using targetTypeClass = apache::thrift::type_class::enumeration;
+
+                auto newRemoteState =
+                    thrift_cow::deserialize<targetTypeClass, targetType>(
+                        fsdb::OperProtocol::BINARY,
+                        *change.state()->contents());
+
+                auto lockedDsfSessions = this->dsfSessions_.wlock();
+                if (auto it = lockedDsfSessions->find(nodeName);
+                    it != lockedDsfSessions->end()) {
+                  it->second.remoteSubStateChanged(newRemoteState);
+                }
+              } else {
+                throw FbossError(
+                    " Got unexpected state update for : ",
+                    folly::join("/", *change.path()->path()),
+                    " from node: ",
+                    nodeName);
+              }
+            }
+            scheduleUpdate(newSysPorts, newRifs, nodeName, nodeSwitchId);
+          };
+
+      return operStateCbFn;
+    };
+
     fsdbPubSubMgr_->addStatePathSubscription(
         getAllSubscribePaths(localNodeName_),
         getStateUpdateCb(),
-        [this, nodeName, nodeSwitchId](fsdb::OperSubPathUnit&& operStateUnit) {
-          std::shared_ptr<SystemPortMap> newSysPorts;
-          std::shared_ptr<InterfaceMap> newRifs;
-          for (const auto& change : *operStateUnit.changes()) {
-            if (change.path()->path() == getSystemPortsPath()) {
-              XLOG(DBG2) << " Got sys port update from : " << nodeName;
-              MultiSwitchSystemPortMap mswitchSysPorts;
-              mswitchSysPorts.fromThrift(thrift_cow::deserialize<
-                                         MultiSwitchSystemPortMapTypeClass,
-                                         MultiSwitchSystemPortMapThriftType>(
-                  fsdb::OperProtocol::BINARY, *change.state()->contents()));
-              newSysPorts = mswitchSysPorts.getAllNodes();
-            } else if (change.path()->path() == getInterfacesPath()) {
-              XLOG(DBG2) << " Got rif update from : " << nodeName;
-              MultiSwitchInterfaceMap mswitchIntfs;
-              mswitchIntfs.fromThrift(thrift_cow::deserialize<
-                                      MultiSwitchInterfaceMapTypeClass,
-                                      MultiSwitchInterfaceMapThriftType>(
-                  fsdb::OperProtocol::BINARY, *change.state()->contents()));
-              newRifs = mswitchIntfs.getAllNodes();
-            } else if (
-                change.path()->path() ==
-                getDsfSubscriptionsPath(localNodeName_)) {
-              XLOG(DBG2) << " Got dsf sub update from : " << nodeName;
-
-              using targetType = fsdb::FsdbSubscriptionState;
-              using targetTypeClass = apache::thrift::type_class::enumeration;
-
-              auto newRemoteState =
-                  thrift_cow::deserialize<targetTypeClass, targetType>(
-                      fsdb::OperProtocol::BINARY, *change.state()->contents());
-
-              auto lockedDsfSessions = this->dsfSessions_.wlock();
-              if (auto it = lockedDsfSessions->find(nodeName);
-                  it != lockedDsfSessions->end()) {
-                it->second.remoteSubStateChanged(newRemoteState);
-              }
-            } else {
-              throw FbossError(
-                  " Got unexpected state update for : ",
-                  folly::join("/", *change.path()->path()),
-                  " from node: ",
-                  nodeName);
-            }
-          }
-          scheduleUpdate(newSysPorts, newRifs, nodeName, nodeSwitchId);
-        },
+        getOperStateCb(),
         getServerOptions(node, stateDelta.newState()));
   };
   auto rmDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
