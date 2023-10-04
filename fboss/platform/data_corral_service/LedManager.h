@@ -11,8 +11,9 @@ class LedManager {
   explicit LedManager(
       const LedConfig& systemLedConfig,
       const std::map<std::string, LedConfig>& fruTypeLedConfigs);
-  bool programSystemLed(bool presence) const;
-  bool programFruLed(const std::string& fruType, bool presence) const;
+  virtual ~LedManager() = default;
+  virtual bool programSystemLed(bool presence) const;
+  virtual bool programFruLed(const std::string& fruType, bool presence) const;
 
  private:
   void programLed(const std::string& sysfsPath, std::string value) const;
