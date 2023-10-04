@@ -75,6 +75,18 @@ long BcmMultiPathNextHopTable::getEcmpEgressCount() const {
       });
 }
 
+void BcmMultiPathNextHopTable::updateEcmpsForFlowletSwitching() {
+  for (const auto& nextHopsAndEcmpHostInfo : getNextHops()) {
+    auto& weakPtr = nextHopsAndEcmpHostInfo.second;
+    auto ecmpHost = weakPtr.lock();
+    auto ecmpEgress = ecmpHost->getEgress();
+    if (!ecmpEgress) {
+      continue;
+    }
+    ecmpEgress->programForFlowletSwitching();
+  }
+}
+
 void BcmMultiPathNextHopTable::egressResolutionChangedHwLocked(
     const BcmEcmpEgress::EgressIdSet& affectedEgressIds,
     BcmEcmpEgress::Action action) {

@@ -177,6 +177,7 @@ class BcmEcmpEgress : public BcmEgressBase {
   folly::MacAddress getMac() const override {
     throw FbossError("mac requested on multipath egress");
   }
+  void programForFlowletSwitching();
   /*
    * Update ecmp egress entries in HW
    */
@@ -227,6 +228,7 @@ class BcmEcmpEgress : public BcmEgressBase {
 
  private:
   void program();
+  bool isFlowletConfigUpdateNeeded();
   static bool isWideEcmpEnabled(bool wideEcmpSupported);
   const EgressId2Weight egressId2Weight_;
   bool ucmpEnabled_{false};

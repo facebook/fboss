@@ -159,5 +159,8 @@ void BcmEgressManager::processFlowletSwitchingConfigChanged(
     bcmFlowletConfig_.inactivityIntervalUsecs = 0;
     bcmFlowletConfig_.flowletTableSize = 0;
   }
+  // update the all the ecmps in the hw
+  // if the flowlet switching config changed
+  hw_->writableMultiPathNextHopTable()->updateEcmpsForFlowletSwitching();
 }
 } // namespace facebook::fboss
