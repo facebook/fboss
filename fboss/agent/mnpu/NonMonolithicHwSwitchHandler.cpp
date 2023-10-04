@@ -308,7 +308,7 @@ multiswitch::StateOperDelta NonMonolithicHwSwitchHandler::getNextStateOperDelta(
   }
 }
 
-void NonMonolithicHwSwitchHandler::notifyHwSwitchGracefulExit() {
+void NonMonolithicHwSwitchHandler::notifyHwSwitchDisconnected() {
   // cancel any pending operations.
   cancelOperDeltaSync();
 }

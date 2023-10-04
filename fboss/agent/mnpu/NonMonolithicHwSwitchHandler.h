@@ -106,7 +106,7 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
       std::unique_ptr<multiswitch::StateOperDelta> prevOperResult,
       bool initialSync) override;
 
-  void notifyHwSwitchGracefulExit() override;
+  void notifyHwSwitchDisconnected() override;
   void cancelOperDeltaSync();
   HwSwitchOperDeltaSyncState getHwSwitchOperDeltaSyncState() override;
 

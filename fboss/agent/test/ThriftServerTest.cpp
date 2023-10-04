@@ -339,9 +339,9 @@ CO_TEST_F(ThriftServerTest, transmitPktHandler) {
   auto origPktSize = txPkt->buf()->length();
 
   auto gen =
-      (co_await multiSwitchClient_->co_getTxPackets(100)).toAsyncGenerator();
+      (co_await multiSwitchClient_->co_getTxPackets(0)).toAsyncGenerator();
 
-  sw_->sendPacketOutViaThriftStream(std::move(txPkt), SwitchID(100), PortID(5));
+  sw_->sendPacketOutViaThriftStream(std::move(txPkt), SwitchID(0), PortID(5));
 
   const auto& val = co_await gen.next();
   // got packet

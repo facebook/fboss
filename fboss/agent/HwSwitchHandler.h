@@ -155,7 +155,7 @@ class HwSwitchHandler {
       std::unique_ptr<multiswitch::StateOperDelta> prevOperResult,
       bool initialSync) = 0;
 
-  virtual void notifyHwSwitchGracefulExit() = 0;
+  virtual void notifyHwSwitchDisconnected() = 0;
 
   SwitchID getSwitchId() const {
     return switchId_;

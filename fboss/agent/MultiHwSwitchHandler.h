@@ -53,6 +53,8 @@ class MultiHwSwitchHandler {
 
   void notifyHwSwitchGracefulExit(int64_t switchId);
 
+  void notifyHwSwitchDisconnected(int64_t switchId);
+
   std::shared_ptr<SwitchState> stateChanged(
       const StateDelta& delta,
       bool transaction);
