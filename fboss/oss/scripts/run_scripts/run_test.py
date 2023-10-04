@@ -318,7 +318,7 @@ class TestRunner(abc.ABC):
 
     def _get_known_bad_test_regexes(self):
         if not args.skip_known_bad_tests:
-            return None
+            return []
 
         known_bad_tests_file = self._get_known_bad_tests_file()
 
