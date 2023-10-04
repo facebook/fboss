@@ -149,8 +149,18 @@ class MultiHwSwitchHandler {
       SwitchID switchId,
       const HwSwitchStateUpdate& update);
 
-  std::shared_ptr<SwitchState> getStateUpdateResult(
+  std::map<SwitchID, HwSwitchStateUpdateResult> stateChanged(
+      std::map<SwitchID, const StateDelta&>& deltas,
+      bool transaction);
+
+  std::map<SwitchID, HwSwitchStateUpdateResult> getStateUpdateResult(
+      std::vector<SwitchID>& switchIds,
       std::vector<folly::Future<HwSwitchStateUpdateResult>>& futures);
+
+  std::shared_ptr<SwitchState> rollbackStateChange(
+      std::map<SwitchID, HwSwitchStateUpdateResult>& updateResults,
+      std::shared_ptr<SwitchState> desiredState,
+      bool transaction);
 
   SwSwitch* sw_;
   std::map<SwitchID, std::unique_ptr<HwSwitchHandler>> hwSwitchSyncers_;
