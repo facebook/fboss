@@ -337,7 +337,7 @@ SaiPortManager::SaiPortManager(
           HwAsic::Feature::SAI_PORT_GET_PMD_LANES)) {
     auto pmdLanes = SaiApiTable::getInstance()->portApi().getAttribute(
         portSaiId, SaiPortTraits::Attributes::SerdesLaneList{});
-    auto hwLanes = saiPort->adapterHostKey().value();
+    auto hwLanes = GET_ATTR(Port, HwLaneList, saiPort->adapterHostKey());
     hwLaneListIsPmdLaneList_ = (pmdLanes.size() == hwLanes.size());
     XLOG(DBG2) << "HwLaneList means pmd lane list or not: "
                << hwLaneListIsPmdLaneList_;

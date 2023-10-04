@@ -335,7 +335,7 @@ struct SaiPortTraits {
 #endif
   };
   using AdapterKey = PortSaiId;
-  using AdapterHostKey = Attributes::HwLaneList;
+  using AdapterHostKey = std::tuple<Attributes::HwLaneList>;
 
   using CreateAttributes = std::tuple<
       Attributes::HwLaneList,

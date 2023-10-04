@@ -562,8 +562,9 @@ void SaiPortManager::enableAfeAdaptiveMode(PortID portId) {
 
   SaiPortSerdesTraits::Attributes::RxAfeAdaptiveEnable::ValueType
       rxAfeAdaptiveEnable;
-  auto& portKey = portHandle->port->adapterHostKey();
-  for (auto i = 0; i < portKey.value().size(); i++) {
+  auto hwLaneListSize =
+      GET_ATTR(Port, HwLaneList, portHandle->port->adapterHostKey()).size();
+  for (auto i = 0; i < hwLaneListSize; i++) {
     rxAfeAdaptiveEnable.push_back(1);
   }
   auto& store = saiStore_->get<SaiPortSerdesTraits>();
@@ -586,7 +587,6 @@ void SaiPortManager::programSerdes(
     return;
   }
 
-  auto& portKey = saiPort->adapterHostKey();
   SaiPortSerdesTraits::AdapterHostKey serdesKey{saiPort->adapterKey()};
   auto& store = saiStore_->get<SaiPortSerdesTraits>();
   // check if serdes object already exists for given port,
@@ -629,7 +629,8 @@ void SaiPortManager::programSerdes(
       ++numExpectedRxLanes;
     }
   }
-  auto numPmdLanes = portKey.value().size();
+  auto numPmdLanes =
+      GET_ATTR(Port, HwLaneList, saiPort->adapterHostKey()).size();
   if (!hwLaneListIsPmdLaneList_) {
     // On Tomahawk4, HwLaneList means physical port list instead of pmd lane
     // list for now. One physical port maps to two pmd lanes, except for one
