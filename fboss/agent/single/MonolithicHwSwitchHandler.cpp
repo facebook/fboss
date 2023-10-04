@@ -88,7 +88,10 @@ void MonolithicHwSwitchHandler::platformStop() {
   platform_->stop();
 }
 
-bool MonolithicHwSwitchHandler::transactionsSupported() const {
+bool MonolithicHwSwitchHandler::transactionsSupported(
+    std::optional<cfg::SdkVersion> /*sdkVersion*/) const {
+  // TODO use sdk version to determine if transactions are supported
+  // This can be done after sdk version is populated in all tests
   return hw_->transactionsSupported();
 }
 

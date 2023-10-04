@@ -86,8 +86,11 @@ void NonMonolithicHwSwitchHandler::platformStop() {
   // TODO: implement this
 }
 
-bool NonMonolithicHwSwitchHandler::transactionsSupported() const {
-  // TODO: implement this
+bool NonMonolithicHwSwitchHandler::transactionsSupported(
+    std::optional<cfg::SdkVersion> sdkVersion) const {
+  if (sdkVersion.has_value() && sdkVersion.value().saiSdk().has_value()) {
+    return true;
+  }
   return false;
 }
 

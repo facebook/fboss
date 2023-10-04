@@ -86,7 +86,8 @@ class HwSwitchHandler {
 
   virtual std::optional<uint32_t> getHwLogicalPortId(PortID portID) const = 0;
 
-  virtual bool transactionsSupported() const = 0;
+  virtual bool transactionsSupported(
+      std::optional<cfg::SdkVersion> sdkVersion) const = 0;
 
   virtual HwSwitchFb303Stats* getSwitchStats() const = 0;
 

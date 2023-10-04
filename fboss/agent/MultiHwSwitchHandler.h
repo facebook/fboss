@@ -33,7 +33,8 @@ class MultiHwSwitchHandler {
   MultiHwSwitchHandler(
       const std::map<int64_t, cfg::SwitchInfo>& switchInfoMap,
       HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
-      SwSwitch* sw);
+      SwSwitch* sw,
+      std::optional<cfg::SdkVersion> sdkVersion);
 
   ~MultiHwSwitchHandler();
 
@@ -82,6 +83,8 @@ class MultiHwSwitchHandler {
   std::optional<uint32_t> getHwLogicalPortId(PortID portID);
 
   bool transactionsSupported();
+
+  bool transactionsSupported(std::optional<cfg::SdkVersion> sdkVersion);
 
   HwSwitchFb303Stats* getSwitchStats();
 
@@ -153,6 +156,7 @@ class MultiHwSwitchHandler {
   std::map<SwitchID, std::unique_ptr<HwSwitchHandler>> hwSwitchSyncers_;
   std::atomic<bool> stopped_{true};
   HwSwitchConnectionStatusTable connectionStatusTable_;
+  bool transactionsSupported_;
 };
 
 } // namespace facebook::fboss

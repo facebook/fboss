@@ -241,7 +241,8 @@ SwSwitch::SwSwitch(
     : multiHwSwitchHandler_(new MultiHwSwitchHandler(
           getSwitchInfoFromConfig(config),
           std::move(hwSwitchHandlerInitFn),
-          this)),
+          this,
+          getSdkVersionFromConfig(config))),
       agentDirUtil_(agentDirUtil),
       supportsAddRemovePort_(supportsAddRemovePort),
       platformProductInfo_(

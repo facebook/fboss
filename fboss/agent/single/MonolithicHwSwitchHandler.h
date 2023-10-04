@@ -88,7 +88,8 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
       const fsdb::OperDelta& delta,
       bool transaction) override;
 
-  bool transactionsSupported() const override;
+  bool transactionsSupported(
+      std::optional<cfg::SdkVersion> sdkVersion) const override;
 
   /* TODO: remove this method */
   HwSwitch* getHwSwitch() const {

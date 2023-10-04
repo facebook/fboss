@@ -24,6 +24,9 @@ class SwSwitchHandlerTest : public ::testing::Test {
   void SetUp() override {
     const std::map<int64_t, cfg::SwitchInfo> switchInfoMap = {
         {0, cfg::SwitchInfo()}, {1, cfg::SwitchInfo()}};
+    std::optional<cfg::SdkVersion> sdkVersion = cfg::SdkVersion();
+    sdkVersion->asicSdk() = "testVersion";
+    sdkVersion->saiSdk() = "testSAIVersion";
     hwSwitchHandler_ = std::make_unique<MultiHwSwitchHandler>(
         switchInfoMap,
         [](const SwitchID& switchId,
@@ -33,7 +36,8 @@ class SwSwitchHandlerTest : public ::testing::Test {
               facebook::fboss::NonMonolithicHwSwitchHandler>(
               switchId, info, sw);
         },
-        nullptr);
+        nullptr,
+        sdkVersion);
     hwSwitchHandler_->start();
   }
 

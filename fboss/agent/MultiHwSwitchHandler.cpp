@@ -11,13 +11,15 @@ namespace facebook::fboss {
 MultiHwSwitchHandler::MultiHwSwitchHandler(
     const std::map<int64_t, cfg::SwitchInfo>& switchInfoMap,
     HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
-    SwSwitch* sw)
+    SwSwitch* sw,
+    std::optional<cfg::SdkVersion> sdkVersion)
     : sw_(sw) {
   for (auto entry : switchInfoMap) {
     hwSwitchSyncers_.emplace(
         SwitchID(entry.first),
         hwSwitchHandlerInitFn(SwitchID(entry.first), entry.second, sw_));
   }
+  transactionsSupported_ = transactionsSupported(sdkVersion);
 }
 
 MultiHwSwitchHandler::~MultiHwSwitchHandler() {
@@ -144,8 +146,13 @@ folly::dynamic MultiHwSwitchHandler::toFollyDynamic() {
 }
 
 bool MultiHwSwitchHandler::transactionsSupported() {
+  return transactionsSupported_;
+}
+
+bool MultiHwSwitchHandler::transactionsSupported(
+    std::optional<cfg::SdkVersion> sdkVersion) {
   for (auto& entry : hwSwitchSyncers_) {
-    if (!entry.second->transactionsSupported()) {
+    if (!entry.second->transactionsSupported(sdkVersion)) {
       return false;
     }
   }
