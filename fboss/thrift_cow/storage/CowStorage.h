@@ -217,7 +217,7 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
     root_ = root_->clone();
     // TODO: patch at baseBath
     auto ret =
-        thrift_cow::RootPatchApplier::apply(root_, std::move(*patch.patch()));
+        thrift_cow::RootPatchApplier::apply(*root_, std::move(*patch.patch()));
     return detail::parsePatchResult(ret);
   }
 

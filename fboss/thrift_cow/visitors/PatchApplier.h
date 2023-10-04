@@ -28,7 +28,7 @@ struct FieldsType;
 namespace pa_detail {
 template <typename Node>
 PatchResult patchNode(Node& n, ByteBuffer&& buf) {
-  n->fromEncodedBuf(fsdb::OperProtocol::COMPACT, std::move(buf));
+  n.fromEncodedBuf(fsdb::OperProtocol::COMPACT, std::move(buf));
   return PatchResult::OK;
 }
 } // namespace pa_detail
@@ -46,9 +46,7 @@ struct PatchApplier<
       // only enable for Node types
       std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
           true>
-  static inline PatchResult apply(
-      std::shared_ptr<Node>& node,
-      PatchNode&& patch) {
+  static inline PatchResult apply(Node& node, PatchNode&& patch) {
     if (patch.getType() == PatchNode::Type::val) {
       return pa_detail::patchNode(node, patch.move_val());
     }
@@ -83,12 +81,12 @@ struct PatchApplier<
     for (auto&& [key, childPatch] : *std::move(mapPatch).children()) {
       if (auto parsedKey = parseKey(key)) {
         if (childPatch.getType() == PatchNode::Type::del) {
-          node->remove(std::move(*parsedKey));
+          node.remove(std::move(*parsedKey));
         } else {
-          node->modifyImpl(*parsedKey);
+          node.modifyImpl(*parsedKey);
 
           auto res = PatchApplier<MappedTypeClass>::apply(
-              node->ref(std::move(*parsedKey)), std::move(childPatch));
+              *node.ref(std::move(*parsedKey)), std::move(childPatch));
           // Continue patching even if there is an error, but still return an
           // error if encountered
           if (res != PatchResult::OK) {
@@ -116,9 +114,7 @@ struct PatchApplier<apache::thrift::type_class::list<ValueTypeClass>> {
       // only enable for Node types
       std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
           true>
-  static inline PatchResult apply(
-      std::shared_ptr<Node>& node,
-      PatchNode&& patch) {
+  static inline PatchResult apply(Node& node, PatchNode&& patch) {
     if (patch.getType() == PatchNode::Type::val) {
       return pa_detail::patchNode(node, patch.move_val());
     }
@@ -143,12 +139,12 @@ struct PatchApplier<apache::thrift::type_class::list<ValueTypeClass>> {
     for (const int index : indices) {
       auto& childPatch = listPatch.children()->at(index);
       if (childPatch.getType() == PatchNode::Type::del) {
-        node->remove(index);
+        node.remove(index);
         continue;
       }
-      node->modify(index);
+      node.modify(index);
       auto res = PatchApplier<ValueTypeClass>::apply(
-          node->ref(index), std::move(std::move(childPatch)));
+          *node.ref(index), std::move(std::move(childPatch)));
       if (res != PatchResult::OK) {
         result = res;
       }
@@ -169,9 +165,7 @@ struct PatchApplier<apache::thrift::type_class::set<ValueTypeClass>> {
       // only enable for Node types
       std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
           true>
-  static inline PatchResult apply(
-      std::shared_ptr<Node>& node,
-      PatchNode&& patch) {
+  static inline PatchResult apply(Node& node, PatchNode&& patch) {
     if (patch.getType() == PatchNode::Type::val) {
       return pa_detail::patchNode(node, patch.move_val());
     }
@@ -212,9 +206,9 @@ struct PatchApplier<apache::thrift::type_class::set<ValueTypeClass>> {
       // We only support sets of primitives
       // lets not recurse and just handle add/remove here
       if (childPatch.getType() == PatchNode::Type::del) {
-        node->erase(std::move(*value));
+        node.erase(std::move(*value));
       } else if (childPatch.getType() == PatchNode::Type::val) {
-        node->emplace(std::move(*value));
+        node.emplace(std::move(*value));
       } else {
         result = PatchResult::INVALID_PATCH_TYPE;
       }
@@ -236,9 +230,7 @@ struct PatchApplier<apache::thrift::type_class::variant> {
       // only enable for Node types
       std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
           true>
-  static inline PatchResult apply(
-      std::shared_ptr<Node>& node,
-      PatchNode&& patch) {
+  static inline PatchResult apply(Node& node, PatchNode&& patch) {
     if (patch.getType() == PatchNode::Type::val) {
       return pa_detail::patchNode(node, patch.move_val());
     }
@@ -259,8 +251,8 @@ struct PatchApplier<apache::thrift::type_class::variant> {
       using name = typename descriptor::metadata::name;
       using tc = typename descriptor::metadata::type_class;
 
-      node->template modify<name>();
-      auto& child = node->template ref<name>();
+      node.template modify<name>();
+      auto& child = node.template ref<name>();
 
       if (!child) {
         // child is unset, cannot traverse through missing optional child
@@ -268,7 +260,7 @@ struct PatchApplier<apache::thrift::type_class::variant> {
         return;
       }
       result =
-          PatchApplier<tc>::apply(child, std::move(*variantPatch->child()));
+          PatchApplier<tc>::apply(*child, std::move(*variantPatch->child()));
     });
 
     return result;
@@ -287,9 +279,7 @@ struct PatchApplier<apache::thrift::type_class::structure> {
       // only enable for Node types
       std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
           true>
-  static inline PatchResult apply(
-      std::shared_ptr<Node>& node,
-      PatchNode&& patch) {
+  static inline PatchResult apply(Node& node, PatchNode&& patch) {
     if (patch.getType() == PatchNode::Type::val) {
       return pa_detail::patchNode(node, patch.move_val());
     }
@@ -310,12 +300,12 @@ struct PatchApplier<apache::thrift::type_class::structure> {
             using tc = typename member::type_class;
 
             if (childPatch.getType() == PatchNode::Type::del) {
-              node->template remove<name>();
+              node.template remove<name>();
               return;
             }
 
-            auto& child = node->template modify<name>(&node);
-            auto res = PatchApplier<tc>::apply(child, std::move(childPatch));
+            auto& child = node.template modify<name>();
+            auto res = PatchApplier<tc>::apply(*child, std::move(childPatch));
             // Continue patching even if there is an error, but still return an
             // error if encountered
             if (res != PatchResult::OK) {
@@ -346,7 +336,7 @@ struct PatchApplier {
       "Refer to thrift/lib/cpp2/reflection/reflection.h");
 
   template <typename Fields>
-  static PatchResult apply(std::optional<Fields>& fields, PatchNode&& patch) {
+  static PatchResult apply(Fields& fields, PatchNode&& patch) {
     if (patch.getType() != PatchNode::Type::val) {
       return PatchResult::INVALID_PATCH_TYPE;
     }

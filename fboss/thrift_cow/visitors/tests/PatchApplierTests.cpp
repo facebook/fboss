@@ -31,7 +31,7 @@ TEST(PatchApplierTests, ModifyPrimitive) {
 
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
   auto ret = PatchApplier<apache::thrift::type_class::string>::apply(
-      nodeA->template ref<k::inlineString>(), std::move(n));
+      *nodeA->template ref<k::inlineString>(), std::move(n));
   EXPECT_EQ(ret, PatchResult::OK);
   EXPECT_EQ(*nodeA->template ref<k::inlineString>(), "new val");
 
@@ -40,7 +40,7 @@ TEST(PatchApplierTests, ModifyPrimitive) {
       fsdb::OperProtocol::COMPACT, 1234));
 
   ret = PatchApplier<apache::thrift::type_class::integral>::apply(
-      nodeA->template ref<k::inlineInt>(), std::move(n));
+      *nodeA->template ref<k::inlineInt>(), std::move(n));
   EXPECT_EQ(ret, PatchResult::OK);
   EXPECT_EQ(*nodeA->template ref<k::inlineInt>(), 1234);
 }
@@ -61,7 +61,7 @@ TEST(PatchApplierTests, ModifyStructMember) {
   n.set_struct_node(std::move(structPatch));
 
   auto ret = PatchApplier<apache::thrift::type_class::structure>::apply(
-      nodeA, std::move(n));
+      *nodeA, std::move(n));
   EXPECT_EQ(ret, PatchResult::OK);
   EXPECT_EQ(*nodeA->template ref<k::inlineString>(), "new val");
 }
@@ -83,7 +83,7 @@ TEST(PatchApplierTests, ModifyMapMember) {
   auto ret = PatchApplier<apache::thrift::type_class::map<
       apache::thrift::type_class::integral,
       apache::thrift::type_class::integral>>::
-      apply(nodeA->template ref<k::mapOfI32ToI32>(), std::move(n));
+      apply(*nodeA->template ref<k::mapOfI32ToI32>(), std::move(n));
   EXPECT_EQ(ret, PatchResult::OK);
   EXPECT_EQ(*nodeA->template ref<k::mapOfI32ToI32>()->at(123), 42);
 }
@@ -108,7 +108,7 @@ TEST(PatchApplierTests, AddRemoveMapMember) {
   auto ret = PatchApplier<apache::thrift::type_class::map<
       apache::thrift::type_class::integral,
       apache::thrift::type_class::integral>>::
-      apply(nodeA->template ref<k::mapOfI32ToI32>(), std::move(n));
+      apply(*nodeA->template ref<k::mapOfI32ToI32>(), std::move(n));
   EXPECT_EQ(ret, PatchResult::OK);
   EXPECT_EQ(*nodeA->template ref<k::mapOfI32ToI32>()->at(3), 42);
   EXPECT_EQ(nodeA->template ref<k::mapOfI32ToI32>()->count(1), 0);
@@ -132,7 +132,7 @@ TEST(PatchApplierTests, ModifyListMember) {
 
   auto ret = PatchApplier<
       apache::thrift::type_class::list<apache::thrift::type_class::integral>>::
-      apply(nodeA->template ref<k::listOfPrimitives>(), std::move(n));
+      apply(*nodeA->template ref<k::listOfPrimitives>(), std::move(n));
   EXPECT_EQ(ret, PatchResult::OK);
   EXPECT_EQ(*nodeA->template ref<k::listOfPrimitives>()->at(1), 42);
 }
@@ -157,7 +157,7 @@ TEST(PatchApplierTests, AddListMembers) {
 
   auto ret = PatchApplier<
       apache::thrift::type_class::list<apache::thrift::type_class::integral>>::
-      apply(nodeA->template ref<k::listOfPrimitives>(), std::move(n));
+      apply(*nodeA->template ref<k::listOfPrimitives>(), std::move(n));
   EXPECT_EQ(ret, PatchResult::OK);
   EXPECT_EQ(nodeA->template ref<k::listOfPrimitives>()->size(), 3);
   EXPECT_EQ(*nodeA->template ref<k::listOfPrimitives>()->at(1), 12);
@@ -180,7 +180,7 @@ TEST(PatchApplierTests, RemoveListMembers) {
 
   auto ret = PatchApplier<
       apache::thrift::type_class::list<apache::thrift::type_class::integral>>::
-      apply(nodeA->template ref<k::listOfPrimitives>(), std::move(n));
+      apply(*nodeA->template ref<k::listOfPrimitives>(), std::move(n));
   EXPECT_EQ(ret, PatchResult::OK);
   EXPECT_EQ(nodeA->template ref<k::listOfPrimitives>()->size(), 1);
   EXPECT_EQ(nodeA->template ref<k::listOfPrimitives>()->at(0), 1);
@@ -203,7 +203,7 @@ TEST(PatchApplierTests, ModifyVariantValue) {
   n.set_variant_node(variantPatch);
 
   auto ret = PatchApplier<apache::thrift::type_class::variant>::apply(
-      nodeA->template ref<k::inlineVariant>(), std::move(n));
+      *nodeA->template ref<k::inlineVariant>(), std::move(n));
   EXPECT_EQ(ret, PatchResult::OK);
   EXPECT_EQ(*nodeA->template ref<k::inlineVariant>()->ref<k::inlineInt>(), 42);
 }
@@ -225,7 +225,7 @@ TEST(PatchApplierTests, ModifyVariantType) {
   n.set_variant_node(variantPatch);
 
   auto ret = PatchApplier<apache::thrift::type_class::variant>::apply(
-      nodeA->template ref<k::inlineVariant>(), PatchNode(n));
+      *nodeA->template ref<k::inlineVariant>(), PatchNode(n));
   EXPECT_EQ(ret, PatchResult::OK);
   EXPECT_EQ(*nodeA->template ref<k::inlineVariant>()->ref<k::inlineInt>(), 42);
 
@@ -237,7 +237,7 @@ TEST(PatchApplierTests, ModifyVariantType) {
   n.set_variant_node(variantPatch);
 
   ret = PatchApplier<apache::thrift::type_class::variant>::apply(
-      nodeA->template ref<k::inlineVariant>(), PatchNode(n));
+      *nodeA->template ref<k::inlineVariant>(), PatchNode(n));
   EXPECT_EQ(ret, PatchResult::OK);
   EXPECT_EQ(
       *nodeA->template ref<k::inlineVariant>()
@@ -267,7 +267,7 @@ TEST(PatchApplierTests, AddRemoveSetItems) {
 
   auto ret = PatchApplier<
       apache::thrift::type_class::set<apache::thrift::type_class::integral>>::
-      apply(nodeA->template ref<k::setOfI32>(), std::move(n));
+      apply(*nodeA->template ref<k::setOfI32>(), std::move(n));
   EXPECT_EQ(ret, PatchResult::OK);
   EXPECT_EQ(nodeA->template ref<k::setOfI32>()->size(), 2);
   EXPECT_EQ(nodeA->template ref<k::setOfI32>()->count(1), 1);
@@ -315,7 +315,7 @@ TEST(PatchApplierTests, SetMemberFull) {
   PatchNode n;
   n.set_struct_node(std::move(structPatch));
 
-  auto ret = RootPatchApplier::apply(nodeA, std::move(n));
+  auto ret = RootPatchApplier::apply(*nodeA, std::move(n));
   EXPECT_EQ(ret, PatchResult::OK);
 
   EXPECT_EQ(nodeA->ref<k::inlineStruct>()->toThrift(), *structB.inlineStruct());
@@ -354,7 +354,7 @@ TEST(PatchApplierTests, SetUnsetOptionalMember) {
   PatchNode n;
   n.set_struct_node(structPatch);
 
-  auto ret = RootPatchApplier::apply(nodeA, std::move(n));
+  auto ret = RootPatchApplier::apply(*nodeA, std::move(n));
   EXPECT_EQ(ret, PatchResult::OK);
 
   EXPECT_EQ(nodeA->ref<k::optionalInt>()->toThrift(), *structB.optionalInt());
@@ -367,7 +367,7 @@ TEST(PatchApplierTests, SetUnsetOptionalMember) {
   n = PatchNode();
   n.set_struct_node(std::move(structPatch));
 
-  ret = RootPatchApplier::apply(nodeB, std::move(n));
+  ret = RootPatchApplier::apply(*nodeB, std::move(n));
   EXPECT_EQ(ret, PatchResult::OK);
 
   EXPECT_FALSE(nodeB->isSet<k::optionalInt>());
@@ -387,7 +387,7 @@ TEST(PatchApplierTests, TestBadPatches) {
   PatchNode n;
   n.set_struct_node(structPatch);
 
-  auto ret = RootPatchApplier::apply(nodeA, PatchNode(n));
+  auto ret = RootPatchApplier::apply(*nodeA, PatchNode(n));
   EXPECT_EQ(ret, PatchResult::INVALID_STRUCT_MEMBER);
 
   // invalid union id
@@ -398,7 +398,7 @@ TEST(PatchApplierTests, TestBadPatches) {
   structPatch.children() = {{TestStructMembers::inlineVariant::id(), n}};
   n.set_struct_node(structPatch);
 
-  ret = RootPatchApplier::apply(nodeA, PatchNode(n));
+  ret = RootPatchApplier::apply(*nodeA, PatchNode(n));
   EXPECT_EQ(ret, PatchResult::INVALID_VARIANT_MEMBER);
 }
 } // namespace facebook::fboss::thrift_cow
