@@ -8,22 +8,30 @@
 
 namespace thriftpath {
 
-#define STRUCT_CHILD_GETTERS(child)                                          \
+#define STRUCT_CHILD_GETTERS(child, childId)                                 \
   TypeFor<strings::child> child() const& {                                   \
-    return TypeFor<strings::child>(copyAndExtendVec(this->tokens_, #child)); \
+    return TypeFor<strings::child>(                                          \
+        copyAndExtendVec(this->tokens_, #child),                             \
+        copyAndExtendVec(this->idTokens_, folly::to<std::string>(childId))); \
   }                                                                          \
   TypeFor<strings::child> child()&& {                                        \
     this->tokens_.push_back(#child);                                         \
-    return TypeFor<strings::child>(std::move(this->tokens_));                \
+    this->idTokens_.push_back(folly::to<std::string>(childId));              \
+    return TypeFor<strings::child>(                                          \
+        std::move(this->tokens_), std::move(this->idTokens_));               \
   }
-#define CONTAINER_CHILD_GETTERS(key_type)                                \
-  Child operator[](key_type token) const& {                              \
-    return Child(                                                        \
-        copyAndExtendVec(this->tokens_, folly::to<std::string>(token))); \
-  }                                                                      \
-  Child operator[](key_type token)&& {                                   \
-    this->tokens_.push_back(folly::to<std::string>(token));              \
-    return Child(std::move(this->tokens_));                              \
+#define CONTAINER_CHILD_GETTERS(key_type)                               \
+  Child operator[](key_type token) const& {                             \
+    const std::string strToken = folly::to<std::string>(token);         \
+    return Child(                                                       \
+        copyAndExtendVec(this->tokens_, strToken),                      \
+        copyAndExtendVec(this->idTokens_, strToken));                   \
+  }                                                                     \
+  Child operator[](key_type token)&& {                                  \
+    const std::string strToken = folly::to<std::string>(token);         \
+    this->tokens_.push_back(strToken);                                  \
+    this->idTokens_.push_back(strToken);                                \
+    return Child(std::move(this->tokens_), std::move(this->idTokens_)); \
   }
 
 template <typename _DataT, typename _RootT, typename _TC, typename _ParentT>
@@ -34,18 +42,27 @@ class Path {
   using TC = _TC;
   using ParentT = _ParentT;
 
-  Path(std::vector<std::string> tokens, ParentT&& parent)
-      : tokens_(std::move(tokens)), parent_(std::forward<ParentT>(parent)) {}
+  Path(
+      std::vector<std::string> tokens,
+      std::vector<std::string> idTokens,
+      ParentT&& parent)
+      : tokens_(std::move(tokens)),
+        idTokens_(std::move(idTokens)),
+        parent_(std::forward<ParentT>(parent)) {}
 
-  explicit Path(std::vector<std::string> tokens)
-      : Path(tokens, [&]() -> ParentT {
+  Path(std::vector<std::string> tokens, std::vector<std::string> idTokens)
+      : Path(tokens, idTokens, [&]() -> ParentT {
           if constexpr (std::is_same_v<ParentT, folly::Unit>) {
             assert(tokens.empty());
+            assert(idTokens.empty());
             return folly::unit;
           } else {
             assert(!tokens.empty());
-            return ParentT(std::vector<std::string>(
-                tokens.begin(), std::prev(tokens.end())));
+            return ParentT(
+                std::vector<std::string>(
+                    tokens.begin(), std::prev(tokens.end())),
+                std::vector<std::string>(
+                    idTokens.begin(), std::prev(idTokens.end())));
           }
         }()) {}
 
@@ -70,12 +87,17 @@ class Path {
     return tokens_;
   }
 
+  const std::vector<std::string>& idTokens() const {
+    return idTokens_;
+  }
+
   const ParentT& parent() {
     return parent_;
   }
 
  protected:
   std::vector<std::string> tokens_;
+  std::vector<std::string> idTokens_;
 
  private:
   // TODO: reduce memory usage by only storing begin/end in parent

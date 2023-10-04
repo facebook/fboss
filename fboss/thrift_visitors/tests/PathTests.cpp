@@ -53,3 +53,30 @@ TEST(PathTests, IntegralGetOperator) {
       "/defaultCommandLineArgs");
   EXPECT_EQ(root(k::defaultCommandLineArgs()).str(), "/defaultCommandLineArgs");
 }
+
+TEST(PathTests, AgentConfigTokens) {
+  using namespace facebook::fboss::fsdb;
+
+  using RootPath =
+      thriftpath::RootThriftPath<facebook::fboss::cfg::AgentConfig>;
+  RootPath root;
+
+  using PathVec = std::vector<std::string>;
+  auto cmdlineArgs = root.defaultCommandLineArgs();
+  EXPECT_EQ(cmdlineArgs.tokens(), PathVec({"defaultCommandLineArgs"}));
+  EXPECT_EQ(cmdlineArgs.idTokens(), PathVec({"1"}));
+  EXPECT_EQ(
+      cmdlineArgs["bla"].tokens(), PathVec({"defaultCommandLineArgs", "bla"}));
+  EXPECT_EQ(cmdlineArgs["bla"].idTokens(), PathVec({"1", "bla"}));
+  auto portQueueConfigs = root.sw().portQueueConfigs();
+  EXPECT_EQ(portQueueConfigs.tokens(), PathVec({"sw", "portQueueConfigs"}));
+  EXPECT_EQ(portQueueConfigs.idTokens(), PathVec({"2", "40"}));
+
+  // Test rvalue ref child getters
+  EXPECT_EQ(
+      RootPath().defaultCommandLineArgs()["foo"].tokens(),
+      PathVec({"defaultCommandLineArgs", "foo"}));
+  EXPECT_EQ(
+      RootPath().defaultCommandLineArgs()["foo"].idTokens(),
+      PathVec({"1", "foo"}));
+}

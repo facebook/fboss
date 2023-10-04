@@ -127,3 +127,27 @@ TEST(NameToPathVisitorTests, AlternateRoots) {
         << "Failed path: /" + folly::join('/', path);
   }
 }
+
+TEST(NameToPathVisitorTests, NameAndIds) {
+  RootThriftPath<TestStruct> testStructRoot;
+
+  // both resolve to the same path
+  std::vector<std::vector<std::string>> paths = {
+      {"member", "min"},
+      {"4", "1"},
+  };
+  for (auto& path : paths) {
+    auto result = RootNameToPathVisitor::visit(
+        testStructRoot,
+        path.begin(),
+        path.begin(),
+        path.end(),
+        [&](auto resolved) {
+          EXPECT_EQ(
+              resolved.tokens(), std::vector<std::string>({"member", "min"}));
+          EXPECT_EQ(resolved.idTokens(), std::vector<std::string>({"4", "1"}));
+        });
+    EXPECT_EQ(result, NameToPathResult::OK)
+        << "Failed path: /" + folly::join('/', path);
+  }
+}
