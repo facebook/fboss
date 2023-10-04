@@ -23,9 +23,11 @@ void LedServiceTest::SetUp() {
   ensemble_ = std::make_unique<LedEnsemble>();
   ensemble_->init();
 
-  // Check if the config file for this platform can be loaded without any error
-  EXPECT_TRUE(
-      getLedEnsemble()->getLedManager()->isLedControlledThroughService());
+  // Check if the LED manager is created correctly, the config file is loaded
+  // and the LED is managed by service now
+  auto ledManager = getLedEnsemble()->getLedManager();
+  CHECK_NE(ledManager, nullptr);
+  CHECK(ledManager->isLedControlledThroughService());
 }
 
 void LedServiceTest::TearDown() {
