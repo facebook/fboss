@@ -57,6 +57,18 @@ sai_int32_t getPortTypeFromCfg(const cfg::PortType& cfgPortType) {
 }
 #endif
 
+SaiPortTraits::AdapterHostKey getPortAdapterHostKeyFromAttr(
+    const SaiPortTraits::CreateAttributes& attributes) {
+  SaiPortTraits::AdapterHostKey portKey {
+#if defined(BRCM_SAI_SDK_DNX)
+    GET_ATTR(Port, Type, attributes),
+#endif
+        GET_ATTR(Port, HwLaneList, attributes)
+  };
+
+  return portKey;
+}
+
 } // namespace
 
 void SaiPortManager::fillInSupportedStats(PortID port) {
@@ -186,7 +198,8 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
     }
   }
 
-  SaiPortTraits::AdapterHostKey portKey{GET_ATTR(Port, HwLaneList, attributes)};
+  SaiPortTraits::AdapterHostKey portKey{
+      getPortAdapterHostKeyFromAttr(attributes)};
   auto handle = std::make_unique<SaiPortHandle>();
 
   auto& portStore = saiStore_->get<SaiPortTraits>();
@@ -266,7 +279,7 @@ void SaiPortManager::changePortImpl(
   }
 
   SaiPortTraits::AdapterHostKey portKey{
-      GET_ATTR(Port, HwLaneList, newAttributes)};
+      getPortAdapterHostKeyFromAttr(newAttributes)};
   auto& portStore = saiStore_->get<SaiPortTraits>();
   auto saiPort = portStore.setObject(portKey, newAttributes, newPort->getID());
   programSerdes(saiPort, newPort, existingPort);
@@ -319,7 +332,9 @@ void SaiPortManager::changePortImpl(
 
 void SaiPortManager::attributesFromSaiStore(
     SaiPortTraits::CreateAttributes& attributes) {
-  SaiPortTraits::AdapterHostKey portKey{GET_ATTR(Port, HwLaneList, attributes)};
+  SaiPortTraits::AdapterHostKey portKey{
+      getPortAdapterHostKeyFromAttr(attributes)};
+
   auto& store = saiStore_->get<SaiPortTraits>();
   std::shared_ptr<SaiPort> port = store.get(portKey);
   if (!port) {
@@ -486,7 +501,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     mtu = swPort->getMaxFrameSize();
   }
   return SaiPortTraits::CreateAttributes {
-    hwLaneList, static_cast<uint32_t>(speed), adminState, fecMode,
+#if defined(BRCM_SAI_SDK_DNX)
+    getPortTypeFromCfg(swPort->getPortType()),
+#endif
+        hwLaneList, static_cast<uint32_t>(speed), adminState, fecMode,
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
         std::nullopt, std::nullopt,
 #endif

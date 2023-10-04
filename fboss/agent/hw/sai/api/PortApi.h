@@ -335,9 +335,16 @@ struct SaiPortTraits {
 #endif
   };
   using AdapterKey = PortSaiId;
-  using AdapterHostKey = std::tuple<Attributes::HwLaneList>;
+  using AdapterHostKey = std::tuple<
+#if defined(BRCM_SAI_SDK_DNX)
+      Attributes::Type,
+#endif
+      Attributes::HwLaneList>;
 
   using CreateAttributes = std::tuple<
+#if defined(BRCM_SAI_SDK_DNX)
+      Attributes::Type,
+#endif
       Attributes::HwLaneList,
       Attributes::Speed,
       std::optional<Attributes::AdminState>,
