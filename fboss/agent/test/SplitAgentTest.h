@@ -3,8 +3,9 @@
 #pragma once
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/test/SplitAgentEnsemble.h"
+#include "fboss/agent/test/AgentEnsemble.h"
 
+#include <gflags/gflags.h>
 #include <gtest/gtest.h>
 
 DECLARE_int32(update_watermark_stats_interval_s);

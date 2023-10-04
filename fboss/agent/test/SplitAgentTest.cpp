@@ -2,6 +2,7 @@
 
 #include "fboss/agent/test/SplitAgentTest.h"
 #include "fboss/agent/HwAsicTable.h"
+#include "fboss/agent/test/AgentEnsemble.h"
 
 DEFINE_bool(run_forever, false, "run the test forever");
 DEFINE_bool(run_forever_on_failure, false, "run the test forever on failure");
@@ -22,11 +23,7 @@ void SplitAgentTest::SetUp() {
       [this](SwSwitch* swSwitch, const std::vector<PortID>& ports) {
         return initialConfig(swSwitch, ports);
       };
-  if (platformConfigFn_) {
-    agentEnsemble_ = createAgentEnsemble(initialConfigFn, platformConfigFn_);
-  } else {
-    agentEnsemble_ = createAgentEnsemble(initialConfigFn);
-  }
+  agentEnsemble_ = createAgentEnsemble(initialConfigFn);
 }
 
 void SplitAgentTest::TearDown() {

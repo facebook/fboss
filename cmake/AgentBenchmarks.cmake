@@ -8,7 +8,7 @@ add_library(agent_benchmarks
 )
 
 target_link_libraries(agent_benchmarks
-  mono_agent_ensemble
+  agent_ensemble
   Folly::folly
 )
 

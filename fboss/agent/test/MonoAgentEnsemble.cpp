@@ -27,20 +27,4 @@ void MonoAgentEnsemble::createSwitch(
 void MonoAgentEnsemble::reloadPlatformConfig() {
   agentInitializer_.platform()->reloadConfig();
 }
-
-std::unique_ptr<AgentEnsemble> createAgentEnsemble(
-    AgentEnsembleSwitchConfigFn initialConfigFn,
-    AgentEnsemblePlatformConfigFn platformConfigFn,
-    uint32_t featuresDesired,
-    bool startAgent) {
-  auto ensemble = std::make_unique<MonoAgentEnsemble>();
-  ensemble->setupEnsemble(featuresDesired, initialConfigFn, platformConfigFn);
-  if (featuresDesired & HwSwitch::FeaturesDesired::LINKSCAN_DESIRED) {
-    ensemble->setupLinkStateToggler();
-  }
-  if (startAgent) {
-    ensemble->startAgent();
-  }
-  return ensemble;
-}
 } // namespace facebook::fboss
