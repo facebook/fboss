@@ -36,15 +36,11 @@ class LinkStateToggler {
 
   void applyInitialConfig(const cfg::SwitchConfig& initCfg);
   void linkStateChanged(PortID port, bool up) noexcept;
-  void bringUpPorts(
-      std::shared_ptr<SwitchState> switchState,
-      const std::vector<PortID>& ports) {
-    portStateChangeImpl(switchState, ports, true);
+  void bringUpPorts(const std::vector<PortID>& ports) {
+    portStateChangeImpl(ports, true);
   }
-  void bringDownPorts(
-      std::shared_ptr<SwitchState> switchState,
-      const std::vector<PortID>& ports) {
-    portStateChangeImpl(switchState, ports, false);
+  void bringDownPorts(const std::vector<PortID>& ports) {
+    portStateChangeImpl(ports, false);
   }
 
  protected:
@@ -55,13 +51,8 @@ class LinkStateToggler {
  private:
   std::shared_ptr<SwitchState> applyInitialConfigWithPortsDown(
       const cfg::SwitchConfig& initCfg);
-  void bringUpPorts(
-      const std::shared_ptr<SwitchState>& curState,
-      const cfg::SwitchConfig& initCfg);
-  void portStateChangeImpl(
-      std::shared_ptr<SwitchState> switchState,
-      const std::vector<PortID>& ports,
-      bool up);
+  void bringUpPorts(const cfg::SwitchConfig& initCfg);
+  void portStateChangeImpl(const std::vector<PortID>& ports, bool up);
   virtual void invokeLinkScanIfNeeded(PortID port, bool isUp);
   void waitForPortDown(PortID port);
   void setPortIDAndStateToWaitFor(PortID port, bool waitForUp);

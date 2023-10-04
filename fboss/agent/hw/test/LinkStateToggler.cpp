@@ -45,7 +45,6 @@ void LinkStateToggler::setPortIDAndStateToWaitFor(
 }
 
 void LinkStateToggler::portStateChangeImpl(
-    std::shared_ptr<SwitchState> switchState,
     const std::vector<PortID>& ports,
     bool up) {
   for (auto port : ports) {
@@ -107,8 +106,8 @@ void LinkStateToggler::waitForPortDown(PortID port) {
 }
 
 void LinkStateToggler::applyInitialConfig(const cfg::SwitchConfig& initCfg) {
-  auto newState = applyInitialConfigWithPortsDown(initCfg);
-  bringUpPorts(newState, initCfg);
+  applyInitialConfigWithPortsDown(initCfg);
+  bringUpPorts(initCfg);
 }
 
 std::shared_ptr<SwitchState> LinkStateToggler::applyInitialConfigWithPortsDown(
@@ -192,9 +191,7 @@ std::shared_ptr<SwitchState> LinkStateToggler::applyInitialConfigWithPortsDown(
   return hwEnsemble_->getProgrammedState();
 }
 
-void LinkStateToggler::bringUpPorts(
-    const std::shared_ptr<SwitchState>& newState,
-    const cfg::SwitchConfig& initCfg) {
+void LinkStateToggler::bringUpPorts(const cfg::SwitchConfig& initCfg) {
   std::vector<PortID> portsToBringUp;
   folly::gen::from(*initCfg.ports()) | folly::gen::filter([](const auto& port) {
     return *port.state() == cfg::PortState::ENABLED &&
@@ -202,7 +199,7 @@ void LinkStateToggler::bringUpPorts(
   }) | folly::gen::map([](const auto& port) {
     return PortID(*port.logicalID());
   }) | folly::gen::appendTo(portsToBringUp);
-  bringUpPorts(newState, portsToBringUp);
+  bringUpPorts(portsToBringUp);
 }
 
 void LinkStateToggler::invokeLinkScanIfNeeded(

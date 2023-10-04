@@ -51,12 +51,12 @@ LinkStateToggler* HwLinkStateDependentTest::getLinkToggler() {
 }
 
 void HwLinkStateDependentTest::bringUpPorts(const std::vector<PortID>& ports) {
-  getLinkToggler()->bringUpPorts(getProgrammedState(), ports);
+  getLinkToggler()->bringUpPorts(ports);
 }
 
 void HwLinkStateDependentTest::bringDownPorts(
     const std::vector<PortID>& ports) {
-  getLinkToggler()->bringDownPorts(getProgrammedState(), ports);
+  getLinkToggler()->bringDownPorts(ports);
 }
 
 } // namespace facebook::fboss

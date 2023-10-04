@@ -55,10 +55,8 @@ TEST_F(HwPortStressTest, linkStateToggle) {
   auto verify = [=]() {
     auto firstPortId = PortID(masterLogicalPortIds()[0]);
     for (auto i = 0; i < 500; ++i) {
-      getHwSwitchEnsemble()->getLinkToggler()->bringDownPorts(
-          getProgrammedState(), {firstPortId});
-      getHwSwitchEnsemble()->getLinkToggler()->bringUpPorts(
-          getProgrammedState(), {firstPortId});
+      getHwSwitchEnsemble()->getLinkToggler()->bringDownPorts({firstPortId});
+      getHwSwitchEnsemble()->getLinkToggler()->bringUpPorts({firstPortId});
     }
   };
   verifyAcrossWarmBoots(setup, verify);

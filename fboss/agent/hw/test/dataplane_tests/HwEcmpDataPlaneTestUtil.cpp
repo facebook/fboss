@@ -52,16 +52,14 @@ template <typename EcmpSetupHelperT>
 void HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::shrinkECMP(
     unsigned int ecmpWidth) {
   std::vector<PortID> ports = {helper_->nhop(ecmpWidth).portDesc.phyPortID()};
-  ensemble_->getLinkToggler()->bringDownPorts(
-      ensemble_->getProgrammedState(), ports);
+  ensemble_->getLinkToggler()->bringDownPorts(ports);
 }
 
 template <typename EcmpSetupHelperT>
 void HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::expandECMP(
     unsigned int ecmpWidth) {
   std::vector<PortID> ports = {helper_->nhop(ecmpWidth).portDesc.phyPortID()};
-  ensemble_->getLinkToggler()->bringUpPorts(
-      ensemble_->getProgrammedState(), ports);
+  ensemble_->getLinkToggler()->bringUpPorts(ports);
 }
 
 template <typename EcmpSetupHelperT>
