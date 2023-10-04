@@ -370,9 +370,10 @@ struct NameToPathVisitor<apache::thrift::type_class::variant> {
     auto visitChild = [&](auto tag) {
       using PathT =
           typename folly::remove_cvref_t<decltype(tag)>::type::second_type;
-      auto childPath = PathT(std::vector<std::string>(begin, curr));
+      using ChildKeyT =
+          typename folly::remove_cvref_t<decltype(tag)>::type::first_type;
       result = NameToPathVisitor<typename PathT::TC>::visit(
-          childPath, begin, curr, end, std::forward<Func>(f));
+          path(ChildKeyT()), begin, curr, end, std::forward<Func>(f));
     };
 
     auto idTry = folly::tryTo<apache::thrift::field_id_t>(token);
@@ -408,11 +409,10 @@ struct NameToPathVisitor<apache::thrift::type_class::variant> {
           fatal::get_first>(token.begin(), token.end(), [&](auto tag) {
         using PathT =
             typename folly::remove_cvref_t<decltype(tag)>::type::second_type;
-        auto newPath = path.tokens();
-        newPath.push_back(token);
-        auto childPath = PathT(std::move(newPath));
+        using ChildKeyT =
+            typename folly::remove_cvref_t<decltype(tag)>::type::first_type;
         result = NameToPathVisitor<typename PathT::TC>::visitExtended(
-            childPath, curr, end, std::forward<Func>(f));
+            path(ChildKeyT()), curr, end, std::forward<Func>(f));
       });
       return result;
     } else {
@@ -455,9 +455,10 @@ struct NameToPathVisitor<apache::thrift::type_class::structure> {
     auto visitChild = [&](auto tag) {
       using PathT =
           typename folly::remove_cvref_t<decltype(tag)>::type::second_type;
-      auto childPath = PathT(std::vector<std::string>(begin, curr));
+      using ChildKeyT =
+          typename folly::remove_cvref_t<decltype(tag)>::type::first_type;
       result = NameToPathVisitor<typename PathT::TC>::visit(
-          childPath, begin, curr, end, std::forward<Func>(f));
+          path(ChildKeyT()), begin, curr, end, std::forward<Func>(f));
     };
 
     auto idTry = folly::tryTo<apache::thrift::field_id_t>(token);
@@ -493,11 +494,10 @@ struct NameToPathVisitor<apache::thrift::type_class::structure> {
           fatal::get_first>(token.begin(), token.end(), [&](auto tag) {
         using PathT =
             typename folly::remove_cvref_t<decltype(tag)>::type::second_type;
-        auto newPath = path.tokens();
-        newPath.push_back(token);
-        auto childPath = PathT(std::move(newPath));
+        using ChildKeyT =
+            typename folly::remove_cvref_t<decltype(tag)>::type::first_type;
         result = NameToPathVisitor<typename PathT::TC>::visitExtended(
-            childPath, curr, end, std::forward<Func>(f));
+            path(ChildKeyT()), curr, end, std::forward<Func>(f));
       });
       return result;
     } else {
