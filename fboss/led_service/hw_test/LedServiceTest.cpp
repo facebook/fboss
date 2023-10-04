@@ -14,12 +14,26 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include "common/init/Init.h"
 #include "fboss/led_service/LedManager.h"
+#include "fboss/led_service/hw_test/LedServiceTest.h"
 
-namespace {
+namespace facebook::fboss {
 
-class LedServiceTest : public ::testing::Test {};
+void LedServiceTest::SetUp() {
+  // Create ensemble and initialize it
+  ensemble_ = std::make_unique<LedEnsemble>();
+  ensemble_->init();
 
-} // namespace
+  // Check if the config file for this platform can be loaded without any error
+  EXPECT_TRUE(
+      getLedEnsemble()->getLedManager()->isLedControlledThroughService());
+}
+
+void LedServiceTest::TearDown() {
+  // Remove ensemble and objects contained there
+  ensemble_.reset();
+}
+
+} // namespace facebook::fboss
 
 int main(int argc, char* argv[]) {
   // Parse command line flags
