@@ -5,6 +5,7 @@
 #include <fboss/thrift_cow/nodes/Types.h>
 #include <fboss/thrift_cow/storage/Storage.h>
 #include <fboss/thrift_cow/visitors/ExtendedPathVisitor.h>
+#include <fboss/thrift_cow/visitors/PatchApplier.h>
 #include <fboss/thrift_cow/visitors/PathVisitor.h>
 #include <folly/logging/xlog.h>
 
@@ -24,6 +25,20 @@ inline std::optional<StorageError> parseTraverseResult(
   }
 }
 
+inline std::optional<StorageError> parsePatchResult(
+    thrift_cow::PatchResult patchResult) {
+  switch (patchResult) {
+    case thrift_cow::PatchResult::OK:
+      return std::nullopt;
+    case thrift_cow::PatchResult::INVALID_STRUCT_MEMBER:
+    case thrift_cow::PatchResult::INVALID_VARIANT_MEMBER:
+    case thrift_cow::PatchResult::NON_EXISTENT_NODE:
+    case thrift_cow::PatchResult::KEY_PARSE_ERROR:
+      return StorageError::INVALID_PATH;
+    case thrift_cow::PatchResult::INVALID_PATCH_TYPE:
+      return StorageError::TYPE_ERROR;
+  }
+}
 } // namespace detail
 
 template <typename Root, typename Node = thrift_cow::ThriftStructNode<Root>>
@@ -196,6 +211,14 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
       node.fromEncoded(*state.protocol(), *state.contents());
     });
     return detail::parseTraverseResult(traverseResult);
+  }
+
+  std::optional<StorageError> patch_impl(thrift_cow::Patch&& patch) {
+    root_ = root_->clone();
+    // TODO: patch at baseBath
+    auto ret =
+        thrift_cow::RootPatchApplier::apply(root_, std::move(*patch.patch()));
+    return detail::parsePatchResult(ret);
   }
 
   std::optional<StorageError> patch_impl(const fsdb::OperDelta& delta) {

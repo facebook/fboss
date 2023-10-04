@@ -12,6 +12,7 @@ set_target_properties(storage PROPERTIES LINKER_LANGUAGE CXX)
 
 target_link_libraries(storage
   fsdb_oper_cpp2
+  patch_cpp2
   Folly::folly
 )
 

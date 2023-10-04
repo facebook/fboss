@@ -6,6 +6,8 @@
 
 #include <fboss/thrift_cow/nodes/Serializer.h>
 #include <fboss/thrift_cow/storage/CowStorage.h>
+#include <fboss/thrift_cow/visitors/PatchBuilder.h>
+#include <fboss/thrift_cow/visitors/RecurseVisitor.h>
 #include <thrift/lib/cpp2/reflection/folly_dynamic.h>
 #include "fboss/facebook/fsdb/oper/ExtendedPathBuilder.h"
 #include "fboss/fsdb/tests/gen-cpp2-thriftpath/thriftpath_test.h" // @manual=//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath
@@ -23,6 +25,12 @@ dynamic createTestDynamic() {
       false)("name", "testname")("optionalString", "bla")("enumeration", 1)("enumMap", dynamic::object)("member", dynamic::object("min", 10)("max", 20))("variantMember", dynamic::object("integral", 99))("structMap", dynamic::object(3, dynamic::object("min", 100)("max", 200)))("structList", dynamic::array())("enumSet", dynamic::array())("integralSet", dynamic::array())("mapOfStringToI32", dynamic::object())("listOfPrimitives", dynamic::array())("setOfI32", dynamic::array())("stringToStruct", dynamic::object())("listTypedef", dynamic::array());
 }
 
+TestStruct createTestStruct() {
+  auto testDyn = createTestDynamic();
+  return apache::thrift::from_dynamic<TestStruct>(
+      testDyn, apache::thrift::dynamic_format::JSON_1);
+}
+
 TestStruct createTestStructForExtendedTests() {
   auto testDyn = createTestDynamic();
   for (int i = 0; i <= 20; ++i) {
@@ -33,6 +41,29 @@ TestStruct createTestStructForExtendedTests() {
 
   return apache::thrift::from_dynamic<TestStruct>(
       testDyn, apache::thrift::dynamic_format::JSON_1);
+}
+
+template <typename T, typename = void>
+struct IsPublishable : std::false_type {};
+
+template <typename T>
+struct IsPublishable<T, std::void_t<decltype(std::declval<T>()->publish())>>
+    : std::true_type {};
+
+template <typename Root>
+void publishAllNodes(CowStorage<Root>& storage) {
+  using namespace facebook::fboss::thrift_cow;
+  auto root = storage.root();
+  RootRecurseVisitor::visit(
+      root,
+      RecurseVisitOptions(
+          RecurseVisitMode::FULL, RecurseVisitOrder::CHILDREN_FIRST, true),
+      [](const std::vector<std::string>& /*path*/, auto&& node) {
+        if constexpr (IsPublishable<decltype(node)>::value) {
+          node->publish();
+        }
+      });
+  storage.publish();
 }
 
 } // namespace
@@ -694,4 +725,38 @@ TEST(CowStorageTests, EncodedExtendedAccessAnySet) {
     EXPECT_EQ(expected[elemPath], deserialized)
         << "Mismatch at /" + folly::join('/', elemPath);
   }
+}
+
+TEST(CowStorageTests, PatchRoot) {
+  using namespace facebook::fboss::fsdb;
+  using namespace facebook::fboss::thrift_cow;
+  auto testStructA = createTestStruct();
+
+  auto storage = CowStorage<TestStruct>(testStructA);
+  // In FSDB we only publish root, but just to test PatchApplier functionality,
+  // publish all nodes and make sure we modify itermediate nodes properly
+  publishAllNodes(storage);
+
+  auto testStructB = testStructA;
+
+  // modify various fields and create a big patch
+  testStructB.tx() = false;
+  testStructB.name() = "new val";
+  testStructB.optionalString().reset();
+  testStructB.member()->min() = 432;
+  // modify
+  (*testStructB.structMap())[3].min() = 77;
+  // add
+  testStructB.structList()->emplace_back();
+  testStructB.structList()[0].min() = 22;
+  testStructB.listOfPrimitives()->emplace_back(1);
+  testStructB.integralSet()->insert(1);
+  testStructB.stringToStruct()["new struct"].min() = 55;
+
+  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(testStructA);
+  auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(testStructB);
+  auto patch = PatchBuilder::build(nodeA, nodeB, {});
+
+  storage.patch(std::move(patch));
+  EXPECT_EQ(storage.root()->toThrift(), testStructB);
 }

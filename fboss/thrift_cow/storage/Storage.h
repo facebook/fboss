@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <fboss/thrift_cow/gen-cpp2/patch_types.h>
 #include <folly/Expected.h>
 #include <folly/dynamic.h>
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
@@ -115,6 +116,10 @@ class Storage {
   std::optional<StorageError>
   set_encoded(PathIter begin, PathIter end, const OperState& state) {
     return static_cast<Derived*>(this)->set_encoded_impl(begin, end, state);
+  }
+
+  std::optional<StorageError> patch(thrift_cow::Patch&& patch) {
+    return static_cast<Derived*>(this)->patch_impl(std::move(patch));
   }
 
   std::optional<StorageError> patch(const fsdb::OperDelta& delta) {
