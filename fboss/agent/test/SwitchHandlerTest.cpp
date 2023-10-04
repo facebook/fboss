@@ -306,3 +306,113 @@ TEST_F(SwSwitchHandlerTest, rollbackFailedHwSwitchUpdate) {
   clientRequestThread1.join();
   clientRequestThread2.join();
 }
+
+/*
+ * Test with 2 clients.
+ * - Both clients request oper delta and updates state successfully
+ * - Client 2 disconnects. Update should continue with client 1
+ * - Client 1 reconnects and gets a full oper sync
+ */
+TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
+  folly::Baton<> serverBaton;
+  auto stateV0 = std::make_shared<SwitchState>();
+  stateV0->publish();
+  auto stateV1 = getInitialTestState();
+  stateV1->publish();
+  auto stateV2 = stateV1->clone();
+  auto aclEntry2 = make_shared<AclEntry>(1, std::string("acl2"));
+  auto aclsV2 = stateV2->getAcls()->modify(&stateV2);
+  aclsV2->addNode(aclEntry2, scope());
+  stateV2->publish();
+  auto stateV3 = stateV2->clone();
+  auto aclEntry3 = make_shared<AclEntry>(2, std::string("acl3"));
+  auto aclsV3 = stateV3->getAcls()->modify(&stateV3);
+  aclsV3->addNode(aclEntry3, scope());
+  stateV3->publish();
+  auto delta = StateDelta(stateV0, stateV1);
+  auto delta2 = StateDelta(stateV1, stateV2);
+  auto delta3 = StateDelta(stateV2, stateV3);
+  auto delta4 = StateDelta(stateV0, stateV3);
+
+  std::thread stateUpdateThread([this,
+                                 &delta,
+                                 &delta2,
+                                 &delta3,
+                                 &stateV1,
+                                 &stateV2,
+                                 &stateV3,
+                                 &serverBaton]() {
+    hwSwitchHandler_->waitUntilHwSwitchConnected();
+    auto stateReturned = hwSwitchHandler_->stateChanged(delta, true);
+    EXPECT_EQ(stateReturned, stateV1);
+    // Switch 2 cancels request
+    hwSwitchHandler_->notifyHwSwitchGracefulExit(1);
+    // Switch 1 continues to operate
+    stateReturned = hwSwitchHandler_->stateChanged(delta2, true);
+    EXPECT_EQ(stateReturned, stateV2);
+    // wait for switch 2 to reconnect
+    serverBaton.post();
+    stateReturned = hwSwitchHandler_->stateChanged(delta3, true);
+    EXPECT_EQ(stateReturned, stateV3);
+    hwSwitchHandler_->stop();
+  });
+
+  auto clientThreadBody =
+      [this, &delta, &delta2, &delta3, &delta4, &serverBaton](
+          int64_t switchId) {
+        OperDeltaFilter filter((SwitchID(switchId)));
+        // connect and get next state delta
+        auto getEmptyOper = []() {
+          auto operDelta = std::make_unique<multiswitch::StateOperDelta>();
+          operDelta->operDelta() = fsdb::OperDelta();
+          return operDelta;
+        };
+        auto operDelta = hwSwitchHandler_->getNextStateOperDelta(
+            switchId, getEmptyOper(), true /*initialSync*/);
+        EXPECT_EQ(
+            operDelta.operDelta(), *filter.filter(delta.getOperDelta(), 1));
+
+        if (switchId == 0) {
+          // request next state delta. the empty oper passed serves as success
+          // indicator for previous delta
+          operDelta = hwSwitchHandler_->getNextStateOperDelta(
+              switchId, getEmptyOper(), false /*initialSync*/);
+          EXPECT_EQ(
+              operDelta.operDelta(), *filter.filter(delta2.getOperDelta(), 1));
+          operDelta = hwSwitchHandler_->getNextStateOperDelta(
+              switchId, getEmptyOper(), false /*initialSync*/);
+          EXPECT_EQ(
+              operDelta.operDelta(), *filter.filter(delta3.getOperDelta(), 1));
+          // this request will be cancelled
+          operDelta = hwSwitchHandler_->getNextStateOperDelta(
+              switchId, getEmptyOper(), false /*initialSync*/);
+          EXPECT_EQ(operDelta.operDelta(), fsdb::OperDelta());
+        } else {
+          // response for cancelled oper request
+          operDelta = hwSwitchHandler_->getNextStateOperDelta(
+              switchId, getEmptyOper(), false /*initialSync*/);
+          EXPECT_EQ(operDelta.operDelta(), fsdb::OperDelta());
+
+          // wait for server to finish second update which updates
+          // only client1
+          serverBaton.wait();
+          // switch 2 reconnects
+          operDelta = hwSwitchHandler_->getNextStateOperDelta(
+              switchId, getEmptyOper(), true /*initialSync*/);
+          // expect full response
+          EXPECT_EQ(
+              operDelta.operDelta(), *filter.filter(delta4.getOperDelta(), 1));
+          // this request will be cancelled
+          operDelta = hwSwitchHandler_->getNextStateOperDelta(
+              switchId, getEmptyOper(), false /*initialSync*/);
+          EXPECT_EQ(operDelta.operDelta(), fsdb::OperDelta());
+        }
+      };
+
+  std::thread clientRequestThread1([&]() { clientThreadBody(0); });
+  std::thread clientRequestThread2([&]() { clientThreadBody(1); });
+
+  stateUpdateThread.join();
+  clientRequestThread1.join();
+  clientRequestThread2.join();
+}
