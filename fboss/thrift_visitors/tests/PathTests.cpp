@@ -37,3 +37,19 @@ TEST(PathTests, toStrAgentConfig) {
       "/platform/chip/asic/config");
   EXPECT_EQ(root.str(), "/");
 }
+
+TEST(PathTests, IntegralGetOperator) {
+  using namespace facebook::fboss::fsdb;
+  using k = facebook::fboss::cfg::agent_config_tags::strings;
+  using AgentConfigMembers =
+      apache::thrift::reflect_struct<facebook::fboss::cfg::AgentConfig>::member;
+
+  using RootPath =
+      thriftpath::RootThriftPath<facebook::fboss::cfg::AgentConfig>;
+  RootPath root;
+
+  EXPECT_EQ(
+      root(AgentConfigMembers::defaultCommandLineArgs::id()).str(),
+      "/defaultCommandLineArgs");
+  EXPECT_EQ(root(k::defaultCommandLineArgs()).str(), "/defaultCommandLineArgs");
+}
