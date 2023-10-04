@@ -20,6 +20,8 @@
 #include <mutex>
 #include <optional>
 
+DECLARE_bool(multi_switch);
+
 namespace facebook::fboss {
 class RoutingInformationBase;
 class Platform;
@@ -63,7 +65,7 @@ class LinkStateToggler {
   virtual void invokeLinkScanIfNeeded(PortID port, bool isUp);
   void waitForPortDown(PortID port);
   void setPortIDAndStateToWaitFor(PortID port, bool waitForUp);
-  bool waitForPortEvent();
+  bool waitForPortEvent(PortID port);
 
   mutable std::mutex linkEventMutex_;
   std::optional<PortID> portIdToWaitFor_;

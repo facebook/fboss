@@ -12,7 +12,6 @@
 
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/HwSwitch.h"
-
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
@@ -49,8 +48,8 @@ void LinkStateToggler::portStateChangeImpl(
     std::shared_ptr<SwitchState> switchState,
     const std::vector<PortID>& ports,
     bool up) {
-  auto newState = switchState;
   for (auto port : ports) {
+    auto newState = hwEnsemble_->getProgrammedState();
     auto currPort = newState->getPorts()->getNodeIf(port);
     auto switchId = hwEnsemble_->scopeResolver().scope(currPort).switchId();
     auto asic = hwEnsemble_->getHwAsicTable()->getHwAsic(switchId);
@@ -68,22 +67,32 @@ void LinkStateToggler::portStateChangeImpl(
     invokeLinkScanIfNeeded(port, up);
     XLOG(DBG2) << " Wait for port " << (up ? "up" : "down")
                << " event on : " << port;
-    waitForPortEvent();
+    waitForPortEvent(port);
     XLOG(DBG2) << " Got port " << (up ? "up" : "down")
                << " event on : " << port;
-
-    /* toggle the oper state */
-    newState = hwEnsemble_->getProgrammedState();
-    newPort = newState->getPorts()->getNodeIf(port)->modify(&newState);
-    newPort->setOperState(up);
-    hwEnsemble_->applyNewState(newState);
   }
 }
 
-bool LinkStateToggler::waitForPortEvent() {
-  std::unique_lock<std::mutex> lock{linkEventMutex_};
-  linkEventCV_.wait(lock, [this] { return desiredPortEventOccurred_; });
-  return desiredPortEventOccurred_;
+bool LinkStateToggler::waitForPortEvent(PortID port) {
+  if (!FLAGS_multi_switch) {
+    std::unique_lock<std::mutex> lock{linkEventMutex_};
+    linkEventCV_.wait(lock, [this] { return desiredPortEventOccurred_; });
+    /* toggle the oper state */
+    auto newState = hwEnsemble_->getProgrammedState();
+    auto newPort = newState->getPorts()->getNodeIf(port)->modify(&newState);
+    newPort->setOperState(waitForPortUp_);
+    hwEnsemble_->applyNewState(newState);
+  }
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_EQ(
+        hwEnsemble_->getProgrammedState()
+            ->getPorts()
+            ->getNodeIf(port)
+            ->getOperState(),
+        (waitForPortUp_ ? PortFields::OperState::UP
+                        : PortFields::OperState::DOWN));
+  });
+  return true;
 }
 
 void LinkStateToggler::waitForPortDown(PortID port) {
@@ -135,13 +144,7 @@ std::shared_ptr<SwitchState> LinkStateToggler::applyInitialConfigWithPortsDown(
   // application). iii) Start tests.
   hwEnsemble_->applyNewConfig(cfg);
 
-  // Wait for oper state to be down in switch state.
-  // For tests without SwSwitch (e.g. all HwTests), this should not be an
-  // concern as initial config is not yet applied. However, for
-  // SwSwitch/AgentTests, initial config has already applied, meaning swSwitch
-  // could be receiving linkState callbacks and update oper state to be UP.
-  // Therefore, wait for all port's oper state to be DOWN before reading the
-  // programmed state.
+  // Wait for port state to be disabled in switch state
   for (auto& port : *cfg.ports()) {
     if (port.portType() == cfg::PortType::RECYCLE_PORT) {
       continue;
