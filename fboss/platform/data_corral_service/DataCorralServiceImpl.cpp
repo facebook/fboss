@@ -7,6 +7,11 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+
+#include "fboss/platform/data_corral_service/DataCorralServiceImpl.h"
+
+#include <chrono>
+
 #include <folly/FileUtil.h>
 #include <folly/dynamic.h>
 #include <folly/json.h>
@@ -14,7 +19,8 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/lib/platforms/PlatformProductInfo.h"
-#include "fboss/platform/data_corral_service/DataCorralServiceImpl.h"
+#include "fboss/platform/config_lib/ConfigLib.h"
+#include "fboss/platform/data_corral_service/LedManager.h"
 #include "fboss/platform/data_corral_service/darwin/DarwinChassisManager.h"
 #include "fboss/platform/weutil/Weutil.h"
 
@@ -26,11 +32,34 @@ int kRefreshIntervalInMs = 10000;
 
 using namespace facebook::fboss;
 
+DEFINE_bool(use_led_manager, false, "Whether to use new LedManager class");
+
 namespace facebook::fboss::platform::data_corral_service {
 
 void DataCorralServiceImpl::init() {
   // ToDo
   XLOG(INFO) << "Init DataCorralServiceImpl";
+
+  XLOG(INFO) << "Use Led Manager: " << FLAGS_use_led_manager;
+  if (FLAGS_use_led_manager) {
+    LedManagerConfig config;
+    auto configJson = ConfigLib().getLedManagerConfig();
+    apache::thrift::SimpleJSONSerializer::deserialize<LedManagerConfig>(
+        configJson, config);
+
+    auto ledManager = std::make_shared<LedManager>(
+        *config.systemLedConfig(), *config.fruTypeLedConfigs());
+    fruPresenceExplorer_ =
+        std::make_shared<FruPresenceExplorer>(*config.fruConfigs(), ledManager);
+
+    presenceDetectionScheduler_.addFunction(
+        [this]() { fruPresenceExplorer_->detectFruPresence(); },
+        std::chrono::milliseconds(kRefreshIntervalInMs),
+        "PresenceDetection");
+    presenceDetectionScheduler_.start();
+    return;
+  }
+
   auto productInfo =
       std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
   productInfo->initialize();
