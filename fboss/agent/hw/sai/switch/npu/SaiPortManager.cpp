@@ -34,6 +34,29 @@ std::optional<SaiPortTraits::Attributes::SystemPortId> getSystemPortId(
   }
   return std::nullopt;
 }
+
+#if defined(BRCM_SAI_SDK_DNX)
+sai_int32_t getPortTypeFromCfg(const cfg::PortType& cfgPortType) {
+  switch (cfgPortType) {
+    case cfg::PortType::INTERFACE_PORT:
+      return SAI_PORT_TYPE_LOGICAL;
+    case cfg::PortType::FABRIC_PORT:
+      return SAI_PORT_TYPE_FABRIC;
+    case cfg::PortType::CPU_PORT:
+      return SAI_PORT_TYPE_CPU;
+    case cfg::PortType::RECYCLE_PORT:
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+      return SAI_PORT_TYPE_RECYCLE;
+#else
+      throw FbossError("RECYCLE_PORT is not supported");
+#endif
+  }
+
+  throw FbossError(
+      "Invalid port type", apache::thrift::util::enumNameSafe(cfgPortType));
+}
+#endif
+
 } // namespace
 
 void SaiPortManager::fillInSupportedStats(PortID port) {
