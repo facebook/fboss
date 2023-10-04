@@ -251,14 +251,35 @@ struct GpioChipConfig {
   3: i32 csrOffset;
 }
 
+// Defines PCI Devices in the PmUnits. A new PciDeviceConfig should be created
+// for each unique combination of <vendorId, deviceId, subSystemVendorId,
+// subSystemDeviceId>.
+//
+// In the case of one device (e.g. DOM FPGA) memory mapped to another PCI
+// Device (e.g. IOB FPGA) in a different PmUnit, all of them might show up as a
+// single PCI device in the system.  In this case, the PciDeviceConfig with the
+// same <vendorId, deviceId, subSystemVendorId, subSystemDeviceId> should be
+// present in both PmUnitConfigs.  For example, if a DOM FPGA in SMB PmUnit is
+// memory mapped to an IOB FPGA in MCB PmUnit, there should be a
+// PciDeviceConfig in MCB PmUnitConfig listing all controllers getting created
+// as part of IOB FPGA, and there should be another PciDeviceConfig with the
+// same identifiers in PMUnitConfig of SMB listing all the controllers getting
+// created as part of the DOM FPGA.
+//
 // `pmUnitScopedName`: The name assigned to the device in the config, unique
 // within the scope of PmUnit.
 //
-// `vendorId`: PCIe Vendor ID, and it must be a 4-digit heximal value, such as
-// “1d9b”
+// `vendorId`: PCIe Vendor ID, and it must be a 4-digit hexadecimal value, such
+// as “1d9b”
 //
-// `deviceId`: PCIe Device ID, and it must be a 4-digit heximal value, such as
-// “0011”
+// `deviceId`: PCIe Device ID, and it must be a 4-digit hexadecimal value, such
+// as “0011”
+//
+// `subSystemVendorId`: PCIe Sub System Vendor ID, and it must be a 4-digit
+// hexadecimal value, such as “1d9b”
+//
+// `subSystemDeviceId`: PCIe Sub System Device ID, and it must be a 4-digit
+// hexadecimal value, such as “0011”
 //
 // `i2cAdapterConfigs`: Lists the I2C Adapters in the PMUnit. The key is the
 // PMUnit scoped name of the I2C Adapter.
@@ -270,13 +291,15 @@ struct GpioChipConfig {
 // PMUnit scoped name of the GPIO Chip.
 //
 // TODO: Add MDIO support
-struct PciDevice {
+struct PciDeviceConfig {
   1: string pmUnitScopedName;
   2: string vendorId;
   3: string deviceId;
-  4: map<string, I2cAdapterConfig> i2cAdapterConfigs;
-  5: map<string, SpiMasterConfig> spiMasterConfigs;
-  6: map<string, GpioChipConfig> gpioChipConfigs;
+  4: string subSystemVendorId;
+  5: string subSystemDeviceId;
+  6: map<string, I2cAdapterConfig> i2cAdapterConfigs;
+  7: map<string, SpiMasterConfig> spiMasterConfigs;
+  8: map<string, GpioChipConfig> gpioChipConfigs;
 }
 
 // These are the PmUnit slot types. Examples: "PIM_SLOT", "PSU_SLOT" and
@@ -333,7 +356,7 @@ struct PmUnitConfig {
   1: SlotType pluggedInSlotType;
   2: list<I2cDeviceConfig> i2cDeviceConfigs;
   3: map<string, SlotConfig> outgoingSlotConfigs;
-  4: list<PciDevice> pciDevices;
+  4: list<PciDeviceConfig> pciDeviceConfigs;
 }
 
 // Defines the whole Platform. The top level struct.
