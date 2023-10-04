@@ -9,6 +9,7 @@ include "fboss/fsdb/if/fsdb_oper.thrift"
 include "fboss/agent/if/ctrl.thrift"
 include "thrift/annotation/cpp.thrift"
 include "fboss/lib/phy/phy.thrift"
+include "fboss/agent/hw/hardware_stats.thrift"
 
 @cpp.Type{name = "std::unique_ptr<folly::IOBuf>"}
 typedef binary fbbinary
@@ -42,6 +43,24 @@ struct StateOperDelta {
   2: bool transaction;
 }
 
+struct SystemPortStats {
+  @cpp.Ref{type = cpp.RefType.Unique}
+  1: hardware_stats.HwSysPortStats systemPortStats;
+}
+
+struct HwSwitchStats {
+  1: i64 timestamp;
+  @cpp.Type{template = "folly::F14FastMap"}
+  2: map<string, hardware_stats.HwPortStats> hwPortStats;
+  3: map<string, hardware_stats.HwTrunkStats> hwTrunkStats;
+  4: hardware_stats.HwResourceStats hwResourceStats;
+  5: hardware_stats.HwAsicErrors hwAsicErrors;
+  @cpp.Ref{type = cpp.RefType.Shared}
+  6: map<string, SystemPortStats> sysPortStats;
+  7: hardware_stats.TeFlowStats teFlowStats;
+  8: hardware_stats.HwBufferPoolStats bufferPoolStats;
+}
+
 service MultiSwitchCtrl {
   /* notify link event through sink */
   sink<LinkEvent, bool> notifyLinkEvent(1: i64 switchId);
@@ -65,4 +84,9 @@ service MultiSwitchCtrl {
 
   /* HwAgent graceful shutdown notification */
   void gracefulExit(1: i64 switchId);
+
+  /* send hardware stats through sink */
+  sink<HwSwitchStats, bool> syncHwStats(1: i64 switchId) (
+    priority = 'BEST_EFFORT',
+  );
 }
