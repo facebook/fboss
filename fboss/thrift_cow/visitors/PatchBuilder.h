@@ -17,6 +17,32 @@ namespace facebook::fboss::thrift_cow {
 
 namespace detail_pb {
 
+template <ThriftSimpleTC SimpleTC>
+PatchNode constructEmptyPatch() {
+  PatchNode child;
+  switch (SimpleTC) {
+    case ThriftSimpleTC::PRIMITIVE:
+      child.set_val();
+      break;
+    case ThriftSimpleTC::STRUCTURE:
+      child.set_struct_node();
+      break;
+    case ThriftSimpleTC::VARIANT:
+      child.set_variant_node();
+      break;
+    case ThriftSimpleTC::MAP:
+      child.set_map_node();
+      break;
+    case ThriftSimpleTC::SET:
+      child.set_set_node();
+      break;
+    case ThriftSimpleTC::LIST:
+      child.set_list_node();
+      break;
+  }
+  return child;
+}
+
 struct PatchBuilderTraverser : public TraverseHelper<PatchBuilderTraverser> {
   using Base = TraverseHelper<PatchBuilderTraverser>;
 
@@ -151,34 +177,9 @@ struct PatchBuilderTraverser : public TraverseHelper<PatchBuilderTraverser> {
         });
   }
 
-  template <ThriftSimpleTC SimpleTC>
-  PatchNode constructEmptyPatch() {
-    PatchNode child;
-    switch (SimpleTC) {
-      case ThriftSimpleTC::PRIMITIVE:
-        child.set_val();
-        break;
-      case ThriftSimpleTC::STRUCTURE:
-        child.set_struct_node();
-        break;
-      case ThriftSimpleTC::VARIANT:
-        child.set_variant_node();
-        break;
-      case ThriftSimpleTC::MAP:
-        child.set_map_node();
-        break;
-      case ThriftSimpleTC::SET:
-        child.set_set_node();
-        break;
-      case ThriftSimpleTC::LIST:
-        child.set_list_node();
-        break;
-    }
-    return child;
-  }
-
   std::vector<std::reference_wrapper<PatchNode>> curPath_;
 };
+
 } // namespace detail_pb
 
 struct PatchBuilder {
@@ -187,8 +188,11 @@ struct PatchBuilder {
       const std::shared_ptr<Node>& oldNode,
       const std::shared_ptr<Node>& newNode,
       const std::vector<std::string>& basePath) {
+    using TC = typename Node::TC;
+    // TODO: validate type at path == Node
     thrift_cow::Patch patch;
     patch.basePath() = basePath;
+    patch.patch() = detail_pb::constructEmptyPatch<SimpleTC<TC>>();
 
     auto processDelta = [](const detail_pb::PatchBuilderTraverser& traverser,
                            auto oldNode,
@@ -202,10 +206,8 @@ struct PatchBuilder {
       }
     };
 
-    patch.patch()->set_struct_node();
     detail_pb::PatchBuilderTraverser traverser(*patch.patch());
-
-    thrift_cow::RootDeltaVisitor::visit(
+    thrift_cow::DeltaVisitor<TC>::visit(
         traverser,
         oldNode,
         newNode,

@@ -8,9 +8,6 @@
 #include "fboss/thrift_cow/visitors/PatchBuilder.h"
 #include "fboss/thrift_cow/visitors/tests/VisitorTestUtils.h"
 
-// #include <cstddef>
-// #include <type_traits>
-
 namespace {
 using namespace facebook::fboss;
 using namespace facebook::fboss::thrift_cow;
@@ -445,5 +442,28 @@ TEST(PatchBuilderTests, SetOfI32) {
   // added
   auto val = deserializeInt(std::move(setOfI32.children()->at("3")));
   EXPECT_EQ(val, 3);
+}
+
+TEST(PatchBuilderTests, PatchNonStruct) {
+  auto structA = createSimpleTestStruct();
+  structA.listOfPrimitives() = {2, 3};
+  auto structB = structA;
+  // unchanged, modified (deleted + added)
+  structB.listOfPrimitives() = {4, 5};
+
+  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
+
+  std::vector<std::string> path = {
+      folly::to<std::string>(TestStructMembers::listOfPrimitives::id::value)};
+  auto patch = PatchBuilder::build(
+      nodeA->ref<k::listOfPrimitives>(),
+      nodeB->ref<k::listOfPrimitives>(),
+      path);
+
+  EXPECT_EQ(*patch.basePath(), path);
+  EXPECT_EQ(patch.patch()->getType(), PatchNode::Type::list_node);
+  auto patchRoot = patch.patch()->get_list_node();
+  EXPECT_EQ(patchRoot.children()->size(), 2);
 }
 } // namespace facebook::fboss::thrift_cow
