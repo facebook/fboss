@@ -243,6 +243,8 @@ class BcmPort {
 
   cfg::PortFlowletConfig getPortFlowletConfig() const;
 
+  void updatePortFlowletConfig(const std::shared_ptr<Port>& port);
+
  private:
   class BcmPortStats {
     // All actions or instantiations of this class need to be done in a

@@ -694,10 +694,8 @@ void BcmPort::program(const shared_ptr<Port>& port) {
     ingressBufferManager_->programIngressBuffers(port);
   }
 
-  if (hw_->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
-    programFlowletPortQuality(port->getPortFlowletConfig());
-  }
+  // Update the flowlet config on the hw
+  updatePortFlowletConfig(port);
 
   // Update Tx Setting if needed.
   setTxSetting(port);
@@ -724,6 +722,14 @@ void BcmPort::program(const shared_ptr<Port>& port) {
     XLOG(DBG3) << "Saving port settings for " << port->getName();
     auto lockedSettings = programmedSettings_.wlock();
     *lockedSettings = port;
+  }
+}
+
+void BcmPort::updatePortFlowletConfig(const std::shared_ptr<Port>& port) {
+  if (hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
+    XLOG(DBG3) << "Updating Port flowlet config for " << port->getName();
+    programFlowletPortQuality(port->getPortFlowletConfig());
   }
 }
 

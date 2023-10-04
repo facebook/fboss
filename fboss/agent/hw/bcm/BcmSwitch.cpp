@@ -1817,6 +1817,32 @@ void BcmSwitch::processChangedPortQueues(
   }
 }
 
+bool BcmSwitch::processChangedPortFlowletCfg(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  std::shared_ptr<PortFlowletCfg> oldPortFlowletCfg{nullptr};
+  std::shared_ptr<PortFlowletCfg> newPortFlowletCfg{nullptr};
+  if (oldPort->getPortFlowletConfig().has_value()) {
+    oldPortFlowletCfg = oldPort->getPortFlowletConfig().value();
+  }
+  if (newPort->getPortFlowletConfig().has_value()) {
+    newPortFlowletCfg = newPort->getPortFlowletConfig().value();
+  }
+  // old port flowlet cfg exists and new one doesn't or vice versa
+  if ((newPortFlowletCfg && !oldPortFlowletCfg) ||
+      (!newPortFlowletCfg && oldPortFlowletCfg)) {
+    return true;
+  }
+  // contents changed in the port flowlet cfg
+  if (oldPortFlowletCfg && newPortFlowletCfg) {
+    if (*oldPortFlowletCfg != *newPortFlowletCfg) {
+      return true;
+    }
+  }
+  // no change
+  return false;
+}
+
 void BcmSwitch::processAddedPorts(const StateDelta& delta) {
   // For now, this just enables stats on newly added ports
   forEachAdded(delta.getPortsDelta(), [&](const shared_ptr<Port>& port) {
@@ -1894,10 +1920,15 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
         auto pgCfgChanged = processChangedPgCfg(oldPort, newPort);
         XLOG_IF(DBG1, pgCfgChanged) << "New pg config settings on port " << id;
 
+        // For port flowlet config changes
+        auto flowletCfgChanged = processChangedPortFlowletCfg(oldPort, newPort);
+        XLOG_IF(DBG1, flowletCfgChanged)
+            << "New flowlet config settings on port " << id;
+
         if (speedChanged || profileIDChanged || vlanChanged || pauseChanged ||
             sFlowChanged || loopbackChanged || mirrorChanged ||
             qosPolicyChanged || nameChanged || asicPrbsChanged || pfcChanged ||
-            pgCfgChanged) {
+            pgCfgChanged || flowletCfgChanged) {
           bcmPort->program(newPort);
         }
 

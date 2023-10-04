@@ -1039,6 +1039,13 @@ class BcmSwitch : public BcmSwitchIf {
   void processEnabledPortQueues(const std::shared_ptr<Port>& port);
 
   /*
+   * Process changes in port flowlet config
+   */
+  bool processChangedPortFlowletCfg(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
+
+  /*
    * Returns true if a CPU queue name has changed, false otherwise.
    */
   bool isControlPlaneQueueNameChanged(
