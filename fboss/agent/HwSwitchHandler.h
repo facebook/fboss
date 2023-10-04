@@ -28,6 +28,18 @@ struct HwSwitchStateUpdate {
   bool isTransaction;
 };
 
+enum HwSwitchStateUpdateStatus {
+  HWSWITCH_STATE_UPDATE_SUCCEEDED,
+  HWSWITCH_STATE_UPDATE_FAILED,
+  HWSWITCH_STATE_UPDATE_CANCELLED,
+};
+
+using HwSwitchStateUpdateResult =
+    std::pair<std::shared_ptr<SwitchState>, HwSwitchStateUpdateStatus>;
+
+using HwSwitchStateOperUpdateResult =
+    std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus>;
+
 class HwSwitchHandler {
  public:
   HwSwitchHandler(const SwitchID& switchId, const cfg::SwitchInfo& info);
@@ -36,7 +48,7 @@ class HwSwitchHandler {
 
   virtual ~HwSwitchHandler();
 
-  folly::Future<std::shared_ptr<SwitchState>> stateChanged(
+  folly::Future<HwSwitchStateUpdateResult> stateChanged(
       HwSwitchStateUpdate update);
 
   virtual void exitFatal() const = 0;
@@ -101,7 +113,7 @@ class HwSwitchHandler {
       const StateDelta& delta,
       bool transaction) = 0;
 
-  virtual fsdb::OperDelta stateChanged(
+  virtual HwSwitchStateOperUpdateResult stateChanged(
       const fsdb::OperDelta& delta,
       bool transaction) = 0;
 
@@ -140,10 +152,9 @@ class HwSwitchHandler {
   }
 
  private:
-  std::shared_ptr<SwitchState> stateChangedImpl(
-      const HwSwitchStateUpdate& update);
+  HwSwitchStateUpdateResult stateChangedImpl(const HwSwitchStateUpdate& update);
 
-  fsdb::OperDelta stateChangedImpl(
+  HwSwitchStateOperUpdateResult stateChangedImpl(
       const fsdb::OperDelta& delta,
       bool transaction);
 

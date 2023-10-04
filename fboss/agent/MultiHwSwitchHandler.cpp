@@ -49,7 +49,7 @@ void MultiHwSwitchHandler::stop() {
 std::shared_ptr<SwitchState> MultiHwSwitchHandler::stateChanged(
     const StateDelta& delta,
     bool transaction) {
-  std::vector<folly::Future<std::shared_ptr<SwitchState>>> futures;
+  std::vector<folly::Future<HwSwitchStateUpdateResult>> futures;
   if (stopped_.load()) {
     throw FbossError("multi hw switch syncer not started");
   }
@@ -61,7 +61,7 @@ std::shared_ptr<SwitchState> MultiHwSwitchHandler::stateChanged(
   return getStateUpdateResult(futures);
 }
 
-folly::Future<std::shared_ptr<SwitchState>> MultiHwSwitchHandler::stateChanged(
+folly::Future<HwSwitchStateUpdateResult> MultiHwSwitchHandler::stateChanged(
     SwitchID switchId,
     const HwSwitchStateUpdate& update) {
   auto iter = hwSwitchSyncers_.find(switchId);
@@ -72,7 +72,7 @@ folly::Future<std::shared_ptr<SwitchState>> MultiHwSwitchHandler::stateChanged(
 }
 
 std::shared_ptr<SwitchState> MultiHwSwitchHandler::getStateUpdateResult(
-    std::vector<folly::Future<std::shared_ptr<SwitchState>>>& futures) {
+    std::vector<folly::Future<HwSwitchStateUpdateResult>>& futures) {
   auto results = folly::collectAll(futures).wait();
   auto index{0};
   for (const auto& entry : hwSwitchSyncers_) {
@@ -86,7 +86,7 @@ std::shared_ptr<SwitchState> MultiHwSwitchHandler::getStateUpdateResult(
     index++;
   }
   CHECK(results.value().size());
-  return results.value()[0].value();
+  return results.value()[0].value().first;
 }
 
 HwSwitchHandler* MultiHwSwitchHandler::getHwSwitchHandler(SwitchID switchId) {

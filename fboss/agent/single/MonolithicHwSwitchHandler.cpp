@@ -192,11 +192,19 @@ bool MonolithicHwSwitchHandler::needL2EntryForNeighbor(
   return hw_->needL2EntryForNeighbor();
 }
 
-fsdb::OperDelta MonolithicHwSwitchHandler::stateChanged(
+std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus>
+MonolithicHwSwitchHandler::stateChanged(
     const fsdb::OperDelta& delta,
     bool transaction) {
-  return transaction ? hw_->stateChangedTransaction(delta)
-                     : hw_->stateChanged(delta);
+  auto operResult = transaction ? hw_->stateChangedTransaction(delta)
+                                : hw_->stateChanged(delta);
+  /*
+   * For monolithic, return success for update since SwSwitch should not
+   * do rollback for partial update failure. In monolithic SwSwitch
+   * transitions the state returned by HwSwitch to applied state.
+   */
+  return {
+      operResult, HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_SUCCEEDED};
 }
 
 multiswitch::StateOperDelta MonolithicHwSwitchHandler::getNextStateOperDelta(

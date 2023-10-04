@@ -46,10 +46,10 @@ HwSwitchHandler::~HwSwitchHandler() {
   stop();
 }
 
-folly::Future<std::shared_ptr<SwitchState>> HwSwitchHandler::stateChanged(
+folly::Future<HwSwitchStateUpdateResult> HwSwitchHandler::stateChanged(
     HwSwitchStateUpdate update) {
   auto [promise, semiFuture] =
-      folly::makePromiseContract<std::shared_ptr<SwitchState>>();
+      folly::makePromiseContract<HwSwitchStateUpdateResult>();
 
   hwSwitchManagerEvb_.runInEventBaseThread([promise = std::move(promise),
                                             update = std::move(update),
@@ -61,30 +61,43 @@ folly::Future<std::shared_ptr<SwitchState>> HwSwitchHandler::stateChanged(
   return future;
 }
 
-std::shared_ptr<SwitchState> HwSwitchHandler::stateChangedImpl(
+HwSwitchStateUpdateResult HwSwitchHandler::stateChangedImpl(
     const HwSwitchStateUpdate& update) {
   if (!FLAGS_enable_state_oper_delta) {
     StateDelta stateDelta(update.oldState, update.newState);
-    return stateChanged(stateDelta, update.isTransaction);
+    /*
+     * For monolithic, return success for update since SwSwitch should not
+     * do rollback for partial update failure. In monolithic SwSwitch
+     * transitions the state returned by HwSwitch to applied state.
+     * Non oper delta based hw state update is supprted only on monolithic agent
+     */
+    return {
+        stateChanged(stateDelta, update.isTransaction),
+        HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_SUCCEEDED};
   }
   // filter out deltas that don't apply to this switch
   auto inDelta = operDeltaFilter_.filter(update.inDelta, 1);
   if (!inDelta) {
     // no-op
-    return update.newState;
+    return {
+        update.newState,
+        HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_SUCCEEDED};
   }
-  auto outDelta = stateChangedImpl(*inDelta, update.isTransaction);
+  auto stateUpdateResult = stateChangedImpl(*inDelta, update.isTransaction);
+  auto outDelta = stateUpdateResult.first;
   if (outDelta.changes()->empty()) {
-    return update.newState;
+    return {update.newState, stateUpdateResult.second};
   }
   if (*inDelta == outDelta) {
-    return update.oldState;
+    return {update.oldState, stateUpdateResult.second};
   }
   // obtain the state that actually got programmed
-  return StateDelta(update.newState, outDelta).newState();
+  return {
+      StateDelta(update.newState, outDelta).newState(),
+      stateUpdateResult.second};
 }
 
-fsdb::OperDelta HwSwitchHandler::stateChangedImpl(
+HwSwitchStateOperUpdateResult HwSwitchHandler::stateChangedImpl(
     const fsdb::OperDelta& delta,
     bool transaction) {
   return stateChanged(delta, transaction);

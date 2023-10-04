@@ -84,8 +84,9 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
       const StateDelta& delta,
       bool transaction) override;
 
-  fsdb::OperDelta stateChanged(const fsdb::OperDelta& delta, bool transaction)
-      override;
+  std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus> stateChanged(
+      const fsdb::OperDelta& delta,
+      bool transaction) override;
 
   bool transactionsSupported() const override;
 

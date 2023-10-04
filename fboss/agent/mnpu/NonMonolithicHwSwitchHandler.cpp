@@ -215,7 +215,8 @@ bool NonMonolithicHwSwitchHandler::sendPacketOutViaThriftStream(
   return true;
 }
 
-fsdb::OperDelta NonMonolithicHwSwitchHandler::stateChanged(
+std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus>
+NonMonolithicHwSwitchHandler::stateChanged(
     const fsdb::OperDelta& delta,
     bool transaction) {
   multiswitch::StateOperDelta stateDelta;
@@ -230,7 +231,8 @@ fsdb::OperDelta NonMonolithicHwSwitchHandler::stateChanged(
     }
     if (deltaReadCancelled_) {
       // return incoming delta to indicate that none of the changes were applied
-      return delta;
+      return {
+          delta, HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_CANCELLED};
     }
     nextOperDelta_ = &stateDelta;
     ackReceived_ = false;
@@ -245,12 +247,17 @@ fsdb::OperDelta NonMonolithicHwSwitchHandler::stateChanged(
         lk, [this] { return ackReceived_ || deltaReadCancelled_; });
     if (deltaReadCancelled_) {
       // return incoming delta to indicate that none of the changes were applied
-      return delta;
+      return {
+          delta, HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_CANCELLED};
     }
   }
   // received ack. return result from HwSwitch
   // TODO - handle failures and do rollback on succeeded switches
-  return *prevOperDeltaResult_->operDelta();
+  return {
+      *prevOperDeltaResult_->operDelta(),
+      prevOperDeltaResult_->operDelta()->changes()->empty()
+          ? HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_SUCCEEDED
+          : HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_FAILED};
 }
 
 multiswitch::StateOperDelta NonMonolithicHwSwitchHandler::getNextStateOperDelta(

@@ -9,6 +9,7 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/HwSwitchCallback.h"
 #include "fboss/agent/HwSwitchConnectionStatusTable.h"
+#include "fboss/agent/HwSwitchHandler.h"
 #include "fboss/agent/if/gen-cpp2/MultiSwitchCtrl.h"
 
 namespace facebook::fboss {
@@ -141,12 +142,12 @@ class MultiHwSwitchHandler {
  private:
   HwSwitchHandler* getHwSwitchHandler(SwitchID id);
 
-  folly::Future<std::shared_ptr<SwitchState>> stateChanged(
+  folly::Future<HwSwitchStateUpdateResult> stateChanged(
       SwitchID switchId,
       const HwSwitchStateUpdate& update);
 
   std::shared_ptr<SwitchState> getStateUpdateResult(
-      std::vector<folly::Future<std::shared_ptr<SwitchState>>>& futures);
+      std::vector<folly::Future<HwSwitchStateUpdateResult>>& futures);
 
   SwSwitch* sw_;
   std::map<SwitchID, std::unique_ptr<HwSwitchHandler>> hwSwitchSyncers_;
