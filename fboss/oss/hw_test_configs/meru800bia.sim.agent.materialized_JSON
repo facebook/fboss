@@ -391,6 +391,7 @@
         "sai_acl_qset_optimization": "0x1",
         "sai_async_fdb_nbr_enable": "0x1",
         "sai_common_hash_crc": "0x1",
+        "sai_cos_tc_to_q_map_invert": "0",
         "sai_ifp_enable_on_cpu_tx": "0x1",
         "sai_macro_flow_based_hash": "1",
         "sai_mmu_qgroups_default": "1",
