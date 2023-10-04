@@ -226,6 +226,7 @@ class ThriftListNode : public NodeBaseT<
                            ThriftListNode<TypeClass, TType>,
                            ThriftListFields<TypeClass, TType>> {
  public:
+  using TC = TypeClass;
   using Self = ThriftListNode<TypeClass, TType>;
   using Fields = ThriftListFields<TypeClass, TType>;
   using ThriftType = typename Fields::ThriftType;

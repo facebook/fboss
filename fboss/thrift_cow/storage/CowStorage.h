@@ -34,6 +34,7 @@ inline std::optional<StorageError> parsePatchResult(
     case thrift_cow::PatchResult::INVALID_VARIANT_MEMBER:
     case thrift_cow::PatchResult::NON_EXISTENT_NODE:
     case thrift_cow::PatchResult::KEY_PARSE_ERROR:
+    case thrift_cow::PatchResult::PATCHING_IMMUTABLE_NODE:
       return StorageError::INVALID_PATH;
     case thrift_cow::PatchResult::INVALID_PATCH_TYPE:
       return StorageError::TYPE_ERROR;

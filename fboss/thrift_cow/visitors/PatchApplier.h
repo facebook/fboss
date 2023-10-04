@@ -17,6 +17,7 @@ enum class PatchResult {
   INVALID_PATCH_TYPE,
   NON_EXISTENT_NODE,
   KEY_PARSE_ERROR,
+  PATCHING_IMMUTABLE_NODE,
 };
 
 template <typename TC>
@@ -340,7 +341,16 @@ struct PatchApplier {
     if (patch.getType() != PatchNode::Type::val) {
       return PatchResult::INVALID_PATCH_TYPE;
     }
-    return pa_detail::patchNode(fields, patch.move_val());
+    // This can only happen if we are trying to apply a patch a set entry which
+    // are immutable. In practice this should never happen because for sets we
+    // always patch at the set level, though it is technically possible because
+    // we allow for patching at a base path, which could technically be a set
+    // entry
+    if constexpr (Fields::immutable) {
+      return PatchResult::PATCHING_IMMUTABLE_NODE;
+    } else {
+      return pa_detail::patchNode(fields, patch.move_val());
+    }
   }
 };
 

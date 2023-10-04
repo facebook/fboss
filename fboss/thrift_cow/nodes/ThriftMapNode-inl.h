@@ -285,7 +285,7 @@ template <typename Traits, typename Resolver = ThriftMapResolver<Traits>>
 class ThriftMapNode
     : public NodeBaseT<typename Resolver::type, ThriftMapFields<Traits>> {
  public:
-  using TypeClass = typename Traits::TC;
+  using TC = typename Traits::TC;
   using TType = typename Traits::Type;
 
   using Self = ThriftMapNode<Traits, Resolver>;
@@ -504,21 +504,21 @@ class ThriftMapNode
   template <typename Func>
   inline ThriftTraverseResult
   visitPath(PathIter begin, PathIter end, Func&& f) {
-    return PathVisitor<TypeClass>::visit(
+    return PathVisitor<TC>::visit(
         *this, begin, end, PathVisitMode::LEAF, std::forward<Func>(f));
   }
 
   template <typename Func>
   inline ThriftTraverseResult visitPath(PathIter begin, PathIter end, Func&& f)
       const {
-    return PathVisitor<TypeClass>::visit(
+    return PathVisitor<TC>::visit(
         *this, begin, end, PathVisitMode::LEAF, std::forward<Func>(f));
   }
 
   template <typename Func>
   inline ThriftTraverseResult cvisitPath(PathIter begin, PathIter end, Func&& f)
       const {
-    return PathVisitor<TypeClass>::visit(
+    return PathVisitor<TC>::visit(
         *this, begin, end, PathVisitMode::LEAF, std::forward<Func>(f));
   }
 

@@ -274,6 +274,32 @@ TEST(PatchApplierTests, AddRemoveSetItems) {
   EXPECT_EQ(nodeA->template ref<k::setOfI32>()->count(3), 1);
 }
 
+TEST(PatchApplierTests, FailPatchingSetEntry) {
+  // Set entries are immutable, patching them directly should compile but fail
+  auto structA = createSimpleTestStruct();
+  structA.setOfI32() = {1, 2};
+
+  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+
+  PatchNode intPatch;
+  intPatch.set_val(serializeBuf<apache::thrift::type_class::integral>(
+      fsdb::OperProtocol::COMPACT, 3));
+
+  std::vector<std::string> path = {
+      folly::to<std::string>(TestStructMembers::setOfI32::id::value), "1"};
+  bool visited = false;
+  nodeA->visitPath(path.begin(), path.end(), [&](auto& node) {
+    EXPECT_FALSE(visited);
+    visited = true;
+
+    using NodeT = typename folly::remove_cvref_t<decltype(node)>;
+    using TC = typename NodeT::TC;
+    auto ret = PatchApplier<TC>::apply(node, PatchNode(intPatch));
+    EXPECT_EQ(ret, PatchResult::PATCHING_IMMUTABLE_NODE);
+  });
+  EXPECT_TRUE(visited);
+}
+
 TEST(PatchApplierTests, SetMemberFull) {
   auto structA = createSimpleTestStruct();
   auto structB = structA;

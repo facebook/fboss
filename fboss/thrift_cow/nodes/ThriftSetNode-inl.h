@@ -239,6 +239,7 @@ class ThriftSetNode : public NodeBaseT<
                           ThriftSetNode<TypeClass, TType>,
                           ThriftSetFields<TypeClass, TType>> {
  public:
+  using TC = TypeClass;
   using Self = ThriftSetNode<TypeClass, TType>;
   using Fields = ThriftSetFields<TypeClass, TType>;
   using ThriftType = typename Fields::ThriftType;
