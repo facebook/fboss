@@ -17,6 +17,16 @@
 
 #include <algorithm>
 
+using facebook::fboss::HwSwitchMatcher;
+using facebook::fboss::SwitchID;
+
+namespace {
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{
+      std::unordered_set<SwitchID>{SwitchID(0), SwitchID(1)}};
+}
+} // namespace
+
 using namespace facebook::fboss;
 
 class SwSwitchHandlerTest : public ::testing::Test {
@@ -42,28 +52,28 @@ class SwSwitchHandlerTest : public ::testing::Test {
   }
 
  protected:
+  std::shared_ptr<SwitchState> getInitialTestState() {
+    auto state = std::make_shared<SwitchState>();
+    auto newSwitchSettings = std::make_shared<SwitchSettings>();
+    auto multiSwitchSwitchSettings = std::make_unique<MultiSwitchSettings>();
+    multiSwitchSwitchSettings->addNode(
+        HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}))
+            .matcherString(),
+        newSwitchSettings);
+    multiSwitchSwitchSettings->addNode(
+        HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(1)}))
+            .matcherString(),
+        newSwitchSettings);
+    state->resetSwitchSettings(std::move(multiSwitchSwitchSettings));
+    return state;
+  }
+
   std::unique_ptr<MultiHwSwitchHandler> hwSwitchHandler_{nullptr};
 };
 
 TEST_F(SwSwitchHandlerTest, GetOperDelta) {
   auto stateV0 = std::make_shared<SwitchState>();
-  auto stateV1 = std::make_shared<SwitchState>();
-  auto newSwitchSettings = std::make_shared<SwitchSettings>();
-  auto multiSwitchSwitchSettings = std::make_unique<MultiSwitchSettings>();
-  multiSwitchSwitchSettings->addNode(
-      HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}))
-          .matcherString(),
-      newSwitchSettings);
-  multiSwitchSwitchSettings->addNode(
-      HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(1)}))
-          .matcherString(),
-      newSwitchSettings);
-  stateV1->resetSwitchSettings(std::move(multiSwitchSwitchSettings));
-
-  auto config = testConfigA();
-  config.switchSettings()->switchIdToSwitchInfo() = {
-      {0, createSwitchInfo(cfg::SwitchType::NPU)},
-      {1, createSwitchInfo(cfg::SwitchType::NPU)}};
+  auto stateV1 = getInitialTestState();
 
   auto addRandomDelay = []() {
     std::this_thread::sleep_for(std::chrono::milliseconds{random() % 100});
@@ -122,4 +132,97 @@ TEST_F(SwSwitchHandlerTest, cancelHwSwitchWait) {
   std::thread serverStopThread([&]() { hwSwitchHandler_->stop(); });
   serverThread.join();
   serverStopThread.join();
+}
+
+/*
+ * Test with 2 clients.
+ * - Client 1 alone connects initially. Update succeeds
+ * - Client 2 connects later. Should get a full sync while
+ *   client 1 gets an incremental update.
+ */
+TEST_F(SwSwitchHandlerTest, partialUpdateAndFullSync) {
+  folly::Baton<> client1Baton;
+  folly::Baton<> client2Baton;
+  auto stateV0 = std::make_shared<SwitchState>();
+  stateV0->publish();
+  auto stateV1 = getInitialTestState();
+  auto aclEntry = make_shared<AclEntry>(0, std::string("acl1"));
+  auto aclsV1 = stateV1->getAcls()->modify(&stateV1);
+  aclsV1->addNode(aclEntry, scope());
+  stateV1->publish();
+  /* initial update delta */
+  auto delta = StateDelta(stateV0, stateV1);
+  auto stateV2 = stateV1->clone();
+  auto aclEntry2 = make_shared<AclEntry>(1, std::string("acl2"));
+  auto aclsV2 = stateV2->getAcls()->modify(&stateV2);
+  aclsV2->addNode(aclEntry2, scope());
+  stateV2->publish();
+  /* second update delta */
+  auto delta2 = StateDelta(stateV1, stateV2);
+  /* full update delta */
+  auto delta3 = StateDelta(stateV0, stateV2);
+
+  std::thread stateUpdateThread(
+      [this, &delta, &stateV1, &delta2, &stateV2, &client2Baton]() {
+        /* client 1 connects */
+        hwSwitchHandler_->waitUntilHwSwitchConnected();
+        /* state update should succeed */
+        auto stateReturned = hwSwitchHandler_->stateChanged(delta, true);
+        EXPECT_EQ(stateReturned, stateV1);
+        /* let client2 start. it should get full sync */
+        client2Baton.wait();
+        auto stateReturned2 = hwSwitchHandler_->stateChanged(delta2, true);
+        EXPECT_EQ(stateReturned2, stateV2);
+        hwSwitchHandler_->stop();
+      });
+
+  auto clientThreadBody =
+      [this, &delta, &delta2, &delta3, &client1Baton, &client2Baton](
+          int64_t switchId) {
+        OperDeltaFilter filter((SwitchID(switchId)));
+        // connect and get next state delta
+        auto getEmptyOper = []() {
+          auto operDelta = std::make_unique<multiswitch::StateOperDelta>();
+          operDelta->operDelta() = fsdb::OperDelta();
+          return operDelta;
+        };
+        if (switchId == 1) {
+          // wait for first client to send request
+          client1Baton.wait();
+          // signal to server that second client is ready
+          client2Baton.post();
+        }
+        auto operDelta = hwSwitchHandler_->getNextStateOperDelta(
+            switchId, getEmptyOper(), true /*initialSync*/);
+        // should get a valid result
+        CHECK(operDelta.operDelta().is_set());
+        if (switchId == 0) {
+          // initial request from client 1 completed. client2 starts now
+          client1Baton.post();
+
+          // client 1 should get initial oper delta
+          EXPECT_EQ(
+              operDelta.operDelta(), *filter.filter(delta.getOperDelta(), 1));
+
+          // request next oper delta for client 1
+          operDelta = hwSwitchHandler_->getNextStateOperDelta(
+              switchId, getEmptyOper(), false /*initialSync*/);
+          CHECK(operDelta.operDelta().is_set());
+          // client 1 should get incremental update
+          EXPECT_EQ(
+              operDelta.operDelta(), *filter.filter(delta2.getOperDelta(), 1));
+        } else {
+          // client 2 should get full oper delta as this is the first update
+          EXPECT_EQ(
+              operDelta.operDelta(), *filter.filter(delta3.getOperDelta(), 1));
+        }
+        operDelta = hwSwitchHandler_->getNextStateOperDelta(
+            switchId, getEmptyOper(), false /*initialSync*/);
+      };
+  std::thread clientRequestThread1([&]() { clientThreadBody(0); });
+  std::thread clientRequestThread2([&]() { clientThreadBody(1); });
+
+  stateUpdateThread.join();
+  clientRequestThread1.join();
+  clientRequestThread2.join();
 }
