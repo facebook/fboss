@@ -14,36 +14,36 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
-#include "fboss/agent/hw/test/LinkStateToggler.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss {
 
 class HwSplitAgentCallbackTest : public HwLinkStateDependentTest {
- public:
-  class TestToggler : public LinkStateToggler {
-   public:
-    TestToggler() : LinkStateToggler(nullptr) {}
-    void invokeLinkScanIfNeeded(PortID /*port*/, bool /*isUp*/) override {}
-  };
-
-  void SetUp() override {
-    toggler_ = std::make_unique<TestToggler>();
-    HwLinkStateDependentTest::SetUp();
-  }
-
  protected:
   void linkStateChanged(PortID port, bool up) override {
-    toggler_->linkStateChanged(port, up);
+    std::lock_guard<std::mutex> lk(linkEventMutex_);
+    if (!portIdToWaitFor_ || port != portIdToWaitFor_ || up != waitForPortUp_) {
+      return;
+    }
+    portIdToWaitFor_ = std::nullopt;
+    desiredPortEventOccurred_ = true;
+    linkEventCV_.notify_one();
   }
 
   void setPortIDAndStateToWaitFor(PortID port, bool waitForPortUp) {
-    toggler_->setPortIDAndStateToWaitFor(port, waitForPortUp);
+    std::lock_guard<std::mutex> lk(linkEventMutex_);
+    portIdToWaitFor_ = port;
+    waitForPortUp_ = waitForPortUp;
+    desiredPortEventOccurred_ = false;
   }
 
   bool waitForPortEvent() {
-    return toggler_->waitForPortEvent();
+    std::unique_lock<std::mutex> lock{linkEventMutex_};
+    linkEventCV_.wait_for(lock, std::chrono::seconds(30), [this] {
+      return desiredPortEventOccurred_;
+    });
+    return desiredPortEventOccurred_;
   }
 
   HwSwitchEnsemble::Features featuresDesired() const override {
@@ -66,7 +66,11 @@ class HwSplitAgentCallbackTest : public HwLinkStateDependentTest {
   }
 
  private:
-  std::unique_ptr<LinkStateToggler> toggler_;
+  std::condition_variable linkEventCV_;
+  std::mutex linkEventMutex_;
+  std::optional<PortID> portIdToWaitFor_;
+  bool waitForPortUp_{false};
+  bool desiredPortEventOccurred_{false};
 };
 
 TEST_F(HwSplitAgentCallbackTest, linkCallback) {

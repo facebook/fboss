@@ -44,8 +44,6 @@ class LinkStateToggler {
       const std::vector<PortID>& ports) {
     portStateChangeImpl(switchState, ports, false);
   }
-  void setPortIDAndStateToWaitFor(PortID port, bool waitForUp);
-  bool waitForPortEvent();
 
  protected:
   TestEnsembleIf* getHwSwitchEnsemble() const {
@@ -64,6 +62,8 @@ class LinkStateToggler {
       bool up);
   virtual void invokeLinkScanIfNeeded(PortID port, bool isUp);
   void waitForPortDown(PortID port);
+  void setPortIDAndStateToWaitFor(PortID port, bool waitForUp);
+  bool waitForPortEvent();
 
   mutable std::mutex linkEventMutex_;
   std::optional<PortID> portIdToWaitFor_;
