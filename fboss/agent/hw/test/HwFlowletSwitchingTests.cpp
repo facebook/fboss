@@ -21,9 +21,16 @@ using namespace facebook::fboss::utility;
 namespace {
 static folly::IPAddressV6 kAddr1{"2803:6080:d038:3063::"};
 folly::CIDRNetwork kAddr1Prefix{folly::IPAddress("2803:6080:d038:3063::"), 64};
-const int kScalingFactor = 100;
-const int kLoadWeight = 70;
-const int kQueueWeight = 30;
+const int kScalingFactor1 = 100;
+const int kScalingFactor2 = 200;
+const int kLoadWeight1 = 70;
+const int kLoadWeight2 = 60;
+const int kQueueWeight1 = 30;
+const int kQueueWeight2 = 40;
+const int kInactivityIntervalUsecs1 = 128;
+const int kInactivityIntervalUsecs2 = 256;
+const int kFlowletTableSize1 = 1024;
+const int kFlowletTableSize2 = 2048;
 } // namespace
 
 namespace facebook::fboss {
@@ -38,22 +45,11 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
   }
 
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::onePortPerInterfaceConfig(
-        getHwSwitch(),
-        masterLogicalPortIds(),
-        getAsic()->desiredLoopbackModes());
-
-    auto flowletCfg = getFlowletSwitchingConfig();
+    auto cfg = getDefaultConfig();
+    auto flowletCfg = getFlowletSwitchingConfig(
+        kInactivityIntervalUsecs1, kFlowletTableSize1);
     cfg.flowletSwitchingConfig() = flowletCfg;
-    addLoadBalancerToConfig(cfg, getHwSwitch(), LBHash::FULL_HASH);
-
-    std::map<std::string, cfg::PortFlowletConfig> portFlowletCfgMap;
-    cfg::PortFlowletConfig portFlowletConfig;
-    portFlowletConfig.scalingFactor() = kScalingFactor;
-    portFlowletConfig.loadWeight() = kLoadWeight;
-    portFlowletConfig.queueWeight() = kQueueWeight;
-    portFlowletCfgMap.insert(std::make_pair("default", portFlowletConfig));
-    cfg.portFlowletConfigs() = portFlowletCfgMap;
+    updatePortFlowletConfigs(cfg, kScalingFactor1, kLoadWeight1, kQueueWeight1);
 
     auto allPorts = masterLogicalInterfacePortIds();
     std::vector<PortID> ports(
@@ -66,10 +62,44 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
-  cfg::FlowletSwitchingConfig getFlowletSwitchingConfig() const {
+  cfg::SwitchConfig getDefaultConfig() const {
+    auto cfg = utility::onePortPerInterfaceConfig(
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackModes());
+    addLoadBalancerToConfig(cfg, getHwSwitch(), LBHash::FULL_HASH);
+    return cfg;
+  }
+
+  cfg::PortFlowletConfig getPortFlowletConfig(
+      int scalingFactor,
+      int loadWeight,
+      int queueWeight) const {
+    cfg::PortFlowletConfig portFlowletConfig;
+    portFlowletConfig.scalingFactor() = scalingFactor;
+    portFlowletConfig.loadWeight() = loadWeight;
+    portFlowletConfig.queueWeight() = queueWeight;
+    return portFlowletConfig;
+  }
+
+  void updatePortFlowletConfigs(
+      cfg::SwitchConfig& cfg,
+      int scalingFactor,
+      int loadWeight,
+      int queueWeight) const {
+    std::map<std::string, cfg::PortFlowletConfig> portFlowletCfgMap;
+    auto portFlowletConfig =
+        getPortFlowletConfig(scalingFactor, loadWeight, queueWeight);
+    portFlowletCfgMap.insert(std::make_pair("default", portFlowletConfig));
+    cfg.portFlowletConfigs() = portFlowletCfgMap;
+  }
+
+  cfg::FlowletSwitchingConfig getFlowletSwitchingConfig(
+      uint16_t inactivityIntervalUsecs,
+      uint16_t flowletTableSize) const {
     cfg::FlowletSwitchingConfig flowletCfg;
-    flowletCfg.inactivityIntervalUsecs() = 60;
-    flowletCfg.flowletTableSize() = 1024;
+    flowletCfg.inactivityIntervalUsecs() = inactivityIntervalUsecs;
+    flowletCfg.flowletTableSize() = flowletTableSize;
     flowletCfg.dynamicEgressLoadExponent() = 3;
     flowletCfg.dynamicQueueExponent() = 3;
     flowletCfg.dynamicQueueMinThresholdBytes() = 100000;
@@ -79,6 +109,12 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
     flowletCfg.dynamicPhysicalQueueExponent() = 3;
     return flowletCfg;
+  }
+
+  void modifyFlowletSwitchingConfig(cfg::SwitchConfig& cfg) const {
+    auto flowletCfg = getFlowletSwitchingConfig(
+        kInactivityIntervalUsecs2, kFlowletTableSize2);
+    cfg.flowletSwitchingConfig() = flowletCfg;
   }
 
   bool skipTest() {
@@ -114,6 +150,23 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     applyNewState(ecmpHelper_->resolveNextHops(getProgrammedState(), nHops));
   }
 
+  void verifyInitialConfig() {
+    auto flowletCfg = getFlowletSwitchingConfig(
+        kInactivityIntervalUsecs1, kFlowletTableSize1);
+    if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
+      auto portFlowletConfig =
+          getPortFlowletConfig(kScalingFactor1, kLoadWeight1, kQueueWeight1);
+      EXPECT_TRUE(utility::validatePortFlowletQuality(
+          getHwSwitch(), masterLogicalPortIds()[0], portFlowletConfig));
+    }
+
+    EXPECT_TRUE(
+        utility::validateFlowletSwitchingEnabled(getHwSwitch(), flowletCfg));
+    EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
+        getHwSwitch(), kAddr1Prefix, flowletCfg));
+  }
+
   std::unique_ptr<utility::EcmpSetupAnyNPorts<folly::IPAddressV6>> ecmpHelper_;
 };
 
@@ -134,25 +187,13 @@ TEST_F(HwFlowletSwitchingTest, VerifyFlowletSwitchingEnable) {
   };
 
   auto verify = [&]() {
-    auto flowletCfg = this->getFlowletSwitchingConfig();
-
-    if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
-      cfg::PortFlowletConfig portFlowletConfig;
-      portFlowletConfig.scalingFactor() = kScalingFactor;
-      portFlowletConfig.loadWeight() = kLoadWeight;
-      portFlowletConfig.queueWeight() = kQueueWeight;
-      EXPECT_TRUE(utility::validatePortFlowletQuality(
-          getHwSwitch(), masterLogicalPortIds()[0], portFlowletConfig));
-    }
-
-    EXPECT_TRUE(
-        utility::validateFlowletSwitchingEnabled(getHwSwitch(), flowletCfg));
-    EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-        getHwSwitch(), kAddr1Prefix, flowletCfg));
+    verifyInitialConfig();
 
     // Shrink egress and verify
     this->unresolveNextHop(PortDescriptor(masterLogicalPortIds()[3]));
+
+    auto flowletCfg = getFlowletSwitchingConfig(
+        kInactivityIntervalUsecs1, kFlowletTableSize1);
 
     EXPECT_TRUE(
         utility::validateFlowletSwitchingEnabled(getHwSwitch(), flowletCfg));
@@ -166,6 +207,45 @@ TEST_F(HwFlowletSwitchingTest, VerifyFlowletSwitchingEnable) {
         utility::validateFlowletSwitchingEnabled(getHwSwitch(), flowletCfg));
     EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
         getHwSwitch(), kAddr1Prefix, flowletCfg));
+  };
+
+  setup();
+  verify();
+}
+
+TEST_F(HwFlowletSwitchingTest, VerifyPortFlowletConfigChange) {
+  if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+
+  auto setup = [&]() {
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[2]));
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[3]));
+    this->addRoute(kAddr1, 64);
+  };
+
+  auto verifyHelper = [&]() {
+    if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
+      auto portFlowletConfig =
+          getPortFlowletConfig(kScalingFactor2, kLoadWeight2, kQueueWeight2);
+      EXPECT_TRUE(utility::validatePortFlowletQuality(
+          getHwSwitch(), masterLogicalPortIds()[0], portFlowletConfig));
+    }
+  };
+
+  auto verify = [&]() {
+    verifyInitialConfig();
+    auto cfg = initialConfig();
+    // Modify the port flowlet config and verify
+    updatePortFlowletConfigs(cfg, kScalingFactor2, kLoadWeight2, kQueueWeight2);
+    applyNewConfig(cfg);
+    verifyHelper();
   };
 
   setup();
