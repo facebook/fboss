@@ -361,7 +361,8 @@ multiswitch::StateOperDelta MultiHwSwitchHandler::getNextStateOperDelta(
   }
   auto iter = hwSwitchSyncers_.find(SwitchID(switchId));
   CHECK(iter != hwSwitchSyncers_.end());
-  return iter->second->getNextStateOperDelta(std::move(prevOperResult));
+  return iter->second->getNextStateOperDelta(
+      std::move(prevOperResult), initialSync);
 }
 
 void MultiHwSwitchHandler::notifyHwSwitchGracefulExit(int64_t switchId) {

@@ -208,7 +208,8 @@ MonolithicHwSwitchHandler::stateChanged(
 }
 
 multiswitch::StateOperDelta MonolithicHwSwitchHandler::getNextStateOperDelta(
-    std::unique_ptr<multiswitch::StateOperDelta> /*prevOperResult*/) {
+    std::unique_ptr<multiswitch::StateOperDelta> /*prevOperResult*/,
+    bool /*initialSync*/) {
   throw FbossError("Not supported");
 }
 

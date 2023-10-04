@@ -118,9 +118,14 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
   bool needL2EntryForNeighbor(const cfg::SwitchConfig* config) const override;
 
   multiswitch::StateOperDelta getNextStateOperDelta(
-      std::unique_ptr<multiswitch::StateOperDelta> prevOperResult) override;
+      std::unique_ptr<multiswitch::StateOperDelta> prevOperResult,
+      bool initialSync) override;
 
   void notifyHwSwitchGracefulExit() override;
+
+  HwSwitchOperDeltaSyncState getHwSwitchOperDeltaSyncState() override {
+    return HwSwitchOperDeltaSyncState::OPER_SYNCED;
+  }
 
  private:
   Platform* platform_;

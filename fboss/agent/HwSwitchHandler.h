@@ -34,6 +34,14 @@ enum HwSwitchStateUpdateStatus {
   HWSWITCH_STATE_UPDATE_CANCELLED,
 };
 
+enum HwSwitchOperDeltaSyncState {
+  DISCONNECTED, /* initial state */
+  WAITING_INITIAL_SYNC, /* Got first getOper request */
+  INITIAL_OPER_SENT, /* waiting for initial sync response */
+  OPER_SYNCED, /* initial sync completed */
+  CANCELLED, /* cancelled */
+};
+
 using HwSwitchStateUpdateResult =
     std::pair<std::shared_ptr<SwitchState>, HwSwitchStateUpdateStatus>;
 
@@ -143,13 +151,15 @@ class HwSwitchHandler {
       const cfg::SwitchConfig* config) const = 0;
 
   virtual multiswitch::StateOperDelta getNextStateOperDelta(
-      std::unique_ptr<multiswitch::StateOperDelta> prevOperResult) = 0;
+      std::unique_ptr<multiswitch::StateOperDelta> prevOperResult,
+      bool initialSync) = 0;
 
   virtual void notifyHwSwitchGracefulExit() = 0;
 
   SwitchID getSwitchId() const {
     return switchId_;
   }
+  virtual HwSwitchOperDeltaSyncState getHwSwitchOperDeltaSyncState() = 0;
 
  private:
   HwSwitchStateUpdateResult stateChangedImpl(const HwSwitchStateUpdate& update);
