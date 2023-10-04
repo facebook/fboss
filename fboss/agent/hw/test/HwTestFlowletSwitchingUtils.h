@@ -21,12 +21,15 @@ bool validateFlowletSwitchingEnabled(
 bool verifyEcmpForFlowletSwitching(
     const facebook::fboss::HwSwitch* hw,
     const folly::CIDRNetwork& routePrefix,
-    const cfg::FlowletSwitchingConfig& flowletCfg);
+    const cfg::FlowletSwitchingConfig& flowletCfg,
+    bool flowletEnable);
 
 bool validatePortFlowletQuality(
     const facebook::fboss::HwSwitch* hw,
     const PortID& portId,
     const cfg::PortFlowletConfig& portFlowletCfg);
+
+bool validateFlowletSwitchingDisabled(const facebook::fboss::HwSwitch* hw);
 
 void setEcmpMemberStatus(const facebook::fboss::HwSwitch* hw);
 

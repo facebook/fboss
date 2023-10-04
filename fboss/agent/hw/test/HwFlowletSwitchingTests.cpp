@@ -150,21 +150,49 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     applyNewState(ecmpHelper_->resolveNextHops(getProgrammedState(), nHops));
   }
 
-  void verifyInitialConfig() {
-    auto flowletCfg = getFlowletSwitchingConfig(
-        kInactivityIntervalUsecs1, kFlowletTableSize1);
+  void
+  verifyPortFlowletConfig(int scalingFactor, int loadWeight, int queueWeight) {
     if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
       auto portFlowletConfig =
-          getPortFlowletConfig(kScalingFactor1, kLoadWeight1, kQueueWeight1);
+          getPortFlowletConfig(scalingFactor, loadWeight, queueWeight);
       EXPECT_TRUE(utility::validatePortFlowletQuality(
           getHwSwitch(), masterLogicalPortIds()[0], portFlowletConfig));
     }
+  }
+
+  void verifyInitialConfig() {
+    verifyPortFlowletConfig(kScalingFactor1, kLoadWeight1, kQueueWeight1);
+
+    auto flowletCfg = getFlowletSwitchingConfig(
+        kInactivityIntervalUsecs1, kFlowletTableSize1);
 
     EXPECT_TRUE(
         utility::validateFlowletSwitchingEnabled(getHwSwitch(), flowletCfg));
     EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-        getHwSwitch(), kAddr1Prefix, flowletCfg));
+        getHwSwitch(), kAddr1Prefix, flowletCfg, true));
+  }
+
+  void verifyModifiedConfig() {
+    verifyPortFlowletConfig(kScalingFactor2, kLoadWeight2, kQueueWeight2);
+
+    auto flowletCfg = getFlowletSwitchingConfig(
+        kInactivityIntervalUsecs2, kFlowletTableSize2);
+
+    EXPECT_TRUE(
+        utility::validateFlowletSwitchingEnabled(getHwSwitch(), flowletCfg));
+    EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
+        getHwSwitch(), kAddr1Prefix, flowletCfg, true));
+  }
+
+  void verifyRemoveFlowletConfig() {
+    verifyPortFlowletConfig(10, 100, 0);
+
+    auto flowletCfg = getFlowletSwitchingConfig(0, 0);
+
+    EXPECT_TRUE(utility::validateFlowletSwitchingDisabled(getHwSwitch()));
+    EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
+        getHwSwitch(), kAddr1Prefix, flowletCfg, false));
   }
 
   std::unique_ptr<utility::EcmpSetupAnyNPorts<folly::IPAddressV6>> ecmpHelper_;
@@ -192,25 +220,15 @@ TEST_F(HwFlowletSwitchingTest, VerifyFlowletSwitchingEnable) {
     // Shrink egress and verify
     this->unresolveNextHop(PortDescriptor(masterLogicalPortIds()[3]));
 
-    auto flowletCfg = getFlowletSwitchingConfig(
-        kInactivityIntervalUsecs1, kFlowletTableSize1);
-
-    EXPECT_TRUE(
-        utility::validateFlowletSwitchingEnabled(getHwSwitch(), flowletCfg));
-    EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-        getHwSwitch(), kAddr1Prefix, flowletCfg));
+    verifyInitialConfig();
 
     // Expand egress and verify
     this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[3]));
 
-    EXPECT_TRUE(
-        utility::validateFlowletSwitchingEnabled(getHwSwitch(), flowletCfg));
-    EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-        getHwSwitch(), kAddr1Prefix, flowletCfg));
+    verifyInitialConfig();
   };
 
-  setup();
-  verify();
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(HwFlowletSwitchingTest, VerifyPortFlowletConfigChange) {
@@ -229,26 +247,86 @@ TEST_F(HwFlowletSwitchingTest, VerifyPortFlowletConfigChange) {
     this->addRoute(kAddr1, 64);
   };
 
-  auto verifyHelper = [&]() {
-    if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
-      auto portFlowletConfig =
-          getPortFlowletConfig(kScalingFactor2, kLoadWeight2, kQueueWeight2);
-      EXPECT_TRUE(utility::validatePortFlowletQuality(
-          getHwSwitch(), masterLogicalPortIds()[0], portFlowletConfig));
-    }
-  };
-
   auto verify = [&]() {
     verifyInitialConfig();
     auto cfg = initialConfig();
     // Modify the port flowlet config and verify
     updatePortFlowletConfigs(cfg, kScalingFactor2, kLoadWeight2, kQueueWeight2);
     applyNewConfig(cfg);
-    verifyHelper();
+    verifyPortFlowletConfig(kScalingFactor2, kLoadWeight2, kQueueWeight2);
+    // Modify to initial config to verify after warmboot
+    applyNewConfig(initialConfig());
   };
 
-  setup();
-  verify();
+  verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(HwFlowletSwitchingTest, VerifyFlowletConfigChange) {
+  if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+
+  auto setup = [&]() {
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[2]));
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[3]));
+    this->addRoute(kAddr1, 64);
+  };
+
+  auto verify = [&]() {
+    verifyInitialConfig();
+    auto cfg = initialConfig();
+    // Modify the flowlet config
+    modifyFlowletSwitchingConfig(cfg);
+    // Modify the port flowlet config
+    updatePortFlowletConfigs(cfg, kScalingFactor2, kLoadWeight2, kQueueWeight2);
+    applyNewConfig(cfg);
+    verifyModifiedConfig();
+    // Modify to initial config to verify after warmboot
+    applyNewConfig(initialConfig());
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwFlowletSwitchingTest, VerifyFlowletConfigRemoval) {
+  if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+
+  auto setup = [&]() {
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[2]));
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[3]));
+    this->addRoute(kAddr1, 64);
+  };
+
+  auto verify = [&]() {
+    verifyInitialConfig();
+    auto cfg = initialConfig();
+    // Modify the flowlet config
+    modifyFlowletSwitchingConfig(cfg);
+    // Modify the port flowlet config
+    updatePortFlowletConfigs(cfg, kScalingFactor2, kLoadWeight2, kQueueWeight2);
+    applyNewConfig(cfg);
+    verifyModifiedConfig();
+    // Remove the flowlet configs
+    cfg = getDefaultConfig();
+    applyNewConfig(cfg);
+    verifyRemoveFlowletConfig();
+    // Modify to initial config to verify after warmboot
+    applyNewConfig(initialConfig());
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

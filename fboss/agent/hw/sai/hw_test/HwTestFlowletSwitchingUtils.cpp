@@ -26,7 +26,8 @@ bool validateFlowletSwitchingEnabled(
 bool verifyEcmpForFlowletSwitching(
     const HwSwitch* /* unused */,
     const folly::CIDRNetwork& /* unused */,
-    const cfg::FlowletSwitchingConfig& /* unused */) {
+    const cfg::FlowletSwitchingConfig& /* unused */,
+    bool /* unused */) {
   // This function is not implemented yet.
   // If the test is running on SAI Switches,
   // it should throw an error.
@@ -38,6 +39,13 @@ bool validatePortFlowletQuality(
     const HwSwitch* /* unused */,
     const PortID& /* unused */,
     const cfg::PortFlowletConfig& /* unused */) {
+  // This function is not implemented yet.
+  // If the test is running on SAI Switches,
+  // it should throw an error.
+  return false;
+}
+
+bool validateFlowletSwitchingDisabled(const HwSwitch* /* unused */) {
   // This function is not implemented yet.
   // If the test is running on SAI Switches,
   // it should throw an error.

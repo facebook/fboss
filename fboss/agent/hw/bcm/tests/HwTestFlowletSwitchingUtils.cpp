@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/bcm/BcmEcmpUtils.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 using namespace facebook::fboss;
 
@@ -22,7 +23,7 @@ const RouterID kRid(0);
 
 namespace facebook::fboss::utility {
 
-void verifyEgressEcmpEthertype(const BcmSwitch* bcmSwitch) {
+void verifyEgressEcmpEthertype(const BcmSwitch* bcmSwitch, bool enabled) {
   uint32 flags = 0;
   int ethertype_max = 2;
   int ethertype_count = 0;
@@ -33,7 +34,11 @@ void verifyEgressEcmpEthertype(const BcmSwitch* bcmSwitch) {
       ethertype_max,
       ethertype_array,
       &ethertype_count);
-  CHECK_EQ(flags, BCM_L3_ECMP_DYNAMIC_ETHERTYPE_ELIGIBLE);
+  if (enabled) {
+    CHECK_EQ(flags, BCM_L3_ECMP_DYNAMIC_ETHERTYPE_ELIGIBLE);
+  } else {
+    CHECK_EQ(flags, 0);
+  }
   CHECK_EQ(ethertype_count, 2);
   CHECK_EQ(ethertype_array[0], 0x0800);
   CHECK_EQ(ethertype_array[1], 0x86DD);
@@ -81,14 +86,15 @@ bool validateFlowletSwitchingEnabled(
       *flowletCfg.dynamicPhysicalQueueExponent());
   utility::assertSwitchControl(bcmSwitchEcmpDynamicRandomSeed, 0x5555);
 
-  verifyEgressEcmpEthertype(bcmSwitch);
+  verifyEgressEcmpEthertype(bcmSwitch, true);
   return true;
 }
 
 bool verifyEcmpForFlowletSwitching(
     const facebook::fboss::HwSwitch* hw,
     const folly::CIDRNetwork& prefix,
-    const cfg::FlowletSwitchingConfig& flowletCfg) {
+    const cfg::FlowletSwitchingConfig& flowletCfg,
+    bool flowletEnable) {
   const auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
   auto ecmp = getEgressIdForRoute(bcmSwitch, prefix.first, prefix.second, kRid);
   bcm_l3_egress_ecmp_t existing;
@@ -97,7 +103,11 @@ bool verifyEcmpForFlowletSwitching(
   existing.flags |= BCM_L3_WITH_ID;
   int pathsInHwCount;
   bcm_l3_ecmp_get(bcmSwitch->getUnit(), &existing, 0, nullptr, &pathsInHwCount);
-  CHECK_EQ(existing.dynamic_mode, BCM_L3_ECMP_DYNAMIC_MODE_NORMAL);
+  if (flowletEnable) {
+    CHECK_EQ(existing.dynamic_mode, BCM_L3_ECMP_DYNAMIC_MODE_NORMAL);
+  } else {
+    CHECK_EQ(existing.dynamic_mode, 0);
+  }
   CHECK_EQ(existing.dynamic_age, *flowletCfg.inactivityIntervalUsecs());
   CHECK_EQ(existing.dynamic_size, *flowletCfg.flowletTableSize());
 
@@ -106,7 +116,9 @@ bool verifyEcmpForFlowletSwitching(
     int status = -1;
     bcm_l3_egress_ecmp_member_status_get(
         bcmSwitch->getUnit(), ecmp_member, &status);
-    CHECK_GE(status, BCM_L3_ECMP_DYNAMIC_MEMBER_HW);
+    if (flowletEnable) {
+      CHECK_GE(status, BCM_L3_ECMP_DYNAMIC_MEMBER_HW);
+    }
   }
   return true;
 }
@@ -119,9 +131,33 @@ bool validatePortFlowletQuality(
   bcm_l3_ecmp_dlb_port_quality_attr_t_init(&attr);
   const auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
   bcm_l3_ecmp_dlb_port_quality_attr_get(bcmSwitch->getUnit(), portId, &attr);
-  CHECK_EQ(attr.scaling_factor, *cfg.scalingFactor());
-  CHECK_EQ(attr.load_weight, *cfg.loadWeight());
-  CHECK_EQ(attr.queue_size_weight, *cfg.queueWeight());
+  if (hw->getPlatform()->getAsic()->getAsicType() !=
+      cfg::AsicType::ASIC_TYPE_FAKE) {
+    CHECK_EQ(attr.scaling_factor, *cfg.scalingFactor());
+    CHECK_EQ(attr.load_weight, *cfg.loadWeight());
+    CHECK_EQ(attr.queue_size_weight, *cfg.queueWeight());
+  }
+  return true;
+}
+
+bool validateFlowletSwitchingDisabled(const facebook::fboss::HwSwitch* hw) {
+  const auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
+  utility::assertSwitchControl(bcmSwitchEcmpDynamicEgressBytesExponent, 0);
+  utility::assertSwitchControl(bcmSwitchEcmpDynamicQueuedBytesExponent, 0);
+  utility::assertSwitchControl(bcmSwitchEcmpDynamicQueuedBytesMinThreshold, 0);
+  utility::assertSwitchControl(
+      bcmSwitchEcmpDynamicPhysicalQueuedBytesMinThreshold, 0);
+  utility::assertSwitchControl(bcmSwitchEcmpDynamicQueuedBytesMaxThreshold, 0);
+  utility::assertSwitchControl(
+      bcmSwitchEcmpDynamicPhysicalQueuedBytesMaxThreshold, 0);
+  utility::assertSwitchControl(bcmSwitchEcmpDynamicSampleRate, 62500);
+  utility::assertSwitchControl(bcmSwitchEcmpDynamicEgressBytesMinThreshold, 0);
+  utility::assertSwitchControl(bcmSwitchEcmpDynamicEgressBytesMaxThreshold, 0);
+  utility::assertSwitchControl(
+      bcmSwitchEcmpDynamicPhysicalQueuedBytesExponent, 0);
+  utility::assertSwitchControl(bcmSwitchEcmpDynamicRandomSeed, 0);
+
+  verifyEgressEcmpEthertype(bcmSwitch, false);
   return true;
 }
 
