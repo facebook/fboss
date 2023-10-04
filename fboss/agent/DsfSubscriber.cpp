@@ -279,51 +279,58 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
 
     dsfSessions_.wlock()->emplace(nodeName, nodeName);
     XLOG(DBG2) << " Setting up DSF subscriptions to : " << nodeName;
+
+    auto getStateUpdateCb = [this, nodeName]() {
+      fsdb::FsdbStreamClient::FsdbStreamStateChangeCb stateUpdateFn =
+          [this, nodeName](auto oldState, auto newState) {
+            if (XLOG_IS_ON(DBG2)) {
+              switch (newState) {
+                case fsdb::FsdbStreamClient::State::CONNECTING:
+                  XLOG(DBG2) << "Try connecting to " << nodeName;
+                  break;
+                case fsdb::FsdbStreamClient::State::CONNECTED:
+                  XLOG(DBG2) << "Connected to " << nodeName;
+                  break;
+                case fsdb::FsdbStreamClient::State::DISCONNECTED:
+                  XLOG(DBG2) << "Disconnected from " << nodeName;
+                  break;
+                case fsdb::FsdbStreamClient::State::CANCELLED:
+                  XLOG(DBG2) << "Cancelled " << nodeName;
+                  break;
+              }
+            }
+
+            auto oldThriftState =
+                (oldState == fsdb::FsdbStreamClient::State::CONNECTED)
+                ? fsdb::FsdbSubscriptionState::CONNECTED
+                : fsdb::FsdbSubscriptionState::DISCONNECTED;
+            auto newThriftState =
+                (newState == fsdb::FsdbStreamClient::State::CONNECTED)
+                ? fsdb::FsdbSubscriptionState::CONNECTED
+                : fsdb::FsdbSubscriptionState::DISCONNECTED;
+
+            if (oldThriftState != newThriftState) {
+              if (newThriftState == fsdb::FsdbSubscriptionState::CONNECTED) {
+                this->sw_->stats()->failedDsfSubscription(-1);
+              } else {
+                this->sw_->stats()->failedDsfSubscription(1);
+              }
+
+              this->sw_->updateDsfSubscriberState(
+                  nodeName, oldThriftState, newThriftState);
+              auto lockedDsfSessions = this->dsfSessions_.wlock();
+              if (auto it = lockedDsfSessions->find(nodeName);
+                  it != lockedDsfSessions->end()) {
+                it->second.localSubStateChanged(newThriftState);
+              }
+            }
+          };
+      return stateUpdateFn;
+    };
+
     fsdbPubSubMgr_->addStatePathSubscription(
         getAllSubscribePaths(localNodeName_),
-        [this, nodeName](auto oldState, auto newState) {
-          if (XLOG_IS_ON(DBG2)) {
-            switch (newState) {
-              case fsdb::FsdbStreamClient::State::CONNECTING:
-                XLOG(DBG2) << "Try connecting to " << nodeName;
-                break;
-              case fsdb::FsdbStreamClient::State::CONNECTED:
-                XLOG(DBG2) << "Connected to " << nodeName;
-                break;
-              case fsdb::FsdbStreamClient::State::DISCONNECTED:
-                XLOG(DBG2) << "Disconnected from " << nodeName;
-                break;
-              case fsdb::FsdbStreamClient::State::CANCELLED:
-                XLOG(DBG2) << "Cancelled " << nodeName;
-                break;
-            }
-          }
-
-          auto oldThriftState =
-              (oldState == fsdb::FsdbStreamClient::State::CONNECTED)
-              ? fsdb::FsdbSubscriptionState::CONNECTED
-              : fsdb::FsdbSubscriptionState::DISCONNECTED;
-          auto newThriftState =
-              (newState == fsdb::FsdbStreamClient::State::CONNECTED)
-              ? fsdb::FsdbSubscriptionState::CONNECTED
-              : fsdb::FsdbSubscriptionState::DISCONNECTED;
-
-          if (oldThriftState != newThriftState) {
-            if (newThriftState == fsdb::FsdbSubscriptionState::CONNECTED) {
-              this->sw_->stats()->failedDsfSubscription(-1);
-            } else {
-              this->sw_->stats()->failedDsfSubscription(1);
-            }
-
-            this->sw_->updateDsfSubscriberState(
-                nodeName, oldThriftState, newThriftState);
-            auto lockedDsfSessions = this->dsfSessions_.wlock();
-            if (auto it = lockedDsfSessions->find(nodeName);
-                it != lockedDsfSessions->end()) {
-              it->second.localSubStateChanged(newThriftState);
-            }
-          }
-        },
+        getStateUpdateCb(),
         [this, nodeName, nodeSwitchId](fsdb::OperSubPathUnit&& operStateUnit) {
           std::shared_ptr<SystemPortMap> newSysPorts;
           std::shared_ptr<InterfaceMap> newRifs;
