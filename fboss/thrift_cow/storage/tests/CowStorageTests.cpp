@@ -759,4 +759,23 @@ TEST(CowStorageTests, PatchRoot) {
 
   storage.patch(std::move(patch));
   EXPECT_EQ(storage.root()->toThrift(), testStructB);
+
+  // reset storage and patch just the one member
+  storage = CowStorage<TestStruct>(testStructA);
+  publishAllNodes(storage);
+
+  auto memberNodeA = std::make_shared<ThriftStructNode<TestStructSimple>>(
+      *testStructA.member());
+  auto memberNodeB = std::make_shared<ThriftStructNode<TestStructSimple>>(
+      *testStructB.member());
+
+  using TestStructMembers = apache::thrift::reflect_struct<TestStruct>::member;
+  patch = PatchBuilder::build(
+      memberNodeA,
+      memberNodeB,
+      {folly::to<std::string>(TestStructMembers::member::id::value)});
+  storage.patch(std::move(patch));
+  using k = thriftpath_test_tags::strings;
+  EXPECT_EQ(
+      storage.root()->ref<k::member>()->toThrift(), *testStructB.member());
 }

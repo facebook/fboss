@@ -215,11 +215,21 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
   }
 
   std::optional<StorageError> patch_impl(thrift_cow::Patch&& patch) {
-    root_ = root_->clone();
-    // TODO: patch at baseBath
-    auto ret =
-        thrift_cow::RootPatchApplier::apply(*root_, std::move(*patch.patch()));
-    return detail::parsePatchResult(ret);
+    auto begin = patch.basePath()->begin();
+    auto end = patch.basePath()->end();
+    StorageImpl::modifyPath(&root_, begin, end);
+    thrift_cow::PatchResult patchResult;
+    auto visitResult = root_->visitPath(begin, end, [&](auto& node) {
+      using NodeT = typename folly::remove_cvref_t<decltype(node)>;
+      using TC = typename NodeT::TC;
+      patchResult =
+          thrift_cow::PatchApplier<TC>::apply(node, std::move(*patch.patch()));
+    });
+    auto visitError = detail::parseTraverseResult(visitResult);
+    if (visitError) {
+      return visitError;
+    }
+    return detail::parsePatchResult(patchResult);
   }
 
   std::optional<StorageError> patch_impl(const fsdb::OperDelta& delta) {
