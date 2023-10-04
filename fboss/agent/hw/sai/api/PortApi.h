@@ -335,6 +335,37 @@ struct SaiPortTraits {
 #endif
   };
   using AdapterKey = PortSaiId;
+
+  /*
+   * On some platforms:
+   *  - HwLane values are unique only for given Port Type.
+   *  - For example, LOGICAL (NIF) and Fabric port may carry same HwLane id.
+   *  - HwLaneList is thus insufficient to unambiguously create ports.
+   *  - Instead, port create needs Port Type, HwLaneList (and speed).
+   *
+   * However, the current SAI Spec (v1.12) defines Port Type as Read Only
+   * attribute:
+   * https://github.com/opencomputeproject/SAI/blob/v1.12.0/inc/saiport.h#L496-L511
+   *
+   * In future, we will look to enhance the SAI spec to support Port Type attr
+   * during creation. In the meantime, use Port Type as part of the
+   * AdapterHostKey, CreateAttributes for such platforms.
+   *
+   * Note:
+   *   - Enhancing AdapterHostKey as well as CreateAttribute means that the
+   *     AdatperHostKey remains computable from AdaterKey, CreateAttributes: a
+   *     requirement for our design.
+   *   - However, this also means that attempt to create port will pass Type (a
+   *     Read Only attribute today) and that call will fail.
+   *   - This is not a problem at the moment since passing Type is a
+   *     requirement only on DNX and ports are always pre-created on this
+   *     platform and loaded by SaiStore during init and never created.
+   *   - In future, if we support breakout ports on DNX, we would need to call
+   *     create port which would fail: but as mentioned above, we plan to
+   *     enhance the SAI spec and work with SAI vendors to support passing port
+   *     type during creation.
+   */
+
   using AdapterHostKey = std::tuple<
 #if defined(BRCM_SAI_SDK_DNX)
       Attributes::Type,
