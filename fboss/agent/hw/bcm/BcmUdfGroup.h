@@ -58,6 +58,13 @@ class BcmUdfGroup {
     return proto_;
   }
 
+  cfg::UdfGroupType getUdfGroupType() {
+    if (udfGroupType_.has_value()) {
+      return udfGroupType_.value();
+    }
+    return cfg::UdfGroupType::HASH;
+  }
+
  private:
   int udfCreate(bcm_udf_t* udfInfo);
   int udfDelete(bcm_udf_id_t udfId);
