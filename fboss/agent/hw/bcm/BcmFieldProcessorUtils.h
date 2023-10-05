@@ -366,6 +366,10 @@ void createFPGroup(
 
 bool qsetsEqual(const bcm_field_qset_t& lhs, const bcm_field_qset_t& rhs);
 
+bool qsetsMultiSetEqual(
+    const bcm_field_qset_t& lhs,
+    const bcm_field_qset_t& rhs);
+
 bool fpGroupExists(int unit, bcm_field_group_t gid);
 int fpGroupNumAclEntries(int unit, bcm_field_group_t gid);
 std::vector<bcm_field_group_t> fpGroupsConfigured(int unit);

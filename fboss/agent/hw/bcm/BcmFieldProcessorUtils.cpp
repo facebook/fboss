@@ -377,6 +377,17 @@ bool qsetsEqual(const bcm_field_qset_t& lhs, const bcm_field_qset_t& rhs) {
   return true;
 }
 
+bool qsetsMultiSetEqual(
+    const bcm_field_qset_t& lhs,
+    const bcm_field_qset_t& rhs) {
+  for (auto qual = 0; qual < BCM_FIELD_USER_NUM_UDFS; ++qual) {
+    if (lhs.udf_map[qual] != rhs.udf_map[qual]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 bool fpGroupExists(int unit, bcm_field_group_t gid) {
   bcm_field_qset_t qset;
   BCM_FIELD_QSET_INIT(qset);
