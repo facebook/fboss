@@ -238,6 +238,16 @@ cfg::UdfGroupType BcmUdfManager::getUdfGroupType(
   return iter->second->getUdfGroupType();
 }
 
+void BcmUdfManager::getUdfAclGroupIds(
+    std::vector<bcm_udf_id_t>& bcmUdfGroupIds) const {
+  for (const auto& nameToUdfGroup : udfGroupsMap_) {
+    const auto& name = nameToUdfGroup.first;
+    if (getUdfGroupType(name) == cfg::UdfGroupType::ACL) {
+      bcmUdfGroupIds.push_back(getBcmUdfGroupId(name));
+    }
+  }
+}
+
 BcmUdfManager::~BcmUdfManager() {
   XLOG(DBG2) << "Destroying BcmUdfManager";
   udfGroupsMap_.clear();
