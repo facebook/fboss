@@ -446,6 +446,10 @@ void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
     const std::shared_ptr<SwitchState>& switchState,
     PortID portID) {
   auto port = switchState->getPorts()->getNodeIf(portID);
+  if (!port) {
+    // from empty old state during SwSwitch init
+    return;
+  }
   for (auto vlanMember : port->getVlans()) {
     auto vlanID = vlanMember.first;
     auto vlan = switchState->getVlans()->getNodeIf(vlanID);
@@ -618,21 +622,27 @@ void LookupClassUpdater::processPortChanged(
     return;
   }
 
-  clearClassIdsForResolvedNeighbors<folly::MacAddress>(
-      stateDelta.oldState(), newPort->getID());
-  clearClassIdsForResolvedNeighbors<folly::IPAddressV6>(
-      stateDelta.oldState(), newPort->getID());
-  clearClassIdsForResolvedNeighbors<folly::IPAddressV4>(
-      stateDelta.oldState(), newPort->getID());
+  clearAndRepopulateClassIDsForPort(stateDelta, newPort);
+}
 
-  initPort(stateDelta.newState(), newPort);
+void LookupClassUpdater::clearAndRepopulateClassIDsForPort(
+    const StateDelta& stateDelta,
+    const std::shared_ptr<Port>& port) {
+  clearClassIdsForResolvedNeighbors<folly::MacAddress>(
+      stateDelta.oldState(), port->getID());
+  clearClassIdsForResolvedNeighbors<folly::IPAddressV6>(
+      stateDelta.oldState(), port->getID());
+  clearClassIdsForResolvedNeighbors<folly::IPAddressV4>(
+      stateDelta.oldState(), port->getID());
+
+  initPort(stateDelta.newState(), port);
 
   repopulateClassIdsForResolvedNeighbors<folly::MacAddress>(
-      stateDelta.newState(), newPort->getID());
+      stateDelta.newState(), port->getID());
   repopulateClassIdsForResolvedNeighbors<folly::IPAddressV6>(
-      stateDelta.newState(), newPort->getID());
+      stateDelta.newState(), port->getID());
   repopulateClassIdsForResolvedNeighbors<folly::IPAddressV4>(
-      stateDelta.newState(), newPort->getID());
+      stateDelta.newState(), port->getID());
 }
 
 void LookupClassUpdater::processPortUpdates(const StateDelta& stateDelta) {
@@ -1074,9 +1084,16 @@ void LookupClassUpdater::processMacOuis(const StateDelta& stateDelta) {
       metaMacOuis_.end(),
       std::inserter(updatedMetaMacOuis, updatedMetaMacOuis.end()));
 
+  // only update assigned classIDs once when mac ouis are populated initially
+  // or changed during config replace. Do not trigger classID re-assign logics
+  // in the following normal switch state updates.
+  if (updatedVendorMacOuis.empty() && updatedMetaMacOuis.empty()) {
+    return;
+  }
+
   // update classID
-  std::vector<std::pair<folly::MacAddress, VlanID>> macAndVlanToUpdate;
   if (FLAGS_queue_per_physical_host) {
+    std::vector<std::pair<folly::MacAddress, VlanID>> macAndVlanToUpdate;
     for (const auto& [port, macAndVlan2ClassIDAndRefCnt] :
          port2MacAndVlanEntries_) {
       // for each port
@@ -1093,18 +1110,37 @@ void LookupClassUpdater::processMacOuis(const StateDelta& stateDelta) {
         }
       }
     }
+    vendorMacOuis_ = newVendorMacOuis;
+    metaMacOuis_ = newMetaMacOuis;
+
+    for (const auto& macAndVlan : macAndVlanToUpdate) {
+      XLOG(DBG2) << "update classID of mac " << macAndVlan.first.toString()
+                 << " vlan " << macAndVlan.second;
+      removeAndUpdateClassIDForMacVlan(
+          stateDelta.newState(), macAndVlan.first, macAndVlan.second);
+    }
+    return;
   }
-  // TODO(daiweix): else case to consider rollback
-  // queue_per_physical_host feature
+  // else if queue_per_physical_host is disabled
+  // rebalance when max(cnt in classID2Cnt) - min(cnt in classID2Cnt) > 1,
+  // because getClassIDwithMinimumNeighbors() should not produce
+  // such imbalanced assignment results in normal scenario
+  for (const auto& [portID, classID2Count] : getPort2ClassIDAndCount()) {
+    int maxCnt = 0;
+    int minCnt = INT_MAX;
+    for (auto const& [classID, cnt] : classID2Count) {
+      maxCnt = std::max(maxCnt, cnt);
+      minCnt = std::min(minCnt, cnt);
+    }
+    if (maxCnt - minCnt > 1) {
+      XLOG(DBG2) << "mac to classID assignment on port " << portID
+                 << " is imbalanced. Rebalance.";
+      clearAndRepopulateClassIDsForPort(
+          stateDelta, stateDelta.newState()->getPorts()->getNodeIf(portID));
+    }
+  }
   vendorMacOuis_ = newVendorMacOuis;
   metaMacOuis_ = newMetaMacOuis;
-
-  for (const auto& macAndVlan : macAndVlanToUpdate) {
-    XLOG(DBG2) << "update classID of mac " << macAndVlan.first.toString()
-               << " vlan " << macAndVlan.second;
-    removeAndUpdateClassIDForMacVlan(
-        stateDelta.newState(), macAndVlan.first, macAndVlan.second);
-  }
 }
 
 void LookupClassUpdater::updateMaxNumHostsPerQueueCounter() {

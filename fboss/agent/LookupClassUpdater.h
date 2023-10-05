@@ -132,6 +132,9 @@ class LookupClassUpdater : public StateObserver {
   void repopulateClassIdsForResolvedNeighbors(
       const std::shared_ptr<SwitchState>& switchState,
       PortID portID);
+  void clearAndRepopulateClassIDsForPort(
+      const StateDelta& stateDelta,
+      const std::shared_ptr<Port>& port);
 
   void processPortUpdates(const StateDelta& stateDelta);
 

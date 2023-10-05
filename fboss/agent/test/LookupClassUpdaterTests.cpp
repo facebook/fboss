@@ -157,7 +157,7 @@ class LookupClassUpdaterTest : public ::testing::Test {
   }
 
   MacAddress kMacAddressN(int n) const {
-    return MacAddress("01:02:03:04:05:" + std::to_string(n));
+    return MacAddress(fmt::format("01:02:03:04:05:{:02X}", n));
   }
 
   std::string kVendorMacOui() const {
@@ -485,6 +485,18 @@ class LookupClassUpdaterTest : public ::testing::Test {
           return newState;
         });
     waitForStateUpdates(this->sw_);
+  }
+
+  bool isBalanced(
+      boost::container::flat_map<cfg::AclLookupClass, int>& classID2Cnt) {
+    int minCnt = INT_MAX;
+    int maxCnt = 0;
+    for (auto it : classID2Cnt) {
+      XLOG(DBG2) << "class id " << (int)it.first << " => cnt " << it.second;
+      minCnt = std::min(minCnt, it.second);
+      maxCnt = std::max(maxCnt, it.second);
+    }
+    return maxCnt - minCnt <= 1;
   }
 
  protected:
@@ -1038,6 +1050,47 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyMacOuiUpdate) {
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 }
 
+TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyRebalanceByMacOuiUpdate) {
+  FLAGS_queue_per_physical_host = true;
+  this->updateMacOuis();
+  auto verifyClassIDs =
+      [this](IPAddress ip, MacAddress mac, cfg::AclLookupClass queue) {
+        this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+          this->verifyClassIDHelper(
+              ip, mac, queue /* ipClassID */, queue /* macClassID */);
+        });
+      };
+  // emulate imbalanced assignment by getting 5 macs all ending in 000b
+  // and 4 macs all ending in 001b
+  std::vector<MacAddress> macs = {
+      this->kMacAddressN(0),
+      this->kMacAddressN(8),
+      this->kMacAddressN(0x10),
+      this->kMacAddressN(0x18),
+      this->kMacAddressN(0x20),
+      this->kMacAddressN(1),
+      this->kMacAddressN(9),
+      this->kMacAddressN(0x11),
+      this->kMacAddressN(0x19),
+      this->kMacAddressN(0x21)};
+
+  for (int i = 0; i < macs.size(); i++) {
+    auto queueId = macs[i].u64HBO() % 2 == 0
+        ? cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0
+        : cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4;
+    this->resolve(this->getIpAddressN(i), macs[i]);
+    verifyClassIDs(this->getIpAddressN(i), macs[i], queueId);
+  }
+  FLAGS_queue_per_physical_host = false;
+  this->updateMacOuis(false);
+  auto lookupClassUpdater = this->sw_->getLookupClassUpdater();
+  auto& classID2Cnt =
+      lookupClassUpdater->getPort2ClassIDAndCount()[this->kPortID()];
+  // macs should be balanced by old classID assignment when
+  // queue_per_physical_host is disabled
+  EXPECT_TRUE(this->isBalanced(classID2Cnt));
+}
+
 TYPED_TEST(
     LookupClassUpdaterNeighborTest,
     ResolveUnresolveResolveVerifyClassID) {
@@ -1196,17 +1249,7 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, ClassIDRebalance) {
   auto lookupClassUpdater = this->sw_->getLookupClassUpdater();
   auto& classID2Cnt =
       lookupClassUpdater->getPort2ClassIDAndCount()[this->kPortID()];
-  auto isBalanced = [&]() {
-    int minCnt = numNeighbors;
-    int maxCnt = 0;
-    for (auto it : classID2Cnt) {
-      XLOG(DBG2) << "class id " << (int)it.first << " => cnt " << it.second;
-      minCnt = std::min(minCnt, it.second);
-      maxCnt = std::max(maxCnt, it.second);
-    }
-    return maxCnt - minCnt <= 1;
-  };
-  EXPECT_FALSE(isBalanced());
+  EXPECT_FALSE(this->isBalanced(classID2Cnt));
 
   // emulate flush all neighbor entry and re-learn to trigger rebalance
   this->sw_->getNeighborUpdater()->portFlushEntries(
@@ -1222,7 +1265,7 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, ClassIDRebalance) {
     }
   }
   XLOG(DBG2) << "rebalanced class id assignment";
-  EXPECT_TRUE(isBalanced());
+  EXPECT_TRUE(this->isBalanced(classID2Cnt));
 }
 
 TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyClassIDSameMacDifferentIPs) {
@@ -1945,6 +1988,118 @@ TYPED_TEST(
         this->getIpAddress3(),
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3 /* ipClassID */,
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3 /* macClassID */);
+  });
+}
+
+/*
+ * This test verifies if the class id assignment is imblanaced before warmboot,
+ * when the next warmboot init has flag queue_per_physical_host disabled, class
+ * id re-assignment logics should be triggered to re-balance mac -> class id
+ * mapping.
+ */
+template <typename IpAddrAndEnableIntfNbrTableT>
+class LookupClassUpdaterWarmbootRebalanceTest
+    : public LookupClassUpdaterTest<IpAddrAndEnableIntfNbrTableT> {
+ public:
+  using AddrT = typename IpAddrAndEnableIntfNbrTableT::AddrT;
+
+  void SetUp() override {
+    FLAGS_intf_nbr_tables = this->isIntfNbrTable();
+    using NeighborTableT = std::conditional_t<
+        std::is_same<AddrT, folly::IPAddressV4>::value,
+        ArpTable,
+        NdpTable>;
+
+    auto newState = testStateAWithLookupClasses();
+
+    auto vlanID = this->kVlan();
+    auto vlan = newState->getVlans()->getNodeIf(vlanID);
+    auto port = newState->getPorts()->getNodeIf(this->kPortID());
+    port->addVlan(vlanID, false);
+
+    auto macTable = vlan->getMacTable();
+    std::shared_ptr<NeighborTableT> neighborTable;
+    if (this->isIntfNbrTable()) {
+      auto intf = newState->getInterfaces()->getNodeIf(this->kInterfaceID());
+      neighborTable = intf->template getNeighborTable<NeighborTableT>();
+    } else {
+      neighborTable = vlan->template getNeighborTable<NeighborTableT>();
+    }
+
+    // imbalanced assignment results from warmboot state
+    for (int i = 0; i < 5; i++) {
+      macTable->addEntry(std::make_shared<MacEntry>(
+          this->kMacAddressN(i),
+          PortDescriptor(this->kPortID()),
+          std::optional<cfg::AclLookupClass>(
+              cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
+          MacEntryType::DYNAMIC_ENTRY));
+
+      neighborTable->addEntry(NeighborEntryFields(
+          this->getIpAddrN(i),
+          this->kMacAddressN(i),
+          PortDescriptor(this->kPortID()),
+          this->kInterfaceID(),
+          NeighborState::PENDING));
+
+      neighborTable->updateEntry(
+          this->getIpAddrN(i),
+          this->kMacAddressN(i),
+          PortDescriptor(this->kPortID()),
+          this->kInterfaceID(),
+          NeighborState::REACHABLE,
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+    }
+
+    auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
+    auto switchSettings = newState->getSwitchSettings()
+                              ->getNode(matcher.matcherString())
+                              ->modify(&newState);
+
+    switchSettings->setVendorMacOuis({this->kVendorMacOui()});
+    switchSettings->setMetaMacOuis({this->kMetaMacOui()});
+
+    this->handle_ = createTestHandle(newState);
+    this->sw_ = this->handle_->getSw();
+  }
+
+  AddrT getIpAddrN(int n) {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return this->kIp4AddrN(n);
+    } else {
+      return this->kIp6AddrN(n);
+    }
+  }
+};
+
+TYPED_TEST_SUITE(LookupClassUpdaterWarmbootRebalanceTest, TestTypesNeighbor);
+
+TYPED_TEST(LookupClassUpdaterWarmbootRebalanceTest, VerifyRebalance) {
+  this->verifyStateUpdate([=]() {
+    this->verifyNeighborClassIDHelper(
+        this->getIpAddrN(0),
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* ipClassID */,
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* macClassID */);
+
+    this->verifyNeighborClassIDHelper(
+        this->getIpAddrN(1),
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1 /* ipClassID */,
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1 /* macClassID */);
+
+    this->verifyNeighborClassIDHelper(
+        this->getIpAddrN(2),
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2 /* ipClassID */,
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2 /* macClassID */);
+
+    this->verifyNeighborClassIDHelper(
+        this->getIpAddrN(3),
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3 /* ipClassID */,
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3 /* macClassID */);
+
+    this->verifyNeighborClassIDHelper(
+        this->getIpAddrN(4),
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4 /* ipClassID */,
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4 /* macClassID */);
   });
 }
 
