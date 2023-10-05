@@ -297,14 +297,53 @@ void clearFPGroup(int unit, bcm_field_group_t gid) {
   bcmCheckError(rv, "Failed to destroy group: ", gid);
 }
 
+bcm_field_hintid_t compressFpQualifier(
+    int unit,
+    bcm_field_qualify_t qualifier,
+    const int start,
+    const int end) {
+  bcm_field_hintid_t hint_id;
+  auto rv = bcm_field_hints_create(unit, &hint_id);
+  bcmCheckError(rv, "Failed to create hints for compressing fp qualifier");
+
+  bcm_field_hint_t hint;
+  bcm_field_hint_t_init(&hint);
+  hint.hint_type = bcmFieldHintTypeExtraction;
+  hint.qual = qualifier;
+  hint.start_bit = start;
+  hint.end_bit = end;
+  rv = bcm_field_hints_add(unit, hint_id, &hint);
+  bcmCheckError(rv, "Failed to add hints id: ", (int)hint_id);
+  return hint_id;
+}
+
 void createFPGroup(
     int unit,
     bcm_field_qset_t qset,
     bcm_field_group_t gid,
     int g_pri,
-    bool onHSDK) {
+    bool onHSDK,
+    bool enableQsetCompression) {
   int rv;
-  if (onHSDK) {
+  if (enableQsetCompression) {
+    /*
+     * We want to deprecate bcm_field_group_create_id eventually
+     * but do it in phases. First enable for udf_ifp_acls and later
+     */
+    bcm_field_group_config_t config;
+    bcm_field_group_config_t_init(&config);
+    config.flags = BCM_FIELD_GROUP_CREATE_WITH_ID;
+    config.qset = qset;
+    BCM_FIELD_ASET_INIT(config.aset);
+    config.priority = g_pri;
+    config.group = gid;
+
+    /* generate hint to compress ipv6 fields */
+    config.hintid = compressFpQualifier(unit, bcmFieldQualifySrcIp6, 0, 64);
+    XLOG(DBG2) << "Generate hint id for compressing srcIp6 qualifier :"
+               << (int)config.hintid;
+    rv = bcm_field_group_config_create(unit, &config);
+  } else if (onHSDK) {
     bcm_field_group_config_t config;
     bcm_field_group_config_t_init(&config);
     config.flags = BCM_FIELD_GROUP_CREATE_WITH_ID;
