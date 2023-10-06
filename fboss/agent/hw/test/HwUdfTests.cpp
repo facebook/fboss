@@ -16,11 +16,17 @@ namespace facebook::fboss {
 
 class HwUdfTest : public HwTest {
  protected:
-  std::shared_ptr<SwitchState> setupUdfConfiguration(bool addConfig) {
+  std::shared_ptr<SwitchState> setupUdfConfiguration(
+      bool addConfig,
+      bool udfHash = true) {
     auto udfConfigState = std::make_shared<UdfConfig>();
     cfg::UdfConfig udfConfig;
     if (addConfig) {
-      udfConfig = utility::addUdfHashConfig();
+      if (udfHash) {
+        udfConfig = utility::addUdfHashConfig();
+      } else {
+        udfConfig = utility::addUdfAclConfig();
+      }
     }
     udfConfigState->fromThrift(udfConfig);
 
@@ -33,8 +39,8 @@ class HwUdfTest : public HwTest {
   }
 };
 
-TEST_F(HwUdfTest, checkUdfConfiguration) {
-  auto setup = [=]() { applyNewState(setupUdfConfiguration(true)); };
+TEST_F(HwUdfTest, checkUdfHashConfiguration) {
+  auto setup = [=]() { applyNewState(setupUdfConfiguration(true, true)); };
   auto verify = [=]() {
     utility::validateUdfConfig(
         getHwSwitch(), utility::kUdfHashGroupName, utility::kUdfPktMatcherName);

@@ -23,9 +23,9 @@ void validateUdfConfig(
     const HwSwitch* hw,
     const std::string& udfGroupName,
     const std::string& udfPacketMatcherName) {
-  const int udfGroupId =
-      static_cast<const BcmSwitch*>(hw)->getUdfMgr()->getBcmUdfGroupId(
-          udfGroupName);
+  int udfGroupId;
+  udfGroupId = static_cast<const BcmSwitch*>(hw)->getUdfMgr()->getBcmUdfGroupId(
+      udfGroupName);
   /* get udf info */
   bcm_udf_t udfInfo;
   bcm_udf_t_init(&udfInfo);
@@ -33,8 +33,13 @@ void validateUdfConfig(
       static_cast<const BcmSwitch*>(hw)->getUnit(), udfGroupId, &udfInfo);
   bcmCheckError(rv, "Unable to get udfInfo for udfGroupId: ", udfGroupId);
   EXPECT_EQ(udfInfo.layer, bcmUdfLayerL4OuterHeader);
-  EXPECT_EQ(udfInfo.start, utility::kUdfHashStartOffsetInBytes * 8);
-  EXPECT_EQ(udfInfo.width, utility::kUdfHashFieldSizeInBytes * 8);
+  if (udfGroupName == utility::kUdfHashGroupName) {
+    EXPECT_EQ(udfInfo.start, utility::kUdfHashStartOffsetInBytes * 8);
+    EXPECT_EQ(udfInfo.width, utility::kUdfHashFieldSizeInBytes * 8);
+  } else if (udfGroupName == utility::kUdfRoceOpcodeAclGroupName) {
+    EXPECT_EQ(udfInfo.start, utility::kUdfAclRoceOpcodeStartOffsetInBytes * 8);
+    EXPECT_EQ(udfInfo.width, utility::kUdfAclRoceOpcodeFieldSizeInBytes * 8);
+  }
 
   const int udfPacketMatcherId =
       static_cast<const BcmSwitch*>(hw)->getUdfMgr()->getBcmUdfPacketMatcherId(
