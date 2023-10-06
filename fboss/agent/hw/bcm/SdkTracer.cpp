@@ -397,6 +397,15 @@ int __real_bcm_field_qualify_udf(
     uint8* data,
     uint8* mask);
 
+int __real_bcm_field_qualify_udf_get(
+    int unit,
+    bcm_field_entry_t eid,
+    bcm_udf_id_t udf_id,
+    int max_length,
+    uint8* data,
+    uint8* mask,
+    int* actual_length);
+
 void __real_bcm_field_group_config_t_init(
     bcm_field_group_config_t* group_config);
 
@@ -1115,6 +1124,15 @@ int __real_bcm_field_qualify_udf(
     int length,
     uint8* data,
     uint8* mask);
+
+int __real_bcm_field_qualify_udf_get(
+    int unit,
+    bcm_field_entry_t eid,
+    bcm_udf_id_t udf_id,
+    int max_length,
+    uint8* data,
+    uint8* mask,
+    int* actual_length);
 
 void __real_bcm_field_group_config_t_init(
     bcm_field_group_config_t* group_config);
@@ -2416,6 +2434,18 @@ int __wrap_bcm_field_qualify_udf(
     uint8* mask) {
   CALL_WRAPPERS_RV(
       bcm_field_qualify_udf(unit, eid, udf_id, length, data, mask));
+}
+
+int __wrap_bcm_field_qualify_udf_get(
+    int unit,
+    bcm_field_entry_t eid,
+    bcm_udf_id_t udf_id,
+    int max_length,
+    uint8* data,
+    uint8* mask,
+    int* actual_length) {
+  CALL_WRAPPERS_RV(bcm_field_qualify_udf_get(
+      unit, eid, udf_id, max_length, data, mask, actual_length));
 }
 
 void __wrap_bcm_field_group_config_t_init(

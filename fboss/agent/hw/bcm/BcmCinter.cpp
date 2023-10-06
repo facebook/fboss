@@ -2255,6 +2255,28 @@ int BcmCinter::bcm_field_qualify_udf(
   return 0;
 }
 
+int BcmCinter::bcm_field_qualify_udf_get(
+    int unit,
+    bcm_field_entry_t eid,
+    bcm_udf_id_t udf_id,
+    int max_length,
+    uint8* data,
+    uint8* mask,
+    int* actual_length) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_field_qualify_udf_get(",
+      makeParamStr(
+          unit,
+          getCintVar(fieldEntryVars, eid),
+          udf_id,
+          max_length,
+          *data,
+          *mask,
+          *actual_length),
+      ")")));
+  return 0;
+}
+
 void BcmCinter::bcm_field_group_config_t_init(
     bcm_field_group_config_t* /*group_config*/) {
   writeCintLines(wrapFunc(to<string>(
