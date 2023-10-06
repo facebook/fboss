@@ -28,7 +28,7 @@ DEFINE_string(
 
 namespace {
 constexpr auto wbFlagPrefix = "can_warm_boot_";
-constexpr auto forceColdBootPrefix = "cold_boot_once_";
+constexpr auto forceColdBootPrefix = "hw_cold_boot_once_";
 constexpr auto shutdownDumpPrefix = "sdk_shutdown_dump_";
 constexpr auto startupDumpPrefix = "sdk_startup_dump_";
 
