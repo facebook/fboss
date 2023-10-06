@@ -404,16 +404,28 @@ struct NameToPathVisitor<apache::thrift::type_class::variant> {
     if (auto raw = elem.raw_ref()) {
       auto token = *raw;
       auto result = NameToPathResult::INVALID_VARIANT_MEMBER;
-      fatal::trie_find<
-          typename folly::remove_cvref_t<Path>::Children,
-          fatal::get_first>(token.begin(), token.end(), [&](auto tag) {
+
+      auto visitChild = [&](auto tag) {
         using PathT =
             typename folly::remove_cvref_t<decltype(tag)>::type::second_type;
         using ChildKeyT =
             typename folly::remove_cvref_t<decltype(tag)>::type::first_type;
         result = NameToPathVisitor<typename PathT::TC>::visitExtended(
             path(ChildKeyT()), curr, end, std::forward<Func>(f));
-      });
+      };
+
+      auto idTry = folly::tryTo<apache::thrift::field_id_t>(token);
+      if (!idTry.hasError()) {
+        fatal::scalar_search<
+            typename folly::remove_cvref_t<Path>::ChildrenById,
+            fatal::get_first>(idTry.value(), std::move(visitChild));
+      } else {
+        fatal::trie_find<
+            typename folly::remove_cvref_t<Path>::Children,
+            fatal::get_first>(
+            token.begin(), token.end(), std::move(visitChild));
+      }
+
       return result;
     } else {
       // Regex/any matches are not allowed against structs
@@ -489,16 +501,27 @@ struct NameToPathVisitor<apache::thrift::type_class::structure> {
     if (auto raw = elem.raw_ref()) {
       auto token = *raw;
       auto result = NameToPathResult::INVALID_STRUCT_MEMBER;
-      fatal::trie_find<
-          typename folly::remove_cvref_t<Path>::Children,
-          fatal::get_first>(token.begin(), token.end(), [&](auto tag) {
+
+      auto visitChild = [&](auto tag) {
         using PathT =
             typename folly::remove_cvref_t<decltype(tag)>::type::second_type;
         using ChildKeyT =
             typename folly::remove_cvref_t<decltype(tag)>::type::first_type;
         result = NameToPathVisitor<typename PathT::TC>::visitExtended(
             path(ChildKeyT()), curr, end, std::forward<Func>(f));
-      });
+      };
+
+      auto idTry = folly::tryTo<apache::thrift::field_id_t>(token);
+      if (!idTry.hasError()) {
+        fatal::scalar_search<
+            typename folly::remove_cvref_t<Path>::ChildrenById,
+            fatal::get_first>(idTry.value(), std::move(visitChild));
+      } else {
+        fatal::trie_find<
+            typename folly::remove_cvref_t<Path>::Children,
+            fatal::get_first>(
+            token.begin(), token.end(), std::move(visitChild));
+      }
       return result;
     } else {
       // Regex/any matches are not allowed against structs
