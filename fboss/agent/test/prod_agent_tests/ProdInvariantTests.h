@@ -1,6 +1,7 @@
+#pragma once
 #include <vector>
 #include "fboss/agent/Main.h"
-#include "fboss/agent/test/prod_invariant_tests/ProdAgentTests.h"
+#include "fboss/agent/test/prod_agent_tests/ProdAgentTests.h"
 
 #include "fboss/agent/SetupThrift.h"
 

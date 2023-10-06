@@ -1,4 +1,4 @@
-#include "fboss/agent/test/prod_invariant_tests/ProdAgentTests.h"
+#include "fboss/agent/test/prod_agent_tests/ProdAgentTests.h"
 
 namespace facebook::fboss {
 

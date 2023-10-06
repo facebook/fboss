@@ -1,6 +1,6 @@
 #include "fboss/agent/hw/bcm/gen-cpp2/BcmCtrl.h"
 #include "fboss/agent/platforms/wedge/WedgePlatformInit.h"
-#include "fboss/agent/test/prod_invariant_tests/ProdInvariantTests.h"
+#include "fboss/agent/test/prod_agent_tests/ProdInvariantTests.h"
 
 #include "fboss/agent/SetupThrift.h"
 

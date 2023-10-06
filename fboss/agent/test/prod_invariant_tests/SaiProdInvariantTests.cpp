@@ -1,6 +1,6 @@
 #include "fboss/agent/hw/sai/switch/gen-cpp2/SaiCtrl.h"
 #include "fboss/agent/platforms/sai/SaiPlatformInit.h"
-#include "fboss/agent/test/prod_invariant_tests/ProdInvariantTests.h"
+#include "fboss/agent/test/prod_agent_tests/ProdInvariantTests.h"
 
 #include "fboss/agent/SetupThrift.h"
 

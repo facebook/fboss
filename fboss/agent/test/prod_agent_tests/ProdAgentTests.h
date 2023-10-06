@@ -1,3 +1,4 @@
+#pragma once
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/test/AgentTest.h"
