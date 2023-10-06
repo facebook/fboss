@@ -24,7 +24,8 @@ class Storage {
   // TODO: more flexibility here for all forward iterator types
   using ConcretePath = std::vector<std::string>;
   using PathIter = std::vector<std::string>::const_iterator;
-  using ExtPathIter = std::vector<OperPathElem>::const_iterator;
+  using ExtPath = std::vector<OperPathElem>;
+  using ExtPathIter = ExtPath::const_iterator;
   using RootT = Root;
 
   template <typename T>

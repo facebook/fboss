@@ -49,6 +49,7 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
   using StorageImpl = Node;
   using Self = CowStorage<Root>;
   using PathIter = typename Base::PathIter;
+  using ExtPath = typename Base::ExtPath;
   using ExtPathIter = typename Base::ExtPathIter;
 
   template <
