@@ -31,7 +31,7 @@ class TestEnsembleIf;
 
 class LinkStateToggler {
  public:
-  explicit LinkStateToggler(TestEnsembleIf* ensemble) : hwEnsemble_(ensemble) {}
+  explicit LinkStateToggler(TestEnsembleIf* ensemble) : ensemble_(ensemble) {}
   virtual ~LinkStateToggler() {}
 
   void applyInitialConfig(const cfg::SwitchConfig& initCfg);
@@ -45,7 +45,7 @@ class LinkStateToggler {
 
  protected:
   TestEnsembleIf* getHwSwitchEnsemble() const {
-    return hwEnsemble_;
+    return ensemble_;
   }
 
  private:
@@ -64,7 +64,7 @@ class LinkStateToggler {
   bool desiredPortEventOccurred_{false};
   std::condition_variable linkEventCV_;
 
-  TestEnsembleIf* hwEnsemble_;
+  TestEnsembleIf* ensemble_;
 };
 
 } // namespace facebook::fboss

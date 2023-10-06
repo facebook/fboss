@@ -48,10 +48,10 @@ void LinkStateToggler::portStateChangeImpl(
     const std::vector<PortID>& ports,
     bool up) {
   for (auto port : ports) {
-    auto newState = hwEnsemble_->getProgrammedState();
+    auto newState = ensemble_->getProgrammedState();
     auto currPort = newState->getPorts()->getNodeIf(port);
-    auto switchId = hwEnsemble_->scopeResolver().scope(currPort).switchId();
-    auto asic = hwEnsemble_->getHwAsicTable()->getHwAsic(switchId);
+    auto switchId = ensemble_->scopeResolver().scope(currPort).switchId();
+    auto asic = ensemble_->getHwAsicTable()->getHwAsic(switchId);
     auto desiredLoopbackMode = up
         ? asic->getDesiredLoopbackMode(currPort->getPortType())
         : cfg::PortLoopbackMode::NONE;
@@ -62,7 +62,7 @@ void LinkStateToggler::portStateChangeImpl(
     auto newPort = currPort->modify(&newState);
     setPortIDAndStateToWaitFor(port, up);
     newPort->setLoopbackMode(desiredLoopbackMode);
-    hwEnsemble_->applyNewState(newState);
+    ensemble_->applyNewState(newState);
     invokeLinkScanIfNeeded(port, up);
     XLOG(DBG2) << " Wait for port " << (up ? "up" : "down")
                << " event on : " << port;
@@ -77,14 +77,14 @@ bool LinkStateToggler::waitForPortEvent(PortID port) {
     std::unique_lock<std::mutex> lock{linkEventMutex_};
     linkEventCV_.wait(lock, [this] { return desiredPortEventOccurred_; });
     /* toggle the oper state */
-    auto newState = hwEnsemble_->getProgrammedState();
+    auto newState = ensemble_->getProgrammedState();
     auto newPort = newState->getPorts()->getNodeIf(port)->modify(&newState);
     newPort->setOperState(waitForPortUp_);
-    hwEnsemble_->applyNewState(newState);
+    ensemble_->applyNewState(newState);
   }
   WITH_RETRIES({
     EXPECT_EVENTUALLY_EQ(
-        hwEnsemble_->getProgrammedState()
+        ensemble_->getProgrammedState()
             ->getPorts()
             ->getNodeIf(port)
             ->getOperState(),
@@ -97,7 +97,7 @@ bool LinkStateToggler::waitForPortEvent(PortID port) {
 void LinkStateToggler::waitForPortDown(PortID port) {
   WITH_RETRIES({
     EXPECT_EVENTUALLY_EQ(
-        hwEnsemble_->getProgrammedState()
+        ensemble_->getProgrammedState()
             ->getPorts()
             ->getNodeIf(port)
             ->getOperState(),
@@ -141,7 +141,7 @@ std::shared_ptr<SwitchState> LinkStateToggler::applyInitialConfigWithPortsDown(
   // tided over, over the first set of linkscan events that come as a result of
   // init (since there are no portup events in init + initial config
   // application). iii) Start tests.
-  hwEnsemble_->applyNewConfig(cfg);
+  ensemble_->applyNewConfig(cfg);
 
   // Wait for port state to be disabled in switch state
   for (auto& port : *cfg.ports()) {
@@ -151,7 +151,7 @@ std::shared_ptr<SwitchState> LinkStateToggler::applyInitialConfigWithPortsDown(
     waitForPortDown(PortID(*port.logicalID()));
   }
 
-  auto switchState = hwEnsemble_->getProgrammedState();
+  auto switchState = ensemble_->getProgrammedState();
   for (auto& cfgPort : *cfg.ports()) {
     if (portId2DesiredState.find(*cfgPort.logicalID()) ==
         portId2DesiredState.end()) {
@@ -167,24 +167,24 @@ std::shared_ptr<SwitchState> LinkStateToggler::applyInitialConfigWithPortsDown(
     *cfgPort.state() = portId2DesiredState[*cfgPort.logicalID()];
   }
   // Update txSetting first and then enable admin state
-  hwEnsemble_->applyNewState(switchState);
-  hwEnsemble_->applyNewConfig(cfg);
+  ensemble_->applyNewState(switchState);
+  ensemble_->applyNewConfig(cfg);
 
   // Some platforms silently undo squelch setting on admin enable. Prevent it
   // by setting squelch after admin enable.
-  if (hwEnsemble_->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+  if (ensemble_->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
           HwAsic::Feature::RX_LANE_SQUELCH_ENABLE)) {
-    switchState = hwEnsemble_->getProgrammedState();
+    switchState = ensemble_->getProgrammedState();
     for (auto& cfgPort : *cfg.ports()) {
       auto port = switchState->getPorts()
                       ->getNodeIf(PortID(*cfgPort.logicalID()))
                       ->modify(&switchState);
       port->setRxLaneSquelch(true);
     }
-    hwEnsemble_->applyNewState(switchState);
+    ensemble_->applyNewState(switchState);
   }
-  hwEnsemble_->switchRunStateChanged(SwitchRunState::CONFIGURED);
-  return hwEnsemble_->getProgrammedState();
+  ensemble_->switchRunStateChanged(SwitchRunState::CONFIGURED);
+  return ensemble_->getProgrammedState();
 }
 
 void LinkStateToggler::bringUpPorts(const cfg::SwitchConfig& initCfg) {
