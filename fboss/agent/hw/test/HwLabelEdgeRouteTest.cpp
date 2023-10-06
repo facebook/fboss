@@ -418,11 +418,11 @@ TYPED_TEST(HwLabelEdgeRouteTest, HalfPathsWithLabels) {
   auto verify = [=]() {
     std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
 
-    for (const auto unLabeledPort : this->unLabeledEgressPorts()) {
+    for (const auto& unLabeledPort : this->unLabeledEgressPorts()) {
       stacks.emplace(unLabeledPort, LabelForwardingAction::LabelStack{});
     }
 
-    for (const auto labeledPort : this->labeledEgressPorts()) {
+    for (const auto& labeledPort : this->labeledEgressPorts()) {
       auto itr =
           stacks.emplace(labeledPort, LabelForwardingAction::LabelStack{});
       itr.first->second.push_back(params.label.value());
