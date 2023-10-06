@@ -487,7 +487,10 @@ TYPED_TEST(HwMirrorTest, NoPortMirroringIfUnResolved) {
     cfg.mirrors()->push_back(this->getErspanMirror());
     auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[0]);
     portCfg->ingressMirror() = kErspan;
-    portCfg->egressMirror() = kErspan;
+    if (this->getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::EGRESS_MIRRORING)) {
+      portCfg->egressMirror() = kErspan;
+    }
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
@@ -497,10 +500,13 @@ TYPED_TEST(HwMirrorTest, NoPortMirroringIfUnResolved) {
         this->getHwSwitch(),
         PortID(this->masterLogicalPortIds()[0]),
         utility::getMirrorPortIngressFlags());
-    utility::verifyPortNoMirrorDestination(
-        this->getHwSwitch(),
-        PortID(this->masterLogicalPortIds()[0]),
-        utility::getMirrorPortEgressFlags());
+    if (this->getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::EGRESS_MIRRORING)) {
+          utility::verifyPortNoMirrorDestination(
+          this->getHwSwitch(),
+          PortID(this->masterLogicalPortIds()[0]),
+          utility::getMirrorPortEgressFlags());
+    }
   };
   if (this->skipMirrorTest()) {
 #if defined(GTEST_SKIP)
@@ -518,7 +524,10 @@ TYPED_TEST(HwMirrorTest, PortMirroringIfResolved) {
     cfg.mirrors()->push_back(this->getErspanMirror());
     auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[0]);
     portCfg->ingressMirror() = kErspan;
-    portCfg->egressMirror() = kErspan;
+    if (this->getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::EGRESS_MIRRORING)) {
+        portCfg->egressMirror() = kErspan;
+    }
     this->applyNewConfig(cfg);
 
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
@@ -544,11 +553,14 @@ TYPED_TEST(HwMirrorTest, PortMirroringIfResolved) {
         PortID(this->masterLogicalPortIds()[0]),
         utility::getMirrorPortIngressFlags(),
         destinations[0]);
-    utility::verifyPortMirrorDestination(
+    if (this->getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::EGRESS_MIRRORING)) {
+        utility::verifyPortMirrorDestination(
         this->getHwSwitch(),
         PortID(this->masterLogicalPortIds()[0]),
         utility::getMirrorPortEgressFlags(),
         destinations[0]);
+    }
   };
   if (this->skipMirrorTest()) {
 #if defined(GTEST_SKIP)
@@ -566,7 +578,10 @@ TYPED_TEST(HwMirrorTest, PortMirrorUpdateIfMirrorUpdate) {
     cfg.mirrors()->push_back(this->getErspanMirror());
     auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[0]);
     portCfg->ingressMirror() = kErspan;
-    portCfg->egressMirror() = kErspan;
+    if (this->getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::EGRESS_MIRRORING)) {
+      portCfg->egressMirror() = kErspan;
+    }
     this->applyNewConfig(cfg);
 
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
@@ -620,7 +635,10 @@ TYPED_TEST(HwMirrorTest, PortMirror) {
     cfg.mirrors()->push_back(this->getErspanMirror());
     auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[0]);
     portCfg->ingressMirror() = kErspan;
-    portCfg->egressMirror() = kErspan;
+    if (this->getHwSwitch()->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::EGRESS_MIRRORING)) {
+      portCfg->egressMirror() = kErspan;
+    }
     this->applyNewConfig(cfg);
 
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
@@ -664,7 +682,10 @@ TYPED_TEST(HwMirrorTest, UpdatePortMirror) {
     cfg.mirrors()->push_back(this->getErspanMirror());
     auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[0]);
     portCfg->ingressMirror() = kErspan;
-    portCfg->egressMirror() = kErspan;
+    if (this->getHwSwitch()->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::EGRESS_MIRRORING)) {
+      portCfg->egressMirror() = kErspan;
+    }
     this->applyNewConfig(cfg);
 
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
@@ -681,10 +702,16 @@ TYPED_TEST(HwMirrorTest, UpdatePortMirror) {
 
     cfg.mirrors()[0] = this->getSpanMirror();
     portCfg->ingressMirror().reset();
-    portCfg->egressMirror().reset();
+    if (this->getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::EGRESS_MIRRORING)) {
+      portCfg->egressMirror().reset();
+    }
     portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[1]);
     portCfg->ingressMirror() = kSpan;
-    portCfg->egressMirror() = kSpan;
+    if (this->getHwSwitch()->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::EGRESS_MIRRORING)) {
+      portCfg->egressMirror() = kSpan;
+    }
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
@@ -698,21 +725,27 @@ TYPED_TEST(HwMirrorTest, UpdatePortMirror) {
         this->getHwSwitch(),
         PortID(this->masterLogicalPortIds()[0]),
         utility::getMirrorPortIngressFlags());
-    utility::verifyPortNoMirrorDestination(
-        this->getHwSwitch(),
-        PortID(this->masterLogicalPortIds()[0]),
-        utility::getMirrorPortEgressFlags());
+    if (this->getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::EGRESS_MIRRORING)) {
+          utility::verifyPortNoMirrorDestination(
+          this->getHwSwitch(),
+          PortID(this->masterLogicalPortIds()[0]),
+          utility::getMirrorPortEgressFlags());
+    }
 
     utility::verifyPortMirrorDestination(
         this->getHwSwitch(),
         PortID(this->masterLogicalPortIds()[1]),
         utility::getMirrorPortIngressFlags(),
         destinations[0]);
-    utility::verifyPortMirrorDestination(
+    if (this->getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::EGRESS_MIRRORING)) {
+        utility::verifyPortMirrorDestination(
         this->getHwSwitch(),
         PortID(this->masterLogicalPortIds()[1]),
         utility::getMirrorPortEgressFlags(),
         destinations[0]);
+    }
   };
   if (this->skipMirrorTest()) {
 #if defined(GTEST_SKIP)
@@ -730,7 +763,10 @@ TYPED_TEST(HwMirrorTest, RemovePortMirror) {
     cfg.mirrors()->push_back(this->getErspanMirror());
     auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[0]);
     portCfg->ingressMirror() = kErspan;
-    portCfg->egressMirror() = kErspan;
+    if (this->getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::EGRESS_MIRRORING)) {
+        portCfg->egressMirror() = kErspan;
+    }
     this->applyNewConfig(cfg);
 
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
@@ -745,7 +781,10 @@ TYPED_TEST(HwMirrorTest, RemovePortMirror) {
     this->updateMirror(newMirror);
 
     portCfg->ingressMirror().reset();
-    portCfg->egressMirror().reset();
+    if (this->getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::EGRESS_MIRRORING)) {
+      portCfg->egressMirror().reset();
+    }
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
@@ -759,10 +798,13 @@ TYPED_TEST(HwMirrorTest, RemovePortMirror) {
         this->getHwSwitch(),
         PortID(this->masterLogicalPortIds()[0]),
         utility::getMirrorPortIngressFlags());
-    utility::verifyPortNoMirrorDestination(
+    if (this->getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::EGRESS_MIRRORING)) {
+        utility::verifyPortNoMirrorDestination(
         this->getHwSwitch(),
         PortID(this->masterLogicalPortIds()[0]),
         utility::getMirrorPortEgressFlags());
+    }
   };
   if (this->skipMirrorTest()) {
 #if defined(GTEST_SKIP)
@@ -1425,7 +1467,10 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirrorNoPortSflow) {
     }
     auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[2]);
     portCfg->ingressMirror() = *cfg.mirrors()[1].name();
-    portCfg->egressMirror() = *cfg.mirrors()[1].name();
+    if (this->getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::EGRESS_MIRRORING)) {
+      portCfg->egressMirror() = *cfg.mirrors()[1].name();
+    }
     this->applyNewConfig(cfg);
     // resolve both mirror
     auto mirrors = this->getProgrammedState()->getMirrors();
@@ -1505,11 +1550,14 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirrorNoPortSflow) {
         this->masterLogicalPortIds()[2],
         utility::getMirrorPortIngressFlags(),
         erspan);
-    utility::verifyPortMirrorDestination(
+    if (this->getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::EGRESS_MIRRORING)) {
+        utility::verifyPortMirrorDestination(
         this->getHwSwitch(),
         this->masterLogicalPortIds()[2],
         utility::getMirrorPortEgressFlags(),
         erspan);
+      }
   };
   if (this->skipMirrorTest() || this->skipSflowTest()) {
 #if defined(GTEST_SKIP)
