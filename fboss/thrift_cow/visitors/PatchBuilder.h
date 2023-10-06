@@ -17,26 +17,25 @@ namespace facebook::fboss::thrift_cow {
 
 namespace detail_pb {
 
-template <ThriftSimpleTC SimpleTC>
-PatchNode constructEmptyPatch() {
+PatchNode constructEmptyPatch(ThriftTCType tc) {
   PatchNode child;
-  switch (SimpleTC) {
-    case ThriftSimpleTC::PRIMITIVE:
+  switch (tc) {
+    case ThriftTCType::PRIMITIVE:
       child.set_val();
       break;
-    case ThriftSimpleTC::STRUCTURE:
+    case ThriftTCType::STRUCTURE:
       child.set_struct_node();
       break;
-    case ThriftSimpleTC::VARIANT:
+    case ThriftTCType::VARIANT:
       child.set_variant_node();
       break;
-    case ThriftSimpleTC::MAP:
+    case ThriftTCType::MAP:
       child.set_map_node();
       break;
-    case ThriftSimpleTC::SET:
+    case ThriftTCType::SET:
       child.set_set_node();
       break;
-    case ThriftSimpleTC::LIST:
+    case ThriftTCType::LIST:
       child.set_list_node();
       break;
   }
@@ -54,15 +53,13 @@ struct PatchBuilderTraverser : public TraverseHelper<PatchBuilderTraverser> {
     return false;
   }
 
-  template <ThriftSimpleTC SimpleTC>
-  void onPushImpl() {
+  void onPushImpl(ThriftTCType tc) {
     const auto& newTok = path().back();
     PatchNode& curPatch = curPath_.back();
-    insertChild<SimpleTC>(curPatch, newTok);
+    insertChild(curPatch, newTok, tc);
   }
 
-  template <ThriftSimpleTC SimpleTC>
-  void onPopImpl(std::string&& popped) {
+  void onPopImpl(std::string&& popped, ThriftTCType /* tc */) {
     auto shouldPrune = true;
     apache::thrift::visit_union(
         curPath_.back().get(),
@@ -131,13 +128,12 @@ struct PatchBuilderTraverser : public TraverseHelper<PatchBuilderTraverser> {
   }
 
  private:
-  template <ThriftSimpleTC SimpleTC>
-  void insertChild(PatchNode& node, const std::string& key) {
+  void insertChild(PatchNode& node, const std::string& key, ThriftTCType tc) {
     apache::thrift::visit_union(
         node,
         [&](const apache::thrift::metadata::ThriftField& /* meta */,
             auto& patch) {
-          PatchNode childPatch = constructEmptyPatch<SimpleTC>();
+          PatchNode childPatch = constructEmptyPatch(tc);
           auto insert = folly::overload(
               [](Empty&) -> PatchNode& {
                 throw std::runtime_error("empty nodes cannot have children");
@@ -192,7 +188,7 @@ struct PatchBuilder {
     // TODO: validate type at path == Node
     thrift_cow::Patch patch;
     patch.basePath() = basePath;
-    patch.patch() = detail_pb::constructEmptyPatch<SimpleTC<TC>>();
+    patch.patch() = detail_pb::constructEmptyPatch(TCType<TC>);
 
     auto processDelta = [](const detail_pb::PatchBuilderTraverser& traverser,
                            auto oldNode,

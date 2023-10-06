@@ -340,8 +340,8 @@ struct DeltaVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
           }
 
           hasDifferences = true;
-          traverser.template push<SimpleTC<ValueTypeClass>>(
-              folly::to<std::string>(val->cref()));
+          traverser.push(
+              folly::to<std::string>(val->cref()), TCType<ValueTypeClass>);
           if (auto it = oldFields.find(val); it != oldFields.end()) {
             dv_detail::visitAddedOrRemovedNode<ValueTypeClass>(
                 traverser,
@@ -357,7 +357,7 @@ struct DeltaVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
                 options,
                 std::forward<Func>(f));
           }
-          traverser.template pop<SimpleTC<ValueTypeClass>>();
+          traverser.pop(TCType<ValueTypeClass>);
         }));
 
     return hasDifferences;
@@ -409,28 +409,26 @@ struct DeltaVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
       hasDifferences = true;
       // loop in reverse order for removals
       for (int i = oldFields.size() - 1; i >= minSize; --i) {
-        traverser.template push<SimpleTC<ValueTypeClass>>(
-            folly::to<std::string>(i));
+        traverser.push(folly::to<std::string>(i), TCType<ValueTypeClass>);
         dv_detail::visitAddedOrRemovedNode<ValueTypeClass>(
             traverser,
             oldFields.at(i),
             typename Fields::value_type{},
             options,
             std::forward<Func>(f));
-        traverser.template pop<SimpleTC<ValueTypeClass>>();
+        traverser.pop(TCType<ValueTypeClass>);
       }
     } else if (oldFields.size() < newFields.size()) { // entries added
       hasDifferences = true;
       for (int i = minSize; i < newFields.size(); ++i) {
-        traverser.template push<SimpleTC<ValueTypeClass>>(
-            folly::to<std::string>(i));
+        traverser.push(folly::to<std::string>(i), TCType<ValueTypeClass>);
         dv_detail::visitAddedOrRemovedNode<ValueTypeClass>(
             traverser,
             typename Fields::value_type{},
             newFields.at(i),
             options,
             std::forward<Func>(f));
-        traverser.template pop<SimpleTC<ValueTypeClass>>();
+        traverser.pop(TCType<ValueTypeClass>);
       }
     }
 
@@ -438,13 +436,12 @@ struct DeltaVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
       const auto& oldRef = oldFields.at(i);
       const auto& newRef = newFields.at(i);
       if (oldRef != newRef) {
-        traverser.template push<SimpleTC<ValueTypeClass>>(
-            folly::to<std::string>(i));
+        traverser.push(folly::to<std::string>(i), TCType<ValueTypeClass>);
         if (DeltaVisitor<ValueTypeClass>::visit(
                 traverser, oldRef, newRef, options, std::forward<Func>(f))) {
           hasDifferences = true;
         }
-        traverser.template pop<SimpleTC<ValueTypeClass>>();
+        traverser.pop(TCType<ValueTypeClass>);
       }
     }
 
@@ -494,8 +491,7 @@ struct DeltaVisitor<
 
     // changed fields
     for (const auto& [key, val] : oldFields) {
-      traverser.template push<SimpleTC<MappedTypeClass>>(
-          folly::to<std::string>(key));
+      traverser.push(folly::to<std::string>(key), TCType<MappedTypeClass>);
       if (auto it = newFields.find(key); it != newFields.end()) {
         if (DeltaVisitor<MappedTypeClass>::visit(
                 traverser, val, it->second, options, std::forward<Func>(f))) {
@@ -506,7 +502,7 @@ struct DeltaVisitor<
         dv_detail::visitAddedOrRemovedNode<MappedTypeClass>(
             traverser, val, decltype(val){}, options, std::forward<Func>(f));
       }
-      traverser.template pop<SimpleTC<MappedTypeClass>>();
+      traverser.pop(TCType<MappedTypeClass>);
     }
 
     for (const auto& [key, val] : newFields) {
@@ -514,13 +510,12 @@ struct DeltaVisitor<
         // only look at keys that didn't exist. First loop should handle all
         // replacement deltas
         hasDifferences = true;
-        traverser.template push<SimpleTC<MappedTypeClass>>(
-            folly::to<std::string>(key));
+        traverser.push(folly::to<std::string>(key), TCType<MappedTypeClass>);
 
         dv_detail::visitAddedOrRemovedNode<MappedTypeClass>(
             traverser, decltype(val){}, val, options, std::forward<Func>(f));
 
-        traverser.template pop<SimpleTC<MappedTypeClass>>();
+        traverser.pop(TCType<MappedTypeClass>);
       }
     }
 
@@ -585,7 +580,7 @@ struct DeltaVisitor<apache::thrift::type_class::variant> {
                   getMemberName<typename descriptor::metadata>(
                       options.outputIdPaths);
 
-              traverser.template push<SimpleTC<tc>>(std::move(memberName));
+              traverser.push(std::move(memberName), TCType<tc>);
 
               const auto& oldRef = oldFields.template cref<name>();
 
@@ -597,7 +592,7 @@ struct DeltaVisitor<apache::thrift::type_class::variant> {
                   options,
                   std::forward<Func>(f));
 
-              traverser.template pop<SimpleTC<tc>>();
+              traverser.pop(TCType<tc>);
             });
       }
       if (isSet) {
@@ -611,7 +606,7 @@ struct DeltaVisitor<apache::thrift::type_class::variant> {
                   getMemberName<typename descriptor::metadata>(
                       options.outputIdPaths);
 
-              traverser.template push<SimpleTC<tc>>(std::move(memberName));
+              traverser.push(std::move(memberName), TCType<tc>);
 
               const auto& newRef = newFields.template cref<name>();
 
@@ -623,7 +618,7 @@ struct DeltaVisitor<apache::thrift::type_class::variant> {
                   options,
                   std::forward<Func>(f));
 
-              traverser.template pop<SimpleTC<tc>>();
+              traverser.pop(TCType<tc>);
             });
       }
     } else {
@@ -637,14 +632,14 @@ struct DeltaVisitor<apache::thrift::type_class::variant> {
                 getMemberName<typename descriptor::metadata>(
                     options.outputIdPaths);
 
-            traverser.template push<SimpleTC<tc>>(std::move(memberName));
+            traverser.push(std::move(memberName), TCType<tc>);
             hasDifferences = DeltaVisitor<tc>::visit(
                 traverser,
                 oldFields.template cref<name>(),
                 newFields.template cref<name>(),
                 options,
                 std::forward<Func>(f));
-            traverser.template pop<SimpleTC<tc>>();
+            traverser.pop(TCType<tc>);
           });
     }
 
@@ -711,9 +706,9 @@ struct DeltaVisitor<apache::thrift::type_class::structure> {
       // Look for the expected member name
       std::string memberName = getMemberName<member>(options.outputIdPaths);
 
-      traverser.template push<SimpleTC<tc>>(std::move(memberName));
+      traverser.push(std::move(memberName), TCType<tc>);
       SCOPE_EXIT {
-        traverser.template pop<SimpleTC<tc>>();
+        traverser.pop(TCType<tc>);
       };
 
       const auto& oldRef = oldFields.template cref<name>();

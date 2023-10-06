@@ -165,11 +165,11 @@ struct RecurseVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
       RecurseVisitOptions /*options*/,
       Func&& f) {
     for (auto& val : fields) {
-      traverser.template push<SimpleTC<ValueTypeClass>>(
-          folly::to<std::string>(val->cref()));
+      traverser.push(
+          folly::to<std::string>(val->cref()), TCType<ValueTypeClass>);
       rv_detail::invokeVisitorFnHelper(
           traverser, typename Fields::value_type{val}, std::forward<Func>(f));
-      traverser.template pop<SimpleTC<ValueTypeClass>>();
+      traverser.pop(TCType<ValueTypeClass>);
     }
   }
 };
@@ -213,11 +213,10 @@ struct RecurseVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
       RecurseVisitOptions options,
       Func&& f) {
     for (int i = 0; i < fields.size(); ++i) {
-      traverser.template push<SimpleTC<ValueTypeClass>>(
-          folly::to<std::string>(i));
+      traverser.push(folly::to<std::string>(i), TCType<ValueTypeClass>);
       RecurseVisitor<ValueTypeClass>::visit(
           traverser, fields.ref(i), options, std::forward<Func>(f));
-      traverser.template pop<SimpleTC<ValueTypeClass>>();
+      traverser.pop(TCType<ValueTypeClass>);
     }
   }
 };
@@ -263,19 +262,17 @@ struct RecurseVisitor<
       Func&& f) {
     if constexpr (std::is_const_v<Fields>) {
       for (const auto& [key, val] : fields) {
-        traverser.template push<SimpleTC<MappedTypeClass>>(
-            folly::to<std::string>(key));
+        traverser.push(folly::to<std::string>(key), TCType<MappedTypeClass>);
         RecurseVisitor<MappedTypeClass>::visit(
             traverser, val, options, std::forward<Func>(f));
-        traverser.template pop<SimpleTC<MappedTypeClass>>();
+        traverser.pop(TCType<MappedTypeClass>);
       }
     } else {
       for (auto& [key, val] : fields) {
-        traverser.template push<SimpleTC<MappedTypeClass>>(
-            folly::to<std::string>(key));
+        traverser.push(folly::to<std::string>(key), TCType<MappedTypeClass>);
         RecurseVisitor<MappedTypeClass>::visit(
             traverser, val, options, std::forward<Func>(f));
-        traverser.template pop<SimpleTC<MappedTypeClass>>();
+        traverser.pop(TCType<MappedTypeClass>);
       }
     }
   }
@@ -330,7 +327,7 @@ struct RecurseVisitor<apache::thrift::type_class::variant> {
           std::string memberName = getMemberName<typename descriptor::metadata>(
               options.outputIdPaths);
 
-          traverser.template push<SimpleTC<tc>>(std::move(memberName));
+          traverser.push(std::move(memberName), TCType<tc>);
 
           if constexpr (std::is_const_v<Fields>) {
             const auto& ref = fields.template cref<name>();
@@ -341,7 +338,7 @@ struct RecurseVisitor<apache::thrift::type_class::variant> {
             RecurseVisitor<tc>::visit(
                 traverser, ref, options, std::forward<Func>(f));
           }
-          traverser.template pop<SimpleTC<tc>>();
+          traverser.pop(TCType<tc>);
         });
   }
 };
@@ -410,7 +407,7 @@ struct RecurseVisitor<apache::thrift::type_class::structure> {
       // Look for the expected member name
       std::string memberName = getMemberName<member>(options.outputIdPaths);
 
-      traverser.template push<SimpleTC<tc>>(std::move(memberName));
+      traverser.push(std::move(memberName), TCType<tc>);
 
       if constexpr (std::is_const_v<Fields>) {
         const auto& ref = fields.template cref<name>();
@@ -425,7 +422,7 @@ struct RecurseVisitor<apache::thrift::type_class::structure> {
               traverser, ref, options, std::forward<Func>(f));
         }
       }
-      traverser.template pop<SimpleTC<tc>>();
+      traverser.pop(TCType<tc>);
     });
   }
 };

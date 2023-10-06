@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <thrift/lib/cpp2/TypeClass.h>
+#include <fboss/thrift_cow/visitors/ThriftTCType.h>
 #include <string>
 #include <vector>
 
@@ -19,69 +19,18 @@ enum class VisitorType {
   RECURSE
 };
 
-// Simplified enum representing main thrift type classes we care about We
-// convert to this in template params whenever possible to reduce total number
-// of types generated. Thrift TC containers (map, list, set) are templated on
-// key and val types so they will generate more types if used
-enum class ThriftSimpleTC {
-  PRIMITIVE,
-  STRUCTURE,
-  VARIANT,
-  MAP,
-  SET,
-  LIST,
-};
-
-template <typename TC>
-struct TCtoSimpleTC;
-
-template <>
-struct TCtoSimpleTC<apache::thrift::type_class::structure> {
-  static constexpr auto type = ThriftSimpleTC::STRUCTURE;
-};
-
-template <>
-struct TCtoSimpleTC<apache::thrift::type_class::variant> {
-  static constexpr auto type = ThriftSimpleTC::VARIANT;
-};
-
-template <typename ValTC>
-struct TCtoSimpleTC<apache::thrift::type_class::set<ValTC>> {
-  static constexpr auto type = ThriftSimpleTC::SET;
-};
-
-template <typename KeyTC, typename ValTC>
-struct TCtoSimpleTC<apache::thrift::type_class::map<KeyTC, ValTC>> {
-  static constexpr auto type = ThriftSimpleTC::MAP;
-};
-
-template <typename ValTC>
-struct TCtoSimpleTC<apache::thrift::type_class::list<ValTC>> {
-  static constexpr auto type = ThriftSimpleTC::LIST;
-};
-
-template <typename TC>
-struct TCtoSimpleTC {
-  static constexpr auto type = ThriftSimpleTC::PRIMITIVE;
-};
-
-template <typename TC>
-static constexpr auto SimpleTC = TCtoSimpleTC<TC>::type;
-
 template <typename Impl>
 class TraverseHelper {
  public:
-  template <ThriftSimpleTC SimpleTC>
-  void push(std::string&& tok) {
+  void push(std::string&& tok, ThriftTCType tc) {
     currentPath_.emplace_back(std::move(tok));
-    onPush<SimpleTC>();
+    onPush(tc);
   }
 
-  template <ThriftSimpleTC SimpleTC>
-  void pop() {
+  void pop(ThriftTCType tc) {
     std::string&& tok = std::move(currentPath_.back());
     currentPath_.pop_back();
-    onPop<SimpleTC>(std::forward<std::string>(tok));
+    onPop(std::forward<std::string>(tok), tc);
   }
 
   bool shouldShortCircuit(VisitorType visitorType) const {
@@ -94,14 +43,12 @@ class TraverseHelper {
   }
 
  private:
-  template <ThriftSimpleTC SimpleTC>
-  void onPush() {
-    return static_cast<Impl*>(this)->template onPushImpl<SimpleTC>();
+  void onPush(ThriftTCType tc) {
+    return static_cast<Impl*>(this)->onPushImpl(tc);
   }
-  template <ThriftSimpleTC SimpleTC>
-  void onPop(std::string&& popped) {
-    return static_cast<Impl*>(this)->template onPopImpl<SimpleTC>(
-        std::forward<std::string>(popped));
+  void onPop(std::string&& popped, ThriftTCType tc) {
+    return static_cast<Impl*>(this)->onPopImpl(
+        std::forward<std::string>(popped), tc);
   }
 
   std::vector<std::string> currentPath_;
@@ -115,10 +62,8 @@ struct SimpleTraverseHelper : TraverseHelper<SimpleTraverseHelper> {
   bool shouldShortCircuitImpl(VisitorType visitorType) const {
     return false;
   }
-  template <ThriftSimpleTC SimpleTC>
-  void onPushImpl() {}
-  template <ThriftSimpleTC SimpleTC>
-  void onPopImpl(std::string&& popped) {}
+  void onPushImpl(ThriftTCType tc) {}
+  void onPopImpl(std::string&& popped, ThriftTCType tc) {}
 };
 
 } // namespace facebook::fboss::thrift_cow
