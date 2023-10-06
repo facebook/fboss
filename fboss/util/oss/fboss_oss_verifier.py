@@ -18,26 +18,39 @@
 # 7. Copy P832580816 to /var/FBOSS/runner.sh and run chmod +x /var/FBOSS/runner.sh
 # 8. Copy https://github.com/facebook/fboss/blob/main/fboss/oss/hw_test_configs/fuji.agent.materialized_JSON to /var/FBOSS/fuji.materialized_JSON
 # 9. Copy https://github.com/facebook/fboss/blob/main/fboss/oss/scripts/run_configs/th4/fruid.json to /var/facebook/fboss/fruid.json
+# 10. Run pip3 install pytz
 #
 #
 # This script automates verification of stable commits in OSS.
 
+import argparse
 import glob
 import os
 import shutil
 import subprocess
+from datetime import datetime
+from enum import Enum
+from typing import Optional
+
+import pytz
 
 OUTPUT_DIR = "x86-xgsall-bcmsim-deb-static-fboss"
 SAI_SDK_VERSION = "SAI_VERSION_10_0_EA_SIM_ODP"
 SAI_TEST_BINARY = "sai_test-sai_impl"
 CLONE_OSS_REPO_CMD = r"""git clone https://github.com/facebook/fboss fboss.git"""
 RUN_BUILD_HELPER_CMD = r"""./build-helper.py {0} {1} {2}"""
-VERIFY_STABLE_COMMIT_CMD = r"""source ./setup_fboss_env; ./run_test.py sai --sai-bin {0} --config {1} --mgmt-if eth0 --filter HwVlanTest.VlanApplyConfig --simulator th4_b0 --coldboot_only"""
+VERIFY_STABLE_COMMIT_CMD = r"""source ./setup_fboss_env; ./run_test.py sai --sai-bin {0} --config {1} --mgmt-if eth0 --filter {2} --simulator {3} --coldboot_only"""
 LIBRARIES = ["gflags", "glog", "libevent", "libsodium", "python"]
+
+
+class ResultType(Enum):
+    OK = "OK"
+    FAILED = "FAILED"
 
 
 class FBOSSOSSVerifier:
     def __init__(self) -> None:
+        self._args: Optional[argparse.Namespace] = None
         self._oss_dir = os.getcwd()
         self._bcm_sai_dir = os.path.join(self._oss_dir, "bcm_sai")
         self._built_bcmsim_sai_dir = os.path.join(self._oss_dir, "built-bcmsim-sai")
@@ -46,18 +59,53 @@ class FBOSSOSSVerifier:
         self._git_dir = os.path.join(self._oss_dir, "fboss.git")
         self._scripts_dir = os.path.join(self._git_dir, "fboss", "oss", "scripts")
         self._test_config = os.path.join(self._oss_dir, "fuji.materialized_JSON")
+        self._commit = ""
+        self._test_results = ""
+
+    def print_result(self, build_result, verify_result=ResultType.FAILED):
+        timestamp = datetime.fromtimestamp(
+            datetime.now().timestamp(), pytz.timezone("US/Pacific")
+        ).strftime("%Y-%m-%d %H:%M:%S PDT")
+        print(
+            f"RESULTS:\n"
+            f"Commit: {self._commit}\n"
+            f"Timestamp: {timestamp}\n"
+            f"Build: {build_result.value}"
+        )
+        if build_result == ResultType.OK:
+            stable_commit_result = (
+                "Commit is stable"
+                if verify_result == ResultType.OK
+                else "Commit is not stable"
+            )
+            print(f"Test Results:\n{self._test_results}{stable_commit_result}")
 
     def verify_stable_commit(self):
         os.chdir(self._test_pkg_dir)
         verify_stable_commit_cmd = VERIFY_STABLE_COMMIT_CMD.format(
             f"./{SAI_TEST_BINARY}",
             self._test_config,
+            self._args.filter,
+            self._args.asic,
         )
-        # TODO: Parse output and check for errors
         subprocess.run(
             verify_stable_commit_cmd,
             shell=True,
         )
+        result_file_path = glob.glob(
+            os.path.join(self._test_pkg_dir, "hwtest_results_") + "*"
+        )[0]
+        result_type = ResultType.OK
+        with open(result_file_path, "r") as result_file:
+            for line in result_file:
+                if "Test Name,Result" in line:
+                    continue
+                test_name = line.split(",")[0].strip()
+                test_result = line.split(",")[1].strip()
+                self._test_results += f"{test_name}: {test_result}\n"
+                if "OK" not in line:
+                    result_type = ResultType.FAILED
+        return result_type
 
     def post_build(self):
         os.mkdir(self._test_pkg_dir)
@@ -104,9 +152,11 @@ class FBOSSOSSVerifier:
     def build(self):
         os.chdir(os.path.join(self._git_dir, "build", "fbcode_builder"))
         build_fboss_oss_cmd = f'time ./getdeps.py build --allow-system-packages --scratch-path {self._scratch_dir} fboss --extra-cmake-defines \'{{"CMAKE_BUILD_TYPE": "MinSizeRel"}}\''
-        # TODO: Handle build failures
-        subprocess.run(build_fboss_oss_cmd, shell=True)
-        print("FBOSS OSS built successfully")
+        output = subprocess.run(build_fboss_oss_cmd, shell=True)
+        if output.returncode != 0:
+            return ResultType.FAILED
+        else:
+            return ResultType.OK
 
     def pre_build(self):
         built_bcmsim_sai_experimental_dir = os.path.join(
@@ -146,6 +196,12 @@ class FBOSSOSSVerifier:
     def clone(self):
         subprocess.run(CLONE_OSS_REPO_CMD, shell=True)
         print("Cloned FBOSS git repo successfully")
+        output = subprocess.run(
+            f"git -C {self._git_dir} rev-parse HEAD",
+            stdout=subprocess.PIPE,
+            shell=True,
+        )
+        self._commit = output.stdout.decode("utf-8").strip()
 
     def clean(self):
         if os.path.exists(self._scratch_dir):
@@ -166,16 +222,35 @@ class FBOSSOSSVerifier:
         }
         os.environ.update(env_dict)
 
+    def setup_args(self):
+        parser = argparse.ArgumentParser()
+        parser.add_argument(
+            "--filter",
+            type=str,
+            default="HwVlanTest.VlanApplyConfig",
+            help=("only run tests that match the filter e.g. --filter=*Route*V6*"),
+        )
+        parser.add_argument(
+            "--asic",
+            type=str,
+            default="th4_b0",
+            help="Specify what asic simulator to use if configured",
+        )
+        self._args = parser.parse_args()
+
     def run(self):
+        self.setup_args()
         self.clean()
         self.setup_env()
         self.clone()
         self.pre_build()
-        self.build()
+        build_result = self.build()
+        if build_result == ResultType.FAILED:
+            self.print_result(build_result)
+            return
         self.post_build()
-        self.verify_stable_commit()
-        # TODO: Add print_result() step, which should print details such as: fboss commit, date/timestamp,
-        # result of build, list of tests to run as part of verification and pass/fail result.
+        verify_result = self.verify_stable_commit()
+        self.print_result(build_result, verify_result)
 
 
 if __name__ == "__main__":
