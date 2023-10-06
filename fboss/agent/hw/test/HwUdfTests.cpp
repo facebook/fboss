@@ -49,6 +49,18 @@ TEST_F(HwUdfTest, checkUdfHashConfiguration) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwUdfTest, checkUdfAclConfiguration) {
+  auto setup = [=]() { applyNewState(setupUdfConfiguration(true, false)); };
+  auto verify = [=]() {
+    utility::validateUdfConfig(
+        getHwSwitch(),
+        utility::kUdfRoceOpcodeAclGroupName,
+        utility::kUdfPktMatcherName);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 TEST_F(HwUdfTest, deleteUdfConfig) {
   int udfGroupId;
   int udfPacketMatcherId;
