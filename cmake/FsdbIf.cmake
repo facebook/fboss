@@ -65,3 +65,13 @@ target_link_libraries(fsdb_model_thriftpath_cpp2
   thriftpath_lib
   fsdb_model_cpp2
 )
+
+# use this library to include both fsdb model and thriftpath
+add_library(fsdb_model
+  fboss/fsdb/if/FsdbModel.h
+)
+
+target_link_libraries(fsdb_model
+  fsdb_model_cpp2
+  fsdb_model_thriftpath_cpp2
+)

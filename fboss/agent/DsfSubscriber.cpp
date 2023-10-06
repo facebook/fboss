@@ -14,6 +14,7 @@
 #include "fboss/agent/state/SystemPortMap.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/fsdb/common/Flags.h"
+#include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
 
@@ -24,6 +25,11 @@ DEFINE_bool(
     dsf_subscriber_cache_updated_state,
     false,
     "Cache switch state after update by dsf subsriber");
+
+namespace {
+const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStateRoot>
+    stateRoot;
+} // anonymous namespace
 
 namespace facebook::fboss {
 
@@ -437,6 +443,19 @@ std::vector<DsfSessionThrift> DsfSubscriber::getDsfSessionsThrift() const {
     thriftSessions.emplace_back(value.toThrift());
   }
   return thriftSessions;
+}
+
+std::vector<std::string> DsfSubscriber::getSystemPortsPath() {
+  return stateRoot.agent().switchState().systemPortMaps().tokens();
+}
+
+std::vector<std::string> DsfSubscriber::getInterfacesPath() {
+  return stateRoot.agent().switchState().interfaceMaps().tokens();
+}
+
+std::vector<std::string> DsfSubscriber::getDsfSubscriptionsPath(
+    const std::string& localNodeName) {
+  return stateRoot.agent().fsdbSubscriptions()[localNodeName].tokens();
 }
 
 } // namespace facebook::fboss

@@ -187,7 +187,6 @@ add_library(core
   fboss/agent/oss/PacketLogger.cpp
   fboss/agent/oss/RouteUpdateLogger.cpp
   fboss/agent/oss/SwSwitch.cpp
-  fboss/agent/oss/DsfSubscriber.cpp
   fboss/agent/oss/FsdbSyncer.cpp
 )
 
@@ -228,6 +227,7 @@ target_link_libraries(core
   normalizer
   bidirectional_packet_stream
   fsdb_common_cpp2
+  fsdb_model
   fsdb_stream_client
   fsdb_pub_sub
   fsdb_flags
