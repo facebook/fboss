@@ -1,6 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
-#include "fboss/agent/test/agent_hw_test/ProdInvariantTests.h"
+#include "fboss/agent/test/prod_invariant_tests/ProdInvariantTests.h"
 #include <folly/gen/Base.h>
 #include <chrono>
 #include <thread>

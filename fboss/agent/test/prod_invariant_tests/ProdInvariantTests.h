@@ -1,6 +1,6 @@
 #include <vector>
 #include "fboss/agent/Main.h"
-#include "fboss/agent/test/agent_hw_test/ProdAgentTests.h"
+#include "fboss/agent/test/prod_invariant_tests/ProdAgentTests.h"
 
 #include "fboss/agent/SetupThrift.h"
 
