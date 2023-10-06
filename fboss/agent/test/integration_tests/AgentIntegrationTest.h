@@ -23,6 +23,7 @@ class AgentIntegrationTest : public AgentHwTest {
 int agentIntegrationTestMain(
     int argc,
     char** argv,
-    facebook::fboss::PlatformInitFn initPlatformFn);
+    facebook::fboss::PlatformInitFn initPlatformFn,
+    std::optional<cfg::StreamType> streamType = std::nullopt);
 
 } // namespace facebook::fboss

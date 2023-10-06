@@ -53,14 +53,15 @@ cfg::SwitchConfig AgentIntegrationTest::initialConfig() const {
 int agentIntegrationTestMain(
     int argc,
     char** argv,
-    facebook::fboss::PlatformInitFn initPlatformFn) {
+    facebook::fboss::PlatformInitFn initPlatformFn,
+    std::optional<cfg::StreamType> streamType) {
   ::testing::InitGoogleTest(&argc, argv);
 
   // to ensure FLAGS_config is set, as this is used in case platform config is
   // overridden by the tests
   gflags::ParseCommandLineFlags(&argc, &argv, false);
 
-  initAgentTest(argc, argv, initPlatformFn);
+  initAgentTest(argc, argv, initPlatformFn, streamType);
 
   return RUN_ALL_TESTS();
 }
