@@ -149,7 +149,9 @@ void PlatformProductInfo::initMode() {
         modelName.find("Meru800bia") == 0 ||
         modelName.find("MERU800BIA") == 0) {
       type_ = PlatformType::PLATFORM_MERU800BIA;
-    } else if (modelName.find("Meru800bfa") == 0) {
+    } else if (
+        modelName.find("Meru800bfa") == 0 ||
+        modelName.find("MERU800BFA") == 0) {
       type_ = PlatformType::PLATFORM_MERU800BFA;
     } else if (modelName.find("MORGAN800CC") == 0) {
       type_ = PlatformType::PLATFORM_MORGAN800CC;
