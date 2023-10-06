@@ -5,6 +5,7 @@
 #include <folly/String.h>
 #include <folly/Unit.h>
 #include <thrift/lib/cpp2/TypeClass.h>
+#include <string>
 
 namespace thriftpath {
 
@@ -93,6 +94,10 @@ class Path {
 
   const ParentT& parent() {
     return parent_;
+  }
+
+  bool matchesPath(const std::vector<std::string>& other) const {
+    return other == idTokens_ || other == tokens_;
   }
 
  protected:

@@ -14,6 +14,7 @@
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/fsdb/if/FsdbModel.h" // @manual
 
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
@@ -65,8 +66,8 @@ class DsfSubscriberTest : public ::testing::Test {
     dsfSubscriber_ = std::make_unique<DsfSubscriber>(sw_);
   }
 
-  HwSwitchMatcher matcher() const {
-    return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
+  HwSwitchMatcher matcher(uint32_t switchID = 0) const {
+    return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(switchID)}));
   }
 
   void updateDsfInNode(
@@ -355,5 +356,57 @@ TEST_F(DsfSubscriberTest, failedDsfCounter) {
       });
   counters.update();
   EXPECT_EQ(counters.value(failedDsfCounter), 0);
+}
+
+TEST_F(DsfSubscriberTest, handleFsdbUpdate) {
+  auto sendSysPortUpdate =
+      [this](
+          const auto& dsfNode, const auto& sysPortPath, const auto& sysPort) {
+        MultiSwitchSystemPortMap sysPortMap;
+        sysPortMap.addNode(sysPort, matcher(*dsfNode.switchId()));
+
+        fsdb::TaggedOperState sysPortState;
+        sysPortState.path()->path() = sysPortPath;
+        sysPortState.state()->contents() =
+            sysPortMap.encode(fsdb::OperProtocol::BINARY);
+        fsdb::OperSubPathUnit operState;
+        operState.changes() = {sysPortState};
+
+        this->dsfSubscriber_->handleFsdbUpdate(
+            SwitchID(*dsfNode.switchId()),
+            *dsfNode.name(),
+            fsdb::OperSubPathUnit(operState));
+        waitForStateUpdates(sw_);
+      };
+
+  const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStateRoot>
+      stateRoot;
+
+  EXPECT_EQ(sw_->getState()->getRemoteSystemPorts()->size(), 0);
+
+  auto dsfNode5 = makeDsfNodeCfg(5);
+  auto sysPort1 =
+      std::make_shared<SystemPort>(SystemPortID(kSysPortRangeMin + 1));
+  sysPort1->setPortName("eth1/1/1");
+  sendSysPortUpdate(
+      dsfNode5,
+      stateRoot.agent().switchState().systemPortMaps().tokens(),
+      sysPort1);
+
+  EXPECT_EQ(sw_->getState()->getRemoteSystemPorts()->size(), 1);
+  EXPECT_TRUE(
+      sw_->getState()->getRemoteSystemPorts()->getSystemPortIf("eth1/1/1"));
+
+  // update using id paths should work too
+  auto dsfNode6 = makeDsfNodeCfg(6);
+  auto sysPort2 =
+      std::make_shared<SystemPort>(SystemPortID(kSysPortRangeMin + 2));
+  sysPort2->setPortName("eth1/1/2");
+  sendSysPortUpdate(
+      dsfNode6,
+      stateRoot.agent().switchState().systemPortMaps().idTokens(),
+      sysPort2);
+  EXPECT_TRUE(
+      sw_->getState()->getRemoteSystemPorts()->getSystemPortIf("eth1/1/2"));
 }
 } // namespace facebook::fboss

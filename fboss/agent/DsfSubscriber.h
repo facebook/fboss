@@ -59,12 +59,19 @@ class DsfSubscriber : public StateObserver {
       const std::shared_ptr<InterfaceMap>& newRifs,
       const std::string& nodeName,
       SwitchID nodeSwitchId);
+  void handleFsdbConnectionStateUpdate(
+      const std::string& nodeName,
+      fsdb::FsdbStreamClient::State oldState,
+      fsdb::FsdbStreamClient::State newState);
+  void handleFsdbUpdate(
+      SwitchID nodeSwitchId,
+      const std::string& nodeName,
+      fsdb::OperSubPathUnit&& operStateUnit);
   bool isLocal(SwitchID nodeSwitchId) const;
   // Paths
-  static std::vector<std::string> getSystemPortsPath();
-  static std::vector<std::string> getInterfacesPath();
-  static std::vector<std::string> getDsfSubscriptionsPath(
-      const std::string& localNodeName);
+  static const auto& getSystemPortsPath();
+  static const auto& getInterfacesPath();
+  static auto getDsfSubscriptionsPath(const std::string& localNodeName);
   static std::vector<std::vector<std::string>> getAllSubscribePaths(
       const std::string& localNodeName);
 
@@ -76,6 +83,7 @@ class DsfSubscriber : public StateObserver {
 
   FRIEND_TEST(DsfSubscriberTest, scheduleUpdate);
   FRIEND_TEST(DsfSubscriberTest, setupNeighbors);
+  FRIEND_TEST(DsfSubscriberTest, handleFsdbUpdate);
 };
 
 } // namespace facebook::fboss
