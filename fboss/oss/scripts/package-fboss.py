@@ -140,6 +140,16 @@ class PackageFboss:
             os.path.join(tmp_dir_name, PackageFboss.DATA, "hw_sanity_tests"),
         )
 
+    def _copy_unsupported_tests(self, tmp_dir_name):
+        qsfp_unsupported_tests_path = os.path.join(
+            self._get_git_root(__file__), "fboss/oss/qsfp_unsupported_tests"
+        )
+        print(f"Copying {qsfp_unsupported_tests_path} to {tmp_dir_name}")
+        shutil.copytree(
+            "fboss/oss/qsfp_unsupported_tests",
+            os.path.join(tmp_dir_name, PackageFboss.DATA, "qsfp_unsupported_tests"),
+        )
+
     def _copy_known_bad_tests(self, tmp_dir_name):
         hw_known_bad_tests_path = os.path.join(
             self._get_git_root(__file__), "fboss/oss/hw_known_bad_tests"
@@ -167,7 +177,7 @@ class PackageFboss:
         )
 
     def _copy_binaries(self, tmp_dir_name):
-        print(f"Copying binaries...")
+        print("Copying binaries...")
 
         for name, exec_type_and_execs in list(PackageFboss.NAME_TO_EXECUTABLES.items()):
             installed_dirs = self._get_install_dir_for(name)
@@ -194,9 +204,10 @@ class PackageFboss:
         self._copy_run_configs(tmp_dir_name)
         self._copy_configs(tmp_dir_name)
         self._copy_known_bad_tests(tmp_dir_name)
+        self._copy_unsupported_tests(tmp_dir_name)
 
     def _compress_binaries(self):
-        print(f"Compressing FBOSS Binaries...")
+        print("Compressing FBOSS Binaries...")
         tar_path = os.path.join(args.scratch_path, PackageFboss.FBOSS_BIN_TAR)
         subprocess.run(["tar", "-cvzf", tar_path, self.tmp_dir_name])
         print(f"Compressed to {tar_path}")
