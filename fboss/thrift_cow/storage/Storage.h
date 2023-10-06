@@ -119,9 +119,11 @@ class Storage {
     return static_cast<Derived*>(this)->set_encoded_impl(begin, end, state);
   }
 
+#ifdef ENABLE_PATCH_APIS
   std::optional<StorageError> patch(thrift_cow::Patch&& patch) {
     return static_cast<Derived*>(this)->patch_impl(std::move(patch));
   }
+#endif
 
   std::optional<StorageError> patch(const fsdb::OperDelta& delta) {
     return static_cast<Derived*>(this)->patch_impl(delta);
