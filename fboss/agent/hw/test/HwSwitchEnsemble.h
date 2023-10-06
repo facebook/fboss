@@ -128,8 +128,8 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   virtual const Platform* getPlatform() const {
     return hwAgent_->getPlatform();
   }
-  HwSwitch* getHwSwitch() override;
-  const HwSwitch* getHwSwitch() const override {
+  virtual HwSwitch* getHwSwitch();
+  virtual const HwSwitch* getHwSwitch() const {
     return const_cast<HwSwitchEnsemble*>(this)->getHwSwitch();
   }
   const HwAsic* getAsic() const {
@@ -138,6 +138,19 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   // Used for testing only
   HwAsicTable* getHwAsicTable() override {
     return hwAsicTable_.get();
+  }
+  const std::map<int32_t, cfg::PlatformPortEntry>& getPlatformPorts()
+      const override {
+    return getPlatform()->getPlatformPorts();
+  }
+  std::map<PortID, FabricEndpoint> getFabricReachability() const override {
+    return getHwSwitch()->getFabricReachability();
+  }
+  FabricReachabilityStats getFabricReachabilityStats() const override {
+    return getHwSwitch()->getFabricReachabilityStats();
+  }
+  void updateStats() override {
+    getHwSwitch()->updateStats();
   }
   virtual std::map<int64_t, cfg::DsfNode> dsfNodesFromInputConfig() const {
     return {};
@@ -159,7 +172,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   void exitFatal() const noexcept override {}
   void addHwEventObserver(HwSwitchEventObserverIf* observer);
   void removeHwEventObserver(HwSwitchEventObserverIf* observer);
-  void switchRunStateChanged(SwitchRunState switchState);
+  void switchRunStateChanged(SwitchRunState switchState) override;
 
   static Features getAllFeatures();
 

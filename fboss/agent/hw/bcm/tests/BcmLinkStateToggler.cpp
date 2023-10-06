@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 
@@ -26,7 +27,7 @@ extern "C" {
 namespace facebook::fboss {
 
 BcmSwitch* BcmLinkStateToggler::getHw() {
-  return static_cast<BcmSwitch*>(getHwSwitchEnsemble()->getHwSwitch());
+  return static_cast<BcmSwitchEnsemble*>(getHwSwitchEnsemble())->getHwSwitch();
 }
 
 void BcmLinkStateToggler::invokeLinkScanIfNeeded(PortID port, bool isUp) {

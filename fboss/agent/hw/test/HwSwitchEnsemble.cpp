@@ -373,7 +373,6 @@ void HwSwitchEnsemble::applyInitialConfig(const cfg::SwitchConfig& initCfg) {
       << "Link scan feature must be enabled for exercising "
       << "applyInitialConfig";
   linkToggler_->applyInitialConfig(initCfg);
-  switchRunStateChanged(SwitchRunState::CONFIGURED);
 }
 
 void HwSwitchEnsemble::linkStateChanged(

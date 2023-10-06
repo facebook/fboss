@@ -154,6 +154,10 @@ std::vector<PortID> AgentEnsemble::masterLogicalPortIds() const {
   return masterLogicalPortIds_;
 }
 
+void AgentEnsemble::switchRunStateChanged(SwitchRunState runState) {
+  getSw()->switchRunStateChanged(runState);
+}
+
 void AgentEnsemble::programRoutes(
     const RouterID& rid,
     const ClientID& client,

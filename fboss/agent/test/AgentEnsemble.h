@@ -55,6 +55,11 @@ class AgentEnsemble : public TestEnsembleIf {
     return getSw()->getState();
   }
 
+  const std::map<int32_t, cfg::PlatformPortEntry>& getPlatformPorts()
+      const override {
+    return getSw()->getPlatformMapping()->getPlatformPorts();
+  }
+
   void applyInitialConfig(const cfg::SwitchConfig& config) override {
     // agent will start after writing an initial config.
     applyNewConfig(config, false);
@@ -79,6 +84,8 @@ class AgentEnsemble : public TestEnsembleIf {
       bool transaction = false) override;
 
   std::vector<PortID> masterLogicalPortIds() const override;
+
+  void switchRunStateChanged(SwitchRunState runState) override;
 
   void programRoutes(
       const RouterID& rid,
@@ -129,14 +136,6 @@ class AgentEnsemble : public TestEnsembleIf {
     getSw()->pfcWatchdogStateChanged(port, deadlock);
   }
 
-  HwSwitch* getHwSwitch() override {
-    return nullptr;
-  }
-
-  const HwSwitch* getHwSwitch() const override {
-    return nullptr;
-  }
-
   std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports);
 
@@ -153,6 +152,18 @@ class AgentEnsemble : public TestEnsembleIf {
 
   HwAsicTable* getHwAsicTable() override {
     return getSw()->getHwAsicTable();
+  }
+
+  std::map<PortID, FabricEndpoint> getFabricReachability() const override {
+    return getSw()->getHwSwitchHandler()->getFabricReachability();
+  }
+
+  FabricReachabilityStats getFabricReachabilityStats() const override {
+    return getSw()->getHwSwitchHandler()->getFabricReachabilityStats();
+  }
+
+  void updateStats() override {
+    getSw()->updateStats();
   }
 
   void registerStateObserver(StateObserver* observer, const std::string& name)

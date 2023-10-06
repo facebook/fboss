@@ -6,7 +6,6 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestFabricUtils.h"
 #include "fboss/agent/test/SplitAgentTest.h"
-#include "fboss/lib/CommonUtils.h"
 
 DECLARE_bool(enable_stats_update_thread);
 
@@ -43,30 +42,6 @@ class AgentFabricSwitchTest : public SplitAgentTest {
         }));
   }
 
-  void checkFabricReachabilityStats(SwSwitch* sw) {
-    sw->updateStats();
-    auto reachability = sw->getHwSwitchHandler()->getFabricReachability();
-    int count = 0;
-    for (auto [_, endpoint] : reachability) {
-      if (!*endpoint.isAttached()) {
-        continue;
-      }
-      // all interfaces which have reachability info collected
-      count++;
-    }
-    // expected all of interfaces to jump on mismatched and missing
-    WITH_RETRIES(EXPECT_EVENTUALLY_EQ(
-        *(sw->getHwSwitchHandler()
-              ->getFabricReachabilityStats()
-              .mismatchCount()),
-        count));
-    WITH_RETRIES(EXPECT_EVENTUALLY_EQ(
-        *(sw->getHwSwitchHandler()
-              ->getFabricReachabilityStats()
-              .missingCount()),
-        count));
-  }
-
  private:
   bool hideFabricPorts() const override {
     return false;
@@ -93,8 +68,7 @@ TEST_F(AgentFabricSwitchTest, init) {
 
 TEST_F(AgentFabricSwitchTest, checkFabricReachabilityStats) {
   auto setup = [=]() {
-    auto newCfg =
-        initialConfig(getAgentEnsemble()->getSw(), masterLogicalPortIds());
+    auto newCfg = initialConfig(getSw(), masterLogicalPortIds());
     // reset the neighbor reachability information
     for (const auto& portID : masterLogicalPortIds()) {
       auto portCfg = utility::findCfgPort(newCfg, portID);
@@ -106,7 +80,60 @@ TEST_F(AgentFabricSwitchTest, checkFabricReachabilityStats) {
   };
   auto verify = [this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
-    checkFabricReachabilityStats(getAgentEnsemble()->getSw());
+    checkFabricReachabilityStats(getAgentEnsemble());
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentFabricSwitchTest, collectStats) {
+  auto verify = [this]() {
+    EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
+    getSw()->updateStats();
+  };
+  verifyAcrossWarmBoots([] {}, verify);
+}
+
+TEST_F(AgentFabricSwitchTest, checkFabricReachability) {
+  auto verify = [this]() {
+    EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
+    checkFabricReachability(getAgentEnsemble());
+  };
+  verifyAcrossWarmBoots([] {}, verify);
+}
+
+TEST_F(AgentFabricSwitchTest, fabricIsolate) {
+  auto setup = [=]() {
+    auto newCfg = initialConfig(getSw(), masterLogicalPortIds());
+    auto fabricPortId =
+        PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
+    for (auto& portCfg : *newCfg.ports()) {
+      if (PortID(*portCfg.logicalID()) == fabricPortId) {
+        *portCfg.drainState() = cfg::PortDrainState::DRAINED;
+        break;
+      }
+    }
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=]() {
+    EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
+    auto fabricPortId =
+        PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
+    checkPortFabricReachability(getAgentEnsemble(), fabricPortId);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentFabricSwitchTest, fabricSwitchIsolate) {
+  auto setup = [=]() {
+    setSwitchDrainState(
+        initialConfig(getSw(), masterLogicalPortIds()),
+        cfg::SwitchDrainState::DRAINED);
+  };
+
+  auto verify = [=]() {
+    EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
+    checkFabricReachability(getAgentEnsemble());
   };
   verifyAcrossWarmBoots(setup, verify);
 }

@@ -197,7 +197,7 @@ void HwTest::setSwitchDrainState(
     const cfg::SwitchConfig& curConfig,
     cfg::SwitchDrainState drainState) {
   auto newCfg = curConfig;
-  *newCfg.switchSettings()->switchDrainState() = cfg::SwitchDrainState::DRAINED;
+  *newCfg.switchSettings()->switchDrainState() = drainState;
   applyNewConfig(newCfg);
 }
 

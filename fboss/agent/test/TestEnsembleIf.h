@@ -29,10 +29,14 @@ class TestEnsembleIf : public HwSwitchCallback {
   virtual std::shared_ptr<SwitchState> applyNewConfig(
       const cfg::SwitchConfig& config) = 0;
   virtual std::shared_ptr<SwitchState> getProgrammedState() const = 0;
-  virtual HwSwitch* getHwSwitch() = 0;
-  virtual const HwSwitch* getHwSwitch() const = 0;
+  virtual const std::map<int32_t, cfg::PlatformPortEntry>& getPlatformPorts()
+      const = 0;
+  virtual void switchRunStateChanged(SwitchRunState runState) = 0;
   virtual const SwitchIdScopeResolver& scopeResolver() const = 0;
   virtual HwAsicTable* getHwAsicTable() = 0;
+  virtual std::map<PortID, FabricEndpoint> getFabricReachability() const = 0;
+  virtual FabricReachabilityStats getFabricReachabilityStats() const = 0;
+  virtual void updateStats() = 0;
 };
 
 } // namespace facebook::fboss

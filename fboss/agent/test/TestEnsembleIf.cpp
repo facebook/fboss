@@ -14,7 +14,7 @@ std::vector<PortID> TestEnsembleIf::masterLogicalPortIds(
     const std::set<cfg::PortType>& filter) const {
   auto portIDs = masterLogicalPortIds();
   std::vector<PortID> filteredPortIDs;
-  auto platformPorts = getHwSwitch()->getPlatform()->getPlatformPorts();
+  auto platformPorts = getPlatformPorts();
 
   folly::gen::from(portIDs) |
       folly::gen::filter([&platformPorts, filter](const auto& portID) {

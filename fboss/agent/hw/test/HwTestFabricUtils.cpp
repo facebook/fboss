@@ -10,9 +10,9 @@
 #include <gtest/gtest.h>
 
 namespace facebook::fboss {
-void checkFabricReachability(HwSwitch* hw) {
-  hw->updateStats();
-  auto reachability = hw->getFabricReachability();
+void checkFabricReachability(TestEnsembleIf* ensemble) {
+  ensemble->updateStats();
+  auto reachability = ensemble->getFabricReachability();
   EXPECT_GT(reachability.size(), 0);
   for (auto [port, endpoint] : reachability) {
     if (!*endpoint.isAttached()) {
@@ -35,17 +35,21 @@ void checkFabricReachability(HwSwitch* hw) {
                << " expected port id: " << expectedPortId
                << " got port id: " << *endpoint.portId();
     EXPECT_EQ(*endpoint.switchId(), expectedSwitchId);
-    EXPECT_EQ(*endpoint.switchType(), hw->getSwitchType());
+    EXPECT_EQ(
+        *endpoint.switchType(),
+        ensemble->getHwAsicTable()
+            ->getHwAsic(SwitchID(*endpoint.switchId()))
+            ->getSwitchType());
     EXPECT_EQ(*endpoint.portId(), expectedPortId);
   }
 
-  EXPECT_EQ(hw->getSwitchStats()->getFabricReachabilityMismatchCount(), 0);
-  EXPECT_EQ(hw->getSwitchStats()->getFabricReachabilityMissingCount(), 0);
+  EXPECT_EQ(*(ensemble->getFabricReachabilityStats().mismatchCount()), 0);
+  EXPECT_EQ(*(ensemble->getFabricReachabilityStats().missingCount()), 0);
 }
 
-void checkFabricReachabilityStats(HwSwitch* hw) {
-  hw->updateStats();
-  auto reachability = hw->getFabricReachability();
+void checkFabricReachabilityStats(TestEnsembleIf* ensemble) {
+  ensemble->updateStats();
+  auto reachability = ensemble->getFabricReachability();
   int count = 0;
   for (auto [_, endpoint] : reachability) {
     if (!*endpoint.isAttached()) {
@@ -55,8 +59,8 @@ void checkFabricReachabilityStats(HwSwitch* hw) {
     count++;
   }
   // expected all of interfaces to jump on mismatched and missing
-  EXPECT_EQ(hw->getSwitchStats()->getFabricReachabilityMismatchCount(), count);
-  EXPECT_EQ(hw->getSwitchStats()->getFabricReachabilityMissingCount(), count);
+  EXPECT_EQ(*(ensemble->getFabricReachabilityStats().mismatchCount()), count);
+  EXPECT_EQ(*(ensemble->getFabricReachabilityStats().missingCount()), count);
 }
 
 void populatePortExpectedNeighbors(
@@ -80,16 +84,22 @@ void populatePortExpectedNeighbors(
   }
 }
 
-void checkPortFabricReachability(HwSwitch* hw, PortID portId) {
-  hw->updateStats();
-  auto reachability = hw->getFabricReachability();
+void checkPortFabricReachability(TestEnsembleIf* ensemble, PortID portId) {
+  ensemble->updateStats();
+  auto reachability = ensemble->getFabricReachability();
   auto itr = reachability.find(portId);
   ASSERT_TRUE(itr != reachability.end());
   auto endpoint = itr->second;
   EXPECT_TRUE(*endpoint.isAttached());
   XLOG(DBG2) << " On port: " << portId
              << " got switch id: " << *endpoint.switchId();
-  EXPECT_EQ(*endpoint.switchId(), *hw->getSwitchId());
-  EXPECT_EQ(*endpoint.switchType(), hw->getSwitchType());
+  EXPECT_EQ(
+      SwitchID(*endpoint.switchId()),
+      ensemble->scopeResolver().scope(portId).switchId());
+  EXPECT_EQ(
+      *endpoint.switchType(),
+      ensemble->getHwAsicTable()
+          ->getHwAsic(SwitchID(*endpoint.switchId()))
+          ->getSwitchType());
 }
 } // namespace facebook::fboss

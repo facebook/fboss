@@ -84,11 +84,17 @@ class SplitAgentTest : public ::testing::Test {
   void runForever() const;
   std::shared_ptr<SwitchState> applyNewConfig(const cfg::SwitchConfig& config);
 
+  SwSwitch* getSw() const;
   const std::map<SwitchID, const HwAsic*> getAsics() const;
   bool isSupportedOnAllAsics(HwAsic::Feature feature) const;
   AgentEnsemble* getAgentEnsemble() const;
   const std::shared_ptr<SwitchState> getProgrammedState() const;
   std::vector<PortID> masterLogicalPortIds() const;
+  std::vector<PortID> masterLogicalPortIds(
+      const std::set<cfg::PortType>& portTypes) const;
+  void setSwitchDrainState(
+      const cfg::SwitchConfig& curConfig,
+      cfg::SwitchDrainState drainState);
 
  private:
   /*
