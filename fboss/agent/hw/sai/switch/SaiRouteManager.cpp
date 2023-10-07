@@ -185,6 +185,14 @@ void SaiRouteManager::addOrUpdateRoute(
             "for InterfaceID: ",
             interfaceId);
       }
+      /*
+       * Remote interface routes are treated as connected for ECMP route
+       * resolution. In hw, the routes are pointing to drop to avoid attracting
+       * traffic.
+       */
+      if (!routerInterfaceHandle->isLocal()) {
+        packetAction = SAI_PACKET_ACTION_DROP;
+      }
       RouterInterfaceSaiId routerInterfaceId{
           routerInterfaceHandle->adapterKey()};
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)

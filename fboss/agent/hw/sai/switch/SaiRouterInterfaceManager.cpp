@@ -82,6 +82,7 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateVlanRouterInterface(
       store.setObject(k, attributes, swInterface->getID());
   auto vlanRouterInterfaceHandle = std::make_unique<SaiRouterInterfaceHandle>();
   vlanRouterInterfaceHandle->routerInterface = vlanRouterInterface;
+  vlanRouterInterfaceHandle->setLocal(isLocal);
 
   if (isLocal) {
     // create the ToMe routes for this (local) router interface
@@ -149,6 +150,7 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdatePortRouterInterface(
       store.setObject(k, attributes, swInterface->getID());
   auto portRouterInterfaceHandle = std::make_unique<SaiRouterInterfaceHandle>();
   portRouterInterfaceHandle->routerInterface = portRouterInterface;
+  portRouterInterfaceHandle->setLocal(isLocal);
 
   if (isLocal) {
     // create the ToMe routes for this (local) router interface

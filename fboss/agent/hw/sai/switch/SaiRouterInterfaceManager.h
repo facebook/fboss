@@ -57,7 +57,14 @@ struct SaiRouterInterfaceHandle {
         routerInterface);
     CHECK(false) << " Unhandled interface type: ";
   }
+  void setLocal(bool isLocal) {
+    isLocalRif = isLocal;
+  }
+  bool isLocal() const {
+    return isLocalRif;
+  }
   std::vector<std::shared_ptr<SaiRoute>> toMeRoutes;
+  bool isLocalRif{true};
 };
 
 class SaiRouterInterfaceManager {
