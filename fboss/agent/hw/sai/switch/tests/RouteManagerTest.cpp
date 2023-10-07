@@ -23,7 +23,7 @@ class RouteManagerTest : public ManagerTestBase {
  public:
   void SetUp() override {
     setupStage = SetupStage::PORT | SetupStage::VLAN | SetupStage::INTERFACE |
-        SetupStage::NEIGHBOR;
+        SetupStage::NEIGHBOR | SetupStage::SYSTEM_PORT;
     ManagerTestBase::SetUp();
     d1 = {folly::IPAddress{"42.42.42.42"}, 24};
     d2 = {folly::IPAddress{"43.43.43.43"}, 24};
@@ -113,6 +113,30 @@ TEST_F(RouteManagerTest, addToCpuRoute) {
       GET_ATTR(Route, PacketAction, saiRoute->attributes()),
       SAI_PACKET_ACTION_FORWARD);
   EXPECT_EQ(GET_OPT_ATTR(Route, NextHopId, saiRoute->attributes()), 0);
+}
+
+TEST_F(RouteManagerTest, addRemoteInterfaceRoute) {
+  TestInterface intf = testRemoteInterfaces.at(1);
+  RouteFields<folly::IPAddressV4>::Prefix destination(
+      intf.subnet.first.asV4(), intf.subnet.second);
+  ResolvedNextHop nh{
+      intf.routerIp, InterfaceID(kSysPortOffset + intf.id), ECMP_WEIGHT};
+  RouteNextHopEntry::NextHopSet swNextHops{nh};
+  RouteNextHopEntry entry(swNextHops, AdminDistance::DIRECTLY_CONNECTED);
+  auto r = std::make_shared<Route<folly::IPAddressV4>>(
+      RouteV4::makeThrift(destination));
+  r->update(ClientID::INTERFACE_ROUTE, entry);
+  r->setResolved(entry);
+  r->setConnected();
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
+  auto saiEntry =
+      saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r);
+  auto saiRouteHandle =
+      saiManagerTable->routeManager().getRouteHandle(saiEntry);
+  auto saiRoute = saiRouteHandle->route;
+  EXPECT_EQ(
+      GET_ATTR(Route, PacketAction, saiRoute->attributes()),
+      SAI_PACKET_ACTION_DROP);
 }
 
 TEST_F(RouteManagerTest, updateRouteOneNextHopUpdate) {

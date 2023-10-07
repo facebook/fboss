@@ -110,6 +110,9 @@ void ManagerTestBase::setupSaiPlatform() {
       testInterfaces[i] = TestInterface{i, 1};
     }
   }
+  for (int i = 0; i < testRemoteInterfaces.size(); ++i) {
+    testRemoteInterfaces[i] = TestInterface{10 + i, 1};
+  }
 
   HwSwitchMatcher scope(std::unordered_set<SwitchID>({SwitchID(0)}));
   if (setupStage & SetupStage::PORT) {
@@ -128,6 +131,13 @@ void ManagerTestBase::setupSaiPlatform() {
           makeSystemPort(std::nullopt, kSysPortOffset + testInterface.id);
       ports->addNode(swPort, scope);
     }
+    auto* remoteSysports =
+        setupState->getRemoteSystemPorts()->modify(&setupState);
+    for (const auto& testRemoteInterface : testRemoteInterfaces) {
+      auto swPort =
+          makeSystemPort(std::nullopt, kSysPortOffset + testRemoteInterface.id);
+      remoteSysports->addNode(swPort, scope);
+    }
   }
   if (setupStage & SetupStage::VLAN) {
     auto* vlans = setupState->getVlans()->modify(&setupState);
@@ -145,6 +155,15 @@ void ManagerTestBase::setupSaiPlatform() {
         auto swPortInterface =
             makeInterface(testInterface, cfg::InterfaceType::SYSTEM_PORT);
         interfaces->addNode(swPortInterface, scope);
+      }
+    }
+    auto* remoteInterfaces =
+        setupState->getRemoteInterfaces()->modify(&setupState);
+    for (const auto& testRemoteInterface : testRemoteInterfaces) {
+      if (setupStage & SetupStage::SYSTEM_PORT) {
+        auto swPortInterface =
+            makeInterface(testRemoteInterface, cfg::InterfaceType::SYSTEM_PORT);
+        remoteInterfaces->addNode(swPortInterface, scope);
       }
     }
   }
