@@ -19,6 +19,10 @@
 
 #include <string>
 
+namespace {
+constexpr auto kDefaultMtu = 1500;
+}
+
 using namespace facebook::fboss;
 
 HwSwitchMatcher scope() {
@@ -45,7 +49,7 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
       RouterInterfaceSaiId saiRouterInterfaceId,
       VlanSaiId expectedSaiVlanId,
       const folly::MacAddress& expectedSrcMac,
-      int expectedMtu = 1500) const {
+      int expectedMtu = kDefaultMtu) const {
     auto saiVlanIdGot = saiApiTable->routerInterfaceApi().getAttribute(
         saiRouterInterfaceId,
         SaiVlanRouterInterfaceTraits::Attributes::VlanId{});
@@ -64,7 +68,7 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
       InterfaceID intfId,
       VlanSaiId expectedSaiVlanId,
       const folly::MacAddress& expectedSrcMac,
-      int expectedMtu = 1500) const {
+      int expectedMtu = kDefaultMtu) const {
     auto saiId = saiManagerTable->routerInterfaceManager()
                      .getRouterInterfaceHandle(intfId)
                      ->adapterKey();
@@ -74,7 +78,7 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
       RouterInterfaceSaiId saiRouterInterfaceId,
       SystemPortSaiId expectedSaiPortId,
       const folly::MacAddress& expectedSrcMac,
-      int expectedMtu = 1500) const {
+      int expectedMtu = kDefaultMtu) const {
     SystemPortSaiId saiPortIdGot{saiApiTable->routerInterfaceApi().getAttribute(
         saiRouterInterfaceId,
         SaiPortRouterInterfaceTraits::Attributes::PortId{})};
@@ -92,12 +96,15 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
       InterfaceID intfId,
       SystemPortSaiId expectedSaiPortId,
       const folly::MacAddress& expectedSrcMac,
-      int expectedMtu = 1500) const {
-    auto saiId = saiManagerTable->routerInterfaceManager()
-                     .getRouterInterfaceHandle(intfId)
-                     ->adapterKey();
+      bool isLocal,
+      int expectedMtu = kDefaultMtu) const {
+    auto handle =
+        saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
+            intfId);
+    auto saiId = handle->adapterKey();
     checkPortRouterInterface(
         saiId, expectedSaiPortId, expectedSrcMac, expectedMtu);
+    EXPECT_EQ(isLocal, handle->isLocal());
   }
   void checkAdapterKey(
       RouterInterfaceSaiId saiRouterInterfaceId,
@@ -170,7 +177,7 @@ TEST_F(RouterInterfaceManagerTest, addPortRouterInterface) {
     rifMap->addNode(swInterface, scope());
     applyNewState(state);
     checkPortRouterInterface(
-        swInterface->getID(), sysPort1, swInterface->getMac());
+        swInterface->getID(), sysPort1, swInterface->getMac(), !isRemote);
     applyNewState(origState);
   };
   test(false /*local*/);
@@ -204,7 +211,7 @@ TEST_F(RouterInterfaceManagerTest, addTwoPortRouterInterfaces) {
     rifMap->addNode(swInterface0, scope());
     applyNewState(state);
     checkPortRouterInterface(
-        swInterface0->getID(), sysPort1, swInterface0->getMac());
+        swInterface0->getID(), sysPort1, swInterface0->getMac(), !isRemote);
     auto swSysPort1 = makeSystemPort(std::nullopt, 2);
     auto swInterface1 = makeInterface(*swSysPort1, {intf0.subnet});
     rifMap = isRemote ? state->getRemoteInterfaces()->modify(&state)
@@ -212,7 +219,7 @@ TEST_F(RouterInterfaceManagerTest, addTwoPortRouterInterfaces) {
     rifMap->addNode(swInterface1, scope());
     applyNewState(state);
     checkPortRouterInterface(
-        swInterface1->getID(), sysPort2, swInterface1->getMac());
+        swInterface1->getID(), sysPort2, swInterface1->getMac(), !isRemote);
     applyNewState(origState);
   };
   test(false /*local*/);
@@ -272,7 +279,7 @@ TEST_F(RouterInterfaceManagerTest, changePortRouterInterfaceMac) {
     rifMap->addNode(swInterface, scope());
     applyNewState(state);
     checkPortRouterInterface(
-        swInterface->getID(), sysPort1, swInterface->getMac());
+        swInterface->getID(), sysPort1, swInterface->getMac(), !isRemote);
     auto newMac = intf0.routerMac;
     CHECK_NE(swInterface->getMac(), newMac);
     auto newInterface = swInterface->clone();
@@ -282,7 +289,8 @@ TEST_F(RouterInterfaceManagerTest, changePortRouterInterfaceMac) {
     rifMap->updateNode(newInterface, scope());
     applyNewState(state);
     EXPECT_EQ(swInterface->getID(), newInterface->getID());
-    checkPortRouterInterface(newInterface->getID(), sysPort1, newMac);
+    checkPortRouterInterface(
+        newInterface->getID(), sysPort1, newMac, !isRemote);
     applyNewState(origState);
   };
   test(false /*local*/);
@@ -322,7 +330,7 @@ TEST_F(RouterInterfaceManagerTest, changePortRouterInterfaceMtu) {
     rifMap->addNode(swInterface, scope());
     applyNewState(state);
     checkPortRouterInterface(
-        swInterface->getID(), sysPort1, swInterface->getMac());
+        swInterface->getID(), sysPort1, swInterface->getMac(), !isRemote);
     auto newMtu = intf0.mtu + 1000;
     auto newInterface = swInterface->clone();
     newInterface->setMtu(newMtu);
@@ -332,7 +340,11 @@ TEST_F(RouterInterfaceManagerTest, changePortRouterInterfaceMtu) {
     applyNewState(state);
     EXPECT_EQ(swInterface->getID(), newInterface->getID());
     checkPortRouterInterface(
-        newInterface->getID(), sysPort1, newInterface->getMac(), newMtu);
+        newInterface->getID(),
+        sysPort1,
+        newInterface->getMac(),
+        !isRemote,
+        newMtu);
     applyNewState(origState);
   };
   test(false /*local*/);
@@ -367,7 +379,7 @@ TEST_F(RouterInterfaceManagerTest, removePortRouterInterfaceSubnets) {
     rifMap->addNode(swInterface, scope());
     applyNewState(state);
     checkPortRouterInterface(
-        swInterface->getID(), sysPort1, swInterface->getMac());
+        swInterface->getID(), sysPort1, swInterface->getMac(), !isRemote);
     auto oldToMeRoutes = getSubnetKeys(swInterface->getID());
     auto newInterface = swInterface->clone();
     newInterface->setAddresses({});
@@ -412,7 +424,7 @@ TEST_F(RouterInterfaceManagerTest, changePortRouterInterfaceSubnets) {
     rifMap->addNode(swInterface, scope());
     applyNewState(state);
     checkPortRouterInterface(
-        swInterface->getID(), sysPort1, swInterface->getMac());
+        swInterface->getID(), sysPort1, swInterface->getMac(), !isRemote);
     auto oldToMeRoutes = getSubnetKeys(swInterface->getID());
     auto newInterface = swInterface->clone();
     newInterface->setAddresses({{folly::IPAddress{"100.100.100.1"}, 24}});
@@ -461,7 +473,7 @@ TEST_F(RouterInterfaceManagerTest, addPortRouterInterfaceSubnets) {
     rifMap->addNode(swInterface, scope());
     applyNewState(state);
     checkPortRouterInterface(
-        swInterface->getID(), sysPort1, swInterface->getMac());
+        swInterface->getID(), sysPort1, swInterface->getMac(), !isRemote);
     auto oldToMeRoutes = getSubnetKeys(swInterface->getID());
     auto newInterface = swInterface->clone();
     auto addresses = newInterface->getAddressesCopy();
@@ -544,7 +556,7 @@ TEST_F(RouterInterfaceManagerTest, removePortRouterInterface) {
     rifMap->addNode(swInterface, scope());
     applyNewState(state);
     checkPortRouterInterface(
-        swInterface->getID(), sysPort1, swInterface->getMac());
+        swInterface->getID(), sysPort1, swInterface->getMac(), !isRemote);
     rifMap = isRemote ? state->getRemoteInterfaces()->modify(&state)
                       : state->getInterfaces()->modify(&state);
     rifMap->removeNode(swInterface->getID());
