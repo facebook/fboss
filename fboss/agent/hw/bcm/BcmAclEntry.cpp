@@ -849,6 +849,27 @@ bool BcmAclEntry::isStateSame(
         "OuterVlanId");
   }
 
+  if (acl->getUdfGroups() && acl->getRoceOpcode()) {
+    const auto groups = acl->getUdfGroups().value();
+    for (const auto& group : groups) {
+      const int bcmUdfGroupId = hw->getUdfMgr()->getBcmUdfGroupId(group);
+      uint8 swData[] = {acl->getRoceOpcode().value()};
+      uint8 swMask[] = {0xff};
+
+      isSame &= isBcmQualFieldStateSame(
+          bcm_field_qualify_udf_get,
+          hw->getUnit(),
+          handle,
+          bcmUdfGroupId,
+          1 /* max_length */,
+          true,
+          swData,
+          swMask,
+          aclMsg,
+          "BcmUdfGroupId");
+    }
+  }
+
   // check acl stat
   auto aclStatHandle =
       BcmAclStat::getAclStatHandleFromAttachedAcl(hw, gid, handle);
