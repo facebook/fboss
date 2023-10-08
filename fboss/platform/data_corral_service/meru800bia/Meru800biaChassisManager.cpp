@@ -1,35 +1,34 @@
-// Copyright 2014-present Facebook. All Rights Reserved.
+// Copyright 2023-present Facebook. All Rights Reserved.
 
-#include "fboss/platform/data_corral_service/darwin/DarwinChassisManager.h"
+#include "fboss/platform/data_corral_service/meru800bia/Meru800biaChassisManager.h"
 
 #include <fb303/ServiceData.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/lib/CommonFileUtils.h"
-#include "fboss/platform/data_corral_service/darwin/DarwinFruModule.h"
-#include "fboss/platform/data_corral_service/darwin/DarwinPlatformConfig.h"
+#include "fboss/platform/data_corral_service/meru800bia/Meru800biaFruModule.h"
+#include "fboss/platform/data_corral_service/meru800bia/Meru800biaPlatformConfig.h"
 
 namespace {
-// modules in darwin system
-const std::string kDarwinFan = "DarwinFanModule";
-const std::string kDarwinPem = "DarwinPemModule";
+// TODO: support modules
 
-// leds in darwin chasssis
+// leds in meru800bia chassis
 const std::string kSystemLed = "SystemLed";
 const std::string kFanLed = "FanLed";
-const std::string kPemLed = "PemLed";
+const std::string kPsuLed = "PsuLed";
+const std::string kSmbLed = "SmbLed";
 
 // colors available in leds
-const std::string kLedGreen = "Green";
-const std::string kLedRed = "Red";
+const std::string kLedBlue = "Blue";
+const std::string kLedAmber = "Amber";
 
 const std::string kSetColorFailure = "set.color.failure";
 } // namespace
 
 namespace facebook::fboss::platform::data_corral_service {
 
-void DarwinChassisLed::setColorPath(
+void Meru800biaChassisLed::setColorPath(
     ChassisLedColor color,
     const std::string& path) {
   XLOG(DBG2) << "led " << name_ << ", color " << color << ", sysfs path "
@@ -37,7 +36,7 @@ void DarwinChassisLed::setColorPath(
   paths_[color] = path;
 }
 
-void DarwinChassisLed::setColor(ChassisLedColor color) {
+void Meru800biaChassisLed::setColor(ChassisLedColor color) {
   if (color_ != color) {
     if (!facebook::fboss::writeSysfs(paths_[color], "1")) {
       XLOG(ERR) << "failed to set color " << color << " for led " << name_;
@@ -61,7 +60,7 @@ void DarwinChassisLed::setColor(ChassisLedColor color) {
   fb303::fbData->setCounter(kSetColorFailure, 0);
 }
 
-ChassisLedColor DarwinChassisLed::getColor() {
+ChassisLedColor Meru800biaChassisLed::getColor() {
   for (auto const& colorPath : paths_) {
     std::string brightness = facebook::fboss::readSysfs(colorPath.second);
     try {
@@ -78,67 +77,65 @@ ChassisLedColor DarwinChassisLed::getColor() {
   return ChassisLedColor::OFF;
 }
 
-void DarwinChassisManager::initModules() {
+void Meru800biaChassisManager::initModules() {
   XLOG(DBG2) << "instantiate fru modules and chassis leds";
   auto platformConfig = apache::thrift::SimpleJSONSerializer::deserialize<
-      DataCorralPlatformConfig>(getDarwinPlatformConfig());
+      DataCorralPlatformConfig>(getMeru800biaPlatformConfig());
   for (auto fru : *platformConfig.fruModules()) {
     auto name = *fru.name();
-    auto fruModule = std::make_unique<DarwinFruModule>(name);
+    auto fruModule = std::make_unique<Meru800biaFruModule>(name);
     fruModule->init(*fru.attributes());
     fruModules_.emplace(name, std::move(fruModule));
   }
 
-  sysLed_ = std::make_unique<DarwinChassisLed>(kSystemLed);
-  fanLed_ = std::make_unique<DarwinChassisLed>(kFanLed);
-  pemLed_ = std::make_unique<DarwinChassisLed>(kPemLed);
+  sysLed_ = std::make_unique<Meru800biaChassisLed>(kSystemLed);
+  fanLed_ = std::make_unique<Meru800biaChassisLed>(kFanLed);
+  psuLed_ = std::make_unique<Meru800biaChassisLed>(kPsuLed);
+  smbLed_ = std::make_unique<Meru800biaChassisLed>(kSmbLed);
   for (auto attr : *platformConfig.chassisAttributes()) {
-    if (*attr.name() == kSystemLed + kLedRed) {
-      sysLed_->setColorPath(ChassisLedColor::RED, *attr.path());
-    } else if (*attr.name() == kSystemLed + kLedGreen) {
-      sysLed_->setColorPath(ChassisLedColor::GREEN, *attr.path());
-    } else if (*attr.name() == kFanLed + kLedRed) {
-      fanLed_->setColorPath(ChassisLedColor::RED, *attr.path());
-    } else if (*attr.name() == kFanLed + kLedGreen) {
-      fanLed_->setColorPath(ChassisLedColor::GREEN, *attr.path());
-    } else if (*attr.name() == kPemLed + kLedRed) {
-      pemLed_->setColorPath(ChassisLedColor::RED, *attr.path());
-    } else if (*attr.name() == kPemLed + kLedGreen) {
-      pemLed_->setColorPath(ChassisLedColor::GREEN, *attr.path());
+    if (*attr.name() == kSystemLed + kLedAmber) {
+      sysLed_->setColorPath(ChassisLedColor::AMBER, *attr.path());
+    } else if (*attr.name() == kSystemLed + kLedBlue) {
+      sysLed_->setColorPath(ChassisLedColor::BLUE, *attr.path());
+    } else if (*attr.name() == kFanLed + kLedAmber) {
+      fanLed_->setColorPath(ChassisLedColor::AMBER, *attr.path());
+    } else if (*attr.name() == kFanLed + kLedBlue) {
+      fanLed_->setColorPath(ChassisLedColor::BLUE, *attr.path());
+    } else if (*attr.name() == kPsuLed + kLedAmber) {
+      psuLed_->setColorPath(ChassisLedColor::AMBER, *attr.path());
+    } else if (*attr.name() == kPsuLed + kLedBlue) {
+      psuLed_->setColorPath(ChassisLedColor::BLUE, *attr.path());
+    } else if (*attr.name() == kSmbLed + kLedAmber) {
+      smbLed_->setColorPath(ChassisLedColor::AMBER, *attr.path());
+    } else if (*attr.name() == kSmbLed + kLedBlue) {
+      smbLed_->setColorPath(ChassisLedColor::BLUE, *attr.path());
     }
   }
 }
 
-void DarwinChassisManager::programChassis() {
-  ChassisLedColor sysLedColor = ChassisLedColor::GREEN;
-  ChassisLedColor fanLedColor = ChassisLedColor::GREEN;
-  ChassisLedColor pemLedColor = ChassisLedColor::GREEN;
+void Meru800biaChassisManager::programChassis() {
+  ChassisLedColor sysLedColor = ChassisLedColor::BLUE;
+  ChassisLedColor fanLedColor = ChassisLedColor::BLUE;
+  ChassisLedColor psuLedColor = ChassisLedColor::BLUE;
+  ChassisLedColor smbLedColor = ChassisLedColor::BLUE;
 
   for (auto& fru : fruModules_) {
     if (!fru.second->isPresent()) {
       XLOG(DBG2) << "Fru module " << fru.first << " is absent";
-      sysLedColor = ChassisLedColor::RED;
-      if (std::strncmp(
-              fru.first.c_str(), kDarwinFan.c_str(), kDarwinFan.length()) ==
-          0) {
-        fanLedColor = ChassisLedColor::RED;
-      } else if (
-          std::strncmp(
-              fru.first.c_str(), kDarwinPem.c_str(), kDarwinPem.length()) ==
-          0) {
-        pemLedColor = ChassisLedColor::RED;
-      }
+      sysLedColor = ChassisLedColor::AMBER;
     }
   }
-  if (sysLedColor == ChassisLedColor::GREEN) {
+  if (sysLedColor == ChassisLedColor::BLUE) {
     XLOG(DBG4) << "All fru modules are present";
   }
   fb303::fbData->setCounter(fmt::format("{}.color", kSystemLed), sysLedColor);
   fb303::fbData->setCounter(fmt::format("{}.color", kFanLed), fanLedColor);
-  fb303::fbData->setCounter(fmt::format("{}.color", kPemLed), pemLedColor);
+  fb303::fbData->setCounter(fmt::format("{}.color", kPsuLed), psuLedColor);
+  fb303::fbData->setCounter(fmt::format("{}.color", kSmbLed), smbLedColor);
   sysLed_->setColor(sysLedColor);
   fanLed_->setColor(fanLedColor);
-  pemLed_->setColor(pemLedColor);
+  psuLed_->setColor(psuLedColor);
+  smbLed_->setColor(smbLedColor);
 }
 
 } // namespace facebook::fboss::platform::data_corral_service
