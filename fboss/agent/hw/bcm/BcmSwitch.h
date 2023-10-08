@@ -941,7 +941,8 @@ class BcmSwitch : public BcmSwitchIf {
   /*
    * Create ACL group
    */
-  void createAclGroup();
+  void createAclGroup(
+      const std::optional<std::set<bcm_udf_id_t>>& udfIds = std::nullopt);
   /*
    * Create slow protocols MAC group
    */
@@ -1099,6 +1100,9 @@ class BcmSwitch : public BcmSwitchIf {
   void processControlPlaneEntryRemoved(
       const std::shared_ptr<ControlPlane>& oldCPU);
 
+  void updateUdfQset(
+      bcm_field_qset_t& qset,
+      const std::set<bcm_udf_id_t>& udfIds);
   void initialStateApplied() override;
 
   /*

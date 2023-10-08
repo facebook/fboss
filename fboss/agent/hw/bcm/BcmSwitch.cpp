@@ -3453,14 +3453,35 @@ void BcmSwitch::stopLinkscanThread() {
   }
 }
 
-void BcmSwitch::createAclGroup() {
+void BcmSwitch::updateUdfQset(
+    bcm_field_qset_t& qset,
+    const std::set<bcm_udf_id_t>& udfIds) {
+  // update the qset with the multiset  for udfIds
+  for (auto udfId : udfIds) {
+    int rv = bcm_field_qset_id_multi_set(
+        unit_, bcmFieldQualifyUdf, 1, &udfId, &qset);
+    bcmCheckError(
+        rv, "bcm_field_qset_id_multi_set failed for bcmGroupId", udfId);
+    XLOG(INFO) << "Update udf id in the qset: " << (int)udfId;
+  }
+}
+
+void BcmSwitch::createAclGroup(
+    const std::optional<std::set<bcm_udf_id_t>>& udfIds) {
   // Install the master ACL group here, whose content may change overtime
+  bcm_field_qset_t qset = getAclQset(getPlatform()->getAsic()->getAsicType());
+  bool enableQsetCompression = false;
+  if (udfIds) {
+    updateUdfQset(qset, udfIds.value());
+    enableQsetCompression = true;
+  }
   createFPGroup(
       unit_,
-      getAclQset(getPlatform()->getAsic()->getAsicType()),
+      qset,
       platform_->getAsic()->getDefaultACLGroupID(),
       FLAGS_acl_g_pri,
-      getPlatform()->getAsic()->isSupported(HwAsic::Feature::HSDK));
+      getPlatform()->getAsic()->isSupported(HwAsic::Feature::HSDK),
+      enableQsetCompression);
 }
 
 void BcmSwitch::dropDhcpPackets() {
