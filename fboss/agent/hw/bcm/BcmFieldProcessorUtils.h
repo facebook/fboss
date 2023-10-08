@@ -234,6 +234,55 @@ bool isBcmQualFieldStateSame(
   return false;
 }
 
+/**
+ * `bcm_field_qualify_udf` will use this func.
+ */
+template <typename Func, typename Param, size_t size>
+bool isBcmQualFieldStateSame(
+    Func getBcmQualifierFn,
+    int unit,
+    bcm_field_entry_t entry,
+    int id,
+    int maxLength,
+    bool existInSW,
+    const Param (&swData)[size],
+    const Param (&swMask)[size],
+    const std::string& aclMsg,
+    const std::string& qualMsg,
+    bool verifyMask = true,
+    bool verifyLength = true) {
+  Param hwData[size];
+  Param hwMask[size];
+  int hwLength = 0;
+  auto rv =
+      getBcmQualifierFn(unit, entry, id, maxLength, hwData, hwMask, &hwLength);
+  bcmCheckError(rv, aclMsg, " failed to get ", qualMsg, " qualifier");
+
+  bool isNotExistInBoth = !existInSW && !checkArrayHasNonZero(hwData) &&
+      !checkArrayHasNonZero(hwMask);
+  // only check match if exist in both
+  bool isValueSameInBoth = existInSW;
+  if (existInSW) {
+    for (size_t i = 0; i < size; i++) {
+      isValueSameInBoth &= (hwData[i] == swData[i]);
+    }
+    if (verifyMask) {
+      for (size_t i = 0; i < size; i++) {
+        isValueSameInBoth &= (hwMask[i] == swMask[i]);
+      }
+    }
+    if (verifyLength) {
+      isValueSameInBoth &= (hwLength == size);
+    }
+  }
+  if (isNotExistInBoth || isValueSameInBoth) {
+    return true;
+  }
+
+  XLOG(ERR) << aclMsg << " " << qualMsg << " qualify doesn't match.";
+  return false;
+}
+
 template <typename Range>
 std::string getRangeStr(
     const std::optional<Range>& range,
