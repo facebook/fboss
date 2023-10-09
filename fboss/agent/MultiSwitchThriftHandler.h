@@ -25,6 +25,11 @@ class MultiSwitchThriftHandler
 
   folly::coro::Task<apache::thrift::ServerStream<multiswitch::TxPacket>>
   co_getTxPackets(int64_t switchId) override;
+
+  folly::coro::Task<
+      apache::thrift::SinkConsumer<multiswitch::HwSwitchStats, bool>>
+  co_syncHwStats(int16_t switchIndex) override;
+
 #endif
   void getNextStateOperDelta(
       multiswitch::StateOperDelta& operDelta,

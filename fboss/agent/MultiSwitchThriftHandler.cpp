@@ -130,6 +130,25 @@ MultiSwitchThriftHandler::co_getTxPackets(int64_t switchId) {
       SwitchID(switchId), std::move(streamPublisher));
   co_return std::move(streamAndPublisher.first);
 }
+
+folly::coro::Task<
+    apache::thrift::SinkConsumer<multiswitch::HwSwitchStats, bool>>
+MultiSwitchThriftHandler::co_syncHwStats(int16_t switchIndex) {
+  ensureConfigured(__func__);
+  co_return apache::thrift::SinkConsumer<multiswitch::HwSwitchStats, bool>{
+      [this, switchIndex](
+          folly::coro::AsyncGenerator<multiswitch::HwSwitchStats&&> gen)
+          -> folly::coro::Task<bool> {
+        while (auto item = co_await gen.next()) {
+          XLOG(DBG3) << "Got stats event from switchIndex " << switchIndex;
+          sw_->updateHwSwitchStats(switchIndex, std::move(*item));
+        }
+        co_return true;
+      },
+      100 /* buffer size */
+  };
+}
+
 #endif
 
 void MultiSwitchThriftHandler::getNextStateOperDelta(

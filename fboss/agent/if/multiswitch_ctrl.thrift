@@ -86,7 +86,7 @@ service MultiSwitchCtrl {
   void gracefulExit(1: i64 switchId);
 
   /* send hardware stats through sink */
-  sink<HwSwitchStats, bool> syncHwStats(1: i64 switchId) (
+  sink<HwSwitchStats, bool> syncHwStats(1: i16 switchIndex) (
     priority = 'BEST_EFFORT',
   );
 }

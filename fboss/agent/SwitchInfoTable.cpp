@@ -85,4 +85,12 @@ bool SwitchInfoTable::haveFabricSwitches() const {
 bool SwitchInfoTable::haveL3Switches() const {
   return haveVoqSwitches() || haveNpuSwitches();
 }
+
+int16_t SwitchInfoTable::getSwitchIndexFromSwitchId(SwitchID switchId) const {
+  if (switchIdToSwitchInfo_.find(switchId) == switchIdToSwitchInfo_.end()) {
+    throw FbossError("Invalid switch ID: ", switchId);
+  }
+  return switchIdToSwitchInfo_.at(switchId).switchIndex().value();
+}
+
 } // namespace facebook::fboss
