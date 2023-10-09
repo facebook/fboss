@@ -42,10 +42,17 @@ void PlatformExplorer::explorePmUnit(
   XLOG(INFO) << fmt::format("Exploring PmUnit {} at {}", pmUnitName, slotPath);
 
   XLOG(INFO) << fmt::format(
+      "Exploring PCI Devices for PmUnit {} at SlotPath {}. Count {}",
+      pmUnitName,
+      slotPath,
+      pmUnitConfig.pciDeviceConfigs()->size());
+  explorePciDevices(slotPath, *pmUnitConfig.pciDeviceConfigs());
+
+  XLOG(INFO) << fmt::format(
       "Exploring I2C Devices for PmUnit {} at SlotPath {}. Count {}",
       pmUnitName,
       slotPath,
-      pmUnitConfig.i2cDeviceConfigs_ref()->size());
+      pmUnitConfig.i2cDeviceConfigs()->size());
   exploreI2cDevices(slotPath, *pmUnitConfig.i2cDeviceConfigs());
 
   XLOG(INFO) << fmt::format(
@@ -69,7 +76,7 @@ void PlatformExplorer::exploreSlot(
   if (slotConfig.presenceDetection() &&
       presenceDetector_.isPresent(*slotConfig.presenceDetection())) {
     XLOG(INFO) << fmt::format(
-        "No device could detected in SlotPath {}", childSlotPath);
+        "No device could be detected in SlotPath {}", childSlotPath);
   }
 
   int i = 0;
@@ -143,6 +150,47 @@ void PlatformExplorer::exploreI2cDevices(
             fmt::format("{}@{}", *i2cDeviceConfig.pmUnitScopedName(), i),
             channelBusNums[i]);
       }
+    }
+  }
+}
+
+void PlatformExplorer::explorePciDevices(
+    const std::string& slotPath,
+    const std::vector<PciDeviceConfig>& pciDeviceConfigs) {
+  for (const auto& pciDeviceConfig : pciDeviceConfigs) {
+    PciDevice device{
+        *pciDeviceConfig.pmUnitScopedName(),
+        *pciDeviceConfig.vendorId(),
+        *pciDeviceConfig.deviceId(),
+        *pciDeviceConfig.subSystemVendorId(),
+        *pciDeviceConfig.subSystemDeviceId()};
+    for (const auto& [i2cAdapterName, i2cAdapterConfig] :
+         *pciDeviceConfig.i2cAdapterConfigs()) {
+      pciExplorer_.createI2cAdapter(device, i2cAdapterConfig);
+    }
+    for (const auto& [spiMasterName, spiMasterConfig] :
+         *pciDeviceConfig.spiMasterConfigs()) {
+      pciExplorer_.createSpiMaster(device, spiMasterConfig);
+    }
+    for (const auto& [name, fpgaIpBlockConfig] :
+         *pciDeviceConfig.gpioChipConfigs()) {
+      pciExplorer_.create(device, fpgaIpBlockConfig);
+    }
+    for (const auto& [name, fpgaIpBlockConfig] :
+         *pciDeviceConfig.watchdogConfigs()) {
+      pciExplorer_.create(device, fpgaIpBlockConfig);
+    }
+    for (const auto& [name, fpgaIpBlockConfig] :
+         *pciDeviceConfig.fanTachoPwmConfigs()) {
+      pciExplorer_.create(device, fpgaIpBlockConfig);
+    }
+    for (const auto& [name, fpgaIpBlockConfig] :
+         *pciDeviceConfig.ledCtrlConfigs()) {
+      pciExplorer_.createLedCtrl(device, fpgaIpBlockConfig);
+    }
+    for (const auto& [name, xcvrCtrlConfig] :
+         *pciDeviceConfig.xcvrCtrlConfigs()) {
+      pciExplorer_.createXcvrCtrl(device, xcvrCtrlConfig);
     }
   }
 }

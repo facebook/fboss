@@ -5,6 +5,7 @@
 
 #include <folly/experimental/FunctionScheduler.h>
 
+#include "fboss/platform/platform_manager/PciExplorer.h"
 #include "fboss/platform/platform_manager/PlatformI2cExplorer.h"
 #include "fboss/platform/platform_manager/PresenceDetector.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
@@ -42,6 +43,11 @@ class PlatformExplorer {
       const std::string& slotPath,
       const std::vector<I2cDeviceConfig>& i2cDeviceConfigs);
 
+  // Explore the PCI devices in the PmUnit at the given SlotPath.
+  void explorePciDevices(
+      const std::string& slotPath,
+      const std::vector<PciDeviceConfig>& pciDeviceConfigs);
+
   // Get the kernel assigned I2C bus number for the given busName.
   // If the busName could be found in global scope (e.g., bus from CPU),
   // then return it directly. Otherwise, check if there is a mapping in the
@@ -61,6 +67,7 @@ class PlatformExplorer {
   folly::FunctionScheduler scheduler_;
   PlatformConfig platformConfig_{};
   PlatformI2cExplorer i2cExplorer_{};
+  PciExplorer pciExplorer_{};
   PresenceDetector presenceDetector_{};
   // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.
   // - The pmUnitPath to the rootPmUnit is /. So a bus at root PmUnit will have
