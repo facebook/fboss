@@ -413,8 +413,6 @@ bool MultiHwSwitchHandler::sendPacketSwitchedAsync(
 
 std::optional<uint32_t> MultiHwSwitchHandler::getHwLogicalPortId(
     PortID portID) {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
   return hwSwitchSyncers_.begin()->second->getHwLogicalPortId(portID);
 }
 

@@ -68,7 +68,7 @@ folly::dynamic NonMonolithicHwSwitchHandler::toFollyDynamic() const {
 
 std::optional<uint32_t> NonMonolithicHwSwitchHandler::getHwLogicalPortId(
     PortID /*portID*/) const {
-  // TODO: implement this
+  // TODO: query hwswitch and return logical port id
   return std::nullopt;
 }
 
