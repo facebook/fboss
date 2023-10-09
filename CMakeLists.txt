@@ -621,4 +621,5 @@ add_dependencies(fboss_platform_services
   fw_util
   weutil
   led_service
+  data_corral_service
 )
