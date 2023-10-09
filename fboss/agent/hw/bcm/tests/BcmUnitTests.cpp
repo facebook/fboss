@@ -65,7 +65,7 @@ struct PortData {
   }
 
   PortData(const std::initializer_list<PortInfo>& ports) {
-    for (auto port : ports) {
+    for (const auto& port : ports) {
       addPort(port);
     }
   }

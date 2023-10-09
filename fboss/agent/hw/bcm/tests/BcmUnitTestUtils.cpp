@@ -9,7 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/tests/BcmUnitTestUtils.h"
 
-#include <assert.h>
+#include <cassert>
 
 extern "C" {
 int bde_create() {

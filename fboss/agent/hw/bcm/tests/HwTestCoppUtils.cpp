@@ -56,10 +56,10 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
     cfg::AclEntry acl;
     acl.name() = "cpuPolicing-high-slow-protocols-mac";
     acl.dstMac() = LACPDU::kSlowProtocolsDstMac().toString();
-    acls.push_back(std::make_pair(
+    acls.emplace_back(
         acl,
         createQueueMatchAction(
-            getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic))));
+            getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic)));
   }
 
   // EAPOL
@@ -70,10 +70,10 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
       acl.name() = "cpuPolicing-high-eapol";
       acl.dstMac() = "ff:ff:ff:ff:ff:ff";
       acl.etherType() = cfg::EtherType::EAPOL;
-      acls.push_back(std::make_pair(
+      acls.emplace_back(
           acl,
           createQueueMatchAction(
-              getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic))));
+              getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic)));
     }
   }
 
@@ -97,10 +97,10 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
       acl.l4DstPort() = utility::kBgpPort;
     }
 
-    acls.push_back(std::make_pair(
+    acls.emplace_back(
         acl,
         createQueueMatchAction(
-            getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic))));
+            getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic)));
   };
   addHighPriDstClassL3BgpAcl(true /*v4*/, true /*srcPort*/);
   addHighPriDstClassL3BgpAcl(true /*v4*/, false /*dstPort*/);
@@ -119,10 +119,10 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
         ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
         : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
 
-    acls.push_back(std::make_pair(
+    acls.emplace_back(
         acl,
         createQueueMatchAction(
-            getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic))));
+            getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic)));
   };
   addHigPriLocalIpNetworkControlAcl(true);
   addHigPriLocalIpNetworkControlAcl(false);
@@ -136,10 +136,10 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
             "cpuPolicing-high-", dstNetworkStr, "-network-control");
         acl.dstIp() = dstNetworkStr;
         acl.dscp() = 48;
-        acls.push_back(std::make_pair(
+        acls.emplace_back(
             acl,
             createQueueMatchAction(
-                getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic))));
+                getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic)));
       };
   addHighPriLinkLocalV6NetworkControlAcl(kIPv6LinkLocalMcastNetwork());
   addHighPriLinkLocalV6NetworkControlAcl(kIPv6LinkLocalUcastNetwork());
@@ -152,10 +152,10 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
         folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
     acl.name() = "cpuPolicing-high-ndp-solicit";
     acl.dstIp() = dstNetworkStr;
-    acls.push_back(std::make_pair(
+    acls.emplace_back(
         acl,
         createQueueMatchAction(
-            getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic))));
+            getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic)));
   }
 
   // Now steer traffic destined to this (local) interface IP
@@ -171,10 +171,10 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
         ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
         : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
 
-    acls.push_back(std::make_pair(
+    acls.emplace_back(
         acl,
         createQueueMatchAction(
-            utility::kCoppMidPriQueueId, getCpuActionType(hwAsic))));
+            utility::kCoppMidPriQueueId, getCpuActionType(hwAsic)));
   };
   addMidPriDstClassL3Acl(true);
   addMidPriDstClassL3Acl(false);
@@ -208,13 +208,13 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
 #endif
       auto action = createQueueMatchAction(queue, getCpuActionType(hwAsic));
       action.counter() = kMplsDestNoMatchCounterName;
-      acls.push_back(std::make_pair(acl, action));
+      acls.emplace_back(acl, action);
     }
   }
   return acls;
 }
 
-std::string getMplsDestNoMatchCounterName(void) {
+std::string getMplsDestNoMatchCounterName() {
   return kMplsDestNoMatchCounterName;
 }
 
