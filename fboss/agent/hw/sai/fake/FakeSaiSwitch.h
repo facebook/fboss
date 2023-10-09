@@ -257,9 +257,15 @@ class FakeSwitch {
   void setCreditWatchdogEnable(bool enable) {
     creditWatchDogEnable_ = enable;
   }
-
   bool getCreditWatchdogEnable() const {
     return creditWatchDogEnable_;
+  }
+
+  void setCreditWatchdogMs(uint32_t watchDogMs) {
+    creditWatchDogMs_ = watchDogMs;
+  }
+  uint32_t getCreditWatchdogMs() const {
+    return creditWatchDogMs_;
   }
 
   void setPfcDlrPacketAction(sai_packet_action_t pktAction) {
@@ -319,6 +325,7 @@ class FakeSwitch {
   sai_uint32_t maxEcmpMemberCount_{4096};
   sai_uint32_t ecmpMemberCount_{64};
   bool creditWatchDogEnable_{true};
+  uint32_t creditWatchDogMs_{500};
   sai_packet_action_t pfcDlrPacketAction_{SAI_PACKET_ACTION_DROP};
 };
 

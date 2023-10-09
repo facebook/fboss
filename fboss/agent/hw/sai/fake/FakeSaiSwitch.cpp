@@ -266,6 +266,9 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_CREDIT_WD:
       sw.setCreditWatchdogEnable(attr->value.booldata);
       break;
+    case SAI_SWITCH_ATTR_CREDIT_WD_TIMER:
+      sw.setCreditWatchdogMs(attr->value.u32);
+      break;
 #endif
     case SAI_SWITCH_ATTR_PFC_DLR_PACKET_ACTION:
       sw.setPfcDlrPacketAction(
@@ -515,6 +518,9 @@ sai_status_t get_switch_attribute_fn(
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
       case SAI_SWITCH_ATTR_CREDIT_WD:
         attr[i].value.booldata = sw.getCreditWatchdogEnable();
+        break;
+      case SAI_SWITCH_ATTR_CREDIT_WD_TIMER:
+        attr[i].value.u32 = sw.getCreditWatchdogMs();
         break;
 #endif
       case SAI_SWITCH_ATTR_PFC_DLR_PACKET_ACTION:
