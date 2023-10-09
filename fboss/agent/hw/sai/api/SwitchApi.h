@@ -443,6 +443,8 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_CREDIT_WD,
         bool,
         SaiBoolDefaultTrue>;
+    using CreditWdTimer =
+        SaiAttribute<EnumType, SAI_SWITCH_ATTR_CREDIT_WD_TIMER, sai_uint32_t>;
 #endif
     struct AttributeMaxCoresWrapper {
       std::optional<sai_attr_id_t> operator()();
@@ -615,6 +617,7 @@ SAI_ATTRIBUTE_NAME(Switch, WarmBootTargetVersion)
 SAI_ATTRIBUTE_NAME(Switch, SwitchIsolate)
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 SAI_ATTRIBUTE_NAME(Switch, CreditWd)
+SAI_ATTRIBUTE_NAME(Switch, CreditWdTimer)
 #endif
 SAI_ATTRIBUTE_NAME(Switch, MaxCores)
 SAI_ATTRIBUTE_NAME(Switch, PfcDlrPacketAction)
