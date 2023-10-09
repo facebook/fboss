@@ -14,7 +14,9 @@
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include "fboss/agent/if/gen-cpp2/MultiSwitchCtrl.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/if/gen-cpp2/multiswitch_ctrl_handlers.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/types.h"
@@ -230,6 +232,8 @@ class HwSwitch {
    */
   void updateStats();
 
+  multiswitch::HwSwitchStats getHwSwitchStats();
+
   virtual folly::F14FastMap<std::string, HwPortStats> getPortStats() const = 0;
   virtual CpuPortStats getCpuPortStats() const = 0;
 
@@ -241,6 +245,7 @@ class HwSwitch {
       SwitchID switchId) const = 0;
   virtual std::map<std::string, HwSysPortStats> getSysPortStats() const = 0;
   virtual FabricReachabilityStats getFabricReachabilityStats() const = 0;
+  virtual TeFlowStats getTeFlowStats() const = 0;
 
   /*
    * Get latest device watermark bytes

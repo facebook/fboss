@@ -83,6 +83,8 @@ class BcmTeFlowTable {
   // return nullptr if not found
   BcmTeFlowStat* getTeFlowStatIf(const std::string& name) const;
 
+  TeFlowStats getFlowStats() const;
+
  private:
   using BcmTeFlowEntryMap = std::map<TeFlow, std::unique_ptr<BcmTeFlowEntry>>;
   using BcmTeFlowStatMap = std::unordered_map<
@@ -102,6 +104,7 @@ class BcmTeFlowTable {
   std::unique_ptr<BcmIngressFieldProcessorFlexCounter> exactMatchFlexCounter_{
       nullptr};
   std::bitset<BcmAclStat::kMaxExactMatchStatEntries> actionIndexMap_;
+  folly::Synchronized<std::unordered_set<std::string>> statsNames_;
 };
 
 } // namespace facebook::fboss

@@ -3289,4 +3289,10 @@ void SaiSwitch::pfcDeadlockNotificationCallback(
                 << " in PFC deadlock notify callback";
   }
 }
+
+TeFlowStats SaiSwitch::getTeFlowStats() const {
+  // not implemented in SAI. Return empty stats
+  return TeFlowStats();
+}
+
 } // namespace facebook::fboss

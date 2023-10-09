@@ -27,6 +27,8 @@
 #include <folly/experimental/TestUtil.h>
 #include <folly/logging/xlog.h>
 
+#include <chrono>
+
 DEFINE_bool(flexports, false, "Load the agent with flexport support enabled");
 DEFINE_int32(
     update_watermark_stats_interval_s,
@@ -80,6 +82,22 @@ void HwSwitch::updateStats() {
   if (normalizer) {
     normalizer->processStats(getPortStats());
   }
+}
+
+multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
+  multiswitch::HwSwitchStats hwSwitchStats;
+  auto now = std::chrono::duration_cast<std::chrono::seconds>(
+      std::chrono::system_clock::now().time_since_epoch());
+  hwSwitchStats.timestamp() = now.count();
+  hwSwitchStats.hwPortStats() = getPortStats();
+  hwSwitchStats.hwAsicErrors() = getSwitchStats()->getHwAsicErrors();
+  HwBufferPoolStats bufferPoolStats;
+  bufferPoolStats.deviceWatermarkBytes() = getDeviceWatermarkBytes();
+  hwSwitchStats.bufferPoolStats() = std::move(bufferPoolStats);
+  hwSwitchStats.teFlowStats() = getTeFlowStats();
+  // TODO - fill sysport stats. The format of stats map in systemport
+  // manager needs to be modified to avoid copy before it can be added
+  return hwSwitchStats;
 }
 
 uint32_t HwSwitch::generateDeterministicSeed(LoadBalancerID loadBalancerID) {

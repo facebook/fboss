@@ -312,6 +312,7 @@ target_link_libraries(hw_switch
   hw_switch_fb303_stats
   hw_write_behavior
   hw_switch_warmboot_helper
+  multiswitch_ctrl_cpp2
 )
 
 add_library(async_logger

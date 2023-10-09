@@ -200,6 +200,7 @@ BcmTeFlowStat* BcmTeFlowTable::incRefOrCreateBcmTeFlowStat(
     }
     auto stat = newStat.get();
     teFlowStatMap_.emplace(counterName, std::make_pair(std::move(newStat), 1));
+    statsNames_.wlock()->insert(counterName);
     hw_->getStatUpdater()->toBeAddedTeFlowStat(
         stat->getHandle(), counterName, counterTypes, actionIndex);
     return stat;
@@ -229,6 +230,7 @@ BcmTeFlowStat* BcmTeFlowTable::incRefOrCreateBcmTeFlowStat(
     }
     auto stat = newStat.get();
     teFlowStatMap_.emplace(counterName, std::make_pair(std::move(newStat), 1));
+    statsNames_.wlock()->insert(counterName);
     hw_->getStatUpdater()->toBeAddedTeFlowStat(
         stat->getHandle(), counterName, counterTypes, actionIndex);
     return stat;
@@ -262,6 +264,7 @@ void BcmTeFlowTable::derefBcmTeFlowStat(const std::string& counterName) {
         utility::statNameFromCounterType(counterName, cfg::CounterType::BYTES));
     hw_->getStatUpdater()->toBeRemovedTeFlowStat(
         bcmTeFlowStat->getHandle(), actionIndex);
+    statsNames_.wlock()->erase(counterName);
     teFlowStatMap_.erase(teFlowStatItr);
   }
 }
@@ -303,6 +306,25 @@ void BcmTeFlowTable::clearActionIndex(uint32_t offset) {
 void BcmTeFlowTable::setActionIndex(uint32_t offset) {
   DCHECK_EQ(actionIndexMap_.test(offset), false);
   actionIndexMap_.set(offset);
+}
+
+TeFlowStats BcmTeFlowTable::getFlowStats() const {
+  TeFlowStats flowStats;
+  std::map<std::string, HwTeFlowStats> hwTeFlowStats;
+  auto statMap = facebook::fb303::fbData->getStatMap();
+  auto statNames = statsNames_.rlock();
+  for (const auto& counterId : *statNames) {
+    auto statName = folly::to<std::string>(counterId, ".bytes");
+    // returns default stat if statName does not exists
+    auto statPtr = statMap->getStatPtrNoExport(statName);
+    auto lockedStatPtr = statPtr->lock();
+    auto numLevels = lockedStatPtr->numLevels();
+    // Cumulative (ALLTIME) counters are at (numLevels - 1)
+    HwTeFlowStats flowStat;
+    flowStat.bytes() = lockedStatPtr->sum(numLevels - 1);
+    hwTeFlowStats.emplace(counterId, std::move(flowStat));
+  }
+  return flowStats;
 }
 
 } // namespace facebook::fboss

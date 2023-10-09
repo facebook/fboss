@@ -62,6 +62,10 @@ class SimSwitch : public HwSwitch {
     return {};
   }
 
+  TeFlowStats getTeFlowStats() const override {
+    return TeFlowStats();
+  }
+
   void fetchL2Table(std::vector<L2EntryThrift>* /*l2Table*/) const override {
     return;
   }

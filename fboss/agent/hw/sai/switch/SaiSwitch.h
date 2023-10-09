@@ -230,6 +230,8 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock) const;
   void switchRunStateChangedImpl(SwitchRunState newState) override;
 
+  TeFlowStats getTeFlowStats() const override;
+
   void updateStatsImpl() override;
   template <typename LockPolicyT>
   void updateResourceUsage(const LockPolicyT& lockPolicy);
