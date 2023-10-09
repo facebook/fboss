@@ -909,6 +909,11 @@ class SwSwitch : public HwSwitchCallback {
       uint16_t switchIndex,
       multiswitch::HwSwitchStats hwStats);
 
+  // Returns a copy of hwswitch exported stats.
+  // To be used only in tests as copy is expensive.
+  multiswitch::HwSwitchStats getHwSwitchStatsWithCopy(
+      uint16_t switchIndex) const;
+
  private:
   std::optional<folly::MacAddress> getSourceMac(
       const std::shared_ptr<Interface>& intf) const;
