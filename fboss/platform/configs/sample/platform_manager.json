@@ -1,12 +1,12 @@
 {
-  "___COMMENT___": "See the associated pastes to get a pictorial representation of this config",
+  "___COMMENT___": "See the associated topology in sample_platform_topology.txt",
   "platformName": "sample_platform",
   "rootPmUnitName": "SCM",
   "slotTypeConfigs": {
     "SCM_SLOT": {
       "numOutgoingI2cBuses": 0,
       "idpromConfig": {
-        "busName": "CPU@7",
+        "busName": "CPU@0",
         "address": "0x12",
         "kernelDeviceName": "24c02"
       }
@@ -14,7 +14,7 @@
     "SMB_SLOT": {
       "numOutgoingI2cBuses": 8,
       "idpromConfig": {
-        "busName": "INCOMING@0",
+        "busName": "INCOMING@2",
         "address": "0x11",
         "kernelDeviceName": "24c02"
       }
@@ -30,7 +30,7 @@
     "PSU_SLOT": {
       "numOutgoingI2cBuses": 2,
       "idpromConfig": {
-        "busName": "INCOMING@0",
+        "busName": "INCOMING@1",
         "address": "0x12",
         "kernelDeviceName": "24c64"
       }
@@ -38,7 +38,7 @@
     "YOLO_SLOT": {
       "numOutgoingI2cBuses": 3,
       "idpromConfig": {
-        "busName": "INCOMING@0",
+        "busName": "INCOMING@2",
         "address": "0x05",
         "kernelDeviceName": "24c64"
       }
@@ -47,60 +47,110 @@
   "pmUnitConfigs": {
     "SCM": {
       "pluggedInSlotType": "SCM_SLOT",
+      "pciDeviceConfigs": [
+        {
+          "name": "IOB1 FPGA",
+          "vendorId": "83xf",
+          "deviceId": "ab87",
+          "i2cAdapterConfigs": {
+            "SCM_IOB1_I2C_0": {
+              "deviceName": "i2c-smb",
+              "iobufOffset": 23
+            }
+          },
+          "spiMasterConfigs": {
+            "SCM_IOB1_SPI_0": {
+              "fpgaIpBlockConfig": {
+                "deviceName": "spi",
+                "iobufOffset": 34
+              },
+              "numberOfCsPins": 1
+            },
+            "SCM_IOB1_SPI_1": {
+              "fpgaIpBlockConfig": {
+                "deviceName": "spi",
+                "iobufOffset": 334
+              },
+              "numberOfCsPins": 1
+            }
+          }
+        }
+      ],
+      "i2cDeviceConfigs": [
+        {
+          "busName": "CPU@1",
+          "address": "0x50",
+          "kernelDeviceName": "pca9x44",
+          "pmUnitScopeName": "scm_mux1",
+          "numOutgoingChannels": 4
+        }
+      ],
       "outgoingSlotConfigs": {
         "SMB_SLOT@0": {
           "slotType": "SMB_SLOT",
-          "pathToPoll": "...",
           "outgoingI2cBusNames": [
-            "CPU@0",
+            "SCM_IOB1_I2C_0",
             "CPU@1",
-            "CPU@2",
-            "CPU@3",
-            "CPU@4",
-            "CPU@5",
-            "CPU@6",
-            "CPU@7"
+            "scm_mux1@0"
           ]
         }
-      },
+      }
+    },
+    "SMB": {
+      "pluggedInSlotType": "SMB_SLOT",
+      "pciDevices": [
+        {
+          "name": "IOB2 FPGA",
+          "vendorId": "1132",
+          "deviceId": "hg56",
+          "i2cAdapterConfigs": {
+            "SCM_IOB2_I2C_0": {
+              "deviceName": "i2c-smb",
+              "iobufOffset": 67
+            },
+            "SCM_IOB2_I2C_1": {
+              "deviceName": "i2c-smb",
+              "iobufOffset": 87
+            }
+          }
+        }
+      ],
       "i2cDeviceConfigs": [
         {
-          "busName": "CPU@7",
+          "busName": "SCM_IOB2_I2C_0",
+          "address": "0x54",
+          "kernelDeviceName": "lm75",
+          "pmUnitScopeName": "inlet_sensor"
+        },
+        {
+          "busName": "SCM_IOB2_I2C_1",
+          "address": "0x55",
+          "kernelDeviceName": "lm75",
+          "pmUnitScopeName": "outlet_sensor"
+        },
+        {
+          "busName": "SCM_IOB2_I2C_1",
+          "address": "0x54",
+          "kernelDeviceName": "lm75",
+          "pmUnitScopeName": "asic_sensor"
+        },
+        {
+          "busName": "INCOMING@2",
           "address": "0x11",
           "kernelDeviceName": "24c02",
           "pmUnitScopeName": "chassis_eeprom",
           "isEeprom": true,
           "isChassisEeprom": true
         }
-      ]
-    },
-    "SMB": {
-      "pluggedInSlotType": "SMB_SLOT",
-      "i2cDeviceConfigs": [
-        {
-          "busName": "INCOMING@7",
-          "address": "0x54",
-          "kernelDeviceName": "lm75",
-          "pmUnitScopeName": "inlet_sensor"
-        },
-        {
-          "busName": "INCOMING@7",
-          "address": "0x55",
-          "kernelDeviceName": "lm75",
-          "pmUnitScopeName": "outlet_sensor"
-        },
-        {
-          "busName": "INCOMING@6",
-          "address": "0x54",
-          "kernelDeviceName": "lm75",
-          "pmUnitScopeName": "asic_sensor"
-        }
       ],
       "outgoingSlotConfigs": {
         "YOLO_SLOT@0": {
           "slotType": "YOLO_SLOT",
-          "pathToPoll": "...",
-          "outgoingI2cBusNames": ["INCOMING@3", "INCOMING@4", "INCOMING@5"]
+          "outgoingI2cBusNames": [
+            "INCOMING@0",
+            "INCOMING@1",
+            "INCOMING@2"
+          ]
         }
       }
     },
@@ -109,53 +159,88 @@
       "i2cDeviceConfigs": [
         {
           "busName": "INCOMING@0",
-          "address": "0x54",
-          "kernelDeviceName": "pca9x42",
-          "pmUnitScopeName": "yolo_mux1",
-          "numOutgoingChannels": 2
-        },
-        {
-          "busName": "INCOMING@1",
-          "address": "0x55",
-          "kernelDeviceName": "pca9x44",
-          "pmUnitScopeName": "yolo_mux2",
-          "numOutgoingChannels": 4
-        },
-        {
-          "busName": "yolo_mux1@0",
           "address": "0x12",
           "kernelDeviceName": "lm75",
           "pmUnitScopeName": "yolo_sensor1"
         },
         {
+          "busName": "INCOMING@1",
+          "address": "0x55",
+          "kernelDeviceName": "pca9x44",
+          "pmUnitScopeName": "yolo_mux1",
+          "numOutgoingChannels": 4
+        },
+        {
           "busName": "INCOMING@2",
+          "address": "0x54",
+          "kernelDeviceName": "pca9x42",
+          "pmUnitScopeName": "yolo_mux2",
+          "numOutgoingChannels": 2
+        },
+        {
+          "busName": "yolo_mux2@1",
           "address": "0x12",
           "kernelDeviceName": "lm75",
           "pmUnitScopeName": "yolo_sensor2"
         }
       ],
+      "pciDevices": [
+        {
+          "name": "IOB2 FPGA",
+          "vendorId": "1132",
+          "deviceId": "hg56",
+          "i2cAdapterConfigs": {
+            "SCM_IOB2_I2C_2": {
+              "deviceName": "i2c-smb",
+              "iobufOffset": 198
+            }
+          }
+        }
+      ],
       "outgoingSlotConfigs": {
-        "PIM_SLOT@0": {
-          "slotType": "PIM_SLOT",
-          "pathToPoll": "...",
-          "outgoingI2cBusNames": ["yolo_mux1@0"]
-        },
-        "PIM_SLOT@1": {
-          "slotType": "PIM_SLOT",
-          "pathToPoll": "...",
-          "outgoingI2cBusNames": ["yolo_mux1@1"]
-        },
         "PSU_SLOT@0": {
           "slotType": "PSU_SLOT",
-          "pathToPoll": "...",
-          "outgoingI2cBusNames": ["yolo_mux2@0", "yolo_mux2@1"]
+          "outgoingI2cBusNames": [
+            "SCM_IOB2_I2C_2",
+            "yolo_mux1@1"
+          ]
         },
         "PSU_SLOT@1": {
           "slotType": "PSU_SLOT",
-          "pathToPoll": "...",
-          "outgoingI2cBusNames": ["yolo_mux2@2", "INCOMING@3"]
+          "outgoingI2cBusNames": [
+            "yolo_mux1@2",
+            "yolo_mux1@3"
+          ]
+        },
+        "PIM_SLOT@0": {
+          "slotType": "PIM_SLOT",
+          "outgoingI2cBusNames": [
+            "yolo_mux2@0"
+          ]
+        },
+        "PIM_SLOT@1": {
+          "slotType": "PIM_SLOT",
+          "outgoingI2cBusNames": [
+            "yolo_mux2@1"
+          ]
         }
       }
+    },
+    "PSU_2GH": {
+      "pluggedInSlotType": "PSU_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x12",
+          "kernelDeviceName": "lm75",
+          "pmUnitScopeName": "psu_2gh_sensor"
+        }
+      ],
+      "outgoingSlotConfigs": {}
+    },
+    "PIM_8DD": {
+      "pluggedInSlotType": "PIM_SLOT",
+      "outgoingSlotConfigs": {}
     },
     "PIM_16Q": {
       "pluggedInSlotType": "PIM_SLOT",
@@ -169,32 +254,10 @@
         }
       ],
       "outgoingSlotConfigs": {}
-    },
-    "PIM_8DD": {
-      "pluggedInSlotType": "PIM_SLOT",
-      "outgoingSlotConfigs": {}
-    },
-    "PSU_2GH": {
-      "pluggedInSlotType": "PSU_SLOT",
-      "i2cDeviceConfigs": [
-        {
-          "busName": "INCOMING@1",
-          "address": "0x12",
-          "kernelDeviceName": "lm75",
-          "pmUnitScopeName": "psu_2gh_sensor"
-        }
-      ],
-      "outgoingSlotConfigs": {}
     }
   },
   "i2cAdaptersFromCpu": [
     "CPU@0",
-    "CPU@1",
-    "CPU@2",
-    "CPU@3",
-    "CPU@4",
-    "CPU@5",
-    "CPU@6",
-    "CPU@7"
+    "CPU@1"
   ]
 }

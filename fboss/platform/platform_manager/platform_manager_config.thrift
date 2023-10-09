@@ -186,7 +186,7 @@ struct I2cDeviceConfig {
   7: bool isChassisEeprom;
 }
 
-// The IDPROM which contains information about the PmUnit or Chassis
+// The IDPROM which contains information about the PmUnit
 //
 // `busName`: This bus should be directly from the CPU, or an incoming bus into
 // the PmUnit (i.e., there should not be any mux or fpga in between).  In the
