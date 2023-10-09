@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
+#include <folly/FileUtil.h>
 #include <folly/Singleton.h>
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bia/Meru400biaBspPlatformMapping.h"
@@ -9,8 +10,32 @@
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 
+DEFINE_string(
+    bsp_platform_mapping_override_path,
+    "",
+    "The path to the BSP Platform Mapping JSON file");
+
 namespace facebook {
 namespace fboss {
+
+template <typename T>
+BspPlatformMapping* BspGenericSystemContainer<T>::initBspPlatformMapping() {
+  std::string platformMappingStr;
+  if (!FLAGS_bsp_platform_mapping_override_path.empty()) {
+    if (!folly::readFile(
+            FLAGS_bsp_platform_mapping_override_path.data(),
+            platformMappingStr)) {
+      throw FbossError(
+          "unable to read ", FLAGS_bsp_platform_mapping_override_path);
+    }
+    XLOG(INFO) << "Overriding BSP platform mapping from "
+               << FLAGS_bsp_platform_mapping_override_path;
+  }
+  bspPlatformMapping_ = FLAGS_bsp_platform_mapping_override_path.empty()
+      ? new T()
+      : new T(platformMappingStr);
+  return bspPlatformMapping_;
+}
 
 using Meru400bfuSystemContainer =
     BspGenericSystemContainer<Meru400bfuBspPlatformMapping>;

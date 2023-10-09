@@ -15,10 +15,7 @@ class BspGenericSystemContainer : public BspSystemContainer {
   static std::shared_ptr<BspGenericSystemContainer> getInstance();
 
  private:
-  BspPlatformMapping* initBspPlatformMapping() {
-    bspPlatformMapping_ = new T();
-    return bspPlatformMapping_;
-  }
+  BspPlatformMapping* initBspPlatformMapping();
 
   T* bspPlatformMapping_;
 };
