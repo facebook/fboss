@@ -197,6 +197,26 @@ int Jericho2Asic::getDefaultNumPortQueues(
       " combination");
 }
 
+uint64_t Jericho2Asic::getDefaultReservedBytes(
+    cfg::StreamType streamType,
+    cfg::PortType portType) const {
+  switch (portType) {
+    case cfg::PortType::CPU_PORT:
+      return 1778;
+    case cfg::PortType::RECYCLE_PORT:
+      return 4096;
+    case cfg::PortType::INTERFACE_PORT:
+    case cfg::PortType::FABRIC_PORT:
+      return 0;
+  }
+  throw FbossError(
+      "Unexpected, stream: ",
+      apache::thrift::util::enumNameSafe(streamType),
+      " portType: ",
+      apache::thrift::util::enumNameSafe(portType),
+      " combination");
+}
+
 cfg::Range64 Jericho2Asic::getReservedEncapIndexRange() const {
   // Reserved range worked out with vendor. These ids
   // are reserved in SAI-SDK implementation for use

@@ -53,10 +53,8 @@ class Jericho2Asic : public BroadcomAsic {
     return 4;
   }
   uint64_t getDefaultReservedBytes(
-      cfg::StreamType /*streamType*/,
-      cfg::PortType portType) const override {
-    return portType == cfg::PortType::CPU_PORT ? 1778 : 0;
-  }
+      cfg::StreamType streamType,
+      cfg::PortType portType) const override;
   cfg::MMUScalingFactor getDefaultScalingFactor(
       cfg::StreamType /*streamType*/,
       bool /*cpu*/) const override {
