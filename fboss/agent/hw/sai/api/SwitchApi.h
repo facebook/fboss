@@ -443,8 +443,11 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_CREDIT_WD,
         bool,
         SaiBoolDefaultTrue>;
-    using CreditWdTimer =
-        SaiAttribute<EnumType, SAI_SWITCH_ATTR_CREDIT_WD_TIMER, sai_uint32_t>;
+    using CreditWdTimer = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_CREDIT_WD_TIMER,
+        sai_uint32_t,
+        SaiIntValueDefault<sai_uint32_t, 500>>;
 #endif
     struct AttributeMaxCoresWrapper {
       std::optional<sai_attr_id_t> operator()();

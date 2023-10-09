@@ -620,10 +620,22 @@ TEST_F(SwitchApiTest, getSomeStats) {
 }
 
 TEST_F(SwitchApiTest, setGetCreditWatchdog) {
+  EXPECT_TRUE(switchApi->getAttribute(
+      switchId, SaiSwitchTraits::Attributes::CreditWd{}));
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::CreditWdTimer{}),
+      500);
   SaiSwitchTraits::Attributes::CreditWd wd{false};
   switchApi->setAttribute(switchId, wd);
   SaiSwitchTraits::Attributes::CreditWd blank{true};
   EXPECT_FALSE(switchApi->getAttribute(switchId, blank));
+  SaiSwitchTraits::Attributes::CreditWdTimer wdTimer{10};
+  switchApi->setAttribute(switchId, wdTimer);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::CreditWdTimer{}),
+      10);
 }
 
 TEST_F(SwitchApiTest, setGetPfcDlrPacketAction) {
