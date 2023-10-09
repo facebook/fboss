@@ -23,8 +23,6 @@ DEFINE_bool(
     "tests doing a full process warmboot and verifying expectations");
 
 namespace {
-int kArgc;
-char** kArgv;
 facebook::fboss::PlatformInitFn kPlatformInitFn;
 static std::string kInputConfigFile;
 
@@ -39,10 +37,6 @@ void AgentEnsemble::setupEnsemble(
     uint32_t hwFeaturesDesired,
     AgentEnsembleSwitchConfigFn initialConfigFn,
     AgentEnsemblePlatformConfigFn platformConfigFn) {
-  // to ensure FLAGS_config is set, as this is used in case platform config is
-  // overriden by the application.
-  gflags::ParseCommandLineFlags(&kArgc, &kArgv, false);
-
   FLAGS_verify_apply_oper_delta = true;
 
   if (platformConfigFn) {
@@ -54,8 +48,8 @@ void AgentEnsemble::setupEnsemble(
     writeConfig(agentConf, FLAGS_config);
   }
   setVersionInfo();
-  auto config = fbossCommonInit(kArgc, kArgv);
-  createSwitch(std::move(config), hwFeaturesDesired, kPlatformInitFn);
+  createSwitch(
+      AgentConfig::fromDefaultFile(), hwFeaturesDesired, kPlatformInitFn);
 
   // TODO: Handle multiple Asics
   auto asic = getSw()->getHwAsicTable()->getHwAsics().cbegin()->second;
@@ -243,8 +237,7 @@ std::string AgentEnsemble::getInputConfigFile() {
 }
 
 int ensembleMain(int argc, char* argv[], PlatformInitFn initPlatform) {
-  kArgc = argc;
-  kArgv = argv;
+  fbossCommonInit(argc, argv);
   kPlatformInitFn = std::move(initPlatform);
   return RUN_ALL_TESTS();
 }
