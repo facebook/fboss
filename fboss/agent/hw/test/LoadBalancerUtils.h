@@ -77,7 +77,7 @@ void pumpTraffic(
     int hopLimit = 255,
     std::optional<folly::MacAddress> srcMac = std::nullopt);
 
-void pumpRoCETraffic(
+size_t pumpRoCETraffic(
     bool isV6,
     HwSwitch* hw,
     folly::MacAddress dstMac,

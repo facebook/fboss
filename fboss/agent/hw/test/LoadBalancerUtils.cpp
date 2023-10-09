@@ -239,7 +239,7 @@ cfg::UdfConfig addUdfHashConfig(void) {
  *  | Ack Req(8) | Packet Seq num (24) |
  *  ------------------------------------
  */
-void pumpRoCETraffic(
+size_t pumpRoCETraffic(
     bool isV6,
     HwSwitch* hw,
     folly::MacAddress dstMac,
@@ -255,6 +255,7 @@ void pumpRoCETraffic(
   auto srcIp = folly::IPAddress(isV6 ? "1001::1" : "100.0.0.1");
   auto dstIp = folly::IPAddress(isV6 ? "2001::1" : "200.0.0.1");
 
+  size_t txPacketSize = 0;
   XLOG(INFO) << "Send traffic with RoCE payload ..";
   for (auto i = 0; i < packetCount; ++i) {
     std::vector<uint8_t> rocePayload = {kUdfRoceOpcode, 0x40, 0xff, 0xff, 0x00};
@@ -285,6 +286,7 @@ void pumpRoCETraffic(
         0,
         hopLimit,
         rocePayload);
+    txPacketSize = pkt->buf()->length();
     if (frontPanelPortToLoopTraffic) {
       hw->sendPacketOutOfPortSync(
           std::move(pkt), frontPanelPortToLoopTraffic.value());
@@ -292,6 +294,7 @@ void pumpRoCETraffic(
       hw->sendPacketSwitchedSync(std::move(pkt));
     }
   }
+  return txPacketSize;
 }
 
 /*
