@@ -45,7 +45,6 @@ void FruPresenceExplorer::detectFruPresence() const {
   }
 
   bool allFrusPresent = true;
-  bool fruLedProgramSuccess = true;
   for (const auto& [fruType, presence] : fruTypePresence) {
     if (!presence) {
       allFrusPresent = false;
@@ -61,7 +60,6 @@ void FruPresenceExplorer::detectFruPresence() const {
     }
 
     if (!ledManager_->programFruLed(fruType, presence)) {
-      fruLedProgramSuccess = false;
       fb303::fbData->setCounter(
           fmt::format("fru_presence_explorer.{}.program_led_fail", fruType), 1);
     } else {
