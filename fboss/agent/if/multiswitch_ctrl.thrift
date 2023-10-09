@@ -59,6 +59,7 @@ struct HwSwitchStats {
   6: map<string, SystemPortStats> sysPortStats;
   7: hardware_stats.TeFlowStats teFlowStats;
   8: hardware_stats.HwBufferPoolStats bufferPoolStats;
+  9: hardware_stats.FabricReachabilityStats fabricReachabilityStats;
 }
 
 service MultiSwitchCtrl {

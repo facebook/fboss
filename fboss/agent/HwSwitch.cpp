@@ -95,6 +95,7 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
   bufferPoolStats.deviceWatermarkBytes() = getDeviceWatermarkBytes();
   hwSwitchStats.bufferPoolStats() = std::move(bufferPoolStats);
   hwSwitchStats.teFlowStats() = getTeFlowStats();
+  hwSwitchStats.fabricReachabilityStats() = getFabricReachabilityStats();
   // TODO - fill sysport stats. The format of stats map in systemport
   // manager needs to be modified to avoid copy before it can be added
   return hwSwitchStats;
