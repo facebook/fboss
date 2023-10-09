@@ -317,6 +317,37 @@ bcm_field_hintid_t compressFpQualifier(
   return hint_id;
 }
 
+std::set<bcm_udf_id_t> getUdfQsetIds(int unit, bcm_field_group_t gid) {
+  std::set<bcm_udf_id_t> udfIds;
+  const auto& qsetInHw = getGroupQset(unit, gid);
+  // only go over the first 16 chunks i.e. first 2 bytes of the map
+  // TODO: CSP as follow up to understand the right macro to use for it
+  for (auto index = 0; index < 2; ++index) {
+    if (SHR_BITGET(qsetInHw.udf_map, index)) {
+      udfIds.insert(index + 1); // since index starts from 0
+    }
+  }
+  return udfIds;
+}
+
+void updateUdfQset(
+    int unit,
+    bcm_field_qset_t& qset,
+    const std::set<bcm_udf_id_t>& udfIds) {
+  // update the qset with the multiset  for udfIds
+  std::vector<int> v(udfIds.begin(), udfIds.end());
+  std::string udfIdString;
+  std::for_each(v.begin(), v.end(), [&udfIdString](const auto& udfId) {
+    udfIdString.append(std::to_string(udfId)).append(",");
+  });
+
+  int rv = bcm_field_qset_id_multi_set(
+      unit, bcmFieldQualifyUdf, v.size(), v.data(), &qset);
+  bcmCheckError(
+      rv, "bcm_field_qset_id_multi_set failed for bcmGroupId", udfIdString);
+  XLOG(INFO) << "Update udf id in the qset: " << udfIdString;
+}
+
 void createFPGroup(
     int unit,
     bcm_field_qset_t qset,
@@ -340,12 +371,13 @@ void createFPGroup(
 
     /* generate hint to compress ipv6 fields */
     config.hintid = compressFpQualifier(unit, bcmFieldQualifySrcIp6, 0, 64);
+    rv = bcm_field_group_config_create(unit, &config);
     XLOG(DBG2) << "Generate hint id for compressing srcIp6 qualifier :"
                << (int)config.hintid;
-    rv = bcm_field_group_config_create(unit, &config);
   } else if (onHSDK) {
     bcm_field_group_config_t config;
     bcm_field_group_config_t_init(&config);
+
     config.flags = BCM_FIELD_GROUP_CREATE_WITH_ID;
     config.qset = qset;
     BCM_FIELD_ASET_INIT(config.aset);

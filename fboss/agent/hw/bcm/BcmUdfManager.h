@@ -55,7 +55,7 @@ class BcmUdfManager {
   int getBcmUdfGroupFieldSize(const std::string& udfGroupName) const;
   int getBcmUdfGroupProto(const std::string& udfGroupName) const;
   cfg::UdfGroupType getUdfGroupType(const std::string& udfGroupName) const;
-  void getUdfAclGroupIds(std::vector<bcm_udf_id_t>& bcmUdfGroupIds) const;
+  void getUdfAclGroupIds(std::set<bcm_udf_id_t>& bcmUdfGroupIds) const;
 
   int getBcmUdfPacketMatcherId(const std::string& udfPacketMatcherName) const;
 

@@ -405,6 +405,7 @@ bool needsExtraFPQsetQualifiers(cfg::AsicType asicType);
 bcm_field_qset_t getGroupQset(int unit, bcm_field_group_t groupId);
 
 void clearFPGroup(int unit, bcm_field_group_t gid);
+std::set<bcm_udf_id_t> getUdfQsetIds(int unit, bcm_field_group_t gid);
 
 void createFPGroup(
     int unit,
@@ -421,6 +422,11 @@ bcm_field_hintid_t compressFpQualifier(
     const int end);
 
 bool qsetsEqual(const bcm_field_qset_t& lhs, const bcm_field_qset_t& rhs);
+
+void updateUdfQset(
+    int unit,
+    bcm_field_qset_t& qset,
+    const std::set<bcm_udf_id_t>& udfIds);
 
 bool qsetsMultiSetEqual(
     const bcm_field_qset_t& lhs,

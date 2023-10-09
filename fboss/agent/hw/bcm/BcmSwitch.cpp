@@ -3170,6 +3170,30 @@ void BcmSwitch::processAddedUdfPacketMatcher(
 void BcmSwitch::processAddedUdfGroup(const shared_ptr<UdfGroup>& udfGroup) {
   XLOG(DBG2) << "Adding udf group: " << udfGroup->getID();
   udfManager_->createUdfGroup(udfGroup);
+
+  // once all udf are finalized i.e. add->remove
+  processDefaultAclgroupForUdf();
+}
+
+void BcmSwitch::processDefaultAclgroupForUdf() {
+  std::set<bcm_udf_id_t> udfAclIds;
+  udfManager_->getUdfAclGroupIds(udfAclIds);
+
+  const auto& udfQsetIdsInHW = getUdfQsetIds(
+      unit_,
+      static_cast<bcm_field_group_t>(
+          platform_->getAsic()->getDefaultACLGroupID()));
+  if (udfAclIds == udfQsetIdsInHW) {
+    // nothing to update here
+    XLOG(DBG2) << "UDF ACL id no change in HW";
+    return;
+  }
+
+  XLOG(DBG2) << "Udf id mismatch in default acl qset. Recreate the group.";
+  clearFPGroup(unit_, platform_->getAsic()->getDefaultACLGroupID());
+  createAclGroup(
+      udfAclIds.size() ? std::optional<std::set<bcm_udf_id_t>>(udfAclIds)
+                       : std::nullopt);
 }
 
 void BcmSwitch::processUdfRemove(const StateDelta& delta) {
@@ -3191,6 +3215,9 @@ void BcmSwitch::processRemovedUdfPacketMatcher(
 void BcmSwitch::processRemovedUdfGroup(const shared_ptr<UdfGroup>& udfGroup) {
   XLOG(DBG2) << "Removing udf group: " << udfGroup->getID();
   udfManager_->deleteUdfGroup(udfGroup);
+
+  // once all udf are finalized i.e. add->remove
+  processDefaultAclgroupForUdf();
 }
 
 void BcmSwitch::processChangedLoadBalancer(
@@ -3457,26 +3484,13 @@ void BcmSwitch::stopLinkscanThread() {
   }
 }
 
-void BcmSwitch::updateUdfQset(
-    bcm_field_qset_t& qset,
-    const std::set<bcm_udf_id_t>& udfIds) {
-  // update the qset with the multiset  for udfIds
-  for (auto udfId : udfIds) {
-    int rv = bcm_field_qset_id_multi_set(
-        unit_, bcmFieldQualifyUdf, 1, &udfId, &qset);
-    bcmCheckError(
-        rv, "bcm_field_qset_id_multi_set failed for bcmGroupId", udfId);
-    XLOG(INFO) << "Update udf id in the qset: " << (int)udfId;
-  }
-}
-
 void BcmSwitch::createAclGroup(
     const std::optional<std::set<bcm_udf_id_t>>& udfIds) {
   // Install the master ACL group here, whose content may change overtime
   bcm_field_qset_t qset = getAclQset(getPlatform()->getAsic()->getAsicType());
   bool enableQsetCompression = false;
   if (udfIds) {
-    updateUdfQset(qset, udfIds.value());
+    updateUdfQset(unit_, qset, udfIds.value());
     enableQsetCompression = true;
   }
   createFPGroup(
