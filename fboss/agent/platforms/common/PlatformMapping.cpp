@@ -644,6 +644,16 @@ const PortID PlatformMapping::getPortID(const std::string& portName) const {
   throw FbossError("No PlatformPortEntry found for portName: ", portName);
 }
 
+std::optional<std::string> PlatformMapping::getPortNameByPortId(
+    PortID portId) const {
+  const auto& platformPorts = getPlatformPorts();
+  int32_t portIdInt = static_cast<int32_t>(portId);
+  if (platformPorts.find(portIdInt) != platformPorts.end()) {
+    return *platformPorts.at(portIdInt).mapping()->name();
+  }
+  return std::nullopt;
+}
+
 const cfg::PlatformPortConfig& PlatformMapping::getPlatformPortConfig(
     PortID id,
     cfg::PortProfileID profileID) const {

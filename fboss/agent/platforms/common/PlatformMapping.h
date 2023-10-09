@@ -156,6 +156,8 @@ class PlatformMapping {
   // Converts port name -> logical portID
   const PortID getPortID(const std::string& portName) const;
 
+  std::optional<std::string> getPortNameByPortId(PortID portId) const;
+
   /*
    * Some platforms need customize their raw override factor generated from
    * Transceiver or Chip to match their PlatformMapping PortConfigOverrides
