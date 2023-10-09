@@ -59,9 +59,10 @@ class Jericho3Asic : public BroadcomAsic {
   uint32_t getMaxMirrors() const override {
     return 4;
   }
-  uint64_t getDefaultReservedBytes(cfg::StreamType /*streamType*/, bool cpu)
-      const override {
-    return cpu ? 1778 : 0;
+  uint64_t getDefaultReservedBytes(
+      cfg::StreamType /*streamType*/,
+      cfg::PortType portType) const override {
+    return portType == cfg::PortType::CPU_PORT ? 1778 : 0;
   }
   cfg::MMUScalingFactor getDefaultScalingFactor(
       cfg::StreamType /*streamType*/,

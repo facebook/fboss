@@ -34,7 +34,7 @@ int MarvelPhyAsic::getDefaultNumPortQueues(
 }
 uint64_t MarvelPhyAsic::getDefaultReservedBytes(
     cfg::StreamType /* streamType */,
-    bool /* cpu */) const {
+    cfg::PortType /* portType */) const {
   throw FbossError("MarvelPhyAsic doesn't support queue feature");
 }
 cfg::MMUScalingFactor MarvelPhyAsic::getDefaultScalingFactor(

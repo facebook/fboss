@@ -38,10 +38,11 @@ class Tomahawk5Asic : public BroadcomXgsAsic {
   uint32_t getMMUCellSize() const {
     return 254;
   }
-  uint64_t getDefaultReservedBytes(cfg::StreamType /*streamType*/, bool cpu)
-      const override {
+  uint64_t getDefaultReservedBytes(
+      cfg::StreamType /*streamType*/,
+      cfg::PortType portType) const override {
     /* TODO: Mimicking TH3 size here*/
-    return cpu ? 1778 : 0;
+    return portType == cfg::PortType::CPU_PORT ? 1778 : 0;
   }
   cfg::MMUScalingFactor getDefaultScalingFactor(
       cfg::StreamType /*streamType*/,

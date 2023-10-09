@@ -443,7 +443,7 @@ void SaiPortManager::loadPortQueues(const Port& swPort) {
           portQueue->getReservedBytes()
               ? *portQueue->getReservedBytes()
               : asic->getDefaultReservedBytes(
-                    portQueue->getStreamType(), false /* not cpu port*/));
+                    portQueue->getStreamType(), swPort.getPortType()));
       clonedPortQueue->setScalingFactor(
           portQueue->getScalingFactor()
               ? *portQueue->getScalingFactor()
@@ -958,7 +958,7 @@ void SaiPortManager::changeQueue(
           newPortQueue->getReservedBytes()
               ? *newPortQueue->getReservedBytes()
               : asic->getDefaultReservedBytes(
-                    newPortQueue->getStreamType(), false /* not cpu port*/));
+                    newPortQueue->getStreamType(), swPort->getPortType()));
       portQueue->setScalingFactor(
           newPortQueue->getScalingFactor()
               ? *newPortQueue->getScalingFactor()

@@ -229,7 +229,7 @@ const PortQueue& getTD2DefaultUCPortQueueSettings() {
       cfg::StreamType::UNICAST,
       kDefaultPortQueueWeight,
       asic.getDefaultReservedBytes(
-          cfg::StreamType::UNICAST, false /*is front panel port*/),
+          cfg::StreamType::UNICAST, cfg::PortType::INTERFACE_PORT),
       bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
       std::nullopt,
       kDefaultTD2PortQueueSharedBytes,
@@ -253,7 +253,7 @@ const PortQueue& getTHDefaultUCPortQueueSettings() {
       cfg::StreamType::UNICAST,
       kDefaultPortQueueWeight,
       asic.getDefaultReservedBytes(
-          cfg::StreamType::UNICAST, false /*is front panel port*/),
+          cfg::StreamType::UNICAST, cfg::PortType::INTERFACE_PORT),
       bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
       std::nullopt,
       kDefaultTHPortQueueSharedBytes,
@@ -277,7 +277,7 @@ const PortQueue& getTH3DefaultUCPortQueueSettings() {
       cfg::StreamType::UNICAST,
       kDefaultPortQueueWeight,
       asic.getDefaultReservedBytes(
-          cfg::StreamType::UNICAST, false /*is front panel port*/),
+          cfg::StreamType::UNICAST, cfg::PortType::INTERFACE_PORT),
       bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
       std::nullopt,
       kDefaultTH3PortQueueSharedBytes,
@@ -301,7 +301,7 @@ const PortQueue& getTH4DefaultUCPortQueueSettings() {
       cfg::StreamType::UNICAST,
       kDefaultPortQueueWeight,
       asic.getDefaultReservedBytes(
-          cfg::StreamType::UNICAST, false /*is front panel port*/),
+          cfg::StreamType::UNICAST, cfg::PortType::INTERFACE_PORT),
       bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
       std::nullopt,
       kDefaultTH4PortQueueSharedBytes,
@@ -325,7 +325,7 @@ const PortQueue& getTD2DefaultMCPortQueueSettings() {
       cfg::StreamType::MULTICAST,
       kDefaultPortQueueWeight,
       asic.getDefaultReservedBytes(
-          cfg::StreamType::MULTICAST, false /*is front panel port*/),
+          cfg::StreamType::MULTICAST, cfg::PortType::INTERFACE_PORT),
       bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
       std::nullopt,
       kDefaultTD2PortQueueSharedBytes,
@@ -349,7 +349,7 @@ const PortQueue& getTHDefaultMCPortQueueSettings() {
       cfg::StreamType::MULTICAST,
       kDefaultPortQueueWeight,
       asic.getDefaultReservedBytes(
-          cfg::StreamType::MULTICAST, false /*is front panel port*/),
+          cfg::StreamType::MULTICAST, cfg::PortType::INTERFACE_PORT),
       bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
       std::nullopt,
       kDefaultTHPortQueueSharedBytes,
@@ -373,7 +373,7 @@ const PortQueue& getTH3DefaultMCPortQueueSettings() {
       cfg::StreamType::MULTICAST,
       kDefaultPortQueueWeight,
       asic.getDefaultReservedBytes(
-          cfg::StreamType::MULTICAST, false /*is front panel port*/),
+          cfg::StreamType::MULTICAST, cfg::PortType::INTERFACE_PORT),
       bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
       std::nullopt,
       kDefaultTH3PortQueueSharedBytes,
@@ -397,7 +397,7 @@ const PortQueue& getTH4DefaultMCPortQueueSettings() {
       cfg::StreamType::MULTICAST,
       kDefaultPortQueueWeight,
       asic.getDefaultReservedBytes(
-          cfg::StreamType::MULTICAST, false /*is front panel port*/),
+          cfg::StreamType::MULTICAST, cfg::PortType::INTERFACE_PORT),
       bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
       std::nullopt,
       kDefaultTH4PortQueueSharedBytes,
@@ -456,7 +456,7 @@ const PortQueue& getTD2DefaultMCCPUQueueSettings() {
       cfg::StreamType::MULTICAST,
       kDefaultPortQueueWeight,
       asic.getDefaultReservedBytes(
-          cfg::StreamType::MULTICAST, true /*cpu port*/),
+          cfg::StreamType::MULTICAST, cfg::PortType::CPU_PORT),
       std::nullopt,
       std::nullopt,
       kDefaultTD2PortQueueSharedBytes,
@@ -480,7 +480,7 @@ const PortQueue& getTHDefaultMCCPUQueueSettings() {
       cfg::StreamType::MULTICAST,
       kDefaultPortQueueWeight,
       asic.getDefaultReservedBytes(
-          cfg::StreamType::MULTICAST, true /*cpu port*/),
+          cfg::StreamType::MULTICAST, cfg::PortType::CPU_PORT),
       std::nullopt,
       std::nullopt,
       kDefaultTHPortQueueSharedBytes,
@@ -504,7 +504,7 @@ const PortQueue& getTH3DefaultMCCPUQueueSettings() {
       cfg::StreamType::MULTICAST,
       kDefaultPortQueueWeight,
       asic.getDefaultReservedBytes(
-          cfg::StreamType::MULTICAST, true /*cpu port*/),
+          cfg::StreamType::MULTICAST, cfg::PortType::CPU_PORT),
       std::nullopt,
       std::nullopt,
       kDefaultTH3PortQueueSharedBytes,
@@ -528,7 +528,7 @@ const PortQueue& getTH4DefaultMCCPUQueueSettings() {
       cfg::StreamType::MULTICAST,
       kDefaultPortQueueWeight,
       asic.getDefaultReservedBytes(
-          cfg::StreamType::MULTICAST, true /*cpu port*/),
+          cfg::StreamType::MULTICAST, cfg::PortType::CPU_PORT),
       std::nullopt,
       std::nullopt,
       kDefaultTH4PortQueueSharedBytes,

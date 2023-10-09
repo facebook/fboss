@@ -201,8 +201,9 @@ class HwAsic {
   virtual uint64_t getMMUSizeBytes() const = 0;
   virtual uint32_t getMaxMirrors() const = 0;
   virtual uint16_t getMirrorTruncateSize() const = 0;
-  virtual uint64_t getDefaultReservedBytes(cfg::StreamType streamType, bool cpu)
-      const = 0;
+  virtual uint64_t getDefaultReservedBytes(
+      cfg::StreamType streamType,
+      cfg::PortType portType) const = 0;
   virtual cfg::MMUScalingFactor getDefaultScalingFactor(
       cfg::StreamType streamType,
       bool cpu) const = 0;

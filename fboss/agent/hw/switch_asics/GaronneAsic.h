@@ -49,8 +49,9 @@ class GaronneAsic : public TajoAsic {
   uint32_t getNumCores() const override {
     return 12;
   }
-  uint64_t getDefaultReservedBytes(cfg::StreamType /*streamType*/, bool /*cpu*/)
-      const override {
+  uint64_t getDefaultReservedBytes(
+      cfg::StreamType /*streamType*/,
+      cfg::PortType /*portType*/) const override {
     // Concept of reserved bytes does not apply to GB
     return 0;
   }

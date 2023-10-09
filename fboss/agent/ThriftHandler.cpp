@@ -216,8 +216,8 @@ void getPortInfoHelper(
     if (queue->getReservedBytes()) {
       pq.reservedBytes() = queue->getReservedBytes().value();
     } else if (asic->isSupported(HwAsic::Feature::BUFFER_POOL)) {
-      pq.reservedBytes() =
-          asic->getDefaultReservedBytes(queue->getStreamType(), false);
+      pq.reservedBytes() = asic->getDefaultReservedBytes(
+          queue->getStreamType(), port->getPortType());
     }
     if (queue->getScalingFactor()) {
       pq.scalingFactor() =

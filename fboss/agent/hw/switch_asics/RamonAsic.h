@@ -45,8 +45,9 @@ class RamonAsic : public BroadcomAsic {
   uint32_t getMaxLabelStackDepth() const override;
   uint64_t getMMUSizeBytes() const override;
   uint32_t getMaxMirrors() const override;
-  uint64_t getDefaultReservedBytes(cfg::StreamType streamType, bool cpu)
-      const override;
+  uint64_t getDefaultReservedBytes(
+      cfg::StreamType streamType,
+      cfg::PortType portType) const override;
   cfg::MMUScalingFactor getDefaultScalingFactor(
       cfg::StreamType streamType,
       bool cpu) const override;

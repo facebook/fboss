@@ -462,7 +462,7 @@ void SaiHostifManager::changeCpuQueue(
         newPortQueue->getReservedBytes()
             ? *newPortQueue->getReservedBytes()
             : asic->getDefaultReservedBytes(
-                  newPortQueue->getStreamType(), true /*cpu port*/));
+                  newPortQueue->getStreamType(), cfg::PortType::CPU_PORT));
     portQueue->setScalingFactor(
         newPortQueue->getScalingFactor()
             ? *newPortQueue->getScalingFactor()

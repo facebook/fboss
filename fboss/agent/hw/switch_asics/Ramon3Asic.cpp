@@ -56,7 +56,7 @@ int Ramon3Asic::getDefaultNumPortQueues(
 }
 uint64_t Ramon3Asic::getDefaultReservedBytes(
     cfg::StreamType /* streamType */,
-    bool /* cpu */) const {
+    cfg::PortType /* portType */) const {
   throw FbossError("Ramon3 doesn't support queue feature");
 }
 cfg::MMUScalingFactor Ramon3Asic::getDefaultScalingFactor(
