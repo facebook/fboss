@@ -45,8 +45,9 @@ class Ramon3Asic : public BroadcomAsic {
 
   std::set<cfg::StreamType> getQueueStreamTypes(
       cfg::PortType portType) const override;
-  int getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
-      const override;
+  int getDefaultNumPortQueues(
+      cfg::StreamType streamType,
+      cfg::PortType portType) const override;
   uint32_t getMaxLabelStackDepth() const override;
   uint64_t getMMUSizeBytes() const override;
   uint32_t getMaxMirrors() const override;

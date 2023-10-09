@@ -175,18 +175,19 @@ std::set<cfg::StreamType> Jericho3Asic::getQueueStreamTypes(
       "Jericho2 ASIC does not support:",
       apache::thrift::util::enumNameSafe(portType));
 }
-int Jericho3Asic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
-    const {
+int Jericho3Asic::getDefaultNumPortQueues(
+    cfg::StreamType streamType,
+    cfg::PortType portType) const {
   if (getAsicMode() == AsicMode::ASIC_MODE_SIM) {
     return 0;
   }
   switch (streamType) {
     case cfg::StreamType::UNICAST:
-      return cpu ? 2 : 8;
+      return portType == cfg::PortType::CPU_PORT ? 2 : 8;
     case cfg::StreamType::MULTICAST:
       break;
     case cfg::StreamType::FABRIC_TX:
-      if (cpu) {
+      if (portType != cfg::PortType::FABRIC_PORT) {
         break;
       }
       return 1;
@@ -194,7 +195,11 @@ int Jericho3Asic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
       break;
   }
   throw FbossError(
-      "Unexpected, stream: ", streamType, " cpu: ", cpu, "combination");
+      "Unexpected, stream: ",
+      apache::thrift::util::enumNameSafe(streamType),
+      " portType: ",
+      apache::thrift::util::enumNameSafe(portType),
+      " combination");
 }
 
 cfg::Range64 Jericho3Asic::getReservedEncapIndexRange() const {

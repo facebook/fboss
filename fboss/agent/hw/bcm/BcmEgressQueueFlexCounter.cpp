@@ -183,7 +183,7 @@ uint32_t getCounterIndex(
     } else if (streamType == cfg::StreamType::MULTICAST) {
       return queueIdxStart +
           hw->getPlatform()->getAsic()->getDefaultNumPortQueues(
-              cfg::StreamType::UNICAST, false /*not CPU*/) +
+              cfg::StreamType::UNICAST, cfg::PortType::INTERFACE_PORT) +
           queue;
     } else {
       throw FbossError(
@@ -401,11 +401,11 @@ void BcmEgressQueueFlexCounter::attach(bcm_gport_t gPort) {
     const auto* asic = hw_->getPlatform()->getAsic();
     prepareStatData(
         asic->getDefaultNumPortQueues(
-            cfg::StreamType::UNICAST, false /*not CPU*/),
+            cfg::StreamType::UNICAST, cfg::PortType::INTERFACE_PORT),
         cfg::StreamType::UNICAST);
     prepareStatData(
         asic->getDefaultNumPortQueues(
-            cfg::StreamType::MULTICAST, false /*not CPU*/),
+            cfg::StreamType::MULTICAST, cfg::PortType::INTERFACE_PORT),
         cfg::StreamType::MULTICAST);
   }
 
@@ -495,7 +495,7 @@ void BcmEgressQueueFlexCounter::getStats(
 
   int frontPanelUcQueueNum =
       hw_->getPlatform()->getAsic()->getDefaultNumPortQueues(
-          cfg::StreamType::UNICAST, false /*not CPU*/);
+          cfg::StreamType::UNICAST, cfg::PortType::INTERFACE_PORT);
   auto updateStatData =
       [&](int startIndex, int endIndex, cfg::StreamType streamType) {
         for (int queue = startIndex; queue <= endIndex; queue++) {
@@ -547,10 +547,11 @@ BcmEgressQueueFlexCounterManager::BcmEgressQueueFlexCounterManager(
   // we can support collecting MC queue counters in the future, we create
   // a FlexCounter for both types queues.
   auto* asic = hw->getPlatform()->getAsic();
-  int numQueuesPerPort = asic->getDefaultNumPortQueues(
-                             cfg::StreamType::UNICAST, false /*non CPU*/) +
+  int numQueuesPerPort =
       asic->getDefaultNumPortQueues(
-          cfg::StreamType::MULTICAST, false /*non CPU*/);
+          cfg::StreamType::UNICAST, cfg::PortType::INTERFACE_PORT) +
+      asic->getDefaultNumPortQueues(
+          cfg::StreamType::MULTICAST, cfg::PortType::INTERFACE_PORT);
   int numPorts = asic->getMaxNumLogicalPorts();
 
   // Currently there's not a straightforward way to find the flex counter id

@@ -45,11 +45,15 @@ std::set<cfg::StreamType> RamonAsic::getQueueStreamTypes(
 
 int RamonAsic::getDefaultNumPortQueues(
     cfg::StreamType /* streamType */,
-    bool cpu) const {
-  // On meru400bfu we use a single fabric queue for all
+    cfg::PortType portType) const {
+  if (portType != cfg::PortType::FABRIC_PORT) {
+    throw FbossError("Only fabric ports expected on Ramon asic");
+  }
+  // On Ramons we use a single fabric queue for all
   // traffic
-  return cpu ? 0 : 1;
+  return 1;
 }
+
 uint64_t RamonAsic::getDefaultReservedBytes(
     cfg::StreamType /* streamType */,
     bool /* cpu */) const {

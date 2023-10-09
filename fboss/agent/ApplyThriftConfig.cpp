@@ -1829,7 +1829,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   CHECK(asic != nullptr);
   QueueConfig portQueues;
   for (auto streamType : asic->getQueueStreamTypes(*portConf->portType())) {
-    auto maxQueues = asic->getDefaultNumPortQueues(streamType, false);
+    auto maxQueues =
+        asic->getDefaultNumPortQueues(streamType, *portConf->portType());
     auto tmpPortQueues = updatePortQueues(
         orig->getPortQueues()->impl(),
         cfgPortQueues,
@@ -4253,7 +4254,7 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
     auto tmpPortQueues = updatePortQueues(
         origCPU->getQueuesConfig(),
         *cfg_->cpuQueues(),
-        asic->getDefaultNumPortQueues(streamType, true),
+        asic->getDefaultNumPortQueues(streamType, cfg::PortType::CPU_PORT),
         streamType,
         qosMap);
     newQueues.insert(

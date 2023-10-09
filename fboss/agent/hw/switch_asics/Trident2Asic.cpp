@@ -150,14 +150,15 @@ bool Trident2Asic::isSupported(Feature feature) const {
   return false;
 }
 
-int Trident2Asic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
-    const {
+int Trident2Asic::getDefaultNumPortQueues(
+    cfg::StreamType streamType,
+    cfg::PortType portType) const {
   /*
    * Since we don't support QoS on TD2, set non cpu queues to be 0
    */
   switch (streamType) {
     case cfg::StreamType::UNICAST:
-      if (cpu) {
+      if (portType == cfg::PortType::CPU_PORT) {
         break;
       }
       return 0;
@@ -165,12 +166,16 @@ int Trident2Asic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
       /*
        * CPU on TD2 has 44 queues, but we limit ourselves to first 10
        */
-      return cpu ? 10 : 0;
+      return (portType == cfg::PortType::CPU_PORT) ? 10 : 0;
     case cfg::StreamType::ALL:
     case cfg::StreamType::FABRIC_TX:
       break;
   }
   throw FbossError(
-      "Unexpected, stream: ", streamType, " cpu: ", cpu, "combination");
+      "Unexpected, stream: ",
+      apache::thrift::util::enumNameSafe(streamType),
+      " portType: ",
+      apache::thrift::util::enumNameSafe(portType),
+      " combination");
 }
 } // namespace facebook::fboss

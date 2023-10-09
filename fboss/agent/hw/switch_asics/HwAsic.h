@@ -194,8 +194,9 @@ class HwAsic {
   virtual cfg::PortSpeed getMaxPortSpeed() const = 0;
   virtual std::set<cfg::StreamType> getQueueStreamTypes(
       cfg::PortType portType) const = 0;
-  virtual int getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
-      const = 0;
+  virtual int getDefaultNumPortQueues(
+      cfg::StreamType streamType,
+      cfg::PortType portType) const = 0;
   virtual uint32_t getMaxLabelStackDepth() const = 0;
   virtual uint64_t getMMUSizeBytes() const = 0;
   virtual uint32_t getMaxMirrors() const = 0;

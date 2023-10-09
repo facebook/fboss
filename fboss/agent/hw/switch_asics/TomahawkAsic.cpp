@@ -150,11 +150,12 @@ bool TomahawkAsic::isSupported(Feature feature) const {
   return false;
 }
 
-int TomahawkAsic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
-    const {
+int TomahawkAsic::getDefaultNumPortQueues(
+    cfg::StreamType streamType,
+    cfg::PortType portType) const {
   switch (streamType) {
     case cfg::StreamType::UNICAST:
-      if (cpu) {
+      if (portType == cfg::PortType::CPU_PORT) {
         break;
       }
       return 8;
@@ -166,6 +167,10 @@ int TomahawkAsic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
       break;
   }
   throw FbossError(
-      "Unexpected, stream: ", streamType, " cpu: ", cpu, "combination");
+      "Unexpected, stream: ",
+      apache::thrift::util::enumNameSafe(streamType),
+      " portType: ",
+      apache::thrift::util::enumNameSafe(portType),
+      " combination");
 }
 } // namespace facebook::fboss

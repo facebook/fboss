@@ -185,8 +185,8 @@ TEST_F(BcmPortQueueManagerTest, DefaultPortQueuesCheckWithoutConfig) {
   auto setup = [=]() { applyNewConfig(initialConfig()); };
 
   auto verify = [&]() {
-    auto defaultUCQueueSize =
-        getAsic()->getDefaultNumPortQueues(cfg::StreamType::UNICAST, false);
+    auto defaultUCQueueSize = getAsic()->getDefaultNumPortQueues(
+        cfg::StreamType::UNICAST, cfg::PortType::INTERFACE_PORT);
     EXPECT_EQ(getHwQueues().size(), defaultUCQueueSize);
     // if we've never set cosq configs to any queue. The system should come up
     // with all default values.

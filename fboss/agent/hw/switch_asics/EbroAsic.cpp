@@ -172,8 +172,9 @@ bool EbroAsic::isSupportedFabric(Feature feature) const {
   return false;
 }
 
-int EbroAsic::getDefaultNumPortQueues(cfg::StreamType streamType, bool /*cpu*/)
-    const {
+int EbroAsic::getDefaultNumPortQueues(
+    cfg::StreamType streamType,
+    cfg::PortType /*portType*/) const {
   switch (streamType) {
     case cfg::StreamType::MULTICAST:
       throw FbossError(

@@ -22,8 +22,9 @@ class GaronneAsic : public TajoAsic {
   }
   std::set<cfg::StreamType> getQueueStreamTypes(
       cfg::PortType portType) const override;
-  int getDefaultNumPortQueues(cfg::StreamType streamType, bool /*cpu*/)
-      const override {
+  int getDefaultNumPortQueues(
+      cfg::StreamType streamType,
+      cfg::PortType /*portType*/) const override {
     switch (streamType) {
       case cfg::StreamType::ALL:
       case cfg::StreamType::MULTICAST:

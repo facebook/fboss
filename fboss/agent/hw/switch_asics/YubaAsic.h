@@ -50,8 +50,9 @@ class YubaAsic : public TajoAsic {
   }
   std::set<cfg::StreamType> getQueueStreamTypes(
       cfg::PortType portType) const override;
-  int getDefaultNumPortQueues(cfg::StreamType streamType, bool /*cpu*/)
-      const override;
+  int getDefaultNumPortQueues(
+      cfg::StreamType streamType,
+      cfg::PortType /*portType*/) const override;
   uint32_t getMaxLabelStackDepth() const override {
     return 3;
   }

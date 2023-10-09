@@ -217,7 +217,7 @@ TEST(PortQueue, stateDelta) {
   auto queues1 = stateV1->getPort(PortID(1))->getPortQueues();
   EXPECT_EQ(
       platform->getAsic()->getDefaultNumPortQueues(
-          cfg::StreamType::UNICAST, false),
+          cfg::StreamType::UNICAST, cfg::PortType::INTERFACE_PORT),
       queues1->size());
   // The first kStateTestNumPortQueues should have weight changed
   for (int i = 0; i < kStateTestNumPortQueues; i++) {
@@ -226,7 +226,7 @@ TEST(PortQueue, stateDelta) {
   // The rest queue should be default
   for (int i = kStateTestNumPortQueues;
        i < platform->getAsic()->getDefaultNumPortQueues(
-               cfg::StreamType::UNICAST, false);
+               cfg::StreamType::UNICAST, cfg::PortType::INTERFACE_PORT);
        i++) {
     auto defaultQ = std::make_shared<PortQueue>(static_cast<uint8_t>(i));
     defaultQ->setStreamType(cfg::StreamType::UNICAST);
@@ -240,7 +240,7 @@ TEST(PortQueue, stateDelta) {
   auto queues2 = stateV2->getPort(PortID(1))->getPortQueues();
   EXPECT_EQ(
       platform->getAsic()->getDefaultNumPortQueues(
-          cfg::StreamType::UNICAST, false),
+          cfg::StreamType::UNICAST, cfg::PortType::INTERFACE_PORT),
       queues2->size());
   EXPECT_EQ(5, queues2->at(0)->getWeight());
 
@@ -249,7 +249,7 @@ TEST(PortQueue, stateDelta) {
   auto queues3 = stateV3->getPort(PortID(1))->getPortQueues();
   EXPECT_EQ(
       platform->getAsic()->getDefaultNumPortQueues(
-          cfg::StreamType::UNICAST, false),
+          cfg::StreamType::UNICAST, cfg::PortType::INTERFACE_PORT),
       queues3->size());
   EXPECT_EQ(1, queues3->at(3)->getWeight());
 
@@ -285,7 +285,7 @@ TEST(PortQueue, aqmState) {
   // change one queue, won't affect the other queues
   EXPECT_EQ(
       platform->getAsic()->getDefaultNumPortQueues(
-          cfg::StreamType::UNICAST, false),
+          cfg::StreamType::UNICAST, cfg::PortType::INTERFACE_PORT),
       queues1->size());
   std::vector<cfg::ActiveQueueManagement> aqms{};
   aqms.resize(1);

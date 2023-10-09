@@ -29,7 +29,8 @@ class AgentVoqSwitchTest : public SplitAgentTest {
     const auto& cpuStreamTypes =
         asic->getQueueStreamTypes(cfg::PortType::CPU_PORT);
     for (const auto& cpuStreamType : cpuStreamTypes) {
-      if (asic->getDefaultNumPortQueues(cpuStreamType, true)) {
+      if (asic->getDefaultNumPortQueues(
+              cpuStreamType, cfg::PortType::CPU_PORT)) {
         // cpu queues supported
         addCpuTrafficPolicy(config, asic);
         utility::addCpuQueueConfig(config, asic);

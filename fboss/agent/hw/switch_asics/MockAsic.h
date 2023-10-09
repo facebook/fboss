@@ -76,8 +76,9 @@ class MockAsic : public HwAsic {
         "Mock ASIC does not support:",
         apache::thrift::util::enumNameSafe(portType));
   }
-  int getDefaultNumPortQueues(cfg::StreamType /* streamType */, bool /*cpu*/)
-      const override {
+  int getDefaultNumPortQueues(
+      cfg::StreamType /* streamType */,
+      cfg::PortType /*portType*/) const override {
     return kDefaultNumPortQueues;
   }
   uint32_t getMaxLabelStackDepth() const override {

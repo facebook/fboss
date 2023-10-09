@@ -20,8 +20,9 @@ class Tomahawk3Asic : public BroadcomXgsAsic {
   cfg::PortSpeed getMaxPortSpeed() const override {
     return cfg::PortSpeed::FOURHUNDREDG;
   }
-  int getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
-      const override;
+  int getDefaultNumPortQueues(
+      cfg::StreamType streamType,
+      cfg::PortType portType) const override;
   uint32_t getMaxLabelStackDepth() const override {
     return 9;
   }

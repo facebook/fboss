@@ -83,8 +83,9 @@ class FakeAsic : public HwAsic {
         "Fake ASIC does not support:",
         apache::thrift::util::enumNameSafe(portType));
   }
-  int getDefaultNumPortQueues(cfg::StreamType streamType, bool /*cpu*/)
-      const override {
+  int getDefaultNumPortQueues(
+      cfg::StreamType streamType,
+      cfg::PortType /*portType*/) const override {
     return streamType == cfg::StreamType::UNICAST ? 8 : 10;
   }
   uint32_t getMaxLabelStackDepth() const override {

@@ -29,7 +29,7 @@ std::set<cfg::StreamType> MarvelPhyAsic::getQueueStreamTypes(
 }
 int MarvelPhyAsic::getDefaultNumPortQueues(
     cfg::StreamType /* streamType */,
-    bool /* cpu */) const {
+    cfg::PortType /*portType*/) const {
   throw FbossError("MarvelPhyAsic doesn't support queue feature");
 }
 uint64_t MarvelPhyAsic::getDefaultReservedBytes(

@@ -48,7 +48,8 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     const auto& cpuStreamTypes =
         getAsic()->getQueueStreamTypes(cfg::PortType::CPU_PORT);
     for (const auto& cpuStreamType : cpuStreamTypes) {
-      if (getAsic()->getDefaultNumPortQueues(cpuStreamType, true)) {
+      if (getAsic()->getDefaultNumPortQueues(
+              cpuStreamType, cfg::PortType::CPU_PORT)) {
         // cpu queues supported
         addCpuTrafficPolicy(cfg);
         utility::addCpuQueueConfig(cfg, getAsic());

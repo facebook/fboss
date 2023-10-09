@@ -169,8 +169,9 @@ bool YubaAsic::isSupportedFabric(Feature feature) const {
   return false;
 }
 
-int YubaAsic::getDefaultNumPortQueues(cfg::StreamType streamType, bool /*cpu*/)
-    const {
+int YubaAsic::getDefaultNumPortQueues(
+    cfg::StreamType streamType,
+    cfg::PortType portType) const {
   switch (streamType) {
     case cfg::StreamType::MULTICAST:
       throw FbossError(
@@ -183,8 +184,14 @@ int YubaAsic::getDefaultNumPortQueues(cfg::StreamType streamType, bool /*cpu*/)
       return 8;
   }
 
-  throw FbossError("Unknown streamType", streamType);
+  throw FbossError(
+      "Unexpected, stream: ",
+      apache::thrift::util::enumNameSafe(streamType),
+      " portType: ",
+      apache::thrift::util::enumNameSafe(portType),
+      " combination");
 }
+
 std::set<cfg::StreamType> YubaAsic::getQueueStreamTypes(
     cfg::PortType portType) const {
   switch (portType) {
