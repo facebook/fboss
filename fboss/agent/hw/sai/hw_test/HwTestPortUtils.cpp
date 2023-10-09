@@ -59,9 +59,11 @@ void setCreditWatchdogAndPortTx(const HwSwitch* hw, PortID port, bool enable) {
 }
 
 void enableCreditWatchdog(const HwSwitch* hw, bool enable) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   auto switchID = static_cast<const SaiSwitch*>(hw)->getSaiSwitchId();
   SaiApiTable::getInstance()->switchApi().setAttribute(
       switchID, SaiSwitchTraits::Attributes::CreditWd{enable});
+#endif
 }
 
 void setPortTx(const HwSwitch* hw, PortID port, bool enable) {

@@ -133,12 +133,4 @@ SaiSwitchTraits::Attributes::AttributeSwitchIsolateWrapper::operator()() {
   return std::nullopt;
 }
 
-std::optional<sai_attr_id_t>
-SaiSwitchTraits::Attributes::AttributeCreditWdWrapper::operator()() {
-#if defined(BRCM_SAI_SDK_DNX)
-  return SAI_SWITCH_ATTR_CREDIT_WD;
-#endif
-  return std::nullopt;
-}
-
 } // namespace facebook::fboss

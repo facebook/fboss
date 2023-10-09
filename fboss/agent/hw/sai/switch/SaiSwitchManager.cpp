@@ -649,9 +649,11 @@ void SaiSwitchManager::updateStats() {
 
 void SaiSwitchManager::configureCreditWatchdog(bool enable) {
   if (platform_->getAsic()->getSwitchType() == cfg::SwitchType::VOQ) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
     // Supported only for VoQ switches!
     switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::CreditWd{enable});
+#endif
   }
 }
 

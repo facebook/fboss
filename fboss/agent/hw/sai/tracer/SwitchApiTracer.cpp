@@ -95,9 +95,6 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, WarmBootTargetVersion)
   SAI_EXT_ATTR_MAP(Switch, SwitchIsolate)
   SAI_EXT_ATTR_MAP(Switch, MaxCores)
-#if SAI_API_VERSION < SAI_VERSION(1, 12, 0)
-  SAI_EXT_ATTR_MAP(Switch, CreditWd)
-#endif
 }
 
 } // namespace
