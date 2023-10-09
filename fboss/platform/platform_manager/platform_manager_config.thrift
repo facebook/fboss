@@ -203,52 +203,63 @@ struct IdpromConfig {
   3: string kernelDeviceName;
 }
 
-// Defines I2C Adapter in FPGAs.
+// Defines a generic IP block in the FPGA
 //
-// `i2cAdapterName`: It is the name used in the ioctl system call to create
-// the i2c adapter. It should one of the compatible strings specified in the
-// kernel driver.
-//
-// `iobufOffset`: It is the iobuf register offset of the I2C Adapter in the FPGA.
-//
-// `csrOffset`: It is the csr register offset of the I2C Adapter in the FPGA.
-struct I2cAdapterConfig {
-  1: string i2cAdapterName;
-  2: i32 iobufOffset;
-  3: i32 csrOffset;
-}
-
-// Defines the SPI Master in FPGAs.
-//
-// `spiMasterName`: It is the name used in the ioctl system call to create
-// the SPI Master. It should one of the compatible strings specified in the
-// kernel driver.
+// `deviceName`: It is the name used in the ioctl system call to create the
+// corresponding device. It should one of the compatible strings specified in
+// the kernel driver.
 //
 // `iobufOffset`: It is the iobuf register offset of the SPI Master in the FPGA.
 //
 // `csrOffset`: It is the csr register offset of the SPI Master in the FPGA.
+struct FpgaIpBlockConfig {
+  1: string deviceName;
+  2: i32 iobufOffset;
+  3: i32 csrOffset;
+}
+
+// Defines the I2C Adapter config in FPGAs.
+//
+// `fpgaIpBlockConfig`: See FgpaIpBlockConfig above
+//
+// `numberOfI2cAdapters`: Number of I2C Adapters created by this block.
+struct I2cAdapterConfig {
+  1: FpgaIpBlockConfig fpgaIpBlockConfig;
+  2: i32 numberOfAdapters;
+}
+
+// Defines the SPI Master block in FPGAs.
+//
+// `fpgaIpBlockConfig`: See FgpaIpBlockConfig above
 //
 // `numberOfCsPins`: Number of CS (chip-select) pins.
 struct SpiMasterConfig {
-  1: string spiMasterName;
-  2: i32 iobufOffset;
-  3: i32 csrOffset;
-  4: i32 numberOfCsPins;
+  1: FpgaIpBlockConfig fpgaIpBlockConfig;
+  2: i32 numberOfCsPins;
 }
 
-// Defines the GPIO Chip in FPGAs.
+// Defines the Transceiver Controller block in FPGAs.
 //
-// `gpioChipName`: It is the name used in the ioctl system call to create
-// the gpio chip. It should one of the compatible strings specified in the
-// kernel driver.
+// `fpgaIpBlockConfig`: See FgpaIpBlockConfig above
 //
-// `iobufOffset`: It is the iobuf register offset of the gpio chip in the FPGA.
+// `portNumber`: Port number which is associated with this config.
+struct XcvrCtrlConfig {
+  1: FpgaIpBlockConfig fpgaIpBlockConfig;
+  2: i32 portNumber;
+}
+
+// Defines the LED Controller block in FPGAs.
 //
-// `csrOffset`: It is the csr register offset of the gpio chip in the FPGA.
-struct GpioChipConfig {
-  1: string gpioChipName;
-  2: i32 iobufOffset;
-  3: i32 csrOffset;
+// `fpgaIpBlockConfig`: See FgpaIpBlockConfig above
+//
+// `portNumber`: Port number which is associated with this config. Used
+// for port LEDs
+//
+// `ledId`: Led ID for this config.
+struct LedCtrlConfig {
+  1: FpgaIpBlockConfig fpgaIpBlockConfig;
+  2: i32 portNumber;
+  3: i32 ledId;
 }
 
 // Defines PCI Devices in the PmUnits. A new PciDeviceConfig should be created
@@ -281,14 +292,7 @@ struct GpioChipConfig {
 // `subSystemDeviceId`: PCIe Sub System Device ID, and it must be a 4-digit
 // hexadecimal value, such as “0011”
 //
-// `i2cAdapterConfigs`: Lists the I2C Adapters in the PMUnit. The key is the
-// PMUnit scoped name of the I2C Adapter.
-//
-// `spiMasterConfigs`: Lists the SPI Masters in the PMUnit. The key is the
-// PMUnit scoped name of the SPI Master.
-//
-// `gpioChipConfigs`: Lists the GPIO Chips in the PMUnit. The key is the
-// PMUnit scoped name of the GPIO Chip.
+// The renaming fields are configs per controller block in the FPGA
 //
 // TODO: Add MDIO support
 struct PciDeviceConfig {
@@ -299,7 +303,11 @@ struct PciDeviceConfig {
   5: string subSystemDeviceId;
   6: map<string, I2cAdapterConfig> i2cAdapterConfigs;
   7: map<string, SpiMasterConfig> spiMasterConfigs;
-  8: map<string, GpioChipConfig> gpioChipConfigs;
+  8: map<string, FpgaIpBlockConfig> gpioChipConfigs;
+  9: map<string, FpgaIpBlockConfig> watchdogConfigs;
+  10: map<string, FpgaIpBlockConfig> fanTachoPwmConfigs;
+  11: map<string, LedCtrlConfig> ledCtrlConfigs;
+  12: map<string, XcvrCtrlConfig> xcvrCtrlConfigs;
 }
 
 // These are the PmUnit slot types. Examples: "PIM_SLOT", "PSU_SLOT" and
