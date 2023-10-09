@@ -76,6 +76,10 @@ class LedManager {
 
   led::LedColor getCurrentLedColor(int32_t portNum) const;
 
+  virtual led::LedColor onColor() const {
+    return led::LedColor::BLUE;
+  }
+
   const PlatformMapping* getPlatformMapping() const {
     return platformMapping_.get();
   }

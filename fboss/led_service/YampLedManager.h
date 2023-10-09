@@ -26,6 +26,10 @@ class YampLedManager : public LedManager {
   YampLedManager();
   virtual ~YampLedManager() override {}
 
+  led::LedColor onColor() const override {
+    return led::LedColor::GREEN;
+  }
+
   // Forbidden copy constructor and assignment operator
   YampLedManager(YampLedManager const&) = delete;
   YampLedManager& operator=(YampLedManager const&) = delete;

@@ -26,6 +26,10 @@ class DarwinLedManager : public LedManager {
   DarwinLedManager();
   virtual ~DarwinLedManager() override {}
 
+  led::LedColor onColor() const override {
+    return led::LedColor::GREEN;
+  }
+
   // Forbidden copy constructor and assignment operator
   DarwinLedManager(DarwinLedManager const&) = delete;
   DarwinLedManager& operator=(DarwinLedManager const&) = delete;

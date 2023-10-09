@@ -26,6 +26,10 @@ class LassenLedManager : public LedManager {
   LassenLedManager();
   virtual ~LassenLedManager() override {}
 
+  led::LedColor onColor() const override {
+    return led::LedColor::GREEN;
+  }
+
   // Forbidden copy constructor and assignment operator
   LassenLedManager(LassenLedManager const&) = delete;
   LassenLedManager& operator=(LassenLedManager const&) = delete;
