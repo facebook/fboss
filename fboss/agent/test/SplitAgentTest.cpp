@@ -2,7 +2,7 @@
 
 #include "fboss/agent/test/SplitAgentTest.h"
 #include "fboss/agent/HwAsicTable.h"
-#include "fboss/agent/test/AgentEnsemble.h"
+#include "fboss/agent/test/SplitAgentEnsemble.h"
 
 DEFINE_bool(run_forever, false, "run the test forever");
 DEFINE_bool(run_forever_on_failure, false, "run the test forever on failure");

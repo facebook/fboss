@@ -31,4 +31,15 @@ void SplitAgentEnsemble::reloadPlatformConfig() {
   // No-op for Split Agent Ensemble.
   return;
 }
+
+std::unique_ptr<AgentEnsemble> createAgentEnsemble(
+    AgentEnsembleSwitchConfigFn initialConfigFn,
+    AgentEnsemblePlatformConfigFn platformConfigFn,
+    uint32_t featuresDesired) {
+  std::unique_ptr<AgentEnsemble> ensemble =
+      std::make_unique<SplitAgentEnsemble>();
+  ensemble->setupEnsemble(featuresDesired, initialConfigFn, platformConfigFn);
+  return ensemble;
+}
+
 } // namespace facebook::fboss

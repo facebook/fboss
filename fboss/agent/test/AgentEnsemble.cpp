@@ -9,8 +9,6 @@
 #include "fboss/agent/CommonInit.h"
 #include "fboss/agent/EncapIndexAllocator.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/test/MonoAgentEnsemble.h"
-#include "fboss/agent/test/SplitAgentEnsemble.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <gtest/gtest.h>
@@ -74,6 +72,12 @@ void AgentEnsemble::setupEnsemble(
   applyInitialConfig(initialConfig_);
   // reload the new config
   reloadPlatformConfig();
+
+  // Setup LinkStateToggler and start agent
+  if (hwFeaturesDesired & HwSwitch::FeaturesDesired::LINKSCAN_DESIRED) {
+    setupLinkStateToggler();
+  }
+  startAgent();
 }
 
 void AgentEnsemble::startAgent() {
@@ -273,24 +277,4 @@ void AgentEnsemble::unregisterStateObserver(StateObserver* observer) {
   getSw()->unregisterStateObserver(observer);
 }
 
-std::unique_ptr<AgentEnsemble> createAgentEnsemble(
-    AgentEnsembleSwitchConfigFn initialConfigFn,
-    AgentEnsemblePlatformConfigFn platformConfigFn,
-    uint32_t featuresDesired,
-    bool startAgent) {
-  std::unique_ptr<AgentEnsemble> ensemble;
-  if (FLAGS_multi_switch) {
-    ensemble = std::make_unique<SplitAgentEnsemble>();
-  } else {
-    ensemble = std::make_unique<MonoAgentEnsemble>();
-  }
-  ensemble->setupEnsemble(featuresDesired, initialConfigFn, platformConfigFn);
-  if (featuresDesired & HwSwitch::FeaturesDesired::LINKSCAN_DESIRED) {
-    ensemble->setupLinkStateToggler();
-  }
-  if (startAgent) {
-    ensemble->startAgent();
-  }
-  return ensemble;
-}
 } // namespace facebook::fboss

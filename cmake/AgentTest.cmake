@@ -117,7 +117,7 @@ add_library(split_agent_test_lib
 )
 
 target_link_libraries(split_agent_test_lib
-  agent_ensemble
+  mono_agent_ensemble
   core
   switch_asics
   ${GTEST}
@@ -150,8 +150,6 @@ target_link_libraries(test_ensemble_if
 
 add_library(agent_ensemble
   fboss/agent/test/AgentEnsemble.cpp
-  fboss/agent/test/MonoAgentEnsemble.cpp
-  fboss/agent/test/SplitAgentEnsemble.cpp
 )
 
 target_link_libraries(agent_ensemble
@@ -162,4 +160,12 @@ target_link_libraries(agent_ensemble
   fboss_config_utils
   test_ensemble_if
   ${GTEST}
+)
+
+add_library(mono_agent_ensemble
+  fboss/agent/test/MonoAgentEnsemble.cpp
+)
+
+target_link_libraries(mono_agent_ensemble
+  agent_ensemble
 )
