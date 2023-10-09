@@ -74,6 +74,12 @@ class LedManager {
 
   bool isLedControlledThroughService();
 
+  led::LedColor getCurrentLedColor(int32_t portNum) const;
+
+  const PlatformMapping* getPlatformMapping() const {
+    return platformMapping_.get();
+  }
+
   // Forbidden copy constructor and assignment operator
   LedManager(LedManager const&) = delete;
   LedManager& operator=(LedManager const&) = delete;

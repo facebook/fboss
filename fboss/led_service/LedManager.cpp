@@ -168,4 +168,24 @@ bool LedManager::isLedControlledThroughService() {
   return false;
 }
 
+/*
+ * getLedColorForPort
+ *
+ * Returns the latest LED color for a given SW Port
+ */
+led::LedColor LedManager::getCurrentLedColor(int32_t portNum) const {
+  led::LedColor ledColor = led::LedColor::UNKNOWN;
+
+  if (portDisplayMap_.find(portNum) != portDisplayMap_.end()) {
+    ledColor = portDisplayMap_.at(portNum).currentLedColor;
+  } else {
+    auto portName = platformMapping_->getPortNameByPortId(PortID(portNum));
+    XLOG(ERR) << folly::sformat(
+        "Port {:s} not found in portDisplayMap_",
+        (portName.has_value() ? portName.value() : ""));
+  }
+
+  return ledColor;
+}
+
 } // namespace facebook::fboss
