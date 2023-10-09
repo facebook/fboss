@@ -85,7 +85,8 @@ int hwAgentMain(
   auto thriftSyncer = std::make_unique<SplitAgentThriftSyncer>(
       hwAgent->getPlatform()->getHwSwitch(),
       FLAGS_swswitch_port,
-      SwitchID(*hwAgent->getPlatform()->getAsic()->getSwitchId()));
+      SwitchID(*hwAgent->getPlatform()->getAsic()->getSwitchId()),
+      FLAGS_switchIndex);
 
   auto ret =
       hwAgent->initAgent(true /* failHwCallsOnWarmboot */, thriftSyncer.get());

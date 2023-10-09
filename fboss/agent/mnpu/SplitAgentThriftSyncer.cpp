@@ -10,6 +10,7 @@
 #include "fboss/agent/mnpu/SplitAgentThriftSyncer.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/mnpu/FdbEventSyncer.h"
+#include "fboss/agent/mnpu/HwSwitchStatsSinkClient.h"
 #include "fboss/agent/mnpu/LinkEventSyncer.h"
 #include "fboss/agent/mnpu/OperDeltaSyncer.h"
 #include "fboss/agent/mnpu/RxPktEventSyncer.h"
@@ -20,7 +21,8 @@ namespace facebook::fboss {
 SplitAgentThriftSyncer::SplitAgentThriftSyncer(
     HwSwitch* hw,
     uint16_t serverPort,
-    SwitchID switchId)
+    SwitchID switchId,
+    uint16_t switchIndex)
     : retryThread_(std::make_shared<folly::ScopedEventBaseThread>(
           "SplitAgentThriftRetryThread")),
       switchId_(switchId),
@@ -42,6 +44,11 @@ SplitAgentThriftSyncer::SplitAgentThriftSyncer(
       rxPktEventSinkClient_(std::make_unique<RxPktEventSyncer>(
           serverPort,
           switchId_,
+          retryThread_->getEventBase())),
+      hwSwitchStatsSinkClient_(std::make_unique<HwSwitchStatsSinkClient>(
+          serverPort,
+          switchId_,
+          switchIndex,
           retryThread_->getEventBase())) {}
 
 void SplitAgentThriftSyncer::packetReceived(
@@ -96,6 +103,13 @@ void SplitAgentThriftSyncer::l2LearningUpdateReceived(
   fdbEventSinkClient_->enqueue(std::move(event));
 }
 
+void SplitAgentThriftSyncer::updateHwSwitchStats(
+    multiswitch::HwSwitchStats stats) {
+  if (hwSwitchStatsSinkClient_->isConnectedToServer()) {
+    hwSwitchStatsSinkClient_->enqueue(std::move(stats));
+  }
+}
+
 void SplitAgentThriftSyncer::exitFatal() const noexcept {
   // TODO - Add handler
 }
@@ -130,6 +144,7 @@ void SplitAgentThriftSyncer::stop() {
   operDeltaClient_->stopOperSync();
   fdbEventSinkClient_->cancel();
   rxPktEventSinkClient_->cancel();
+  hwSwitchStatsSinkClient_->cancel();
   isRunning_ = false;
 }
 

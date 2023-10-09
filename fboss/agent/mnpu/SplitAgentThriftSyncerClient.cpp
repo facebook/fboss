@@ -225,5 +225,6 @@ template class ThriftSinkClient<multiswitch::LinkEvent>;
 template class ThriftSinkClient<multiswitch::FdbEvent>;
 template class ThriftSinkClient<multiswitch::RxPacket>;
 template class ThriftStreamClient<multiswitch::TxPacket>;
+template class ThriftSinkClient<multiswitch::HwSwitchStats>;
 
 } // namespace facebook::fboss

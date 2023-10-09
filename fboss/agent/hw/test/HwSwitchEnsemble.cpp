@@ -613,7 +613,8 @@ void HwSwitchEnsemble::setupEnsemble(
     thriftSyncer_ = std::make_unique<SplitAgentThriftSyncer>(
         getPlatform()->getHwSwitch(),
         swSwitchTestServer_->getPort(),
-        asic->getSwitchId() ? SwitchID(*asic->getSwitchId()) : SwitchID(0));
+        asic->getSwitchId() ? SwitchID(*asic->getSwitchId()) : SwitchID(0),
+        0 /*switchIndex*/);
   }
 
   auto bootType = swSwitchWarmBootHelper_->canWarmBoot() ? BootType::WARM_BOOT
