@@ -112,7 +112,9 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     auto eepromPath = i2cExplorer_.getDeviceI2cPath(
         eepromI2cBusNum, I2cAddr(*idpromConfig.address()));
     try {
-      pmUnitNameInEeprom = i2cExplorer_.getPmUnitName(eepromPath);
+      // TODO: One eeprom parsing library is implemented, get the
+      // Product Name from eeprom contents of eepromPath and use it here.
+      pmUnitNameInEeprom = std::nullopt;
     } catch (const std::exception& e) {
       XLOG(ERR) << fmt::format(
           "Could not fetch contents of IDPROM {}. {}", eepromPath, e.what());
