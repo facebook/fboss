@@ -2654,4 +2654,11 @@ bool SwSwitch::needL2EntryForNeighbor() const {
   const auto& config = getConfig();
   return getHwSwitchHandler()->needL2EntryForNeighbor(&config);
 }
+
+void SwSwitch::updateHwSwitchStats(
+    uint16_t switchIndex,
+    multiswitch::HwSwitchStats hwStats) {
+  (*hwSwitchStats_.wlock())[switchIndex] = std::move(hwStats);
+}
+
 } // namespace facebook::fboss
