@@ -10,7 +10,7 @@ namespace fboss {
 
 class Wedge400CManager : public WedgeManager {
  public:
-  Wedge400CManager();
+  explicit Wedge400CManager(const std::string& platformMappingStr);
   ~Wedge400CManager() override {}
   int getNumQsfpModules() override {
     return 48;
@@ -21,7 +21,8 @@ class Wedge400CManager : public WedgeManager {
   Wedge400CManager(Wedge400CManager const&) = delete;
   Wedge400CManager& operator=(Wedge400CManager const&) = delete;
 
-  std::unique_ptr<PlatformMapping> createWedge400CPlatformMapping();
+  std::unique_ptr<PlatformMapping> createWedge400CPlatformMapping(
+      const std::string& platformMappingStr);
 
  protected:
   std::unique_ptr<TransceiverI2CApi> getI2CBus() override;

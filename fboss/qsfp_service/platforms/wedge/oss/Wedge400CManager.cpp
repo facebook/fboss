@@ -8,10 +8,10 @@
 namespace facebook {
 namespace fboss {
 
-Wedge400CManager::Wedge400CManager()
+Wedge400CManager::Wedge400CManager(const std::string& platformMappingStr)
     : WedgeManager(
           std::make_unique<Wedge400TransceiverApi>(),
-          createWedge400CPlatformMapping(),
+          createWedge400CPlatformMapping(platformMappingStr),
           PlatformType::PLATFORM_WEDGE400C) {}
 
 std::unique_ptr<TransceiverI2CApi> Wedge400CManager::getI2CBus() {
@@ -19,8 +19,11 @@ std::unique_ptr<TransceiverI2CApi> Wedge400CManager::getI2CBus() {
 }
 
 std::unique_ptr<PlatformMapping>
-Wedge400CManager::createWedge400CPlatformMapping() {
-  return std::make_unique<Wedge400CPlatformMapping>();
+Wedge400CManager::createWedge400CPlatformMapping(
+    const std::string& platformMappingStr) {
+  return platformMappingStr.empty()
+      ? std::make_unique<Wedge400CPlatformMapping>()
+      : std::make_unique<Wedge400CPlatformMapping>(platformMappingStr);
 }
 
 } // namespace fboss

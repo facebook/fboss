@@ -17,7 +17,7 @@ namespace facebook {
 namespace fboss {
 class Wedge40Manager : public WedgeManager {
  public:
-  Wedge40Manager();
+  explicit Wedge40Manager(const std::string& platformMappingStr);
   ~Wedge40Manager() override {}
 
  private:

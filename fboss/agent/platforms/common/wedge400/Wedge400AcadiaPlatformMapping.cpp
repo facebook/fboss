@@ -12632,5 +12632,9 @@ namespace fboss {
 Wedge400AcadiaPlatformMapping::Wedge400AcadiaPlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
 
+Wedge400AcadiaPlatformMapping::Wedge400AcadiaPlatformMapping(
+    const std::string& platformMappingStr)
+    : PlatformMapping(platformMappingStr) {}
+
 } // namespace fboss
 } // namespace facebook

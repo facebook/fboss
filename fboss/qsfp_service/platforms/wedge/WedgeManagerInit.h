@@ -27,28 +27,40 @@ std::shared_ptr<FbossMacsecHandler> createFbossMacsecHandler(
  * This function should return derived WedgeManager which is still in dev.
  */
 std::unique_ptr<WedgeManager> createFBWedgeManager(
-    std::unique_ptr<PlatformProductInfo> productInfo);
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    const std::string& platformMappingStr);
 
-std::unique_ptr<WedgeManager> createYampWedgeManager();
+std::unique_ptr<WedgeManager> createYampWedgeManager(
+    const std::string& platformMappingStr);
 
-std::unique_ptr<WedgeManager> createDarwinWedgeManager();
+std::unique_ptr<WedgeManager> createDarwinWedgeManager(
+    const std::string& platformMappingStr);
 
-std::unique_ptr<WedgeManager> createLassenWedgeManager();
+std::unique_ptr<WedgeManager> createLassenWedgeManager(
+    const std::string& platformMappingStr);
 
-std::unique_ptr<WedgeManager> createElbertWedgeManager();
+std::unique_ptr<WedgeManager> createElbertWedgeManager(
+    const std::string& platformMappingStr);
 
 bool isElbert8DD();
 
-std::unique_ptr<WedgeManager> createSandiaWedgeManager();
+std::unique_ptr<WedgeManager> createSandiaWedgeManager(
+    const std::string& platformMappingStr);
 
-std::unique_ptr<WedgeManager> createMeru400bfuWedgeManager();
+std::unique_ptr<WedgeManager> createMeru400bfuWedgeManager(
+    const std::string& platformMappingStr);
 
-std::unique_ptr<WedgeManager> createMeru400biaWedgeManager();
-std::unique_ptr<WedgeManager> createMeru400biuWedgeManager();
-std::unique_ptr<WedgeManager> createMeru800biaWedgeManager();
-std::unique_ptr<WedgeManager> createMeru800bfaWedgeManager();
+std::unique_ptr<WedgeManager> createMeru400biaWedgeManager(
+    const std::string& platformMappingStr);
+std::unique_ptr<WedgeManager> createMeru400biuWedgeManager(
+    const std::string& platformMappingStr);
+std::unique_ptr<WedgeManager> createMeru800biaWedgeManager(
+    const std::string& platformMappingStr);
+std::unique_ptr<WedgeManager> createMeru800bfaWedgeManager(
+    const std::string& platformMappingStr);
 
-std::unique_ptr<WedgeManager> createMontblancWedgeManager();
+std::unique_ptr<WedgeManager> createMontblancWedgeManager(
+    const std::string& platformMappingStr);
 
 } // namespace fboss
 } // namespace facebook
