@@ -10,6 +10,7 @@ namespace fboss {
 class MontblancBspPlatformMapping : public BspPlatformMapping {
  public:
   MontblancBspPlatformMapping();
+  explicit MontblancBspPlatformMapping(const std::string& platformMappingStr);
 };
 
 } // namespace fboss

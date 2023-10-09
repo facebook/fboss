@@ -6045,9 +6045,10 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
 }
 )";
 
-static BspPlatformMappingThrift buildMeru800bfaPlatformMapping() {
+static BspPlatformMappingThrift buildMeru800bfaPlatformMapping(
+    const std::string& platformMappingStr) {
   return apache::thrift::SimpleJSONSerializer::deserialize<
-      BspPlatformMappingThrift>(kJsonBspPlatformMappingStr);
+      BspPlatformMappingThrift>(platformMappingStr);
 }
 
 } // namespace
@@ -6056,7 +6057,12 @@ namespace facebook {
 namespace fboss {
 
 Meru800bfaBspPlatformMapping::Meru800bfaBspPlatformMapping()
-    : BspPlatformMapping(buildMeru800bfaPlatformMapping()) {}
+    : BspPlatformMapping(
+          buildMeru800bfaPlatformMapping(kJsonBspPlatformMappingStr)) {}
+
+Meru800bfaBspPlatformMapping::Meru800bfaBspPlatformMapping(
+    const std::string& platformMappingStr)
+    : BspPlatformMapping(buildMeru800bfaPlatformMapping(platformMappingStr)) {}
 
 } // namespace fboss
 } // namespace facebook

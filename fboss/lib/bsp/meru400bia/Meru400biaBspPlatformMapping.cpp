@@ -498,9 +498,10 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
 }
 )";
 
-static BspPlatformMappingThrift buildMeru400biaPlatformMapping() {
+static BspPlatformMappingThrift buildMeru400biaPlatformMapping(
+    const std::string& platformMappingStr) {
   return apache::thrift::SimpleJSONSerializer::deserialize<
-      BspPlatformMappingThrift>(kJsonBspPlatformMappingStr);
+      BspPlatformMappingThrift>(platformMappingStr);
 }
 
 } // namespace
@@ -510,7 +511,12 @@ namespace fboss {
 
 // TODO: Use pre generated bsp platform mapping from cfgr
 Meru400biaBspPlatformMapping::Meru400biaBspPlatformMapping()
-    : BspPlatformMapping(buildMeru400biaPlatformMapping()) {}
+    : BspPlatformMapping(
+          buildMeru400biaPlatformMapping(kJsonBspPlatformMappingStr)) {}
+
+Meru400biaBspPlatformMapping::Meru400biaBspPlatformMapping(
+    const std::string& platformMappingStr)
+    : BspPlatformMapping(buildMeru400biaPlatformMapping(platformMappingStr)) {}
 
 } // namespace fboss
 } // namespace facebook

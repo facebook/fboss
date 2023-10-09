@@ -10,6 +10,7 @@ namespace fboss {
 class Meru400biaBspPlatformMapping : public BspPlatformMapping {
  public:
   Meru400biaBspPlatformMapping();
+  explicit Meru400biaBspPlatformMapping(const std::string& platformMappingStr);
 };
 
 } // namespace fboss

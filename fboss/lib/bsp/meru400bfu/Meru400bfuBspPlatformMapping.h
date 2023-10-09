@@ -9,6 +9,7 @@ namespace facebook::fboss {
 class Meru400bfuBspPlatformMapping : public BspPlatformMapping {
  public:
   Meru400bfuBspPlatformMapping();
+  explicit Meru400bfuBspPlatformMapping(const std::string& platformMappingStr);
 };
 
 } // namespace facebook::fboss

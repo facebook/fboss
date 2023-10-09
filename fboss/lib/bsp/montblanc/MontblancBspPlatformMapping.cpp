@@ -3037,9 +3037,10 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
 }
 )";
 
-static BspPlatformMappingThrift buildMontblancPlatformMapping() {
+static BspPlatformMappingThrift buildMontblancPlatformMapping(
+    const std::string& platformMappingStr) {
   return apache::thrift::SimpleJSONSerializer::deserialize<
-      BspPlatformMappingThrift>(kJsonBspPlatformMappingStr);
+      BspPlatformMappingThrift>(platformMappingStr);
 }
 
 } // namespace
@@ -3048,7 +3049,12 @@ namespace facebook {
 namespace fboss {
 
 MontblancBspPlatformMapping::MontblancBspPlatformMapping()
-    : BspPlatformMapping(buildMontblancPlatformMapping()) {}
+    : BspPlatformMapping(
+          buildMontblancPlatformMapping(kJsonBspPlatformMappingStr)) {}
+
+MontblancBspPlatformMapping::MontblancBspPlatformMapping(
+    const std::string& platformMappingStr)
+    : BspPlatformMapping(buildMontblancPlatformMapping(platformMappingStr)) {}
 
 } // namespace fboss
 } // namespace facebook
