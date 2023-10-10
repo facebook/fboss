@@ -10,11 +10,14 @@
 
 #include <gtest/gtest.h>
 
+#include <fmt/format.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
+#include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/fan_service/Bsp.h"
+#include "fboss/platform/fan_service/FanServiceHandler.h"
 #include "fboss/platform/fan_service/FanServiceImpl.h"
 #include "fboss/platform/fan_service/SensorData.h"
 #include "fboss/platform/helpers/Init.h"
@@ -22,91 +25,92 @@
 using namespace facebook::fboss::platform;
 using namespace facebook::fboss::platform::fan_service;
 
-namespace {
-
-class FanServiceHwTest : public ::testing::Test {};
-
-FanServiceConfig getConfig() {
-  auto config = FanServiceConfig{};
-  auto fanServiceConfJson = ConfigLib().getFanServiceConfig();
-  apache::thrift::SimpleJSONSerializer::deserialize<FanServiceConfig>(
-      fanServiceConfJson, config);
-  return config;
-}
-
-} // namespace
-
 namespace facebook::fboss::platform::fan_service {
+class FanServiceHwTest : public ::testing::Test {
+ public:
+  void SetUp() override {
+    EXPECT_NO_THROW(
+        fanServiceImpl_ =
+            std::make_unique<FanServiceImpl>("" /*use ConfigLib()*/));
 
-/*
- * Group 1. Configuration related tests
- */
+    auto fanServiceConfJson = ConfigLib().getFanServiceConfig();
+    EXPECT_NO_THROW(
+        apache::thrift::SimpleJSONSerializer::deserialize<FanServiceConfig>(
+            fanServiceConfJson, fanServiceConfig_));
+  }
 
-TEST_F(FanServiceHwTest, configParse) {
-  // Check if the config file for this platform can be
-  // parsed without an error.
-  EXPECT_NO_THROW(getConfig());
+  std::unique_ptr<FanServiceImpl> fanServiceImpl_;
+  FanServiceConfig fanServiceConfig_;
+};
+
+TEST_F(FanServiceHwTest, TransitionalPWM) {
+  auto fanStatuses = fanServiceImpl_->getFanStatuses();
+
+  for (const auto& fan : *fanServiceConfig_.fans()) {
+    auto fanName = *fan.fanName();
+    FanStatus fanStatus;
+    EXPECT_NO_THROW(fanStatus = fanStatuses.at(fanName));
+    EXPECT_FALSE(*fanStatus.fanFailed());
+    EXPECT_EQ(
+        *fanStatus.pwmToProgram(), *fanServiceConfig_.pwmTransitionValue());
+    EXPECT_FALSE(fanStatus.rpm().has_value());
+  }
 }
 
-TEST_F(FanServiceHwTest, configShutdownCommand) {
-  // Make sure that shutdown command is not empty
-  EXPECT_NE(*getConfig().shutdownCmd(), "");
+TEST_F(FanServiceHwTest, FanControl) {
+  int run = 1;
+  do {
+    EXPECT_NO_THROW(fanServiceImpl_->controlFan());
+
+    auto fanStatuses = fanServiceImpl_->getFanStatuses();
+    for (const auto& fan : *fanServiceConfig_.fans()) {
+      auto fanName = *fan.fanName();
+      FanStatus fanStatus;
+      EXPECT_NO_THROW(fanStatus = fanStatuses.at(fanName));
+      EXPECT_FALSE(*fanStatus.fanFailed());
+      EXPECT_GT(*fanStatus.pwmToProgram(), 0);
+      EXPECT_GT(*fanStatus.rpm(), 0);
+    }
+  } while (++run < 10);
 }
 
-TEST_F(FanServiceHwTest, configTransitionValue) {
-  // Make sure transitional fan speed value (until the first sensor read)
-  // is configured correctly.
-  EXPECT_GT(*getConfig().pwmTransitionValue(), 0.0);
+TEST_F(FanServiceHwTest, FanStatusesThrift) {
+  fanServiceImpl_->controlFan();
+
+  auto fanServiceHandler =
+      std::make_shared<FanServiceHandler>(std::move(fanServiceImpl_));
+  apache::thrift::ScopedServerInterfaceThread server(fanServiceHandler);
+  auto client = server.newClient<apache::thrift::Client<FanService>>();
+
+  FanStatusesResponse resp;
+  client->sync_getFanStatuses(resp);
+  EXPECT_FALSE(resp.fanStatuses()->empty());
+  for (const auto& fan : *fanServiceConfig_.fans()) {
+    auto fanName = *fan.fanName();
+    FanStatus fanStatus;
+    EXPECT_NO_THROW(fanStatus = resp.fanStatuses()->at(fanName));
+    EXPECT_FALSE(*fanStatus.fanFailed());
+    EXPECT_GT(*fanStatus.pwmToProgram(), 0);
+    EXPECT_GT(*fanStatus.rpm(), 0);
+    EXPECT_GT(*fanStatus.lastSuccessfulAccessTime(), 0);
+  }
 }
 
-/*
- * Group 2. BSP related tests
- */
-
-TEST_F(FanServiceHwTest, bspInvalidWrite) {
-  // Check BSP system write features by giving invalid parameter and
-  // make sure the write fails
-  Bsp myBsp(FanServiceConfig{});
-  EXPECT_EQ(myBsp.setFanPwmSysfs("/dev/null/fake", 1), false);
-}
-
-TEST_F(FanServiceHwTest, bspTestSystemCommandFunction) {
-  // Make sure BSP is capable of running shell command.
-  // This feature is important for pwm configuration and
-  // emergency command execution.
-  Bsp myBsp(FanServiceConfig{});
-  EXPECT_EQ(myBsp.setFanPwmShell("ls", "", 0), true);
-}
-
-TEST_F(FanServiceHwTest, bspTestSystemTime) {
-  // Make sure BSP's system time checking is working
-  Bsp myBsp(FanServiceConfig{});
-  EXPECT_NE(myBsp.getCurrentTime(), 0);
-}
-
-/*
- * Group 3. Sensor Data Storage Class
- */
-
-TEST_F(FanServiceHwTest, sensorDataEntryCheck) {
-  // Make sure BSP's system time checking is working
-  SensorData mySensorData;
-  mySensorData.updateEntryInt("TEST1", 0, 1);
-  EXPECT_EQ(mySensorData.checkIfEntryExists("TEST1"), true);
-}
-
-TEST_F(FanServiceHwTest, sensorDataValue) {
-  // Make sure BSP's system time checking is working
-  SensorData mySensorData;
-  mySensorData.updateEntryInt("TEST2", 2, 3);
-  EXPECT_EQ(mySensorData.getSensorDataInt("TEST2"), 2);
-}
-
-TEST_F(FanServiceHwTest, sensorDataUpdateTime) {
-  // Make sure BSP's system time checking is working
-  SensorData mySensorData;
-  mySensorData.updateEntryInt("TEST3", 12, 30);
-  EXPECT_EQ(mySensorData.getLastUpdated("TEST3"), 30);
+TEST_F(FanServiceHwTest, ODSCounters) {
+  for (const auto& zone : *fanServiceConfig_.zones()) {
+    for (const auto& fan : *fanServiceConfig_.fans()) {
+      if (std::find(
+              zone.fanNames()->begin(),
+              zone.fanNames()->end(),
+              *fan.fanName()) == zone.fanNames()->end()) {
+        continue;
+      }
+      EXPECT_EQ(
+          fb303::fbData->getCounter(fmt::format(
+              "fan_write.{}.{}.failure", *zone.zoneName(), *fan.fanName())),
+          0);
+    }
+  }
 }
 
 } // namespace facebook::fboss::platform::fan_service
