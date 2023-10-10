@@ -298,7 +298,7 @@ struct LedCtrlConfig {
 // `subSystemDeviceId`: PCIe Sub System Device ID, and it must be a 4-digit
 // hexadecimal value, such as “0011”
 //
-// The renaming fields are configs per controller block in the FPGA
+// The remaining fields are configs per controller block in the FPGA
 //
 // TODO: Add MDIO support
 struct PciDeviceConfig {
@@ -394,9 +394,9 @@ struct PlatformConfig {
   // assumption changes.
   13: list<string> i2cAdaptersFromCpu;
 
-  // Global mapping from the DevicePath to an application friendly path
-  // (symbolic link).
-  14: map<string, string> devicePathToHumanFriendlyPath;
+  // Global mapping from an application friendly path (symbolic link) to
+  // DevicePath
+  14: map<string, string> symbolicLinkToDevicePath;
 
   // Name and version of the rpm containing the BSP kmods for this platform
   21: string bspKmodsRpmName;
