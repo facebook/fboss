@@ -17,6 +17,9 @@
           "test_name_regex": "HwLoadBalancerTestV[46]ToMpls.*"
         },
         {
+          "test_name_regex": "HwLoadBalancerTestV[46].ECMPShrinkExpandLoadBalance*"
+        },
+        {
           "test_name_regex": "HwHashConsistencyTest.VerifyMemberOrderEffect"
         },
         {
@@ -380,6 +383,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV[46]ToMpls.*"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV[46].ECMPShrinkExpandLoadBalance*"
         },
         {
           "test_name_regex": "HwHashConsistencyTest.VerifyMemberOrderEffect"
