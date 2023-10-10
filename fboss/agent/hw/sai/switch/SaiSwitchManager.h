@@ -85,10 +85,10 @@ class SaiSwitchManager {
 
   void updateStats();
 
-  void configureCreditWatchdog(bool enable);
   void setSwitchIsolate(bool isolate);
 
  private:
+  void configureCreditWatchdog(bool enable);
   void programEcmpLoadBalancerParams(
       std::optional<sai_uint32_t> seed,
       std::optional<cfg::HashingAlgorithm> algo);
