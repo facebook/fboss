@@ -80,7 +80,7 @@ target_link_libraries(fan_service_sw_test
 install(TARGETS fan_service_sw_test)
 
 add_executable(fan_service_hw_test
-  fboss/platform/fan_service/hw_test/FanServiceTest.cpp
+  fboss/platform/fan_service/hw_test/FanServiceHwTest.cpp
 )
 
 target_link_libraries(fan_service_hw_test

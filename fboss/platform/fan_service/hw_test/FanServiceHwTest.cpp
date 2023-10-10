@@ -15,6 +15,7 @@
 
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/fan_service/Bsp.h"
+#include "fboss/platform/fan_service/FanServiceImpl.h"
 #include "fboss/platform/fan_service/SensorData.h"
 #include "fboss/platform/helpers/Init.h"
 
@@ -23,7 +24,7 @@ using namespace facebook::fboss::platform::fan_service;
 
 namespace {
 
-class FanServiceTest : public ::testing::Test {};
+class FanServiceHwTest : public ::testing::Test {};
 
 FanServiceConfig getConfig() {
   auto config = FanServiceConfig{};
@@ -41,18 +42,18 @@ namespace facebook::fboss::platform::fan_service {
  * Group 1. Configuration related tests
  */
 
-TEST_F(FanServiceTest, configParse) {
+TEST_F(FanServiceHwTest, configParse) {
   // Check if the config file for this platform can be
   // parsed without an error.
   EXPECT_NO_THROW(getConfig());
 }
 
-TEST_F(FanServiceTest, configShutdownCommand) {
+TEST_F(FanServiceHwTest, configShutdownCommand) {
   // Make sure that shutdown command is not empty
   EXPECT_NE(*getConfig().shutdownCmd(), "");
 }
 
-TEST_F(FanServiceTest, configTransitionValue) {
+TEST_F(FanServiceHwTest, configTransitionValue) {
   // Make sure transitional fan speed value (until the first sensor read)
   // is configured correctly.
   EXPECT_GT(*getConfig().pwmTransitionValue(), 0.0);
@@ -62,14 +63,14 @@ TEST_F(FanServiceTest, configTransitionValue) {
  * Group 2. BSP related tests
  */
 
-TEST_F(FanServiceTest, bspInvalidWrite) {
+TEST_F(FanServiceHwTest, bspInvalidWrite) {
   // Check BSP system write features by giving invalid parameter and
   // make sure the write fails
   Bsp myBsp(FanServiceConfig{});
   EXPECT_EQ(myBsp.setFanPwmSysfs("/dev/null/fake", 1), false);
 }
 
-TEST_F(FanServiceTest, bspTestSystemCommandFunction) {
+TEST_F(FanServiceHwTest, bspTestSystemCommandFunction) {
   // Make sure BSP is capable of running shell command.
   // This feature is important for pwm configuration and
   // emergency command execution.
@@ -77,7 +78,7 @@ TEST_F(FanServiceTest, bspTestSystemCommandFunction) {
   EXPECT_EQ(myBsp.setFanPwmShell("ls", "", 0), true);
 }
 
-TEST_F(FanServiceTest, bspTestSystemTime) {
+TEST_F(FanServiceHwTest, bspTestSystemTime) {
   // Make sure BSP's system time checking is working
   Bsp myBsp(FanServiceConfig{});
   EXPECT_NE(myBsp.getCurrentTime(), 0);
@@ -87,21 +88,21 @@ TEST_F(FanServiceTest, bspTestSystemTime) {
  * Group 3. Sensor Data Storage Class
  */
 
-TEST_F(FanServiceTest, sensorDataEntryCheck) {
+TEST_F(FanServiceHwTest, sensorDataEntryCheck) {
   // Make sure BSP's system time checking is working
   SensorData mySensorData;
   mySensorData.updateEntryInt("TEST1", 0, 1);
   EXPECT_EQ(mySensorData.checkIfEntryExists("TEST1"), true);
 }
 
-TEST_F(FanServiceTest, sensorDataValue) {
+TEST_F(FanServiceHwTest, sensorDataValue) {
   // Make sure BSP's system time checking is working
   SensorData mySensorData;
   mySensorData.updateEntryInt("TEST2", 2, 3);
   EXPECT_EQ(mySensorData.getSensorDataInt("TEST2"), 2);
 }
 
-TEST_F(FanServiceTest, sensorDataUpdateTime) {
+TEST_F(FanServiceHwTest, sensorDataUpdateTime) {
   // Make sure BSP's system time checking is working
   SensorData mySensorData;
   mySensorData.updateEntryInt("TEST3", 12, 30);
