@@ -263,6 +263,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwRouteOverDifferentAddressFamilyNhopTest.*"
         },
         {
@@ -623,6 +626,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwRouteOverDifferentAddressFamilyNhopTest.*"
@@ -1095,6 +1101,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
         },
         {
@@ -1461,6 +1470,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
@@ -2084,6 +2096,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
@@ -2751,6 +2766,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
@@ -2797,6 +2815,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
@@ -3087,6 +3108,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
@@ -3745,6 +3769,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
@@ -3788,6 +3815,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
@@ -4200,6 +4230,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
@@ -4248,6 +4281,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
@@ -4294,6 +4330,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
@@ -4566,6 +4605,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
@@ -4884,6 +4926,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
@@ -5278,6 +5323,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
@@ -5323,6 +5371,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
@@ -5348,6 +5399,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
@@ -5739,6 +5793,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
@@ -5787,6 +5844,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
@@ -5833,6 +5893,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
@@ -6081,6 +6144,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
@@ -6401,6 +6467,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
         },
         {
@@ -6668,6 +6737,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
@@ -7254,6 +7326,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
@@ -7299,6 +7374,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
@@ -7324,6 +7402,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
@@ -7715,6 +7796,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
@@ -7763,6 +7847,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
@@ -7809,6 +7896,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
@@ -8081,6 +8171,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
@@ -8401,6 +8494,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
         },
         {
@@ -8692,6 +8788,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
@@ -9302,6 +9401,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
@@ -9347,6 +9449,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
@@ -9372,6 +9477,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
@@ -9605,6 +9713,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
@@ -10386,6 +10497,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
@@ -10434,6 +10548,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
@@ -10480,6 +10597,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
@@ -10728,6 +10848,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
@@ -11048,6 +11171,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
         },
         {
@@ -11318,6 +11444,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
@@ -11904,6 +12033,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
@@ -11949,6 +12081,9 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
+          "test_name_regex": "HwUdfAcl.*"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
@@ -11974,6 +12109,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
@@ -12303,6 +12441,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*$"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
@@ -12680,6 +12821,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*$"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
@@ -13333,6 +13477,9 @@
         },
         {
           "test_name_regex": "HwUdfTest.*$"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
