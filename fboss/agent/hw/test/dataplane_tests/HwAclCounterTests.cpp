@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/lib/CommonUtils.h"
@@ -36,6 +37,7 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
     TCP_TTLD,
     UDP_TTLD,
     SRC_PORT,
+    UDF,
   };
 
   std::string getAclName(AclType aclType) const {
@@ -49,6 +51,9 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
         break;
       case AclType::UDP_TTLD:
         aclName = "test-udp-acl";
+        break;
+      case AclType::UDF:
+        aclName = "test-udf-acl";
         break;
     }
     return aclName;
@@ -65,6 +70,9 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
         break;
       case AclType::UDP_TTLD:
         counterName = "test-udp-acl-stats";
+        break;
+      case AclType::UDF:
+        counterName = "test-udf-acl-stats";
         break;
     }
     return counterName;
@@ -98,7 +106,14 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
           getProgrammedState(),
           getAclName(aclType),
           getCounterName(aclType));
-      size_t sizeOfPacketSent = sendPacket(frontPanel, bumpOnHit, aclType);
+      size_t sizeOfPacketSent = 0;
+      if (aclType == AclType::UDF) {
+        // for udf testing, send roce packets
+        auto outPort = helper_->ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
+        sizeOfPacketSent = sendRoceTraffic(outPort);
+      } else {
+        sizeOfPacketSent = sendPacket(frontPanel, bumpOnHit, aclType);
+      }
       WITH_RETRIES({
         auto aclPktCountAfter = utility::getAclInOutPackets(
             getHwSwitch(),
@@ -154,7 +169,21 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
- private:
+  size_t sendRoceTraffic(const PortID frontPanelEgrPort) {
+    auto vlanId = utility::firstVlanID(initialConfig());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    return utility::pumpRoCETraffic(
+        true,
+        getHwSwitch(),
+        intfMac,
+        vlanId,
+        frontPanelEgrPort,
+        utility::kUdfL4DstPort,
+        255,
+        std::nullopt,
+        1 /* one packet */);
+  }
+
   size_t sendPacket(bool frontPanel, bool bumpOnHit, AclType aclType) {
     // TTL is configured for value >= 128
     auto ttl = bumpOnHit &&
@@ -228,6 +257,10 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
       case AclType::SRC_PORT:
         acl->srcPort() = helper_->ecmpPortDescriptorAt(0).phyPortID();
         break;
+      case AclType::UDF:
+        acl->udfGroups() = {utility::kUdfRoceOpcodeAclGroupName};
+        acl->roceOpcode() = utility::kUdfRoceOpcode;
+        break;
     }
     std::vector<cfg::CounterType> setCounterTypes{
         cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
@@ -277,6 +310,23 @@ TEST_F(HwAclCounterTest, VerifyCounterNoHitNoBumpCpu) {
       false /* no hit, no bump */,
       false /* cpu port */,
       {AclType::TCP_TTLD, AclType::UDP_TTLD});
+}
+
+class HwUdfAclCounterTest : public HwAclCounterTest {
+ protected:
+  cfg::SwitchConfig initialConfig() const override {
+    auto cfg = utility::onePortPerInterfaceConfig(
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackModes());
+    cfg.udfConfig() = utility::addUdfAclConfig();
+    return cfg;
+  }
+};
+
+TEST_F(HwUdfAclCounterTest, VerifyUdf) {
+  counterBumpOnHitHelper(
+      true /* bump on hit */, true /* front panel port */, {AclType::UDF});
 }
 
 } // namespace facebook::fboss

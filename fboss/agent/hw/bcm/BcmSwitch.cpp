@@ -3189,7 +3189,19 @@ void BcmSwitch::processDefaultAclgroupForUdf() {
     return;
   }
 
-  XLOG(DBG2) << "Udf id mismatch in default acl qset. Recreate the group.";
+  auto aclIdsToString = [](const std::set<bcm_udf_id_t> udfSet) {
+    std::string udfAclsIds;
+    std::for_each(
+        udfSet.begin(), udfSet.end(), [&udfAclsIds](const auto& udfId) {
+          udfAclsIds.append(std::to_string(udfId)).append(",");
+        });
+    return udfAclsIds;
+  };
+
+  XLOG(DBG2) << "Udf id mismatch in default acl qset. Hw acl set is "
+             << aclIdsToString(udfQsetIdsInHW) << ", cfg acl set is "
+             << aclIdsToString(udfAclIds);
+
   clearFPGroup(unit_, platform_->getAsic()->getDefaultACLGroupID());
   createAclGroup(
       udfAclIds.size() ? std::optional<std::set<bcm_udf_id_t>>(udfAclIds)

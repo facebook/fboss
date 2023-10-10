@@ -176,6 +176,7 @@ void pumpTrafficAndVerifyLoadBalanced(
     bool loadBalanceExpected = true);
 
 cfg::UdfConfig addUdfHashConfig();
+cfg::UdfConfig addUdfAclConfig();
 
 cfg::UdfConfig addUdfAclConfig();
 
