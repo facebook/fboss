@@ -36,6 +36,7 @@ SplitAgentThriftClient::SplitAgentThriftClient(
           streamEvbThread->getEventBase(),
           connRetryEvb,
           counterPrefix,
+          "multi_switch_streams",
           stateChangeCb,
           FLAGS_hwagent_reconnect_ms),
       streamEvbThread_(streamEvbThread),

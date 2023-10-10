@@ -62,6 +62,7 @@ class ReconnectingThriftClient {
       folly::EventBase* streamEvb,
       folly::EventBase* connRetryEvb,
       const std::string& counterPrefix,
+      const std::string& aggCounterPrefix,
       StreamStateChangeCb stateChangeCb,
       uint32_t reconnectTimeout);
 
@@ -109,6 +110,7 @@ class ReconnectingThriftClient {
   std::string counterPrefix_;
   folly::Synchronized<State> state_{State::DISCONNECTED};
   fb303::TimeseriesWrapper disconnectEvents_;
+  fb303::TimeseriesWrapper aggDisconnectEvents_;
   StreamStateChangeCb stateChangeCb_;
   folly::Synchronized<std::optional<ServerOptions>> serverOptions_;
   std::unique_ptr<folly::AsyncTimeout> timer_;

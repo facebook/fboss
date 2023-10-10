@@ -21,6 +21,7 @@ ReconnectingThriftClient::ReconnectingThriftClient(
     folly::EventBase* streamEvb,
     folly::EventBase* connRetryEvb,
     const std::string& counterPrefix,
+    const std::string& aggCounterPrefix,
     StreamStateChangeCb stateChangeCb,
     uint32_t reconnectTimeout)
     : clientId_(clientId),
@@ -29,6 +30,10 @@ ReconnectingThriftClient::ReconnectingThriftClient(
       counterPrefix_(counterPrefix),
       disconnectEvents_(
           getCounterPrefix() + ".disconnects",
+          fb303::SUM,
+          fb303::RATE),
+      aggDisconnectEvents_(
+          aggCounterPrefix + ".disconnects",
           fb303::SUM,
           fb303::RATE),
       stateChangeCb_(stateChangeCb),
@@ -75,6 +80,7 @@ void ReconnectingThriftClient::setState(State state) {
     fb303::fbData->setCounter(getConnectedCounterName(), 0);
   } else if (state == State::DISCONNECTED) {
     disconnectEvents_.add(1);
+    aggDisconnectEvents_.add(1);
     fb303::fbData->setCounter(getConnectedCounterName(), 0);
   }
   stateChangeCb_(oldState, state);

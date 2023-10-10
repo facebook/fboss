@@ -37,6 +37,7 @@ FsdbStreamClient::FsdbStreamClient(
           streamEvb,
           connRetryEvb,
           counterPrefix,
+          "fsdb_streams",
           stateChangeCb,
           FLAGS_fsdb_reconnect_ms),
       streamEvb_(streamEvb),
