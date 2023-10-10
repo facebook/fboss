@@ -118,17 +118,23 @@ include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 // the PmUnit is plugged in, followed by the device name.  The device itself is
 // represented within square brackets (e.g., [DeviceName]). The device should
 // be the leaf (last token), of the path.  If the device is within a FPGA, then
-// the device is represented as [FPGA_Name::DeviceName]
+// the device is represented as [FPGA_Name::DeviceName]. I2C buses are also
+// considered as devices
 //
 // The devices in the above example are represented as follows
 // - /[fpga1]
 // - /[fpga1::gpiochip0]
 // - /XYZ_SLOT@0/[sensor1]
+// - /XYZ_SLOT@0/[INCOMING@0]
 // - /XYZ_SLOT@1/[sensor1]
+// - /XYZ_SLOT@1/[INCOMING@0]
 // - /ABC_SLOT@0/[cpld1]
+// - /ABC_SLOT@0/[INCOMING@0]
 // - /ABC_SLOT@1/[cpld1]
+// - /ABC_SLOT@1/[INCOMING@0]
 // - /ABC_SLOT@1/[cpld2]
 // - /ABC_SLOT@1/DEF_SLOT@0/[sensor3]
+// - /ABC_SLOT@1/DEF_SLOT@0/[INCOMING@0]
 
 // ============================================================================
 
