@@ -2605,6 +2605,10 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
       qosPolicyNew->setPfcPriorityToPgIdMap(*pfcPriority2PgIdMap);
     }
 
+    if (const auto& trafficClassToVoqIdMap = qosMap->trafficClassToVoqId()) {
+      qosPolicyNew->setTrafficClassToVoqIdMap(*trafficClassToVoqIdMap);
+    }
+
     return qosPolicyNew;
   }
   return make_shared<QosPolicy>(*qosPolicy.name(), ingressDscpMap);

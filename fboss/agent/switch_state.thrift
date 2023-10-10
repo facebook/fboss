@@ -430,6 +430,7 @@ struct QosPolicyFields {
   5: optional map<i16, i16> pfcPriorityToQueueId;
   6: optional map<i16, i16> trafficClassToPgId;
   7: optional map<i16, i16> pfcPriorityToPgId;
+  8: optional map<i16, i16> trafficClassToVoqId;
 }
 
 struct SocketAddress {
