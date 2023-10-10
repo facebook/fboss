@@ -495,6 +495,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         switchIsolate,
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
         std::nullopt, // Credit Watchdog
+        std::nullopt, // Credit Watchdog Timer
 #endif
         maxCores, // Max cores
         std::nullopt, // PFC DLR Packet Action

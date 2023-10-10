@@ -511,6 +511,7 @@ struct SaiSwitchTraits {
       std::optional<Attributes::SwitchIsolate>,
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
       std::optional<Attributes::CreditWd>,
+      std::optional<Attributes::CreditWdTimer>,
 #endif
       std::optional<Attributes::MaxCores>,
       std::optional<Attributes::PfcDlrPacketAction>>;
