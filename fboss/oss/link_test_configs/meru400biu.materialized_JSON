@@ -6572,41 +6572,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 10,
-        "state": 1,
-        "minFrameSize": 64,
-        "maxFrameSize": 9412,
-        "parserType": 1,
-        "routable": true,
-        "ingressVlan": 0,
-        "speed": 100000,
-        "name": "eth1/2/1",
-        "description": "",
-        "queues_DEPRECATED": [
-          
-        ],
-        "pause": {
-          "tx": false,
-          "rx": false
-        },
-        "sFlowIngressRate": 0,
-        "sFlowEgressRate": 0,
-        "loopbackMode": 0,
-        "expectedLLDPValues": {
-          
-        },
-        "lookupClasses": [
-          
-        ],
-        "profileID": 22,
-        "portType": 0,
-        "expectedNeighborReachability": [
-          
-        ],
-        "drainState": 0
-      },
-      {
-        "logicalID": 18,
+        "logicalID": 3,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6640,7 +6606,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 26,
+        "logicalID": 4,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6674,7 +6640,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 34,
+        "logicalID": 5,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6708,7 +6674,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 42,
+        "logicalID": 6,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6742,7 +6708,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 50,
+        "logicalID": 7,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6776,7 +6742,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 58,
+        "logicalID": 8,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6810,7 +6776,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 66,
+        "logicalID": 9,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6844,7 +6810,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 74,
+        "logicalID": 10,
         "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6878,7 +6844,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 82,
+        "logicalID": 11,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6912,7 +6878,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 90,
+        "logicalID": 12,
         "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6946,7 +6912,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 98,
+        "logicalID": 13,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6980,7 +6946,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 106,
+        "logicalID": 14,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -7014,7 +6980,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 114,
+        "logicalID": 15,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -7048,7 +7014,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 122,
+        "logicalID": 16,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -7082,7 +7048,7 @@
         "drainState": 0
       },
       {
-        "logicalID": 130,
+        "logicalID": 17,
         "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -7091,40 +7057,6 @@
         "ingressVlan": 0,
         "speed": 100000,
         "name": "eth1/17/1",
-        "description": "",
-        "queues_DEPRECATED": [
-          
-        ],
-        "pause": {
-          "tx": false,
-          "rx": false
-        },
-        "sFlowIngressRate": 0,
-        "sFlowEgressRate": 0,
-        "loopbackMode": 0,
-        "expectedLLDPValues": {
-          
-        },
-        "lookupClasses": [
-          
-        ],
-        "profileID": 22,
-        "portType": 0,
-        "expectedNeighborReachability": [
-          
-        ],
-        "drainState": 0
-      },
-      {
-        "logicalID": 138,
-        "state": 1,
-        "minFrameSize": 64,
-        "maxFrameSize": 9412,
-        "parserType": 1,
-        "routable": true,
-        "ingressVlan": 0,
-        "speed": 100000,
-        "name": "eth1/18/1",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -7205,7 +7137,7 @@
         "type": 2
       },
       {
-        "intfID": 174,
+        "intfID": 110,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -7218,7 +7150,7 @@
         "type": 2
       },
       {
-        "intfID": 190,
+        "intfID": 112,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -9734,7 +9666,6 @@
           "sai_acl_qset_optimization": "0x1",
           "sai_async_fdb_nbr_enable": "0x1",
           "sai_common_hash_crc": "0x1",
-          "sai_cos_tc_to_q_map_invert": "0",
           "sai_dis_ctr_incr_on_port_ln_dn": "0",
           "sai_disable_srcmacqedstmac_ctrl": "0x1",
           "sai_ecmp_group_members_increment": "1",
