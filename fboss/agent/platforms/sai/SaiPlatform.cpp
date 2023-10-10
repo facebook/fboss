@@ -373,6 +373,15 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   std::optional<SaiSwitchTraits::Attributes::MaxSystemCores> cores;
   std::optional<SaiSwitchTraits::Attributes::MaxCores> maxCores;
   std::optional<SaiSwitchTraits::Attributes::SysPortConfigList> sysPortConfigs;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  std::optional<SaiSwitchTraits::Attributes::CreditWd> creditWd;
+  std::optional<SaiSwitchTraits::Attributes::CreditWdTimer> creditWdMs;
+  if (swType == cfg::SwitchType::VOQ) {
+    // Use SAI defaults
+    creditWd = true;
+    creditWdMs = 500;
+  }
+#endif
   if (swType == cfg::SwitchType::VOQ || swType == cfg::SwitchType::FABRIC) {
     switchType = swType == cfg::SwitchType::VOQ ? SAI_SWITCH_TYPE_VOQ
                                                 : SAI_SWITCH_TYPE_FABRIC;
@@ -494,8 +503,8 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         std::nullopt, // Restart Issu
         switchIsolate,
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-        std::nullopt, // Credit Watchdog
-        std::nullopt, // Credit Watchdog Timer
+        creditWd, // Credit Watchdog
+        creditWdMs, // Credit Watchdog Timer
 #endif
         maxCores, // Max cores
         std::nullopt, // PFC DLR Packet Action
