@@ -8,29 +8,28 @@
  *
  */
 
-#include "fboss/platform/sensor_service/hw_test/SensorsTest.h"
+#include "fboss/platform/sensor_service/hw_test/SensorServiceHwTest.h"
 
+#include <folly/init/Init.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/sensor_service/Flags.h"
-#include "fboss/platform/sensor_service/SensorServiceImpl.h"
-#include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
 
 using namespace apache::thrift;
 
 namespace facebook::fboss::platform::sensor_service {
 
-SensorsTest::~SensorsTest() {}
+SensorServiceHwTest::~SensorServiceHwTest() {}
 
-void SensorsTest::SetUp() {
+void SensorServiceHwTest::SetUp() {
   thriftHandler_ = std::make_shared<SensorServiceThriftHandler>(
       std::make_shared<SensorServiceImpl>(FLAGS_config_file));
 }
 
-void SensorsTest::TearDown() {}
+void SensorServiceHwTest::TearDown() {}
 
-SensorReadResponse SensorsTest::getSensors(
+SensorReadResponse SensorServiceHwTest::getSensors(
     const std::vector<std::string>& sensors) {
   SensorReadResponse response;
   thriftHandler_->getSensorValuesByNames(
@@ -38,19 +37,19 @@ SensorReadResponse SensorsTest::getSensors(
   return response;
 }
 
-SensorServiceImpl* SensorsTest::getService() {
+SensorServiceImpl* SensorServiceHwTest::getService() {
   return thriftHandler_->getServiceImpl();
 }
 
-TEST_F(SensorsTest, getAllSensors) {
+TEST_F(SensorServiceHwTest, getAllSensors) {
   getService()->getAllSensorData();
 }
 
-TEST_F(SensorsTest, getBogusSensor) {
+TEST_F(SensorServiceHwTest, getBogusSensor) {
   EXPECT_EQ(getSensors({"bogusSensor_foo"}).sensorData()->size(), 0);
 }
 
-TEST_F(SensorsTest, getSomeSensors) {
+TEST_F(SensorServiceHwTest, getSomeSensors) {
   auto response1 = getSensors({"PCH_TEMP"});
   EXPECT_EQ(response1.sensorData()->size(), 1);
   // Burn a second
@@ -63,7 +62,7 @@ TEST_F(SensorsTest, getSomeSensors) {
   EXPECT_GT(*response2.timeStamp(), *response1.timeStamp());
 }
 
-TEST_F(SensorsTest, getSensorsByFruTypes) {
+TEST_F(SensorServiceHwTest, getSensorsByFruTypes) {
   std::vector<FruType> fruTypes{FruType::ALL};
   SensorReadResponse response;
   thriftHandler_->getSensorValuesByFruTypes(
@@ -72,7 +71,7 @@ TEST_F(SensorsTest, getSensorsByFruTypes) {
   EXPECT_EQ(response.sensorData()->size(), 0);
 }
 
-TEST_F(SensorsTest, testThrift) {
+TEST_F(SensorServiceHwTest, testThrift) {
   auto server = std::make_unique<ScopedServerInterfaceThread>(
       thriftHandler_, folly::SocketAddress("::1", FLAGS_thrift_port));
   auto resolverEvb = std::make_unique<folly::EventBase>();
@@ -84,3 +83,12 @@ TEST_F(SensorsTest, testThrift) {
   EXPECT_EQ(response.sensorData()->size(), 1);
 }
 } // namespace facebook::fboss::platform::sensor_service
+
+int main(int argc, char* argv[]) {
+  // Parse command line flags
+  testing::InitGoogleTest(&argc, argv);
+  facebook::fboss::platform::helpers::init(argc, argv);
+
+  // Run the tests
+  return RUN_ALL_TESTS();
+}

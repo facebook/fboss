@@ -12,21 +12,13 @@
 #include <gtest/gtest.h>
 
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
+#include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/SensorServiceThrift.h"
 
-namespace facebook::services {
-class ServiceFrameworkLight;
-}
-namespace apache::thrift {
-class ThriftServer;
-}
 namespace facebook::fboss::platform::sensor_service {
-
-class SensorServiceThriftHandler;
-
-class SensorsTest : public ::testing::Test {
+class SensorServiceHwTest : public ::testing::Test {
  public:
-  ~SensorsTest() override;
+  ~SensorServiceHwTest() override;
   void SetUp() override;
   void TearDown() override;
 

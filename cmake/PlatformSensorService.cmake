@@ -59,8 +59,7 @@ target_link_libraries(sensor_service
 install(TARGETS sensor_service)
 
 add_executable(sensor_service_hw_test
-  fboss/platform/sensor_service/hw_test/Main.cpp
-  fboss/platform/sensor_service/hw_test/SensorsTest.cpp
+  fboss/platform/sensor_service/hw_test/SensorServiceHwTest.cpp
 )
 
 target_link_libraries(sensor_service_hw_test
