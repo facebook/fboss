@@ -1004,6 +1004,17 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   int bcm_rx_queue_max_get(int /*unit*/, bcm_cos_queue_t* /*cosq*/) override {
     return 0;
   }
+
+  int bcm_field_qset_id_multi_get(
+      int /*unit*/,
+      bcm_field_qset_t /*qset*/,
+      bcm_field_qualify_t /*qualifier*/,
+      int /*max_objects*/,
+      int* /*object_list*/,
+      int* /*count_objects*/) override {
+    return 0;
+  }
+
   int bcm_field_group_get(
       int /*unit*/,
       bcm_field_group_t /*group*/,

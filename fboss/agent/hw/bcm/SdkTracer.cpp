@@ -425,6 +425,14 @@ int __real_bcm_field_group_get(
     bcm_field_group_t group,
     bcm_field_qset_t* qset);
 
+int __real_bcm_field_qset_id_multi_get(
+    int unit,
+    bcm_field_qset_t qset,
+    bcm_field_qualify_t qualifier,
+    int max_objects,
+    int* object_list,
+    int* count_objects);
+
 int __real_bcm_cosq_control_get(
     int unit,
     bcm_gport_t port,
@@ -2484,6 +2492,17 @@ int __wrap_bcm_field_group_get(
     bcm_field_group_t group,
     bcm_field_qset_t* qset) {
   CALL_WRAPPERS_RV(bcm_field_group_get(unit, group, qset));
+}
+
+int __wrap_bcm_field_qset_id_multi_get(
+    int unit,
+    bcm_field_qset_t qset,
+    bcm_field_qualify_t qualifier,
+    int max_objects,
+    int* object_list,
+    int* count_objects) {
+  CALL_WRAPPERS_RV(bcm_field_qset_id_multi_get(
+      unit, qset, qualifier, max_objects, object_list, count_objects));
 }
 
 int __wrap_bcm_cosq_control_get(

@@ -639,6 +639,14 @@ class BcmSdkInterface {
       bcm_field_group_t group,
       bcm_field_qset_t* qset) = 0;
 
+  virtual int bcm_field_qset_id_multi_get(
+      int unit,
+      bcm_field_qset_t qset,
+      bcm_field_qualify_t qualifier,
+      int max_objects,
+      int* object_list,
+      int* count_objects) = 0;
+
   virtual int bcm_field_group_status_get(
       int unit,
       bcm_field_group_t group,
