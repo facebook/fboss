@@ -160,7 +160,7 @@ std::set<cfg::StreamType> Jericho2Asic::getQueueStreamTypes(
     cfg::PortType portType) const {
   switch (portType) {
     case cfg::PortType::CPU_PORT:
-      return {cfg::StreamType::MULTICAST};
+      return {cfg::StreamType::UNICAST};
     case cfg::PortType::INTERFACE_PORT:
     case cfg::PortType::RECYCLE_PORT:
       return {cfg::StreamType::UNICAST};
@@ -176,12 +176,12 @@ int Jericho2Asic::getDefaultNumPortQueues(
     cfg::PortType portType) const {
   switch (streamType) {
     case cfg::StreamType::UNICAST:
+      return 8;
+    case cfg::StreamType::MULTICAST:
       if (portType == cfg::PortType::CPU_PORT) {
         break;
       }
-      return 8;
-    case cfg::StreamType::MULTICAST:
-      return (portType == cfg::PortType::CPU_PORT) ? 8 : 4;
+      return 4;
     case cfg::StreamType::FABRIC_TX:
       if (portType != cfg::PortType::FABRIC_PORT) {
         break;
