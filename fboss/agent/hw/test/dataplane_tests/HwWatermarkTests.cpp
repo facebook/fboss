@@ -103,7 +103,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
     }
 
     auto counters = fb303::fbData->getRegexCounters({folly::sformat(
-        "buffer_watermark_ucast.{}.queue{}.*.p100.60", portName, queueId)});
+        "buffer_watermark_ucast.{}.*.queue{}.*.p100.60", portName, queueId)});
     // Unfortunately since  we use quantile stats, which compute
     // a MAX over a period, we can't really assert on the exact
     // value, just on its presence
