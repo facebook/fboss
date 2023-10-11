@@ -78,6 +78,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap {
       SAI_ATTR_MAP(Port, PfcTcDldIntervalRange),
       SAI_ATTR_MAP(Port, PfcTcDlrIntervalRange),
 #endif
+      SAI_ATTR_MAP(Port, SystemPort),
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _PortSerdesMap{

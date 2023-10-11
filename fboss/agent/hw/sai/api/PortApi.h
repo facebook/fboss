@@ -333,6 +333,11 @@ struct SaiPortTraits {
         sai_u32_range_t,
         SaiIntRangeDefault<sai_u32_range_t>>;
 #endif
+    using SystemPort = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_SYSTEM_PORT,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
   };
   using AdapterKey = PortSaiId;
 
@@ -545,6 +550,7 @@ SAI_ATTRIBUTE_NAME(Port, PfcTcDlrInterval);
 SAI_ATTRIBUTE_NAME(Port, PfcTcDldIntervalRange);
 SAI_ATTRIBUTE_NAME(Port, PfcTcDlrIntervalRange);
 #endif
+SAI_ATTRIBUTE_NAME(Port, SystemPort);
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};
