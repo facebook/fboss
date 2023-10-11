@@ -320,6 +320,12 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
         moduleId_);
   }
 
+  XLOG(INFO) << folly::sformat(
+      "cmisModuleFirmwareDownload: Mod{:d}: CDB wait time = {:d} ms, Memory write time = {:d} ms",
+      moduleId_,
+      commandBlock->getCdbWaitTimeMsec(),
+      commandBlock->getMemoryWriteTimeMsec());
+
   usleep(10 * moduleDatapathInitDurationUsec);
 
   // Set the password to let the privileged operation of firmware download

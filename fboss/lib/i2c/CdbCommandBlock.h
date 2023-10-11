@@ -89,6 +89,14 @@ class CdbCommandBlock {
     return cdbFields_.cdbLplMemory.cdbLplFlatMemory;
   }
 
+  uint64_t getCdbWaitTimeMsec() {
+    return commandBlockCdbWaitTime_.count();
+  }
+
+  uint64_t getMemoryWriteTimeMsec() {
+    return memoryWriteTime_.count();
+  }
+
  private:
   // Data block
   struct __attribute__((__packed__)) {
@@ -113,6 +121,9 @@ class CdbCommandBlock {
     } cdbLplMemory;
   } cdbFields_;
 
+  std::chrono::duration<uint32_t, std::milli> commandBlockCdbWaitTime_{0};
+  std::chrono::duration<uint32_t, std::milli> memoryWriteTime_{0};
+
   // Utility function to compute the One's complement sum
   uint8_t onesComplementSum();
 
@@ -120,6 +131,14 @@ class CdbCommandBlock {
   void resetCdbBlock() {
     memset(&cdbFields_, 0, sizeof(cdbFields_));
   }
+
+  void i2cWriteAndContinue(
+      TransceiverI2CApi* bus,
+      unsigned int modId,
+      uint8_t i2cAddress,
+      int offset,
+      int length,
+      const uint8_t* buf);
 };
 
 } // namespace facebook::fboss

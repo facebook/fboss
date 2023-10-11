@@ -47,13 +47,15 @@ constexpr uint8_t kCdbRlplLengthReg = 134;
  * error. This is used during firmware upgrade where huge number of i2c
  * transactions are going on
  */
-static void i2cWriteAndContinue(
+void CdbCommandBlock::i2cWriteAndContinue(
     TransceiverI2CApi* bus,
     unsigned int modId,
     uint8_t i2cAddress,
     int offset,
     int length,
     const uint8_t* buf) {
+  auto startTime = std::chrono::steady_clock::now();
+
   try {
     bus->moduleWrite(modId, {i2cAddress, offset, length}, buf);
   } catch (const std::exception& e) {
@@ -61,6 +63,10 @@ static void i2cWriteAndContinue(
                << e.what();
     usleep(cdbCommandIntervalUsec);
   }
+
+  auto writeTime = std::chrono::steady_clock::now() - startTime;
+  memoryWriteTime_ +=
+      std::chrono::duration_cast<std::chrono::milliseconds>(writeTime);
 }
 
 /*
@@ -137,8 +143,9 @@ bool CdbCommandBlock::cmisRunCdbCommand(
   // Now read the CDB command status register till the status becomes success
   // or fail
   uint8_t status = 0;
-  auto currTime = std::chrono::steady_clock::now();
-  auto finishTime = currTime + std::chrono::microseconds(cdbCommandTimeoutUsec);
+  auto startTime = std::chrono::steady_clock::now();
+  auto finishTime =
+      startTime + std::chrono::microseconds(cdbCommandTimeoutUsec);
   usleep(cdbCommandIntervalUsec);
   while (true) {
     try {
@@ -158,12 +165,16 @@ bool CdbCommandBlock::cmisRunCdbCommand(
       break;
     }
 
-    currTime = std::chrono::steady_clock::now();
+    auto currTime = std::chrono::steady_clock::now();
     if (currTime > finishTime) {
       break;
     }
     usleep(cdbCommandIntervalUsec);
   }
+
+  auto cdbWaitTime = std::chrono::steady_clock::now() - startTime;
+  commandBlockCdbWaitTime_ +=
+      std::chrono::duration_cast<std::chrono::milliseconds>(cdbWaitTime);
 
   if (status != kCdbCommandStatusSuccess) {
     XLOG(INFO) << folly::sformat(
