@@ -144,6 +144,23 @@ class HwEnsembleMultiSwitchThriftHandler
     // return stream to the client
     co_return std::move(streamAndPublisher.first);
   }
+
+  folly::coro::Task<
+      apache::thrift::SinkConsumer<multiswitch::HwSwitchStats, bool>>
+  co_syncHwStats(int16_t switchIndex) override {
+    co_return apache::thrift::SinkConsumer<multiswitch::HwSwitchStats, bool>{
+        [switchIndex](
+
+            folly::coro::AsyncGenerator<multiswitch::HwSwitchStats&&> gen)
+            -> folly::coro::Task<bool> {
+          while (auto item = co_await gen.next()) {
+            XLOG(DBG3) << "Got stats event from switchIndex " << switchIndex;
+          }
+          co_return true;
+        },
+        100 /* buffer size */
+    };
+  }
 #endif
 
   void enqueueTxPacket(multiswitch::TxPacket pkt) {
@@ -206,6 +223,9 @@ HwSwitchEnsemble::HwSwitchEnsemble(const Features& featuresDesired)
 HwSwitchEnsemble::~HwSwitchEnsemble() {
   if (thriftSyncer_) {
     thriftSyncer_->stop();
+  }
+  if (swSwitchTestServer_) {
+    swSwitchTestServer_.reset();
   }
   if (thriftThread_) {
     thriftThread_->join();
