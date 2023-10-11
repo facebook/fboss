@@ -370,7 +370,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   std::optional<SaiSwitchTraits::Attributes::CreditWd> creditWd;
   std::optional<SaiSwitchTraits::Attributes::CreditWdTimer> creditWdMs;
-  if (swType == cfg::SwitchType::VOQ) {
+  if (getAsic()->isSupported(HwAsic::Feature::CREDIT_WATCHDOG)) {
     // Use SAI defaults
     creditWd = true;
     creditWdMs = 500;
