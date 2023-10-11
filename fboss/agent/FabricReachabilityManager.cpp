@@ -8,15 +8,11 @@
 #include "fboss/agent/state/SwitchState.h"
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/platforms/common/cloud_ripper/CloudRipperFabricPlatformMapping.h"
-#include "fboss/agent/platforms/common/cloud_ripper/CloudRipperVoqPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
-#include "fboss/agent/platforms/common/wedge400c/Wedge400CFabricPlatformMapping.h"
-#include "fboss/agent/platforms/common/wedge400c/Wedge400CVoqPlatformMapping.h"
 
 using facebook::fboss::DeltaFunctions::forEachAdded;
 using facebook::fboss::DeltaFunctions::forEachChanged;
@@ -102,21 +98,9 @@ static const PlatformMapping* FOLLY_NULLABLE getPlatformMappingForDsfNode(
   static Meru400bfuPlatformMapping meru400bfu;
   static Meru800bfaPlatformMapping meru800bfa;
   static Meru800biaPlatformMapping meru800bia;
-  static Wedge400CVoqPlatformMapping w400cVoq;
-  static Wedge400CFabricPlatformMapping w400cFabric;
-  static CloudRipperFabricPlatformMapping cloudRipperFabric;
-  static CloudRipperVoqPlatformMapping cloudRipperVoq;
 
   *remotePortOffset = 0;
   switch (platformType) {
-    case PlatformType::PLATFORM_WEDGE400C_VOQ:
-      return &w400cVoq;
-    case PlatformType::PLATFORM_WEDGE400C_FABRIC:
-      return &w400cFabric;
-    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
-      return &cloudRipperVoq;
-    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
-      return &cloudRipperFabric;
     case PlatformType::PLATFORM_MERU400BIU:
       *remotePortOffset = 256;
       return &meru400biu;

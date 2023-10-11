@@ -59,7 +59,6 @@ add_library(sai_platform
   fboss/agent/platforms/sai/oss/SaiWedge400CPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiLassenPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmPlatform.cpp
-  fboss/agent/platforms/sai/oss/SaiPlatformInit.cpp
   fboss/agent/platforms/sai/oss/SaiMeru400biuPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiMeru800biaPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiMeru400biuPlatformPort.cpp
@@ -96,7 +95,6 @@ target_link_libraries(sai_platform
   lassen_platform_mapping
   morgan_platform_mapping
   sandia_platform_mapping
-  wedge400c_ebb_lab_platform_mapping
   wedge_led_utils
   bcm_yaml_config
   cloud_ripper_platform_mapping

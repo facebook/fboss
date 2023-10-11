@@ -14,11 +14,8 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/platforms/common/PlatformMappingUtils.h"
-#include "fboss/agent/platforms/common/cloud_ripper/CloudRipperFabricPlatformMapping.h"
 #include "fboss/agent/platforms/common/cloud_ripper/CloudRipperPlatformMapping.h"
-#include "fboss/agent/platforms/common/cloud_ripper/CloudRipperVoqPlatformMapping.h"
 #include "fboss/agent/platforms/common/darwin/DarwinPlatformMapping.h"
-#include "fboss/agent/platforms/common/ebb_lab/Wedge400CEbbLabPlatformMapping.h"
 #include "fboss/agent/platforms/common/elbert/ElbertPlatformMapping.h"
 #include "fboss/agent/platforms/common/fake_test/FakeTestPlatformMapping.h"
 #include "fboss/agent/platforms/common/fuji/FujiPlatformMapping.h"
@@ -39,11 +36,9 @@
 #include "fboss/agent/platforms/common/wedge400/Wedge400GrandTetonPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400/Wedge400PlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400/Wedge400PlatformUtil.h"
-#include "fboss/agent/platforms/common/wedge400c/Wedge400CFabricPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CGrandTetonPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformUtil.h"
-#include "fboss/agent/platforms/common/wedge400c/Wedge400CVoqPlatformMapping.h"
 #include "fboss/agent/platforms/common/yamp/YampPlatformMapping.h"
 
 namespace facebook::fboss {
@@ -110,28 +105,10 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
             ? std::make_unique<Wedge400CPlatformMapping>()
             : std::make_unique<Wedge400CPlatformMapping>(platformMappingStr);
       }
-    case PlatformType::PLATFORM_WEDGE400C_VOQ:
-      return platformMappingStr.empty()
-          ? std::make_unique<Wedge400CVoqPlatformMapping>()
-          : std::make_unique<Wedge400CVoqPlatformMapping>(platformMappingStr);
-    case PlatformType::PLATFORM_WEDGE400C_FABRIC:
-      return platformMappingStr.empty()
-          ? std::make_unique<Wedge400CFabricPlatformMapping>()
-          : std::make_unique<Wedge400CFabricPlatformMapping>(
-                platformMappingStr);
     case PlatformType::PLATFORM_CLOUDRIPPER:
       return platformMappingStr.empty()
           ? std::make_unique<CloudRipperPlatformMapping>()
           : std::make_unique<CloudRipperPlatformMapping>(platformMappingStr);
-    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
-      return platformMappingStr.empty()
-          ? std::make_unique<CloudRipperVoqPlatformMapping>()
-          : std::make_unique<CloudRipperVoqPlatformMapping>(platformMappingStr);
-    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
-      return platformMappingStr.empty()
-          ? std::make_unique<CloudRipperFabricPlatformMapping>()
-          : std::make_unique<CloudRipperFabricPlatformMapping>(
-                platformMappingStr);
     case PlatformType::PLATFORM_DARWIN:
       return platformMappingStr.empty()
           ? std::make_unique<DarwinPlatformMapping>()
@@ -181,6 +158,11 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
           : std::make_unique<Morgan800ccPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_FAKE_SAI:
       return std::make_unique<FakeTestPlatformMapping>(std::vector<int>{});
+    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
+    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
+    case PlatformType::PLATFORM_WEDGE400C_FABRIC:
+    case PlatformType::PLATFORM_WEDGE400C_VOQ:
+      throw FbossError("Unsupported platform type");
   }
   return nullptr;
 }

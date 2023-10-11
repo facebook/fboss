@@ -74,22 +74,8 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
   } else if (productInfo->getType() == PlatformType::PLATFORM_WEDGE400C) {
     return std::make_unique<SaiWedge400CPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
-  } else if (productInfo->getType() == PlatformType::PLATFORM_WEDGE400C_VOQ) {
-    return std::make_unique<SaiWedge400CVoqPlatform>(
-        std::move(productInfo), localMac, platformMappingStr);
-  } else if (
-      productInfo->getType() == PlatformType::PLATFORM_WEDGE400C_FABRIC) {
-    return std::make_unique<SaiWedge400CFabricPlatform>(
-        std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_CLOUDRIPPER) {
     return std::make_unique<SaiCloudRipperPlatform>(
-        std::move(productInfo), localMac, platformMappingStr);
-  } else if (productInfo->getType() == PlatformType::PLATFORM_CLOUDRIPPER_VOQ) {
-    return std::make_unique<SaiCloudRipperVoqPlatform>(
-        std::move(productInfo), localMac, platformMappingStr);
-  } else if (
-      productInfo->getType() == PlatformType::PLATFORM_CLOUDRIPPER_FABRIC) {
-    return std::make_unique<SaiCloudRipperFabricPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_FUJI) {
     return std::make_unique<SaiBcmFujiPlatform>(
