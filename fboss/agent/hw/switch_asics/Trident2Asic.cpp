@@ -145,6 +145,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES:
     case HwAsic::Feature::SAI_EAPOL_TRAP:
+    case HwAsic::Feature::CREDIT_WATCHDOG:
       return false;
   }
   return false;

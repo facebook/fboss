@@ -158,6 +158,7 @@ class HwAsic {
     L3_MTU_ERROR_TRAP,
     SAI_USER_DEFINED_TRAP,
     ACL_COUNTER_LABEL,
+    CREDIT_WATCHDOG,
   };
 
   enum class AsicMode {

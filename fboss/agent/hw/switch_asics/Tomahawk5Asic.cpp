@@ -147,6 +147,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::LINK_STATE_BASED_ISOLATE:
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
+    case HwAsic::Feature::CREDIT_WATCHDOG:
       return false;
   }
   return false;

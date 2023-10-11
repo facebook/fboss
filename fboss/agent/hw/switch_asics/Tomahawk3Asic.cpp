@@ -145,6 +145,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES:
+    case HwAsic::Feature::CREDIT_WATCHDOG:
       return false;
   }
   return false;

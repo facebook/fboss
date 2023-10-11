@@ -155,6 +155,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
     case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
     case HwAsic::Feature::PORT_EYE_VALUES:
+    case HwAsic::Feature::CREDIT_WATCHDOG:
       return false;
   }
   return false;

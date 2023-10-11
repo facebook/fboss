@@ -83,6 +83,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::ACL_COUNTER_LABEL:
+    case HwAsic::Feature::CREDIT_WATCHDOG:
       return true;
 
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
