@@ -36,7 +36,6 @@
 #include "fboss/agent/platforms/sai/SaiMeru800bfaPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMeru800biaPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMorgan800ccPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiSandiaPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
@@ -265,8 +264,6 @@ void SaiPlatform::initPorts() {
           getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
         saiPort = std::make_unique<SaiBcmElbertPlatformPort>(portId, this);
       }
-    } else if (platformMode == PlatformType::PLATFORM_SANDIA) {
-      saiPort = std::make_unique<SaiSandiaPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_MERU400BIU) {
       saiPort = std::make_unique<SaiMeru400biuPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_MERU800BIA) {
