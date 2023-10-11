@@ -356,6 +356,10 @@ QsfpModule::detectPresenceLocked() {
   return {currentQsfpStatus, statusChanged};
 }
 
+const folly::EventBase* QsfpModule::getEvb() const {
+  return qsfpImpl_->getI2cEventBase();
+}
+
 unsigned int QsfpModule::numHostLanes() const {
   switch (getModuleMediaInterface()) {
     case MediaInterfaceCode::LR_10G:

@@ -94,6 +94,8 @@ class Transceiver {
 
   virtual TransceiverID getID() const = 0;
 
+  virtual const folly::EventBase* getEvb() const = 0;
+
   /*
    * Return the spec this transceiver follows.
    */

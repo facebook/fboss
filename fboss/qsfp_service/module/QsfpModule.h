@@ -724,6 +724,8 @@ class QsfpModule : public Transceiver {
   time_t lastFwUpgradeEndTime_{0};
 
   std::string getFwStorageHandle(const std::string& tcvrPartNumber) const;
+
+  const folly::EventBase* getEvb() const override;
 };
 } // namespace fboss
 } // namespace facebook
