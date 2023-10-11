@@ -86,6 +86,7 @@ void SplitAgentThriftClient::connectToServer(const ServerOptions& options) {
 
 #if FOLLY_HAS_COROUTINES
 folly::coro::Task<void> SplitAgentThriftClient::serviceLoopWrapper() {
+  setState(State::CONNECTED);
   try {
     co_await serveStream();
   } catch (const folly::OperationCancelled&) {
