@@ -20,11 +20,11 @@ class SensorServiceHwTest : public ::testing::Test {
  public:
   ~SensorServiceHwTest() override;
   void SetUp() override;
-  void TearDown() override;
 
  protected:
   SensorReadResponse getSensors(const std::vector<std::string>& sensors);
-  SensorServiceImpl* getService();
-  std::shared_ptr<SensorServiceThriftHandler> thriftHandler_;
+  std::shared_ptr<SensorServiceImpl> sensorServiceImpl_;
+  std::shared_ptr<SensorServiceThriftHandler> sensorServiceHandler_;
+  SensorConfig sensorConfig_;
 };
 } // namespace facebook::fboss::platform::sensor_service
