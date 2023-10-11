@@ -474,6 +474,7 @@ BOOST_MSM_EUML_TRANSITION_TABLE((
     // May need to remediate transciever if some ports are down
     ACTIVE                 + REMEDIATE_TRANSCEIVER  [tryRemediateTransceiver]  / logStateChanged == XPHY_PORTS_PROGRAMMED,
     INACTIVE               + UPGRADE_FIRMWARE [firmwareUpgradeRequired]        / logStateChanged == UPGRADING,
+    DISCOVERED             + UPGRADE_FIRMWARE [firmwareUpgradeRequired]        / logStateChanged == UPGRADING,
     UPGRADING              + RESET_TO_NOT_PRESENT                              / logStateChanged == NOT_PRESENT
 //  +------------------------------------------------------------------------------------------------------------+
     ), TransceiverTransitionTable)

@@ -1045,6 +1045,8 @@ void TransceiverManager::triggerFirmwareUpgradeEvents(
     }
   }
   waitForAllBlockingStateUpdateDone(results);
+
+  resetUpgradedTransceiversToNotPresent();
 }
 
 void TransceiverManager::updateTransceiverActiveState(
@@ -1162,11 +1164,32 @@ void TransceiverManager::refreshStateMachines() {
   // Therefore, always do port status update first.
   updateTransceiverPortStatus();
 
-  resetUpgradedTransceiversToNotPresent();
-
   // Step2: Refresh all transceivers so that we can get an update
   // TransceiverInfo
   const auto& presentXcvrIds = refreshTransceivers();
+
+  // Find transceivers that were just discovered or that are still inactive
+  std::unordered_set<TransceiverID> potentialTcvrsForFwUpgrade;
+  for (auto tcvrID : presentXcvrIds) {
+    auto curState = getCurrentState(tcvrID);
+    if (curState == TransceiverStateMachineState::DISCOVERED ||
+        curState == TransceiverStateMachineState::INACTIVE) {
+      potentialTcvrsForFwUpgrade.insert(tcvrID);
+    }
+  }
+
+  // We only want to trigger firmware upgrade in these two cases -
+  // 1. This is the first iteration of refreshStateMachines (i.e
+  // isFullyInitialized() is false) and it's a cold boot (i.e. canWarmBoot_ ==
+  // false)
+  // 2. This is not the first iteration of refreshStateMachines (i.e
+  // isFullyInitialized() is true). This case handles new transceiver detections
+  // Therefore the condition to trigger firmware upgrade should be -
+  // (!canWarmBoot_ && !isFullyInitialized()) || (isFullyInitialized())
+  // = !canWarmBoot_ || isFullyInitialized()
+  if (!canWarmBoot_ || isFullyInitialized()) {
+    triggerFirmwareUpgradeEvents(potentialTcvrsForFwUpgrade);
+  }
 
   // Step3: Check whether there's a wedge_agent config change
   triggerAgentConfigChangeEvent();
