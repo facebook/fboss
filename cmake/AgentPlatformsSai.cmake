@@ -21,8 +21,6 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiElbert8DDPhyPlatformPort.cpp
   fboss/agent/platforms/sai/SaiFakePlatform.cpp
   fboss/agent/platforms/sai/SaiFakePlatformPort.cpp
-  fboss/agent/platforms/sai/SaiLassenPlatform.cpp
-  fboss/agent/platforms/sai/SaiLassenPlatformPort.cpp
   fboss/agent/platforms/sai/SaiMorgan800ccPlatform.cpp
   fboss/agent/platforms/sai/SaiMorgan800ccPlatformPort.cpp
   fboss/agent/platforms/sai/SaiPlatformPort.cpp
@@ -57,7 +55,6 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiBcmElbertPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiBcmElbertPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiWedge400CPlatformPort.cpp
-  fboss/agent/platforms/sai/oss/SaiLassenPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiMeru400biuPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiMeru800biaPlatform.cpp
