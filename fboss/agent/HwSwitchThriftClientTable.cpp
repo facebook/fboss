@@ -10,6 +10,7 @@
 #include "fboss/agent/HwSwitchThriftClientTable.h"
 
 #include <folly/IPAddress.h>
+#include <folly/logging/xlog.h>
 #include <netinet/in.h>
 #include <thrift/lib/cpp2/async/PooledRequestChannel.h>
 #include <thrift/lib/cpp2/async/ReconnectingRequestChannel.h>
@@ -72,6 +73,20 @@ apache::thrift::Client<FbossHwCtrl>* HwSwitchThriftClientTable::getClient(
     throw FbossError("No client found for switch ", switchId);
   }
   return clients_.at(switchId).get();
+}
+
+std::optional<std::map<::std::int64_t, FabricEndpoint>>
+HwSwitchThriftClientTable::getFabricReachability(SwitchID switchId) {
+  std::map<::std::int64_t, FabricEndpoint> reachability;
+  auto client = getClient(switchId);
+  try {
+    client->sync_getFabricReachability(reachability);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to get fabric reachability for switch : " << switchId
+              << " error: " << ex.what();
+    return std::nullopt;
+  }
+  return reachability;
 }
 
 } // namespace facebook::fboss
