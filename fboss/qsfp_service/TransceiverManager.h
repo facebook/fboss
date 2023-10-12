@@ -447,7 +447,7 @@ class TransceiverManager {
   void syncNpuPortStatusUpdate(
       std::map<int, facebook::fboss::NpuPortStatus>& portStatus);
 
-  bool firmwareUpgradeRequired(TransceiverID id) const;
+  bool firmwareUpgradeRequired(TransceiverID id);
 
   void doTransceiverFirmwareUpgrade(TransceiverID tcvrID);
 
@@ -751,6 +751,10 @@ class TransceiverManager {
       npuPortStatusCache_;
 
   std::unique_ptr<FbossFwStorage> fwStorage_;
+
+  folly::Synchronized<
+      std::unordered_map<const folly::EventBase*, std::vector<TransceiverID>>>
+      evbsRunningFirmwareUpgrade_;
 
   friend class TransceiverStateMachineTest;
 };
