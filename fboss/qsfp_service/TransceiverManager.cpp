@@ -302,7 +302,18 @@ void TransceiverManager::doTransceiverFirmwareUpgrade(TransceiverID tcvrID) {
   }
   XLOG(INFO) << " Triggering Transceiver Firmware Upgrade for Transceiver="
              << tcvrIt->first;
+
+  auto updateStateInFsdb = [&](bool status) {
+    if (FLAGS_publish_stats_to_fsdb) {
+      auto tcvrInfo =
+          tcvrIt->second->updateFwUpgradeStatusInTcvrInfoLocked(status);
+      updateTcvrStateInFsdb(tcvrIt->first, std::move(*tcvrInfo.tcvrState()));
+    }
+  };
+
+  updateStateInFsdb(true);
   tcvrIt->second->upgradeFirmware();
+  updateStateInFsdb(false);
 }
 
 TransceiverManager::TransceiverToStateMachineHelper

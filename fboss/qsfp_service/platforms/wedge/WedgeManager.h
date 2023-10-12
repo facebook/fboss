@@ -166,6 +166,10 @@ class WedgeManager : public TransceiverManager {
 
   PlatformType platformType_;
 
+  void updateTcvrStateInFsdb(
+      TransceiverID tcvrID,
+      facebook::fboss::TcvrState&& newState) override;
+
  private:
   // Forbidden copy constructor and assignment operator
   WedgeManager(WedgeManager const&) = delete;

@@ -372,6 +372,12 @@ std::vector<TransceiverID> WedgeManager::refreshTransceivers() {
   return TransceiverManager::refreshTransceivers(kEmptryTransceiverIDs);
 }
 
+void WedgeManager::updateTcvrStateInFsdb(
+    TransceiverID tcvrID,
+    facebook::fboss::TcvrState&& newState) {
+  fsdbSyncManager_->updateTcvrState(tcvrID, std::move(newState));
+}
+
 void WedgeManager::publishTransceiversToFsdb(
     const std::vector<TransceiverID>& ids) {
   if (!FLAGS_publish_stats_to_fsdb) {
@@ -390,7 +396,8 @@ void WedgeManager::publishTransceiversToFsdb(
     if (iter == tcvrInfos.end()) {
       continue;
     }
-    fsdbSyncManager_->updateTcvrState(id, std::move(*iter->second.tcvrState()));
+    updateTcvrStateInFsdb(
+        TransceiverID(id), std::move(*iter->second.tcvrState()));
   }
 
   // Publish all stats (No deltas. Just publish the best we have for all

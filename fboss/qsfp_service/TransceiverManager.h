@@ -540,6 +540,10 @@ class TransceiverManager {
   };
   std::unordered_map<PortID, SwPortInfo> portToSwPortInfo_;
 
+  virtual void updateTcvrStateInFsdb(
+      TransceiverID /* tcvrID */,
+      facebook::fboss::TcvrState&& /* newState */) {}
+
  private:
   // Forbidden copy constructor and assignment operator
   TransceiverManager(TransceiverManager const&) = delete;
