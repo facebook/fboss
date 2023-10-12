@@ -26,7 +26,10 @@ void FruPresenceExplorer::detectFruPresence() const {
       fruTypePresence[fruType] = true;
     }
     try {
-      auto value = std::stoi(readSysfs(*fruConfig.presenceSysfsPath()));
+      auto value = std::stoi(
+          readSysfs(*fruConfig.presenceSysfsPath()).c_str(),
+          nullptr,
+          0 /*determine base by format*/);
       auto present = value > 0 ? true : false;
       if (!present) {
         fruTypePresence[fruType] = false;

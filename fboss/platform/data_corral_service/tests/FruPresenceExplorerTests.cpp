@@ -99,4 +99,36 @@ TEST_F(FruPresenceExplorerTests, PresenceDetectionFail) {
       std::make_shared<FruPresenceExplorer>(fruConfigs_, mockLedManager_);
   fruPresenceExplorer_->detectFruPresence();
 }
+
+TEST_F(FruPresenceExplorerTests, PresenceDetectionHexadecimal) {
+  EXPECT_TRUE(writeSysfs(*fruConfigs_[0].presenceSysfsPath(), "0x1"));
+  EXPECT_TRUE(writeSysfs(*fruConfigs_[1].presenceSysfsPath(), "0x01"));
+  EXPECT_TRUE(writeSysfs(*fruConfigs_[2].presenceSysfsPath(), "0x001"));
+
+  EXPECT_CALL(*mockLedManager_, programFruLed("FAN", true))
+      .WillOnce(Return(true));
+  EXPECT_CALL(*mockLedManager_, programFruLed("PEM", true))
+      .WillOnce(Return(true));
+  EXPECT_CALL(*mockLedManager_, programSystemLed(true)).WillOnce(Return(true));
+
+  fruPresenceExplorer_ =
+      std::make_shared<FruPresenceExplorer>(fruConfigs_, mockLedManager_);
+  fruPresenceExplorer_->detectFruPresence();
+}
+
+TEST_F(FruPresenceExplorerTests, AbsenceDetectionHexadecimal) {
+  EXPECT_TRUE(writeSysfs(*fruConfigs_[0].presenceSysfsPath(), "0x0"));
+  EXPECT_TRUE(writeSysfs(*fruConfigs_[1].presenceSysfsPath(), "0x00"));
+  EXPECT_TRUE(writeSysfs(*fruConfigs_[2].presenceSysfsPath(), "0x000"));
+
+  EXPECT_CALL(*mockLedManager_, programFruLed("FAN", false))
+      .WillOnce(Return(true));
+  EXPECT_CALL(*mockLedManager_, programFruLed("PEM", false))
+      .WillOnce(Return(true));
+  EXPECT_CALL(*mockLedManager_, programSystemLed(false)).WillOnce(Return(true));
+
+  fruPresenceExplorer_ =
+      std::make_shared<FruPresenceExplorer>(fruConfigs_, mockLedManager_);
+  fruPresenceExplorer_->detectFruPresence();
+}
 } // namespace facebook::fboss::platform::data_corral_service
